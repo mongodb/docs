@@ -96,8 +96,9 @@ int main() {
         auto db = client["test_database"];
 
         mongocxx::read_preference rp;
-        rp.mode(mongocxx::read_preference::read_mode::k_secondary);
         mongocxx::read_concern rc;
+
+        rp.mode(mongocxx::read_preference::read_mode::k_secondary);
         rc.acknowledge_level(mongocxx::read_concern::level::k_majority);
 
         db.read_preference(rp);
@@ -111,8 +112,9 @@ int main() {
         auto coll = client["test_database"]["test_collection"];
 
         mongocxx::read_concern rc;
-        rc.acknowledge_level(mongocxx::read_concern::level::k_local);
         mongocxx::write_concern wc;
+
+        rc.acknowledge_level(mongocxx::read_concern::level::k_local);
         wc.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
 
         coll.read_concern(rc);
@@ -128,6 +130,7 @@ int main() {
         auto tag_set_sf = make_document(kvp("dc", "sf"));
 
         mongocxx::read_preference rp;
+
         rp.mode(mongocxx::read_preference::read_mode::k_secondary);
         rp.tags(make_array(tag_set_ny, tag_set_sf).view());
         // end-tags
@@ -137,8 +140,34 @@ int main() {
         // Instructs the driver to distribute reads between members within 35 milliseconds
         // of the closest member's ping time
         // start-local-threshold
-        mongocxx::uri uri("mongodb://localhost:27017/?localThresholdMS=35");
-        mongocxx::client client(uri);
+        mongocxx::uri uri{"mongodb://localhost:27017/?localThresholdMS=35"};
+        mongocxx::client client{uri};
         // end-local-threshold
+    }
+
+    {
+        // Sets read and write settings for the transaction
+        // start-transaction-settings
+        auto session = client.start_session();
+
+        mongocxx::options::transaction txn_opts;
+
+        {
+            mongocxx::read_preference rp;
+            mongocxx::read_concern rc;
+            mongocxx::write_concern wc;
+
+            rp.mode(mongocxx::read_preference::read_mode::k_primary);
+            rc.acknowledge_level(mongocxx::read_concern::level::k_majority);
+            wc.acknowledge_level(mongocxx::write_concern::level::k_acknowledged);
+            txn_opts.read_preference(rp);
+            txn_opts.read_concern(rc);
+            txn_opts.write_concern(wc);
+        }
+        
+        session.with_transaction([&](mongocxx::client_session*) {
+            // Specify transaction operations here
+        }, txn_opts);
+        // end-transaction-settings
     }
 }

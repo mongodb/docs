@@ -54,7 +54,7 @@ int main() {
     }
     {
         // start-create-search-index
-        // Create an index model with your index name and definition
+        // Create a search index model with your index name and definition
         auto siv = collection.search_indexes();
         auto name = "<searchIndexName>";
         auto definition = make_document(kvp("mappings", make_document(kvp("dynamic", true))));
@@ -64,6 +64,26 @@ int main() {
         auto result = siv.create_one(model);
         std::cout << "New index name: " << result << std::endl;
         // end-create-search-index
+    }
+    {
+        // start-create-vector-search-index
+        // Create a vector search index model with your index name and definition
+        auto model = mongocxx::search_index_model(
+        "<vectorSearchIndexName>",
+        make_document(
+            kvp("fields",
+                make_array(make_document(
+                    kvp("type", "vector"),
+                    kvp("path", "<fieldName>"),
+                    kvp("numDimensions", 2048),
+                    kvp("similarity", "dotProduct"),
+                    kvp("quantization", "scalar"))))));
+        model.type("vectorSearch");
+
+        // Create the vector search index
+        auto result = siv.create_one(model);
+        std::cout << "New index name: " << result << std::endl;
+        // end-create-vector-search-index
     }
     {    
         // start-list-search-indexes
@@ -81,6 +101,18 @@ int main() {
         auto update_definition = make_document(kvp("mappings", make_document(kvp("dynamic", false), kvp("fields", update_fields))));
         siv.update_one("<searchIndexName>", update_definition.view());
         // end-update-search-index   
+    }
+    {
+        // start-update-vector-search-index
+        auto siv = collection.search_indexes();
+        auto definition = make_document(
+            kvp("fields",
+                make_array(make_document(
+                    kvp("type", "vector"), kvp("path", "<fieldName>"),
+                    kvp("numDimensions", 2048), kvp("similarity", "euclidean"), 
+                    kvp("quantization", "binary")))));
+        siv.update_one("<vectorSearchIndexName>", definition.view());
+        // end-update-vector-search-index   
     }
     {
         // start-remove-search-index

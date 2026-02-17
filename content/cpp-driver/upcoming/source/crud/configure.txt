@@ -1,0 +1,293 @@
+.. _cpp-driver-configure:
+
+=========================
+Configure CRUD Operations
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: customize, preferences, replica set, consistency, load balancing
+
+Overview
+--------
+
+In this guide, you can learn how to configure **write concern**, **read concern**,
+and **read preference** options to modify the way that the {+driver-short+} runs
+read and write operations on replica sets.
+
+Read and Write Settings Precedence
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can set write concern, read concern, and read preference options at the following
+levels:
+
+- Transaction
+- Database
+- Collection
+
+This list also indicates the increasing order of precedence of the option
+settings. For example, if you set a read concern for a database, it will 
+override the read concern settings inherited from the transaction.
+
+.. _cpp-driver-read-write-config:
+
+Configure Read and Write Operations
+-----------------------------------
+
+You can control how the driver routes read operations by setting a **read preference**.
+You can also control options for how the driver waits for acknowledgment of
+read and write operations on a replica set by setting a **read concern** and a
+**write concern**.
+
+To learn more about read and write settings and their options, see the following
+guides in the {+mdb-server+} manual:
+
+- :manual:`Read Preference </core/read-preference/>`
+- :manual:`Read Concern </reference/read-concern/>`
+- :manual:`Write Concern </reference/write-concern/>`
+
+For information on the default read and write settings, see 
+:ref:`<default-mongodb-read-write-concerns>` in the {+mdb-server+} manual.
+
+Transaction Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Transactions run within **sessions**, which are groupings of related read or 
+write operations that you intend to run sequentially. Use the 
+``start_session()`` method to obtain a session to use for the transactions.
+Then, pass a ``mongocxx::options::transaction`` object to the session's 
+``with_transaction()`` method. This example shows how to set the read 
+preference, read concern, and write concern of a transaction.
+
+.. tip::
+
+   To learn more about sessions, see :manual:`Server Sessions </reference/server-sessions/>`
+   in the {+mdb-server+} manual.
+
+The example configures the following settings:
+
+- ``k_primary`` read preference: Read operations retrieve data from 
+  the primary replica set member.
+- ``k_majority`` read concern: Read operations return the instance's most recent data 
+  that has been written to a majority of replica set members.
+- ``k_acknowledged`` write concern: The primary replica set member must acknowledge the
+  write operation.
+  
+.. literalinclude:: /includes/databases-collections/databases-collections.cpp
+   :start-after: start-transaction-settings
+   :end-before: end-transaction-settings
+   :language: cpp
+   :copyable:
+   :dedent:
+
+Database Configuration
+~~~~~~~~~~~~~~~~~~~~~~
+
+This example shows how to configure the following read settings for your 
+database:
+
+- ``k_secondary`` read preference: Read operations retrieve data from only 
+  secondary replica set members.
+- ``k_majority`` read concern: Read operations return the instance's most recent data 
+  that has been written to a majority of replica set members.
+
+.. literalinclude:: /includes/databases-collections/databases-collections.cpp
+   :start-after: start-database-read-settings
+   :end-before: end-database-read-settings
+   :language: cpp
+   :copyable:
+   :dedent:
+
+Collection Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example shows how to specify the following read and write concern settings
+for your collection:
+
+- ``k_local`` read concern: Read operations return the instance's most recent 
+  data, with no guarantee that the data has been written to a majority of 
+  replica set members.
+- ``k_acknowledged`` write concern: The primary replica set member must
+  acknowledge the write operation.
+
+.. literalinclude:: /includes/databases-collections/databases-collections.cpp
+   :start-after: start-collection-read-write-settings
+   :end-before: end-collection-read-write-settings
+   :language: cpp
+   :copyable:
+   :dedent:
+
+Tag Sets
+~~~~~~~~
+
+In the {+mdb-server+}, you can apply key-value :manual:`tags
+</core/read-preference-tags/>` to replica-set
+members according to any criteria you choose. You can then use
+those tags to target one or more members for a read operation.
+
+By default, the {+driver-short+} ignores tags
+when choosing a member to read from. To instruct the {+driver-short+}
+to prefer certain tags, create a ``mongocxx::read_preference`` object
+and call its ``tags()`` member function. Pass your preferred tags as
+an array argument to ``tags()``.
+
+In the following code example, the tag set passed to the ``tags()``
+function instructs the {+driver-short+} to prefer reads from the
+New York data center (``"dc": "ny"``) and to fall back to the San Francisco data
+center (``"dc": "sf"``):
+
+.. literalinclude:: /includes/databases-collections/databases-collections.cpp
+   :start-after: start-tags
+   :end-before: end-tags
+   :language: cpp
+   :copyable:
+   :dedent:
+
+Retryable Reads and Writes
+--------------------------
+
+The {+driver-short+} automatically retries certain read and write operations
+once if they fail due to a network or server error.
+
+You can explicitly disable retryable reads or retryable writes by setting
+the ``retryReads`` or ``retryWrites`` options to ``false`` in your connection
+URI. The following example disables retryable reads and writes for a client:
+
+.. literalinclude:: /includes/configure-crud-retry-rw.cpp
+   :language: cpp
+   :dedent:
+   :start-after: start-retry-rw-uri
+   :end-before: end-retry-rw-uri
+
+To learn more about supported retryable read and write operations, see the
+following guides in the {+mdb-server+} manual:
+
+- :manual:`Retryable Reads</core/retryable-reads/>`
+- :manual:`Retryable Writes</core/retryable-writes/>`
+
+Load Balancing
+--------------
+
+When connecting to a sharded cluster or a replica set, the {+driver-short+} uses
+**load balancing** to handle read and write requests. Load balancing allows the
+driver to distribute these requests across multiple servers, which avoids
+overwhelming any one server and ensures optimal performance.
+
+When connecting to a sharded cluster, the {+driver-short+} determines the 
+closest ``mongos`` instance by calculating which one has the lowest network
+round-trip time. Then, the driver determines the latency window by adding this 
+``mongos``'s average round-trip time to the :ref:`localThresholdMS value <cpp-local-threshold>`. 
+The driver load balances requests across up to two random ``mongos`` instances
+that fall within the latency window. For each request, the driver chooses the
+server with the lower operation load by determining its ``operationCount``
+value.
+
+When connecting to a replica set, the {+driver-short+} first selects replica
+set members according to your read preference. Then, the driver follows the
+same process as described in the preceding paragraph. After calculating the
+latency window, the driver selects up to two random replica set members that
+fall within the window and chooses the member with the lower ``operationCount``
+value to receive the request.
+
+.. tip::
+
+  To learn more about load balancing, see :manual:`Sharded Cluster Balancer
+  </core/sharding-balancer-administration/>` in the {+mdb-server+} manual.
+
+.. _cpp-local-threshold:
+
+Local Threshold
+~~~~~~~~~~~~~~~
+
+The {+driver-short+} uses the local threshold value to calculate the
+latency window for server selection. This value determines the servers
+that are eligible to receive read and write requests.
+
+By default, the driver uses only ``mongos`` instances or replica set members
+whose ping times are within 15 milliseconds of the nearest server. To
+distribute reads among servers with higher latencies, set the ``localThreshold``
+parameter in your connection URI.
+
+.. note::
+  
+   When selecting replica set members from a single ``mongos`` instance, the
+   {+driver-short+} ignores the ``localThresholdMS`` option. In this case, use the
+   :manual:`localThreshold </reference/program/mongos/#std-option-mongos.--localThreshold>`
+   command-line option.
+
+The following example connects to a replica set and specifies a local threshold
+of 35 milliseconds:
+
+.. literalinclude:: /includes/configure-crud-local-threshold.cpp
+   :language: cpp
+   :dedent:
+   :start-after: start-local-threshold-uri
+   :end-before: end-local-threshold-uri
+
+In the preceding example, the {+driver-short+} distributes reads among matching
+members within 35 milliseconds of the closest member's ping time.
+
+Collation
+---------
+
+You can specify a **collation** when you perform read and write operations on a collection.
+
+A collation is a set of language-specific rules for string comparison, such as for letter
+case and accent marks.
+
+To specify a collation, pass the collation definition to the
+``collation()`` method of an options object, then pass this options object to a read or
+write operation.
+
+Collation Example
+~~~~~~~~~~~~~~~~~
+
+Consider a collection with the following documents:
+
+.. code-block:: json
+
+   { _id: 1, category: "café" },
+   { _id: 2, category: "cafe" },
+   { _id: 3, category: "cafE" }
+
+The following example creates a collation that specifies the French locale and ignores
+differences between case and letter variants. It then uses this collation to find documents
+in which the ``category`` field value matches ``"cafe"``. Because of the specified collation, the query
+returns all three documents.
+
+.. io-code-block::
+
+   .. input:: /includes/configure-crud-local-threshold.cpp
+     :start-after: // start-collation
+     :end-before: // end-collation
+     :language: cpp
+     :dedent:
+  
+   .. output::
+      :visible: false
+
+      { "_id": { "$oid" : "1" }, "category": "café" }
+      { "_id": { "$oid" : "2" }, "category": "cafe" }
+      { "_id": { "$oid" : "3" }, "category": "cafE" }
+
+API Documentation 
+-----------------
+
+To learn more about any of the classes or methods discussed in this guide, see the
+following API documentation:
+
+- `mongocxx::client API <{+api+}/classmongocxx_1_1client.html>`__
+- `mongocxx::client_session API <{+api+}/classmongocxx_1_1client__session.html>`__
+- `mongocxx::read_preference API <{+api+}/classmongocxx_1_1v__noabi_1_1read__preference.html>`__
+- `mongocxx::read_concern API <{+api+}/classmongocxx_1_1v__noabi_1_1read__concern.html>`__
+- `mongocxx::uri API <{+api+}/classmongocxx_1_1uri.html>`__
+- `mongocxx::write_concern API <{+api+}/classmongocxx_1_1v__noabi_1_1write__concern.html>`__

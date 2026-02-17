@@ -1,65 +1,168 @@
 .. _cpp-connection-pools:
 
-================
-Connection Pools
-================
+=====================
+Use a Connection Pool
+=====================
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 .. facet::
    :name: genre
    :values: reference
 
-``mongocxx::client`` vs ``mongocxx::pool``
-------------------------------------------
+.. meta::
+   :keywords: client, thread safety, multithreading, pooling, code example
+   :description: Learn how to use the C++ driver to create connection pools, which allow you to manage multiple client objects and run concurrent operations in your code.
 
-A standalone ``mongocxx::client`` uses a single-threaded algorithm to
-monitor the state of the cluster it's connected to. When connected to a
-replica set, the thread "stops the world" every 60 seconds to check the
-status of the cluster. A ``mongocxx::pool``, on the other hand, uses a
-separate background thread for each server in the cluster, each of which
-checks the status of the server it monitors every 10 seconds. Because of
-the performance advantages of monitoring the cluster in the background 
-rather than "stopping the world", it's highly recommended to use a
-``mongocxx::pool`` rather than a set of standalone clients if your
-application has access to multiple threads, even if your application only
-uses one thread.
+Overview
+--------
 
-Using Threads with Connection Pools
------------------------------------
+In this guide, you can learn how to use the {+driver-short+} to create and
+configure a **connection pool**. A connection pool is a cache of client
+objects that your application can use to manage multiple concurrent MongoDB
+operations.
 
-A ``mongocxx::pool`` can be shared across multiple threads and used to create
-clients. However, each ``mongocxx::client`` can only be used in a single
-thread. See the :ref:`thread safety documentation <cpp-thread-safety>` for
-details on how to use a ``mongocxx::client`` in a thread-safe manner.
+After you instantiate a ``mongocxx::pool``, the pool creates client
+objects as needed until it reaches the maximum pool size. Each thread that runs
+MongoDB operations checks out a client from the pool, uses it to perform
+operations, and returns the client to the pool. The pool 
+automatically manages the lifecycle of these clients.
 
-Using Forks with Connection Pools
-----------------------------------
+.. important::
 
-A ``mongocxx::pool`` **cannot** be shared between a parent and a fork.
-You must create your connection pool after forking. See the :ref:`fork safety
-documentation <cpp-fork-safety>` documentation. 
+   Unlike most MongoDB drivers, the {+driver-short+} does not
+   implement the MongoDB :spec:`Connection Monitoring and Pooling (CMAP)
+   </connection-monitoring-and-pooling/connection-monitoring-and-pooling.md>`
+   specification. In this context, connection pooling refers to the driver's 
+   cache of client objects instead of database connections.
 
-Configuring a Connection Pool
------------------------------
+Connection Pool and Client Comparison
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The number of clients in a connection pool is limited by the URI parameter
-``maxPoolSize``. After the number of clients created by a ``mongocxx::pool``
-(both in the pool and checked out) reaches the value of ``maxPoolSize``,
-``mongocxx::pool::acquire`` blocks until another thread returns a client to the
-pool. The default value is 100.
+Connection pools offer significant performance advantages over
+standalone clients. A ``mongocxx::pool`` uses separate background
+monitoring threads to continuously monitor the cluster. As a result,
+application threads can perform operations without waiting for topology
+monitoring to complete. In contrast, a standalone ``mongocxx::client``
+periodically stops to check the cluster status, blocking all operations
+during the check.
 
-Using a Connection Pool
------------------------
+You can use a connection pool even if your application uses only one thread.
+The pool's background monitoring provides better performance than a
+standalone client's periodic checks.
 
-To use a connection pool, first create a ``mongocxx::pool``, passing the URI
-as an argument. Then, call ``mongocxx::pool::acquire`` to receive a client
-from the pool. The client will automatically be returned to the pool when
-it goes out of scope.
+The following table summarizes the main differences between ``mongocxx::pool`` and
+``mongocxx::client``:
 
-See the `connection pool example <https://github.com/mongodb/mongo-cxx-driver/blob/master/examples/mongocxx/pool.cpp>`__
-for more details.
+.. list-table::
+   :widths: 30 30 40
+   :header-rows: 1
+
+   * - Feature
+     - ``mongocxx::pool``
+     - ``mongocxx::client``
+
+   * - Recommended for multi-threaded applications
+     - Yes.
+     - No.
+
+   * - Background monitoring
+     - Yes. Pools use a separate thread for each server.
+     - No. Clients perform periodic blocking checks.
+
+   * - Monitoring interval
+     - Every 10 seconds per server.
+     - Every 60 seconds.
+
+   * - Thread safety
+     - Thread-safe, but acquired clients are not thread-safe.
+     - Not thread-safe.
+
+   * - Fork safety
+     - You must create the pool after forking.
+     - You must create the client after forking.
+
+.. tip:: Threading and Forking
+
+   To learn more about how to use clients and client objects across multiple
+   threads and when forking processes, see the :ref:`cpp-thread-safety` guide.
+
+Create a Connection Pool
+------------------------
+
+To create a connection pool, instantiate a ``mongocxx::pool`` object by passing
+your connection URI to its constructor. Each thread that runs MongoDB
+operations must acquire a client from the pool by calling the ``acquire()``
+member function. When the client goes out of scope, it automatically returns to the pool.
+
+This sample file performs the following actions:
+
+- Creates a connection pool
+- Creates three threads that each acquire their own client from the pool
+- Performs an insert operation in each thread
+
+.. literalinclude:: /includes/connect/pool.cpp
+   :language: cpp
+   :copyable:
+   :linenos:
+
+Configure Connection Pool Options
+---------------------------------
+
+You can configure connection pool behavior by including options in your
+connection URI. The following table describes the connection pool options you
+can set:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - URI Option
+     - Description
+
+   * - ``maxPoolSize``
+     - | Specifies the maximum number of clients the pool can create. When this
+         limit is reached, the ``acquire()`` member function blocks until another thread returns a
+         client to the pool.
+       | Defaults to ``100``.
+       | **Type**: ``int``
+
+   * - ``minPoolSize``
+     - | Specifies the minimum number of clients the pool maintains. The pool
+         creates this number of clients when initialized and maintains at least this
+         number of clients continuously.
+       | Defaults to ``0``.
+       | **Type**: ``int``
+
+   * - ``waitQueueTimeoutMS``
+     - | Specifies the maximum time in milliseconds that the ``acquire()`` function waits for
+         a client to become available when the pool has reached the ``maxPoolSize`` value.
+         If this timeout expires, the ``acquire()`` function generates an error.
+       | Defaults to no timeout.
+       | **Type**: ``int``
+
+Example
+~~~~~~~
+
+The following example specifies the ``maxPoolSize`` option to
+create a connection pool with a maximum size of ``5``
+clients:
+
+.. code-block:: cpp
+
+   mongocxx::uri uri{"mongodb://localhost:27017/?maxPoolSize=5"};
+   mongocxx::pool pool{uri};
+
+API Documentation
+-----------------
+
+To learn more about the types and functions discussed in this guide, see the
+following API documentation:
+
+- `mongocxx::pool <{+api+}/classmongocxx_1_1v__noabi_1_1pool.html>`__
+- `mongocxx::pool::acquire() <{+api+}/classmongocxx_1_1v__noabi_1_1pool.html#a95dff0c5b7ac7b7401a72bbf8ffbf143>`__
+- `mongocxx::uri <{+api+}/classmongocxx_1_1v__noabi_1_1uri.html>`__

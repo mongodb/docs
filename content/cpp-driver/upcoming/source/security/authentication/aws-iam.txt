@@ -1,0 +1,444 @@
+.. _cpp-authentication-aws:
+
+==================================
+AWS Identity and Access Management
+==================================
+
+.. contents:: On this page
+    :local:
+    :backlinks: none
+    :depth: 3
+    :class: singlecol
+
+.. facet::
+    :name: genre
+    :values: reference
+
+.. meta::
+    :keywords: amazon web services, code example
+
+Overview 
+--------
+
+.. note::
+
+    AWS authentication is available only in the MongoDB
+    Enterprise Edition for MongoDB 4.4 and later.
+
+The ``MONGODB-AWS`` authentication mechanism uses AWS `Identity
+and Access Management (IAM)
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/introduction.html>`__
+and AWS `Security Token Service (STS)
+<https://docs.aws.amazon.com/STS/latest/APIReference/Welcome.html>`__
+to prove the client's identity to a MongoDB deployment. The
+following steps describe the AWS authentication process:
+
+1. The client uses AWS IAM credentials to create a signature
+   and sends it to the MongoDB deployment.
+2. The deployment uses the client's signature to send a
+   request to AWS STS.
+3. If the request succeeds, STS returns the Amazon Resource
+   Name (ARN) of the IAM user or role that corresponds to the
+   client's credentials.
+4. The deployment uses the returned ARN to look up the user.
+   The client authenticates as this user.
+
+.. note::
+    The client and server use different usernames. The client sends the 
+    AWS access key ID as the username. The server uses the ARN of the IAM user 
+    or role corresponding to the access key ID as the username.
+
+To authenticate with this mechanism:
+
+- Create a user on the ``$external`` database whose name is
+  the ARN of the IAM user or role you want to authenticate as.
+- Configure the client to use the ``MONGODB-AWS``
+  authentication mechanism.
+
+AWS Credentials
+~~~~~~~~~~~~~~~
+
+AWS credentials include the following components:
+
+- Access key ID
+- Secret access key
+- Optional session token
+
+Authentication with `AWS IAM credentials
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_access-keys.html>`__
+uses the access key ID and the secret access key. Authentication with
+`temporary AWS IAM credentials
+<https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_temp.html>`__
+uses all three components: access key ID, secret access key,
+and session token.
+
+.. note::
+
+    The driver never sends the secret access key or the
+    session token over the network.
+
+Temporary credentials are used with:
+
+- STS `Assume Role
+  <https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-api.html>`__
+  requests.
+- `EC2 instance roles
+  <https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html>`__.
+- `ECS task roles
+  <https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html>`__.
+- `AWS Lambda environment
+  <https://docs.aws.amazon.com/lambda/latest/dg/configuration-envvars.html>`__.
+- `IAM roles for service accounts
+  <https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html>`__.
+
+Code Placeholders
+~~~~~~~~~~~~~~~~~
+
+The code examples on this page use the following
+placeholders:
+
+- ``<hostname>``: The network address of your MongoDB deployment.
+- ``<port>``: The port number of your MongoDB deployment.
+- ``<aws_access_key_id>``: The AWS access key ID.
+- ``<aws_secret_access_key>``: The AWS secret access key.
+- ``<aws_session_token>``: The AWS session token.
+
+To use the code examples on this page, replace these
+placeholders with your own values.
+
+Using AWS IAM Authentication in Your Application
+------------------------------------------------
+
+The {+driver-short+} can retrieve AWS IAM credentials from
+the environment, or you can provide them explicitly in your
+application code.
+
+When you use the ``MONGODB-AWS`` authentication mechanism, the
+{+driver-short+} attempts to retrieve AWS credentials from the
+following sources, in this order:
+
+1. Credentials passed in the connection URI
+2. Environment variables
+3. AWS EKS AssumeRoleWithWebIdentity request
+4. ECS container metadata
+5. EC2 instance metadata
+
+.. important
+
+    Each credentials source must provide a complete set of
+    credentials. For example, if your application uses the
+    ``AWS_ACCESS_KEY_ID`` and ``AWS_SECRET_ACCESS_KEY``
+    environment variables, the driver raises an error if only
+    one of these variables has a value.
+
+Providing Credentials Explicitly
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can provide long-term (non-temporary) IAM credentials in
+the connection URI. To do so, set the following URI
+parameters:
+
+- ``username``: Set to your AWS access key ID.
+- ``password``: Set to your AWS secret access key.
+- ``authMechanism``: Set to ``MONGODB-AWS``.
+
+You can use the connection URI by itself or the connection URI with TLS options
+configured by using the ``mongocxx::options::tls`` 
+and ``mongocxx::options::client`` classes. Select the 
+:guilabel:`Connection URI` or :guilabel:`Client Options with TLS`
+tab to see the corresponding syntax:
+
+
+.. tabs::
+
+    .. tab:: Connection URI
+        :tabid: aws-connection-uri
+
+        .. literalinclude:: /includes/authentication.cpp
+            :language: cpp
+            :copyable: true
+            :start-after: // start-aws-connection-uri
+            :end-before: // end-aws-connection-uri
+            :dedent:
+
+    .. tab:: Client Options with TLS
+        :tabid: aws-client-options
+
+        .. literalinclude:: /includes/authentication.cpp
+            :language: cpp
+            :copyable: true
+            :start-after: // start-aws-connection-tls
+            :end-before: // end-aws-connection-tls
+            :dedent:
+
+.. note::
+
+    If you provide credentials in a URI, percent-encode any
+    special characters in the access key ID or secret access
+    key.
+
+Providing Temporary Credentials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can provide temporary IAM credentials in the connection
+URI by including the session token in the
+``authMechanismProperties`` parameter of the connection 
+URI. 
+
+Select the :guilabel:`Connection URI` 
+or :guilabel:`Client Options with TLS` tab to see the corresponding syntax:    
+
+.. tabs::
+
+    .. tab:: Connection URI
+        :tabid: aws-connection-uri-session
+
+        .. literalinclude:: /includes/authentication.cpp
+            :language: cpp
+            :copyable: true
+            :start-after: // start-aws-connection-uri-session
+            :end-before: // end-aws-connection-uri-session
+            :dedent:
+
+    .. tab:: Client Options with TLS
+        :tabid: aws-client-options-session
+
+        .. literalinclude:: /includes/authentication.cpp
+            :language: cpp
+            :copyable: true
+            :start-after: // start-aws-connection-tls-session
+            :end-before: // end-aws-connection-tls-session
+            :dedent:
+
+
+Automatically Retrieving Credentials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you specify the ``MONGODB-AWS`` authentication mechanism
+and omit the ``username`` and ``password``, the {+driver-short+}
+automatically attempts to retrieve AWS credentials from
+environment variables, web identity roles, and AWS metadata
+endpoints. 
+
+
+Environment Variables
+^^^^^^^^^^^^^^^^^^^^^
+
+The {+driver-short+} first checks for the credentials from
+the following environment variables:
+
+- ``AWS_ACCESS_KEY_ID``
+- ``AWS_SECRET_ACCESS_KEY``
+- ``AWS_SESSION_TOKEN`` (optional)
+
+These variables are recognized by many AWS tools and SDKs,
+such as the AWS CLI, and are also commonly set in AWS Lambda
+environments.
+
+Example of setting these variables:
+
+.. code-block:: shell
+    :copyable: true
+
+    export AWS_ACCESS_KEY_ID=<AWS IAM access key ID>
+    export AWS_SECRET_ACCESS_KEY=<AWS IAM secret access key>
+    export AWS_SESSION_TOKEN=<AWS session token>
+
+After you set these environment variables, set the
+``authMechanism`` parameter in your connection URI to
+``"MONGODB-AWS"``. Select the :guilabel:`Connection URI` or
+:guilabel:`Client Options with TLS` tab to see the corresponding syntax:
+
+
+.. tabs::
+
+    .. tab:: Connection URI
+        :tabid: default-connection-uri
+
+        .. literalinclude:: /includes/authentication.cpp
+            :language: cpp
+            :copyable: true
+            :start-after: // start-aws-environment
+            :end-before: // end-aws-environment
+            :dedent:
+
+    .. tab:: Client Options with TLS
+        :tabid: default-client-options
+
+        .. literalinclude:: /includes/authentication.cpp
+            :language: cpp
+            :copyable: true
+            :start-after: // start-aws-tls-environment
+            :end-before: // end-aws-tls-environment
+            :dedent:
+
+
+
+AssumeRoleWithWebIdentity
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If your application runs in an Amazon EKS cluster and
+authenticates through an OpenID Connect (OIDC) identity
+provider, the {+driver-short+} can use an
+AssumeRoleWithWebIdentity request. This request exchanges the OIDC token
+for temporary AWS credentials for your application.
+
+To configure this mechanism:
+
+1. Create or update your AWS configuration file. To learn how
+   to create this configuration file, see `Globally configuring AWS
+   SDKs and tools
+   <https://docs.aws.amazon.com/sdkref/latest/guide/creds_config_file.html>`__.
+#. Set the following environment variables:
+    
+   - ``AWS_ROLE_ARN``: Set to the ARN of the IAM role to
+     assume.
+   - ``AWS_WEB_IDENTITY_TOKEN_FILE``: Set to the path of the
+     file that contains the OIDC token for your service
+     account.
+   - ``AWS_ROLE_SESSION_NAME`` (optional): Set to an
+     identifier for the assumed role session. If you omit this
+     variable, the driver generates a random identifier.
+
+#. Set the ``authMechanism`` parameter in your connection URI
+   to ``"MONGODB-AWS"``.
+
+Select the :guilabel:`Connection URI` or :guilabel:`Client Options with TLS`
+tab to see the corresponding syntax:
+
+.. tabs::
+
+    .. tab:: Connection URI
+        :tabid: default-connection-uri
+
+        .. literalinclude:: /includes/authentication.cpp
+            :language: cpp
+            :copyable: true
+            :start-after: // start-aws-environment
+            :end-before: // end-aws-environment
+            :dedent:
+
+    .. tab:: Client Options with TLS
+        :tabid: default-client-options
+        
+        .. literalinclude:: /includes/authentication.cpp
+            :language: cpp
+            :copyable: true
+            :start-after: // start-aws-tls-environment
+            :end-before: // end-aws-tls-environment
+            :dedent:
+
+
+
+To learn more about authenticating with web identity roles,
+see `AssumeRoleWithWebIdentity API
+<https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRoleWithWebIdentity.html>`__
+
+ECS Task Metadata
+^^^^^^^^^^^^^^^^^
+
+If your application runs in an Amazon ECS container, the
+{+driver-short+} can retrieve temporary AWS credentials from
+the ECS task metadata endpoint.
+
+To enable this behavior, set the
+``AWS_CONTAINER_CREDENTIALS_RELATIVE_URI`` environment variable
+to the relative URI of the ECS task metadata endpoint, as shown
+in the following example:
+
+.. code-block:: sh
+    :copyable: true
+
+    export AWS_CONTAINER_CREDENTIALS_RELATIVE_URI=<relative URI of the ECS task metadata endpoint>
+
+Then construct the client with the ``authMechanism`` set to
+``"MONGODB-AWS"``. Select the :guilabel:`Connection URI` or 
+:guilabel:`Client Options with TLS` tab to see the corresponding syntax:
+
+.. tabs::
+
+    .. tab:: Connection URI
+        :tabid: default-connection-uri
+
+        .. literalinclude:: /includes/authentication.cpp
+            :language: cpp
+            :copyable: true
+            :start-after: // start-aws-environment
+            :end-before: // end-aws-environment
+            :dedent:
+
+    .. tab:: Client Options with TLS
+        :tabid: default-client-options
+
+        .. literalinclude:: /includes/authentication.cpp
+            :language: cpp
+            :copyable: true
+            :start-after: // start-aws-tls-environment
+            :end-before: // end-aws-tls-environment
+            :dedent:
+
+EC2 Instance Metadata
+^^^^^^^^^^^^^^^^^^^^^
+
+If your application runs on an Amazon EC2 instance, the
+{+driver-short+} can retrieve temporary AWS credentials from
+the EC2 instance metadata endpoint.
+
+To enable this behavior, set the ``authMechanism`` parameter
+in your connection URI to ``"MONGODB-AWS"``. Select the 
+:guilabel:`Connection URI` or :guilabel:`Client Options with TLS`
+tab to see the corresponding syntax:
+
+
+.. tabs::
+
+    .. tab:: Connection URI
+        :tabid: default-connection-uri
+
+        .. literalinclude:: /includes/authentication.cpp
+            :language: cpp
+            :copyable: true
+            :start-after: // start-aws-environment
+            :end-before: // end-aws-environment
+            :dedent:
+
+    .. tab:: Client Options with TLS
+        :tabid: default-client-options
+
+        .. literalinclude:: /includes/authentication.cpp
+            :language: cpp
+            :copyable: true
+            :start-after: // start-aws-tls-environment
+            :end-before: // end-aws-tls-environment
+            :dedent:
+
+.. note::
+
+    If you set any of the environment variables from the
+    preceding AWS authentication methods, the {+driver-short+}
+    attempts to retrieve credentials by using those methods
+    before attempting to retrieve them from an EC2 instance. To
+    attempt to retrieve credentials only from an EC2 instance,
+    ensure that the environment variables are not set.
+
+    If an application runs in an ECS container on an EC2
+    instance and the container is allowed access to the instance
+    metadata, the driver attempts to retrieve AWS credentials
+    from the EC2 instance metadata endpoint. If the driver
+    retrieves credentials in this way, your application can
+    authenticate as the IAM role assigned to the EC2 instance.
+
+    To learn how to prevent containers from accessing EC2
+    instance metadata, see the `AWS documentation
+    <https://repost.aws/knowledge-center/ecs-container-ec2-metadata>`__.
+
+API Documentation
+-----------------
+
+To learn more about creating a ``mongocxx::client`` object in the
+{+driver-short+} or configuring TLS, see the following API documentation:
+
+- `mongocxx::client
+  <{+api+}/classmongocxx_1_1v__noabi_1_1client.html>`__ 
+- `mongocxx::options::client <{+api+}/classmongocxx_1_1v__noabi_1_1options_1_1client.html>`__
+- `mongocxx::options::tls <{+api+}/classmongocxx_1_1v__noabi_1_1options_1_1tls.html>`__
