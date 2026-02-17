@@ -220,6 +220,11 @@ const tocData: TocItem[] = [
             contentSite: 'compass',
             url: '/docs/compass/settings/telemetry',
           },
+          {
+            label: 'Display Legacy UUID Values',
+            contentSite: 'compass',
+            url: '/docs/compass/settings/display-legacy-uuid-values',
+          },
         ],
       },
       {
