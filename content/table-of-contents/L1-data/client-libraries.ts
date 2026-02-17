@@ -60,6 +60,11 @@ const tocData: TocItem[] = [
             showSubNav: true,
             items: EntityDriverData,
           },
+          {
+            label: 'Entity Framework, ASP.NET, and OData Integration',
+            contentSite: 'drivers',
+            url: '/docs/drivers/csharp-frameworks/ef-odata/',
+          },
         ],
       },
       {

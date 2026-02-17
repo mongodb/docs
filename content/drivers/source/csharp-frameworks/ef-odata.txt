@@ -1,0 +1,441 @@
+.. _csharp-ef-odata-integration:
+
+========================================================
+Integrate MongoDB with Entity Framework and ASP.NET Core
+========================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: C#, ASP.NET Core, Entity Framework, OData, MongoDB, rest api, code example
+   :description: Build an OData REST API using ASP.NET Core, Entity Framework Core Provider, and MongoDB. Learn how to connect to a MongoDB cluster and query sample data through OData endpoints.
+
+.. contents:: On this page 
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to create a **ASP.NET Core**
+application that offers **OData** endpoints and uses the **Entity Framework (EF) Core Provider**
+to access MongoDB. ASP.NET Core is a cross-platform framework for creating
+cloud-based applications. OData is a standardized protocol for building and consuming
+RESTful APIs, and it allows you to interact with data by using HTTP requests.
+
+The application in this tutorial consists of the following layers:
+
+- **Database layer**: MongoDB provides data storage and retrieval.
+- **Application layer**: ASP.NET Core handles HTTP requests, routing, and dependency injection.
+- **Data access layer**: The EF Core Provider provides MongoDB document mapping and OData query translation.
+
+Why Use MongoDB with ASP.NET Core and OData?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This tutorial uses the ASP.NET Core OData framework with the Entity Framework (EF)
+Core Provider for MongoDB to create queryable REST APIs. OData provides a uniform way to expose 
+and interact with data and provides advanced querying capabilities such as filtering, 
+sorting, paging, and field selection.
+
+By integrating MongoDB with ASP.NET Core and OData, you can use EF's
+familiar patterns alongside MongoDB's flexible document model and OData's
+query capabilities. This combination supports applications that require complex query
+interfaces, type safety, and standards-based API design. You can use MongoDB,
+ASP.NET Core, and OData to create real world applications such as data analytics
+dashboards, reporting systems, or any application that requires complex data querying.
+
+.. _csharp-ef-odata-qs-tutorial:
+
+Quick Start Tutorial
+--------------------
+
+This tutorial shows you how to build an OData REST API that uses 
+MongoDB, ASP.NET Core, and the EF Core Provider. The application accesses sample restaurant data, 
+exposes OData-compliant endpoints, and supports advanced querying capabilities such as 
+filtering, sorting, paging, and field selection. The tutorial also includes 
+instructions for connecting to a MongoDB cluster hosted on MongoDB Atlas.
+
+.. tip::
+
+   If you prefer to connect to MongoDB by using the EF Core Provider without
+   ASP.NET Core, see the :website:`Entity Framework Provider Quick Start </docs/entity-framework/current/quick-start/>`
+   tutorial.
+
+.. _csharp-ef-odata-set-up:
+
+Set Up Your Project
+~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in this section to install the project dependencies,
+create an Atlas cluster, and set up the application structure.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Verify the prerequisites.
+
+      To create the Quick Start application, install the following software
+      in your development environment:
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Prerequisite
+           - Notes
+
+         * - `.NET SDK <https://dotnet.microsoft.com/download>`__
+           - Install .NET 8.0 or later.
+
+         * - Code editor
+           - Use the code editor of your choice.
+  
+         * - Terminal app and shell 
+           - For Windows users, use PowerShell or Command Prompt. For macOS/Linux users, use 
+             Terminal or a similar app.
+
+   .. step:: Create a MongoDB Atlas cluster.
+      
+      MongoDB Atlas is a fully managed cloud database service that hosts your
+      MongoDB deployments. If you do not have a MongoDB deployment, you can create a MongoDB
+      cluster for free by completing the
+      `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=csharp>`__
+      tutorial. The MongoDB Get Started tutorial also demonstrates how to load sample
+      datasets into your cluster, including the ``sample_restaurants`` database
+      that is used in this tutorial. 
+
+      To connect to your MongoDB cluster, you must use a **connection string**. To
+      learn how to retrieve your connection string, see the `Add your connection string
+      <https://www.mongodb.com/docs/get-started/?language=csharp#add-your-connection-string>`__
+      section of the MongoDB Get Started tutorial.
+
+      .. important::
+
+         Save your connection string in a secure location.
+
+   .. step:: Create your ASP.NET Core project.
+
+      From your terminal, run the following commands to create a new ASP.NET Core Web API project
+      named ``RestaurantODataApi``:
+
+      .. code-block:: bash
+
+         dotnet new webapi -n RestaurantODataApi
+         cd RestaurantODataApi
+
+   .. step:: Add the required dependencies.
+
+      In your ``RestaurantODataApi`` directory, run the following commands to add
+      the required NuGet packages: 
+
+      .. code-block:: bash
+
+         dotnet add package MongoDB.EntityFrameworkCore
+         dotnet add package Microsoft.AspNetCore.OData
+
+      These commands install the following packages:
+
+      - ``MongoDB.EntityFrameworkCore``: The MongoDB EF Core Provider
+      - ``Microsoft.AspNetCore.OData``: OData support for ASP.NET Core
+
+   .. step:: Configure your database connection.
+
+      Navigate to the ``appsettings.json`` file in your ``RestaurantODataApi``
+      project and paste the following code:
+
+      .. code-block:: json
+
+         {
+           "Logging": {
+             "LogLevel": {
+               "Default": "Information",
+               "Microsoft.AspNetCore": "Warning"
+             }
+           },
+           "AllowedHosts": "*",
+           "MongoDB": {
+             "ConnectionString": "<connection string>",
+             "DatabaseName": "sample_restaurants"
+           }
+         }
+
+      Replace the ``<connection string>`` placeholder with the connection string
+      that you saved from the MongoDB Get Started tutorial.
+
+Create Your Application
+~~~~~~~~~~~~~~~~~~~~~~~
+
+After setting up the project structure and dependencies, follow
+the steps in this section to create your data models, ``DbContext``,
+and OData endpoints.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create the data models.
+
+      In your ``RestaurantODataApi`` directory, create a ``Models`` subdirectory.
+      Then, create a file named ``Restaurant.cs`` in the ``Models`` directory
+      and add the following code:
+
+      .. literalinclude:: /includes/csharp-frameworks/ef-odata/Restaurant.cs
+         :caption: RestaurantODataApi/Models/Restaurant.cs
+         :language: csharp
+
+      This model class defines the structure of restaurant data from the MongoDB
+      ``sample_restaurants.restaurants`` collection and includes the Entity Framework
+      and MongoDB serialization attributes.
+
+   .. step:: Configure your database connection.
+
+      In your ``RestaurantODataApi`` directory, create a file named ``RestaurantDbContext.cs``
+      and add the following code:
+
+      .. literalinclude:: /includes/csharp-frameworks/ef-odata/RestaurantDbContext.cs
+         :caption: RestaurantODataApi/RestaurantDbContext.cs
+         :language: csharp
+
+      This class derives from `DBContext <https://learn.microsoft.com/en-us/dotnet/api/system.data.entity.dbcontext>`__,
+      which configures the relationship between your models and the underlying database. The code configures EF
+      to work with MongoDB and maps the ``Restaurant`` entity to the ``sample_restaurants.restaurants``
+      collection.
+
+   .. step:: Create the OData controller.
+
+      In your ``RestaurantODataApi`` directory, create a ``Controllers``
+      subdirectory. Then, add a file named ``RestaurantsController.cs`` to
+      the subdirectory and paste the following code:
+
+      .. literalinclude:: /includes/csharp-frameworks/ef-odata/RestaurantsController.cs
+         :caption: RestaurantODataApi/Controllers/RestaurantsController.cs
+         :language: csharp
+
+      This controller defines the following OData REST endpoints:
+
+      - ``GET /odata/Restaurants``: Retrieves all documents in the ``restaurants`` collection.
+        The ``EnableQuery`` attribute and its configuration options allow you to use OData query
+        parameters, such as ``$filter`` and ``$orderby``, in your HTTP requests.
+      - ``GET /odata/GetRestaurantsByBorough(borough='{borough}')``: Retrieves documents that have the specified ``borough``
+        value.
+      - ``GET /odata/GetRestaurantsByCuisine(cuisine='{cuisine}')``: Retrieves documents that have the specified ``cuisine``
+        value.
+
+   .. step:: Define the application logic.
+
+      Navigate to the ``Program.cs`` file and replace its contents with the following code:
+
+      .. literalinclude:: /includes/csharp-frameworks/ef-odata/Program.cs
+         :caption: RestaurantODataApi/Program.cs
+         :language: csharp
+
+      This code sets up the MongoDB connection, Entity Framework ``DbContext``,
+      and OData services. The OData configuration code enables the following
+      query parameters, which you can use in your HTTP endpoints:
+      
+      - ``$select``: Return the specified fields in the results
+      - ``$filter``: Return data based on filter criteria
+      - ``$orderby``: Sort the results by a specified field
+      - ``$expand``: Include related data in the results
+      - ``$count``: Include a count of the results
+      - ``$top``: Set the maximum number of results, limited to ``100``
+
+Run Your Application
+~~~~~~~~~~~~~~~~~~~~
+
+Finally, follow the steps in this section to run your OData REST API and
+test the endpoints by using HTTP requests.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Start the ASP.NET Core application.
+
+      From your ``RestaurantODataApi`` directory, run the following command to compile and
+      start the application:
+
+      .. code-block:: bash
+
+         dotnet run
+
+      If successful, your command output resembles the following example:
+
+      .. code-block:: bash
+         :copyable: false
+
+         info: Microsoft.Hosting.Lifetime[14]
+               Now listening on: http://localhost:5236
+         info: Microsoft.Hosting.Lifetime[0]
+               Application started. Press Ctrl+C to shut down.
+
+   .. step:: Test your OData endpoints.
+
+      In a separate terminal, run the following ``curl`` commands to test the OData endpoints.
+      Each endpoint returns JSON data in OData format that includes restaurant information from the 
+      ``sample_restaurants.restaurants`` collection. If successful, your ``curl`` commands return
+      data similar to the sample outputs provided. The commands also limit
+      the results to 5 documents.
+
+      a. Retrieve all restaurants.
+
+         .. io-code-block::
+            :copyable: true
+
+            .. input::
+               :language: bash
+
+               curl 'http://localhost:5236/odata/Restaurants?$top=5'
+         
+            .. output::
+               :visible: false
+
+               {"@odata.context":"http://localhost:5236/odata/$metadata#Restaurants",
+               "value":[
+                  {"Id":"...","Name":"Riviera Caterer","Cuisine":
+                  "American","Borough":"Brooklyn","RestaurantId":"40356018"},
+                  {"Id":"...","Name":"Wilken'S Fine Food","Cuisine":
+                  "Delicatessen","Borough":"Brooklyn","RestaurantId":"40356483"},
+                  {"Id":"...","Name":"Kosher Island","Cuisine":
+                  "Jewish/Kosher","Borough":"Staten Island","RestaurantId":"40356442"},
+                  {"Id":"...","Name":"Wendy'S","Cuisine":"Hamburgers",
+                  "Borough":"Brooklyn","RestaurantId":"30112340"},
+                  {"Id":"...","Name":"Morris Park Bake Shop","Cuisine":
+                  "Bakery","Borough":"Bronx","RestaurantId":"30075445"}
+               ]}
+
+      b. Filter restaurants by borough.
+
+         The following command retrieves restaurants that have a ``borough`` value of
+         ``"Queens"``:
+
+         .. io-code-block::
+            :copyable: true
+
+            .. input::
+               :language: bash
+
+               curl 'http://localhost:5236/odata/GetRestaurantsByBorough(borough=%27Queens%27)?$top=5'
+         
+            .. output::
+               :visible: false
+
+               {"@odata.context":"http://localhost:5236/odata/$metadata#Restaurants",
+               "value":[
+                  {"Id":"...","Name":"Tov Kosher Kitchen","Cuisine":"Jewish/Kosher",
+                  "Borough":"Queens","RestaurantId":"40356068"},
+                  {"Id":"...","Name":"Brunos On The Boulevard","Cuisine":"American",
+                  "Borough":"Queens","RestaurantId":"40356151"},
+                  {"Id":"...","Name":"Carvel Ice Cream","Cuisine":"Ice Cream, Gelato, Yogurt, Ices",
+                  "Borough":"Queens","RestaurantId":"40361322"},
+                  {"Id":"...","Name":"Sal'S Deli","Cuisine":"Delicatessen",
+                  "Borough":"Queens","RestaurantId":"40361618"},
+                  {"Id":"...","Name":"Steve Chu'S Deli & Grocery","Cuisine":"Delicatessen",
+                  "Borough":"Queens","RestaurantId":"40361998"}
+               ]}
+
+      c. Filter restaurants by cuisine.
+
+         The following command retrieves restaurants that have a ``cuisine`` value of
+         ``"Mexican"``:
+
+         .. io-code-block::
+            :copyable: true
+
+            .. input::
+               :language: bash
+
+               curl 'http://localhost:5236/odata/GetRestaurantsByCuisine(cuisine=%27Mexican%27)?$top=5'
+         
+            .. output::
+               :visible: false
+
+               {"@odata.context":"http://localhost:5236/odata/$metadata#Restaurants",
+               "value":[
+                  {"Id":"...","Name":"Panchito'S","Cuisine":"Mexican","Borough":"Manhattan"},
+                  {"Id":"...","Name":"Mexico Lindo Restaurant","Cuisine":"Mexican","Borough":"Manhattan"},
+                  {"Id":"...","Name":"Casa Pepe","Cuisine":"Mexican","Borough":"Brooklyn"},
+                  {"Id":"...","Name":"Cuchifrito","Cuisine":"Mexican","Borough":"Manhattan"},
+                  {"Id":"...","Name":"Mary Ann'S","Cuisine":"Mexican","Borough":"Manhattan"}
+               ]} 
+
+   .. step:: Test OData's advanced query capabilities.
+
+      You can use the endpoints to run complex queries by including
+      OData query parameters and operators. The following ``curl`` commands
+      test these capabilities.
+
+      a. Filter by multiple fields.
+
+         The following command uses OData query operators to retrieve documents that
+         have a ``borough`` value of ``"Queens"`` and a ``name`` value that contains
+         ``"Moon"``: 
+
+         .. io-code-block::
+            :copyable: true
+
+            .. input::
+               :language: bash
+
+               curl 'http://localhost:5236/odata/Restaurants?$filter=Borough%20eq%20%27Queens%27%20and%20contains(Name,%20%27Moon%27)'
+         
+            .. output::
+               :visible: false
+
+               {"@odata.context":"http://localhost:5236/odata/$metadata#Restaurants",
+               "value":[
+                  {"Id":"...","Name":"New Moon Star Restaurant","Cuisine":"Chinese","Borough":"Queens"},
+                  {"Id":"...","Name":"Moon Tikka Grill","Cuisine":"Indian","Borough":"Queens"},
+                  {"Id":"...","Name":"Silver Moon Diner","Cuisine":"American","Borough":"Queens"},
+                  {"Id":"...","Name":"Mooney'S Public House","Cuisine":"Irish","Borough":"Queens"},
+                  {"Id":"...","Name":"Moon Light  Crill Rest","Cuisine":"Indian","Borough":"Queens"},
+                  {"Id":"...","Name":"Full Moon Cafe","Cuisine":"Café/Coffee/Tea","Borough":"Queens"},
+                  {"Id":"...","Name":"Pacific Moon","Cuisine":"Chinese","Borough":"Queens"},
+                  {"Id":"...","Name":"Moon Palace Kitchen","Cuisine":"Chinese","Borough":"Queens"},
+                  {"Id":"...","Name":"Honey Moon Coffee Shop","Cuisine":"Café/Coffee/Tea","Borough":"Queens"},
+                  {"Id":"...","Name":"Honey Moon Coffee Shop","Cuisine":"Café/Coffee/Tea","Borough":"Queens"}
+                  ]}%  
+
+      b. Order and count your results.
+
+         The following command sorts documents that match the ``cuisine`` filter by their ``name`` value
+         and counts the total number of matching documents:
+
+         .. io-code-block::
+            :copyable: true
+
+            .. input::
+               :language: bash
+
+               curl 'http://localhost:5236/odata/GetRestaurantsByCuisine(cuisine=%27Czech%27)?$orderby=Name&$count=true'
+         
+            .. output::
+               :visible: false
+
+               {"@odata.context":"http://localhost:5236/odata/$metadata#Restaurants",
+               "@odata.count":6,
+               "value":[
+                  {"Id":"...","Name":"Bohemian Beer Garden","Cuisine":"Czech","Borough":"Queens"},
+                  {"Id":"...","Name":"Brooklyn Beet Company","Cuisine":"Czech","Borough":"Brooklyn"},
+                  {"Id":"...","Name":"Hospoda","Cuisine":"Czech","Borough":"Manhattan"},
+                  {"Id":"...","Name":"Koliba Restaurant","Cuisine":"Czech","Borough":"Queens"},
+                  {"Id":"...","Name":"Milan'S Restaurant","Cuisine":"Czech","Borough":"Brooklyn"},
+                  {"Id":"...","Name":"Olde Prague Tavern","Cuisine":"Czech","Borough":"Queens"}
+               ]} 
+
+Congratulations on completing the EF, ASP.NET, and OData Quick Start tutorial! After you complete
+these steps, you have an ASP.NET Core OData REST API that connects to your MongoDB
+deployment, returns restaurant data by using OData endpoints,
+and supports advanced query capabilities like filtering, sorting, paging, field selection,
+and searching.
+
+Additional Resources
+--------------------
+
+To learn more about the concepts mentioned in this tutorial, see the following resources:
+
+- `ASP.NET Core OData <https://learn.microsoft.com/en-us/odata/webapi-8/overview>`__ documentation
+- `OData Protocol <https://www.odata.org/documentation/>`__ documentation
+- :website:`MongoDB Entity Framework Core Provider </docs/entity-framework/current/>` documentation
+- :driver:`MongoDB C# Driver </csharp/current/>` documentation
