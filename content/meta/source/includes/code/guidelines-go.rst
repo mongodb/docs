@@ -106,10 +106,16 @@ Inline
 In general, use single-line inline comments to comment your code when possible.
 Inline comments provide small bits of information without disrupting the code's flow.
 
+- Keep the comment on the line above the code it's commenting on.
+- Avoid inline comments on the same line as the code they're commenting on.
+
 .. code-block:: go
 
-   // This is an inline comment.
-   x := 5
+   // PREFERRED: Put your inline comment on the line above the code it's commenting on.
+   x := 5;
+
+   y := 10; // AVOID: Don't put your inline comment on the same line as the code.
+
 
 Multi-line
 ##########

@@ -44,10 +44,15 @@ Inline
 In general, use single-line inline comments to comment your code when possible.
 Inline comments provide small bits of information without disrupting the code's flow.
 
+- Keep the comment on the line above the code it's commenting on.
+- Avoid inline comments on the same line as the code they're commenting on.
+
 .. code-block:: java
 
-    // This is an inline comment.
-    int x = 5;
+   // PREFERRED: Put your inline comment on the line above the code it's commenting on.
+   int x = 5;
+
+   int y = 10; // AVOID: Don't put your inline comment on the same line as the code.
 
 Multi-line
 ##########
@@ -103,7 +108,7 @@ Configurable Fields
 - For procedures, introduce variables in either a setup section or as an explicit step
   when the variable is first used.
 - Ensure that the variable placeholders are obvious (for example, use
-  `emphasize-lines` to highlight the line), and readers can
+  ``emphasize-lines`` to highlight the line), and readers can
   easily understand how to configure them (for example, use comments to
   explain what the variable represents).
   See also :ref:`placeholders-java`.
