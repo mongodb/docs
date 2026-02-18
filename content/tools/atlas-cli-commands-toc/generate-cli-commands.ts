@@ -165,7 +165,7 @@ function takeDirectoryInventory(): Map<string, string[]> {
     if (fs.existsSync(commandDir)) {
       const versionFiles = getFilesRecursively(commandDir, [])
         .map(file => path.relative(commandDir, file))
-        .filter(file => file.endsWith('.txt') && !file.toLowerCase().includes('serverless'));
+        .filter(file => file.endsWith('.txt'));
       
       versionFiles.forEach(file => allFiles.add(file));
     }
@@ -228,7 +228,7 @@ async function copyCommandFilesFromGit(tagOrBranch: string): Promise<string[]> {
     fs.mkdirSync(atlasCommandDir, { recursive: true });
 
     const files = getFilesRecursively(sourceCommandDir, [])
-      .filter(file => file.endsWith('.txt') && !file.toLowerCase().includes('serverless'));
+      .filter(file => file.endsWith('.txt'));
 
     console.log(`📄 Found ${files.length} command files to copy`);
 
@@ -237,8 +237,7 @@ async function copyCommandFilesFromGit(tagOrBranch: string): Promise<string[]> {
     const copiedCurrent = new Set<string>();
     const copiedAtlas = new Set<string>();
 
-    // Copy each file to both atlas-cli and atlas directories, cleaning serverless references
-    let serverlessCleanedCount = 0;
+    // Copy each file to both atlas-cli and atlas directories
     for (const sourceFile of files) {
       const fileName = path.relative(sourceCommandDir, sourceFile).replace(/\//g, '-');
       const atlasCliDestFile = path.join(upcomingCommandDir, fileName);
@@ -253,14 +252,8 @@ async function copyCommandFilesFromGit(tagOrBranch: string): Promise<string[]> {
       fs.mkdirSync(path.dirname(currentDestFile), { recursive: true });
       fs.mkdirSync(path.dirname(atlasDestFile), { recursive: true });
 
-      // Read, clean, and write file content
-      let content = fs.readFileSync(sourceFile, 'utf8');
-      const originalContent = content;
-      content = cleanServerlessReferences(content, fileName);
-
-      if (content !== originalContent) {
-        serverlessCleanedCount++;
-      }
+      // Read and write file content
+      const content = fs.readFileSync(sourceFile, 'utf8');
 
       // Write to both destinations
       fs.writeFileSync(atlasCliDestFile, content, 'utf8');
@@ -295,9 +288,6 @@ async function copyCommandFilesFromGit(tagOrBranch: string): Promise<string[]> {
     console.log(`✅ Copied ${files.length} command files to upcoming directory`);
     console.log(`✅ Copied ${files.length} command files to current directory`);
     console.log(`✅ Copied ${files.length} command files to atlas directory (with .rst extensions)`);
-    if (serverlessCleanedCount > 0) {
-      console.log(`🧹 Cleaned serverless references from ${serverlessCleanedCount} files`);
-    }
     return files.map(file => path.relative(sourceCommandDir, file).replace(/\//g, '-'));
     
   } finally {
@@ -326,54 +316,6 @@ function getFilesRecursively(dir: string, fileList: string[]): string[] {
   }
   
   return fileList;
-}
-
-/**
- * Clean serverless references from file content
- * Removes toctree entries and reference links for serverless commands
- */
-function cleanServerlessReferences(content: string, fileName?: string): string {
-  let cleaned = content;
-  let hasChanges = false;
-  
-  // Remove serverless toctree entries
-  // This pattern matches lines in toctree that contain serverless commands
-  const serverlessToctreePatterns = [
-    /^\s+\w*[Ss]erverless\w*\s+<\/command\/.*>\s*$/gm,
-    /^\s+.*[Ss]erverless.*\s+<\/command\/.*>\s*$/gm
-  ];
-  
-  serverlessToctreePatterns.forEach(pattern => {
-    const matches = cleaned.match(pattern);
-    if (matches) {
-      console.log(`  🧹 Removing ${matches.length} serverless toctree entries from ${fileName || 'file'}`);
-      cleaned = cleaned.replace(pattern, '');
-      hasChanges = true;
-    }
-  });
-  
-  // Remove serverless reference links 
-  // Pattern: * :ref:`atlas-api-*-*Serverless*` - description
-  const serverlessRefPatterns = [
-    /^\s*\*\s+:ref:`[^`]*[Ss]erverless[^`]*`[^\n]*$/gm,
-    /^\s*\*\s+:ref:`[^`]*[Ss]erverless[^`]*`[^\n]*\n/gm
-  ];
-  
-  serverlessRefPatterns.forEach(pattern => {
-    const matches = cleaned.match(pattern);
-    if (matches) {
-      console.log(`  🧹 Removing ${matches.length} serverless reference links from ${fileName || 'file'}`);
-      cleaned = cleaned.replace(pattern, '');
-      hasChanges = true;
-    }
-  });
-  
-  // Clean up any double empty lines left by removals
-  if (hasChanges) {
-    cleaned = cleaned.replace(/\n\n\n+/g, '\n\n');
-  }
-  
-  return cleaned;
 }
 
 /**
@@ -507,22 +449,72 @@ function treeToArray(tree: CommandTree, basePath: string = '', versionAvailabili
       const versions = versionAvailability?.get(`${currentPath}.txt`) || [];
       const versionConstraint = versions.length > 0 ? { includes: versions } : undefined;
       
-      items.push({
+      const item: TocItem = {
         label: key.replace(/-/g, ' '),
         contentSite: "atlas-cli" as const,
-        url: `/docs/atlas/cli/:version/command/${currentPath}/`,
-        ...(versionConstraint && { versions: versionConstraint })
-      });
+        url: `/docs/atlas/cli/:version/command/${currentPath}/`
+      };
+      
+      if (versionConstraint) {
+        item.versions = versionConstraint;
+      }
+      
+      items.push(item);
     } else {
       // This is a parent command with sub-commands
       const subItems = treeToArray(value, currentPath, versionAvailability);
-      items.push({
+      
+      // VERSION CONSTRAINT LOGIC FOR PARENT NODES:
+      // Parent nodes inherit the UNION of all their children's versions plus their own.
+      // This handles several scenarios:
+      // 1. Parent with children: Shows in versions where ANY child exists
+      // 2. Parent with own .txt file: Also includes versions where parent file exists
+      // 3. Commands evolve: As children are added/removed across versions, parent visibility adjusts
+      //
+      // EDGE CASE CONSIDERED BUT NOT IMPLEMENTED:
+      // We considered creating duplicate ToC entries (one collapsible, one not) for cases where
+      // a parent exists in some versions without children. However, analysis of actual Atlas CLI
+      // docs shows this doesn't occur - parents and children are added/removed together.
+      // If this changes in the future, we'd need to:
+      // - Split parent into two entries with non-overlapping version constraints
+      // - Non-collapsible entry for versions with parent but no children
+      // - Collapsible entry for versions with parent and children
+      
+      // Collect all versions from children to determine parent's version availability
+      const childVersions = new Set<string>();
+      function collectVersionsFromChildren(items: TocItem[]) {
+        for (const item of items) {
+          if (item.versions?.includes) {
+            item.versions.includes.forEach(v => childVersions.add(v));
+          }
+          if (item.items) {
+            collectVersionsFromChildren(item.items);
+          }
+        }
+      }
+      collectVersionsFromChildren(subItems);
+      
+      // Also check if this parent node has its own .txt file with version constraints
+      const parentOwnVersions = versionAvailability?.get(`${currentPath}.txt`) || [];
+      parentOwnVersions.forEach(v => childVersions.add(v));
+      
+      const parentVersions = childVersions.size > 0 ? Array.from(childVersions).sort() : [];
+      const parentVersionConstraint = parentVersions.length > 0 ? { includes: parentVersions } : undefined;
+      
+      const item: TocItem = {
         label: key.replace(/-/g, ' '),
         contentSite: "atlas-cli" as const,
-        url: `/docs/atlas/cli/:version/command/${currentPath}/`,
-        collapsible: true,
-        items: subItems
-      });
+        url: `/docs/atlas/cli/:version/command/${currentPath}/`
+      };
+      
+      if (parentVersionConstraint) {
+        item.versions = parentVersionConstraint;
+      }
+      
+      item.collapsible = true;
+      item.items = subItems;
+      
+      items.push(item);
     }
   }
   
