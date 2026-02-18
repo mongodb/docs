@@ -64,6 +64,7 @@ jobs:
           fi
       
       - name: Fix typo and create PR
+        id: fix
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
@@ -73,13 +74,31 @@ jobs:
           REPO_NAME: ${{ github.event.repository.name }}
         run: |
           echo "🔧 Processing typo fix for $ISSUE_KEY"
-          npx tsx .github/typo-fixer/fix-typo.ts
+          npx tsx .github/typo-fixer/fix-typo.ts 2>&1 | tee /tmp/typo-fixer.log
+          # Capture exit code
+          exit ${PIPESTATUS[0]}
       
       - name: Job Summary
         if: always()
         run: |
           echo "## 🔤 Typo Fixer Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "**Jira Ticket:** ${{ steps.payload.outputs.issue_key }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Jira Ticket:** [${{ steps.payload.outputs.issue_key }}](https://jira.mongodb.org/browse/${{ steps.payload.outputs.issue_key }})" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Check the logs above for PR link or error details." >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ steps.fix.outcome }}" == "success" ]; then
+            echo "✅ **Status:** PR created successfully" >> $GITHUB_STEP_SUMMARY
+            # Extract PR URL from logs
+            PR_URL=$(grep -oP 'https://github.com[^\s]+pull/\d+' /tmp/typo-fixer.log 2>/dev/null || echo "")
+            if [ -n "$PR_URL" ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "**Pull Request:** $PR_URL" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ **Status:** Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### Error Details" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+            grep -E "^(❌|⚠️|Error:)" /tmp/typo-fixer.log 2>/dev/null | head -5 >> $GITHUB_STEP_SUMMARY || echo "See logs for details" >> $GITHUB_STEP_SUMMARY
+            echo "\`\`\`" >> $GITHUB_STEP_SUMMARY
+          fi

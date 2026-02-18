@@ -107,6 +107,51 @@ const SKIP_EXTENSIONS: string[] = [
 // Maximum files to modify in one PR (safety limit)
 const MAX_FILES_PER_PR = 50;
 
+// Retry configuration for rate limits
+const MAX_RETRIES = 3;
+const INITIAL_RETRY_DELAY_MS = 60000; // 1 minute
+
+// ============================================
+// RETRY HELPER
+// ============================================
+
+async function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function withRetry<T>(
+  operation: () => Promise<T>,
+  operationName: string
+): Promise<T> {
+  let lastError: Error | null = null;
+  
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      return await operation();
+    } catch (err) {
+      const error = err as Error & { status?: number };
+      lastError = error;
+      
+      // Check if it's a rate limit error (429 or secondary rate limit)
+      const isRateLimit = error.status === 429 || 
+        error.message?.includes('rate limit') ||
+        error.message?.includes('Too many requests');
+      
+      if (isRateLimit && attempt < MAX_RETRIES) {
+        const delayMs = INITIAL_RETRY_DELAY_MS * attempt; // Linear backoff: 1min, 2min, 3min
+        console.log(`   ⏳ Rate limited on ${operationName}, waiting ${delayMs / 1000}s before retry ${attempt + 1}/${MAX_RETRIES}...`);
+        await sleep(delayMs);
+        continue;
+      }
+      
+      // Not a rate limit or out of retries
+      throw error;
+    }
+  }
+  
+  throw lastError;
+}
+
 // ============================================
 // INITIALIZATION
 // ============================================
@@ -469,18 +514,22 @@ function shouldProcessFile(filePath: string): FileCheck {
 async function fixAllOccurrences(typoInfo: TypoInfo): Promise<Fix[] | null> {
   console.log(`\n🔧 Fixing all occurrences of "${typoInfo.misspelled}" → "${typoInfo.correction}"`);
   
-  // Search for all files containing the typo
+  // Search for all files containing the typo (with retry for rate limits)
   let allFiles: string[] = [];
   try {
-    const { data } = await octokit.search.code({
-      q: `${typoInfo.misspelled} repo:${owner}/${repo} path:${DOCS_CONTENT_PATH}`,
-      per_page: 100,
-    });
+    const { data } = await withRetry(
+      () => octokit.search.code({
+        q: `${typoInfo.misspelled} repo:${owner}/${repo} path:${DOCS_CONTENT_PATH}`,
+        per_page: 100,
+      }),
+      'GitHub code search'
+    );
     allFiles = data.items.map(item => item.path);
     console.log(`   Found ${allFiles.length} file(s) containing "${typoInfo.misspelled}"`);
   } catch (err) {
     const error = err as Error;
     console.log(`   Search error: ${error.message}`);
+    console.log('   ⚠️ If rate limited, try again in a few minutes');
     return null;
   }
   
@@ -584,9 +633,9 @@ async function main(): Promise<void> {
   const typoResult = await extractTypoWithAI(jiraInfo);
   
   if (!typoResult.misspelled || !typoResult.correction) {
-    console.log('\n⚠️ Could not identify typo from Jira ticket');
+    console.log('\n❌ Could not identify typo from Jira ticket');
     console.log('   Manual review may be needed');
-    return;
+    process.exit(1);
   }
   
   // Build typoInfo for the rest of the functions
@@ -600,16 +649,17 @@ async function main(): Promise<void> {
   const fixes = await fixAllOccurrences(typoInfo);
   
   if (!fixes || fixes.length === 0) {
-    console.log(`\n⚠️ No occurrences of "${typoInfo.misspelled}" found in repo`);
+    console.log(`\n❌ No occurrences of "${typoInfo.misspelled}" found in repo`);
     console.log('   The typo may have already been fixed, or the word is spelled differently');
-    return;
+    process.exit(1);
   }
   
   // Create PR with fixes
   const pr = await createPR(typoInfo, fixes);
   
   if (!pr) {
-    console.log('\n⚠️ No PR created - fixes could not be applied');
+    console.log('\n❌ No PR created - fixes could not be applied');
+    process.exit(1);
   }
 }
 
