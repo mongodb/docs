@@ -131,3 +131,17 @@ The following example requires that sharded clusters have at least three shards.
    :language: terraform
    :start-after: # start-restrict-shard-count
    :end-before: # end-restrict-shard-count
+
+.. _tf-enforce-config-server-management-mode:
+
+Enforce Dedicated Config Servers for Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example prevents users from creating sharded clusters
+with :ref:`embedded config servers <nodes-for-config-server>`, ensuring they use dedicated config servers from
+the start.
+
+.. literalinclude:: /includes/example-resource-policies-tf/example-resource-policies-terraform.tf
+   :language: terraform
+   :start-after: # start-enforce-config-server-management-mode
+   :end-before: # end-enforce-config-server-management-mode

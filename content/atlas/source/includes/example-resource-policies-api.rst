@@ -525,5 +525,27 @@ The following example requires that sharded clusters have at least three shards.
          {
             "body": "forbid (principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) when { context.cluster.minShardCount < 3 && !context.cluster.isConvertingToSharded };"
          }
-      ] 
+      ]
+   }
+
+.. _enforce-config-server-management-mode:
+
+Enforce Dedicated Config Servers for Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example prevents users from creating sharded clusters
+with :ref:`embedded config servers <nodes-for-config-server>`, ensuring they use dedicated config servers from
+the start.
+
+.. code-block::
+   :copyable: true
+   :emphasize-lines: 5
+
+   {
+      "name": "Enforce config server management mode to fixed_to_dedicated for sharded clusters",
+      "policies": [
+         {
+            "body": "forbid (principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) when { context.cluster.clusterType == ResourcePolicy::ClusterType::\"sharded\" && context.cluster has configServerManagementMode && context.cluster.configServerManagementMode != ResourcePolicy::ConfigServerManagementMode::\"fixed_to_dedicated\" };"
+         }
+      ]
    }

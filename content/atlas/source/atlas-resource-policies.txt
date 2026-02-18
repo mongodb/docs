@@ -28,17 +28,17 @@ With resource policies, you can:
 * Limit cluster deployment to specific cloud platforms (|aws|, |gcp|, |azure|).
 * Restrict cluster deployment to designated regions within a cloud provider. For example, ``aws:us-east-1``.
 * Prohibit the use of the wildcard IP (``0.0.0.0/0``) to enforce stricter network controls.
-* Prohibit traffic through public networks by requiring that the IP access list remain empty 
+* Prohibit traffic through public networks by requiring that the IP access list remain empty
   or by preventing additions to an existing IP access list.
 
   .. include:: /includes/fact-wildcard-ip.rst
 
 * Require that a project has a :ref:`maintenance window <configure-maintenance-window>` configured.
-* Prevent modifications to |vpc| peering and private endpoint connections across cloud providers. 
+* Prevent modifications to |vpc| peering and private endpoint connections across cloud providers.
 * Impose a minimum |tls| version or require a specific |tls| cipher suite configuration for {+cluster+} connections.
-* Enforce minimum and maximum cluster tiers and :ref:`auto-scaling <cluster-autoscaling>` sizes across your organization. 
-  If enabled, this policy prevents users from provisioning, updating, or :ref:`auto-scaling <cluster-autoscaling>` {+clusters+} 
-  to a tier above or below a specified threshold.
+* Enforce minimum and maximum cluster tiers and :ref:`auto-scaling <cluster-autoscaling>` sizes across your organization.
+  If enabled, this policy prevents users from provisioning, updating, or :ref:`auto-scaling <cluster-autoscaling>` {+clusters+} to a tier above or below a specified threshold.
+* Require that sharded clusters use only :ref:`dedicated config servers <nodes-for-config-server>` instead of embedded config servers.
 * Enforce minimum and maximum disk size for all clusters.
 * Enforce the use of a specific cluster topology *only*  (:ref:`replica set <replication>`, 
   :ref:`sharded cluster <sharding-background>`, or :ref:`global cluster <global-clusters>`).
@@ -300,9 +300,16 @@ Key Cedar Syntax Elements for |service|
        - ``||`` (OR): Requires at least one condition to be true.
        - ``!`` (NOT): Requires a condition to be false.
 
+   * - ``context.cluster.configServerManagementMode``
+     - Checks for config server management mode on sharded clusters.
+     - Available options:
+
+       - ``ResourcePolicy::ConfigServerManagementMode::"fixed_to_dedicated"`` for dedicated config servers.
+       - ``ResourcePolicy::ConfigServerManagementMode::"atlas_managed"`` for embedded config servers.
+
    * - IP Addressing (``ip``)
-     - Refers to specific IP addresses or ranges in policies. 
-     - Available options: 
+     - Refers to specific IP addresses or ranges in policies.
+     - Available options:
 
        - ``ip("0.0.0.0/0")`` for wildcard IP.
        - ``ip("1.2.3.4/32")`` for specific IP addresses.
@@ -351,6 +358,7 @@ and add to |service| by using the {+atlas-ui+}, the {+atlas-admin-api+}, or Terr
             * :ref:`enforce-disk-size`
             * :ref:`restrict-cluster-type`
             * :ref:`restrict-shard-count`
+            * :ref:`enforce-config-server-management-mode`
 
             .. note::
          
@@ -410,6 +418,7 @@ and add to |service| by using the {+atlas-ui+}, the {+atlas-admin-api+}, or Terr
                * :ref:`enforce-disk-size-ui`
                * :ref:`restrict-cluster-type-ui`
                * :ref:`restrict-shard-count-ui`
+               * :ref:`enforce-config-server-management-mode-ui`
   
                .. note::
          
@@ -496,6 +505,7 @@ and add to |service| by using the {+atlas-ui+}, the {+atlas-admin-api+}, or Terr
             * :ref:`tf-limit-max-disk-size`
             * :ref:`tf-restrict-cluster-type`
             * :ref:`tf-restrict-shard-count`
+            * :ref:`tf-enforce-config-server-management-mode`
 
             .. note::
 

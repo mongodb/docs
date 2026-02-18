@@ -176,3 +176,26 @@ resource "mongodbatlas_resource_policy" "require_min_shards" {
   ]
 }
 # end-restrict-shard-count
+
+# start-enforce-config-server-management-mode
+resource "mongodbatlas_resource_policy" "enforce_dedicated_config_server" {
+  org_id = var.org_id
+  name   = "enforce-dedicated-config-server"
+  policies = [
+    {
+      body = <<EOF
+        forbid (
+            principal,
+            action == ResourcePolicy::Action::"cluster.modify",
+            resource
+        )
+        when {
+          context.cluster.clusterType == ResourcePolicy::ClusterType::"sharded" &&
+          context.cluster has configServerManagementMode &&
+          context.cluster.configServerManagementMode != ResourcePolicy::ConfigServerManagementMode::"fixed_to_dedicated"
+        };
+      EOF
+    },
+  ]
+}
+# end-enforce-config-server-management-mode
