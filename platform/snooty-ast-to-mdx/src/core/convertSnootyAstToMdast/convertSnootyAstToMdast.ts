@@ -251,6 +251,23 @@ const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | Mda
       if (directiveName === 'list-table') {
         return convertDirectiveListTable({ node, ctx, depth, convertChildren });
       }
+      if (directiveName === 'hlist') {
+        const attributes: MdastNode[] = toJsxAttributes(node.options);
+
+        // Pre-compute list type from first child (avoids runtime access to nodeChildren[0].enumtype)
+        const firstChild = (node.children ?? [])[0];
+        const listType = firstChild?.enumtype;
+        if (listType && typeof listType === 'string') {
+          attributes.push({ type: 'mdxJsxAttribute', name: 'listType', value: listType });
+        }
+
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'Hlist',
+          attributes,
+          children: convertChildren({ nodes: node.children, depth, ctx }),
+        };
+      }
       if (directiveName === 'collapsible') {
         const attributes: MdastNode[] = toJsxAttributes(node.options);
 

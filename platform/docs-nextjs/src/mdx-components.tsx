@@ -7,6 +7,7 @@ import Collapsible from '@/components/collapsible';
 import Heading from '@/components/heading';
 import Section from '@/components/section';
 import Banner from '@/components/banner/banner';
+import HorizontalList from '@/components/horizontal-list';
 import Paragraph from '@/components/paragraph';
 import Transition from '@/components/transition';
 import Literal from '@/components/literal';
@@ -79,7 +80,7 @@ export const components = (injectedProps?: InjectedProps) =>
     GuideNext: ({ children }) => <span>{children}</span>,
     Guilabel: ({ children }) => <span>{children}</span>,
     Heading: ({ children, ...props }) => <Heading {...props}>{children}</Heading>,
-    HList: ({ children }) => <span>{children}</span>,
+    Hlist: ({ children, ...props }) => <HorizontalList {...props}>{children}</HorizontalList>,
     Icon: ({ children }) => <span>{children}</span>,
     IconMms: ({ children }) => <span>{children}</span>,
     IconFa5: ({ children }) => <span>{children}</span>,
