@@ -689,6 +689,11 @@ const tocData: TocItem[] = [
             versions: { excludes: outdatedVersions },
           },
           {
+            label: 'MongoDB Queries with Spring Data',
+            contentSite: 'java',
+            url: '/docs/drivers/java/sync/:version/integrations/spring-queries',
+          },
+          {
             label: 'Spring Session MongoDB',
             contentSite: 'java',
             url: '/docs/drivers/java/sync/:version/integrations/spring-session',
