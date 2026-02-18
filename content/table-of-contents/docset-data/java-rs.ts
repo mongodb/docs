@@ -242,6 +242,18 @@ const tocData: TocItem[] = [
         ],
       },
       {
+        label: 'Third-Party Integrations',
+        contentSite: 'java-rs',
+        collapsible: true,
+        items: [
+          {
+            label: 'Integrate with Spring Boot',
+            contentSite: 'java-rs',
+            url: '/docs/languages/java/reactive-streams-driver/:version/integrations/spring-boot',
+          },
+        ],
+      },
+      {
         label: 'Replica Set Operations',
         contentSite: 'java-rs',
         url: '/docs/languages/java/reactive-streams-driver/:version/read-write-configuration',
