@@ -1,0 +1,141 @@
+.. _cpp-authentication-kerberos:
+
+================================
+Kerberos (GSSAPI) Authentication 
+================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example
+
+Overview
+--------
+
+.. note::
+
+   GSSAPI authentication is available only in the MongoDB
+   Enterprise Edition.
+
+The Generic Security Services API (GSSAPI) authentication
+mechanism allows you to use your Kerberos principal name to
+authenticate to a MongoDB deployment configured for Kerberos
+authentication.
+
+To use Kerberos from the C++ driver, your MongoDB deployment
+must already be configured for Kerberos authentication and your
+application host must be able to obtain Kerberos credentials.
+
+Code Placeholders
+~~~~~~~~~~~~~~~~~
+
+The code example on this page uses the following
+placeholders:
+
+- ``<kerberos_principal>``: Your Kerberos principal to
+  authenticate.
+- ``<hostname>``: Fully qualified domain name (FQDN) of a
+  ``mongod`` or ``mongos`` host in your deployment. Kerberos
+  requires FQDNs rather than IP addresses or short hostnames
+  for correct realm resolution.
+- ``<port>``: Port number of your MongoDB deployment. If you
+  omit this parameter, MongoDB uses the default port number
+  (``27017``).
+
+To use the code example on this page, replace these
+placeholders with your own values.
+
+.. note::
+
+    When you embed ``<kerberos_principal>`` in a MongoDB connection
+    URI, you must percent-encode the ``@`` character as ``%40``.
+
+Using GSSAPI Authentication in Your Application
+-----------------------------------------------
+
+Before you can use the Kerberos authentication mechanism with
+the {+driver-short+}, you must configure your MongoDB deployment
+to use Kerberos. To configure your deployment, see the
+:manual:`{+mdb-server+} MongoDB Server Kerberos documentation
+</tutorial/control-access-to-mongodb-with-kerberos-authentication/>`,
+and complete the steps described there.
+
+.. note::
+  To authenticate with GSSAPI, you must build the MongoDB C driver with SASL 
+  support. If you are building the driver from source, you can enable SASL 
+  support with the ``ENABLE_SASL`` ``cmake`` option.
+
+After you configure your deployment, complete the following
+steps to authenticate by using GSSAPI:
+
+.. procedure::
+    :style: connected
+
+    .. step:: Obtain a Ticket-Granting Ticket
+
+        On Unix environments, you must first run the ``kinit``
+        command to obtain and cache an initial ticket-granting
+        ticket. If you're running a Windows environment, you can skip
+        ahead to the next step.
+
+        The following example uses the ``kinit`` command to obtain a
+        ticket-granting ticket for the principal
+        ``mongodbuser@EXAMPLE.COM``. It then uses the ``klist``
+        command to display the principal and ticket in the
+        credentials cache.
+        
+        .. code-block:: sh
+            :copyable: false
+        
+            $ kinit mongodbuser@EXAMPLE.COM
+            mongodbuser@EXAMPLE.COM's Password:
+            $ klist
+            Credentials cache: FILE:/tmp/krb5cc_1000
+                    Principal: mongodbuser@EXAMPLE.COM
+        
+            Issued                Expires               Principal
+            Feb  9 13:48:51 2013  Feb  9 23:48:51 2013  krbtgt/mongodbuser@EXAMPLE.COM
+
+    .. step:: Set the Connection Options
+
+        Next, set the following connection options:
+
+        - ``kerberos_principal``: The Kerberos principal to
+          authenticate.
+        - ``authMechanism``: Set to ``"GSSAPI"``.
+        - ``authMechanismProperties``: Optional. By default, MongoDB
+          uses ``mongodb`` as the authentication service name. To
+          specify a different service name, set this option to
+          ``"SERVICE_NAME: <authentication service name>"``.
+
+        
+        You can set these options through parameters in your
+        connection URI, as shown in the following example:
+
+        .. literalinclude:: /includes/authentication.cpp
+            :language: cpp
+            :copyable: true
+            :start-after: // start-kerberos
+            :end-before: // end-kerberos
+
+        .. note::
+
+            You must replace the ``@`` symbol in the principal with
+            ``%40``, as shown in the preceding example.
+
+API Documentation
+-----------------
+
+To learn more about creating a ``mongocxx::client`` object in
+{+driver-short+}, see the following API documentation:
+
+- `mongocxx::client
+  <{+api+}/classmongocxx_1_1v__noabi_1_1client.html>`__ 

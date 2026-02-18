@@ -1,0 +1,233 @@
+.. _cpp-vector-search-index:
+
+==============================
+MongoDB Vector Search Indexes
+==============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: index, query, vector search, efficiency
+
+Overview
+--------
+
+{+vector-search+} enables you to perform semantic searches on vector 
+embeddings stored in MongoDB Atlas. Before you can perform {+vector-search+} 
+queries, you must create indexes that specify which fields to index and how 
+they are indexed.
+
+To learn more about {+vector-search+}, see the :atlas:`{+vector-search+} Overview
+</atlas-vector-search/vector-search-overview/>` in the {+vector-search+} documentation. 
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``movies`` collection in the ``sample_mflix``
+database from the :atlas:`Atlas sample datasets </sample-data>`. 
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+`MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=cpp>`__ guide.
+
+To manage {+vector-search+} indexes on the ``sample_mflix`` collection from your C++ application, 
+first instantiate a ``mongocxx::client`` that connects to an Atlas cluster
+and assign the following values to your ``db`` and ``collection`` variables: 
+
+.. literalinclude:: /includes/indexes/indexes.cpp
+    :start-after: start-db-coll
+    :end-before: end-db-coll
+    :language: cpp
+    :copyable:
+    :dedent:
+
+Then, call the ``search_indexes()`` method
+on your ``collection`` variable to instantiate a ``mongocxx::search_index_view`` on your collection: 
+
+.. literalinclude:: /includes/indexes/indexes.cpp
+    :start-after: start-siv
+    :end-before: end-siv
+    :language: cpp
+    :copyable:
+    :dedent:
+
+The ``mongocxx::search_index_view`` class contains the following member functions 
+that allow you to interact with {+vector-search+} indexes: 
+
+- ``create_one()``: Creates a {+vector-search+} index with the specified configuration 
+- ``list()``: Returns a ``mongocxx::cursor`` object that points to a list of {+vector-search+} and Search indexes on the collection
+- ``update_one()``: Updates the definition of the specified {+vector-search+} index
+- ``drop_one()``: Removes the specified index from the collection 
+
+The following sections provide code examples that demonstrate how to use
+each {+vector-search+} index management method.
+
+.. note:: {+vector-search+} Index Management is Asynchronous
+
+   The {+driver-long+} manages {+vector-search+} indexes asynchronously. The
+   library methods described in the following sections return the server
+   response immediately, but the changes to your {+vector-search+} indexes take
+   place in the background and might not complete until some time later.
+
+.. _cpp-vector-search-index-create:
+
+Create a {+vector-search+} Index
+--------------------------------------------------
+
+To create a single {+vector-search+} index on a collection, call the 
+``create_one()`` method on a ``mongocxx::search_index_view`` object and 
+pass in a ``mongocxx::search_index_model`` object specifying the index that 
+you want to create. 
+
+The ``mongocxx::search_index_model`` constructor requires the following arguments:
+
+- ``name``: String specifying the name for your index
+- ``definition``: Document specifying how to configure fields in your index
+
+.. tip:: 
+
+   For a full list of fields that you can configure in a {+vector-search+} index, see the 
+   :atlas:`{+vector-search+} Index Fields </atlas-vector-search/vector-search-type/#mongodb-vector-search-index-fields>` 
+   reference section in the {+vector-search+} documentation.
+
+The following example shows how to to create a single {+vector-search+} index:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/indexes/vector-search-index.cpp
+      :start-after: start-create-vector-search-index
+      :end-before: end-create-vector-search-index
+      :language: cpp
+      :dedent:
+   
+   .. output:: 
+      :language: cli
+      :visible: false
+      
+      New vector search index name: vector_search
+
+The vector search index has the following definition:
+
+- ``type``: The type of the index is ``vectorSearch``.
+- ``path``: The index is on the ``plot_embedding_voyage_3_large`` field.
+- ``numDimensions``: The number of dimensions in the vector embeddings is ``2048``.
+- ``similarity``: The index measures similarity using ``dotProduct`` similarity.
+- ``quantization``: The index uses ``scalar`` quantization.
+
+.. _cpp-vector-search-index-list:
+
+List {+vector-search+} Indexes
+-----------------------------------------------
+
+To list all search indexes on a collection, call the ``list()`` 
+method on a ``mongocxx::search_index_view`` object. This method returns 
+a ``mongocxx::cursor`` object that you can
+use to iterate over the collection's {+vector-search+} and {+search+} indexes. 
+
+The following example prints a list of available search indexes 
+on the specified collection: 
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/indexes/vector-search-index.cpp
+      :start-after: start-list-all
+      :end-before: end-list-all
+      :language: cpp
+      :dedent:
+
+   .. output:: 
+      :language: cli
+      :visible: false
+
+      { "id" : ..., "name" : "vector_index", "type" : "vectorSearch", ...,
+        "latestDefinition" : {  "fields" : [ { "type" : "vector", "path" : "plot_embedding_voyage_3_large", "numDimensions" : 2048, ...} 
+
+
+Alternatively, you can list an individual {+vector-search+} index by passing an index name into the ``list()`` method. 
+This returns a ``mongocxx::cursor`` object that points to a result set containing only the specified index. 
+
+The following example uses the ``list()`` method to return the index with the name ``vector_index``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/indexes/vector-search-index.cpp
+      :start-after: start-list-one
+      :end-before: end-list-one
+      :language: cpp
+      :dedent:
+
+   .. output:: 
+      :language: cli
+      :visible: false
+      
+      { "id" : ..., "name" : "vector_index", "type" : "vectorSearch", ...,
+        "latestDefinition" : {  "fields" : [ { "type" : "vector", "path" : "plot_embedding_voyage_3_large", "numDimensions" : 2048, ...} 
+
+.. _cpp-vector-search-index-update:
+
+Update a {+vector-search+} Index
+------------------------------------------------
+
+To update a {+vector-search+} index, call the ``update_one()`` method on a 
+``mongocxx::search_index_view`` object and pass in the name of the index that
+you want to update and the definition to update the index to.
+
+The following example shows how to update the existing {+vector-search+} index from the
+previous :ref:`Create a MongoDB Vector Search Index  <cpp-vector-search-index-create>` 
+example to use ``euclidean`` instead of ``dotProduct`` similarity and ``binary`` instead 
+of ``scalar`` quantization:
+
+.. literalinclude:: /includes/indexes/vector-search-index.cpp
+   :language: cpp
+   :dedent:
+   :start-after: start-update-vector-search-index
+   :end-before: end-update-vector-search-index
+
+.. _cpp-vector-search-index-drop:
+
+Remove a {+vector-search+} Index
+-----------------------------------------------------
+
+To remove a {+vector-search+} index from a collection, call the ``drop_one()`` method on a ``mongocxx::search_index_view`` object and pass in 
+the name of the index that you want to remove. 
+
+The following example shows how to remove a {+vector-search+} index named ``vector_index``: 
+
+.. literalinclude:: /includes/indexes/vector-search-index.cpp
+   :language: cpp
+   :dedent:
+   :start-after: start-drop-vector-search-index
+   :end-before: end-drop-vector-search-index
+
+Additional Information
+----------------------
+
+For a sample application that demonstrate how to manage indexes in the C++ driver, see the 
+:ref:`Indexes <cpp-indexes>` guide.
+
+For more detailed guides about how to use the {+vector-search+} feature and define {+vector-search+} indexes,
+see the following {+vector-search+} documentation pages: 
+
+- :atlas:`{+vector-search+} Overview </atlas-vector-search/vector-search-overview/>`
+- :atlas:`{+vector-search+} Quick Start </atlas-vector-search/tutorials/vector-search-quick-start/>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods discussed in this guide, see the
+following API documentation:
+
+- `search_indexes() <{+api+}/classmongocxx_1_1v__noabi_1_1collection.html#a1ff18a94afc676f1d85f4aa9570e9c0f>`__
+- `create_one() <{+api+}/classmongocxx_1_1v__noabi_1_1search__index__view.html#a3746d94782c5427b8973ca753a193e33>`__
+- `list() <{+api+}/classmongocxx_1_1v__noabi_1_1search__index__view.html#a9e5ad8e2474a9069332cb715f421c09a>`__
+- `drop_one() <{+api+}/classmongocxx_1_1v__noabi_1_1search__index__view.html#a184088ce06247b26c44c3c0d2ee8b99b>`__
+- `update_one() <{+api+}/classmongocxx_1_1v__noabi_1_1search__index__view.html#aec3f5a861d36d573c8489d8e488597c8>`__

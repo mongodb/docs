@@ -1,0 +1,256 @@
+.. _cpp-monitoring:
+
+==========================
+Monitor Application Events
+==========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+Overview
+--------
+
+In this guide, you can learn how to set up and configure **monitoring** in the
+{+driver-long+}.
+
+Monitoring involves collecting information about the activities of a running
+program, which you can use with an application performance management
+library.
+
+Monitoring the {+driver-short+} lets you understand the driver's resource usage
+and performance. This information can help you make informed decisions when designing and
+debugging your application.
+
+This guide shows how to perform the following tasks:
+
+- :ref:`Monitor Command Events <cpp-command-monitoring>`
+- :ref:`Monitor Server Discovery and Monitoring (SDAM) Events <cpp-cluster-monitoring>`
+
+.. tip::
+
+   This guide explains how to use information about the activity of
+   the driver in code. To learn how to record events in the driver,
+   see the :ref:`cpp-logging` guide.
+
+.. _cpp-command-monitoring:
+
+Monitor Command Events
+----------------------
+
+The {+driver-short+} creates command events when your client
+runs a database command. For example, ``find``, ``insert``, ``delete``,
+and ``count`` commands produce command events. You can initiate these
+commands by running the driver's standard create, read, update, or delete operations,
+or by using the database commands directly.
+
+.. tip:: 
+   
+   To learn more about database commands, see the :ref:`cpp-run-command`
+   guide.
+
+You can access details about command events by subscribing to them
+in your application. To subscribe to a command event, create a
+``mongocxx::options::apm`` object to store your Application
+Performance Monitoring (APM) configuration. Then, pass the options
+to your ``mongocxx::client`` object. Call the following
+methods on the ``mongocxx::options::apm`` object to set
+command monitoring behavior:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method 
+     - Description
+
+   * - ``on_command_started()`` 
+     - Specifies how the client responds when a command starts, which generates a
+       ``mongocxx::events::command_started_event``
+
+   * - ``on_command_failed()`` 
+     - Specifies how the client responds when a command does not succeed, which
+       generates a ``mongocxx::events::command_failed_event``
+
+   * - ``on_command_succeeded()`` 
+     - Specifies how the client responds when a command succeeds, which
+       generates a ``mongocxx::events::command_succeeded_event``
+
+The following code monitors command started events by performing the following
+actions:
+
+- Calls the ``on_command_started()`` method on a ``mongocxx::options::apm`` object
+- Passes a callback to ``on_command_started()`` that prints
+  each command's name and request ID
+- Configures your client with these options
+
+.. literalinclude:: /includes/logging-monitoring/command.cpp
+   :language: cpp
+   :copyable:
+   :linenos:
+   :emphasize-lines: 13
+
+When you run a find command, the code prints
+messages that resemble the following sample output:
+
+.. code-block:: none
+   :copyable: false
+
+   Command started: find (request_id: 3)
+
+.. _cpp-cluster-monitoring:
+
+Monitor Server Discovery and Monitoring (SDAM) Events
+-----------------------------------------------------
+
+The {+driver-short+} creates topology events, also known as SDAM events, when
+the state of the instance or cluster that you connected to changes.
+For example, the driver creates an event when you establish a new connection or when the cluster elects a new primary node.
+
+To learn more about topology events, see the :manual:`Replication </replication>` guide in the Server Manual.
+
+You can access details about SDAM events by subscribing to them
+in your application. To subscribe to an SDAM event, create a
+``mongocxx::options::apm`` object to store your APM
+configuration. Then, pass the options to your ``mongocxx::client``
+object. Call the following methods on the ``mongocxx::options::apm``
+object to set SDAM monitoring behavior:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Method 
+     - Description
+
+   * - ``on_server_changed()`` 
+     - Specifies how the client responds when the server description changes, which
+       generates a ``mongocxx::events::server_changed_event``
+
+   * - ``on_server_opening()`` 
+     - Specifies how the client responds when a new server is added to the topology, which
+       generates a ``mongocxx::events::server_opening_event``
+
+   * - ``on_server_closed()`` 
+     - Specifies how the client responds when a server is removed from the topology, which
+       generates a ``mongocxx::events::server_closed_event``
+
+   * - ``on_topology_changed()`` 
+     - Specifies how the client responds when the topology description changes, which
+       generates a ``mongocxx::events::topology_changed_event``
+
+   * - ``on_topology_opening()`` 
+     - Specifies how the client responds when the driver first connects to the cluster, which
+       generates a ``mongocxx::events::topology_opening_event``
+
+   * - ``on_topology_closed()`` 
+     - Specifies how the client responds when the driver disconnects from the cluster, which
+       generates a ``mongocxx::events::topology_closed_event``
+
+   * - ``on_heartbeat_started()`` 
+     - Specifies how the client responds when a heartbeat is sent to the server, which
+       generates a ``mongocxx::events::heartbeat_started_event``
+
+   * - ``on_heartbeat_succeeded()`` 
+     - Specifies how the client responds when a heartbeat succeeds, which
+       generates a ``mongocxx::events::heartbeat_succeeded_event``
+
+   * - ``on_heartbeat_failed()`` 
+     - Specifies how the client responds when a heartbeat fails, which
+       generates a ``mongocxx::events::heartbeat_failed_event``
+
+The following code monitors server opening events by performing the following
+actions:
+
+- Calls the ``on_server_opening()`` method on a ``mongocxx::options::apm`` object
+- Passes a callback to ``on_server_opening()`` that prints
+  each server's host and port
+- Configures your client with these options
+
+.. literalinclude:: /includes/logging-monitoring/sdam.cpp
+   :language: cpp
+   :copyable:
+   :linenos:
+   :emphasize-lines: 13
+
+When you perform a database operation, the driver establishes a new connection to
+the server, and your subscriber records the server opening event. The code outputs
+messages that resemble the following:
+
+.. code-block:: none
+   :copyable: false
+
+   Server opening: <host>:<port number>
+
+Event Descriptions
+------------------
+
+You can subscribe to monitoring events by creating a callback function
+that accepts an event class object as a parameter. The following
+table provides the name of each event class, links to
+the type's API documentation, and describes when the event is published:
+
+.. list-table::
+   :widths: 35 65 
+   :header-rows: 1
+
+   * - Event Handler Class
+     - Description
+
+   * - `mongocxx::events::command_started_event <{+api+}/classmongocxx_1_1v__noabi_1_1events_1_1command__started__event.html>`__
+     - Created when a command is started.
+
+   * - `mongocxx::events::command_succeeded_event <{+api+}/classmongocxx_1_1v__noabi_1_1events_1_1command__succeeded__event.html>`__
+     - Created when a command succeeds.
+
+   * - `mongocxx::events::command_failed_event <{+api+}/classmongocxx_1_1v__noabi_1_1events_1_1command__failed__event.html>`__
+     - Created when a command fails.
+
+   * - `mongocxx::events::server_changed_event <{+api+}/classmongocxx_1_1v__noabi_1_1events_1_1server__changed__event.html>`__
+     - Created when the server description changes, such as when the server's
+       type changes from secondary to primary.
+
+   * - `mongocxx::events::server_opening_event <{+api+}/classmongocxx_1_1v__noabi_1_1events_1_1server__opening__event.html>`__
+     - Created when a new server is added to the topology.
+
+   * - `mongocxx::events::server_closed_event <{+api+}/classmongocxx_1_1v__noabi_1_1events_1_1server__closed__event.html>`__
+     - Created when an existing server is removed from the topology.
+
+   * - `mongocxx::events::topology_changed_event <{+api+}/classmongocxx_1_1v__noabi_1_1events_1_1topology__changed__event.html>`__
+     - Created when the topology description changes, such as when there
+       is an election of a new primary.
+
+   * - `mongocxx::events::topology_opening_event <{+api+}/classmongocxx_1_1v__noabi_1_1events_1_1topology__opening__event.html>`__
+     - Created when the driver first connects to the cluster.
+
+   * - `mongocxx::events::topology_closed_event <{+api+}/classmongocxx_1_1v__noabi_1_1events_1_1topology__closed__event.html>`__
+     - Created when the driver disconnects from the cluster.
+
+   * - `mongocxx::events::heartbeat_started_event <{+api+}/classmongocxx_1_1v__noabi_1_1events_1_1heartbeat__started__event.html>`__
+     - Created when the server monitor sends a ``hello`` command to the server.
+       This action is called a heartbeat.
+
+   * - `mongocxx::events::heartbeat_succeeded_event <{+api+}/classmongocxx_1_1v__noabi_1_1events_1_1heartbeat__succeeded__event.html>`__
+     - Created when the heartbeat succeeds.
+
+   * - `mongocxx::events::heartbeat_failed_event <{+api+}/classmongocxx_1_1v__noabi_1_1events_1_1heartbeat__failed__event.html>`__
+     - Created when the heartbeat fails.
+
+You can find information about each monitoring subscriber type and event
+method in the `Application Performance Monitoring <{+api+}/classmongocxx_1_1v__noabi_1_1options_1_1apm.html#a56e08a1f9cea7feed7e1197bcaf2a022>`__
+section of the API documentation.
+
+API Documentation
+-----------------
+
+To learn more about the classes and methods discussed in this guide, see the
+following API documentation:
+
+- `mongocxx::events <{+api+}/namespacemongocxx_1_1v__noabi_1_1events.html>`__
+- `mongocxx::v_noabi::options::apm <{+api+}/classmongocxx_1_1v__noabi_1_1options_1_1apm.html>`__
