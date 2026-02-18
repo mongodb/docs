@@ -206,6 +206,11 @@ const tocData: TocItem[] = [
             url: '/docs/drivers/node-frameworks/meteor-vue/',
           },
           {
+            label: 'Nuxt and Vue Integration',
+            contentSite: 'drivers',
+            url: '/docs/drivers/node-frameworks/nuxt-vue/',
+          },
+          {
             label: 'TanStack Integration',
             contentSite: 'drivers',
             url: '/docs/drivers/node-frameworks/tanstack/',
