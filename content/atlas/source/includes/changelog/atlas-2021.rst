@@ -193,8 +193,8 @@
 13 July 2021 Release
 ~~~~~~~~~~~~~~~~~~~~
 
-- Introduces the general availability of 
-  :manual:`MongoDB 5.0 </release-notes/5.0/>`, which includes 
+- Introduces the general availability of
+  MongoDB 5.0, which includes
   support for:
 
   - Time Series collections,
