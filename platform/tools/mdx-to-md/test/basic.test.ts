@@ -1,5 +1,5 @@
 import { describe, it } from 'vitest';
-import { testConversion, testContains } from './helpers.js';
+import { testConversion, testContains, testNotContains } from './helpers.js';
 
 describe('Basic MDX to Markdown Conversion', () => {
   it('should convert simple markdown', async () => {
@@ -32,19 +32,18 @@ describe('Basic MDX to Markdown Conversion', () => {
 });
 
 describe('Frontmatter', () => {
-  it('should preserve YAML frontmatter', async () => {
-    await testContains(
-      `---
+  it('should not include YAML frontmatter in output', async () => {
+    const mdx = `---
 title: Test Page
 description: A test page
 ---
 
-# Content`,
-      ['---', 'title: Test Page', 'description: A test page', '# Content']
-    );
+# Content`;
+    await testContains(mdx, '# Content');
+    await testNotContains(mdx, ['---', 'title:', 'description:']);
   });
 
-  it('should handle complex frontmatter', async () => {
+  it('should omit complex frontmatter from output', async () => {
     const mdx = `---
 selectors:
   drivers:
@@ -55,7 +54,8 @@ selectors:
 
 # Content`;
 
-    await testContains(mdx, ['---', 'selectors:', 'drivers:', 'nodejs:', 'Node.js', '# Content']);
+    await testNotContains(mdx, ['---', 'selectors:', 'drivers:', 'Node.js']);
+    await testContains(mdx, '# Content');
   });
 });
 

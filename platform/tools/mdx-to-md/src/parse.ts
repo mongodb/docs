@@ -5,8 +5,13 @@ import remarkStringify from "remark-stringify";
 
 import { stripEsm } from "./plugins/strip-esm.js";
 import { resolveIncludes } from "./plugins/resolve-includes.js";
+import { resolveReferences } from "./plugins/resolve-references.js";
 import { transformImage } from "./plugins/transform-image.js";
+import { transformHeading } from "./plugins/transform-heading.js";
 import { normalizeTableCells } from "./plugins/normalize-table-cells.js";
+import { stripCustomMdx } from "./plugins/strip-custom-mdx.js";
+import { stripFrontmatter } from "./plugins/strip-frontmatter.js";
+import { ensureBlockChildren } from "./plugins/ensure-block-children.js";
 import { preprocessTableRows } from "./plugins/preprocess-table-rows.js";
 import type { ResolveIncludesOptions } from "./plugins/resolve-includes.js";
 
@@ -26,21 +31,31 @@ export async function mdxToMarkdown(
     .use(remarkMdx)
     .use(stripEsm);
 
-  // Only use resolveIncludes if contentMdxDir is provided
+  // Only use resolveIncludes and resolveReferences if contentMdxDir is provided
   if (contentMdxDir) {
     processor.use(
       resolveIncludes(contentMdxDir, sourceFilePath, undefined, options) as any
     );
+    processor.use(
+      resolveReferences(contentMdxDir, sourceFilePath, options) as any
+    );
   }
 
-  processor.use(transformImage).use(normalizeTableCells).use(remarkStringify, {
-    // Ensure proper spacing and formatting
-    bullet: "-",
-    emphasis: "*",
-    strong: "*",
-    fences: true,
-    listItemIndent: "one",
-  });
+  processor
+    .use(transformImage)
+    .use(transformHeading)
+    .use(normalizeTableCells)
+    .use(stripCustomMdx)
+    .use(stripFrontmatter)
+    .use(ensureBlockChildren)
+    .use(remarkStringify, {
+      // Ensure proper spacing and formatting
+      bullet: "-",
+      emphasis: "*",
+      strong: "*",
+      fences: true,
+      listItemIndent: "one",
+    });
 
   const file = await processor.process(source);
   let result = String(file);

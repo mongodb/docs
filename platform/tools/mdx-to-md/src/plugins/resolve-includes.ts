@@ -1,25 +1,13 @@
 import { visit } from "unist-util-visit";
-import { readFile, access } from "fs/promises";
+import { readFile } from "fs/promises";
 import { join } from "path";
-import { constants } from "fs";
 import { remark } from "remark";
 import remarkMdx from "remark-mdx";
 import remarkFrontmatter from "remark-frontmatter";
 import type { Plugin } from "unified";
 import type { Root } from "mdast";
 import type { VFile } from "vfile";
-
-/**
- * Check if a file exists at the given path
- */
-async function fileExists(filePath: string): Promise<boolean> {
-  try {
-    await access(filePath, constants.F_OK);
-    return true;
-  } catch {
-    return false;
-  }
-}
+import { fileExists } from "../utils/file-exists.js";
 
 export interface ResolveIncludesOptions {
   /**
