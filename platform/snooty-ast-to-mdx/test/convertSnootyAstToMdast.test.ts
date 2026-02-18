@@ -38,7 +38,7 @@ describe('convertSnootyAstToMdast', () => {
     const frontmatter = mdx.split('---')[1];
     const frontmatterObject = yaml.parse(frontmatter);
 
-    expect(frontmatterObject).toEqual({ page: 'opts', foo: 'bar' });
+    expect(frontmatterObject).toEqual({ options: { page: 'opts' }, foo: 'bar' });
   });
 
   it('extracts image path from child nodes and handles alt/width/height numeric attributes', () => {

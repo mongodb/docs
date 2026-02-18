@@ -27,7 +27,6 @@ const renderNav = (slug: string) =>
           template: 'document',
           tabsMainColumn: false,
           options: null,
-          page: null,
         }}
       >
         <InternalPageNav />

@@ -17,7 +17,7 @@ export type PageTemplateType =
   | 'product-landing';
 
 export interface PageContextType {
-  page: Root | null;
+  fileId?: string;
   template: PageTemplateType | null;
   slug: string;
   tabsMainColumn: boolean | null;
@@ -27,7 +27,6 @@ export interface PageContextType {
 }
 
 export const PageContext = createContext<PageContextType>({
-  page: null,
   template: null,
   slug: '',
   tabsMainColumn: null,
@@ -38,7 +37,7 @@ export const PageContext = createContext<PageContextType>({
 
 export type PageContextProviderProps = {
   children: ReactNode;
-  page: Root | null;
+  fileId?: string;
   template: PageTemplateType | null;
   slug: string;
   tabsMainColumn: boolean | null;
@@ -47,7 +46,7 @@ export type PageContextProviderProps = {
 
 export const PageContextProvider = ({
   children,
-  page,
+  fileId,
   template,
   slug,
   tabsMainColumn,
@@ -56,7 +55,7 @@ export const PageContextProvider = ({
   const [hasBanner, setHasBanner] = useState(false);
 
   return (
-    <PageContext.Provider value={{ page, template, slug, tabsMainColumn, options, hasBanner, setHasBanner }}>
+    <PageContext.Provider value={{ fileId, template, slug, tabsMainColumn, options, hasBanner, setHasBanner }}>
       {children}
     </PageContext.Provider>
   );

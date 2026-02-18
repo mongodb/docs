@@ -109,6 +109,8 @@ export const components = (injectedProps?: InjectedProps) =>
     Section: ({ children, ...props }) => <Section {...props}>{children}</Section>,
     See: ({ children }) => <span>{children}</span>,
     SeeAlso: ({ children }) => <span>{children}</span>,
+    // TODO: Remove duplicate once mapping is fixed in DOP-6577
+    Seealso: ({ children }) => <span>{children}</span>,
     SelectedContent: ({ children }) => <span>{children}</span>,
     SharedInclude: ({ children }) => <span>{children}</span>,
     Step: ({ children }) => <span>{children}</span>,

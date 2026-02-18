@@ -120,7 +120,6 @@ describe('FeedbackWidget', () => {
   describe('FeedbackWidget', () => {
     it('is not rendered when hidefeedback page option has value "page"', () => {
       const pageContextValue = {
-        page: null,
         template: null,
         slug: '/',
         tabsMainColumn: null,

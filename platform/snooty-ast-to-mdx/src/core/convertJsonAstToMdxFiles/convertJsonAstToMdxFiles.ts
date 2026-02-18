@@ -28,8 +28,8 @@ export const convertJsonAstToMdxFiles: ConvertJsonAstToMdxFiles = async ({ ast, 
   };
 
   const rootDir = outputRootDir ?? path.dirname(outputPath);
+  // Make the current output file path relative to the provided output root directory
   const mdast = convertSnootyAstToMdast(ast, {
-    // Make the current output file path relative to the provided output root directory
     currentOutfilePath: path.relative(rootDir, outputPath),
     onEmitMdxFile: async ({ outfilePath, mdastRoot }) => {
       try {

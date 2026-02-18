@@ -1,4 +1,4 @@
-import type { RemoteMetadata, Docset } from '@/types/data';
+import type { RemoteMetadata } from '@/types/data';
 import { Providers } from './Providers';
 import { UnifiedSidenav } from '@/components/unified-sidenav/UnifiedSidenav';
 import type { BaseTemplateProps } from '@/components/templates';
@@ -15,7 +15,7 @@ import {
 import ActionBar from '@/components/action-bar';
 import layoutStyles from '@/app/layout.module.scss';
 import ProductLandingTemplate from '@/components/templates/product-landing';
-import type { PageTemplateType } from '@/types/ast';
+import type { PageOptions, PageTemplateType } from '@/types/ast';
 import Header from '@/components/header';
 
 type TemplateComponent = React.ComponentType<BaseTemplateProps>;
@@ -74,30 +74,31 @@ function getTemplate(templateOption: PageTemplateType): {
   return { Template, renderSidenav };
 }
 
-interface MDXFrontmatter {
+export interface MDXFrontmatter {
+  fileId?: string;
   template?: PageTemplateType;
-  options?: Record<string, unknown>;
+  options?: PageOptions;
   [key: string]: unknown;
 }
 
 interface CustomTemplateProps {
   content: React.ReactNode;
-  frontmatter?: MDXFrontmatter;
+  frontmatter: MDXFrontmatter;
   path: string[];
   metadata: RemoteMetadata;
 }
 
 export const CustomTemplate = ({ content, frontmatter, path, metadata }: CustomTemplateProps) => {
-  const template = (frontmatter?.template as PageTemplateType) || 'document';
+  const template = (frontmatter.template as PageTemplateType) || 'document';
   const { Template, renderSidenav } = getTemplate(template);
   const slug = path.join('/');
   const pageOptions = {
     template,
-    ...(frontmatter?.options || {}),
+    ...(frontmatter.options || {}),
   };
 
   return (
-    <Providers metadata={metadata}>
+    <Providers metadata={metadata} frontmatter={frontmatter} slug={slug}>
       <Header eol={metadata?.eol ?? false} />
       {renderSidenav && <UnifiedSidenav />}
       <div className={layoutStyles['content-container']}>

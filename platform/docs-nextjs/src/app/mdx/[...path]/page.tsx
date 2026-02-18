@@ -18,7 +18,7 @@ export default async function MDXPage({ params: { path } }: PageProps) {
   // TODO: type the returned value from loadMDX
   const result = await loadMDX(path);
 
-  if (!result) {
+  if (!result || !result.frontmatter) {
     return notFound();
   }
 

@@ -75,7 +75,7 @@ const RootProvider = ({
         <VersionContextProvider docsets={docsets} slug={getPageSlug(page.filename)} env={env}>
           <UnifiedTocProvider>
             <PageContextProvider
-              page={page.ast}
+              fileId={page.ast.fileid}
               slug={getPageSlug(page.filename)}
               template={template}
               tabsMainColumn={page.ast.options?.['tabs-selector-position'] === 'main'}

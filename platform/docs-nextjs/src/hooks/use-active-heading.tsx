@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import type { HeadingNode } from '@/types/ast';
+import type { HeadingOption } from '@/types/ast';
 import type { MetadataChapter } from '@/types/data';
 
-const observeHeadings = (headingNodes: HeadingNode[] | MetadataChapter[], observer: IntersectionObserver) =>
+const observeHeadings = (headingNodes: HeadingOption[] | MetadataChapter[], observer: IntersectionObserver) =>
   headingNodes.flatMap((heading) => {
     const el = document.getElementById(heading.id);
     if (el) {
@@ -22,12 +22,12 @@ const unobserveHeadings = (headings: HTMLElement[], observer: IntersectionObserv
 
 /**
  * Returns the id of the first (topmost) heading that is in the viewport.
- * @param {object[]} headingNodes An array of headings nodes to be observed. Headings are typically
- * expected to be AST nodes or objects with an id field.
+ * @param {HeadingOption[] | MetadataChapter[]} headingNodes An array of heading metadata from pageOptions/MDXFrontmatter to be observed. Headings are typically
+ * expected to be objects with an id field.
  * @param {number} intersectionRatio The ratio to compare element intersection visibility with. If the element
  * is observed to be above this ratio, it will be eligible as active.
  */
-const useActiveHeading = (headingNodes: HeadingNode[] | MetadataChapter[], intersectionRatio: number = 0) => {
+const useActiveHeading = (headingNodes: HeadingOption[] | MetadataChapter[], intersectionRatio: number = 0) => {
   const [activeHeadingId, setActiveHeadingId] = useState(headingNodes?.[0]?.id);
 
   useEffect(() => {

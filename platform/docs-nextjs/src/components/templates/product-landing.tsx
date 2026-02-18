@@ -215,7 +215,7 @@ const wrapperStyles = css`
 const REALM_LIGHT_HERO_PAGES = ['index.txt'];
 
 const ProductLandingTemplate = ({ children }: BaseTemplateProps) => {
-  const { page, options: pageOptions, hasBanner } = usePageContext();
+  const { fileId, options: pageOptions, hasBanner } = usePageContext();
   const { project } = useSnootyMetadata();
   const isGuides = project === 'guides';
   const isRealm = project === 'realm';
@@ -223,7 +223,7 @@ const ProductLandingTemplate = ({ children }: BaseTemplateProps) => {
     pageOptions && isString(pageOptions?.['pl-max-width-paragraphs'])
       ? ['', 'true'].includes(pageOptions['pl-max-width-paragraphs'])
       : false;
-  const hasLightHero = page && isRealm && REALM_LIGHT_HERO_PAGES.includes(page.fileid);
+  const hasLightHero = fileId && isRealm && REALM_LIGHT_HERO_PAGES.includes(fileId);
 
   return (
     <main

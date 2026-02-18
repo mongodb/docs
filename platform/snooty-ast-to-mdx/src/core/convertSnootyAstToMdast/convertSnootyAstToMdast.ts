@@ -609,7 +609,11 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
 
   // Merge page-level options that sit on the root node itself.
   const pageOptions = (root as { options?: Record<string, unknown> }).options ?? {};
-  const frontmatterObj = { ...pageOptions, ...metaFromDirectives };
+  const frontmatterObj = {
+    ...(root.fileid ? { fileId: root.fileid } : {}),
+    ...(Object.values(pageOptions).length ? { options: { ...pageOptions } } : {}),
+    ...metaFromDirectives,
+  };
 
   // Compose final children array with optional frontmatter
   const children: MdastNode[] = [];

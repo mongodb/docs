@@ -258,7 +258,7 @@ type PageOptions = {
   selectors?: Selectors;
   'tabs-selector-position'?: string;
   time_required?: number;
-  headings?: HeadingNode[];
+  headings?: HeadingOption[];
 };
 
 interface Root extends ParentNode {

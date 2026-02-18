@@ -113,8 +113,8 @@ const Heading = ({ nodeChildren, id = '', className, as, ...rest }: HeadingProps
   const { hasDrawer, isOpen, setIsOpen } = useInstruqt();
   const hasSelectors = selectors && Object.keys(selectors).length > 0;
   const shouldShowLabButton = isPageTitle && hasDrawer;
-  const { page, template, tabsMainColumn } = usePageContext();
-  const hasMethodSelector = page?.options?.['has_method_selector'];
+  const { options, template, tabsMainColumn } = usePageContext();
+  const hasMethodSelector = options?.['has_method_selector'];
   const shouldShowMobileHeader = !!(isPageTitle && isTabletOrMobile && hasSelectors && !hasMethodSelector);
   const showRating = !(template === 'product-landing');
   const showCopyMarkdown = !templatesWithNoMarkdown.includes(template ?? '') && isPageTitle;
