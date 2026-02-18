@@ -26,11 +26,9 @@ export default async function Layout({ children }: { children: React.ReactNode }
         <SiteBannerProvider bannerData={bannerData}>
           <DarkModeContextProvider>
             <LeafyGreenProviderWrapper>
-              <SiteBannerProvider bannerData={bannerData}>
-                <Analytics />
-                {children}
-                <Footer />
-              </SiteBannerProvider>
+              <Analytics />
+              {children}
+              <Footer />
             </LeafyGreenProviderWrapper>
           </DarkModeContextProvider>
         </SiteBannerProvider>
