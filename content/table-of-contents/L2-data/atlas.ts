@@ -1147,6 +1147,19 @@ const tocData: TocItem[] = [
             contentSite: 'cloud-docs',
             url: '/docs/atlas/atlas-ui/export-query-to-language',
           },
+          {
+            label: "Manage Saved Queries",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/atlas-ui/query/saved-queries",
+            collapsible: true,
+            items: [
+              {
+                label: "View Recent Queries",
+                contentSite: "cloud-docs",
+                url: "/docs/atlas/atlas-ui/query/recent",
+              },
+            ],
+          }
         ],
       },
       {
@@ -1188,6 +1201,16 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/atlas-ui/create-agg-pipeline',
         collapsible: true,
         items: [
+          {
+            label: "Save a Pipeline",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/atlas-ui/agg-pipeline-builder/save-agg-pipeline",
+          },
+          {
+            label: "Open a Pipeline",
+            contentSite: "cloud-docs",
+            url: "/docs/atlas/atlas-ui/agg-pipeline-builder/open-saved-pipeline",
+          },
           {
             label: 'View Explain Plans',
             contentSite: 'cloud-docs',
