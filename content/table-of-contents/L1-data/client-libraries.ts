@@ -106,6 +106,11 @@ const tocData: TocItem[] = [
             contentSite: 'java',
             url: '/docs/drivers/java/sync/current/integrations/spring-data-integration',
           },
+          {
+            label: 'Quarkus Integration',
+            contentSite: 'drivers',
+            url: '/docs/drivers/java-frameworks/quarkus/',
+          },
         ],
       },
       {

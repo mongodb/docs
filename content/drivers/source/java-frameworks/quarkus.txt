@@ -1,0 +1,402 @@
+.. _java-quarkus-integration:
+
+==============================
+Integrate MongoDB with Quarkus
+==============================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: java, quarkus, jnosql, rest api, code example
+   :description: Build a REST API using Java, Quarkus, and MongoDB with JNoSQL. Learn how to connect to a MongoDB cluster and query sample data by using HTTP endpoints.
+
+.. contents:: On this page 
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to create a **Java** REST API
+that uses **Quarkus** as the web framework and **Eclipse JNoSQL** to access MongoDB.
+Quarkus is an open-source Java framework designed for cloud-native
+microservices and serverless development. Eclipse JNOSQL implements the
+`Jakarta NoSQL <https://jakarta.ee/specifications/nosql/>`__ and
+`Jakarta Data <https://jakarta.ee/specifications/data/>`__ specifications
+to simplify the integration of Java applications with NoSQL databases.
+
+The application in this tutorial consists of the following layers:
+
+- **Database layer**: MongoDB provides data storage and retrieval.
+- **Application layer**: Quarkus handles HTTP requests, routing, and dependency injection.
+- **Data access layer**: JNoSQL provides MongoDB document mapping and repository patterns.
+
+Why Use MongoDB with Quarkus?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This tutorial uses the Quarkus JNoSQL Extension to access
+MongoDB, which provides a unified API for NoSQL databases and
+allows you to work with MongoDB by using familiar Java patterns and
+annotations. As a result, you can use MongoDB and Quarkus to develop
+lightweight applications with minimal configuration.
+
+By integrating MongoDB with Quarkus, you can leverage Quarkus'
+fast startup times and efficient resource use alongside MongoDB's
+flexible document model. This combination supports applications
+that require type safety, scalability, and rapid development cycles.
+You can use MongoDB and Quarkus to create real world applications
+such as microservices, cloud-native APIs, or systems that require high
+performance and low resource consumption.
+
+.. _java-quarkus-qs-tutorial:
+
+Quick Start Tutorial
+--------------------
+
+This tutorial shows you how to build a REST API that uses 
+MongoDB and Quarkus. The application accesses sample restaurant data, queries
+the data, and returns the results through RESTful endpoints. The
+tutorial also includes instructions for connecting to a MongoDB
+cluster hosted on MongoDB Atlas.
+
+.. tip::
+
+   If you prefer to connect to MongoDB by using the Java driver without Quarkus,
+   see the :driver:`Get Started with the Java Driver </java/sync/current/get-started/>`
+   tutorial.
+
+.. _java-quarkus-set-up:
+
+Set Up Your Project
+~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in this section to install the project dependencies,
+create an Atlas cluster, and set up the application structure.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Verify the prerequisites.
+
+      To create the Quick Start application, install the following software
+      in your development environment:
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Prerequisite
+           - Notes
+
+         * - `Java <https://www.oracle.com/java/technologies/downloads/>`__
+           - Install JDK version 21 or later.
+
+         * - `Maven <https://maven.apache.org/download.cgi>`__
+           - Use version 3.8.1 or later.
+
+         * - `Quarkus CLI <https://quarkus.io/get-started/>`__
+           - | This command-line interface allows you to create and manage Quarkus
+               projects from your terminal.
+             | **Important:** This tutorial uses version 3.30.6, and later versions
+               might cause errors. Follow the `installation instructions <https://quarkus.io/guides/cli-tooling>`__
+               corresponding to your operating system to install the specific version.
+  
+         * - Code editor
+           - Use the code editor of your choice.
+  
+         * - Terminal app and shell 
+           - For MacOS users, use Terminal or a
+             similar app. For Windows users, use PowerShell or Command Prompt.          
+
+   .. step:: Create a MongoDB Atlas cluster.
+      
+      MongoDB Atlas is a fully managed cloud database service that hosts your
+      MongoDB deployments. If you do not have a MongoDB deployment, you can create a MongoDB
+      cluster for free by completing the
+      `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=java>`__
+      tutorial. The MongoDB Get Started tutorial also demonstrates how to load sample
+      datasets into your cluster, including the ``sample_restaurants`` database
+      that is used in this tutorial. 
+
+      To connect to your MongoDB cluster, you must use a **connection string**. To
+      learn how to retrieve your connection string, see the `Add your connection string
+      <https://www.mongodb.com/docs/get-started/?language=java#add-your-connection-string>`__
+      section of the MongoDB Get Started tutorial.
+
+      .. important::
+
+         Save your connection string in a secure location.
+
+   .. step:: Create your Quarkus project.
+
+      From your terminal, run the following command to create a new Quarkus project
+      named ``quarkus-quickstart`` that configures the Quarkus JNoSQL Extension for
+      MongoDB and JSON serialization for REST endpoints:
+
+      .. code-block:: bash
+
+         quarkus create app quarkus-quickstart --extensions=jnosql-mongodb,resteasy-jackson
+
+      Then, navigate to your project directory by running the following command:
+
+      .. code-block:: bash
+
+         cd quarkus-quickstart
+
+   .. step:: Configure your database connection.
+
+      Navigate to the ``src/main/resources/application.properties`` file and add
+      the following configuration properties:
+
+      .. code-block:: properties
+
+         jnosql.document.database=sample_restaurants
+         quarkus.mongodb.connection-string=<connection string>
+
+      This code configures your connection to the ``sample_restaurants`` database in your
+      MongoDB cluster. Replace the ``<connection string>`` placeholder with the connection string
+      that you saved in a :ref:`previous step <java-quarkus-set-up>`.
+
+   .. step:: Clean up template files.
+
+      The Quarkus project template includes some sample files that you can remove
+      for this tutorial. To delete these unneeded files, select the tab
+      corresponding to your operating system and run the following commands from
+      your ``quarkus-quickstart`` directory:
+
+      .. tabs::
+
+          .. tab:: macOS / Linux
+             :tabid: remove-mac-linux
+
+             .. code-block:: bash
+
+                rm src/main/java/org/acme/Car.java
+                rm src/main/java/org/acme/Garage.java
+                rm src/test/java/org/acme/GarageTest.java
+                rm src/main/java/org/acme/GreetingResource.java
+                rm src/test/java/org/acme/GreetingResourceIT.java
+                rm src/test/java/org/acme/GreetingResourceTest.java
+
+          .. tab:: Windows
+             :tabid: remove-windows
+
+             .. code-block:: bash
+
+                del src/main/java/org/acme/Car.java
+                del src/main/java/org/acme/Garage.java
+                del src/test/java/org/acme/GarageTest.java
+                del src/main/java/org/acme/GreetingResource.java
+                del src/test/java/org/acme/GreetingResourceIT.java
+                del src/test/java/org/acme/GreetingResourceTest.java
+
+Create Your Application
+~~~~~~~~~~~~~~~~~~~~~~~
+
+After setting up the project structure and dependencies, follow
+the steps in this section to create your data model, repository class,
+and REST endpoints.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create the ``Restaurant`` model.
+
+      Create a file named ``Restaurant.java`` in the ``src/main/java/org/acme`` directory
+      and paste the following code:
+
+      .. literalinclude:: /includes/java-frameworks/quarkus/Restaurant.java
+         :caption: quarkus-quickstart/src/main/java/org/acme/Restaurant.java
+         :language: java
+
+      This file defines the ``Restaurant`` entity class, which maps to documents
+      in the ``sample_restaurants.restaurants`` collection. The ``@Entity`` annotation marks this
+      class as a JNoSQL entity, and the field annotations map Java properties to
+      document fields.
+
+   .. step:: Create the repository class.
+
+      Create a file named ``RestaurantRepository.java`` in the ``src/main/java/org/acme``
+      directory and paste the following code:
+
+      .. literalinclude:: /includes/java-frameworks/quarkus/RestaurantRepository.java
+         :caption: quarkus-quickstart/src/main/java/org/acme/RestaurantRepository.java
+         :language: java
+
+      This repository class provides methods for accessing restaurant data in MongoDB.
+      It defines custom ``findByBorough()`` and ``findByCuisine()`` query methods, and
+      you can also use a ``RestaurantRepository`` instance to access built-in create,
+      read, update, and delete methods.
+
+   .. step:: Create the REST resource class.
+
+      In the ``src/main/java/org/acme`` directory, create a file named
+      ``RestaurantResource.java`` and paste the following code:
+
+      .. literalinclude:: /includes/java-frameworks/quarkus/RestaurantResource.java
+         :caption: quarkus-quickstart/src/main/java/org/acme/RestaurantResource.java
+         :language: java
+
+      This REST resource class defines the following HTTP endpoints:
+
+      - ``GET /restaurants/``: Retrieves all documents from the ``restaurants`` collection
+      - ``GET /restaurants/browse``: Retrieves documents that represent restaurants in Queens containing ``"Moon"`` in their name,
+        performing a case-insenstive query
+      - ``GET /restaurants/cuisine/{cuisine}``: Retrieves documents that represent restaurants
+        offering the specified ``cuisine`` value
+
+   .. step:: Create a test class.
+
+      In the ``src/test/java/org/acme`` directory, create a file named ``RestaurantRepositoryTest.java``
+      and paste the following code:
+
+      .. literalinclude:: /includes/java-frameworks/quarkus/RestaurantRepositoryTest.java
+         :caption: quarkus-quickstart/src/test/java/org/acme/RestaurantRepositoryTest.java
+         :language: java
+
+      This file uses Quarkus's testing framework for integration testing. The code defines
+      the following methods to test your MongoDB connection:
+      
+      - ``testRetrieveRestaurants()``: Verifies that your ``RestaurantRepository``
+        class accesses MongoDB
+      - ``testFindRestaurantsByBorough()``: Verifies that the ``findByBorough()``
+        method retrieves MongoDB data
+
+Run Your Application
+~~~~~~~~~~~~~~~~~~~~
+
+Finally, follow the steps in this section to run your REST API and
+test the endpoints by using ``curl`` commands.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Run the tests.
+
+      First, run the following command from your project directory to
+      run the test suite:
+
+      .. code-block:: bash
+
+         ./mvnw test
+
+      This command runs the ``RestaurantRepositoryTest`` class and verifies
+      that your application can access MongoDB data. If successful, your command output
+      contains the following information:
+
+      .. code-block:: bash
+         :copyable: false
+
+         [INFO] Results:
+         [INFO] 
+         [INFO] Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+         [INFO] 
+         [INFO] ------------------------------------------------------------------------
+         [INFO] BUILD SUCCESS
+         [INFO] ------------------------------------------------------------------------
+         [INFO] Total time:  ... s
+         [INFO] Finished at: ...
+         [INFO] ------------------------------------------------------------------------
+
+   .. step:: Start the Quarkus application.
+
+      From your project directory, run the following command to compile and
+      start the application in development mode:
+
+      .. code-block:: bash
+
+         ./mvnw quarkus:dev
+
+   .. step:: Manually test the REST endpoints.
+
+      In a separate terminal window, run the following ``curl`` commands
+      to test the REST endpoints. Each endpoint returns JSON data containing
+      restaurant information from the ``sample_restaurants.restaurants`` collection.
+      If successful, your commands return data similar to the sample outputs.
+
+      a. Retrieve all restaurants.
+
+         .. io-code-block::
+            :copyable: true
+
+            .. input::
+               :language: bash
+
+               curl http://localhost:8080/restaurants/
+         
+            .. output::
+               :visible: false
+
+               [{"id":"...","name":"Morris Park Bake Shop","borough":"Bronx","cuisine":"Bakery"},
+               {"id":"...","name":"Wilken'S Fine Food","borough":"Brooklyn","cuisine":"Delicatessen"},
+               {"id":"...","name":"Taste The Tropics Ice Cream","borough":"Brooklyn","cuisine":"Ice Cream,
+               Gelato, Yogurt, Ices"},
+               {"id":"...","name":"Carvel Ice Cream","borough":"Queens","cuisine":"Ice Cream, Gelato, Yogurt,
+               Ices"},
+               ...]
+
+      b. Retrieve restaurants in Queens that have ``"Moon"`` in the name.
+
+         .. io-code-block::
+            :copyable: true
+
+            .. input::
+               :language: bash
+
+               curl http://localhost:8080/restaurants/browse
+         
+            .. output::
+               :visible: false
+
+               [{"id":"...","name":"Somoon","borough":"Queens","cuisine":"Asian"},
+               {"id":"...","name":"New Moon Star Restaurant","borough":"Queens","cuisine":"Chinese"},
+               {"id":"...","name":"Moon Tikka Grill","borough":"Queens","cuisine":"Indian"},
+               {"id":"...","name":"Silver Moon Diner","borough":"Queens","cuisine":"American"},
+               {"id":"...","name":"Mooney'S Public House","borough":"Queens","cuisine":"Irish"},
+               {"id":"...","name":"Moon Light Crill Rest.","borough":"Queens","cuisine":"Indian"},
+               {"id":"...","name":"Full Moon Cafe","borough":"Queens","cuisine":"Café/Coffee/Tea"},
+               {"id":"...","name":"Pacific Moon","borough":"Queens","cuisine":"Chinese"},
+               {"id":"...","name":"Moon Palace Kitchen","borough":"Queens","cuisine":"Chinese"},
+               {"id":"...","name":"Honey Moon Coffee Shop 1766096115682","borough":"Queens","cuisine":"Café/Coffee/Tea"},
+               {"id":"...","name":"Honey Moon Coffee Shop","borough":"Queens","cuisine":"Café/Coffee/Tea"}]
+
+      c. Retrieve restaurants by cuisine type.
+
+         The following command queries for restaurants that have a ``cuisine``
+         value of ``"Czech"``, but you can replace this parameter with any
+         cuisine:
+
+         .. io-code-block::
+            :copyable: true
+
+            .. input::
+               :language: bash
+
+               curl http://localhost:8080/restaurants/cuisine/Czech
+         
+            .. output::
+               :visible: false
+
+               [{"id":"...","name":"Koliba Restaurant","borough":"Queens","cuisine":"Czech"},
+               {"id":"...","name":"Milan'S Restaurant","borough":"Brooklyn","cuisine":"Czech"},
+               {"id":"...","name":"Bohemian Beer Garden","borough":"Queens","cuisine":"Czech"},
+               {"id":"...","name":"Hospoda","borough":"Manhattan","cuisine":"Czech"},
+               {"id":"...","name":"Olde Prague Tavern","borough":"Queens","cuisine":"Czech"},
+               {"id":"...","name":"Brooklyn Beet Company","borough":"Brooklyn","cuisine":"Czech"}]
+
+Congratulations on completing the Quarkus Quick Start tutorial! After you complete
+these steps, you have a Java Quarkus REST API that connects to your MongoDB
+deployment, runs queries on sample restaurant data, and exposes the results
+through HTTP endpoints that you can test by using ``curl`` commands.
+
+Additional Resources
+--------------------
+
+To learn more about Quarkus, JNoSQL, and MongoDB, see the following resources:
+
+- `Quarkus <https://quarkus.io/guides/>`__ documentation
+- `Eclipse JNoSQL <https://www.jnosql.org/>`__ documentation
+- :driver:`MongoDB Java Driver </java/sync/current/>` documentation
