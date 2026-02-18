@@ -2610,9 +2610,20 @@ const tocData: TocItem[] = [
                         url: '/docs/ops-manager/:version/reference/api/automation-config/get-automation-config',
                       },
                       {
+                        label: 'Get the Automation Configuration (No Secrets)',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/automation-config/get-automation-config-no-secrets',
+                      },
+                      {
                         label: 'Update the Automation Configuration',
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/reference/api/automation-config/update-automation-config',
+                      },
+                      {
+                        label:
+                          'Update the Automation Configuration (No Secrets)',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/automation-config/update-automation-config-no-secrets',
                       },
                       {
                         label: 'Automation Configuration Parameters',
