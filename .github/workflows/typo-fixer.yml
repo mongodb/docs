@@ -1,0 +1,85 @@
+name: Typo Fixer
+
+# Triggered by Jira webhook via relay
+on:
+  repository_dispatch:
+    types: [jira-typo-ready]
+  
+  # Allow manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      issue_key:
+        description: 'Jira issue key (e.g., DOCSP-12345)'
+        required: true
+        type: string
+      summary:
+        description: 'Issue summary'
+        required: true
+        type: string
+      description:
+        description: 'Issue description with typo details'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  fix-typo:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.2
+      
+      - name: Install dependencies
+        run: |
+          cd .github/typo-fixer
+          pnpm install
+      
+      - name: Extract payload
+        id: payload
+        run: |
+          if [ "${{ github.event_name }}" == "repository_dispatch" ]; then
+            echo "issue_key=${{ github.event.client_payload.issueKey }}" >> $GITHUB_OUTPUT
+            echo "summary=${{ github.event.client_payload.summary }}" >> $GITHUB_OUTPUT
+            echo '${{ toJSON(github.event.client_payload.description) }}' > /tmp/description.json
+          else
+            echo "issue_key=${{ inputs.issue_key }}" >> $GITHUB_OUTPUT
+            echo "summary=${{ inputs.summary }}" >> $GITHUB_OUTPUT
+            echo '${{ toJSON(inputs.description) }}' > /tmp/description.json
+          fi
+      
+      - name: Fix typo and create PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ISSUE_KEY: ${{ steps.payload.outputs.issue_key }}
+          ISSUE_SUMMARY: ${{ steps.payload.outputs.summary }}
+          REPO_OWNER: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          echo "🔧 Processing typo fix for $ISSUE_KEY"
+          npx tsx .github/typo-fixer/fix-typo.ts
+      
+      - name: Job Summary
+        if: always()
+        run: |
+          echo "## 🔤 Typo Fixer Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Jira Ticket:** ${{ steps.payload.outputs.issue_key }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Check the logs above for PR link or error details." >> $GITHUB_STEP_SUMMARY
