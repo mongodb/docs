@@ -2,7 +2,7 @@ Restore a Previously Removed Host
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If you have not completely removed a host from |onprem| and want to
-restore that host, you can :doc:`reimport the deleted MongoDB process </tutorial/nav/mongodb-agent>`.
+restore that host, you can :ref:`reimport the deleted MongoDB process <add-mdb-processes>`.
 
 If you have completely removed a host from |onprem|, you need to 
 undelete that host first. To search for a deleted host, you
