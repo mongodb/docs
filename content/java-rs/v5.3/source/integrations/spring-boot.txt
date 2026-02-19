@@ -1,0 +1,425 @@
+.. _java-rs-spring-boot-integration:
+
+====================================
+Tutorial: Integrate with Spring Boot
+====================================
+
+.. facet::
+   :name: genre
+   :values: tutorial 
+
+.. meta:: 
+   :description: Learn how to connect a Java application using Spring Boot to a MongoDB database.
+   :keywords: integrations, spring boot, reactive, spring data
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+`Spring Boot <https://spring.io/projects/spring-boot>`__ is an open-source Java framework that
+simplifies the development of production-ready applications. When combined with `Spring Data MongoDB
+<https://spring.io/projects/spring-data-mongodb>`__, this framework provides an efficient way
+to interact with MongoDB databases.
+
+This tutorial demonstrates how to build a reactive Spring Boot application that uses Spring Data
+MongoDB to perform operations on a MongoDB database. You can use this sample cash balance application
+to call REST APIs that perform the following actions:
+
+- Create or fetch an account
+- Perform transactions on one account or between two accounts
+
+Spring Data MongoDB
+~~~~~~~~~~~~~~~~~~~
+
+Spring Data MongoDB provides repository support for MongoDB, offering two primary ways to interact
+with the database:
+
+- **ReactiveMongoRepository**: A higher-level abstraction that provides access to
+  common database operations
+- **ReactiveMongoTemplate**: A lower-level abstraction that offers more control over MongoDB
+  operations and query construction
+
+Multi-Document ACID Transactions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB supports multi-document ACID transactions, which allow you to perform multiple operations
+that meet atomicity, consistency, isolation, and durability guarantees. Spring Data MongoDB provides
+built-in support for transactions through the ``@Transactional`` annotation or the ``TransactionalOperator`` class.
+The sample application in this tutorial configures transaction support to ensure the atomicity
+of the database operations.
+
+To learn more about MongoDB transactions, see :manual:`Transactions </core/transactions>` in
+the {+mdb-server+} manual.
+
+Tutorial
+--------
+
+This tutorial shows how to download an example application that
+implements a simplified cash balance system. The application
+allows you to create, retrieve, and update the balance of bank accounts.
+To view the full application, see the :github:`mdb-spring-boot-reactive
+</mongodb-developer/mdb-spring-boot-reactive>` GitHub repository.
+
+Complete the tutorial to learn how to perform the following actions:
+
+- Download an example Spring Boot application
+- Configure the application to connect to MongoDB
+- Understand the application structure and key components
+- Run the application
+- Send POST requests to create bank accounts and perform transactions
+
+Download and Configure Your Connection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. procedure::
+   :style: connected
+
+   .. step:: Verify the prerequisites
+
+      Before you begin this tutorial, ensure you have the following components prepared:
+
+      - MongoDB Atlas account with a configured cluster. To learn how to create a cluster,
+        see the :ref:`MongoDB Get Started <unified-get-started>` guide.
+      - `curl <https://curl.se/download.html>`__.
+      - `Java <https://www.oracle.com/java/technologies/downloads/>`__ 21 or later.
+      - `Maven <https://maven.apache.org/download.cgi>`__ 3.5 or later.
+
+   .. step:: Download the example application
+
+      Clone the example application from the MongoDB Developer
+      GitHub repository by running the following command:
+
+      .. code-block:: shell
+
+         git clone git@github.com:mongodb-developer/mdb-spring-boot-reactive.git
+
+      This repository contains a reactive Spring Boot application that uses Spring Data MongoDB
+      to interact with a MongoDB database.
+
+   .. step:: Configure your MongoDB connection
+
+      Navigate to the ``src/main/resources/application.properties`` file in the example
+      application directory. In this file, set the ``spring.data.mongodb.uri`` property
+      to your Atlas connection URI, as shown in the following code:
+
+      .. code-block:: properties
+
+         spring.data.mongodb.uri=<connection URI>
+
+      Replace the ``<connection URI>`` placeholder with your Atlas connection URI.
+
+   .. step:: Enable schema validation
+
+      From the root directory, run the following command to set up
+      schema validation for your application:
+
+      .. code-block:: properties
+
+         mongosh "<connection URI>" --file setup.js
+
+      This command creates a constraint that ensures the bank account balance
+      is never below 0. Replace the ``<connection URI>`` placeholder with your Atlas
+      connection URI.
+
+Understand the Application Structure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _java-account-endpoints:
+
+.. procedure::
+   :style: connected
+
+   .. step:: Review the account management endpoints
+
+      The ``AccountController.java`` file contains REST API endpoints for creating and fetching
+      accounts. The file defines a POST method endpoint that inserts a document into the
+      ``txn-demo.accounts`` collection and a GET method endpoint that finds a document based on its
+      ``accountNum`` value. The following code shows these methods:
+
+      .. code-block:: java
+
+         @RestController
+         public class AccountController {
+            //...
+            @PostMapping("/account")
+            public Mono<Account> createAccount(@RequestBody Account account) {
+                return accountRepository.save(account);
+            }
+
+            @GetMapping("/account/{accountNum}")
+            public Mono<Account> getAccount(@PathVariable String accountNum) {
+                return accountRepository.findByAccountNum(accountNum)
+                    .switchIfEmpty(Mono.error(new AccountNotFoundException()));
+            }
+            //...
+         }
+
+      Each endpoint returns a ``Mono<Account>`` type from ``AccountRepository``, a
+      ``ReactiveMongoRepository`` interface that acts as an abstraction from the underlying
+      Java Reactive Streams driver.
+
+   .. step:: Review the balance transaction endpoints
+
+      The ``AccountController`` class also includes the following transaction endpoints:
+
+      - A ``.../debit`` endpoint that adds to an account balance
+      - A ``.../credit`` endpoint that subtracts from an account balance
+      - A ``.../transfer`` endpoint that performs a transfer from one account to another
+
+      These endpoints have the following definitions:
+
+      .. code-block:: java
+
+         @RestController
+         public class AccountController {
+            //...
+            @PostMapping("/account/{accountNum}/debit")
+            public Mono<Txn> debitAccount(@PathVariable String accountNum, 
+                                          @RequestBody Map<String, Object> requestBody) {
+                //...
+                txn.addEntry(new TxnEntry(accountNum, amount));
+                return txnService.saveTransaction(txn).flatMap(txnService::executeTxn);
+            }
+
+            @PostMapping("/account/{accountNum}/credit")
+            public Mono<Txn> creditAccount(@PathVariable String accountNum, 
+                                           @RequestBody Map<String, Object> requestBody) {
+                //...
+                txn.addEntry(new TxnEntry(accountNum, -amount));
+                return txnService.saveTransaction(txn).flatMap(txnService::executeTxn);
+            }
+
+            @PostMapping("/account/{from}/transfer")
+            public Mono<Txn> transfer(@PathVariable String from, 
+                                      @RequestBody TransferRequest transferRequest) {
+                //...
+                txn.addEntry(new TxnEntry(from, -amount));
+                txn.addEntry(new TxnEntry(to, amount));
+                return txnService.saveTransaction(txn).flatMap(txnService::executeTxn);
+            }
+            //...
+         }
+
+      One ``TxnEntry`` object represents a change to a single account, and a
+      ``Txn`` can consist of one or multiple ``TxnEntry`` objects. In the
+      sample code, the debit and credit endpoints create one new ``TxnEntry`` object and the transfer
+      endpoint creates two ``TxnEntry`` objects.
+
+   .. step:: Review the custom query methods
+
+      The ``AccountRepository`` interface extends ``ReactiveMongoRepository`` and defines
+      the following query methods:
+
+      .. code-block:: java
+
+         public interface AccountRepository extends ReactiveMongoRepository<Account, String> {
+            @Query("{accountNum:'?0'}")
+            Mono<Account> findByAccountNum(String accountNum);
+            
+            @Update("{'$inc':{'balance': ?1}}")
+            Mono<Long> findAndIncrementBalanceByAccountNum(String accountNum, double increment);
+         }
+
+      The codes uses the following annotations that allow you to use placeholders when you
+      query MongoDB, which are dynamically substituted with method arguments:
+
+      - ``@Query``: Annotates the ``findByAccountNum()`` method and specifies the query
+        criteria to find documents. The ``?0`` placeholder is substituted with the ``accountNum``
+        parameter value.
+      - ``@Update``: Annotates the ``findAndIncrementBalanceByAccountNum()`` method and specifies the update
+        operation to perform on matching documents. The ``?1`` placeholder is substituted with the ``increment``
+        parameter value to increase the balance by using MongoDB's ``$inc`` operator.
+
+      .. note::
+
+         Although the POST endpoint described in a :ref:`previous step <java-account-endpoints>` uses the
+         ``accountRepository.save()`` method, you do not need to define this method.
+         The ``save()`` method and many other base methods are already declared
+         by interfaces in the inheritance chain of ``ReactiveMongoRepository``.
+
+   .. step:: Understand the transaction service
+
+      The ``TxnService`` class handles transaction execution. This class includes the following code:
+
+      .. code-block:: java
+
+         @Service
+         public class TxnService {
+            //...
+            public Mono<Txn> saveTransaction(Txn txn) {
+                return txnTemplate.save(txn);
+            }
+
+            public Mono<Txn> executeTxn(Txn txn) {
+                return updateBalances(txn)
+                    .onErrorResume(DataIntegrityViolationException.class
+                        /*lambda expression to handle error*/)
+                    .onErrorResume(AccountNotFoundException.class
+                        /*lambda expression to handle error*/)
+                    .then(txnTemplate.findAndUpdateStatusById(txn.getId(), TxnStatus.SUCCESS));
+            }
+
+            public Flux<Long> updateBalances(Txn txn) {
+                Flux<Long> updatedCounts = Flux.fromIterable(txn.getEntries()).concatMap(
+                    entry -> accountRepository.findAndIncrementBalanceByAccountNum(
+                        entry.getAccountNum(), entry.getAmount())
+                );
+                return updatedCounts.handle(/*...*/);
+            }
+         }
+
+      The ``TxnService`` class includes the following methods:
+
+      - ``saveTransaction()``: Saves a ``Txn`` document into the ``transactions`` collection
+      - ``executeTxn()``: Calls the ``updateBalances()`` method and then updates the transaction
+        status in the ``Txn`` document
+      - ``updateBalances()``: Iterates through each ``TxnEntry`` and makes the corresponding updates
+        to each ``account`` document
+
+   .. step:: Review the transaction template
+
+      The ``saveTransaction()`` and ``executeTxn()`` methods described in the
+      preceding step both use methods defined in the ``TxnTemplate`` class.
+      These methods have the following definitions:
+
+      .. code-block:: java
+
+         @Service
+         public class TxnTemplate {
+            //...
+            public Mono<Txn> save(Txn txn) {
+                return template.save(txn);
+            }
+
+            public Mono<Txn> findAndUpdateStatusById(String id, TxnStatus status) {
+               Query query = query(where("_id").is(id));
+               Update update = update("status", status);
+               FindAndModifyOptions options = FindAndModifyOptions.options().returnNew(true);
+               return template.findAndModify(query, update, options, Txn.class);
+            }
+            //...
+         }
+
+      These methods interact with MongoDB by using the ``ReactiveMongoTemplate``.
+
+   .. step:: Configure multi-document transactions
+
+      When transferring money between accounts, you can use a multi-document
+      transaction. Updates across two accounts must be atomic, and transactions
+      ensure data atomicity.
+
+      To access Spring's transaction support, the sample application adds the
+      ``ReactiveMongoTransactionManager`` bean to the ``ReactiveMongoConfig.java`` file:
+
+      .. code-block:: java
+
+         @Configuration
+         public class ReactiveMongoConfig extends AbstractReactiveMongoConfiguration {
+            //...
+            @Bean
+            ReactiveMongoTransactionManager transactionManager(ReactiveMongoDatabaseFactory dbFactory) {
+                return new ReactiveMongoTransactionManager(dbFactory);
+            }
+         }
+
+      You can define the scope of a transaction by using a ``TransactionalOperator`` object
+      or the ``@Transactional`` annotation. The ``TxnService`` class shows both approaches.
+
+      .. tip:: Spring Data Transactions
+
+         To learn more about transactions and sessions in Spring Data MongoDB, see
+         `Sessions & Transactions
+         <https://docs.spring.io/spring-data/mongodb/reference/mongodb/client-session-transactions.html>`__
+         in the Spring Data documentation.
+
+Test the Application
+~~~~~~~~~~~~~~~~~~~~
+
+.. procedure::
+   :style: connected
+
+   .. step:: Run the application
+
+      To start the application, run the following commands from the project's root directory:
+
+      .. code-block:: shell
+          
+         mvn spring-boot:run
+
+      After starting the application, you can access it at ``http://localhost:8080``. You can
+      then use the REST API endpoints to create accounts and perform transactions.
+
+   .. step:: Create an account
+
+      To create a new bank account that has an account number of ``12345``,
+      run the following command in your shell:
+
+      .. code-block:: shell
+          
+         curl --location 'localhost:8080/account' \
+         --header 'Content-Type: application/json' \
+         --data '{
+            "accountNum": "12345"
+         }'
+
+      This command sends a POST request to the ``/account`` endpoint to create a new bank
+      account document in the ``accounts`` collection.
+
+   .. step:: Increase your account balance
+
+      To deposit money into the account created in the preceding step, run the following
+      command in your shell:
+
+      .. code-block:: shell
+          
+         curl --location 'localhost:8080/account/12345/debit' \
+         --header 'Content-Type: application/json' \
+         --data '{
+            "amount": 1000
+         }'
+
+      This command sends a request to the ``.../debit`` endpoint to increase the
+      ``amount`` value of the corresponding ``account`` document by ``1000``.
+
+   .. step:: Transfer money between accounts
+
+      To transfer money from one account to another, create a new
+      account that has an account number of ``67890``:
+
+      .. code-block:: shell
+          
+         curl --location 'localhost:8080/account' \
+         --header 'Content-Type: application/json' \
+         --data '{
+            "accountNum": "67890"
+         }'
+
+      Then, transfer ``500`` dollars into this new account by running
+      the following command:
+
+      .. code-block:: shell
+          
+         curl --location 'localhost:8080/account/12345/transfer' \
+         --header 'Content-Type: application/json' \
+         --data '{
+            "to": "67890",
+            "amount": 500
+         }'
+
+      This command sends a request to the ``.../transfer`` endpoint to
+      complete the balance transfer.
+
+Additional Resources
+--------------------
+
+To learn more about Spring Data MongoDB, see the `Spring Data MongoDB
+<https://docs.spring.io/spring-data/mongodb/reference/index.html>`__
+reference documentation.
+
+To view the full example application, see the :github:`mdb-spring-boot-reactive
+</mongodb-developer/mdb-spring-boot-reactive>` GitHub repository.
