@@ -1,16 +1,8 @@
-The number of operations in each group cannot exceed the value of
-the :limit:`maxWriteBatchSize <Write Command Batch Limit Size>` of
-the database. The default value of ``maxWriteBatchSize`` is 
-``100,000``. This value is shown in the 
-:data:`hello.maxWriteBatchSize` field.
-
-This limit prevents issues with oversized error messages. If a group
-exceeds this :limit:`limit <Write Command Batch Limit Size>`,
-the client driver divides the group into smaller groups with counts
-less than or equal to the value of the limit. For example, with the
-``maxWriteBatchSize`` value of ``100,000``, if the queue consists of
-``200,000`` operations, the driver creates 2 groups, each with
-``100,000`` operations.
+There is no limit to the amount of :ref:`write <query-and-write-commands>` operations that a driver can handle. 
+Drivers group data into batches according to the :limit:`maxWriteBatchSize <Write Command Batch Limit Size>`, 
+which is 100,000 and cannot be modified. If the batch contains more than 100,000 operations, the driver divides the batch into 
+smaller groups with counts less than or equal to the :limit:`maxWriteBatchSize <Write Command Batch Limit Size>`. For example, if the operation 
+contains 250,000 operations, the driver creates three batches: two with 100,000 operations and one with 50,000 operations.
 
 .. note::
 
@@ -22,7 +14,7 @@ less than or equal to the value of the limit. For example, with the
 If the error report for a single batch grows too large, MongoDB 
 truncates all remaining error messages to the empty string. If there 
 are at least two error messages with total size greater than ``1MB``, 
-they are trucated.
+they are truncated.
 
 The sizes and grouping mechanics are internal performance details and
 are subject to change in future versions.
