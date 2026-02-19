@@ -1,3 +1,15 @@
+.. _atlas_2026_02_19:
+
+19 February 2026 Release
+------------------------
+
+- Introduces port-based mapping architecture for {+gcp+} :ref:`Private Service 
+  Connect endpoints <private-endpoint-concepts>`. This new architecture improves 
+  scalability and simplifies the management of private endpoints by mapping 
+  cluster connections to specific ports through a single service attachment. 
+  Port-based mapping is now the preferred method for new private 
+  endpoints in {+gcp+}, while existing legacy endpoints remain fully supported.
+
 .. _atlas_2026_02_12:
 
 12 February 2026 Release
