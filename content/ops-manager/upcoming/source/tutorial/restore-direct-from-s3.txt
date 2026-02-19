@@ -1,0 +1,246 @@
+.. _om-direct-s3-restore:
+
+==================================
+Direct from S3 Restore in |onprem|
+==================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Direct from S3 Restore allows backup agents to download snapshot data
+directly from your S3 snapshot store instead of streaming data through
+|onprem| application servers. This feature provides the following
+benefits:
+
+- Reduces load on |onprem| during large restore operations
+- Improves restore times for deployments backed up to S3
+- Uses pre-signed URLs so backup agents do not need S3 credentials
+
+.. important::
+
+   This feature requires |onprem| 8.0.19 or later.
+
+Supported Use Cases
+-------------------
+
+Direct from S3 Restore supports the following configurations:
+
+- Backup type: Continuous or scheduled backups that use an S3 snapshot
+  store (managed or imported)
+- Restore type: Snapshot restores where the delivery method is
+  Automation Agent (restores into a managed deployment)
+
+Limitations
+~~~~~~~~~~~
+
+Direct from S3 Restore does not apply to the following scenarios:
+
+- Manual download restores (HTTP download of snapshot data), which
+  continue to stream data through |onprem|
+- Backups that use filesystem or MongoDB blockstore snapshot stores
+- Ad-hoc ``mongorestore`` workflows that run outside |onprem|
+
+If any of these scenarios are critical for your environment, continue
+using the standard restore path for those workflows.
+
+How Direct from S3 Restore Works
+--------------------------------
+
+After you enable Direct from S3 Restore:
+
+- |onprem| plans the restore as usual.
+- |onprem| generates pre-signed S3 URLs for each snapshot block using
+  its configured S3 credentials.
+- |onprem| instructs the backup agent to fetch snapshot data directly
+  from S3 using those pre-signed URLs.
+- The backup agent downloads, decompresses, and writes snapshot data
+  to disk.
+
+Backup agents do not need S3 credentials. |onprem| manages all S3
+authentication through pre-signed URLs.
+
+.. note::
+
+   Direct from S3 Restore applies only to snapshot data. Oplog
+   handling follows the existing flow.
+
+Prerequisites
+-------------
+
+Before you enable Direct from S3 Restore, verify the following
+requirements.
+
+Network and Security
+~~~~~~~~~~~~~~~~~~~~
+
+Each backup agent host that performs restores must be able to:
+
+- Resolve the DNS name of the S3 or S3-compatible endpoint
+- Establish outbound HTTPS connections to that endpoint
+- Download data using S3 pre-signed URLs that |onprem| generates
+
+Backup agents do not require S3 access keys or IAM roles. |onprem|
+generates pre-signed URLs using the S3 credentials configured for the
+snapshot store.
+
+S3 Snapshot Store Compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Direct from S3 Restore works with:
+
+- Managed S3 snapshot stores configured in |onprem|
+- Imported S3 snapshot stores on |onprem| 8.0.19 or later
+
+Configure Direct from S3 Restore
+--------------------------------
+
+To configure Direct from S3 Restore, complete the following tasks:
+
+#. Enable the system-level feature flag.
+#. Enable Direct from S3 Restore on an S3 snapshot store.
+
+Enable the System-Level Feature Flag
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Enable the Direct from S3 Restore feature flag.
+
+      Set the ``mms.featureFlag.backup.directS3Restore`` property to
+      ``enabled`` in the |onprem| configuration.
+
+Enable Direct from S3 Restore on an S3 Snapshot Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Navigate to snapshot storage settings.
+
+      In |onprem|, click :guilabel:`Admin`, :guilabel:`Backup`,
+      :guilabel:`Snapshot Storage`.
+
+   .. step:: Select the S3 snapshot store.
+
+      Find the S3 blockstore where you want to enable Direct from S3
+      Restore.
+
+   .. step:: Enable the Direct from S3 Restore option.
+
+      In the store configuration, select the :guilabel:`Direct from S3
+      Restore` option.
+
+   .. step:: Save your changes.
+
+      Click :guilabel:`Save` to apply the configuration.
+
+.. important::
+
+   Enabling this option does not change existing restore jobs. New
+   restore jobs can use Direct from S3 Restore only if the snapshot
+   store has the option enabled when you create the job.
+
+Use Direct from S3 Restore
+--------------------------
+
+After you enable the feature, use the standard restore workflow. The
+data path changes automatically.
+
+Start a Restore Job
+~~~~~~~~~~~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Navigate to backups.
+
+      In your project, go to :guilabel:`Continuous Backup` (or
+      :guilabel:`Backup`, :guilabel:`Continuous`).
+
+   .. step:: Select a snapshot.
+
+      Locate the deployment and snapshot you want to restore. The
+      snapshot must be stored in an S3 store with Direct from S3
+      Restore enabled.
+
+   .. step:: Start the restore wizard.
+
+      Click :guilabel:`Restore` to open the Restore Wizard.
+
+   .. step:: Choose your restore point.
+
+      Select a snapshot. Direct from S3 Restore applies only to
+      snapshot data.
+
+   .. step:: Select the delivery method.
+
+      On the delivery method step, click :guilabel:`Automation Agent`
+      to restore into a managed deployment.
+
+      Do not select :guilabel:`Download`. Download restores continue
+      to stream data from |onprem| and do not use Direct from S3
+      Restore.
+
+   .. step:: Complete the wizard.
+
+      Complete the remaining steps and submit the restore job.
+
+Operational Considerations
+--------------------------
+
+Performance and Sizing
+~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the following performance characteristics:
+
+- **Ops Manager load:** Restores generate less network and CPU load on
+  |onprem| application servers.
+- **Agent hosts:** Restore throughput depends on CPU, disk I/O, and
+  network capacity on the hosts that run backup agents.
+- **Network path:** Restore throughput depends on the network path
+  from the backup agent to S3, not from |onprem| to S3. For large
+  clusters, confirm that your S3 endpoint, |vpc| endpoint, or proxy
+  can handle the expected concurrency.
+
+Security and |iam|
+~~~~~~~~~~~~~~~~~~
+
+Direct from S3 Restore uses the following permissions model:
+
+- **Ops Manager permissions:** |onprem| backup application servers
+  require S3 read access (and list access where required) to the
+  buckets and prefixes configured on your S3 snapshot stores.
+  Configure this access through the |iam| role or access keys you
+  specify for those stores in |onprem|.
+- **Backup agent permissions:** Backup agents do not have S3
+  credentials. |onprem| generates pre-signed S3 URLs for each
+  snapshot block, and agents download blocks directly from S3 using
+  those URLs.
+- **Least privilege:** Restrict the |iam| role or access keys that
+  |onprem| uses to only the buckets and prefixes required for backup
+  and restore.
+- **Immutability:** If you use S3 Object Lock, Direct from S3 Restore
+  reads from immutable objects using pre-signed URLs. The feature
+  does not bypass retention or delete protections.
+
+Imported S3 Snapshot Stores
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you restore from imported S3 snapshot stores, such as immutable
+backup buckets, verify the following:
+
+- You run |onprem| 8.0.19 or later, which includes Direct from S3
+  Restore support for imported snapshots.
+- You configured the imported snapshot store correctly under
+  :guilabel:`Admin`, :guilabel:`Backup`, :guilabel:`Snapshot Stores`.
+- The S3 credentials configured for that store in |onprem| have read
+  access to the imported bucket and prefix.
+- Backup agents on target hosts have network connectivity to the S3
+  endpoint. Agents use pre-signed URLs that |onprem| generates and
+  do not require additional |iam| roles or keys.

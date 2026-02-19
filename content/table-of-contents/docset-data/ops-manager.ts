@@ -781,6 +781,11 @@ const tocData: TocItem[] = [
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/tutorial/restore-single-database',
               },
+              {
+                label: 'Direct S3 Restore',
+                contentSite: 'ops-manager',
+                url: '/docs/ops-manager/:version/tutorial/restore-direct-from-s3',
+              },
             ],
           },
           {
