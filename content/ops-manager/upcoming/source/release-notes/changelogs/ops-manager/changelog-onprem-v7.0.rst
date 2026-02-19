@@ -1,3 +1,28 @@
+.. _opsmgr-server-7.0.23:
+
+|onprem| Server 7.0.23
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-02-17*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`107.0.23.8832-1 <mongodb-107.0.23.8832-1>`.
+- Supports :dbtools:`MongoDB Database Tools 100.14.1 </release-notes/database-tools-changelog/#100.14.1-changelog>`.
+- Updates JDK to `jdk-17.0.18+8 <https://adoptium.net/temurin/release-notes/?version=jdk-17.0.18+8>`__.
+- Adds support for `MongoDB Shell 2.6.0 <https://github.com/mongodb-js/mongosh/releases>`__.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes the following |cve|\s:  
+
+  - `CVE-2022-25883 <https://nvd.nist.gov/vuln/detail/CVE-2022-25883>`__
+  - `GHSA-c2qf-rxjj-qqgw <https://github.com/advisories/GHSA-c2qf-rxjj-qqgw>`__
+  - `CVE-2024-10491 <https://nvd.nist.gov/vuln/detail/CVE-2024-10491>`__
+  - `CVE-2024-51999 <https://nvd.nist.gov/vuln/detail/CVE-2024-51999>`__
+
 .. _opsmgr-server-7.0.22:
 
 |onprem| Server 7.0.22
