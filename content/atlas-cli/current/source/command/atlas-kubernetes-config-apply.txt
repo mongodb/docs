@@ -46,11 +46,11 @@ Options
      - false
      - One or more comma separated data federation names to import
    * - -h, --help
-     -
+     - 
      - false
      - help for apply
    * - --independentResources
-     -
+     - 
      - false
      - Flag that makes the generated resources that support independent usage, to use external IDs rather than Kubernetes references.
    * - --kubeContext
@@ -103,21 +103,21 @@ Examples
    # Export and apply all supported resources of a specific project:
    atlas kubernetes config apply --projectId=<projectId>
 
-
+   
 .. code-block::
    :copyable: false
 
    # Export and apply all supported resources of a specific project and to a specific namespace:
    atlas kubernetes config apply --projectId=<projectId> --targetNamespace=<namespace>
-
-
+   
+   
 .. code-block::
    :copyable: false
 
    # Export and apply all supported Project resource, and only the described Deployment resources of a specific project to a specific namespace:
    atlas kubernetes config apply --projectId=<projectId> --clusterName=<cluster-name-1, cluster-name-2> --targetNamespace=<namespace>
 
-
+   
 .. code-block::
    :copyable: false
 

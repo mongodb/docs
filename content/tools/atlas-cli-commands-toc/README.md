@@ -36,8 +36,22 @@ This project generates TypeScript table of contents entries for MongoDB Atlas CL
   - Uses git-based approach to avoid API rate limits
   - **Note**: K8s commands are automatically merged by main script
 
-### Generated Files
+- **`generate-local-cli-commands.ts`** - Atlas Local CLI plugin script that:
+  - Clones the `mongodb/atlas-local-cli` repository
+  - Processes Atlas Local CLI plugin commands from `docs/generated` directory
+  - Applies RST syntax fixers to clean up formatting issues
+  - Adds `:orphan:` directive to all files to suppress toctree warnings
+  - Copies command files to both `atlas-cli/upcoming/source/command/` and `atlas/source/includes/command/`
+  - Generates `atlas-cli-local-commands.ts` file for import into main ToC
+  - Uses git-based approach to avoid API rate limits
 
+### G../../table-of-contents/docset-data/atlas-cli-local-commands.ts`** - Atlas Local CLI commands file
+  - Contains all atlas local plugin commands
+  - Imported separately and added as sibling to atlas and atlas-api commands
+  - All files include `:orphan:` directive to suppress toctree warnings
+- **`generation-summary.json`** - Main script execution summary
+- **`k8s-generation-summary.json`** - Kubernetes script execution summary
+- **`local-generation-summary.json`** - Atlas Local CLI
 - **`../../table-of-contents/docset-data/atlas-cli-commands.ts`** - Final unified command list with version constraints
   - Contains all main Atlas CLI commands AND Kubernetes commands merged together
   - No separate imports needed - all commands are integrated alphabetically
@@ -153,7 +167,19 @@ npm run generate-cli:v1.46.2
 
 #### Kubernetes Plugin Commands (Development/Debug Only)
 ```bash
-# Generate Kubernetes plugin commands for reference
+# G
+
+#### Atlas Local CLI Commands
+```bash
+# Generate Atlas Local CLI plugin commands
+npx tsx generate-local-cli-commands.ts v0.0.5
+
+# Use latest release tag
+npx tsx generate-local-cli-commands.ts v0.0.5
+
+# Use main branch for development
+npx tsx generate-local-cli-commands.ts main
+```enerate Kubernetes plugin commands for reference
 npx tsx generate-k8s-cli-commands.ts
 
 # Available npm scripts  
@@ -183,10 +209,45 @@ The system automatically applies version constraints based on file availability:
 
 ### 4. Import Setup (One-time)
 
-To use the generated commands in the main atlas-cli.ts file:
 
-1. **Add import statement** at the top of `content/table-of-contents/docset-data/atlas-cli.ts`:
+**Atlas Local CLI Commands Setup**: For Atlas Local CLI commands, add them as a sibling to atlas and atlas-api:
+
+1. **Add import statement** at the top:
    ```typescript
+   import { atlasCliLocalCommands } from './atlas-cli-local-commands';
+   ```
+
+2. **Add as sibling in Commands section**:
+   ```typescript
+   {
+     label: "Commands",
+     collapsible: true,
+     items: [
+       ...atlasCliCommands,
+       {
+         label: 'atlas local',
+         contentSite: 'atlas-cli',
+         url: '/docs/atlas/cli/:version/command/atlas-local/',
+         collapsible: true,
+         items: atlasCliLocalCommands,
+       },
+     ]
+
+#### Atlas Local CLI Repository
+- **Repository**: `mongodb/atlas-local-cli`
+- **Tag Format**: `v<version>`
+- **Examples**: `v0.0.5`, `v0.0.4`, `main`
+- **Available Tags**: https://github.com/mongodb/atlas-local-cli/tags
+- **Atlas Local CLI**: ~11 commands from mongodb/atlas-local-cli
+- **Total Commands**: ~920 commands in main output + ~11 local commands
+   }
+   ```
+To use the generated commands in the main atlas-cli.ts file:main + K8s commands)
+- **Atlas Local Output**: `../../table-of-contents/docset-data/atlas-cli-local-commands.ts` (local CLI commands)
+- **Reference Files**: `../../table-of-contents/docset-data/atlas-cli-k8s-commands.ts` (for development only)
+- **Command Files**: Copied to both:
+  - `../../atlas-cli/upcoming/source/command/`
+  - `../../atlas-cli/current
    import { atlasCliCommands } from './atlas-cli-commands';
    ```
 

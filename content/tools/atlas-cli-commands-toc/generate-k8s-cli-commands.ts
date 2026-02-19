@@ -348,6 +348,80 @@ function getFilesRecursively(dir: string, fileList: string[] = []): string[] {
 }
 
 /**
+ * Detect which version directories contain kubernetes commands
+ */
+async function detectVersionsWithK8sCommands(): Promise<string[]> {
+  const atlasCliDir = path.join(__dirname, '../../atlas-cli');
+  const versions: string[] = [];
+  
+  // Check if atlas-cli directory exists
+  if (!fs.existsSync(atlasCliDir)) {
+    console.log('⚠️  atlas-cli directory not found');
+    return versions;
+  }
+  
+  // Read all directories in atlas-cli
+  const entries = fs.readdirSync(atlasCliDir, { withFileTypes: true });
+  
+  for (const entry of entries) {
+    if (entry.isDirectory()) {
+      const versionName = entry.name;
+      const commandDir = path.join(atlasCliDir, versionName, 'source', 'command');
+      
+      // Check if this version has any kubernetes command files
+      if (fs.existsSync(commandDir)) {
+        const files = fs.readdirSync(commandDir);
+        const hasK8sCommands = files.some(file => 
+          file.startsWith('atlas-kubernetes-') && file.endsWith('.txt')
+        );
+        
+        if (hasK8sCommands) {
+          versions.push(versionName);
+        }
+      }
+    }
+  }
+  
+  // Sort versions: 'current' and 'upcoming' first, then version numbers
+  versions.sort((a, b) => {
+    if (a === 'current') return -1;
+    if (b === 'current') return 1;
+    if (a === 'upcoming') return -1;
+    if (b === 'upcoming') return 1;
+    return a.localeCompare(b);
+  });
+  
+  return versions;
+}
+
+/**
+ * Update the atlas-cli.ts file to set version filtering for kubernetes commands
+ */
+async function updateAtlasCliToc(versions: string[]): Promise<void> {
+  const tocPath = path.join(__dirname, '../../table-of-contents/docset-data/atlas-cli.ts');
+  
+  if (!fs.existsSync(tocPath)) {
+    console.log('⚠️  atlas-cli.ts file not found');
+    return;
+  }
+  
+  let content = fs.readFileSync(tocPath, 'utf8');
+  const versionsArray = JSON.stringify(versions);
+  
+  // Find and update the kubernetes command block's versions filter
+  // Look for the kubernetes item (label: 'kubernetes') and its versions.includes
+  const k8sBlockRegex = /(\{[\s\S]*?label:\s*['"]kubernetes['"][\s\S]*?versions:\s*\{[\s\S]*?includes:\s*)\[[\s\S]*?\](\s*,[\s\S]*?\}[\s\S]*?\})/;
+  
+  if (k8sBlockRegex.test(content)) {
+    content = content.replace(k8sBlockRegex, `$1${versionsArray}$2`);
+    fs.writeFileSync(tocPath, content, 'utf8');
+    console.log(`✅ Updated atlas-cli.ts with versions: ${versions.join(', ')}`);
+  } else {
+    console.log('⚠️  Could not find kubernetes command version filter in atlas-cli.ts');
+  }
+}
+
+/**
  * Main function
  */
 async function main(): Promise<void> {
@@ -389,6 +463,14 @@ async function main(): Promise<void> {
 
     const totalCommands = countCommands(commandsArray);
     console.log(`📊 Total Kubernetes commands generated: ${totalCommands}`);
+    
+    // Detect versions with kubernetes commands and update TOC
+    console.log('\n🔍 Detecting versions with kubernetes commands...');
+    const versionsWithK8s = await detectVersionsWithK8sCommands();
+    console.log(`📋 Versions with kubernetes commands: ${versionsWithK8s.join(', ')}`);
+    
+    await updateAtlasCliToc(versionsWithK8s);
+    console.log('✅ Updated version filtering in atlas-cli.ts');
     
     // Create summary file
     const summaryPath = path.join(__dirname, 'k8s-generation-summary.json');

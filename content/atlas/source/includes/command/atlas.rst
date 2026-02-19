@@ -65,12 +65,12 @@ Related Commands
 * :ref:`atlas-customDns` - Manage DNS configuration of Atlas project’s clusters deployed to AWS.
 * :ref:`atlas-dataFederation` - Data federation.
 * :ref:`atlas-dbusers` - Manage database users for your project.
-* :ref:`atlas-deployments` - Manage cloud and local deployments.
 * :ref:`atlas-events` - Manage events for your organization or project.
 * :ref:`atlas-federatedAuthentication` - Manage Atlas Federated Authentication.
 * :ref:`atlas-integrations` - Configure third-party integrations for your Atlas project.
 * :ref:`atlas-kubernetes` - Manage Kubernetes resources.
 * :ref:`atlas-liveMigrations` - Manage a Live Migration to Atlas for your organization.
+* :ref:`atlas-local` - Manage MongoDB Atlas local instances
 * :ref:`atlas-logs` - Download host logs for your project.
 * :ref:`atlas-maintenanceWindows` - Manage Atlas maintenance windows.
 * :ref:`atlas-metrics` - Get metrics on the MongoDB process.
@@ -106,12 +106,12 @@ Related Commands
    customDns </command/atlas-customDns>
    dataFederation </command/atlas-dataFederation>
    dbusers </command/atlas-dbusers>
-   deployments </command/atlas-deployments>
    events </command/atlas-events>
    federatedAuthentication </command/atlas-federatedAuthentication>
    integrations </command/atlas-integrations>
    kubernetes </command/atlas-kubernetes>
    liveMigrations </command/atlas-liveMigrations>
+   local </command/atlas-local>
    logs </command/atlas-logs>
    maintenanceWindows </command/atlas-maintenanceWindows>
    metrics </command/atlas-metrics>

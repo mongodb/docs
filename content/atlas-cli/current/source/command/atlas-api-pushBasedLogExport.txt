@@ -55,25 +55,17 @@ Related Commands
 ----------------
 
 * :ref:`atlas-api-pushBasedLogExport-createGroupLogIntegration` - Creates a new log integration configuration identified by a unique ID.
-* :ref:`atlas-api-pushBasedLogExport-createLogExport` - Configures the project level settings for the push-based log export feature.
 * :ref:`atlas-api-pushBasedLogExport-deleteGroupLogIntegration` - Removes the configuration for one log integration identified by its unique ID.
-* :ref:`atlas-api-pushBasedLogExport-deleteLogExport` - Disables the push-based log export feature by resetting the project level settings to its default configuration.
 * :ref:`atlas-api-pushBasedLogExport-getGroupLogIntegration` - Returns the configuration for one log integration identified by its unique ID.
-* :ref:`atlas-api-pushBasedLogExport-getLogExport` - Fetches the current project level settings for the push-based log export feature.
 * :ref:`atlas-api-pushBasedLogExport-listGroupLogIntegrations` - Returns all log integration configurations for the project.
 * :ref:`atlas-api-pushBasedLogExport-updateGroupLogIntegration` - Updates the configuration for one log integration identified by its unique ID.
-* :ref:`atlas-api-pushBasedLogExport-updateLogExport` - Updates the project level settings for the push-based log export feature.
 
 
 .. toctree::
    :titlesonly:
 
    createGroupLogIntegration </command/atlas-api-pushBasedLogExport-createGroupLogIntegration>
-   createLogExport </command/atlas-api-pushBasedLogExport-createLogExport>
    deleteGroupLogIntegration </command/atlas-api-pushBasedLogExport-deleteGroupLogIntegration>
-   deleteLogExport </command/atlas-api-pushBasedLogExport-deleteLogExport>
    getGroupLogIntegration </command/atlas-api-pushBasedLogExport-getGroupLogIntegration>
-   getLogExport </command/atlas-api-pushBasedLogExport-getLogExport>
    listGroupLogIntegrations </command/atlas-api-pushBasedLogExport-listGroupLogIntegrations>
    updateGroupLogIntegration </command/atlas-api-pushBasedLogExport-updateGroupLogIntegration>
-   updateLogExport </command/atlas-api-pushBasedLogExport-updateLogExport>

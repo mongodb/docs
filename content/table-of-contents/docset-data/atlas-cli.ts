@@ -1,5 +1,67 @@
 import type { TocItem } from '../types';
 import { atlasCliCommands } from './atlas-cli-commands';
+import { atlasCliK8sCommands } from './atlas-cli-k8s-commands';
+import { atlasCliLocalCommands } from './atlas-cli-local-commands';
+
+// Nest local and kubernetes commands under the atlas command
+const atlasCommandsWithPlugins: TocItem[] = atlasCliCommands.map((cmd) => {
+  if (cmd.label === 'atlas' && cmd.items) {
+    // Filter out kubernetes commands from the main list to avoid duplication
+    const filteredItems = cmd.items.filter(
+      (item) => item.label !== 'kubernetes',
+    );
+
+    const allItems = [
+      ...filteredItems,
+      {
+        label: 'kubernetes',
+        contentSite: 'atlas-cli' as const,
+        url: '/docs/atlas/cli/:version/command/atlas-kubernetes/',
+        collapsible: true as const,
+        items: atlasCliK8sCommands,
+        versions: {
+          includes: [
+            'current',
+            'upcoming',
+            'v1.38',
+            'v1.39',
+            'v1.40',
+            'v1.41',
+            'v1.42',
+            'v1.43',
+            'v1.44',
+            'v1.45',
+            'v1.46',
+            'v1.47',
+            'v1.48',
+            'v1.49',
+            'v1.50',
+            'v1.51',
+          ],
+        },
+      } as TocItem,
+      {
+        label: 'local',
+        contentSite: 'atlas-cli' as const,
+        url: '/docs/atlas/cli/:version/command/atlas-local/',
+        collapsible: true as const,
+        items: atlasCliLocalCommands,
+        versions: {
+          includes: ['current', 'upcoming'],
+        },
+      } as TocItem,
+    ];
+
+    // Sort alphabetically by label
+    allItems.sort((a, b) => a.label.localeCompare(b.label));
+
+    return {
+      ...cmd,
+      items: allItems,
+    };
+  }
+  return cmd;
+});
 
 const tocData: TocItem[] = [
   {
@@ -58,7 +120,7 @@ const tocData: TocItem[] = [
         label: 'Commands',
         contentSite: 'atlas-cli',
         collapsible: true,
-        items: atlasCliCommands,
+        items: atlasCommandsWithPlugins,
       },
       {
         label: 'Automate',

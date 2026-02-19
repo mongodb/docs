@@ -175,6 +175,7 @@ Related Commands
 ----------------
 
 * :ref:`atlas-api-accessTracking` - Returns access logs for authentication attempts made to Atlas database deployments.
+* :ref:`atlas-api-activityFeed` -
 * :ref:`atlas-api-aiModels` - Returns, adds, edits, and removes API Keys and Rate Limits for your AI Models.
 * :ref:`atlas-api-alertConfigurations` - Returns and edits the conditions that trigger alerts and how MongoDB Cloud notifies users.
 * :ref:`atlas-api-alerts` - Returns and acknowledges alerts that MongoDB Cloud triggers based on the alert conditions that you define.
@@ -226,6 +227,7 @@ Related Commands
    :titlesonly:
 
    accessTracking </command/atlas-api-accessTracking>
+   activityFeed </command/atlas-api-activityFeed>
    aiModels </command/atlas-api-aiModels>
    alertConfigurations </command/atlas-api-alertConfigurations>
    alerts </command/atlas-api-alerts>

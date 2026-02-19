@@ -46,21 +46,21 @@ Options
      - false
      - One or more comma separated data federation names to import
    * - -h, --help
-     -
+     - 
      - false
      - help for generate
    * - --includeSecrets
-     -
+     - 
      - false
      - Flag that generates kubernetes secrets with data for projects, users, deployments entities.
    * - --independentResources
-     -
+     - 
      - false
      - Flag that makes the generated resources that support independent usage, to use external IDs rather than Kubernetes references.
    * - --operatorVersion
      - string
      - false
-     - Version of Atlas Kubernetes Operator to generate resources for. This value defaults to "2.11.0".
+     - Version of Atlas Kubernetes Operator to generate resources for. This value defaults to "2.13.0".
    * - --orgId
      - string
      - false
@@ -99,42 +99,42 @@ Examples
    # Export Project, DatabaseUsers, Deployments resources for a specific project without connection and integration secrets:
    atlas kubernetes config generate --projectId=<projectId>
 
-
+   
 .. code-block::
    :copyable: false
 
    # Export Project, DatabaseUsers, Deployments resources for a specific project, but use external IDs where supported:
    atlas kubernetes config generate --projectId=<projectId> --independentResources
 
-
+   
 .. code-block::
    :copyable: false
 
    # Export Project, DatabaseUsers, Deployments resources for a specific project including connection and integration secrets:
    atlas kubernetes config generate --projectId=<projectId> --includeSecrets
 
-
+   
 .. code-block::
    :copyable: false
 
    # Export Project, DatabaseUsers, Deployments resources for a specific project including connection and integration secrets to a specific namespace:
    atlas kubernetes config generate --projectId=<projectId> --includeSecrets --targetNamespace=<namespace>
 
-
+   
 .. code-block::
    :copyable: false
 
    # Export Project, DatabaseUsers, DataFederations and specific Deployment resources for a specific project including connection and integration secrets to a specific namespace:
    atlas kubernetes config generate --projectId=<projectId> --clusterName=<cluster-name-1, cluster-name-2> --includeSecrets --targetNamespace=<namespace>
 
-
+   
 .. code-block::
    :copyable: false
 
    # Export resources for a specific version of the Atlas Kubernetes Operator:
    atlas kubernetes config generate --projectId=<projectId> --targetNamespace=<namespace> --operatorVersion=1.5.1
 
-
+   
 .. code-block::
    :copyable: false
 

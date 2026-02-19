@@ -38,13 +38,13 @@ Options
      - Required
      - Description
    * - -h, --help
-     -
+     - 
      - false
      - help for dry-run
    * - --operatorVersion
      - string
      - false
-     - Version of Atlas Kubernetes Operator to generate resources for. This value defaults to "2.11.0".
+     - Version of Atlas Kubernetes Operator to generate resources for. This value defaults to "2.13.0".
    * - --orgId
      - string
      - false
@@ -54,7 +54,7 @@ Options
      - false
      - Namespaces to use for generated kubernetes entities
    * - --watch
-     -
+     - 
      - false
      - Flag that indicates whether to watch the command until it completes its execution or the watch times out. To set the time that the watch times out, use the --watchTimeout option.
    * - --watchNamespace
@@ -81,3 +81,4 @@ Inherited Options
      - string
      - false
      - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
