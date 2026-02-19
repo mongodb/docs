@@ -191,7 +191,7 @@ Configuration for the advanced (v1.5) deployment API https://www.mongodb.com/doc
    * -  ``backupEnabled``
      - boolean
      - Flag that indicates if the deployment uses Cloud Backups for backups.
-       Applicable only for ``M10``+ deployments.
+       Applicable only for ``M10+`` deployments.
      - false
 
    * -  ``biConnector``
@@ -1087,6 +1087,7 @@ Group of cloud provider settings that configure the provisioned MongoDB flex clu
        *Validations*:
 
        - self == ``oldSelf``: Backing Provider cannot be modified after cluster creation
+
        *Enum*: ``AWS``, ``GCP``, ``AZURE``
      - true
 

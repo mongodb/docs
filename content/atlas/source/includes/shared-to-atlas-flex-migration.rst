@@ -5,8 +5,9 @@
     {+atlas-ui+}, {+atlas-cli+}, {+atlas-admin-api+}, |ak8so|, HashiCorp Terraform,
     or |service| CloudFormation Resources.
 
-    |service| no longer supports ``M2`` and ``M5`` {+clusters+} and {+Serverless-instances+}. As of May 25, 2025, |service| has migrated all existing ``M2`` and ``M5``
-    {+clusters+} to {+Flex-clusters+}.
+    As of January 22, 2026, |service| no longer supports ``M2`` and ``M5`` 
+    {+clusters+} and {+Serverless-instances+}. All existing ``M2`` and ``M5``
+    {+clusters+} were migrated to {+Flex-clusters+}.
     
     |service| migrated {+Serverless-instances+} to {+Free-clusters+},
     {+Flex-clusters+}, or {+Dedicated-clusters+} according to your usage. 
