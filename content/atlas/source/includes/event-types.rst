@@ -2186,12 +2186,6 @@
        Datadog Log Streaming enabled
      - no
 
-   * - ``DATA_API_SETUP_FOR_VERCEL``
-     - .. _atlas_event_data_api_setup_for_vercel:
-
-       Data API setup for Vercel
-     - no
-
    * - ``DATA_EXPLORER``
      - .. _atlas_event_data_explorer:
 
