@@ -3396,6 +3396,11 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/operator/aggregation/derivative',
           },
           {
+            label: '$deserializeEJSON',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/operator/aggregation/deserializeEJSON',
+          },
+          {
             label: '$divide',
             contentSite: 'docs',
             url: '/docs/:version/reference/operator/aggregation/divide',
@@ -3733,6 +3738,11 @@ const tocData: TocItem[] = [
             label: '$second',
             contentSite: 'docs',
             url: '/docs/:version/reference/operator/aggregation/second',
+          },
+          {
+            label: '$serializeEJSON',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/operator/aggregation/serializeEJSON',
           },
           {
             label: '$setDifference',

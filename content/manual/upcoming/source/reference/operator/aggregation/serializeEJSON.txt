@@ -1,0 +1,368 @@
+=====================================
+$serializeEJSON (expression operator)
+=====================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+  :description: Converts BSON values to Extended JSON format, preserving type information or using relaxed mode for readability. Combine with $toString to generate JSON strings.
+
+Definition
+----------
+
+.. expression:: $serializeEJSON
+
+   .. versionadded:: 8.3
+
+   Converts BSON values to Extended JSON (EJSON) format. The result is a
+   BSON document with EJSON type wrappers that can then be converted to
+   a JSON string using :expression:`$toString`.
+
+Syntax
+------
+
+.. code-block:: javascript
+
+   {
+      $serializeEJSON: {
+         input: <expression>,
+         relaxed: <boolean>,
+         onError: <expression>
+      }
+   }
+
+``$serializeEJSON`` takes a document with the following fields:
+
+.. list-table::
+   :widths: 20 15 15 60
+   :header-rows: 1
+
+   * - Field
+     - Type
+     - Necessity
+     - Description
+
+   * - ``input``
+     - Expression
+     - Required
+     - The BSON value to convert to Extended JSON format.
+
+   * - ``relaxed``
+     - Boolean
+     - Optional
+     - Specifies whether to use Relaxed Extended JSON format.
+       
+       - If ``true``, ``$serializeEJSON`` uses Relaxed Extended JSON
+         format which represents numeric types (Int32, Int64, Double) as
+         native JSON numbers for better readability.
+       
+       - If ``false`` or unspecified, ``$serializeEJSON`` uses Canonical
+         Extended JSON format which preserves type information for all
+         BSON types.
+       
+       *Default:* ``false``
+
+   * - ``onError``
+     - Expression
+     - Optional
+     - Value to return if the operation encounters an error during conversion.
+       
+       If unspecified, when an error occurs, the operation throws an
+       error and stops.
+
+Behavior
+--------
+
+Comparison of Canonical and Relaxed Formats
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table shows how common BSON types are converted to
+Extended JSON:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 35 40
+
+   * - BSON Type
+     - Canonical Extended JSON
+     - Relaxed Extended JSON
+
+   * - Int32
+     - ``{"$numberInt": "42"}``
+     - ``42``
+
+   * - Int64
+     - ``{"$numberLong": "42"}``
+     - ``42``
+
+   * - Double
+     - ``{"$numberDouble": "42.5"}``
+     - ``42.5``
+
+   * - ObjectId
+     - ``{"$oid": "507f1f77bcf86cd799439011"}``
+     - Same as Canonical
+
+   * - Date
+     - ``{"$date": {"$numberLong": "1609459200000"}}``
+     - ``{"$date": "2021-01-01T00:00:00.000Z"}``
+
+   * - Binary
+     - ``{"$binary": {"base64": "AQIDBA==", "subType": "00"}}``
+     - Same as Canonical
+
+   * - Regular Expression
+     - ``{"$regularExpression": {"pattern": "abc", "options": "i"}}``
+     - Same as Canonical
+
+Null and Missing Values
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the ``input`` value is null or missing, ``$serializeEJSON``
+returns null.
+
+Examples
+--------
+
+.. include:: /includes/sample-data-usage.rst
+
+Canonical Extended JSON Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example converts a movie document to Canonical Extended JSON
+format:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      db.movies.aggregate([
+        {
+          $match: { title: "Inception" }
+        },
+        {
+          $project: {
+            ejson: { $serializeEJSON: { input: "$$ROOT" } }
+          }
+        }
+      ])
+
+   .. output::
+      :language: javascript
+
+      {
+        _id: ObjectId("573a1398f29313caabcea974"),
+        ejson: {
+          _id: { $oid: "573a1398f29313caabcea974" },
+          title: "Inception",
+          year: { $numberInt: "2010" },
+          runtime: { $numberInt: "148" },
+          released: { $date: { $numberLong: "1279238400000" } },
+          cast: [
+            "Leonardo DiCaprio",
+            "Joseph Gordon-Levitt",
+            "Ellen Page",
+            "Tom Hardy"
+          ],
+          genres: [ "Action", "Sci-Fi", "Thriller" ],
+          directors: [ "Christopher Nolan" ]
+        }
+      }
+
+Relaxed Extended JSON Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses the ``relaxed`` option for more readable output:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      db.movies.aggregate([
+        {
+          $match: { title: "Inception" }
+        },
+        {
+          $project: {
+            ejson: { 
+              $serializeEJSON: { 
+                input: "$$ROOT",
+                relaxed: true 
+              }
+            }
+          }
+        }
+      ])
+
+   .. output::
+      :language: javascript
+
+      {
+        _id: ObjectId("573a1398f29313caabcea974"),
+        ejson: {
+          _id: { $oid: "573a1398f29313caabcea974" },
+          title: "Inception",
+          year: 2010,
+          runtime: 148,
+          released: { $date: "2010-07-16T00:00:00.000Z" },
+          cast: [
+            "Leonardo DiCaprio",
+            "Joseph Gordon-Levitt",
+            "Ellen Page",
+            "Tom Hardy"
+          ],
+          genres: [ "Action", "Sci-Fi", "Thriller" ],
+          directors: [ "Christopher Nolan" ]
+        }
+      }
+
+Convert to JSON String
+~~~~~~~~~~~~~~~~~~~~~~
+
+To convert the EJSON result to a JSON string, combine ``$serializeEJSON``
+with :expression:`$toString`:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      db.movies.aggregate([
+        {
+          $match: { title: "The Godfather" }
+        },
+        {
+          $project: {
+            title: 1,
+            jsonString: { 
+              $toString: { 
+                $serializeEJSON: { input: "$$ROOT" } 
+              }
+            }
+          }
+        }
+      ])
+
+   .. output::
+      :language: javascript
+
+      [
+        {
+          _id: '573a13c5f29313caabd6ee62',
+          title: 'The Godfather',
+          jsonString: `{"_id":"573a13c5f29313caabd6ee62",` +
+            `"fullplot":"When the aging head of a famous crime family decides to transfer his position to one of his subalterns, a series of unfortunate events start happening to the family, and a war begins between all the well-known families leading to insolence, deportation, murder and revenge, and ends with the favorable successor being finally chosen.",` +
+            `"imdb":{"rating":9.2,"votes":1038358,"id":68646},` +
+            `"year":1972,` +
+            `"plot":"The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.",` +
+            `"genres":["Crime","Drama"],` +
+            `"rated":"R",` +
+            `"metacritic":100,` +
+            `"title":"The Godfather",` +
+            `"lastupdated":"2015-09-02 00:08:23.680000000",` +
+            `"languages":["English","Italian","Latin"],` +
+            `"writers":["Mario Puzo (screenplay)","Francis Ford Coppola (screenplay)","Mario Puzo (novel)"],` +
+            `"type":"movie",` +
+            `"tomatoes":{"website":"http://www.thegodfather.com","viewer":{"rating":4.4,"numReviews":725773,"meter":98},"dvd":{"$date":"2001-10-09T00:00:00.000Z"},"critic":{"rating":9.2,"numReviews":84,"meter":99},"lastUpdated":{"$date":"2015-09-12T17:15:13.000Z"},"consensus":"One of Hollywood's greatest critical and commercial successes, The Godfather gets everything right; not only did the movie transcend expectations, it established new benchmarks for American cinema.","rotten":1,"production":"Paramount Pictures","fresh":83},` +
+            `"poster":"https://m.media-amazon.com/images/M/MV5BM2MyNjYxNmUtYTAwNi00MTYxLWJmNWYtYzZlODY3ZTk3OTFlXkEyXkFqcGdeQXVyNzkwMjQ5NzM@._V1_SY1000_SX677_AL_.jpg",` +
+            `"num_mflix_comments":131,` +
+            `"released":{"$date":"1972-03-24T00:00:00.000Z"},` +
+            `"awards":{"wins":33,"nominations":19,"text":"Won 3 Oscars. Another 30 wins & 19 nominations."},` +
+            `"countries":["USA"],` +
+            `"cast":["Marlon Brando","Al Pacino","James Caan","Richard S. Castellano"],` +
+            `"directors":["Francis Ford Coppola"],` +
+            `"runtime":175}`
+        }
+      ]
+
+.. note::
+
+   The ``jsonString`` field in the previous example is reformatted
+   for readability. In actual output, the JSON string is a single
+   line without whitespace.
+
+Serialize Specific Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can serialize specific fields rather than entire documents:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      db.movies.aggregate([
+        {
+          $match: { year: { $gte: 2010 } }
+        },
+        {
+          $project: {
+            title: 1,
+            metadataEJSON: { 
+              $serializeEJSON: { 
+                input: {
+                  releaseDate: "$released",
+                  runtime: "$runtime",
+                  imdbRating: "$imdb.rating"
+                }
+              }
+            }
+          }
+        }
+      ])
+
+   .. output::
+      :language: javascript
+
+      [
+        {
+          _id: '573a13c5f29313caabd6ee61',
+          title: 'Inception',
+          metadataEJSON: {
+            releaseDate: { '$date': '2010-07-16T00:00:00.000Z' },
+            runtime: 148,
+            imdbRating: 8.8
+          }
+        }
+      ]
+
+Use onError for Error Handling
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses ``onError`` to provide a fallback value if
+serialization fails:
+
+.. code-block:: javascript
+
+   db.movies.aggregate([
+     {
+       $project: {
+         title: 1,
+         ejson: { 
+           $serializeEJSON: { 
+             input: "$customField",
+             onError: { error: "Serialization failed" }
+           }
+         }
+       }
+     }
+   ])
+
+Learn More
+----------
+
+- :expression:`$deserializeEJSON`
+- :expression:`$convert`
+- :expression:`$toString`
+- The MongoDB Shell provides built-in methods to help work with
+  Extended JSON. To learn more, see :ref:`mongosh-ejson`.
