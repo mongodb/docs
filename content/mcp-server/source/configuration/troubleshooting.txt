@@ -87,6 +87,207 @@ If you're using HTTP transport and experiencing connection issues:
 - Ensure that the specified port is open and accessible from your client
   computer.
 
+Atlas Tools vs Database Tools Configuration Guide
+-------------------------------------------------
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+~~~~~~~~
+
+The MongoDB MCP Server provides three main categories of tools: 
+**Atlas tools** for managing Atlas infrastructure, **Local Atlas tools** for managing local 
+deployments similarly to what the Atlas CLI offers, and **Database tools** for data operations. 
+The following table compares the configuration of each tool.
+
+Configuration Comparison Table
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 24 24 28 24
+
+   * - Configuration Aspect
+     - Atlas Tools
+     - Local Atlas Tools
+     - Database Tools
+
+   * - **Authentication Requirements**
+     - | **Required**: Atlas API credentials
+       | • ``apiClientId`` (Service Account ID)
+       | • ``apiClientSecret`` (Service Account Secret)
+     - | **Required**: Docker runtime
+       | • No additional credentials needed
+       | • Automatically manages local deployments
+     - | **Optional**: Multiple connection methods
+       | • Pre-configured connection string
+       | • Atlas credentials for ``atlas-connect-cluster``
+       | • Runtime connection via ``connect`` tool
+       | • Local deployment via ``atlas-local-connect-deployment``
+
+   * - **Connection Method**
+     - | API-based connection to Atlas Management API
+       | • No direct database connection needed
+       | • Uses Atlas REST API endpoints
+     - | Local deployment management
+       | • Uses Docker containers
+       | • No external network access required
+     - | Direct connection to MongoDB database. Multiple options available:
+       | • Configured connection string
+       | • Runtime connection prompt
+       | • Atlas cluster discovery
+       | • Local deployment connection
+
+   * - **Permission Requirements**
+     - | **Service Account Roles** (Atlas project-level):
+       | • :authrole:`Project Read Only` (minimum for read operations)
+       | • :authrole:`Project Owner` (for cluster creation/management)
+       | • :authrole:`Organization Owner` (for project creation)
+     - | **System Requirements**:
+       | • Docker runtime permissions
+       | • Local file system access
+       | • Container management capabilities
+     - | **Database User Roles** (when applicable):
+       | • :atlasrole:`readAnyDatabase` (read-only mode)
+       | • :atlasrole:`readWriteAnyDatabase` (full operations)
+       | • Custom roles for specific databases/collections
+
+   * - **Configuration Options**
+     - | **Environment Variables**:
+       | ``MDB_MCP_API_CLIENT_ID`` or
+       | ``MDB_MCP_API_CLIENT_SECRET``
+       |
+       | **Command Line**:
+       | • ``--apiClientId``
+       | • ``--apiClientSecret``
+     - | **Environment Variables**:
+       | • ``DOCKER_HOST`` (optional)
+       |
+       | **Command Line**:
+       | • No specific MCP configuration required
+       | • Automatically detects Docker runtime
+     - | **Environment Variables** (optional):
+       | ``MDB_MCP_CONNECTION_STRING``
+       |
+       | **Command Line** (optional):
+       | • Connection string as positional argument: 
+       | ``--connectionString``
+       |
+       | **Runtime Methods**:
+       | • Interactive connection via LLM prompts
+       | • Atlas credential-based discovery
+
+   * - **Read-Only Mode Impact**
+     - | • Read operations: ✅ Available
+       | • Cluster inspection: ✅ Available  
+       | • Cluster creation: ❌ Disabled
+       | • User management: ❌ Disabled
+     - | • Local deployment creation: ✅ Available
+       | • Deployment inspection: ✅ Available
+       | • Container management: ✅ Available
+       | • No read-only restrictions
+     - | • Read operations: ✅ Available
+       | • Query operations: ✅ Available
+       | • Aggregations: ✅ Available as long as it doesn't have a `$out` or `$merge` stage.
+       | • Insert/Update/Delete: ❌ Disabled
+       | • Index creation: ❌ Disabled
+
+   * - **Tool Categories**
+     - | Can be disabled with:
+       | ``--disabledTools atlas`` or 
+       | ``MDB_MCP_DISABLED_TOOLS="atlas"``
+     - | Can be disabled with:
+       | ``--disabledTools atlas`` or 
+       | ``MDB_MCP_DISABLED_TOOLS="atlas"``
+     - | Can be disabled with:
+       | ``--disabledTools mongodb`` or 
+       | ``MDB_MCP_DISABLED_TOOLS="mongodb"``
+
+   * - **Network Requirements**
+     - | **Outbound HTTPS to Atlas API**:
+       | • Standard internet connection
+     - | **Local Docker Network**:
+       | • Docker daemon access
+       | • Local port availability
+       | • No external network requirements
+     - | **Connection to MongoDB cluster** (when applicable):
+       | • Atlas: ``mongodb+srv://`` (port 27017)
+       | • Sharded clusters (port 27016)
+       | • Self-managed: Custom host/port
+       | • Local deployments: Docker network
+       | • VPC/network access as required
+
+   * - **Available Operations**
+     - | • Organization management
+       | • Project management  
+       | • Cluster lifecycle (create, inspect, delete)
+       | • Database user management
+       | • Access list configuration
+       | • Performance Advisor recommendations
+       | • Alert management
+     - | • Local deployment creation and management
+       | • Container lifecycle operations
+       | • Local cluster configuration
+       | • Development environment setup
+       | • Testing deployment management
+     - | • CRUD operations (find, insert, update, delete)
+       | • Aggregation pipelines
+       | • Index management
+       | • Collection and database administration
+       | • Schema inspection
+       | • Vector search operations
+       | • Data export
+
+   * - **Error Scenarios**
+     - | **Missing API Credentials**:
+       | Atlas tools return: "Atlas API credentials not configured"
+       |
+       | **Insufficient Permissions**:
+       | HTTP 403 errors from Atlas API
+     - | **Docker Unavailable**:
+       | "Docker daemon not running" or "Docker not installed"
+       |
+       | **Container Issues**:
+       | Port conflicts, resource constraints
+     - | **Connection Failures** (when configured):
+       | Network timeouts, authentication failures
+       |
+       | **Missing Database Permissions**:
+       | MongoDB authorization errors
+
+   * - **Temporary Credentials**
+     - | **Not applicable**:
+       | Uses persistent service account credentials
+     - | **Not applicable**:
+       | Local deployments use container-managed authentication
+     - | **Auto-generated database users** (when applicable):
+       | When using Atlas API credentials without connection string:
+       | • Random username/password
+       | • 4-hour expiration by default
+       | • Automatic role assignment
+
+Database Connection Methods
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The Database tools support multiple connection methods to accommodate different use cases and security requirements:
+
+- **Pre-configured Connection String**: Configure ``connectionString`` via CLI, environment variable, or configuration file for persistent database access.
+- **Atlas Cluster Connect**: Use ``atlas-connect-cluster`` tool with Atlas API credentials to automatically discover and connect to Atlas clusters.
+- **Runtime Connection**: Use the ``connect`` tool to provide connection strings interactively during LLM conversations - no pre-configuration required.
+- **Local Deployment Connection**: Use ``atlas-local-connect-deployment`` with Docker to create and connect to local Atlas deployments - requires Docker but no configuration.
+
+**Security Recommendations**:
+
+- **Production databases**: Use pre-configured connection strings via environment variables or Atlas API credentials for secure, automated connections.
+- **Development/testing**: Runtime connection or local deployments provide flexibility without persistent configuration.
+- **Chat security**: Avoid runtime connection methods unless you're confident chat history won't be stored or shared with third parties.
+
 Learn More
 ----------
 
