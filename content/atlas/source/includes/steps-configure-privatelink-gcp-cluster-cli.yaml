@@ -4,11 +4,18 @@ ref: create-private-endpoint-cli
 title: "Create the private endpoint in |service|."
 content: |
 
-  a. Run the {+atlas-cli+} command to create a private endpoint in 
-     |service|. Ensure that the value of ``--region`` matches the
-     region where you deployed your {+cluster+}:
+  a. Run the {+atlas-cli+} command to create a port mapped private 
+     endpoint in |service|. Ensure that the value of ``--region`` 
+     matches the region where you deployed your {+cluster+}:
 
-     .. include:: /includes/extracts/atlas-privateEndpoints-gcp-create-2.rst
+     .. code-block:: sh
+
+        ./atlas privateEndpoints gcp create --region CENTRAL_US --portMappingEnabled
+
+     .. note:: 
+
+         If you don't explicitly set the ``--portMappingEnabled`` flag, 
+         the private endpoint will be created without port mapping.
 
      .. include:: /includes/fact-multi-region-multi-cloud-endpoint.rst
 
@@ -39,8 +46,8 @@ content: |
   .. code-block:: json
      :copyable: false
 
-     ID                          GROUP NAME      REGION        STATUS          ERROR
-     6344ac8f51b94c6356527881    N/A             CENTRAL_US    AVAILABLE  
+     ID                         GROUP NAME   REGION       STATUS      PORT MAPPING ENABLED   ERROR
+     69948cba1faa593416bbbd7d   N/A          CENTRAL_US   AVAILABLE   true                   <nil>
 
   If the ``STATUS`` value is ``INITIATING``, wait 1-2 more
   minutes for |service| to provision the private endpoint. Then, try this step again.
@@ -52,135 +59,54 @@ ref: create-endpoint-gcp-cli
 title: "Create the endpoint in GCP."
 content: |
 
-  a. Create a shell script file named ``setup_psc.sh``.
-  #. Copy and paste the following code into the
-     ``setup_psc.sh`` file, replacing the following placeholders
-     with your values:
+  Run the following commands to allocate an IP address and create the 
+  private endpoint, replacing the following placeholders with your 
+  values:
 
-     .. list-table::
-        :widths: 20 80
-        :header-rows: 1
+  .. list-table::
+     :widths: 20 80
+     :header-rows: 1
 
-        * - Placeholder
-          - Description
+     * - Placeholder
+       - Description
 
-        * - {GCP-PROJECT-ID}
-          - Unique string that identifies your |gcp| project in 
-            |gcp|.
+     * - {GCP-PROJECT-ID}
+       - Unique string that identifies your |gcp| project in 
+         |gcp|.
 
-        * - {ATLAS-GCP-PROJECT-ID}
-          - Unique string that identifies the |gcp| project in 
-            which |service| deploys your resources.
+     * - {ATLAS-GCP-PROJECT-ID}
+       - Unique string that identifies the |gcp| project in 
+         which |service| deploys your resources.
 
-        * - {ENDPOINT}
-          - Unique string that identifies your private endpoint. This is
-            the prefix for all forwarding rules you create.
+     * - {ENDPOINT}
+       - Unique string that identifies your private endpoint.
 
-        * - {REGION}
-          - |gcp| region in which your {+database-deployment+} resides.
+     * - {REGION}
+       - |gcp| region in which your {+cluster+} resides.
 
-        * - {SUBNET}
-          - When you create Private Service Connect endpoints, you
-            specify a subnet in your VPC network; you may either create a
-            new subnet to encapsulate your endpoints or use an existing
-            one. This subnet needs to have at least 50 unassigned IP
-            addresses.
+     * - {SUBNET}
+       - When you create Private Service Connect endpoints, you
+         specify a subnet in your VPC network; you may either create a
+         new subnet to encapsulate your endpoints or use an existing
+         one.
 
-        * - {VPC-NAME}
-          - Name of the VNet that you want to use to connect to Atlas.
-            You can find this value on the VPC Network page on your |gcp|
-            dashboard.
+     * - {VPC-NAME}
+       - Name of the VNet that you want to use to connect to Atlas.
+         You can find this value on the VPC Network page on your |gcp|
+         dashboard.
 
-        * - {GROUP-ID}
-          - Unique 24-character hexadecimal string that identifies your
-            project in |service|.
+     * - {GROUP-ID}
+       - Unique 24-character hexadecimal string that identifies your
+         project in |service|.
 
-     .. code-block:: sh
-        
-        #!/bin/bash
-        gcloud config set project {GCP-PROJECT-ID}
-        for i in {0..49}
-        do
-          gcloud compute addresses create {ENDPOINT}-ip-$i --region={REGION} --subnet={SUBNET}
-        done
-        for i in {0..49}
-        do
-          if [ $(gcloud compute addresses describe {ENDPOINT}-ip-$i --region={REGION} --format="value(status)") != "RESERVED" ]; then
-            echo "{ENDPOINT}-ip-$i is not RESERVED";
-            exit 1;
-          fi
-        done
-        for i in {0..49}
-        do
-          gcloud compute forwarding-rules create {ENDPOINT}-$i --region={REGION} --network={VPC-NAME} --address={ENDPOINT}-ip-$i --target-service-attachment=projects/{ATLAS-GCP-PROJECT-ID}/regions/{REGION}/serviceAttachments/sa-{REGION}-{GROUP-ID}-$i
-        done
-
-  #. Run the shell file
+  .. code-block:: sh
      
-     .. io-code-block::
-        :copyable: true 
-
-        .. input::
-           :language: bash
-
-           sh setup_psc.sh
-        
-        .. output::
-
-           Created [https://www.googleapis.com/compute/v1/projects/<PROJECT-ID>/regions/<REGION>/addresses/-ip-0].,
-           Created [https://www.googleapis.com/compute/v1/projects/<PROJECT-ID>/regions/<REGION>/addresses/-ip-1].,
-           ...
-           Created [https://www.googleapis.com/compute/v1/projects/<PROJECT-ID>/regions/<REGION>/addresses/-ip-49].,
-           Created [https://www.googleapis.com/compute/v1/projects/<PROJECT-ID>/regions/<REGION>/forwardingRules/-ip-0].,
-           Created [https://www.googleapis.com/compute/v1/projects/<PROJECT-ID>/regions/<REGION>/forwardingRules/-ip-1].,
-           ...
-           Created [https://www.googleapis.com/compute/v1/projects/<PROJECT-ID>/regions/<REGION>/forwardingRules/-ip-49].
-
-  #. Run the following command to generate a list of your |gcp|
-     forwarding addresses and store them in a file called
-     ``atlasEndpoints.txt``, replacing the following placeholders from
-     the previous step:
-
-     .. list-table::
-        :widths: 20 80
-        :header-rows: 1
-
-        * - Placeholder
-          - Description
-
-        * - {REGION}
-          - |gcp| region in which your {+database-deployment+} resides.
-
-        * - {ENDPOINT}
-          - Unique string that identifies your private endpoint. This is
-            the prefix for all forwarding rules you create.
-
-     .. code-block:: sh
-  
-        gcloud compute forwarding-rules list --regions={REGION} --format="csv(name,IPAddress)" --filter="name:({ENDPOINT}*)" > atlasEndpoints.txt
+     gcloud config set project {GCP-PROJECT-ID}
+     gcloud compute addresses create {ENDPOINT}-ip --region={REGION} --subnet={SUBNET}
+     gcloud compute forwarding-rules create {ENDPOINT} --region={REGION} --network={VPC-NAME} --address={ENDPOINT}-ip --target-service-attachment=projects/{ATLAS-GCP-PROJECT-ID}/regions/{REGION}/serviceAttachments/sa-{REGION}-{GROUP-ID}
 
 ---
 stepnum: 4
-level: 4
-ref: reformat-private-endpoint-gcp-cli-file
-title: "Update the format of the ``atlasEndpoints.txt`` file."
-content: |
-
-  Run the following command to reformat the contents of 
-  ``atlasEndpoints.txt``:
-
-  .. code-block::
-     
-     sed -i '' '1d' atlasEndpoints.txt
-     tr -s ',' '@' <atlasEndpoints.txt>atlasEndpoints2.txt
-     tr -s '\n' ',' <atlasEndpoints2.txt>atlasEndpoints.txt
-     sed -i '' '$ s/.$//' atlasEndpoints.txt
-     rm atlasEndpoints2.txt
-
-  :gold:`IMPORTANT:` You use the contents of ``atlasEndpoints.txt`` in the next 
-  step as the value for the ``endpoint`` parameter.
----
-stepnum: 5
 level: 4
 ref: update-private-endpoint-gcp-cli
 title: "Specify the VPC Endpoint ID for your private endpoint."
@@ -213,14 +139,15 @@ content: |
         
         * - ``endpoint``
           - Option
-          - ``tester-1@10.142.0.1,tester-2@10.142.0.2, ... , tester-49@10.142.0.49, tester-50@10.142.0.50``
-            
-            The ``...`` represents 46 other endpoints in between.
+          - ``tester-1@10.142.0.1``
+
+            If |gcp| PSC port mapping is enabled for the backing private 
+            endpoint service, then this parameter should only be of size 1.
 
      .. include:: /includes/extracts/atlas-privateEndpoints-gcp-interfaces-create-2.rst
 
 ---
-stepnum: 6
+stepnum: 5
 level: 4
 ref: get-private-endpoint-status-cli
 title: "Verify the private endpoint's availability."
