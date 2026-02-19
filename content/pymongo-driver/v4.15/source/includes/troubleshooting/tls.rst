@@ -39,11 +39,6 @@ export the ``SSL_CERT_FILE`` environment variable:
    $ pypy -m pip install certifi
    $ export SSL_CERT_FILE=$(pypy -c "import certifi; print(certifi.where())")
 
-.. tip::
-   
-   For more information on this issue, see
-   `portable-pypy issue 15. <https://github.com/squeaky-pl/portable-pypy/issues/15>`__ 
-
 TLSV1_ALERT_PROTOCOL_VERSION
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
