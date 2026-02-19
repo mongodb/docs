@@ -1,1 +1,0 @@
-Specifies whether the host address is in IPv6 format. The default value is ``false``.

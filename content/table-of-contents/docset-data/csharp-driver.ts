@@ -1,7 +1,7 @@
 import type { TocItem } from '../types';
 import docsVersions from '../version-arrays/drivers/csharp-versions';
 
-const outdatedVersions = docsVersions.before('v2.30', { inclusive: true });
+const outdatedVersions = docsVersions.before('v3.x', { inclusive: false });
 
 const tocData: TocItem[] = [
   {
@@ -279,7 +279,7 @@ const tocData: TocItem[] = [
             contentSite: 'csharp',
             url: '/docs/drivers/csharp/:version/indexes/search-indexes',
             versions: {
-              excludes: docsVersions.before('v3.0', { inclusive: true }),
+              excludes: outdatedVersions,
             },
           },
         ],
@@ -301,7 +301,7 @@ const tocData: TocItem[] = [
         contentSite: 'csharp',
         url: '/docs/drivers/csharp/:version/atlas-vector-search',
         versions: {
-          excludes: docsVersions.before('v3.1', { inclusive: true }),
+          excludes: outdatedVersions,
         },
       },
       {
@@ -404,7 +404,7 @@ const tocData: TocItem[] = [
             contentSite: 'csharp',
             url: '/docs/drivers/csharp/:version/security/socks',
             versions: {
-              includes: docsVersions.after('v3.5', { inclusive: true }),
+              includes: docsVersions.after('v3.x', { inclusive: true }),
             },
           },
         ],
