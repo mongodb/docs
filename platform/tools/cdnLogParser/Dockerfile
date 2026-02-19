@@ -7,10 +7,9 @@ RUN npm install -g pnpm
 WORKDIR /app
 
 # Copy package files first (for better Docker layer caching)
-COPY package.json pnpm-lock.yaml ./
+# Note: build context is platform/tools/cdnLogParser; pnpm-lock.yaml lives at platform/ so we only copy package.json
+COPY package.json ./
 
-# Install dependencies (without frozen-lockfile since we're building standalone)
-# If building from workspace root, copy pnpm-lock.yaml and use --frozen-lockfile
 RUN pnpm install
 
 # Copy the rest of the application files
