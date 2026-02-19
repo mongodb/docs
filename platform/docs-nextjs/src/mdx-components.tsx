@@ -15,6 +15,8 @@ import List from '@/components/list';
 import ListItem from '@/components/list/listItem';
 import Line from '@/components/line';
 import LineBlock from '@/components/line-block';
+import Introduction from './components/introduction';
+import CommunityPillLink from './components/community-pill-link';
 
 type InjectedProps = Record<string, unknown>;
 
@@ -54,7 +56,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Contents: ({ children }) => <span>{children}</span>,
     Facet: ({ children }) => <span>{children}</span>,
     Collapsible: ({ children, ...props }) => <Collapsible {...props}>{children}</Collapsible>,
-    CommunityDriver: ({ children }) => <span>{children}</span>,
+    CommunityDriver: ({ children, ...props }) => <CommunityPillLink {...props}>{children}</CommunityPillLink>,
     ComposableTutorial: ({ children }) => <span>{children}</span>,
     IOCodeBlock: ({ children }) => <span>{children}</span>,
     Cond: ({ children }) => <span>{children}</span>,
@@ -69,7 +71,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Describe: ({ children }) => <span>{children}</span>,
     Emphasis: ({ children }) => <em>{children}</em>,
     Example: ({ children }) => <span>{children}</span>,
-    Extract: ({ children }) => <span>{children}</span>,
+    Extract: ({ children }) => children,
     Field: ({ children }) => <span>{children}</span>,
     FieldList: ({ children }) => <span>{children}</span>,
     Figure: ({ children }) => <span>{children}</span>,
@@ -84,7 +86,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Icon: ({ children }) => <span>{children}</span>,
     IconMms: ({ children }) => <span>{children}</span>,
     IconFa5: ({ children }) => <span>{children}</span>,
-    Introduction: ({ children }) => <span>{children}</span>,
+    Introduction: ({ children }) => <Introduction>{children}</Introduction>,
     Input: ({ children }) => <span>{children}</span>,
     IoCodeBlock: ({ children }) => <span>{children}</span>,
     Kicker: ({ children }) => <span>{children}</span>,

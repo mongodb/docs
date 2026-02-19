@@ -32,15 +32,14 @@ const StyledIntroduction = styled('div')`
 `;
 
 export type IntroductionProps = {
-  nodeChildren: ASTNode[];
+  nodeChildren?: ASTNode[];
+  children?: React.ReactNode;
 };
 
-const Introduction = ({ nodeChildren, ...rest }: IntroductionProps) => {
+const Introduction = ({ nodeChildren, children, ...rest }: IntroductionProps) => {
   return (
     <StyledIntroduction className="introduction">
-      {nodeChildren.map((child, i) => (
-        <ComponentFactory {...rest} nodeData={child} key={i} />
-      ))}
+      {children ?? nodeChildren?.map((child, i) => <ComponentFactory {...rest} nodeData={child} key={i} />)}
     </StyledIntroduction>
   );
 };
