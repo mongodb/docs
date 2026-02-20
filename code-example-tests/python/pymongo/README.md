@@ -20,6 +20,20 @@ The structure of this Python project is as follows:
 4. Run tests [locally](#to-run-the-tests-locally) or in [CI](#to-run-the-tests-in-ci)
 5. [Snip code examples for inclusion in docs](#to-snip-code-examples-for-inclusion-in-docs)
 
+TLDR:
+
+If you're not comfortable adding a test, create this as an untested code example
+in your docs project's `source/code-examples` directory. Then, file a DOCSP ticket
+with the component set to `DevDocs` to request the DevDocs team move the file
+into this test project and add a test.
+
+TLDR: from the `/code-example-tests/python/pymongo` directory, run
+
+```sh
+source ./venv/bin/activate && python3 -m unittest discover tests_package && node snip.js && deactivate
+
+```
+
 ## Create and/or activate a Python Virtual Environment
 
 This test suite requires you to have `Python` installed.
@@ -229,12 +243,13 @@ def setUp(self):
 ##### Make sure to update naming
 
 If you copied `test_example_stub.py`, make sure to do the following updates:
+
 - Update the import at the top of the file with your code example name instead of
-   `examples.example_stub`
+  `examples.example_stub`
 - Update the class name `class TestExampleStub()` to match the test file name
 - In the `setUp()` function, replace the `"db_name"` string with the database name
-   the example code uses. This ensures the right database is being
-   dropped between tests.
+  the example code uses. This ensures the right database is being
+  dropped between tests.
 
 #### Writing tests that use sample data
 
@@ -551,9 +566,9 @@ string from the deployment you created in the prior step.
 
 ### Install Certificates for Atlas Connections
 
-When the MongoDB Python client connects to MongoDB Atlas, it requires the 
-necessary root or intermediate CA certificates required to trust the Atlas 
-server's certificate. To ensure your connection to Atlas works, install the 
+When the MongoDB Python client connects to MongoDB Atlas, it requires the
+necessary root or intermediate CA certificates required to trust the Atlas
+server's certificate. To ensure your connection to Atlas works, install the
 certificates by running the following command in your terminal:
 
 `open /Applications/Python\ 3.12/Install\ Certificates.command`

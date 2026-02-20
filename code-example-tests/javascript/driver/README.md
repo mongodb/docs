@@ -53,6 +53,12 @@ in your docs project's `source/code-examples` directory. Then, file a DOCSP tick
 with the component set to `DevDocs` to request the DevDocs team move the file
 into this test project and add a test.
 
+TLDR: From the `/code-example-tests/javascript/driver` directory, run:
+
+```sh
+npx prettier --check examples/ && npm run test && npm run snip
+```
+
 ### Create a code example file
 
 Create a new file in the `/examples` directory. Organize these examples to group

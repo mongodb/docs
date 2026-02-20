@@ -1,7 +1,6 @@
 # C# - .NET/C# Driver - Example Test Suite
 
-
-This project contains the infrastructure to test and extract C#/.NET Driver code 
+This project contains the infrastructure to test and extract C#/.NET Driver code
 examples for use across MongoDB documentation.
 
 The structure of this C# project is as follows:
@@ -43,15 +42,22 @@ To create a new code example:
 
 1. Create a code example file
 2. Create an output file (optional)
-3. Format the code example files
-4. Add a corresponding test - refer to the instructions below for testing
-5. Run the `snip.js` script to move the tested code to a docs directory
-6. Use the code example in a `literalinclude` or `io-code-block` in your docs set
+3. Add a corresponding test - refer to the instructions below for testing
+4. Format the code example files with `dotnet format`
+5. Run the tests with `dotnet test`
+6. Run the `snip.js` script to move the tested code to a docs directory
+7. Use the code example in a `literalinclude` or `io-code-block` in your docs set
 
 If you're not comfortable adding a test, create this as an untested code example
 in your docs project's `source/code-examples` directory. Then, file a DOCSP ticket
 with the component set to `DevDocs` to request the DevDocs team move the file
 into this test project and add a test.
+
+TLDR: from the `/code-example-tests/csharp/driver` directory, run
+
+```sh
+dotnet format && dotnet test && node snip
+```
 
 ### Create a code example file
 
@@ -182,6 +188,7 @@ In most cases, you should verify the output by using the **Expect** APIs to
 verify the output against the output we show in the documentation.
 
 ### Using the Expect API
+
 In the test file, you can call the function that executes your code example,
 establish what the expected string should be, and perform a match to confirm
 that the code executed correctly:
@@ -218,7 +225,7 @@ Expect.That(results)
 
 The test suite includes a comprehensive fluent API
 designed specifically for validating MongoDB C# Driver output against expected results.
-In most cases, you call ``Expect.That(actualResults).ShouldMatch(expectedResults)``.
+In most cases, you call `Expect.That(actualResults).ShouldMatch(expectedResults)`.
 
 **Key Features**
 
@@ -243,9 +250,8 @@ Expect.That(results)
     .ShouldMatch("Examples/MyExample/ExpectedOutput.txt");
 ```
 
-
 **¡Important!**
-The order matters -- be sure you always specify the actual results first in ``Expect.That()``, followed by the expected results in ``ShouldMatch()``.
+The order matters -- be sure you always specify the actual results first in `Expect.That()`, followed by the expected results in `ShouldMatch()`.
 
 ### Advanced Options
 
@@ -264,26 +270,28 @@ Expect.That(results)
     .IsSuccess.Should().BeTrue();
 ```
 
-Note that you do not need to set ``WithUnorderedSort()`` because it is the default behavior. It is provided only if you want to be explicit about your intentions.
-
+Note that you do not need to set `WithUnorderedSort()` because it is the default behavior. It is provided only if you want to be explicit about your intentions.
 
 ### Expected Output File Formats
 
 The library supports multiple formats in your expected output files:
 
 **MongoDB Extended JSON:**
+
 ```json
 { "date" : { "$date" : "2021-12-18T15:55:00Z" }, "name" : "Alice" }
 { "date" : { "$date" : "2021-12-18T15:56:00Z" }, "name" : "Bob" }
 ```
 
 **JSONL (Line-delimited JSON):**
+
 ```json
 {"date": {"$date": "2021-12-18T15:55:00Z"}, "name": "Alice"}
 {"date": {"$date": "2021-12-18T15:56:00Z"}, "name": "Bob"}
 ```
 
 **C# Object Syntax:**
+
 ```csharp
 { date: new DateTime(2021, 12, 18, 15, 55, 0), name: "Alice" }
 { date: new DateTime(2021, 12, 18, 15, 56, 0), name: "Bob" }
@@ -294,16 +302,19 @@ The library supports multiple formats in your expected output files:
 Use `...` to match dynamic or variable content:
 
 **String truncation:**
+
 ```
 "username_abc123..."  // Matches any string starting with "username_abc123"
 ```
 
 **Object fields:**
+
 ```json
 { "name": "Alice", "profile": { "age": 30, ... } }  // Matches objects with at least these fields
 ```
 
 **Array elements:**
+
 ```json
 ["first", "second", ...]  // Matches arrays starting with these elements
 ```
@@ -332,18 +343,18 @@ Expect.That(actualResults)
 
 ### When to Use ShouldResemble vs ShouldMatch:
 
-For exact output matching, use `ShouldMatch()`. For results that may vary but 
+For exact output matching, use `ShouldMatch()`. For results that may vary but
 have a consistent structure, use `ShouldResemble()` with `WithSchema()`.
 
-
 #### SchemaValidationOptions
+
 The SchemaValidationOptions class configures schema validation:
 
-| Property |	Type | Description |
-|----------|-----|-----------|
-| Count | int | Expected number of documents in the result set
-| RequiredFields | string[] | Field names that must exist in every document
-| FieldValues | Dictionary<string, object?> | Field values that must match in every document
+| Property       | Type                        | Description                                    |
+| -------------- | --------------------------- | ---------------------------------------------- |
+| Count          | int                         | Expected number of documents in the result set |
+| RequiredFields | string[]                    | Field names that must exist in every document  |
+| FieldValues    | Dictionary<string, object?> | Field values that must match in every document |
 
 #### Example: Vector Search Validation
 
@@ -574,6 +585,7 @@ From the `/drivers` directory, run:
 ```
 dotnet test --filter "FullyQualifiedName=YourNamespace.YourTestClass.YourTestMethod"
 ```
+
 ## To run the tests in CI
 
 A GitHub workflow runs these tests in CI automatically when you change any
@@ -629,10 +641,10 @@ This script will automatically create the specified output path if it does not
 exist.
 
 **Note:**
-While uncommon, you might create files that you do not intend to include in the docs 
-(such as a shared class file). If this is the case, you should add the file names to the 
-`IGNORE_PATTERNS` constant in the `snip.js` file. For example, the following 
-`IGNORE_PATTERNS` constant prevents `snip.js` from copying the `ExampleStub.cs` 
+While uncommon, you might create files that you do not intend to include in the docs
+(such as a shared class file). If this is the case, you should add the file names to the
+`IGNORE_PATTERNS` constant in the `snip.js` file. For example, the following
+`IGNORE_PATTERNS` constant prevents `snip.js` from copying the `ExampleStub.cs`
 file.
 
 ```sh

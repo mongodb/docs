@@ -47,12 +47,14 @@ mvn clean install -DskipTests
 ```
 
 This command will:
+
 1. Compile the utility libraries (comparison tools and sample data helpers)
 2. Install them to your local Maven repository so they can be used by driver-sync
 3. Compile the driver-sync project code
 4. Ensure all dependencies are properly resolved
 
 You need to run this command:
+
 - The first time you work with the project
 - If you encounter dependency-related errors when running tests
 
@@ -65,8 +67,8 @@ To create a new code example:
 
 1. Create a code example file
 2. Create an output file (optional)
-3. Format the code example files
-4. Add a corresponding test - refer to the instructions below for testing
+3. Add a corresponding test - refer to the instructions below for testing
+4. Format the code by running `mvn spotless:apply`
 5. Run the `snip.js` script to move the tested code to a docs directory
 6. Use the code example in a `literalinclude` or `io-code-block` in your docs set
 
@@ -74,6 +76,12 @@ If you're not comfortable adding a test, create this as an untested code example
 in your docs project's `source/code-examples` directory. Then, file a DOCSP ticket
 with the component set to `DevDocs` to request the DevDocs team move the file
 into this test project and add a test.
+
+TLDR: from the `/code-example-tests/java/driver-sync` directory, run
+
+```sh
+export CONNECTION_STRING="<your_connection_string>" && mvn spotless:apply && mvn test && node snip
+```
 
 ### Create a code example file
 
@@ -315,15 +323,16 @@ Expect.that(actual).shouldResemble(expected).withSchema(
 
 #### Schema Builder Options
 
-| Method | Description |
-|--------|-------------|
-| `withCount(n)` | **Required.** Expect exactly `n` documents in both actual and expected |
-| `withRequiredFields("field1", "field2", ...)` | Each document must contain these fields |
-| `withFieldValues(Map.of("field", value))` | Each document must have these exact field values |
+| Method                                        | Description                                                            |
+| --------------------------------------------- | ---------------------------------------------------------------------- |
+| `withCount(n)`                                | **Required.** Expect exactly `n` documents in both actual and expected |
+| `withRequiredFields("field1", "field2", ...)` | Each document must contain these fields                                |
+| `withFieldValues(Map.of("field", value))`     | Each document must have these exact field values                       |
 
 #### Flexible Input Handling
 
 The schema validation automatically normalizes inputs, so you can pass:
+
 - **Collections** (List, Set, etc.)
 - **Arrays**
 - **Single documents** (auto-wrapped into a single-element list)
@@ -346,18 +355,21 @@ or `.withUnorderedSort()`, since schema validation does not evaluate field value
 The library supports multiple formats in your expected output files:
 
 **MongoDB Extended JSON:**
+
 ```json
 { "date" : { "$date" : "2021-12-18T15:55:00Z" }, "name" : "Alice" }
 { "date" : { "$date" : "2021-12-18T15:56:00Z" }, "name" : "Bob" }
 ```
 
 **JSONL (Line-delimited JSON):**
+
 ```json
 {"date": {"$date": "2021-12-18T15:55:00Z"}, "name": "Alice"}
 {"date": {"$date": "2021-12-18T15:56:00Z"}, "name": "Bob"}
 ```
 
 **Java Object Syntax:**
+
 ```java
 { date: new DateTime(2021, 12, 18, 15, 55, 0), name: "Alice" }
 { date: new DateTime(2021, 12, 18, 15, 56, 0), name: "Bob" }
@@ -368,16 +380,19 @@ The library supports multiple formats in your expected output files:
 Use `...` to match dynamic or variable content:
 
 **String truncation:**
+
 ```
 "username_abc123..."  // Matches any string starting with "username_abc123"
 ```
 
 **Object fields:**
+
 ```json
 { "name": "Alice", "profile": { "age": 30, ... } }  // Matches objects with at least these fields
 ```
 
 **Array elements:**
+
 ```json
 ["first", "second", ...]  // Matches arrays starting with these elements
 ```
@@ -488,7 +503,7 @@ Refer to your IDE's instructions for how to do this.
 #### Run All Tests from the command line
 
 If you have `Maven` installed, you can run tests from the command line. From
-the `/driver-sync` directory, run:
+the `/code-example-tests/java/driver-sync` directory, run:
 
 ```
 mvn test
