@@ -432,13 +432,19 @@ class Expect {
     }
 
     // Read environment variables
+    // Supports both local MongoDB (mongodb://) and Atlas (mongodb+srv://) connections
     const mongoUri = process.env.CONNECTION_STRING;
     const port = process.env.CONNECTION_PORT;
 
-    if (!mongoUri || !port) {
+    if (!mongoUri) {
       throw new Error(
-        'CONNECTION_STRING and CONNECTION_PORT environment variables are required.\n' +
-        'Make sure your .env file is configured correctly.'
+        'CONNECTION_STRING environment variable is required.\n' +
+        'Make sure your .env file is configured correctly.\n\n' +
+        'For local MongoDB:\n' +
+        '  CONNECTION_STRING="mongodb://localhost:27017"\n' +
+        '  CONNECTION_PORT="27017"\n\n' +
+        'For Atlas:\n' +
+        '  CONNECTION_STRING="mongodb+srv://user:password@cluster.mongodb.net/"'
       );
     }
 
@@ -451,8 +457,12 @@ class Expect {
     });
 
     // Execute mongosh command with proper handle cleanup
+    // Use --nodb to prevent mongosh from connecting to localhost before running the script
+    // Only add --port flag for non-SRV connection strings (local MongoDB)
+    const isSrvConnection = mongoUri.startsWith('mongodb+srv://');
+    const portFlag = (!isSrvConnection && port) ? ` --port ${port}` : '';
     return new Promise((resolve, reject) => {
-      const command = `mongosh --file ${tempFilePath} --port ${port}`;
+      const command = `mongosh --nodb --file ${tempFilePath}${portFlag}`;
       const childProcess = exec(
         command,
         { maxBuffer: 10 * 1024 * 1024 }, // 10MB buffer
@@ -579,13 +589,19 @@ class Expect {
     }
 
     // Read environment variables
+    // Supports both local MongoDB (mongodb://) and Atlas (mongodb+srv://) connections
     const mongoUri = process.env.CONNECTION_STRING;
     const port = process.env.CONNECTION_PORT;
 
-    if (!mongoUri || !port) {
+    if (!mongoUri) {
       throw new Error(
-        'CONNECTION_STRING and CONNECTION_PORT environment variables are required.\n' +
-        'Make sure your .env file is configured correctly.'
+        'CONNECTION_STRING environment variable is required.\n' +
+        'Make sure your .env file is configured correctly.\n\n' +
+        'For local MongoDB:\n' +
+        '  CONNECTION_STRING="mongodb://localhost:27017"\n' +
+        '  CONNECTION_PORT="27017"\n\n' +
+        'For Atlas:\n' +
+        '  CONNECTION_STRING="mongodb+srv://user:password@cluster.mongodb.net/"'
       );
     }
 
@@ -598,8 +614,12 @@ class Expect {
     });
 
     // Execute mongosh command
+    // Use --nodb to prevent mongosh from connecting to localhost before running the script
+    // Only add --port flag for non-SRV connection strings (local MongoDB)
+    const isSrvConnection = mongoUri.startsWith('mongodb+srv://');
+    const portFlag = (!isSrvConnection && port) ? ` --port ${port}` : '';
     return new Promise((resolve, reject) => {
-      const command = `mongosh --file ${tempFilePath} --port ${port}`;
+      const command = `mongosh --nodb --file ${tempFilePath}${portFlag}`;
       const childProcess = exec(
         command,
         { maxBuffer: 10 * 1024 * 1024 }, // 10MB buffer

@@ -417,14 +417,46 @@ Expect.that(actualOutput)
 ### Create a .env file
 
 Create a file named `.env` at the root of the `/mongosh` directory.
-Add the following values to your .env file, substituting the port where your
-local deployment is running:
+Add the following values to your .env file.
+
+#### Option 1: Local MongoDB deployment
+
+For a local MongoDB instance, provide both the connection string and port:
 
 ```
 CONNECTION_STRING="mongodb://localhost:63201"
 CONNECTION_PORT="63201"
 TZ=UTC
 ```
+
+#### Option 2: MongoDB Atlas cluster
+
+For an Atlas cluster, provide only the SRV connection string (no port needed):
+
+```
+CONNECTION_STRING="mongodb+srv://username:password@cluster.mongodb.net/?appName=YourApp"
+TZ=UTC
+```
+
+> **Note**: When using Atlas, the `CONNECTION_PORT` variable is not needed and
+> is ignored. The test suite automatically detects SRV connection strings
+> (`mongodb+srv://`) and handles them appropriately.
+
+To find your Atlas connection string:
+1. Go to your Atlas cluster
+2. Click "Connect" > "Drivers"
+3. Copy the connection string and replace `<password>` with your database user password
+
+**Important**: Ensure your Atlas cluster has the [sample datasets](https://www.mongodb.com/docs/atlas/sample-data/)
+loaded if you want to run tests that depend on sample data.
+
+#### Environment variable reference
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `CONNECTION_STRING` | Yes | MongoDB connection URI (`mongodb://` or `mongodb+srv://`) |
+| `CONNECTION_PORT` | No | Port for local MongoDB (ignored for Atlas/SRV connections) |
+| `TZ` | Yes | Timezone setting (must be `UTC` for consistent test results) |
 
 The `TZ` variable sets the Node.js environment to use the UTC time zone. This
 is required to enforce time zone consistency between dates across different

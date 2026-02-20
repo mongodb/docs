@@ -120,10 +120,30 @@ function makeTempFileForTesting(details) {
 
   codeSnippet = codeSnippet.trim();
 
-  let tempFileContents = `db = connect('${details.connectionString}`;
+  // Build connection string with database name properly inserted
+  // Handle query parameters correctly (insert dbName before ? if present)
+  // Supports both local (mongodb://) and Atlas (mongodb+srv://) connection strings
+  let connectionWithDb = details.connectionString;
   if (details.dbName) {
-    tempFileContents = `${tempFileContents}/${details.dbName}');`;
+    const queryIndex = details.connectionString.indexOf('?');
+    if (queryIndex !== -1) {
+      // Insert database name before query parameters
+      const baseUrl = details.connectionString.substring(0, queryIndex);
+      const queryString = details.connectionString.substring(queryIndex);
+      // Remove trailing slash from base URL if present
+      const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+      connectionWithDb = `${cleanBaseUrl}/${details.dbName}${queryString}`;
+    } else {
+      // No query parameters, just append database name
+      // Remove trailing slash if present to avoid double slashes
+      const cleanUrl = details.connectionString.endsWith('/')
+        ? details.connectionString.slice(0, -1)
+        : details.connectionString;
+      connectionWithDb = `${cleanUrl}/${details.dbName}`;
+    }
   }
+
+  let tempFileContents = `db = connect('${connectionWithDb}');`;
 
   if (details.validateOutput) {
     if (filepaths.length > 1) {

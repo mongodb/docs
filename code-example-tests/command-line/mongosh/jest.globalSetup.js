@@ -3,6 +3,8 @@
  *
  * Runs once before all test files to check available databases.
  * Stores results in process.env so all test processes can access them.
+ *
+ * Supports both local MongoDB (mongodb://) and Atlas (mongodb+srv://) connections.
  */
 
 const { execSync } = require('child_process');
@@ -18,9 +20,26 @@ module.exports = async () => {
       return;
     }
 
+    // Detect Atlas SRV connections for informational logging
+    const isSrvConnection = mongoUri.startsWith('mongodb+srv://');
+    if (isSrvConnection) {
+      console.log('   Using Atlas (SRV) connection...');
+    }
+
     // Query MongoDB for available databases
-    const command = `mongosh "${mongoUri}" --quiet --eval "JSON.stringify(db.getMongo().getDBs().databases.map(d => d.name))"`;
-    const output = execSync(command, { encoding: 'utf8', timeout: 5000 });
+    // Use --nodb and connect() inside the eval to avoid shell escaping issues with special
+    // characters in connection strings. This matches the approach used in Expect.js.
+    const evalScript = `
+      const conn = connect('${mongoUri.replace(/'/g, "\\'")}');
+      const dbs = conn.getMongo().getDBs().databases.map(d => d.name);
+      JSON.stringify(dbs);
+    `.trim().replace(/\n\s*/g, ' ');
+
+    const command = `mongosh --nodb --quiet --eval "${evalScript}"`;
+
+    // Use longer timeout for Atlas connections (DNS SRV lookup + TLS handshake)
+    const timeout = isSrvConnection ? 30000 : 10000;
+    const output = execSync(command, { encoding: 'utf8', timeout });
 
     // Parse and store the results in process.env
     const databases = JSON.parse(output.trim());
