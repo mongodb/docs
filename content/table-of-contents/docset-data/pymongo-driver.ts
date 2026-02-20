@@ -1,15 +1,5 @@
 import type { TocItem } from '../types';
 
-const outdatedIntegrationVersions = [
-  'v4.7',
-  'v4.8',
-  'v4.9',
-  'v4.10',
-  'v4.11',
-  'v4.12',
-];
-const outdatedPreAsyncVersions = ['v4.7', 'v4.8'];
-
 const tocData: TocItem[] = [
   {
     label: 'PyMongo Driver',
@@ -336,14 +326,7 @@ const tocData: TocItem[] = [
         label: 'Third-Party Integrations',
         contentSite: 'pymongo',
         url: '/docs/languages/python/pymongo-driver/:version/integrations',
-        versions: { includes: outdatedIntegrationVersions },
-      },
-      {
-        label: 'Third-Party Integrations',
-        contentSite: 'pymongo',
-        url: '/docs/languages/python/pymongo-driver/:version/integrations',
         collapsible: true,
-        versions: { excludes: outdatedIntegrationVersions },
         items: [
           {
             label: 'Tutorial: Flask and Celery Integration',
@@ -386,7 +369,6 @@ const tocData: TocItem[] = [
             label: 'Migrate to PyMongo Async',
             contentSite: 'pymongo',
             url: '/docs/languages/python/pymongo-driver/:version/reference/migration',
-            versions: { excludes: outdatedPreAsyncVersions },
           },
           {
             label: 'Previous Versions',
@@ -403,7 +385,7 @@ const tocData: TocItem[] = [
       {
         label: 'API Documentation',
         isExternal: true,
-        url: 'https://pymongo.readthedocs.io/en/4.13.2/api/',
+        url: 'https://pymongo.readthedocs.io/en/4.16.0/api/',
       },
       {
         label: 'Issues & Help',
