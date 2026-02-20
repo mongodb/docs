@@ -1,7 +1,7 @@
 import type { TocItem } from '../types';
 import docsVersions from '../version-arrays/drivers/node-versions';
 
-const outdatedVersions = docsVersions.before('v6.15', { inclusive: true });
+//const outdatedVersions = docsVersions.before('v6.15', { inclusive: true });
 
 const tocData: TocItem[] = [
   {
@@ -30,13 +30,11 @@ const tocData: TocItem[] = [
             label: 'Create a MongoClient',
             contentSite: 'node',
             url: '/docs/drivers/node/:version/connect/mongoclient',
-            versions: { excludes: outdatedVersions },
           },
           {
             label: 'Connection Guide',
             contentSite: 'node',
             url: '/docs/drivers/node/:version/connect/connect',
-            versions: { includes: outdatedVersions },
           },
           {
             label: 'Connection Options',
@@ -70,7 +68,6 @@ const tocData: TocItem[] = [
             label: 'Choose a Connection Target',
             contentSite: 'node',
             url: '/docs/drivers/node/:version/connect/connection-targets',
-            versions: { excludes: outdatedVersions },
           },
           {
             label: 'Connect with AWS Lambda',
@@ -86,7 +83,6 @@ const tocData: TocItem[] = [
             label: 'Multiple Connections Tutorial',
             contentSite: 'node',
             url: '/docs/drivers/node/:version/connect/multiple-connections',
-            versions: { excludes: [...outdatedVersions, 'v6.16'] },
           },
         ],
       },
@@ -94,7 +90,6 @@ const tocData: TocItem[] = [
         label: 'Databases & Collections',
         contentSite: 'node',
         url: '/docs/drivers/node/:version/databases-collections',
-        versions: { excludes: outdatedVersions },
       },
       {
         label: 'CRUD Operations',
@@ -120,25 +115,6 @@ const tocData: TocItem[] = [
                 label: 'Specify Documents to Return',
                 contentSite: 'node',
                 url: '/docs/drivers/node/:version/crud/query/specify-documents-to-return',
-                versions: { excludes: outdatedVersions },
-              },
-              {
-                label: 'Sort Results',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/crud/query/sort',
-                versions: { includes: outdatedVersions },
-              },
-              {
-                label: 'Skip Returned Results',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/crud/query/skip',
-                versions: { includes: outdatedVersions },
-              },
-              {
-                label: 'Limit Returned Results',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/crud/query/limit',
-                versions: { includes: outdatedVersions },
               },
               {
                 label: 'Specify Fields to Return',
@@ -237,7 +213,6 @@ const tocData: TocItem[] = [
             label: 'Configure CRUD Operations',
             contentSite: 'node',
             url: '/docs/drivers/node/:version/crud/configure',
-            versions: { excludes: outdatedVersions },
           },
           {
             label: 'Generate Custom _id Values',
@@ -248,18 +223,6 @@ const tocData: TocItem[] = [
             label: 'Store Large Files',
             contentSite: 'node',
             url: '/docs/drivers/node/:version/crud/gridfs',
-          },
-          {
-            label: 'Operations on Replica Sets',
-            contentSite: 'node',
-            url: '/docs/drivers/node/:version/crud/read-write-pref',
-            versions: { includes: outdatedVersions },
-          },
-          {
-            label: 'Collations',
-            contentSite: 'node',
-            url: '/docs/drivers/node/:version/crud/collations',
-            versions: { includes: outdatedVersions },
           },
         ],
       },
@@ -290,25 +253,6 @@ const tocData: TocItem[] = [
             label: 'BSON',
             contentSite: 'node',
             url: '/docs/drivers/node/:version/data-formats/bson',
-            versions: { excludes: outdatedVersions },
-            collapsible: true,
-            items: [
-              {
-                label: 'Undefined Values',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/data-formats/bson/undefined-values',
-              },
-              {
-                label: 'UTF-8 Validation',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/data-formats/bson/utf8-validation',
-              },
-            ],
-          },
-          {
-            label: 'BSON',
-            contentSite: 'node',
-            versions: { includes: outdatedVersions },
             collapsible: true,
             items: [
               {
@@ -327,7 +271,6 @@ const tocData: TocItem[] = [
             label: 'Extended JSON',
             contentSite: 'node',
             url: '/docs/drivers/node/:version/data-formats/extended-json',
-            versions: { excludes: outdatedVersions },
           },
           {
             label: 'Time Series Data',
@@ -365,30 +308,6 @@ const tocData: TocItem[] = [
             label: 'Monitoring',
             contentSite: 'node',
             url: '/docs/drivers/node/:version/monitoring-and-logging/monitoring',
-            versions: { excludes: outdatedVersions },
-          },
-          {
-            label: 'Monitoring',
-            contentSite: 'node',
-            collapsible: true,
-            versions: { includes: outdatedVersions },
-            items: [
-              {
-                label: 'Cluster',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/monitoring-and-logging/monitoring/cluster-monitoring',
-              },
-              {
-                label: 'Command',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/monitoring-and-logging/monitoring/command-monitoring',
-              },
-              {
-                label: 'Connection Pool',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/monitoring-and-logging/monitoring/connection-monitoring',
-              },
-            ],
           },
           {
             label: 'Logging',
@@ -412,7 +331,6 @@ const tocData: TocItem[] = [
             contentSite: 'node',
             url: '/docs/drivers/node/:version/security/authentication',
             collapsible: true,
-            versions: { excludes: outdatedVersions },
             items: [
               {
                 label: 'SCRAM',
@@ -447,25 +365,6 @@ const tocData: TocItem[] = [
             ],
           },
           {
-            label: 'Authentication',
-            contentSite: 'node',
-            url: '/docs/drivers/node/:version/security/authentication',
-            collapsible: true,
-            versions: { includes: outdatedVersions },
-            items: [
-              {
-                label: 'Authentication',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/security/authentication/mechanisms',
-              },
-              {
-                label: 'Enterprise Authentication',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/security/authentication/enterprise-mechanisms',
-              },
-            ],
-          },
-          {
             label: 'In-Use Encryption',
             contentSite: 'node',
             url: '/docs/drivers/node/:version/security/encrypt-fields',
@@ -486,7 +385,6 @@ const tocData: TocItem[] = [
         label: 'Third-Party Integrations',
         contentSite: 'node',
         collapsible: true,
-        versions: { excludes: [...outdatedVersions, 'v6.16'] },
         items: [
           {
             label: 'Integrate with Mongoose',
@@ -515,101 +413,6 @@ const tocData: TocItem[] = [
             label: 'Deploy an Application on Vercel',
             contentSite: 'node',
             url: '/docs/drivers/node/:version/integrations/next-vercel',
-          },
-        ],
-      },
-      {
-        label: 'Usage Examples',
-        contentSite: 'node',
-        url: '/docs/drivers/node/:version/usage-examples',
-        versions: { includes: outdatedVersions },
-        collapsible: true,
-        items: [
-          {
-            label: 'Find',
-            contentSite: 'node',
-            url: '/docs/drivers/node/:version/usage-examples/find-operations',
-            collapsible: true,
-            items: [
-              {
-                label: 'Find a Document',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/usage-examples/findOne',
-              },
-              {
-                label: 'Find Multiple Documents',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/usage-examples/find',
-              },
-            ],
-          },
-          {
-            label: 'Insert',
-            contentSite: 'node',
-            url: '/docs/drivers/node/:version/usage-examples/insert-operations',
-            collapsible: true,
-            items: [
-              {
-                label: 'Insert a Document',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/usage-examples/insertOne',
-              },
-              {
-                label: 'Insert Multiple Documents',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/usage-examples/insertMany',
-              },
-            ],
-          },
-          {
-            label: 'Update & Replace',
-            contentSite: 'node',
-            collapsible: true,
-            items: [
-              {
-                label: 'Update a Document',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/usage-examples/updateOne',
-              },
-              {
-                label: 'Update Multiple Documents',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/usage-examples/updateMany',
-              },
-            ],
-          },
-          {
-            label: 'Delete',
-            contentSite: 'node',
-            url: '/docs/drivers/node/:version/usage-examples/delete-operations',
-            collapsible: true,
-            items: [
-              {
-                label: 'Delete a Document',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/usage-examples/deleteOne',
-              },
-              {
-                label: 'Delete Multiple Documents',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/usage-examples/deleteMany',
-              },
-            ],
-          },
-          {
-            label: 'Distinct Field Values',
-            contentSite: 'node',
-            url: '/docs/drivers/node/:version/usage-examples/distinct',
-          },
-          {
-            label: 'Run a Command',
-            contentSite: 'node',
-            url: '/docs/drivers/node/:version/usage-examples/command',
-          },
-          {
-            label: 'Bulk Operations',
-            contentSite: 'node',
-            url: '/docs/drivers/node/:version/usage-examples/bulkWrite',
           },
         ],
       },
@@ -648,7 +451,14 @@ const tocData: TocItem[] = [
       {
         label: 'API Documentation',
         isExternal: true,
-        url: 'https://mongodb.github.io/node-mongodb-native/6.18',
+        url: 'https://mongodb.github.io/node-mongodb-native/7.1',
+        versions: { includes: ['v7.x'] },
+      },
+      {
+        label: 'API Documentation',
+        isExternal: true,
+        url: 'https://mongodb.github.io/node-mongodb-native/6.21',
+        versions: { includes: ['v6.x'] },
       },
       {
         label: 'Issues & Help',
