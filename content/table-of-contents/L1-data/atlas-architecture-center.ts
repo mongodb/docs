@@ -1,4 +1,4 @@
-import partnersLibrary from '../L2-data/partners-library';
+import partnerShowcase from '../L2-data/partner-showcase';
 import solutionsLibrary from '../L2-data/solutions-library';
 import type { TocItem } from '../types';
 
@@ -313,10 +313,10 @@ const tocData: TocItem[] = [
     items: solutionsLibrary,
   },
   {
-    label: 'Partners Library',
+    label: 'Partner Showcase',
     contentSite: 'atlas-architecture',
     group: true,
-    items: partnersLibrary,
+    items: partnerShowcase,
   },
 ];
 
