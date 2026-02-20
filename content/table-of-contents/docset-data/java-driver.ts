@@ -1,7 +1,7 @@
 import type { TocItem } from '../types';
 import docsVersions from '../version-arrays/drivers/java-versions';
 
-const outdatedVersions = docsVersions.before('v5.3', { inclusive: true });
+//const outdatedVersions = docsVersions.before('v5.3', { inclusive: true });
 
 const tocData: TocItem[] = [
   {
@@ -19,21 +19,6 @@ const tocData: TocItem[] = [
         label: 'Get Started',
         contentSite: 'java',
         url: '/docs/drivers/java/sync/:version/get-started',
-        versions: { excludes: outdatedVersions },
-      },
-      {
-        label: 'Get Started',
-        contentSite: 'java',
-        url: '/docs/drivers/java/sync/:version/get-started',
-        collapsible: true,
-        versions: { includes: outdatedVersions },
-        items: [
-          {
-            label: 'Quick Reference',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/get-started/quick-reference',
-          },
-        ],
       },
       {
         label: 'Connect',
@@ -44,13 +29,11 @@ const tocData: TocItem[] = [
             label: 'Create a MongoClient',
             contentSite: 'java',
             url: '/docs/drivers/java/sync/:version/connection/mongoclient',
-            versions: { excludes: outdatedVersions },
           },
           {
             label: 'Specify Connection Options',
             contentSite: 'java',
             collapsible: true,
-            versions: { excludes: outdatedVersions },
             items: [
               {
                 label: 'Stable API',
@@ -105,57 +88,9 @@ const tocData: TocItem[] = [
             ],
           },
           {
-            label: 'Connect to MongoDB',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/connection/connect',
-            versions: { includes: outdatedVersions },
-          },
-          {
-            label: 'Connection Options',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/connection/connection-options',
-            versions: { includes: outdatedVersions },
-          },
-          {
-            label: 'MongoClient Settings',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/connection/mongoclientsettings',
-            versions: { includes: outdatedVersions },
-          },
-          {
-            label: 'Stable API',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/connection/stable-api',
-            versions: { includes: outdatedVersions },
-          },
-          {
-            label: 'Limit Execution Time',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/connection/csot',
-            versions: { includes: outdatedVersions },
-          },
-          {
-            label: 'Network Compression',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/connection/network-compression',
-            versions: { includes: outdatedVersions },
-          },
-          {
-            label: 'JNDI Datasource',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/connection/jndi',
-            versions: { includes: outdatedVersions },
-          },
-          {
             label: 'Connection Troubleshooting',
             contentSite: 'java',
             url: '/docs/drivers/java/sync/:version/connection/connection-troubleshooting',
-          },
-          {
-            label: 'AWS Lambda',
-            contentSite: 'cloud-docs',
-            url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda/',
-            versions: { includes: outdatedVersions },
           },
         ],
       },
@@ -168,7 +103,6 @@ const tocData: TocItem[] = [
         label: 'CRUD Operations',
         contentSite: 'java',
         collapsible: true,
-        versions: { excludes: outdatedVersions },
         items: [
           {
             label: 'Insert Documents',
@@ -284,7 +218,6 @@ const tocData: TocItem[] = [
             label: 'Operations on Replica Sets',
             contentSite: 'java',
             url: '/docs/drivers/java/sync/:version/crud/read-write-config',
-            versions: { excludes: outdatedVersions },
           },
           {
             label: 'Collations',
@@ -300,127 +233,6 @@ const tocData: TocItem[] = [
             label: 'Configure Custom CRUD Settings',
             contentSite: 'java',
             url: '/docs/drivers/java/sync/:version/crud/crud-settings',
-            versions: { excludes: outdatedVersions },
-          },
-        ],
-      },
-      {
-        label: 'CRUD Operations',
-        contentSite: 'java',
-        url: '/docs/drivers/java/sync/:version/crud',
-        collapsible: true,
-        versions: { includes: outdatedVersions },
-        items: [
-          {
-            label: 'Read',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/crud/read-operations',
-            collapsible: true,
-            items: [
-              {
-                label: 'Retrieve Data',
-                contentSite: 'java',
-                url: '/docs/drivers/java/sync/:version/crud/read-operations/retrieve',
-              },
-              {
-                label: 'Data from a Cursor',
-                contentSite: 'java',
-                url: '/docs/drivers/java/sync/:version/crud/read-operations/cursor',
-              },
-              {
-                label: 'Sort Results',
-                contentSite: 'java',
-                url: '/docs/drivers/java/sync/:version/crud/read-operations/sort',
-              },
-              {
-                label: 'Skip Returned Results',
-                contentSite: 'java',
-                url: '/docs/drivers/java/sync/:version/crud/read-operations/skip',
-              },
-              {
-                label: 'Limit Returned Results',
-                contentSite: 'java',
-                url: '/docs/drivers/java/sync/:version/crud/read-operations/limit',
-              },
-              {
-                label: 'Specify Fields to Return',
-                contentSite: 'java',
-                url: '/docs/drivers/java/sync/:version/crud/read-operations/project',
-              },
-              {
-                label: 'Geospatial Data',
-                contentSite: 'java',
-                url: '/docs/drivers/java/sync/:version/crud/read-operations/geo',
-              },
-              {
-                label: 'Query Text',
-                contentSite: 'java',
-                url: '/docs/drivers/java/sync/:version/crud/read-operations/text',
-              },
-            ],
-          },
-          {
-            label: 'Write',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/crud/write-operations',
-            collapsible: true,
-            items: [
-              {
-                label: 'Insert',
-                contentSite: 'java',
-                url: '/docs/drivers/java/sync/:version/crud/write-operations/insert',
-              },
-              {
-                label: 'Delete',
-                contentSite: 'java',
-                url: '/docs/drivers/java/sync/:version/crud/write-operations/delete',
-              },
-              {
-                label: 'Modify',
-                contentSite: 'java',
-                url: '/docs/drivers/java/sync/:version/crud/write-operations/modify',
-              },
-              {
-                label: 'Update Array Elements',
-                contentSite: 'java',
-                url: '/docs/drivers/java/sync/:version/crud/write-operations/embedded-arrays',
-              },
-              {
-                label: 'Upsert',
-                contentSite: 'java',
-                url: '/docs/drivers/java/sync/:version/crud/write-operations/upsert',
-              },
-              {
-                label: 'Bulk Operations',
-                contentSite: 'java',
-                url: '/docs/drivers/java/sync/:version/crud/write-operations/bulk',
-              },
-            ],
-          },
-          {
-            label: 'Query',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/crud/query-document',
-          },
-          {
-            label: 'Compound Operations',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/crud/compound-operations',
-          },
-          {
-            label: 'Transactions',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/crud/transactions',
-          },
-          {
-            label: 'Collations',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/crud/collations',
-          },
-          {
-            label: 'Large File Storage with GridFS',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/crud/gridfs',
           },
         ],
       },
@@ -439,7 +251,6 @@ const tocData: TocItem[] = [
             label: 'Aggregation Examples',
             contentSite: 'java',
             url: '/docs/drivers/java/sync/:version/aggregation/aggregation-examples',
-            versions: { excludes: outdatedVersions },
           },
         ],
       },
@@ -574,7 +385,6 @@ const tocData: TocItem[] = [
         label: 'Security',
         contentSite: 'java',
         collapsible: true,
-        versions: { excludes: outdatedVersions },
         items: [
           {
             label: 'Authentication',
@@ -637,56 +447,15 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: 'Security',
-        contentSite: 'java',
-        url: '/docs/drivers/java/sync/:version/security',
-        collapsible: true,
-        versions: { includes: outdatedVersions },
-        items: [
-          {
-            label: 'Authentication',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/security/auth',
-          },
-          {
-            label: 'Enterprise Authentication',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/security/enterprise-auth',
-          },
-          {
-            label: 'In-Use Encryption',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/security/encrypt-fields',
-          },
-          {
-            label: 'TLS/SSL',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/security/tls',
-          },
-          {
-            label: 'SOCKS5 Proxy',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/security/socks',
-          },
-          {
-            label: 'Validate Driver Artifact Signatures',
-            contentSite: 'java',
-            url: '/docs/drivers/java/sync/:version/security/validate-signatures',
-          },
-        ],
-      },
-      {
         label: 'Third-Party Integrations',
         contentSite: 'java',
         collapsible: true,
         url: '/docs/drivers/java/sync/:version/integrations',
-        versions: { excludes: outdatedVersions },
         items: [
           {
             label: 'Spring Data MongoDB',
             contentSite: 'java',
             url: '/docs/drivers/java/sync/:version/integrations/spring-data-integration',
-            versions: { excludes: outdatedVersions },
           },
           {
             label: 'MongoDB Queries with Spring Data',
