@@ -789,6 +789,11 @@ const tocData: TocItem[] = [
             ],
           },
           {
+            label: 'Immutable Snapshots',
+            contentSite: 'ops-manager',
+            url: '/docs/ops-manager/:version/tutorial/immutable-s3-snapshots',
+          },
+          {
             label: 'Third-Party Platforms',
             contentSite: 'ops-manager',
             url: '/docs/ops-manager/:version/core/third-party-backup',
