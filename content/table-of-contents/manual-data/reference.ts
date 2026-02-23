@@ -3326,6 +3326,11 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/operator/aggregation/covarianceSamp',
           },
           {
+            label: '$createObjectId',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/operator/aggregation/createObjectId',
+          },
+          {
             label: '$dateAdd',
             contentSite: 'docs',
             url: '/docs/:version/reference/operator/aggregation/dateAdd',
