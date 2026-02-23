@@ -1579,6 +1579,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/tutorial/rotate-service-account-secrets',
           },
           {
+            label: 'API Rate Limits',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/api/api-rate-limit',
+          },
+          {
             label: 'Versioning Overview',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/api/versioned-api-overview',

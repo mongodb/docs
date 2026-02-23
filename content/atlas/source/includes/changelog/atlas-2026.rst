@@ -1,3 +1,14 @@
+.. _atlas_2026_02_23:
+
+23 February 2026 Release
+------------------------
+
+- Standardizes {+atlas-admin-api+} :ref:`rate limiting <api-rate-limiting>` 
+  to use the {+token-bucket+}. Rate limits vary by endpoint set and scope 
+  (organization, project, user, or IP address). This approach provides 
+  predictable performance with burst capability and adds response headers 
+  that offer visibility into rate limit quotas, current usage, and reset times.
+
 .. _atlas_2026_02_19:
 
 19 February 2026 Release

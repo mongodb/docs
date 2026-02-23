@@ -37,21 +37,51 @@ npx tsx generate-cli-commands.ts atlascli/v1.46.2
 - Applies terminology corrections (e.g., "Stream Processing Instance" → "Stream Processing Workspace")
 - Generates properly formatted reStructuredText with anchors
 - Alphabetically sorted output for consistency
+- Adds timestamp to track last update
+- Supports both Service Account OAuth and API Key authentication
 
 **Prerequisites**:
-- MongoDB Atlas API key with Organization Member permissions
-- Environment variables: `ATLAS_PUBLIC_KEY` and `ATLAS_PRIVATE_KEY`
-- IP address added to API key access list
+- MongoDB Atlas credentials (Service Account preferred or API Key)
+- Environment variables: `ATLAS_CLIENT_ID` and `ATLAS_CLIENT_SECRET` OR `ATLAS_PUBLIC_KEY` and `ATLAS_PRIVATE_KEY`
+- For API keys: IP address added to API key access list
 
 **Usage**:
 ```bash
 cd atlas-event-types-generator
 npm install
-node event-types-generator.js > ../../atlas/source/includes/event-types.rst
+node event-types-generator.js
 ```
 
 **Output**:
-- `../../atlas/source/includes/event-types.rst` - Complete event types documentation
+- `../../atlas/source/includes/event-types.rst` - Complete event types documentation with timestamp
+
+### 🚦 Atlas Rate Limits Generator (`atlas-rate-limits-generator/`)
+
+**Purpose**: Automatically generates Atlas API rate limits documentation from the MongoDB Atlas Admin API
+
+**Key Features**:
+- Fetches rate limit information for all Atlas API endpoint sets
+- Lists all endpoints in each rate limit group with HTTP methods and paths
+- Shows capacity, refill rate, refill interval, and scope for each endpoint set
+- Generates properly formatted reStructuredText table
+- Alphabetically sorted by endpoint set name
+- Adds timestamp to track last update
+- Supports both Service Account OAuth and API Key authentication
+
+**Prerequisites**:
+- MongoDB Atlas credentials (Service Account preferred or API Key)
+- Environment variables: `ATLAS_CLIENT_ID` and `ATLAS_CLIENT_SECRET` OR `ATLAS_PUBLIC_KEY` and `ATLAS_PRIVATE_KEY`
+- For API keys: IP address added to API key access list
+
+**Usage**:
+```bash
+cd atlas-rate-limits-generator
+npm install
+node rate-limits-generator.js
+```
+
+**Output**:
+- `../../atlas/source/includes/api-rate-limits.rst` - Complete rate limits documentation with timestamp
 
 
 For questions about tool development or maintenance, consult the documentation team or check existing tool implementations for patterns and best practices.

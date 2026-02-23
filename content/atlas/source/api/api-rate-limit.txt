@@ -1,0 +1,185 @@
+.. _api-rate-limiting:
+
+===============================================
+{+atlas-admin-api+} Rate Limits
+===============================================
+
+.. meta::
+   :description: Atlas Administration API rate limits using token bucket algorithm.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _Token Bucket Algorithm: https://en.wikipedia.org/wiki/Token_bucket
+
+|service| uses *rate limiting* to control the rate of requests sent to the 
+V2 |api| endpoints within a specified timeframe to prevent overload and 
+ensure fair usage. |service| uses the {+token-bucket+} to limit the number 
+of requests it processes. The |api| response headers offer real-time 
+visibility into rate limit quotas, current usage, and reset times. 
+
+Overview 
+--------
+
+Each |service| endpoint is associated with an *endpoint set* (a 
+collection of endpoints that share the same rate limits) and *scope* 
+(resource scopes organization, project, user, or IP address) that 
+define its rate limits. The limits for the endpoints vary as only 
+endpoints within the same endpoint set and scope are rate limited 
+using the same token bucket. Therefore, |service| doesn't apply 
+a uniform |api| limit across all the |api| requests made by an 
+|service| organization or project.
+
+{+token-bucket+}  
+~~~~~~~~~~~~~~~~~~~~~~
+
+The {+token-bucket+} works as follows:
+
+- |service| fills the bucket up to the maximum number of tokens (``capacity``) 
+  for that bucket. This reflects the maximum number of requests you can send.
+- |service| allows requests only if tokens are available. Each request to the 
+  endpoint consumes one token.
+- |service| adds tokens to the bucket at a fixed rate (``refillRate``) at 
+  specific intervals (``refillDurationSeconds``) up to the maximum number of 
+  tokens (``capacity``).
+  
+  You can send a burst of requests as long as there are tokens in the bucket. 
+  If there are only limited number of tokens in the bucket, your allowed burst 
+  is limited to the available number of tokens in the bucket. 
+  
+When the bucket is empty, the {+atlas-admin-api+} returns a `429 <https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429>`__ 
+(Too Many Requests) |http| status code for any additional requests. 
+
+.. code-block:: shell 
+   :copyable: false 
+   :caption: Sample Error Message
+
+   {
+     "detail": "Rate limit exceeded for api/atlas/v2/orgs. Please retry after 55 seconds. Request capacity: 10. Refill rate: 5 per 60 seconds.",
+     "error": 429,
+     "errorCode": "RATE_LIMITED_TOKEN_BUCKET",
+     "parameters": [
+        "api/atlas/v2/orgs",
+        55,
+        10,
+        5,
+        60
+     ],
+     "reason": "Too Many Requests"
+   }
+
+To learn more, see :ref:`api-rate-limiting-response-header`
+
+.. _api-rate-limiting-response-header:
+
+Response Headers 
+~~~~~~~~~~~~~~~~
+
+The {+atlas-admin-api+} response might contain the following headers: 
+
+.. list-table:: 
+   :stub-columns: 1 
+
+   * - ``RateLimit-Limit``
+     - Maximum number of requests allowed for this endpoint (token bucket capacity). 
+   * - ``RateLimit-Remaining``
+     - Remaining number of requests the user can make to this endpoint at this point 
+       in time (tokens remaining in the token bucket).
+   * - ``Retry-After``
+     - The minimum amount of time, in seconds, to wait before retrying the request. 
+       This header is only returned when you exceed the rate limit. 
+
+.. note:: 
+   
+   |service| might not always return the response headers. You must handle 
+   missing response headers gracefully, and not depend on their presence.
+
+Retry Strategies 
+----------------
+
+When you reach the rate limit, the {+atlas-admin-api+} returns a `429
+<https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Status/429>`__ (Too Many Requests) |http| status
+code. We recommend: 
+
+a. Waiting for at least the time specified by the ``Retry-After`` header 
+   before retrying. 
+#. If the retry fails, waiting for a significantly longer period. 
+
+.. example:: 
+
+   Before the first retry, wait ten seconds. Before the second retry, wait 
+   for twenty seconds. Before the third retry, wait for forty seconds, and 
+   so on. 
+
+Even if you wait for the same amount of time as specified by the ``Retry-After`` 
+header, you might still get rate limited. In this case, we recommend that you 
+continue backing off using an exponential delay (*jitter*). To prevent 
+requests from failing due to simultaneous retry operations, we also recommend 
+adding a random delay (*jitter*) to the calculated wait time.
+
+.. example:: 
+
+   Suppose multiple clients are using the same endpoint for the same |service| 
+   project. The clients get rate limited at the same time and wait for the same 
+   amount of time as specified by the ``Retry-After`` header. If one of the 
+   clients successfully submits requests and depletes the token bucket again 
+   before the other clients have retried their requests, the other clients 
+   will still get rate limited.
+
+You can also use the following to calculate when the bucket might be at full 
+capacity again (assuming no other requests consume the tokens during that time):
+
+.. code-block:: shell 
+   :copyable: false 
+
+   (capacity / refill rate) * refill interval
+
+:ref:`Contact support <request-support>` if you require higher rate limits.
+
+View Rate Limits 
+----------------
+
+You can view the rate limits for all the endpoint sets and scopes by sending a 
+``GET`` request to the ``rateLimits`` resource. 
+
+.. code-block:: shell 
+   :copyable: true 
+   :caption: Example Request to Return Rate Limits for all Endpoint Sets and Scopes
+
+   curl --include --header "Authorization: Bearer ${ACCESS_TOKEN}" \
+    --header "Accept: application/vnd.atlas.2025-03-12+json" \
+    --header "Content-Type: application/json" \
+    -X GET "https://cloud.mongodb.com/api/atlas/v2/rateLimits" 
+
+To view the rate limits applicable for your organization, project, user, or IP 
+address, send a ``GET`` request to the ``rateLimits`` endpoint using one of the
+optional query parameters ``groupId``, ``orgId``, ``userId``, or ``ipAddress``.
+
+.. code-block:: shell 
+   :copyable: true 
+   :caption: Example Request to Return Rate Limits for Your Project
+
+   curl --include --header "Authorization: Bearer ${ACCESS_TOKEN}" \
+    --header "Accept: application/vnd.atlas.2025-03-12+json" \
+    --header "Content-Type: application/json" \
+    -X GET "https://cloud.mongodb.com/api/atlas/v2/rateLimits?groupId={groupId}" 
+
+To learn more, see the `{+atlas-admin-api+} Specification
+<https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/>`__.
+
+Default Rate Limits 
+-------------------
+
+.. important:: 
+
+   Rate limits are not part of the |api| contract and might change without prior notice.
+
+.. include:: /includes/api-rate-limits.rst
+
+.. note:: 
+
+   If you contacted support for higher rate limits, you might have different limits 
+   than what is described in the preceding table. 
