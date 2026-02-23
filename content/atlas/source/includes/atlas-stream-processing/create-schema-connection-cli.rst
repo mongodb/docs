@@ -12,7 +12,7 @@ to your {+spw+} through the {+atlas-ui+}, follow these steps:
 
       Follow the procedure outlined in the `Confluent Cloud
       documentation
-      <https://docs.confluent.io/platform/current/schema-registry/installation/index.html>`__.
+      <https://docs.confluent.io/cloud/current/get-started/schema-registry.html>`__.
 
    .. step:: Create a Confluent Cloud API Key.
 
@@ -25,7 +25,8 @@ to your {+spw+} through the {+atlas-ui+}, follow these steps:
 
       .. include:: /includes/extracts/atlas-streams-connections-create.rst
 
-      In your configuration file, set the following key-value pairs:
+      In your configuration file, set all required key-value
+      pairs. The following must have specific values:
 
       .. list-table::
          :widths: 35 65
@@ -54,4 +55,4 @@ to your {+spw+} through the {+atlas-ui+}, follow these steps:
 	     Key.
 
          * - ``schemaRegistryAuthentication.password``
-	   - The password associated with your Confluent Cloud API Key.	   
+	   - The password associated with your Confluent Cloud API Key.

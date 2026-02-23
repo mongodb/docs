@@ -12,7 +12,7 @@ to your {+spw+} through the {+atlas-ui+}, follow these steps:
 
       Follow the procedure outlined in the `Confluent Cloud
       documentation
-      <https://docs.confluent.io/platform/current/schema-registry/installation/index.html>`__.
+      <https://docs.confluent.io/cloud/current/get-started/schema-registry.html>`__.
 
    .. step:: Create a Confluent Cloud API Key.
 
