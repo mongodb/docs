@@ -52,19 +52,17 @@ Before you start the dev server for the docs, you may want to seed the blob stor
 pnpm convert:rst-to-mdx -- manual
 ```
 
-Now you can seed the local blob storage with the entire `content-mdx` folder:
-```bash
-pnpm blobs:seed
-```
-
-**NOTE:** This may take a long time, so you might want to leave this running in a separate tab and move on to the next step.
-
-You can now start the dev server, which will also run `blobs:watch`:
+Start the dev server:
 ```bash
 pnpm dev
 ```
 
-**NOTE:** If the page (and included images/MDX files) are not yet loaded (in case `blobs:seed` is still running), you can simply save the necessary files and `blobs:watch` will update the blob storage immediately.
+Then, in a separate terminal, seed the local blob storage with the entire `content-mdx` folder:
+```bash
+pnpm blobs:seed
+```
+
+**NOTE:** `blobs:seed` and `blobs:clear` require the dev server to be running; they call the running server's API. Seeding may take a long time, so you might want to leave it running in a separate tab.
 
 ### Troubleshooting
 
@@ -113,9 +111,8 @@ Commands should generally be run from the root of the `platform` directory:
   - For example: `pnpm convert:rst-to-mdx -- atlas` will convert the Snooty rST in the `content/atlas` folder to MDX.
 
 ### Blob Storage Commands
-- `pnpm blobs:seed`: Seed the local blob storage with the MDX content
-- `pnpm blobs:clear`: Clear the local blob storage
-- `pnpm blobs:watch`: Watch for changes to the MDX content and update the local blob storage
+- `pnpm blobs:seed`: Seed the local blob storage with the MDX content (requires dev server to be running)
+- `pnpm blobs:clear`: Clear the local blob storage (requires dev server to be running)
 
 ### Ingest Commands
 - `pnpm ingest:pages`: Update pages using the ingest tool
