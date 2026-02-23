@@ -10,9 +10,14 @@
 
       To install on Windows:
 
-      .. procedure::
+      a. Download libmongocrypt
 
-         .. include:: /includes/queryable-encryption/tutorials/steps-install-libmongocrypt-windows.rst
+         Click `here <https://github.com/mongodb/libmongocrypt/releases/latest>`__ 
+         to see the latest ``libmongocrypt`` release. 
+
+      #. Use ``gpg`` to verify the signature 
+   
+         The public key for ``libmongocrypt`` is available at `https://pgp.mongodb.com <https://pgp.mongodb.com/>`__
 
    .. step:: Start a MongoDB Atlas Cluster or Enterprise instance.
 
