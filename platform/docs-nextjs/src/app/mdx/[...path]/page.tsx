@@ -50,11 +50,3 @@ export async function generateMetadata({ params: { path } }: PageProps) {
     description: result.frontmatter.description || '',
   };
 }
-
-// TODO: uncomment this when we have a list of paths to pregenerate
-// Generate static paths for most popular paths
-// export async function generateStaticParams() {
-//   const paths = ['django-mongodb/current', 'django-mongodb/current/get-started', 'django-mongodb/current/connect'];
-
-//   return paths.map((path) => ({ path: path.split('/') }));
-// }

@@ -45,9 +45,15 @@ export default async function MDXOfflinePage({ params: { path } }: PageProps) {
 }
 
 export async function generateMetadata({ params: { path } }: PageProps) {
+  const result = await loadMDX(path);
+
+  if (!result) {
+    return { title: 'Not Found' };
+  }
+
   return {
-    title: path.join(' / ') || 'MongoDB Documentation',
-    description: 'MongoDB Documentation',
+    title: result.frontmatter.title || path.join(' '),
+    description: result.frontmatter.description || '',
   };
 }
 
