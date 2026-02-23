@@ -1,10 +1,11 @@
 .. _ak8so-federated-auth:
 
-=================================================
-Leverage Federated Authentication from Kubernetes
-=================================================
+========================================================================
+Configure Federated Authentication Using the Atlas Kubernetes Operator
+========================================================================
 
 .. meta::
+   :keywords: federated authentication, identity provider, role mappings
    :description: Configure federated authentication in Atlas Kubernetes Operator by updating the `AtlasFederatedAuth` Custom Resource to manage role mappings and organization settings.
 
 .. default-domain:: mongodb
@@ -15,72 +16,74 @@ Leverage Federated Authentication from Kubernetes
    :depth: 1
    :class: singlecol
 
-|ak8so| supports using :ref:`federated authentication
-<atlas-federated-authentication>` for your |service| organization. 
+The |ak8so| (AKO) provides support for configuring 
+:ref:`federated authentication <atlas-federated-authentication>` in |service-fullname| 
+using the :ref:`atlasfederatedauth-custom-resource`.
 
-.. note:: 
+:ref:`Federated authentication
+<atlas-federated-authentication>` enables you to link user credentials across 
+systems using an Identity Provider (|idp|). It serves two core purposes:
 
-   You can't use |ak8so| to set up an |idp|. To set up an |idp|, see
-   :atlas:`Configure Database Deployment Authentication and
-   Authorization </security/config-db-auth>`.  
-   
-   Once you set up your |idp|, you can manage the role mappings that
-   authenticate users to use your |idp|.
+- Manage user access to the {+atlas-ui+} (restricting permissions for 
+  viewing, creating, and configuring resources).
+- Authenticate and authorize access to |service| {+clusters+} (for human users 
+  and applications).
 
-To configure federated authentication through the |ak8so|, you must 
-specify and update the :ref:`atlasfederatedauth-custom-resource`.
+Both functionalities can be configured simultaneously through the 
+:ref:`atlasfederatedauth-custom-resource`.
 
-.. include:: /includes/fact-ak8so-federated-auth.rst
+.. note::
 
-The :ref:`atlasfederatedauth-custom-resource` is **not** required to 
-map database users to an |idp|, both any existing authentication |idp| or 
-workload and workforce |idp|. You can use the :ref:`AtlasDatabaseUser <atlasdatabaseuser-custom-resource>` 
-custom resource to manage database users, in which you specify the 
-authentication method used for a given database user. The 
-:ref:`AtlasDatabaseUser <atlasdatabaseuser-custom-resource>` custom 
-resource must be configured in conjunction with :ref:`federated authentication
-<atlas-federated-authentication>` to associate users and roles in the 
-|idp| with users and groups in MongoDB. 
+   |ak8so| supports the configuration of existing 
+   |idps| in an |service| Organization, not the creation of them in |service|. 
+   You must complete this procedure before using this resource with 
+   AKO.
 
-The :ref:`atlasfederatedauth-custom-resource` 
-is optional to use any :ref:`federated authentication
-<atlas-federated-authentication>`, provided that you have configured it 
-elsewhere in {+service+}.
+   - Learn how to create a |saml| |idp| for UI Access in 
+     :ref:`atlas-manage-fed-auth`.
+   - Learn how to create an |idp| for cluster access for a workforce 
+     (OIDC) in :atlas:`Configure an External Identity Provider Application 
+     </workforce-oidc/#configure-an-external-identity-provider-application>`.
+   - Learn how to create an |idp| for cluster access for an 
+     application/workload (OAuth 2.0) in :atlas:`Prepare Your External 
+     Identity Provider </workload-oidc/#prepare-your-external-identity-provider>`.
 
-Prerequisites
--------------
+Atlas UI Access (SAML)
+-----------------------
 
-Before you can use |ak8so| to configure federated authentication,
-you must have:
+|service| access (or UI Access) allows Organization owners to automatically 
+grant roles in |service| to users in the organization once they 
+authenticate, based on their roles in an |idp| such as Microsoft Entra ID 
+or Google Workspace.
 
-- An existing identity provider (|idp|) linked to |service|. 
-  To learn how to link an |idp| to |service|, see 
-  :ref:`atlas-manage-fed-auth`.
-  
-- A |k8s-secret| with :ref:`API keys <about-org-api-keys>` that 
-  |ak8so| can use to :ref:`connect <ak8so-access-to-atlas-ref>` to |service|. 
-  The API keys must have the :authrole:`Organization Owner` role.
+.. note::
 
-- At least one :ref:`role <user-roles>` within an active |service| organization 
-  or the projects in the organization.
+   When a federated |idp| is enabled, |service| disables all other 
+   authentication methods.
 
-Update an Organization Configuration
-------------------------------------
+Once you have created a UI Access |idp| and associated it with your 
+organization, you can configure it using the |ak8so|.
 
-To configure federated authentication through the |ak8so|,
-update the organization configuration for your federation
-by specifying the :ref:`atlasfederatedauth-custom-resource`.
+This example does the following:
 
-.. include:: /includes/fact-atlasfederatedauth-example.rst
+- Enables :ref:`federated authentication <atlas-federated-authentication>` for 
+  the organization linked to the specified secret.
+- Adds ``my-org-domain.com`` as an approved domain.
+- Enables domain restriction for the organization.
+- Disables debugging for |sso|.
+- Grants the :authrole:`Organization Member` role to users after authenticating.
+- Maps the :authrole:`Organization Owner` role for the organization and applies the 
+  role mapping to an |idp| group named ``org-admin``.
+- Maps the :authrole:`Organization Project Creator` and :authrole:`Project Owner` roles for a 
+  project in the organization named ``dev-project`` and applies the 
+  role mapping to an |idp| group named ``dev-team``.
 
-To learn more, see :ref:`atlasfederatedauth-parameters`.
+.. note::
 
-.. note:: 
-
-   The :ref:`spec.roleMappings.roleAssignments 
-   <atlasfederatedauth-spec-rolemappings-roleassignments>` 
-   parameter must include at least one organization role
-   within the current organization or the projects in 
+   The :ref:`spec.roleMappings.roleAssignments
+   <atlasfederatedauth-spec-rolemappings-roleassignments>`
+   parameter must include at least one organization :ref:`role <user-roles>`
+   within the current organization or the projects in
    the organization.
 
 **Example:**
@@ -95,9 +98,6 @@ To learn more, see :ref:`atlasfederatedauth-parameters`.
      namespace: mongodb-atlas-system
    spec:
      enabled: true
-     dataAccessIdentityProviders:
-       - 32b6e34b3d91647abb20e7b8
-       - 42d8v92k5a34184rnv93f0c1
      connectionSecretRef:
        name: my-org-secret
        namespace: mongodb-atlas-system
@@ -115,31 +115,98 @@ To learn more, see :ref:`atlasfederatedauth-parameters`.
          roleAssignments:
            - role: ORG_GROUP_CREATOR
            - projectName: dev-project
-             role: GROUP_OWNER 
-
+             role: GROUP_OWNER
    EOF
 
-To check on the status of the update process,
-run the following command:
+Additional information on configuring the ``AtlasFederatedAuth`` 
+resource can be found in the :ref:`atlasfederatedauth-custom-resource`.
 
-.. code-block::
+Atlas Cluster Access (OIDC/OAuth 2.0)
+--------------------------------------
 
-   kubectl get atlasfederatedauth -o yaml
+Cluster Access allows Organization owners to use identity 
+providers (using OIDC or OAuth 2.0) to provide data access to a 
+database cluster in |service| based on :ref:`roles <user-roles>` in the |idp|. 
+This feature can be further distinguished by whether the access is being 
+granted to a human user, or to an application:
 
-|ak8so| returns the custom resource and includes a
-status section that resembles the following example:
+- **Workload** is for Applications; allowing external applications to 
+  authenticate via programmatic identities, such as Service Principals 
+  in |azure| or Service Accounts in |gcp|, using OAuth 2.0.
+- **Workforce** is for users; allowing authentication and authorization 
+  to the database via an external |idp|, such as Microsoft Entra ID or 
+  Okta, using OIDC.
 
-.. code-block::
-   :copyable: false
+To enable |service| Cluster Access via AKO, add the |idp| ID to the 
+``dataAccessIdentityProviderIds`` field in the ``AtlasFederatedAuth`` 
+resource.
 
-   status:
-     conditions:
-       - type: Ready
-         status: True
-       - type: RolesReady
-         status: True
-       - type: UsersReady
-         status: True
+.. code-block:: yaml
 
-To learn about the available parameters for this resource, 
-see :ref:`atlasfederatedauth-custom-resource`.
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasFederatedAuth
+   metadata:
+     name: atlas-default-federated-auth
+     namespace: mongodb-atlas-system
+   spec:
+     enabled: true
+     dataAccessIdentityProviders:
+       - 32b6e34b3d91647abb20e7b8
+       - 42d8v92k5a34184rnv93f0c1
+     connectionSecretRef:
+       name: my-org-secret
+       namespace: mongodb-atlas-system
+
+Additional information on configuring the ``AtlasFederatedAuth`` 
+resource can be found in the :ref:`atlasfederatedauth-custom-resource`.
+
+The authentication enables the |idp| for usage within the organization, and 
+cluster access can now be granted using this |idp| in 
+the :ref:`AtlasDatabaseUser <atlasdatabaseuser-custom-resource>`, 
+by configuring the ``oidcAuthType`` and setting the 
+appropriate ID and name in the ``username`` field.
+
+- For **Workforce** access, set the ``oidcAuthType`` field to 
+  ``USER``, the ``databaseName`` field to ``admin``, and the 
+  ``username`` field to ``<Atlas IdP ID>/IdP Username``.
+- For **Workload** access, set the ``oidcAuthType`` field to 
+  ``IDP_GROUP``, the ``databaseName`` field to ``$external``, and the 
+  ``username`` field to ``<Atlas IdP ID>/IdP Group Name``.
+
+.. code-block:: yaml
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDatabaseUser
+   metadata:
+     name: my-workload-user
+     namespace: mongodb-atlas-system
+   spec:
+     databaseName: $external
+     roles:
+       - roleName: "readWrite"
+         databaseName: "my-database"
+     projectRef:
+       name: my-project
+     username: idp-id-in-atlas/my-idp-group-name
+     oidcAuthType: IDP_GROUP
+
+.. code-block:: yaml
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasDatabaseUser
+   metadata:
+     name: my-workforce-user
+     namespace: mongodb-atlas-system
+   spec:
+     databaseName: admin
+     roles:
+       - roleName: "readWrite"
+         databaseName: "my-database"
+     projectRef:
+       name: my-project
+     username: idp-id-in-atlas/my-idp-user-name
+     oidcAuthType: USER
+
+Additional information on configuring the ``AtlasDatabaseUser`` 
+resource can be found in the 
+:ref:`atlasdatabaseuser-custom-resource`.
