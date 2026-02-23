@@ -32,93 +32,121 @@ You can use the :ref:`Test Failover <test-failover>` capability to ensure that
 your application is resilient to replica set elections.
 
 Configuring maintenance windows provides more control over the timing of 
-maintenance by allowing maintenance that requires replica set elections to occur 
+maintenance by allowing maintenance that requires replica set elections to occur
 at your preferred time of day, and other standard updates to occur outside of 
 business-critical hours.
 
 .. important::
 
-   You configure maintenance windows at the project level and they apply only to 
+   You configure maintenance windows at the project level and they apply only to
    {+Dedicated-clusters+} (``M10`` and above). For {+Free-clusters+} and 
-   {+Flex-clusters+}, |service| manages their 
-   maintenance windows automatically and you can't configure them manually.
+   {+Flex-clusters+}, |service| manages their maintenance windows automatically
+   and you can't configure them manually.
 
 Maintenance Window Considerations
 ---------------------------------
 
-Urgent Maintenance Activities
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- **Urgent maintenance activities**: |service| may perform urgent maintenance
+  activities (such as security patches for zero-day vulnerabilities) as soon
+  as necessary without regard to configured maintenance windows or protected
+  hours.
 
-|service| may perform urgent maintenance activities (such as security patches 
-for zero-day vulnerabilities) as soon as necessary without regard to configured 
-maintenance windows or protected hours.
+- **Ongoing maintenance operations**: Once you schedule a maintenance window
+  for your cluster, you cannot change it until any ongoing maintenance 
+  operations have completed.
 
-Ongoing Maintenance Operations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- **MongoDB database upgrades**: If maintenance includes a MongoDB patch
+  version upgrade, |service| displays the current and target versions in
+  the console. If |service| upgrades the MongoDB maintenance version on
+  one of your clusters during the next maintenance window, the cluster's
+  card displays the target MongoDB maintenance version.
 
-Once you schedule a maintenance window for your cluster, you cannot
-change it until any ongoing maintenance operations have completed.
+- **Maintenance requires replica set elections**: |service| performs 
+  maintenance the same way as the maintenance procedure described in the 
+  :manual:`MongoDB Manual </tutorial/perform-maintence-on-replica-set-members/>`. 
+  This procedure requires at least one :manual:`replica set election 
+  </core/replica-set-elections>` during the maintenance window per replica 
+  set. Use the :ref:`Test Failover <test-failover>` capability to ensure 
+  that your application is resilient to replica set elections.
 
-MongoDB Database Upgrades
-~~~~~~~~~~~~~~~~~~~~~~~~~
+- **Maintenance starts as close to the start of the window as possible**: 
+  Maintenance always begins as close to the scheduled time as possible, but
+  in-progress cluster updates or unexpected system issues could delay the
+  start time.
 
-If maintenance includes a MongoDB patch version upgrade, |service| displays the 
-current and target versions in the console.
+- **Potential for brief performance degradation during maintenance**: If you
+  have low :ref:`Disk IOPS <disk-io-util>`, your cluster could experience a
+  brief performance degradation during maintenance while MongoDB repopulates
+  the WiredTiger storage engine. To learn more, see :manual:`Journaling and the WiredTiger
+  Storage Engine </core/journaling/#journaling-wiredTiger>`.
 
-Maintenance Requires Replica Set Elections
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- **Protected hours**: In addition to configuring a maintenance window, you 
+  can set daily protected hours, which is a window of time during which 
+  |service| avoids performing standard updates. |service| automatically 
+  performs maintenance during the maintenance window. 
+  
+  However, |service| may perform standard updates that don't involve a cluster
+  restart or impact workload performance, outside of the maintenance window.
+  When you enable protected hours, |service| performs standard updates
+  outside of the protected hours window. The length of your protected hours
+  window can't exceed 18 hours.
 
-|service| performs maintenance the same way as the maintenance
-procedure described in the
-:manual:`MongoDB Manual </tutorial/perform-maintence-on-replica-set-members/>`.
-This procedure requires at least one
-:manual:`replica set election </core/replica-set-elections>` during
-the maintenance window per replica set.
+Scheduled Maintenance Operation Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Use the :ref:`Test Failover <test-failover>` capability to ensure
-that your application is resilient to replica set elections.
+The :guilabel:`Scheduled Maintenance Operations` modal may display one or 
+more of the following maintenance types:
 
-Maintenance Starts As Close to the Start of the Window As Possible
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- MongoDB Required Maintenance: Critical maintenance operations required 
+  for cluster health and stability.
 
-Maintenance always begins as close to the scheduled time as possible, but 
-in-progress cluster updates or unexpected system issues could delay the start 
-time.
+- MongoDB Version Update: Upgrades to MongoDB patch versions or maintenance 
+  releases.
 
-Potential for Brief Performance Degradation during Maintenance
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- OS Policy Version Update: Updates to the underlying operating system 
+  policies and security patches.
 
-If you have low :ref:`Disk IOPS <disk-io-util>`, your cluster could experience 
-a brief performance degradation during maintenance while MongoDB repopulates 
-the WiredTiger storage engine. See 
-:manual:`Journaling and the WiredTiger Storage Engine </core/journaling/#journaling-wiredTiger>` 
-to learn more.
+- Other Maintenance Operation: Additional maintenance activities required 
+  for cluster management.
 
 Track Maintenance Completion
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You'll see a ``Maintenance window completed`` event in your :ref:`Project Activity Feed <activity-feed>` when maintenance operations finish.
+You'll see a ``Maintenance window completed`` event in your
+:ref:`Project Activity Feed <activity-feed>` when maintenance operations finish.
 
-Protected Hours Considerations
-------------------------------
+.. _auto-defer-maintenance:
 
-In addition to configuring a maintenance window, you can set daily protected 
-hours, which is a window of time during which |service| avoids performing 
-standard updates.
+Enable Auto-Defer for Future Maintenance Windows
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Maintenance vs. Standard Updates
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+When you enable the :guilabel:`Automatically defer maintenance for one week`
+option, |service| automatically defers future scheduled maintenance by one week
+each time. This means maintenance effectively runs every two weeks instead of
+weekly, since the first week is automatically deferred each time. If needed,
+you can still manually defer maintenance an additional time.
 
-|service| automatically performs maintenance during the maintenance window. However, 
-|service| may perform standard updates that do not involve a cluster restart or 
-impact workload performance, outside of the maintenance window. When you enable 
-protected hours, |service| performs standard updates outside of the protected hours 
-window. 
+.. important::
 
-Protected Hours Range
-~~~~~~~~~~~~~~~~~~~~~
+   If you enable the :guilabel:`Automatically defer maintenance for one week`
+   option, |service| configures automatic deferral for future maintenance windows.
+   To defer currently scheduled maintenance, use the :guilabel:`Defer 1 Week`
+   option as described in the :ref:`Defer Maintenance <cluster-maintenance-defer-maintenance>`
+   section.
 
-The length of your protected hours window cannot exceed 18 hours.
+Auto-defer allows you to:
+
+- Reduce maintenance frequency: Set up auto-defer once to space out
+  maintenance operations to occur every two weeks instead of weekly.
+
+- Batch updates: Consolidate maintenance operations into a single
+  maintenance window and reduce the total number of maintenance events.
+
+- Test in lower environments first: Set up auto-defer in production
+  environments and allow  maintenance to run weekly in development or staging.
+  This gives you time to validate updates before they reach production.
+
+To enable auto-defer, see the section :ref:`View and Configure Maintenance Window <maintenance-window-protected-hours>`.
 
 Required Access
 ---------------
@@ -156,6 +184,9 @@ View and Configure Maintenance Window
       #. If you want |service| to automatically defer any scheduled
          maintenance for one week, click
          :guilabel:`Automatically defer maintenance for one week`.
+         
+         Enabling this option configures automatic deferral for future maintenance 
+         windows. To defer currently scheduled maintenance, use the :guilabel:`Defer 1 Week` button.
 
       #. To set a range of protected hours in which |service| avoids performing
          standard updates, toggle the :guilabel:`Turn on protected hours`
@@ -195,11 +226,14 @@ Respond to Required Maintenance
 
 When maintenance is required:
 
-- {+service+} displays a banner in your project's cluster list showing
-  the date and time when the maintenance is scheduled.
+- Between 48 and 72 hours (2-3 days) before the scheduled maintenance,
+  {+service+} displays a banner in your project's cluster list showing
+  the date and time when the maintenance is scheduled. Click 
+  :guilabel:`Show Details` to see the scheduled maintenance operations, 
+  such as MongoDB version updates, OS policy updates, or other 
+  maintenance types.
 
-- Between 48 and 72 hours before the scheduled maintenance,
-  {+service+} sends an email to users with the :authrole:`Project
+- {+service+} sends an email to users with the :authrole:`Project
   Owner` role and updates the {+atlas-ui+} to display the option to
   begin maintenance immediately or to defer maintenance for one week.
 
@@ -224,14 +258,15 @@ Begin Maintenance Now
       .. procedure::
          :style: normal
 
-         .. step:: Click the banner. A modal window titled
-	    :guilabel:`Scheduled Maintenance Operations` appears. This
-	    window describes the content of the currently scheduled
-	    maintenace operation.
+         .. step:: In the maintenance banner, click :guilabel:`Show Details`. 
+            A modal window titled :guilabel:`Scheduled Maintenance Operations` 
+            appears, showing the scheduled date and time along with the types of
+	    maintenance operations planned.
 
-         .. step:: Click the :guilabel:`Begin Now` button. In the
-            :guilabel:`Start Cluster Maintenance Now` modal, confirm by
-            clicking :guilabel:`Yes, start my maintenance now.`
+         .. step:: In the :guilabel:`Scheduled Maintenance Operations` modal, 
+            click the :guilabel:`Begin Now` button. In the
+            :guilabel:`Start Cluster Maintenance Now` confirmation modal, 
+            confirm by clicking :guilabel:`Yes, start my maintenance now.`
 
    .. tab:: {+atlas-cli+}
       :tabid: atlascli
@@ -269,8 +304,13 @@ Begin Maintenance Now
                "startASAP": true
              }'
 
+.. _cluster-maintenance-defer-maintenance:
+
 Defer Maintenance
 ~~~~~~~~~~~~~~~~~
+
+Use the following procedure to defer currently scheduled maintenance by one week. 
+To automatically defer all future maintenance, enable :ref:`auto-defer <auto-defer-maintenance>`.
 
 .. tabs::
 
@@ -284,14 +324,15 @@ Defer Maintenance
       .. procedure::
          :style: normal
 
-         .. step:: Click the banner. A modal window titled
-	    :guilabel:`Scheduled Maintenance Operations` appears. This
-	    window describes the content of the currently scheduled
-	    maintenace operation.
+         .. step:: In the maintenance banner, click :guilabel:`Show Details`.
+            A modal window titled :guilabel:`Scheduled Maintenance Operations`
+            appears, showing the scheduled date and time along with the types of
+            maintenance operations planned.
 
-         .. step:: Click the :guilabel:`Defer 1 Week` button. In the
-            :guilabel:`Defer Maintenance to Next Week` modal, confirm by
-            clicking :guilabel:`Yes, defer maintenance until next week.`
+         .. step:: In the :guilabel:`Scheduled Maintenance Operations` modal,
+            click the :guilabel:`Defer 1 Week` button. In the
+            :guilabel:`Defer Maintenance to Next Week` confirmation modal,
+            confirm by clicking :guilabel:`Yes, defer maintenance until next week.`
 
    .. tab:: {+atlas-cli+}
       :tabid: atlascli
@@ -308,10 +349,3 @@ Defer Maintenance
       <defergroupmaintenancewindow>`.
 
       .. include:: /includes/fact-defer-maintenance-max.rst
-
-Maintenance Version Upgrades during Maintenance Windows
--------------------------------------------------------
-
-If |service| will upgrade the MongoDB maintenance version on one of
-your clusters during the next maintenance window, the cluster's card
-displays the target MongoDB maintenance version.
