@@ -75,7 +75,6 @@ describe('MongoDBAssistantPage firstSubmitted state', () => {
     );
 
     expect(wrapper.queryByText('Hello! How can I help you?')).toBeInTheDocument();
-    expect(wrapper.queryByText(/This is a generative AI chatbot/i)).toBeInTheDocument();
     expect(wrapper.asFragment()).toMatchSnapshot();
   });
 

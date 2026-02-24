@@ -61,7 +61,7 @@ export function resolveReferences(
 
       const refs = refsData.refs ?? {};
 
-      visit(tree, "mdxJsxFlowElement", (node: any) => {
+      function replaceReferenceNode(node: any) {
         if (node.name === "Reference") {
           const nameAttr = node.attributes?.find((a: any) => a.name === "name");
           const name = nameAttr?.value;
@@ -77,7 +77,10 @@ export function resolveReferences(
           delete node.attributes;
           delete node.children;
         }
-      });
+      }
+
+      visit(tree, "mdxJsxFlowElement", replaceReferenceNode);
+      visit(tree, "mdxJsxTextElement", replaceReferenceNode);
     };
   };
 }

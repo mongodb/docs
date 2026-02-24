@@ -7,7 +7,6 @@ import { theme } from '@/styles/theme';
 import { ConversationProvider, useConversationContext } from './contexts/ConversationContext';
 import DarkModeDropdown from '@/components/action-bar/dark-mode-dropdown';
 import dynamic from 'next/dynamic';
-import AssistantDisclaimer from './components/ChatbotDisclaimer';
 import AssistantSideNav from './components/SideNav';
 const ChatbotComponent = dynamic(() => import('./components/Chatbot/chatbot').then((m) => m), {
   ssr: false,
@@ -96,7 +95,6 @@ const scrollContainerStyle = (firstSubmitted: boolean) => css`
   height: inherit;
   ${!firstSubmitted &&
   css`
-    justify-content: space-between;
     display: flex;
     flex-direction: column;
   `}
@@ -129,7 +127,6 @@ function MongoDBAssistantPageContent() {
           <div>
             <ChatbotComponent />
           </div>
-          {!firstSubmitted && <AssistantDisclaimer />}
         </div>
       </div>
     </div>
