@@ -58,11 +58,13 @@ Improvements
 - Adds support for |s3| Object Lock for snapshots, enabling immutable snapshots that 
   protect against accidental or malicious deletion and automatically storing snapshot 
   metadata in |s3| so snapshots can be imported into new |onprem| instances.
+  To learn more, see :ref:`om-immutable-s3-snapshots`.
 - Enables direct restore of snapshots from |s3| storage to MongoDB nodes, 
   bypassing the |onprem| server in the data path to avoid |onprem| as a potential 
   bottleneck, removing the need to scale |onprem| infrastructure for high-volume 
   restore traffic, and resolving a previous issue in 8.0.16 where the UI 
   checkbox for this feature was visible before the feature was enabled.
+  To learn more, see :ref:`om-direct-s3-restore`.
 - Removes the |kmip| certificate check from the allow backup and change sequence 
   process after investigating and updating the |kmip| path requirement to start backup.
 - Updates the Slack integration in |onprem| to address upcoming deprecation 
