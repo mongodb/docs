@@ -476,6 +476,11 @@ const tocData: TocItem[] = [
             ],
           },
           {
+            label: `Sharding in Spring Boot with Spring Data`,
+            contentSite: 'java',
+            url: '/docs/drivers/java/sync/:version/integrations/spring-sharding',
+          },
+          {
             label: 'Spring Data CSFLE',
             contentSite: 'java',
             url: '/docs/drivers/java/sync/:version/integrations/spring-csfle',
