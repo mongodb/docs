@@ -4,6 +4,8 @@ import { Include } from '@/mdx-components/Include';
 import { Reference } from '@/mdx-components/Reference';
 import Admonition from '@/components/admonition';
 import Collapsible from '@/components/collapsible';
+import { DefinitionListItem } from '@/mdx-components/DefinitionListItem';
+import { DefinitionDescription } from '@/mdx-components/DefinitionDescription';
 import Heading from '@/components/heading';
 import Section from '@/components/section';
 import Banner from '@/components/banner/banner';
@@ -64,8 +66,10 @@ export const components = (injectedProps?: InjectedProps) =>
     CtaBanner: ({ children }) => <span>{children}</span>,
     CTABanner: ({ children }) => <span>{children}</span>,
     DefaultDomain: ({ children }) => <span>{children}</span>,
-    DefinitionList: ({ children }) => <span>{children}</span>,
-    DefinitionListItem: ({ children }) => <span>{children}</span>,
+    DefinitionList: ({ children }) => <dl>{children}</dl>,
+    DefinitionListItem: ({ children, ...props }) => <DefinitionListItem {...props}>{children}</DefinitionListItem>,
+    DefinitionTerm: ({ children }) => <dt>{children}</dt>,
+    DefinitionDescription: ({ children }) => <DefinitionDescription>{children}</DefinitionDescription>,
     Deprecated: ({ children }) => <span>{children}</span>,
     DeprecatedVersionSelector: ({ children }) => <span>{children}</span>,
     Describe: ({ children }) => <span>{children}</span>,
@@ -133,6 +137,7 @@ export const components = (injectedProps?: InjectedProps) =>
     VersionChanged: ({ children }) => <span>{children}</span>,
     UseSampleData: ({ children }) => <span>{children}</span>,
     Wayfinding: ({ children }) => <span>{children}</span>,
+    DismissibleSkillsCard: ({ children }) => <span>{children}</span>,
     Warning: ({ children }) => <span>{children}</span>,
     Table: ({ children }) => <span>{children}</span>,
     TableHeaderCell: ({ children }) => <span>{children}</span>,

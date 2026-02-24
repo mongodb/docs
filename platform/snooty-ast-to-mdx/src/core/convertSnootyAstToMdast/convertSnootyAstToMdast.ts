@@ -441,11 +441,42 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
     case 'definitionListItem': {
       const termChildren = convertChildren({ nodes: node.term, depth, ctx });
       const descChildren = convertChildren({ nodes: node.children, depth, ctx });
+      const attributes: MdastNode[] = [];
+
+      // Pre-compute target ID from inline_target in term (avoids runtime traversal in component)
+      const findInlineTarget = (nodes: SnootyNode[]): SnootyNode | undefined => {
+        for (const n of nodes) {
+          if (n.type === 'inline_target') return n;
+          if (n.children) {
+            const found = findInlineTarget(n.children);
+            if (found) return found;
+          }
+        }
+        return undefined;
+      };
+      const inlineTarget = findInlineTarget(node.term ?? []);
+      if (inlineTarget?.html_id && typeof inlineTarget.html_id === 'string') {
+        attributes.push({ type: 'mdxJsxAttribute', name: 'targetId', value: inlineTarget.html_id });
+      }
+
       return {
         type: 'mdxJsxFlowElement',
         name: 'DefinitionListItem',
-        attributes: [],
-        children: [...termChildren, ...descChildren],
+        attributes,
+        children: [
+          {
+            type: 'mdxJsxFlowElement',
+            name: 'DefinitionTerm',
+            attributes: [],
+            children: termChildren,
+          },
+          {
+            type: 'mdxJsxFlowElement',
+            name: 'DefinitionDescription',
+            attributes: [],
+            children: descChildren,
+          },
+        ],
       };
     }
 

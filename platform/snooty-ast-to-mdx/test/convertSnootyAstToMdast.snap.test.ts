@@ -142,6 +142,39 @@ const cases: Array<[string, SnootyNode]> = [
     },
   ],
   [
+    'definition list with inline_target term',
+    {
+      type: 'definitionList',
+      children: [
+        {
+          type: 'definitionListItem',
+          term: [
+            { type: 'text', value: 'agent' },
+            {
+              type: 'inline_target',
+              domain: 'std',
+              name: 'term',
+              html_id: 'std-term-agent',
+              children: [
+                {
+                  type: 'target_identifier',
+                  children: [{ type: 'text', value: 'agent' }],
+                  ids: ['agent'],
+                },
+              ],
+            },
+          ],
+          children: [{ type: 'paragraph', children: [{ type: 'text', value: 'A lightweight monitoring program.' }] }],
+        },
+        {
+          type: 'definitionListItem',
+          term: [{ type: 'literal', children: [{ type: 'text', value: 'MongoClient' }] }],
+          children: [{ type: 'paragraph', children: [{ type: 'text', value: 'The primary client class.' }] }],
+        },
+      ],
+    },
+  ],
+  [
     'table',
     {
       type: 'table',
