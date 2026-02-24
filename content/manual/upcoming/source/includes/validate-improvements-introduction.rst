@@ -8,3 +8,7 @@ Starting in MongoDB 6.2, the :dbcommand:`validate` command and
   for internal data inconsistencies.
 - Have a new option ``checkBSONConformance`` that enables comprehensive
   BSON checks.
+
+Starting in MongoDB 8.3, the ``validate`` command and ``db.collection.validate()``
+method check collections to ensure a collection doesn't have any documents that
+exceed 16 MB. 
