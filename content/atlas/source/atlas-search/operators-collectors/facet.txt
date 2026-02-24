@@ -752,6 +752,77 @@ array has the following fields:
      - Count of documents in this facet bucket. To learn more about the 
        ``count`` field, see :ref:`count-ref`.
 
+.. _fts-facet-multi-select:
+
+Multi-Select Facets
+-------------------
+
+|fts| allows you to view and select multiple buckets within the same
+facet simultaneously. Typically, selecting a bucket within a facet
+filters search results according to that selection and alters counts
+for all facets.
+
+.. example::
+
+   Suppose an index definition for the ``sample_airbnb.listings``
+   collection specifies facets for the following fields:
+
+   - ``cancellation_policy``
+   - ``room_type``
+   - ``accommodates``
+
+   The ``cancellation_policy`` facet has the following buckets:
+
+   - ``flexible``
+   - ``moderate``
+   - ``strict_14_with_grace_period``
+   - ``super_strict_30``
+   - ``super_strict_60``
+
+   Each have their own result counts. When you search for the
+   ``moderate`` ``cancellation_policy``, the counts for the four other
+   buckets go to ``0``. Additionally, the counts for buckets in the
+   ``room_type`` and ``accommodates`` facets reduce to the number of results
+   in each bucket that also have a ``flexible``
+   ``cancellation_policy``.
+
+In scenarios where you need more granular control of how facets affect
+search result counts, enable multi-select faceting with the
+``doesNotAffect`` property in your faceted queries. These facets still
+filter results, but the query doesn't alter their result counts.
+
+.. example::
+   
+   Consider a query against the ``sample_airbnb.listings`` collection
+   for documents with a ``moderate`` ``cancellation_policy``. If you
+   specify a ``doesNotAffect`` value of ``cancellation_policy``, the
+   counts for buckets in the ``cancellation_policy`` facet don't
+   change, but the result counts for the buckets of other facets
+   reduce to the number of results in each bucket which also have a
+   ``moderate`` ``cancellation_policy``.
+
+   For more information, see the :ref:`Multi-Select Faceting example
+   <fts-facet-egs>`.
+
+Finally, for use cases with many facets, it can be useful to limit
+which other filters affect a given facet. You can do this by
+specifying any facet in the ``doesNotAffect`` property of any filter,
+including facets on other fields. This allows you to observe at a
+glance which selections narrow options more or less quickly.
+
+.. example::
+
+   Consider a query against the ``sample_airbnb.listings`` collection
+   for documents with an ``accommodates`` value of ``3``. If you
+   specify a ``doesNotAffect`` value of ``cancellation_policy``, the
+   result counts for the ``room_type`` buckets reduce to the number of
+   results in each bucket which also accommodate ``3`` people, but the
+   result counts for the buckets in ``cancellation_policy`` are
+   unaffected.
+
+   For more information, see the :ref:`Inter-Facet Filter Exclusion
+   example <fts-facet-egs>`.
+
 .. _fts-facet-aggregation-variable: 
 
 ``SEARCH_META`` Aggregation Variable
@@ -1175,6 +1246,313 @@ the ``embeddedDocuments`` type.
 
    In the preceding |fts| results, the facet counts are based on the
    embedded child documents and not the parents.
+
+.. collapsible::
+   :heading: Multi-Select Faceting Example
+   :sub_heading: Search with doesNotAffect for more granular control over facet filtering.
+   :expanded: false
+
+   The following index definition on the
+   ``sample_airbnb.listingsAndReviews`` collection automatically
+   indexes all dynamically indexable fields and configures the
+   ``cancellation_policy``, ``room_type``, and ``price`` fields for
+   faceted search.
+
+   .. code-block:: json 
+
+      {
+	"mappings": {
+	  "dynamic": false,
+	  "fields": {
+	    "cancellation_policy": {
+	      "type": "token"
+	    },
+	    "room_type": {
+	      "type": "token"
+	    },
+	    "accommodates": {
+	      "type": "number"
+	    }
+	  }
+	}
+      }
+
+   The following query uses the :pipeline:`$searchMeta` stage to perform the
+   following actions:
+
+   - Facet on the ``cancellation_policy``, ``roomType`` and ``accommodates``
+     fields.
+
+     The ``cancellation_policy`` facet has the following buckets:
+
+     - ``"strict_14_with_grace_period"``
+     - ``"moderate"``
+     - ``"flexible"``
+     - ``"super_strict_30"``
+     - ``"super_strict_60"``
+
+     The ``room_type`` facet has the following buckets:
+
+     - ``"Entire home/apt"``
+     - ``"Private room"``
+     - ``"Shared room"``
+
+     The query breaks the ``accommodates`` facet into buckets for:
+
+     - ``1``, inclusive lower bound for this bucket
+     - ``2``, exclusive upper bound for the ``1`` bucket and
+       inclusive lower bound for this bucket.
+     - ``4``, exclusive upper bound for the ``2`` bucket and
+       inclusive lower bound for this bucket.
+     - ``8``, exclusive upper bound for the ``4`` bucket
+
+   - Perform a :ref:`compound-ref` search for listings that *must*
+     contain the text ``new york city`` in the ``description`` and
+     *filters* the results for listings with a ``moderate``
+     ``cancellation_policy``. The ``doesNotAffect`` setting ensures
+     that filtering by a ``moderate`` ``cancellation_policy`` doesn't
+     alter the counts of other buckets in the facet; the counts for
+     ``"strict_14_with_grace_period"``, ``"flexible"``,
+     ``"super_strict_30"``, and ``"super_strict_60"`` are non-zero
+     values.
+
+   .. io-code-block:: 
+      :copyable: true 
+
+      .. input:: 
+         :language: json 
+         :linenos: 
+
+         db.listingsAndReviews.aggregate([
+	   {
+	     $searchMeta: {
+	       facet: {
+		 facets: {
+		   accommodatesFacet: {
+		     path: "accommodates",
+		     type: "number",
+		     boundaries: [1,2,4,8],
+		   },		 
+		   cancellationFacet: {
+		     path: "cancellation_policy",
+		     type: "string",
+		   },
+		   roomTypeFacet: {
+		     path: "room_type",
+		     type: "string",
+		   }
+		 },
+		 operator: {
+		   compound: {
+		     must: [
+		       {
+			 text: {
+			   path: "description",
+			   query: "new york city",
+			 },
+		       },
+		     ],
+		     filter: [
+		       {
+			 equals: {
+			   path: "cancellation_policy",
+			   value: "moderate",
+			   doesNotAffect:
+			     "cancellationFacet",
+			 },
+		       },
+		     ],
+		   },
+		 },
+	       },
+	     }
+	   },
+	 ]
+
+      .. output:: 
+         :language: shell 
+         :linenos:
+         :visible: false
+
+         [
+           {
+             count: { lowerBound: Long('531') },
+             facet: {
+               accomodatesFacet: {
+                 buckets: [
+                   { _id: "1", count: Long('25') },
+                   { _id: "2", count: Long('270') },
+		   { _id: "4", count: Long('204') },
+                 ]
+               },	       	     
+               cancellationFacet: {
+                 buckets: [
+		   { _id: "strict_14_with_grace_period", count: Long('849') },
+                   { _id: "moderate", count: Long('531') },		   
+                   { _id: "flexible", count: Long('380') },
+                   { _id: "super_strict_60", count: Long('25') }
+                   { _id: "super_strict_30", count: Long('380') }
+                 ]
+               },
+               roomTypeFacet: {
+                 buckets: [
+                   { _id: "Entire home/apt", count: Long('369') },
+                   { _id: "Private room", count: Long('159') },
+		   { _id: "Shared room", count: Long('3') },
+                 ]
+               }
+             }
+           }
+         ]
+
+   Observe that the counts for buckets in ``cancellationFacet`` are
+   not reduced to zero despite the query filtering on a value of
+   ``moderate``.
+
+.. collapsible::
+   :heading: Inter-Facet Filter Exclusion Example 
+   :sub_heading: Search with doesNotAffect on a facet other than the queried field.
+   :expanded: false
+
+   The following index definition on the ``sample_airbnb.listingsAndReviews``
+   collection indexes the ``cancellation_policy``, ``room_type``, and
+   ``price`` fields, enabling faceted search on them.
+
+   .. code-block:: json 
+
+      {
+	"mappings": {
+	  "dynamic": true,
+	  "fields": {
+	    "cancellation_policy": {
+	      "type": "token"
+	    },
+	    "room_type": {
+	      "type": "token"
+	    },
+	    "accommodates": {
+	      "type": "number"
+	    }
+	  }
+	}
+      }   
+
+   The following query:
+
+   - Searches for listings that include the text ``new york city`` in
+     their ``description`` and which have a ``cancellation_policy`` of
+     ``moderate``.     
+   - Facets on the ``cancellation_policy``, ``roomType`` and ``accommodates``
+     fields.
+
+     Each of the ``cancellation_policy`` and ``roomType`` facets have
+     three buckets, corresponding to the three unique values of these
+     fields across the collection. The query breaks the ``accommodates``
+     facet into buckets for:
+
+     - ``1``, inclusive lower bound for this bucket
+     - ``2``, exclusive upper bound for the ``1`` bucket and
+       inclusive lower bound for this bucket.
+     - ``4``, exclusive upper bound for the ``2`` bucket and
+       inclusive lower bound for this bucket.
+     - ``8``, exclusive upper bound for the ``4`` bucket
+
+   - Sets the ``doesNotAffect`` property in the ``equals`` operator of
+     the ``compound.filter`` to ``accommodatesFacet``. This excludes
+     the buckets within the ``accommodates`` facet from
+     filtering. As a result, filtering on the ``moderate``
+     ``cancellation_policy`` reduces the counts of other buckets in
+     the ``cancellation_policy`` facet to ``0``, and reduces the
+     counts of buckets in the ``roomType`` facet, but the counts of
+     buckets in the ``accommodates`` facet are unchanged. This allows
+     you to compare the impact of filtering on different facets.
+     
+   .. io-code-block:: 
+      :copyable: true 
+
+      .. input:: 
+         :language: json 
+         :linenos: 
+
+         db.listingsAndReviews.aggregate([
+	   {
+	     $searchMeta: {
+	       facet: {
+		 facets: {
+		   accommodatesFacet: {
+		     path: "accommodates",
+		     type: "number",
+		     boundaries: [1,2,4,8],
+		   },		 
+		   cancellationFacet: {
+		     path: "cancellation_policy",
+		     type: "string",
+		   },
+		   roomTypeFacet: {
+		     path: "room_type",
+		     type: "string",
+		   }
+		 },
+		 operator: {
+		   compound: {
+		     must: [
+		       {
+			 text: {
+			   path: "description",
+			   query: "new york city",
+			 },
+		       },
+		     ],
+		     filter: [
+		       {
+			 equals: {
+			   path: "cancellation_policy",
+			   value: "moderate",
+			   doesNotAffect:
+			     "accommodatesFacet",
+			 },
+		       },
+		     ],
+		   },
+		 },
+	       },
+	     },
+	   },
+	 ]
+
+      .. output:: 
+         :language: shell 
+         :linenos:
+         :visible: false
+
+         [
+           {
+             count: { lowerBound: Long('531') },
+             facet: {
+               accomodatesFacet: {
+                 buckets: [
+                   { _id: "1", count: Long('25') },
+                   { _id: "2", count: Long('270') },
+		   { _id: "4", count: Long('204') },
+                 ]
+               },	       	     
+               cancellationFacet: {
+                 buckets: [
+                   { _id: "flexible", count: Long('XXX') },
+                   { _id: "moderate", count: Long('531') },
+		   { _id: "strict_14_with_grace_period", count: Long('XXX') },
+                 ]
+               },
+               roomTypeFacet: {
+                 buckets: [
+                   { _id: "Entire home/apt", count: Long('369') },
+                   { _id: "Private room", count: Long('159') },
+		   { _id: "Shared room", count: Long('3') },
+                 ]
+               }
+             }
+           }
+         ]
 
 Continue Learning 
 -----------------
