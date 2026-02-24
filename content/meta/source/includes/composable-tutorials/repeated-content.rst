@@ -1,5 +1,3 @@
-.. _repeated-content:
-
 Repeated Content
 ----------------
 

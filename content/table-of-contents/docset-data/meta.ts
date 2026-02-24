@@ -99,6 +99,11 @@ const tocData: TocItem[] = [
                 contentSite: 'meta',
                 url: '/docs/meta/style-guide/terminology/terms-for-global-audience',
               },
+              {
+                label: 'Best Practices for Writing for Robots',
+                contentSite: 'meta',
+                url: '/docs/meta/style-guide/writing/write-for-robots',
+              }
             ],
           },
           {
@@ -475,7 +480,7 @@ const tocData: TocItem[] = [
             url: '/docs/meta/style-guide/code-example-guidelines',
           },
           {
-            label: 'Search Engine Optimization Guidelines',
+            label: 'Findability (SEO and LLM) Guidelines',
             contentSite: 'meta',
             url: '/docs/meta/style-guide/seo-guidelines',
           },
