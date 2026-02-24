@@ -15,6 +15,7 @@ import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { isCurrentPage } from '@/utils/is-current-page';
 import { isSelectedTocNode } from '@/utils/is-selected-toc-node';
 import { isUnifiedTOCInDevMode } from '@/utils/is-unified-toc-dev';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 import { l1ItemStyling, groupHeaderStyling, l2ItemStyling } from './styles/SideNavItem';
 import VersionDropdown from './VersionDropdown';
@@ -284,7 +285,8 @@ export const CollapsibleNavItem = ({
   level,
 }: CollapsibleNavItemProps) => {
   const isActiveCollapsible = isActiveTocNode(slug, newUrl, items);
-  const [isOpen, setIsOpen] = useState<boolean>(isActiveCollapsible);
+  // Offline: default open so sub-items are in the static HTML (they're omitted when isOpen is false)
+  const [isOpen, setIsOpen] = useState<boolean>(isOfflineBuild ? true : isActiveCollapsible);
   const caretType = isOpen ? 'CaretDown' : 'CaretUp';
   const isActive = isSelectedTab(newUrl, slug);
   const openedByCaret = useRef<boolean>(false);
@@ -306,7 +308,7 @@ export const CollapsibleNavItem = ({
   };
 
   useEffect(() => {
-    setIsOpen(isActiveCollapsible);
+    if (!isOfflineBuild) setIsOpen(isActiveCollapsible);
   }, [isActiveCollapsible]);
 
   return (

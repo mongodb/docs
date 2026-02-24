@@ -18,6 +18,7 @@ import { SIDE_NAV_CONTAINER_ID } from '@/constants';
 import { useViewport } from '@/hooks/use-viewport';
 import { useVersionContext } from '@/context/version-context';
 import { getFullSlug } from '@/utils/get-full-slug';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 import { DoublePannedNav } from './DoublePannedNav';
 import { AccordionNavPanel } from './AccordionNav';
@@ -89,6 +90,12 @@ const SidenavContainer = ({ topLarge, topMedium, topSmall }: SidenavContainerPro
     }
 `;
 
+// Normalize for comparison so /path and /path/index.html match (e.g. offline .html links)
+const normalizeUrlForMatch = (url: string): string => {
+  const withSlash = assertLeadingSlash(removeTrailingSlash(removeAnchor(url)));
+  return withSlash.replace(/\/index\.html$/i, '') || '/';
+};
+
 const findPageParent = (tree: TocItem[], targetUrl: string): [boolean, TocItem | null] => {
   const path: TocItem[] = [];
 
@@ -96,10 +103,7 @@ const findPageParent = (tree: TocItem[], targetUrl: string): [boolean, TocItem |
   const dfs = (item: TocItem): [boolean, TocItem] | null => {
     path.push(item);
 
-    if (
-      assertLeadingSlash(removeTrailingSlash(removeAnchor(item.newUrl ?? ''))) ===
-      assertLeadingSlash(removeTrailingSlash(targetUrl))
-    ) {
+    if (normalizeUrlForMatch(item.newUrl ?? '') === normalizeUrlForMatch(targetUrl)) {
       for (let i = path.length - 1; i >= 0; i--) {
         if (path[i].showSubNav === true) {
           return [true, path[i]];
@@ -133,11 +137,11 @@ export const UnifiedSidenav = () => {
   const { hideMobile, setHideMobile } = useContext(SidenavContext);
   const { slug: pageSlug } = usePageContext();
   const { siteBasePrefixWithVersion } = useVersionContext();
-  const slug = getFullSlug(pageSlug, siteBasePrefixWithVersion);
+  const pathname = usePathname();
+  const slug = isOfflineBuild ? pathname ?? '' : getFullSlug(pageSlug, siteBasePrefixWithVersion);
 
   const { hasBanner } = useSiteBanner();
   const topValues = useStickyTopValues({ eol: false, isAbsolute: true, hasBanner });
-  const pathname = usePathname();
   const hash = typeof window !== 'undefined' ? window.location.hash : '';
 
   const tree = useProcessedUnifiedToc();

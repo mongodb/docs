@@ -1,6 +1,7 @@
 import type { TocItem } from '@/components/unified-sidenav/types';
 
 import { tocData as copiedTocData } from './data.copied';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 /** Hardcoded TOC for offline build (voyageai only for first iteration). */
 export const toc: TocItem[] = [
@@ -170,10 +171,5 @@ export const toc: TocItem[] = [
   },
 ];
 
-function getOfflineToc(): TocItem[] | null {
-  if (process.env.NEXT_PUBLIC_BUILD_STATIC_PAGES !== 'true') return null;
-  return toc;
-}
-
-/** When building static export, use voyageai TOC (hardcoded for first iteration); else data.copied. */
-export const tocData: TocItem[] = getOfflineToc() ?? (copiedTocData as unknown as TocItem[]);
+/** Offline build uses the hardcoded toc above; otherwise use the full TOC from data.copied. */
+export const tocData: TocItem[] = isOfflineBuild ? toc : (copiedTocData as unknown as TocItem[]);

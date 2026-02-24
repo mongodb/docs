@@ -1,3 +1,4 @@
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import path from 'path';
 
 const NETLIFY_IMAGE_API_PATH = '/.netlify/images/?url=';
@@ -19,7 +20,7 @@ interface ImageProps {
 
 export const Image = async ({ projectPath, src, alt, width, height, className, style }: ImageProps) => {
   const fullPath = path.join(projectPath, src);
-  const imageUrl = formatImageUrl(fullPath);
+  const imageUrl = isOfflineBuild ? `/mdx/${fullPath}` : formatImageUrl(fullPath);
 
   return <img src={imageUrl} width={width} height={height} alt={alt} className={className} style={style} />;
 };

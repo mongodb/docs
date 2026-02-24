@@ -9,6 +9,7 @@ import { theme } from '@/styles/theme';
 import type { BranchData, Group } from '@/types/data';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { useVersionContext } from '@/context/version-context';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 export const selectStyling = LeafyCSS`
   margin: ${theme.size.small} ${theme.size.medium} ${theme.size.small} ${theme.size.medium};
@@ -128,6 +129,10 @@ const VersionDropdown = ({ contentSite = null }: VersionDropdownProps) => {
     },
     [onVersionSelect, project], // eslint-disable-line react-hooks/exhaustive-deps
   );
+
+  if (isOfflineBuild) {
+    return null;
+  }
 
   if ((branches?.length ?? 0) < 1) {
     console.warn('Insufficient branches supplied to VersionDropdown; expected 1 or more');

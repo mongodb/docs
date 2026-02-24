@@ -4,6 +4,7 @@ import type { ActiveVersions, AvailableVersions } from '@/context/version-contex
 import { useVersionContext } from '@/context/version-context';
 import { useUnifiedToc } from '@/context/unified-toc-context';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 interface UpdateURLsParams {
   tree?: TocItem[];
@@ -31,6 +32,11 @@ const updateURLs = ({ tree, contentSite, activeVersions, versionsData, project }
         // If no version found in local storage use 'current'
         const currentVersion = version?.urlSlug ?? 'current';
         newUrl = item.url!.replace(/:version/g, currentVersion);
+      }
+
+      // Offline build: internal TOC links must end in .html
+      if (isOfflineBuild && newUrl && !/^https?:\/\//i.test(newUrl)) {
+        newUrl = newUrl.replace(/\/?$/, '') + '/index.html';
       }
 
       const items = updateURLs({
