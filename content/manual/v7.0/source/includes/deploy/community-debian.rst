@@ -15,6 +15,8 @@
       
       .. include:: /includes/deploy/code/apt-update
 
+      .. include:: /includes/fact-debian-sha1key-error.rst
+
    .. step:: Install MongoDB Community Server.
 
       .. include:: /includes/deploy/code/community-apt-install

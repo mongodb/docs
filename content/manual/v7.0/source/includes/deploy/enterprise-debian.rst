@@ -15,6 +15,8 @@
       
       .. include:: /includes/deploy/code/apt-update
 
+      .. include:: /includes/fact-debian-sha1key-error.rst
+
    .. step:: Install MongoDB Enterprise Server.
 
       .. include:: /includes/deploy/code/enterprise-apt-install
