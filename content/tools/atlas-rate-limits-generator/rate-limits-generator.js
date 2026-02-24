@@ -71,51 +71,96 @@ async function generateRateLimitsTable() {
     };
     const timestamp = now.toLocaleString('en-US', options);
 
-    // Generate table with timestamp
-    let table = `.. Last updated: ${timestamp}\n\n`;
-    table += ".. list-table::\n   :header-rows: 1\n   :widths: 20 10 35 10 10 15\n\n";
-    table += "   * - Endpoint Set\n     - Scope\n     - Endpoints\n     - Max Capacity\n     - Refill Rate\n     - Refill Interval (seconds)\n\n";
+    // Generate sections with timestamp
+    let output = `.. Last updated: ${timestamp}\n\n`;
 
-    // Sort by endpointSetName for consistency
-    responseData.results.sort((a, b) => {
-      const nameA = a.endpointSetName || '';
-      const nameB = b.endpointSetName || '';
-      if (nameA < nameB) return -1;
-      if (nameA > nameB) return 1;
-      return 0;
+    // Filter out serverless endpoints, data lake pipelines, legacy backups, and legacy dataLakes paths
+    const groupedResults = {};
+    responseData.results.forEach((limit) => {
+      // Skip Data Lake Pipelines and Legacy Backups by endpoint set name
+      const name = limit.endpointSetName || 'N/A';
+      if (name === 'Data Lake Pipelines' || name === 'Legacy Backups') {
+        return;
+      }
+      
+      // Skip entire endpoint set if ALL endpoints contain serverless
+      if (limit.endpoints && limit.endpoints.every(ep => ep.path.includes('/serverless'))) {
+        return;
+      }
+      
+      // Filter out serverless and legacy dataLakes endpoints from the endpoint list
+      if (limit.endpoints) {
+        limit.endpoints = limit.endpoints.filter(ep => 
+          !ep.path.includes('/serverless') && !ep.path.includes('/dataLakes')
+        );
+      }
+      
+      // Skip if no endpoints remain after filtering
+      if (!limit.endpoints || limit.endpoints.length === 0) {
+        return;
+      }
+      
+      if (!groupedResults[name]) {
+        groupedResults[name] = [];
+      }
+      groupedResults[name].push(limit);
     });
 
-    // Generate table rows
-    responseData.results.forEach((limit) => {
-      const name = limit.endpointSetName || 'N/A';
-      const scope = limit.scope || 'N/A';
-      const capacity = limit.capacity?.value || 'N/A';
-      const refillRate = limit.refillRate?.value || 'N/A';
-      const refillDuration = limit.refillDurationSeconds?.value || 'N/A';
+    // Sort by endpoint set name for consistency
+    const sortedNames = Object.keys(groupedResults).sort();
 
-      // Format endpoints list
-      let endpointsList = '';
-      if (limit.endpoints && limit.endpoints.length > 0) {
-        endpointsList = limit.endpoints.map(ep => {
-          return `**${ep.method}** \`\`${ep.path}\`\``;
-        }).join('\n       | ');
-        endpointsList = '| ' + endpointsList;
-      } else {
-        endpointsList = 'N/A';
-      }
-
-      table += `   * - ${name}\n     - ${scope}\n     - ${endpointsList}\n     - ${capacity}\n     - ${refillRate}\n     - ${refillDuration}\n\n`;
+    // Generate sections for each endpoint set
+    sortedNames.forEach((name) => {
+      const limits = groupedResults[name];
+      
+      // Create anchor from name (lowercase, replace spaces with hyphens)
+      const anchor = `api-rate-limits-${name.toLowerCase().replace(/\s+/g, '-')}`;
+      
+      // Section header with anchor
+      output += `.. _${anchor}:\n\n`;
+      output += `${name}\n`;
+      output += '~'.repeat(name.length) + '\n\n';
+      
+      // Show all scopes with consistent formatting
+      limits.forEach((limit, index) => {
+        const scope = limit.scope || 'N/A';
+        const capacity = limit.capacity?.value || 'N/A';
+        const refillRate = limit.refillRate?.value || 'N/A';
+        const refillDuration = limit.refillDurationSeconds?.value || 'N/A';
+        
+        // Use consistent format with each item on separate line
+        output += `**Scope:** ${scope}\n\n`;
+        output += `**Capacity:** ${capacity}\n\n`;
+        output += `**Refill:** ${refillRate}/${refillDuration}s\n\n`;
+        
+        // Endpoints list
+        output += '**Endpoints:**\n\n';
+        if (limit.endpoints && limit.endpoints.length > 0) {
+          limit.endpoints.forEach(ep => {
+            output += `* **${ep.method}** \`\`${ep.path}\`\`\n`;
+          });
+        } else {
+          output += '* N/A\n';
+        }
+        
+        // Add spacing between scopes if not the last one
+        if (index < limits.length - 1) {
+          output += '\n';
+        }
+      });
+      
+      output += '\n';
     });
 
     // Determine output path
     const outputPath = process.env.OUTPUT_FILE || path.join(__dirname, '..', '..', 'atlas', 'source', 'includes', 'api-rate-limits.rst');
     
     // Write to file
-    fs.writeFileSync(outputPath, table, 'utf8');
+    fs.writeFileSync(outputPath, output, 'utf8');
     console.error(`Successfully wrote rate limits table to: ${outputPath}`);
     
     // Also output to stdout for debugging/piping if needed
-    console.log(table);
+    console.log(output);
   } catch (error) {
     if (error.status === 404) {
       console.error('\nERROR: Rate limits API endpoint not found (404).');
