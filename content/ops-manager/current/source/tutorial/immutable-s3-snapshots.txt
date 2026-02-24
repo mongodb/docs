@@ -1,0 +1,320 @@
+.. _om-immutable-s3-snapshots:
+
+=======================================
+Immutable S3 Snapshots with Object Lock
+=======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+|onprem| can store snapshots in an S3 or S3-compatible object store by
+writing snapshot data as blocks to an S3 bucket and tracking metadata
+in the |onprem| application database. With immutable S3 snapshots,
+|onprem| integrates with S3 Object Lock or an equivalent to provide
+the following capabilities:
+
+- Store snapshot data and backup metadata together in the S3 bucket.
+- Protect snapshot objects from deletion or modification until a
+  defined retention period expires, enforced by the object store.
+- Import snapshots from an Object-Lock-enabled bucket into a new or
+  rebuilt |onprem| deployment for disaster recovery or migration.
+
+Use this feature to protect backups against malicious or accidental
+deletion, such as ransomware attacks or operator error. You can
+restore backups in a new |onprem| instance using only what you
+store in S3.
+
+.. important::
+
+   This feature requires |onprem| 8.0.19 or later.
+
+How Immutable S3 Snapshots Work
+-------------------------------
+
+After you configure an S3 snapshot store with an Object-Lock-enabled
+bucket and enable immutable backups:
+
+- |onprem| writes snapshot blocks and the metadata required for
+  restore into the S3 bucket, instead of keeping metadata only in
+  the |onprem| application database.
+- If configured, |onprem| extends the Object Lock retention for each
+  snapshot so that the object store prevents deletion or modification
+  before the backup job retention window ends.
+- |onprem| can discover and import these immutable snapshots from a
+  pre-populated bucket into another |onprem| instance by reading only
+  what the S3 bucket stores.
+
+Prerequisites
+-------------
+
+To use immutable S3 snapshots, ensure you have the following:
+
+- |onprem| 8.0.19 or later, which includes support for snapshot
+  immutability and S3 import.
+- S3 snapshot store (blockstore) configured in |onprem|. Immutable
+  snapshots support only S3-based snapshot stores, not MongoDB
+  blockstores or filesystem snapshot stores.
+- Object store that supports Object Lock, such as AWS S3 or compatible
+  appliances, with Object Lock enabled on the bucket. Most S3
+  providers require Object versioning for Object Lock to function,
+  and some providers allow Object Lock only during bucket creation.
+- Standard backup requirements, such as a MongoDB Agent with backup
+  enabled on suitable nodes and an :term:`oplog` (operations log) store
+  for point-in-time recovery (PITR).
+
+.. important::
+
+   Immutable S3 snapshots protect snapshot data only. Oplog slices used
+   for PITR continue to use your configured oplog store, which does not
+   support Object Lock. Using an Object-Lock-enabled bucket for oplogs
+   might cause failures in the oplog deletion path.
+
+Considerations
+--------------
+
+When you plan immutable S3 snapshots, consider the following items:
+
+- **No retroactive immutability.** |onprem| protects only snapshots   
+  written to a bucket with Object Lock after you enable immutable   
+  backup. |onprem| does not apply Object Lock to existing snapshot   
+  objects.
+- **Object Lock configuration.** |onprem| does not provide immutability
+  for S3 buckets that do not support Object Lock. You must configure
+  Object Lock on the bucket separately. Configuring Object Lock
+  settings in |onprem| or updating bucket settings after creation
+  does not enable Object Lock on the bucket.
+- **No automatic migration of existing data.** The *Migrate Backup   
+  Between S3 Stores* feature lets you change which S3 snapshot store   
+  a backup job uses for future snapshots. It does not copy or move   
+  existing snapshot data between buckets.
+- **Retention and Object Lock on managed stores.** When a snapshot   
+  ages out according to the backup job retention policy, |onprem|   
+  stops exposing it and attempts to delete related objects. |onprem| can
+  delete the objects only after the Object Lock retention period expires.
+- **Retention on imported stores.** |onprem| never deletes data from   
+  imported stores. Retention affects only metadata visibility in   
+  |onprem|.
+
+
+Configure Immutable S3 Snapshots
+--------------------------------
+
+To configure immutable S3 snapshots, complete the following tasks:
+
+1. Enable immutable backups in |onprem|.
+#. Create an Object-Lock-enabled S3 bucket.
+#. Configure a new S3 snapshot store in |onprem|.
+#. Switch existing backup jobs to the immutable S3 store.
+
+Enable Immutable Backups
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+A feature flag in |onprem| controls immutable backups. You must enable
+this flag before you configure the S3 snapshot store.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Edit the |onprem| configuration file.
+
+      On the |onprem| host, open the configuration file. For example,
+      ``conf-mms.properties``.
+
+   .. step:: Set the immutable backup property.
+
+      Add or update the following property:
+
+      .. code-block:: none
+
+         brs.immutableBackupEnabled=true
+
+      This flag enables S3 snapshot immutability for stores backed by
+      Object-Lock-enabled buckets.
+
+   .. step:: Restart |onprem|.
+
+      Restart |onprem| so the configuration change takes effect.
+
+Create an Object-Lock-Enabled S3 Bucket
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a new bucket.
+
+      In your S3 or S3-compatible object storage system, create a new
+      bucket dedicated to immutable MongoDB backups.
+
+   .. step:: Enable Object Lock.
+
+      Enable Object Lock during bucket creation. Most S3 providers
+      require Object versioning for Object Lock to work.
+
+   .. step:: Optionally, configure default retention.
+
+      Configure a default retention mode and period in your object
+      store.
+
+.. note::
+
+   You cannot enable Object Lock for an existing S3 snapshot store in
+   |onprem|. If you already use an S3 bucket for backups but need
+   immutable snapshots, create a new bucket with Object Lock enabled
+   and configure a new S3 snapshot store.
+
+Configure a New S3 Snapshot Store in |onprem|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a new S3 snapshot store.
+
+      In |onprem|, create a new S3 snapshot store that points to the
+      Object-Lock-enabled bucket.
+
+   .. step:: Configure the store settings.
+
+      Specify the bucket name, endpoint, region, and credentials as
+      required by your S3 provider. Ensure that the Object Lock
+      settings in |onprem| match the settings on your S3 bucket.
+
+   .. step:: Save the store.
+
+      |onprem| automatically validates connectivity when 
+      you save the store.
+
+This snapshot store serves as the target for immutable snapshots. |onprem|
+writes both snapshot blocks and metadata for backups that use this
+store into the bucket.
+
+.. note::
+
+   You still need a MongoDB instance to act as a metadata store for
+   |onprem| operations.
+
+Switch Existing Backup Jobs to the Immutable S3 Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For each backup job you want to protect with immutable snapshots:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Verify the job status.
+
+      Confirm that the job is Active and uses S3 as its snapshot store type.
+
+   .. step:: Update the S3 snapshot store assignment.
+
+      Use the :guilabel:`Admin UI` or the backup API to update the backup
+      job S3 snapshot store ID to the new immutable S3 store. |onprem|
+      stores this assignment in the backup job document.
+
+   .. step:: Wait for the next snapshot.
+
+      After you change the store, |onprem| schedules the next   
+      snapshot as a full snapshot on the new store. Any in-progress   
+      snapshot continues against the original store. |onprem| forces   
+      the following snapshot to be a full snapshot on the new store.
+
+When you switch stores:
+
+- **Existing snapshots remain in the old store.** |onprem| does not   
+  move snapshots taken before the switch. They remain in the original   
+  S3 bucket and restore from that store until they expire based on   
+  your configured retention policy.
+- **The first snapshot on the new store is full.** This guarantees   
+  that |onprem| stores all blocks for that snapshot in a single S3   
+  snapshot store. Each restore fetches data from exactly one store.
+- **Subsequent snapshots are incremental.** Snapshots after the first   
+  full snapshot on the new store use incremental backup behavior.
+
+Import Snapshots for Disaster Recovery
+--------------------------------------
+
+If you need to restore data from a pre-existing S3 bucket that contains
+immutable snapshots and backup metadata, you can import those snapshots
+into an |onprem| deployment. Use this workflow for disaster recovery
+scenarios, such as restoring backups after rebuilding |onprem|.
+
+.. important::
+
+   Imported snapshots are for one-time restore operations only.
+   |onprem| does not manage the lifecycle of imported snapshots or
+   include them in active backup schedules.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Register the bucket as an import snapshot store.
+
+      In |onprem|, register the bucket as an import snapshot store.
+
+   .. step:: Run the snapshot import workflow.
+
+      Run the snapshot import workflow to scan the bucket, validate
+      metadata, and register available snapshots in a target project.
+
+   .. step:: Restore from imported snapshots.
+
+      After you import snapshots, they appear as an independent cluster
+      in the project, separate from clusters with active backup
+      schedules. You can use these snapshots for restore operations.
+
+|onprem| never deletes or grooms data from imported stores. You
+control the lifecycle of imported snapshot objects at the object storage
+layer.
+
+Interactions with PITR
+----------------------
+
+Point-in-time restore (PITR) combines a baseline snapshot with oplog
+data stored in an oplog store. Immutable snapshots affect only
+the baseline snapshot component:
+
+- When you switch to an immutable S3 snapshot store, PITR continues
+  to work from existing snapshots and oplog data. Old snapshots
+  remain in their original store, and the oplog store configuration
+  does not change.
+- After the first full immutable snapshot completes on the new store,
+  PITR can use that snapshot as the baseline and continue tailing oplogs
+  from your configured oplog store.
+- PITR is not available for imported snapshots. You can restore
+  imported snapshots only to the exact point when |onprem| created
+  the snapshot.
+
+Failure Scenarios and Recovery
+------------------------------
+
+Immutable S3 snapshots do not introduce additional data-loss scenarios
+when you switch snapshot stores. Each snapshot restores from a single
+store, so restore logic does not require data from multiple buckets for
+one snapshot.
+
+Crash Before the First Snapshot on the New Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- All existing snapshots remain in the original S3 store and are
+  fully restorable.
+- PITR works from the most recent completed snapshot and oplog data.
+
+Crash During the First Full Snapshot on the New Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- |onprem| marks the in-progress snapshot to the new store as failed or
+  incomplete and does not use it for restores.
+- The last successful snapshot in the original store remains the
+  latest restorable snapshot.
+- After |onprem| and the cluster recover, |onprem| schedules a new full
+  snapshot to the immutable store at the next snapshot window.
+
+Because the first snapshot on the new store is always a full snapshot
+and each snapshot restores from a single store, restore logic does not
+depend on mixing data from multiple S3 buckets for a single snapshot.
