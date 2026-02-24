@@ -14,26 +14,22 @@ const paragraphStyling = css`
 `;
 
 export type ParagraphProps = {
-  children?: React.ReactNode;
-  nodeChildren?: ASTNode[];
+  nodeChildren: ASTNode[];
   parentNode?: string;
   skipPTag?: boolean;
 };
 
-const Paragraph = ({ children, nodeChildren, parentNode, skipPTag = false, ...rest }: ParagraphProps) => {
-  // TODO: is this removed when we use the new MDX components?
-  const childrenWithPunctuation = appendTrailingPunctuation(nodeChildren || []);
+const Paragraph = ({ nodeChildren, parentNode, skipPTag = false, ...rest }: ParagraphProps) => {
+  const children = appendTrailingPunctuation(nodeChildren);
   // For paragraph nodes that appear inside certain containers, skip <p> tags and just render their contents
   if (skipPTag || (parentNode && SKIP_P_TAGS.has(parentNode))) {
-    return (
-      children ??
-      childrenWithPunctuation.map((element, index) => <ComponentFactory {...rest} nodeData={element} key={index} />)
-    );
+    return children.map((element, index) => <ComponentFactory {...rest} nodeData={element} key={index} />);
   }
   return (
     <Body className={cx(paragraphStyling)}>
-      {children ??
-        childrenWithPunctuation.map((element, index) => <ComponentFactory {...rest} nodeData={element} key={index} />)}
+      {children.map((element, index) => (
+        <ComponentFactory {...rest} nodeData={element} key={index} />
+      ))}
     </Body>
   );
 };

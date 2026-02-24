@@ -8,7 +8,7 @@ import Heading from '@/components/heading';
 import Section from '@/components/section';
 import Banner from '@/components/banner/banner';
 import HorizontalList from '@/components/horizontal-list';
-import Paragraph from '@/components/paragraph';
+import { Paragraph } from '@/mdx-components/Paragraph';
 import Transition from '@/components/transition';
 import Literal from '@/components/literal';
 import List from '@/components/list';

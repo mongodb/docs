@@ -10,6 +10,37 @@ import { parseSnootyArgument } from './parseSnootyArgument';
 
 const HIDDEN_NODES = ['toctree', 'index', 'seealso'];
 
+/** Append dangling punctuation to preceding reference/link nodes (mirrors appendTrailingPunctuation from docs-nextjs) */
+const appendTrailingPunctuation = (nodes: SnootyNode[]): SnootyNode[] => {
+  const result: SnootyNode[] = [];
+
+  for (let i = 0; i < nodes.length; i++) {
+    const currNode = nodes[i];
+    const nextNode = nodes[i + 1];
+
+    // Check if next node is a single-character non-whitespace text node (punctuation)
+    const hasDanglingSibling =
+      nextNode && isTextNode(nextNode) && nextNode.value.length === 1 && !/\s/.test(nextNode.value);
+
+    // Check if current node is a reference or ref_role
+    const isRefNode = currNode.type === 'reference' || currNode.type === 'ref_role';
+
+    if (isRefNode && hasDanglingSibling) {
+      // Merge punctuation into the reference node's children
+      const mergedNode: SnootyNode = {
+        ...currNode,
+        children: [...(currNode.children ?? []), nextNode],
+      };
+      result.push(mergedNode);
+      i++; // Skip the punctuation node
+    } else {
+      result.push(currNode);
+    }
+  }
+
+  return result;
+};
+
 /** Collect all values of a given attribute from nested nodes (mirrors findAllNestedAttribute from docs-nextjs) */
 const findAllNestedAttribute = (nodes: SnootyNode[], attribute: string): string[] => {
   const results: string[] = [];
@@ -30,12 +61,14 @@ interface ConvertChildrenArgs {
   nodes?: SnootyNode[];
   ctx: ConversionContext;
   depth: number;
+  /** The Snooty node type of the parent, used to determine context-sensitive conversions (e.g. skipping paragraph wrappers). */
+  parentType?: string;
 }
 
 /** Convert a list of Snooty nodes to a list of mdast nodes */
-const convertChildren = ({ nodes, depth, ctx }: ConvertChildrenArgs): MdastNode[] => {
+const convertChildren = ({ nodes, depth, ctx, parentType }: ConvertChildrenArgs): MdastNode[] => {
   if (!nodes || !Array.isArray(nodes)) return [];
-  const children = nodes.flatMap((node) => convertNode({ node, depth, ctx })).filter(Boolean);
+  const children = nodes.flatMap((node) => convertNode({ node, depth, ctx, parentType })).filter(Boolean);
   return children as Array<MdastNode>;
 };
 
@@ -43,20 +76,36 @@ interface ConvertNodeArgs {
   node: SnootyNode;
   ctx: ConversionContext;
   depth: number;
+  /** The Snooty node type of the parent, used to determine context-sensitive conversions. */
+  parentType?: string;
 }
 
 /** Convert a single Snooty node to mdast. Certain nodes (e.g. `section`) expand
     into multiple mdast siblings, so the return type can be an array. */
-const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | MdastNode[] | null => {
+/** Parent node types whose child paragraphs should be unwrapped (no <p> wrapper emitted). */
+const SKIP_P_TAG_PARENTS = new Set(['caption', 'footnote', 'field']);
+
+const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): MdastNode | MdastNode[] | null => {
   switch (node.type) {
     case 'text':
       return { type: 'text', value: node.value ?? '' };
 
-    case 'paragraph':
+    case 'paragraph': {
+      // Apply punctuation transformation before converting (merges trailing punctuation into links)
+      const processedChildren = appendTrailingPunctuation(node.children ?? []);
+      const convertedChildren = convertChildren({ nodes: processedChildren, depth, ctx });
+
+      // When inside certain containers, skip the paragraph wrapper and return children directly.
+      // This mirrors the SKIP_P_TAGS behaviour previously computed at runtime in the Paragraph component.
+      if (parentType && SKIP_P_TAG_PARENTS.has(parentType)) {
+        return convertedChildren;
+      }
+
       return {
         type: 'paragraph',
-        children: convertChildren({ nodes: node.children, depth, ctx }),
+        children: convertedChildren,
       };
+    }
 
     case 'emphasis':
       return {
@@ -149,7 +198,7 @@ const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | Mda
         type: 'mdxJsxFlowElement',
         name: 'Field',
         attributes,
-        children: convertChildren({ nodes: node.children, depth, ctx }),
+        children: convertChildren({ nodes: node.children, depth, ctx, parentType: 'field' }),
       };
     }
 
@@ -425,14 +474,14 @@ const convertNode = ({ node, ctx, depth = 1 }: ConvertNodeArgs): MdastNode | Mda
       const identifier = String(node.id ?? node.name ?? '');
       if (!identifier) {
         // Fallback to emitting content inline if id missing
-        return convertChildren({ nodes: node.children, depth, ctx });
+        return convertChildren({ nodes: node.children, depth, ctx, parentType: 'footnote' });
       }
       return {
         type: 'mdxJsxTextElement',
         name: 'Footnote',
         identifier,
         label: node.name ?? undefined,
-        children: convertChildren({ nodes: node.children, depth, ctx }),
+        children: convertChildren({ nodes: node.children, depth, ctx, parentType: 'footnote' }),
       };
     }
 
