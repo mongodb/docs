@@ -1,64 +1,65 @@
 ## 🔤 Periodic Typo Fixes
 
-**Scan date:** 2026-01-15 22:15 UTC
-**Files scanned:** 45211
+**Scan date:** 2026-02-01 04:00 UTC
+**Files scanned:** 46418
 
 ### Typos Fixed by Project
 
 | Project | Typos Fixed |
 |---------|-------------|
-| **manual** | 3558 |
-| **ops-manager** | 2679 |
-| **atlas-cli** | 1660 |
+| **manual** | 3627 |
+| **ops-manager** | 2627 |
+| **atlas-cli** | 1631 |
 | **c-driver** | 1107 |
-| **kubernetes-operator** | 847 |
-| **csharp** | 820 |
-| **kubernetes** | 717 |
-| **cloud-manager** | 680 |
-| **atlas-architecture** | 647 |
-| **node** | 531 |
+| **kubernetes-operator** | 983 |
+| **csharp** | 888 |
+| **kubernetes** | 825 |
+| **cloud-manager** | 670 |
+| **atlas-architecture** | 633 |
+| **node** | 545 |
 | **cpp-driver** | 449 |
+| **kotlin** | 402 |
 | **pymongo-driver** | 373 |
-| **kotlin** | 316 |
-| **golang** | 300 |
+| **golang** | 329 |
+| **spark-connector** | 295 |
 | **java** | 250 |
-| **spark-connector** | 241 |
-| **mongoid** | 223 |
-| **atlas-operator** | 223 |
-| **atlas** | 191 |
+| **atlas-operator** | 227 |
+| **mongoid** | 219 |
+| **atlas** | 173 |
 | **rust** | 166 |
-| **realm** | 138 |
+| **realm** | 155 |
+| **pymongo-arrow-driver** | 136 |
 | **php-library** | 136 |
-| **pymongo-arrow-driver** | 122 |
 | **docs-platform** | 108 |
 | **mongocli** | 106 |
 | **kotlin-sync** | 100 |
+| **kafka-connector** | 94 |
 | **voyageai** | 84 |
-| **java-rs** | 82 |
+| **java-rs** | 74 |
 | **mongodb-analyzer** | 70 |
-| **scala-driver** | 66 |
+| **table-of-contents** | 68 |
+| **scala-driver** | 62 |
 | **django-mongodb** | 51 |
-| **relational-migrator** | 50 |
+| **app-services** | 51 |
+| **database-tools** | 49 |
 | **entity-framework** | 47 |
-| **kafka-connector** | 46 |
-| **database-tools** | 45 |
-| **app-services** | 38 |
-| **code-examples** | 37 |
-| **charts** | 37 |
+| **relational-migrator** | 46 |
+| **code-examples** | 41 |
+| **drivers** | 37 |
+| **charts** | 35 |
 | **landing** | 31 |
-| **drivers** | 29 |
-| **meta** | 28 |
+| **meta** | 27 |
 | **bi-connector** | 24 |
-| **mongodb-shell** | 21 |
+| **mongodb-shell** | 20 |
 | **laravel-mongodb** | 20 |
+| **mongosync** | 16 |
 | **ruby-driver** | 15 |
-| **mongosync** | 14 |
-| **compass** | 10 |
+| **compass** | 12 |
 | **hibernate** | 8 |
-| **mongodb-vscode** | 5 |
+| **guides** | 6 |
+| **mongodb-vscode** | 2 |
 | **atlas-government** | 2 |
-| **guides** | 1 |
 
 ---
 
-**Total: 17549 typos fixed**
+**Total: 18152 typos fixed**
