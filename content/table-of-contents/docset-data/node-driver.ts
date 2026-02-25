@@ -452,7 +452,7 @@ const tocData: TocItem[] = [
         label: 'API Documentation',
         isExternal: true,
         url: 'https://mongodb.github.io/node-mongodb-native/7.1',
-        versions: { includes: ['v7.x'] },
+        versions: { includes: ['current'] },
       },
       {
         label: 'API Documentation',
