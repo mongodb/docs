@@ -5018,71 +5018,28 @@ contention and provides observability into the state of the database.
 
    queues: {
       execution: {
-         write: {
-            out: Long("<num>"),
-            available: Long("<num>"),
-            totalTickets: Long("<num>"),
-            exempt: {
-               addedToQueue: Long("<num>"),
-               removedFromQueue: Long("<num>"),
-               queueLength: Long("<num>"),
-               startedProcessing: Long("<num>"),
-               processing: Long("<num>"),
-               finishedProcessing: Long("<num>"),
-               totalTimeProcessingMicros: Long("<num>"),
-               canceled: Long("<num>"),
-               newAdmissions: Long("<num>"),
-               totalTimeQueuedMicros: Long("<num>")
-            },
-            normalPriority: {
-               addedToQueue: Long("<num>"),
-               removedFromQueue: Long("<num>"),
-               queueLength: Long("<num>"),
-               startedProcessing: Long("<num>"),
-               processing: Long("<num>"),
-               finishedProcessing: Long("<num>"),
-               totalTimeProcessingMicros: Long("<num>"),
-               canceled: Long("<num>"),
-               newAdmissions: Long("<num>"),
-               totalTimeQueuedMicros: Long("<num>")
-            }
-         },
-         read: {
-            out: Long("<num>"),
-            available: Long("<num>"),
-            totalTickets: Long("<num>"),
-            exempt: {
-               addedToQueue: Long("<num>"),
-               removedFromQueue: Long("<num>"),
-               queueLength: Long("<num>"),
-               startedProcessing: Long("<num>"),
-               processing: Long("<num>"),
-               finishedProcessing: Long("<num>"),
-               totalTimeProcessingMicros: Long("<num>"),
-               canceled: Long("<num>"),
-               newAdmissions: Long("<num>"),
-               totalTimeQueuedMicros: Long("<num>")
-            },
-            normalPriority: {
-               addedToQueue: Long("<num>"),
-               removedFromQueue: Long("<num>"),
-               queueLength: Long("<num>"),
-               startedProcessing: Long("<num>"),
-               processing: Long("<num>"),
-               finishedProcessing: Long("<num>"),
-               totalTimeProcessingMicros: Long("<num>"),
-               canceled: Long("<num>"),
-               newAdmissions: Long("<num>"),
-               totalTimeQueuedMicros: Long("<num>")
-            }
-         },
+         admissions: <object>,
+         backgroundTasksDeprioritization: <boolean>,
+         deprioritizationGate: <boolean>,
+         heuristicDeprioritization: <boolean>,
+         heuristicDeprioritizationThreshold: Int("<num>"),
+         totalDeprioritizations: Long("<num>"),
+         usesPrioritization: <boolean>,
+         usesThroughputProbing: <boolean>,
+         write: <object>,
+         read: <object>,
          monitor: {
             timesDecreased: Long("<num>"),
             timesIncreased: Long("<num>"),
             totalAmountDecreased: Long("<num>"),
             totalAmountIncreased: Long("<num>"),
-            resizeDurationMicros: Long("<num>")
-         }
+            resizeDurationMicros: Long("<num>"),
+            timesProbedStable: Long("<num>"),
+            timesProbedUp: Long("<num>"),
+            timesProbedDown: Long("<num>")
+         },
+         shortRunning: <object>,
+         longRunning: <object>,
       },
       ingress: {
          out: Long("<num>"),
@@ -5144,17 +5101,108 @@ contention and provides observability into the state of the database.
 
       .. include:: /includes/7.0-concurrent-transactions.rst
 
+   .. serverstatus:: queues.execution.admissions
+
+   .. versionadded:: 8.3
+
+   A histogram that tracks the distribution of completed operations by their
+   total number of ticket acquisitions.
+
+   See the following example:
+
+   .. code-block:: json
+
+      admissions: {
+         "1-2": 1000,
+         "3-4": 500,
+         "5-8": 200,
+         "9-16": 50,
+         "17-32": 10,
+         "33-64": 5,
+         "65-128": 2,
+         "129-256": 1,
+         "257-512": 0,
+         "513-1024": 0,
+         "1025+": 0
+      }
+
+   .. serverstatus:: queues.execution.backgroundTasksDeprioritization
+
+   .. versionadded:: 8.3
+
+   If ``true`` and :serverstatus:`~queues.execution.deprioritizationGate` is ``true``,
+   background tasks such as index builds and TTL deletions
+   initiate as low priority.
+
+   .. serverstatus:: queues.execution.deprioritizationGate
+
+   .. versionadded:: 8.3
+
+   If ``false``, all deprioritization mechanisms are disabled.
+
+   .. serverstatus:: queues.execution.heuristicDeprioritization
+
+   .. versionadded:: 8.3
+
+   If ``true`` and :serverstatus:`~queues.execution.deprioritizationGate` is ``true``,
+   operations that re-acquire tickets frequently are automatically 
+   deprioritized to the low-priority pool.
+
+   .. serverstatus:: queues.execution.heuristicDeprioritizationThreshold
+
+   .. versionadded:: 8.3
+
+   The number of ticket re-acquisitions required
+   before an operation triggers heuristic deprioritization.
+
+   .. serverstatus:: queues.execution.totalDeprioritizations
+
+   .. versionadded:: 8.3
+
+   The cumulative count of operations that are heuristically deprioritized
+   during the server's lifetime.
+
+   .. serverstatus:: queues.execution.usesPrioritization
+
+   .. versionadded:: 8.3
+
+   Indicates whether operations can be deprioritized to a separate
+   low-priority ticket pool.
+
+   .. serverstatus:: queues.execution.usesThroughputProbing
+
+   .. versionadded:: 8.3
+
+   Indicates whether the system dynamically adjusts concurrency using the
+   throughput probing algorithm.
+
+   .. serverstatus:: queues.execution.shortRunning
+
+   .. versionadded:: 8.3
+
+   A document containing operation metrics for short-running operations in this queue.
+   Short-running operations complete without deprioritization.
+   For fields, see :ref:`server-status-query-operation-execution`.
+
+   .. serverstatus:: queues.execution.longRunning
+
+   .. versionadded:: 8.3
+
+   A document containing operation metrics for long-running operations in this queue.
+   Long-running operations are or should be deprioritized.
+   For fields, see :ref:`server-status-query-operation-execution`.
+
    .. serverstatus:: queues.execution.write
 
-      A document that returns :ref:`server-status-queue-information` 
-      for concurrent write transactions (write tickets) allowed into 
-      the WiredTiger storage engine. 
+   Returns a document containing :ref:`server-status-queue-information` 
+   for concurrent write transactions (write tickets) allowed into 
+   the WiredTiger storage engine. 
 
    .. serverstatus:: queues.execution.read
 
-      A document that returns :ref:`server-status-queue-information` 
-      for concurrent read transactions (read tickets) allowed into 
-      the WiredTiger storage engine.
+   Returns a document containing :ref:`server-status-queue-information` 
+   for concurrent read transactions (read tickets) allowed into 
+   the WiredTiger storage engine.
    
    .. serverstatus:: queues.execution.monitor
 
@@ -5182,6 +5230,24 @@ contention and provides observability into the state of the database.
 
    The cumulative time in milliseconds that the system spent resizing 
    the queue.
+
+   .. serverstatus:: queues.execution.monitor.timesProbedStable
+
+   .. versionadded:: 8.3
+
+   The number of probing iterations in a stable state.
+
+   .. serverstatus:: queues.execution.monitor.timesProbedUp
+
+   .. versionadded:: 8.3
+
+   The number of probing iterations while testing increased concurrency.
+
+   .. serverstatus:: queues.execution.monitor.timesProbedDown
+
+   .. versionadded:: 8.3
+
+   The number of probing iterations while testing decreased concurrency.
 
 .. serverstatus:: queues.ingress
 
@@ -5282,9 +5348,11 @@ Queue Information
 
 .. code-block:: json
 
-   out: Long("<num>"),
-   available: Long("<num>"),
-   totalTickets: Long("<num>"),
+   out: Int("<num>"),
+   available: Int("<num>"),
+   totalTickets: Int("<num>"),
+   shortRunning: <object>,
+   longRunning: <object>,
    exempt: {
       addedToQueue: Long("<num>"),
       removedFromQueue: Long("<num>"),
@@ -5294,10 +5362,12 @@ Queue Information
       finishedProcessing: Long("<num>"),
       totalTimeProcessingMicros: Long("<num>"),
       canceled: Long("<num>"),
-      newAdmissions: Long("<num>"),
       totalTimeQueuedMicros: Long("<num>")
    },
    normalPriority: {
+      out: Int("<num>"),
+      available: Int("<num>"),
+      totalTickets: Int("<num>"),
       addedToQueue: Long("<num>"),
       removedFromQueue: Long("<num>"),
       queueLength: Long("<num>"),
@@ -5307,20 +5377,61 @@ Queue Information
       totalTimeProcessingMicros: Long("<num>"),
       canceled: Long("<num>"),
       newAdmissions: Long("<num>"),
-      totalTimeQueuedMicros: Long("<num>")
+      totalTimeQueuedMicros: Long("<num>"),
+      totalDelinquentAcquisitions: Long("<num>"),
+      totalAcquisitionDelinquencyMillis: Long("<num>"),
+      maxAcquisitionDelinquencyMillis: Long("<num>")
+   },
+   lowPriority: {
+      out: Int("<num>"),
+      available: Int("<num>"),
+      totalTickets: Int("<num>"),
+      addedToQueue: Long("<num>"),
+      removedFromQueue: Long("<num>"),
+      queueLength: Long("<num>"),
+      startedProcessing: Long("<num>"),
+      processing: Long("<num>"),
+      finishedProcessing: Long("<num>"),
+      totalTimeProcessingMicros: Long("<num>"),
+      canceled: Long("<num>"),
+      newAdmissions: Long("<num>"),
+      totalTimeQueuedMicros: Long("<num>"),
+      totalDelinquentAcquisitions: Long("<num>"),
+      totalAcquisitionDelinquencyMillis: Long("<num>"),
+      maxAcquisitionDelinquencyMillis: Long("<num>")
    }
 
 .. serverstatus:: out
 
-   The number of currently held tickets.
+   The total number of currently held tickets.
+   When :serverstatus:`~queues.execution.usesPrioritization` is ``false``, this value
+   only includes tickets in the normal-priority queue.
 
 .. serverstatus:: available
 
-   The number of available tickets.
+   The total number of available tickets.
+   When :serverstatus:`~queues.execution.usesPrioritization` is ``false``, this value
+   only includes tickets in the normal-priority queue.
 
 .. serverstatus:: totalTickets
 
-   The size of the ticket pool.
+   The ticket capacity across all pools.
+   When :serverstatus:`~queues.execution.usesPrioritization` is ``false``, this value
+   only includes tickets in the normal-priority queue.
+
+.. serverstatus:: shortRunning
+
+   .. versionadded:: 8.3
+
+   A document containing operation metrics for short-running operations in this queue.
+   For fields, see :ref:`server-status-query-operation-execution`.
+
+.. serverstatus:: longRunning
+
+   .. versionadded:: 8.3
+
+   A document containing operation metrics for long-running operations in this queue.
+   For fields, see :ref:`server-status-query-operation-execution`.
 
 .. serverstatus:: exempt
 
@@ -5360,6 +5471,18 @@ Queue Information
    A document that returns metrics for operations subject to 
    the queue.
 
+.. serverstatus:: normalPriority.out
+
+   The number of tickets currently held by active operations in the queue.
+
+.. serverstatus:: normalPriority.available
+
+   The number of tickets remaining for acquisition in the queue.
+
+.. serverstatus:: normalPriority.totalTickets
+
+   The total capacity of the ticket pool.
+
 .. serverstatus:: normalPriority.addedToQueue
 
    The total number of operations added to the queue.
@@ -5398,7 +5521,184 @@ Queue Information
 
 .. serverstatus:: normalPriority.totalTimeQueuedMicros
 
-   The total time operations spent waiting on the queue.
+   The total time that operations spend waiting on the queue.
+
+.. serverstatus:: normalPriority.totalDelinquentAcquisitions
+
+   .. versionadded:: 8.3
+
+   The amount of tickets that are held longer than the configured 
+   delinquency threshold.
+
+.. serverstatus:: normalPriority.totalAcquisitionDelinquencyMillis
+
+   .. versionadded:: 8.3
+
+   The cumulative excess time in milliseconds beyond the threshold for all 
+   delinquent holds in the queue.
+
+.. serverstatus:: normalPriority.maxAcquisitionDelinquencyMillis
+
+   .. versionadded:: 8.3
+
+   The maximum excess time in milliseconds observed for any single delinquent 
+   hold in the queue.
+
+.. serverstatus:: lowPriority
+
+   .. versionadded:: 8.3
+
+   A document that returns metrics for operations that were deprioritized to a separate
+   low-priority ticket pool.
+
+.. serverstatus:: lowPriority.out
+
+   The number of tickets currently held by active operations in the low-priority queue.
+
+.. serverstatus:: lowPriority.available
+
+   The number of tickets remaining for acquisition in the low-priority queue.
+
+.. serverstatus:: lowPriority.totalTickets
+
+   The total capacity of the low-priority ticket pool.
+
+.. serverstatus:: lowPriority.addedToQueue
+
+   The total number of operations added to the low-priority queue.
+
+.. serverstatus:: lowPriority.removedFromQueue 
+   
+   The total number of operations removed from the low-priority queue.
+
+.. serverstatus:: lowPriority.queueLength
+   
+   The total number of operations in the low-priority queue.
+
+.. serverstatus:: lowPriority.startedProcessing
+
+   The total number of operations that acquired a low-priority admission ticket.
+
+.. serverstatus:: lowPriority.processing
+
+   The total number of operations that are currently being processed with a low-priority admission ticket.
+
+.. serverstatus:: lowPriority.finishedProcessing
+
+   The total number of operations that released their low-priority admission ticket.
+
+.. serverstatus:: lowPriority.totalTimeProcessingMicros
+
+   The total time operations held their low-priority admission tickets.
+
+.. serverstatus:: lowPriority.canceled
+
+   The total number of operations that timed out in the low-priority queue.
+
+.. serverstatus:: lowPriority.newAdmissions
+
+   The total number of new admissions to the low-priority queue.
+
+.. serverstatus:: lowPriority.totalTimeQueuedMicros
+
+   The total time operations spent waiting on the low-priority queue.
+
+.. serverstatus:: lowPriority.totalDelinquentAcquisitions
+
+   The number of ticket holds that exceed the delinquency threshold in the 
+   low-priority queue.
+
+.. serverstatus:: lowPriority.totalAcquisitionDelinquencyMillis
+
+   The cumulative excess time in milliseconds beyond the threshold for all 
+   delinquent holds in the low-priority queue.
+
+.. serverstatus:: lowPriority.maxAcquisitionDelinquencyMillis
+
+   The maximum excess time in milliseconds for any single delinquent 
+   hold in the low-priority queue.
+
+.. _server-status-query-operation-execution:
+
+Queue Operation Execution Statistics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 8.3
+
+.. code-block:: json
+
+   totalElapsedTimeMicros: Long("<num>"),
+   totalCPUUsageMicros: Long("<num>"),
+   totalTimeProcessingMicros: Long("<num>"),
+   totalTimeQueuedMicros: Long("<num>"),
+   totalAdmissions: Long("<num>"),
+   totalOpsFinished: Long("<num>"),
+   totalOpsLoadShed: Long("<num>"),
+   totalAdmissionsLoadShed: Long("<num>"),
+   totalCPUUsageLoadShed: Long("<num>"),
+   totalElapsedTimeMicrosLoadShed: Long("<num>"),
+   totalQueuedTimeMicrosLoadShed: Long("<num>"),
+   totalDelinquentAcquisitions: Long("<num>"),
+   totalAcquisitionDelinquencyMillis: Long("<num>"),
+   maxAcquisitionDelinquencyMillis: Long("<num>")
+
+.. serverstatus:: totalElapsedTimeMicros
+
+The total time in microseconds for all operations in this bucket.
+
+.. serverstatus:: totalCPUUsageMicros
+
+The total CPU time in microseconds consumed by operations in the corresponding
+group (short-running or long-running operations).
+
+.. serverstatus:: totalTimeProcessingMicros
+
+The total time in microseconds spent holding tickets across all acquisitions.
+
+.. serverstatus:: totalTimeQueuedMicros
+
+The total time in microseconds spent waiting for tickets across all acquisitions.
+
+.. serverstatus:: totalAdmissions
+
+The total number of ticket acquisitions, including re-acquisitions after yields.
+
+.. serverstatus:: totalOpsFinished
+
+The number of operations that completed in this group.
+
+.. serverstatus:: totalOpsLoadShed
+
+The number of unique operations that are load-shed due to queue overflow.
+
+.. serverstatus:: totalAdmissionsLoadShed
+
+The total number of admissions for load-shed operations.
+
+.. serverstatus:: totalCPUUsageLoadShed
+
+The CPU time in microseconds consumed by operations before being shed.
+
+.. serverstatus:: totalElapsedTimeMicrosLoadShed
+
+The elapsed time in microseconds for operations before being shed.
+
+.. serverstatus:: totalQueuedTimeMicrosLoadShed
+
+The queue time in microseconds for operations before being shed.
+
+.. serverstatus:: totalDelinquentAcquisitions
+
+The number of ticket holds that exceeded the delinquency threshold.
+
+.. serverstatus:: totalAcquisitionDelinquencyMillis
+
+The cumulative excess time in milliseconds beyond the threshold for all delinquent holds.
+
+.. serverstatus:: maxAcquisitionDelinquencyMillis
+
+The maximum excess time in milliseconds observed for any single delinquent hold.
+
 
 .. _server-status-querySettings:
 
