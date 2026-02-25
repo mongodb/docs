@@ -55,7 +55,7 @@ Before you begin, complete the following prerequisites:
 - Install `Docker <https://www.docker.com//>`__.
 
   - For MacOS or Windows, install `Docker Desktop v4.31+ <https://docs.docker.com/desktop/release-notes/#4310>`__. 
-  - For Linux, install `Docker Engine v27.0+ <https://docs.docker.com/engine/release-notes/27.0/>`__. 
+  - For Linux, install `Docker Engine v27.0+ <https://docs.docker.com/engine/release-notes/27/>`__. 
 
   .. note::
 

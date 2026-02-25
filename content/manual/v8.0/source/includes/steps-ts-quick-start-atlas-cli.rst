@@ -23,7 +23,7 @@
       MongoDB images.
 
       - For MacOS or Windows, install `Docker Desktop v4.31+ <https://docs.docker.com/desktop/release-notes/#4310>`__.
-      - For Linux, install `Docker Engine v27.0+ <https://docs.docker.com/engine/release-notes/27.0/>`__.
+      - For Linux, install `Docker Engine v27.0+ <https://docs.docker.com/engine/release-notes/27/>`__.
       - For RHEL, you can also use `Podman v5.0+ <https://podman.io>`__.
 
 .. step:: Set up your local |service| {+deployment+}.
