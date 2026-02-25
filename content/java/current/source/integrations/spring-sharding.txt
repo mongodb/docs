@@ -1,0 +1,199 @@
+.. _java-spring-sharding:
+
+================================================================
+Tutorial: Implement Sharding in Spring Boot by Using Spring Data
+================================================================
+
+.. meta::
+   :description: Learn how to implement sharding in your Spring Boot application by using Spring Data MongoDB to scale your database horizontally.
+   :keywords: sharding, spring boot, spring data mongodb, horizontal scaling, java
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+This tutorial shows you how to set up a sharded cluster in MongoDB Atlas and
+build a Spring Boot application that uses Spring Data MongoDB to work with a
+sharded ``users`` collection.
+
+Sharding
+~~~~~~~~
+
+**Sharding** distributes a dataset across multiple machines. This is useful for
+applications with large datasets or high read and write throughput. MongoDB
+supports two scaling approaches: **vertical scaling** and
+**horizontal scaling**.
+
+Vertical scaling increases the capacity of a single server by 
+upgrading its CPU, RAM, or storage. This approach has limits based on 
+hardware capabilities and can become expensive.
+
+Horizontal scaling divides your dataset and workload across 
+multiple servers. Each server handles a subset of the overall 
+workload, which can provide better efficiency than a single powerful 
+server. MongoDB Atlas simplifies the management of sharded clusters.
+
+To learn more about sharding, see :manual:`Sharding </sharding>` in the {+mdb-server+} manual.
+
+Tutorial
+--------
+
+This tutorial shows you how to perform the following actions:
+
+- Verify the prerequisites
+- Set up a sharded cluster in MongoDB Atlas
+- Configure sharding for a collection
+- Implement the Spring Boot application
+- Configure the Spring Boot application
+
+.. procedure::
+   :style: connected
+
+   .. step:: Verify the prerequisites
+
+      Before you begin, verify that you have the following:
+
+      - A `MongoDB account <https://www.mongodb.com/cloud/atlas/register>`__. 
+        You need a cluster `M30 or higher to enable sharding 
+        <https://www.mongodb.com/docs/atlas/cluster-additional-settings/#std-label-create-cluster-sharding>`__.
+      - `Java 17 or later <https://www.oracle.com/java/technologies/downloads/>`__
+      - `Maven version 3.9.6 or later <https://maven.apache.org/download.cgi>`__
+      - A Spring Boot project with Spring Data MongoDB and Spring Web 
+        dependencies. You can create a project by using 
+        `Spring Initializr <https://start.spring.io/>`__.
+      - `MongoDB Shell <https://www.mongodb.com/try/download/shell>`__
+
+   .. step:: Set up a sharded cluster in MongoDB Atlas
+
+      To create a sharded cluster, perform the following actions:
+
+      1. In the cluster settings of your M30 or higher cluster, navigate to :guilabel:`Additional Settings`.
+      #. Select :guilabel:`Sharding` and toggle it on.
+      #. Set the number of shards to deploy. For production 
+         applications, use more than one shard. You can deploy 
+         between 1 and 70 shards. To learn more, see the 
+         :atlas:`Deploy a Sharded Cluster </cluster-additional-settings/#std-label-create-cluster-sharding>`
+         in the Atlas documentation.
+      #. Once your sharded cluster is created, select :guilabel:`Load Sample Dataset` to
+         load the sample data.
+
+   .. step:: Configure sharding for a collection
+
+      Spring Data MongoDB does not automatically configure sharding 
+      for collections. You must perform these operations manually by
+      using ``mongosh``.
+
+      To connect to your cluster and configure sharding, run the 
+      following command in your terminal:
+
+      .. code-block:: bash
+
+         mongosh "mongodb+srv://<username>:<password>@<cluster-url>/admin"
+
+      Replace the ``<username>``, ``<password>``, and 
+      ``<cluster-url>`` placeholders with your MongoDB Atlas 
+      credentials and connection string.
+
+      To shard the ``users`` collection by the ``email`` field, run 
+      the following command:
+
+      .. code-block:: bash
+
+         sh.shardCollection("sample_mflix.users", { email: 1 })
+
+      To verify that sharding is enabled and the collection is 
+      sharded, run the following command:
+
+      .. code-block:: bash
+
+         sh.status()
+
+   .. step:: Implement the Spring Boot application
+
+      To implement the Spring Boot application, you must define 
+      the entity, repository, service, and controller layers.
+
+      a. To define an entity class with sharding, use the ``@Sharded`` 
+         annotation to specify the shard key fields. The following code 
+         shows an example ``User`` entity with the ``email`` field 
+         as the shard key:
+
+         .. literalinclude:: /includes/integrations/spring-sharding/User.java
+            :language: java
+
+         The ``@Sharded`` annotation helps Spring Data MongoDB optimize 
+         operations in a sharded environment. It ensures that ``replaceOne`` queries include
+         the shard key during upserts.
+
+      #. To create a repository for the ``User`` entity, define an 
+         interface that extends ``MongoRepository``. The following code 
+         shows an example ``UserRepository`` interface:
+
+         .. literalinclude:: /includes/integrations/spring-sharding/UserRepository.java
+            :language: java
+
+      #. To handle business logic, create a service class that interacts 
+         with the repository. The following code shows an example ``UserService`` class:
+
+         .. literalinclude:: /includes/integrations/spring-sharding/UserService.java
+            :language: java
+
+      #. To expose REST endpoints for the ``User`` entity, create a 
+         controller class. The following code shows an example 
+         ``UserController`` class:
+
+         .. literalinclude:: /includes/integrations/spring-sharding/UserController.java
+            :language: java
+
+   .. step:: Configure the Spring Boot application
+
+      To connect your Spring Boot application to MongoDB Atlas, add 
+      the MongoDB connection URI to your ``application.properties`` 
+      or ``application.yml`` file. The following code shows an 
+      example configuration:
+
+      .. code-block:: properties
+
+         spring.data.mongodb.uri=mongodb+srv://<username>:<password>@<cluster-url>/myDatabase?retryWrites=true&w=majority
+
+      Replace the ``<username>``, ``<password>``, and 
+      ``<cluster-url>`` placeholders with your MongoDB Atlas 
+      credentials and connection string.
+
+Shard Key Selection
+-------------------
+
+When you choose a shard key, verify that it distributes data 
+evenly across shards. The choice of a shard key 
+is critical to the performance and scalability of your sharded 
+cluster. To learn more about selecting a shard key, see :manual:`Choose a Shard Key </core/sharding-choose-a-shard-key/>`
+in the {+mdb-server+} manual.
+
+An ideal shard key has the following characteristics:
+
+- **High cardinality**: The key has many unique values to 
+  distribute data evenly across shards. The key does not need 
+  to be entirely unique.
+- **Even distribution**: The key distributes documents evenly 
+  across all shards to avoid hotspots where one shard handles 
+  more data or requests than others.
+- **Support for common queries**: Choose a key that aligns 
+  with your most common query patterns to reduce query scatter 
+  and improve performance.
+
+For the ``users`` collection in the ``sample_mflix`` database, 
+the ``email`` field works well as a shard key if:
+
+- Emails are unique and well-distributed.
+- Queries frequently filter or sort by email.
+
+Additional Resources
+--------------------
+
+To learn more about sharding in MongoDB, see :manual:`Sharding </sharding>` in
+the {+mdb-server+} manual.
