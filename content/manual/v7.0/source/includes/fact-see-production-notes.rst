@@ -1,4 +1,3 @@
-Before deploying MongoDB in a production environment, consider the
-:doc:`/administration/production-notes` document which offers
-performance considerations and configuration recommendations for
-production MongoDB deployments.
+Before deploying MongoDB in a production environment, see the
+:doc:`/administration/production-notes` document for
+performance considerations and configuration recommendations.
