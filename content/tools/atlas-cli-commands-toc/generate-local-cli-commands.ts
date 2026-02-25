@@ -303,6 +303,13 @@ async function copyCommandFilesFromGit(tagOrBranch: string): Promise<string[]> {
 
     console.log(`✅ Copied ${files.length} Local CLI command files to upcoming, current, and atlas directories`);
     
+    // Run the table fixer on the copied files
+    console.log('\n🔧 Running table indentation fixer on atlas-local command files...');
+    await runFixer(atlasCliUpcomingDir);
+    await runFixer(atlasCliCurrentDir);
+    await runFixer(atlasDir);
+    console.log('✅ Fixer completed');
+    
     return files;
     
   } finally {
@@ -381,6 +388,21 @@ async function runCommand(command: string): Promise<string> {
     return stdout;
   } catch (error: any) {
     throw new Error(`Command failed: ${command}\n${error.message}\n${error.stderr || ''}`);
+  }
+}
+
+/**
+ * Run the atlas-local table fixer on a directory
+ */
+async function runFixer(directory: string): Promise<void> {
+  try {
+    const fixerPath = path.join(__dirname, 'fix-atlas-local-tables.py');
+    const command = `python3 "${fixerPath}" --apply --scope "${directory}"`;
+    console.log(`  Running fixer on ${path.basename(directory)}...`);
+    await runCommand(command);
+  } catch (error: any) {
+    console.warn(`  ⚠️  Fixer warning on ${directory}: ${error.message}`);
+    // Don't fail the whole process if fixer has issues
   }
 }
 

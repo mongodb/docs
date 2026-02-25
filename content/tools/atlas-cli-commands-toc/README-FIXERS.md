@@ -56,6 +56,8 @@ Files of interest
 
 - `run-all-fixers.py` — orchestrator that invokes `consolidated-fixers.py` with the correct arguments. Use this as the standard entrypoint for fixer runs.
 
+- `fix-atlas-local-tables.py` — specialized fixer for atlas-local command files that fixes list-table continuation line indentation. See [README-ATLAS-LOCAL-FIXER.md](./README-ATLAS-LOCAL-FIXER.md) for details. This fixer is integrated into the `generate-local-cli-commands.ts` generator and runs automatically when importing atlas-local commands.
+
 Key behaviors
 - Scope restriction: Both scripts are intended to operate only on `content/atlas-cli/upcoming` (or a subpath you provide via `--scope`).
 - SKIP_LIST: A list of path suffixes is embedded in the scripts to prevent touching files that are managed or manually edited; any path that ends with a SKIP_LIST entry is skipped.

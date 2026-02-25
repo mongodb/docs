@@ -39,7 +39,7 @@ This project generates TypeScript table of contents entries for MongoDB Atlas CL
 - **`generate-local-cli-commands.ts`** - Atlas Local CLI plugin script that:
   - Clones the `mongodb/atlas-local-cli` repository
   - Processes Atlas Local CLI plugin commands from `docs/generated` directory
-  - Applies RST syntax fixers to clean up formatting issues
+  - Applies RST syntax fixers (`fix-atlas-local-tables.py`) to fix list-table continuation line indentation (see [README-ATLAS-LOCAL-FIXER.md](./README-ATLAS-LOCAL-FIXER.md))
   - Adds `:orphan:` directive to all files to suppress toctree warnings
   - Copies command files to both `atlas-cli/upcoming/source/command/` and `atlas/source/includes/command/`
   - Generates `atlas-cli-local-commands.ts` file for import into main ToC
