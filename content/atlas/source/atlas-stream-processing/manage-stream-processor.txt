@@ -1215,6 +1215,11 @@ To view statistics of a stream processor:
             - ``stats.minOpenWindowStartTime``
             - ``stats.maxOpenWindowStartTime``
 
+            ``stats.operatorStats`` can also include the following field 
+            for certain source and sink operators:
+
+            - ``stats.operatorStats.targetStats``
+
         * - ``stats.operatorStats.maxMemoryUsage``
           - integer
           - The maximum memory usage of the operator in bytes or kilobytes.
@@ -1230,6 +1235,42 @@ To view statistics of a stream processor:
         * - ``stats.maxOpenWindowStartTime``
           - date
           - The start time of the maximum open window. This value is optional.
+
+        * - ``stats.operatorStats.targetStats``
+          - array
+          - The per-target statistics for certain source and sink operators.
+
+            Each element of this array is a document that represents a single 
+            input or output target, such as an input or output collection or 
+            a {+kafka+} topic. Depending on the operator, each document 
+            contains a subset of the following fields:
+
+            For source operators, such as {+kafka+} :pipeline:`$source` 
+            or change stream sources:
+
+            Either ``db`` and ``coll`` for MongoDB targets, or ``topic`` 
+            for {+kafka+} targets.
+
+            - ``inputMessageCount`` 
+            - ``inputMessageSize``
+
+            For sink operators, such as MongoDB :pipeline:`$merge` 
+            or ``$emit`` sinks:
+
+            Either ``db`` and ``coll`` for MongoDB targets, or ``topic`` 
+            for {+kafka+} targets.
+
+            - ``outputMessageCount`` 
+            - ``outputMessageSize``
+
+            {+atlas-sp+} collects per-target statistics only for 
+            some stream aggregation stages, such as {+kafka+} 
+            :pipeline:`$source` and MongoDB :pipeline:`$merge`.
+
+            It records per-target statistics for at most 100 distinct targets; 
+            after that, the stream processor stops adding new entries to 
+            ``targetStats`` but continues updating aggregate 
+            per-operator statistics.
 
         * - ``stats.kafkaPartitions``
           - array
@@ -1284,4 +1325,58 @@ To view statistics of a stream processor:
             watermark: ISODate("2023-12-14T14:35:32.417Z"),
             ok: 1
           },
+        }
+
+      The example shows the overall statistics for the stream processor.
+      
+      To see how individual operators behave or how much traffic each 
+      target handles, call ``sp.<streamprocessor>.stats()`` with the 
+      ``verbose`` option and inspect ``stats.operatorStats`` and, 
+      for some operators, ``stats.operatorStats.targetStats``.
+      
+      For example, for a source operator, ``stats.operatorStats.targetStats`` 
+      collects the ``inputMessageCount`` and ``inputMessageSize`` 
+      fields for every unique ``db``/``coll`` or every unique topic:
+
+      .. code-block:: sh
+
+        {
+          "name" : "KafkaConsumerOperator",
+          "inputMessageCount" : NumberLong(100),
+          "inputMessageSize" : 100352,
+          "targetStats" : [
+            {
+            "topic" : "outputTopic1",
+            "inputMessageCount" : NumberLong(100),
+            "inputMessageSize" : 100352
+            }
+          ],
+          ...
+        }
+
+      And for a sink operator, ``stats.operatorStats.targetStats`` 
+      collects the ``outputMessageCount`` and ``outputMessageSize`` 
+      fields for every unique ``db``/``coll`` or every unique topic:
+
+      .. code-block:: sh
+
+        {
+          "name" : "MergeOperator",
+          "inputMessageCount" : NumberLong(10),
+          "inputMessageSize" : 1744,
+          "targetStats" : [
+            {
+              "db" : "cust1",
+              "coll" : "outColl1",
+              "outputMessageCount" : NumberLong(3),
+              "outputMessageSize" : 1748
+            },
+            {
+              "db" : "cust2",
+              "coll" : "outColl2",
+              "outputMessageCount" : NumberLong(4),
+              "outputMessageSize" : 2241
+            }
+          ],
+          ...
         }
