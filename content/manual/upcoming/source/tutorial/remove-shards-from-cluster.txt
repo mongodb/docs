@@ -65,7 +65,7 @@ Steps
 .. procedure::
    :style: normal
 
-   .. step:: Ensure the balancer is enabled
+   .. step:: Ensure the balancer is enabled.
 
       To migrate data from a shard, the :term:`balancer` process must
       be enabled. To check the balancer state, use the
@@ -80,7 +80,7 @@ Steps
       If the operation returns ``false``, see
       :ref:`sharding-balancing-enable`.
 
-   .. step:: Determine the name of the shard to remove
+   .. step:: Determine the name of the shard to remove.
       
       To find the name of the shard, run the :dbcommand:`listShards` command:
 
@@ -90,243 +90,215 @@ Steps
 
       The ``shards._id`` field contains the shard name.
 
-   .. step:: Migrate sharded collection data with the balancer
+   .. step:: Start draining the shard.
 
-      Run the :dbcommand:`removeShard` command for the shard you want to
-      remove:
-      
-      .. code-block:: javascript
-
-         db.adminCommand( { removeShard: "<shardName>" } )
-      
-      .. note::
-         
-         .. include:: /includes/extracts/mongos-operations-wc-remove-shard.rst
-
-      The ``removeShard`` operation returns:
+      Run the :dbcommand:`startShardDraining` command to start
+      moving chunks from the sharded collections to the other shards
+      in the cluster:
 
       .. code-block:: javascript
-         :copyable: false
 
-         {
-            "msg" : "draining started successfully",
-            "state" : "started",
-            "shard" : "<shardName>",
-            "note" : "you need to call moveCollection for collectionsToMove and afterwards movePrimary for the dbsToMove", 
-            "dbsToMove" : [
-               "db1",
-               "db2"
-            ],
-            collectionsToMove: ["db1.collA"]
-            "ok" : 1,
-            "operationTime" : Timestamp(1575398919, 2),
-            "$clusterTime" : {
-               "clusterTime" : Timestamp(1575398919, 2),
-               "signature" : {
-                  "hash" : BinData(0,"Oi68poWCFCA7b9kyhIcg+TzaGiA="),
-                  "keyId" : Long("6766255701040824328")
+         db.adminCommand( { startShardDraining: "shard04" } )
+
+      If you need to remove multiple shards, you can start the
+      draining processes to run in parallel.
+
+   .. step:: Move collections.
+
+      When you create a collection on :program:`mongos` and
+      don't call :dbcommand:`shardCollection`, that collection
+      remains unsharded and MongoDB stores it in full on a
+      particular shard in the cluster. Databases that use the
+      shard as a primary, also store their collections on the
+      shard.
+
+      If the shard you want to remove contains an unsharded
+      collection or a primary database, you need to move the
+      collection to another shard.
+
+      To identify whether the shard you want to remove contains
+      these collection and to see the draining status, run the
+      :dbcommand:`shardDrainingStatus` command and check the
+      array for the ``collectionsToMove`` output field:
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            db.adminCommand( { shardDrainingStatus: "shard04" } )
+
+         .. output::
+            :language: javascript
+
+            {
+               msg: "draining ongoing",
+               state: "ongoing",
+               remaining: {
+                  chunks: Long(2),
+                  dbs: Long(2),
+                  jumboChunks: Long(0),
+                  collectionsToMove: Long(2)
+               },
+               shard: "shard04",
+               note: "you need to call moveCollection for collectionsToMove and afterwards movePrimary for the dbsToMove",
+               dbsToMove: [
+                  "accounts",
+               ],
+               collectionsToMove: [
+                  "accounts.us-east",
+                  "accounts.us-west",
+                  "locations.us",
+               ],
+               ok: 1,
+               operationTime: Timestamp(1575399086, 1655),
+               $clusterTime: {
+                  clusterTime: Timestamp(1575399086, 1655),
+                  signature: {
+                     hash: BinData(0,"XBrTmjMMe82fUtVLRm13GBVtRE8="),
+                     keyId: Long("6766255701040824328")
+                  }
                }
             }
-         }
 
-      The shard enters the ``draining`` state and the balancer begins
-      migrating chunks from the removed shard to other shards in the
-      cluster. These migrations happens slowly to avoid severe impact on
-      the overall cluster. Depending on your network capacity and the
-      amount of data, this operation can take from a few minutes to
-      several days to complete.
+      Any collection found in the ``collectionsToMove`` field is
+      a collection stored on this shard. Before you can remove
+      the shard, you must first move these collections to
+      another shard.
 
-      .. tip::
-
-         While the shard is in the ``draining`` state, you can use the
-         :ref:`reshardCollection
-         <reshardCollection-redistribute-data>` command to redistribute
-         data off of the removed shard.
-         
-         Moving data with ``reshardCollection`` can be faster than
-         waiting for the balancer to migrate chunks. The cluster ensures
-         that data is not placed on any draining shards. You can't run
-         ``moveCollection`` and ``reshardCollection`` operations
-         simultaneously. 
-
-         For the full procedure, see 
-         :ref:`resharding-for-adding-and-removing-shards-tutorial`.
-
-   .. step:: Move unsharded collections to another shard
-
-      #. Determine what collections need to be moved
-
-         To list the unsharded collections on the shard, use the aggregation
-         stage ``$listClusterCatalog``:
-
-         .. code-block:: javascript
-
-            use admin
-         
-            db.aggregate([
-                  { $listClusterCatalog: { shards: true } },
-                  { $match: { 
-                        $and: [
-                            { sharded: false },
-                            { shards: '<shard_to_remove>' },
-                            { type: { $nin: ["timeseries","view"] } },
-                            { ns: { $not: { $regex: "^enxcol_\..*(\.esc|\.ecc|\.ecoc|\.ecoc\.compact)$" }}},
-                            { $or: [{ns: {$not: { $regex: "\.system\." }}}, {ns: {$regex: "\.system\.buckets\."}}]},
-                            { db: { $ne: 'config' } },
-                            { db: { $ne: 'admin' } }
-                        ]}},
-                  { $project: {
-                     _id: 0,
-                     ns: {
-                         $cond: [
-                             "$options.timeseries",
-                             {
-                                 $replaceAll: {
-                                     input: "$ns",
-                                     find: ".system.buckets",
-                                     replacement: ""
-                                 }
-                             },
-                             "$ns"
-                         ]
-                     }
-               }}
-            ])
-
-      #. Move the collections one by one
-
-         To move the collection, run :method:`sh.moveCollection()`:
-
-         .. code-block:: javascript
-
-            sh.moveCollection( "<database>.<collection>", "<ID of recipient shard>" )
-
-         .. note::
-
-            ``moveCollection`` fails if you run the command on a
-            namespace that is sharded. If you receive this error
-            message, ignore it and return to step ``1`` for the
-            next collection.
-
-      #. Return to step ``1`` to check that there are no remaining unsharded collections
-         on the draining shard. 
-
-   .. step:: Change primary shard
-
-      Run the :method:`db.printShardingStatus()` method:
+      To move a collection to another shard, use the
+      :dbcommand:`moveCollection` command:
 
       .. code-block:: javascript
 
-         db.printShardingStatus()
+         db.adminCommand( { 
+            moveCollection: "accounts.us-east",
+            toShard: "shard05"
+         } )
 
-      In the ``databases`` section of the command output, check the
-      ``database.primary`` field. If the ``primary`` field is the
-      removed shard, you must move that database's primary to a
-      different shard.
+   .. step:: Move primaries.
 
-      To change a database's primary shard, run the :dbcommand:`movePrimary`
-      command.
+      Sharded clusters designate a specific shard to serve as
+      the primary shard for a database. If the shard you want to
+      remove is a primary, you need to move it to a different
+      shard.
 
-      .. warning::
+      To identify primaries, run the
+      :dbcommand:`shardDrainingStatus` command and check the
+      array on the ``dbsToMove`` output field.
 
-         When you run ``movePrimary``, any collections that were not
-         moved in the :guilabel:`Move unsharded collections to another shard` 
-         step are unavailable during the ``movePrimary`` process.
+      .. io-code-block::
 
-      .. code-block:: javascript
+         .. input::
+            :language: javascript
 
-         db.adminCommand(
+            db.adminCommand( { shardDrainingStatus: "shard04" } )
+
+         .. output::
+            :language: javascript
+
             {
-               movePrimary: <dbName>,
-               to: <shardName>
+               msg: "draining ongoing",
+               state: "ongoing",
+               remaining: {
+                  chunks: Long(2),
+                  dbs: Long(2),
+                  jumboChunks: Long(0),
+                  collectionsToMove: Long(2)
+               },
+               shard: "shard04",
+               note: "you need to call moveCollection for collectionsToMove and afterwards movePrimary for the dbsToMove",
+               dbsToMove: [
+                  "accounts",
+               ],
+               collectionsToMove: [ ],
+               ok: 1,
+               operationTime: Timestamp(1575399086, 1655),
+               $clusterTime: {
+                  clusterTime: Timestamp(1575399086, 1655),
+                  signature: {
+                     hash: BinData(0,"XBrTmjMMe82fUtVLRm13GBVtRE8="),
+                     keyId: Long("6766255701040824328")
+                  }
+               }
             }
-         )
 
-   .. step:: Check migration status
+      Each database shown in the ``dbsToMove`` field is a
+      database you need to move onto a different shard.
 
-      To check the progress of the migration, run
-      :dbcommand:`removeShard` from the ``admin`` database again:
-
-      .. code-block:: javascript
-
-         db.adminCommand( { removeShard: "<shardName>" } )
-
-      In the output, the ``remaining`` field includes these fields:
-
-      .. list-table::
-         :header-rows: 1
-         :widths: 10 90
-
-         * - Field
-           - Description
-
-         * - ``chunks``
-           - Number of chunks currently remaining on the shard
-
-         * - ``dbs``
-           - Number of databases whose :ref:`primary shard
-             <primary-shard>` is the shard. These databases are specified in
-             the ``dbsToMove`` output field.
-
-         * - ``jumboChunks``
-
-           - Of the total number of ``chunks``, the number that are
-             :ref:`jumbo <jumbo-chunk>`.
-
-             If ``jumboChunks`` is greater than 0, wait until only the
-             ``jumboChunks`` remain on the shard. Once only the
-             ``jumbo`` chunks remain, you must manually clear the jumbo
-             flag before the draining can complete. See
-             :ref:`clear-jumbo-flag`.
-
-             After the ``jumbo`` flag clears, the balancer can migrate these
-             chunks. For details on the migration procedure, see 
-             :ref:`chunk-migration-procedure`.
-
-      Continue checking the status of the ``removeShard`` command until the
-      number of chunks remaining is 0. 
-
-      .. code-block:: javascript
-
-         db.adminCommand( { removeShard: "<shardName>" } )
-
-   .. step:: Finalize shard removal
-
-      To finalize the shard removal process, re-run the ``removeShard``
+      To move the database, use the :dbcommand:`movePrimary`
       command:
 
       .. code-block:: javascript
 
-         db.adminCommand( { removeShard: <shardName> } )
+         db.adminCommand( { 
+            movePrimary: "accounts",
+            to: "shard05"
+         })
 
-      .. note:: DDL Operations
+   .. step:: Remove the shard.
+
+      Before you remove the shard, check that the draining
+      operation is complete.
+
+      To check the status of the draining operation, run the
+      :dbcommand:`shardDrainingStatus` command: 
+
+      .. io-code-block:: 
       
-         If you remove a shard while your cluster executes a DDL
-         operation (an operation that modifies a collection such as
-         :dbcommand:`reshardCollection`), the ``removeShard`` operation
-         runs after the concurrent DDL operation finishes.
+         .. input::
+            :language: javascript
+      
+            db.adminCommand( { shardDrainingStatus: "shard04" } )
+      
+         .. output::
+            :language: javascript
 
-      If the shard is removed, the command output resembles the
-      following:
+            {
+               "msg" : "draining completed successfully",
+               "state" : "drainingComplete",
+               "ok" : 1,
+               "$clusterTime" : {
+                  "clusterTime" : Timestamp(1771839836, 139),
+                  "signature" : {
+                     "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                     "keyId" : NumberLong(0)
+                  }
+               },
+               "operationTime" : Timestamp(1771839836, 139)
+            }
 
-      .. code-block:: javascript
-         :copyable: false
-         :emphasize-lines: 2
+      When the ``state`` field returns ``drainingCompleted`` for
+      the shard you want to remove, the draining process is
+      complete. You can now remove the shard.
 
-         {
-            msg: 'removeshard completed successfully',
-            state: 'completed',
-            shard: '<shardName>',
-            ok: 1,
-            '$clusterTime': {
-               clusterTime: Timestamp({ t: 1721941519, i: 7 }),
-               signature: {
-                  hash: Binary.createFromBase64('AAAAAAAAAAAAAAAAAAAAAAAAAAA=', 0),
-                  keyId: Long('0')
-               }
-            },
-            operationTime: Timestamp({ t: 1721941519, i: 7 })
-         }
+      To remove the shard, run the
+      :dbcommand:`commitShardRemoval` command:
+
+      .. io-code-block:: 
+
+         .. input::
+            :language: javascript
+
+            db.adminCommand( { commitShardRemoval: "shard04" } )
+
+         .. output::
+            :language: javascript
+
+            {
+               "ok" : 1,
+               "$clusterTime" : {
+                  "clusterTime" : Timestamp(1771840037, 12),
+                  "signature" : {
+                     "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+                     "keyId" : NumberLong(0)
+                  }
+               },
+               "operationTime" : Timestamp(1771840037, 12)
+            }
+
+      If the shard is not completely drained, the command
+      returns an error.
 
 Learn More
 ----------
