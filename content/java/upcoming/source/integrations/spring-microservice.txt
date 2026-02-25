@@ -1,0 +1,392 @@
+.. _java-spring-microservices-tutorial:
+
+================================================
+Tutorial: Build a Microservices App With MongoDB
+================================================
+
+.. meta::
+   :description: Learn how to build a microservices architecture 
+      locally by using Spring Boot, Spring Cloud, and MongoDB in 
+      this step-by-step tutorial.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+This tutorial shows how to build a microservices architecture by
+using Spring Boot, Spring Cloud, and MongoDB. Specifically, this
+tutorial walks you through creating multiple services that work
+together to form a complete application.
+
+You can find the complete source code in the following GitHub
+repositories:
+
+- :github:`Microservices application </mongodb-developer/microservices-architecture-mongodb>`
+- :github:`Configuration repository </mongodb-developer/microservices-architecture-mongodb-config-repo>`
+
+Spring Boot
+~~~~~~~~~~~
+Spring Boot is a framework built on top of the Spring Framework. It adds
+auto-configuration, defaults, and production-ready features to simplify building
+Spring-based Java applications, including integration with Spring Data
+MongoDB. For more information, see the `Spring Boot documentation
+<https://spring.io/projects/spring-boot>`__. 
+
+Spring Cloud
+~~~~~~~~~~~~
+
+Spring Cloud is a collection of tools for building distributed systems and
+microservices. It provides features for configuration management,
+service discovery, and intelligent routing. For more information, see the
+`Spring Cloud documentation <https://spring.io/projects/spring-cloud>`__.
+
+Tutorial
+--------
+
+This tutorial shows how to perform the following actions:
+
+- Verify the prerequisites
+- Clone the example repositories
+- Set up a config server
+- Set up a service registry
+- Configure an API gateway
+- Create MongoDB microservices
+- Test the REST APIs
+
+.. procedure::
+   :style: connected
+
+   .. step:: Verify the prerequisites.
+
+      Before you begin, ensure you have the following installed:
+
+      - Java Development Kit (JDK) 21 or later. You can download 
+        the JDK from the `Oracle
+        <https://www.oracle.com/java/technologies/downloads/>`__
+        website.
+      - Git
+      - MongoDB (two deployments for local development). To learn
+        how to set up MongoDB locally, see the :atlas:`Create a
+        Local Atlas Deployment with Docker
+        </cli/current/atlas-cli-deploy-docker>` guide.
+
+   .. step:: Clone the example repositories.
+
+      Clone the microservices application and configuration 
+      repositories by running the following commands:
+
+      .. code-block:: bash
+
+         git clone git@github.com:mongodb-developer/microservices-architecture-mongodb.git
+         git clone git@github.com:mongodb-developer/microservices-architecture-mongodb-config-repo.git
+
+      Follow the instructions in the :github:`README.md 
+      </mongodb-developer/microservices-architecture-mongodb/blob/main/README.md>` 
+      file of the ``microservices-architecture-mongodb`` repository
+      to start each service.
+
+   .. step:: Set up a config server.
+
+      A config server stores all configuration files for your 
+      microservices within a single repository.
+
+      The config server configuration is defined in the
+      ``microservices-architecture-mongodb/config-server/src/main/resources/application.properties`` 
+      file:
+
+      .. code-block:: properties
+
+         spring.application.name=config-server
+         server.port=8888
+         spring.cloud.config.server.git.uri=${HOME}/Work/microservices-architecture-mongodb-config-repo
+         spring.cloud.config.label=main
+
+      This configuration specifies the location of the Git
+      repository that stores your microservices configuration and
+      the branch to use.
+
+      The config server application is defined in the following 
+      Java class located in the 
+      ``microservices-architecture-mongodb/config-server/src/main/java/com/mongodb/configserver/``
+      directory:
+
+      .. literalinclude:: /includes/integrations/spring-microservice/ConfigServerApplication.java
+         :language: java
+         :caption: ConfigServerApplication.java
+
+      .. note::
+
+         The ``@EnableConfigServer`` annotation enables the config 
+         server functionality in your Spring Boot application.
+
+   .. step:: Set up a service registry.
+
+      A service registry tracks which microservices are running and 
+      their locations. Other services use this information to 
+      communicate with the microservices they need.
+
+      The service registry configuration is defined in the following 
+      properties file:
+
+      .. code-block:: properties
+
+         spring.application.name=service-registry
+         server.port=8761
+         eureka.client.register-with-eureka=false
+         eureka.client.fetch-registry=false
+
+      The last two properties prevent the service registry from 
+      registering to itself.
+
+      The service registry application is defined in the following 
+      Java class located in the 
+      ``microservices-architecture-mongodb/service-registry/src/main/java/com/mongodb/serviceregistry/`` 
+      directory:
+
+      .. literalinclude:: /includes/integrations/spring-microservice/ServiceRegistryApplication.java
+         :language: java
+         :caption: ServiceRegistryApplication.java
+
+      .. note::
+
+         The ``@EnableEurekaServer`` annotation enables the service 
+         registry functionality in your Spring Boot application.
+
+   .. step:: Configure an API gateway.
+
+      An API gateway provides a single entry point to access all
+      your microservices. The gateway distributes requests across
+      multiple microservices and handles security, monitoring, and
+      other concerns.
+
+      The API gateway configuration is defined in the
+      ``microservices-architecture-mongodb/api-gateway/src/main/resources/application.yml``
+      file:
+
+      .. code-block:: yaml
+
+         server:
+           port: 8080
+
+         spring:
+           application:
+             name: api-gateway
+           cloud:
+             gateway:
+               routes:
+                 - id: company-service
+                   uri: lb://company-service
+                   predicates:
+                     - Path=/api/company/**,/api/companies
+                 - id: employee-service
+                   uri: lb://employee-service
+                   predicates:
+                     - Path=/api/employee/**,/api/employees
+
+         eureka:
+           client:
+             register-with-eureka: true
+             fetch-registry: true
+             service-url:
+               defaultZone: http://localhost:8761/eureka/
+           instance:
+             hostname: localhost
+
+      This configuration defines routes for the company and
+      employee services and registers the gateway with the service
+      registry.
+
+   .. step:: Create MongoDB microservices.
+
+      This application includes two microservices: a company
+      service and an employee service. Each microservice connects
+      to its own MongoDB instance to maintain independence.
+
+      The company service configuration is defined in the
+      ``microservices-architecture-mongodb-config-repo/company-service.properties`` file:
+
+      .. code-block:: properties
+
+         spring.data.mongodb.uri=${MONGODB_URI_1:mongodb://localhost:27017}
+         spring.threads.virtual.enabled=true
+         management.endpoints.web.exposure.include=*
+         management.info.env.enabled=true
+         info.app.name=Company Microservice
+         info.app.java.version=21
+         info.app.type=Spring Boot
+         server.port=8081
+         eureka.client.register-with-eureka=true
+         eureka.client.fetch-registry=true
+         eureka.client.service-url.defaultZone=http://localhost:8761/eureka/
+         eureka.instance.hostname=localhost
+
+      The employee service configuration is defined in the 
+      ``microservices-architecture-mongodb-config-repo/employee-service.properties`` file:
+
+      .. code-block:: properties
+
+         spring.data.mongodb.uri=${MONGODB_URI_2:mongodb://localhost:27018}
+         spring.threads.virtual.enabled=true
+         management.endpoints.web.exposure.include=*
+         management.info.env.enabled=true
+         info.app.name=Employee Microservice
+         info.app.java.version=21
+         info.app.type=Spring Boot
+         server.port=8082
+         eureka.client.register-with-eureka=true
+         eureka.client.fetch-registry=true
+         eureka.client.service-url.defaultZone=http://localhost:8761/eureka/
+         eureka.instance.hostname=localhost
+
+      .. note::
+
+         For local development, the company service connects to 
+         MongoDB on port 27017 and the employee service connects to 
+         MongoDB on port 27018. For production, use separate
+         MongoDB Atlas clusters and set the connection strings by
+         using the ``MONGODB_URI_1`` and ``MONGODB_URI_2``
+         environment variables.
+
+   .. step:: Test the REST APIs.
+
+      After you start all services, verify that your microservices 
+      architecture works correctly by ensuring that the following
+      services are running:
+
+      - Config server on port 8888
+      - Service registry on port 8761
+      - API gateway on port 8080
+      - Company service on port 8081
+      - Employee service on port 8082
+
+      Also ensure you have two MongoDB instances running on ports 
+      27017 and 27018, or two MongoDB Atlas clusters.
+
+      Run the test script by running the following command:
+
+      .. code-block:: bash
+
+         ./2_api-tests.sh
+
+      The script creates companies and employees, then retrieves
+      them by using the REST API. The output returned by the script
+      resembles the following:
+
+      .. code-block:: text
+
+         DELETE Companies
+         2
+         DELETE Employees
+         2
+
+         POST Company 'MongoDB'
+         POST Company 'Google'
+
+         GET Company 'MongoDB' by 'id'
+         {
+             "id": "661aac7904e1bf066ee8e214",
+             "name": "MongoDB",
+             "headquarters": "New York",
+             "created": "2009-02-11T00:00:00.000+00:00"
+         }
+
+         GET Company 'Google' by 'name'
+         {
+             "id": "661aac7904e1bf066ee8e216",
+             "name": "Google",
+             "headquarters": "Mountain View",
+             "created": "1998-09-04T00:00:00.000+00:00"
+         }
+
+         GET Companies
+         [
+             {
+                 "id": "661aac7904e1bf066ee8e214",
+                 "name": "MongoDB",
+                 "headquarters": "New York",
+                 "created": "2009-02-11T00:00:00.000+00:00"
+             },
+             {
+                 "id": "661aac7904e1bf066ee8e216",
+                 "name": "Google",
+                 "headquarters": "Mountain View",
+                 "created": "1998-09-04T00:00:00.000+00:00"
+             }
+         ]
+
+         POST Employee Maxime
+         POST Employee Tim
+
+         GET Employee 'Maxime' by 'id'
+         {
+             "id": "661aac79cf04401110c03516",
+             "firstName": "Maxime",
+             "lastName": "Beugnet",
+             "company": "Google",
+             "headquarters": "Mountain View",
+             "created": "1998-09-04T00:00:00.000+00:00",
+             "joined": "2018-02-12T00:00:00.000+00:00",
+             "salary": 2468
+         }
+
+         GET Employee 'Tim' by 'id'
+         {
+             "id": "661aac79cf04401110c03518",
+             "firstName": "Tim",
+             "lastName": "Kelly",
+             "company": "MongoDB",
+             "headquarters": "New York",
+             "created": "2009-02-11T00:00:00.000+00:00",
+             "joined": "2023-08-23T00:00:00.000+00:00",
+             "salary": 13579
+         }
+
+         GET Employees
+         [
+             {
+                 "id": "661aac79cf04401110c03516",
+                 "firstName": "Maxime",
+                 "lastName": "Beugnet",
+                 "company": "Google",
+                 "headquarters": "Mountain View",
+                 "created": "1998-09-04T00:00:00.000+00:00",
+                 "joined": "2018-02-12T00:00:00.000+00:00",
+                 "salary": 2468
+             },
+             {
+                 "id": "661aac79cf04401110c03518",
+                 "firstName": "Tim",
+                 "lastName": "Kelly",
+                 "company": "MongoDB",
+                 "headquarters": "New York",
+                 "created": "2009-02-11T00:00:00.000+00:00",
+                 "joined": "2023-08-23T00:00:00.000+00:00",
+                 "salary": 13579
+             }
+         ]
+
+      The employee service queries the company service to retrieve 
+      company details. The following code shows how the employee 
+      service communicates with the company service through the 
+      service registry:
+
+      .. literalinclude:: /includes/integrations/spring-microservice/GetCompanyMethod.java
+         :language: java
+
+      The URL references the company service by name rather than by 
+      IP address and port, which confirms that the service registry 
+      works correctly.
+
+Additional Resources
+--------------------
+
+To learn more about building microservices with Spring and MongoDB, 
+see the following resources:
+
+- `Spring Cloud Circuit Breaker <https://spring.io/projects/spring-cloud-circuitbreaker>`__
+- `Spring Cloud Sleuth <https://spring.io/projects/spring-cloud-sleuth>`__

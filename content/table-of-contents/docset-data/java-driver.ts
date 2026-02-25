@@ -486,6 +486,11 @@ const tocData: TocItem[] = [
             url: '/docs/drivers/java/sync/:version/integrations/spring-csfle',
           },
           {
+            label: 'Build a Microservices App With MongoDB and Spring',
+            contentSite: 'java',
+            url: '/docs/drivers/java/sync/:version/integrations/spring-microservice',
+          },
+          {
             label: 'Quarkus with Panache and MongoDB',
             contentSite: 'java',
             url: '/docs/drivers/java/sync/:version/integrations/panache',
