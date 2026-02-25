@@ -56,7 +56,7 @@ into this test project and add a test.
 TLDR: From the `/code-example-tests/javascript/driver` directory, run:
 
 ```sh
-npx prettier --check examples/ && npm run test && npm run snip
+npx prettier --write examples/ && npm run test && npm run snip
 ```
 
 ### Create a code example file
