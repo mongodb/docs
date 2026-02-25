@@ -1,5 +1,5 @@
 .. list-table::
-   :widths: 15 15 70
+   :widths: 25 15 60
    :header-rows: 1
    :stub-columns: 1
 
@@ -73,8 +73,13 @@
 
    * - oplogStoreFilter.type
      - string
-     - Type of :opsmgr:`oplog store  </reference/glossary/#std-term-Oplog-Store-Database>` to use. The 
-       only supported value is ``oplogStore``.
+     - Type of :opsmgr:`oplog store  </reference/glossary/#std-term-Oplog-Store-Database>` to use.
+
+       The accepted values are:
+
+       - ``oplogStore``
+       - ``s3OplogStore``
+       - ``thirdPartyOplogStore``
 
    * - snapshotStoreFilter
      - array of objects
