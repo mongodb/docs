@@ -34,10 +34,10 @@ series collection <manual-timeseries-collection>` that doesn't have an expiratio
 or to modify the expiration time on an existing collection, change the 
 ``expireAfterSeconds`` parameter value, using the :dbcommand:`collMod` command:
 
-   .. literalinclude:: /code-examples/tested/python/pymongo/timeseries/auto_removal.snippet.modify-timeseries-collection-for-removal.py
-      :language: python
-      :category: syntax example
-      :emphasize-lines: 3
+.. literalinclude:: /code-examples/tested/python/pymongo/timeseries/auto_removal.snippet.modify-timeseries-collection-for-removal.py
+   :language: python
+   :category: syntax example
+   :emphasize-lines: 3
 
 Retrieve the Current Value of ``expireAfterSeconds``
 ----------------------------------------------------
