@@ -1,0 +1,262 @@
+.. _pymongo-flask-migrate-to-mongo:
+
+===========================================
+Tutorial: Migrate Flask From SQL to MongoDB
+===========================================
+
+.. meta::
+   :description: Learn how to migrate a Flask application from 
+                 SQLAlchemy to MongoDB using Flask-PyMongo and 
+                 PyMongo.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+This tutorial shows you how to migrate a Flask application
+from SQL to MongoDB. Specifically, the tutorial converts an example blog
+application that uses SQLAlchemy to one that uses Flask-PyMongo.
+
+The example application includes the following features:
+
+- Creating, editing, and viewing blog posts
+- Searching for blog posts
+
+Understanding MongoDB
+~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB is a NoSQL database that stores data in documents. The
+following list describes key MongoDB concepts:
+
+- **Collections**: Groups of documents, similar to tables in
+  SQL databases. Collections don't enforce a schema.
+- **Documents**: JSON-like objects that store data. Documents
+  can contain arrays and nested subdocuments.
+- **BSON**: Binary JSON format that MongoDB uses internally.
+  BSON extends JSON with additional data types such as Date
+  and Binary.
+
+The following table compares MongoDB and SQL databases:
+
+.. list-table::
+   :widths: 20 40 40
+   :header-rows: 1
+
+   * - Feature
+     - SQL
+     - MongoDB
+
+   * - Schema
+     - Enforces a fixed schema with predefined tables and
+       columns
+     - Flexible schemas that allow for dynamic data
+       models
+
+   * - Data Structure
+     - Stores data in tables with rows and columns
+     - Stores data in collections of documents
+
+   * - Relationships
+     - Uses foreign keys and joins to establish relationships
+       between tables
+     - Embeds documents within other documents or references
+       them, without the need for joins
+
+   * - Query Language
+     - Uses Structured Query Language (SQL)
+     - Uses a rich, JSON-based query language
+
+Tutorial
+--------
+
+This tutorial shows you how to complete the following steps:
+
+- Verify the prerequisites
+- Install Flask-PyMongo
+- Update the Flask application models
+- Update the Flask application configuration
+- Update the Flask application routes
+- Export data from SQLite
+- Import data into MongoDB
+- Update the Flask templates
+- Run the migrated application
+
+.. procedure::
+   :style: connected
+
+   .. step:: Verify the prerequisites
+
+      This tutorial requires the following prerequisites:
+
+      - MongoDB installed on your local machine. See the
+        :manual:`Install MongoDB </installation/>` guide in the {+mdb-server+}
+        manual for instructions.
+      - An existing Flask application that uses SQLAlchemy. You can use the
+        example Flask application from the :github:`flask-mongo </mongodb-developer/flask-mongo>`
+        repository on GitHub for this tutorial.
+      - Python 3.7 or later.
+
+      The ``flask-mongo`` example application contains two sub-folders, ``flask-mongo``
+      and ``flask-sql``. The ``flask-sql`` folder contains a Flask application that uses
+      SQLAlchemy, which you can use for the migration in this tutorial.
+
+      Before you begin the migration, complete the following
+      actions:
+
+      a. Review your SQL database schema, including tables,
+         relationships, and data types.
+      #. Identify complex queries and relationships that might
+         require special handling in MongoDB.
+      #. Design your MongoDB schema considering the
+         document-oriented nature of the database. To learn more
+         about schema design in MongoDB, see the :manual:`Designing Your Schema </data-modeling/schema-design-process/>`
+         guide in the {+mdb-server+} manual.
+      #. Create a complete backup of your current SQL database.
+
+   .. step:: Install Flask-PyMongo
+
+      Flask-PyMongo is a Flask extension that integrates MongoDB
+      with Flask applications.
+
+      Install Flask-PyMongo by running the following
+      command:
+
+      .. code-block:: bash
+
+         pip install Flask-PyMongo Flask
+
+   .. step:: Update the Flask application models
+
+      Replace the contents of your ``models.py`` file with the
+      following code:
+
+      .. literalinclude:: /includes/integrations/flask-models.py
+         :language: python
+
+      This code defines a ``Post`` class that models a blog
+      post for MongoDB. The class includes the following
+      methods:
+
+      - ``__init__``: Sets the title, content, date posted, and
+        unique identifier for each post
+      - ``to_dict``: Converts an instance into a dictionary for
+        MongoDB storage
+      - ``from_dict``: Creates a ``Post`` instance from a
+        dictionary
+      - ``__repr__``: Returns a string representation of the
+        post
+
+   .. step:: Update the Flask application configuration
+
+      Replace the contents of your ``__init__.py`` file with
+      the following code:
+
+      .. literalinclude:: /includes/integrations/flask-init.py
+         :language: python
+
+      This code initializes the Flask application to use
+      MongoDB through the Flask-PyMongo extension.
+
+      Update your ``config.py`` file to include MongoDB
+      settings by adding the following code:
+
+      .. literalinclude:: /includes/integrations/flask-config.py
+         :language: python
+
+      Delete the ``manage.py`` file. You use this file for
+      database migrations in SQL, which doesn't apply to
+      MongoDB.
+
+      .. note::
+
+         If you need migrations for MongoDB, the
+         `Beanie ODM <https://beanie-odm.dev/>`__ provides
+         migration support.
+
+   .. step:: Update the Flask application routes
+
+      Replace the contents of your ``routes.py`` file with the
+      following code:
+
+      .. literalinclude:: /includes/integrations/flask-routes.py
+         :language: python
+
+      This code updates the routes to use MongoDB instead of
+      SQLAlchemy. The routes complete the following actions:
+
+      - Convert ``Post`` instances to dictionaries by using the
+        ``to_dict`` method for storage in MongoDB
+      - Retrieve posts by using ``mongo.db.posts.find()``
+      - Insert posts by using ``mongo.db.posts.insert_one()``
+      - Update posts by using ``mongo.db.posts.update_one()``
+      - Delete posts by using ``mongo.db.posts.delete_one()``
+      - Search posts by using MongoDB's regex capabilities
+
+   .. step:: Export data from SQLite
+
+      Create a Python script named ``export_list_tables.py`` to list all tables
+      in your SQLite database by adding the following code to a new file:
+
+      .. literalinclude:: /includes/integrations/flask-export-list-tables.py
+         :language: python
+
+      Run this script to display your table names. The output
+      shows the ``post`` table.
+
+      Create another Python script named ``export_to_json.py`` to export the
+      data to JSON by adding the following code to a new file:
+
+      .. literalinclude:: /includes/integrations/flask-export-to-json.py
+         :language: python
+
+      Run this script to create the ``post.json`` file in the current directory.
+      This file contains your exported data in JSON format.
+
+   .. step:: Import data into MongoDB
+
+      Create a Python script named ``import_to_mongo.py`` to import the
+      JSON file into MongoDB by adding the following code to a new file:
+
+      .. literalinclude:: /includes/integrations/flask-import-to-mongo.py
+         :language: python
+
+      Run this script to import your data into MongoDB. The
+      script converts the ``date_posted`` field to a datetime
+      object and inserts all posts into the MongoDB collection.
+
+      .. note::
+
+         The connection string
+         ``mongodb://localhost:27017/blogdb`` connects to your
+         MongoDB instance on localhost at port 27017. MongoDB
+         creates the database automatically when you first
+         write data.
+
+   .. step:: Update the Flask templates
+
+      Update your template files to use the MongoDB document
+      ID by changing all instances of ``post_id=post.id`` to
+      ``post_id=post._id``.
+
+   .. step:: Run the migrated application
+
+      Run the Flask application by running the following
+      command:
+
+      .. code-block:: bash
+
+         python run.py
+
+      You can access your application by navigating to ``http://127.0.0.1:5000/home``
+      in your web browser.
+
+Additional Resources
+--------------------
+
+To learn more about Flask-Pymongo, see the
+`Flask-PyMongo documentation <https://flask-pymongo.readthedocs.io/en/latest/>`__.
