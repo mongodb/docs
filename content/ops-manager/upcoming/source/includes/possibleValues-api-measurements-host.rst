@@ -38,6 +38,25 @@ Host Measurements
        :manual:`serverStatus </reference/command/serverStatus>`
        command generates.
 
+   * - - ``CACHE_FILL_RATIO``
+
+     - Measures how full the :manual:`WiredTiger </core/wiredtiger>` 
+       cache is. The calculation divides the bytes currently in the 
+       cache by the maximum bytes configured and returns a percentage. 
+       A ratio close to 100% indicates that the query working set 
+       exceeds the configured cache size. Increasing the cache size 
+       can reduce disk I/O.
+
+   * - - ``DIRTY_FILL_RATIO``
+
+     - The proportion of dirty bytes (pages modified in memory
+       but not yet persisted to disk) relative to the total
+       WiredTiger cache. A high dirty fill ratio indicates that
+       a significant amount of modified data has not yet been
+       flushed to disk. This condition can affect performance.
+       Monitor this metric for write-heavy workloads to ensure
+       data durability.
+
    * - - ``CONNECTIONS``
 
      - Number of connections to a MongoDB process found in the
