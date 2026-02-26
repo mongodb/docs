@@ -348,6 +348,11 @@ const tocData: TocItem[] = [
             contentSite: 'pymongo',
             url: '/docs/languages/python/pymongo-driver/:version/integrations/flask-azure',
           },
+          {
+            label: 'Tutorial: Migrate Flask From SQL to MongoDB',
+            contentSite: 'pymongo',
+            url: '/docs/languages/python/pymongo-driver/:version/integrations/flask-migrate-to-mongo',
+          },
         ],
       },
       {
