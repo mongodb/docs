@@ -103,7 +103,7 @@ const tocData: TocItem[] = [
                 label: 'Best Practices for Writing for Robots',
                 contentSite: 'meta',
                 url: '/docs/meta/style-guide/writing/write-for-robots',
-              }
+              },
             ],
           },
           {

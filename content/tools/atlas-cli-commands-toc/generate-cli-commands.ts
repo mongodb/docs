@@ -274,7 +274,7 @@ async function copyCommandFilesFromGit(tagOrBranch: string): Promise<string[]> {
         const lowerFile = file.toLowerCase();
         // Do not delete kubernetes command files or deployment command files
         if (fs.statSync(filePath).isFile() && !validFiles.has(file) && 
-            !lowerFile.includes('kubernetes') && !lowerFile.includes('deployment')) {
+            !lowerFile.includes('kubernetes') && !lowerFile.includes('deployment') && !lowerFile.includes('local')) {
           fs.unlinkSync(filePath);
           console.log(`🗑️ Deleted extra file: ${filePath}`);
         }
