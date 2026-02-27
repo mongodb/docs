@@ -1,12 +1,14 @@
 import yaml from 'yaml';
 import { pascalCase } from 'change-case';
-import { isValueNode, isTextNode, isLiteralNode } from './types';
+import { isValueNode, isTextNode } from './types';
 import type { ConversionContext, SnootyNode, MdastNode, MdastRoot } from './types';
 import { convertDirectiveImage } from './convertDirectiveImage';
 import { convertDirectiveInclude } from './convertDirectiveInclude';
 import { convertDirectiveLiteralInclude } from './convertDirectiveLiteralInclude';
 import { convertDirectiveListTable } from './convertDirectiveListTable';
+import { convertDirectiveProcedure } from './convertDirectiveProcedure';
 import { parseSnootyArgument } from './parseSnootyArgument';
+import { extractInlineDisplayText } from './extractInlineDisplayText';
 
 const HIDDEN_NODES = ['toctree', 'index', 'seealso'];
 
@@ -253,6 +255,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         const headingText = extractInlineDisplayText(titleNode.children ?? []);
         if (headingText) {
           sectionAttributes.push({ type: 'mdxJsxAttribute', name: 'headingText', value: headingText });
+          ctx.lastHeadingText = headingText;
         }
       }
 
@@ -272,6 +275,8 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 
     case 'title':
     case 'heading': {
+      const headingText = extractInlineDisplayText(node.children ?? []);
+      if (headingText) ctx.lastHeadingText = headingText;
       const attributes = toJsxAttributes(node.options);
       return {
         type: 'mdxJsxFlowElement',
@@ -299,6 +304,9 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       }
       if (directiveName === 'list-table') {
         return convertDirectiveListTable({ node, ctx, depth, convertChildren });
+      }
+      if (directiveName === 'procedure') {
+        return convertDirectiveProcedure({ node, ctx, depth, convertChildren });
       }
       if (directiveName === 'hlist') {
         const attributes: MdastNode[] = toJsxAttributes(node.options);
@@ -749,23 +757,4 @@ const toJsxAttributes = (obj?: Record<string, unknown>): MdastNode[] => {
         value: { type: 'mdxJsxAttributeValueExpression', value: JSON.stringify(value) },
       };
     });
-};
-
-/** Extract display text from inline children as a single string. */
-const extractInlineDisplayText = (children: SnootyNode[]): string => {
-  const parts: string[] = [];
-  const walk = (n?: SnootyNode) => {
-    if (!n) return;
-    if (isTextNode(n) || isLiteralNode(n)) {
-      parts.push(n.value);
-      return;
-    }
-    if (Array.isArray(n.children)) n.children.forEach(walk);
-  };
-  children.forEach(walk);
-  const raw = parts.join('');
-  // Unescape common Markdown/MDX backslash escapes (e.g., \_id -> _id)
-  const unescaped = raw.replace(/\\([\\`*_{}[\]()#+\-.!])/g, '$1');
-  // Collapse excessive whitespace
-  return unescaped.replace(/\s+/g, ' ').trim();
 };

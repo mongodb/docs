@@ -15,6 +15,10 @@ export interface ConversionContext {
   /** Collected references to emit into a _references.ts artifact */
   collectedSubstitutions: Map<string, string>;
   collectedRefs: Map<string, { title: string; url: string }>;
+  /** The most recently encountered heading text, used for structured data (e.g. HowTo name). */
+  lastHeadingText?: string;
+  /** Whether we are currently inside a procedure directive (used to suppress nested structured data). */
+  insideProcedure?: boolean;
 }
 
 export interface MdastRoot extends Root, MdastNode {

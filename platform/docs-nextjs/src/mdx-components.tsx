@@ -17,6 +17,8 @@ import List from '@/components/list';
 import ListItem from '@/components/list/listItem';
 import Line from '@/components/line';
 import LineBlock from '@/components/line-block';
+import Procedure from '@/mdx-components/procedure';
+import Step from '@/mdx-components/procedure/step';
 import Introduction from './components/introduction';
 import CommunityPillLink from './components/community-pill-link';
 
@@ -52,8 +54,8 @@ export const components = (injectedProps?: InjectedProps) =>
     Button: ({ children }) => <span>{children}</span>,
     Card: ({ children }) => <span>{children}</span>,
     CardGroup: ({ children }) => <span>{children}</span>,
-    Chapter: ({ children }) => <span>{children}</span>,
     Chapters: ({ children }) => <span>{children}</span>,
+    Chapter: ({ children }) => <span>{children}</span>,
     Code: ({ children }) => <span>{children}</span>,
     Contents: ({ children }) => <span>{children}</span>,
     Facet: ({ children }) => <span>{children}</span>,
@@ -106,7 +108,8 @@ export const components = (injectedProps?: InjectedProps) =>
     Only: ({ children }) => <span>{children}</span>,
     Output: ({ children }) => <span>{children}</span>,
     OpenAPIChangelog: ({ children }) => <span>{children}</span>,
-    Procedure: ({ children }) => <span>{children}</span>,
+    Procedure: ({ children, ...props }) => <Procedure {...props}>{children}</Procedure>,
+    Step: ({ children, ...props }) => <Step {...props}>{children}</Step>,
     Ref: ({ children }) => <span>{children}</span>,
     ReleaseSpecification: ({ children }) => <span>{children}</span>,
     Root: ({ children }) => <span>{children}</span>,
@@ -120,7 +123,6 @@ export const components = (injectedProps?: InjectedProps) =>
     Seealso: ({ children }) => <span>{children}</span>,
     SelectedContent: ({ children }) => <span>{children}</span>,
     SharedInclude: ({ children }) => <span>{children}</span>,
-    Step: ({ children }) => <span>{children}</span>,
     Strong: ({ children }) => <strong>{children}</strong>,
     Superscript: ({ children }) => <sup>{children}</sup>,
     Subscript: ({ children }) => <sub>{children}</sub>,
