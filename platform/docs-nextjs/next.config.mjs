@@ -34,7 +34,7 @@ const nextConfig = {
         destination: '/api/products/updates/rss',
       },
       {
-        source: '/mdx/:path*.md',
+        source: '/docs/:path*.md',
         destination: '/api/markdown/:path*',
       },
     ];

@@ -9,7 +9,6 @@ export function getStaticVersion(): string {
 function urlToPathArray(url: string): string[] | null {
   let urlPath = url.split('?')[0];
   if (urlPath.startsWith('/docs')) urlPath = urlPath.slice(6);
-  else if (urlPath.startsWith('/mdx')) urlPath = urlPath.slice(5);
   else if (urlPath.startsWith('/')) urlPath = urlPath.slice(1);
   const pathArray = urlPath.split('/').filter((s) => s.length > 0);
   return pathArray.length === 0 ? null : pathArray;

@@ -20,7 +20,7 @@ interface ImageProps {
 
 export const Image = async ({ projectPath, src, alt, width, height, className, style }: ImageProps) => {
   const fullPath = path.join(projectPath, src);
-  const imageUrl = isOfflineBuild ? `/mdx/${fullPath}` : formatImageUrl(fullPath);
+  const imageUrl = isOfflineBuild ? `/docs/${fullPath}` : formatImageUrl(fullPath);
 
   return <img src={imageUrl} width={width} height={height} alt={alt} className={className} style={style} />;
 };

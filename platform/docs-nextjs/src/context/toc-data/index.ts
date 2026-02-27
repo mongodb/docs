@@ -8,7 +8,7 @@ export const toc: TocItem[] = [
   {
     label: 'AI Models',
     contentSite: 'voyageai',
-    url: '/mdx/voyageai/',
+    url: '/docs/voyageai/',
     items: [
       {
         label: 'GET STARTED',
@@ -18,22 +18,22 @@ export const toc: TocItem[] = [
           {
             label: 'Introduction',
             contentSite: 'voyageai',
-            url: '/mdx/voyageai/',
+            url: '/docs/voyageai/',
           },
           {
             label: 'Quick Start',
             contentSite: 'voyageai',
-            url: '/mdx/voyageai/quickstart',
+            url: '/docs/voyageai/quickstart',
           },
           {
             label: 'Models',
             contentSite: 'voyageai',
-            url: '/mdx/voyageai/models',
+            url: '/docs/voyageai/models',
           },
           {
             label: 'API and Clients',
             contentSite: 'voyageai',
-            url: '/mdx/voyageai/api-and-clients',
+            url: '/docs/voyageai/api-and-clients',
           },
         ],
       },
@@ -45,22 +45,22 @@ export const toc: TocItem[] = [
           {
             label: 'Text Embeddings',
             contentSite: 'voyageai',
-            url: '/mdx/voyageai/models/text-embeddings',
+            url: '/docs/voyageai/models/text-embeddings',
           },
           {
             label: 'Contextualized Chunk Embeddings',
             contentSite: 'voyageai',
-            url: '/mdx/voyageai/models/contextualized-chunk-embeddings',
+            url: '/docs/voyageai/models/contextualized-chunk-embeddings',
           },
           {
             label: 'Multimodal Embeddings',
             contentSite: 'voyageai',
-            url: '/mdx/voyageai/models/multimodal-embeddings',
+            url: '/docs/voyageai/models/multimodal-embeddings',
           },
           {
             label: 'Rerankers',
             contentSite: 'voyageai',
-            url: '/mdx/voyageai/models/rerankers',
+            url: '/docs/voyageai/models/rerankers',
           },
         ],
       },
@@ -72,12 +72,12 @@ export const toc: TocItem[] = [
           {
             label: 'Semantic Search',
             contentSite: 'voyageai',
-            url: '/mdx/voyageai/tutorials/semantic-search',
+            url: '/docs/voyageai/tutorials/semantic-search',
           },
           {
             label: 'RAG',
             contentSite: 'voyageai',
-            url: '/mdx/voyageai/tutorials/rag',
+            url: '/docs/voyageai/tutorials/rag',
           },
           {
             label: 'Optimize Performance',
@@ -87,12 +87,12 @@ export const toc: TocItem[] = [
               {
                 label: 'Tokenization',
                 contentSite: 'voyageai',
-                url: '/mdx/voyageai/tutorials/tokenization',
+                url: '/docs/voyageai/tutorials/tokenization',
               },
               {
                 label: 'Flexible Dimensions & Quantization',
                 contentSite: 'voyageai',
-                url: '/mdx/voyageai/tutorials/dimensions-and-quantization',
+                url: '/docs/voyageai/tutorials/dimensions-and-quantization',
               },
             ],
           },
@@ -107,29 +107,29 @@ export const toc: TocItem[] = [
             label: 'Model API Keys',
             contentSite: 'voyageai',
             collapsible: true,
-            url: '/mdx/voyageai/management/api-keys',
+            url: '/docs/voyageai/management/api-keys',
             items: [
               {
                 label: 'Organization and Project Access',
                 contentSite: 'voyageai',
-                url: '/mdx/voyageai/management/organization-project-access',
+                url: '/docs/voyageai/management/organization-project-access',
               },
               {
                 label: 'Monitor Usage',
                 contentSite: 'voyageai',
-                url: '/mdx/voyageai/management/monitor-usage',
+                url: '/docs/voyageai/management/monitor-usage',
               },
               {
                 label: 'Manage Rate Limits',
                 contentSite: 'voyageai',
-                url: '/mdx/voyageai/management/rate-limits',
+                url: '/docs/voyageai/management/rate-limits',
               },
             ],
           },
           {
             label: 'Billing',
             contentSite: 'voyageai',
-            url: '/mdx/voyageai/management/billing',
+            url: '/docs/voyageai/management/billing',
           },
           {
             label: 'Deploy on VPC',
@@ -139,12 +139,12 @@ export const toc: TocItem[] = [
               {
                 label: 'AWS Marketplace',
                 contentSite: 'voyageai',
-                url: '/mdx/voyageai/management/aws-marketplace',
+                url: '/docs/voyageai/management/aws-marketplace',
               },
               {
                 label: 'Azure Marketplace',
                 contentSite: 'voyageai',
-                url: '/mdx/voyageai/management/azure-marketplace',
+                url: '/docs/voyageai/management/azure-marketplace',
               },
             ],
           },
@@ -158,7 +158,7 @@ export const toc: TocItem[] = [
           {
             label: 'API Overview',
             contentSite: 'voyageai',
-            url: '/mdx/voyageai/api-reference/overview',
+            url: '/docs/voyageai/api-reference/overview',
           },
           {
             label: 'API Specification',

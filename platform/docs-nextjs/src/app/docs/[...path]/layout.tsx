@@ -1,5 +1,5 @@
 /**
- * A layout is UI that is shared all pages prepended by /mdx/<path>.
+ * A layout is UI that is shared all pages prepended by /docs/<path>.
  * On navigation, layouts preserve state, remain interactive, and do not rerender.
  */
 import { LeafyGreenProviderWrapper } from '@/app/emotion';
