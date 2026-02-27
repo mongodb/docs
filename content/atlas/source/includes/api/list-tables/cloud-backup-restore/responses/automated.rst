@@ -47,7 +47,7 @@
 
    * - targetGroupId
      - string
-     - Name of the target |service| project of the restore job.
+     - Unique identifier of the target |service| project of the restore job.
 
    * - targetClusterName
      - string

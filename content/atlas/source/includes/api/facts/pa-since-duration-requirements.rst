@@ -9,5 +9,5 @@
      present time.
 
    - If you omit both **since** and **duration**, the response contains
-     results from the previous 24 hours up up to and including  the
+     results from the previous 24 hours up to and including the
      present time.

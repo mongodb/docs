@@ -2,7 +2,7 @@ Use collation to specify language-specific rules for string comparison,
 such as rules for lettercase and accent marks. The
 :manual:`collation document </reference/collation/#collation-document>`
 contains a ``locale`` field which indicates the `ICU Locale code
-<http://userguide.icu-project.org/locale>`_, and may contain other
+<https://userguide.icu-project.org/locale>`_, and may contain other
 fields to define collation behavior.
 
 .. example::
