@@ -1,0 +1,271 @@
+.. _java-quarkus-pagination:
+
+=============================================
+Tutorial: Paginate Data with Java and Quarkus
+=============================================
+
+.. meta::
+   :description: Learn how to implement offset and cursor-based
+      pagination in a Quarkus application that connects to MongoDB.
+   :keywords: Java, Quarkus, pagination, MongoDB Atlas, Jakarta Data
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+This tutorial shows you how to implement pagination techniques in a
+Quarkus application connected to MongoDB. You learn how to use the
+Jakarta Data repository to create REST API endpoints that support
+both offset-based and cursor-based pagination methods.
+
+Pagination
+~~~~~~~~~~
+
+Pagination is a technique used to divide large datasets into smaller,
+more manageable chunks. This tutorial implements **offset-based** and **cursor-based**
+pagination methods. Offset-based pagination uses page numbers to retrieve
+specific subsets of data, while cursor-based pagination uses a reference
+point, or a cursor, to navigate through the dataset.
+
+Tutorial
+--------
+
+This tutorial shows how to perform the following actions:
+
+- Verify the prerequisites
+- Create a Quarkus project with the required dependencies
+- Configure the MongoDB connection
+- Define a data entity and repository
+- Implement REST API endpoints for pagination
+- Test the pagination endpoints
+
+.. procedure::
+   :style: connected
+
+   .. step:: Verify the prerequisites.
+
+      Before you begin, complete the following prerequisite tasks:
+
+      - `Install Java 21 <https://www.oracle.com/java/technologies/downloads/#java21>`__
+      - `Install Maven <https://maven.apache.org/install.html>`__
+      - Configure a MongoDB cluster, either on MongoDB Atlas or a local Docker
+        instance
+
+      To start a local MongoDB instance with Docker, run the
+      following command:
+
+      .. code-block:: bash
+
+         docker run --rm -d --name mongodb-instance -p 27017:27017 mongo
+
+      Alternatively, you can use MongoDB Atlas and deploy a free M0
+      cluster. To learn how to create an Atlas account and cluster,
+      see the :ref:`MongoDB Get Started <unified-get-started>` guide.
+
+   .. step:: Create a Quarkus project.
+
+      Navigate to the
+      `Quarkus Code Generator <https://code.quarkus.io/>`__ and
+      configure your project with the following settings:
+
+      a. Select your preferred group and artifact ID.
+      #. Add the following dependencies:
+
+         - JNoSQL Document MongoDB
+           (``quarkus-jnosql-document-mongodb``)
+         - RESTEasy Reactive (``quarkus-resteasy-reactive``)
+         - RESTEasy Reactive Jackson
+           (``quarkus-resteasy-reactive-jackson``)
+         - OpenAPI (``quarkus-smallrye-openapi``)
+      #. Generate the project, download the ZIP file, and extract it.
+
+      .. note::
+
+         If you cannot find a dependency in the generator, add it
+         manually to the ``pom.xml`` file.
+
+      After you complete the setup, verify that your ``pom.xml``
+      file includes the following dependencies:
+
+      .. code-block:: xml
+
+         <dependencies>
+             <dependency>
+                 <groupId>io.quarkus</groupId>
+                 <artifactId>quarkus-smallrye-openapi</artifactId>
+             </dependency>
+             <dependency>
+                 <groupId>io.quarkiverse.jnosql</groupId>
+                 <artifactId>quarkus-jnosql-document-mongodb</artifactId>
+                 <version>3.3.0</version>
+             </dependency>
+             <dependency>
+                 <groupId>io.quarkus</groupId>
+                 <artifactId>quarkus-resteasy-reactive</artifactId>
+             </dependency>
+             <dependency>
+                 <groupId>io.quarkus</groupId>
+                 <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
+             </dependency>
+             <dependency>
+                 <groupId>io.quarkus</groupId>
+                 <artifactId>quarkus-arc</artifactId>
+             </dependency>
+             <dependency>
+                 <groupId>io.quarkus</groupId>
+                 <artifactId>quarkus-junit5</artifactId>
+                 <scope>test</scope>
+             </dependency>
+             <dependency>
+                 <groupId>io.rest-assured</groupId>
+                 <artifactId>rest-assured</artifactId>
+                 <scope>test</scope>
+             </dependency>
+         </dependencies>
+
+   .. step:: Configure the MongoDB database.
+
+      Open the ``application.properties`` file and add the following
+      configuration properties to connect to your MongoDB instance:
+
+      .. code-block:: none
+
+         quarkus.mongodb.connection-string = <your connection string>
+         jnosql.document.database = fruits
+
+      This configuration enables your application to connect to the
+      MongoDB cluster at the specified connection string and use the
+      ``fruits`` database.
+
+      .. important::
+
+         In production environments, enable access control and
+         enforce authentication. For more information, see the
+         :manual:`Security Checklist </administration/security-checklist/>`.
+
+      You can override these properties by using environment
+      variables, which allow you to specify different configurations for
+      development, testing, and production without modifying your
+      code.
+
+   .. step:: Create a data entity.
+
+      Create a ``Fruit`` entity class in the ``src/main/java`` directory.
+      The following code defines the entity with ``id`` and ``name`` fields:
+
+      .. literalinclude:: /includes/integrations/quarkus-pagination/Fruit.java
+         :language: java
+
+   .. step:: Create a repository interface.
+
+      Create a ``FruitRepository`` interface that extends the
+      ``BasicRepository`` class. The following code defines methods for
+      both offset and cursor-based pagination:
+
+      .. literalinclude:: /includes/integrations/quarkus-pagination/FruitRepository.java
+         :language: java
+
+      The framework automatically implements this interface,
+      allowing you to perform database operations without writing
+      boilerplate code.
+
+   .. step:: Create a database setup class.
+
+      Create a ``SetupDatabase`` class in the ``src/main/java``
+      directory. The following code populates the database with
+      sample data on startup and deletes the data on shutdown:
+
+      .. literalinclude:: /includes/integrations/quarkus-pagination/SetupDatabase.java
+         :language: java
+
+   .. step:: Create REST API endpoints.
+
+      Create a ``FruitResource`` class in the ``src/main/java``
+      directory. Then, paste the following code into the class file:
+
+      .. literalinclude:: /includes/integrations/quarkus-pagination/FruitResource.java
+         :language: java
+
+      This class defines the following endpoints:
+
+      - ``/fruits/offset``: Supports offset-based pagination by using the
+        ``page`` query parameter.
+      - ``/fruits/cursor``: Supports cursor-based pagination by using the
+        ``after`` and ``before`` query parameters.
+
+      Both endpoints also accept the ``size`` query parameter to specify
+      the number of items per page.
+
+   .. step:: Start the application.
+
+      Run the following command from your project directory to start your
+      Quarkus application in development mode:
+
+      .. code-block:: bash
+
+         ./mvnw compile quarkus:dev
+
+   .. step:: Test offset-based pagination.
+
+      In a separate terminal window, use the following ``curl`` commands to
+      test the offset pagination endpoint. These commands request different pages of
+      fruit data.
+
+      To fetch the first page, run the following command:
+
+      .. code-block:: bash
+
+         curl --location http://localhost:8080/fruits/offset?page=1
+
+      To fetch the second page, run the following command:
+
+      .. code-block:: bash
+
+         curl --location http://localhost:8080/fruits/offset?page=2
+
+      To fetch the fifth page, run the following command:
+
+      .. code-block:: bash
+
+         curl --location http://localhost:8080/fruits/offset?page=5
+
+   .. step:: Test cursor-based pagination.
+
+      Use the following ``curl`` commands to test the cursor
+      pagination endpoint. These commands use the ``after`` and
+      ``before`` parameters to navigate through the dataset.
+
+      To fetch the initial set of fruits, run the following command:
+
+      .. code-block:: bash
+
+         curl --location http://localhost:8080/fruits/cursor
+
+      To fetch fruits with ``name`` field values that come after ``"banana"``,
+      run the following command:
+
+      .. code-block:: bash
+
+         curl --location http://localhost:8080/fruits/cursor?after=banana
+      
+      To fetch fruits with ``name`` field values that come before ``"date"``,
+      run the following command:
+
+      .. code-block:: bash
+
+         curl --location http://localhost:8080/fruits/cursor?before=date
+
+Additional Resources
+--------------------
+
+To learn more about pagination in MongoDB, see the
+:atlas:`Paginate Results </atlas-search/paginate-results>` guide in the
+MongoDB Atlas documentation.
+
+To learn more about Quarkus, see the `Quarkus documentation
+<https://quarkus.io/guides/>`__.

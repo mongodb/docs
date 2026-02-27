@@ -496,6 +496,11 @@ const tocData: TocItem[] = [
             url: '/docs/drivers/java/sync/:version/integrations/panache',
           },
           {
+            label: 'Paginate Data with Java and Quarkus',
+            contentSite: 'java',
+            url: '/docs/drivers/java/sync/:version/integrations/quarkus-pagination',
+          },
+          {
             label: 'Testcontainers Integration Testing',
             contentSite: 'java',
             url: '/docs/drivers/java/sync/:version/integrations/testcontainers',
