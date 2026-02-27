@@ -9,6 +9,10 @@ import { usePageContext } from '@/context/page-context';
 import { DEPRECATED_PROJECTS } from '@/components/contents';
 import FeedbackRating from '@/components/widgets/feedback-widget';
 import type { BaseTemplateProps } from '.';
+import OfflineBanner from '../banner/offline-banner';
+import { getFullSlug } from '@/utils/get-full-slug';
+import { useVersionContext } from '@/context/version-context';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 export const CONTENT_MAX_WIDTH = 1200;
 
@@ -215,7 +219,8 @@ const wrapperStyles = css`
 const REALM_LIGHT_HERO_PAGES = ['index.txt'];
 
 const ProductLandingTemplate = ({ children }: BaseTemplateProps) => {
-  const { fileId, options: pageOptions, hasBanner } = usePageContext();
+  const { options: pageOptions, hasBanner, slug: pageSlug, fileId } = usePageContext();
+  const { siteBasePrefixWithVersion } = useVersionContext();
   const { project } = useSnootyMetadata();
   const isGuides = project === 'guides';
   const isRealm = project === 'realm';
@@ -236,6 +241,12 @@ const ProductLandingTemplate = ({ children }: BaseTemplateProps) => {
         'product-landing-template',
       )}
     >
+      {isOfflineBuild && (
+        <OfflineBanner
+          linkUrl={'https://mongodb.com/' + getFullSlug(pageSlug, siteBasePrefixWithVersion)}
+          template="product-landing"
+        />
+      )}
       {children}
       {!DEPRECATED_PROJECTS.includes(project) && (
         <>

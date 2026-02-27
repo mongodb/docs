@@ -1,5 +1,6 @@
 import type { TocItem } from '../types';
-import docsVersions from '../version-arrays/drivers/java-versions';
+
+// import docsVersions from '../version-arrays/drivers/java-versions';
 
 //const outdatedVersions = docsVersions.before('v5.3', { inclusive: true });
 

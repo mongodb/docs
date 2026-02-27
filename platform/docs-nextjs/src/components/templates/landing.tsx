@@ -6,6 +6,11 @@ import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
 import { palette } from '@leafygreen-ui/palette';
 import { theme } from '@/styles/theme';
 import type { BaseTemplateProps } from '.';
+import { getFullSlug } from '@/utils/get-full-slug';
+import OfflineBanner from '../banner/offline-banner';
+import { useVersionContext } from '@/context/version-context';
+import { usePageContext } from '@/context/page-context';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 const CONTENT_MAX_WIDTH = 1440;
 
@@ -168,9 +173,18 @@ const getLandingTemplateStyles = (darkMode: boolean) => {
 // The Landing template exclusively represents mongodb.com/docs. All other landings use the ProductLanding template
 const LandingTemplate = ({ children }: BaseTemplateProps & { children: ReactNode }) => {
   const { darkMode } = useDarkMode();
+  const { slug: pageSlug } = usePageContext();
+  const { siteBasePrefixWithVersion } = useVersionContext();
+
   return (
     <>
       <div className={cx(getLandingTemplateStyles(darkMode))}>
+        {isOfflineBuild && (
+          <OfflineBanner
+            linkUrl={'https://mongodb.com/' + getFullSlug(pageSlug, siteBasePrefixWithVersion)}
+            template="landing"
+          />
+        )}
         <main className={cx(wrapperStyles)}>{children}</main>
       </div>
     </>

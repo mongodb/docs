@@ -237,7 +237,7 @@ const tocData: TocItem[] = [
             label: 'Build an Automotive Diagnostics App',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/car-manual-explorer',
-          },          
+          },
           {
             label: 'Context-Aware RAG for Technical Docs',
             contentSite: 'atlas-architecture',
@@ -281,7 +281,7 @@ const tocData: TocItem[] = [
             label: 'Event-Driven Inventory Management System',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-event-driven-inventory',
-          },            
+          },
         ],
       },
       {

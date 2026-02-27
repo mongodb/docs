@@ -1,8 +1,6 @@
 import { removeLeadingSlash } from './remove-leading-slash';
 import { getAvailableLanguages } from './locale';
 
-const langArray = getAvailableLanguages(true).map((lang) => lang.localeCode);
-
 export const getFullSlug = (initialSlug: string, pathPrefix: string): string => {
   let cleanedSlug = removeLeadingSlash(initialSlug);
 
@@ -11,6 +9,7 @@ export const getFullSlug = (initialSlug: string, pathPrefix: string): string => 
   }
 
   // Check if slug already starts with docs/ or has a language prefix
+  const langArray = getAvailableLanguages(true).map((lang) => lang.localeCode);
   const hasLang = langArray.some((lang) => cleanedSlug?.startsWith(lang + '/'));
   const alreadyCompleteSlug = cleanedSlug?.startsWith('docs/') || hasLang;
 

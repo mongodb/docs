@@ -11,9 +11,14 @@ import type { BaseTemplateProps } from '.';
 import MainColumn from './main-column';
 import { cx } from '@leafygreen-ui/emotion';
 import Breadcrumbs from '@/components/breadcrumbs';
+import OfflineBanner from '@/components/banner/offline-banner';
+import { getFullSlug } from '@/utils/get-full-slug';
+import { useVersionContext } from '@/context/version-context';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 export default function DocumentTemplate({ children, pageOptions }: BaseTemplateProps) {
-  const { tabsMainColumn } = usePageContext();
+  const { tabsMainColumn, slug: pageSlug } = usePageContext();
+  const { siteBasePrefixWithVersion } = useVersionContext();
   const hasMethodSelector = pageOptions?.has_method_selector;
 
   const showPrevNext = !(pageOptions?.noprevnext === '' || pageOptions?.template === 'guide');
@@ -23,6 +28,12 @@ export default function DocumentTemplate({ children, pageOptions }: BaseTemplate
     <div className={cx(documentStyling.document, 'document-template')}>
       <MainColumn className={documentStyling['main-column']}>
         <div className="body">
+          {isOfflineBuild && (
+            <OfflineBanner
+              linkUrl={'https://mongodb.com/' + getFullSlug(pageSlug, siteBasePrefixWithVersion)}
+              template="document"
+            />
+          )}
           <Breadcrumbs />
           {children}
           {showPrevNext && <InternalPageNav />}
