@@ -1,84 +1,84 @@
 .. step:: DBeaver Community
-                  
-   1. Launch DBeaver.
 
-   2. Add a new driver.
+   a. Launch DBeaver.
 
-      i. In DBeaver, click :guilabel:`Database` and select  
+   b. Add a new driver.
+
+      i. In DBeaver, click :guilabel:`Database` and select
          :guilabel:`Driver Manager` from the dropdown menu.
-   
-      #. Click :guilabel:`New` to open the 
-         :guilabel:`Create new driver` modal.
 
-      #. In the :guilabel:`Settings` tab, enter the following 
-         information:
+      ii. Click :guilabel:`New` to open the
+          :guilabel:`Create new driver` modal.
 
-         .. list-table::
-            :stub-columns: 1
-            :widths: 10 20
-      
-            * - Driver Name
-              - ``MongoDB``
-           
-            * - Class Name
-              - ``com.mongodb.jdbc.MongoDriver``
+      iii. In the :guilabel:`Settings` tab, enter the following
+           information:
 
-      #. In the :guilabel:`Libraries` tab, click 
-         :guilabel:`Add File` and add your JDBC driver 
-         ``all.jar`` file.
+           .. list-table::
+              :stub-columns: 1
+              :widths: 10 20
 
-         Click :guilabel:`Find Class`.
+              * - Driver Name
+                - ``MongoDB``
 
-      #. Click :guilabel:`OK`. The 
+              * - Class Name
+                - ``com.mongodb.jdbc.MongoDriver``
+
+      iv. In the :guilabel:`Libraries` tab, click
+          :guilabel:`Add File` and add your JDBC driver
+          ``all.jar`` file.
+
+          Click :guilabel:`Find Class`.
+
+      v. Click :guilabel:`OK`. The
          :guilabel:`Create new driver` modal closes.
 
-   3. Create a database connection.
+   c. Create a database connection.
 
-      i. In DBeaver, click :guilabel:`Database` and select  
-         :guilabel:`New Database Connection` from the dropdown 
+      i. In DBeaver, click :guilabel:`Database` and select
+         :guilabel:`New Database Connection` from the dropdown
          menu to open the :guilabel:`Connect to a database` modal.
 
-      #. From the list of databases, select the ``MongoDB`` 
-         database driver that you created in the previous step.
+      ii. From the list of databases, select the ``MongoDB``
+          database driver that you created in the previous step.
 
-         If you don't see ``MongoDB``, select 
-         the :guilabel:`All` category inside the modal.
+          If you don't see ``MongoDB``, select
+          the :guilabel:`All` category inside the modal.
 
-         Click :guilabel:`Next`.
+          Click :guilabel:`Next`.
 
-      #. In the :guilabel:`Main` tab, enter the following 
-         information: 
+      iii. In the :guilabel:`Main` tab, enter the following
+           information:
 
-         .. list-table::
-            :stub-columns: 1
-            :widths: 10 20
-      
-            * - JDBC URL
-              - Your connection string from step 5.
+           .. list-table::
+              :stub-columns: 1
+              :widths: 10 20
 
-            * - Username
-              - The MongoDB user to connect with.
+              * - JDBC URL
+                - Your connection string from step 5.
 
-            * - Password
-              - The MongoDB user's password.
+              * - Username
+                - The MongoDB user to connect with.
 
-      #. In the :guilabel:`Driver properties` tab, expand 
-         :guilabel:`User Properties`. Add the following key-value 
-         properties:
+              * - Password
+                - The MongoDB user's password.
 
-         .. list-table::
-            :stub-columns: 1
-            :widths: 10 20
+      iv. In the :guilabel:`Driver properties` tab, expand
+          :guilabel:`User Properties`. Add the following key-value
+          properties:
 
-            * - database
-              - The name of your virtual database.
+          .. list-table::
+             :stub-columns: 1
+             :widths: 10 20
 
-            * - user
-              - The MongoDB user to connect with. Not required if 
-                you entered a ``Username`` in the previous step.
+             * - database
+               - The name of your virtual database.
 
-            * - password
-              - The MongoDB user's password. Not required if you 
-                entered a ``Password`` in the previous step.
+             * - user
+               - The MongoDB user to connect with. Not required if
+                 you entered a ``Username`` in the previous step.
 
-   4. Click :guilabel:`Finish`.
+             * - password
+               - The MongoDB user's password. Not required if you
+                 entered a ``Password`` in the previous step.
+
+   d. Click :guilabel:`Finish`.
