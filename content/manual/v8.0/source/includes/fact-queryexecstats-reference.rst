@@ -11,10 +11,9 @@ following fields:
     * - ``total``
       - A 64-bit integer giving the total number of queries that
         performed a collection scan. The total consists of queries that
-        did and did not use a :doc:`tailable cursor
-        </core/tailable-cursors>`.
+        did and did not use a :ref:`tailable cursor
+        <tailable-cursors-landing-page>`.
 
     * - ``nonTailable``
       - A 64-bit integer giving the number of queries that performed a
-        collection scan that did not use a :doc:`tailable cursor
-        </core/tailable-cursors>`.
+        collection scan that did not use a tailable cursor.
