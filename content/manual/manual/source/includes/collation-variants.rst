@@ -1,4 +1,4 @@
-Some collation locales have variants, which employ special
+Some collation locales have variants, which use special
 language-specific rules. To specify a locale variant, use the following
 syntax:
 

@@ -3,5 +3,5 @@ If you installed MongoDB from the MongoDB ``apt``, ``yum``, ``dnf``, or
 manager. 
 
 Follow the appropriate |installationdoc| for your Linux system. This
-will involve adding a repository for the new release, then performing
+requires adding a repository for the new release, then performing
 the actual upgrade process.
