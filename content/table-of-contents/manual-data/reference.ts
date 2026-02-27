@@ -1,7 +1,7 @@
 import type { TocItem } from '../types';
+import manualVersions from '../version-arrays/server-docs/manual';
 
 const versionsBeforeV8_2 = ['v7.0', 'v8.0', 'v8.1'];
-const versionsBeforeV8_3 = ['v7.0', 'v8.0', 'v8.1', 'v8.2'];
 
 const tocData: TocItem[] = [
   {
@@ -281,7 +281,7 @@ const tocData: TocItem[] = [
             label: 'abortRewriteCollection',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/abortRewriteCollection',
-            versions: { excludes: versionsBeforeV8_3 },
+            versions: { excludes: manualVersions.before('v8.3') },
           },
           {
             label: 'abortUnshardCollection',
@@ -352,7 +352,7 @@ const tocData: TocItem[] = [
             label: 'commitShardRemoval',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/commitShardRemoval',
-            versions: { excludes: versionsBeforeV8_3 },
+            versions: { excludes: manualVersions.before('v8.3') },
           },
           {
             label: 'configureCollectionBalancing',
@@ -443,7 +443,7 @@ const tocData: TocItem[] = [
             label: 'rewriteCollection',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/rewriteCollection',
-            versions: { excludes: versionsBeforeV8_3 },
+            versions: { excludes: manualVersions.before('v8.3') },
           },
           {
             label: 'setAllowMigrations',
@@ -459,7 +459,7 @@ const tocData: TocItem[] = [
             label: 'shardDrainingStatus',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/shardDrainingStatus',
-            versions: { excludes: versionsBeforeV8_3 },
+            versions: { excludes: manualVersions.before('v8.3') },
           },
           {
             label: 'shardingState',
@@ -475,13 +475,13 @@ const tocData: TocItem[] = [
             label: 'startShardDraining',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/startShardDraining',
-            versions: { excludes: versionsBeforeV8_3 },
+            versions: { excludes: manualVersions.before('v8.3') },
           },
           {
             label: 'stopShardDraining',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/stopShardDraining',
-            versions: { excludes: versionsBeforeV8_3 },
+            versions: { excludes: manualVersions.before('v8.3') },
           },
           {
             label: 'transitionFromDedicatedConfigServer',
@@ -3329,6 +3329,7 @@ const tocData: TocItem[] = [
             label: '$createObjectId',
             contentSite: 'docs',
             url: '/docs/:version/reference/operator/aggregation/createObjectId',
+            versions: { excludes: manualVersions.before('v8.3') },
           },
           {
             label: '$dateAdd',
