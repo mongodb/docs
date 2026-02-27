@@ -30,6 +30,13 @@
   - Use additional projects or regions to connect to nodes
     beyond this limit.
 
+  .. note::
+
+     If you have a legacy endpoint service in the same region that you have a 
+     port-mapped endpoint deployed, |service| enforces the lesser of the two limits. 
+     This is either the default port-mapped limit of 150 or whatever 
+     you set ``privateServiceConnectionsPerRegionGroup`` to be (a default of 50).
+
 - Addressable targets include:
 
   - Each |mongod| instance in a replica set deployment
