@@ -234,6 +234,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-automotive-diagnostics',
           },
           {
+            label: 'Build an Automotive Diagnostics App',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/car-manual-explorer',
+          },          
+          {
             label: 'Context-Aware RAG for Technical Docs',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/rag-technical-documents',
