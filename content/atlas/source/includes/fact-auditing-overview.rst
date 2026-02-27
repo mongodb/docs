@@ -45,7 +45,7 @@ project. |service| audits the following specific commands:
      - :manual:`update </reference/command/update>`
 
    * - :manual:`group </reference/command/group>`
-     - :manual:`resetError </reference/command/resetError>`
+     - `resetError <https://www.mongodb.com/docs/v6.0/reference/command/resetError/>`__
 
    * - :manual:`find </reference/command/find>`
      -
