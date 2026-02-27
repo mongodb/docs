@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { loadMDX } from '@/mdx-utils/load-mdx';
-import { loadMetadata } from '@/mdx-utils/load-metadata';
+import { findProjectPathAndSiteJson } from '@/mdx-utils/load-metadata';
 import type { RemoteMetadata } from '@/types/data';
 import { CustomTemplate } from './custom-template';
 
@@ -22,9 +22,9 @@ export default async function MDXPage({ params: { path } }: PageProps) {
     return notFound();
   }
 
-  let metadata: RemoteMetadata;
+  let siteMetadata: RemoteMetadata;
   try {
-    metadata = await loadMetadata(path);
+    ({ siteMetadata } = await findProjectPathAndSiteJson(path));
   } catch (error) {
     console.error('[page.tsx] Error loading metadata: ', error);
     throw new Error('[page.tsx] Error loading metadata');
@@ -32,7 +32,7 @@ export default async function MDXPage({ params: { path } }: PageProps) {
 
   return (
     <>
-      <CustomTemplate content={result.content} frontmatter={result.frontmatter} path={path} metadata={metadata} />
+      <CustomTemplate content={result.content} frontmatter={result.frontmatter} path={path} metadata={siteMetadata} />
     </>
   );
 }

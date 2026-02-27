@@ -5,6 +5,7 @@ import { components } from '@/mdx-components';
 import { getBlobString } from './blob-read';
 import { MDX_PREFIX } from './get-blob-key';
 import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
+import { findProjectPathAndSiteJson } from './load-metadata';
 
 export const VERSION_PLACEHOLDER = ':version';
 
@@ -16,10 +17,7 @@ export const loadMDX = async (urlPath: string[]) => {
     return loadOfflineMDX(urlPath);
   }
 
-  // get the project path from the url, which should be the first two segments: project name and version
-  // TODO: update this to determine whether or not a versioned project based on "repos_branches"
-  const projectPath = urlPath.slice(0, 2).join('/');
-
+  const { projectPath } = await findProjectPathAndSiteJson(urlPath);
   const injectedProps = { projectPath };
   const componentMapping = components(injectedProps);
 

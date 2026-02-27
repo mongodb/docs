@@ -26,11 +26,12 @@ export const getBlobString = async (key: string) => {
   }
   try {
     const result = await store.get(key);
-    if (!result) throw new Error('not found');
-
+    if (!result) return null;
     return result.toString();
   } catch (error) {
-    if (error instanceof Error && error.message.includes('not found')) {
+    // Missing key: return null so callers can try alternatives (e.g. other project path candidates)
+    const msg = error instanceof Error ? error.message : String(error);
+    if (msg.toLowerCase().includes('not found') || msg.includes('404') || msg.includes('no such key')) {
       return null;
     }
     throw error;

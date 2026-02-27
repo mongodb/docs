@@ -16,7 +16,6 @@ export const metadata: Metadata = {
 
 export default async function AssistantLayout({ children }: { children: React.ReactNode }) {
   const bannerData = await getBannerData();
-  console.log('bannerData', bannerData);
 
   return (
     <>
