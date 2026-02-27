@@ -10,11 +10,29 @@
 
       To install on Suse:
 
-      .. procedure::
+      a. Import the public key used to sign the package repositories
 
-         .. include:: /includes/queryable-encryption/tutorials/steps-install-libmongocrypt-suse.rst
+         .. code-block:: sh
+
+            sudo rpm --import https://pgp.mongodb.com/libmongocrypt.asc
+
+      #. Add the repository to your package sources
+
+         .. important::
+
+            Change ``<release>`` in the following shell command to your platform release (e.g. "12" or "15").
+
+         .. code-block:: sh
+
+            sudo zypper addrepo --gpgcheck "https://libmongocrypt.s3.amazonaws.com/zypper/suse/<release>/libmongocrypt/{+libmongocrypt-version+}/x86_64" libmongocrypt
+
+      #. Install the ``libmongocrypt`` package
+
+         .. code-block:: sh
+
+            sudo zypper -n install libmongocrypt
       
-         .. step:: Set the ``LIBMONGOCRYPT_PATH`` environment variable to the absolute path of the ``libmongocrypt`` file.
+      #. Set the ``LIBMONGOCRYPT_PATH`` environment variable to the absolute path of the ``libmongocrypt`` file.
          
    .. step:: For driver versions 3.0 or later, install the ``MongoDB.Driver.Encryption`` package
       

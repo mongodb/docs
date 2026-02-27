@@ -10,16 +10,29 @@
 
       To install on Red Hat Enterprise Linux:
 
-      .. procedure::
+      a. Create a repository file for the ``libmongocrypt`` package
 
-         .. include:: /includes/queryable-encryption/tutorials/steps-install-libmongocrypt-red-hat.rst
+         .. code-block:: sh
+
+            [libmongocrypt]
+            name=libmongocrypt repository
+            baseurl=https://libmongocrypt.s3.amazonaws.com/yum/redhat/$releasever/libmongocrypt/{+libmongocrypt-version+}/x86_64
+            gpgcheck=1
+            enabled=1
+            gpgkey=https://pgp.mongodb.com/libmongocrypt.asc
+
+      #. Install the ``libmongocrypt`` package
+
+         .. code-block:: sh
+
+            sudo yum install -y libmongocrypt
       
          .. step:: Set the ``LIBMONGOCRYPT_PATH`` environment variable to the absolute path of the ``libmongocrypt`` file.
          
-   .. step:: For driver versions 3.0 or later, install the ``MongoDB.Driver.Encryption`` package
+      #. For driver versions 3.0 or later, install the ``MongoDB.Driver.Encryption`` package
       
-      Install the `MongoDB.Driver.Encryption <https://www.nuget.org/packages/MongoDB.Driver.Encryption>`__ 
-      package from NuGet. This package enables automatic encryption. 
+         Install the `MongoDB.Driver.Encryption <https://www.nuget.org/packages/MongoDB.Driver.Encryption>`__ 
+         package from NuGet. This package enables automatic encryption. 
 
    .. step:: For driver versions 3.4.3 or earlier on 64-bit Linux, add the following XML to your ``.csproj`` file.
 

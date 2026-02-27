@@ -65,10 +65,8 @@
          * - ``mongotHost``
            - The host address of ``mongot``.
 
-             .. note::
-
-                You must specify the same address in
-                ``searchIndexManagementHostAndPort`` and ``mongotHost``. 
+             You must specify the same address in
+             ``searchIndexManagementHostAndPort`` and ``mongotHost``. 
 
          * - ``skipAuthenticationToSearchIndexManagementServer``
            - Specifies whether authentication is enabled for the Search Index

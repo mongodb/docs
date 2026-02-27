@@ -10,9 +10,11 @@
 
       To install on macOS:
 
-      .. procedure::
+      a. Install ``libmongocrypt`` using Homebrew
 
-         .. include:: /includes/queryable-encryption/tutorials/steps-install-libmongocrypt-macos.rst
+         .. code-block:: sh
+
+            brew install mongodb/brew/libmongocrypt
 
    .. step:: Start a MongoDB Atlas Cluster or Enterprise instance.
 

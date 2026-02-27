@@ -10,9 +10,22 @@
 
       To install on Red Hat Enterprise Linux:
 
-      .. procedure::
+      a. Create a repository file for the ``libmongocrypt`` package
 
-         .. include:: /includes/queryable-encryption/tutorials/steps-install-libmongocrypt-red-hat.rst
+         .. code-block:: sh
+
+            [libmongocrypt]
+            name=libmongocrypt repository
+            baseurl=https://libmongocrypt.s3.amazonaws.com/yum/redhat/$releasever/libmongocrypt/{+libmongocrypt-version+}/x86_64
+            gpgcheck=1
+            enabled=1
+            gpgkey=https://pgp.mongodb.com/libmongocrypt.asc
+
+      #. Install the ``libmongocrypt`` package
+
+         .. code-block:: sh
+
+            sudo yum install -y libmongocrypt
 
    .. step:: Start a MongoDB Atlas Cluster or Enterprise instance.
 
