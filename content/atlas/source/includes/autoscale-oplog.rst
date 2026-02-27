@@ -35,12 +35,16 @@ is enabled for the {+cluster+}.
       :guilabel:`General` and :guilabel:`Low-CPU` {+clusters+}
     - 10% of the disk size for {+clusters+} with :ref:`NVMe storage <nvme-storage>`.
 
-    |service| automatically changes the oplog size if you change the storage size.
+    |service| automatically changes the oplog size if you change the storage size
+    only if you have previously manually set a custom oplog size for your {+cluster+}.
+    If you have never manually set the oplog size, |service| does not automatically
+    scale the oplog size when you change the storage size.
 
   - You may choose to scale up the oplog size when you scale up the
     {+cluster+}'s storage. In this case, manually :ref:`set the oplog size <set-oplog-size>`
-    to a particular value when you create a {+cluster+}. As you increase
-    the {+cluster+}'s storage, |service| scales the oplog size as follows:
+    to a particular value when you create a {+cluster+}. Only after you have
+    manually set a custom oplog size will |service| automatically scale the oplog
+    size when you increase the {+cluster+}'s storage, as follows:
 
     - For :guilabel:`General` and :guilabel:`Low-CPU` {+clusters+}, the
       oplog size scales up to remain at 5% of the storage capacity, not to
