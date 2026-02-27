@@ -1,0 +1,401 @@
+.. _arch-center-is-fhir-data-layer:
+
+==================================
+Hybrid FHIR Operational Data Layer
+==================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: FHIR, healthcare data, hybrid data layer, MongoDB Atlas, AI, machine learning, interoperability, real-time analytics, patient monitoring
+   :description: Build a FHIR Data Layer on MongoDB to unify legacy
+                 healthcare data, boost search speed, and deliver
+                 scalable FHIR API endpoints. Learn best practices for
+                 healthcare interoperability.
+   
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+**Use cases:** `Intelligent Search
+<https://www.mongodb.com/solutions/use-cases/intelligent-search>`__
+
+**Industries:** `Healthcare
+<https://www.mongodb.com/solutions/industries/healthcare#overview>`__
+
+**Products:** `MongoDB Atlas <http://mongodb.com/atlas>`__, 
+`MongoDB Community Server Edition <https://www.mongodb.com/products/self-managed/community-edition>`__,
+`MongoDB Enterprise Advanced <https://www.mongodb.com/products/self-managed/enterprise-advanced>`__
+
+**Partners:** `Tapdata <https://cloud.mongodb.com/ecosystem/tapdata>`__ 
+
+Solution Overview
+-----------------
+
+This project develops a :abbr:`FHIR (Fast Healthcare Interoperability
+Resources)` hybrid :abbr:`ODL (Operational Data Layer)` pattern for
+healthcare. The primary goal is to create a single, highly performant
+operational store that powers customer web services. Additionally, the
+design exposes `FHIR-compatible
+<https://www.hl7.org/fhir/overview.html>`__ endpoints for the resources
+in scope, so future features can be built using the FHIR REST API
+instead of new custom services.
+
+At its core, the ODL uses MongoDB Atlas as a flexible and scalable
+database that stores resources, such as ``Patient`` or ``Encounter``, in
+a structured three-block format. This includes:
+
+- The canonical FHIR representation when a mapping exists.
+
+- Additional application-specific fields.
+
+- Pre-indexed search fields optimized for query performance.
+
+Because mappings are defined FHIR-first, fields aligned with FHIR are
+stored using the standard structure, while remaining attributes are held
+in separated application blocks. This hybrid structure preserves
+interoperability without forcing the solution to behave as a full FHIR
+server. 
+
+The backend uses FastAPI and exposes two families of APIs:
+
+- **Application API:** Implements the customer’s operational endpoints, for
+  example patient search, case search, or local identifier services, using
+  the ODL as a shared backend.
+
+- **FHIR API:** Provides FHIR-compatible search for a defined subset of
+  resources, such as ``Patient`` and ``Encounter``, reusing the same
+  envelope model and indexes. It is designed as a pragmatic FHIR facade,
+  not as a complete, profile-driven FHIR server.
+
+The frontend uses Next.js, and it includes an interactive API
+demonstrator, so teams can try application endpoints and
+FHIR-style queries together.
+
+For demonstrations and development, the ODL can generate synthetic
+clinical datasets, allowing realistic tests without exposing real
+patient data.
+
+Reference Architectures
+-----------------------
+
+The architecture focuses on the FHIR Hybrid ODL, a reference data model
+approach that supports custom operational access patterns and
+FHIR-compatible access over the same dataset. Rather than duplicating
+data, this approach indexes valuable information for operational
+queries and maintains the complete FHIR resource. 
+
+The use case originates from a real-world customer challenge involving a
+large healthcare institution operating multiple EHR platforms. Each
+system offered patient access services independently, leading to
+fragmented data access, duplicated logic, and absence of semantic
+interoperability.  
+
+To simplify this, this institution introduced an ODL to
+centralize clinical data access and provide shared :abbr:`MDM (Master Data
+Management)` services, without disrupting existing applications.
+
+This situation created an opportunity to shift toward industry best
+practices by adopting FHIR as the common language, instead of redefining
+data structures and semantics from nothing. By designing the ODL data
+model as FHIR-first, the organization avoided “reinventing the wheel”
+for core concepts such as patients and encounters. It also aligned with
+standard resource definitions, making it a potential model for others in
+the field. 
+
+The reference architecture shows how healthcare companies can unify
+different data sources, support custom processes and deliver highly
+performant APIs using MongoDB Atlas. The interface is divided into tabs,
+with each tab displaying a specific capability of the architecture. 
+
+.. figure:: /includes/images/industry-solutions/fhir-hybrid-odl-architecture.svg
+   :figwidth: 1200px
+   :alt: Reference architecture showing Atlas integration with a FHIR ODL
+   
+   Figure 1. FHIR Hybrid ODL reference architecture
+
+Initially, the mappings section shows how legacy healthcare data fields
+map into the ODL data model, which is designed around a FHIR-centric
+schema. Each document stores:
+
+- A canonical FHIR resource (when a FHIR mapping exists)
+
+- Application-specific fields required by current workflows
+
+- Search-optimized fields used by the APIs
+
+Users can browse a full set of field mappings across entities such as
+``Patient`` and ``Encounter`` in an interactive table. This helps them
+understand which fields come from the FHIR specification and which ones
+are modeled as application or search fields. This mapping strategy makes
+it easier to trace data lineage and assess alignment with standards.
+
+.. figure:: /includes/images/industry-solutions/fhir-hybrid-odl-mappings.svg
+   :figwidth: 1200px
+   :alt: Reference architecture showing Atlas integration with a FHIR ODL
+   
+   Figure 2. Mappings tab in the Hybrid FHIR ODL demo
+
+The platform includes a built-in generator that creates synthetic
+clinical data for storage and retrieval tests, allowing teams to test
+functionality. Users can customize synthetic content, including the
+number of patients, encounters per patient, practitioners, and care
+teams.
+
+.. figure:: /includes/images/industry-solutions/fhir-hybrid-odl-synthetic.svg
+   :figwidth: 1200px
+   :alt: Reference architecture showing Atlas integration with a FHIR ODL
+   
+   Figure 3: Synthetic clinical data creator
+
+After data is populated, the Data Viewer section allows users to explore
+the FHIR resources stored in MongoDB. It shows the canonical FHIR
+content and the additional ODL fields in one place, clarifying how
+standard and operational data live together. 
+
+The Customer API section integrates legacy healthcare systems with the
+platform. An API tester allows users to call customer-specific MDM and
+operational endpoints. By selecting an endpoint and entering the
+required parameters users can execute the query and view the formatted
+response as the custom systems expect it.
+
+Finally, the FHIR API Tester section allows users to perform FHIR
+standard searches on the underlying dataset. The results display the
+MongoDB query pipeline and the FHIR response. This view highlights how
+the platform maintains FHIR standard-compliant output, delivers
+performance insights, and provides debugging details.
+
+Dual API Layer (Core Pattern)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The dual API layer is central to the architecture. The platform exposes
+two types of endpoints from the FHIR-centric data model:
+
+- **Application APIs:** Custom endpoints that match existing integration
+  services. 
+
+- **FHIR API:** FHIR-style queries over the same dataset for
+  standards-based access. 
+
+Both APIs include a set of predefined example queries, so users can
+trigger typical queries with a single click. 
+
+By exercising these ready-made scenarios, teams quickly see how one ODL
+schema can simultaneously serve legacy-compatible and FHIR-compatible
+APIs without extra ETL pipelines or separate databases. Discover how
+MongoDB partner TapData uses the dual API layer pattern in its platform.
+Learn more about this integration `here
+<https://github.com/tapdata/fhir-solution>`__.
+
+Data Model Approach
+-------------------
+
+The architecture is built around a FHIR-centric ODL schema stored in
+MongoDB. Instead of scattering patient and encounter data across many
+tables, each record is kept as a single document with three sections.
+Each section serves a specific purpose within the ODL:
+	
+- ``resource`` **for the canonical FHIR content:**
+  Contains a `valid R4 FHIR object
+  <https://www.hl7.org/fhir/resource.html>`__, such as ``Patient`` or
+  ``Encounter``. This block can be returned directly by FHIR-style
+  endpoints without additional transformation.
+
+- ``app`` **for the application metadata:** Holds fields that
+  are required by the workflows, but are part of the base FHIR resource.
+  It includes fields such as internal codes, classification flags, or
+  other customer-specific attributes. 
+
+- ``search`` **for the denormalized query surface:** Flattens
+  the attributes most frequently used in queries, including identifiers
+  such as names, key dates, organization or location references. It also
+  turns relationship keys into fields that are easy to index and use for
+  the API layer.
+
+Below, you can find a commented JSON example for the ``Encounter``
+resource:
+
+.. code-block:: javascript
+   
+   {   
+      "_id": "ObjectId",
+      "tenant": "tenant-1",
+      "resourceType": "Encounter",
+   
+      // 1 Canonical FHIR block
+      "resource": {   
+         "resourceType": "Encounter",
+         "id": "036fcfcd-797c-4ae2-a30f-49226357deb2",
+         ...,
+         "status": "onhold",
+         "class": {   
+            "code": "EMER"
+         },            
+         "serviceType": {
+            ...
+         },
+         "period": {   
+            "start": "2025-10-31T17:43:00",
+            "end": "2025-11-02T17:43:00"
+         },           
+         "serviceProvider": {},
+         "hospitalization": {},
+         "participant": [],
+         "location": [],
+         "type": [
+            { ... }
+         ]
+      },   
+   
+      // 2 Application block
+      "app": {  
+         "caseNum": "QH-1761928980-83",
+         "doctorCode": "DR100",
+         "specialistCode": "DR100",
+         ...,
+         "sourceIndicator": "SELF",
+         "patientGroup": "G2"
+      },  
+   
+      // 3 Search block
+      "search": { 
+         "start": "2025-10-31T17:43:00",
+         "end": "2025-11-02T17:43:00",
+         "local_id": "A108548(0)",
+         ...,
+         "caseNum": "QH-1761928980-83",
+         "statusCode": "onhold",
+         "caseType": "E"
+      }   
+   }
+
+Build the Solution
+------------------
+
+For detailed setup instructions, follow the steps outlined in the
+``README`` of this `GitHub repository
+<https://github.com/mongodb-industry-solutions/hybrid-fhir-odl>`__. This
+repository hosts the backend and frontend for this demo. 
+
+To reproduce this demo in your own environment, follow these steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set up MongoDB on Atlas or locally
+
+      Log in to your MongoDB Atlas portal and create a database called
+      ``fhir_demo`` and a collection named ``fhir`` for this project.
+
+      Save the connection string for next steps, and add your IP address
+      to the access list.
+
+   .. step:: Clone the GitHub repository
+
+      Clone the repository into your preferred location using the
+      following commands on your terminal: 
+
+      .. code-block:: sh
+
+         git clone https://github.com/mongodb-industry-solutions/hybrid-fhir-odl.git
+         cd hybrid-odl
+
+   .. step:: Configure your environment variables
+
+      Go to the ``/backend`` directory and create a ``.env`` file with
+      the connection details below. Use your MONGODB_URI connection
+      string saved in Step 1.
+
+      .. code-block:: javascript
+
+         MONGODB_URI=mongodb+srv://<user>:<password>@<cluster-url>/?retryWrites=true&w=majority  
+         MONGODB_DB=fhir_demo
+         MONGODB_COLLECTION=fhir
+         MONGODB_TENANT=tenant-1
+ 
+      Then, browse to the ``/frontend`` directory and create a ``.env``
+      file with the following information:
+
+      .. code-block:: javascript
+         
+         NEXT_PUBLIC_ENABLE_FHIR = true
+         BACKEND_URL=http://localhost:3100
+
+   .. step:: Install required dependencies
+
+      Go to the ``hybrid-odl`` directory and install the dependencies
+      for both services using the following command:
+
+      .. code-block:: sh
+
+         make install
+   
+   .. step:: Deploy both services using Makefile
+
+      Open two separate terminals and start each service independently
+      with the following commands:
+
+      **Terminal 1: Backend**
+
+      .. code-block:: sh
+
+         make backend 
+
+      **Terminal 2: Frontend**
+
+      .. code-block:: sh
+
+         make frontend
+
+      After completing these steps, you’ll have a working Hybrid FHIR
+      ODL demo. You can access the resources at the following URLs:
+
+      - **Frontend:** http://localhost:3101
+      
+      - **API documentation:** http://localhost:3100/docs
+
+      - **Health check:** http://localhost:3100/health
+
+Key Learnings 
+-------------
+
+- **Modernize legacy healthcare systems:** This solution shows how
+  hospitals can update their clinical data infrastructure without having
+  to abandon their operational workflows. Rather than requiring
+  institutions to maintain their fully-custom services or switch
+  entirely to FHIR, this approach enables integrating these systems
+  incrementally. Data remains available as FHIR resources, and custom
+  application endpoints and existing query patterns continue to work
+  through the application API layer. Hospitals using this solution can
+  progressively modernize their infrastructure, moving clinical teams
+  and partner systems at their own speed.
+
+- **Optimize clinical data performance:** This approach allows FHIR data
+  to stay unaltered in the resource block for standards compliance,
+  while the application information resides in high-usage attributes,
+  indexed for faster search performance. The system is appropriate for
+  real-time clinical dashboards, operational analytics, and quick
+  lookups during registration, triage, and bed management. 
+
+- **Accelerate interoperability and developer productivity:** The dual
+  API architecture, built-in synthetic data generation, and interactive
+  API testing tools help teams quickly prototype, validate, and deploy
+  FHIR-compliant solutions without disrupting existing hospital
+  processes.
+
+Authors
+-------
+
+- Patricia Renart Carnicero, MongoDB
+- Francesc Mateu Amengual, MongoDB
+
+Learn More
+----------
+
+- :ref:`arch-center-is-healthcare-ai-powered-solution`
+- :ref:`arch-center-is-ai-product-search`
+- :ref:`arch-center-is-rag-technical-documentation`

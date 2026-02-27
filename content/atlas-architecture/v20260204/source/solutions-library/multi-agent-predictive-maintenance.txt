@@ -1,0 +1,619 @@
+.. _arch-center-is-agentic-predictive-maintenance:
+
+==================================================
+Multi-Agent AI Predictive Maintenance with MongoDB
+==================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: manufacturing, agentic AI, predictive maintenance, gen AI 
+   :description: Drive Predictive Maintenance with agentic AI
+   
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Use MongoDB and Agentic AI to predict equipment failures and automate
+responses.
+
+**Use cases:** `Artificial Intelligence <https://www.mongodb.com/use-cases/artificial-intelligence>`__,
+`Internet of Things <https://www.mongodb.com/solutions/use-cases/internet-of-things>`__
+
+**Industries:** `Manufacturing and Mobility <https://www.mongodb.com/solutions/industries/manufacturing>`__
+
+**Products:** `MongoDB Atlas <https://www.mongodb.com/products/platform/atlas-database>`__, 
+`MongoDB Atlas Vector Search <https://www.mongodb.com/products/platform/atlas-vector-search>`__,
+`MongoDB Time Series Collections <https://www.mongodb.com/products/capabilities/time-series>`__,
+`MongoDB Node.js Driver <https://www.mongodb.com/docs/drivers/node/current/>`__
+
+**Partners:** `Amazon Bedrock <https://cloud.mongodb.com/ecosystem/amazon-bedrock>`__,
+`Amazon Web Services <https://cloud.mongodb.com/ecosystem/amazon-web-services>`__,
+`LangChain <https://cloud.mongodb.com/ecosystem/langchain>`__,
+`Vercel <https://cloud.mongodb.com/ecosystem/vercel>`__
+
+Solution Overview
+-----------------
+
+From manufacturing and automotive industries to energy and utilities,
+unplanned downtime is one of the most expensive disruptions that
+organizations can face. While predictive maintenance helps teams
+anticipate failures, equipment is becoming more complex, supply chains
+are more fragile, and skilled labor is harder to find. Therefore,
+organizations need systems that can both predict and act autonomously.
+
+Multi-agent systems using AI-powered agents utilize :abbr:`LLMs (Large
+Language Models)`, tools, and agent memory to predict failures and act
+accordingly. By automating repetitive decision-making, AI agents enable
+skilled workers to focus on problem-solving while reducing costs and
+increasing efficiency.
+
+.. figure:: /includes/images/industry-solutions/multi-agent-operational.svg
+   :figwidth: 1200px
+   :alt: Predictive maintenance benefits for operational excellence
+
+   Figure 1. Predictive maintenance benefits for operational excellence
+
+These benefits apply across several industries, such as:
+
+- **Manufacturing and automotive:** Agents can detect equipment
+  anomalies, trigger inspections, and automatically reschedule production
+  tasks.
+
+- **Transportation and logistics:** Fleet operators can use agents to
+  monitor vehicle health, predict component failures, and schedule
+  maintenance to minimize downtime.
+
+- **Energy and utilities:** Agents can analyze real-time telemetry from
+  grids or turbines and dispatch repair crews automatically when issues
+  are detected.
+
+- **Aerospace:** Agents can coordinate diagnostics across complex
+  systems and ensure maintenance actions are executed with minimal
+  disruption.
+
+This solution focuses on a manufacturing shop floor. However, you can
+apply the same architecture and principles across different scenarios.
+
+To build this solution, multi-agent systems rely on timely and
+contextual access to data, which enables agents to reason, learn, and act
+effectively. Traditional IT and OT systems aren’t designed for this
+scale and flexibility.
+
+MongoDB Atlas, a general-purpose database, provides native support for
+vector, graph and time series data. In the context of industrial
+applications for agentic AI, Atlas makes it possible to:
+
+- Ingest diverse IoT telemetry and sensor inputs in real time.
+
+- Store both short-term and long-term agent memory in one unified data
+  layer.
+
+- Support :abbr:`RAG (Retrieval-Augmented Generation)` for
+  context-aware reasoning.
+
+- Scale reliably to handle large volumes of streaming data with low
+  latency.
+
+By bridging industrial IoT and agentic AI, MongoDB Atlas empowers you to
+move from monitoring and prediction to intelligent and automated action.
+
+.. video:: https://www.youtube.com/watch?v=V7UEFPFrSC0
+
+Reference Architectures
+-----------------------
+
+This solution demonstrates how you can build a multi-agent predictive
+maintenance system using MongoDB Atlas, LangGraph, and Amazon Bedrock.
+Together, these technologies streamline complex processes such as
+anomaly detection, root cause analysis, work order creation, and
+maintenance scheduling.
+
+At a high level:
+
+- **MongoDB Atlas** serves as the unified data layer by storing and
+  indexing telemetry, agent memory, vector embeddings, and other
+  operational data. It also provides the necessary retrieval tools to
+  the agents. 
+
+- **LangGraph** enables graph-based coordination across agents.
+
+- **Amazon Bedrock** supplies the LLMs that allow agents to reason,
+  analyze, and generate outputs.
+
+The architecture follows a supervisor-agent model. The supervisor
+coordinates the workflow and delegates tasks to these specialized
+agents:
+
+- **Failure Agent:** Performs root cause analysis and generates incident
+  reports.
+
+- **Work Order Agent:** Drafts maintenance work orders with
+  requirements, skills, and materials.
+
+- **Planning Agent:** Identifies the optimal maintenance slot based on
+  production and resource constraints.
+
+.. figure:: /includes/images/industry-solutions/multi-agent-architecture.svg
+   :figwidth: 1200px
+   :alt: High-level architecture of a multi-agent predictive maintenance system
+   
+   Figure 2. High-level architecture of a multi-agent predictive maintenance system
+
+Each agent in this architecture uses tools, memory, and a state graph.
+Together, these components enable agents to reason, recall, and act in a
+coordinated way.
+
+Agent Tools
+~~~~~~~~~~~
+
+Tools are domain-specific functions that allow agents to interact with
+external systems. They can invoke database queries, perform semantic
+search, or write structured outputs back into MongoDB.
+
+The code below shows how you can register a tool for the Failure Agent
+using the `MongoDB Node.js driver
+<https://www.mongodb.com/docs/drivers/node/current/>`__. In the example,
+this tool uses Vector Search to retrieve relevant sections from the
+machine's manuals.
+
+.. code-block:: javascript  
+   :copyable: true  
+  
+   export const retrieveManual = tool(  
+      async ({ query, n = 3 }) => {  
+         const dbConfig = {  
+            collection: "manuals",  
+            indexName: "default",  
+            textKey: ["text"],  
+            embeddingKey: "embedding",  
+            includeScore: true,  
+         };  
+         const result = await vectorSearch(query, dbConfig, n);  
+         return JSON.stringify(result);  
+      },  
+      {  
+         name: "retrieve_manual",  
+         description:  
+            "Retrieve the relevant manual for the alert via vector search.",  
+         schema: {  
+            type: "object",  
+            properties: {  
+               name: {  
+                  type: "string",  
+                  description: "Name of the tool for identification purposes",  
+                  enum: ["retrieve_manual"],  
+               },  
+               query: {  
+                  type: "string",  
+                  description: "The query to process",  
+               },  
+               n: {  
+                  type: "number",  
+                  description: "Number of results to return (optional, default 3)",  
+                  default: 3,  
+               },  
+            },  
+            required: ["name", "query"],  
+         },  
+      }  
+   );  
+  
+   export function getTools() {  
+      return [  
+         retrieveManual,  
+         retrieveWorkOrders,  
+         retrieveInterviews,  
+         generateIncidentReport,  
+      ];  
+   }  
+
+Each agent has its own toolkit, as shown in the following list:
+
+- **Failure Agent**
+  
+  - ``retrieveManual``: Searches manuals for troubleshooting steps.
+
+  - ``retrieveWorkOrders``: Looks up similar past repairs.
+
+  - ``retrieveInterviews``: Finds operator or technician notes on past
+    post-incident analyses.
+
+  - ``generateIncidentReport``: Creates an incident report and stores
+    it in MongoDB.
+
+- **Work Order Agent**
+
+  - ``retrieveWorkOrders``: References past work orders for guidance.
+
+  - ``generateWorkOrder``: Drafts a new order with estimated duration,
+    required skills, and materials.
+
+- **Planning Agent**
+
+  - ``checkInventoryAvailability``: Verifies if required parts are in
+    stock.
+
+  - ``checkStaffAvailability``: Finds technicians with the right skills.
+
+  - ``scheduleWorkOrder``: Books the task into the production calendar.
+
+You can also expand this toolset. For example, you can add new functions
+to reflect unique business processes or industry-specific needs.
+
+Agent Memory
+~~~~~~~~~~~~
+
+For agents to work effectively, they need their own `memory
+<https://langchain-ai.github.io/langgraphjs/concepts/memory/>`__ to
+store context and reasoning steps. This allows them to:
+
+- Maintain continuity within a task. 
+
+- Recall previous steps. 
+
+- Build context across interactions.
+
+In this architecture, MongoDB Atlas stores memory. Memory can be:
+
+- **Short-term memory:** Stores the intermediate state as the agent
+  moves through the state graph. This ensures that if a process is
+  interrupted, it can resume without losing progress. In this solution,
+  two collections store this type of memory:
+  
+  - ``checkpoints``: Captures the general state of an agent at each
+    step.
+    
+  - ``checkpoints_writes``: Logs the tool calls and outputs.
+
+- **Long-term memory:** MongoDB stores historical data that informs
+  current decisions. Agents retrieve this data through vector search,
+  ensuring that historical context drives reasoning. Collections
+  include:
+
+  - ``interviews``: Technician post-incident interviews and notes.
+
+  - ``workorders``: Historical work order records.
+
+  - ``incident_reports``: Prior incident summaries and findings.
+
+To `configure short-term memory
+<https://www.mongodb.com/docs/atlas/ai-integrations/langgraph-js/#mongodb-langgraph-checkpointer--short-term-memory->`__,
+you can use the ``MongoDBSaver`` class from LangGraph, which writes
+agent progress to the ``checkpoints`` and ``checkpoints_writes``
+collections as follows:
+
+.. code-block:: javascript  
+   :copyable: true  
+
+   import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
+   import { MongoClient } from "mongodb";
+
+   const client = new MongoClient("<connection-string>");
+   const checkpointer = new MongoDBSaver({
+      client: client,
+      dbName: "<database-name>",
+      checkpointCollectionName: "checkpoints",
+      checkpointWritesCollectionName: "checkpoints_writes"
+   });
+
+This setup enables memory and fault-tolerance capabilities for your
+agents.
+
+Agent State Graph
+~~~~~~~~~~~~~~~~~
+
+A state graph is a framework for modeling workflows as nodes and edges.
+Each node represents a reasoning step, tool call, or checkpoint. Edges
+define transitions between these steps. State graphs make workflows
+explicit, repeatable, and resilient.
+
+In this solution, LangGraph powers the state graph to coordinate agents
+and their tools. Nodes represent specialized agents or supervisor
+decisions, while edges define their execution order.
+
+This architecture ensures that:
+
+- Agents can branch based on outcomes. For example, missing versus
+  available parts.
+
+- Each step writes to memory and reads from it automatically.
+
+- The Supervisor Agent orchestrates specialized agents to solve tasks
+  collaboratively.
+
+The code below builds a state graph that connects the supervisor, the
+specialized agents, and the ``checkpointer`` used for short-term memory
+from the previous code example.
+
+.. code-block:: javascript  
+   :copyable: true  
+
+   const graph = new StateGraph(StateAnnotation)
+      .addNode("supervisor", callModel)
+      .addNode("failure", agentNode(failureGraph, "failure"))
+      .addNode("workorder", agentNode(workorderGraph, "workorder"))
+      .addNode("planning", agentNode(planningGraph, "planning"))
+      .addEdge("__start__", "supervisor")
+      .addConditionalEdges("supervisor", shouldContinue)
+      .addEdge("failure", "supervisor")
+      .addEdge("workorder", "supervisor")
+      .addEdge("planning", "supervisor")
+      .compile({ checkpointer });
+
+With this graph setup, you can trace, resume and debug the entire
+multi-agent workflow. 
+
+End-to-End Workflow
+~~~~~~~~~~~~~~~~~~~
+
+Bringing it all together, here’s how the agents collaborate:
+
+1. The Supervisor Agent receives an alert, logs it via the state graph,
+   and passes it to the Failure Agent.
+
+#. The Failure Agent uses tools to query manuals, work orders, and
+   interviews, referencing long-term memory for context. Then, it
+   generates an incident report.
+
+#. The Work Order Agent drafts a new work order with required materials,
+   skills, and estimated duration. It uses memory to apply the correct
+   requirements and tools for the output.
+
+#. A checkpoint validates the order before execution.
+
+#. The Planning Agent uses its own toolset and memory to check
+   parts availability, staff schedules, and calendar conflicts. Then, it
+   schedules the job.
+
+#. When all the agents have completed their tasks, the Supervisor Agent
+   updates the state graph to track workflow completion.   
+
+You can expand and customize this workflow with new agents, such as:
+
+- A procurement agent to automatically place part orders.
+
+- A compliance agent to prepare regulatory reports.
+
+- A shift optimization agent to balance technician workloads.
+
+Because tools, memory, and graph orchestration are modular, you can add
+new agents without disrupting existing ones.
+
+Data Model Approach
+-------------------
+
+A multi-agent predictive maintenance system relies on a wide range of
+data, including: 
+
+- High-frequency sensor readings 
+
+- Agent memory 
+
+- Technical manuals
+
+- Human interview notes 
+
+- Staff schedules 
+
+- Inventory records 
+
+MongoDB’s flexible document model makes it easy to operationalize this
+data in a single solution. In MongoDB Atlas you can store: 
+
+- Time series data for telemetry at millisecond granularity.
+
+- Vector embeddings for semantic search across manuals and work orders.
+
+- Metadata to unify context, such as factory ID, machine ID, or
+  production line.
+
+- Operational data for schedules, calendars, and inventory.
+
+Main Collections
+~~~~~~~~~~~~~~~~
+
+This solution uses the following collections to store different data:
+
+- ``telemetry``: Machine sensor readings from the shop floor, stored as
+  a `time series collection
+  <https://www.mongodb.com/docs/manual/core/timeseries-collections/>`__
+  for efficient ingestion, compression, and querying. Time series
+  collections make it efficient to store and query millions of readings.
+  They also preserve contextual metadata like machine, factory, or
+  production line identifiers.
+
+- ``alerts``: Predicted issues or anomalies that trigger the workflow
+  and notify the Supervisor Agent.
+
+- ``incident_reports``: Root cause analysis results generated by the
+  Failure Agent. The results aggregate context from telemetry, manuals, and
+  interviews.
+
+- ``work_orders``: Drafted by the Work Order Agent. Includes task
+  descriptions, estimated duration, required skills, and materials.
+
+- ``manuals``: Machine manuals stored with vector embeddings for
+  semantic retrieval by agents.
+
+- ``interviews``: Post-incident notes and conversations with staff,
+  providing unstructured but valuable context.
+
+- ``maintenance_staff``: Staff rosters, shift schedules, and skill
+  specializations used by the Planning Agent.
+
+- ``inventory``: Spare part availability, cost, and lead time. Critical
+  for scheduling and procurement decisions.
+
+- ``production_calendar``: Production tasks, priority levels, and
+  acceptable delays. Used to identify the least disruptive maintenance
+  window.
+
+- ``checkpoints`` and ``checkpoints_writes``: Capture the agent’s
+  state, and logs for tool calls and outputs.
+
+For an example of a sample document in the ``telemetry`` collection, see
+the following code block:
+
+.. code-block:: json  
+   :copyable: true  
+
+   {
+      "ts": { 
+         "$date": "2025-08-25T08:53:06.052Z" 
+      },
+      "metadata": {
+         "factory_id": "qro_fact_1",
+         "machine_id": 1,
+         "prod_line_id": 1
+      },
+      "_id": { 
+         "$oid": "68ac24720d4c459561c42a4e" 
+      },
+      "vibration": 0.209,
+      "temperature": 70.69
+   }
+
+The time series document includes the following fields:
+
+- ``ts`` contains the reading's timestamp.
+
+- ``metadata`` incorporates contextual tags for the factory, machine,
+  and production line.
+
+- ``vibration`` and ``temperature`` consist of numeric sensor values.
+
+Build the Solution
+------------------
+
+To see the full demo implementation for this solution, see its `GitHub
+repository
+<https://github.com/mongodb-industry-solutions/multiagent-predictive-maintenance>`__.
+Follow the repository's ``README``, which covers the following steps in
+more detail.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set up and install the prerequisites
+
+      Install Node.js 18+, configure a MongoDB Atlas cluster, and set up
+      access to Amazon Bedrock.
+
+      Clone the repository and install its dependencies:
+
+      .. code-block:: sh  
+         :copyable: true  
+
+         git clone git@github.com:mongodb-industry-solutions/multiagent-predictive-maintenance.git
+         cd multiagent-predictive-maintenance
+         npm install
+
+      Copy the environment variables with the following command:
+
+      .. code-block:: sh  
+         :copyable: true  
+
+         cp .env.example .env
+
+      Then, update the values with your credentials.
+
+   .. step:: Populate the demo database
+
+      Run the seed script to populate MongoDB with ``telemetry``,
+      ``manuals``, ``work_orders``, ``inventories``, and other
+      collections the agents rely on:
+
+      .. code-block:: sh  
+         :copyable: true  
+
+         npm run seed
+
+   .. step:: Launch the application
+
+      Start the application in development mode:
+
+      .. code-block:: javascript  
+         :copyable: true  
+
+         npm run dev
+
+      Or run it with Docker:
+
+      .. code-block:: javascript  
+         :copyable: true  
+
+         docker-compose up
+
+      Then open ``http://localhost:8080`` to interact with the demo UI.
+
+   .. step:: Customize and extend
+
+      Add your own content, such as manuals or interviews, into MongoDB,
+      then generate embeddings:
+
+      .. code-block:: javascript  
+         :copyable: true  
+
+         npm run embed
+      
+      Adjust the production calendar with the following code:
+
+      .. code-block:: javascript  
+         :copyable: true  
+
+         npm run generate_calendar <months>
+   
+      You can add new agents to the solution by duplicating a folder
+      from the ``agents`` directory, configuring the ``tools.js`` and
+      ``graph.js`` files in the folder, then registering the agent in
+      ``agents/config.js``.
+
+Key Learnings
+-------------
+
+- **Leverage agentic AI:** Multi-agent systems can monitor, reason, and
+  execute tasks autonomously, streamlining workflows and increasing
+  efficiency.
+
+- **Build a modern data foundation:** High-performance, low-latency, and
+  scalable data infrastructure is essential to effectively operate AI
+  agents at scale.
+
+- **Integrate IoT and AI seamlessly:** MongoDB Atlas provides a unified
+  data layer for telemetry, vector embeddings, agent memory and
+  retrieval. This enables reliable, secure, and flexible agentic
+  workflows in industrial environments.
+
+- **Act on predictions quickly:** Turn insights into automated action to
+  drive operational excellence.
+
+Authors
+-------
+
+- Humza Akthar, MongoDB
+
+- Raphael Schor, MongoDB
+
+- Rami Pinto, MongoDB
+
+Learn More
+----------
+
+- To explore multi-agent AI concepts in predictive maintenance, read the
+  `Unlock Multi-Agent AI for Predictive Maintenance blog
+  <https://www.mongodb.com/company/blog/innovation/unlock-multi-agent-ai-predictive-maintenance>`__.
+
+- To discover how the solution works, watch this `YouTube video <https://www.youtube.com/watch?v=V7UEFPFrSC0>`__.
+
+- To set up this demo, visit the `GitHub repository <https://github.com/mongodb-industry-solutions/multiagent-predictive-maintenance>`__.
+
+- To learn how MongoDB supports manufacturing and automotive
+  applications, visit `MongoDB for Manufacturing & Mobility <https://www.mongodb.com/solutions/industries/manufacturing>`__.
+
+- To discover how to build AI-powered applications with MongoDB, visit
+  `MongoDB for Artificial Intelligence <https://www.mongodb.com/solutions/use-cases/artificial-intelligence>`__.   

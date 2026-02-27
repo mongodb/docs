@@ -1,0 +1,238 @@
+.. _arch-center-is-pdf-search:
+
+==========================================================
+Build a PDF Search Application with Vector Search and LLMs
+==========================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta:: 
+   :keywords: pdf, vector search
+   :description: Streamline operations and claims processing with powerful PDF search capabilities
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Streamline operations and claims processing with powerful PDF search
+capabilities by integrating MongoDB Atlas Vector Search,
+Superduper.io, and LLMs.
+
+**Use cases:** `Gen AI
+<https://www.mongodb.com/use-cases/artificial-intelligence>`__
+
+**Industries:** `Insurance
+<https://www.mongodb.com/industries/insurance>`__,
+`Financial Services
+<https://www.mongodb.com/industries/financial-services>`__,
+`Manufacturing and Mobility
+<https://www.mongodb.com/industries/manufacturing>`__,
+`Retail <https://www.mongodb.com/industries/retail>`__
+
+**Products:** `MongoDB Atlas <http://mongodb.com/atlas>`__, 
+`MongoDB Atlas Vector Search <https://www.mongodb.com/products/platform/atlas-vector-search>`__
+
+**Partners:** `Superduper.io <http://superduper.io/>`__, 
+`FastAPI <https://www.mongodb.com/developer/technologies/fastapi>`__
+
+Solution Overview
+-----------------
+
+Insurance firms rely heavily on data processing. To make investment
+decisions or handle claims, they leverage vast amounts of mostly
+unstructured data. Underwriters and claims adjusters need to comb
+through numerous pages of guidelines, contracts, and reports, typically
+in PDF format. Manually finding and reviewing every piece of information is
+time-consuming and can easily lead to expensive mistakes, such as
+incorrect risk estimations.
+
+`Retrieval-augmented generation
+<https://www.mongodb.com/resources/basics/retrieval-augmented-generation>`__
+(RAG) applications are a game changer for insurance companies, enabling
+them to harness the power of unstructured data while promoting
+accessibility and flexibility. They are especially helpful for PDFs, which are
+common yet difficult to search. RAG makes PDF search more efficient and 
+accurate. Now, users can type a question in natural language 
+and the application will sift through the company data, provide an answer, 
+summarize the content of the documents, and indicate the source of the 
+information, including the page and paragraph where it was found.
+
+In this `GitHub repo
+<https://github.com/mongodb-industry-solutions/Insurance-PDF-Search>`__,
+you will find detailed, step-by-step instructions on how to build a
+PDF search application that combines MongoDB, Superduper, and LLMs. Our use
+case for this solution focuses on a claims adjuster or an underwriter
+handling a specific case. Analyzing a PDF of guidelines that is associated
+with a specific customer helps determine the loss amount in the event of an
+accident, or the new premium in the case of a policy renewal. The application
+answers questions and displays the relevant sections of
+the document.
+
+Combining `Atlas Vector Search
+<https://www.mongodb.com/products/platform/atlas-vector-search>`__ and
+`LLMs
+<https://www.mongodb.com/resources/basics/large-language-models>`__ to
+build RAG apps can directly impact the bottom line of an insurance
+company. To try our semantic search tool, visit the 
+:ref:`Atlas Vector Search Quick Start <vector-search-quick-start>`.
+
+.. video:: https://youtu.be/_w9okXmzTJw
+
+Reference Architecture
+----------------------
+
+Combining MongoDB and Superduper allows you to build an information
+retrieval system with ease. The process involves the following steps:
+
+#. The user adds the PDFs that need to be searched.
+    
+#. A script scans the PDFs, creates the chunks, and vectorizes them (see
+   Figure 1). To ensure that you don't lose transitional data between
+   chunks, the script uses the sliding window methodology to produce
+   overlapping chunks. 
+
+#. Vectors and chunk metadata are stored in MongoDB, and a
+   `Vector Search
+   <https://www.mongodb.com/products/platform/atlas-vector-search>`__
+   index is created (see Figure 2).
+   
+#. The PDFs are now ready to be queried. The user selects a customer,
+   asks a question, and the system returns an answer, displaying the
+   page and paragraph where the information was found and highlighting
+   the specific section with a red frame (see Figure 2).
+
+.. figure:: /includes/images/industry-solutions/is-pdf-search-fig1.svg
+   :figwidth: 1200px
+   :alt: Figure 1: PDF chunking, embedding creation, and storage, orchestrated with Superduper.io
+
+   Figure 1. PDF chunking, embedding creation, and storage, orchestrated with Superduper.io
+
+Each customer has a guidelines PDF associated with their account based
+on country of residency. When the user selects a customer and asks a
+question, the system runs a vector search query only on that particular
+document, seamlessly filtering out the non-relevant ones. This is made
+possible by the :ref:`pre-filtering <vectorSearch-agg-pipeline-filter>`
+field included in the index and the search query (see code snippets below). 
+
+Atlas Vector Search also takes advantage of MongoDB's new `Search Nodes
+<https://www.mongodb.com/blog/post/search-nodes-now-public-preview-performance-scale-dedicated-infrastructure>`__
+dedicated architecture, enabling better optimization for the right level
+of resourcing for specific workload needs. Search Nodes provide
+dedicated infrastructure for `Atlas Search
+<https://www.mongodb.com/products/platform/atlas-search>`__ and Vector
+Search workloads, allowing you to optimize compute resources and fully
+scale search needs independent of the database. Search Nodes provide 
+workload isolation, higher availability, and the ability to better 
+optimize resource usage.
+
+.. figure:: /includes/images/industry-solutions/is-pdf-search-fig2.svg
+   :figwidth: 1200px
+   :alt: Figure 2: PDF querying flow, orchestrated with Superduper.io
+
+   Figure 2. PDF querying flow, orchestrated with Superduper.io
+
+.. code-block:: javascript
+
+   {
+      "fields": [
+         {
+            "numDimensions": 1536,
+            "path": "_outputs.elements.text-embedding.0",
+            "similarity": "cosine",
+            "type": "vector"
+         },
+         {
+            "path": "_outputs.elements.chunk.0.source_elements.metadata.filename",
+            "type": "filter"
+         }
+      ]
+   }
+
+.. code-block:: javascript
+
+   vector_query = [
+      {
+         "$vectorSearch": {  
+            'index': INDEX_NAME,
+            'path': "_outputs.elements.text-embedding.0",
+            'queryVector': query_embedding,
+            'numCandidates': vector_search_top_k,
+            'limit': vector_search_top_k,
+            'filter': {'_outputs.elements.chunk.0.source_elements.metadata.filename': filename}
+         }
+      },
+      {
+         "$project": {
+            "_outputs.elements.text-embedding.0": 0,
+            "score": { "$meta": "vectorSearchScore" }
+         }
+      }
+    ]
+
+Superduper.io
+-------------
+
+`Superduper.io <https://www.superduper.io/>`__ is an open-source Python
+framework for integrating AI models and workflows directly with and
+across major databases for more flexible and scalable custom enterprise
+AI solutions. It enables developers to build, deploy, and manage AI on
+their existing infrastructure and data while using their preferred
+tools, eliminating data migration and duplication.
+
+**With Superduper.io, developers can:**
+
+- Bring AI to their databases, which eliminates data pipelines and
+  minimizes engineering efforts, time to production, and
+  computation resources.
+
+- Implement AI workflows with any AI models and APIs on any type of
+  data.
+
+- Safeguard data by switching from APIs to hosting and fine-tuning their
+  own models on their own infrastructure.
+
+- Switch from embedding models to other API providers. They can
+  also host their models on HuggingFace or other platforms.
+
+Superduper.io provides an array of sample use cases and notebooks that
+developers can use to get started, including vector search with MongoDB,
+embedding generation, multimodal search, RAG, transfer learning, and
+many more. 
+
+Build the Solution
+------------------
+
+Build the solution following the instructions in this `Github repo
+<https://github.com/mongodb-industry-solutions/Insurance-PDF-Search/tree/main>`__.
+The solution is composed of two steps:
+
+#. The initialization script breaks down the PDFs into chunks and then
+   turns them into vector embeddings.
+#. The querying step allows the user to interrogate the documents.
+
+
+Key Learnings
+-------------
+
+- **Embeddings can use different models and deployment options:** You
+  can deploy a model locally if your data needs to remain on the
+  servers. Otherwise, you can call an API and get your vector embeddings
+  back, as explained in :ref:`this <create-vector-embeddings>`
+  tutorial. You can use `Voyage AI
+  <https://www.mongodb.com/blog/post/redefining-database-ai-why-mongodb-acquired-voyage-ai>`__
+  or open-source models. When building your system, consider privacy and
+  security requirements.
+
+- **Superduper integrates AI models and workflow:** Superduper is the framework 
+  that provides a simple and standard interface to interact with Vector Search and LLMs.
+
+Authors
+-------
+
+- Luca Napoli, Industry Solutions, MongoDB
+- Clarence Ondieki, Solutions Architect, MongoDB
+- Pedro Bereilh, Industry Solutions, MongoDB
