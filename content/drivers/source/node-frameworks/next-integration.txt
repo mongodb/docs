@@ -1,0 +1,353 @@
+.. _node-next-integration:
+
+==============================
+Integrate Next.js with MongoDB
+==============================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: node, react, next, web app, tutorial, quick start
+   :description: Learn how to build a simple full stack application that integrates Next.js with MongoDB and creates some basic API routes and React components to display data.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to create a **Next.js** web application
+that integrates with MongoDB. Next.js is a React framework that provides
+server-side rendering, static site generation, and API routes in a single
+application. The application in this tutorial consists of the following
+layers:
+
+- **Database layer**: MongoDB provides data storage and retrieval.
+- **API layer**: Next.js API routes handle server-side logic and database operations.
+- **Presentation layer**: React components implement the user interface and front-end interactions.
+
+Why Use MongoDB in a Next.js Application?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Next.js is a full-stack React framework that enables you to build both
+the front end and back end of your application in a single codebase. By
+integrating MongoDB with Next.js, you can leverage the following benefits:
+
+- **Unified development**: Write both client and server code in JavaScript/TypeScript
+- **Server-side rendering**: Fetch data from MongoDB during server-side rendering for improved SEO and performance
+- **API routes**: Create serverless API endpoints that connect directly to MongoDB
+- **Flexible data model**: MongoDB's document model aligns naturally with JavaScript objects and React component state
+
+Next.js with MongoDB is well-suited for applications that require dynamic
+content, user authentication, real-time updates, and complex data relationships.
+
+.. _node-next-qs-tutorial:
+
+Quick Start Tutorial
+--------------------
+
+This tutorial shows you how to build a web application by using Next.js
+and MongoDB. The application accesses sample restaurant data, queries
+the data, and displays the results on a locally hosted site. The tutorial
+also includes instructions for connecting to a MongoDB cluster hosted
+on MongoDB Atlas and accessing and displaying data from your database.
+
+.. tip::
+
+   If you prefer to connect to MongoDB by using the Node.js driver without
+   Next.js, see the :driver:`Get Started with the Node.js Driver </node/current/get-started/>`
+   guide.
+
+.. _node-next-set-up:
+
+Set Up Your Project
+~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in this section to install the project dependencies,
+create an Atlas cluster, and set up the application directories.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Verify the prerequisites
+
+      To create the application, you need the following
+      installed in your development environment:
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Prerequisite
+           - Notes
+
+         * - `Node.js <https://nodejs.org/>`__
+           - Download either the **Latest LTS** or **Latest Release** version.
+
+         * - Code editor
+           - This tutorial uses `Visual Studio Code <https://code.visualstudio.com/>`__, but you can use the editor
+             of your choice.
+
+         * - Terminal app or shell
+           - For MacOS users, use Terminal or a
+             similar app. For Windows users, use PowerShell.
+
+   .. step:: Create a MongoDB Atlas cluster
+
+      MongoDB Atlas is a fully managed cloud database service that hosts your
+      MongoDB deployments. If you do not have a MongoDB deployment, you can create a MongoDB
+      cluster for free (no credit card required) by completing the
+      `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=nodejs>`__
+      tutorial. The MongoDB Get Started tutorial also demonstrates how to load sample
+      datasets into your cluster, including the ``sample_restaurants`` database
+      that is used in this tutorial.
+
+      To connect to your MongoDB cluster, you must use a **connection URI**. To
+      learn how to retrieve your connection URI, see the `Add your connection string
+      <https://www.mongodb.com/docs/get-started/?language=nodejs#add-your-connection-string>`__
+      section of the MongoDB Get Started tutorial.
+
+      .. important::
+
+         Save your connection string in a secure location.
+
+   .. step:: Create your Next.js application
+
+      Run the following command in your terminal to create a new Next.js
+      application.
+
+      .. code-block:: bash
+
+         npx create-next-app@latest next-quickstart
+
+      The command prompts you to select some configuration options for
+      your project. When prompted, select the option to use the recommended defaults.
+
+      After running the command, navigate to the project directory:
+
+      .. code-block:: bash
+
+         cd next-quickstart
+
+   .. step:: Install the MongoDB driver
+
+      Run the following command to install the {+node-driver-long+}:
+
+      .. code-block:: bash
+
+         npm install mongodb
+
+      This command installs the {+node-driver-short+}, which allows your Next.js
+      application to connect to and interact with MongoDB.
+
+Configure the Database Connection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After you set up the project structure and dependencies, follow
+the steps in this section to configure your database connection.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Set environment variables
+
+      In the ``next-quickstart`` directory, create a ``.env.local`` file that stores
+      your MongoDB connection URI:
+
+      .. code-block:: none
+
+         MONGODB_URI=<connection URI>
+
+      Replace the ``<connection URI>`` placeholder with the connection
+      URI that you saved in a :ref:`previous step <node-next-set-up>`.
+
+      .. note::
+
+         Next.js automatically loads environment variables from ``.env.local``
+         files. Variables prefixed with ``NEXT_PUBLIC_`` are exposed to the
+         browser, while other variables are only available on the server.
+
+   .. step:: Create the database connection utility
+
+      In the root directory, create a new directory called ``lib``.
+      Add a new file named ``mongodb.ts`` to this directory and paste
+      the following code:
+
+      .. literalinclude:: /includes/node-frameworks/next/mongodb.ts
+         :caption: next-quickstart/lib/mongodb.ts
+         :language: ts
+
+      This file creates a reusable MongoDB client connection that is shared
+      across your application. The connection is cached to prevent creating
+      multiple connections during development when Next.js hot-reloads your code.
+
+Create API Routes
+~~~~~~~~~~~~~~~~~
+
+After you set up the database connection, follow the steps in this
+section to create API routes that query MongoDB and return restaurant data.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create the restaurant API route
+
+      In the ``app`` directory, create a new
+      ``api/restaurants`` directory. Add a new file named ``route.ts`` to this
+      directory and paste the following code:
+
+      .. literalinclude:: /includes/node-frameworks/next/api-restaurants-route.ts
+         :caption: next-quickstart/app/api/restaurants/route.ts
+         :language: ts
+
+      This file defines a ``GET`` endpoint at ``/api/restaurants`` that
+      retrieves all restaurants from the ``sample_restaurants`` database.
+
+   .. step:: Create the browse API route
+
+      In the ``app/api`` directory, create a new directory called
+      ``browse``. Create a new file named ``route.ts`` in this directory
+      and paste the following code:
+
+      .. literalinclude:: /includes/node-frameworks/next/api-browse-route.ts
+         :caption: next-quickstart/app/api/browse/route.ts
+         :language: ts
+
+      This file defines a ``GET`` endpoint at ``/api/browse`` that retrieves
+      restaurants matching specific query criteria. The query filters for
+      restaurants in Queens that contain the word ``"Moon"`` in the name.
+
+Configure the Front End
+~~~~~~~~~~~~~~~~~~~~~~~
+
+After you set up the API routes, follow the steps in this section to
+create the React components that display the restaurant data.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create the Navbar component
+
+      In the root directory, create a new directory called ``components``.
+      Add a new file named ``Navbar.tsx`` to this directory and paste
+      the following code:
+
+      .. literalinclude:: /includes/node-frameworks/next/Navbar.tsx
+         :caption: next-quickstart/components/Navbar.tsx
+         :language: js
+
+      This component creates a navigation bar with links to view all
+      restaurants and filtered restaurants.
+
+   .. step:: Create the RestaurantList component
+
+      In the ``components`` directory, create a new file named
+      ``RestaurantList.tsx`` and paste the following code:
+
+      .. literalinclude:: /includes/node-frameworks/next/RestaurantList.tsx
+         :caption: next-quickstart/components/RestaurantList.tsx
+         :language: js
+
+      This component fetches and displays restaurant data from the API
+      routes. It uses React hooks to manage state and fetch data when
+      the component mounts.
+
+   .. step:: Update the home page
+
+      Navigate to the ``app/page.tsx`` file and replace the contents
+      with the following code:
+
+      .. literalinclude:: /includes/node-frameworks/next/page.tsx
+         :caption: next-quickstart/app/page.tsx
+         :language: js
+
+      This file renders the home page, which displays all restaurants
+      from the database.
+
+   .. step:: Create the browse page
+
+      In the ``app`` directory, create a new directory called ``browse``.
+      Add a new file named ``page.tsx`` to this directory and paste the
+      following code:
+
+      .. literalinclude:: /includes/node-frameworks/next/browse-page.tsx
+         :caption: next-quickstart/app/browse/page.tsx
+         :language: js
+
+      This file renders the browse page, which displays filtered restaurants
+      based on the query criteria.
+
+   .. step:: Update the layout
+
+      Navigate to the ``app/layout.tsx`` file and replace the contents
+      with the following code:
+
+      .. literalinclude:: /includes/node-frameworks/next/layout.tsx
+         :caption: next-quickstart/app/layout.tsx
+         :language: js
+
+      This file defines the root layout for your application, which includes
+      the navigation bar and wraps all pages.
+
+Run Your Application
+~~~~~~~~~~~~~~~~~~~~
+
+Finally, follow the steps in this section to run your application and
+view the rendered restaurant data.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Start the development server
+
+      Navigate to the ``next-quickstart`` directory and run
+      the following command to start the Next.js development server:
+
+      .. code-block:: bash
+
+         npm run dev
+
+      If successful, this command outputs the following information:
+
+      .. code-block:: bash
+         :copyable: false
+
+         ▲ Next.js 15.1.6
+         - Local:        http://localhost:3000
+
+         ✓ Starting...
+         ✓ Ready in 2.3s
+
+   .. step:: Open the application site
+
+      Open the http://localhost:3000/ URL. The initial
+      landing page displays a list of all restaurants in the ``sample_restaurants.restaurants``
+      collection:
+
+      .. figure:: /figures/next-landing.png
+         :alt: The landing page that displays all restaurants
+
+      Click the :guilabel:`Filtered Restaurants` link in the navigation bar
+      to view the restaurants that match the ``name`` and ``borough`` field query:
+
+      .. figure:: /figures/next-filtered.png
+         :alt: The web page that displays the matching restaurants
+
+Congratulations on completing the Quick Start tutorial!
+
+After you complete these steps, you have a Next.js web application that
+connects to your MongoDB deployment, runs queries on sample restaurant data,
+and renders the results on a locally hosted website.
+
+Additional Resources
+--------------------
+
+To learn more about Next.js and MongoDB, view the following resources:
+
+- :driver:`Node.js driver </node/current/>` documentation
+- `Next.js <https://nextjs.org/docs>`__ documentation
+- `Next.js API Routes <https://nextjs.org/docs/app/building-your-application/routing/route-handlers>`__ documentation

@@ -215,6 +215,11 @@ const tocData: TocItem[] = [
             contentSite: 'drivers',
             url: '/docs/drivers/node-frameworks/tanstack/',
           },
+          {
+            label: 'Next.js Integration',
+            contentSite: 'drivers',
+            url: '/docs/drivers/node-frameworks/next-integration/',
+          },
         ],
       },
       {
