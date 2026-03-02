@@ -35,7 +35,7 @@ Compatibility
 Syntax
 ------
 
-.. versionchanged:: 8.0
+.. versionchanged:: 8.3
 
 .. code-block:: javascript
 
@@ -47,6 +47,7 @@ Syntax
                type: <type expression>,
                subtype: <int>
             },
+            base: <expression>,       // new in 8.3
             format: <string>,
             onError: <expression>,
             onNull: <expression>
@@ -160,7 +161,25 @@ The :expression:`$convert` takes a document with the following fields:
    * - ``byteOrder``
      - Optional
      - Specifies big or little endian byte ordering for conversions between ``binData``
-       and numeric types. If unspecified, the default is little endian byte ordering. 
+       and numeric types. If unspecified, the default is little endian byte
+       ordering. 
+       
+   * - ``base``
+     - Optional 
+     - Integer base for conversions between string and numeric types.
+       
+       - If ``null``, :expression:`$convert` behaves as if you omitted
+         base.
+         
+       - If specified, MongoDB interprets the value in the chosen base
+         when converting between strings and the numeric types
+         ``int``, ``long``, ``double``, and ``decimal``. For other
+         conversions, MongoDB validates the value of ``base`` but
+         otherwise ignores it.
+
+       - Base must be ``2``, ``8``, ``10``, or ``16``.
+
+       .. versionadded:: 8.3
 
    * - ``format``
      - Required when converting to or from ``binData`` and string
@@ -659,14 +678,14 @@ integer:
    * - String
      - Returns the numerical value of the string as an integer.
 
-       The string value must be a base\ :sub:`10` integer (e.g.
-       ``"-5"``, ``"123456"``) and fall within the minimum and maximum
-       value for an integer.
+       If you omit ``base`` or set to ``null``, the string value must
+       be a valid base\ :sub:`10` integer and fall within the minimum
+       and maximum value for an integer.
 
-       You cannot convert a string value of a float or decimal or
-       non-base\ :sub:`10` number (e.g. ``"-5.0"``, ``"0x6400"``) or a
-       value that falls outside the minimum and maximum value for an
-       integer.
+       If you specify ``base``, the string must only contain digits
+       valid in that base. Prefixes, such as ``"0x"``, are not allowed.
+       The resulting integer must be within the minimum and maximum
+       value for an integer.
 
 The following table lists some conversion to integer examples:
 
@@ -824,11 +843,14 @@ decimal:
    * - String
      - Returns the numerical value of the string as a decimal.
 
-       The string value must be of a base\ :sub:`10` numeric value (e.g.
-       ``"-5.5"``, ``"123456"``).
+       If you omit ``base`` or set to ``null``, the string value must
+       be a valid base\ :sub:`10` decimal and fall within the
+       minimum and maximum value for a decimal.
 
-       You cannot convert a string value of a non-base\ :sub:`10`
-       number (e.g. ``"0x6400"``)
+       If you specify ``base``, the string must only contain digits
+       valid in that base. Prefixes, such as ``"0x"``, are not allowed.
+       The resulting decimal must be within the minimum and maximum
+       value for a decimal.
 
    * - Date
 
@@ -955,13 +977,14 @@ double:
    * - String
      - Returns the numerical value of the string as a double.
 
-       The string value must be of a base\ :sub:`10` numeric value (e.g.
-       ``"-5.5"``, ``"123456"``) and fall within the minimum and
-       maximum value for a double.
+       If you omit ``base`` or set to ``null``, the string value must
+       be a valid base\ :sub:`10` double and fall within the
+       minimum and maximum value for a double.
 
-       You cannot convert a string value of a non-base\ :sub:`10`
-       number (e.g. ``"0x6400"``) or a value that falls
-       outside the minimum and maximum value for a double.
+       If you specify ``base``, the string must only contain digits
+       valid in that base. Prefixes, such as ``"0x"``, are not allowed.
+       The resulting double must be within the minimum and maximum
+       value for a double.
 
    * - Date
      - Returns the number of milliseconds since the epoch that
@@ -1123,14 +1146,14 @@ long:
    * - String
      - Returns the numerical value of the string.
 
-       The string value must be of a base\ :sub:`10` long (e.g.
-       ``"-5"``, ``"123456"``) and fall within the minimum and maximum
-       value for a long.
+       If you omit ``base`` or set to ``null``, the string value must
+       be a valid base\ :sub:`10` long and fall within the
+       minimum and maximum value for a long.
 
-       You cannot convert a string value of a float or decimal or
-       non-base\ :sub:`10` number (e.g. ``"-5.0"``, ``"0x6400"``) or a
-       value that falls outside the minimum and maximum value
-       for a long.
+       If you specify ``base``, the string must only contain digits
+       valid in that base. Prefixes, such as ``"0x"``, are not allowed.
+       The resulting long must be within the minimum and maximum
+       value for a long.
 
    * - Date
      - Converts the Date into the number of milliseconds since the
@@ -1461,6 +1484,14 @@ Convert to String
 ~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/convert-string-types.rst
+
+.. note::
+
+   When you specify ``base`` and the ``input`` is a numeric type,
+   :expression:`$convert` returns the string representation of the
+   integer value in that base. Base conversion for strings is only
+   supported for integer values, otherwise :expression:`$convert`
+   returns a conversion error unless you specify ``onError``.
         
 The following table lists some conversion to string examples:
 
@@ -1538,13 +1569,66 @@ The following table lists some conversion to string examples:
 
      - 'hn3f'
 
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: 10.5,
+             to: "string",
+             base: 2,
+             onError: "invalid"
+          }
+
+     - "invalid"
+
 .. seealso::
 
    - :expression:`$toString` operator
    - :expression:`$dateToString`
 
-Example
--------
+Examples
+--------
+
+Base Conversion Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a collection ``examples`` with a placeholder document:
+
+.. code-block:: javascript
+
+   db.examples.insertOne({ _id: 1 })
+
+The following example converts between numbers and strings using
+different bases:
+
+.. code-block:: javascript
+
+   db.examples.aggregate([
+     {
+       $project: {
+         _id: 0,
+         bin:        { $convert: { input: 10,    to: "string", base: 2  } },
+         hex:        { $convert: { input: 10,    to: "string", base: 16 } },
+         intFromBin: { $convert: { input: "1010", to: "int",   base: 2  } },
+         intFromHex: { $convert: { input: "A",    to: "int",   base: 16 } }
+       }
+     }
+   ])
+
+This operation returns the following document:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     bin: "1010",
+     hex: "A",
+     intFromBin: 10,
+     intFromHex: 10
+   }
+
+Type Conversion Example
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Create a collection ``orders`` with the following documents:
 
