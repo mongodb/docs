@@ -12,7 +12,6 @@ const tocData: TocItem[] = [
     contentSite: 'atlas-architecture',
     url: '/docs/atlas/architecture/:version/partner-showcase/xlrt',
   },
-
 ];
 
 export default tocData;

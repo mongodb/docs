@@ -1026,6 +1026,11 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/method/sp.listStreamProcessors',
           },
           {
+            label: 'sp.listWorkspaceDefaults',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/method/sp.listWorkspaceDefaults',
+          },
+          {
             label: 'sp.process',
             contentSite: 'docs',
             url: '/docs/:version/reference/method/sp.process',
