@@ -232,6 +232,103 @@ Update Operations
 
 .. include:: /includes/fact-modify-change-event
 
+Comparison of Standard Updates and Pipeline Updates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In some scenarios, standard updates and :ref:`pipeline updates
+<updates-agg-pipeline>` produce different change events for the same
+logical change. If you switch between standard and pipeline update
+syntax, you may observe unexpected change events in your application.
+
+The following example shows how the different update syntaxes produce
+different change events when removing subfields from embedded documents.
+This is only one of many scenarios where change events differ based on
+the update syntax used.
+
+- **Standard Updates:** When subfields of an embedded object are removed,
+  the removed paths are always in the ``removedFields`` array.
+
+- **Pipeline Updates:** When subfields of an embedded object are
+  removed, the resulting change event shows the most concise description
+  of the update. For example:
+  
+  - If a small number of subfields are removed (for example, removing 1 out
+    of 3 subfields), the change is shown in the ``removedFields`` array.
+    
+  - If most subfields are removed (for example, removing 2 out of 3
+    subfields), the change is shown in the ``updatedFields`` array, and
+    the parent object reflects the new state.
+
+The following example script shows the different change events generated
+by standard updates and pipeline updates that remove subfields of an
+object:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      // 1. Setup collection and insert documents for test cases
+      
+      let contactMethods = {
+         email: "user@example.com",
+         phone: "555-0100",
+         mobile: "555-0101"
+      };
+      
+      db.cstest.drop();
+      db.cstest.insertMany([
+
+         // Case 1: Remove 1 of 3 subfields
+         { _id: "standard_remove_1_of_3", contactMethods: contactMethods },
+         { _id: "pipeline_remove_1_of_3", contactMethods: contactMethods },
+
+         // Case 2: Remove 2 of 3 subfields
+         { _id: "standard_remove_2_of_3", contactMethods: contactMethods },
+         { _id: "pipeline_remove_2_of_3", contactMethods: contactMethods }
+      ]);
+
+      // 2. Open a Change Stream
+      const csCursor = db.cstest.watch();
+
+      // --- CASE 1: Remove 1 out of 3 subfields ---
+      db.cstest.updateOne({ _id: "standard_remove_1_of_3" }, { $unset: { "contactMethods.email": "" } });
+      db.cstest.updateOne({ _id: "pipeline_remove_1_of_3" }, [{ $unset: "contactMethods.email" }]);
+
+      // --- CASE 2: Remove 2 out of 3 subfields ---
+      db.cstest.updateOne({ _id: "standard_remove_2_of_3" }, { $unset: { "contactMethods.email": "", "contactMethods.phone": "" } });
+      db.cstest.updateOne({ _id: "pipeline_remove_2_of_3" }, [{ $unset: ["contactMethods.email", "contactMethods.phone"] }]);
+
+      // 3. Print the change stream updateDescriptions
+      print("\n--- Change Stream Results ---");
+      for (let i = 0; i < 4; i++) {
+         if (csCursor.hasNext()) {
+            let event = csCursor.next();
+            print(`\nOperation: ${event.documentKey._id}`);
+            print(JSON.stringify(event.updateDescription));
+         }
+      }
+      csCursor.close(); 
+
+   .. output::
+      :language: javascript
+      :visible: false
+
+      --- Change Stream Results ---
+
+      Operation: standard_remove_1_of_3
+      {"updatedFields":{},"removedFields":["contactMethods.email"],"truncatedArrays":[]}
+
+      Operation: pipeline_remove_1_of_3
+      {"updatedFields":{},"removedFields":["contactMethods.email"],"truncatedArrays":[]}
+
+      Operation: standard_remove_2_of_3
+      {"updatedFields":{},"removedFields":["contactMethods.email","contactMethods.phone"],"truncatedArrays":[]}
+
+      Operation: pipeline_remove_2_of_3
+      {"updatedFields":{"contactMethods":{"mobile":"555-0101"}},"removedFields":[],"truncatedArrays":[]}
+
 Array Updates
 ~~~~~~~~~~~~~
 
@@ -468,4 +565,3 @@ version of the updated document. The ``fullDocument`` document may vary from
 the document at the time of the update operation depending on the number of
 interleaving majority-committed operations that occur between the update
 operation and the document lookup.
-
