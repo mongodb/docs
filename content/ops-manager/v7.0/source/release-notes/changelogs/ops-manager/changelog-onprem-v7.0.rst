@@ -1,3 +1,193 @@
+.. _opsmgr-server-7.0.23:
+
+|onprem| Server 7.0.23
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-02-17*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`107.0.23.8832-1 <mongodb-107.0.23.8832-1>`.
+- Supports :dbtools:`MongoDB Database Tools 100.14.1 </release-notes/database-tools-changelog/#100.14.1-changelog>`.
+- Updates JDK to `jdk-17.0.18+8 <https://adoptium.net/temurin/release-notes/?version=jdk-17.0.18+8>`__.
+- Adds support for `MongoDB Shell 2.6.0 <https://github.com/mongodb-js/mongosh/releases>`__.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes the following |cve|\s:  
+
+  - `CVE-2022-25883 <https://nvd.nist.gov/vuln/detail/CVE-2022-25883>`__
+  - `GHSA-c2qf-rxjj-qqgw <https://github.com/advisories/GHSA-c2qf-rxjj-qqgw>`__
+  - `CVE-2024-10491 <https://nvd.nist.gov/vuln/detail/CVE-2024-10491>`__
+  - `CVE-2024-51999 <https://nvd.nist.gov/vuln/detail/CVE-2024-51999>`__
+
+.. _opsmgr-server-7.0.22:
+
+|onprem| Server 7.0.22
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-01-15*
+
+Improvements
+~~~~~~~~~~~~
+
+- Releases {+mdbagent+} :ref:`107.0.22.8822-1 <mongodb-107.0.22.8822-1>`.
+- Adds code reformatting hooks for Go source files.
+- Re-enables the Agent to download {+mongosh+} on RHEL 9 s390x.
+- Makes deadcode report when an entry in ``ignored-deadcode.yml`` cannot be matched.
+- Upgrades the ``bc-fips`` library from version 1.0.2.5 to 1.0.2.6 and adds pre-flight 
+  validations for certificate compatibility.
+- Updates the Slack integration to leverage the latest supported Slack app.
+- Addresses a security finding by updating the ``qs`` package to version 6.14.1.
+
+Bug Fixes
+~~~~~~~~~
+
+- Validates that ``net.tls`` parameters are removed when TLS is disabled.
+- Introduces the following fixes related to certificate validation and security 
+  vulnerabilities:
+
+  - Adds a preflight check that scans the following customer certificates, when 
+    present, and prevents |onprem| from starting if any are affected by 
+    `CVE-2025-8885 <https://github.com/bcgit/bc-java/wiki/CVE%E2%80%902025%E2%80%908885>`__:
+
+    - ``mongodb.ssl.PEMKeyFile``
+    - ``mms.https.PEMKeyFile``
+    - ``mms.ldap.ssl.PEMKeyFile``
+    - ``mms.saml.ssl.PEMKeyFile``
+    - ``brs.queryable.pem``
+    - ``mongodb.ssl.CAFile``
+    - ``mms.https.CAFile``
+    - ``mms.ldap.ssl.CAFile``
+    - ``backup.kmip.server.ca.file``
+    - ``mms.saml.x509.cert``
+
+  - Fixes the following CVEs:
+
+    - `CVE-2025-8885 <https://github.com/bcgit/bc-java/wiki/CVE%E2%80%902025%E2%80%908885>`__
+    - `CVE-2024-29371 <https://nvd.nist.gov/vuln/detail/CVE-2024-29371>`__
+    - `CVE-2025-15284 <https://nvd.nist.gov/vuln/detail/CVE-2025-15284>`__
+    - `CVE-2025-58056 <https://nvd.nist.gov/vuln/detail/CVE-2025-58056>`__
+    - `CVE-2025-67735 <https://nvd.nist.gov/vuln/detail/CVE-2025-67735>`__
+    - `GHSA-fghv-69vj-qj49 <https://github.com/advisories/GHSA-fghv-69vj-qj49>`__
+
+.. _opsmgr-server-7.0.21:
+
+|onprem| Server 7.0.21
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-12-16*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`107.0.21.8817-1 <mongodb-107.0.21.8817-1>`.
+- Updates the Project Read Only role to grant access to the :guilabel:`Real Time` 
+  metrics tab.
+- Backports the ``mms-automation`` upgrade to go1.24 for ops-manager branches.
+- Improves log rotation to handle files with incorrect permissions and prevent the 
+  log rotator from becoming unresponsive.
+
+Bug Fixes
+~~~~~~~~~
+
+- Prevents agent versions from being sent back to |onprem| when custom agent 
+  download URLs are defined to reduce automation configuration size and prevent 
+  max-size errors.
+- Restores RHEL 7 RPM and tar.gz agent downloads in Ops Manager 7.0.
+- Fixes the following |cve|\s:
+
+  - `CVE-2025-11226 <https://nvd.nist.gov/vuln/detail/CVE-2025-11226>`__
+  - `GHSA-25qh-j22f-pwp8 <https://github.com/advisories/GHSA-25qh-j22f-pwp8>`__
+  - `CVE-2025-64718 <https://nvd.nist.gov/vuln/detail/CVE-2025-64718>`__
+
+.. _opsmgr-server-7.0.20:
+
+|onprem| Server 7.0.20
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-12-08*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`107.0.20.8807-1 <mongodb-107.0.20.8807-1>`.
+- Implements a :ref:`Telemetry <om-telemetry-overview>` report to collect and send 
+  |onprem| usage data to MongoDB, with controls to enable or disable telemetry 
+  through the |onprem| UI or API.
+- Addresses `CVE-2025-12383 <https://www.cve.org/CVERecord?id=CVE-2025-12383>`__ 
+  by updating the Jersey libraries to 3.1.10.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes an issue where disabling |ldap| authorization did not trigger a rolling 
+  restart, ensuring proper configuration changes.
+- Fixes a problem where requesting logs via the UI for |bson| files could 
+  generate unusable files due to |bson| size errors.
+- Fixes an issue that prevented modifying the custom configuration when the 
+  ``mms.mail.transport`` setting is present.
+- Fixes an issue where |ftdc| logs generated through the :guilabel:`Request Logs` button in the |mms| UI were 
+  corrupted and unusable, causing ``bsondump`` to fail with ``invalid BSONSize`` 
+  errors.
+
+.. _opsmgr-server-7.0.19:
+
+|onprem| Server 7.0.19
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2025-11-06*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`107.0.19.8805-1 <mongodb-107.0.19.8805-1>`.
+- Adds support for |bic-full| 2.14.25.
+- Updates JDK to `jdk-17.0.17+10 <https://adoptium.net/temurin/release-notes/?version=jdk-17.0.17+10>`__.
+- Upgrades ``golangci-lint`` to version 2.5.0.
+- Upgrades deprecated dependencies, including Puppeteer and Sinon packages.
+- Tests and releases BI Connector 2.14.25 in MongoDB Agent.
+- Improves accuracy when the database path is not cleaned up after a restore operation.
+- Improves the |onprem| UI:
+
+  - Adds an ellipsis dropdown menu for logs retrieval on ``mongos`` instances in sharded clusters.
+  - Ensures the shutdown dialog for replica sets shows all impacted servers.
+  - Specifies the button type for table paginator buttons to prevent unintended form submissions during navigation.
+  - Shows restore job IDs in the ``CONCURRENT_RESTORES_JOB_IDS`` error code for improved error clarity.
+  - Displays a warning on the :guilabel:`Deployment` page regarding unsupported hosts.
+  - Improves messaging for slow query threshold updates by removing hardcoded values.
+  - Removes the |oidc| ``Preview`` tag as |oidc| support is now generally available (GA).
+
+- Includes the source error in log messages when unable to retrieve the |fcv| from MongoDB.
+- Collects process CPU metrics when using a Host Mappings alias.
+- Admin Settings API now includes LDAP validation for API use cases.
+- Introduces the following features for managing deprecated deployments:
+
+  - Adds a REST API for retrieving information about deprecated deployments.
+  - Adds an admin page for managing deprecated deployments.
+  - Adds system alerts for deprecated hosts.
+
+- Introduces a feature flag for unsupported host monitoring.
+- Public API now supports updating project settings.
+
+Bug Fixes
+~~~~~~~~~
+
+- Performs |service-short| maintenance actions sequentially to prevent downtime resulting from replication issues.
+- Adds info-level logging for different ``RollingRestartArgs`` to assist in troubleshooting.
+- Fixes the time range filter's functionality in the |onprem| :guilabel:`Activity Feed` tab.
+- Allows new backups to start for unmanaged clusters.
+- Fixes a race condition when starting or finishing a clustershot in sharded clusters.
+- Corrects the misalignment of the Prometheus integration :guilabel:`Copy` button in the |onprem| UI.
+- Fixes an issue where the ``UnsupportedMongoDbVersionCheck`` fails due to missing host version.
+- Addresses cases where invalid metric types prevent the global alert configuration from rendering.
+- Treats missing migrations as pending to prevent |onprem| from becoming stuck in upgrade mode during updates.
+- Fixes the following |cve|:
+
+  - `CVE-2025-59343 (tar-fs) <https://nvd.nist.gov/vuln/detail/CVE-2025-59343>`__.
+
 .. _opsmgr-server-7.0.18:
 
 |onprem| Server 7.0.18
