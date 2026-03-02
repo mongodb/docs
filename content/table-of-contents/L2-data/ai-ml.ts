@@ -63,6 +63,11 @@ const tocData: TocItem[] = [
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/ai-integrations/langchain/natural-language-to-mql',
               },
+              {
+                label: 'Evaluate RAG Applications',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/ai-integrations/langchain/evaluate-rag',
+              },
             ],
           },
           {
