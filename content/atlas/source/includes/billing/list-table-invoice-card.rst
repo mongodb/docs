@@ -66,9 +66,11 @@
        :ref:`subscription <activate-subscription>` charges.
  
    * - :guilabel:`Summary by Service` table
-     - List of all |service| services, App Services, |charts|, and
-       |service| Subscription Plans with corresponding usage costs for
-       each service, and the total usage amount.
+     - List of all |service| services, App Services, |charts|,
+       {+voyage-api-full+}, and |service| Subscription Plans with
+       corresponding usage costs for each service, and the total usage
+       amount. {+voyage-api-full+} charges appear under
+       :guilabel:`AI Models`.
 
    * - :guilabel:`Usage Details`
      - List of all line item details for each month's bill. This is a
