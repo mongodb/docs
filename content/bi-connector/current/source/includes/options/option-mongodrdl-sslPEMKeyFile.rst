@@ -9,5 +9,5 @@
    This option is required when using the :option:`--ssl` option to
    connect to a :binary:`~bin.mongod` or :binary:`~bin.mongos` that has
    :setting:`~net.ssl.CAFile` enabled *without*
-   :setting:`~net.ssl.allowConnectionsWithoutCertificates`.
+   :setting:`~net.tls.allowConnectionsWithoutCertificates`.
 
