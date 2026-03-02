@@ -1,0 +1,437 @@
+.. _arch-center-is-xlrt:
+
+========================================================================================
+Xlrt: Optimizing Financial Document Processing through Agentic AI and Knowledge Graphs
+========================================================================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This document outlines the architecture of Xlrt, a solution designed to
+optimize financial document analysis and complex workflows by using
+agentic AI and a knowledge graph powered by MongoDB.
+
+Xlrt Overview
+-----------------
+
+Xlrt transforms financial decision-making by eliminating manual
+bottlenecks and AI hallucinations to generate an accurate, complete view
+of customer financial health. The system uses intelligent agents that
+process data, execute actions, and adapt within financial ecosystems.
+The resulting decisions typically involve optimizing loan approval
+processes, tailoring product recommendations, and managing risks such as
+default and fraud.
+
+
+Challenges of AI in Financial Document Analysis 
+------------------------------------------------
+
+Traditional financial AI approaches often encounter bottlenecks that
+limit business impact and trust, especially when processing complex,
+quantitative data. Common challenges include:
+
+- **Manual Workflow Bottlenecks**: Processes such as creating credit memos
+  require intensive manual compilation, analysis, and iterative reviews,
+  leading to delays and errors.
+
+- **Lack of Contextual Grounding**: AI models often lack the
+  enterprise-specific financial context required for precise, numerical
+  accuracy. This leads to outputs that may be factually correct but are
+  not actionable.
+
+- **Accuracy and Reliability Risks (Hallucinations)**: Even with structured
+  reasoning, Large Language Models (LLMs) can process context incorrectly
+  or make logical errors, producing results that are not logically sound
+  or accurate.
+
+Xlrt overcomes these challenges by using the following methods:
+
+- **Graph Retrieval-Augmented Generation (Graph RAG)**: Which uses a
+  financial ontology - a graph structure representing key financial line
+  items and their relationships - to selectively retrieve relevant financial
+  knowledge and numerical data.
+
+- **Role-Specific Agents and Chain-of-Thought (CoT) Reasoning**: To automate
+  end-to-end workflows.
+
+- **Scoring-Based Feedback**: To augment reasoning, assess accuracy, and
+  iteratively refine CoT prompts until the results meet accuracy
+  standards. 
+
+
+The Power of Knowledge Agents with Graph Retrieval-Augmented Generation
+-------------------------------------------------------------------------
+
+Knowledge agents are intelligent systems designed to navigate, analyze,
+and infer insights from complex datasets.
+
+In financial contexts, understanding complex relationships in data is
+essential. Xlrt integrates Knowledge Agents with Graph RAG to achieve
+this goal.
+
+The Financial Ontology and Graph Store
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The financial ontology is a knowledge graph that is the core of the Xlrt
+approach. This ontology acts as the blueprint that provides
+the rules and constraints for how financial entities relate. 
+
+The graph store, powered by MongoDB Atlas or MongoDB Enterprise
+Advanced, is the persistent database layer that stores the graph
+structure and its associated financial data. 
+
+
+.. figure:: /includes/images/partners/XLRT Graph RAG.svg
+   :figwidth: 1200px
+   :alt: Xlrt’s Knowledge Agent + Graph RAG System Powered by MongoDB. 
+
+   Figure 1. Xlrt’s Knowledge Agent + Graph RAG System Powered by MongoDB. 
+
+
+The underlying graph store contains two consolidated data components:
+
+- **Domain-specific ontology structure**: The conceptual blueprint of allowed
+  nodes and edge types.
+
+- **Yearly financial data**: The specific instances of the graph (nodes and
+  edges) extracted from client documents. This data, sourced from
+  documents such as annual reports and bank statements, populates the
+  nodes and edges with numerical values for each reporting period. This
+  continuous population over time enables the system to analyze historical
+  trends and financial evolution.
+
+
+Structuring the Ontology: Nodes and Edges
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- **Nodes**: Financial line items, such as Revenue, Expenses, and Net Profit.
+
+- **Edges**: Causal or structural relationships, such as Revenue affecting Net
+  Profit. These edges define the semantic relationship between two nodes. 
+
+
+Using Graph RAG for Contextual Retrieval 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Graph RAG combines knowledge graphs (graph theory) with AI retrieval and
+generation techniques. Xlrt uses Graph RAG to ground LLMs by retrieving
+relevant knowledge and numerical information from the graph store. This
+grounding ensures outputs are contextualized, factual, and actionable.
+
+Graph RAG enables the system to:
+
+- **Analyze Causal Dependencies**: The system traces cause-and-effect
+  relationships (edges) and identifies how a change in one financial line
+  item might influence others.
+  
+- **Identify Illogical Correlations**: The system examines relationships
+  between nodes to detect inconsistencies or correlations that defy
+  financial logic. This verification ensures data integrity.
+  
+- **Retrieve Context for Any Line Item**: The system queries the graph,
+  extracts relevant nodes and edges, and provides a contextual snapshot of
+  the data surrounding a line item. This snapshot clarifies how individual
+  components interact within the financial structure.
+  
+This approach provides contextual awareness and better decision-making
+by revealing the structure and interconnectivity of financial datasets.
+
+
+Powering Graph RAG with MongoDB and LangChain
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+LangChain connects the LLMs directly to MongoDB. The `MongoDBGraphStore
+<https://www.mongodb.com/docs/atlas/ai-integrations/langchain/graph-rag/>`__
+component facilitates this connection and manages the data flow between
+the language model and the database. This integration transforms
+unstructured financial data into actionable, interconnected insights
+without the need for a dedicated graph database engine.
+
+
+Core Database Capabilities 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The system relies on the flexible architecture of MongoDB to serve as
+the foundation for the knowledge graph:
+
+- **Unified Operational and Graph Data**: Unlike traditional approaches that
+  separate graph data from operational data, MongoDB stores both the
+  domain-specific ontology and the specific instances of financial data
+  (nodes and edges) in the same flexible document format. This enables the
+  system to continuously populate the graph with new data from annual
+  reports or bank statements without rigid schema migrations.
+
+- **Efficient Graph Traversal**: MongoDB executes graph traversal and querying
+  by using the `$graphLookup <https://www.mongodb.com/docs/manual/reference/operator/aggregation/graphLookup/>`__ aggregation stage. This process enables the
+  swift retrieval of relevant interconnected financial knowledge directly
+  alongside operational data.
+
+
+The MongoDBGraphStore Integration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Although MongoDB provides the engine, the ``MongoDBGraphStore`` component in
+LangChain acts as the orchestrator. This component streamlines the
+implementation of Graph RAG through two key functions:
+
+- **Abstraction & Retrieval**: ``MongoDBGraphStore`` abstracts raw database
+  aggregations, simplifying the retrieval of graph data. The component
+  automatically formats the retrieved knowledge graph into context-rich
+  prompts, optimizing the data for agentic reasoning without requiring
+  manual query construction.
+
+- **Dynamic Graph Creation**: To populate the graph, the component uses a
+  dynamic "Extract-and-Load" workflow:
+
+  - **Entity Extraction**: An LLM-based entity extraction model (initialized
+    within the component) parses client-uploaded financial statements. It
+    converts unstructured data into structured graph entities and
+    relationships by extracting named entities and their connections.
+
+  - **Configuration**: Custom prompts and instructions guide the extraction
+    process. These prompts, which are configurable through the
+    ``entity_prompt`` parameter, ensure the model maps data to the correct
+    financial context.
+
+  - **Graph population**: Using the ``add_documents()`` method, the model
+    automatically extracts and upserts these entities and relationships into
+    the MongoDB collection. This creates a dynamic knowledge graph that
+    evolves instantly as new documents are processed.
+
+
+Augmenting Chain of Thought (CoT) with Scoring-Based Feedback
+--------------------------------------------------------------
+
+Although retrieving the correct context through Graph RAG is critical,
+ensuring the reasoning applied to that data is accurate is equally
+important. Xlrt enhances standard Chain of Thought (CoT) prompting by
+introducing a scoring loop that iteratively refines the model's output.
+
+The Challenge of Reasoning 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Even with structured reasoning, large language models (LLMs) can
+sometimes misunderstand context or make erroneous logical jumps, leading
+to hallucinations. To mitigate this risk, Xlrt uses a dual-model
+architecture:
+
+- **Performer LLM**: Generates the initial response based on the financial
+  data. 
+
+- **Prompt Augmentation LLM**: Evaluates the Performer's output and
+  adjusts the prompt if the quality is insufficient.
+
+The Scoring Process
+~~~~~~~~~~~~~~~~~~~~
+
+The system evaluates every response against three key metrics:
+
+- **Contextual Consistency**: Does the response align with the specific
+  financial context provided?
+
+- **Factual Accuracy**: Does the output adhere to known facts and data
+  rules?
+
+- **Logical Soundness**: Are the intermediate reasoning steps connected
+  and valid?
+
+If a response scores below a certain threshold, such as 60 percent, the
+Prompt Augmentation LLM analyzes the error and generates a refined
+prompt—for example, explicitly instructing the Performer LLM to "verify
+the percentage change compared to the previous quarter." This cycle
+repeats until the response meets accuracy standards, ensuring
+high-reliability outputs for critical tasks such as creating credit
+memos.
+
+User Feedback for Personalized Commentary 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To ensure the output is relevant, the system uses user feedback in two
+ways to refine Chain-of-Thought (CoT) generation: 
+
+- **Role-Based Adaptation**: Instead of correcting only errors, the system
+  uses user feedback to tailor CoT prompts to the user's specific context.
+
+- **Dynamic Augmentation**: A dedicated LLM analyzes feedback to adjust the
+  prompt—for example, focusing on compliance for an auditor or business
+  impact for an executive.
+
+
+Use Case: Transforming Financial Document Workflows
+----------------------------------------------------
+
+Xlrt uses its Graph RAG architecture to transform time-consuming
+financial document workflows. It uses agentic AI grounded in the
+financial knowledge graph to power three product offerings:
+
+- **Justifi™**: Provides instant analysis of financial statements, such as
+  10-Ks, annual reports, and management-prepared financials. It also
+  provides normalized analysis for data providers and smart summaries.
+
+- **Contractus™**: Provides automatic analysis of commercial contracts, infers
+  commercial terms to project cash flows, and facilitates organizational
+  contract management.
+
+- **Facturas™**: Enables template-free parsing of invoices and automated data
+  evaluation, ensuring a superior validation flow for straight-through
+  processing.
+
+
+Key Benefits of Xlrt for Financial Document Analysis
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The automation of these complex workflows offers the following benefits:
+
+- **Accuracy**: Domain-tuned agents, grounded in the factual knowledge graph,
+  ensure precise and consistent financial insights.
+
+- **Cost Reduction**: The system reduces dependency on manual labor while
+  maintaining high-quality, auditable results.
+
+- **Efficiency**: Automated end-to-end workflows drastically reduce manual
+  effort and enable accelerated data processing and faster
+  decision-making.
+
+
+Illustrative Logic of Xlrt’s Graph RAG Architecture
+----------------------------------------------------
+
+The following steps illustrate the key implementation logic that Xlrt
+uses to integrate LangChain and its ``MongoDBGraphStore`` component to build
+a Graph RAG for intelligent document processing. This illustration uses
+MongoDB Atlas, although MongoDB Enterprise Advanced is also an option.
+`Xlrt <http://XLRT.ai>`__ has chosen to use Ollama to run the LLM:
+
+.. procedure::
+   :style: normal
+   
+   .. step:: Prepare the Environment
+
+      Install the necessary libraries for MongoDB interaction, LangChain
+      integration, and the Ollama to send requests to LLMs are
+      installed.  The architecture is LLM-agnostic, allowing one to plug
+      in any LLM model. To complete this tutorial, you need an Atlas
+      cluster running MongoDB version 7.0.2 or later.
+
+      .. code-block:: python
+
+         pip install --quiet --upgrade pymongo langchain_mongodb langchain_ollama
+
+   .. step:: Define the variables
+
+      .. code-block:: python
+
+         MONGODB_URI = "<connection-string>" 
+         DB_NAME = "financial_kg_db" # MongoDB database to store the knowledge graph 
+         COLLECTION_NAME = "FINANCIALS" # MongoDB collection to store the knowledge graph
+
+      ``<connection-string>`` would be the connection string from the Atlas cluster.
+      
+      The ``<connection-string>`` is defined using the following format:
+
+      .. code-block:: python
+      
+         mongodb+srv://<db_username>:<db_password>@<clusterName>.<hostname>.mongodb.net
+
+   .. step:: Instantiate the LangChain MongoDB Graph Store
+
+      .. code-block:: python
+
+         from langchain_mongodb.graphrag.graph import MongoDBGraphStore 
+         
+         graph_store = MongoDBGraphStore.from_connection_string(
+            connection_string=MONGODB_URI, 
+            database_name=DB_NAME,  
+            collection_name=COLLECTION_NAME, 
+            entity_extraction_model=chat_model # LLM – model of your choice 
+            )
+
+   .. step:: Add Data to the Graph Store
+
+      .. code-block:: python
+
+         # Add documents to extract entities and relationships from and to the graph store 
+         graph_store.add_documents(documents)
+
+   .. step:: Query the Graph Store
+
+      .. code-block:: python
+
+         # Query the knowledge graph to get related entities and context for prompts Query = "What are the key financial metrics for Q4? "
+         Context = graph_store.query(
+            query, 
+            max_hops=3
+         )
+
+   .. step:: Combine Context for Prompt Augmentation
+
+      After the relevant data is retrieved, the retrieved context from
+      Graph RAG is combined to augment the prompt for the LLM by using
+      LangChain and the selected model, which Ollama serves.
+      
+      Python Example for Context Construction:
+
+      .. code-block:: python
+
+         from langchain_ollama import ChatOllama 
+         from langchain.prompts import PromptTemplate 
+         
+         # Set up Ollama as the LLM with your model of choice 
+         llm = ChatOllama(model="<model of your choice>") 
+         
+         # Define a prompt template 
+         template = """ 
+         You are an AI financial analyst. Analyze the following data and provide insights: {context} 
+         
+         User Query: {query} 
+         """ 
+         
+         prompt = PromptTemplate(
+                  input_variables= ["context", "query"], 
+                  template=template
+         ) 
+         chain = prompt | llm 
+         
+         response = chain.invoke({"context": context, "query": Query})
+         
+         print("Generated Insights:\n", response)
+
+Conclusion
+-----------
+
+Financial organizations can integrate Xlrt with MongoDB Atlas or MongoDB
+Enterprise Advanced to use Graph RAG systems for advanced intelligent
+document processing and automated workflows.
+
+This combination transforms unstructured financial data into actionable
+insights. The MongoDB-backed financial ontology improves efficiency,
+accuracy, and strategic decision-making.
+
+Key Takeaways
+~~~~~~~~~~~~~~
+
+- **Grounding LLMs with the MongoDB Graph RAG Architecture**: By using a
+  MongoDB Graph RAG architecture, LLMs are grounded in a dynamic financial
+  ontology. This approach uses the $graphLookup aggregation stage to
+  traverse interconnected relationships within a unified knowledge base,
+  ensuring precise and context-aware retrieval.
+
+- **Powering Complex Agents with Scoring-Based Reasoning**: Beyond simple
+  retrieval, the architecture supports advanced feedback loops. By
+  validating Chain-of-Thought reasoning against verified financial facts
+  retrieved from MongoDB, the system ensures accuracy before finalizing a
+  response. This iterative scoring prevents hallucinations, ensuring that
+  every insight is logically sound and consistent with your financial
+  ontology. 
+
+- **Turn Technical Capabilities into Business Value**: By using MongoDB to
+  unify unstructured documents and structured knowledge graphs,
+  organizations can transform manual bottlenecks, such as credit analysis,
+  into automated, intelligent workflows. This architectural shift reduces
+  operational overhead and minimizes dependency on manual processes.
+
+
+
