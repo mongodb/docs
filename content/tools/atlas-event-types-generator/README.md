@@ -61,6 +61,15 @@ node event-types-generator.js > ../../atlas/source/includes/event-types.rst
 
 ## Features
 
+### Automatic Deduplication
+
+The script handles duplicate events that may appear across API pagination:
+
+- Uses a `Map` data structure with `eventType` as the key to ensure uniqueness
+- Safely handles events missing `eventType` field (logs warning and skips)
+- Validates final count against API-reported total count
+- Warns if pagination issues cause count mismatch
+
 ### Terminology Corrections
 
 The script automatically applies terminology corrections to maintain consistency with user-facing documentation:
@@ -74,6 +83,7 @@ This ensures the API remains the source of truth while the documentation uses ap
 - Fetches **all** event types (currently 1000+) across multiple API pages
 - Handles pagination automatically (500 events per page)
 - Includes event type, description, and alertable status for each event
+- Deduplicates events to handle pagination overlap
 
 ### Consistent Output Format
 

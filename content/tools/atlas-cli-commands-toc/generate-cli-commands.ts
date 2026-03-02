@@ -55,15 +55,15 @@ function parseCommandLineArgs(): CommandLineArgs {
 /**
  * Execute a shell command and return the output
  */
-async function runCommand(command: string): Promise<string> {
+async function runCommand(command: string, options?: { cwd?: string }): Promise<string> {
   const { exec } = await import('child_process');
   return new Promise((resolve, reject) => {
-    exec(command, (error, stdout, stderr) => {
+    exec(command, options, (error, stdout, stderr) => {
       if (error) {
         reject(new Error(`Command failed: ${command}\nError: ${error.message}\nStderr: ${stderr}`));
         return;
       }
-      resolve(stdout.trim());
+      resolve(stdout.toString().trim());
     });
   });
 }
@@ -506,15 +506,11 @@ function treeToArray(tree: CommandTree, basePath: string = '', versionAvailabili
       const item: TocItem = {
         label: key.replace(/-/g, ' '),
         contentSite: "atlas-cli" as const,
-        url: `/docs/atlas/cli/:version/command/${currentPath}/`
+        url: `/docs/atlas/cli/:version/command/${currentPath}/`,
+        collapsible: true,
+        items: subItems,
+        ...(parentVersionConstraint && { versions: parentVersionConstraint })
       };
-      
-      if (parentVersionConstraint) {
-        item.versions = parentVersionConstraint;
-      }
-      
-      item.collapsible = true;
-      item.items = subItems;
       
       items.push(item);
     }
@@ -731,6 +727,17 @@ async function main() {
     
     fs.writeFileSync(summaryPath, JSON.stringify(summary, null, 2), 'utf8');
     console.log(`📋 Created summary: ${summaryPath}`);
+    
+    // Run pnpm check:fix on table-of-contents
+    console.log('\n🔧 Running pnpm check:fix on table-of-contents...');
+    try {
+      const tocDir = path.join(__dirname, '../../table-of-contents');
+      await runCommand('pnpm check:fix', { cwd: tocDir });
+      console.log('✅ check:fix completed successfully');
+    } catch (error) {
+      console.warn('⚠️  check:fix failed:', (error as Error).message);
+      console.warn('   You may need to run it manually: cd content/table-of-contents && pnpm check:fix');
+    }
     
     // Provide instructions for manual import
     console.log(`\n📝 To use these commands in the main atlas-cli.ts file:`);

@@ -195,21 +195,26 @@ function treeToArray(tree: CommandTree): TocItem[] {
   
   Object.keys(tree).sort().forEach(key => {
     const node = tree[key];
-    const item: TocItem = {
-      label: node.label,
-      contentSite: node.contentSite,
-      url: node.url
-    };
     
-    if (node.collapsible) {
-      item.collapsible = true;
-    }
-    
+    // Check if this should be a collapsible item with children
     if (node.items && Object.keys(node.items).length > 0) {
-      item.items = treeToArray(node.items);
+      const item: TocItem = {
+        label: node.label,
+        contentSite: node.contentSite,
+        ...(node.url && { url: node.url }),
+        collapsible: true,
+        items: treeToArray(node.items)
+      };
+      result.push(item);
+    } else {
+      // Regular internal item
+      const item: TocItem = {
+        label: node.label,
+        contentSite: node.contentSite,
+        url: node.url
+      };
+      result.push(item);
     }
-    
-    result.push(item);
   });
   
   return result;
@@ -318,9 +323,9 @@ async function copyCommandFilesFromGit(tagOrBranch: string): Promise<string[]> {
  */
 const execAsync = promisify(exec);
 
-async function runCommand(command: string): Promise<string> {
+async function runCommand(command: string, options?: { cwd?: string }): Promise<string> {
   try {
-    const { stdout } = await execAsync(command);
+    const { stdout } = await execAsync(command, options);
     return stdout;
   } catch (error: any) {
     throw new Error(`Command failed: ${command}\n${error.message}\n${error.stderr || ''}`);
@@ -486,6 +491,17 @@ async function main(): Promise<void> {
     
     fs.writeFileSync(summaryPath, JSON.stringify(summary, null, 2), 'utf8');
     console.log(`📋 Created summary: ${summaryPath}`);
+    
+    // Run pnpm check:fix on table-of-contents
+    console.log('\n🔧 Running pnpm check:fix on table-of-contents...');
+    try {
+      const tocDir = path.join(__dirname, '../../table-of-contents');
+      await runCommand('pnpm check:fix', { cwd: tocDir });
+      console.log('✅ check:fix completed successfully');
+    } catch (error) {
+      console.warn('⚠️  check:fix failed:', (error as Error).message);
+      console.warn('   You may need to run it manually: cd content/table-of-contents && pnpm check:fix');
+    }
     
     // Provide instructions for manual import
     console.log(`\n📝 To use these Kubernetes commands in the main atlas-cli.ts file:`);

@@ -73,6 +73,33 @@ async function test(){
 
   const responses = resp1.results.concat(resp2.results).concat(resp3.results)
 
+  // deduplicate by eventType to handle cases where API returns same event across pages
+  const uniqueEvents = new Map();
+  responses.forEach(event => {
+    if (!event || typeof event.eventType === 'undefined') {
+      console.error('Skipping event without eventType during deduplication:', event);
+      return;
+    }
+    uniqueEvents.set(event.eventType, event);
+  });
+  const deduplicated = Array.from(uniqueEvents.values());
+
+  // Verify we have all events from the API
+  const totalCount = resp1.totalCount;
+  const pageCount = 3; // Number of API requests made
+  
+  // Only log details if there's a mismatch or DEBUG env var is set
+  if (deduplicated.length !== totalCount || process.env.DEBUG) {
+    console.error(`API reports ${totalCount} total events`);
+    console.error(`Retrieved ${responses.length} events across ${pageCount} pages (with duplicates)`);
+    console.error(`After deduplication: ${deduplicated.length} unique events`);
+  }
+  
+  if (deduplicated.length !== totalCount) {
+    console.error(`WARNING: Event count mismatch! Expected ${totalCount}, got ${deduplicated.length}`);
+    console.error(`Missing ${totalCount - deduplicated.length} events - pagination may be unstable`);
+  }
+
   // alphabetizes events list
   function compare( a, b ) {
       if ( a.eventType < b.eventType ){
@@ -84,10 +111,10 @@ async function test(){
       return 0;
     }
     
-    responses.sort( compare );
+    deduplicated.sort( compare );
 
   // iterates through results. replaces true and false with yes and no in the alertable column. adds an anchor to each row. writes a table row for each event. prints table for debugging.
-  responses.forEach((item) => {
+  deduplicated.forEach((item) => {
       var isAlertable = "";
       if (item.alertable == true) {
         isAlertable = "yes";

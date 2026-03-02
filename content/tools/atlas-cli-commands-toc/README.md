@@ -14,6 +14,7 @@ This project generates TypeScript table of contents entries for MongoDB Atlas CL
 - **Type Safety**: Written in TypeScript with full type safety using proper XOR version constraint types
 - **Alphabetical Integration**: Kubernetes commands are seamlessly integrated alphabetically with main CLI commands
 - **File Synchronization**: Automatically copies command files to required documentation directories
+- **Automatic Linting**: Runs `pnpm check:fix` on generated table-of-contents files to ensure consistent formatting
 
 ## Architecture
 
