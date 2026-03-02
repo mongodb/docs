@@ -42,6 +42,8 @@ In addition, see:
       #. (Optional) In the :guilabel:`Severity` drop-down menu, select 
          a severity level for the alert that overrides the system 
          default severity level.
+
+         To learn more, see :ref:`atlas-alert-severity-levels`.
       
    .. step:: Apply the alert only to specific targets. (Optional)
       
