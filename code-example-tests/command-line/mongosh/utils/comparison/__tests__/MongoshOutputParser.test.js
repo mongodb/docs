@@ -244,6 +244,65 @@ describe('MongoshOutputParser', () => {
       expect(result.data[0].title).toBe('The Godfather: Part II');
       expect(result.data[0].consensus).toBe("Francis Ford Coppola's continuation of Mario Puzo's saga.");
     });
+
+    test('should handle Binary.fromInt8Array with Int8Array', () => {
+      // This pattern appears in $convert aggregation output when converting
+      // arrays of integers to binData (e.g., for vector embeddings)
+      const input = `[
+  {
+    convertedVector: Binary.fromInt8Array(new Int8Array([0,1,0,10]))
+  }
+]`;
+
+      const result = MongoshOutputParser.parse(input);
+
+      expect(result.success).toBe(true);
+      expect(result.data).toHaveLength(1);
+      // Verify the Binary was created successfully
+      const binary = result.data[0].convertedVector;
+      expect(binary).toBeDefined();
+      expect(binary.constructor.name).toBe('Binary');
+    });
+
+    test('should handle Binary.fromFloat32Array with Float32Array', () => {
+      // Float32Array is used for floating-point vector data
+      const input = `{
+  vectorData: Binary.fromFloat32Array(new Float32Array([1.5, 2.5, 3.5]))
+}`;
+
+      const result = MongoshOutputParser.parse(input);
+
+      expect(result.success).toBe(true);
+      const binary = result.data[0].vectorData;
+      expect(binary).toBeDefined();
+      expect(binary.constructor.name).toBe('Binary');
+    });
+
+    test('should handle Binary.createFromBase64', () => {
+      const input = `{
+  data: Binary.createFromBase64("SGVsbG8gV29ybGQ=", 0)
+}`;
+
+      const result = MongoshOutputParser.parse(input);
+
+      expect(result.success).toBe(true);
+      const binary = result.data[0].data;
+      expect(binary).toBeDefined();
+      expect(binary.constructor.name).toBe('Binary');
+    });
+
+    test('should handle Binary.createFromHexString', () => {
+      const input = `{
+  data: Binary.createFromHexString("48656c6c6f", 0)
+}`;
+
+      const result = MongoshOutputParser.parse(input);
+
+      expect(result.success).toBe(true);
+      const binary = result.data[0].data;
+      expect(binary).toBeDefined();
+      expect(binary.constructor.name).toBe('Binary');
+    });
   });
 
   describe('parseExpectedOutput', () => {

@@ -1,12 +1,25 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
-const { Decimal128, ObjectId } = require('mongodb');
+const {
+  Decimal128,
+  ObjectId,
+  Long,
+  Int32,
+  Double,
+  Timestamp,
+  Binary,
+  BSONRegExp,
+  Code,
+  DBRef,
+  MaxKey,
+  MinKey
+} = require('mongodb');
 const { normalizeItem, preprocessFileContents } = require('./normalize');
 
 /**
  * Creates a context object for safely evaluating expected output files.
- * Provides MongoDB constructors for Decimal128, ObjectId, and Date types.
+ * Provides MongoDB/BSON constructors for types commonly found in expected output.
  *
  * @returns {Object} Context object for vm.runInNewContext
  *
@@ -34,10 +47,116 @@ function createEvaluationContext() {
   Decimal128Constructor.prototype = Decimal128.prototype;
   Decimal128Constructor.constructor = Decimal128;
 
+  function LongConstructor(value) {
+    if (typeof value === 'string') {
+      return Long.fromString(value);
+    }
+    return Long.fromNumber(value);
+  }
+  LongConstructor.prototype = Long.prototype;
+
+  function Int32Constructor(value) {
+    return new Int32(parseInt(value, 10));
+  }
+  Int32Constructor.prototype = Int32.prototype;
+
+  function DoubleConstructor(value) {
+    return new Double(parseFloat(value));
+  }
+  DoubleConstructor.prototype = Double.prototype;
+
+  function TimestampConstructor(value) {
+    // Handle both object format {t: number, i: number} and direct construction
+    if (typeof value === 'object' && value !== null && 't' in value && 'i' in value) {
+      return new Timestamp({ t: value.t, i: value.i });
+    }
+    return new Timestamp(value);
+  }
+  TimestampConstructor.prototype = Timestamp.prototype;
+
+  function BinaryConstructor(value, subtype) {
+    return new Binary(value, subtype);
+  }
+  BinaryConstructor.prototype = Binary.prototype;
+  // Add static methods that are used for Binary type construction.
+  // These methods allow parsing of expected output files that use various Binary
+  // factory methods like Binary.fromInt8Array(), Binary.createFromBase64(), etc.
+  BinaryConstructor.createFromBase64 = function(base64String, subtype) {
+    return Binary.createFromBase64(base64String, subtype);
+  };
+  BinaryConstructor.createFromHexString = function(hexString, subtype) {
+    return Binary.createFromHexString(hexString, subtype);
+  };
+  BinaryConstructor.fromInt8Array = function(int8Array, subtype) {
+    return Binary.fromInt8Array(int8Array, subtype);
+  };
+  BinaryConstructor.fromFloat32Array = function(float32Array, subtype) {
+    return Binary.fromFloat32Array(float32Array, subtype);
+  };
+  BinaryConstructor.fromPackedBits = function(packedBits, subtype) {
+    return Binary.fromPackedBits(packedBits, subtype);
+  };
+  BinaryConstructor.fromBits = function(bits, subtype) {
+    return Binary.fromBits(bits, subtype);
+  };
+  BinaryConstructor.fromExtendedJSON = function(doc, options) {
+    return Binary.fromExtendedJSON(doc, options);
+  };
+
+  function BSONRegExpConstructor(pattern, options) {
+    return new BSONRegExp(pattern, options);
+  }
+  BSONRegExpConstructor.prototype = BSONRegExp.prototype;
+
+  function CodeConstructor(code, scope) {
+    return new Code(code, scope);
+  }
+  CodeConstructor.prototype = Code.prototype;
+
+  function DBRefConstructor(collection, oid, db) {
+    return new DBRef(collection, oid, db);
+  }
+  DBRefConstructor.prototype = DBRef.prototype;
+
+  function MaxKeyConstructor() {
+    return new MaxKey();
+  }
+  MaxKeyConstructor.prototype = MaxKey.prototype;
+
+  function MinKeyConstructor() {
+    return new MinKey();
+  }
+  MinKeyConstructor.prototype = MinKey.prototype;
+
   return {
     Decimal128: Decimal128Constructor,
+    NumberDecimal: Decimal128Constructor, // Legacy name
     ObjectId: ObjectIdConstructor,
     Date: DateConstructor,
+    ISODate: DateConstructor, // mongosh-style alias
+    Long: LongConstructor,
+    NumberLong: LongConstructor, // Legacy name
+    Int32: Int32Constructor,
+    NumberInt: Int32Constructor, // Legacy name
+    Double: DoubleConstructor,
+    Timestamp: TimestampConstructor,
+    Binary: BinaryConstructor,
+    BSONRegExp: BSONRegExpConstructor,
+    Code: CodeConstructor,
+    DBRef: DBRefConstructor,
+    MaxKey: MaxKeyConstructor,
+    MinKey: MinKeyConstructor,
+    Map: Map, // Native JavaScript Map
+    // JavaScript typed arrays - required for Binary static methods like
+    // Binary.fromInt8Array(new Int8Array([...])) and Binary.fromFloat32Array(...)
+    Int8Array: Int8Array,
+    Uint8Array: Uint8Array,
+    Float32Array: Float32Array,
+    Float64Array: Float64Array,
+    Int16Array: Int16Array,
+    Int32Array: Int32Array,
+    Uint16Array: Uint16Array,
+    Uint32Array: Uint32Array,
   };
 }
 

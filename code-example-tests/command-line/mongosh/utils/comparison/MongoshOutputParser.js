@@ -80,9 +80,29 @@ class MongoshOutputParser {
       return new Binary(value, subtype);
     }
     BinaryConstructor.prototype = Binary.prototype;
-    // Add static methods that mongosh uses
+    // Add static methods that mongosh uses for Binary type construction.
+    // These methods allow parsing of mongosh output that uses various Binary
+    // factory methods like Binary.fromInt8Array(), Binary.createFromBase64(), etc.
     BinaryConstructor.createFromBase64 = function(base64String, subtype) {
       return Binary.createFromBase64(base64String, subtype);
+    };
+    BinaryConstructor.createFromHexString = function(hexString, subtype) {
+      return Binary.createFromHexString(hexString, subtype);
+    };
+    BinaryConstructor.fromInt8Array = function(int8Array, subtype) {
+      return Binary.fromInt8Array(int8Array, subtype);
+    };
+    BinaryConstructor.fromFloat32Array = function(float32Array, subtype) {
+      return Binary.fromFloat32Array(float32Array, subtype);
+    };
+    BinaryConstructor.fromPackedBits = function(packedBits, subtype) {
+      return Binary.fromPackedBits(packedBits, subtype);
+    };
+    BinaryConstructor.fromBits = function(bits, subtype) {
+      return Binary.fromBits(bits, subtype);
+    };
+    BinaryConstructor.fromExtendedJSON = function(doc, options) {
+      return Binary.fromExtendedJSON(doc, options);
     };
 
     function BSONRegExpConstructor(pattern, options) {
@@ -129,6 +149,16 @@ class MongoshOutputParser {
       MaxKey: MaxKeyConstructor,
       MinKey: MinKeyConstructor,
       Map: Map, // Native JavaScript Map for mongosh Map output
+      // JavaScript typed arrays - required for Binary static methods like
+      // Binary.fromInt8Array(new Int8Array([...])) and Binary.fromFloat32Array(...)
+      Int8Array: Int8Array,
+      Uint8Array: Uint8Array,
+      Float32Array: Float32Array,
+      Float64Array: Float64Array,
+      Int16Array: Int16Array,
+      Int32Array: Int32Array,
+      Uint16Array: Uint16Array,
+      Uint32Array: Uint32Array,
     };
   }
 
