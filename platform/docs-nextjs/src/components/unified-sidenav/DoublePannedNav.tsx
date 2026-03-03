@@ -6,7 +6,7 @@ import { SideNav } from '@leafygreen-ui/side-nav';
 import { theme } from '@/styles/theme';
 import useScreenSize from '@/hooks/use-screen-size';
 import { tocItemKey } from '@/utils/create-toc-key';
-
+import DownloadButton from '@/components/offline-download-modal/download-button';
 import { NavTopContainer, downloadButtonStlying, ArtificialPadding } from './UnifiedSidenav';
 import { StaticNavItem, UnifiedTocNavItem } from './UnifiedTocNavItems';
 import VersionDropdown from './VersionDropdown';
@@ -145,8 +145,7 @@ export const DoublePannedNav = ({
         )}
       </div>
       <div className={cx(downloadButtonStlying)}>
-        {/* TODO: Add in after OfflineDownloadModal is implemented */}
-        {/* <DownloadButton /> */}
+        <DownloadButton />
       </div>
     </SideNav>
   );

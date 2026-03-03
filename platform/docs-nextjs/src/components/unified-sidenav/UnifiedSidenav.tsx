@@ -24,6 +24,14 @@ import { DoublePannedNav } from './DoublePannedNav';
 import { AccordionNavPanel } from './AccordionNav';
 import type { TocItem } from './types';
 import { useSiteBanner } from '../banner/site-banner/banner-context';
+import { OfflineDownloadProvider } from '@/components/offline-download-modal/download-context';
+// TODO: DOP-6582 Finish up actual download functionality and add toast notifications
+// // import { ToastProvider } from '@leafygreen-ui/toast';
+
+// // have Toasts come up with z index above the side nav
+// const toastPortalStyling = LeafyCSS`
+//   z-index: ${theme.zIndexes.sidenav + 1};
+// `;
 
 export const ArtificialPadding = styled('div')`
   height: 15px;
@@ -186,32 +194,34 @@ export const UnifiedSidenav = () => {
   // Hide the Sidenav with css while keeping state as open/not collapsed.
   // This prevents LG's SideNav component from being seen in its collapsed state on mobile
   return (
-    <div
-      className={cx(SidenavContainer({ ...topValues }))}
-      style={{ '--scroll-y': `${viewport.scrollY}px` } as React.CSSProperties}
-      id={SIDE_NAV_CONTAINER_ID}
-    >
-      <AccordionNavPanel
-        showDriverBackBtn={showDriverBackBtn}
-        setShowDriverBackBtn={setShowDriverBackBtn}
-        slug={slug}
-        currentL2s={currentL2s}
-        setCurrentL1={setCurrentL1}
-        setCurrentL2s={setCurrentL2s}
-        hideMobile={hideMobile}
-        currentL1={currentL1}
-        tree={tree}
-      />
-      <DoublePannedNav
-        showDriverBackBtn={showDriverBackBtn}
-        setShowDriverBackBtn={setShowDriverBackBtn}
-        tree={tree}
-        slug={slug}
-        currentL2s={currentL2s}
-        setCurrentL1={setCurrentL1}
-        setCurrentL2s={setCurrentL2s}
-        currentL1={currentL1}
-      />
-    </div>
+    <OfflineDownloadProvider>
+      <div
+        className={cx(SidenavContainer({ ...topValues }))}
+        style={{ '--scroll-y': `${viewport.scrollY}px` } as React.CSSProperties}
+        id={SIDE_NAV_CONTAINER_ID}
+      >
+        <AccordionNavPanel
+          showDriverBackBtn={showDriverBackBtn}
+          setShowDriverBackBtn={setShowDriverBackBtn}
+          slug={slug}
+          currentL2s={currentL2s}
+          setCurrentL1={setCurrentL1}
+          setCurrentL2s={setCurrentL2s}
+          hideMobile={hideMobile}
+          currentL1={currentL1}
+          tree={tree}
+        />
+        <DoublePannedNav
+          showDriverBackBtn={showDriverBackBtn}
+          setShowDriverBackBtn={setShowDriverBackBtn}
+          tree={tree}
+          slug={slug}
+          currentL2s={currentL2s}
+          setCurrentL1={setCurrentL1}
+          setCurrentL2s={setCurrentL2s}
+          currentL1={currentL1}
+        />
+      </div>
+    </OfflineDownloadProvider>
   );
 };

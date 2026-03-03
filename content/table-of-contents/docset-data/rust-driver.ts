@@ -261,7 +261,7 @@ export const tocData: TocItem[] = [
                 label: 'Tutorial: CRUD Web App',
                 contentSite: 'rust',
                 url: '/docs/drivers/rust/:version/fundamentals/crud/web-app-tutorial',
-                versions:{excludes: outdatedVersions}
+                versions: { excludes: outdatedVersions },
               },
             ],
           },
@@ -295,13 +295,13 @@ export const tocData: TocItem[] = [
                 label: 'MongoDB Search & Vector Search Indexes',
                 contentSite: 'rust',
                 url: '/docs/drivers/rust/:version/fundamentals/indexes/atlas-search-indexes',
-                versions:{excludes: outdatedVersions}
+                versions: { excludes: outdatedVersions },
               },
               {
                 label: 'MongoDB Search Indexes',
                 contentSite: 'rust',
                 url: '/docs/drivers/rust/:version/fundamentals/indexes/atlas-search-indexes',
-                versions:{includes: outdatedVersions}
+                versions: { includes: outdatedVersions },
               },
             ],
           },
@@ -309,13 +309,13 @@ export const tocData: TocItem[] = [
             label: 'MongoDB Search',
             contentSite: 'rust',
             url: '/docs/drivers/rust/:version/fundamentals/atlas-search',
-            versions:{excludes: outdatedVersions}
+            versions: { excludes: outdatedVersions },
           },
           {
             label: 'MongoDB Vector Search',
             contentSite: 'rust',
             url: '/docs/drivers/rust/:version/fundamentals/vector-search',
-            versions:{excludes: outdatedVersions}
+            versions: { excludes: outdatedVersions },
           },
           {
             label: 'Transactions',

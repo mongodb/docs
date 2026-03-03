@@ -83,6 +83,7 @@ export type L1TocItem = TocItemBase & {
   group?: never;
   isExternal?: never;
   showSubNav?: never;
+  subTitle?: string; // Description shown for the L1 option in the download modal
   versionDropdown?: never;
 };
 

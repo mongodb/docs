@@ -19,4 +19,5 @@ export interface TocItem {
     excludes?: string[];
   };
   items?: TocItem[];
+  subTitle?: string;
 }

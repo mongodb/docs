@@ -6,7 +6,7 @@ import { css as LeafyCSS, cx } from '@leafygreen-ui/emotion';
 import { useViewportSize } from '@leafygreen-ui/hooks';
 import { theme } from '@/styles/theme';
 import useScreenSize from '@/hooks/use-screen-size';
-// import { DownloadButton } from '../OfflineDownloadModal';
+import DownloadButton from '@/components/offline-download-modal/download-button';
 import { NavTopContainer, downloadButtonStlying, ArtificialPadding } from './UnifiedSidenav';
 import { UnifiedTocNavItem } from './UnifiedTocNavItems';
 import type { TocItem } from './types';
@@ -152,8 +152,7 @@ export const AccordionNavPanel = ({
         </div>
       </div>
       <div className={cx(downloadButtonStlying)}>
-        {/* TODO: Add in after OfflineDownloadModal is implemented */}
-        {/* <DownloadButton /> */}
+        <DownloadButton />
       </div>
     </SideNav>
   );
