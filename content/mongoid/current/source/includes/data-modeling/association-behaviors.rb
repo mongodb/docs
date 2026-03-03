@@ -191,11 +191,43 @@ class Band
 end
 # end-touch-specific
 
-# start-counter-cache
+# start-counter-cache-default
 class Band
   include Mongoid::Document
 
+  # Uses the default counter field name: bands_count
   belongs_to :label, counter_cache: true
+end
+
+class Label
+  include Mongoid::Document
+
+  field :bands_count, type: Integer
+  has_many :bands
+end
+# end-counter-cache-default
+
+# start-counter-cache-custom
+class Band
+  include Mongoid::Document
+
+  belongs_to :label, counter_cache: :active_bands_count
+end
+
+class Label
+  include Mongoid::Document
+
+  field :active_bands_count, type: Integer
+  has_many :bands
+end
+
+# end-counter-cache-custom
+
+# start-counter-cache-dynamic
+class Band
+  include Mongoid::Document
+
+  belongs_to:label, counter_cache: true
 end
 
 class Label
@@ -204,7 +236,7 @@ class Label
 
   has_many :bands
 end
-# end-counter-cache
+# end-counter-cache-dynamic
 
 # start-access-metadata
 # Get the metadata for a named association from the class or document

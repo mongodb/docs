@@ -238,7 +238,6 @@ class Label
 end
 # end-counter-cache-dynamic
 
-
 # start-access-metadata
 # Get the metadata for a named association from the class or document
 Model.reflect_on_association(:<association_name>)
