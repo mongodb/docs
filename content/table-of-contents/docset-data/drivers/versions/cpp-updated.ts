@@ -304,7 +304,7 @@ const tocData: TocItem[] = inheritContentSite('cpp-driver', [
   {
     label: 'API Documentation',
     isExternal: true,
-    url: 'https://mongocxx.org/api/mongocxx-4.1.1',
+    url: 'https://mongocxx.org/api/mongocxx-4.1.4',
   },
   {
     label: 'Issues & Help',

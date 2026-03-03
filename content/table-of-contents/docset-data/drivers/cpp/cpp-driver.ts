@@ -2,10 +2,9 @@ import type { TocItem } from '../../../types';
 import docsVersions from '../../../version-arrays/drivers/cpp-versions';
 
 import cpp_updated from '../versions/cpp-updated';
-import cpp_v3_10 from '../versions/cpp-v3.10';
-import cpp_v3_11 from '../versions/cpp-v3.11';
+import cpp_v3x from '../versions/cpp-v3.x';
 
-const updatedVersions = docsVersions.after('v4.0', { inclusive: true });
+const updatedVersions = docsVersions.after('v4.x', { inclusive: true });
 
 const tocData: TocItem[] = [
   {
@@ -21,16 +20,8 @@ const tocData: TocItem[] = [
     contentSite: 'cpp-driver',
     group: true,
     versionDropdown: true,
-    versions: { includes: ['v3.11'] },
-    items: cpp_v3_11,
-  },
-  {
-    label: 'C++ Driver',
-    contentSite: 'cpp-driver',
-    group: true,
-    versionDropdown: true,
-    versions: { includes: ['v3.10'] },
-    items: cpp_v3_10,
+    versions: { includes: ['v3.x'] },
+    items: cpp_v3x,
   },
 ];
 
