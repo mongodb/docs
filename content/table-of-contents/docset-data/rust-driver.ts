@@ -1,7 +1,7 @@
 import type { TocItem } from '../types';
 import docsVersions from '../version-arrays/drivers/rust-versions';
 
-const outdatedVersions = docsVersions.before('v3.2');
+const outdatedVersions = docsVersions.before('v3.x');
 
 export const tocData: TocItem[] = [
   {
@@ -261,7 +261,7 @@ export const tocData: TocItem[] = [
                 label: 'Tutorial: CRUD Web App',
                 contentSite: 'rust',
                 url: '/docs/drivers/rust/:version/fundamentals/crud/web-app-tutorial',
-                versions: { excludes: outdatedVersions },
+                versions:{excludes: outdatedVersions}
               },
             ],
           },
@@ -290,43 +290,32 @@ export const tocData: TocItem[] = [
             contentSite: 'rust',
             url: '/docs/drivers/rust/:version/fundamentals/indexes',
             collapsible: true,
-            versions: { excludes: ['v2.7'] },
             items: [
               {
                 label: 'MongoDB Search & Vector Search Indexes',
                 contentSite: 'rust',
                 url: '/docs/drivers/rust/:version/fundamentals/indexes/atlas-search-indexes',
-                versions: { excludes: ['v2.8', 'v3.0'] },
+                versions:{excludes: outdatedVersions}
               },
               {
                 label: 'MongoDB Search Indexes',
                 contentSite: 'rust',
                 url: '/docs/drivers/rust/:version/fundamentals/indexes/atlas-search-indexes',
-                versions: { includes: ['v2.8', 'v3.0'] },
+                versions:{includes: outdatedVersions}
               },
             ],
-          },
-          {
-            label: 'Indexes',
-            contentSite: 'rust',
-            url: '/docs/drivers/rust/:version/fundamentals/indexes',
-            versions: { includes: ['v2.7'] },
           },
           {
             label: 'MongoDB Search',
             contentSite: 'rust',
             url: '/docs/drivers/rust/:version/fundamentals/atlas-search',
-            versions: {
-              excludes: [...outdatedVersions, 'v2.7', 'v2.8', 'v3.0'],
-            },
+            versions:{excludes: outdatedVersions}
           },
           {
             label: 'MongoDB Vector Search',
             contentSite: 'rust',
             url: '/docs/drivers/rust/:version/fundamentals/vector-search',
-            versions: {
-              excludes: [...outdatedVersions, 'v2.7', 'v2.8', 'v3.0'],
-            },
+            versions:{excludes: outdatedVersions}
           },
           {
             label: 'Transactions',
@@ -401,7 +390,6 @@ export const tocData: TocItem[] = [
         label: 'Third-Party Integrations',
         contentSite: 'rust',
         url: '/docs/drivers/rust/:version/integrations',
-        versions: { excludes: outdatedVersions },
       },
       {
         label: 'API Documentation',
@@ -412,12 +400,12 @@ export const tocData: TocItem[] = [
           {
             label: 'MongoDB Rust Driver',
             isExternal: true,
-            url: 'https://docs.rs/mongodb/3.2.4/mongodb/index.html',
+            url: 'https://docs.rs/mongodb/latest/mongodb/index.html',
           },
           {
             label: 'BSON Crate',
             isExternal: true,
-            url: 'https://docs.rs/bson/2.14.0/bson/index.html',
+            url: 'https://docs.rs/bson/latest/bson/index.html',
           },
         ],
       },
