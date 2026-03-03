@@ -345,6 +345,22 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           children: convertChildren({ nodes: node.children, depth, ctx }),
         };
       }
+      if (directiveName === 'button') {
+        const attributes: MdastNode[] = toJsxAttributes(node.options);
+        const children: MdastNode[] = [];
+        if (Array.isArray(node.argument)) {
+          children.push(...convertChildren({ nodes: node.argument, depth, ctx, parentType: 'button' }));
+        } else if (typeof node.argument === 'string') {
+          children.push({ type: 'text', value: node.argument });
+        }
+        children.push(...convertChildren({ nodes: node.children ?? [], depth, ctx, parentType: 'button' }));
+        return {
+          type: 'mdxJsxTextElement',
+          name: 'Button',
+          attributes,
+          children,
+        };
+      }
 
       // Generic fallback for any Snooty directive (ex: ...tab -> <Tab>)
       const componentName = pascalCase(node.name ?? 'Directive');
@@ -359,14 +375,15 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       }
 
       const children: MdastNode[] = [];
+      const parentTypeForChildren = directiveName;
       if (includeArgumentAsChild) {
         if (Array.isArray(node.argument)) {
-          children.push(...convertChildren({ nodes: node.argument, depth, ctx }));
+          children.push(...convertChildren({ nodes: node.argument, depth, ctx, parentType: parentTypeForChildren }));
         } else if (typeof node.argument === 'string') {
           children.push({ type: 'text', value: node.argument });
         }
       }
-      children.push(...convertChildren({ nodes: node.children, depth, ctx }));
+      children.push(...convertChildren({ nodes: node.children, depth, ctx, parentType: parentTypeForChildren }));
 
       // Filter out empty directive elements
       if (HIDDEN_NODES.includes(directiveName) && children.length === 0 && attributes.length === 0) {

@@ -21,6 +21,7 @@ import Procedure from '@/mdx-components/procedure';
 import Step from '@/mdx-components/procedure/step';
 import Introduction from './components/introduction';
 import CommunityPillLink from './components/community-pill-link';
+import Button from './mdx-components/Button';
 
 type InjectedProps = Record<string, unknown>;
 
@@ -51,7 +52,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Abbr: ({ children }) => <span>{children}</span>,
     Banner: ({ children, ...props }) => <Banner {...props}>{children}</Banner>,
     Blockquote: ({ children }) => <blockquote>{children}</blockquote>,
-    Button: ({ children }) => <span>{children}</span>,
+    Button: ({ children, ...props }) => <Button {...props}>{children}</Button>,
     Card: ({ children }) => <span>{children}</span>,
     CardGroup: ({ children }) => <span>{children}</span>,
     Chapters: ({ children }) => <span>{children}</span>,
