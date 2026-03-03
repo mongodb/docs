@@ -33,7 +33,13 @@
       <https://docs.mongodb.com/atlas/security/set-up-unified-aws-access/?interface=atlas-ui>`__.
 
       Ensure that you grant your IAM role ``ListAllMyBuckets`` and
-      ``PutObject`` permissions.
+      ``PutObject`` permissions. The following example policy grants the AWS
+      principal these permissions for any S3 bucket:
+
+      .. literalinclude:: /includes/private-link-connection-example-policy.json
+         :language: json
+         :dedent:
+         :emphasize-lines: 7,10-11,14
 
       Note the ARN value in ``Statement.Principal.AWS`` to use
       later in this procedure.
