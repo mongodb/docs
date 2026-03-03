@@ -11,7 +11,7 @@ The audit filter document must resolve to a query that matches one or
 more fields in the :manual:`audit event message 
 </reference/audit-message/#audit-message>`.
 The filter document can use combinations of :manual:`query operators
-</reference/operator/query/>` and equality 
+</reference/mql/query-predicates/>` and equality 
 conditions to match the desired audit messages.
 
 To view example auditing filters, see 
