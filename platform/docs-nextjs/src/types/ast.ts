@@ -241,10 +241,17 @@ type HeadingOption = {
   title: TextNode[];
 };
 
+/** Build-time ComposableTutorial data from snooty-ast-to-mdx frontmatter */
+export type ComposableTutorialComputedData = {
+  validSelections: string[];
+  refToSelection: Record<string, Record<string, string>>;
+};
+
 type PageOptions = {
   title?: string;
   template: PageTemplateType;
   default_tabs?: ActiveTabs;
+  composable_tutorial?: ComposableTutorialComputedData;
   dismissible_skills_card?: DismissibleSkillsCardOptions;
   has_composable_tutorial?: boolean;
   hidefeedback?: string;

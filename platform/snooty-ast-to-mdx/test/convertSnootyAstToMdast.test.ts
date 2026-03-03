@@ -5,6 +5,7 @@
 
 import yaml from 'yaml';
 import { convertSnootyAst } from './utils';
+import { convertSnootyAstToMdast } from '../src/core/convertSnootyAstToMdast/convertSnootyAstToMdast';
 import type { SnootyNode } from '../src/core/convertSnootyAstToMdast/types';
 import type { ReferencesArtifact } from '../src/core/convertJsonAstToMdxFiles/buildReferencesArtifacts';
 
@@ -118,5 +119,50 @@ describe('convertSnootyAstToMdast', () => {
     expect(refs).toBeDefined();
     expect(refs.substitutions).toHaveProperty('prod', 'MongoDB');
     expect(refs.refs['/docs/page'].title).toBe('Doc');
+  });
+
+  it('adds composable_tutorial (validSelections, refToSelection) to frontmatter when page has composable-tutorial', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      fileid: 'composable-page',
+      children: [
+        {
+          type: 'directive',
+          name: 'composable-tutorial',
+          children: [
+            {
+              type: 'directive',
+              name: 'selected-content',
+              selections: { language: 'nodejs', interface: 'drivers' },
+              children: [
+                {
+                  type: 'section',
+                  id: 'intro',
+                  children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Intro' }] }],
+                },
+              ],
+            },
+            {
+              type: 'directive',
+              name: 'selected-content',
+              selections: { language: 'python', interface: 'drivers' },
+              children: [{ type: 'section', html_id: 'setup', children: [] }],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    const frontmatter = mdx.split('---')[1];
+    const parsed = yaml.parse(frontmatter);
+
+    expect(parsed.options?.composable_tutorial).toBeDefined();
+    expect(parsed.options.composable_tutorial.validSelections).toEqual(
+      expect.arrayContaining(['interface=drivers**language=nodejs', 'interface=drivers**language=python']),
+    );
+    expect(parsed.options.composable_tutorial.refToSelection).toMatchObject({
+      intro: { language: 'nodejs', interface: 'drivers' },
+      setup: { language: 'python', interface: 'drivers' },
+    });
   });
 });

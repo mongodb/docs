@@ -8,6 +8,7 @@ import { convertDirectiveLiteralInclude } from './convertDirectiveLiteralInclude
 import { convertDirectiveListTable } from './convertDirectiveListTable';
 import { convertDirectiveProcedure } from './convertDirectiveProcedure';
 import { parseSnootyArgument } from './parseSnootyArgument';
+import { computeComposableTutorialData, buildComposableOptionsFromNode } from './computeComposableTutorialData';
 import { extractInlineDisplayText } from './extractInlineDisplayText';
 
 const HIDDEN_NODES = ['toctree', 'index', 'seealso'];
@@ -44,12 +45,27 @@ const appendTrailingPunctuation = (nodes: SnootyNode[]): SnootyNode[] => {
 };
 
 /** Collect all values of a given attribute from nested nodes (mirrors findAllNestedAttribute from docs-nextjs) */
-const findAllNestedAttribute = (nodes: SnootyNode[], attribute: string): string[] => {
+export const findAllNestedAttribute = (nodes: SnootyNode[], attribute: string): string[] => {
   const results: string[] = [];
   const searchNode = (node: SnootyNode) => {
     if (attribute in node) {
       const value = node[attribute];
       if (typeof value === 'string') results.push(value);
+    }
+    if (node.children) {
+      node.children.forEach(searchNode);
+    }
+  };
+  nodes.forEach(searchNode);
+  return results;
+};
+
+/** Find all directive nodes with the given name in the tree (mirrors findAllKeyValuePairs from Snooty) */
+export const findAllDirectivesByName = (nodes: SnootyNode[], directiveName: string): SnootyNode[] => {
+  const results: SnootyNode[] = [];
+  const searchNode = (node: SnootyNode) => {
+    if (node.type === 'directive' && String(node.name ?? '').toLowerCase() === directiveName.toLowerCase()) {
+      results.push(node);
     }
     if (node.children) {
       node.children.forEach(searchNode);
@@ -345,6 +361,33 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           children: convertChildren({ nodes: node.children, depth, ctx }),
         };
       }
+      if (directiveName === 'composable-tutorial') {
+        const attributes: MdastNode[] = toJsxAttributes(node.options);
+        const composableOptions = buildComposableOptionsFromNode(node);
+        if (composableOptions.length > 0) {
+          attributes.push({
+            type: 'mdxJsxAttribute',
+            name: 'composableOptions',
+            value: {
+              type: 'mdxJsxAttributeValueExpression',
+              value: JSON.stringify(composableOptions),
+            },
+          });
+        }
+        const children: MdastNode[] = [];
+        if (Array.isArray(node.argument)) {
+          children.push(...convertChildren({ nodes: node.argument, depth, ctx }));
+        } else if (typeof node.argument === 'string') {
+          children.push({ type: 'text', value: node.argument });
+        }
+        children.push(...convertChildren({ nodes: node.children, depth, ctx }));
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'ComposableTutorial',
+          attributes,
+          children,
+        };
+      }
       if (directiveName === 'button') {
         const attributes: MdastNode[] = toJsxAttributes(node.options);
         const children: MdastNode[] = [];
@@ -359,6 +402,29 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           name: 'Button',
           attributes,
           children,
+        };
+      }
+      if (directiveName === 'selected-content') {
+        const selections =
+          typeof node.selections === 'object' && node.selections !== null && !Array.isArray(node.selections)
+            ? node.selections
+            : {};
+        const attributes: MdastNode[] = [
+          {
+            type: 'mdxJsxAttribute',
+            name: 'selections',
+            value: {
+              type: 'mdxJsxAttributeValueExpression',
+              value: JSON.stringify(selections),
+            },
+          },
+        ];
+
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'ComposableContent',
+          attributes,
+          children: convertChildren({ nodes: node.children, depth, ctx }),
         };
       }
 
@@ -731,9 +797,13 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
 
   // Merge page-level options that sit on the root node itself.
   const pageOptions = (root as { options?: Record<string, unknown> }).options ?? {};
+  const composableData = computeComposableTutorialData(root);
+  if (composableData) {
+    pageOptions.composable_tutorial = composableData;
+  }
   const frontmatterObj = {
     ...(root.fileid ? { fileId: root.fileid } : {}),
-    ...(Object.values(pageOptions).length ? { options: { ...pageOptions } } : {}),
+    ...(Object.keys(pageOptions).length ? { options: pageOptions } : {}),
     ...metaFromDirectives,
   };
 

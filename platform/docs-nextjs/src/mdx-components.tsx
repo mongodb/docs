@@ -19,9 +19,11 @@ import Line from '@/components/line';
 import LineBlock from '@/components/line-block';
 import Procedure from '@/mdx-components/procedure';
 import Step from '@/mdx-components/procedure/step';
-import Introduction from './components/introduction';
-import CommunityPillLink from './components/community-pill-link';
-import Button from './mdx-components/Button';
+import Introduction from '@/components/introduction';
+import CommunityPillLink from '@/components/community-pill-link';
+import ComposableTutorial from '@/mdx-components/ComposableTutorial';
+import ComposableContent from '@/mdx-components/ComposableTutorial/ComposableContent';
+import Button from '@/mdx-components/Button';
 
 type InjectedProps = Record<string, unknown>;
 
@@ -62,7 +64,16 @@ export const components = (injectedProps?: InjectedProps) =>
     Facet: ({ children }) => <span>{children}</span>,
     Collapsible: ({ children, ...props }) => <Collapsible {...props}>{children}</Collapsible>,
     CommunityDriver: ({ children, ...props }) => <CommunityPillLink {...props}>{children}</CommunityPillLink>,
-    ComposableTutorial: ({ children }) => <span>{children}</span>,
+    ComposableContent: ({ children, selections, ...props }) => (
+      <ComposableContent selections={selections} {...props}>
+        {children}
+      </ComposableContent>
+    ),
+    ComposableTutorial: ({ children, composableOptions, ...props }) => (
+      <ComposableTutorial composableOptions={composableOptions ?? []} {...props}>
+        {children}
+      </ComposableTutorial>
+    ),
     IOCodeBlock: ({ children }) => <span>{children}</span>,
     Cond: ({ children }) => <span>{children}</span>,
     Container: ({ children }) => <span>{children}</span>,
@@ -122,7 +133,6 @@ export const components = (injectedProps?: InjectedProps) =>
     SeeAlso: ({ children }) => <span>{children}</span>,
     // TODO: Remove duplicate once mapping is fixed in DOP-6577
     Seealso: ({ children }) => <span>{children}</span>,
-    SelectedContent: ({ children }) => <span>{children}</span>,
     SharedInclude: ({ children }) => <span>{children}</span>,
     Strong: ({ children }) => <strong>{children}</strong>,
     Superscript: ({ children }) => <sup>{children}</sup>,
