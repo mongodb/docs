@@ -191,7 +191,7 @@ Configuration for the advanced (v1.5) deployment API https://www.mongodb.com/doc
    * -  ``backupEnabled``
      - boolean
      - Flag that indicates if the deployment uses Cloud Backups for backups.
-       Applicable only for ``M10+`` deployments.
+       Applicable only for ``M10`` + deployments.
      - false
 
    * -  ``biConnector``
@@ -967,9 +967,9 @@ AtlasDeployment.spec.deploymentSpec.searchNodes
      - Required
 
    * -  ``instanceSize``
-     - enum
+     - string
      - Hardware specification for the Search Node instance sizes.
-       *Enum*: ``S20_HIGHCPU_NVME``, ``S30_HIGHCPU_NVME``, ``S40_HIGHCPU_NVME``, ``S50_HIGHCPU_NVME``, ``S60_HIGHCPU_NVME``, ``S70_HIGHCPU_NVME``, ``S80_HIGHCPU_NVME``, ``S30_LOWCPU_NVME``, ``S40_LOWCPU_NVME``, ``S50_LOWCPU_NVME``, ``S60_LOWCPU_NVME``, ``S80_LOWCPU_NVME``, ``S90_LOWCPU_NVME``, ``S100_LOWCPU_NVME``, ``S110_LOWCPU_NVME``
+       See `Create Search Nodes <https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupclustersearchdeployment#operation-creategroupclustersearchdeployment-body-application-vnd-atlas-2024-05-30-json-specs-instancesize>`__ for available values
      - false
 
    * -  ``nodeCount``
@@ -1088,7 +1088,7 @@ Group of cloud provider settings that configure the provisioned MongoDB flex clu
 
        - self == ``oldSelf``: Backing Provider cannot be modified after cluster creation
 
-       *Enum*: ``AWS``, ``GCP``, ``AZURE``
+         *Enum*: ``AWS``, ``GCP``, ``AZURE``
      - true
 
    * -  ``regionName``
@@ -1098,6 +1098,7 @@ Group of cloud provider settings that configure the provisioned MongoDB flex clu
        *Validations*:
 
        - self == ``oldSelf``: Region Name cannot be modified after cluster creation
+
      - true
 
 .. _atlasdeployment-spec-flexspec-tags: 
