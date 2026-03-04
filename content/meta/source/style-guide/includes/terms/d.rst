@@ -231,6 +231,15 @@ D
         * - Navigate to the folder that contains your file.
           - Drill down to the folder that contains your file.
 
+   driver 
+      Use *driver* to refer to a language-specific library supported by MongoDB that connects an 
+      application to MongoDB. A driver is a type of :term:`client library`.
+
+      .. tip::
+         Visit the `MongoDB Client Libraries <https://www.mongodb.com/docs/drivers/>`__ documentation
+         for a full list of drivers. All drivers have the word "driver" in their product name, 
+         such as the MongoDB Java Driver.
+
    drop-down
      :icon-fa4:`exclamation-triangle` Use as an adjective only when
      you are referring to a drop-down menu as a user interface

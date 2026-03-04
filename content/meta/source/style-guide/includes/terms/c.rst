@@ -110,6 +110,19 @@ C
             Because no two customers are the same, the company is aware
             of the need for customizable platforms.
 
+   client library
+      Use *client library* as a general term to refer to a MongoDB driver or
+      framework integration. Use  *client library* instead of :term:`driver` in TOC titles
+      or page headings.
+
+      Use *client libraries* as a collective term to refer to the MongoDB drivers or
+      framework integrations that applications use to connect to MongoDB. Don't use
+      *client drivers* or *client connectors*.
+
+      .. tip::
+         Visit the `MongoDB Client Libraries <https://www.mongodb.com/docs/drivers/>`__ documentation
+         for a full list of client libraries. 
+
    client/server
      Use a slash, not a hyphen.
 
