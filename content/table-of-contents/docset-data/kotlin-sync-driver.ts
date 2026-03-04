@@ -1,7 +1,7 @@
 import type { TocItem } from '../types';
 import docsVersions from '../version-arrays/drivers/kotlin-sync-versions';
 
-const outdatedVersions = docsVersions.before('v5.2', { inclusive: true });
+//const outdatedVersions = docsVersions.before('v5.2', { inclusive: true });
 
 const tocData: TocItem[] = [
   {
@@ -19,41 +19,6 @@ const tocData: TocItem[] = [
         label: 'Getting Started',
         contentSite: 'kotlin-sync',
         url: '/docs/languages/kotlin/kotlin-sync-driver/:version/get-started',
-        versions: { excludes: outdatedVersions },
-      },
-      {
-        label: 'Getting Started',
-        contentSite: 'kotlin-sync',
-        url: '/docs/languages/kotlin/kotlin-sync-driver/:version/get-started',
-        collapsible: true,
-        versions: { includes: outdatedVersions },
-        items: [
-          {
-            label: 'Download & Install',
-            contentSite: 'kotlin-sync',
-            url: '/docs/languages/kotlin/kotlin-sync-driver/:version/get-started/download-and-install',
-          },
-          {
-            label: 'Create a Deployment',
-            contentSite: 'kotlin-sync',
-            url: '/docs/languages/kotlin/kotlin-sync-driver/:version/get-started/create-a-deployment',
-          },
-          {
-            label: 'Create a Connection String',
-            contentSite: 'kotlin-sync',
-            url: '/docs/languages/kotlin/kotlin-sync-driver/:version/get-started/create-a-connection-string',
-          },
-          {
-            label: 'Run a Sample Query',
-            contentSite: 'kotlin-sync',
-            url: '/docs/languages/kotlin/kotlin-sync-driver/:version/get-started/run-sample-query',
-          },
-          {
-            label: 'Next Steps',
-            contentSite: 'kotlin-sync',
-            url: '/docs/languages/kotlin/kotlin-sync-driver/:version/get-started/next-steps',
-          },
-        ],
       },
       {
         label: 'Connect',
@@ -96,7 +61,6 @@ const tocData: TocItem[] = [
                 label: 'Limit Server Execution Time',
                 contentSite: 'kotlin-sync',
                 url: '/docs/languages/kotlin/kotlin-sync-driver/:version/connect/connection-options/csot',
-                versions: { excludes: ['v5.1'] },
               },
               {
                 label: 'Connection Pools',
@@ -223,14 +187,7 @@ const tocData: TocItem[] = [
         label: 'Builders',
         contentSite: 'kotlin-sync',
         url: '/docs/languages/kotlin/kotlin-sync-driver/:version/builders',
-        versions: { includes: outdatedVersions },
-      },
-      {
-        label: 'Builders',
-        contentSite: 'kotlin-sync',
-        url: '/docs/languages/kotlin/kotlin-sync-driver/:version/builders',
         collapsible: true,
-        versions: { excludes: outdatedVersions },
         items: [
           {
             label: 'Builders & Data Classes',
@@ -289,7 +246,6 @@ const tocData: TocItem[] = [
         contentSite: 'kotlin-sync',
         url: '/docs/languages/kotlin/kotlin-sync-driver/:version/indexes',
         collapsible: true,
-        versions: { excludes: ['v5.1'] },
         items: [
           {
             label: 'MongoDB Search and Vector Search Indexes',
@@ -297,12 +253,6 @@ const tocData: TocItem[] = [
             url: '/docs/languages/kotlin/kotlin-sync-driver/:version/indexes/atlas-search-index',
           },
         ],
-      },
-      {
-        label: 'Indexes',
-        contentSite: 'kotlin-sync',
-        url: '/docs/languages/kotlin/kotlin-sync-driver/:version/indexes',
-        versions: { includes: ['v5.1'] },
       },
       {
         label: 'Run a Database Command',
@@ -313,13 +263,11 @@ const tocData: TocItem[] = [
         label: 'MongoDB Search',
         contentSite: 'kotlin-sync',
         url: '/docs/languages/kotlin/kotlin-sync-driver/:version/atlas-search',
-        versions: { excludes: ['v5.1'] },
       },
       {
         label: 'MongoDB Vector Search',
         contentSite: 'kotlin-sync',
         url: '/docs/languages/kotlin/kotlin-sync-driver/:version/atlas-vector-search',
-        versions: { excludes: ['v5.1'] },
       },
       {
         label: 'Logging and Monitoring',
@@ -446,7 +394,6 @@ const tocData: TocItem[] = [
             label: 'Kotlin Driver Extensions',
             contentSite: 'kotlin-sync',
             url: 'https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-kotlin-extensions/index.html',
-            versions: { excludes: outdatedVersions },
           },
           {
             label: 'Driver Core',
