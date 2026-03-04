@@ -6,15 +6,13 @@
 
 The stages in the live migration workflow are:
 
-- **Stage 1: Link with Atlas**. Perform this step in |service|,
+- **Stage 1: Select the Migration Path in Atlas**. Perform this step in |service|,
   after you have created your |service| account, organization, and
   project; deployed your dedicated {+cluster+} in this project; and can
   connect to it.
-
-  a. ... include:: /includes/nav/list-migration-page.rst
     
-  #. Select :guilabel:`Migrate from a Self-Managed MongoDB Database` and
-     start the live migration wizard.
+  - For detailed steps, see the 
+    :ref:`procedure for migrating a cluster from Cloud Manager to Atlas <lm-push-c2c-procedure>`.
 
 - **Stage 2: Provision Migration Host**.
   
