@@ -32,73 +32,100 @@ post: |
   :method:`sh.status()`.
 ---
 stepnum: 3
-title: Remove the old zone range
+title: Remove the old zone ranges
 level: 4
 ref: sharding-tag-location-remove-old-zone
 action:
-  - pre: |
-      Remove the old zone range associated to the ``UK`` country using the 
-      :method:`sh.removeTagRange()` method. This method requires:
-      
-      * The full namespace of the target collection. 
-      * The inclusive lower bound of the range. 
-      * The exclusive upper bound of the range. 
-      
-    language: javascript
-    code: |
-      sh.removeTagRange(
-        "chat.messages",
-        { "country" : "UK", "userid" : MinKey },
-        { "country" : "UK", "userid" : MaxKey }
-      )
+ - pre: |
+    Use the :method:`sh.removeTagRange()` method to remove the old zone
+    ranges associated with the ``DE`` and ``UK`` countries. This method
+    requires:
+
+    * The full namespace of the target collection.
+    * The inclusive lower bound of the range.
+    * The exclusive upper bound of the range.
+
+   language: javascript
+   code: |
+    sh.removeTagRange(
+      "chat.messages",
+      { "country" : "DE", "userid" : MinKey },
+      { "country" : "UK", "userid" : MinKey }
+    )
+
+    sh.removeTagRange(
+      "chat.messages",
+      { "country" : "UK", "userid" : MinKey },
+      { "country" : "US", "userid" : MinKey }
+    )
 ---
 stepnum: 4
 title: Add new zone ranges
 level: 4
 ref: sharding-tag-location-add-new-zone
 action:
-  - pre: |
-      For shard key values where ``country : UK``, define a shard key range
-      and associate it to the ``UK`` zone using the :method:`sh.addTagRange()`
-      method. This method requires:
-      
-      * The full namespace of the target collection. 
-      * The inclusive lower bound of the range. 
-      * The exclusive upper bound of the range. 
-      * The name of the zone.
-      
-    language: javascript
-    code: |
-      sh.addTagRange( 
-        "chat.message",
-        { "country" : "UK", "userid" : MinKey },
-        { "country" : "UK", "userid" : MaxKey }, 
-        "UK"
-      )
-  - pre: |
-      For shard key values where ``country : MX``, define a shard key range
-      and associate it to the ``NA`` zone using the :method:`sh.addTagRange()`
-      method. This method requires:
-      
-      * The full namespace of the target collection. 
-      * The inclusive lower bound of the range. 
-      * The exclusive upper bound of the range. 
-      * The name of the zone.
+ - pre: |
+    For shard key values where ``country : DE``, define a shard key
+    range and use the :method:`sh.addTagRange()` method to associate it
+    to the ``EU`` zone. This method requires:
 
-    language: javascript
-    code: |
-      sh.addTagRange( 
-        "chat.messages",
-        { "country" : "MX", "userid" : MinKey },
-        { "country" : "MX", "userid" : MaxKey }, 
-        "NA"
-      )
+    * The full namespace of the target collection. 
+    * The inclusive lower bound of the range. 
+    * The exclusive upper bound of the range. 
+    * The name of the zone.
+
+   language: javascript
+   code: |
+    sh.addTagRange(
+      "chat.messages",
+      { "country" : "DE", "userid" : MinKey },
+      { "country" : "MX", "userid" : MinKey },
+      "EU"
+    )
+
+ - pre: |
+    For shard key values where ``country : UK``, define a shard key
+    range and use the :method:`sh.addTagRange()` method to associate it
+    to the ``UK`` zone. This method requires:
+
+    * The full namespace of the target collection. 
+    * The inclusive lower bound of the range. 
+    * The exclusive upper bound of the range. 
+    * The name of the zone.
+
+   language: javascript
+   code: |
+    sh.addTagRange( 
+      "chat.messages",
+      { "country" : "UK", "userid" : MinKey },
+      { "country" : "US", "userid" : MinKey }, 
+      "UK"
+    )
+
+ - pre: |
+    For shard key values where ``country : MX``, define a shard key
+    range and use the :method:`sh.addTagRange()` method to associate it
+    to the ``NA`` zone. This method requires:
+
+    * The full namespace of the target collection. 
+    * The inclusive lower bound of the range. 
+    * The exclusive upper bound of the range. 
+    * The name of the zone.
+
+   language: javascript
+   code: |
+    sh.addTagRange( 
+      "chat.messages",
+      { "country" : "MX", "userid" : MinKey },
+      { "country" : "UK", "userid" : MinKey }, 
+      "NA"
+    )
 post: |
-  The :bsontype:`MinKey` and :bsontype:`MaxKey` values are reserved special values
-  for comparisons. :bsontype:`MinKey` always compares as lower than every other
-  possible value, while :bsontype:`MaxKey` always compares as higher than
-  every other possible value. This ensures the two ranges captures the 
-  entire possible value space of ``userid``. 
+  MongoDB reserves :bsontype:`MinKey` and :bsontype:`MaxKey` values as special
+  values for comparisons. :bsontype:`MinKey` always compares as lower than
+  every other possible value, while :bsontype:`MaxKey` always compares as
+  higher than every other possible value. This ensures the ranges capture the
+  entire possible value space of ``userid`` for their ``country`` values.
 ---
 stepnum: 5
 title: Enable the Balancer (Optional)
@@ -123,9 +150,9 @@ title: Review the changes
 level: 4
 ref: sharding_tiered_storage_review
 pre: |
-  The next time the :ref:`balancer <sharding-balancing>` runs, it 
-  splits chunks where necessary and :ref:`migrates 
-  <sharding-chunk-migration>` chunks across the shards respecting the 
+  The next time the :ref:`balancer <sharding-balancing>` runs, it
+  splits chunks where necessary and :ref:`migrates
+  <sharding-chunk-migration>` chunks across the shards according to the
   configured zones.
   
   Before balancing:
