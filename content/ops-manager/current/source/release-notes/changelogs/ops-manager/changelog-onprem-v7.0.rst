@@ -15,7 +15,7 @@ Improvements
 
 Bug Fixes
 ~~~~~~~~~
-
+- Fixes an issue where Ops Manager job worker threads could become stuck waiting on a lock to fetch data, which could cause scheduled jobs to stop progressing.
 - Fixes the following |cve|\s:  
 
   - `CVE-2022-25883 <https://nvd.nist.gov/vuln/detail/CVE-2022-25883>`__

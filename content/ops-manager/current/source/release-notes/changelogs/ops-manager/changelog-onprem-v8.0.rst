@@ -25,6 +25,7 @@ Improvements
 Bug Fixes
 ~~~~~~~~~
 
+- Fixes an issue where Ops Manager job worker threads could become stuck waiting on a lock to fetch data, which could cause scheduled jobs to stop progressing.
 - Fixes an issue where the Patch User API did not work for global roles.
 - Fixes an issue where some snapshot details did not display on the
   :guilabel:`Snapshots` admin page, although the underlying data
