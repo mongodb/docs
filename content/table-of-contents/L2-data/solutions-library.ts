@@ -122,7 +122,7 @@ const tocData: TocItem[] = [
     collapsible: true,
     items: [
       {
-        label: 'Interoperability',
+        label: 'AI & Gen AI',
         contentSite: 'atlas-architecture',
         collapsible: true,
         items: [
@@ -131,6 +131,18 @@ const tocData: TocItem[] = [
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/healthcare-asset-ai-healthcare',
           },
+          {
+            label: 'Medical Report Generator',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/medical-report-generator',
+          },
+        ],
+      },
+      {
+        label: 'Interoperability',
+        contentSite: 'atlas-architecture',
+        collapsible: true,
+        items: [
           {
             label: 'Hybrid FHIR ODL',
             contentSite: 'atlas-architecture',
