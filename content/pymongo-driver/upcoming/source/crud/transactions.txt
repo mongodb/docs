@@ -163,6 +163,16 @@ the session state by using the following methods provided by the returned ``Clie
        | **Parameters**: ``callback``, ``read_concern``, ``write_concern``, ``read_preference``, ``max_commit_time_ms``
        | **Return Value**: The result of the ``callback`` function
 
+   * - ``bind()``
+     - | Binds the session to all database operations within the
+         scope of a context manager. Call this method
+         on a ``ClientSession`` object, then use the
+         result as a context manager. This removes the requirement
+         to pass ``session`` to each individual operation.
+       |
+       | **Parameters**: ``end_session`` (**Optional**, defaults to ``True``)
+       | **Return Type**: ``_BoundSessionContext``
+
    * - ``end_session()``
      - | Finishes this session. If a transaction has started, this method aborts it.
          Returns an error if there is no active session to end.
@@ -171,6 +181,34 @@ A ``ClientSession`` also has methods to retrieve session
 properties and modify mutable session properties. To learn more about these
 methods, see the :ref:`API documentation <api-docs-transaction>`.
 
+.. important::
+
+   If you call ``bind(end_session=False)``, you must call
+   ``end_session()`` explicitly when you're finished using
+   the session to avoid leaking it. The following code shows
+   correct and incorrect usage patterns:
+
+   .. code-block:: python
+
+      # Incorrect: leaks the session because no reference exists to call
+      # end_session() on once finished with it
+      with client.start_session().bind(end_session=False):
+          ...
+
+      # Correct: end_session=True by default, so session ends automatically
+      with client.start_session().bind():
+          ...
+
+      # Correct: session variable allows explicit cleanup
+      with client.start_session() as s, s.bind(end_session=False):
+          ...
+      s.end_session()
+
+      # Correct: nested context managers
+      with client.start_session() as s:
+          with s.bind():
+              ...
+
 Example
 -------
 
@@ -178,11 +216,15 @@ The following example shows how you can create a session, create a
 transaction, and commit a multi-document insert operation through the
 following steps:
 
-1. Create a session from the client by using the ``start_session()`` method.
+1. Create a session from the client by using the
+   ``start_session()`` method. Bind it to all operations in the
+   block by calling the ``bind()`` method.
 #. Use the ``with_transaction()`` method to start a transaction.
-#. Insert multiple documents. The ``with_transaction()`` method runs the
-   insert operation and commits the transaction. If any operation results in
-   errors, ``with_transaction()`` cancels the transaction. This method
+#. Insert multiple documents. Because the session is bound, you
+   can omit the ``session`` argument from each operation. The
+   ``with_transaction()`` method runs the insert operation and
+   commits the transaction. If any operation results in errors,
+   ``with_transaction()`` cancels the transaction. This method
    ensures that the session closes properly when the block exits.
 #. Close the connection to the server by using the ``client.close()`` method.
 
@@ -227,7 +269,7 @@ Additional Information
 ----------------------
 
 To learn more about the concepts mentioned in this guide, see the following pages in 
-the Server manual:
+the {+mdb-server+} manual:
 
 - :manual:`Transactions </core/transactions/>`
 - :manual:`Server Sessions </reference/server-sessions>`
@@ -248,6 +290,7 @@ guide, see the following API documentation:
 - `ClientSession <{+api-root+}pymongo/client_session.html#pymongo.client_session.ClientSession>`__
 - `WriteConcern <{+api-root+}pymongo/write_concern.html#pymongo.write_concern.WriteConcern>`__
 - `abort_transaction() <{+api-root+}pymongo/client_session.html#pymongo.client_session.ClientSession.abort_transaction>`__
+- `bind() <{+api-root+}pymongo/client_session.html#pymongo.client_session.ClientSession.bind>`__
 - `commit_transaction() <{+api-root+}pymongo/client_session.html#pymongo.client_session.ClientSession.commit_transaction>`__
 - `end_session() <{+api-root+}pymongo/client_session.html#pymongo.client_session.ClientSession.end_session>`__
 - `start_transaction() <{+api-root+}pymongo/client_session.html#pymongo.client_session.ClientSession.start_transaction>`__
