@@ -1,4 +1,4 @@
-.. Last updated: March 2, 2026 at 1:50 PM EST
+.. Last updated: March 5, 2026 at 2:00 PM EST
 
 .. _api-rate-limits-aws-clusters-dns:
 
@@ -1176,40 +1176,6 @@ Service Accounts
 * **POST** ``/api/atlas/v2/orgs/{orgId}/serviceAccounts``
 * **POST** ``/api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/accessList``
 * **POST** ``/api/atlas/v2/orgs/{orgId}/serviceAccounts/{clientId}/secrets``
-
-.. _api-rate-limits-shared-tier-restore-jobs:
-
-Shared Tier Restore Jobs
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-**Scope:** GROUP
-
-**Capacity:** 4000
-
-**Refill:** 2000/60s
-
-**Endpoints:**
-
-* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/tenant/restores``
-* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/tenant/restores/{restoreId}``
-* **POST** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/tenant/restore``
-
-.. _api-rate-limits-shared-tier-snapshots:
-
-Shared Tier Snapshots
-~~~~~~~~~~~~~~~~~~~~~
-
-**Scope:** GROUP
-
-**Capacity:** 4000
-
-**Refill:** 2000/60s
-
-**Endpoints:**
-
-* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/tenant/snapshots``
-* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/tenant/snapshots/{snapshotId}``
-* **POST** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/tenant/download``
 
 .. _api-rate-limits-streams:
 
