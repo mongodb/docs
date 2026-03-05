@@ -1,5 +1,6 @@
 import type { TocItem } from '../types';
-import docsVersions from '../version-arrays/drivers/kotlin-sync-versions';
+
+//import docsVersions from '../version-arrays/drivers/kotlin-sync-versions';
 
 //const outdatedVersions = docsVersions.before('v5.2', { inclusive: true });
 
