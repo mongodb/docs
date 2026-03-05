@@ -1,1 +1,0 @@
-moviesCollection.dropSearchIndex("myIndex");

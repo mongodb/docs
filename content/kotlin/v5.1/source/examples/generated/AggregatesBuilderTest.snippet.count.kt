@@ -1,1 +1,0 @@
-Aggregates.count("total")

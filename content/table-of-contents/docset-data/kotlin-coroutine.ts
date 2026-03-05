@@ -1,7 +1,8 @@
 import type { TocItem } from '../types';
-import docsVersions from '../version-arrays/drivers/kotlin-coroutine-versions';
 
-const outdatedVersions = docsVersions.before('v5.5', { inclusive: true });
+//import docsVersions from '../version-arrays/drivers/kotlin-coroutine-versions';
+
+//const outdatedVersions = docsVersions.before('v5.5', { inclusive: true });
 
 const tocData: TocItem[] = [
   {
@@ -258,7 +259,6 @@ const tocData: TocItem[] = [
             label: 'Builders & Data Classes',
             contentSite: 'kotlin',
             url: '/docs/drivers/kotlin/coroutine/:version/builders/builders-data-classes',
-            versions: { excludes: ['v5.0', 'v5.1', 'v5.2'] },
           },
         ],
       },
@@ -420,7 +420,6 @@ const tocData: TocItem[] = [
         label: 'Third Party Integrations',
         contentSite: 'kotlin',
         collapsible: true,
-        versions: { excludes: outdatedVersions },
         items: [
           {
             label: 'Tutorial: Ktor API with MongoDB',
