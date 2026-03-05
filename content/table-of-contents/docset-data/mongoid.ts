@@ -21,44 +21,6 @@ const tocData: TocItem[] = [
         label: 'Quick Start - Sinatra',
         contentSite: 'mongoid',
         url: '/docs/mongoid/:version/quick-start-sinatra',
-        collapsible: true,
-        items: [
-          {
-            label: 'Download & Install',
-            contentSite: 'mongoid',
-            url: '/docs/mongoid/:version/quick-start-sinatra/download-and-install',
-          },
-          {
-            label: 'Create a Deployment',
-            contentSite: 'mongoid',
-            url: '/docs/mongoid/:version/quick-start-sinatra/create-a-deployment',
-          },
-          {
-            label: 'Create a Connection String',
-            contentSite: 'mongoid',
-            url: '/docs/mongoid/:version/quick-start-sinatra/create-a-connection-string',
-          },
-          {
-            label: 'Configure Your Connection',
-            contentSite: 'mongoid',
-            url: '/docs/mongoid/:version/quick-start-sinatra/configure-mongodb',
-          },
-          {
-            label: 'View Data',
-            contentSite: 'mongoid',
-            url: '/docs/mongoid/:version/quick-start-sinatra/view-data',
-          },
-          {
-            label: 'Write Data',
-            contentSite: 'mongoid',
-            url: '/docs/mongoid/:version/quick-start-sinatra/write-data',
-          },
-          {
-            label: 'Next Steps',
-            contentSite: 'mongoid',
-            url: '/docs/mongoid/:version/quick-start-sinatra/next-steps',
-          },
-        ],
       },
       {
         label: 'Configuration',
