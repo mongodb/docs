@@ -1,4 +1,4 @@
-.. Last updated: February 05, 2026 at 01:32 PM EST
+.. Last updated: March 05, 2026 at 01:53 PM EST
 
 .. list-table::
    :header-rows: 1
@@ -54,6 +54,12 @@
      - .. _atlas_event_admin_override_payment_method_deleted:
 
        Admin Override payment method deleted
+     - no
+
+   * - ``ADMIN_OVERRIDE_PAYMENT_METHOD_EXPIRED``
+     - .. _atlas_event_admin_override_payment_method_expired:
+
+       Admin Override payment method expired automatically
      - no
 
    * - ``ALERT_ACKNOWLEDGED_AUDIT``
@@ -192,6 +198,12 @@
      - .. _atlas_event_atlas_maintenance_deferred:
 
        Project maintenance deferred by one week
+     - no
+
+   * - ``ATLAS_MAINTENANCE_DEFERRED_BY_ADMIN``
+     - .. _atlas_event_atlas_maintenance_deferred_by_admin:
+
+       Admin deferred maintenance
      - no
 
    * - ``ATLAS_MAINTENANCE_PROTECTED_HOURS_CREATED``
@@ -486,6 +498,24 @@
      - .. _atlas_event_azure_encryption_key_valid:
 
        Azure Encryption at Rest key is valid
+     - no
+
+   * - ``AZURE_LOG_STREAMING_CONFIGURATION_UPDATED``
+     - .. _atlas_event_azure_log_streaming_configuration_updated:
+
+       Azure Log Streaming configuration updated
+     - no
+
+   * - ``AZURE_LOG_STREAMING_DISABLED``
+     - .. _atlas_event_azure_log_streaming_disabled:
+
+       Azure Log Streaming disabled
+     - no
+
+   * - ``AZURE_LOG_STREAMING_ENABLED``
+     - .. _atlas_event_azure_log_streaming_enabled:
+
+       Azure Log Streaming enabled
      - no
 
    * - ``AZURE_PEER_ACTIVE``
@@ -931,6 +961,12 @@
 
        Writes have been blocked on your cluster due to critically low disk space
      - yes
+
+   * - ``CLUSTER_CANCELING_CONFIG_SERVER_TRANSITION_REQUESTED``
+     - .. _atlas_event_cluster_canceling_config_server_transition_requested:
+
+       Cluster cancel config server transition requested
+     - no
 
    * - ``CLUSTER_CANCELING_SHARD_DRAIN_REQUESTED``
      - .. _atlas_event_cluster_canceling_shard_drain_requested:
@@ -1898,12 +1934,6 @@
        Cloud Backup snapshot has completed
      - no
 
-   * - ``CPS_SNAPSHOT_DELETED_AUDIT``
-     - .. _atlas_event_cps_snapshot_deleted_audit:
-
-       Cloud Backup snapshot has been deleted
-     - no
-
    * - ``CPS_SNAPSHOT_DOWNLOAD_REQUEST_FAILED``
      - .. _atlas_event_cps_snapshot_download_request_failed:
 
@@ -2120,6 +2150,12 @@
        Cross-org operation JIRA ticket tracking (Admin Only)
      - no
 
+   * - ``CROSS_REGION_SUPPORTED_REGION_MODIFIED``
+     - .. _atlas_event_cross_region_supported_region_modified:
+
+       Cross-region private endpoint supported region modified
+     - no
+
    * - ``CUSTOMER_X509_CRL_UPDATED``
      - .. _atlas_event_customer_x509_crl_updated:
 
@@ -2184,6 +2220,12 @@
      - .. _atlas_event_datadog_log_streaming_enabled:
 
        Datadog Log Streaming enabled
+     - no
+
+   * - ``DATA_API_SETUP_FOR_VERCEL``
+     - .. _atlas_event_data_api_setup_for_vercel:
+
+       Data API setup for Vercel
      - no
 
    * - ``DATA_EXPLORER``
@@ -2666,6 +2708,24 @@
        GCP Encryption at Rest key is valid
      - no
 
+   * - ``GCP_LOG_STREAMING_CONFIGURATION_UPDATED``
+     - .. _atlas_event_gcp_log_streaming_configuration_updated:
+
+       GCP Log Streaming configuration updated
+     - no
+
+   * - ``GCP_LOG_STREAMING_DISABLED``
+     - .. _atlas_event_gcp_log_streaming_disabled:
+
+       GCP Log Streaming disabled
+     - no
+
+   * - ``GCP_LOG_STREAMING_ENABLED``
+     - .. _atlas_event_gcp_log_streaming_enabled:
+
+       GCP Log Streaming enabled
+     - no
+
    * - ``GCP_PEER_ACTIVE``
      - .. _atlas_event_gcp_peer_active:
 
@@ -3020,6 +3080,12 @@
        Mongot no longer crashing due to out of memory error
      - no
 
+   * - ``HOST_MONGOT_RESTARTED``
+     - .. _atlas_event_host_mongot_restarted:
+
+       Mongot process has restarted
+     - no
+
    * - ``HOST_MONGOT_RESUME_REPLICATION``
      - .. _atlas_event_host_mongot_resume_replication:
 
@@ -3350,6 +3416,12 @@
        Private endpoint patched
      - no
 
+   * - ``INTER_NODE_DATA_VALIDATION_SUBMITTED_FOR_REPLICA_SET``
+     - .. _atlas_event_inter_node_data_validation_submitted_for_replica_set:
+
+       The replica set was submitted for inter node data validation
+     - no
+
    * - ``INVITED_TO_GROUP``
      - .. _atlas_event_invited_to_group:
 
@@ -3612,6 +3684,12 @@
      - .. _atlas_event_maintenance_window_deleted_audit:
 
        Maintenance window configuration deleted
+     - no
+
+   * - ``MARKETPLACE_REFUND_ISSUED``
+     - .. _atlas_event_marketplace_refund_issued:
+
+       Marketplace refund issued
      - no
 
    * - ``MATERIAL_CLUSTER_UPDATE_COMPLETED_INTERNAL``
@@ -4382,6 +4460,12 @@
        Organization locked due to unpaid charges over 60 days
      - no
 
+   * - ``ORG_LOCKED_ACCELERATED``
+     - .. _atlas_event_org_locked_accelerated:
+
+       Organization locked due to suspicious activity and unpaid usage
+     - no
+
    * - ``ORG_MONGODB_VERSION_EOL_EXTENSION_ACCEPTED``
      - .. _atlas_event_org_mongodb_version_eol_extension_accepted:
 
@@ -4604,6 +4688,24 @@
        Admin set OS tuned file overrides
      - no
 
+   * - ``OTEL_LOG_STREAMING_CONFIGURATION_UPDATED``
+     - .. _atlas_event_otel_log_streaming_configuration_updated:
+
+       OTel Log Streaming configuration updated
+     - no
+
+   * - ``OTEL_LOG_STREAMING_DISABLED``
+     - .. _atlas_event_otel_log_streaming_disabled:
+
+       OTel Log Streaming disabled
+     - no
+
+   * - ``OTEL_LOG_STREAMING_ENABLED``
+     - .. _atlas_event_otel_log_streaming_enabled:
+
+       OTel Log Streaming enabled
+     - no
+
    * - ``OUTSIDE_FLEX_METRIC_THRESHOLD``
      - .. _atlas_event_outside_flex_metric_threshold:
 
@@ -4656,6 +4758,18 @@
      - .. _atlas_event_payment_forgiven:
 
        Payment forgiven
+     - no
+
+   * - ``PAYMENT_METHOD_FLAGGED``
+     - .. _atlas_event_payment_method_flagged:
+
+       Payment method flagged as high risk
+     - no
+
+   * - ``PAYMENT_METHOD_UNFLAGGED``
+     - .. _atlas_event_payment_method_unflagged:
+
+       Payment method unflagged
      - no
 
    * - ``PAYMENT_UPDATED_THROUGH_API``
@@ -4843,6 +4957,12 @@
 
        Process restart requested
      - no
+
+   * - ``PROFILER_CONFIGURED_TOO_WIDELY``
+     - .. _atlas_event_profiler_configured_too_widely:
+
+       Profiler configured to capture all operations on a host, which might result in a significant performance impact.
+     - yes
 
    * - ``PROJECT_BYPASSED_MAINTENANCE``
      - .. _atlas_event_project_bypassed_maintenance:
@@ -5071,6 +5191,18 @@
 
        Replication Oplog Window
      - yes
+
+   * - ``REPLICA_SET_OPTED_OUT_OF_INTER_NODE_DATA_VALIDATION``
+     - .. _atlas_event_replica_set_opted_out_of_inter_node_data_validation:
+
+       The replica set has been opted out of inter node data validation
+     - no
+
+   * - ``REPLICA_SET_SAMPLED_FOR_INTER_NODE_DATA_VALIDATION``
+     - .. _atlas_event_replica_set_sampled_for_inter_node_data_validation:
+
+       The replica set was sampled for inter node data validation
+     - no
 
    * - ``REQUESTED_TO_JOIN_GROUP``
      - .. _atlas_event_requested_to_join_group:
@@ -5617,6 +5749,12 @@
 
        Snapshot store deleted
      - no
+
+   * - ``SOFTWARE_RELEASE_UPDATED``
+     - .. _atlas_event_software_release_updated:
+
+       Global software release updated
+     - yes
 
    * - ``SPLUNK_LOG_STREAMING_CONFIGURATION_UPDATED``
      - .. _atlas_event_splunk_log_streaming_configuration_updated:
