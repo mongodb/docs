@@ -1,0 +1,323 @@
+.. _java-multi-doc-transaction:
+
+==============================================
+Tutorial: Run Multi-Document ACID Transactions
+==============================================
+
+.. facet::
+   :name: genre
+   :values: tutorial 
+
+.. meta::
+   :description: Learn how to run atomic multi-document transactions by using the {+driver-short+}.
+   :keywords: atomic, consistency, ACID, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this tutorial, you can learn how to run **multi-document transactions**
+that meet atomicity, consistency, isolation, and durability (ACID)
+guarantees.
+
+All {+mdb-server+} versions support single-document transactions and
+guarantee ACID compliance when you perform multiple updates to a document
+in a transaction. In {+mdb-server+} v4.0 and later, you can run ACID-compliant
+transactions across multiple documents, collections, and databases.
+
+Tutorial
+--------
+
+This tutorial shows how to download an :github:`example application
+</mongodb-developer/java-quick-start>` that runs
+multi-document transactions on product stock and purchasing data.
+The tutorial uses the following files in the example application's ``transactions``
+directory:
+
+- ``Transactions.java``: Accesses the ``cart`` and ``product`` collections,
+  and then runs operations on both collections to reflect beer purchases. The code
+  operates within an ACID transaction and without a transaction to compare the
+  approaches.
+- ``ChangeStreams.java``: Returns information about data changes in the 
+  ``cart`` and ``product`` collections.
+- ``models/Cart.java``: :ref:`POJO class <fundamentals-pojos>` that represents a shopping
+  cart, corresponding to a document in the ``cart`` collection.
+- ``models/Product.java``: POJO class that represents one item and its stock, corresponding to
+  a document in the ``product`` collection.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Verify the prerequisites.
+
+      Before you begin this tutorial, ensure you have the following components prepared:
+
+      - MongoDB Atlas account with a configured cluster. To learn how to create a cluster,
+        see the :ref:`MongoDB Get Started <unified-get-started>` guide.
+      - {+driver-short+} v5.0 or later.
+      - Java 21 or later.
+      - Maven v3.8.7 or later.
+
+   .. step:: Download the sample application.
+
+      Clone the sample application from the MongoDB Developer
+      GitHub repository by running the following command in your terminal:
+
+      .. code-block:: shell
+
+         git clone git@github.com:mongodb-developer/java-quick-start.git
+
+      This repository contains a ``transactions`` folder that stores
+      the files for this tutorial.
+
+   .. step:: Start a change stream and configure collections.
+
+      To create the ``cart`` and ``product`` collections and configure a JSON
+      schema, run the :github:`ChangeStreams.java <{+transaction-tutorial-gh+}/ChangeStreams.java>` file.
+      Navigate to the ``java-quick-start`` directory and run the following command:
+
+      .. code-block:: bash
+
+         mvn compile exec:java \
+           -Dexec.mainClass="com.mongodb.quickstart.transactions.ChangeStreams" \
+           -Dmongodb.uri="<connection URI>"
+
+      .. tip::
+
+         Replace the ``<connection URI>`` placeholder with your cluster's connection URI.
+
+      This file performs the following actions:
+
+      - Creates the ``cart`` collection in the ``test`` database.
+      - Creates the ``product`` collection in the ``test`` database.
+      - Applies a JSON schema to the ``product`` collection that sets 
+        data type and value constraints on the document fields. This schema
+        ensures that the ``stock`` field value remains above ``0``, so
+        any transaction that attempts to purchase an out-of-stock item
+        throws an error and doesn't succeed.
+      - Opens a change stream to monitor changes to the ``test`` database.
+
+   .. step:: Start the data operations by inserting sample data.
+
+      Alice is a sample customer who wants to buy beer.
+      The :github:`Transactions.java <{+transaction-tutorial-gh+}/Transactions.java>` file
+      runs database operations to reflect her purchases. To start this program,
+      open a second terminal window and run the following code from the project's root directory:
+
+      .. code-block:: bash
+
+         mvn compile exec:java \
+           -Dexec.mainClass="com.mongodb.quickstart.transactions.Transactions" \
+           -Dmongodb.uri="<connection URI>"
+
+      .. tip::
+
+         Replace the ``<connection URI>`` placeholder with your cluster's connection URI.
+
+      The file inserts a document into the ``product`` collection that represents the
+      beer inventory and sets its ``stock`` value to ``5``. This document stores the
+      following data:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         { "_id" : "beer", "price" : NumberDecimal("3"), "stock" : NumberInt(5) }
+
+   .. step:: Run the first operations without a transaction.
+
+      After inserting sample data, the ``Transactions.java`` file
+      runs the first update operation to represent Alice's 
+      purchase of two beers. The code calls the ``aliceWantsTwoBeers()``
+      and ``removingBeersFromStock()`` methods without
+      starting a transaction. These methods have the following definitions:
+
+      .. code-block:: java
+
+         private static void aliceWantsTwoBeers() {
+            System.out.println("Alice adds 2 beers in her cart.");
+            cartCollection.insertOne(new Cart("Alice", List.of(new Cart.Item(BEER_ID, 2, BEER_PRICE))));
+         }
+
+      .. code-block:: java
+
+         private static void removingBeersFromStock() {
+            System.out.println("Trying to update beer stock : -2 beers.");
+            try {
+               productCollection.updateOne(filterId, decrementTwoBeers);
+            } catch (MongoException e) {
+               System.out.println("########   MongoException   ########");
+               System.out.println("##### STOCK CANNOT BE NEGATIVE #####");
+               throw e;
+            }
+         }
+      
+      The ``aliceWantsTwoBeers()`` method adds two beers to Alice's shopping
+      cart by inserting a document into the ``cart`` collection that represents
+      the purchase. Then, the ``removingBeersFromStock()`` method updates the ``product``
+      collection to reflect the changes and decrease the number of beers in ``stock``.
+      
+      Select the :guilabel:`Cart` tab to see the new ``cart`` document representing Alice's
+      shopping cart, and select the :guilabel:`Product` tab to see the ``product``
+      document representing the beer inventory after the operations:
+
+      .. tabs::
+
+         .. tab:: Cart
+            :tabid: extended-format
+
+            .. code-block:: json
+               :copyable: false
+
+               {
+                  "_id" : "Alice",
+                  "items" : [
+                     {
+                        "price" : NumberDecimal("3"),
+                        "productId" : "beer",
+                        "quantity" : NumberInt(2)
+                     }
+                  ]
+               }
+
+         .. tab:: Product
+            :tabid: relaxed-mode-format
+
+            .. code-block:: json
+               :copyable: false
+
+               { "_id" : "beer", "price" : NumberDecimal("3"), "stock" : NumberInt(3) }
+
+   .. step:: Run a second operation within a multi-document transaction.
+
+      After the initial purchase, Alice adds two more beers to her cart.
+      The ``Transactions.java`` file uses a transaction to run this second
+      operation by calling the ``aliceWantsTwoExtraBeersInTransactionThenCommitOrRollback()``
+      method and passing a ``MongoClient`` as an argument. This method has the following
+      definition:
+
+      .. code-block:: java
+
+         private static void aliceWantsTwoExtraBeersInTransactionThenCommitOrRollback(MongoClient client) {
+            ClientSession session = client.startSession();
+            try {
+                  session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+                  aliceWantsTwoExtraBeers(session);
+                  sleep();
+                  removingBeerFromStock(session);
+                  session.commitTransaction();
+            } catch (MongoException e) {
+                  session.abortTransaction();
+                  System.out.println("####### ROLLBACK TRANSACTION #######");
+            } finally {
+                  session.close();
+                  System.out.println("####################################\n");
+                  printDatabaseState();
+            }
+         }
+      
+      The ``aliceWantsTwoExtraBeersInTransactionThenCommitOrRollback()`` method
+      starts a session, then starts a transaction. Within the transaction, the
+      code calls helper methods to perform the following actions:
+
+      - Find the document in the ``cart`` collection that represents Alice's cart
+      - Update the document's ``items.quantity`` value by ``2``
+      - Update the document in the ``product`` collection that represents the beer
+        stock to reflect the change
+
+      Since they run within a multi-document ACID transaction, the ``cart`` and
+      ``product`` updates are atomic.
+
+      Select the :guilabel:`Cart` tab to see the updated ``cart`` document representing Alice's
+      shopping cart, and select the :guilabel:`Product` tab to see the updated ``product``
+      document representing the beer inventory:
+
+      .. tabs::
+
+         .. tab:: Cart
+            :tabid: extended-format
+
+            .. code-block:: json
+               :copyable: false
+
+               {
+                  "_id" : "Alice",
+                  "items" : [
+                     {
+                        "price" : NumberDecimal("3"),
+                        "productId" : "beer",
+                        "quantity" : NumberInt(4)
+                     }
+                  ]
+               }
+
+         .. tab:: Product
+            :tabid: relaxed-mode-format
+
+            .. code-block:: json
+               :copyable: false
+
+               { "_id" : "beer", "price" : NumberDecimal("3"), "stock" : NumberInt(1) }
+
+   .. step:: Run an unsuccessful operation within a transaction.
+
+      Finally, Alice attempts to add two more beers to her cart.
+      The ``Transactions.java`` file uses a transaction to run this third
+      operation by calling the ``aliceWantsTwoExtraBeersInTransactionThenCommitOrRollback()``
+      method again.
+
+      However, this operation doesn't succeed because there is only one
+      beer left in stock. The JSON schema configured in the ``ChangeStreams.java`` file
+      ensures that the ``product`` collection's ``stock`` value cannot be
+      below ``0``, so the attempt to subtract ``2`` from its current value throws an error.
+      The ``aliceWantsTwoExtraBeersInTransactionThenCommitOrRollback()`` method
+      rolls back the transaction.
+
+   .. step:: Review the change stream output.
+
+      After ``Transactions.java`` finishes running, the ``ChangeStreams.java``
+      file output resembles the following:
+
+      .. code-block:: text
+         :copyable: false
+
+         Dropping the 'test' database.
+         Creating the 'cart'  collection.
+         Creating the 'product' collection with a JSON Schema.
+         Watching the collections in the DB test...
+         Timestamp{value=7304460075832180737, seconds=1700702141, inc=1} => Document{{_id=beer, price=3, stock=5}}
+         Timestamp{value=7304460075832180738, seconds=1700702141, inc=2} => Document{{_id=Alice, items=[Document{{price=3, productId=beer, quantity=2}}]}}
+         Timestamp{value=7304460080127148033, seconds=1700702142, inc=1} => Document{{_id=beer, price=3, stock=3}}
+         Timestamp{value=7304460088717082625, seconds=1700702144, inc=1} => Document{{_id=Alice, items=[Document{{price=3, productId=beer, quantity=4}}]}}
+         Timestamp{value=7304460088717082625, seconds=1700702144, inc=1} => Document{{_id=beer, price=3, stock=1}}
+
+      The change stream prints information about the collection configuration and 
+      the following operations:
+
+      - The insert operation, which adds a document into the ``product`` collection representing beer.
+      - Alice's first purchase of two beers, which includes two operations: one to update the ``cart``
+        collection and one to update the ``product`` collection. These operations don't run inside
+        a transaction. The operations have different ``Timestamp`` values, since they do not run atomically.
+      - Alice's next purchase of two beers, which also updates both the ``cart`` and ``product`` collection.
+        These operations have the same ``Timestamp`` value because they run atomically in a multi-document
+        transaction.
+
+   The final attempt to purchase two more beers is rolled back, so the change stream
+   does not output any data changes.
+
+After completing this tutorial, you have an application that updates stock management
+data. The application performs these update operations with and without a multi-document
+ACID transaction to compare the two outcomes.
+
+Additional Information
+----------------------
+
+To view the full example application, see the :github:`transactions
+<{+transaction-tutorial-gh+}>` folder in the ``java-quick-start`` GitHub repository.
+
+To learn more about transactions, see the :ref:`java-fundamentals-transactions`
+guide.
