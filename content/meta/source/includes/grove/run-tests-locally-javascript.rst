@@ -22,7 +22,13 @@
 
       **Run all the tests in a single test file**
 
-      Run the following command to run all the tests in a single test file.
+      First, install Jest CLI globally if you have not already done so. To install Jest CLI, run the following command from the root of the ``code-example-tests/javascript/driver`` directory:
+
+      .. code-block:: bash
+
+         npm install jest --global
+
+      Then, run the following command to run all the tests in a single test file.
       Replace ``/path/to/your/testfile.test.js`` with the path and filename
       for your test file:
 
@@ -32,7 +38,13 @@
 
       **Run a specific test case within an example file**
 
-      Run the following command to run a specific test case within an example
+      First, install Jest CLI globally if you have not already done so. To install Jest CLI, run the following command from the root of the ``code-example-tests/javascript/driver`` directory:
+
+      .. code-block:: bash
+
+         npm install jest --global
+      
+      Then, run the following command to run a specific test case within an example
       file. Replace ``/path/to/your/testfile.test.js`` with the path and
       filename for your test file, and replace ``name of your test`` with the
       string from the ``it`` block for the test you want to run`:
@@ -114,3 +126,11 @@ If your tests are failing, these are a few common causes:
     test runs. If you are using MongoDB sample data sets, refer to the
     `Load Sample Data <https://www.mongodb.com/docs/atlas/sample-data/>`__
     documentation to learn how to set up sample data in your environment.
+
+- Trying to run a subset of tests results in a ``zsh: command not found: jest`` error.
+
+  - Jest CLI must be installed globally. To install Jest CLI, run the following command from the root of the ``code-example-tests/javascript/driver`` directory:
+
+    .. code-block:: bash
+
+       npm install jest --global
