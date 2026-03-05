@@ -214,6 +214,14 @@ const tocData: TocItem[] = [
             label: 'Transactions',
             contentSite: 'java',
             url: '/docs/drivers/java/sync/:version/crud/transactions',
+            collapsible: true,
+            items: [
+              {
+                label: 'Tutorial: Multi-Document Transactions',
+                contentSite: 'java',
+                url: '/docs/drivers/java/sync/:version/crud/transactions/multi-doc-acid-transactions',
+              },
+            ],
           },
           {
             label: 'Operations on Replica Sets',
