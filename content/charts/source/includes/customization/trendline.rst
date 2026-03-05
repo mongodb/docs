@@ -4,7 +4,8 @@ enable the trendline feature:
 1. Open the :ref:`Customize <customize-charts>` pane for your chart.
 #. Scroll down to the :guilabel:`Chart Elements` section.
 #. Toggle the :guilabel:`Trendline` switch.
-#. Select a series from the :guilabel:`Series` dropdown menu.
+#. If your chart has multiple series, select a series from the
+   :guilabel:`Series` dropdown menu.
 #. Select a trendline type from the :guilabel:`Type` dropdown menu.
 
 Trendlines span the entire length of a chart's X axis, including any
