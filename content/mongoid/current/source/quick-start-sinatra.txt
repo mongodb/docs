@@ -1,69 +1,344 @@
 .. _mongoid-quick-start-sinatra:
 
-=====================
-Quick Start - Sinatra
-=====================
+==============================
+Integrate {+odm+} with Sinatra
+==============================
 
 .. facet::
    :name: genre
    :values: tutorial
 
 .. meta::
-   :keywords: ruby framework, odm
+   :keywords: ruby framework, odm, web app, mongoid, code example
+   :description: Build a complete Sinatra web application using Mongoid and MongoDB. Learn how to connect to MongoDB Atlas and display sample data.
 
-.. contents:: On this page
+.. contents:: On this page 
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
 Overview
 --------
 
-This guide shows you how to use {+odm+} in a new Sinatra web application,
-connect to a MongoDB cluster hosted on MongoDB Atlas, and perform
-read and write operations on the data in your cluster.
+In this guide, you can learn how to create a **{+odm+}** web application
+that uses **Sinatra** as the web framework. Sinatra is a domain-specific language (DSL)
+for creating web applications in {+language+}. Sinatra applications are simple to set up
+and can provide faster request processing than other frameworks.
 
-To learn how to integrate {+odm+} into an existing application, see the
-:ref:`mongoid-add-to-existing` guide.
+The application in this tutorial consists of the following layers:
+
+- **Database layer**: MongoDB provides data storage and retrieval.
+- **Application layer**: Sinatra handles HTTP requests, routing, and logic processing.
+- **Presentation layer**: Embedded Ruby templates render restaurant data on web pages.
 
 .. tip::
 
-   If you prefer to connect to MongoDB by using the {+ruby-driver+} without
-   {+odm+}, follow the :ruby:`Get Started with the Ruby Driver
-   </get-started/>` tutorial.
+   To learn how to integrate {+odm+} into an existing application, see the
+   :ref:`mongoid-add-to-existing` guide.
 
-{+odm+} is an Object-Document Mapper (ODM) framework for MongoDB in
-{+language+}. By using {+odm+}, you can easily interact with your data and
-create flexible data models.
+Why Use MongoDB with {+odm+} and Sinatra?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Sinatra is a domain-specific language (DSL) for creating web
-applications in {+language+}. Sinatra applications are simple to set up
-and can provide faster request processing than other frameworks.
+By integrating MongoDB with {+odm+} and Sinatra, you can use {+odm+}'s
+Object-Document Mapper (ODM) to interact with MongoDB's flexible
+document model. {+odm+} provides a lightweight alternative to Rails' Active Record ORM, and you
+can leverage MongoDB's schema flexibility while using Sinatra's minimalist approach to 
+easily control how your data is modeled and displayed.
 
-MongoDB Atlas is a fully managed cloud database service that hosts your
-MongoDB deployments. You can create your own free (no credit card
-required) MongoDB Atlas deployment by following the steps in this guide.
+.. _mongoid-sinatra-qs-tutorial:
 
-Follow the steps in this guide to create a sample {+odm+} web application
-that connects to a MongoDB deployment.
+Quick Start Tutorial
+--------------------
+
+This tutorial shows you how to build a web application that uses 
+{+language+} and Sinatra. The application accesses sample restaurant data, queries
+the data, and displays the results on a locally hosted site. The tutorial
+also includes instructions for connecting to a MongoDB cluster hosted
+on MongoDB Atlas and accessing and displaying data from your database.
+
+.. _mongoid-quick-start-sinatra-download-and-install:
+.. _mongoid-quick-start-sinatra-create-deployment:
+
+Set Up Your Project
+~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in this section to install the project dependencies,
+create an Atlas cluster, and set up the application structure.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Verify the prerequisites.
+
+      Before you create the Quick Start application, install the following software
+      in your development environment:
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Prerequisite
+           - Notes
+
+         * - `Ruby <https://www.ruby-lang.org/en/documentation/installation/>`__
+           - Use version 3.1 or later.
+
+         * - `RubyGems <https://rubygems.org/pages/download>`__
+           - This is a package manager for Ruby.
+  
+         * - Code editor
+           - Use the code editor of your choice.
+  
+         * - Terminal app and shell 
+           - For MacOS users, use Terminal or a
+             similar app. For Windows users, use PowerShell.
+
+   .. step:: Create a MongoDB Atlas cluster.
+      
+      MongoDB Atlas is a fully managed cloud database service that hosts your
+      MongoDB deployments. If you do not have a MongoDB deployment, you can create a MongoDB
+      cluster for free by completing the
+      `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=ruby>`__
+      tutorial. The MongoDB Get Started tutorial also demonstrates how to load sample
+      datasets into your cluster, including the ``sample_restaurants`` database
+      that is used in this tutorial. 
+
+      To connect to your MongoDB cluster, you must use a **connection URI**. To
+      learn how to retrieve your connection URI, see the `Add your connection string
+      <https://www.mongodb.com/docs/get-started/?language=ruby#add-your-connection-string>`__
+      section of the MongoDB Get Started tutorial.
+
+      .. important::
+
+         Save your connection string in a secure location.
+
+   .. step:: Specify the target database in your connection string.
+      
+      When connecting to an Atlas cluster, you must specify the database that
+      you want to interact with as the default database in your connection string.
+      You must add the database name to your connection string *after the hostname*
+      and *before the connection options*.
+      
+      The following example specifies the ``sample_restaurants`` target database
+      in a sample connection string:
+
+      .. code-block:: none
+
+         mongodb+srv://user0:pass123@mongo0.example.com/sample_restaurants?retryWrites=true&w=majority
+
+      The sample connection string includes the database after the ``mongo0.example.com``
+      hostname and before the ``retryWrites`` and ``w`` connection options.
+
+   .. step:: Create a Sinatra application directory.
+
+      Run the following commands to create a new application
+      directory called ``{+quickstart-sinatra-app-name+}`` and navigate
+      into it:
+
+      .. code-block:: bash
+
+         mkdir {+quickstart-sinatra-app-name+}
+         cd {+quickstart-sinatra-app-name+}
+
+   .. step:: Create a ``Gemfile`` and add gems.
+
+      All {+language+} applications must have a ``Gemfile`` that lists
+      the required gems. Run the following command to create a
+      ``Gemfile`` in your application:
+
+      .. code-block:: bash
+
+         touch Gemfile
+
+      Then, run the following commands to add the required gems to the
+      ``Gemfile`` and install them:
+
+      .. code-block:: bash
+
+         bundle add mongoid sinatra rackup webrick
+         bundle install
+
+.. _mongoid-quick-start-sinatra-connect-to-mongodb:
+
+Configure the Back End
+~~~~~~~~~~~~~~~~~~~~~~
+
+After setting up the project structure and dependencies, follow
+the steps in this section to connect to MongoDB and set up your
+data models.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Configure your MongoDB connection.
+
+      In your ``{+quickstart-sinatra-app-name+}`` directory, create a ``config``
+      subdirectory. Then, create a file in this subdirectory called ``mongoid.yml``.
+      
+      Paste the following code into the ``mongoid.yml`` file:
+
+      .. literalinclude:: /includes/quick-start/sinatra/mongoid.yml
+         :caption: my-sinatra-app/config/mongoid.yml
+         :language: yaml
+
+      Replace the ``<connection string>`` placeholder with the connection URI that you saved
+      in a :ref:`previous step <mongoid-quick-start-sinatra-download-and-install>`. Ensure that the URI
+      includes the ``sample_restaurants`` database name.
+
+   .. step:: Create the application file.
+      
+      In your ``{+quickstart-sinatra-app-name+}`` directory, create a file called ``app.rb``.
+      Paste the following contents into the ``app.rb`` file to
+      load the necessary gems and your configuration file:
+
+      .. literalinclude:: /includes/quick-start/sinatra/app.rb
+         :caption: my-sinatra-app/app.rb
+         :language: ruby
+         :start-after: # start-config
+         :end-before: # end-config
+
+   .. step:: Create a data model.
+
+      In the ``app.rb`` file, create a model called ``Restaurant``
+      by adding the following code:
+
+      .. literalinclude:: /includes/quick-start/sinatra/app.rb
+         :caption: my-sinatra-app/app.rb
+         :language: ruby
+         :start-after: # start-model
+         :end-before: # end-model
+
+      The ``Restaurant`` model represents the ``restaurants`` collection in
+      the ``sample_restaurants`` database. It defines ``name``, ``cuisine``,
+      and ``borough`` fields to store restaurant data.
+
+   .. step:: Add custom routes.
+
+      In the ``app.rb`` file, add the following routes for displaying
+      restaurant data:
+
+      .. literalinclude:: /includes/quick-start/sinatra/app.rb
+         :caption: my-sinatra-app/app.rb
+         :language: ruby
+         :start-after: # start-routes
+         :end-before: # end-routes
+
+      The ``/`` route displays all restaurants, while the ``/browse`` route
+      queries for restaurants in Queens that have ``"Moon"`` in their name
+      by using a case-insensitive match.
+
+Configure the Front End
+~~~~~~~~~~~~~~~~~~~~~~~
+
+After setting up the data layer, follow the steps in this section
+to create templates for the user interface.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create the main layout template.
+
+      In your ``{+quickstart-sinatra-app-name+}`` directory, create a subdirectory
+      called ``views``.
+
+      Then, create a file in the ``views`` subdirectory called ``layout.erb`` and paste
+      the following code:
+
+      .. literalinclude:: /includes/quick-start/sinatra/layout.erb
+         :caption: my-sinatra-app/views/layout.erb
+         :language: erb
+
+      This file is an Embedded Ruby (ERB) template. These templates include HTML
+      with embedded {+language+} code used for generating dynamic HTML content.
+
+   .. step:: Create the restaurant list view.
+
+      In the ``views`` subdirectory, create a file called ``index.erb`` and paste
+      the following code:
+
+      .. literalinclude:: /includes/quick-start/sinatra/index.erb
+         :caption: my-sinatra-app/views/index.erb
+         :language: erb
+
+      This view file displays all restaurants in a grid layout in the application
+      user interface.
+
+   .. step:: Create the filtered view.
+
+      In the ``views`` subdirectory, create a file called ``browse.erb`` and paste
+      the following code:
+
+      .. literalinclude:: /includes/quick-start/sinatra/browse.erb
+         :caption: my-sinatra-app/views/browse.erb
+         :language: erb
+
+      This view file displays the restaurants from the custom ``browse`` route,
+      which filters for restaurants in Queens that have ``"Moon"`` in their name.
+
+.. _mongoid-quick-start-sinatra-view-data:
+
+Run Your Application
+~~~~~~~~~~~~~~~~~~~~
+
+Finally, follow the steps in this section to run your web application and
+explore the restaurant data by using the browser interface.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Start the Sinatra application.
+
+      Navigate to your project directory and run the following command:
+
+      .. code-block:: bash
+
+         bundle exec ruby app.rb
+
+      This command starts a web server on port 4567, Sinatra's default port.
+      If successful, the command output resembles the following example:
+
+      .. code-block:: bash
+         :copyable: false
+
+         [2024-10-01 12:36:49] INFO  WEBrick 1.8.2
+         [2024-10-01 12:36:49] INFO  ruby 3.2.5 (2024-07-26) [arm64-darwin23]
+         == Sinatra (v4.0.0) has taken the stage on 4567 for development with backup from WEBrick
+         [2024-10-01 12:36:49] INFO  WEBrick::HTTPServer#start: pid=79176 port=4567
+
+   .. step:: Open the web application.
+
+      Open http://localhost:4567 in your web browser. The initial
+      landing page displays all restaurants in the ``sample_restaurants.restaurants``
+      collection, in the order they appear in the database:
+
+      .. figure:: /includes/quick-start/sinatra/all-restaurants.png
+         :alt: The web page that displays all restaurants
+
+      Then, click the :guilabel:`Browse Filtered Restaurants` link to view restaurants in Queens that
+      have ``"Moon"`` in their name:
+
+      .. figure:: /includes/quick-start/sinatra/filtered-restaurants.png
+         :alt: The web page that displays filtered restaurants
+
+Congratulations on completing the Sinatra Quick Start tutorial! After you complete
+these steps, you have a {+language+} and Sinatra web application that
+connects to your MongoDB deployment, runs queries on sample restaurant data,
+and displays the results on a locally hosted web interface.
+
+.. _mongoid-quick-start-sinatra-next-steps:
+
+Additional Resources
+--------------------
+
+To learn more about {+language+}, Sinatra, {+odm+}, and MongoDB, view the following resources:
+
+- `Sinatra <https://sinatrarb.com/>`__ documentation
+- :ruby:`Ruby Driver Documentation </>`
+- `Ruby <https://www.ruby-lang.org/>`__ language documentation
+- :ref:`mongoid-data-modeling`: Learn how to customize your {+odm+} models.
+- :ref:`mongoid-interact-data`: Learn how to interact with your MongoDB data by using {+odm+} models.
 
 .. tip:: Other Framework Tutorials
 
-   If you prefer to use {+ror+} 8 as your web framework, see the
+   If you prefer to use Rails as your web framework, see the
    :ref:`mongoid-quick-start-rails` guide.
-
-.. TODO .. tip::
-.. 
-..    You can download the complete web application project by cloning the
-..    `mongoid-quickstart <>`__ GitHub repository.
-
-.. toctree::
-
-   Download & Install </quick-start-sinatra/download-and-install/>
-   Create a Deployment </quick-start-sinatra/create-a-deployment/>
-   Create a Connection String </quick-start-sinatra/create-a-connection-string/>
-   Configure Your Connection </quick-start-sinatra/configure-mongodb/>
-   View Data </quick-start-sinatra/view-data/>
-   Write Data </quick-start-sinatra/write-data/>
-   Next Steps </quick-start-sinatra/next-steps/>
