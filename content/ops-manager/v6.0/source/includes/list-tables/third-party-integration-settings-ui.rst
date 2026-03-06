@@ -136,13 +136,13 @@
 
           To allow |mms| to send deployment metrics to Datadog, 
           an admin must set ``mms.featureFlag.monitoring.dataDogMetrics = enabled`` 
-          in the :ref:`custom configuration <conf-mms.properties>` 
-          in the |mms| Admin Panel. 
+          in the ``conf-mms.properties`` file, or 
+          in the :ref:`custom configuration <admin-console-general-om-config>`.
           
           This feature flag is not enabled by default. 
 
-          After updating the parameter, you do not need to restart |mms| 
-          Application to be in effect.
+          If you update this parameter via |mms| Admin Panel UI, 
+          you do not need to restart |mms| Application to be in effect.
 
    * - Webhook Settings
 
