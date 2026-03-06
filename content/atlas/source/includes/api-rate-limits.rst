@@ -1,4 +1,4 @@
-.. Last updated: March 5, 2026 at 2:00 PM EST
+.. Last updated: March 6, 2026 at 1:50 PM EST
 
 .. _api-rate-limits-aws-clusters-dns:
 
