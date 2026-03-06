@@ -327,13 +327,6 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (directiveName === 'hlist') {
         const attributes: MdastNode[] = toJsxAttributes(node.options);
 
-        // Pre-compute list type from first child (avoids runtime access to nodeChildren[0].enumtype)
-        const firstChild = (node.children ?? [])[0];
-        const listType = firstChild?.enumtype;
-        if (listType && typeof listType === 'string') {
-          attributes.push({ type: 'mdxJsxAttribute', name: 'listType', value: listType });
-        }
-
         return {
           type: 'mdxJsxFlowElement',
           name: 'Hlist',
@@ -432,11 +425,18 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       const componentName = pascalCase(node.name ?? 'Directive');
       const attributes: MdastNode[] = toJsxAttributes(node.options);
 
+      const ADMONITION_DIRECTIVES = new Set(['tip', 'note', 'important', 'warning', 'example']);
       let includeArgumentAsChild = true;
       if (node.argument && (directiveName === 'only' || directiveName === 'cond')) {
         // Convert the condition expression into an attribute instead of child text
         const exprText = parseSnootyArgument(node);
         attributes.push({ type: 'mdxJsxAttribute', name: 'expr', value: exprText.trim() });
+        includeArgumentAsChild = false;
+      } else if (node.argument && ADMONITION_DIRECTIVES.has(directiveName)) {
+        const titleText = parseSnootyArgument(node);
+        if (titleText) {
+          attributes.push({ type: 'mdxJsxAttribute', name: 'title', value: titleText });
+        }
         includeArgumentAsChild = false;
       }
 
@@ -652,12 +652,8 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       return convertChildren({ nodes: node.children, depth, ctx });
 
     case 'transition':
-      return {
-        type: 'mdxJsxFlowElement',
-        name: 'Transition',
-        attributes: [],
-        children: [],
-      };
+      // Use standard markdown thematic break (--- / *** / ___) so MDX produces <hr>; map hr to Transition in docs-nextjs.
+      return { type: 'thematicBreak' };
 
     case 'card-group': {
       const attributes: MdastNode[] = toJsxAttributes(node.options);
@@ -744,10 +740,15 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 
     case 'admonition': {
       const admonitionName = String(node.name ?? node.admonition_type ?? 'note');
+      const admonitionTitle = parseSnootyArgument(node);
+      const attributes: MdastNode[] = [{ type: 'mdxJsxAttribute', name: 'name', value: admonitionName }];
+      if (admonitionTitle) {
+        attributes.push({ type: 'mdxJsxAttribute', name: 'title', value: admonitionTitle });
+      }
       return {
         type: 'mdxJsxFlowElement',
         name: 'Admonition',
-        attributes: [{ type: 'mdxJsxAttribute', name: 'name', value: admonitionName }],
+        attributes,
         children: convertChildren({ nodes: node.children, depth, ctx }),
       };
     }

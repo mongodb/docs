@@ -6,6 +6,7 @@ import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 // data for this component
 import mockData from '../data/community-pill-link.test.json';
 
+// TODO: Remove this dependency across the board after we've updated all the components to use the new metadata context provider
 jest.mock('@/utils/use-snooty-metadata', () => ({
   useSnootyMetadata: jest.fn(),
 }));

@@ -2,25 +2,22 @@ import type { MDXComponents } from 'mdx/types';
 import { Image } from '@/mdx-components/Image';
 import { Include } from '@/mdx-components/Include';
 import { Reference } from '@/mdx-components/Reference';
-import Admonition from '@/components/admonition';
+import { Admonition } from '@/mdx-components/Admonition';
 import Collapsible from '@/components/collapsible';
 import { DefinitionListItem } from '@/mdx-components/DefinitionListItem';
 import { DefinitionDescription } from '@/mdx-components/DefinitionDescription';
 import Heading from '@/components/heading';
 import Section from '@/components/section';
-import Banner from '@/components/banner/banner';
-import HorizontalList from '@/components/horizontal-list';
+import { Banner } from '@/mdx-components/Banner';
+import { HorizontalList } from '@/mdx-components/HorizontalList';
 import { Paragraph } from '@/mdx-components/Paragraph';
-import Transition from '@/components/transition';
-import Literal from '@/components/literal';
-import List from '@/components/list';
-import ListItem from '@/components/list/listItem';
-import Line from '@/components/line';
-import LineBlock from '@/components/line-block';
+import { Transition } from '@/mdx-components/Transition';
+import { List } from '@/mdx-components/List';
+import { ListItem } from '@/mdx-components/ListItem';
 import Procedure from '@/mdx-components/procedure';
 import Step from '@/mdx-components/procedure/step';
-import Introduction from '@/components/introduction';
-import CommunityPillLink from '@/components/community-pill-link';
+import { Introduction } from '@/mdx-components/Introduction';
+import { CommunityPillLink } from '@/mdx-components/CommunityPillLink';
 import ComposableTutorial from '@/mdx-components/ComposableTutorial';
 import ComposableContent from '@/mdx-components/ComposableTutorial/ComposableContent';
 import Button from '@/mdx-components/Button';
@@ -108,12 +105,16 @@ export const components = (injectedProps?: InjectedProps) =>
     Input: ({ children }) => <span>{children}</span>,
     IoCodeBlock: ({ children }) => <span>{children}</span>,
     Kicker: ({ children }) => <span>{children}</span>,
-    Line: ({ children, ...props }) => <Line {...props}>{children}</Line>,
-    LineBlock: ({ children, ...props }) => <LineBlock {...props}>{children}</LineBlock>,
-    List: ({ children, ...props }) => <List {...props}>{children}</List>,
-    ListItem: ({ children, ...props }) => <ListItem {...props}>{children}</ListItem>,
+    // built-in list syntax → List/ListItem (prefer over custom List/ListItem directives)
+    ol: ({ children, ...props }) => <List {...props}>{children}</List>,
+    ul: ({ children, ...props }) => (
+      <List enumtype="unordered" {...props}>
+        {children}
+      </List>
+    ),
+    li: ({ children, ...props }) => <ListItem {...props}>{children}</ListItem>,
     ListTable: ({ children }) => <span>{children}</span>,
-    Literal: ({ children, ...props }) => <Literal {...props}>{children}</Literal>,
+    Literal: ({ children }) => <span>{children}</span>,
     LiteralBlock: ({ children }) => <span>{children}</span>,
     LiteralInclude: ({ children }) => <span>{children}</span>,
     MethodSelector: ({ children }) => <span>{children}</span>,
@@ -130,9 +131,17 @@ export const components = (injectedProps?: InjectedProps) =>
     SearchResults: ({ children }) => <span>{children}</span>,
     Section: ({ children, ...props }) => <Section {...props}>{children}</Section>,
     See: ({ children }) => <span>{children}</span>,
-    SeeAlso: ({ children }) => <span>{children}</span>,
+    SeeAlso: ({ children, ...props }) => (
+      <Admonition name="note" {...props}>
+        {children}
+      </Admonition>
+    ),
     // TODO: Remove duplicate once mapping is fixed in DOP-6577
-    Seealso: ({ children }) => <span>{children}</span>,
+    Seealso: ({ children, ...props }) => (
+      <Admonition name="note" {...props}>
+        {children}
+      </Admonition>
+    ),
     SharedInclude: ({ children }) => <span>{children}</span>,
     Strong: ({ children }) => <strong>{children}</strong>,
     Superscript: ({ children }) => <sup>{children}</sup>,
@@ -145,13 +154,18 @@ export const components = (injectedProps?: InjectedProps) =>
     Time: ({ children }) => <span>{children}</span>,
     TitleReference: ({ children }) => <span>{children}</span>,
     Toctree: ({ children }) => <span>{children}</span>,
-    Transition: () => <Transition />,
+    // built-in thematic break (--- / *** / ___) → hr; render with Transition component
+    hr: () => <Transition />,
     VersionAdded: ({ children }) => <span>{children}</span>,
     VersionChanged: ({ children }) => <span>{children}</span>,
     UseSampleData: ({ children }) => <span>{children}</span>,
     Wayfinding: ({ children }) => <span>{children}</span>,
     DismissibleSkillsCard: ({ children }) => <span>{children}</span>,
-    Warning: ({ children }) => <span>{children}</span>,
+    Warning: ({ children, ...props }) => (
+      <Admonition name="warning" {...props}>
+        {children}
+      </Admonition>
+    ),
     Table: ({ children }) => <span>{children}</span>,
     TableHeaderCell: ({ children }) => <span>{children}</span>,
     TableCell: ({ children }) => <span>{children}</span>,
