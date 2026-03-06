@@ -1,11 +1,12 @@
 'use client';
 
 import type { ReactNode } from 'react';
-import { createContext, useContext, useMemo } from 'react';
+import { createContext, useContext, useMemo, useState, useEffect } from 'react';
 import type { TocItem } from '@/components/unified-sidenav/types';
 import { tocData } from '@/context/toc-data';
 import type { ActiveVersions, AvailableVersions } from './version-context';
 import { useVersionContext } from './version-context';
+import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 
 interface UnfiedTocContextType {
   tocTree: TocItem[];
@@ -20,6 +21,26 @@ interface UpdateURLsParams {
   activeVersions: ActiveVersions;
   versionsData: AvailableVersions;
 }
+
+// Module-level cache to persist legacy TOC across remounts
+const legacyTocCache: Record<string, TocItem[]> = {};
+
+const loadLegacyToc = async (project: string, version: string) => {
+  const cacheKey = `${project}-${version}`;
+
+  if (legacyTocCache[cacheKey]) {
+    return legacyTocCache[cacheKey];
+  }
+
+  try {
+    const moduleImport = await import(`@/context/table-of-contents/legacy-docs/${project}-${version}`);
+    legacyTocCache[cacheKey] = moduleImport.toc;
+    return moduleImport.toc;
+  } catch (error) {
+    console.error('Error loading legacy TOC:', error);
+    return null;
+  }
+};
 
 // Replace version variable in URL with current version
 const updateURLs = ({ tree, contentSite, activeVersions, versionsData }: UpdateURLsParams): TocItem[] => {
@@ -60,17 +81,35 @@ const updateURLs = ({ tree, contentSite, activeVersions, versionsData }: UpdateU
 
 export const UnifiedTocProvider = ({ children }: { children: ReactNode }) => {
   const { activeVersions, availableVersions } = useVersionContext();
+  const { project, eol } = useSnootyMetadata();
+
+  const cacheKey = project ? `${project}-${activeVersions[project]}` : '';
+  const [legacyToc, setLegacyToc] = useState<TocItem[] | null>(() => legacyTocCache[cacheKey] || null);
+
+  useEffect(() => {
+    if (eol && project) {
+      loadLegacyToc(project, activeVersions[project]).then(setLegacyToc);
+    }
+  }, [eol, project, activeVersions]);
+
+  // For EOL pages use legacyToc (may be null while loading), otherwise use tocData
+  const tree = eol ? legacyToc : tocData;
 
   const processedTree = useMemo(() => {
+    if (!tree) return [];
     return updateURLs({
-      tree: tocData,
+      tree,
       activeVersions,
       versionsData: availableVersions,
     });
-  }, [activeVersions, availableVersions]);
+  }, [tree, activeVersions, availableVersions]);
+
+  if (eol && !legacyToc) {
+    return null;
+  }
 
   return (
-    <UnifiedTocContext.Provider value={{ tocTree: tocData, processedUnifiedToc: processedTree }}>
+    <UnifiedTocContext.Provider value={{ tocTree: tree!, processedUnifiedToc: processedTree }}>
       {children}
     </UnifiedTocContext.Provider>
   );
