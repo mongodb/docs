@@ -1,0 +1,439 @@
+.. _laravel-application-tutorial:
+
+========================================================
+Tutorial: Build a Task Reminder With Laravel and MongoDB
+========================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: php framework, odm, code example, task scheduler, authentication, laravel breeze
+   :description: Learn how to build a complete task reminder application with Laravel and MongoDB, including CRUD operations, authentication, and scheduled notifications.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this tutorial, you can learn how to use MongoDB in a Laravel application by
+building a simple task reminder system. The application allows you to create,
+read, update, and delete tasks. Additionally, it sends email reminders for
+upcoming tasks based on a scheduled time.
+
+Prerequisites
+-------------
+
+Before you begin this tutorial, ensure you have the following components
+installed in your development environment:
+
+- `PHP <https://www.php.net/manual/en/install.php>`__ and the `MongoDB PHP
+  extension
+  <https://www.mongodb.com/docs/php-library/current/get-started/#install-the-mongodb-php-extension>`__
+- `Laravel <https://laravel.com/docs/11.x/installation>`__
+- `Composer <https://getcomposer.org/download/>`__
+- `NPM <https://docs.npmjs.com/downloading-and-installing-node-js-and-npm>`__
+
+You must also set up a MongoDB Atlas cluster. To learn how to set up a cluster,
+see the `Getting Started
+<https://www.mongodb.com/docs/get-started/?language=php>`__ guide.
+
+Steps
+-----
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a new Laravel project.
+
+      Use Composer to create a new Laravel project and navigate to the project
+      directory:
+
+      .. code-block:: bash
+
+         composer create-project laravel/laravel LaravelMongodbProject 
+         cd LaravelMongodbProject
+
+   .. step:: Install the MongoDB Laravel package.
+
+      To use MongoDB in your application, you must install the Laravel MongoDB
+      package and configure it in the ``config/database.php`` file.
+
+      Install the package by using the following command:
+
+      .. code-block:: bash
+
+         composer require mongodb/laravel-mongodb
+
+      .. tip::
+
+         If you encounter an error when you run the preceding command, ensure
+         that the MongoDB PHP extension is installed. To learn how to install,
+         see the :ref:`Install the MongoDB PHP extension
+         <php-download-and-install>` step in the Get Started guide.
+
+   .. step:: Configure the database connection.
+
+      After the Laravel MongoDB package installation completes, add your MongoDB
+      database connection to the ``config/database.php`` file to complete the
+      configuration. Add the following MongoDB configuration to the ``connections``
+      array that contains configurations for other database types:
+
+      .. literalinclude:: /includes/usage-examples/tutorial/database-config.php
+         :language: php
+         :dedent:
+
+      Your application obtains the ``dsn`` value from the ``.env`` file.
+      Navigate to your ``.env`` file. Then, create a value for
+      ``MONGODB_URI`` and set it to the value of your MongoDB connection string.
+
+      .. tip::
+
+         To obtain your MongoDB connection string, navigate to your cluster in
+         MongoDB Atlas. Click the :guilabel:`Connect` button and click the
+         :guilabel:`Drivers` under :guilabel:`Connect your application`. Select
+         "PHP" from the :guilabel:`Driver` selection menu. Copy the connection
+         string from the dialog box. For detailed steps on how to obtain your
+         connection string, see :ref:`create-a-connection-string`.
+      
+      In your ``.env`` file, set the ``DB_CONNECTION`` value to ``mongodb``
+      to make it the default connection for your application. Edit the
+      ``SESSION_DRIVER`` value and set it to ``mongodb`` as shown in the following
+      code:
+
+      .. code-block:: json
+
+          MONGODB_URI=mongodb+srv://YOUR_MONGODB_CONNECTION_STRING
+          DB_CONNECTION=mongodb
+          // Other DB_ values here ...
+          SESSION_DRIVER=mongodb
+
+   .. step:: Set up authentication with Laravel Breeze.
+
+      After installing and configuring your application to work with MongoDB,
+      set up authentication. Laravel simplifies authentication implementation by
+      providing packages such as Laravel Breeze, Laravel Fortify and Laravel
+      Jetstream. This tutorial uses `Laravel Breeze
+      <https://laravel.com/docs/11.x/starter-kits>`__ for authentication.
+
+      Install Laravel Breeze by using Composer:
+
+      .. code-block:: bash
+
+         composer require laravel/breeze --dev
+
+      After the installation completes, run the following commands:
+
+      .. code-block:: bash
+
+         php artisan key:generate
+         
+         php artisan breeze:install
+         php artisan migrate
+
+         php artisan db:seed
+         npm install
+         npm run dev
+
+      This prompts you to choose your preferred stack and testing package. For
+      this tutorial, select the first option, Blade with Alpine:
+
+      .. code-block:: text
+
+         ┌ Which Breeze stack would you like to install? ───────────────┐
+         │ > ● Blade with Alpine                                        │
+         │   ○ Livewire (Volt Class API) with Alpine                    │
+         │   ○ Livewire (Volt Functional API) with Alpine               │
+         │   ○ React with Inertia                                       │
+         │   ○ Vue with Inertia                                         │
+         │   ○ API only                                                 │
+         └──────────────────────────────────────────────────────────────┘
+
+      This command adds authentication views, routes, controllers, and other
+      related resources to your application.
+
+   .. step:: Configure the User model and authentication for MongoDB.
+
+      Laravel Breeze creates a default User model for SQL databases. You must
+      update it to work with MongoDB and resolve rate limiting compatibility
+      issues.
+
+      Open ``app/Models/User.php`` and replace its contents with the following:
+
+      .. literalinclude:: /includes/usage-examples/tutorial/User.php
+         :language: php
+         :dedent:
+
+   .. step:: Serve the project and test the MongoDB connection.
+
+      Serve the project by using Laravel's built-in server and confirm that
+      everything works properly. In the Laravel project directory, run the
+      following command:
+
+      .. code-block:: bash
+
+         php artisan serve
+
+      The project serves at ``127.0.0.1:8000``. If port ``8000`` is
+      already in use, Laravel switches to a new available port, which it prints
+      to the terminal.
+
+      To test the authentication system, select the :guilabel:`Register` button in your
+      application and create a new user account. This stores the user in
+      your MongoDB database and allows you to log in with those credentials. For
+      this tutorial, you can set the username to ``test@example.com`` and the
+      password to ``password``.
+
+      To verify that the Laravel MongoDB package was configured properly, create
+      a route to ping your MongoDB cluster. Add the following to
+      ``routes/web.php``:
+
+      .. literalinclude:: /includes/usage-examples/tutorial/ping-route.php
+         :language: php
+         :dedent:
+
+      Visit this route in your browser. With the correct configuration,
+      you see the message "MongoDB is accessible!" in your browser.
+
+   .. step:: Create the task model and controller.
+
+      Create the model and controller for the task scheduling feature by using
+      the following command:
+
+      .. code-block:: bash
+
+         php artisan make:model Task --resource --controller
+
+      This command creates the ``Task`` model in the ``app/Models`` directory
+      and the ``TaskController`` in the ``app/Http/Controllers`` directory with
+      resource methods.
+
+      Create a route for the ``TaskController`` by navigating to
+      ``routes/web.php`` and adding the following code:
+
+      .. literalinclude:: /includes/usage-examples/tutorial/web-routes.php
+         :language: php
+         :dedent:
+
+   .. step:: Configure the Task model.
+
+      Navigate to ``app/Models/Task.php`` and replace the contents of the file
+      with the following code:
+
+      .. literalinclude:: /includes/usage-examples/tutorial/Task.php
+         :language: php
+         :dedent:
+
+      This code creates the task model with the following specifications:
+
+      - The ``use MongoDB\Laravel\Eloquent\Model`` statement after the namespace
+        is specific to MongoDB models. It overrides the Eloquent features
+        implemented with SQL by using MongoDB queries.
+      - The ``protected $table = 'tasks'`` property is optional. It specifies
+        the name of the MongoDB collection used to store the documents from this
+        model.
+      - The ``protected $fillable`` property specifies the mass-assignable
+        properties.
+
+      .. tip::
+
+         One of the unique features of MongoDB is that it doesn't require
+         migrations like relational databases. You can add new fields directly
+         to your documents without updating the model or creating migrations.
+         This feature is useful for handling dynamic data.
+
+   .. step:: Create the TaskController logic.
+
+      Navigate to ``app/Http/Controllers/TaskController.php`` and update the
+      content with the following code:
+
+      .. literalinclude:: /includes/usage-examples/tutorial/TaskController.php
+         :language: php
+         :dedent:
+
+      The ``TaskController`` class contains code that handles the CRUD operations of
+      the task model:
+
+      - The ``index()`` method retrieves all tasks belonging to the logged-in
+        user and sends them to the ``index.blade.php`` file for display.
+      - The ``create()`` method returns the form view for creating a new task.
+      - The ``store()`` method validates input, assigns the logged-in user's
+        email to the task, and saves it to the database.
+      - The ``edit()`` method retrieves the specific task to be edited and
+        displays it in an edit form.
+      - The ``update()`` method saves the edited task to the MongoDB task
+        collection.
+      - The ``destroy()`` method deletes a specific task.
+
+      Each operation redirects back to the task list with a success message for
+      user feedback.
+
+   .. step:: Create view files for the task scheduler.
+
+      In the ``resources/views`` directory, create a folder named ``tasks`` and
+      create the following files in it:
+
+      - ``create.blade.php``
+      - ``edit.blade.php`` 
+      - ``index.blade.php``
+
+      Navigate to ``resources/views/tasks/create.blade.php`` and add the
+      following content:
+
+      .. literalinclude:: /includes/usage-examples/tutorial/create.blade.php
+         :language: php
+         :linenos:
+         :dedent:
+
+      The form contains text inputs for ``title`` and ``description`` and date
+      and time inputs for ``due date`` and ``reminder time``.
+
+      Navigate to ``resources/views/tasks/edit.blade.php`` and add the following
+      content:
+
+      .. literalinclude:: /includes/usage-examples/tutorial/edit.blade.php
+         :language: php
+         :linenos:
+         :dedent:
+
+      The edit form contains the same input fields as the create form and is
+      loaded with the data of the task currently being edited.
+
+      Navigate to ``resources/views/tasks/index.blade.php`` and add the
+      following content:
+
+      .. literalinclude:: /includes/usage-examples/tutorial/index.blade.php
+         :language: php
+         :linenos:
+         :dedent:
+
+      This view includes a link to the create form and loops through all the
+      tasks to display those belonging to the authenticated user.
+
+   .. step:: Add navigation link for tasks.
+
+      Add a link to the task feature from your application navigation. Go to
+      ``resources/views/layouts/navigation.blade.php`` and add the following
+      code after the dashboard navigation link:
+
+      .. literalinclude:: /includes/usage-examples/tutorial/navigation-link.blade.php
+         :language: php
+         :linenos:
+         :dedent:
+
+      At this point, you can test the CRUD operations of your task management
+      system. Ensure that everything works correctly before you move on to the
+      next section.
+
+   .. step:: Create a custom Artisan command for sending reminders.
+
+      To implement the reminder system for due tasks, create a custom Artisan
+      command to send reminders through email and register the command for
+      automatic scheduling.
+
+      To create a custom Artisan command, run the following code in your
+      terminal:
+
+      .. code-block:: bash
+
+         php artisan make:command SendTaskReminders
+
+      After you create the command, update the contents of the
+      ``app/Console/Commands/SendTaskReminders.php`` file with the following code:
+
+      .. literalinclude:: /includes/usage-examples/tutorial/SendTaskReminders.php
+         :language: php
+         :dedent:
+
+      The main logic of the custom Artisan command is written in the
+      ``handle()`` method. The code gets the current timestamp by using
+      ``Carbon::now()``.
+
+      Next, it queries the database to get all the tasks where ``reminder_time``
+      is less than or equal to the current time and where ``reminder_time`` is
+      greater than or equal to 10 minutes before the current time. In MongoDB,
+      all dates are stored in UTC. Even if your server uses a different
+      time zone, you don't need to change the time zone.
+
+      The query fetches all tasks that are due in the next 10 minutes. The code
+      loops through the results and sends reminders to the user emails of tasks
+      that will be due in the next 10 minutes.
+
+      .. note::
+
+         For the task scheduler to work properly, you must configure your
+         application to send emails. Mailtrap.io is a useful tool to test
+         email sending. To learn more, see `Send Email in Laravel
+         <https://mailtrap.io/blog/send-email-in-laravel/>`__.
+
+   .. step:: Schedule notifications for task reminders.
+
+      To complete the setup, schedule the Artisan command created in the
+      previous step to run every minute. This approach automatically runs ``php
+      artisan app:send-task-reminders`` every minute.
+
+      Navigate to ``routes/console.php`` and add the following code:
+
+      .. literalinclude:: /includes/usage-examples/tutorial/schedule-command.php
+         :language: php
+         :dedent:
+
+      To test that this works, run the following command:
+
+      .. code-block:: bash
+
+         php artisan schedule:run
+
+      On a production server, you must configure a cron job to run the ``php
+      artisan schedule:run`` command at regular intervals.
+
+      On a Linux- or Unix-based server, you can open your cron configuration
+      file by using the following command:
+
+      .. code-block:: bash
+
+         crontab -e
+
+      Add the following code to the cron configuration tab:
+
+      .. code-block:: bash
+
+         * * * * * /usr/bin/php /path-to-your-project/artisan schedule:run >>
+                   /dev/null  2>&1
+
+      Replace ``/usr/bin/php`` with the path to your PHP binary and
+      ``/path-to-your-project`` with the full path to your Laravel project on
+      your server. Save and exit the file.
+
+      To verify that the cron job is set up correctly, run the following
+      command:
+
+      .. code-block:: bash
+
+         crontab -l
+
+Summary
+-------
+
+You now have a task scheduler application that uses Laravel and
+MongoDB. This tutorial demonstrated how to complete the following actions:
+
+- Configure a Laravel project to work with MongoDB
+- Implement CRUD features for the task scheduler
+- Create a custom Laravel Artisan command for the reminder system
+- Schedule a task to run the Artisan command at intervals
+- Configure the cron job on a Linux-based server
+
+Next Steps
+----------
+
+To learn more about the concepts covered in this tutorial, see the following
+resources:
+
+- :ref:`laravel-usage-examples` for code examples of common operations  
+- :ref:`laravel-eloquent-models` for working with Eloquent models

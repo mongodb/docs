@@ -122,6 +122,11 @@ const tocData: TocItem[] = [
             contentSite: 'laravel',
             url: '/docs/drivers/php/laravel-mongodb/:version/usage-examples/runCommand',
           },
+          {
+            label: 'Tutorial: Build a Full-Stack Application',
+            contentSite: 'laravel',
+            url: '/docs/drivers/php/laravel-mongodb/:version/usage-examples/application-tutorial',
+          },
         ],
       },
       {
