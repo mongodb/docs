@@ -175,6 +175,21 @@ async function moveDocsContentsUp(): Promise<void> {
   await fs.rmdir(DOCS_DIR);
 }
 
+async function removeAllTxtFiles(dir: string): Promise<void> {
+  const entries = await fs.readdir(dir, { withFileTypes: true });
+  for (const e of entries) {
+    const fullPath = path.join(dir, e.name);
+    console.log(`Checking if ${fullPath} is a text file`);
+    if (e.isDirectory()) {
+      await removeAllTxtFiles(fullPath);
+    }
+    if (e.isFile() && e.name.toLowerCase().endsWith('.txt')) {
+      console.log(`Removing .txt file: ${fullPath}`);
+      await fs.rm(fullPath);
+    }
+  }
+}
+
 async function postProcess(): Promise<void> {
   const htmlFiles = await findHtmlFiles(OUT_DIR);
   for (const filePath of htmlFiles) {
@@ -203,6 +218,7 @@ async function main(): Promise<void> {
 
   await keepOnlyDocs();
   await moveDocsContentsUp();
+  await removeAllTxtFiles(OUT_DIR);
   await postProcess();
 }
 
