@@ -132,6 +132,18 @@
             If the health status is ``1``, but no other metrics appear 
             in Datadog, the replica set might be down.
 
+       .. note::
+
+          To allow |mms| to send deployment metrics to Datadog, 
+          an admin must set ``mms.featureFlag.monitoring.dataDogMetrics = enabled`` 
+          in the :ref:`custom configuration <conf-mms.properties>` 
+          in the |mms| Admin Panel. 
+          
+          This feature flag is not enabled by default. 
+
+          After updating the parameter, you do not need to restart |mms| 
+          Application to be in effect.
+
    * - Webhook Settings
 
      - :guilabel:`Webhook URL` endpoint to which |mms| can send alerts
