@@ -601,7 +601,6 @@ const tocData: TocItem[] = [
       {
         label: 'Troubleshooting',
         contentSite: 'compass',
-        url: '/docs/compass/troubleshooting',
         collapsible: true,
         items: [
           {
