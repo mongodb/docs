@@ -5,28 +5,27 @@
  * - Merges all CSS into one file and rewrites image url()s to assets/
  * - Copies static and content-referenced images into the output
  * - Rewrites HTML so stylesheets and links are relative (scripts untouched)
- * - Flattens output: keeps only mdx/, moves it to the build root, and fixes link paths
+ * - Flattens output: keeps only and docs/, moves it to the build root, and fixes link paths
  */
 
-import { spawnSync } from 'child_process';
 import fs from 'fs/promises';
 import path from 'path';
 
 const OUT_DIR = path.join(process.cwd(), 'out');
 const CONTENT_MDX_DIR = path.join(process.cwd(), '..', '..', 'content-mdx');
 
-const MDX_DIR = path.join(OUT_DIR, 'mdx');
+const DOCS_DIR = path.join(OUT_DIR, 'docs');
 const NEXT_STATIC_DIR = path.join(OUT_DIR, '_next', 'static');
 const NEXT_CSS_DIR = path.join(NEXT_STATIC_DIR, 'css');
-const MERGED_CSS_PATH = path.join(MDX_DIR, 'styles.css');
-const ASSETS_DIR = path.join(MDX_DIR, 'assets');
+const MERGED_CSS_PATH = path.join(DOCS_DIR, 'styles.css');
+const ASSETS_DIR = path.join(DOCS_DIR, 'assets');
 
 const IMAGE_EXTENSIONS = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.ico', '.avif']);
 const isImagePath = (name: string) => IMAGE_EXTENSIONS.has(path.extname(name).toLowerCase());
 
-/** Collect content image paths from HTML: (href|src)="/mdx/...file.ext" with image extension. */
+/** Collect content image paths from HTML: (href|src)="/docs/...file.ext" with image extension. */
 function getReferencedContentImagePaths(htmlContent: string): Set<string> {
-  const re = /(?:href|src)=["']\/mdx\/([^"']+\.(?:png|jpg|jpeg|gif|webp|svg|ico|avif))["']/gi;
+  const re = /(?:href|src)=["']\/docs\/([^"']+\.(?:png|jpg|jpeg|gif|webp|svg|ico|avif))["']/gi;
   const set = new Set<string>();
   for (const m of htmlContent.matchAll(re)) set.add(m[1].replace(/\/+/g, path.sep));
   return set;
@@ -38,7 +37,7 @@ function getRelativePrefix(htmlFilePath: string): string {
   return segments.length === 0 ? './' : '../'.repeat(segments.length);
 }
 
-const stripMdxPrefix = (rest: string) => rest.replace(/^mdx\/?/, '');
+const stripDocsPrefix = (rest: string) => rest.replace(/^docs\/?/, '');
 
 /** Rewrite href/src to relative paths only outside <script> (preserve RSC payload). */
 function rewriteHtmlLinks(content: string, prefix: string): string {
@@ -49,7 +48,7 @@ function rewriteHtmlLinks(content: string, prefix: string): string {
   });
   const rewritten = noScripts.replace(
     /(href|src)=["']\/(?!\/)([^"']*)["']/g,
-    (_, attr, rest) => `${attr}="${prefix}${stripMdxPrefix(rest)}"`,
+    (_, attr, rest) => `${attr}="${prefix}${stripDocsPrefix(rest)}"`,
   );
   return rewritten.replace(/\x00S(\d+)\x00/g, (_, i) => scripts[parseInt(i, 10)] ?? '');
 }
@@ -96,7 +95,7 @@ async function copyImageFilesTo(srcDir: string, destDir: string, logLabel: strin
 }
 
 /** Copy content images that appear in HTML (keeps output to referenced docsets only). */
-async function copyReferencedContentImages(htmlFiles: string[], contentMdxDir: string, mdxDir: string): Promise<void> {
+async function copyReferencedContentImages(htmlFiles: string[], contentMdxDir: string, docsDir: string): Promise<void> {
   const referenced = new Set<string>();
   for (const filePath of htmlFiles) {
     const content = await fs.readFile(filePath, 'utf-8');
@@ -110,7 +109,7 @@ async function copyReferencedContentImages(htmlFiles: string[], contentMdxDir: s
     } catch {
       continue;
     }
-    const dest = path.join(mdxDir, rel);
+    const dest = path.join(docsDir, rel);
     await fs.mkdir(path.dirname(dest), { recursive: true });
     await fs.cp(src, dest);
     copied++;
@@ -160,20 +159,20 @@ async function replaceCssLinksInHead(htmlFiles: string[]): Promise<void> {
   }
 }
 
-async function keepOnlyMdx(): Promise<void> {
+async function keepOnlyDocs(): Promise<void> {
   const entries = await fs.readdir(OUT_DIR, { withFileTypes: true });
   for (const e of entries) {
-    if (e.name === 'mdx') continue;
+    if (e.name === 'docs') continue;
     await fs.rm(path.join(OUT_DIR, e.name), { recursive: true });
   }
 }
 
-async function moveMdxContentsUp(): Promise<void> {
-  const entries = await fs.readdir(MDX_DIR, { withFileTypes: true });
+async function moveDocsContentsUp(): Promise<void> {
+  const entries = await fs.readdir(DOCS_DIR, { withFileTypes: true });
   for (const e of entries) {
-    await fs.rename(path.join(MDX_DIR, e.name), path.join(OUT_DIR, e.name));
+    await fs.rename(path.join(DOCS_DIR, e.name), path.join(OUT_DIR, e.name));
   }
-  await fs.rmdir(MDX_DIR);
+  await fs.rmdir(DOCS_DIR);
 }
 
 async function postProcess(): Promise<void> {
@@ -200,10 +199,10 @@ async function main(): Promise<void> {
 
   const htmlFiles = await findHtmlFiles(OUT_DIR);
   await replaceCssLinksInHead(htmlFiles);
-  await copyReferencedContentImages(htmlFiles, CONTENT_MDX_DIR, MDX_DIR);
+  await copyReferencedContentImages(htmlFiles, CONTENT_MDX_DIR, DOCS_DIR);
 
-  await keepOnlyMdx();
-  await moveMdxContentsUp();
+  await keepOnlyDocs();
+  await moveDocsContentsUp();
   await postProcess();
 }
 
