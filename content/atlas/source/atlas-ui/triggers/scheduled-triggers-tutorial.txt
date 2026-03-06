@@ -1,0 +1,673 @@
+.. _tutorial-atlas-scheduled-triggers:
+
+===================================================
+Tutorial: Automate Clusters with Scheduled Triggers
+===================================================
+
+.. meta::
+   :keywords: code example
+   :description: Tutorial to use scheduled Triggers to automate cluster management tasks. 
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+In this tutorial, you will use {+service+} scheduled Triggers to
+automate cluster management tasks by programmatically calling the
+{+atlas-admin-api+}.
+
+This tutorial includes the following procedures: 
+
+- :ref:`Initial Setup <scheduled-triggers-tutorial-setup>`: Create a 
+  :ref:`service account <service-accounts-overview>` with
+  :authrole:`Project Owner` permissions to your existing {+service+}
+  project, store the service account credentials as Values and Secrets,
+  then create reusable Functions that uses these credentials to call
+  the :oas-atlas-op:`Update One Cluster in One Project
+  </updateGroupCluster>` endpoint. 
+
+  .. note:: 
+     
+     If you prefer to use :ref:`API keys <api-keys-overview>` instead of
+     :ref:`service accounts <service-accounts-overview>` to
+     authenticate to the {+atlas-admin-api+} with :authrole:`Project Owner`
+     permissions, you can save |api| public and private keys as Values 
+     and Secrets to use in the Functions in this tutorial.
+- :ref:`Pause and Resume Clusters on a Schedule <scheduled-triggers-tutorial-pause-resume>`: Create
+  scheduled Triggers to automatically pause clusters every evening and
+  resume them every weekday morning.
+- :ref:`Scale Clusters on a Schedule <scheduled-triggers-tutorial-scale-clusters>`: Create
+  scheduled Triggers to automatically scale a cluster up during peak hours and down
+  afterwards. 
+ 
+Required Permissions
+--------------------
+
+To complete this tutorial, you need a user with :authrole:`Project
+Owner` access to a MongoDB {+service+} project. 
+
+.. _scheduled-triggers-tutorial-setup:
+
+Initial Set Up
+--------------
+
+This initial set up only needs to be completed once, and allows you to
+create the scheduled Triggers on this page to automate cluster
+management tasks. Before performing this tutorial, ensure you have a
+MongoDB {+service+} project with at least one cluster. This procedure
+performs the following set up tasks: 
+
+- Creates and saves credentials for an {+service+} :ref:`service account
+  <service-accounts-overview>` that Triggers will use to call the
+  {+atlas-admin-api+} with :authrole:`Project Owner` permissions to your
+  existing {+service+} project.
+
+- Creates a reusable Function called ``getAuthHeaders`` that generates
+  an access token using the service account credentials and returns the
+  appropriate authentication headers for calling the
+  {+atlas-admin-api+}.
+
+- Creates a reusable Function called ``modifyCluster`` that wraps the
+  :oas-atlas-op:`Update One Cluster in One Project
+  </updateGroupCluster>` API.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a Service Account. 
+
+      To create a service account that your Triggers can use to call the
+      {+atlas-admin-api+} with :authrole:`Project Owner` permissions to
+      your existing {+service+} project:
+
+      a. .. include:: /includes/nav/list-project-access-manager.rst
+
+      #. Click :guilabel:`Create Application` :icon:`arrow-right`
+         :guilabel:`Service Account`.
+
+      #. Enter the service account information. 
+         
+         - Name: Name for your service account. (e.g., ``TriggersServiceAccount``)
+         - Description: (optional) Description for your service account. (e.g.,
+           Service account for Atlas Functions to call {+atlas-admin-api+}.)
+         - Service Account Permissions: :authrole:`Project Owner`
+     
+      #. Click :guilabel:`Create`. 
+         
+         This creates the service account and automatically adds it 
+         to the project's parent organization with the permission
+         :authrole:`Organization Member`.
+
+      #. Configure the :guilabel:`API Access List`.
+
+         Add IP addresses to the :guilabel:`API Access List` if you want
+         to restrict which IP addresses can call the {+atlas-admin-api+}
+         with this service account.
+
+         .. note::
+         
+            If :guilabel:`Require IP Access List for the Atlas
+            Administration API` is enabled for your organization, or if
+            you added any IP addresses to your service account's
+            :guilabel:`API Access List`, then every {+atlas-admin-api+}
+            request must pass an IP access-list check. 
+
+            {+service+} Triggers and Functions send outgoing HTTP
+            requests from a specific set of outbound IP addresses. To
+            enable your scheduled Triggers to call the
+            {+atlas-admin-api+} and other external services, you must
+            add these IP addresses to your service account's
+            :guilabel:`API Access List`.
+
+            For the full list of outbound IP addresses used by Atlas
+            Functions, see :ref:`atlas-mongodb-functions-security`. You
+            must add each IP address individually.
+
+   .. step:: Store Service Account credentials as Values and Secrets.
+
+      Create the following Values and Secrets to store your service
+      account credentials:
+
+      - ``AtlasClientId`` Value that contains your service account client ID.
+      - ``AtlasClientSecret`` Secret that contains your service account
+        client secret.
+      - ``AtlasClientSecret`` Value that links to the Secret. This
+        enables you to access the client secret value in your Functions,
+        while still keeping it stored securely as a Secret.
+
+      a. .. include:: /includes/nav/list-triggers.rst
+
+      #. Navigate to the :guilabel:`Values` Page.
+
+         i. Click the :guilabel:`Linked App Service: Triggers` link.
+
+         #. In the sidebar, click :guilabel:`Values` under the :guilabel:`Build` heading.
+
+      #. Store the client ID in a Value.
+         
+         i. Click :guilabel:`Create a Value`
+         
+         #. Enter ``AtlasClientId`` as the :guilabel:`Value Name`.
+                    
+         #. Select the :guilabel:`Value` type. 
+         
+         #. Select the :guilabel:`Custom Content` option and enter the
+            client ID.
+            
+            .. note:: 
+               
+               You must enter the client ID as a string value with quotes (``"<clientId>"``).
+
+         #. Click :guilabel:`Save`. 
+
+      #. Store the client secret in a Secret and link it to a Value.
+
+         .. note:: 
+
+            Secret values cannot be accessed directly, so you must
+            create a second Value that links to the Secret.
+
+         i. Click :guilabel:`Create a Value`.            
+
+         #. Enter ``AtlasClientSecret`` as the :guilabel:`Value Name`.
+         
+         #. Select the :guilabel:`Value` type.
+
+         #. Select the :guilabel:`Link to Secret` option.
+         
+         #. Enter ``AtlasClientSecret`` and click :guilabel:`Create
+            "AtlasClientSecret"` to name the Secret value. 
+         
+            Paste the client secret into the :guilabel:`Client Secret`
+            field that appears below the Secret name.
+
+         #. Click :guilabel:`Save` to create both the Secret and the
+            Value.
+
+   .. step:: Create the ``getAuthHeaders`` Function.
+
+      To create a reusable Function that retrieves an access token using
+      the service account credentials and returns the appropriate
+      authentication headers for calling the {+atlas-admin-api+}:
+
+      a. Navigate to the :guilabel:`Functions` Page. 
+
+         #. In the sidebar, click :guilabel:`Functions` under the :guilabel:`Build` heading.
+
+         #. Click :guilabel:`Create a Function`. 
+            
+            The :guilabel:`Settings` tab displays by default.
+
+      #. Enter ``getAuthHeaders`` as the :guilabel:`Name` for the
+         Function. 
+
+      #. Set :guilabel:`Private` to ``true``. This Function will only be
+         called by other Functions in this tutorial.
+      
+         Leave the other configuration options in the
+         :guilabel:`Settings` tab at their default values. 
+      
+      #. Define the Function code. 
+
+         Click the :guilabel:`Function Editor` tab and paste the
+         following code to define the Function:
+
+         .. literalinclude:: /includes/triggers/functions/getAuthHeaders.js
+            :language: javascript
+            :linenos:
+            :copyable:
+
+   .. step:: Create the ``modifyCluster`` Function.
+
+      To create a reusable Function that wraps the :oas-atlas-op:`Update
+      One Cluster in One Project </updateGroupCluster>` endpoint:
+
+      a. From the :guilabel:`Functions` Page, click :guilabel:`Create a Function`.
+            
+         The :guilabel:`Settings` tab displays by default.
+
+      #. Enter ``modifyCluster`` as the :guilabel:`Name` for the
+         Function. 
+
+      #. Set :guilabel:`Private` to ``true``. This Function will only be
+         called by other Functions in this tutorial.
+      
+         Leave the other configuration options in the
+         :guilabel:`Settings` tab at their default values. 
+      
+      #. Define the Function code. 
+
+         Click the :guilabel:`Function Editor` tab and paste the
+         following code to define the Function:
+
+         .. literalinclude:: /includes/triggers/functions/modifyCluster.js
+            :language: javascript
+            :linenos:
+            :copyable:
+
+         .. note:: Test code in the Function Editor.
+            
+            The :guilabel:`Function Editor` automatically provides 
+            ``"Hello world!"`` as the first argument when you run a 
+            Function in the :guilabel:`Testing Console`. This 
+            code tests for that input and provides values to the 
+            parameters when ``"Hello world!"`` is received.
+
+            To test the Function with your own input, replace the
+            following placeholder values with your own information: 
+          
+            - ``<projectId>``
+            - ``<clusterName>``
+            - In the ``body`` parameter, provide a payload containing
+              the modifications you'd like to make to the cluster. The
+              example code includes a payload that pauses a cluster.
+
+.. _scheduled-triggers-tutorial-pause-resume:
+
+Pause and Resume Clusters on a Schedule
+---------------------------------------
+
+This procedure creates scheduled Triggers to automatically pause clusters
+every evening and resume them every weekday morning. This is useful for
+non-production clusters that don't need to run outside of business
+hours, or for any clusters that you want to automatically pause and
+resume on a schedule.
+
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Create the ``pauseClusters`` Function. 
+
+      a. .. include:: /includes/nav/list-triggers.rst
+
+      #. Navigate to the :guilabel:`Functions` Page
+
+         i. Click the :guilabel:`Linked App Service: Triggers` link. 
+
+         #. In the sidebar, click :guilabel:`Functions` under the :guilabel:`Build` heading.
+
+         #. Click :guilabel:`Create a Function`. 
+            
+            The :guilabel:`Settings` tab displays by default.
+
+      #. Enter ``pauseClusters`` as the :guilabel:`Name` for the
+         Function. 
+
+      #. Set :guilabel:`Private` to ``true``. This Function will only be
+         called by the ``pauseClusters`` Trigger in this tutorial.
+      
+         Leave the other configuration options in the
+         :guilabel:`Settings` tab at their default values. 
+         
+      #. Define the Function code. 
+
+         Click the :guilabel:`Function Editor` tab and paste the
+         following code to define the Function:
+
+         .. literalinclude:: /includes/triggers/functions/pauseClusters.js
+            :language: javascript
+            :linenos:
+            :copyable:
+         
+         Replace the ``projectIDs`` array with your own project and cluster names.
+
+         .. note:: 
+
+            To avoid hardcoding project and cluster names, you can use
+            the :ref:`helper Functions
+            <scheduled-triggers-helper-functions>` at the end of this
+            tutorial to retrieve lists of projects and clusters from the
+            {+atlas-admin-api+} and programmatically determine which
+            clusters to pause and resume on a schedule.
+
+   .. step:: Create the ``pauseClusters`` scheduled Trigger. 
+
+      a. From the :guilabel:`Functions` page, navigate to the
+         :guilabel:`Triggers` page by clicking :guilabel:`Triggers` in
+         the sidebar under the :guilabel:`Build` heading.
+
+      #. Click :guilabel:`Create a Trigger` to open the Trigger
+         configuration page.
+         
+         If you have an existing Trigger, click :guilabel:`Add a
+         Trigger`
+
+      #. Configure Trigger settings.
+
+         In :guilabel:`Trigger Details`, set the following configuration:
+         
+         .. list-table:: 
+            :header-rows: 1
+            :widths: 25 75
+
+            * - Setting
+              - Value
+
+            * - Trigger Type
+              - Scheduled
+            
+            * - Schedule Type
+              - Advanced. This allows you to specify a :ref:`CRON
+                expression <CRON-expressions>` for the schedule. 
+
+                To run this every weekday evening at 6 PM US Eastern
+                (which is 22:00 UTC), use the following CRON expression:
+
+                .. code-block:: cron
+
+                   0 22 * * 1-5
+
+            * - Skip Events On Re-enable
+              - On. This prevents the Trigger from executing on
+                schedules that were queued while the Trigger was
+                disabled.
+
+            * - Event Type 
+              - Function. Select the ``pauseClusters`` Function from
+                the dropdown.
+
+            * - Trigger Name
+              - ``pauseClusters``
+
+      #. Click :guilabel:`Save` to create the Trigger.
+         
+         Your test clusters will now automatically pause every evening
+         at 6 PM US Eastern. 
+
+   .. step:: Create the ``resumeClusters`` Function.
+
+      a. Duplicate the ``pauseClusters`` Function into a new Function
+         named ``resumeClusters``.
+
+      #. In the :guilabel:`Function Editor` tab, update the ``paused``
+         state to ``false`` in the Function code:
+
+         .. literalinclude:: /includes/triggers/functions/resumeClusters.js
+            :language: javascript
+            :linenos:
+            :copyable:
+            :emphasize-lines: 19
+
+   .. step:: Create the ``resumeClusters`` scheduled Trigger.
+
+      a. From the :guilabel:`Functions` page, navigate to the
+         :guilabel:`Triggers` page by clicking :guilabel:`Triggers` in
+         the sidebar under the :guilabel:`Build` heading.
+
+      #. Configure Trigger settings.
+
+         In :guilabel:`Trigger Details`, set the following configuration:
+         
+         .. list-table:: 
+            :header-rows: 1
+            :widths: 25 75
+
+            * - Setting
+              - Value
+
+            * - Trigger Type
+              - Scheduled
+            
+            * - Schedule Type
+              - Advanced. This allows you to specify a :ref:`CRON
+                expression <CRON-expressions>` for the schedule. 
+
+                To run this every weekday morning at 8 AM US Eastern
+                (which is 12:00 UTC), use the following CRON expression:
+
+                .. code-block:: cron
+
+                   0 12 * * 1-5
+
+            * - Skip Events On Re-enable
+              - On. This prevents the Trigger from executing on
+                schedules that were queued while the Trigger was
+                disabled.
+
+            * - Event Type 
+              - Function. Select the ``resumeClusters`` Function from
+                the dropdown.
+
+            * - Trigger Name
+              - ``resumeClusters``
+
+      #. Click :guilabel:`Save` to create the Trigger.
+
+      Your test clusters will now pause every evening and resume every
+      weekday morning automatically.
+
+.. _scheduled-triggers-tutorial-scale-clusters:
+
+Scale Clusters on a Schedule
+----------------------------
+
+This procedure creates scheduled Triggers to automatically scale a
+cluster up during peak hours and down afterwards. This is useful for
+clusters that have predictable usage patterns where you want to
+proactively scale before the workload increases, and scale down
+afterwards to save costs.
+
+.. note:: 
+
+   {+service+} supports :ref:`Cluster Auto-Scaling
+   <cluster-autoscaling>` to automatically increase your cluster tier or
+   storage capacity based on usage or predicted usage. However, if you
+   have predictable peak usage windows, you can use scheduled Triggers
+   to proactively scale your cluster before your workload increases.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the ``scaleClusterUp`` Function.
+
+      a. .. include:: /includes/nav/list-triggers.rst
+
+      #. Navigate to the :guilabel:`Functions` Page
+
+         i. Click the :guilabel:`Linked App Service: Triggers` link. 
+
+         #. In the sidebar, click :guilabel:`Functions` under the :guilabel:`Build` heading.
+
+         #. Click :guilabel:`Create a Function`. 
+            
+            The :guilabel:`Settings` tab displays by default.
+
+      #. Enter ``scaleClusterUp`` as the :guilabel:`Name` for the
+         Function. 
+
+      #. Set :guilabel:`Private` to ``true``. This Function will only be
+         called by the ``scaleClusterUp`` Trigger in this tutorial.
+      
+         Leave the other configuration options in the
+         :guilabel:`Settings` tab at their default values. 
+
+      #. Define the Function code. 
+
+         From the :guilabel:`Create Function` page, click the
+         :guilabel:`Function Editor` tab and paste the following code to
+         define your Function:
+
+         .. literalinclude:: /includes/triggers/functions/scaleClusterUp.js
+            :language: javascript
+            :linenos:
+            :copyable:
+
+         Replace the ``<projectId>`` and ``<clusterName>`` placeholders
+         with your own project ID and cluster name, and adjust the
+         ``regionConfigs`` array for your own topology.
+
+         See the :oas-atlas-op:`Update One Cluster in One Project
+         </updateGroupCluster>` endpoint documentation for more details
+         on the available fields you can include in the request body to
+         modify your cluster's configuration.
+
+   .. step:: Create the ``scaleClusterUp`` scheduled Trigger. 
+
+      a. From the :guilabel:`Functions` page, navigate to the
+         :guilabel:`Triggers` page by clicking :guilabel:`Triggers` in
+         the sidebar under the :guilabel:`Build` heading.
+
+      #. Click :guilabel:`Create a Trigger` to open the Trigger
+         configuration page.
+         
+         If you have an existing Trigger, click :guilabel:`Add a
+         Trigger`
+
+      #. Configure Trigger settings.
+
+         In :guilabel:`Trigger Details`, set the following configuration:
+         
+         .. list-table:: 
+            :header-rows: 1
+            :widths: 25 75
+
+            * - Setting
+              - Value
+
+            * - Trigger Type
+              - Scheduled
+            
+            * - Schedule Type
+              - Advanced. This allows you to specify a :ref:`CRON
+                expression <CRON-expressions>` for the schedule. 
+
+                To run this every morning at 8 AM US Eastern (which is
+                13:00 UTC), use the following CRON expression:
+
+                .. code-block:: cron
+
+                   0 13 * * *
+
+            * - Skip Events On Re-enable
+              - On. This prevents the Trigger from executing on
+                schedules that were queued while the Trigger was
+                disabled.
+
+            * - Event Type 
+              - Function. Select the ``pauseClusters`` Function from
+                the dropdown.
+
+            * - Trigger Name
+              - ``scaleClusterUp``
+
+      #. Click :guilabel:`Save` to create the Trigger.
+         
+         Your test clusters will now automatically scale up every
+         morning at 8 AM US Eastern. 
+
+   .. step:: Create the ``scaleClusterDown`` Function.
+
+      a. Duplicate the ``scaleClusterUp`` Function into a new Function
+         named ``scaleClusterDown``.
+
+      #. In the :guilabel:`Function Editor` tab, paste and adjust the
+         following code to scale your cluster down to the specified
+         configuration:
+
+         .. literalinclude:: /includes/triggers/functions/scaleClusterDown.js
+            :language: javascript
+            :linenos:
+            :copyable:
+
+         Replace the ``<projectId>`` and ``<clusterName>`` placeholders
+         with your own project ID and cluster name, and adjust the
+         ``regionConfigs`` array for your own topology.
+
+         See the :oas-atlas-op:`Update One Cluster in One Project
+         </updateGroupCluster>` endpoint documentation for more details
+         on the available fields you can include in the request body to
+         modify your cluster's configuration.
+
+   .. step:: Create the ``scaleClusterDown`` scheduled Trigger.
+
+      a. From the :guilabel:`Functions` page, navigate to the
+         :guilabel:`Triggers` page by clicking :guilabel:`Triggers` in
+         the sidebar under the :guilabel:`Build` heading.
+
+      #. Configure Trigger settings.
+
+         In :guilabel:`Trigger Details`, set the following configuration:
+         
+         .. list-table:: 
+            :header-rows: 1
+            :widths: 25 75
+
+            * - Setting
+              - Value
+
+            * - Trigger Type
+              - Scheduled
+            
+            * - Schedule Type
+              - Advanced. This allows you to specify a :ref:`CRON
+                expression <CRON-expressions>` for the schedule. 
+
+                To run this every evening at 6 PM US Eastern (which is
+                22:00 UTC), use the following CRON expression:
+
+                .. code-block:: cron
+
+                   0 22 * * *
+
+            * - Skip Events On Re-enable
+              - On. This prevents the Trigger from executing on
+                schedules that were queued while the Trigger was
+                disabled.
+
+            * - Event Type 
+              - Function. Select the ``scaleClusterDown`` Function from
+                the dropdown.
+
+            * - Trigger Name
+              - ``scaleClusterDown``
+
+      #. Click :guilabel:`Save` to create the Trigger.
+
+      Together, these two Triggers ensure the cluster runs at higher capacity during busy hours and scales down afterwards.
+
+.. _scheduled-triggers-helper-functions:
+
+Optional Helper Functions
+-------------------------
+
+The following helper Functions can be test run from the
+:guilabel:`Triggers` Function Editor to list projects and clusters in
+your organization in order to specify which clusters you want to target
+in the Functions in this tutorial. You can also call these Functions
+from other Functions to retrieve this information programmatically. 
+
+.. collapsible::
+   :heading: getProjects
+   :sub_heading: List all projects in the organization.
+   :expanded: false 
+   
+   ``getProjects()`` calls the :oas-atlas-op:`Return All Projects
+   </listGroups>` endpoint to return all projects in your organization.
+
+   .. literalinclude:: /includes/triggers/functions/getProjects.js
+      :language: javascript
+      :linenos:
+      :copyable:
+
+.. collapsible::
+   :heading: getProjectClusters
+   :sub_heading: List all clusters in a project.
+   :expanded: false 
+   
+   ``getProjectClusters(<projectId>)`` calls the
+   :oas-atlas-op:`Return All Clusters in One Project </listGroupClusters>` 
+   endpoint to return all clusters in the project with the specified 
+   project ID.
+
+   .. literalinclude:: /includes/triggers/functions/getProjectClusters.js
+      :language: javascript
+      :linenos:
+      :copyable:
+
+   Replace the placeholder ``<projectId>`` with your own project ID.

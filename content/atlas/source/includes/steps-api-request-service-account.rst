@@ -21,8 +21,13 @@ an access token, then use the access token in your request:
 
    .. step:: Request an access token.
 
-      Replace ``{BASE64-AUTH}`` in the following example with the output from the 
-      preceding step, then run:
+      Make a ``POST`` request to the
+      :ref:`cloud.mongodb.com/api/oauth/token
+      <generate-oauth2-token-atlas>` endpoint to generate an access
+      token for your service account.
+      
+      Replace ``{BASE64-AUTH}`` in the following example with the output
+      from the preceding step, then run:
 
       .. io-code-block:: 
          :copyable: true 

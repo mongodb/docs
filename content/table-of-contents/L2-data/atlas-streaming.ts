@@ -229,6 +229,14 @@ const tocData: TocItem[] = [
         label: 'Scheduled Triggers',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/atlas-ui/triggers/scheduled-triggers',
+        collapsible: true,
+        items: [
+          {
+            label: 'Tutorial: Automate Cluster Configurations',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/atlas-ui/triggers/scheduled-triggers-tutorial',
+          },
+        ],
       },
       {
         label: 'Disable a Trigger',
