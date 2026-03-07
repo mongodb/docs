@@ -1,4 +1,4 @@
-import { findAllDirectivesByName, findAllNestedAttribute } from './convertSnootyAstToMdast';
+import { findAllDirectivesByName } from './convertSnootyAstToMdast';
 import type { SnootyNode } from './types';
 
 const DELIMITER_KEY = '**';
@@ -120,3 +120,19 @@ export function buildComposableOptionsFromNode(node: SnootyNode): ComposableOpti
   }
   return rawOptions as ComposableOption[];
 }
+
+/** Collect all values of a given attribute from nested nodes (mirrors findAllNestedAttribute from docs-nextjs) */
+export const findAllNestedAttribute = (nodes: SnootyNode[], attribute: string): string[] => {
+  const results: string[] = [];
+  const searchNode = (node: SnootyNode) => {
+    if (attribute in node) {
+      const value = node[attribute];
+      if (typeof value === 'string') results.push(value);
+    }
+    if (node.children) {
+      node.children.forEach(searchNode);
+    }
+  };
+  nodes.forEach(searchNode);
+  return results;
+};

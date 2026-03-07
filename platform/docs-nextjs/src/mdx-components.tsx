@@ -3,12 +3,11 @@ import { Image } from '@/mdx-components/Image';
 import { Include } from '@/mdx-components/Include';
 import { Reference } from '@/mdx-components/Reference';
 import { Admonition } from '@/mdx-components/Admonition';
-import Collapsible from '@/components/collapsible';
+import { Banner } from '@/mdx-components/Banner';
+import { Collapsible } from '@/mdx-components/collapsible';
 import { DefinitionListItem } from '@/mdx-components/DefinitionListItem';
 import { DefinitionDescription } from '@/mdx-components/DefinitionDescription';
-import Heading from '@/components/heading';
-import Section from '@/components/section';
-import { Banner } from '@/mdx-components/Banner';
+import { Heading } from '@/mdx-components/Heading';
 import { HorizontalList } from '@/mdx-components/HorizontalList';
 import { Paragraph } from '@/mdx-components/Paragraph';
 import { Transition } from '@/mdx-components/Transition';
@@ -27,6 +26,12 @@ type InjectedProps = Record<string, unknown>;
 export const components = (injectedProps?: InjectedProps) =>
   ({
     // basic components required for MDX rendering
+    h1: ({ children }) => <Heading headingLevel={1}>{children}</Heading>,
+    h2: ({ children }) => <Heading headingLevel={2}>{children}</Heading>,
+    h3: ({ children }) => <Heading headingLevel={3}>{children}</Heading>,
+    h4: ({ children }) => <Heading headingLevel={4}>{children}</Heading>,
+    h5: ({ children }) => <Heading headingLevel={5}>{children}</Heading>,
+    h6: ({ children }) => <Heading headingLevel={6}>{children}</Heading>,
     Image: (props) => <Image {...props} {...injectedProps} />,
     Include: (props) => <Include {...props} {...injectedProps} />,
     Reference: (props) => <Reference {...props} {...injectedProps} />,
@@ -129,7 +134,6 @@ export const components = (injectedProps?: InjectedProps) =>
     Rubric: ({ children }) => <span>{children}</span>,
     Replacement: ({ children }) => <span>{children}</span>,
     SearchResults: ({ children }) => <span>{children}</span>,
-    Section: ({ children, ...props }) => <Section {...props}>{children}</Section>,
     See: ({ children }) => <span>{children}</span>,
     SeeAlso: ({ children, ...props }) => (
       <Admonition name="note" {...props}>

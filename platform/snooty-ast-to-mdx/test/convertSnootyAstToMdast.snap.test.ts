@@ -429,6 +429,15 @@ const cases: Array<[string, SnootyNode]> = [
       children: [{ type: 'text', value: 'MongoDB' }],
     },
   ],
+  [
+    'directive collapsible',
+    {
+      type: 'directive',
+      name: 'collapsible',
+      options: { heading: 'Details', sub_heading: 'Click to expand', expanded: false },
+      children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Collapsible body' }] }],
+    },
+  ],
   ['hidden directive (toctree)', { type: 'directive', name: 'toctree' }],
   ['unknown node type', { type: 'mystery' }],
   ['title node', { type: 'title', children: [{ type: 'text', value: 'A Title' }] }],

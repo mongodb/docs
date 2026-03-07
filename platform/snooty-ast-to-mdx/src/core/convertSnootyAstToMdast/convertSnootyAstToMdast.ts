@@ -44,22 +44,6 @@ const appendTrailingPunctuation = (nodes: SnootyNode[]): SnootyNode[] => {
   return result;
 };
 
-/** Collect all values of a given attribute from nested nodes (mirrors findAllNestedAttribute from docs-nextjs) */
-export const findAllNestedAttribute = (nodes: SnootyNode[], attribute: string): string[] => {
-  const results: string[] = [];
-  const searchNode = (node: SnootyNode) => {
-    if (attribute in node) {
-      const value = node[attribute];
-      if (typeof value === 'string') results.push(value);
-    }
-    if (node.children) {
-      node.children.forEach(searchNode);
-    }
-  };
-  nodes.forEach(searchNode);
-  return results;
-};
-
 /** Find all directive nodes with the given name in the tree (mirrors findAllKeyValuePairs from Snooty) */
 export const findAllDirectivesByName = (nodes: SnootyNode[], directiveName: string): SnootyNode[] => {
   const results: SnootyNode[] = [];
@@ -255,49 +239,35 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
     case 'section': {
       const titleNode = (node.children ?? []).find((c) => c.type === 'title' || c.type === 'heading');
       const rest = (node.children ?? []).filter((c) => c !== titleNode);
-      const sectionChildren: MdastNode[] = [];
-      const sectionAttributes: MdastNode[] = [];
+      const result: MdastNode[] = [];
 
       if (titleNode) {
-        const attributes = toJsxAttributes(node.options);
-        sectionChildren.push({
-          type: 'mdxJsxFlowElement',
-          name: 'Heading',
-          attributes: attributes,
+        const headingText = extractInlineDisplayText(titleNode.children ?? []);
+        if (headingText) ctx.lastHeadingText = headingText;
+
+        result.push({
+          type: 'heading',
+          depth: Math.min(depth, 6),
           children: convertChildren({ nodes: titleNode.children, depth, ctx }),
         });
-
-        // Pre-compute heading text for HeadingContextProvider (avoids runtime traversal in component)
-        const headingText = extractInlineDisplayText(titleNode.children ?? []);
-        if (headingText) {
-          sectionAttributes.push({ type: 'mdxJsxAttribute', name: 'headingText', value: headingText });
-          ctx.lastHeadingText = headingText;
-        }
       }
 
       rest.forEach((child) => {
         const converted = convertNode({ node: child, depth: depth + 1, ctx });
-        if (Array.isArray(converted)) sectionChildren.push(...converted);
-        else if (converted) sectionChildren.push(converted);
+        if (Array.isArray(converted)) result.push(...converted);
+        else if (converted) result.push(converted);
       });
 
-      return {
-        type: 'mdxJsxFlowElement',
-        name: 'Section',
-        attributes: sectionAttributes,
-        children: sectionChildren,
-      };
+      return result;
     }
 
     case 'title':
     case 'heading': {
       const headingText = extractInlineDisplayText(node.children ?? []);
       if (headingText) ctx.lastHeadingText = headingText;
-      const attributes = toJsxAttributes(node.options);
       return {
-        type: 'mdxJsxFlowElement',
-        name: 'Heading',
-        attributes: attributes,
+        type: 'heading',
+        depth: Math.min(depth, 6),
         children: convertChildren({ nodes: node.children, depth, ctx }),
       };
     }
@@ -335,15 +305,25 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         };
       }
       if (directiveName === 'collapsible') {
-        const attributes: MdastNode[] = toJsxAttributes(node.options);
+        const opts = node.options ?? {};
+        const attributes: MdastNode[] = [];
 
-        // Pre-compute child IDs for hash matching (avoids runtime traversal in component)
-        const childrenHashIds = findAllNestedAttribute(node.children ?? [], 'id');
-        if (childrenHashIds.length > 0) {
+        if (typeof opts.heading === 'string') {
+          attributes.push({ type: 'mdxJsxAttribute', name: 'heading', value: opts.heading });
+        }
+        if (typeof opts.sub_heading === 'string') {
+          attributes.push({ type: 'mdxJsxAttribute', name: 'subHeading', value: opts.sub_heading });
+        }
+        attributes.push({
+          type: 'mdxJsxAttribute',
+          name: 'headingLevel',
+          value: { type: 'mdxJsxAttributeValueExpression', value: String(depth) },
+        });
+        if (opts.expanded !== undefined) {
           attributes.push({
             type: 'mdxJsxAttribute',
-            name: 'childrenHashIds',
-            value: { type: 'mdxJsxAttributeValueExpression', value: JSON.stringify(childrenHashIds) },
+            name: 'expanded',
+            value: { type: 'mdxJsxAttributeValueExpression', value: String(!!opts.expanded) },
           });
         }
 
