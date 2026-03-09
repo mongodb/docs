@@ -63,6 +63,17 @@ $searchIndexName = $collection->createSearchIndex(
 );
 // end-create-search-index
 
+// start-catch-server-error
+try {
+    $collection->createSearchIndex(
+        ['mappings' => ['dynamic' => true]],
+        ['name' => 'testSearchIdx'],
+    );
+} catch (SearchNotSupportedException $exception) {
+    echo $exception->getMessage() . "\n";
+}
+// end-catch-server-error
+
 // start-create-vector-index
 $vectorSearchIndexName = $collection->createSearchIndex(
     [
