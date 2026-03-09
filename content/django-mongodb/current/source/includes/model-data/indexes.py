@@ -62,6 +62,14 @@ class Meta:
     ]
 # end-embedded
 
+# start-embedded-subfield
+class Meta:
+    db_table = "recipes"
+    indexes = [
+        EmbeddedFieldIndex(fields=["nutrition.calories"]),
+    ]
+# end-embedded-subfield
+
 # start-atlas-search
 class Meta:
     db_table = "recipes"
