@@ -150,6 +150,23 @@ const tocData: TocItem[] = [
         ],
       },
       {
+        label: 'Reference',
+        contentSite: 'django',
+        collapsible: true,
+        items: [
+          {
+            label: 'Release Notes',
+            contentSite: 'django',
+            url: '/docs/languages/python/django-mongodb/:version/reference/release-notes',
+          },
+          {
+            label: 'View the Source',
+            isExternal: true,
+            url: 'https://github.com/mongodb/django-mongodb-backend',
+          },
+        ],
+      },
+      {
         label: 'Feature Compatibility',
         contentSite: 'django',
         url: '/docs/languages/python/django-mongodb/:version/limitations-upcoming',
