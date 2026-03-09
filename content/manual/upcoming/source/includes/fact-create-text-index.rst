@@ -1,4 +1,4 @@
-Run the following in :binary:`~bin.mongosh` to allow text search over 
+Run the following in :binary:`~bin.mongosh` to allow ``$text`` queries over 
 the ``name`` and ``description`` fields:
 
 .. code-block:: javascript

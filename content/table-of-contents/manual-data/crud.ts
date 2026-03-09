@@ -125,27 +125,27 @@ const tocData: TocItem[] = [
     collapsible: true,
     items: [
       {
-        label: 'Atlas Search',
+        label: 'MongoDB Search',
         contentSite: 'cloud-docs',
         url: 'https://www.mongodb.com/docs/atlas/atlas-search/',
       },
       {
-        label: 'Atlas Vector Search',
+        label: 'MongoDB Vector Search',
         contentSite: 'cloud-docs',
         url: 'https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/',
       },
       {
-        label: 'Text Search on Self-Managed Deployments',
+        label: '$text Queries',
         contentSite: 'docs',
         collapsible: true,
         items: [
           {
-            label: 'Perform a Text Search (Self-Managed Deployments)',
+            label: 'Perform a $text Query',
             contentSite: 'docs',
             url: '/docs/:version/core/text-search/on-prem',
           },
           {
-            label: 'Text Search Operators (Self-Managed Deployments)',
+            label: '$text Query Operators',
             contentSite: 'docs',
             url: '/docs/:version/core/text-search-operators',
             collapsible: true,
@@ -158,12 +158,12 @@ const tocData: TocItem[] = [
             ],
           },
           {
-            label: 'Text Search in the Aggregation Pipeline',
+            label: '$text Queries in the Aggregation Pipeline',
             contentSite: 'docs',
             url: '/docs/:version/tutorial/text-search-in-aggregation',
           },
           {
-            label: 'Text Search Languages',
+            label: '$text Query Languages',
             contentSite: 'docs',
             url: '/docs/:version/reference/text-search-languages',
           },
@@ -203,7 +203,7 @@ const tocData: TocItem[] = [
                 ],
               },
               {
-                label: 'Assign Weights to Text Search Results',
+                label: 'Assign Weights to $text Query Results',
                 contentSite: 'docs',
                 url: '/docs/:version/core/indexes/index-types/index-text/control-text-search-results',
               },

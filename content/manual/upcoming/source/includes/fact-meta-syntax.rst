@@ -31,10 +31,6 @@ The |meta-object| expression can specify the following values as the
        In earlier versions, if not used in conjunction with a
        ``$text`` query, returns a score of |empty-value|.
 
-       ``$text`` provides text query capabilities for self-managed (non-Atlas) 
-       deployments. For data hosted on MongoDB, MongoDB also offers an improved 
-       full-text query solution, :atlas:`{+fts+} </atlas-search/>`.
-
    * - ``"indexKey"``
 
      - Returns an index key for the document if a non-:ref:`text
