@@ -376,16 +376,16 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/tutorial/test-resilience',
             collapsible: true,
             items: [
-              {
-                label: 'Test Primary Failover',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/tutorial/test-resilience/test-primary-failover',
-              },
-              {
-                label: 'Simulate Regional Outage',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/tutorial/test-resilience/simulate-regional-outage',
-              },
+               {
+                  label: 'Test Primary Failover',
+                  contentSite: 'cloud-docs',
+                  url: '/docs/atlas/tutorial/test-resilience/test-primary-failover',
+               },
+               {
+                  label: 'Simulate Regional Outage',
+                  contentSite: 'cloud-docs',
+                  url: '/docs/atlas/tutorial/test-resilience/simulate-regional-outage',
+               },
             ],
           },
         ],
@@ -587,11 +587,28 @@ const tocData: TocItem[] = [
     ],
   },
   {
-    label: 'Load Sample Data',
+    label: 'Sample Data',
     contentSite: 'cloud-docs',
     url: '/docs/atlas/sample-data',
     collapsible: true,
     items: [
+      {
+         label: 'Load Sample Data',
+         contentSite: 'cloud-docs',
+         collapsible: true,
+         items: [
+            {
+               label: 'Atlas',
+               contentSite: 'cloud-docs',
+               url: '/docs/atlas/sample-data/load-sample-data/',
+            },
+            {
+               label: 'Self-Managed Deployments',
+               contentSite: 'cloud-docs',
+               url: '/docs/atlas/sample-data/load-sample-data-local/',
+            },
+         ]
+      },
       {
         label: 'Sample Airbnb',
         contentSite: 'cloud-docs',
