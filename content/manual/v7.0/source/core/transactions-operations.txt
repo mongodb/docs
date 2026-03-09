@@ -14,9 +14,8 @@ Transactions and Operations
    :depth: 2
    :class: singlecol
 
-For transactions:
-
-.. include:: /includes/extracts/transactions-operations-crud.rst
+MongoDB provides the ability to use transactions across multiple operations,
+collections, databases, documents, and shards.
 
 Operations Supported in Multi-Document Transactions
 ---------------------------------------------------
@@ -56,6 +55,14 @@ Distinct Operation
 
 Administration Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can create collections and indexes in transactions. For details, see
+:ref:`transactions-create-collections-indexes`. The collections used in a 
+transaction can be in different databases.
+
+.. note::
+
+  .. include:: /includes/extracts/transactions-cross-shard-collection-restriction.rst
 
 .. include:: /includes/transactions/create-collections-indexes-in-transaction.rst
 
@@ -146,7 +153,53 @@ Informational Operations
 Restricted Operations
 ---------------------
 
-.. include:: /includes/extracts/transactions-operations-restrictions.rst
+The following operations are not allowed in transactions:
+
+- Creating new collections in cross-shard write transactions. For
+  example, if you write to an existing collection in one shard and
+  implicitly create a collection in a different shard, MongoDB cannot
+  perform both operations in the same transaction.
+
+- :ref:`Explicit creation of collections
+  <transactions-operations-ddl-explicit>`, e.g.
+  :method:`db.createCollection()` method, and indexes, e.g.
+  :method:`db.collection.createIndexes()` and
+  :method:`db.collection.createIndex()` methods, when using a read
+  concern level other than :readconcern:`"local"`.
+
+- The :dbcommand:`listCollections` and :dbcommand:`listIndexes`
+  commands and their helper methods.
+
+- Other non-CRUD and non-informational operations, such as
+  :dbcommand:`createUser`, :dbcommand:`getParameter`,
+  :dbcommand:`count` and their helpers.
+
+- Writes to :ref:`capped <manual-capped-collection>` collections.
+
+- Using read concern :readconcern:`"snapshot"` when reading
+  from a :ref:`capped <manual-capped-collection>` collection.
+  (Starting in MongoDB 5.0)
+
+- Reads/writes to collections in the ``config``, ``admin``, or ``local`` 
+  databases.
+
+- Writes to ``system.*`` collections.
+
+- Using ``explain`` or similar commands to return the supported operation's 
+  query plan.
+
+- Calling :dbcommand:`getMore` on cursors created outside of a transaction, 
+  or calling :dbcommand:`getMore` outside of a transaction on cursors created 
+  within a transaction.
+
+- Specifying the :dbcommand:`killCursors` command as the first operation 
+  in a :ref:`transaction <transactions>`.
+
+  .. note::
+
+    If you run the ``killCursors`` command within a
+    transaction, the server immediately stops the specified
+    cursors. It does **not** wait for the transaction to commit.
 
 .. seealso::
 
