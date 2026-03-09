@@ -15,6 +15,27 @@ class Movie(models.Model):
         return self.title
 # end-models
 
+# start-constraint
+class Meta:
+    db_table = "movies"
+    managed = False
+    constraints = [
+        models.UniqueConstraint(name="unique_plot", fields=["plot"])
+    ]
+# end-constraint
+
+# start-embedded-constraint
+class Meta:
+    db_table = "movies"
+    managed = False
+    constraints = [
+        EmbeddedFieldUniqueConstraint(
+           name="unique_award_details",
+           fields=["awards.text"],
+        )
+    ]
+# end-embedded-constraint
+
 # start-json-field
 from django.db import models
 
