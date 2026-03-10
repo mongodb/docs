@@ -1,15 +1,16 @@
 .. _php-drupal-integration:
 
-==========================
-Drupal MongoDB Integration
-==========================
+==============================
+Integrate MongoDB with Drupal
+==============================
 
 .. facet::
    :name: genre
-   :values: reference
+   :values: tutorial
 
 .. meta::
-   :keywords: php framework, CMS, web app, authentication, Atlas
+   :keywords: php framework, CMS, web app, authentication, code example
+   :description: Build a Drupal content management system that connects to MongoDB. Learn how to create and query content stored in MongoDB.
 
 .. contents:: On this page
    :local:
@@ -20,34 +21,26 @@ Drupal MongoDB Integration
 Overview
 --------
 
-In this guide, you can learn about the benefits of using MongoDB Atlas
-as the database for Drupal sites.
-
-`Drupal <https://www.drupal.org/about>`__ is an open-source web content
-management system (CMS) written in PHP. Drupal provides simple content
-authoring, composability, and robust authentication features.
-
-The :ref:`php-drupal-tutorial` section of this guide links to a tutorial
-that you can follow to set up a Drupal site that connects to MongoDB Atlas.
-
-The :ref:`php-drupal-resources` section contains links to resources and
-documentation for further learning.
+In this guide, you can learn how to create a **Drupal** content management
+system (CMS) that uses **MongoDB** as its database. Drupal is an
+open-source web CMS written in PHP that provides content authoring,
+composability, and authentication features.
 
 Why Use MongoDB as the Database for Drupal Sites?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Websites that seek to provide personalized user experiences must contain
+Websites that provide personalized user experiences require
 robust capabilities for user authentication. Sites that have many
-authenticated users might face performance impacts due to the complexity
-of retrieving entity data from multiple tables in a relational database.
+authenticated users can experience performance issues when
+retrieving entity data from multiple tables in a relational database.
 MongoDB eliminates the need for complicated table joins and
-thus increases data retrieval speed, enhancing user experience of
-components such as personalized dashboards and dynamic content feeds.
+increases data retrieval speed for features such as personalized
+dashboards and dynamic content feeds.
 
-When you use MongoDB Atlas as your site's database, Drupal stores entity
-instances as JSON objects that contain all revisions, translations, and
-field data. This flexible data structure decreases latency and allows
-Drupal to support personalized, user-focused experiences.
+When you use MongoDB as your site's database, Drupal stores entities
+as JSON documents that include all revisions, translations, and
+field data. This flexible data structure decreases latency and supports
+personalized, data-driven experiences for users.
 
 MongoDB offers the following features that improve your Drupal sites:
 
@@ -58,54 +51,494 @@ MongoDB offers the following features that improve your Drupal sites:
   database instead of on the web server, simplifying hosting.
 
 - Full-text search: Avoid implementing separate search
-  solutions by leveraging the :atlas:`Atlas Search
+  solutions by leveraging the :atlas:`MongoDB Search
   </atlas-search/atlas-search-overview/>` feature.
 
 - AI capabilities: Perform vector searches and integrate AI services by
-  using the :atlas:`Atlas Vector Search
+  using the :atlas:`MongoDB Vector Search
   </atlas-vector-search/vector-search-overview/>` feature.
 
-.. _php-drupal-tutorial:
+.. _php-drupal-qs-tutorial:
 
-Tutorial
---------
+Quick Start Tutorial
+--------------------
 
-To learn how to install the MongoDB driver for Drupal and set up a site
-that uses MongoDB Atlas as its database, see the
-`How to Run Drupal on MongoDB <https://dev.to/mongodb/how-to-install-drupal-on-mongodb-atlas-2dg3>`__
-tutorial on the DEV Community website.
+In this tutorial, you build a Drupal CMS that uses MongoDB
+to store your Drupal site's data. You create a locally hosted
+Drupal site, add an article to the site, and view the article's
+data in MongoDB.
 
-This tutorial demonstrates how to perform the following steps:
+.. tip::
 
-1. Setting up a MongoDB Atlas account and deployment.
+   This tutorial uses a local MongoDB replica set and a locally hosted site.
+   To view a similar tutorial that uses a MongoDB Atlas M10 cluster and an
+   AWS EC2 server, see the `How to Run Drupal on MongoDB
+   <https://dev.to/mongodb/how-to-install-drupal-on-mongodb-atlas-2dg3>`__
+   DEV article.
 
-#. Setting up an AWS EC2 medium instance.
+.. _php-drupal-set-up:
 
-#. Connecting the EC2 instance to Atlas.
+Set Up Your Project
+~~~~~~~~~~~~~~~~~~~
 
-#. Installing the following components:
-   
-   - Apache web server
-   - `MongoDB PHP extension <https://php.net/mongodb>`__
-   - Drupal web server
-   - Drupal core patch
+Follow the steps in this section to install the project dependencies,
+deploy a MongoDB replica set, and set up Drupal.
 
-#. Connecting your Drupal site to Atlas.
+.. procedure::
+   :style: connected
 
-#. Adding content to Drupal and viewing how it is stored in Atlas.
+   .. step:: Verify the prerequisites.
 
-#. Safely shutting down your web server.
+      To create the Quick Start application, install the following software
+      in your development environment:
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Prerequisite
+           - Notes
+
+         * - `Composer <https://getcomposer.org/download/>`__
+           - This is a PHP dependency management tool.
+
+         * - `Git <https://git-scm.com/install/>`__
+           - Follow the instructions that correspond to your operating system.
+
+         * - `MongoDB Community Server <https://www.mongodb.com/try/download/community>`__
+           - Install MongoDB locally to run a replica set.
+
+         * - `MongoDB PHP Extension <https://www.php.net/manual/en/mongodb.installation.php>`__
+           - Install ``mongodb``, the MongoDB PHP extension. Follow the instructions in
+             the extension documentation that correspond your operating system.
+
+         * - :mdb-shell:`MongoDB Shell </install>`
+           - This tutorial uses the MongoDB Shell (``mongosh``) to view and interact with data.
+             Select your operating system and installation method, then follow the instructions.
+
+         * - `PHP <https://www.php.net/downloads.php>`__
+           - Use version 8.3 or later.
+  
+         * - Terminal app and shell 
+           - For MacOS users, use Terminal or a similar app.
+             For Windows users, use PowerShell or Command Prompt.
+
+   .. step:: Start a MongoDB replica set.
+      
+      To use MongoDB with Drupal, you must run a MongoDB replica set. Perform the
+      following steps to prepare and start a local three-node replica set:
+
+      a. Increase your ``ulimit`` value to resolve system resource limitations.
+
+         Drupal creates multiple files and indexes in a short period of time.
+         From your terminal, run the following command to set the ``ulimit`` to ``64000``,
+         which prevents your replica set from crashing:
+
+         .. code-block:: bash
+
+            ulimit -n 64000
+
+      b. Deploy your replica set.
+
+         After increasing your ``ulimit``, follow the instructions in the
+         :manual:`Deploy a Self-Managed Replica Set for Testing and Development </tutorial/deploy-replica-set-for-testing/>`
+         tutorial to deploy and initialize a replica set. Ensure that your replica set
+         is named ``rs0`` and has three members running on ports ``27017``, ``27018``, and ``27019``.
+
+   .. step:: Create a database user.
+
+      .. tip:: Use the PHP Driver
+
+         If you prefer to create a database user by using the MongoDB PHP Driver
+         instead of ``mongosh``, pass the ``createUser`` command to the ``MongoDB\Database::command()`` method.
+         To learn more, see `Run a Database Command <https://www.mongodb.com/docs/php-library/current/run-command/>`__
+         in the driver documentation. 
+
+      Create a user with the necessary permissions for the Drupal database
+      by performing the following steps.
+
+      a. Run the following command from your terminal to connect to your replica
+         set in ``mongosh``:
+
+         .. code-block:: javascript
+
+            mongosh "mongodb://localhost:27017,localhost:27018,localhost:27019/?replicaSet=rs0"
+      
+      b. In the ``mongosh`` shell, run the following command to enter the ``admin`` database:
+
+         .. code-block:: javascript
+
+            use admin
+
+      c. Then, run the following command from your shell to create
+         a user:
+
+         .. code-block:: javascript
+
+            db.createUser({
+               user: "<database username>",
+               pwd: "<database user password>",
+               roles: [
+                 { role: "readWrite", db: "drupal" },
+                 { role: "dbAdmin", db: "drupal" }
+               ]
+            })
+
+         Replace ``<database username>`` and ``<database user password>`` with
+         your preferred credentials. Save these values for use in future steps.
+
+   .. step:: Install Drupal.
+
+      From a new terminal window, run the following commands to create a Drupal project
+      named ``drupal-quickstart``:
+
+      .. code-block:: bash
+
+         composer create-project drupal/recommended-project:11.1.5 drupal-quickstart
+         cd drupal-quickstart
+
+      Then, install the MongoDB module by running the following command:
+
+      .. code-block:: bash
+
+         composer require drupal/mongodb:^3.1
+
+Configure the MongoDB Integration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After installing Drupal, follow the steps in this section to allow
+your application to work with MongoDB.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Apply the Drupal core patch.
+
+      The Drupal core PHP files require a patch to work with MongoDB. Navigate to
+      your ``drupal-quickstart/web`` directory and apply the patch by running the
+      following commands:
+
+      .. code-block:: bash
+
+         cd web
+         git apply -v modules/contrib/mongodb/patches/drupal-core-11.1.5.patch
+         cd ..
+
+   .. step:: Create the settings file.
+
+      From your ``drupal-quickstart`` directory, navigate to the ``web/sites/default``
+      subdirectory and run the following commands:
+
+      .. code-block:: bash
+
+         cd web/sites/default
+         cp default.settings.php settings.php
+         chmod 777 settings.php
+         cd ../../..
+
+      These commands copy the default settings file into a new file named
+      ``settings.php`` and update this file's permissions to allow Drupal
+      to write new content.
+
+   .. step:: Configure file permissions.
+
+      To allow Drupal to modify your public files, create the ``files`` directory
+      and set its permissions by running the following commands from your
+      ``drupal-quickstart`` directory:
+
+      .. code-block:: bash
+
+         mkdir -p web/sites/default/files
+         chmod -R 777 web/sites/default/files
+
+      Then, specify the location of these files by verifying that your
+      ``web/sites/default/settings.php`` file contains the following value:
+
+      .. code-block:: php
+
+         $settings['file_public_path'] = 'sites/default/files';
+
+      .. tip::
+
+         If the preceding value is commented out in ``settings.php``, uncomment it.
+
+Configure Your Drupal Site
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in this section to complete the Drupal installation
+by using the Drupal configuration wizard.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Start the PHP development server.
+
+      From your ``drupal-quickstart`` directory, run the following command
+      to start the built-in PHP web server:
+
+      .. code-block:: bash
+
+         php -S localhost:8080 -t web
+
+      If successful, this command outputs the following information:
+
+      .. code-block:: bash
+         :copyable: false
+
+         [Date Time] PHP 8.3.0 Development Server (http://localhost:8080) started
+
+   .. step:: Complete the web installation.
+
+      Open http://localhost:8080 in your web browser to launch the
+      Drupal installation wizard. Then, configure your project by selecting
+      the following responses.
+
+      .. tip::
+
+         If your site displays an error message about the deprecated non-canonical
+         ``(boolean)`` cast, locate the following line in your project's
+         ``DocParser.php`` file:
+
+         .. code-block:: php
+
+            $this->ignoreNotImportedAnnotations = (boolean) $bool;
+
+         Replace this line with the following code:
+
+         .. code-block:: php
+
+            $this->ignoreNotImportedAnnotations = (bool) $bool;
+
+      a. On the **Choose language** page, select **English** and click
+         **Save and continue**.
+
+      b. On the **Choose profile** page, keep **Standard**
+         selected and click **Save and continue**.
+
+      c. On the **Set up database** page, select **MongoDB** as the database type
+         and provide the following information:
+
+         - **Database name**: ``drupal``
+         - **Database username**: The database username that you configured with the
+           ``createUser`` command in a :ref:`previous step <php-drupal-set-up>`
+         - **Database password**: The database password that you configured with the
+           ``createUser`` command in a :ref:`previous step <php-drupal-set-up>`
+         - **SRV connection format**: Leave unchecked
+         - **Database replica set**: ``rs0``
+         - **Host #1**: ``localhost``, port ``27017``
+         - **Host #2**: ``localhost``, port ``27018``
+         - **Host #3**: ``localhost``, port ``27019``
+
+         Click **Save and continue**.
+
+      d. Drupal installs the required modules. This might take several minutes.
+
+      e. On the **Configure site** page, provide the following information:
+
+         - **Site name**: Enter ``Drupal on MongoDB``.
+         - **Site email address**: Enter any email address. You can use a non-existent address.
+         - **Username**: Choose an admin username.
+         - **Password**: Choose a strong password.
+         - **Receive email notifications**: Uncheck this box.
+
+         Click **Save and continue**.
+
+   .. step:: Secure your settings files.
+
+      After installing Drupal and configuring your site, Drupal no longer
+      requires write access to your settings files. To secure these files,
+      run the following commands from your ``drupal-quickstart`` directory:
+
+      .. code-block:: bash
+
+         chmod 555 web/sites/default
+         chmod 444 web/sites/default/settings.php
+
+Create and View Content
+~~~~~~~~~~~~~~~~~~~~~~~
+
+After completing the installation, follow the steps in this section to
+create content and store its data in MongoDB.
+
+.. procedure::
+   :style: connected
+
+   .. step:: View your Drupal home page.
+
+      After installation completes, your site redirects to the Drupal
+      home page. Your site resembles the following image:
+
+      .. figure:: /figures/drupal-home.png
+         :alt: Screenshot of the Drupal home page after initial installation
+
+      .. tip:: Site Styling
+
+         If your Drupal site displays plain HTML without any styling,
+         you might have to disable CSS and JavaScript aggregation. To disable
+         aggregation, visit http://localhost:8080/admin/config/development/performance
+         in your browser and uncheck the :guilabel:`Aggregate CSS files` and
+         :guilabel:`Aggregate JavaScript files` boxes.
+
+   .. step:: Access the Drupal administration interface.
+
+      Click :guilabel:`Content` in the navigation bar at the top of the page. Then, click
+      **Add content** > **Article**.
+
+   .. step:: Create an article.
+
+      On the :guilabel:`Create Article` page, perform the following actions:
+
+      a. In the :guilabel:`Title` section, enter ``"Welcome to My Drupal Site"``.
+
+      b. In the :guilabel:`Body` section, enter the following text:
+
+         .. code-block:: text
+
+            This is my first article on Drupal with MongoDB!
+            All content is stored as JSON documents in MongoDB.
+
+      c. Select :guilabel:`Menu settings` and check the
+         :guilabel:`Provide a menu link` box.
+
+      d. Click :guilabel:`Save`.
+
+   .. step:: View your published article.
+
+      After saving, you can see your published article. Your site resembles
+      the following image:
+
+      .. figure:: /figures/drupal-article.png
+         :alt: Screenshot of the Drupal article page
+
+   .. step:: View your data in MongoDB.
+
+      .. tip:: Use the PHP Driver
+
+         If you prefer to view collections and content data by
+         using the PHP driver instead of ``mongosh``, use the ``MongoDB\Database::listCollections()``
+         and ``MongoDB\Collection::find()`` methods. To learn more, see
+         the following PHP driver documentation:
+
+         - `Databases and Collections <https://www.mongodb.com/docs/php-library/current/databases-collections/>`__
+         - `Retrieve Data <https://www.mongodb.com/docs/php-library/current/crud/query/retrieve/>`__
+
+      To verify that your content is stored in MongoDB, perform the following steps:
+
+      a. Open a new terminal window and connect to your MongoDB replica set in ``mongosh``.
+
+         Run the following command from your terminal:
+
+         .. code-block:: bash
+
+            mongosh "mongodb://localhost:27017,localhost:27018,localhost:27019/?replicaSet=rs0"
+
+      b. Enter the ``drupal`` database and view the collections.
+
+         Run the following commands in your ``mongosh`` terminal:
+
+         .. code-block:: javascript
+
+            use drupal
+            show collections
+
+         Drupal creates multiple collections to store different types of content,
+         including the following:
+
+         - ``node``: Stores content nodes
+         - ``users``: Stores user accounts
+         - ``config``: Stores configuration data
+
+      c. View your article data.
+
+         To view information about your article, run the following
+         command in your ``mongosh`` terminal:
+
+         .. io-code-block::
+           :copyable: true
+
+           .. input::
+              :language: javascript
+
+              db.node.find().pretty()
+          
+           .. output::
+              :visible: false
+
+              [
+                {
+                  _id: ObjectId('...'),
+                  nid: 1,
+                  vid: 1,
+                  type: 'article',
+                  uuid: '...',
+                  langcode: 'en',
+                  node_all_revisions: [
+                    {
+                      ...
+                    }
+                  ],
+                  node_current_revision: [
+                    {
+                      ...
+                    }
+                  ],
+                  node_latest_revision: [
+                    {
+                      ...
+                      title: 'Welcome to My Drupal Site',
+                      created: ...,
+                      changed: ...,
+                      promote: true,
+                      sticky: false,
+                      default_langcode: true,
+                      revision_default: true,
+                      revision_translation_affected: true,
+                      node_latest_revision__body: [
+                        {
+                          bundle: 'article',
+                          deleted: false,
+                          langcode: 'en',
+                          entity_id: 1,
+                          revision_id: 1,
+                          delta: 0,
+                          body_value: '<p>This is my first article on Drupal with MongoDB!<br>All content is stored as JSON documents in MongoDB.</p>',
+                          body_summary: '',
+                          body_format: 'basic_html'
+                        }
+                      ],
+                      node_latest_revision__comment: [
+                        {
+                          bundle: 'article',
+                          deleted: false,
+                          langcode: 'en',
+                          comment_status: 2,
+                          entity_id: 1,
+                          revision_id: 1,
+                          delta: 0
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+
+         This command returns a JSON document that contains your article text
+         and metadata.
+
+Congratulations on completing the Drupal Quick Start tutorial!
+
+After you complete these steps, you have a Drupal CMS that connects to
+your local MongoDB replica set and stores content as JSON documents.
 
 .. _php-drupal-resources:
 
-Resources
----------
+Additional Resources
+--------------------
 
-Learn more about Drupal and MongoDB by viewing the following resources:
+To learn more about Drupal and MongoDB, view the following resources:
 
-- :website:`MongoDB Blog: Advancing Integration Between Drupal and MongoDB
-  </blog/post/advancing-integration-between-drupal-mongodb>`
-- `MongoDB module suite for Drupal <https://www.drupal.org/project/mongodb>`__
-- `Drupal CMS User Guide <https://new.drupal.org/docs/drupal-cms>`__
-- :website:`Podcast: PHP, Drupal and MongoDB with David Bekker
-  </developer/podcasts/ep-185-php-drupal-and-mongodb-with-david-bekker/>`
+- `How to Run Drupal on MongoDB <https://dev.to/mongodb/how-to-install-drupal-on-mongodb-atlas-2dg3>`__
+  DEV tutorial with full production configuration
+- :website:`Advancing Integration Between Drupal and MongoDB
+  </blog/post/advancing-integration-between-drupal-mongodb>` blog post
+- `MongoDB module <https://www.drupal.org/project/mongodb>`__ on the Drupal website
+- `Drupal <https://www.drupal.org/documentation>`__ documentation
