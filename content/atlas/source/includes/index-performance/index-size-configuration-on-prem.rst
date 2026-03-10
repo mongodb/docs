@@ -122,8 +122,7 @@ Consider the following:
   you can create a single index. However, your index definition payload 
   might be large and your query might be complex. 
 
-To learn more about these data models and index definitions, see the
-`MongoDB blog <https://www.mongodb.com/developer/products/atlas/atlas-search-multi-language-data-modeling/>`__. 
+To learn how to do a Multilingual Search, see :ref:`fts-multilingual-example`
 
 Synonym Collections
 +++++++++++++++++++
