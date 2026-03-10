@@ -403,11 +403,6 @@ const tocData: TocItem[] = [
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/atlas-search/return-scope',
               },
-              {
-                label: 'tracking',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/atlas-search/tracking',
-              },
             ],
           },
           {
@@ -503,11 +498,6 @@ const tocData: TocItem[] = [
         label: 'Review Metrics',
         contentSite: 'cloud-docs',
         url: 'https://www.mongodb.com/docs/atlas/review-atlas-search-metrics',
-      },
-      {
-        label: 'View Query Analytics',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/atlas-search/view-query-analytics',
       },
     ],
   },

@@ -3,8 +3,8 @@
 05 December 2025 Release 
 ------------------------
 
-- Deprecates :ref:`$search.tracking <fts-tracking-ref>` and :ref:`Query
-  Analytics UI <fts-query-analytics>`. The official end-of-life and
+- Deprecates ``$search.tracking`` and Query
+  Analytics UI. The official end-of-life and
   complete removal of support will occur in February 2026. Therefore,
   |service| will no longer collect query data for display in the
   {+atlas-ui+} for all ``$search.tracking`` requests. If you have any

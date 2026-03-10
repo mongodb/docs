@@ -61,6 +61,5 @@
          actions to take on the index: 
 
          - :ref:`Edit <ref-edit-index>` the index using the
-           :guilabel:`Visual Editor` or :guilabel:`JSON Editor`. 
-         - :ref:`View Query Analytics<fts-query-analytics>` for the index.
+           :guilabel:`Visual Editor` or :guilabel:`JSON Editor`.
          - :ref:`Delete <ref-delete-index>` the index.

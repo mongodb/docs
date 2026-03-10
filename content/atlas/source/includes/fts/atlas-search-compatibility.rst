@@ -25,9 +25,6 @@ specific MongoDB versions.
    * - :ref:`Stored Source Fields <fts-stored-source-definition>`
      - 7.0+, 8.0+
 
-   * - :ref:`Query Analytics <fts-query-analytics>`
-     - 7.0+, 8.0+
-
    * - :ref:`$lookup with $search <lookup-with-search-tutorial>`
      - 7.0+, 8.0+
 
@@ -84,9 +81,6 @@ The following limitations apply to |fts| on ``M0`` and Flex
 
 - The :ref:`synonyms collection <synonyms-coll-spec>` can't exceed
   10,000 documents.
-
-- |fts| doesn't capture or display :ref:`query analytics for tracked 
-  queries <fts-tracking-ref>`. 
 
 - |fts| doesn't support encrypting |fts| indexes with 
   :ref:`encryption keys using Customer Key Management 
