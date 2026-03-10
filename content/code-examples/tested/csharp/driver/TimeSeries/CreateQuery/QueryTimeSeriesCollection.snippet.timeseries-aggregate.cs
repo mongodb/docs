@@ -2,7 +2,12 @@
 var pipeline = new BsonDocument[]
 {
     new("$match",
-        new BsonDocument("sensor.sensor_id", 5578)),
+        new BsonDocument
+            {
+                { "sensor.sensor_id", 5578 },
+                { "sensor.type", "temperature" }
+            }
+        ),
     new("$group",
         new BsonDocument
         {

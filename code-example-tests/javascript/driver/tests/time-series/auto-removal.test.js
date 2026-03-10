@@ -33,4 +33,3 @@ describe('Auto removal time series collection tests', () => {
     Expect.that(result).shouldMatch(true);
   });
 });
-
