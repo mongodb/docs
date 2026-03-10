@@ -362,8 +362,7 @@ collected from a datacenter. The following configuration:
 
 .. seealso::
 
-   - `Tutorial: Federated Queries and $out to S3 
-     <https://www.mongodb.com/developer/products/atlas/atlas-data-lake-federated-queries-out-aws-s3/>`__
+   - :ref:`query-fdi`
 
 .. toctree::
    :titlesonly:
