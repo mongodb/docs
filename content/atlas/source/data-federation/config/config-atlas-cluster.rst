@@ -511,5 +511,4 @@ The following configuration:
 .. seealso::
    - :ref:`query-atlas`
    - :ref:`Configure Atlas Data Federation <adf-configuration-file-atlas>` 
-   - `Tutorial: Federated Queries and $out to S3 
-     <https://www.mongodb.com/developer/products/atlas/atlas-data-lake-federated-queries-out-aws-s3/>`__
+   - :ref:`query-fdi`
