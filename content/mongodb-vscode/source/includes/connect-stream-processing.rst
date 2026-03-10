@@ -58,3 +58,34 @@ For details on how to configure Atlas Stream Processing, see
          :alt: Image of a stream processing template
 
 
+   .. step:: Create a Stream Processor
+         You can create new Stream Processors from the |vsce| 
+         :guilabel:`Connections` pane. 
+
+         a. Right click over your Stream Processing connection.
+
+         #. From the menu, select :guilabel:`Add streamProcessor`.
+            A Stream Processor JavaScript file will open for you to fill in.
+
+         #. Once you have filled in your streamProcessor JavaScript Playground file,
+            click over the :guilabel:`Play` button at the top level of your |vsce|
+            space. 
+
+         .. figure:: /images/vsce-add-stream-processor.png
+            :figwidth: 700px
+            :alt: Image of the add stream processor menu option
+         
+
+   .. step:: Start, Stop or Drop a Stream Processor
+         
+      You can manage your Stream Processors from the |vsce| 
+      :guilabel:`Connections` pane. Right-click over the Stream Processor of your
+      connection and select the option that you want to apply to your Stream
+      Processor. 
+
+      .. figure:: /images/vsce-sp-options.png
+         :figwidth: 700px
+         :alt: Image of the stream processors options in VSCode
+
+
+
