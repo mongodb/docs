@@ -177,6 +177,13 @@ resources.
 
    To learn more, see :ref:`k8s-om-log-rotation-crd`.
 
+   .. note::
+
+      If the size of files the |onprem| dashboard generates is larger than the storage
+      space available in the ``emptyDir`` volume, consider overriding the ``emptyDir``
+      volume with a Persistent Volume to prevent pod crashes. To learn more, see
+      :opsmgrkube:`spec.statefulSet.spec.template.spec.volumes`.
+
 .. opsmgrkube:: spec.opsManagerURL
 
    *Type*: string
@@ -504,6 +511,36 @@ resources.
       Setting this value to a value greater than 32 GB (``32Gi``) can
       cause issues with the backup service. Excessive heaps can cause
       unpredictable results in |onprem|.
+
+.. opsmgrkube:: spec.statefulSet.spec.template.spec.volumes
+
+   *Type*: collection
+
+   List of volumes that containers can mount in the |k8s-statefulset| that the |k8s-op|
+   creates for |onprem|.
+
+   If you are requesting the logs for a deployment using the |onprem| dashboard and the
+   size of the temporary files is significantly large, consider using a Persistent Volume
+   for the ``data`` |k8s| volume in the |onprem| |k8s-statefulset|.
+
+   The ``data`` |k8s| volume uses an ``emptyDir`` type by default. To override it and use
+   a Persistent Volume, add the following configuration to your ``MongoDBOpsManager``
+   resource:
+
+   .. code-block:: yaml
+
+      statefulSet:
+        spec:
+          template:
+            spec:
+              volumes:
+                - name: data
+                  persistentVolumeClaim:
+                    claimName: <my-pvc>
+
+   Replace ``<my-pvc>`` with the name of your |k8s|
+   :k8sdocs:`PersistentVolumeClaim
+   </concepts/storage/persistent-volumes/#persistentvolumeclaims>`.
 
 External Connectivity Settings
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -1619,6 +1656,13 @@ database settings specific to your |multi-cluster-om|, see
    :opsmgrkube:`systemLog.destination <spec.applicationDatabase.agent.systemLog.destination>` 
    to ``file`` because you can't use the ``agent.<component>.logRotate`` settings if you're writing 
    logs to the host's :manual:`syslog </reference/glossary/#std-term-syslog>` system.
+
+   .. note::
+
+      If the size of files the |onprem| dashboard generates is larger than the storage
+      space available in the ``emptyDir`` volume, consider overriding the ``emptyDir``
+      volume with a Persistent Volume to prevent pod crashes. To learn more, see
+      :opsmgrkube:`spec.statefulSet.spec.template.spec.volumes`.
 
 .. opsmgrkube:: spec.applicationDatabase.agent.mongod.logRotate.numTotal
 
