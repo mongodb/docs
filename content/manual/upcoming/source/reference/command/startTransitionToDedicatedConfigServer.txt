@@ -1,0 +1,130 @@
+=========================================================
+startTransitionToDedicatedConfigServer (database command)
+=========================================================
+.. meta::
+   :description: Starts the transition from an embedded config server to a dedicated config server.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: startTransitionToDedicatedConfigServer
+
+.. include:: /includes/command/startTransitionToDedicatedConfigServer.rst
+
+When the command runs, it tells the balancer that you want to
+start the transition to a dedicated config server. Asynchronously,
+the balancer then begins moving chunks from the shard to other shards in the
+cluster. Once the balancer has finished this process and you have manually 
+migrated any unsharded collections to a different shard, you can safely remove 
+it from the cluster because it no longer contains data. See the
+:dbcommand:`moveCollection` command for more information. 
+
+The command returns an error if the transition fails, otherwise it returns 
+``ok``.
+
+.. versionadded:: 8.3
+
+.. I will go back and add links to the other commands in the PRs of those commands
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+.. note::
+
+   .. include:: /includes/edit-shards-atlas-compatibility.rst
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.adminCommand( { 
+        startTransitionToDedicatedConfigServer: 1
+   } )
+
+Behavior
+--------
+
+Access Requirements
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/removeShard-access-requirements.rst
+
+No Cluster Back Ups During Shard Drain
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot back up the cluster while starting the transition.
+
+Database Migration Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/sharding-database-migration-requirements.rst
+
+Collection Migration Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/sharding-collection-migration-requirements.rst
+
+Chunk Balancing
+~~~~~~~~~~~~~~~
+
+When you transition to a dedicated config server and the cluster has an uneven 
+chunk distribution, the balancer first removes the chunks from the draining
+shard and then balances the remaining uneven chunk distribution.
+
+.. seealso::
+
+   :dbcommand:`balancerCollectionStatus`
+
+Write Concern
+~~~~~~~~~~~~~
+
+:program:`mongos` converts the :ref:`write concern
+<write-concern>` of the ``startTransitionToDedicatedConfigServer`` command to
+:writeconcern:`"majority"`.
+
+Change Streams
+~~~~~~~~~~~~~~
+
+Draining the embedded config server may cause an open :ref:`change stream cursor
+<changeStreams>` to close, and the closed change stream cursor may
+not be fully resumable.
+
+DDL Operations
+~~~~~~~~~~~~~~
+
+If you run ``startTransitionToDedicatedConfigServer`` while your cluster is
+executing a DDL operation (operation that modifies a collection
+such as :dbcommand:`reshardCollection`), the transition only
+executes after the concurrent DDL operation finishes. 
+
+Examples
+--------
+
+To start the transition, use the :method:`db.adminCommand`
+method:
+
+.. code-block:: javascript
+
+   db.adminCommand( {
+      startTransitionToDedicatedConfigServer: 1
+   } )
+
+Learn More
+----------
+
+.. will add commands and tutorials on the subsequent pages
