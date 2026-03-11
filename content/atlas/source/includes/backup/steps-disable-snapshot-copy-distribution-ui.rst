@@ -25,6 +25,16 @@ items in the {+atlas-ui+}:
          For a global cluster, you can enable or disable the
          :guilabel:`Copy to other regions` setting independently for
          each zone.
+      
+      .. note::      
+
+         You must set :guilabel:`Automatically Sync Copy Regions with
+         Cluster Regions` to :guilabel:`Off` to be able to add or delete
+         copy regions. When this setting is on, {+service+}
+         automatically configures snapshot copy policy items for each
+         secondary region in your cluster and keeps the policy in sync
+         with the cluster configuration as you add or remove secondary
+         regions.     
 
    .. step:: Click :guilabel:`Review Changes`.
 

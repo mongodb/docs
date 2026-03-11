@@ -17,8 +17,26 @@ region to other regions using the {+atlas-ui+}:
 
          For a global cluster, you can enable or disable this setting
          independently for each zone.
+   
+   .. step:: (Optional) Automatically copy snapshots to all secondary regions.
+      
+      To copy snapshots to all secondary regions in a multi-region
+      cluster, toggle :guilabel:`Automatically Sync Copy Regions with Cluster Regions`
+      to :guilabel:`On`. 
+      
+      When you enable :guilabel:`Automatically Sync Copy Regions with Cluster
+      Regions`, {+service+} configures snapshot copy
+      policy items for each secondary region in your cluster and keeps 
+      the policy in sync with the cluster configuration as you add or 
+      remove secondary regions. {+service+} creates each snapshot copy 
+      policy item with the same frequency and retention times as the 
+      backup policy items defined for the cluster.
 
-   .. step:: Choose the additional region(s) to distribute snapshot copies to.
+      You can customize the frequency and retention times for the 
+      automatic snapshot copies in the following steps, but you cannot 
+      add or remove regions unless you disable this setting.      
+
+   .. step:: Choose the region(s) to distribute snapshot copies to.
     
       In the :guilabel:`Region` column of the snapshot copy policy 
       table, select a region from the :guilabel:`Choose a region` dropdown. 
@@ -27,6 +45,8 @@ region to other regions using the {+atlas-ui+}:
       Frequency`.
 
       .. include:: /includes/backup/note-copy-region-cloud-provider.rst
+      
+      .. include:: /includes/backup/note-auto-option-ui.rst
 
    .. step:: Configure snapshot copy frequency.
 

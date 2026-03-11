@@ -9,11 +9,11 @@ items using the {+atlas-admin-api+}:
    
    .. step:: Get the cluster's current {+Cloud-Backup+} schedule.
       
-      Make a ``GET`` request to the 
-      :oas-atlas-op:`/backup/schedule </getGroupClusterBackupSchedule>`
-      endpoint to retrieve the current {+Cloud-Backup+} schedule for 
-      the cluster. The ``copySettings`` field in the response body 
-      contains the current snapshot copy policy. 
+      Use the :oas-atlas-op:`Get Cloud Backup Schedule for One Cluster
+      </getGroupClusterBackupSchedule>` endpoint to retrieve the current
+      {+Cloud-Backup+} schedule for the cluster. The ``copySettings`` 
+      field in the response body contains the current snapshot copy
+      policy.
       
       Copy the entire response to modify in the next step. 
 
@@ -28,6 +28,16 @@ items using the {+atlas-admin-api+}:
       To disable all snapshot copy distribution, replace the
       ``copySettings`` array with an empty array.
 
+      .. note::
+
+         You must set the ``autoCopySettingsEnabled`` field to ``false``
+         to be able to add or delete copy regions. When
+         ``autoCopySettingsEnabled`` is ``true``, {+service+}
+         automatically configures snapshot copy policy items for each
+         secondary region in your cluster and keeps the policy in sync
+         with the cluster configuration as you add or remove secondary
+         regions. 
+
    .. step:: *(Optional)* Delete existing snapshot copies. 
 
       To delete all copy snapshots associated with removed policies,
@@ -38,6 +48,6 @@ items using the {+atlas-admin-api+}:
 
    .. step:: Update the snapshot copy policy.
 
-      Make a ``PATCH`` request with the modified payload to the
-      :oas-atlas-op:`/backup/schedule
-      </updateGroupClusterBackupSchedule>` endpoint. 
+      Make a request to the :oas-atlas-op:`Update Cloud Backup Schedule
+      for One Cluster </updateGroupClusterBackupSchedule>` endpoint with
+      the modified payload to update the snapshot copy policy.

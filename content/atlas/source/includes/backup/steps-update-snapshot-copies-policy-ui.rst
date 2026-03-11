@@ -12,13 +12,36 @@ To update the snapshot copy policy for your cluster using the
       displays a table of your currently configured snapshot copy
       policies.
 
+   .. step:: (Optional) Enable or disable automatic copy distribution to secondary regions.
+
+      Toggle :guilabel:`Automatically Sync Copy Regions with Cluster
+      Regions` to :guilabel:`On` or :guilabel:`Off` to enable or disable
+      automatic distribution of snapshot copies to all secondary regions
+      in a multi-region cluster.
+
+      When you enable :guilabel:`Automatically Sync Copy Regions with
+      Cluster Regions`, {+service+} configures snapshot copy policy
+      items for each secondary region in your cluster and keeps the
+      policy in sync with the cluster configuration as you add or remove
+      secondary regions. {+service+} creates each snapshot copy policy
+      item with the same frequency and retention times as the backup
+      policy items defined for the cluster.
+
+      .. important:: 
+         
+         When you enable :guilabel:`Automatically Sync Copy Regions 
+         with Cluster Regions`, {+service+} overwrites any existing 
+         snapshot copy policy items you have configured. 
+
    .. step:: Add or update snapshot copies policy items. 
     
       Make your changes to the snapshot copy policy items in the table.
 
       To add a new snapshot copies policy item, click :guilabel:`Add
       Another Region and Frequency` and configure the new item in the
-      new row. 
+      new row.
+
+      .. include:: /includes/backup/note-auto-option-ui.rst
 
    .. step:: Click :guilabel:`Review Changes`.
 
