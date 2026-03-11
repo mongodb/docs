@@ -20,6 +20,10 @@ import { CommunityPillLink } from '@/mdx-components/CommunityPillLink';
 import ComposableTutorial from '@/mdx-components/ComposableTutorial';
 import ComposableContent from '@/mdx-components/ComposableTutorial/ComposableContent';
 import Button from '@/mdx-components/Button';
+import { GUILabel } from '@/mdx-components/GUILabel';
+import { Red } from '@/mdx-components/Red';
+import { Gold } from '@/mdx-components/Gold';
+import { Kbd } from '@/mdx-components/Kbd';
 
 type InjectedProps = Record<string, unknown>;
 
@@ -98,9 +102,9 @@ export const components = (injectedProps?: InjectedProps) =>
     Footnote: ({ children }) => <span>{children}</span>,
     FootnoteReference: ({ children }) => <span>{children}</span>,
     Glossary: ({ children }) => <span>{children}</span>,
-    Gold: ({ children }) => <span>{children}</span>,
+    Gold: ({ children }) => <Gold>{children}</Gold>,
     GuideNext: ({ children }) => <span>{children}</span>,
-    Guilabel: ({ children }) => <span>{children}</span>,
+    Guilabel: ({ children }) => <GUILabel>{children}</GUILabel>,
     Heading: ({ children, ...props }) => <Heading {...props}>{children}</Heading>,
     Hlist: ({ children, ...props }) => <HorizontalList {...props}>{children}</HorizontalList>,
     Icon: ({ children }) => <span>{children}</span>,
@@ -109,6 +113,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Introduction: ({ children }) => <Introduction>{children}</Introduction>,
     Input: ({ children }) => <span>{children}</span>,
     IoCodeBlock: ({ children }) => <span>{children}</span>,
+    Kbd: ({ children }) => <Kbd>{children}</Kbd>,
     Kicker: ({ children }) => <span>{children}</span>,
     // built-in list syntax → List/ListItem (prefer over custom List/ListItem directives)
     ol: ({ children, ...props }) => <List {...props}>{children}</List>,
@@ -129,6 +134,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Procedure: ({ children, ...props }) => <Procedure {...props}>{children}</Procedure>,
     Step: ({ children, ...props }) => <Step {...props}>{children}</Step>,
     Ref: ({ children }) => <span>{children}</span>,
+    Red: ({ children }) => <Red>{children}</Red>,
     ReleaseSpecification: ({ children }) => <span>{children}</span>,
     Root: ({ children }) => <span>{children}</span>,
     Rubric: ({ children }) => <span>{children}</span>,

@@ -475,6 +475,21 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (!children.length && node.value) {
         children.push({ type: 'text', value: node.value });
       }
+      if (componentName === 'Command') {
+        // return as bold text
+        return {
+          type: 'strong',
+          children,
+        };
+      }
+      if (componentName === 'File') {
+        // Use inlineCode for single backticks `code`
+        const textContent = children.map((child: MdastNode) => (child.type === 'text' ? child.value : '')).join('');
+        return {
+          type: 'inlineCode',
+          value: textContent,
+        };
+      }
       return {
         type: 'mdxJsxTextElement',
         name: componentName,
