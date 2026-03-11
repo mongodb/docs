@@ -1,0 +1,76 @@
+#!/bin/sh
+
+# Pre-push hook: Run SEO and 404 linters on files being pushed
+# Only checks files in the commits being pushed, not entire branch diff
+
+# Read push info from stdin
+# Format: <local ref> <local sha> <remote ref> <remote sha>
+while read local_ref local_sha remote_ref remote_sha; do
+  # Skip delete pushes
+  if [ "$local_sha" = "0000000000000000000000000000000000000000" ]; then
+    continue
+  fi
+
+  # Determine the range of commits being pushed
+  if [ "$remote_sha" = "0000000000000000000000000000000000000000" ]; then
+    # New branch - compare against main
+    range="origin/main..$local_sha"
+  else
+    # Existing branch - only check commits being pushed
+    range="$remote_sha..$local_sha"
+  fi
+
+  # Get doc files changed in this push (excluding table-of-contents)
+  CHANGED_DOC_FILES=$(git diff --name-only "$range" 2>/dev/null | grep -E '\.(rst|txt|md|mdx)$' | grep -v "^content/table-of-contents/" || true)
+
+  if [ -z "$CHANGED_DOC_FILES" ]; then
+    echo "✅ No doc files in this push, skipping linters."
+    exit 0
+  fi
+
+  # Check if node is installed
+  if ! command -v node &> /dev/null; then
+    echo "⚠️  WARNING: node is required for linters but is not installed."
+    echo "   Skipping linter checks..."
+    exit 0
+  fi
+
+  file_count=$(echo "$CHANGED_DOC_FILES" | wc -l | tr -d ' ')
+  echo "📄 Found $file_count doc file(s) in this push"
+  echo ""
+
+  # Cap at 50 files to avoid slow runs on large pushes
+  if [ "$file_count" -gt 50 ]; then
+    echo "⚠️  Too many files ($file_count) to lint efficiently."
+    echo "   Skipping automatic linting."
+    echo "   Run manually if needed:"
+    echo "     npx tsx .github/lint-docs/seo-lint-cli.ts <files>"
+    echo "     npx tsx .github/lint-docs/404-lint-cli.ts <files>"
+    echo ""
+    exit 0
+  fi
+
+  # SEO linter (warn only, doesn't block push)
+  echo "🔍 Running SEO linter on pushed docs..."
+  npx tsx .github/lint-docs/seo-lint-cli.ts $CHANGED_DOC_FILES
+  seo_exit=$?
+
+  echo ""
+
+  # 404 linter (warn only, doesn't block push)
+  echo "🔗 Running 404 linter on pushed docs..."
+  npx tsx .github/lint-docs/404-lint-cli.ts $CHANGED_DOC_FILES
+  link_exit=$?
+
+  echo ""
+
+  if [ $seo_exit -ne 0 ] || [ $link_exit -ne 0 ]; then
+    echo "⚠️  Issues found (see above). Consider fixing before PR review."
+    echo "   Push proceeding anyway..."
+  else
+    echo "✅ No issues found!"
+  fi
+done
+
+# Always allow push (linters are advisory)
+exit 0

@@ -1,0 +1,86 @@
+name: Documentation Linting
+
+on:
+  pull_request:
+    paths:
+      - 'content/**/*.txt'
+      - 'content/**/*.rst'
+      - 'content/**/*.md'
+      - 'content/**/*.mdx'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for diff
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: |
+          cd .github/lint-docs && pnpm install
+      
+      - name: Get changed doc files
+        id: changed-files
+        run: |
+          # Get list of changed doc files in this PR (space-separated for CLI)
+          FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E '\.(rst|txt|md|mdx)$' | grep -v "^content/table-of-contents/" | tr '\n' ' ' || true)
+          
+          if [ -n "$FILES" ]; then
+            echo "has_files=true" >> $GITHUB_OUTPUT
+            echo "📄 Found changed doc files:"
+            echo "$FILES"
+            # Save to file for reliable passing between steps
+            echo "$FILES" > /tmp/changed-files.txt
+          else
+            echo "has_files=false" >> $GITHUB_OUTPUT
+            echo "No doc files changed"
+          fi
+      
+      - name: Run SEO Linter
+        if: steps.changed-files.outputs.has_files == 'true'
+        continue-on-error: true  # Warn only, don't fail the PR
+        run: |
+          echo "🔍 Running SEO linter..."
+          FILES=$(cat /tmp/changed-files.txt)
+          npx tsx .github/lint-docs/seo-lint-cli.ts $FILES
+      
+      - name: Run 404 Linter
+        if: steps.changed-files.outputs.has_files == 'true'
+        continue-on-error: true  # Warn only, don't fail the PR
+        run: |
+          echo "🔗 Running 404 linter..."
+          
+          # Install lychee
+          echo "Installing lychee..."
+          curl -sLO https://github.com/lycheeverse/lychee/releases/download/v0.18.0/lychee-x86_64-unknown-linux-gnu.tar.gz
+          tar -xzf lychee-x86_64-unknown-linux-gnu.tar.gz
+          chmod +x lychee
+          sudo mv lychee /usr/local/bin/
+          
+          FILES=$(cat /tmp/changed-files.txt)
+          npx tsx .github/lint-docs/404-lint-cli.ts $FILES
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 📋 Documentation Lint Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Linters ran on changed documentation files." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **SEO Linter**: Checks titles, meta descriptions, headings, images" >> $GITHUB_STEP_SUMMARY
+          echo "- **404 Linter**: Checks for broken external links" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "⚠️ These are warnings only and do not block the PR." >> $GITHUB_STEP_SUMMARY

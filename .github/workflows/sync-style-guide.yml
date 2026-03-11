@@ -1,0 +1,159 @@
+name: Sync Style Guide
+
+on:
+  # Run monthly on the 1st at 9am UTC
+  schedule:
+    - cron: '0 9 1 * *'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+
+# Configure who gets notified when style guide updates
+env:
+  STYLE_GUIDE_REVIEWER: 'emetozar'
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  check-for-updates:
+    # Only run on main repo, not forks (forks inherit scheduled workflows)
+    if: github.repository == '10gen/docs-mongodb-internal'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Check MongoDB docs-meta for updates
+        id: check
+        run: |
+          # Get the latest commit date from MongoDB docs-meta
+          LATEST_COMMIT=$(curl -s "https://api.github.com/repos/mongodb/docs-meta/commits?path=source&per_page=1" | jq -r '.[0].commit.committer.date')
+          LATEST_SHA=$(curl -s "https://api.github.com/repos/mongodb/docs-meta/commits?path=source&per_page=1" | jq -r '.[0].sha')
+          LATEST_MESSAGE=$(curl -s "https://api.github.com/repos/mongodb/docs-meta/commits?path=source&per_page=1" | jq -r '.[0].commit.message' | head -1)
+          
+          echo "latest_commit=$LATEST_COMMIT" >> $GITHUB_OUTPUT
+          echo "latest_sha=$LATEST_SHA" >> $GITHUB_OUTPUT
+          echo "latest_message=$LATEST_MESSAGE" >> $GITHUB_OUTPUT
+          
+          # Check if we have a record of the last known commit
+          LAST_KNOWN=""
+          if [ -f ".github/ai-reviewer/.style-guide-version" ]; then
+            LAST_KNOWN=$(cat .github/ai-reviewer/.style-guide-version)
+          fi
+          
+          echo "last_known=$LAST_KNOWN" >> $GITHUB_OUTPUT
+          
+          if [ "$LATEST_SHA" != "$LAST_KNOWN" ]; then
+            echo "has_updates=true" >> $GITHUB_OUTPUT
+            echo "📢 Style guide has been updated!"
+            echo "   Latest commit: $LATEST_SHA"
+            echo "   Message: $LATEST_MESSAGE"
+            echo "   Date: $LATEST_COMMIT"
+          else
+            echo "has_updates=false" >> $GITHUB_OUTPUT
+            echo "✅ Style guide is up to date"
+          fi
+      
+      - name: Fetch latest style guide content
+        if: steps.check.outputs.has_updates == 'true'
+        run: |
+          mkdir -p .github/ai-reviewer/style-guide-source
+          
+          # Fetch key style guide pages
+          echo "Fetching style guide sections..."
+          
+          # Main sections to fetch (RST files from docs-meta)
+          SECTIONS=(
+            "style-guide"
+            "style-guide/writing/index"
+            "style-guide/style/index"
+            "style-guide/terminology/index"
+            "style-guide/seo-guidelines"
+          )
+          
+          for section in "${SECTIONS[@]}"; do
+            URL="https://raw.githubusercontent.com/mongodb/docs-meta/master/source/${section}.txt"
+            FILENAME=$(echo $section | tr '/' '-')
+            
+            if curl -sf "$URL" -o ".github/ai-reviewer/style-guide-source/${FILENAME}.txt"; then
+              echo "  ✓ Fetched $section"
+            else
+              echo "  ✗ Could not fetch $section (may not exist as .txt)"
+            fi
+          done
+          
+          # Also try .rst extension
+          for section in "${SECTIONS[@]}"; do
+            URL="https://raw.githubusercontent.com/mongodb/docs-meta/master/source/${section}.rst"
+            FILENAME=$(echo $section | tr '/' '-')
+            
+            if curl -sf "$URL" -o ".github/ai-reviewer/style-guide-source/${FILENAME}.rst"; then
+              echo "  ✓ Fetched $section.rst"
+            fi
+          done
+      
+      - name: Update version tracker
+        if: steps.check.outputs.has_updates == 'true'
+        run: |
+          echo "${{ steps.check.outputs.latest_sha }}" > .github/ai-reviewer/.style-guide-version
+      
+      - name: Create Pull Request
+        if: steps.check.outputs.has_updates == 'true'
+        id: create-pr
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "chore: sync style guide from MongoDB docs-meta"
+          title: "📚 Style Guide Update Detected"
+          body: |
+            ## MongoDB Style Guide Update
+            
+            The [MongoDB Documentation Style Guide](https://www.mongodb.com/docs/meta/style-guide/) has been updated.
+            
+            **Latest commit:** `${{ steps.check.outputs.latest_sha }}`
+            **Commit message:** ${{ steps.check.outputs.latest_message }}
+            **Date:** ${{ steps.check.outputs.latest_commit }}
+            
+            ### What to do
+            
+            1. Review the [style guide changes](https://github.com/mongodb/docs-meta/commits/master/source)
+            2. Update `.github/ai-reviewer/style-guide-reference.md` if needed
+            3. Merge this PR to acknowledge the update
+            
+            ---
+            <sub>🤖 This PR was automatically created by the style guide sync workflow.</sub>
+          branch: style-guide-sync
+          delete-branch: true
+          labels: |
+            documentation
+            automated
+          reviewers: ${{ env.STYLE_GUIDE_REVIEWER }}
+      
+      - name: Create issue if PR fails
+        if: failure() && steps.check.outputs.has_updates == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '📚 Style Guide Update Detected - Manual Review Needed',
+              body: `The MongoDB style guide has been updated but the automated sync failed.
+              
+              Please review the changes manually:
+              - [MongoDB docs-meta commits](https://github.com/mongodb/docs-meta/commits/master/source)
+              - [Style Guide](https://www.mongodb.com/docs/meta/style-guide/)
+              
+              Latest commit: \`${{ steps.check.outputs.latest_sha }}\`
+              `,
+              labels: ['documentation', 'manual-review']
+            });
