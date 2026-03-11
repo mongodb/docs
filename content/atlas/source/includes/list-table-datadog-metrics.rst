@@ -370,6 +370,26 @@
      - |fts|
      - Total size of all indexes on disk.
 
+   * - | ``SEARCH_INDEX_STATS_REQUIRED_MEMORY``
+       | (mongodb.atlas.search.index.stats.required.memory)
+     - |fts|
+     - Required memory in bytes for vector search indexes.
+
+   * - | ``SEARCH_INDEX_STATS_MAX_INDEX_FIELDS``
+       | (mongodb.atlas.search.index.stats.max.index.fields)
+     - |fts|
+     - Maximum number of indexed fields across index generations.
+
+   * - | ``SEARCH_INDEX_STATS_MAX_NGRAM_FIELDS``
+       | (mongodb.atlas.search.index.stats.max.ngram.fields)
+     - |fts|
+     - Maximum number of nGram fields across index generations.
+
+   * - | ``SEARCH_INDEX_STATS_MAX_LUCENE_DOCS``
+       | (mongodb.atlas.search.index.stats.max.lucene.docs)
+     - |fts|
+     - Maximum number of Lucene documents across index generations.
+
    * - | ``TOTAL_NUMBER_OF_INSERTS_SERIES``
        | (mongodb.atlas.search.index.stats.inserts)
      - |fts|
@@ -415,6 +435,21 @@
        | (mongodb.atlas.search.jvm.max.memory)
      - |fts|
      - Total available memory in the JVM heap.
+
+   * - | ``SEARCH_PROCESS_MEMORY_RESIDENT``
+       | (mongodb.atlas.search.process.memory.resident)
+     - |fts|
+     - Resident memory used by the search process.
+
+   * - | ``SEARCH_PROCESS_MEMORY_VIRTUAL``
+       | (mongodb.atlas.search.process.memory.virtual)
+     - |fts|
+     - Virtual memory used by the search process.
+
+   * - | ``SEARCH_PROCESS_MEMORY_SHARED``
+       | (mongodb.atlas.search.process.memory.shared)
+     - |fts|
+     - Shared memory used by the search process.
 
    * - | ``DISK_PARTITION_SPACE_FREE``
        | (mongodb.atlas.system.disk.space.free)
