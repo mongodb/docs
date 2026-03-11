@@ -2,8 +2,8 @@
    :style: normal
 
    .. step:: Set up the embeddings to use in the query.
-      
-      a. Create a file named ``query-embeddings.js``.
+
+      a. Create a file named ``embeddings.js``.
 
       #. Copy and paste the following embeddings in the file.
 
@@ -39,13 +39,11 @@
 
    .. step:: Load the embeddings to use in the query.
 
-      Run the following command to load the embeddings after replacing
-      ``<path-to-file>`` with the absolute path to the ``embeddings.js``
-      file:
+      Run the following command to load the embeddings:
 
-      .. code-block:: shell 
+      .. code-block:: shell
 
-         load('/<path-to-file>/embeddings.js');
+         load('embeddings.js');
 
       To verify that the embeddings loaded successfully, run the
       following command: 
