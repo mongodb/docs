@@ -3,7 +3,7 @@ import type { TocItem } from '../types';
 const tocData: TocItem[] = [
   {
     label: 'AI Models',
-    contentSite: 'voyageai',
+    isExternal: true,
     url: 'https://www.mongodb.com/docs/voyageai/',
   },
   {
@@ -227,7 +227,7 @@ const tocData: TocItem[] = [
         items: [
           {
             label: 'MCP Server',
-            contentSite: 'cloud-docs',
+            isExternal: true,
             url: 'https://www.mongodb.com/docs/mcp-server/',
           },
           {
@@ -306,7 +306,7 @@ const tocData: TocItem[] = [
   },
   {
     label: 'AI Agents',
-    contentSite: 'cloud-docs',
+    isExternal: true,
     url: 'https://www.mongodb.com/docs/atlas/atlas-vector-search/ai-agents/',
   },
 ];

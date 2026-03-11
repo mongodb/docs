@@ -178,7 +178,7 @@ const tocData: TocItem[] = [
       },
       {
         label: 'Changelog',
-        contentSite: 'mongodb-vscode',
+        isExternal: true,
         url: 'https://github.com/mongodb-js/vscode/releases',
       },
     ],

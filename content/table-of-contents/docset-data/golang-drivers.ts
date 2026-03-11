@@ -85,7 +85,7 @@ const tocData: TocItem[] = [
           },
           {
             label: 'Connect with AWS Lambda',
-            contentSite: 'golang',
+            isExternal: true,
             url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda/',
             versions: { excludes: outdatedVersions },
           },
@@ -454,7 +454,7 @@ const tocData: TocItem[] = [
       },
       {
         label: 'API Documentation',
-        contentSite: 'golang',
+        isExternal: true,
         url: 'https://pkg.go.dev/go.mongodb.org/mongo-driver/v2/mongo',
         versions: { excludes: outdatedVersions },
       },
@@ -466,7 +466,7 @@ const tocData: TocItem[] = [
       },
       {
         label: 'View the Source',
-        contentSite: 'golang',
+        isExternal: true,
         url: 'https://github.com/mongodb/mongo-go-driver',
         versions: { excludes: outdatedVersions },
       },
@@ -619,7 +619,7 @@ const tocData: TocItem[] = [
               },
               {
                 label: 'Connect with AWS Lambda',
-                contentSite: 'golang',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda/',
               },
             ],
@@ -845,7 +845,7 @@ const tocData: TocItem[] = [
       },
       {
         label: 'API Documentation',
-        contentSite: 'golang',
+        isExternal: true,
         url: 'https://pkg.go.dev/go.mongodb.org/mongo-driver@v1.17.2/mongo',
         versions: { includes: outdatedVersions },
       },
@@ -875,7 +875,7 @@ const tocData: TocItem[] = [
       },
       {
         label: 'View the Source',
-        contentSite: 'golang',
+        isExternal: true,
         url: 'https://github.com/mongodb/mongo-go-driver',
         versions: { includes: outdatedVersions },
       },

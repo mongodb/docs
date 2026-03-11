@@ -962,7 +962,7 @@ const tocData: TocItem[] = [
   },
   {
     label: 'MongoDB Database Tools',
-    contentSite: 'database-tools',
+    isExternal: true,
     url: 'https://www.mongodb.com/docs/database-tools/',
   },
   {

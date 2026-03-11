@@ -165,7 +165,7 @@ const tocData: TocItem[] = [
   },
   {
     label: 'AI Integrations',
-    contentSite: 'cloud-docs',
+    isExternal: true,
     url: 'https://www.mongodb.com/docs/atlas/ai-integrations/',
   },
   {
@@ -175,7 +175,7 @@ const tocData: TocItem[] = [
   },
   {
     label: 'Changelog',
-    contentSite: 'cloud-docs',
+    isExternal: true,
     url: 'https://www.mongodb.com/docs/atlas/atlas-vector-search/changelog/',
   },
 ];

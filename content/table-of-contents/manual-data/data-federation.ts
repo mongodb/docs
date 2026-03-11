@@ -303,7 +303,7 @@ const tocData: TocItem[] = [
   },
   {
     label: 'SQL',
-    contentSite: 'sql-interface',
+    isExternal: true,
     url: 'https://www.mongodb.com/docs/sql-interface',
   },
   {

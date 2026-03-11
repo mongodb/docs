@@ -126,12 +126,12 @@ const tocData: TocItem[] = [
     items: [
       {
         label: 'MongoDB Search',
-        contentSite: 'cloud-docs',
+        isExternal: true,
         url: 'https://www.mongodb.com/docs/atlas/atlas-search/',
       },
       {
         label: 'MongoDB Vector Search',
-        contentSite: 'cloud-docs',
+        isExternal: true,
         url: 'https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/',
       },
       {

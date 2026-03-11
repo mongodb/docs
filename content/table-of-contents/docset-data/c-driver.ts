@@ -57,7 +57,7 @@ const tocData: TocItem[] = [
               },
               {
                 label: 'AWS Lambda',
-                contentSite: 'cloud-docs',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda',
               },
             ],
@@ -299,7 +299,7 @@ const tocData: TocItem[] = [
           },
           {
             label: 'Compatibility',
-            contentSite: 'drivers',
+            isExternal: true,
             url: 'https://www.mongodb.com/docs/drivers/compatibility/?interface=driver&language=c',
           },
           {

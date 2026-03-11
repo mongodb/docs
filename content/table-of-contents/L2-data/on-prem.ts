@@ -289,7 +289,7 @@ const tocData: TocItem[] = [
           },
           {
             label: 'Database Tools',
-            contentSite: 'database-tools',
+            isExternal: true,
             url: 'https://www.mongodb.com/docs/database-tools/',
           },
         ],
@@ -1676,7 +1676,7 @@ const tocData: TocItem[] = [
   },
   {
     label: 'Release Notes',
-    contentSite: 'docs',
+    isExternal: true,
     url: 'https://www.mongodb.com/docs/manual/release-notes/',
   },
   {

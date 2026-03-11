@@ -72,7 +72,7 @@ const tocData: TocItem[] = [
               },
               {
                 label: 'Connect from AWS Lambda',
-                contentSite: 'csharp',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda/',
                 versions: { excludes: outdatedVersions },
               },
@@ -477,13 +477,13 @@ const tocData: TocItem[] = [
           },
           {
             label: 'Entity Framework Provider',
-            contentSite: 'entity-framework',
+            isExternal: true,
             url: 'https://www.mongodb.com/docs/entity-framework/current/',
             versions: { excludes: outdatedVersions },
           },
           {
             label: 'C# Analyzer',
-            contentSite: 'visual-studio-extension',
+            isExternal: true,
             url: 'https://www.mongodb.com/docs/mongodb-analyzer/',
             versions: { excludes: outdatedVersions },
           },
@@ -545,7 +545,7 @@ const tocData: TocItem[] = [
       },
       {
         label: 'API Documentation',
-        contentSite: 'csharp',
+        isExternal: true,
         url: 'https://mongodb.github.io/mongo-csharp-driver/3.7.0/api',
         versions: { excludes: outdatedVersions },
       },
@@ -663,7 +663,7 @@ const tocData: TocItem[] = [
               },
               {
                 label: 'Connect with AWS Lambda',
-                contentSite: 'csharp',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda/',
               },
             ],
@@ -946,7 +946,7 @@ const tocData: TocItem[] = [
 
       {
         label: 'API Documentation',
-        contentSite: 'csharp',
+        isExternal: true,
         url: 'https://mongodb.github.io/mongo-csharp-driver/3.5.0/api/index.html',
         versions: { includes: outdatedVersions },
       },
@@ -982,13 +982,13 @@ const tocData: TocItem[] = [
       },
       {
         label: 'Entity Framework Provider',
-        contentSite: 'csharp',
+        isExternal: true,
         url: 'https://www.mongodb.com/docs/entity-framework/current/',
         versions: { includes: outdatedVersions },
       },
       {
         label: 'C# Analyzer',
-        contentSite: 'csharp',
+        isExternal: true,
         url: 'https://www.mongodb.com/docs/mongodb-analyzer/',
         versions: { includes: outdatedVersions },
       },

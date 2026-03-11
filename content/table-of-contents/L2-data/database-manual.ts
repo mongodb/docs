@@ -36,7 +36,7 @@ const tocData: TocItem[] = [
   },
   {
     label: 'Client Libraries',
-    contentSite: 'drivers',
+    isExternal: true,
     url: 'https://www.mongodb.com/docs/drivers/',
   },
   {

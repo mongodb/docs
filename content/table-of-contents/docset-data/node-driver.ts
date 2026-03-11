@@ -72,7 +72,7 @@ const tocData: TocItem[] = [
           },
           {
             label: 'Connect with AWS Lambda',
-            contentSite: 'node',
+            isExternal: true,
             url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda/',
           },
           {

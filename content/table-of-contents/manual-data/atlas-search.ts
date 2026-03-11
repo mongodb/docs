@@ -491,12 +491,12 @@ const tocData: TocItem[] = [
     items: [
       {
         label: 'Manage Alerts',
-        contentSite: 'cloud-docs',
+        isExternal: true,
         url: 'https://www.mongodb.com/docs/atlas/reference/alert-resolutions/atlas-search-alerts',
       },
       {
         label: 'Review Metrics',
-        contentSite: 'cloud-docs',
+        isExternal: true,
         url: 'https://www.mongodb.com/docs/atlas/review-atlas-search-metrics',
       },
     ],
@@ -536,7 +536,7 @@ const tocData: TocItem[] = [
   },
   {
     label: 'Changelog',
-    contentSite: 'cloud-docs',
+    isExternal: true,
     url: 'https://www.mongodb.com/docs/atlas/atlas-search/changelog/',
   },
 ];

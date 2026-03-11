@@ -72,7 +72,7 @@ const tocData: TocItem[] = [
           },
           {
             label: 'AWS Lambda',
-            contentSite: 'kotlin-sync',
+            isExternal: true,
             url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda/',
           },
           {
@@ -383,22 +383,22 @@ const tocData: TocItem[] = [
         items: [
           {
             label: 'Kotlin Sync Driver',
-            contentSite: 'kotlin-sync',
+            isExternal: true,
             url: 'https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-kotlin-sync/index.html',
           },
           {
             label: 'BSON kotlinx.serialization',
-            contentSite: 'kotlin-sync',
+            isExternal: true,
             url: 'https://mongodb.github.io/mongo-java-driver/5.6/apidocs/bson-kotlinx/index.html',
           },
           {
             label: 'Kotlin Driver Extensions',
-            contentSite: 'kotlin-sync',
+            isExternal: true,
             url: 'https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-kotlin-extensions/index.html',
           },
           {
             label: 'Driver Core',
-            contentSite: 'kotlin-sync',
+            isExternal: true,
             url: 'https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-core/index.html',
           },
         ],
@@ -410,7 +410,7 @@ const tocData: TocItem[] = [
       },
       {
         label: 'View the Source',
-        contentSite: 'kotlin-sync',
+        isExternal: true,
         url: 'https://github.com/mongodb/mongo-java-driver/tree/master/driver-kotlin-sync',
       },
     ],

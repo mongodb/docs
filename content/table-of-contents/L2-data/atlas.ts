@@ -376,16 +376,16 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/tutorial/test-resilience',
             collapsible: true,
             items: [
-               {
-                  label: 'Test Primary Failover',
-                  contentSite: 'cloud-docs',
-                  url: '/docs/atlas/tutorial/test-resilience/test-primary-failover',
-               },
-               {
-                  label: 'Simulate Regional Outage',
-                  contentSite: 'cloud-docs',
-                  url: '/docs/atlas/tutorial/test-resilience/simulate-regional-outage',
-               },
+              {
+                label: 'Test Primary Failover',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/tutorial/test-resilience/test-primary-failover',
+              },
+              {
+                label: 'Simulate Regional Outage',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/tutorial/test-resilience/simulate-regional-outage',
+              },
             ],
           },
         ],
@@ -593,21 +593,21 @@ const tocData: TocItem[] = [
     collapsible: true,
     items: [
       {
-         label: 'Load Sample Data',
-         contentSite: 'cloud-docs',
-         collapsible: true,
-         items: [
-            {
-               label: 'Atlas',
-               contentSite: 'cloud-docs',
-               url: '/docs/atlas/sample-data/load-sample-data/',
-            },
-            {
-               label: 'Self-Managed Deployments',
-               contentSite: 'cloud-docs',
-               url: '/docs/atlas/sample-data/load-sample-data-local/',
-            },
-         ]
+        label: 'Load Sample Data',
+        contentSite: 'cloud-docs',
+        collapsible: true,
+        items: [
+          {
+            label: 'Atlas',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/sample-data/load-sample-data/',
+          },
+          {
+            label: 'Self-Managed Deployments',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/sample-data/load-sample-data-local/',
+          },
+        ],
       },
       {
         label: 'Sample Airbnb',
@@ -702,7 +702,7 @@ const tocData: TocItem[] = [
       },
       {
         label: 'Standalone Mongosync',
-        contentSite: 'mongosync',
+        isExternal: true,
         url: 'https://www.mongodb.com/docs/mongosync/current/reference/mongosync-binary/#mongosync',
       },
       {
@@ -1357,7 +1357,7 @@ const tocData: TocItem[] = [
       },
       {
         label: 'Triggers',
-        contentSite: 'cloud-docs',
+        isExternal: true,
         url: 'https://www.mongodb.com/docs/atlas/atlas-ui/triggers',
       },
       {
@@ -1756,7 +1756,7 @@ const tocData: TocItem[] = [
   },
   {
     label: 'Release Notes',
-    contentSite: 'cloud-docs',
+    isExternal: true,
     url: 'https://www.mongodb.com/docs/atlas/release-notes/',
   },
 ];

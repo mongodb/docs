@@ -867,7 +867,7 @@ const tocData: TocItem[] = [
       },
       {
         label: 'MongoDB Enterprise Kubernetes Operator (Deprecated)',
-        contentSite: 'docs-k8s-operator',
+        isExternal: true,
         url: 'https://www.mongodb.com/docs/kubernetes-operator/v1.33',
       },
     ],
