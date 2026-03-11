@@ -89,5 +89,23 @@ async fn main() -> mongodb::error::Result<()> {
         .await?;
     // end-options
 
+    // start-raw-batch-cursor
+    let mut cursor = my_coll.find(doc! { "color": "red" }).batch().await?;
+
+    while let Some(batch) = cursor.next().await {
+        let batch = batch?;
+        let doc_slices = batch.doc_slices()?;
+        let count = doc_slices.into_iter().count();
+        println!("Processing batch with {} documents", count);
+
+        for doc_result in batch.doc_slices()? {
+            let doc = doc_result?;
+            if let mongodb::bson::RawBsonRef::Document(raw_doc) = doc {
+                println!("Raw document size: {} bytes", raw_doc.as_bytes().len());
+            }
+        }
+    }
+    // end-raw-batch-cursor
+
     Ok(())
 }
