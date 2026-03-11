@@ -1,0 +1,595 @@
+.. _terraform-modules-landing-zone:
+
+===========================================
+Deploy MongoDB Atlas with Terraform Modules
+===========================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to deploy an enterprise-ready MongoDB Atlas environment using the official Terraform modules for AWS, Azure, and GCP.
+   :keywords: atlas terraform modules, terraform landing zone, atlas aws, atlas azure, atlas gcp, infrastructure as code
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: onecol
+
+This guide walks you through deploying an enterprise-ready MongoDB |service| environment
+using the official `Terraform MongoDB Atlas Modules
+<https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules>`__, which facilitate
+going from zero to a full |service| deployment using Terraform.
+
+Each module is a reusable building block that provisions Atlas resources alongside dependencies
+required for secure and private connectivity with cloud providers. 
+
+This guide provides examples to deploy the following resources in |aws|, |azure|, or |gcp|:
+
+- An |service| project and sharded cluster.
+- Cloud provider networking with PrivateLink connectivity.
+- Backup export to cloud storage.
+- An optional validation virtual machine to confirm end-to-end connectivity (not currently available 
+  in |gcp|. A virtual machine will be available in a future update).
+
+.. note::
+   The examples in this guide create all required cloud provider resources by default.
+   If you require to use pre-existing resources, see the **Bring Your Own Resources** sections 
+   that correspond to your cloud provider:
+
+   - :github:`AWS BYO <terraform-mongodbatlas-modules/atlas-examples/tree/main/aws/atlas-aws-module-complete#bring-your-own-byo-resources>`
+   - :github:`Azure BYO <terraform-mongodbatlas-modules/atlas-examples/tree/main/azure/atlas-azure-module-complete#bring-your-own-byo-resources>`
+   - :github:`GCP BYO <terraform-mongodbatlas-modules/atlas-examples/tree/main/gcp/atlas-gcp-module-complete#bring-your-own-byo-resources>`
+
+Prerequisites
+-------------
+Ensure you have the following prerequisites before starting this tutorial:
+
+Required Tools
+~~~~~~~~~~~~~~
+
+You need the following tools to go through the process outlined in this guide:
+
+- `Terraform <https://developer.hashicorp.com/terraform/install>`__ (From v1.9 onwards)
+- `mongosh <https://www.mongodb.com/docs/mongodb-shell/install/>`__ (Only required for 
+  validation steps. When deploying the validation VM, ``mongosh`` is installed by default)
+
+Authentication and Credentials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB Atlas
+`````````````````
+
+This guide uses an |service| :ref:`Service Account <service-accounts-overview>` for
+authentication. Service Accounts are the recommended authentication method for
+programmatic access.
+
+1. `Sign in <https://account.mongodb.com/account/login>`__ to or
+   `create <https://account.mongodb.com/account/register>`__ your MongoDB
+   |service| account.
+
+2. Set your Service Account credentials as environment variables:
+
+   .. code-block:: sh
+
+      export MONGODB_ATLAS_CLIENT_ID="<your-client-id>"
+      export MONGODB_ATLAS_CLIENT_SECRET="<your-client-secret>"
+
+   .. note::
+        
+        Service Accounts are the recommended authentication method for programmatic access
+        with Terraform. For more information on setting up Service Accounts, see 
+        :ref:`Grant Programmatic Access to an Organization <create-service-account-org>`.
+
+Cloud Provider
+``````````````````
+
+.. tabs::
+
+   .. tab:: AWS
+      :tabid: aws
+
+      Configure your |AWS| credentials using one of the following methods:
+
+      - **Environment variables**:
+
+        .. code-block:: sh
+
+           export AWS_ACCESS_KEY_ID="<your-access-key-id>"
+           export AWS_SECRET_ACCESS_KEY="<your-secret-access-key>"
+
+      - **AWS CLI profile**: Run ``aws configure`` to store credentials for the
+        |aws| CLI.
+
+      - **IAM role**: When running in |aws|, attach an |iam| role to your instance
+        or task with the appropriate permissions.
+
+        .. note::
+           
+           For more information, see :ref:`AWS IAM Authentication <set-up-pwdless-auth>`.
+
+   .. tab:: Azure
+      :tabid: azure
+
+      Configure your |azure| credentials using one of the following methods:
+
+      - **Azure CLI**:
+
+        .. code-block:: sh
+
+           az login
+
+      - **Service Principal environment variables**:
+
+        .. code-block:: sh
+
+           export ARM_CLIENT_ID="<your-client-id>"
+           export ARM_CLIENT_SECRET="<your-client-secret>"
+           export ARM_SUBSCRIPTION_ID="<your-subscription-id>"
+           export ARM_TENANT_ID="<your-tenant-id>"
+
+      .. note:: 
+         
+         For more information, see :ref:`manage-azure-access`. 
+
+   .. tab:: GCP
+      :tabid: gcp
+
+      Configure your |gcp| credentials using one of the following methods:
+
+      - **Application Default Credentials**:
+
+        .. code-block:: sh
+
+           gcloud auth application-default login
+
+      - **Service account key file**:
+
+        .. code-block:: sh
+
+           export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account-key.json"
+
+      - **Service account impersonation**: Set the ``service_account_email``
+        variable in ``terraform.tfvars`` to the email of the service account
+        to impersonate.
+
+      .. note::
+         
+         For more information, see :ref:`Manage GCP Access <manage-gcp-access>`.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Get the example configuration files
+
+      Download the complete example for your cloud provider from the
+      `Atlas Examples repository
+      <https://github.com/terraform-mongodbatlas-modules/atlas-examples>`__
+      and navigate to the example directory.
+
+      .. tabs::
+
+         .. tab:: AWS
+            :tabid: aws
+
+            .. code-block:: sh
+
+               git clone https://github.com/terraform-mongodbatlas-modules/atlas-examples.git
+               cd atlas-examples/aws/atlas-aws-module-complete
+
+         .. tab:: Azure
+            :tabid: azure
+
+            .. code-block:: sh
+
+               git clone https://github.com/terraform-mongodbatlas-modules/atlas-examples.git
+               cd atlas-examples/azure/atlas-azure-module-complete
+
+         .. tab:: GCP
+            :tabid: gcp
+
+            .. code-block:: sh
+
+               git clone https://github.com/terraform-mongodbatlas-modules/atlas-examples.git
+               cd atlas-examples/gcp/atlas-gcp-module-complete
+
+   .. step:: Configure deployment variables.
+
+      Copy the example ``terraform.tfvars`` file and fill in your values:
+
+      .. code-block:: sh
+
+         cp terraform.tfvars.example terraform.tfvars
+
+      The following table describes the required variables. For a full list of
+      available variables, see the ``variables.tf`` file in the example
+      directory that corresponds to your cloud provider.
+
+      **Common Variables**
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 70
+
+         * - Variable
+           - Description
+
+         * - ``atlas_org_id``
+           - Your MongoDB |service| Organization ID. To find it, go to
+             :guilabel:`Organization > Settings` in the |service| UI.
+
+         * - ``atlas_project_name``
+           - Name for the new |service| project.
+
+         * - ``atlas_cluster_name``
+           - Name for the |service| cluster.
+
+         * - ``regions``
+           - List of regions where the cluster and PrivateLink endpoints are
+             deployed. See cloud-provider-specific details below.
+
+      **Cloud-Provider-Specific Variables**
+
+      .. tabs::
+
+         .. tab:: AWS
+            :tabid: aws
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 30 70
+
+               * - Variable
+                 - Description
+
+               * - ``aws_region``
+                 - The primary |aws| region for provider operations
+                   (for example, ``us-east-1``).
+
+               * - ``regions[].name``
+                 - The |service| region name for the cluster shard
+                   (for example, ``US_EAST_1``). For all supported values, see
+                   `Cloud Providers and Regions
+                   <https://www.mongodb.com/docs/atlas/reference/amazon-aws/>`__.
+
+               * - ``regions[].vpc_id``
+                 - The ID of an existing VPC in this region. DNS hostnames and
+                   DNS resolution must be enabled on the VPC.
+
+               * - ``regions[].subnet_ids``
+                 - List of at least two private subnet IDs in different
+                   Availability Zones within the VPC, used for PrivateLink
+                   endpoint placement.
+
+            The following example shows a minimal ``terraform.tfvars`` for |aws|:
+
+            .. code-block:: hcl
+
+               atlas_org_id       = "<YOUR_ATLAS_ORG_ID>"
+               atlas_project_name = "my-atlas-project"
+               atlas_cluster_name = "my-atlas-cluster"
+
+               aws_region = "us-east-1"
+
+               regions = [
+                 {
+                   name       = "US_EAST_1"
+                   vpc_id     = "<YOUR_VPC_ID>"
+                   subnet_ids = ["<YOUR_SUBNET_ID_1>", "<YOUR_SUBNET_ID_2>"]
+                 }
+               ]
+
+         .. tab:: Azure
+            :tabid: azure
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 30 70
+
+               * - Variable
+                 - Description
+
+               * - ``azure_resource_group_name``
+                 - |azure| Resource Group where Private Endpoints, backup storage,
+                   and the optional validation VM are created. The Resource
+                   Group must already exist.
+
+               * - ``azure_subscription_id``
+                 - Your |azure| Subscription ID. If omitted, the module uses the
+                   default subscription from your |azure| credentials.
+
+               * - ``regions[].name``
+                 - The |service| region name for the cluster shard
+                   (for example, ``US_EAST_2``). For all supported values, see
+                   `Cloud Providers and Regions
+                   <https://www.mongodb.com/docs/atlas/reference/microsoft-azure/>`__.
+
+               * - ``regions[].azure_location``
+                 - The |azure| location for this region (for example, ``eastus2``). Only
+                   required for the first region entry.
+
+               * - ``regions[].subnet_id``
+                 - The |azure| subnet ID where Private Endpoints and the
+                   validation VM are created.
+
+            The following example shows a minimal ``terraform.tfvars`` for |azure|:
+
+            .. code-block:: hcl
+
+               atlas_org_id       = "<YOUR_ATLAS_ORG_ID>"
+               atlas_project_name = "my-atlas-project"
+               atlas_cluster_name = "my-atlas-cluster"
+
+               azure_resource_group_name = "<YOUR_RESOURCE_GROUP>"
+               
+               regions = [
+                 {
+                   name           = "US_EAST_2"
+                   azure_location = "eastus2"
+                   subnet_id      = "<YOUR_SUBNET_ID>"
+                 }
+               ]
+
+         .. tab:: GCP
+            :tabid: gcp
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 30 70
+
+               * - Variable
+                 - Description
+
+               * - ``gcp_project_id``
+                 - Your |gcp| project ID.
+
+               * - ``regions[].name``
+                 - The region name in Atlas format (for example, ``US_EAST_4``) or
+                   |gcp| format (for example, ``us-east4``). The module normalizes both
+                   formats internally. For all supported values, see
+                   `Cloud Providers and Regions
+                   <https://www.mongodb.com/docs/atlas/reference/google-gcp/>`__.
+
+               * - ``regions[].subnetwork``
+                 - The subnetwork ``self_link`` where PSC forwarding rules are
+                   created (for example,
+                   ``https://www.googleapis.com/compute/v1/projects/<PROJECT>/regions/<REGION>/subnetworks/<NAME>``).
+                   The VPC network is derived from the subnetwork automatically.
+
+            The following example shows a minimal ``terraform.tfvars`` for |gcp|:
+
+            .. code-block:: hcl
+
+               atlas_org_id       = "<YOUR_ATLAS_ORG_ID>"
+               atlas_project_name = "my-atlas-project"
+               atlas_cluster_name = "my-atlas-cluster"
+
+               gcp_project_id = "<YOUR_GCP_PROJECT_ID>"
+
+               regions = [
+                 {
+                   name       = "US_EAST_4"
+                   subnetwork = "<YOUR_SUBNETWORK_SELF_LINK>"
+                 }
+               ]
+
+   .. step:: Initialize and deploy
+
+      Run the following Terraform commands to initialize the working directory
+      and deploy the infrastructure:
+
+      .. code-block:: sh
+
+         terraform init
+         terraform plan -var-file terraform.tfvars
+         terraform apply -var-file terraform.tfvars
+
+      ``terraform init`` downloads the required provider and module plugins.
+      ``terraform plan`` previews the resources that will be created. Review
+      the plan carefully before applying.
+
+      After ``terraform apply`` completes, the following resources are
+      provisioned in your account:
+
+      .. tabs::
+
+         .. tab:: AWS
+            :tabid: aws
+
+            - **MongoDB Atlas**: Organization access, a new project, and a
+              multi-region sharded cluster.
+            - **AWS IAM Role**: A role that |service| assumes to interact with
+              your |aws| account for Cloud Provider Access.
+            - **AWS VPC Endpoints**: One VPC Endpoint per region, connected to
+              the |service| PrivateLink service for private, secure
+              connectivity.
+            - **AWS S3 Bucket**: A bucket for |service| backup exports.
+            - **Validation VM** (optional, enabled by default): An EC2 instance
+              in the first region's subnet to verify Atlas connectivity over
+              PrivateLink.
+
+         .. tab:: Azure
+            :tabid: azure
+
+            - **MongoDB Atlas**: Organization access, a new project, and a
+              multi-region sharded cluster.
+            - **Azure Service Principal**: An |azure| AD Service Principal that
+              |service| uses to interact with your |azure| subscription.
+            - **Azure Private Endpoints**: One Private Endpoint per region,
+              connected to the |service| PrivateLink service for private,
+              secure connectivity.
+            - **Azure Storage Account**: A storage account and blob container
+              for |service| backup exports.
+            - **Validation VM** (optional, enabled by default): A Linux VM in
+              the first region's subnet to verify Atlas connectivity over
+              PrivateLink.
+
+         .. tab:: GCP
+            :tabid: gcp
+
+            - **MongoDB Atlas**: Organization access, a new project, and a
+              multi-region sharded cluster.
+            - **GCP Access**: An Atlas service account
+              authorized to interact with your |gcp| project.
+            - **PSC Forwarding Rules**: One |gcp| forwarding rule and compute
+              address per region, connected to the |service| PrivateLink
+              service via Private Service Connect (PSC) for private, secure
+              connectivity.
+            - **GCP Storage Bucket**: A Google Cloud Storage bucket for |service|
+              backup exports.
+
+   .. step:: Validate the deployment
+
+      You can validate your deployment either with a virtual machine (VM) that the example
+      creates for you, or by connecting directly with ``mongosh`` using the PrivateLink
+      connection string. 
+
+      **Connect and Test with a Virtual Machine** 
+
+      If you deployed the validation VM (enabled by default), you can use it
+      to verify Atlas connectivity from within your private network. The VM
+      has ``mongosh`` pre-installed and the connection string pre-configured.
+
+      .. tabs::
+
+         .. tab:: AWS
+            :tabid: aws
+
+            a. Note the ``validation_vm`` output for the instance ID and
+               access commands:
+
+               .. code-block:: sh
+
+                  terraform output validation_vm
+
+            #. Connect via **AWS Systems Manager (SSM) Session Manager**
+               (default, no SSH required):
+
+               .. code-block:: sh
+
+                  aws ssm start-session --target <instance-id>
+
+               Alternatively, if you set
+               ``validation_vm_create_ec2_instance_connect_endpoint = true``,
+               connect via **EC2 Instance Connect**:
+
+               .. code-block:: sh
+
+                  aws ec2-instance-connect ssh --instance-id <instance-id> --os-user ubuntu
+
+            #. Run the validation script on the VM to test connectivity:
+
+               .. code-block:: sh
+
+                  ./validate-atlas
+
+               The script confirms that ``mongosh`` can connect, and runs CRUD
+               operations against the cluster.
+
+         .. tab:: Azure
+            :tabid: azure
+
+            a. Note the ``validation_vm`` output for the VM name and username:
+
+               .. code-block:: sh
+
+                  terraform output validation_vm
+
+            #. Retrieve the VM password:
+
+               .. code-block:: sh
+
+                  terraform output -raw validation_vm_password
+
+            #. Connect via the **Azure Serial Console** in the |azure| portal,
+               or via **Azure Bastion** if you provided an SSH key with ``validation_vm_ssh_key``.
+
+            #. Run the validation script on the VM to test connectivity:
+
+               .. code-block:: sh
+
+                  ./validate-atlas
+
+               The script confirms that ``mongosh`` can connect, and runs CRUD
+               operations against the cluster.
+
+         .. tab:: GCP
+            :tabid: gcp
+
+            The |gcp| example currently does not include a validation VM. Use the ``mongosh``
+            connection method below to verify your deployment. You must run ``mongosh`` from
+            one of your |gcp| subnetworks for this method to be successful.
+
+      **Connect and Test with** ``mongosh``
+
+      You can also test connectivity from any host with access to your private
+      network. 
+
+      a. Retrieve the connection string.
+
+         After the deployment completes, retrieve the PrivateLink connection
+         string from the Terraform outputs:
+
+         .. code-block:: sh
+
+            terraform output connection_string
+
+         The connection string uses the private endpoint SRV format and routes
+         traffic through your PrivateLink connection.
+      
+      #. Run the following command, replacing ``<connection-string>``
+         with the value from the ``terraform output connection_string`` command:
+
+         .. code-block:: sh
+
+            mongosh "<connection-string>"
+
+      #. After connecting, run the following commands to write and retrieve a
+         test document:
+
+         .. code-block:: javascript
+
+            db.test.insertOne({ msg: "Hello Atlas" })
+            db.test.findOne()
+
+      A successful response confirms that your cluster is reachable and
+      accepting read and write operations.
+
+   .. step:: (Optional) Clean up resources
+
+      To tear down all resources provisioned by this deployment and avoid
+      unwanted charges, run:
+
+      .. code-block:: sh
+
+         terraform destroy -var-file terraform.tfvars
+
+      .. warning::
+
+         ``terraform destroy`` permanently deletes all resources managed by
+         this configuration, including the |service| cluster and its data.
+         Back up any data you want to keep before running this command.
+
+Additional Resources
+--------------------
+
+- `Atlas Examples repository
+  <https://github.com/terraform-mongodbatlas-modules/atlas-examples>`__:
+  Complete, runnable Terraform examples for |aws|, |azure|, and |gcp|.
+- `Terraform-MongoDB Atlas Modules
+  <https://registry.terraform.io/namespaces/terraform-mongodbatlas-modules>`__:
+  The official Terraform module registry namespace with all available modules.
+- `Atlas Terraform Provider
+  <https://registry.terraform.io/providers/mongodb/mongodbatlas/latest/docs>`__:
+  Full provider documentation.
+- :ref:`Get Started with Terraform <getting-started-terraform>`: A quickstart
+  guide for provisioning a basic Atlas cluster with Terraform.
+- :ref:`Guidance for Atlas Organizations, Projects, and Clusters <arch-center-iac>`: 
+  {+atlas-arch-center+} guidance to design your |service| infrastructure. 

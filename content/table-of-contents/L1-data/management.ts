@@ -76,6 +76,11 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/terraform',
       },
       {
+        label: 'Terraform Modules',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/terraform-modules-landing-zone',
+      },
+      {
         label: 'MongoDB Atlas AWS CloudFormation Resources',
         url: 'https://github.com/mongodb/mongodbatlas-cloudformation-resources?tab=readme-ov-file#readme',
         isExternal: true,
