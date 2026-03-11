@@ -1,8 +1,8 @@
 .. _django-get-started:
 
-===========
-Get Started
-===========
+=======================================
+Get Started with {+django-odm+}
+=======================================
 
 .. contents:: On this page
    :local:
@@ -18,17 +18,8 @@ Get Started
    :description: Learn how to create an app to connect to a MongoDB deployment by using {+django-odm+}.
    :keywords: quick start, tutorial, basics
 
-.. toctree::
-
-   Download & Install </get-started/install/>
-   Create a Deployment </get-started/create-deployment/>
-   Create a Connection String </get-started/connection-string/>
-   Configure a MongoDB Connection </get-started/connect-mongodb/>
-   Create an Application </get-started/create-app/>
-   Write Data to MongoDB </get-started/write-data/>
-   Query MongoDB Data </get-started/query-data/>
-   Create an Admin Site </get-started/create-admin/>
-   Next Steps </get-started/next-steps/>
+Overview
+--------
 
 {+django-odm+} is a {+framework+} database backend that uses PyMongo to connect
 to MongoDB. This tutorial shows you how to create a {+framework+} app, connect to
@@ -42,3 +33,670 @@ a MongoDB cluster hosted on MongoDB Atlas, and interact with data in your cluste
 
 Follow this tutorial to connect a sample {+framework+} application to a MongoDB Atlas
 deployment. 
+
+.. _django-get-started-download-and-install:
+
+Download and Install
+--------------------
+
+Complete the following steps to install {+django-odm+} and its dependencies
+in your development environment.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Install the dependencies.
+
+      Before installing {+django-odm+}, ensure you have `Python 3.10 or later <https://www.python.org/downloads/>`__
+      installed in your development environment.
+
+   .. step:: Create a virtual environment.
+
+      Select the tab corresponding to your operating system and run the following commands
+      to create and activate a virtual environment in which to install {+django-odm+}:
+
+      .. tabs::
+
+          .. tab:: macOS / Linux
+             :tabid: mac-linux-venv
+
+             .. code-block:: bash
+
+                python -m venv venv
+                source venv/bin/activate
+
+          .. tab:: Windows
+             :tabid: windows-venv
+
+             .. code-block:: bash
+
+                python -m venv venv
+                . venv\Scripts\activate
+
+      .. tip::
+
+         In the preceding commands, you might need to replace
+         ``python`` with the command that points to your Python
+         3.10+ interpreter.
+
+   .. step:: Install {+django-odm+}.
+
+      With the virtual environment activated, run the following command to install
+      the Django integration:
+
+      .. code-block:: bash
+
+         pip install django-mongodb-backend
+
+      This command also installs the latest versions of the following
+      dependencies:
+
+      - PyMongo 4.x
+      - {+framework+} {+django-version+}.x
+
+.. _django-get-started-create-deployment:
+
+Create a MongoDB Deployment
+---------------------------
+
+You can create a free tier MongoDB deployment on MongoDB Atlas
+to store and manage your data. MongoDB Atlas hosts and manages
+your MongoDB database in the cloud.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a free MongoDB deployment on Atlas.
+
+      Complete the :atlas:`Get Started with Atlas </getting-started>`
+      guide to set up a new Atlas account and a free tier MongoDB deployment.
+      Ensure that you **load sample data** and **add your IP address** to the IP access
+      list.
+      
+   .. step:: Save your credentials.
+
+      After you create your database user, save that user's 
+      username and password to a safe location for use in an upcoming step.
+
+.. _django-get-started-connection-string:
+
+Create a Connection String
+--------------------------
+
+You can connect to your MongoDB deployment by providing a
+**connection URI**, also called a *connection string*, which
+instructs the driver on how to connect to a MongoDB deployment
+and how to behave while connected.
+
+The connection string includes the hostname or IP address and 
+port of your deployment, the authentication mechanism, user credentials 
+when applicable, and connection options.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Find your MongoDB Atlas connection string.
+
+      To retrieve your connection string for the deployment that
+      you created in the :ref:`previous step <django-get-started-create-deployment>`,
+      log into your Atlas account and navigate to the
+      :guilabel:`Clusters` section and click the :guilabel:`Connect` button
+      for your new deployment.
+
+      .. figure:: /includes/figures/atlas_connection_connect_cluster.png
+         :alt: The connect button in the clusters section of the Atlas UI
+
+      Proceed to the :guilabel:`Connect your application` section and select
+      "Python" from the :guilabel:`Driver` selection menu and the version
+      that best matches the version you installed from the :guilabel:`Version`
+      selection menu.
+
+   .. step:: Copy your connection string.
+
+      Click the button on the right of the connection string to copy it to
+      your clipboard as shown in the following screenshot:
+
+      .. figure:: /includes/figures/atlas_connection_copy_string_python.png
+         :alt: The connection string copy button in the Atlas UI
+
+   .. step:: Edit your connection string credentials.
+
+      Paste your connection string into a file in your preferred text editor
+      and save this file to a safe location for later use.
+      Your connection string resembles the following example:
+
+      .. code-block:: none
+         :copyable: false
+
+         mongodb+srv://<db_username>:<db_password>@samplecluster.ojeyz.mongodb.net/?retryWrites=true&w=majority&appName=SampleCluster
+
+      Replace the ``<db_username>`` and ``<db_password>`` placeholders with
+      your database user's username and password.
+
+.. _django-get-started-connect:
+
+Configure your MongoDB Connection
+---------------------------------
+
+After installing {+django-odm+} and creating a MongoDB Atlas cluster,
+you can create a {+framework+} project that connects to MongoDB.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a {+framework+} project.
+
+      From your shell, run the following command to create a 
+      new Django project called ``quickstart`` based on a custom template:
+      
+      .. code-block:: bash
+
+         django-admin startproject quickstart --template https://github.com/mongodb-labs/django-mongodb-project/archive/refs/heads/{+django-version+}.x.zip
+      
+      .. note:: Project Template
+
+         The ``django-mongodb-project`` template resembles the default {+framework+} project
+         template but makes the following changes:
+         
+         - Includes MongoDB-specific migrations
+         - Modifies the ``settings.py`` file to instruct {+framework+}
+           to use an ``ObjectId`` value as each model's primary key
+
+      After running this command, your ``quickstart`` project has
+      the following file structure:
+
+      .. code-block:: bash
+         :copyable: false
+
+         quickstart/
+            manage.py
+            mongo_migrations/
+                __init__.py
+                contenttypes/
+                auth/
+                admin/
+            quickstart/
+                __init__.py
+                apps.py
+                settings.py
+                urls.py
+                asgi.py
+                wsgi.py
+
+   .. step:: Update your database settings.
+
+      Open your ``settings.py`` file and navigate to the ``DATABASES`` setting.
+      Replace this setting with the following code:
+
+      .. code-block:: python
+
+         DATABASES = {
+            "default": {
+                  "ENGINE": "django_mongodb_backend",
+                  "HOST": "<connection string URI>",
+                  "NAME": "sample_mflix",
+            },
+        }
+
+      Replace the ``<connection string URI>`` placeholder with the connection string
+      that you copied from the :ref:`django-get-started-connection-string`
+      step of this Get Started guide.
+      
+      This configures your {+framework+} app to connect to
+      your Atlas cluster and access the ``sample_mflix`` sample database.
+
+   .. step:: Start the server.
+
+      To verify that you installed {+django-odm+} and correctly configured
+      your project, run the following command from your project root:
+
+      .. code-block:: bash
+
+         python manage.py runserver
+
+      Then, visit http://127.0.0.1:8000/. This page displays a "Congratulations!"
+      message and an image of a rocket. 
+
+.. _django-get-started-create-app:
+
+Create an Application
+---------------------
+
+In your ``quickstart`` project, you can create an application
+that interacts with the Atlas sample database called ``sample_mflix``.
+This database contains a ``movies`` collection, which stores
+information about movies. The database also contains a ``users``
+collection, which stores information about movie viewers who use
+a streaming service.
+
+To learn more about the ``sample_mflix`` database, see :atlas:`Sample Mflix Dataset
+</sample-data/sample-mflix/>` in the Atlas documentation.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a ``sample_mflix`` app.
+
+      From your project's root directory, run the following command to create a
+      new Django app called ``sample_mflix`` based on a custom template:
+
+      .. code-block:: bash
+
+         python manage.py startapp sample_mflix
+
+   .. step:: Create models for movie, award, and viewer data.
+
+      Open the ``models.py`` file in the ``sample_mflix`` directory and replace
+      its contents with the following code:
+
+      .. literalinclude:: /includes/get-started/models.py
+         :language: python
+         :copyable:
+
+      The ``Movie`` model represents the ``sample_mflix.movies`` collection
+      and stores information about movies. This model contains an embedded
+      model field named ``awards``, which stores an ``Award`` object. The
+      model also contains an array field named ``genres``, which stores
+      a list of genres that describe the movie.
+
+      The ``Award`` model does not represent a separate collection. Instead, it
+      represents the embedded document values stored in the ``Movie`` model.
+
+      The ``Viewer`` model represents the ``sample_mflix.users`` collection
+      and stores account information for movie viewers.
+
+   .. step:: Create views to display data.
+
+      Open the ``views.py`` file in your ``sample_mflix`` directory and replace
+      its contents with the following code:
+
+      .. literalinclude:: /includes/get-started/views.py
+         :language: python
+         :copyable:
+
+      These views display a landing page message and information about your ``Movie``
+      and ``Viewer`` models.
+
+   .. step:: Configure URLs for your views.
+
+      Create a new file called ``urls.py`` file in your ``sample_mflix`` directory.
+      To map the views defined in the preceding step to URLs, paste the following
+      code into ``urls.py``:
+
+      .. literalinclude:: /includes/get-started/urls.py
+         :language: python
+         :copyable:
+
+      Then, navigate to the ``quickstart/urls.py`` file and replace its contents with
+      the following code:
+
+      .. code-block:: python
+
+         from django.contrib import admin
+         from django.urls import include, path
+
+         urlpatterns = [
+             path("admin/", admin.site.urls),
+             path("", include("sample_mflix.urls")),
+         ]
+
+   .. step:: Create templates to format your data.
+
+      In your ``sample_mflix`` directory, create a subdirectory called
+      ``templates``. Then, create a file called ``recent_movies.html``
+      and paste the following code:
+
+      .. literalinclude:: /includes/get-started/recent_movies.html
+         :language: html
+         :copyable:
+
+      This template formats the movie data requested by the ``recent_movies`` view.
+
+      Create another file in the ``sample_mflix/templates`` directory called
+      ``viewers_list.html`` and paste the following code:
+
+      .. literalinclude:: /includes/get-started/viewers_list.html
+         :language: html
+         :copyable:
+
+      This template formats the user data requested by the ``viewers_list`` view.
+
+   .. step:: Include your app in your project.
+
+      Open the ``settings.py`` file in ``quickstart`` and edit your
+      ``INSTALLED_APPS`` setting to resemble the following code:
+
+      .. code-block:: python
+         :emphasize-lines: 2
+
+         INSTALLED_APPS = [
+             'sample_mflix.apps.SampleMflixConfig',
+             'quickstart.apps.MongoAdminConfig',
+             'quickstart.apps.MongoAuthConfig',
+             'quickstart.apps.MongoContentTypesConfig',
+             'django.contrib.sessions',
+             'django.contrib.messages',
+             'django.contrib.staticfiles',
+         ]
+
+   .. step:: Create migrations for your new models.
+
+      From your project root, run the following command to create
+      migrations for the ``Movie``, ``Award``, and ``Viewer`` models and apply
+      the changes to the database:
+
+      .. code-block:: bash
+
+         python manage.py makemigrations sample_mflix
+         python manage.py migrate
+
+.. _django-get-started-write:
+
+Write Data to MongoDB
+---------------------
+
+You can use your application's models to update documents
+stored in the ``sample_mflix`` database. To update documents,
+enter the Python interactive shell and call create, update,
+and delete functions on your model objects.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Start a Python shell.
+
+      From your project's root directory, run the following command to 
+      enter the Python shell:
+
+      .. code-block:: bash
+
+         python manage.py shell
+
+   .. step:: Import the required classes and modules.
+
+      From your Python shell, run the following code to import
+      your models and the module for creating a ``datetime`` object:
+
+      .. literalinclude:: /includes/get-started/read-write-data.py
+         :start-after: start-imports
+         :end-before: end-imports
+         :language: python
+         :copyable:
+
+   .. step:: Insert a ``Movie`` object into the database.
+
+      Run the following code to create an ``Movie`` object that
+      stores data about a movie titled ``"Minari"``, including
+      its awards in an ``Award`` object:
+
+      .. literalinclude:: /includes/get-started/read-write-data.py
+         :start-after: start-insert-movie
+         :end-before: end-insert-movie
+         :language: python
+         :copyable:
+
+   .. step:: Update your ``Movie`` object.
+
+      The ``Movie`` object created in the previous step has inaccurate data:
+      the ``runtime`` value is ``217``, but the correct ``runtime`` value is ``117``.
+
+      Run the following code to update the object's ``runtime`` value:
+
+      .. literalinclude:: /includes/get-started/read-write-data.py
+         :start-after: start-update-movie
+         :end-before: end-update-movie
+         :language: python
+         :copyable:
+
+   .. step:: Insert a ``Viewer`` object into the database.
+
+      You can also use your ``Viewer`` model to insert documents into the
+      ``sample_mflix.users`` collection. Run the following code to create
+      a ``Viewer`` object that stores data about a movie viewer named ``"Abigail Carter"``:
+
+      .. literalinclude:: /includes/get-started/read-write-data.py
+         :start-after: start-insert-viewer
+         :end-before: end-insert-viewer
+         :language: python
+         :copyable:
+
+   .. step:: Delete a ``Viewer`` object.
+
+      One movie viewer named "Alliser Thorne" no longer uses the movie streaming
+      site. To remove this viewer's corresponding document from the database,
+      run the following code:
+
+      .. literalinclude:: /includes/get-started/read-write-data.py
+         :start-after: start-delete-viewer
+         :end-before: end-delete-viewer
+         :language: python
+         :copyable:
+
+   .. step:: Start the development server.
+
+      Exit the Python shell by running the following code:
+
+      .. code-block:: python
+         
+         exit()
+
+      Then, start your server by running the following command
+      from your project's root directory:
+
+      .. code-block:: bash
+         
+         python manage.py runserver
+
+   .. step:: Render your new objects.
+
+      To ensure that you inserted a ``Movie`` object into the database,
+      visit the http://127.0.0.1:8000/recent_movies/ URL.
+      You can see a list of five movies in the ``sample_mflix.movies``
+      database, with your new movie listed at the top.
+
+      Then, ensure that you inserted a ``Viewer`` object into the
+      database by visiting the http://127.0.0.1:8000/viewers_list/
+      URL. You can see a list of ten viewer names in the ``sample_mflix.users``
+      database, with your new viewer listed at the top. Ensure that the
+      viewer named "Alliser Thorne", deleted in a previous step, does not appear
+      in this list.
+
+.. _django-get-started-query:
+
+Query MongoDB Data
+------------------
+
+You can import your models into the Python interactive shell
+to read data from the ``sample_mflix`` database.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Query the ``users`` collection for a specified email.
+
+      Start a Python shell by running the following command:
+      
+      .. code-block:: bash
+
+         python manage.py shell
+      
+      Then, run the following code to query the 
+      ``sample_mflix.users`` collection for a movie viewer whose email is 
+      ``"jason_momoa@gameofthron.es"``:
+
+      .. literalinclude:: /includes/get-started/read-write-data.py
+         :start-after: start-query-email
+         :end-before: end-query-email
+         :language: python
+         :copyable:
+
+      This code returns the name of the matching user:
+
+      .. code-block:: bash
+         :copyable: false
+
+         <Viewer: Khal Drogo>
+
+   .. step:: Query the ``movies`` collection for specified runtime values.
+
+      Run the following code to query the ``sample_mflix.movies``
+      collection for movies that have a ``runtime`` value less than
+      ``10``:
+
+      .. literalinclude:: /includes/get-started/read-write-data.py
+         :start-after: start-query-runtime
+         :end-before: end-query-runtime
+         :language: python
+         :copyable:
+
+      This code returns a truncated list of the matching movies:
+
+      .. code-block:: bash
+         :copyable: false
+
+         <QuerySet [<Movie: Winsor McCay, the Famous Cartoonist of the N.Y.
+         Herald and His Moving Comics>, <Movie: Steamboat Willie>, <Movie:
+         Three Little Pigs>, <Movie: The Band Concert>, <Movie: Who Killed Cock Robin?>,
+         <Movie: Dots>, <Movie: The Cat Concerto>, <Movie: Begone Dull Care>,
+         <Movie: Mi adorado Juan>, <Movie: Neighbours>, <Movie: A Phantasy>,
+         <Movie: Duck Amuck>, <Movie: Duck Dodgers in the 24èth Century>,
+         <Movie: Blinkity Blank>, <Movie: One Froggy Evening>,
+         <Movie: What's Opera, Doc?>, <Movie: Lines: Horizontal>,
+         <Movie: Il fornaretto di Venezia>, <Movie: Dog Star Man: Part IV>,
+         <Movie: Now>, '...(remaining elements truncated)...']>
+
+.. _django-get-started-create-admin:
+
+Create an Admin Site
+--------------------
+
+You can create a {+framework+} admin site to edit your application's 
+data from a web interface. To learn more about the {+framework+} admin
+site and its features, see `The Django admin site <{+django-docs+}/ref/contrib/admin/>`__
+in the {+framework+} documentation.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create an admin user.
+
+      Before creating an admin site, you must create a user
+      who can log in to the site. 
+      
+      From your project's root directory, run the following command to create
+      an admin user:
+      
+      .. code-block:: bash
+
+         python manage.py createsuperuser
+
+      Then, your terminal prompts you for a username, email address,
+      and password. For each prompt, enter the following information
+      to create a user with the specified credentials and press "enter"
+      after each entry:
+
+      .. code-block:: bash
+         :copyable: false
+
+         Username: admin
+         Email address: admin@example.com
+         Password: <admin-password>
+         Password (again): <admin-password>
+
+      Replace the ``<admin-password>`` placeholder with your user's password.
+
+   .. step:: Enter the admin site.
+
+      Run the following code to start your server:
+    
+      .. code-block:: bash
+
+         python manage.py runserver
+
+      Once your server is running, visit the http://127.0.0.1:8000/admin/ 
+      URL to see the admin site. This site displays the following login
+      screen:
+
+      .. figure:: /includes/figures/django_admin_login.png
+         :alt: The login screen on the {+framework+} admin page.
+     
+      Enter the username and password created in the previous step to log in to
+      the site. 
+
+   .. step:: Access your ``sample_mflix`` app from the admin site.
+
+      After logging in to the admin site, you can see the following information:
+
+      .. figure:: /includes/figures/django_admin_index.png
+         :alt: The initial content displayed on the Django admin site.
+
+      You can edit your project's authentication configuration by selecting
+      the :guilabel:`Groups` or :guilabel:`Users` row in the 
+      :guilabel:`Authentication and Authorization` table.
+      
+      To edit the data in the ``users`` sample collection, represented by your
+      ``Viewer`` model, navigate to your project's ``sample_mflix/admin.py`` file
+      and paste the following code:
+      
+      .. code-block:: python
+
+         from django.contrib import admin
+
+         from .models import Viewer
+
+         admin.site.register(Viewer)
+
+      Now, your admin site displays the following information:
+
+      .. figure:: /includes/figures/django_admin_model.png
+         :alt: The content displayed on the Django admin site after registering a model.
+   
+   .. step:: Select a ``Viewer`` object.
+
+      You can view the data stored in a ``Viewer`` object that
+      has a ``name`` value of ``"Abigail Carter"``. You created
+      this object in the :ref:`django-get-started-write` step
+      of this tutorial.
+
+      Click on the :guilabel:`Viewers` row of the :guilabel:`SAMPLE_MFLIX`
+      table to see a list of viewers. The admin site displays the following
+      list:
+      
+      .. figure:: /includes/figures/django_admin_viewers.png
+         :alt: The list of viewers displayed on the admin site.
+      
+      Then, click on :guilabel:`Abigail Carter` at the top of the list.
+      The site displays the :guilabel:`Name` and :guilabel:`Email` of
+      the selected viewer:
+
+      .. figure:: /includes/figures/django_admin_edit_viewer.png
+         :alt: The information of your selected viewer.
+
+   .. step:: Edit the data in a ``Viewer`` object.
+
+      To edit the ``email`` field of the viewer, select the 
+      box that contains the text ``"abigail.carter@fakegmail.com"``.
+      Delete this text and replace it with ``"acarter1@fakegmail.com"``,
+      as shown in the following image:
+      
+      .. figure:: /includes/figures/django_admin_new_email.png
+         :alt: The updated email address of your viewer.
+
+      Then, click the :guilabel:`SAVE` button below the viewer's 
+      information to save your changes.
+
+.. _django-get-started-next-steps:
+
+Next Steps
+----------
+
+Congratulations on completing the {+django-odm+} tutorial!
+
+In this tutorial, you created a {+framework+} application that
+connects to a MongoDB deployment hosted on MongoDB Atlas
+and interacts with data.
+
+Learn more about {+django-odm+} from the following resources:
+
+- :github:`django-mongodb-backend </mongodb-labs/django-mongodb-backend>` source code
+- `{+django-odm+} <{+api+}>`__ API documentation
