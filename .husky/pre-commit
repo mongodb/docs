@@ -1,16 +1,18 @@
 #!/bin/sh
 
+# TODO: DOP-6536 when porting over ToC directory to platform update paths in this file
+
 # Check if any staged files are in content/table-of-contents/
 STAGED_TOC_FILES=$(git diff --cached --name-only --diff-filter=ACMR | grep "^content/table-of-contents/" || true)
 
 if [ -n "$STAGED_TOC_FILES" ]; then
   # Check if pnpm is installed
-  if ! command -v pnpm &> /dev/null; then
-    echo "WARNING pnpm is required for table-of-contents changes but is not installed."
-    echo "   Install it with: npm install -g pnpm"
-    echo "   Skipping check:fix..."
-    exit 0
-  fi
+if ! command -v pnpm &> /dev/null; then
+  echo "⚠️  WARNING: pnpm is required but is not installed."
+  echo "   Install it with: npm install -g pnpm"
+  echo "   Skipping pre-commit hooks..."
+  exit 0
+fi
 
   echo "Running check:fix on table-of-contents changes..."
   cd content/table-of-contents
@@ -18,5 +20,30 @@ if [ -n "$STAGED_TOC_FILES" ]; then
   cd ../..
   
   echo "$STAGED_TOC_FILES" | xargs git add
-  echo "table-of-contents check:fix complete"
+  echo "✓ table-of-contents check:fix complete"
+
+  # Run split-offline to regenerate offline docs
+  echo ""
+  echo "Regenerating offline-docs files..."
+  cd content/table-of-contents
+  
+  if pnpm split-offline 2>&1; then
+    cd ../..
+    OFFLINE_DIR="platform/docs-nextjs/src/context/table-of-contents/offline-docs"
+    
+    # Check for both modified files AND untracked files
+    CHANGED_OFFLINE=$(git diff --name-only "$OFFLINE_DIR" 2>/dev/null || true)
+    UNTRACKED_OFFLINE=$(git ls-files --others --exclude-standard "$OFFLINE_DIR" 2>/dev/null || true)
+    
+    if [ -n "$CHANGED_OFFLINE" ] || [ -n "$UNTRACKED_OFFLINE" ]; then
+      # Add the entire directory (handles both new and modified files)
+      git add "$OFFLINE_DIR"
+      echo "✓ offline-docs files updated and staged"
+    else
+      echo "✓ offline-docs files unchanged"
+    fi
+  else
+    cd ../..
+    echo "⚠️  WARNING: split-offline failed, continuing with commit anyway..."
+  fi
 fi

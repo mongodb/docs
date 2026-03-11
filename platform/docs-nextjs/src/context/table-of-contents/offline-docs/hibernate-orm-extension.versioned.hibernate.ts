@@ -1,0 +1,105 @@
+import type { L1TocItem } from '../types';
+
+export const toc: L1TocItem[] = [
+  {
+    label: 'Hibernate ORM Extension',
+    contentSite: 'hibernate',
+    url: '/docs/languages/java/mongodb-hibernate/current/',
+    items: [
+      {
+        label: 'MongoDB Extension for Hibernate ORM',
+        contentSite: 'hibernate',
+        group: true,
+        versionDropdown: true,
+        items: [
+          {
+            label: 'Overview',
+            contentSite: 'hibernate',
+            url: '/docs/languages/java/mongodb-hibernate/:version',
+          },
+          {
+            label: 'Get Started',
+            contentSite: 'hibernate',
+            url: '/docs/languages/java/mongodb-hibernate/:version/get-started',
+          },
+          {
+            label: 'Model Data',
+            contentSite: 'hibernate',
+            collapsible: true,
+            items: [
+              {
+                label: 'Entities',
+                contentSite: 'hibernate',
+                url: '/docs/languages/java/mongodb-hibernate/:version/model-data/entities',
+              },
+            ],
+          },
+          {
+            label: 'Interact with Data',
+            contentSite: 'hibernate',
+            collapsible: true,
+            items: [
+              {
+                label: 'CRUD Operations',
+                contentSite: 'hibernate',
+                url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/crud',
+              },
+              {
+                label: 'Specify a Query',
+                contentSite: 'hibernate',
+                url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/specify-a-query',
+              },
+              {
+                label: 'Perform Native Queries',
+                contentSite: 'hibernate',
+                url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/native-queries',
+              },
+              {
+                label: 'Transactions & Sessions',
+                contentSite: 'hibernate',
+                url: '/docs/languages/java/mongodb-hibernate/:version/interact-data/transactions',
+              },
+            ],
+          },
+          {
+            label: 'Feature Compatibility',
+            contentSite: 'hibernate',
+            url: '/docs/languages/java/mongodb-hibernate/:version/feature-compatibility',
+          },
+          {
+            label: 'Issues & Help',
+            contentSite: 'hibernate',
+            url: '/docs/languages/java/mongodb-hibernate/:version/issues-and-help',
+          },
+          {
+            label: 'Version Compatibility',
+            contentSite: 'drivers',
+            url: '/docs/drivers/compatibility/?language=java&java-driver-framework=hibernate',
+          },
+          {
+            label: 'API Documentation',
+            contentSite: 'hibernate',
+            collapsible: true,
+            items: [
+              {
+                label: 'MongoDB Extension for Hibernate ORM',
+                isExternal: true,
+                url: 'https://javadoc.io/doc/org.mongodb/mongodb-hibernate/latest/index.html',
+              },
+              {
+                label: 'Hibernate ORM',
+                isExternal: true,
+                url: 'https://docs.hibernate.org/orm/6.6/javadocs/',
+              },
+              {
+                label: 'Jakarta Persistence',
+                isExternal: true,
+                url: 'https://jakarta.ee/specifications/persistence/3.1/apidocs/jakarta.persistence/module-summary.html',
+              },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+];
