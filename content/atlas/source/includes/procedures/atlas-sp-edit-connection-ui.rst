@@ -7,7 +7,7 @@
 
       Locate the overview panel of the {+spw+} that 
       contains the connection registry that you want to modify 
-      and click :guilabel:`Configure` in the upper right.
+      and click :guilabel:`Manage` in the upper right.
 
    .. step:: Select the :guilabel:`Connection Registry` tab.
 

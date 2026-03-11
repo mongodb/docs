@@ -8,7 +8,7 @@
       a. Locate the overview panel of the {+spw+} containing the 
          connection registry you want to view.
          
-      #. Click :guilabel:`Configure`. 
+      #. Click :guilabel:`Manage`. 
 
       #. Select the :guilabel:`Connection Registry` tab.
 

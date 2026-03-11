@@ -7,7 +7,7 @@
    .. step:: Go to the :guilabel:`Connection Registry`.  
   
       a. Locate the overview panel of the {+spw+} you want to  
-         modify and click :guilabel:`Configure`.  
+         modify and click :guilabel:`Manage`.  
            
       #. Select the :guilabel:`Connection Registry` tab.  
   
