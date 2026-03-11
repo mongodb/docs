@@ -952,9 +952,41 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/mongodb-logs',
       },
       {
-        label: 'Export Logs to AWS S3',
+        label: 'Export Logs',
         contentSite: 'cloud-docs',
-        url: '/docs/atlas/export-logs-external-sinks',
+        collapsible: true,
+        items: [
+          {
+            label: 'Export Logs to AWS S3',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/export-logs-external-sinks',
+          },
+          {
+            label: 'Export Logs to Azure Blob Storage',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/export-logs-azure',
+          },
+          {
+            label: 'Export Logs to Datadog',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/export-logs-datadog',
+          },
+          {
+            label: 'Export Logs to Google Cloud Storage',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/export-logs-gcs',
+          },
+          {
+            label: 'Export Logs to OpenTelemetry',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/export-logs-otel',
+          },
+          {
+            label: 'Export Logs to Splunk',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/export-logs-splunk',
+          },
+        ],
       },
       {
         label: 'Push MongoDB Logs to AWS S3',
