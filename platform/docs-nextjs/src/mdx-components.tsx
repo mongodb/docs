@@ -20,6 +20,8 @@ import { CommunityPillLink } from '@/mdx-components/CommunityPillLink';
 import ComposableTutorial from '@/mdx-components/ComposableTutorial';
 import ComposableContent from '@/mdx-components/ComposableTutorial/ComposableContent';
 import Button from '@/mdx-components/Button';
+import Card from '@/mdx-components/Card';
+import CardGroup from '@/mdx-components/Card/CardGroup';
 import { GUILabel } from '@/mdx-components/GUILabel';
 import { Red } from '@/mdx-components/Red';
 import { Gold } from '@/mdx-components/Gold';
@@ -61,8 +63,8 @@ export const components = (injectedProps?: InjectedProps) =>
     Banner: ({ children, ...props }) => <Banner {...props}>{children}</Banner>,
     Blockquote: ({ children }) => <blockquote>{children}</blockquote>,
     Button: ({ children, ...props }) => <Button {...props}>{children}</Button>,
-    Card: ({ children }) => <span>{children}</span>,
-    CardGroup: ({ children }) => <span>{children}</span>,
+    Card: ({ children, ...props }) => <Card {...props}>{children}</Card>,
+    CardGroup: ({ children, ...props }) => <CardGroup {...props}>{children}</CardGroup>,
     Chapters: ({ children }) => <span>{children}</span>,
     Chapter: ({ children }) => <span>{children}</span>,
     Code: ({ children }) => <span>{children}</span>,
