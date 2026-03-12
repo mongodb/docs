@@ -12,6 +12,7 @@ import { computeComposableTutorialData, buildComposableOptionsFromNode } from '.
 import { extractInlineDisplayText } from './extractInlineDisplayText';
 
 const HIDDEN_NODES = ['toctree', 'index', 'seealso'];
+const DIRECTIVE_NAMES_TO_SKIP = ['extract', 'glossary'];
 
 /** Append dangling punctuation to preceding reference/link nodes (mirrors appendTrailingPunctuation from docs-nextjs) */
 const appendTrailingPunctuation = (nodes: SnootyNode[]): SnootyNode[] => {
@@ -278,6 +279,10 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       // This node will be handled separately – skip here.
       if (directiveName === 'meta') {
         return null;
+      }
+      // Pass over container directives: emit only their children, no wrapper.
+      if (DIRECTIVE_NAMES_TO_SKIP.includes(directiveName)) {
+        return convertChildren({ nodes: node.children, depth, ctx });
       }
       if (directiveName === 'figure' || directiveName === 'image') {
         return convertDirectiveImage({ node, ctx });
