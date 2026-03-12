@@ -1,8 +1,8 @@
-Use the :query:`$text` query operator to perform text searches on a
+You can use the :query:`$text` operator on a
 collection with a :ref:`text index <index-type-text>`.
 
 ``$text`` tokenizes the search string using whitespace and most
-punctuation as delimiters, and perform a logical ``OR`` of all such
+punctuation as delimiters, and performs a logical ``OR`` of all such
 tokens in the search string.
 
 For example, you could use the following query to find all stores
