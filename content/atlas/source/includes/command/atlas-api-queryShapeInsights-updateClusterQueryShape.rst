@@ -79,9 +79,9 @@ Options
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --queryShapeHash
-     - string
+     - $queryStats
      - true
-     - A SHA256 hash of a query shape, output by MongoDB commands like $queryStats and $explain or slow query logs.
+     - A SHA256 hash of a query shape, output by MongoDB commands like $queryStats and ``$explain`` or slow query logs.
    * - --version
      - string
      - false

@@ -75,21 +75,21 @@ Options
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --username
-     - string
+     - awsIAMType
      - true
      - Human-readable label that represents the user that authenticates to MongoDB. The format of this label depends on the method of authentication:
 
        | Authentication Method | Parameter Needed | Parameter Value | username Format |
 
-       | AWS IAM | awsIAMType | ROLE | <abbr title="Amazon Resource Name">ARN</abbr> |
-       | AWS IAM | awsIAMType | USER | <abbr title="Amazon Resource Name">ARN</abbr> |
-       | x.509 | x509Type | CUSTOMER | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
-       | x.509 | x509Type | MANAGED | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
-       | LDAP | ldapAuthType | USER | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
-       | LDAP | ldapAuthType | GROUP | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
-       | OIDC Workforce | oidcAuthType | IDP_GROUP | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP group name |
-       | OIDC Workload | oidcAuthType | USER | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP user name |
-       | SCRAM-SHA | awsIAMType, x509Type, ldapAuthType, oidcAuthType | NONE | Alphanumeric string |
+       | AWS IAM | awsIAMType | ``ROLE`` | <abbr title="Amazon Resource Name">ARN</abbr> |
+       | AWS IAM | ``awsIAMType`` | ``USER`` | <abbr title="Amazon Resource Name">ARN</abbr> |
+       | x.509 | ``x509Type`` | ``CUSTOMER`` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
+       | x.509 | ``x509Type`` | ``MANAGED`` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
+       | LDAP | ``ldapAuthType`` | ``USER`` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
+       | LDAP | ``ldapAuthType`` | ``GROUP`` | [RFC 2253](https://tools.ietf.org/html/2253) Distinguished Name |
+       | OIDC Workforce | ``oidcAuthType`` | ``IDP_GROUP`` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP group name |
+       | OIDC Workload | ``oidcAuthType`` | ``USER`` | Atlas OIDC IdP ID (found in federation settings), followed by a '/', followed by the IdP user name |
+       | SCRAM-SHA | ``awsIAMType``, ``x509Type``, ``ldapAuthType``, ``oidcAuthType`` | ``NONE`` | Alphanumeric string |
 
    * - --version
      - string

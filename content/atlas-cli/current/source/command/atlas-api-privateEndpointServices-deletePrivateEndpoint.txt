@@ -49,9 +49,9 @@ Options
      - true
      - Cloud service provider that manages this private endpoint.
    * - --endpointId
-     - string
+     - endpointId
      - true
-     - Unique string that identifies the private endpoint you want to delete. The format of the **endpointId** parameter differs for AWS and Azure. You must URL encode the **endpointId** for Azure private endpoints.
+     - Unique string that identifies the private endpoint you want to delete. The format of the endpointId parameter differs for AWS and Azure. You must URL encode the ``endpointId`` for Azure private endpoints.
    * - --endpointServiceId
      - string
      - true

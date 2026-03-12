@@ -1,0 +1,106 @@
+.. _atlas-projects-apiKeys-create:
+
+=============================
+atlas projects apiKeys create
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Create an organization API key and assign it to your project.
+
+MongoDB returns the private API key only once. After you run this command, immediately copy, save, and secure both the public and private API keys.
+If you don't provide an organization level role, the API Key defaults to organization member of the project parent organization.
+
+To use this command, you must authenticate with a user account, a service account, or an API key with any of the following roles: Project User Admin or Organization User Admin to manage organization level roles.
+
+Syntax
+------
+
+.. code-block::
+   :caption: Command Syntax
+
+   atlas projects apiKeys create [options]
+
+.. Code end marker, please don't delete this comment
+
+Options
+-------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - --desc
+     - string
+     - true
+     - Description of the API key.
+   * - -h, --help
+     -
+     - false
+     - help for create
+   * - -o, --output
+     - string
+     - false
+     - Output format. Valid values are json, json-path, go-template, or go-template-file. To see the full output, use the -o json option.
+   * - --projectId
+     - string
+     - false
+     - Hexadecimal string that identifies the project to use. This option overrides the settings in the configuration file or environment variable.
+   * - --role
+     - strings
+     - true
+     - Role or roles that you want to assign to the API key. To assign more than one role, specify each role with a separate role flag or specify all of the roles as a comma-separated list using one role flag. For the full list of accepted values, see the Items Enum for the corresponding Atlas API endpoint: https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-createprojectapikey. To learn more about project level user roles, see: https://dochub.mongodb.org/core/atlas-proj-roles.
+
+Inherited Options
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 10 60
+
+   * - Name
+     - Type
+     - Required
+     - Description
+   * - -P, --profile
+     - string
+     - false
+     - Name of the profile to use from your configuration file. To learn about profiles for the Atlas CLI, see https://dochub.mongodb.org/core/atlas-cli-save-connection-settings.
+
+Output
+------
+
+If the command succeeds, the CLI returns output similar to the following sample. Values in brackets represent your values.
+
+.. code-block::
+
+   API Key '<Id>' created.
+   Public API Key <PublicKey>
+   Private API Key <PrivateKey>
+
+
+Examples
+--------
+
+.. code-block::
+   :copyable: false
+
+   # Create an organization API key with the GROUP_OWNER role and assign it to the project with ID 5e2211c17a3e5a48f5497de3:
+   atlas projects apiKeys create --desc "My API key" --projectId 5e1234c17a3e5a48f5497de3 --role GROUP_OWNER --output json
+
+
+.. code-block::
+   :copyable: false
+
+   # Create an organization API key with the GROUP_SEARCH_INDEX_EDITOR and GROUP_DATABASE_ACCESS_ADMIN roles and assign it to the project with ID 5e2211c17a3e5a48f5497de3:
+   atlas projects apiKeys create --desc "My API key" --projectId 5e1234c17a3e5a48f5497de3 --role GROUP_SEARCH_INDEX_EDITOR,GROUP_DATABASE_ACCESS_ADMIN --output json

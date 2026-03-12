@@ -59,24 +59,24 @@ Options
      - false
      - help for getGroupLimit
    * - --limitName
-     - string
+     - atlas.project.deployment.clusters
      - true
      - Human-readable label that identifies this project limit.
 
        | Limit Name | Description | Default | API Override Limit |
        | --- | --- | --- | --- |
        | atlas.project.deployment.clusters | Limit on the number of clusters in this project | 25 | 100 |
-       | atlas.project.deployment.nodesPerPrivateLinkRegion | Limit on the number of nodes per Private Link region in this project | 50 | 90 |
-       | atlas.project.security.databaseAccess.customRoles | Limit on the number of custom roles in this project | 100 | 1400 |
-       | atlas.project.security.databaseAccess.users | Limit on the number of database users in this project | 100 | 100 |
-       | atlas.project.security.networkAccess.crossRegionEntries | Limit on the number of cross-region network access entries in this project | 40 | 220 |
-       | atlas.project.security.networkAccess.entries | Limit on the number of network access entries in this project | 200 | 20 |
-       | dataFederation.bytesProcessed.query | Limit on the number of bytes processed during a single Data Federation query | N/A | N/A |
-       | dataFederation.bytesProcessed.daily | Limit on the number of bytes processed across all Data Federation tenants for the current day | N/A | N/A |
-       | dataFederation.bytesProcessed.weekly | Limit on the number of bytes processed across all Data Federation tenants for the current week | N/A | N/A |
-       | dataFederation.bytesProcessed.monthly | Limit on the number of bytes processed across all Data Federation tenants for the current month | N/A | N/A |
-       | atlas.project.deployment.privateServiceConnectionsPerRegionGroup | Number of Private Service Connections per Region Group | 50 | 100|
-       | atlas.project.deployment.privateServiceConnectionsSubnetMask | Subnet mask for GCP PSC Networks. Has lower limit of 20. | 27 | 27|
+       | ``atlas.project.deployment.nodesPerPrivateLinkRegion`` | Limit on the number of nodes per Private Link region in this project | 50 | 90 |
+       | ``atlas.project.security.databaseAccess.customRoles`` | Limit on the number of custom roles in this project | 100 | 1400 |
+       | ``atlas.project.security.databaseAccess.users`` | Limit on the number of database users in this project | 100 | 100 |
+       | ``atlas.project.security.networkAccess.crossRegionEntries`` | Limit on the number of cross-region network access entries in this project | 40 | 220 |
+       | ``atlas.project.security.networkAccess.entries`` | Limit on the number of network access entries in this project | 200 | 20 |
+       | ``dataFederation.bytesProcessed.query`` | Limit on the number of bytes processed during a single Data Federation query | N/A | N/A |
+       | ``dataFederation.bytesProcessed.daily`` | Limit on the number of bytes processed across all Data Federation tenants for the current day | N/A | N/A |
+       | ``dataFederation.bytesProcessed.weekly`` | Limit on the number of bytes processed across all Data Federation tenants for the current week | N/A | N/A |
+       | ``dataFederation.bytesProcessed.monthly`` | Limit on the number of bytes processed across all Data Federation tenants for the current month | N/A | N/A |
+       | ``atlas.project.deployment.privateServiceConnectionsPerRegionGroup`` | Number of Private Service Connections per Region Group | 50 | 100|
+       | ``atlas.project.deployment.privateServiceConnectionsSubnetMask`` | Subnet mask for GCP PSC Networks. Has lower limit of 20. | 27 | 27|
 
    * - -o, --output
      - string

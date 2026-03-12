@@ -71,9 +71,9 @@ Options
      - false
      - file to write the api output to. This flag is required when the output of an endpoint is binary (ex: gzip) and the command is not piped (ex: atlas command > out.zip)
    * - --processIds
-     - mongod
+     - processId
      - false
-     - ProcessIds from which to retrieve suggested indexes. A processId is a combination of host and port that serves the MongoDB process. The host must be the hostname, FQDN, IPv4 address, or IPv6 address of the host that runs the MongoDB process (mongod or ``mongos``). The port must be the IANA port on which the MongoDB process listens for requests. To include multiple processIds, pass the parameter multiple times delimited with an ampersand (``&``) between each processId.
+     - Process IDs from which to retrieve suggested indexes. A processId is a combination of host and port that serves the MongoDB process. The host must be the hostname, FQDN, IPv4 address, or IPv6 address of the host that runs the MongoDB process (``mongod`` or ``mongos``). The port must be the IANA port on which the MongoDB process listens for requests. To include multiple ``processIds``, pass the parameter multiple times delimited with an ampersand (``&``) between each ``processId``.
    * - --since
      - int
      - false

@@ -63,7 +63,7 @@ Options
      - false
      - help for updateOrgUser
    * - --orgId
-     - string
+     - /orgs
      - true
      - Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
    * - -o, --output
@@ -79,9 +79,9 @@ Options
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --userId
-     - string
+     - userId
      - true
-     - Unique 24-hexadecimal digit string that identifies the pending or active user in the organization. If you need to lookup a user's userId or verify a user's status in the organization, use the Return All MongoDB Cloud Users in One Organization resource and filter by username.
+     - Unique 24-hexadecimal digit string that identifies the pending or active user in the organization. If you need to lookup a user's userId or verify a user's status in the organization, use the Return All MongoDB Cloud Users in One Organization resource and filter by ``username``.
    * - --version
      - string
      - false

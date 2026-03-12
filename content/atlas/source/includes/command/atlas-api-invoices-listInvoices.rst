@@ -50,27 +50,27 @@ Options
      - false
      - Flag that indicates whether Application wraps the response in an envelope JSON object. Some API clients cannot access the HTTP response headers or status code. To remediate this, set envelope=true in the query. Endpoints that return a list of results use the results object as an envelope. Application adds the status parameter to the response body.
    * - --fromDate
-     - string
+     - startDates
      - false
-     - Retrieve the invoices the startDates of which are greater than or equal to the fromDate. If omit, the invoices return will go back to earliest startDate.
+     - Retrieve the invoices the startDates of which are greater than or equal to the ``fromDate``. If omit, the invoices return will go back to earliest ``startDate``.
    * - -h, --help
      -
      - false
      - help for listInvoices
    * - --includeCount
-     -
+     - totalCount
      - false
-     - Flag that indicates whether the response returns the total number of items (**totalCount**) in the response.
+     - Flag that indicates whether the response returns the total number of items (totalCount) in the response.
    * - --itemsPerPage
      - int
      - false
      - Number of items that the response returns per page.
    * - --orderBy
-     - string
+     - sortBy
      - false
      - Field used to order the returned invoices by. Use in combination of sortBy parameter to control the order of the result.
    * - --orgId
-     - string
+     - /orgs
      - true
      - Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
    * - -o, --output
@@ -90,7 +90,7 @@ Options
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --sortBy
-     - string
+     - orderBy
      - false
      - Field used to sort the returned invoices by. Use in combination with orderBy parameter to control the order of the result.
    * - --statusNames
@@ -98,15 +98,15 @@ Options
      - false
      - Statuses of the invoice to be retrieved. Omit to return invoices of all statuses.
    * - --toDate
-     - string
+     - endDates
      - false
-     - Retrieve the invoices the endDates of which are smaller than or equal to the toDate. If omit, the invoices return will go further to latest endDate.
+     - Retrieve the invoices the endDates of which are smaller than or equal to the ``toDate``. If omit, the invoices return will go further to latest ``endDate``.
    * - --version
      - string
      - false
      - api version to use when calling the api call [options: "2023-01-01"], defaults to the latest version or the profiles api_version config value if set This value defaults to "2023-01-01".
    * - --viewLinkedInvoices
-     -
+     - linkedInvoices
      - false
      - Flag that indicates whether to return linked invoices in the linkedInvoices field.
 

@@ -70,9 +70,9 @@ Options
      - false
      - help for getOrgGroups
    * - --includeCount
-     -
+     - totalCount
      - false
-     - Flag that indicates whether the response returns the total number of items (**totalCount**) in the response.
+     - Flag that indicates whether the response returns the total number of items (totalCount) in the response.
    * - --itemsPerPage
      - int
      - false
@@ -82,7 +82,7 @@ Options
      - false
      - Human-readable label of the project to use to filter the returned list. Performs a case-insensitive search for a project within the organization which is prefixed by the specified name.
    * - --orgId
-     - string
+     - /orgs
      - true
      - Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
    * - -o, --output

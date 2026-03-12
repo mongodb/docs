@@ -62,9 +62,9 @@ Options
 
        **IMPORTANT**: The complete list of event type values changes frequently.
    * - --excludedEventType
-     - stringArray
+     - CLUSTER_CREATED
      - false
-     - Category of event that you would like to exclude from query results, such as CLUSTER_CREATED
+     - Category of event that you would like to exclude from query results, such as CLUSTER_CREATED.
 
        **IMPORTANT**: Event type names change frequently. Verify that you specify the event type correctly by checking the complete list of event types.
    * - --groupId
@@ -78,9 +78,9 @@ Options
      - false
      - help for listGroupEvents
    * - --includeCount
-     -
+     - totalCount
      - false
-     - Flag that indicates whether the response returns the total number of items (**totalCount**) in the response.
+     - Flag that indicates whether the response returns the total number of items (totalCount) in the response.
    * - --includeRaw
      -
      - false

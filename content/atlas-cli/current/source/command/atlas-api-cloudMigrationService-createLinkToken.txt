@@ -57,7 +57,7 @@ Options
      - false
      - help for createLinkToken
    * - --orgId
-     - string
+     - /orgs
      - true
      - Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
    * - -o, --output

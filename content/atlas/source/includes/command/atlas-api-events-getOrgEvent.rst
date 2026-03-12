@@ -64,7 +64,7 @@ Options
      - false
      - Flag that indicates whether to include the raw document in the output. The raw document contains additional meta information about the event.
    * - --orgId
-     - string
+     - /orgs
      - true
      - Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
    * - -o, --output

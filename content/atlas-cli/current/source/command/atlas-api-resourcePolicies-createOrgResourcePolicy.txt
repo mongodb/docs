@@ -12,7 +12,7 @@ atlas api resourcePolicies createOrgResourcePolicy
    :depth: 1
    :class: singlecol
 
-Create one Atlas Resource Policy for an org.
+Create one Atlas Resource Policy for an organization.
 
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
@@ -55,7 +55,7 @@ Options
      - false
      - help for createOrgResourcePolicy
    * - --orgId
-     - string
+     - /orgs
      - true
      - Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
    * - -o, --output

@@ -175,8 +175,9 @@ Related Commands
 ----------------
 
 * :ref:`atlas-api-accessTracking` - Returns access logs for authentication attempts made to Atlas database deployments.
-* :ref:`atlas-api-activityFeed` -
-* :ref:`atlas-api-aiModels` - Returns, adds, edits, and removes API Keys and Rate Limits for your AI Models.
+* :ref:`atlas-api-activityFeed` - Returns pre-filtered activity feed links for projects and organizations.
+* :ref:`atlas-api-aiModelApiKeys` -
+* :ref:`atlas-api-aiModelRateLimits` -
 * :ref:`atlas-api-alertConfigurations` - Returns and edits the conditions that trigger alerts and how MongoDB Cloud notifies users.
 * :ref:`atlas-api-alerts` - Returns and acknowledges alerts that MongoDB Cloud triggers based on the alert conditions that you define.
 * :ref:`atlas-api-atlasSearch` - Returns, adds, edits, and removes Atlas Search indexes for the specified cluster.
@@ -213,6 +214,7 @@ Related Commands
 * :ref:`atlas-api-projects` - Returns, adds, and edits collections of clusters and users in MongoDB Cloud.
 * :ref:`atlas-api-pushBasedLogExport` - You can continually export mongod, mongos, and audit logs to an AWS S3 bucket.
 * :ref:`atlas-api-queryShapeInsights` -
+* :ref:`atlas-api-rateLimiting` - Returns details about rate limit policies for the Atlas Administration API.
 * :ref:`atlas-api-resourcePolicies` - Configure and manage Atlas Resource Policies within your organization.
 * :ref:`atlas-api-rollingIndex` - Creates one index to a database deployment in a rolling manner.
 * :ref:`atlas-api-root` - Returns details that describe the MongoDB Cloud build and the access token that requests this resource.
@@ -228,7 +230,8 @@ Related Commands
 
    accessTracking </command/atlas-api-accessTracking>
    activityFeed </command/atlas-api-activityFeed>
-   aiModels </command/atlas-api-aiModels>
+   aiModelApiKeys </command/atlas-api-aiModelApiKeys>
+   aiModelRateLimits </command/atlas-api-aiModelRateLimits>
    alertConfigurations </command/atlas-api-alertConfigurations>
    alerts </command/atlas-api-alerts>
    atlasSearch </command/atlas-api-atlasSearch>
@@ -265,6 +268,7 @@ Related Commands
    projects </command/atlas-api-projects>
    pushBasedLogExport </command/atlas-api-pushBasedLogExport>
    queryShapeInsights </command/atlas-api-queryShapeInsights>
+   rateLimiting </command/atlas-api-rateLimiting>
    resourcePolicies </command/atlas-api-resourcePolicies>
    rollingIndex </command/atlas-api-rollingIndex>
    root </command/atlas-api-root>

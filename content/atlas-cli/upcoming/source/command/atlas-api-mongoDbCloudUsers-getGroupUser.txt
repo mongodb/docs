@@ -77,9 +77,9 @@ Options
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --userId
-     - string
+     - userId
      - true
-     - Unique 24-hexadecimal digit string that identifies the pending or active user in the project. If you need to lookup a user's userId or verify a user's status in the organization, use the Return All MongoDB Cloud Users in One Project resource and filter by username.
+     - Unique 24-hexadecimal digit string that identifies the pending or active user in the project. If you need to lookup a user's userId or verify a user's status in the organization, use the Return All MongoDB Cloud Users in One Project resource and filter by ``username``.
    * - --version
      - string
      - false

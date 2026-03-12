@@ -87,13 +87,13 @@ Options
      - false
      - Flag that indicates whether the response body should be in the prettyprint format.
    * - --processIds
-     - mongod
+     - processId
      - false
-     - ProcessIds from which to retrieve query shape statistics. A processId is a combination of host and port that serves the MongoDB process. The host must be the hostname, FQDN, IPv4 address, or IPv6 address of the host that runs the MongoDB process (mongod or ``mongos``). The port must be the IANA port on which the MongoDB process listens for requests. To include multiple processIds, pass the parameter multiple times delimited with an ampersand (``&``) between each processId.
+     - Process IDs from which to retrieve query shape statistics. A processId is a combination of host and port that serves the MongoDB process. The host must be the hostname, FQDN, IPv4 address, or IPv6 address of the host that runs the MongoDB process (``mongod`` or ``mongos``). The port must be the IANA port on which the MongoDB process listens for requests. To include multiple ``processId``, pass the parameter multiple times delimited with an ampersand (``&``) between each ``processId``.
    * - --queryShapeHashes
-     - &
+     - $queryStats
      - false
-     - A list of SHA256 hashes of desired query shapes, output by MongoDB commands like $queryStats and $explain or slow query logs. To include multiple series, pass the parameter multiple times delimited with an ampersand (&) between each series. Omit this parameter to return results for all available series.
+     - A list of SHA256 hashes of desired query shapes, output by MongoDB commands like $queryStats and $explain or slow query logs. To include multiple series, pass the parameter multiple times delimited with an ampersand (``&``) between each series. Omit this parameter to return results for all available series.
    * - --series
      - &
      - false

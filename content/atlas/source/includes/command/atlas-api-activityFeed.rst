@@ -12,12 +12,12 @@ atlas api activityFeed
    :depth: 1
    :class: singlecol
 
-
+Returns pre-filtered activity feed links for projects and organizations.
 
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
-
+The returned links can be shared and opened to view the activity feed with the specified filters applied.
 
 Options
 -------

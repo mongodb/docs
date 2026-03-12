@@ -64,7 +64,8 @@ Related Commands
 * :ref:`atlas-api-streams-deleteStreamProcessor` - Delete a Stream Processor within the specified stream workspace.
 * :ref:`atlas-api-streams-deleteStreamWorkspace` - Delete one stream workspace in the specified project.
 * :ref:`atlas-api-streams-deleteVpcPeeringConnection` - Deletes an incoming VPC Peering connection.
-* :ref:`atlas-api-streams-downloadAuditLogs` - Downloads the audit logs for the specified Atlas Streams Processing workspace.
+* :ref:`atlas-api-streams-downloadAuditLogs` - Downloads the audit logs for the specified Atlas Streams Processing workspace or stream processor.
+* :ref:`atlas-api-streams-downloadOperationalLogs` - Downloads the operational logs for the specified Atlas Streams Processing workspace or stream processor.
 * :ref:`atlas-api-streams-getAccountDetails` - Returns the Account ID, and the VPC ID for the group and region specified.
 * :ref:`atlas-api-streams-getPrivateLinkConnection` - Returns the details of one Private Link connection within the project.
 * :ref:`atlas-api-streams-getStreamConnection` - Returns the details of one stream connection within the specified stream workspace.
@@ -100,6 +101,7 @@ Related Commands
    deleteStreamWorkspace </command/atlas-api-streams-deleteStreamWorkspace>
    deleteVpcPeeringConnection </command/atlas-api-streams-deleteVpcPeeringConnection>
    downloadAuditLogs </command/atlas-api-streams-downloadAuditLogs>
+   downloadOperationalLogs </command/atlas-api-streams-downloadOperationalLogs>
    getAccountDetails </command/atlas-api-streams-getAccountDetails>
    getPrivateLinkConnection </command/atlas-api-streams-getPrivateLinkConnection>
    getStreamConnection </command/atlas-api-streams-getStreamConnection>

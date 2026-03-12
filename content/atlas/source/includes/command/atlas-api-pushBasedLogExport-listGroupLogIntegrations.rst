@@ -59,13 +59,13 @@ Options
      - false
      - help for listGroupLogIntegrations
    * - --includeCount
-     -
+     - totalCount
      - false
-     - Flag that indicates whether the response returns the total number of items (**totalCount**) in the response.
+     - Flag that indicates whether the response returns the total number of items (totalCount) in the response.
    * - --integrationType
-     - string
+     - S3_LOG_EXPORT
      - false
-     - Optional filter by integration type (e.g., 'S3_LOG_EXPORT').
+     - Optional filter by integration type (e.g., S3_LOG_EXPORT).
    * - --itemsPerPage
      - int
      - false

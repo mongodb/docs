@@ -62,9 +62,9 @@ Options
      - false
      - help for listOrgEvents
    * - --includeCount
-     -
+     - totalCount
      - false
-     - Flag that indicates whether the response returns the total number of items (**totalCount**) in the response.
+     - Flag that indicates whether the response returns the total number of items (totalCount) in the response.
    * - --includeRaw
      -
      - false
@@ -82,7 +82,7 @@ Options
      - false
      - Date and time from when MongoDB Cloud starts returning events. This parameter uses the ISO 8601 timestamp format in UTC.
    * - --orgId
-     - string
+     - /orgs
      - true
      - Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
    * - -o, --output

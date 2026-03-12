@@ -54,13 +54,13 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-resourcePolicies-createOrgResourcePolicy` - Create one Atlas Resource Policy for an org.
-* :ref:`atlas-api-resourcePolicies-deleteOrgResourcePolicy` - Delete one Atlas Resource Policy for an org.
-* :ref:`atlas-api-resourcePolicies-getNonCompliantResources` - Return all non-compliant resources for an org.
-* :ref:`atlas-api-resourcePolicies-getOrgResourcePolicy` - Return one Atlas Resource Policy for an org.
-* :ref:`atlas-api-resourcePolicies-listOrgResourcePolicies` - Return all Atlas Resource Policies for the org.
-* :ref:`atlas-api-resourcePolicies-updateOrgResourcePolicy` - Update one Atlas Resource Policy for an org.
-* :ref:`atlas-api-resourcePolicies-validateResourcePolicies` - Validate one Atlas Resource Policy for an org.
+* :ref:`atlas-api-resourcePolicies-createOrgResourcePolicy` - Create one Atlas Resource Policy for an organization.
+* :ref:`atlas-api-resourcePolicies-deleteOrgResourcePolicy` - Delete one Atlas Resource Policy for an organization.
+* :ref:`atlas-api-resourcePolicies-getNonCompliantResources` - Return all non-compliant resources for an organization.
+* :ref:`atlas-api-resourcePolicies-getOrgResourcePolicy` - Return one Atlas Resource Policy for an organization.
+* :ref:`atlas-api-resourcePolicies-listOrgResourcePolicies` - Return all Atlas Resource Policies for the organization.
+* :ref:`atlas-api-resourcePolicies-updateOrgResourcePolicy` - Update one Atlas Resource Policy for an organization.
+* :ref:`atlas-api-resourcePolicies-validateResourcePolicies` - Validate one Atlas Resource Policy for an organization.
 
 
 .. toctree::

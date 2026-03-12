@@ -17,7 +17,7 @@ Updates one alert configuration in the specified project.
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
-Alert configurations define the triggers and notification methods for alerts. To use this resource, the requesting Service Account or API Key must have the Organization Owner or Project Owner role.
+Alert configurations define the triggers and notification methods for alerts. To use this resource, the requesting Service Account or API Key must have the Project Alerts Manager, Project Monitoring Admin, Organization Owner, or Project Owner role.
 
 
 NOTE: To enable or disable the alert configuration, see Toggle One State of One Alert Configuration in One Project.

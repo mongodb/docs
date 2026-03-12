@@ -17,7 +17,7 @@ Adds one MongoDB Cloud user to one project.
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
-To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Access Manager role.
 
 
 

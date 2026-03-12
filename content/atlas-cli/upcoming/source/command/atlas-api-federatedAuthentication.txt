@@ -59,12 +59,12 @@ Related Commands
 * :ref:`atlas-api-federatedAuthentication-deleteFederationSetting` - Deletes the federation settings instance and all associated data, including identity providers and domains.
 * :ref:`atlas-api-federatedAuthentication-deleteIdentityProvider` - Deletes one identity provider in the specified federation.
 * :ref:`atlas-api-federatedAuthentication-deleteRoleMapping` - Removes one role mapping in the specified organization from the specified federation.
-* :ref:`atlas-api-federatedAuthentication-getConnectedOrgConfig` - Returns the specified connected org config from the specified federation.
+* :ref:`atlas-api-federatedAuthentication-getConnectedOrgConfig` - Returns the specified connected organization configuration from the specified federation.
 * :ref:`atlas-api-federatedAuthentication-getFederationSettings` - Returns information about the federation settings for the specified organization.
 * :ref:`atlas-api-federatedAuthentication-getIdentityProvider` - Returns one identity provider in the specified federation by the identity provider's id.
 * :ref:`atlas-api-federatedAuthentication-getIdentityProviderMetadata` - Returns the metadata of one identity provider in the specified federation.
 * :ref:`atlas-api-federatedAuthentication-getRoleMapping` - Returns one role mapping from the specified organization in the specified federation.
-* :ref:`atlas-api-federatedAuthentication-listConnectedOrgConfigs` - Returns all connected org configs in the specified federation.
+* :ref:`atlas-api-federatedAuthentication-listConnectedOrgConfigs` - Returns all connected organization configurations in the specified federation.
 * :ref:`atlas-api-federatedAuthentication-listIdentityProviders` - Returns all identity providers with the provided protocol and type in the specified federation.
 * :ref:`atlas-api-federatedAuthentication-listRoleMappings` - Returns all role mappings from the specified organization in the specified federation.
 * :ref:`atlas-api-federatedAuthentication-removeConnectedOrgConfig` - Removes one connected organization configuration from the specified federation.

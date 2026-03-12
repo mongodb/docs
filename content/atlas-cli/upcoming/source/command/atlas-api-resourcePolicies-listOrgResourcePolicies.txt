@@ -12,7 +12,7 @@ atlas api resourcePolicies listOrgResourcePolicies
    :depth: 1
    :class: singlecol
 
-Return all Atlas Resource Policies for the org.
+Return all Atlas Resource Policies for the organization.
 
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
@@ -51,7 +51,7 @@ Options
      - false
      - help for listOrgResourcePolicies
    * - --orgId
-     - string
+     - /orgs
      - true
      - Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
    * - -o, --output

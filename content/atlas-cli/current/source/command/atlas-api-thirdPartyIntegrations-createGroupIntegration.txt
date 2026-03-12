@@ -63,9 +63,9 @@ Options
      - false
      - help for createGroupIntegration
    * - --includeCount
-     -
+     - totalCount
      - false
-     - Flag that indicates whether the response returns the total number of items (**totalCount**) in the response.
+     - Flag that indicates whether the response returns the total number of items (totalCount) in the response.
    * - --integrationType
      - string
      - true

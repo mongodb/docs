@@ -59,16 +59,16 @@ Options
      - false
      - help for deleteDataFederationLimit
    * - --limitName
-     - string
+     - bytesProcessed.query
      - true
      - Human-readable label that identifies this data federation instance limit.
 
        | Limit Name | Description | Default |
        | --- | --- | --- |
        | bytesProcessed.query | Limit on the number of bytes processed during a single data federation query | N/A |
-       | bytesProcessed.daily | Limit on the number of bytes processed for the data federation instance for the current day | N/A |
-       | bytesProcessed.weekly | Limit on the number of bytes processed for the data federation instance for the current week | N/A |
-       | bytesProcessed.monthly | Limit on the number of bytes processed for the data federation instance for the current month | N/A |
+       | ``bytesProcessed.daily`` | Limit on the number of bytes processed for the data federation instance for the current day | N/A |
+       | ``bytesProcessed.weekly`` | Limit on the number of bytes processed for the data federation instance for the current week | N/A |
+       | ``bytesProcessed.monthly`` | Limit on the number of bytes processed for the data federation instance for the current month | N/A |
 
    * - -o, --output
      - string

@@ -45,6 +45,10 @@ Options
      - string
      - false
      - Output format. Valid values are json, json-path, go-template, or go-template-file. To see the full output, use the -o json option.
+   * - --portMappingEnabled
+     -
+     - false
+     - Flag that indicates whether this endpoint service uses PSC port-mapping. This is only applicable for GCP Private Endpoint Services.
    * - --projectId
      - string
      - false
@@ -86,4 +90,4 @@ Examples
 .. code-block::
    :copyable: false
 
-   atlas privateEndpoints gcp create --region CENTRAL_US
+   atlas privateEndpoints gcp create --region CENTRAL_US --portMappingEnabled

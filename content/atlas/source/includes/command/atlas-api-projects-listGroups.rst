@@ -53,9 +53,9 @@ Options
      - false
      - help for listGroups
    * - --includeCount
-     -
+     - totalCount
      - false
-     - Flag that indicates whether the response returns the total number of items (**totalCount**) in the response.
+     - Flag that indicates whether the response returns the total number of items (totalCount) in the response.
    * - --itemsPerPage
      - int
      - false

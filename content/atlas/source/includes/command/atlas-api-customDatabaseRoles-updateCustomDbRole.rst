@@ -77,7 +77,7 @@ Options
    * - --roleName
      - string
      - true
-     - Human-readable label that identifies the role for the request. This name must beunique for this custom role in this project.
+     - Human-readable label that identifies the role for the request. This name must be unique for this custom role in this project.
    * - --version
      - string
      - false
