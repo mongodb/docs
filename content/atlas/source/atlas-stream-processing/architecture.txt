@@ -154,8 +154,107 @@ document from your data stream, it writes the content of the document
 to the DLQ along with details of the processing failure. You can assign
 a collection as a DLQ in your stream processor definitions. 
 
-To learn more, see :ref:`Create a Stream Processor 
+To learn more, see :ref:`Create a Stream Processor
 <streams-manage-create>`.
+
+.. _atlas-sp-error-handling:
+
+Error Handling and Retry Policies
+----------------------------------
+
+{+atlas-sp+} implements comprehensive error handling and retry policies to
+ensure reliable stream processing. The system distinguishes between different
+types of errors and applies appropriate retry strategies based on the error
+classification.
+
+.. _atlas-sp-error-types:
+
+Error Classification
+~~~~~~~~~~~~~~~~~~~~
+
+{+atlas-sp+} classifies errors into two main categories:
+
+**User Errors**
+
+Errors caused by user configuration, data issues, or external service
+problems that are outside of {+atlas-sp+}'s control. Examples include:
+
+- Invalid connection credentials
+- Network connectivity issues to external services
+- Malformed data that cannot be processed
+- Permission issues accessing external resources
+
+**Internal Errors**
+
+Errors that occur within the {+atlas-sp+} system itself, typically due to
+temporary infrastructure issues or service disruptions. These are considered
+the responsibility of the {+atlas-sp+} service to resolve.
+
+.. _atlas-sp-retry-behavior:
+
+Retry Behavior
+~~~~~~~~~~~~~~
+
+The retry behavior varies based on the error classification:
+
+**User Error Retry Policy**
+
+- {+atlas-sp+} attempts to restart the stream processor a limited number of
+  times over a 5-minute period
+- If all retry attempts fail within this timeframe, the stream processor
+  transitions to a ``FAILED`` state
+- Some user errors are classified as non-retryable and immediately cause
+  the processor to fail. Examples include:
+
+  - ``StreamProcessorWorkerOutOfMemory (418)``: Pipeline exceeds tier memory
+    limits
+  - ``StreamProcessorInvalidOptions (420)``: Invalid pipeline syntax or
+    configuration
+- You can manually restart a failed stream processor by calling the
+  ``start()`` method
+
+**Internal Error Retry Policy**
+
+- {+atlas-sp+} continuously retries internal errors without a time limit
+- Internal errors trigger alerts to the {+atlas-sp+} engineering team
+- The system relies on automatic retry mechanisms to recover processors
+  after internal issues are resolved
+- Stream processors automatically resume from their last
+  :ref:`checkpoint <atlas-sp-checkpoints>` when restarted
+
+.. _atlas-sp-recovery-process:
+
+Recovery Process
+~~~~~~~~~~~~~~~~
+
+When a stream processor encounters an error and requires a restart, the 
+recovery process follows these steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: State preservation
+
+      The current state is preserved through the
+      :ref:`checkpoint <atlas-sp-checkpoints>` mechanism.
+   
+   .. step:: Restart attempt
+    
+      {+atlas-sp+} attempts to restart the processor
+      according to the applicable retry policy.
+
+   .. step:: State recovery
+    
+      Upon successful restart, the processor resumes
+      operation from the last committed checkpoint.
+
+   .. step:: Continued processing
+      
+      The processor continues processing from where
+      it left off, ensuring no data loss.
+
+This recovery process ensures that temporary failures don't result in data
+loss or require manual intervention in most cases.
 
 .. _atlas-sp-timing:
 
