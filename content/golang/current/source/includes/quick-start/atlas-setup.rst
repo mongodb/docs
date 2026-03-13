@@ -10,7 +10,7 @@ cloud.
 
    .. step:: Create a free tier cluster.
 
-      Complete the `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=go>`__ guide to
+      Complete the `MongoDB Quick Start <https://www.mongodb.com/docs/quick-start/?language=go>`__ guide to
       set up a new Atlas account, create a free tier MongoDB cluster, load
       datasets, and interact with the data.
 
@@ -33,8 +33,8 @@ You can connect to your MongoDB deployment by providing a
 instructs the driver on how to connect to a MongoDB deployment
 and how to behave while connected.
 
-The connection string includes the hostname or IP address and 
-port of your deployment, the authentication mechanism, user credentials 
+The connection string includes the hostname or IP address and
+port of your deployment, the authentication mechanism, user credentials
 when applicable, and connection options.
 
 .. procedure::
@@ -47,15 +47,15 @@ when applicable, and connection options.
       :guilabel:`Clusters` page under the :guilabel:`Database` section. Click
       the :guilabel:`Connect` button for your new deployment.
 
-      .. figure:: /includes/figures/atlas_connect_to_cluster.png 
+      .. figure:: /includes/figures/atlas_connect_to_cluster.png
          :alt: The connect button in the clusters section of the Atlas UI
 
       If you do not already have a database user configured, MongoDB will
       prompt you to create and configure a new user.
 
-      Click the :guilabel:`Drivers` button under :guilabel:`Connect to your application` 
+      Click the :guilabel:`Drivers` button under :guilabel:`Connect to your application`
       and select "Go" from the :guilabel:`Driver` selection menu and the version
-      that best matches the version you installed from the :guilabel:`Version` 
+      that best matches the version you installed from the :guilabel:`Version`
       selection menu.
 
       Ensure the :guilabel:`View full code sample` option is deselected to
@@ -66,7 +66,7 @@ when applicable, and connection options.
       Click the button on the right of the connection string to copy it to your
       clipboard as shown in the following screenshot:
 
-      .. figure:: /includes/figures/atlas_copy_connection_string_go.png 
+      .. figure:: /includes/figures/atlas_copy_connection_string_go.png
          :alt: The connection string copy button in the Atlas UI
 
    .. step:: Update the password placeholder.
@@ -75,7 +75,7 @@ when applicable, and connection options.
       and replace the ``<db_password>`` placeholder with your database user's
       password. The connection string is already populated with your database
       user's username.
-      
+
       Save this file to a safe location for use in the next step.
 
 After completing these steps, you have a connection string that corresponds your

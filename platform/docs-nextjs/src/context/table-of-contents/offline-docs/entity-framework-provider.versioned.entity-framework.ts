@@ -23,6 +23,11 @@ export const toc: L1TocItem[] = [
             url: '/docs/entity-framework/:version/quick-start',
           },
           {
+            label: 'Connection Troubleshooting',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/drivers/csharp/current/connect/connection-troubleshooting/',
+          },
+          {
             label: 'Quick Reference',
             contentSite: 'entity-framework',
             url: '/docs/entity-framework/:version/quick-reference',
@@ -99,7 +104,58 @@ export const toc: L1TocItem[] = [
           {
             label: 'API Documentation',
             isExternal: true,
+            url: 'https://mongodb.github.io/mongo-efcore-provider/8.0.3/api',
+            versions: {
+              includes: ['v8.0'],
+            },
+          },
+          {
+            label: 'API Documentation',
+            isExternal: true,
+            url: 'https://mongodb.github.io/mongo-efcore-provider/8.1.1/api',
+            versions: {
+              includes: ['v8.1'],
+            },
+          },
+          {
+            label: 'API Documentation',
+            isExternal: true,
+            url: 'https://mongodb.github.io/mongo-efcore-provider/8.2.3/api',
+            versions: {
+              includes: ['v8.2'],
+            },
+          },
+          {
+            label: 'API Documentation',
+            isExternal: true,
+            url: 'https://mongodb.github.io/mongo-efcore-provider/8.3.4/api',
+            versions: {
+              includes: ['v8.3'],
+            },
+          },
+          {
+            label: 'API Documentation',
+            isExternal: true,
+            url: 'https://mongodb.github.io/mongo-efcore-provider/8.4.0/api',
+            versions: {
+              includes: ['v8.4'],
+            },
+          },
+          {
+            label: 'API Documentation',
+            isExternal: true,
             url: 'https://mongodb.github.io/mongo-efcore-provider/9.0.4/api',
+            versions: {
+              includes: ['v9.0'],
+            },
+          },
+          {
+            label: 'API Documentation',
+            isExternal: true,
+            url: 'https://mongodb.github.io/mongo-efcore-provider/10.0.0/api',
+            versions: {
+              includes: ['current', 'upcoming'],
+            },
           },
         ],
       },

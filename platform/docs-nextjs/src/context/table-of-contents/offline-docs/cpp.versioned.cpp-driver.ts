@@ -12,7 +12,7 @@ export const toc: L1TocItem[] = [
         group: true,
         versionDropdown: true,
         versions: {
-          includes: ['v4.0', 'current', 'upcoming'],
+          includes: ['current'],
         },
         items: [
           {
@@ -80,7 +80,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'AWS Lambda',
-                contentSite: 'cloud-docs',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda',
               },
             ],
@@ -382,7 +382,7 @@ export const toc: L1TocItem[] = [
           {
             label: 'API Documentation',
             isExternal: true,
-            url: 'https://mongocxx.org/api/mongocxx-4.1.1',
+            url: 'https://mongocxx.org/api/mongocxx-4.1.4',
           },
           {
             label: 'Issues & Help',
@@ -397,7 +397,7 @@ export const toc: L1TocItem[] = [
         group: true,
         versionDropdown: true,
         versions: {
-          includes: ['v3.11'],
+          includes: ['v3.x'],
         },
         items: [
           {
@@ -458,7 +458,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'AWS Lambda',
-                contentSite: 'cloud-docs',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda',
               },
             ],
@@ -701,133 +701,6 @@ export const toc: L1TocItem[] = [
           {
             label: 'Driver Source',
             isExternal: true,
-            url: 'https://github.com/mongodb/mongo-cxx-driver',
-          },
-        ],
-      },
-      {
-        label: 'C++ Driver',
-        contentSite: 'cpp-driver',
-        group: true,
-        versionDropdown: true,
-        versions: {
-          includes: ['v3.10'],
-        },
-        items: [
-          {
-            label: 'Overview',
-            contentSite: 'cpp-driver',
-            url: '/docs/languages/cpp/cpp-driver/:version/',
-          },
-          {
-            label: 'C++17 Polyfill',
-            contentSite: 'cpp-driver',
-            url: '/docs/languages/cpp/cpp-driver/:version/polyfill-selection',
-          },
-          {
-            label: 'Installation',
-            contentSite: 'cpp-driver',
-            collapsible: true,
-            url: '/docs/languages/cpp/cpp-driver/:version/installation',
-            items: [
-              {
-                label: 'Windows',
-                contentSite: 'cpp-driver',
-                url: '/docs/languages/cpp/cpp-driver/:version/installation/windows',
-              },
-              {
-                label: 'MacOS',
-                contentSite: 'cpp-driver',
-                url: '/docs/languages/cpp/cpp-driver/:version/installation/macos',
-              },
-              {
-                label: 'Linux',
-                contentSite: 'cpp-driver',
-                url: '/docs/languages/cpp/cpp-driver/:version/installation/linux',
-              },
-              {
-                label: 'Advanced',
-                contentSite: 'cpp-driver',
-                url: '/docs/languages/cpp/cpp-driver/:version/installation/advanced',
-              },
-            ],
-          },
-          {
-            label: 'Configuration',
-            contentSite: 'cpp-driver',
-            url: '/docs/languages/cpp/cpp-driver/:version/configuration',
-          },
-          {
-            label: 'Client-Side Encryption',
-            contentSite: 'cpp-driver',
-            url: '/docs/languages/cpp/cpp-driver/:version/client-side-encryption',
-          },
-          {
-            label: 'Tutorial',
-            contentSite: 'cpp-driver',
-            url: '/docs/languages/cpp/cpp-driver/:version/tutorial',
-          },
-          {
-            label: 'Thread Safety',
-            contentSite: 'cpp-driver',
-            url: '/docs/languages/cpp/cpp-driver/:version/thread-safety',
-          },
-          {
-            label: 'Connection Pools',
-            contentSite: 'cpp-driver',
-            url: '/docs/languages/cpp/cpp-driver/:version/connection-pools',
-          },
-          {
-            label: 'BSON',
-            contentSite: 'cpp-driver',
-            url: '/docs/languages/cpp/cpp-driver/:version/working-with-bson',
-          },
-          {
-            label: 'API & ABI Versioning',
-            contentSite: 'cpp-driver',
-            collapsible: true,
-            url: '/docs/languages/cpp/cpp-driver/:version/api-abi-versioning',
-            items: [
-              {
-                label: 'API Versioning',
-                contentSite: 'cpp-driver',
-                url: '/docs/languages/cpp/cpp-driver/:version/api-abi-versioning/api-versioning',
-              },
-              {
-                label: 'ABI Versioning',
-                contentSite: 'cpp-driver',
-                url: '/docs/languages/cpp/cpp-driver/:version/api-abi-versioning/abi-versioning',
-              },
-            ],
-          },
-          {
-            label: 'Reporting Bugs',
-            contentSite: 'cpp-driver',
-            url: '/docs/languages/cpp/cpp-driver/:version/reporting-bugs',
-          },
-          {
-            label: 'Testing',
-            contentSite: 'cpp-driver',
-            url: '/docs/languages/cpp/cpp-driver/:version/testing',
-          },
-          {
-            label: 'Contributing',
-            contentSite: 'cpp-driver',
-            url: '/docs/languages/cpp/cpp-driver/:version/contributing',
-          },
-          {
-            label: 'Getting Help',
-            contentSite: 'cpp-driver',
-            url: '/docs/languages/cpp/cpp-driver/:version/getting-help',
-          },
-          {
-            label: 'API Documentation',
-            contentSite: 'cpp-driver',
-            url: 'https://mongocxx.org/api/current/',
-          },
-          {
-            label: 'Driver Source',
-            contentSite: 'cpp-driver',
             url: 'https://github.com/mongodb/mongo-cxx-driver',
           },
         ],

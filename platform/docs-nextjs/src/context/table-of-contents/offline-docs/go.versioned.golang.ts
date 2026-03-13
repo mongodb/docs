@@ -110,7 +110,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'Connect with AWS Lambda',
-                contentSite: 'golang',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda/',
                 versions: {
                   excludes: ['v1.x'],
@@ -593,7 +593,7 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'API Documentation',
-            contentSite: 'golang',
+            isExternal: true,
             url: 'https://pkg.go.dev/go.mongodb.org/mongo-driver/v2/mongo',
             versions: {
               excludes: ['v1.x'],
@@ -609,7 +609,7 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'View the Source',
-            contentSite: 'golang',
+            isExternal: true,
             url: 'https://github.com/mongodb/mongo-go-driver',
             versions: {
               excludes: ['v1.x'],
@@ -773,7 +773,7 @@ export const toc: L1TocItem[] = [
                   },
                   {
                     label: 'Connect with AWS Lambda',
-                    contentSite: 'golang',
+                    isExternal: true,
                     url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda/',
                   },
                 ],
@@ -999,7 +999,7 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'API Documentation',
-            contentSite: 'golang',
+            isExternal: true,
             url: 'https://pkg.go.dev/go.mongodb.org/mongo-driver@v1.17.2/mongo',
             versions: {
               includes: ['v1.x'],
@@ -1039,7 +1039,7 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'View the Source',
-            contentSite: 'golang',
+            isExternal: true,
             url: 'https://github.com/mongodb/mongo-go-driver',
             versions: {
               includes: ['v1.x'],

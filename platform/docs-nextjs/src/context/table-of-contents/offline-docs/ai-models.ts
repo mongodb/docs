@@ -163,7 +163,7 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'API Specification',
-            contentSite: 'voyageai',
+            isExternal: true,
             url: 'https://www.mongodb.com/docs/api/doc/atlas-embedding-and-reranking-api/',
           },
         ],

@@ -84,7 +84,7 @@ export const toc: L1TocItem[] = [
                   },
                   {
                     label: 'AWS Lambda',
-                    contentSite: 'cloud-docs',
+                    isExternal: true,
                     url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda',
                   },
                 ],
@@ -214,7 +214,15 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Transactions',
                 contentSite: 'java',
+                collapsible: true,
                 url: '/docs/drivers/java/sync/:version/crud/transactions',
+                items: [
+                  {
+                    label: 'Tutorial: Multi-Document Transactions',
+                    contentSite: 'java',
+                    url: '/docs/drivers/java/sync/:version/crud/transactions/multi-doc-acid-transactions',
+                  },
+                ],
               },
               {
                 label: 'Operations on Replica Sets',

@@ -206,7 +206,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'Install Kubernetes Operator',
-                contentSite: 'mck',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/kubernetes/current/tutorial/install-k8s-operator',
               },
               {
@@ -222,17 +222,17 @@ export const toc: L1TocItem[] = [
                   },
                   {
                     label: 'Deploy Replica Set',
-                    contentSite: 'mck',
+                    isExternal: true,
                     url: 'https://www.mongodb.com/docs/kubernetes/current/tutorial/deploy-replica-set/',
                   },
                   {
                     label: 'Deploy Sharded Cluster',
-                    contentSite: 'mck',
+                    isExternal: true,
                     url: 'https://www.mongodb.com/docs/kubernetes/current/tutorial/deploy-sharded-cluster/',
                   },
                   {
                     label: 'Deploy Standalone',
-                    contentSite: 'mck',
+                    isExternal: true,
                     url: 'https://www.mongodb.com/docs/kubernetes/current/tutorial/deploy-standalone/',
                   },
                 ],
@@ -3431,7 +3431,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'Kubernetes Operator',
-                contentSite: 'mck',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/kubernetes/current/reference/troubleshooting',
               },
             ],
@@ -3536,12 +3536,12 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'Kubernetes Operator Object Specification',
-                contentSite: 'mck',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/kubernetes/current/reference/k8s-operator-specification',
               },
               {
                 label: 'Kubernetes Operator Known Issues',
-                contentSite: 'mck',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/kubernetes/current/reference/known-issues-k8s-beta',
               },
               {
@@ -3584,7 +3584,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'Kubernetes Operator',
-                contentSite: 'mck',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/kubernetes/current/release-notes/',
               },
             ],

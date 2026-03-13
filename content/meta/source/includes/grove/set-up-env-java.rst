@@ -50,7 +50,7 @@
       do not already have a cluster or local deployment, create one now.
 
       For details on how to create a deployment, refer to the
-      `Get Started <https://www.mongodb.com/docs/get-started/?language=nodejs>`__
+      `Get Started <https://www.mongodb.com/docs/quick-start/?language=nodejs>`__
       documentation.
 
       When you run tests locally, you run them against the cluster or local

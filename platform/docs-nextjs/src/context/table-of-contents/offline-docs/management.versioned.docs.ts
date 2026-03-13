@@ -596,11 +596,28 @@ export const toc: L1TocItem[] = [
             ],
           },
           {
-            label: 'Load Sample Data',
+            label: 'Sample Data',
             contentSite: 'cloud-docs',
             collapsible: true,
             url: '/docs/atlas/sample-data',
             items: [
+              {
+                label: 'Load Sample Data',
+                contentSite: 'cloud-docs',
+                collapsible: true,
+                items: [
+                  {
+                    label: 'Atlas',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/sample-data/load-sample-data/',
+                  },
+                  {
+                    label: 'Self-Managed Deployments',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/sample-data/load-sample-data-local/',
+                  },
+                ],
+              },
               {
                 label: 'Sample Airbnb',
                 contentSite: 'cloud-docs',
@@ -694,7 +711,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'Standalone Mongosync',
-                contentSite: 'mongosync',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/mongosync/current/reference/mongosync-binary/#mongosync',
               },
               {
@@ -944,9 +961,41 @@ export const toc: L1TocItem[] = [
                 url: '/docs/atlas/mongodb-logs',
               },
               {
-                label: 'Export Logs to AWS S3',
+                label: 'Export Logs',
                 contentSite: 'cloud-docs',
-                url: '/docs/atlas/export-logs-external-sinks',
+                collapsible: true,
+                items: [
+                  {
+                    label: 'Export Logs to AWS S3',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/export-logs-external-sinks',
+                  },
+                  {
+                    label: 'Export Logs to Azure Blob Storage',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/export-logs-azure',
+                  },
+                  {
+                    label: 'Export Logs to Datadog',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/export-logs-datadog',
+                  },
+                  {
+                    label: 'Export Logs to Google Cloud Storage',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/export-logs-gcs',
+                  },
+                  {
+                    label: 'Export Logs to OpenTelemetry',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/export-logs-otel',
+                  },
+                  {
+                    label: 'Export Logs to Splunk',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/export-logs-splunk',
+                  },
+                ],
               },
               {
                 label: 'Push MongoDB Logs to AWS S3',
@@ -1317,7 +1366,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'Triggers',
-                contentSite: 'cloud-docs',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/atlas/atlas-ui/triggers',
               },
               {
@@ -1709,7 +1758,7 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'Release Notes',
-            contentSite: 'cloud-docs',
+            isExternal: true,
             url: 'https://www.mongodb.com/docs/atlas/release-notes/',
           },
         ],
@@ -2021,7 +2070,7 @@ export const toc: L1TocItem[] = [
                   },
                   {
                     label: 'Database Tools',
-                    contentSite: 'database-tools',
+                    isExternal: true,
                     url: 'https://www.mongodb.com/docs/database-tools/',
                   },
                 ],
@@ -3416,7 +3465,7 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'Release Notes',
-            contentSite: 'docs',
+            isExternal: true,
             url: 'https://www.mongodb.com/docs/manual/release-notes/',
           },
           {
@@ -3473,6 +3522,11 @@ export const toc: L1TocItem[] = [
             label: 'Get Started with Terraform',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/terraform',
+          },
+          {
+            label: 'Terraform Modules',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/terraform-modules-landing-zone',
           },
           {
             label: 'MongoDB Atlas AWS CloudFormation Resources',

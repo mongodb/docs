@@ -132,6 +132,11 @@ export const toc: L1TocItem[] = [
                 contentSite: 'mongoid',
                 url: '/docs/mongoid/current/quick-start-rails',
               },
+              {
+                label: 'Sinatra Integration',
+                contentSite: 'mongoid',
+                url: '/docs/mongoid/current/quick-start-sinatra',
+              },
             ],
           },
           {

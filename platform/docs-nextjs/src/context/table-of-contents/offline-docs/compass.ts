@@ -607,7 +607,6 @@ export const toc: L1TocItem[] = [
             label: 'Troubleshooting',
             contentSite: 'compass',
             collapsible: true,
-            url: '/docs/compass/troubleshooting',
             items: [
               {
                 label: 'Retrieve Logs',

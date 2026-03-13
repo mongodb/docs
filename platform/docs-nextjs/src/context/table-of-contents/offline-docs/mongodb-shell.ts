@@ -237,7 +237,7 @@ export const toc: L1TocItem[] = [
             items: [
               {
                 label: 'Cheat Sheet',
-                contentSite: 'docs',
+                contentSite: 'mongodb-shell',
                 url: '/docs/mongodb-shell/reference/cheatsheet',
               },
               {

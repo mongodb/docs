@@ -92,7 +92,7 @@ export const toc: L1TocItem[] = [
                   },
                   {
                     label: 'Connect from AWS Lambda',
-                    contentSite: 'csharp',
+                    isExternal: true,
                     url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda/',
                     versions: {
                       excludes: ['v2.x'],
@@ -613,7 +613,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'Entity Framework Provider',
-                contentSite: 'entity-framework',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/entity-framework/current/',
                 versions: {
                   excludes: ['v2.x'],
@@ -621,7 +621,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'C# Analyzer',
-                contentSite: 'visual-studio-extension',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/mongodb-analyzer/',
                 versions: {
                   excludes: ['v2.x'],
@@ -700,8 +700,8 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'API Documentation',
-            contentSite: 'csharp',
-            url: 'https://mongodb.github.io/mongo-csharp-driver/3.6.0/api',
+            isExternal: true,
+            url: 'https://mongodb.github.io/mongo-csharp-driver/3.7.0/api',
             versions: {
               excludes: ['v2.x'],
             },
@@ -831,7 +831,7 @@ export const toc: L1TocItem[] = [
                   },
                   {
                     label: 'Connect with AWS Lambda',
-                    contentSite: 'csharp',
+                    isExternal: true,
                     url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda/',
                   },
                 ],
@@ -1113,7 +1113,7 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'API Documentation',
-            contentSite: 'csharp',
+            isExternal: true,
             url: 'https://mongodb.github.io/mongo-csharp-driver/3.5.0/api/index.html',
             versions: {
               includes: ['v2.x'],
@@ -1161,7 +1161,7 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'Entity Framework Provider',
-            contentSite: 'csharp',
+            isExternal: true,
             url: 'https://www.mongodb.com/docs/entity-framework/current/',
             versions: {
               includes: ['v2.x'],
@@ -1169,7 +1169,7 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'C# Analyzer',
-            contentSite: 'csharp',
+            isExternal: true,
             url: 'https://www.mongodb.com/docs/mongodb-analyzer/',
             versions: {
               includes: ['v2.x'],

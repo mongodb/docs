@@ -113,7 +113,7 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'Client Libraries',
-            contentSite: 'drivers',
+            isExternal: true,
             url: 'https://www.mongodb.com/docs/drivers/',
           },
           {
@@ -162,7 +162,7 @@ export const toc: L1TocItem[] = [
                   },
                   {
                     label: 'SQL Interface',
-                    contentSite: 'cloud-docs',
+                    isExternal: true,
                     url: 'https://www.mongodb.com/docs/atlas/data-federation/query/connect-with-sql-overview/',
                   },
                   {
@@ -494,27 +494,27 @@ export const toc: L1TocItem[] = [
                 url: '/docs/:version/text-search',
                 items: [
                   {
-                    label: 'Atlas Search',
-                    contentSite: 'cloud-docs',
+                    label: 'MongoDB Search',
+                    isExternal: true,
                     url: 'https://www.mongodb.com/docs/atlas/atlas-search/',
                   },
                   {
-                    label: 'Atlas Vector Search',
-                    contentSite: 'cloud-docs',
+                    label: 'MongoDB Vector Search',
+                    isExternal: true,
                     url: 'https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/',
                   },
                   {
-                    label: 'Text Search on Self-Managed Deployments',
+                    label: '$text Queries',
                     contentSite: 'docs',
                     collapsible: true,
                     items: [
                       {
-                        label: 'Perform a Text Search (Self-Managed Deployments)',
+                        label: 'Perform a $text Query',
                         contentSite: 'docs',
                         url: '/docs/:version/core/text-search/on-prem',
                       },
                       {
-                        label: 'Text Search Operators (Self-Managed Deployments)',
+                        label: '$text Query Operators',
                         contentSite: 'docs',
                         collapsible: true,
                         url: '/docs/:version/core/text-search-operators',
@@ -527,12 +527,12 @@ export const toc: L1TocItem[] = [
                         ],
                       },
                       {
-                        label: 'Text Search in the Aggregation Pipeline',
+                        label: '$text Queries in the Aggregation Pipeline',
                         contentSite: 'docs',
                         url: '/docs/:version/tutorial/text-search-in-aggregation',
                       },
                       {
-                        label: 'Text Search Languages',
+                        label: '$text Query Languages',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/text-search-languages',
                       },
@@ -571,7 +571,7 @@ export const toc: L1TocItem[] = [
                             ],
                           },
                           {
-                            label: 'Assign Weights to Text Search Results',
+                            label: 'Assign Weights to $text Query Results',
                             contentSite: 'docs',
                             url: '/docs/:version/core/indexes/index-types/index-text/control-text-search-results',
                           },
@@ -2160,11 +2160,6 @@ export const toc: L1TocItem[] = [
                             contentSite: 'cloud-docs',
                             url: '/docs/atlas/atlas-search/return-scope',
                           },
-                          {
-                            label: 'tracking',
-                            contentSite: 'cloud-docs',
-                            url: '/docs/atlas/atlas-search/tracking',
-                          },
                         ],
                       },
                       {
@@ -2253,18 +2248,13 @@ export const toc: L1TocItem[] = [
                 items: [
                   {
                     label: 'Manage Alerts',
-                    contentSite: 'cloud-docs',
+                    isExternal: true,
                     url: 'https://www.mongodb.com/docs/atlas/reference/alert-resolutions/atlas-search-alerts',
                   },
                   {
                     label: 'Review Metrics',
-                    contentSite: 'cloud-docs',
+                    isExternal: true,
                     url: 'https://www.mongodb.com/docs/atlas/review-atlas-search-metrics',
-                  },
-                  {
-                    label: 'View Query Analytics',
-                    contentSite: 'cloud-docs',
-                    url: '/docs/atlas/atlas-search/view-query-analytics',
                   },
                 ],
               },
@@ -2303,7 +2293,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'Changelog',
-                contentSite: 'cloud-docs',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/atlas/atlas-search/changelog/',
               },
             ],
@@ -2478,7 +2468,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'AI Integrations',
-                contentSite: 'cloud-docs',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/atlas/ai-integrations/',
               },
               {
@@ -2488,7 +2478,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'Changelog',
-                contentSite: 'cloud-docs',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/atlas/atlas-vector-search/changelog/',
               },
             ],
@@ -3045,7 +3035,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'SQL',
-                contentSite: 'sql-interface',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/sql-interface',
               },
               {
@@ -4641,6 +4631,14 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
+                        label: 'startTransitionToDedicatedConfigServer',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/command/startTransitionToDedicatedConfigServer',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0', 'manual'],
+                        },
+                      },
+                      {
                         label: 'stopShardDraining',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/command/stopShardDraining',
@@ -5125,7 +5123,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'MongoDB Database Tools',
-                contentSite: 'database-tools',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/database-tools/',
               },
               {
@@ -5684,6 +5682,11 @@ export const toc: L1TocItem[] = [
                         label: 'db.createCollection',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/method/db.createCollection',
+                      },
+                      {
+                        label: 'db.createEncryptedCollection',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/method/db.createEncryptedCollection',
                       },
                       {
                         label: 'db.createView',
@@ -8558,7 +8561,7 @@ export const toc: L1TocItem[] = [
         items: [
           {
             label: 'AI Models',
-            contentSite: 'voyageai',
+            isExternal: true,
             url: 'https://www.mongodb.com/docs/voyageai/',
           },
           {
@@ -8782,7 +8785,7 @@ export const toc: L1TocItem[] = [
                 items: [
                   {
                     label: 'MCP Server',
-                    contentSite: 'cloud-docs',
+                    isExternal: true,
                     url: 'https://www.mongodb.com/docs/mcp-server/',
                   },
                   {
@@ -8861,7 +8864,7 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'AI Agents',
-            contentSite: 'cloud-docs',
+            isExternal: true,
             url: 'https://www.mongodb.com/docs/atlas/atlas-vector-search/ai-agents/',
           },
         ],
@@ -9098,7 +9101,15 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Scheduled Triggers',
                 contentSite: 'cloud-docs',
+                collapsible: true,
                 url: '/docs/atlas/atlas-ui/triggers/scheduled-triggers',
+                items: [
+                  {
+                    label: 'Tutorial: Automate Cluster Configurations',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/atlas-ui/triggers/scheduled-triggers-tutorial',
+                  },
+                ],
               },
               {
                 label: 'Disable a Trigger',

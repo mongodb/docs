@@ -21,45 +21,6 @@ export const toc: L1TocItem[] = [
             label: 'Getting Started',
             contentSite: 'kotlin-sync',
             url: '/docs/languages/kotlin/kotlin-sync-driver/:version/get-started',
-            versions: {
-              excludes: ['v5.2'],
-            },
-          },
-          {
-            label: 'Getting Started',
-            contentSite: 'kotlin-sync',
-            collapsible: true,
-            url: '/docs/languages/kotlin/kotlin-sync-driver/:version/get-started',
-            versions: {
-              includes: ['v5.2'],
-            },
-            items: [
-              {
-                label: 'Download & Install',
-                contentSite: 'kotlin-sync',
-                url: '/docs/languages/kotlin/kotlin-sync-driver/:version/get-started/download-and-install',
-              },
-              {
-                label: 'Create a Deployment',
-                contentSite: 'kotlin-sync',
-                url: '/docs/languages/kotlin/kotlin-sync-driver/:version/get-started/create-a-deployment',
-              },
-              {
-                label: 'Create a Connection String',
-                contentSite: 'kotlin-sync',
-                url: '/docs/languages/kotlin/kotlin-sync-driver/:version/get-started/create-a-connection-string',
-              },
-              {
-                label: 'Run a Sample Query',
-                contentSite: 'kotlin-sync',
-                url: '/docs/languages/kotlin/kotlin-sync-driver/:version/get-started/run-sample-query',
-              },
-              {
-                label: 'Next Steps',
-                contentSite: 'kotlin-sync',
-                url: '/docs/languages/kotlin/kotlin-sync-driver/:version/get-started/next-steps',
-              },
-            ],
           },
           {
             label: 'Connect',
@@ -102,9 +63,6 @@ export const toc: L1TocItem[] = [
                     label: 'Limit Server Execution Time',
                     contentSite: 'kotlin-sync',
                     url: '/docs/languages/kotlin/kotlin-sync-driver/:version/connect/connection-options/csot',
-                    versions: {
-                      excludes: ['v5.1'],
-                    },
                   },
                   {
                     label: 'Connection Pools',
@@ -115,7 +73,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'AWS Lambda',
-                contentSite: 'kotlin-sync',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda/',
               },
               {
@@ -230,19 +188,8 @@ export const toc: L1TocItem[] = [
           {
             label: 'Builders',
             contentSite: 'kotlin-sync',
-            url: '/docs/languages/kotlin/kotlin-sync-driver/:version/builders',
-            versions: {
-              includes: ['v5.2'],
-            },
-          },
-          {
-            label: 'Builders',
-            contentSite: 'kotlin-sync',
             collapsible: true,
             url: '/docs/languages/kotlin/kotlin-sync-driver/:version/builders',
-            versions: {
-              excludes: ['v5.2'],
-            },
             items: [
               {
                 label: 'Builders & Data Classes',
@@ -301,9 +248,6 @@ export const toc: L1TocItem[] = [
             contentSite: 'kotlin-sync',
             collapsible: true,
             url: '/docs/languages/kotlin/kotlin-sync-driver/:version/indexes',
-            versions: {
-              excludes: ['v5.1'],
-            },
             items: [
               {
                 label: 'MongoDB Search and Vector Search Indexes',
@@ -311,14 +255,6 @@ export const toc: L1TocItem[] = [
                 url: '/docs/languages/kotlin/kotlin-sync-driver/:version/indexes/atlas-search-index',
               },
             ],
-          },
-          {
-            label: 'Indexes',
-            contentSite: 'kotlin-sync',
-            url: '/docs/languages/kotlin/kotlin-sync-driver/:version/indexes',
-            versions: {
-              includes: ['v5.1'],
-            },
           },
           {
             label: 'Run a Database Command',
@@ -329,17 +265,11 @@ export const toc: L1TocItem[] = [
             label: 'MongoDB Search',
             contentSite: 'kotlin-sync',
             url: '/docs/languages/kotlin/kotlin-sync-driver/:version/atlas-search',
-            versions: {
-              excludes: ['v5.1'],
-            },
           },
           {
             label: 'MongoDB Vector Search',
             contentSite: 'kotlin-sync',
             url: '/docs/languages/kotlin/kotlin-sync-driver/:version/atlas-vector-search',
-            versions: {
-              excludes: ['v5.1'],
-            },
           },
           {
             label: 'Logging and Monitoring',
@@ -453,25 +383,22 @@ export const toc: L1TocItem[] = [
             items: [
               {
                 label: 'Kotlin Sync Driver',
-                contentSite: 'kotlin-sync',
+                isExternal: true,
                 url: 'https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-kotlin-sync/index.html',
               },
               {
                 label: 'BSON kotlinx.serialization',
-                contentSite: 'kotlin-sync',
+                isExternal: true,
                 url: 'https://mongodb.github.io/mongo-java-driver/5.6/apidocs/bson-kotlinx/index.html',
               },
               {
                 label: 'Kotlin Driver Extensions',
-                contentSite: 'kotlin-sync',
+                isExternal: true,
                 url: 'https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-kotlin-extensions/index.html',
-                versions: {
-                  excludes: ['v5.2'],
-                },
               },
               {
                 label: 'Driver Core',
-                contentSite: 'kotlin-sync',
+                isExternal: true,
                 url: 'https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-core/index.html',
               },
             ],
@@ -483,7 +410,7 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'View the Source',
-            contentSite: 'kotlin-sync',
+            isExternal: true,
             url: 'https://github.com/mongodb/mongo-java-driver/tree/master/driver-kotlin-sync',
           },
         ],

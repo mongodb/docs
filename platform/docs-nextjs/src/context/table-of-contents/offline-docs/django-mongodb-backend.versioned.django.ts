@@ -20,79 +20,31 @@ export const toc: L1TocItem[] = [
           {
             label: 'Get Started',
             contentSite: 'django',
-            collapsible: true,
             url: '/docs/languages/python/django-mongodb/:version/get-started',
-            items: [
-              {
-                label: 'Download & Install',
-                contentSite: 'django',
-                url: '/docs/languages/python/django-mongodb/:version/get-started/install',
-              },
-              {
-                label: 'Create a Deployment',
-                contentSite: 'django',
-                url: '/docs/languages/python/django-mongodb/:version/get-started/create-deployment',
-              },
-              {
-                label: 'Create a Connection String',
-                contentSite: 'django',
-                url: '/docs/languages/python/django-mongodb/:version/get-started/connection-string',
-              },
-              {
-                label: 'Configure a MongoDB Connection',
-                contentSite: 'django',
-                url: '/docs/languages/python/django-mongodb/:version/get-started/connect-mongodb',
-              },
-              {
-                label: 'Create an Application',
-                contentSite: 'django',
-                url: '/docs/languages/python/django-mongodb/:version/get-started/create-app',
-              },
-              {
-                label: 'Write Data to MongoDB',
-                contentSite: 'django',
-                url: '/docs/languages/python/django-mongodb/:version/get-started/write-data',
-              },
-              {
-                label: 'Query MongoDB Data',
-                contentSite: 'django',
-                url: '/docs/languages/python/django-mongodb/:version/get-started/query-data',
-              },
-              {
-                label: 'Create an Admin Site',
-                contentSite: 'django',
-                url: '/docs/languages/python/django-mongodb/:version/get-started/create-admin',
-              },
-              {
-                label: 'Next Steps',
-                contentSite: 'django',
-                url: '/docs/languages/python/django-mongodb/:version/get-started/next-steps',
-              },
-            ],
           },
           {
-            label: 'Connection Configuration',
+            label: 'Connect',
             contentSite: 'django',
             url: '/docs/languages/python/django-mongodb/:version/connect',
           },
           {
-            label: 'Model Your Data',
+            label: 'Model Data',
             contentSite: 'django',
             collapsible: true,
             url: '/docs/languages/python/django-mongodb/:version/model-data',
             items: [
               {
-                label: 'Create Indexes',
-                contentSite: 'django',
-                url: '/docs/languages/python/django-mongodb/:version/model-data/indexes',
-              },
-              {
-                label: 'Create Models',
+                label: 'Models',
                 contentSite: 'django',
                 url: '/docs/languages/python/django-mongodb/:version/model-data/models',
               },
               {
-                label: 'Model Geospatial Data',
+                label: 'Indexes',
+                contentSite: 'django',
+                url: '/docs/languages/python/django-mongodb/:version/model-data/indexes',
+              },
+              {
+                label: 'Geospatial Models',
                 contentSite: 'django',
                 url: '/docs/languages/python/django-mongodb/:version/model-data/geodjango',
               },
@@ -130,7 +82,7 @@ export const toc: L1TocItem[] = [
                 url: '/docs/languages/python/django-mongodb/:version/interact-data/mongodb-vector-search',
               },
               {
-                label: 'Transactions',
+                label: 'Transactions & Sessions',
                 contentSite: 'django',
                 url: '/docs/languages/python/django-mongodb/:version/interact-data/transactions',
               },
@@ -150,9 +102,26 @@ export const toc: L1TocItem[] = [
             collapsible: true,
             items: [
               {
-                label: 'Migrate Djongo Applications',
+                label: 'Migrate Djongo ODM Applications',
                 contentSite: 'django',
                 url: '/docs/languages/python/django-mongodb/:version/integrations/djongo-migration',
+              },
+            ],
+          },
+          {
+            label: 'Reference',
+            contentSite: 'django',
+            collapsible: true,
+            items: [
+              {
+                label: 'Release Notes',
+                contentSite: 'django',
+                url: '/docs/languages/python/django-mongodb/:version/reference/release-notes',
+              },
+              {
+                label: 'View the Source',
+                isExternal: true,
+                url: 'https://github.com/mongodb/django-mongodb-backend',
               },
             ],
           },

@@ -78,7 +78,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'AWS Lambda',
-                contentSite: 'cloud-docs',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda',
               },
               {
@@ -260,9 +260,6 @@ export const toc: L1TocItem[] = [
                 label: 'Builders & Data Classes',
                 contentSite: 'kotlin',
                 url: '/docs/drivers/kotlin/coroutine/:version/builders/builders-data-classes',
-                versions: {
-                  excludes: ['v5.0', 'v5.1', 'v5.2'],
-                },
               },
             ],
           },
@@ -424,9 +421,6 @@ export const toc: L1TocItem[] = [
             label: 'Third Party Integrations',
             contentSite: 'kotlin',
             collapsible: true,
-            versions: {
-              excludes: ['v5.2', 'v5.3', 'v5.4', 'v5.5'],
-            },
             items: [
               {
                 label: 'Tutorial: Ktor API with MongoDB',
@@ -447,7 +441,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'Compatibility',
-                contentSite: 'kotlin',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=kotlin&kotlin-driver-framework=kotlin-async',
               },
               {
