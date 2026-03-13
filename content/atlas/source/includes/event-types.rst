@@ -1,4 +1,4 @@
-.. Last updated: March 05, 2026 at 01:53 PM EST
+.. Last updated: March 12, 2026 at 02:34 PM EDT
 
 .. list-table::
    :header-rows: 1
@@ -1932,6 +1932,12 @@
      - .. _atlas_event_cps_snapshot_completed_audit:
 
        Cloud Backup snapshot has completed
+     - no
+
+   * - ``CPS_SNAPSHOT_DELETED_AUDIT``
+     - .. _atlas_event_cps_snapshot_deleted_audit:
+
+       Cloud Backup snapshot has been deleted
      - no
 
    * - ``CPS_SNAPSHOT_DOWNLOAD_REQUEST_FAILED``
@@ -6336,6 +6342,12 @@
      - .. _atlas_event_vercel_invoice_not_paid:
 
        Vercel Invoice Not Paid
+     - no
+
+   * - ``VERCEL_INVOICE_OVERDUE``
+     - .. _atlas_event_vercel_invoice_overdue:
+
+       Vercel Invoice Overdue
      - no
 
    * - ``VERCEL_INVOICE_PAID``
