@@ -12,7 +12,7 @@ This monorepo contains the tools and infrastructure for managing MongoDB documen
 If you don't have Node.js installed on your machine, you can do so by using `nvm`:
 ```bash
 brew install nvm
-nvm intall 24
+nvm install 24
 ```
 
 Then, if you don't [configure automatic `nvm use` when changing directories](https://stackoverflow.com/a/77440721), you should run `nvm use` to select the proper version of Node.js before you `pnpm install`.

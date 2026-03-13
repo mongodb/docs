@@ -20,6 +20,7 @@ import { CommunityPillLink } from '@/mdx-components/CommunityPillLink';
 import ComposableTutorial from '@/mdx-components/ComposableTutorial';
 import ComposableContent from '@/mdx-components/ComposableTutorial/ComposableContent';
 import Button from '@/mdx-components/Button';
+import { Highlight } from '@/mdx-components/Highlight';
 import Card from '@/mdx-components/Card';
 import CardGroup from '@/mdx-components/Card/CardGroup';
 import { GUILabel } from '@/mdx-components/GUILabel';
@@ -107,6 +108,7 @@ export const components = (injectedProps?: InjectedProps) =>
     GuideNext: ({ children }) => <span>{children}</span>,
     Guilabel: ({ children }) => <GUILabel>{children}</GUILabel>,
     Heading: ({ children, ...props }) => <Heading {...props}>{children}</Heading>,
+    Highlight: ({ children, ...props }) => <Highlight {...props}>{children}</Highlight>,
     Hlist: ({ children, ...props }) => <HorizontalList {...props}>{children}</HorizontalList>,
     Icon: ({ children }) => <span>{children}</span>,
     IconMms: ({ children }) => <span>{children}</span>,

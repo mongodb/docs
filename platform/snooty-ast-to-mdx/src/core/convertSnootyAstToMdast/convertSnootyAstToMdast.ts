@@ -516,6 +516,15 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           value: textContent,
         };
       }
+      if (componentName.startsWith('Highlight')) {
+        const color = componentName.replace('Highlight', '').toLowerCase();
+        return {
+          type: 'mdxJsxTextElement',
+          name: 'Highlight',
+          attributes: [{ type: 'mdxJsxAttribute', name: 'color', value: color }],
+          children,
+        };
+      }
       return {
         type: 'mdxJsxTextElement',
         name: componentName,
