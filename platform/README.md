@@ -22,22 +22,6 @@ If you don't have `pnpm` installed on your machine, you can do so by using `npm`
 npm install -g pnpm
 ```
 
-To locally develop the docs site, we rely on `netlify` to run a local blob storage as well as our dev server. To make this work, you'll need to first link the netlify project:
-```bash
-cd platform/docs-nextjs
-pnpm dlx netlify link
-```
-
-Then select Project ID and add the Netlify Site ID/Project ID (same thing) from here:
-
-https://app.netlify.com/projects/docs-on-nextjs/configuration/general
-
-You'll also need that ID for the `platform/docs-nextjs/.env`, along with a personal access token, which can be generated here:
-
-https://app.netlify.com/user/applications#personal-access-tokens
-
-NOTE: ensure both `NETLIFY_ACCESS_TOKEN` and `NETLIFY_SITE_ID` are set in `platform/docs-nextjs/.env`
-
 ## Getting Started
 
 Ensure proper node version, then install dependencies:
