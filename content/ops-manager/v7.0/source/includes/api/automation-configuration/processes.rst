@@ -329,8 +329,9 @@ instances. Using this array, you can:
      - Flag that indicates if {+mdbagent+} automates this process.
 
        - This defaults to **false**.
-       - Set to **true** to disable Automation on this process. The
-         {+mdbagent+} takes no further actions on this process.
+       - Set to **true** to suspend Automation on this process. The
+         {+mdbagent+} takes no further actions on this process until
+         Automation is resumed.
        - Set to **false** to enable Automation on this process. The
          {+mdbagent+} automates actions on this process.
 
