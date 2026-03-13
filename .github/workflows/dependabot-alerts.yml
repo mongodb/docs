@@ -1,0 +1,51 @@
+name: Dependabot Alerts Notification
+
+on:
+  schedule:
+    # Run every hour at minute 0
+    - cron: '0 * * * *'
+  workflow_dispatch:
+    inputs:
+      hours_lookback:
+        description: 'Hours to look back for alerts (default: 1)'
+        required: false
+        default: '1'
+        type: string
+
+jobs:
+  check-dependabot-alerts:
+    # Only run on main repo, not forks
+    if: github.repository == '10gen/docs-mongodb-internal'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Fetch Dependabot Alerts and Send Notifications
+        env:
+          GITHUB_TOKEN: ${{ secrets.DEPENDABOT_PAT }}
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_PROMPT }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          HOURS_LOOKBACK: ${{ github.event.inputs.hours_lookback || '1' }}
+          REPO_OWNER: '10gen'
+          REPO_NAME: 'docs-mongodb-internal'
+          FALLBACK_EMAIL: 'antonio.morello@mongodb.com'
+        run: |
+          node .github/scripts/dependabot-alerts-notify.js
+
+      - name: Job Summary
+        if: always()
+        run: |
+          echo "## 🚨 Dependabot Alerts Check Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Run Time**: $(date -u '+%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "- **Hours Lookback**: ${{ github.event.inputs.hours_lookback || '1' }}" >> $GITHUB_STEP_SUMMARY
+
