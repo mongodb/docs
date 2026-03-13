@@ -75,6 +75,15 @@ function isMarkdown(filename: string): boolean {
   return format === 'md' || format === 'mdx';
 }
 
+/**
+ * Check if a file is an include file (fragment that gets pulled into other pages).
+ * Include files don't need titles, meta descriptions, or H1 headings.
+ */
+function isIncludeFile(filename: string): boolean {
+  const normalizedPath = filename.replace(/\\/g, '/').toLowerCase();
+  return normalizedPath.includes('/includes/') || normalizedPath.includes('/include/');
+}
+
 // =============================================================================
 // TITLE CHECKS
 // =============================================================================
@@ -647,23 +656,34 @@ function checkSvgDimensions(content: string, filename: string): LintIssue[] {
 // STRUCTURE CHECKS
 // =============================================================================
 
+/**
+ * Check for problematic nesting patterns.
+ * 
+ * "Container components" are directives that create visual boxes/sections:
+ * - Callouts: note, tip, warning, important, caution, danger, seealso, admonition, example
+ * - Tabs: tabs, tabs-pillbox, tabs-selector
+ * - Tables: list-table, csv-table
+ * 
+ * Rule: Container components should not be nested inside other container components.
+ * Exception: Tabs CAN contain callouts and tables (tabs are content organizers).
+ * 
+ * NOT flagged: Callouts inside composables like selected-content, procedure steps, etc.
+ * These are content flow directives, not visual containers.
+ */
 function checkNestedComponents(content: string, filename: string): LintIssue[] {
   const issues: LintIssue[] = [];
   const isMd = isMarkdown(filename);
   
   if (isMd) {
-    // MDX: Check for nested callouts/admonitions
-    // Common MDX admonition components: <Callout>, <Admonition>, <Note>, <Warning>, <Tip>
-    const mdxAdmonitions = ['Callout', 'Admonition', 'Note', 'Warning', 'Tip', 'Important', 'Caution'];
-    const mdxPattern = mdxAdmonitions.map(a => `<${a}[^>]*>`).join('|');
+    // MDX: Check for nested container components
+    const mdxContainers = ['Callout', 'Admonition', 'Note', 'Warning', 'Tip', 'Important', 'Caution', 'Example', 'Tabs', 'Table'];
+    const mdxPattern = mdxContainers.map(a => `<${a}[^>]*>`).join('|');
     const mdxRegex = new RegExp(`(${mdxPattern})`, 'gi');
     
     const matches = [...content.matchAll(mdxRegex)];
     for (const match of matches) {
       const startIndex = match.index!;
-      const lineNum = lineNumberFromIndex(content, startIndex);
       
-      // Find the closing tag and check content between
       const tagName = match[0].match(/<(\w+)/)?.[1];
       if (!tagName) continue;
       
@@ -673,60 +693,113 @@ function checkNestedComponents(content: string, filename: string): LintIssue[] {
       
       if (closeMatch && closeMatch.index !== undefined) {
         const innerContent = afterOpen.substring(0, closeMatch.index);
-        if (new RegExp(mdxPattern, 'i').test(innerContent)) {
+        const innerMatch = innerContent.match(new RegExp(mdxPattern, 'i'));
+        if (innerMatch) {
+          const nestedIndex = startIndex + match[0].length + innerContent.indexOf(innerMatch[0]);
+          const nestedLineNum = lineNumberFromIndex(content, nestedIndex);
+          const nestedTagName = innerMatch[0].match(/<(\w+)/)?.[1] || 'component';
           issues.push({
             file: filename,
-            line: lineNum,
-            rule: 'nested-admonition',
+            line: nestedLineNum,
+            rule: 'nested-component',
             severity: 'error',
-            message: 'Nested admonition/callout detected (not recommended)',
-            suggestion: 'Remove inner callout and restructure content'
+            message: `${nestedTagName} nested inside ${tagName} (not allowed)`,
+            suggestion: 'Move the nested component outside or restructure content'
           });
         }
       }
     }
     
-    // Also check for GFM-style admonitions: > [!NOTE], > [!WARNING], etc.
-    const gfmAdmonitionRegex = /^>\s*\[!(NOTE|TIP|WARNING|IMPORTANT|CAUTION)\]/gim;
-    const gfmMatches = [...content.matchAll(gfmAdmonitionRegex)];
-    // GFM admonitions are block-level, harder to nest - skip for now
-    
   } else {
-    // RST: Check for nested admonitions
-    const admonitions = ['note', 'tip', 'warning', 'important', 'caution', 'danger', 'seealso', 'admonition'];
-    const admonitionPattern = admonitions.map(a => `\\.\\. ${a}::`).join('|');
+    // RST: Container component directives
+    const callouts = ['note', 'tip', 'warning', 'important', 'caution', 'danger', 'seealso', 'admonition', 'example'];
+    const tabDirectives = ['tabs', 'tabs-pillbox', 'tabs-selector'];
+    const tableDirectives = ['list-table', 'csv-table'];
     
-    const admonitionRegex = new RegExp(`(${admonitionPattern})`, 'gi');
-    const matches = [...content.matchAll(admonitionRegex)];
+    // All container types for detection
+    const allContainers = [...callouts, ...tabDirectives, ...tableDirectives];
     
-    for (const match of matches) {
-      const startIndex = match.index!;
-      const lineNum = lineNumberFromIndex(content, startIndex);
+    const lines = content.split('\n');
+    
+    // Track all container spans
+    interface ContainerSpan {
+      type: string;
+      category: 'callout' | 'tabs' | 'table';
+      startLine: number;
+      endLine: number;
+      indentLevel: number;
+    }
+    
+    const containerSpans: ContainerSpan[] = [];
+    
+    // Find all container directive spans
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
       
-      const afterDirective = content.substring(startIndex + match[0].length);
-      const lines = afterDirective.split('\n');
+      // Match any container directive
+      const containerMatch = line.match(new RegExp(`^(\\s*)\\.\\. (${allContainers.join('|')})(::|-[a-z]*::)`, 'i'));
       
-      let inBlock = false;
-      let blockContent = '';
-      
-      for (const line of lines) {
-        if (line.match(/^\s{3,}/) || line.trim() === '') {
-          inBlock = true;
-          blockContent += line + '\n';
-        } else if (inBlock && line.match(/^\S/)) {
-          break;
+      if (containerMatch) {
+        const indentLevel = containerMatch[1].length;
+        const directiveType = containerMatch[2].toLowerCase();
+        
+        // Determine category
+        let category: 'callout' | 'tabs' | 'table';
+        if (callouts.includes(directiveType)) {
+          category = 'callout';
+        } else if (tabDirectives.includes(directiveType)) {
+          category = 'tabs';
+        } else {
+          category = 'table';
         }
-      }
-      
-      if (new RegExp(admonitionPattern, 'i').test(blockContent)) {
-        issues.push({
-          file: filename,
-          line: lineNum,
-          rule: 'nested-admonition',
-          severity: 'error',
-          message: 'Nested admonition detected (not allowed)',
-          suggestion: 'Remove inner admonition and make its content part of the parent'
+        
+        // Find where this container ends
+        let endLine = i;
+        for (let j = i + 1; j < lines.length; j++) {
+          const nextLine = lines[j];
+          if (nextLine.trim() === '') {
+            endLine = j;
+            continue;
+          }
+          const nextIndent = nextLine.match(/^(\s*)/)?.[1].length ?? 0;
+          if (nextIndent <= indentLevel && nextLine.trim() !== '') {
+            break;
+          }
+          endLine = j;
+        }
+        
+        containerSpans.push({
+          type: directiveType,
+          category,
+          startLine: i + 1, // 1-indexed
+          endLine: endLine + 1,
+          indentLevel
         });
+      }
+    }
+    
+    // Check for nested containers
+    for (const inner of containerSpans) {
+      for (const outer of containerSpans) {
+        if (inner === outer) continue;
+        
+        // Check if inner starts within outer's span
+        if (inner.startLine > outer.startLine && inner.startLine <= outer.endLine) {
+          // Exception: Tabs CAN contain callouts and tables (they're content organizers)
+          if (outer.category === 'tabs') {
+            continue;
+          }
+          
+          issues.push({
+            file: filename,
+            line: inner.startLine,
+            rule: 'nested-component',
+            severity: 'error',
+            message: `${inner.type} nested inside ${outer.type} (not allowed)`,
+            suggestion: 'Move the nested component outside or restructure content'
+          });
+          break; // Only report once per inner container
+        }
       }
     }
   }
@@ -746,7 +819,7 @@ function checkMalformedRefs(content: string, filename: string): LintIssue[] {
   while ((match = malformedRefRegex.exec(content)) !== null) {
     issues.push({
       file: filename,
-      line: findLineNumber(content, match[0]),
+      line: lineNumberFromIndex(content, match.index!),
       rule: 'syntax-malformed-ref',
       severity: 'error',
       message: 'Malformed :ref: directive with angle brackets',
@@ -771,7 +844,7 @@ function checkBrokenMdLinks(content: string, filename: string): LintIssue[] {
   while ((match = emptyLinkRegex.exec(content)) !== null) {
     issues.push({
       file: filename,
-      line: findLineNumber(content, match[0]),
+      line: lineNumberFromIndex(content, match.index!),
       rule: 'syntax-empty-link',
       severity: 'error',
       message: 'Empty link URL',
@@ -833,17 +906,24 @@ function checkLowContent(content: string, filename: string): LintIssue[] {
 export function lintContent(content: string, filename: string): LintIssue[] {
   const allIssues: LintIssue[] = [];
   
-  allIssues.push(...checkTitle(content, filename));
-  allIssues.push(...checkMetaDescription(content, filename));
-  allIssues.push(...checkH1(content, filename));
-  allIssues.push(...checkH2BeforeH1(content, filename));
+  // Include files are fragments - skip page-level SEO checks (title, meta, headings)
+  const isInclude = isIncludeFile(filename);
+  
+  if (!isInclude) {
+    allIssues.push(...checkTitle(content, filename));
+    allIssues.push(...checkMetaDescription(content, filename));
+    allIssues.push(...checkH1(content, filename));
+    allIssues.push(...checkH2BeforeH1(content, filename));
+    allIssues.push(...checkLowContent(content, filename));
+  }
+  
+  // These checks apply to all files (including includes)
   allIssues.push(...checkImageAlt(content, filename));
   allIssues.push(...checkPngFigwidth(content, filename));
   allIssues.push(...checkSvgDimensions(content, filename));
   allIssues.push(...checkNestedComponents(content, filename));
   allIssues.push(...checkMalformedRefs(content, filename));
   allIssues.push(...checkBrokenMdLinks(content, filename));
-  allIssues.push(...checkLowContent(content, filename));
   
   return allIssues;
 }
