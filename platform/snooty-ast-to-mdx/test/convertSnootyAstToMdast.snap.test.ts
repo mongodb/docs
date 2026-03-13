@@ -443,6 +443,15 @@ const cases: Array<[string, SnootyNode]> = [
   ['title node', { type: 'title', children: [{ type: 'text', value: 'A Title' }] }],
   ['directive figure', { type: 'directive', name: 'figure', argument: 'images/figure.png' }],
   ['directive sharedinclude', { type: 'directive', name: 'sharedinclude', argument: 'shared-file.rst' }],
+  [
+    'directive text (unwrapped)',
+    {
+      type: 'directive',
+      name: 'text',
+      argument: 'Plain content',
+      children: [{ type: 'paragraph', children: [{ type: 'text', value: ' from children' }] }],
+    },
+  ],
   ['directive_argument node', { type: 'directive_argument', children: [{ type: 'text', value: 'Arg text' }] }],
   ['comment node skipped', { type: 'comment', value: 'This is a comment' }],
   ['comment_block node skipped', { type: 'comment_block', value: 'Block comment' }],

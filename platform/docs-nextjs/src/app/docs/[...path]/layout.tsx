@@ -9,11 +9,19 @@ import { DarkModeContextProvider } from '@/context/dark-mode-context';
 import { getBannerData } from '@/services/db/banner';
 import Footer from '@/components/footer';
 import { darkModeScript } from '@/app/lib/dark-mode-script';
+import { CookiesProvider } from '@/context/cookies-context';
+import { cookies as nextCookies } from 'next/headers';
 
 import mdxLayoutStyles from './layout.module.scss';
 
 export default async function Layout({ children }: { children: React.ReactNode }) {
   const bannerData = await getBannerData();
+  const cookieStore = nextCookies();
+  const cookieArray = cookieStore.getAll();
+  const cookieValues = cookieArray.reduce((acc, cookie) => {
+    acc[cookie.name] = cookie.value;
+    return acc;
+  }, {} as Record<string, string>);
 
   return (
     <>
@@ -25,11 +33,13 @@ export default async function Layout({ children }: { children: React.ReactNode }
       <div className={mdxLayoutStyles.layout}>
         <SiteBannerProvider bannerData={bannerData}>
           <DarkModeContextProvider>
-            <LeafyGreenProviderWrapper>
-              <Analytics />
-              {children}
-              <Footer />
-            </LeafyGreenProviderWrapper>
+            <CookiesProvider cookies={cookieValues}>
+              <LeafyGreenProviderWrapper>
+                <Analytics />
+                {children}
+                <Footer />
+              </LeafyGreenProviderWrapper>
+            </CookiesProvider>
           </DarkModeContextProvider>
         </SiteBannerProvider>
       </div>

@@ -480,6 +480,27 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (!children.length && node.value) {
         children.push({ type: 'text', value: node.value });
       }
+
+      // Inline sub/sup roles (e.g. :sub:`2`, :sup:`64`) should render as native HTML elements
+      // so they don't require custom MDX component mappings.
+      if (componentName === 'Sup') {
+        return {
+          type: 'mdxJsxTextElement',
+          name: 'sup',
+          attributes,
+          children,
+        };
+      }
+
+      if (componentName === 'Sub') {
+        return {
+          type: 'mdxJsxTextElement',
+          name: 'sub',
+          attributes,
+          children,
+        };
+      }
+
       if (componentName === 'Command') {
         // return as bold text
         return {
@@ -502,22 +523,6 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         children,
       };
     }
-
-    case 'superscript':
-      return {
-        type: 'mdxJsxTextElement',
-        name: 'sup',
-        attributes: [],
-        children: convertChildren({ nodes: node.children, depth, ctx }),
-      };
-
-    case 'subscript':
-      return {
-        type: 'mdxJsxTextElement',
-        name: 'sub',
-        attributes: [],
-        children: convertChildren({ nodes: node.children, depth, ctx }),
-      };
 
     case 'definitionList': {
       const children = convertChildren({ nodes: node.children, depth, ctx });
