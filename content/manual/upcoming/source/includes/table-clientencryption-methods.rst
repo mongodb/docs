@@ -62,7 +62,8 @@ Commands with aliases are grouped together.
      - ✓
      - Returns the client encryption object for supporting explicit encryption/decryption of fields.
 
-   * - :method:`ClientEncryption.createEncryptedCollection()`
+   * - | :method:`db.createEncryptedCollection()`
+       | :method:`ClientEncryption.createEncryptedCollection()`
      - ✓
      - ✓
      - Creates a collection with encrypted fields.

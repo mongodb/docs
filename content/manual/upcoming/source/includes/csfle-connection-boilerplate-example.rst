@@ -27,7 +27,7 @@
       .. code-block:: javascript
          :emphasize-lines: 5
 
-          var autoEncryptionOpts = {
+          let autoEncryptionOpts = {
             "keyVaultNamespace" : "encryption.__dataKeys",
             "kmsProviders" : {
               "local" : {

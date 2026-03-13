@@ -1523,6 +1523,11 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/method/db.createCollection',
           },
           {
+            label: 'db.createEncryptedCollection',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/method/db.createEncryptedCollection',
+          },
+          {
             label: 'db.createView',
             contentSite: 'docs',
             url: '/docs/:version/reference/method/db.createView',
