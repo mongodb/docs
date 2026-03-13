@@ -18,12 +18,12 @@ export const toc: L1TocItem[] = [
             url: '/docs/mongoid/:version',
           },
           {
-            label: 'Quick Start - Ruby on Rails',
+            label: 'Get Started - Ruby on Rails',
             contentSite: 'mongoid',
             url: '/docs/mongoid/:version/quick-start-rails',
           },
           {
-            label: 'Quick Start - Sinatra',
+            label: 'Get Started - Sinatra',
             contentSite: 'mongoid',
             url: '/docs/mongoid/:version/quick-start-sinatra',
           },

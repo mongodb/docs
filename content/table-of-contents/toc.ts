@@ -12,7 +12,7 @@ export const toc: L1TocItem[] = [
   {
     label: 'Get Started',
     contentSite: 'landing',
-    url: '/docs/quick-start',
+    url: '/docs/get-started',
     items: GetStarted,
   },
   {

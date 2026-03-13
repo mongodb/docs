@@ -1759,7 +1759,7 @@ export const toc: L1TocItem[] = [
             url: '/docs/atlas/atlas-search',
             items: [
               {
-                label: 'Quick Start',
+                label: 'Get Started',
                 contentSite: 'cloud-docs',
                 collapsible: true,
                 url: '/docs/atlas/atlas-search/tutorial',
@@ -2305,7 +2305,7 @@ export const toc: L1TocItem[] = [
             url: '/docs/atlas/atlas-vector-search/vector-search-overview',
             items: [
               {
-                label: 'Quick Start',
+                label: 'Get Started',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/atlas-vector-search/tutorials/vector-search-quick-start',
               },
@@ -2490,7 +2490,7 @@ export const toc: L1TocItem[] = [
             url: '/docs/:version/core/timeseries-collections',
             items: [
               {
-                label: 'Quick Start',
+                label: 'Get Started',
                 contentSite: 'docs',
                 url: '/docs/:version/core/timeseries/timeseries-quick-start',
               },
@@ -3186,7 +3186,7 @@ export const toc: L1TocItem[] = [
                     url: '/docs/:version/core/queryable-encryption/features',
                   },
                   {
-                    label: 'Quick Start',
+                    label: 'Get Started',
                     contentSite: 'docs',
                     url: '/docs/:version/core/queryable-encryption/quick-start',
                   },
@@ -3324,7 +3324,7 @@ export const toc: L1TocItem[] = [
                     url: '/docs/:version/core/csfle/install',
                   },
                   {
-                    label: 'Quick Start',
+                    label: 'Get Started',
                     contentSite: 'docs',
                     url: '/docs/:version/core/csfle/quick-start',
                   },
@@ -3485,7 +3485,7 @@ export const toc: L1TocItem[] = [
                     url: '/docs/:version/core/queryable-encryption/install/',
                   },
                   {
-                    label: 'Quick Start',
+                    label: 'Get Started',
                     contentSite: 'docs',
                     url: '/docs/:version/core/queryable-encryption/quick-start/',
                   },
@@ -3610,7 +3610,7 @@ export const toc: L1TocItem[] = [
                     url: '/docs/:version/core/csfle/install/',
                   },
                   {
-                    label: 'Quick Start',
+                    label: 'Get Started',
                     contentSite: 'docs',
                     url: '/docs/:version/core/csfle/quick-start/',
                   },

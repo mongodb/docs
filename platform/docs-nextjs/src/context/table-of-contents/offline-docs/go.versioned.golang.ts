@@ -616,7 +616,7 @@ export const toc: L1TocItem[] = [
             },
           },
           {
-            label: 'Quick Start',
+            label: 'Get Started',
             contentSite: 'golang',
             url: '/docs/drivers/go/:version/quick-start',
             versions: {

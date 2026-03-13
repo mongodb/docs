@@ -4,7 +4,7 @@ const tocData: TocItem[] = [
   {
     label: 'Quick Start',
     contentSite: 'landing',
-    url: '/docs/quick-start',
+    url: '/docs/get-started',
   },
   {
     label: 'Build with AI',

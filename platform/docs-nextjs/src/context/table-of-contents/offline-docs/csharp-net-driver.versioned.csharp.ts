@@ -715,7 +715,7 @@ export const toc: L1TocItem[] = [
             },
           },
           {
-            label: 'Quick Start',
+            label: 'Get Started',
             contentSite: 'csharp',
             url: '/docs/drivers/csharp/:version/quick-start',
             versions: {
