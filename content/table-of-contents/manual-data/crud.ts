@@ -84,14 +84,6 @@ const tocData: TocItem[] = [
     label: 'Remove',
     contentSite: 'docs',
     url: '/docs/:version/tutorial/remove-documents',
-    collapsible: true,
-    items: [
-      {
-        label: 'Methods',
-        contentSite: 'docs',
-        url: '/docs/:version/reference/delete-methods',
-      },
-    ],
   },
   {
     label: 'Bulk Write',
