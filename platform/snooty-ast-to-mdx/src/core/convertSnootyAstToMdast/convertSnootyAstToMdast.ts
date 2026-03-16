@@ -284,6 +284,16 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (DIRECTIVE_NAMES_TO_SKIP.includes(directiveName)) {
         return convertChildren({ nodes: node.children, depth, ctx });
       }
+      if (directiveName === 'describe') {
+        const term = parseSnootyArgument(node);
+        const children = convertChildren({ nodes: node.children, depth, ctx });
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'Describe',
+          attributes: [{ type: 'mdxJsxAttribute', name: 'term', value: term }],
+          children,
+        };
+      }
       if (directiveName === 'figure' || directiveName === 'image') {
         return convertDirectiveImage({ node, ctx });
       }

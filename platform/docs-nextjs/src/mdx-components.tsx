@@ -20,6 +20,7 @@ import { CommunityPillLink } from '@/mdx-components/CommunityPillLink';
 import ComposableTutorial from '@/mdx-components/ComposableTutorial';
 import ComposableContent from '@/mdx-components/ComposableTutorial/ComposableContent';
 import Button from '@/mdx-components/Button';
+import { Describe } from '@/mdx-components/Describe';
 import { Highlight } from '@/mdx-components/Highlight';
 import Card from '@/mdx-components/Card';
 import CardGroup from '@/mdx-components/Card/CardGroup';
@@ -96,7 +97,7 @@ export const components = (injectedProps?: InjectedProps) =>
     DefinitionDescription: ({ children }) => <DefinitionDescription>{children}</DefinitionDescription>,
     Deprecated: ({ children }) => <span>{children}</span>,
     DeprecatedVersionSelector: ({ children }) => <span>{children}</span>,
-    Describe: ({ children }) => <span>{children}</span>,
+    Describe: ({ children, ...props }) => <Describe {...props}>{children}</Describe>,
     Example: ({ children }) => <span>{children}</span>,
     Extract: ({ children }) => children,
     Field: ({ children }) => <span>{children}</span>,
