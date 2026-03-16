@@ -136,6 +136,13 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       return { type: 'inlineCode', value };
     }
 
+    case 'block_quote': {
+      return {
+        type: 'blockquote',
+        children: convertChildren({ nodes: node.children, depth, ctx }),
+      };
+    }
+
     case 'code': // literal_block is mapped to `code` in AST
     case 'literal_block': {
       let value = node.value ?? '';
@@ -283,6 +290,13 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       // Pass over container directives: emit only their children, no wrapper.
       if (DIRECTIVE_NAMES_TO_SKIP.includes(directiveName)) {
         return convertChildren({ nodes: node.children, depth, ctx });
+      }
+
+      if (directiveName === 'blockquote') {
+        return {
+          type: 'blockquote',
+          children: convertChildren({ nodes: node.children, depth, ctx }),
+        };
       }
       if (directiveName === 'describe') {
         const term = parseSnootyArgument(node);
@@ -769,13 +783,6 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         children: [],
       }));
     }
-
-    case 'block_quote':
-      return {
-        type: 'blockquote',
-        children: convertChildren({ nodes: node.children, depth, ctx }),
-      };
-
     case 'admonition': {
       const admonitionName = String(node.name ?? node.admonition_type ?? 'note');
       const admonitionTitle = parseSnootyArgument(node);

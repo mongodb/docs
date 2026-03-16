@@ -65,7 +65,6 @@ export const components = (injectedProps?: InjectedProps) =>
     ),
     Abbr: ({ children, ...props }) => <Abbr {...props}>{children}</Abbr>,
     Banner: ({ children, ...props }) => <Banner {...props}>{children}</Banner>,
-    Blockquote: ({ children }) => <blockquote>{children}</blockquote>,
     Button: ({ children, ...props }) => <Button {...props}>{children}</Button>,
     Card: ({ children, ...props }) => <Card {...props}>{children}</Card>,
     CardGroup: ({ children, ...props }) => <CardGroup {...props}>{children}</CardGroup>,
