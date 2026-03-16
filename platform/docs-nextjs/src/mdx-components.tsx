@@ -20,6 +20,7 @@ import { CommunityPillLink } from '@/mdx-components/CommunityPillLink';
 import ComposableTutorial from '@/mdx-components/ComposableTutorial';
 import ComposableContent from '@/mdx-components/ComposableTutorial/ComposableContent';
 import Button from '@/mdx-components/Button';
+import { Literal } from '@/mdx-components/Literal';
 import { Describe } from '@/mdx-components/Describe';
 import { Highlight } from '@/mdx-components/Highlight';
 import Card from '@/mdx-components/Card';
@@ -70,6 +71,7 @@ export const components = (injectedProps?: InjectedProps) =>
     CardGroup: ({ children, ...props }) => <CardGroup {...props}>{children}</CardGroup>,
     Chapters: ({ children }) => <span>{children}</span>,
     Chapter: ({ children }) => <span>{children}</span>,
+    // TODO: This needs a new name - to not interfere with new "inline" code that is better for literals
     Code: ({ children }) => <span>{children}</span>,
     Contents: ({ children }) => <span>{children}</span>,
     Facet: ({ children }) => <span>{children}</span>,
@@ -129,7 +131,7 @@ export const components = (injectedProps?: InjectedProps) =>
     ),
     li: ({ children, ...props }) => <ListItem {...props}>{children}</ListItem>,
     ListTable: ({ children }) => <span>{children}</span>,
-    Literal: ({ children }) => <span>{children}</span>,
+    code: ({ children }) => <Literal>{children}</Literal>,
     LiteralBlock: ({ children }) => <span>{children}</span>,
     LiteralInclude: ({ children }) => <span>{children}</span>,
     MethodSelector: ({ children }) => <span>{children}</span>,

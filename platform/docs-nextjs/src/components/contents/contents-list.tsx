@@ -77,6 +77,12 @@ const listContainerStyles = css`
 const listStyles = css`
   list-style-type: none;
   padding: 0;
+
+  /* Override color of the LG inline code in "On this page" list */
+  & > code {
+    font-family: 'Source Code Pro';
+    color: unset;
+  }
 `;
 
 const mobileListStyles = css`

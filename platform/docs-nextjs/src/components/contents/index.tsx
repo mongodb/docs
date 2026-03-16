@@ -15,6 +15,7 @@ import FeedbackRating from '@/components/widgets/feedback-widget';
 import { theme } from '@/styles/theme';
 import useScreenSize from '@/hooks/use-screen-size';
 
+// Note: When moving MDX mappings, we don't need this anymore!
 const formatTextOptions = {
   literalEnableInline: true,
 };
