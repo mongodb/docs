@@ -56,3 +56,19 @@ modelBuilder.Entity<Planet>(p =>
     p.ToCollection("planets");
 });
 // end-sparse-index
+
+// start-alternate-key
+modelBuilder.Entity<Planet>(p =>
+{
+    p.HasAlternateKey(p => p.name);
+    p.ToCollection("planets");
+});
+// end-alternate-key
+
+// start-composite-alternate-key
+modelBuilder.Entity<Planet>(p =>
+{
+    p.HasAlternateKey(p => new { p.name, p.orderFromSun });
+    p.ToCollection("planets");
+});
+// end-composite-alternate-key
