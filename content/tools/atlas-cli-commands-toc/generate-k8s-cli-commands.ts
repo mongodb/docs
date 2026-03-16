@@ -146,30 +146,42 @@ async function fetchAllCommandFiles(baseUrl: string, basePath = ''): Promise<str
  */
 function createHierarchicalStructure(files: string[]): CommandTree {
   const tree: CommandTree = {};
-  
+
+  // Known compound command names that should not be split
+  const compoundCommands = ['dry-run'];
+
     files.forEach(file => {
       // Remove .txt extension and split by dashes
       const commandName = file.replace('.txt', '').replace(/\//g, '-');
-      const parts = commandName.split('-');
-      
-      // Remove 'atlas' prefix if present and ensure 'kubernetes' is the first part
-      if (parts[0] === 'atlas') {
-        parts.shift();
+
+      // Remove 'atlas-kubernetes-' prefix to get the clean command name
+      let cleanName = commandName;
+      if (cleanName.startsWith('atlas-kubernetes-')) {
+        cleanName = cleanName.substring('atlas-kubernetes-'.length);
+      } else if (cleanName.startsWith('atlas-')) {
+        cleanName = cleanName.substring('atlas-'.length);
       }
-      if (parts[0] === 'kubernetes') {
-        parts.shift(); // Remove the redundant 'kubernetes' since we'll add it back
+
+      // Check if this is a compound command that should not be split
+      let parts: string[];
+      if (compoundCommands.includes(cleanName)) {
+        // Treat as single command
+        parts = [cleanName];
+      } else {
+        // Split by dashes for hierarchical commands
+        parts = cleanName.split('-');
       }
-      
+
       let current = tree;
       let urlPath = '';
-      
+
       parts.forEach((part, index) => {
         if (index === 0) {
           urlPath = part;
         } else {
           urlPath += '-' + part;
         }
-        
+
         if (!current[part]) {
           current[part] = {
             label: part,
@@ -179,7 +191,7 @@ function createHierarchicalStructure(files: string[]): CommandTree {
             items: {}
           };
         }
-        
+
         if (index < parts.length - 1) {
           current = current[part].items as CommandTree;
         }

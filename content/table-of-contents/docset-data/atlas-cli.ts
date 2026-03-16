@@ -37,6 +37,7 @@ const atlasCommandsWithPlugins: TocItem[] = atlasCliCommands.map((cmd) => {
             'v1.49',
             'v1.50',
             'v1.51',
+            'v1.52',
           ],
         },
       } as TocItem,
