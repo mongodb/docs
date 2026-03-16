@@ -13,7 +13,7 @@ const {
   Code,
   DBRef,
   MaxKey,
-  MinKey
+  MinKey,
 } = require('mongodb');
 const { normalizeItem, preprocessFileContents } = require('./normalize');
 
@@ -67,7 +67,12 @@ function createEvaluationContext() {
 
   function TimestampConstructor(value) {
     // Handle both object format {t: number, i: number} and direct construction
-    if (typeof value === 'object' && value !== null && 't' in value && 'i' in value) {
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      't' in value &&
+      'i' in value
+    ) {
       return new Timestamp({ t: value.t, i: value.i });
     }
     return new Timestamp(value);
@@ -81,25 +86,25 @@ function createEvaluationContext() {
   // Add static methods that are used for Binary type construction.
   // These methods allow parsing of expected output files that use various Binary
   // factory methods like Binary.fromInt8Array(), Binary.createFromBase64(), etc.
-  BinaryConstructor.createFromBase64 = function(base64String, subtype) {
+  BinaryConstructor.createFromBase64 = function (base64String, subtype) {
     return Binary.createFromBase64(base64String, subtype);
   };
-  BinaryConstructor.createFromHexString = function(hexString, subtype) {
+  BinaryConstructor.createFromHexString = function (hexString, subtype) {
     return Binary.createFromHexString(hexString, subtype);
   };
-  BinaryConstructor.fromInt8Array = function(int8Array, subtype) {
+  BinaryConstructor.fromInt8Array = function (int8Array, subtype) {
     return Binary.fromInt8Array(int8Array, subtype);
   };
-  BinaryConstructor.fromFloat32Array = function(float32Array, subtype) {
+  BinaryConstructor.fromFloat32Array = function (float32Array, subtype) {
     return Binary.fromFloat32Array(float32Array, subtype);
   };
-  BinaryConstructor.fromPackedBits = function(packedBits, subtype) {
+  BinaryConstructor.fromPackedBits = function (packedBits, subtype) {
     return Binary.fromPackedBits(packedBits, subtype);
   };
-  BinaryConstructor.fromBits = function(bits, subtype) {
+  BinaryConstructor.fromBits = function (bits, subtype) {
     return Binary.fromBits(bits, subtype);
   };
-  BinaryConstructor.fromExtendedJSON = function(doc, options) {
+  BinaryConstructor.fromExtendedJSON = function (doc, options) {
     return Binary.fromExtendedJSON(doc, options);
   };
 
