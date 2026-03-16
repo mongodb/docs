@@ -27,6 +27,7 @@ import { GUILabel } from '@/mdx-components/GUILabel';
 import { Red } from '@/mdx-components/Red';
 import { Gold } from '@/mdx-components/Gold';
 import { Kbd } from '@/mdx-components/Kbd';
+import { Abbr } from '@/mdx-components/Abbr';
 
 type InjectedProps = Record<string, unknown>;
 
@@ -60,7 +61,7 @@ export const components = (injectedProps?: InjectedProps) =>
         {children}
       </Admonition>
     ),
-    Abbr: ({ children }) => <span>{children}</span>,
+    Abbr: ({ children, ...props }) => <Abbr {...props}>{children}</Abbr>,
     Banner: ({ children, ...props }) => <Banner {...props}>{children}</Banner>,
     Blockquote: ({ children }) => <blockquote>{children}</blockquote>,
     Button: ({ children, ...props }) => <Button {...props}>{children}</Button>,

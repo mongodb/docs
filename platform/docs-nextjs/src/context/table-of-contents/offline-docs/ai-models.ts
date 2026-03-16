@@ -17,7 +17,7 @@ export const toc: L1TocItem[] = [
             url: '/docs/voyageai/',
           },
           {
-            label: 'Get Started',
+            label: 'Quick Start',
             contentSite: 'voyageai',
             url: '/docs/voyageai/quickstart',
           },

@@ -18,7 +18,7 @@ export const toc: L1TocItem[] = [
             url: '/docs/drivers/php/laravel-mongodb/:version/',
           },
           {
-            label: 'Get Started',
+            label: 'Quick Start',
             contentSite: 'laravel',
             collapsible: true,
             url: '/docs/drivers/php/laravel-mongodb/:version/quick-start',

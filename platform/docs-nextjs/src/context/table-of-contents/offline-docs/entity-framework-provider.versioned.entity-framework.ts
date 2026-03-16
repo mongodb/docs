@@ -18,7 +18,7 @@ export const toc: L1TocItem[] = [
             url: '/docs/entity-framework/:version',
           },
           {
-            label: 'Get Started',
+            label: 'Quick Start',
             contentSite: 'entity-framework',
             url: '/docs/entity-framework/:version/quick-start',
           },

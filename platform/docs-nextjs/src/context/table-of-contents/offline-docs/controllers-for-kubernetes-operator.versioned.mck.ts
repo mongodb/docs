@@ -13,7 +13,7 @@ export const toc: L1TocItem[] = [
         versionDropdown: true,
         items: [
           {
-            label: 'Get Started',
+            label: 'Quick Start',
             contentSite: 'mck',
             url: '/docs/kubernetes/:version/kind-quick-start',
           },
@@ -24,7 +24,7 @@ export const toc: L1TocItem[] = [
             url: '/docs/kubernetes/:version/openshift-tutorials',
             items: [
               {
-                label: 'Get Started',
+                label: 'Quick Start',
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/openshift-quick-start',
               },
@@ -548,7 +548,7 @@ export const toc: L1TocItem[] = [
                 url: '/docs/kubernetes/:version/multi-cluster-prerequisites',
               },
               {
-                label: 'Get Started',
+                label: 'Quick Start',
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/multi-cluster-quick-start',
               },

@@ -516,6 +516,20 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           value: textContent,
         };
       }
+      if (componentName === 'Abbr') {
+        // Parse example, :abbr:`MQL (MongoDB Query Language)` to <Abbr tooltip="MongoDB Query Language">MQL</Abbr>
+        const textContent = extractInlineDisplayText(node.children ?? []);
+        const match = textContent.match(/^(.+?)\s*\((.+)\)$/);
+        if (match) {
+          const [, abbr, tooltip] = match;
+          return {
+            type: 'mdxJsxTextElement',
+            name: 'Abbr',
+            attributes: [{ type: 'mdxJsxAttribute', name: 'tooltip', value: tooltip }],
+            children: [{ type: 'text', value: abbr }],
+          };
+        }
+      }
       if (componentName.startsWith('Highlight')) {
         const color = componentName.replace('Highlight', '').toLowerCase();
         return {

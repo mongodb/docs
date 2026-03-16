@@ -18,7 +18,7 @@ export const toc: L1TocItem[] = [
             url: '/docs/drivers/rust/:version/',
           },
           {
-            label: 'Get Started',
+            label: 'Quick Start',
             contentSite: 'rust',
             collapsible: true,
             url: '/docs/drivers/rust/:version/quick-start',
