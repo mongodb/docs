@@ -11,7 +11,7 @@
       ``PutObject`` permissions. The following example policy grants the AWS
       principal these permissions for any S3 bucket:
 
-      .. literalinclude:: /includes/private-link-connection-example-policy.json
+      .. literalinclude:: /includes/s3-private-link-connection-example-policy.json
          :language: json
          :dedent:
          :emphasize-lines: 7,10-11,14
