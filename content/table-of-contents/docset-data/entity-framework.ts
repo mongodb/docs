@@ -76,9 +76,9 @@ const tocData: TocItem[] = [
         url: '/docs/entity-framework/:version/faq',
       },
       {
-        label: "What's New",
+        label: 'Release Notes',
         contentSite: 'entity-framework',
-        url: '/docs/entity-framework/:version/whats-new',
+        url: '/docs/entity-framework/:version/release-notes',
         versions: { excludes: ['v8.0'] },
       },
       {

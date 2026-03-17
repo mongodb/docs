@@ -81,9 +81,9 @@ export const toc: L1TocItem[] = [
             url: '/docs/entity-framework/:version/faq',
           },
           {
-            label: 'What\'s New',
+            label: 'Release Notes',
             contentSite: 'entity-framework',
-            url: '/docs/entity-framework/:version/whats-new',
+            url: '/docs/entity-framework/:version/release-notes',
             versions: {
               excludes: ['v8.0'],
             },
@@ -147,6 +147,14 @@ export const toc: L1TocItem[] = [
             url: 'https://mongodb.github.io/mongo-efcore-provider/9.0.4/api',
             versions: {
               includes: ['v9.0'],
+            },
+          },
+          {
+            label: 'API Documentation',
+            isExternal: true,
+            url: 'https://mongodb.github.io/mongo-efcore-provider/9.1.1/api',
+            versions: {
+              includes: ['v9.1'],
             },
           },
           {
