@@ -131,6 +131,12 @@ const tocData: TocItem[] = [
       {
         label: 'API Documentation',
         isExternal: true,
+        url: 'https://mongodb.github.io/mongo-efcore-provider/9.1.1/api',
+        versions: { includes: ['v9.1'] },
+      },
+      {
+        label: 'API Documentation',
+        isExternal: true,
         url: 'https://mongodb.github.io/mongo-efcore-provider/10.0.0/api',
         versions: { includes: ['current', 'upcoming'] },
       },

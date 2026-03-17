@@ -1,0 +1,190 @@
+.. _entity-framework-indexes:
+
+=============================
+Optimize Queries with Indexes
+=============================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: EF, EF Core, index, optimization, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to define **indexes** in the {+provider-short+}.
+Indexes can improve the efficiency of queries and add additional functionality
+to querying and storing documents.
+
+Without indexes, MongoDB must scan every document in a collection to find the
+documents that match each query. These collection scans are slow and can
+negatively affect the performance of your application. However, if you create an
+index that covers a query, MongoDB can use the index to limit the
+documents it must inspect.
+
+To improve query performance, build indexes on fields that appear often in your
+application's queries and operations that return sorted results. Each index that
+you add consumes disk space and memory when active, so we recommend that you
+track index memory and disk usage for capacity planning.
+
+Create an Index
+---------------
+
+The {+provider-short+} supports the following types of indexes:
+
+- :ref:`Single field indexes <entity-framework-single-field-index>`
+- :ref:`Compound indexes <entity-framework-compound-index>`
+- :ref:`Unique indexes <entity-framework-unique-index>`
+
+The examples in this guide use the sample application created in the
+:ref:`<entity-framework-quickstart>` guide. After you set up the quick start
+application, you can run the examples in this guide by adding the code to the
+``OnModelCreating()`` method of the ``PlanetDbContext``, as shown in the following
+example:
+
+.. literalinclude:: /includes/fundamentals/code-examples/indexes.cs
+   :language: csharp
+   :start-after: start-model-creating
+   :end-before: end-model-creating
+
+.. note::
+
+   The {+provider-short+} creates your indexes when you call the
+   ``dbContext.Database.EnsureCreated()`` method. You cannot modify or delete indexes by
+   using the provider after they are created. If you 
+   need to modify or delete an index in your application, you must use the
+   {+csharp-driver-short+} directly. 
+
+   To learn more about working with indexes in the driver, see the `Indexes
+   <{+driver-docs-root+}/fundamentals/indexes/>`__ guide in the {+csharp-driver-short+}
+   documentation.
+
+The following sections show how to create each of the preceding types of indexes.
+
+.. _entity-framework-single-field-index:
+
+Single Field Index
+~~~~~~~~~~~~~~~~~~
+
+:manual:`Single Field Indexes </core/indexes/index-types/index-single/>` are
+indexes with a reference to a single field within a collection's documents. They
+improve single field query and sort performance. The ``_id_`` index is an
+example of a single field index.
+
+You can create a single field index by calling the ``HasIndex()`` method with a
+lambda expression that specifies the field to index. The following example
+creates a single field index on a ``Planet`` entity:
+
+.. literalinclude:: /includes/fundamentals/code-examples/indexes.cs
+   :language: csharp
+   :start-after: start-single-field-index
+   :end-before: end-single-field-index
+
+.. _entity-framework-compound-index:
+
+Compound Index
+~~~~~~~~~~~~~~
+
+:manual:`Compound indexes </core/indexes/index-types/index-compound>` are
+indexes that cover multiple fields within a collection's documents.
+These indexes improve multi-field query and sort performance.
+
+You can create a compound index by calling the ``HasIndex()`` method with a
+lambda expression that specifies the fields to index. The following example
+creates a compound index on a ``Planet`` entity:
+
+.. literalinclude:: /includes/fundamentals/code-examples/indexes.cs
+   :language: csharp
+   :start-after: start-compound-index
+   :end-before: end-compound-index
+
+.. _entity-framework-unique-index:
+
+Unique Index
+~~~~~~~~~~~~
+
+Unique indexes ensure that multiple documents don't contain the same value for the
+indexed field. By default, MongoDB creates a unique index on the ``_id`` field
+during the creation of a collection. You cannot modify or remove this index.
+
+You can create a unique index by creating an index by using the
+``HasIndex()`` methods as shown in the preceding sections, then chaining the
+``IsUnique()`` method. The following example creates a unique index on a
+``Planet`` entity:
+
+.. literalinclude:: /includes/fundamentals/code-examples/indexes.cs
+   :language: csharp
+   :start-after: start-unique-index
+   :end-before: end-unique-index
+
+Index Options
+-------------
+
+You can specify options when creating your index to customize the index
+name, properties, or index type. The following
+sections describe some of the options that you can specify.
+
+Named Index
+~~~~~~~~~~~
+
+By default, MongoDB creates an index with a generated name based on the fields
+and options for the index. To specify a custom name
+for the index, pass in the name as a string when you create the index. The
+following example creates a compound index on the ``Planet`` entity with the
+name ``"named_order"``:
+
+.. literalinclude:: /includes/fundamentals/code-examples/indexes.cs
+   :language: csharp
+   :start-after: start-named-index
+   :end-before: end-named-index
+
+Index Order
+~~~~~~~~~~~
+
+By default, MongoDB creates indexes in ascending order. You can call the
+``IsDescending()`` method when creating a new index to create the index in
+descending order. The following example creates a descending index on a
+``Planet`` entity:
+
+.. literalinclude:: /includes/fundamentals/code-examples/indexes.cs
+   :language: csharp
+   :start-after: start-descending-index
+   :end-before: end-descending-index
+
+.. note::
+
+   Using a descending single field index might negatively impact index
+   performance. For best performance, use only ascending indexes.
+
+MongoDB-Specific Options
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can specify additional MongoDB-specific options when creating an index by using the
+``HasCreateIndexOptions()`` method and passing in an instance of the
+``CreateIndexOptions`` class of the {+csharp-driver-short+}. You can pass in any
+options that the ``CreateIndexOptions`` class supports. To learn more about
+the supported options, see the `CreateIndexOptions
+<{+driver-api-root+}/MongoDB.Driver/MongoDB.Driver.CreateIndexOptions.html>`__ API
+documentation.
+
+The following example creates an index and specifies the ``Sparse`` option to
+create a :manual:`Sparse Index </core/index-sparse/>`:
+
+.. literalinclude:: /includes/fundamentals/code-examples/indexes.cs
+   :language: csharp
+   :start-after: start-sparse-index
+   :end-before: end-sparse-index
+
+Additional Information
+----------------------
+
+For more information about indexes in MongoDB, see the :manual:`Indexes
+</core/indexes/>` guide in the {+mdb-server+} manual.
