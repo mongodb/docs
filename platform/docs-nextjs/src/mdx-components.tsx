@@ -29,6 +29,7 @@ import { GUILabel } from '@/mdx-components/GUILabel';
 import { Red } from '@/mdx-components/Red';
 import { Gold } from '@/mdx-components/Gold';
 import { Kbd } from '@/mdx-components/Kbd';
+import { Icon } from '@leafygreen-ui/icon';
 import { Abbr } from '@/mdx-components/Abbr';
 
 type InjectedProps = Record<string, unknown>;
@@ -113,9 +114,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Heading: ({ children, ...props }) => <Heading {...props}>{children}</Heading>,
     Highlight: ({ children, ...props }) => <Highlight {...props}>{children}</Highlight>,
     Hlist: ({ children, ...props }) => <HorizontalList {...props}>{children}</HorizontalList>,
-    Icon: ({ children }) => <span>{children}</span>,
-    IconMms: ({ children }) => <span>{children}</span>,
-    IconFa5: ({ children }) => <span>{children}</span>,
+    Icon: ({ children, ...props }) => <Icon {...props}>{children}</Icon>,
     Introduction: ({ children }) => <Introduction>{children}</Introduction>,
     Input: ({ children }) => <span>{children}</span>,
     IoCodeBlock: ({ children }) => <span>{children}</span>,

@@ -540,6 +540,17 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           value: textContent,
         };
       }
+      if (componentName.startsWith('Icon')) {
+        const iconType = node.name;
+        attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: iconType });
+
+        return {
+          type: 'mdxJsxTextElement',
+          name: 'Icon',
+          attributes,
+          children,
+        };
+      }
       if (componentName === 'Abbr') {
         // Parse example, :abbr:`MQL (MongoDB Query Language)` to <Abbr tooltip="MongoDB Query Language">MQL</Abbr>
         const textContent = extractInlineDisplayText(node.children ?? []);
