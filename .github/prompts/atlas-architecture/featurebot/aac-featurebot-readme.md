@@ -8,30 +8,82 @@
    JIRA_EMAIL=<email>
    JIRA_URL=https://jira.mongodb.org
    ```
-2. Set up MCP server for Jira & Monorepo. These steps are the same for Captain Bot - if you've already set that up, you've completed this step already.
-3. Set up MCP server for Glean: This allows Augment Code to access additional sources (Confluence, Aha!, etc.) to improve recommendations and provide additional information for tickets that have limited context.
+2. [Set up MCP server for Jira & Monorepo](https://wiki.corp.mongodb.com/spaces/DE/pages/474350958/Captain+Bot). These steps are the same for Captain Bot - if you've already set that up, you've completed this step already.
+3. [Set up MCP server for Glean](https://app.glean.com/settings/install): This allows Augment Code to access additional sources (Confluence, Aha!, etc.) to improve recommendations and provide additional information for tickets that have limited context. In the Glean UI:
+   - Click **Configure MCP Server**
+   - For host, select **Claude for Desktop**
+   - For authentication method, select **OAuth**
+   - Click **Save**
+
+   Then, add the following to the mcpServers object to your `~/.augment/settings.json` file:
+   ```json
+   "mcpServers": {
+    "glean_default": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-remote",
+        "https://mongodb-be.glean.com/mcp/default"
+      ]
+    }
+  },
+   ```
 
 # Steps to run this bot:
 
-## Prompt 1 steps (analysis only, no action)
+## Overview
 
-1. Run `git pull origin main` to make sure content is current before starting.
-2. Navigate to `~/content/atlas-architecture/current`.
+This bot uses a three-prompt workflow to analyze feature tickets and determine if they require updates to the Atlas Architecture Center (AAC):
+
+1. **Prompt 1 (Analysis)**: Analyzes a feature ticket and recommends whether AAC updates are needed
+2. **Prompt 2 (Create Ticket)**: Creates or updates a Jira ticket for AAC work (if updates are needed)
+3. **Prompt 3 (No Ticket)**: Adds a review comment to the feature ticket (if no updates are needed)
+
+## Workflow Steps
+
+### Step 1: Run Prompt 1 (Analysis)
+
+1. Navigate to `~/content/atlas-architecture/current`.
+2. Run `git pull origin main` to ensure content is current before starting.
 3. Run Augment Code with `auggie`.
-4. Set model to Sonnet, it performs better with this prompt series than Opus.
-5. Run Prompt 1.
-6. When Auggie is done with its Analysis, read through the results.
-   - If Auggie recommends no action is required for Architecture Center and you agree with that assessment, enter Yes. Confirm that the AAC_reviewed label was added to the ticket. You're done!
-   - If Auggie recommends that updates need to be made to the Architecture Center and you agree with some or all of its recommendations, enter Yes. Confirm that the AAC_reviewed label was added to the ticket and proceed to Prompt 2.
-   - If you believe further analysis is required (regardless of whether Auggie recommended updates or not), or you aren't able to proceed any further for other reasons (ie: time constraints), enter No and proceed to step 6.
-7. Prompt the bot for additional analysis based on any factors you think are important for it to consider, then to repeat the analysis, filtering, and output phases of prompt 1. Repeat until you can answer Yes or No as in Step 5.
-8. Confirm that the AAC_reviewed label was successfully added to the feature ticket.
+4. Set model to Sonnet (Sonnet performs better with this prompt series than Opus).
+5. Run Prompt 1 (`prompt1-analysis.md`).
+6. Review the agent's analysis and recommendations.
 
-## Prompt 2 steps (action phase, create ticket)
+### Step 2: Provide Feedback (if needed)
 
-1. Run Prompt 2 only if you intend to create a new ticket for Architecture Center work tied to the feature ticket analyzed in Prompt 1.
-2. Determine which numbered recommendations from the output of Prompt 1 should be carried over into the new ticket.
-3. Update the first sentence of Prompt 2 to replace the blank line ______ with the numbered recommendations you selected in step 1.
-4. Run Prompt 2.
-5. Read through the bot's list output of successful and failed steps and correct any failed steps, either manually or through Auggie.
+If you need clarification or disagree with the agent's recommendations:
+- Ask follow-up questions or provide additional context
+- Request the agent to repeat the analysis, filtering, and output phases with your feedback incorporated
+- Repeat until you agree with the agent's assessment
+
+### Step 3: Proceed to Prompt 2 or Prompt 3
+
+Once you agree with the agent's recommendations:
+
+**If AAC updates ARE needed:**
+- Run Prompt 2 (`prompt2-create-ticket.md`)
+- The agent will:
+  - Add the "AAC_reviewed" label to the feature ticket
+  - Search for existing related AAC_featurebot tickets
+  - Either create a new AAC ticket or update an existing one with the recommended deliverables
+  - Link the AAC ticket to the feature ticket and any relevant Epic
+
+**If NO AAC updates are needed:**
+- Run Prompt 3 (`prompt3-no-ticket.md`)
+- The agent will:
+  - Add the "AAC_reviewed" label to the feature ticket
+  - Add a comment documenting the review outcome and reasoning
+
+### Step 4: Verify Completion
+
+Review the agent's validation output to confirm all actions were successfully completed:
+- For Prompt 2: Verify the ticket was created/updated correctly and all fields were set properly
+- For Prompt 3: Verify the label and comment were added to the feature ticket
+- If any steps failed, work with the agent to resolve the issues manually or through additional prompts
+
+### Step 5: Reset Context Before Next Run
+
+Before analyzing another ticket, run the `/new` command in Augment Code CLI (Auggie) to start a fresh conversation. This prevents context from the previous ticket analysis from influencing the next prompt series run.
 
