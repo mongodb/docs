@@ -1,0 +1,344 @@
+.. _php-llphant-integration:
+
+==============================
+Integrate MongoDB with LLPhant
+==============================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: php, llphant, ai, vector search, embeddings, generative, voyage ai, code example
+   :description: Build an intelligent document search system using PHP, LLPhant, and MongoDB. Learn how to create AI-powered applications with vector embeddings and semantic search.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to create an application that uses
+**LLPhant**, a PHP generative AI framework, and **MongoDB** as a 
+vector store. LLPhant is an open-source, comprehensive framework that offers a range of features,
+providing tools to build AI-powered applications with support for multiple
+LLM providers.
+
+Why Use MongoDB with LLPhant?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+LLPhant supports the use of MongoDB as a vector embeddings store,
+which allows you to build powerful AI applications that require semantic search
+and vector operations. LLPhant also supports MongoDB's Voyage AI embedding
+models, which are optimized for accurate AI search and retrieval. MongoDB's native
+vector search capabilities, combined with LLPhant's AI framework, provide the
+following features:
+
+- **Store and search embeddings**: Use Voyage AI embeddings with MongoDB Vector
+  Search to perform fast, accurate semantic search queries across large document
+  collections.
+- **Flexible document storage**: Store both structured metadata and vector 
+  embeddings in the same document.
+- **Scalable AI applications**: Build applications that can handle large 
+  volumes of documents and complex queries.
+- **Multimodal search**: Vectorize mixed text, image, and video data, and
+  query this data in a single search query. To learn more, see :website:`Multimodal Embeddings
+  </docs/voyageai/models/multimodal-embeddings/>` in the Voyage AI documentation.
+
+This combination supports real-world applications such as intelligent document 
+management systems, semantic product search, knowledge bases, and AI-powered 
+content recommendation engines.
+
+.. _php-llphant-qs-tutorial:
+
+Quick Start Tutorial
+--------------------
+
+This tutorial shows you how to build an intelligent document search system by
+using LLPhant and MongoDB. The application processes documents that store restaurant
+data, generates Voyage AI vector embeddings, stores them in MongoDB, and provides semantic search
+capabilities. The tutorial includes instructions for connecting to a MongoDB
+Atlas cluster and implementing vector search functionality.
+
+.. _php-llphant-set-up:
+
+Set Up Your Project
+~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in this section to install the project dependencies,
+create an Atlas cluster, and set up the application structure.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Verify the prerequisites.
+
+      To create the Quick Start application, install the following software
+      in your development environment:
+
+      .. list-table::
+         :header-rows: 1
+
+         * - Prerequisite
+           - Notes
+
+         * - `PHP <https://www.php.net/downloads.php>`__
+           - Use version 8.1 or later.
+
+         * - `MongoDB PHP Extension <https://www.php.net/manual/en/mongodb.installation.php>`__
+           - Install ``mongodb``, the MongoDB PHP extension. Follow the instructions in
+             the extension documentation that correspond to your operating system.
+
+         * - `Composer <https://getcomposer.org/download/>`__
+           - Required for PHP dependency management.
+
+         * - `Voyage AI API Key <https://www.mongodb.com/docs/voyageai/management/api-keys/>`__
+           - Required for generating embeddings. Create an account and generate an API key.
+
+         * - Code editor
+           - Use the code editor of your choice.
+
+         * - Terminal app and shell 
+           - For macOS users, use Terminal or a similar app.
+             For Windows users, use PowerShell or the Command shell.
+
+   .. step:: Create a MongoDB Atlas cluster.
+      
+      MongoDB Atlas is a fully managed cloud database service that hosts your
+      MongoDB deployments. If you do not have a MongoDB deployment, you can create a MongoDB
+      cluster for free by completing the
+      `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=php>`__
+      tutorial.
+
+      To connect to your MongoDB cluster, you must use a **connection string**. To
+      learn how to retrieve your connection string, see the `Add your connection string
+      <https://www.mongodb.com/docs/get-started/?language=php#add-your-connection-string>`__
+      section of the MongoDB Get Started tutorial.
+
+      .. important::
+
+         Save your connection string in a secure location.
+
+   .. step:: Create your PHP project.
+
+      From your terminal, run the following commands to create a new directory
+      for your project and navigate to it:
+
+      .. code-block:: bash
+
+         mkdir llphant-quickstart
+         cd llphant-quickstart
+
+   .. step:: Install LLPhant, the PHP library, and dependencies.
+
+      Install the required dependencies by running the following command:
+
+      .. code-block:: bash
+
+         composer require theodo-group/llphant symfony/dotenv mongodb/mongodb
+
+      This command installs LLPhant, the MongoDB PHP Library, and the Symfony ``dotenv`` package for
+      managing environment variables.
+
+   .. step:: Configure Composer autoloading.
+
+      In your ``llphant-quickstart`` directory, navigate to your ``composer.json`` file.
+      Add the highlighted code to this file:
+
+      .. code-block:: json
+         :emphasize-lines: 6-10
+
+         {
+             "require": {
+                 "theodo-group/llphant": "^0.11.15",
+                 "symfony/dotenv": "^8.0"
+             },
+             "autoload": {
+                 "psr-4": {
+                     "App\\": "src/"
+                 }
+             },
+             ...
+         }
+
+      This code instructs Composer to autoload classes in the ``App`` namespace from the
+      ``src`` directory.
+
+   .. step:: Configure environment variables.
+
+      To store your environment variables, create an ``.env`` file in your ``llphant-quickstart``
+      directory. Paste the following code into the file:
+
+      .. code-block:: bash
+
+         VOYAGE_AI_API_KEY=<Voyage AI key>
+         MONGODB_URI=<connection string>
+
+      Replace the placeholder values with your Voyage AI API key and MongoDB
+      connection string from the previous steps.
+
+Configure Your Application
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After setting up the project dependencies, follow the steps in this section
+to create the search service and implement search functionality.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create the search service.
+
+      Run the following commands from your ``llphant-quickstart`` directory
+      to create a ``src`` subdirectory and a ``DocumentSearchService.php`` file.
+      Select the :guilabel:`macOS / Linux` or :guilabel:`Windows` tab to see the
+      commands that correspond to your operating system:
+
+      .. tabs::
+
+          .. tab:: macOS / Linux
+             :tabid: create-service-mac-linux
+
+             .. code-block:: bash
+
+                mkdir -p src
+                touch src/DocumentSearchService.php
+
+          .. tab:: Windows
+             :tabid: create-service-windows
+
+             .. code-block:: bash
+
+                mkdir src
+                type nul > src\DocumentSearchService.php
+
+      Then, add the following code to your ``src/DocumentSearchService.php`` file:
+
+      .. literalinclude:: /includes/php-frameworks/llphant/DocumentSearchService.php
+         :language: php
+         :dedent:
+
+      This service class receives an embeddings generator and vector store as dependencies,
+      and it includes methods that handle document storage and vector similarity search.
+
+   .. step:: Create the main application script.
+
+      Select the tab corresponding to your operating system and run the following command
+      to create an ``index.php`` file in your ``llphant-quickstart`` directory:
+
+      .. tabs::
+
+          .. tab:: macOS / Linux
+             :tabid: create-index-mac-linux
+
+             .. code-block:: bash
+
+                touch index.php
+
+          .. tab:: Windows
+             :tabid: create-index-windows
+
+             .. code-block:: bash
+
+                type nul > index.php
+
+      Then, add the following code to ``index.php``:
+
+      .. literalinclude:: /includes/php-frameworks/llphant/index.php
+         :language: php
+         :dedent:
+
+      This main application script performs the following actions:
+
+      - Uses MongoDB as a vector store, specifying the database, collection, and index to use.
+      - Creates sample documents that store information about restaurants in New York City. Each document
+        contains a restaurant name, description, and AI-generated embeddings.
+      - Performs a semantic search query to find restaurant descriptions that are similar to the ``"High-end restaurant with unique options and a romantic atmosphere"``
+        query phrase.
+      - Displays the search results ranked by vector similarity.
+
+Run Your Application
+~~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in this section to run your document search
+application and test the semantic search functionality.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Run the application.
+
+      From your ``llphant-quickstart`` directory, run the following command
+      to start the application:
+
+      .. code-block:: bash
+
+         php index.php
+
+      If the application runs successfully, your output resembles the following code:
+
+      .. code-block:: text
+         :copyable: false
+
+         Adding sample documents...
+         Added: Le Bernardin
+         Added: Au Za'atar
+         Added: Bacaro
+         Added: Levant
+         Added: Hangawi
+
+         Performing semantic search...
+         Query: High-end restaurant with unique options and a romantic atmosphere
+
+         Search Results:
+         1. Au Za'atar
+            Description: Polished eatery offering shawarma, mezze, and Lebanese dishes, plus outdoor dining. Features authent...
+
+         2. Bacaro
+            Description: Candlelit basement eatery serving pastas & Venetian small plates alongside Italian wines. Intimate I...
+
+         3. Hangawi
+            Description: Upscale menu of creative, gourmet Korean fare in a tranquil space where shoes come off at the door. ...
+
+   .. step:: Test different search queries.
+
+      You can experiment with the semantic search by modifying the
+      ``$searchQuery`` variable in your ``index.php`` file and running the
+      application again. For example, use the following search queries:
+
+      .. code-block:: bash
+
+         # Sample search queries
+         $searchQuery = "Casual place for Middle Eastern food";
+         $searchQuery = "Modern Italian restaurant";
+         $searchQuery = "Affordable restaurants serving Asian cuisine";
+
+      .. tip::
+
+         Before running additional queries, comment out the code that adds
+         sample documents in your ``index.php`` file.
+
+      The semantic search returns relevant documents based on meaning
+      rather than exact keyword matches, demonstrating the power of vector
+      embeddings for intelligent search applications.
+
+Congratulations on completing the LLPhant Quick Start tutorial!
+
+After you complete these steps, you have an intelligent document search
+system that uses LLPhant and MongoDB to provide semantic search capabilities.
+The application demonstrates how to generate embeddings, store them in MongoDB,
+and perform vector similarity searches for AI-powered document retrieval.
+
+Additional Resources
+--------------------
+
+To learn more about LLPhant, MongoDB, and building AI applications, see the
+following resources:
+
+- `LLPhant <https://llphant.readthedocs.org>`__ documentation
+- :github:`LLPhant repository </LLPhant/LLPhant>` on GitHub
+- :atlas:`MongoDB Vector Search </atlas-vector-search/vector-search-overview/>` documentation
+- `MongoDB PHP Library <https://www.mongodb.com/docs/php-library/current/>`__ documentation
+- `Voyage AI <https://www.mongodb.com/docs/voyageai/>`__ documentation
