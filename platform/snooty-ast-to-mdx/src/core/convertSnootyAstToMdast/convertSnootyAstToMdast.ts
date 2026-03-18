@@ -298,6 +298,14 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           children: convertChildren({ nodes: node.children, depth, ctx }),
         };
       }
+      if (directiveName === 'time') {
+        const time = parseSnootyArgument(node);
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'Time',
+          attributes: [{ type: 'mdxJsxAttribute', name: 'minutes', value: time }],
+        };
+      }
       if (directiveName === 'describe') {
         const term = parseSnootyArgument(node);
         const children = convertChildren({ nodes: node.children, depth, ctx });

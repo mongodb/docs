@@ -31,6 +31,7 @@ import { Gold } from '@/mdx-components/Gold';
 import { Kbd } from '@/mdx-components/Kbd';
 import { Icon } from '@leafygreen-ui/icon';
 import { Abbr } from '@/mdx-components/Abbr';
+import { Time } from '@/mdx-components/Time';
 
 type InjectedProps = Record<string, unknown>;
 
@@ -161,7 +162,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Tab: ({ children }) => <span>{children}</span>,
     TabsSelector: ({ children }) => <span>{children}</span>,
     Target: ({ children }) => <span>{children}</span>,
-    Time: ({ children }) => <span>{children}</span>,
+    Time: (props) => <Time {...props} />,
     TitleReference: ({ children }) => <span>{children}</span>,
     Toctree: ({ children }) => <span>{children}</span>,
     // built-in thematic break (--- / *** / ___) → hr; render with Transition component
