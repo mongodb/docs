@@ -419,6 +419,71 @@ func TestExpectStructComparison(t *testing.T) {
 	}
 }
 
+// TestExpectBsonMComparison tests that bson.M slices work with the ExpectThat API
+func TestExpectBsonMComparison(t *testing.T) {
+	tempDir := t.TempDir()
+
+	t.Run("Single bson.M document matches", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "bsonm_single.txt")
+		createTestFile(t, testFile, `{"name":"John","age":30,"active":true}`)
+
+		actual := []bson.M{
+			{"name": "John", "age": int32(30), "active": true},
+		}
+
+		ExpectThat(t, actual).ShouldMatch(testFile)
+	})
+
+	t.Run("Multiple bson.M documents match", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "bsonm_multi.txt")
+		createTestFile(t, testFile, `{"id":1,"name":"Alice"}
+{"id":2,"name":"Bob"}`)
+
+		actual := []bson.M{
+			{"id": int32(1), "name": "Alice"},
+			{"id": int32(2), "name": "Bob"},
+		}
+
+		ExpectThat(t, actual).ShouldMatch(testFile)
+	})
+
+	t.Run("bson.M with ellipsis wildcard", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "bsonm_ellipsis.txt")
+		createTestFile(t, testFile, `{"_id":"...","title":"Back to the Future","...":"..."}`)
+
+		oid := bson.NewObjectID()
+		actual := []bson.M{
+			{"_id": oid, "title": "Back to the Future", "year": int32(1985)},
+		}
+
+		ExpectThat(t, actual).ShouldMatch(testFile)
+	})
+
+	t.Run("bson.M with ignored fields", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "bsonm_ignored.txt")
+		createTestFile(t, testFile, `{"_id":"original","name":"John"}`)
+
+		actual := []bson.M{
+			{"_id": "different", "name": "John"},
+		}
+
+		ExpectThat(t, actual).WithIgnoredFields("_id").ShouldMatch(testFile)
+	})
+
+	t.Run("bson.M unordered documents (default)", func(t *testing.T) {
+		testFile := filepath.Join(tempDir, "bsonm_unordered.txt")
+		createTestFile(t, testFile, `{"name":"Alice","score":95}
+{"name":"Bob","score":87}`)
+
+		actual := []bson.M{
+			{"name": "Bob", "score": int32(87)},
+			{"name": "Alice", "score": int32(95)},
+		}
+
+		ExpectThat(t, actual).ShouldMatch(testFile)
+	})
+}
+
 // TestExpectMixedTypesComparison tests that both BSON and struct comparisons work with the ExpectThat API
 func TestExpectMixedTypesComparison(t *testing.T) {
 	type User struct {

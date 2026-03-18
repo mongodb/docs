@@ -31,8 +31,9 @@ func convertActualResults(actualResults interface{}) ([]interface{}, error) {
 		// Handle different types
 		switch doc := item.(type) {
 		case bson.D:
-			// Existing BSON.D handling
 			normalized[i] = normalizeValue(bsonDToMap(doc))
+		case bson.M:
+			normalized[i] = normalizeValue(bsonMToMap(doc))
 		default:
 			// Handle struct types by converting to map using reflection
 			normalized[i] = normalizeValue(structToMap(item))
@@ -263,6 +264,8 @@ func normalizeValue(value interface{}) interface{} {
 	switch v := value.(type) {
 	case bson.D:
 		return normalizeValue(bsonDToMap(v))
+	case bson.M:
+		return normalizeValue(bsonMToMap(v))
 	case bson.A:
 		arr := make([]interface{}, len(v))
 		for i, item := range v {
@@ -309,6 +312,15 @@ func bsonDToMap(doc bson.D) map[string]interface{} {
 	result := make(map[string]interface{})
 	for _, elem := range doc {
 		result[elem.Key] = elem.Value
+	}
+	return result
+}
+
+// bsonMToMap converts bson.M to map[string]interface{}
+func bsonMToMap(doc bson.M) map[string]interface{} {
+	result := make(map[string]interface{})
+	for k, v := range doc {
+		result[k] = v
 	}
 	return result
 }

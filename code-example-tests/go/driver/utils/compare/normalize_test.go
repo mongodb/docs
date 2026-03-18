@@ -126,6 +126,74 @@ func TestBsonDToMap(t *testing.T) {
 	}
 }
 
+func TestBsonMToMap(t *testing.T) {
+	bsonDoc := bson.M{
+		"name":   "John",
+		"age":    30,
+		"active": true,
+	}
+
+	result := bsonMToMap(bsonDoc)
+
+	expected := map[string]interface{}{
+		"name":   "John",
+		"age":    30,
+		"active": true,
+	}
+
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("Expected %v, got %v", expected, result)
+	}
+}
+
+func TestNormalizeValueBsonM(t *testing.T) {
+	bsonDoc := bson.M{
+		"name":  "Alice",
+		"score": int32(42),
+	}
+
+	result := normalizeValue(bsonDoc)
+
+	normalized, ok := result.(map[string]interface{})
+	if !ok {
+		t.Fatalf("Expected map[string]interface{}, got %T", result)
+	}
+
+	if normalized["name"] != "Alice" {
+		t.Errorf("Expected name='Alice', got %v", normalized["name"])
+	}
+	// int32 should be normalized to float64
+	if normalized["score"] != float64(42) {
+		t.Errorf("Expected score=42.0, got %v (%T)", normalized["score"], normalized["score"])
+	}
+}
+
+func TestConvertActualResultsBsonMSlice(t *testing.T) {
+	input := []bson.M{
+		{"name": "Alice", "age": int32(30)},
+		{"name": "Bob", "age": int32(25)},
+	}
+
+	result, err := convertActualResults(input)
+	if err != nil {
+		t.Fatalf("Unexpected error: %v", err)
+	}
+
+	if len(result) != 2 {
+		t.Fatalf("Expected 2 results, got %d", len(result))
+	}
+
+	for i, item := range result {
+		doc, ok := item.(map[string]interface{})
+		if !ok {
+			t.Errorf("Result[%d]: expected map[string]interface{}, got %T", i, item)
+		}
+		if _, ok := doc["name"]; !ok {
+			t.Errorf("Result[%d]: missing 'name' key", i)
+		}
+	}
+}
+
 func TestStandaloneEllipsisAtFieldLevel(t *testing.T) {
 	// Writer scenario: using `...` at the end of a document to indicate more fields are omitted
 	// The standalone `...` on its own line should be converted to `"...": "..."` for the comparison engine
