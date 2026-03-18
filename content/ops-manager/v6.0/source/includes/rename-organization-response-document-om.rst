@@ -9,7 +9,6 @@
    * - ``id``
      - :ref:`ObjectId <document-bson-type-object-id>`
      - Unique identifier for the organization.
-       
    * - ``links``
      - document array
      - One or more links to sub-resources and/or related resources. The
@@ -40,4 +39,4 @@
    * - | ldapGroupMappings
        | .ldapGroups
      - string array
-     - LDAP project(s) that map to the |onprem| role.
+     - LDAP group(s) that map to the |onprem| role.
