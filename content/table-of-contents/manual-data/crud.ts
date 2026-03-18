@@ -5,14 +5,6 @@ const tocData: TocItem[] = [
     label: 'Insert',
     contentSite: 'docs',
     url: '/docs/:version/tutorial/insert-documents',
-    collapsible: true,
-    items: [
-      {
-        label: 'Methods',
-        contentSite: 'docs',
-        url: '/docs/:version/reference/insert-methods',
-      },
-    ],
   },
   {
     label: 'Query',
