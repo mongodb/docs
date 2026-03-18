@@ -1,4 +1,4 @@
-.. warning:: MongoDB 8.0 Incompatible with Kernel 6.19
+.. warning:: MongoDB 8.0 and Newer are Incompatible with Kernel 6.19
    
    Due to an incompatibility between a new kernel release and the
    currently vendored version of TCMalloc, running MongoDB 8.0 or newer
