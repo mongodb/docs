@@ -1,9 +1,5 @@
 import type { TocItem } from '../types';
 
-// import docsVersions from '../version-arrays/drivers/node-versions';
-
-//const outdatedVersions = docsVersions.before('v6.15', { inclusive: true });
-
 const tocData: TocItem[] = [
   {
     label: 'Node.js Driver',
