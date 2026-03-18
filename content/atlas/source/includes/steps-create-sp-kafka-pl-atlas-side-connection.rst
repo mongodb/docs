@@ -43,13 +43,14 @@ Set all other values as necessary.
 
 The following example command creates a {+kafka+} connection in {+service+}:
 
+.. include:: /includes/fact-service-accounts-first.rst
+
 .. code-block:: sh
 
-   curl --location 'https://cloud.mongodb.com/api/atlas/v2/groups/8358217d3abb5c76c3434648/streams/spinstance/connections' \ 
-   --digest \ 
-   --user "slrntglrbn:933fb118-ac62-4991-db05-ee67a3481fde" \ 
-   --header 'Content-Type: application/json' \ 
-   --header 'Accept: application/vnd.atlas.2023-02-01+json' \ 
+   curl --location 'https://cloud.mongodb.com/api/atlas/v2/groups/8358217d3abb5c76c3434648/streams/spinstance/connections' \
+   --header "Authorization: Bearer {ACCESS-TOKEN}" \
+   --header 'Content-Type: application/json' \
+   --header 'Accept: application/vnd.atlas.2023-02-01+json' \
    --data '{ 
      "name": "confluent_demo", 
      "bootstrapServers": "slr-ntgrbn.sample.us-east-1.aws.confluent.cloud:9092", 

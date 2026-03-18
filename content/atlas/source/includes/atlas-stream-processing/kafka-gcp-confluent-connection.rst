@@ -87,15 +87,16 @@ To create a {+gcp+} Confluent Private Link connection to use in your
                specific Availability Zone where your cluster is deployed.
 
       The following example illustrates a Multi-Zone cluster.
-	       
+
+      .. include:: /includes/fact-service-accounts-first.rst
+
       .. io-code-block:: 
          :copyable: true 
 
          .. input::
 
             curl --location 'https://cloud.mongodb.com/api/atlas/v2/groups/8358217d3abb5c76c3434648/streams/privateLinkConnections' \
-            --digest \
-            --user "slrntglrbn:933fb118-ac62-4991-db05-ee67a3481fde" \
+            --header "Authorization: Bearer {ACCESS-TOKEN}" \
             --header 'Content-Type: application/json' \
             --header 'Accept: application/vnd.atlas.2024-11-13+json' \
             --data '{ 

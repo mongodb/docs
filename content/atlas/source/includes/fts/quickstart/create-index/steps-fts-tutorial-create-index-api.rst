@@ -3,6 +3,8 @@ a. Copy and paste the sample cURL request in your preferred text editor.
    The following index definition dynamically indexes the fields 
    in the ``movies`` collection.
 
+   .. include:: /includes/fact-service-accounts-first.rst
+
    .. literalinclude:: /includes/fts/search-index-management/api-create-dynamic-mapping.sh
       :language: sh
       :linenos:

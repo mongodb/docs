@@ -1,10 +1,10 @@
 Your request should resemble the following examples, where 
 ``{PUBLIC-KEY}`` is your |api| public key and ``{PRIVATE-KEY}``
 is the corresponding private key. To explore the available endpoints
-through the {+atlas-admin-api+}, you can use MongoDB's 
-`Postman workspace <https://www.postman.com/mongodb-devrel/workspace/mongodb-atlas-administration-apis/overview>`__.
+through the {+atlas-admin-api+}, you can use the
+`Postman workspace for MongoDB <https://www.postman.com/mongodb-devrel/workspace/mongodb-atlas-administration-apis/overview>`__.
 
-The following sample ``GET`` request 
+The following sample ``GET`` request
 :oas-bump-atlas-op:`returns all projects </listgroups>` in your organization:
 
 .. code-block:: sh
@@ -16,7 +16,7 @@ The following sample ``GET`` request
          --request GET "https://cloud.mongodb.com/api/atlas/v2/groups"
 
 The following sample ``POST`` request takes a request body and
-:oas-bump-atlas-op:`creates a project </creategroup>` named 
+:oas-bump-atlas-op:`creates a project </creategroup>` named
 ``MyProject`` in your organization:
 
 .. code-block:: sh

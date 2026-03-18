@@ -1,10 +1,11 @@
 Run the following Admin API command to create the search index. Replace the
 ``<projectId>``, and ``<clusterName>`` with your actual values.
 
+.. include:: /includes/fact-service-accounts-first.rst
+
 .. code-block:: bash
 
-  curl --user "${PUBLIC_KEY}:${PRIVATE_KEY}" \
-    --digest \
+   curl --header "Authorization: Bearer {ACCESS_TOKEN}" \
     --header "Accept: application/vnd.atlas.2025-03-12+json" \
     --header "Content-Type: application/json" \
     -X POST "https://cloud.mongodb.com/api/atlas/v2/groups/<projectId>/clusters/<clusterName>/search/indexes" \

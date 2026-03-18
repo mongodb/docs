@@ -3,11 +3,13 @@
 
    .. step:: Send a ``PATCH`` request to the ``encryptionAtRest`` :oas-bump-atlas-op:`endpoint <updategroupencryptionatrest>`.
 
+      .. include:: /includes/fact-service-accounts-first.rst
+
       .. example:: 
 
          .. code-block:: json
       
-            curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+            curl --header "Authorization: Bearer {ACCESS-TOKEN}" \
             --header "Accept: application/vnd.atlas.2024-05-30+json" \
             --header "Content-Type: application/vnd.atlas.2024-05-30+json" \
             --request PATCH "https://cloud.mongodb.com/api/atlas/v2/groups/66c9e8f1dd6c9960802420e9/encryptionAtRest" \
@@ -50,11 +52,11 @@
             .. input:: 
                :language: json
       
-               curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+               curl --header "Authorization: Bearer {ACCESS-TOKEN}" \
                --header "Accept: application/vnd.atlas.2024-05-30+json" \
                --header "Content-Type: application/vnd.atlas.2024-05-30+json" \
                --include \
-               --request GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest"      
+               --request GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest"
       
             .. output:: 
                :language: shell

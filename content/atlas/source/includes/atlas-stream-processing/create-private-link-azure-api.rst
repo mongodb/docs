@@ -31,6 +31,8 @@
 
       The following example command requests a connection to your |azure| Event Hub and illustrates a typical response:
 
+      .. include:: /includes/fact-service-accounts-first.rst
+
       .. io-code-block::
          :copyable: true
 
@@ -38,8 +40,7 @@
             :language: bash
 
             curl --location 'https://cloud.mongodb.com/api/atlas/v2/groups/8358217d3abb5c76c3434648/streams/privateLinkConnections' \
-            --digest \
-            --user "slrntglrbn:933fb118-ac62-4991-db05-ee67a3481fde" \
+            --header "Authorization: Bearer {ACCESS-TOKEN}" \
             --header 'Content-Type: application/json' \
             --header 'Accept: application/vnd.atlas.2023-02-01+json' \
             --data '{ "provider": "AZURE", "region": "US_EAST_2", "serviceEndpointId": "/subscriptions/b82d6aa0-0b0a-ffa3-7c22-e167dc44f5b0/resourceGroups/asp/providers/Microsoft.EventHub/namespaces/sample", "dnsDomain": "sample.servicebus.windows.net" }'

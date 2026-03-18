@@ -1,6 +1,8 @@
+.. include:: /includes/fact-service-accounts-first.rst
+
 .. code-block:: sh
 
-   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+   curl --header "Authorization: Bearer {ACCESS-TOKEN}" \
         --header "Content-Type: application/json" \
         --header "Accept: application/vnd.atlas.2024-08-05+json" \
         --include \

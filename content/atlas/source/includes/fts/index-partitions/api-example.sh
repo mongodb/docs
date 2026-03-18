@@ -1,4 +1,4 @@
-curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+curl --header "Authorization: Bearer {ACCESS-TOKEN}" \
 --header "Accept: application/json" \
 --header "Content-Type: application/json" \
 --include \

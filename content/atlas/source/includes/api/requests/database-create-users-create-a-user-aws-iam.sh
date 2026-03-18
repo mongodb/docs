@@ -1,4 +1,4 @@
-curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+curl --header "Authorization: Bearer {ACCESS-TOKEN}" \
      --header "Accept: application/json" \
      --header "Content-Type: application/json" \
      --include \
@@ -15,7 +15,7 @@ curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
            "roleName": "read"
          }],
          "scopes": [{
-           "name": "myCluster", 
+           "name": "myCluster",
            "type": "CLUSTER"
          }],
          "username": "arn:aws:iam::358363220050:user/mongodb-aws-iam-auth-test-user"

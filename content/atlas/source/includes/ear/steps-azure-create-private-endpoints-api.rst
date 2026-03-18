@@ -9,11 +9,13 @@
       endpoint. You must send a separate request for each region
       in which you want |service| to create a private endpoint. 
 
+      .. include:: /includes/fact-service-accounts-first.rst
+
       .. example:: 
 
          .. code-block:: json
       
-            curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+            curl --header "Authorization: Bearer {ACCESS-TOKEN}" \
             --header "Accept: application/vnd.atlas.2023-01-01+json" \
             --header "Content-Type: application/vnd.atlas.2023-01-01+json" \
             --include \
@@ -42,11 +44,11 @@
             .. input:: 
                :language: json
 
-               curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+               curl --header "Authorization: Bearer {ACCESS-TOKEN}" \
                --header "Accept: application/vnd.atlas.2023-01-01+json" \
                --header "Content-Type: application/vnd.atlas.2023-01-01+json" \
                --include \
-               --request GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest/AZURE/privateEndpoints"               
+               --request GET "https://cloud.mongodb.com/api/atlas/v2/groups/{groupId}/encryptionAtRest/AZURE/privateEndpoints"
       
             .. output:: 
                :language: shell

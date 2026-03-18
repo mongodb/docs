@@ -6,9 +6,11 @@
       Send a ``POST`` request to the ``search/indexes`` 
       :oas-bump-atlas-op:`endpoint <creategroupclustersearchindex>`.
 
+      .. include:: /includes/fact-service-accounts-first.rst
+
       .. code-block:: sh
 
-         curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+         curl --header "Authorization: Bearer {ACCESS-TOKEN}" \
            --header "Accept: application/json" \
            --header "Content-Type: application/json" \
            --include \

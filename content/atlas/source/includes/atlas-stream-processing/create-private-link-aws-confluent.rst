@@ -90,6 +90,8 @@ project, follow these steps:
 
       The following example command requests a connection to your
       Confluent cluster and illustrates a typical response:
+      
+      .. include:: /includes/fact-service-accounts-first.rst
 
       .. io-code-block::
          :copyable: true
@@ -98,8 +100,7 @@ project, follow these steps:
             :language: sh
 
             curl --location 'https://cloud.mongodb.com/api/atlas/v2/groups/8358217d3abb5c76c3434648/streams/privateLinkConnections' \
-            --digest \
-            --user "slrntglrbn:933fb118-ac62-4991-db05-ee67a3481fde" \
+            --header "Authorization: Bearer {ACCESS-TOKEN}" \
             --header 'Content-Type: application/json' \
             --header 'Accept: application/vnd.atlas.2023-02-01+json' \
             --data '{ "vendor": "Confluent", "provider": "AWS",
@@ -117,7 +118,7 @@ project, follow these steps:
             :language: bash
 
             {"_id":"6aa12e7ccd660d4b2380b1c1","dnsDomain":"sample.us-east-1.aws.confluent.cloud.","vendor":"Confluent","provider":"AWS","region":"us_east_1","serviceEndpointId":"com.amazonaws.vpce.us-east-1.vpce-svc-93da685022ee702a9"}                
-            
+
       After you send the request, note the value of the ``_id`` field in the response body. You will need this in a later step.
 
    .. step:: Provide the interface endpoint ID to Confluent.

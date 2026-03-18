@@ -1,4 +1,4 @@
-curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+curl --header "Authorization: Bearer {ACCESS-TOKEN}" \
      --request POST "https://cloud.mongodb.com/api/atlas/v1.0/groups/{GROUP-ID}/alertConfigs" \
      --header "Content-Type: application/json" \
      --data '

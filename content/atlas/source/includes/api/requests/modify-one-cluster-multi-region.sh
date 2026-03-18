@@ -1,4 +1,4 @@
-curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+curl --header "Authorization: Bearer {ACCESS-TOKEN}" \
      --header "Content-Type: application/json" \
      --include \
      --request PATCH "https://cloud.mongodb.com/api/atlas/v1.0/groups/5fac2d0cd2124a40ce0cfc5c/clusters/MultiRegionCluster?pretty=true" \
