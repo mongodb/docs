@@ -67,7 +67,6 @@ import TitleReference, { type TitleReferenceProps } from '@/components/title-ref
 import Time, { type TimeProps } from '@/components/time';
 import Introduction, { type IntroductionProps } from '@/components/introduction';
 import Section, { type SectionProps } from '@/components/section';
-import Cond, { type CondProps } from '@/components/cond';
 import Strong from '@/components/strong';
 import Subscript from '@/components/subscript';
 import Superscript from '@/components/superscript';
@@ -228,7 +227,6 @@ const getComponent = (() => {
         'community-driver': CommunityPillLink as React.ComponentType<SupportedComponentProps>,
         'composable-tutorial': ComposableTutorial as React.ComponentType<SupportedComponentProps>,
         'io-code-block': CodeIO as React.ComponentType<SupportedComponentProps>,
-        cond: Cond as React.ComponentType<SupportedComponentProps>,
         'cta-banner': CTABanner as React.ComponentType<SupportedComponentProps>,
         definitionList: DefinitionList as React.ComponentType<SupportedComponentProps>,
         definitionListItem: DefinitionListItem as React.ComponentType<SupportedComponentProps>,
@@ -256,7 +254,6 @@ const getComponent = (() => {
         'list-table': ListTable as React.ComponentType<SupportedComponentProps>,
         literal: Literal as React.ComponentType<SupportedComponentProps>,
         literalinclude: Include as React.ComponentType<SupportedComponentProps>,
-        only: Cond as React.ComponentType<SupportedComponentProps>,
         'openapi-changelog': OpenAPIChangelog as React.ComponentType<SupportedComponentProps>,
         paragraph: Paragraph as React.ComponentType<SupportedComponentProps>,
         procedure: Procedure as React.ComponentType<SupportedComponentProps>,
@@ -343,7 +340,6 @@ type SupportedComponentProps =
   | BlockQuoteProps
   | ComponentFactoryProps
   | CommunityPillLinkProps
-  | CondProps
   | CTABannerProps
   | RefRoleProps
   | FieldProps
@@ -606,9 +602,6 @@ const renderComponentWithProps = (
         {...propsToDrill}
       />
     );
-  } else if (ComponentType === getComponent('cond')) {
-    const condNode = nodeData as Directive;
-    return <ComponentType nodeData={condNode} />;
   } else if (ComponentType === getComponent('target')) {
     const targetNode = nodeData as TargetNode;
     return (

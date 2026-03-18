@@ -88,7 +88,6 @@ export const components = (injectedProps?: InjectedProps) =>
       </ComposableTutorial>
     ),
     IOCodeBlock: ({ children }) => <span>{children}</span>,
-    Cond: ({ children }) => <span>{children}</span>,
     Container: ({ children }) => <span>{children}</span>,
     CtaBanner: ({ children }) => <span>{children}</span>,
     CTABanner: ({ children }) => <span>{children}</span>,

@@ -436,7 +436,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 
       const ADMONITION_DIRECTIVES = new Set(['tip', 'note', 'important', 'warning', 'example']);
       let includeArgumentAsChild = true;
-      if (node.argument && (directiveName === 'only' || directiveName === 'cond')) {
+      if (node.argument && directiveName === 'only') {
         // Convert the condition expression into an attribute instead of child text
         const exprText = parseSnootyArgument(node);
         attributes.push({ type: 'mdxJsxAttribute', name: 'expr', value: exprText.trim() });

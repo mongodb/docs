@@ -35,7 +35,6 @@ type ComponentType =
   | 'collapsible'
   | 'community-driver'
   | 'composable-tutorial'
-  | 'cond'
   | 'container'
   | 'cta'
   | 'deprecated'

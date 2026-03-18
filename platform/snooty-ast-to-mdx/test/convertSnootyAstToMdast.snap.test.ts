@@ -367,15 +367,6 @@ const cases: Array<[string, SnootyNode]> = [
     },
   ],
   [
-    'directive cond',
-    {
-      type: 'directive',
-      name: 'cond',
-      argument: 'env=="production"',
-      children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Conditional' }] }],
-    },
-  ],
-  [
     'inline_target',
     {
       type: 'inline_target',
