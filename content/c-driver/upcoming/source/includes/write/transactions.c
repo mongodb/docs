@@ -23,25 +23,33 @@ transaction_callback(mongoc_client_session_t *session, void *ctx, bson_t **reply
     bson_t *filter = BCON_NEW("account_id", BCON_UTF8(account_id));
     bson_t *update_decrement = BCON_NEW("$inc", "{", "balance", BCON_INT32(-transfer_amount), "}");
     bson_t *update_increment = BCON_NEW("$inc", "{", "balance", BCON_INT32(transfer_amount), "}");
-    
-    if (!mongoc_collection_update_one(checking, filter, update_decrement, NULL, NULL, &error)) {
-        fprintf(stderr, "Failed to update checking account: %s\n", error.message);
+
+    bson_t *opts = bson_new();
+    BSON_ASSERT(mongoc_client_session_append(session, opts, error));
+
+    if (!mongoc_collection_update_one(checking, filter, update_decrement, opts, NULL, error)) {
+        fprintf(stderr, "Failed to update checking account: %s\n", error->message);
+        bson_destroy(opts);
         return false;
     }
 
-    if (!mongoc_collection_update_one(savings, filter, update_increment, NULL, NULL, &error)) {
-        fprintf(stderr, "Failed to update savings account: %s\n", error.message);
+    if (!mongoc_collection_update_one(savings, filter, update_increment, opts, NULL, error)) {
+        fprintf(stderr, "Failed to update savings account: %s\n", error->message);
+        bson_destroy(opts);
         return false;
     }
 
     bson_t *receipt = BCON_NEW("account_id", BCON_UTF8(account_id),
                                 "amount", BCON_INT32(transfer_amount),
                                 "timestamp", BCON_DATE_TIME(bson_get_monotonic_time()));
-    
-    if (!mongoc_collection_insert_one(receipts, receipt, NULL, NULL, &error)) {
-        fprintf(stderr, "Failed to insert receipt: %s\n", error.message);
+
+    if (!mongoc_collection_insert_one(receipts, receipt, opts, NULL, error)) {
+        fprintf(stderr, "Failed to insert receipt: %s\n", error->message);
+        bson_destroy(opts);
         return false;
     }
+
+    bson_destroy(opts);
 
     mongoc_collection_destroy(checking);
     mongoc_collection_destroy(savings);
@@ -77,7 +85,7 @@ main(void)
         return EXIT_FAILURE;
     }
 
-    bool result = 
+    bool result =
         mongoc_client_session_with_transaction(session,
                                                 (mongoc_client_session_with_transaction_cb_t) transaction_callback,
                                                 NULL, NULL, NULL, &error);
