@@ -1,3 +1,53 @@
+.. _opsmgr-server-8.0.21:
+
+|onprem| Server 8.0.21
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-03-17*
+
+.. important:: IBM Z (s390x)
+
+  If you run |onprem| on IBM Z (s390x), do not upgrade to 8.0.21.
+  The updated 8.0.21 {+mdbagent+} binaries for this architecture
+  are not yet available. IBM Z deployments on earlier versions
+  continue to run as before. All other architectures are fully
+  supported in this release.
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to :ref:`108.0.21.8971-1 <mongodb-108.0.21.8971-1>`.
+- Supports :dbtools:`MongoDB Database Tools 100.15.0 </release-notes/database-tools-changelog/#100.15.0-changelog>`.
+- Sets a Content-Security-Policy (CSP) header to strengthen
+  protection against malicious browser-side code and unauthorized
+  content attacks.
+- Improves logging and alerting for metric rollup issues.
+- Displays the status of ``mongos`` instances on the
+  :guilabel:`Overview` and :guilabel:`Servers` pages.
+- Adds an ``appSetting`` to allow you to pass validations when
+  using object lock on the S3 bucket but not in |onprem|.
+- Adds a backup alert that triggers when the last *N* consecutive
+  snapshot attempts for a replica set or sharded cluster are all
+  aborted. You can configure *N* using the ``backupAppSetting``
+  setting (default: ``3``).
+
+Bug Fixes
+~~~~~~~~~
+
+- Updates ``bcpkix-fips`` package to version 1.0.8 to address a
+  security vulnerability.
+- Upgrades Jetty-related packages to 12.0.32 to remediate resource
+  allocation vulnerability CWE-770.
+- Fixes the following |cve|\s:
+
+  - `CVE-2026-1605 <https://nvd.nist.gov/vuln/detail/CVE-2026-1605>`__
+  - `CVE-2025-68121 <https://nvd.nist.gov/vuln/detail/CVE-2025-68121>`__
+
+- Fixes a restore failure caused by starting, stopping, and starting
+  |mongod| within the same second.
+- Fixes misleading dialog boxes when enabling Operational Monitoring
+  for the Application Database in |onprem|.
+
 .. _opsmgr-server-8.0.20:
 
 |onprem| Server 8.0.20
