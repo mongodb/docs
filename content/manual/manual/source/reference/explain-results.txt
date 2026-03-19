@@ -15,16 +15,14 @@ Explain Results
    :depth: 2
    :class: singlecol
 
-To return information on :ref:`query plans
-<query-plans-query-optimization>` and execution statistics of the query
-plans, MongoDB provides the following methods:
+MongoDB provides these methods to return :ref:`query plan
+<query-plans-query-optimization>` information and execution statistics:
 
 - :method:`db.collection.explain()`
 
 - :method:`cursor.explain()`
 
-To learn about important explain result fields and how to interpret
-them, see :ref:`interpret-explain-plan`.
+To learn how to interpret the results, see :ref:`interpret-explain-plan`.
 
 .. important::
 
@@ -35,22 +33,17 @@ them, see :ref:`interpret-explain-plan`.
 
 .. note::
 
-   Only the most important output fields are shown on this page, and fields for 
-   internal use are not documented. The fields listed in the output are subject 
-   to change.
+   This page documents the most important output fields. Fields for
+   internal use are not documented. Fields are subject to change.
 
 .. _explain-output-structure:
 
 Explain Output Structure
 ------------------------
 
-The ``explain`` results present the query plans as a tree of stages. 
-The output structure can differ based on which query engine the 
-operation uses. Operations can use the classic query engine or the 
-:ref:`slot-based execution query engine <sbe-landing>`.
-
-To see how the output structure can differ between the two execution 
-engines, see the following examples:
+The ``explain`` results present query plans as a tree of stages. The structure
+differs depending on whether the operation uses the classic query engine
+or the :ref:`slot-based execution query engine <sbe-landing>`:
 
 .. tabs::
 
@@ -101,13 +94,12 @@ engines, see the following examples:
                   }
                },
 
-Each stage passes its resulting documents or index keys to the
-parent node. The leaf nodes access the collection or the indices. The
-internal nodes use the documents or the index keys that result from the 
-child nodes. The root node indicates the stage that MongoDB ultimately 
-derives the result set from.
+Each stage passes its documents or index keys to the parent node. Leaf
+nodes access the collection or indexes. Internal nodes consume output
+from child nodes. The root node indicates the stage that MongoDB
+ultimately derives the result set from.
 
-Stages are descriptive of the operation. For example:
+Stage names describe the operation:
 
 - ``COLLSCAN`` for a collection scan
 
@@ -161,12 +153,12 @@ documentation for that version.
 ``queryPlanner``
 ~~~~~~~~~~~~~~~~
 
-:data:`explain.queryPlanner` information details the plan selected by
-the :ref:`query optimizer <read-operations-query-optimization>`.
+:data:`explain.queryPlanner` details the plan selected by the
+:ref:`query optimizer <read-operations-query-optimization>`.
 
-These examples may combine the output structures of MongoDB's classic
-and slot-based execution engines. They are not meant to be 
-representative. Your output may differ significantly.
+The following examples may combine output from the classic and
+slot-based execution engines and are not representative. Your output
+may differ.
 
 .. tabs::
 
@@ -265,14 +257,13 @@ representative. Your output may differ significantly.
 
 .. data:: explain.queryPlanner
 
-   Contains information on the selection of the query plan by the
+   Contains information about the query plan selected by the
    :ref:`query optimizer <read-operations-query-optimization>`.
 
    .. data:: explain.queryPlanner.namespace
 
-      A string that specifies the :term:`namespace` with the names of
-      the database and the collection accessed by the query. The
-      namespace has the format ``<database>.<collection>``.
+      String that specified the :term:`namespace` of the database and collection
+      accessed by the query, in the format ``<database>.<collection>``.
 
    .. data:: explain.queryPlanner.indexFilterSet
 
@@ -294,39 +285,32 @@ representative. Your output may differ significantly.
 
       .. include:: /includes/plan-cache-rename.rst
 
-      A hexadecimal string that represents the hash of the
-      :term:`plan cache query shape` and is dependent only on the plan cache query shapes.
-      ``planCacheShapeHash`` can help identify slow queries (including the
-      query filter of write operations) with the same plan cache query shape.
+      Hexadecimal string. Hash of the :term:`plan cache query shape`,
+      dependent only on the plan cache query shape. Use it to find slow queries
+      with the same plan cache query shape.
 
       .. note::
 
-         As with any hash function, two different plan cache query shapes may result
-         in the same hash value. However, the occurrence of hash
-         collisions between different plan cache query shapes is unlikely.
+         Hash collisions between different plan cache query shapes are
+         possible but unlikely.
 
       For more information on ``planCacheShapeHash`` and ``planCacheKey``,
       see :ref:`query-hash-plan-cache-key`.
 
    .. data:: explain.queryPlanner.planCacheKey
 
-      A hash of the key for the plan cache entry associated with the
-      query.
-
-      Unlike the :data:`explain.queryPlanner.planCacheShapeHash`, the
-      :data:`explain.queryPlanner.planCacheKey` is a function of both
-      the plan cache query shape and the currently available indexes for
-      that shape. Specifically, if indexes that can support the query
-      shape are added or dropped, the ``planCacheKey`` value may change
-      but the ``planCacheShapeHash`` value wouldn't change.
+      Hash of the plan cache entry key. Unlike
+      :data:`explain.queryPlanner.planCacheShapeHash`, this value is a
+      function of both the query shape and the currently available
+      indexes. Adding or dropping supporting indexes may change the
+      ``planCacheKey`` but not ``planCacheShapeHash``.
 
       For more information on ``planCacheShapeHash`` and ``planCacheKey``,
       see :ref:`query-hash-plan-cache-key`.
 
    .. data:: explain.queryPlanner.optimizationTimeMillis
 
-      Time in milliseconds the query planner spent on query
-      optimization. This result doesn't include time spent
+      Milliseconds spent on query optimization. Does not include time
       optimizing inner :pipeline:`$lookup` queries.
 
    .. data:: explain.queryPlanner.optimizedPipeline
@@ -349,78 +333,68 @@ representative. Your output may differ significantly.
 
    .. data:: explain.queryPlanner.winningPlan
 
-      A document that details the plan selected by the :doc:`query
-      optimizer </core/query-plans>`. 
+      Document with the plan selected by the :doc:`query optimizer
+      </core/query-plans>`.
 
    .. data:: explain.queryPlanner.winningPlan.stage
 
-      A string that denotes the name of the stage.
+      String that indicates the name of the stage. Each stage contains 
+      information specific to its type (for example, ``IXSCAN`` includes 
+      index bounds). Stages with child stages have an ``inputStage`` or
+      ``inputStages`` field.
 
-      Each stage consists of information specific to the stage. For
-      example, an ``IXSCAN`` stage includes the index bounds along with
-      other data specific to the index scan. If a stage has a child
-      stage or multiple child stages, the stage will have an
-      ``inputStage`` or ``inputStages``.
-
-      This field appears if the operation used the classic query
-      execution engine. 
+      Present when the operation used the classic query execution
+      engine.
 
    .. data:: explain.queryPlanner.winningPlan.type
 
       If ``stage`` is set to ``"EOF"``, ``type`` is a string
       that denotes the reason for the EOF stage:
 
-      - ``"nonExistentNamespace"``: indicates the query namespace 
-        does not exist.
-      - ``"predicateEvalsToFalse"``: indicates that 
-        expression simplification determines that
-        the query will not match any documents.
+      - ``"nonExistentNamespace"``: the query namespace does not exist.
+      - ``"predicateEvalsToFalse"``: expression simplification
+        determined the query matches no documents.
 
    .. data:: explain.queryPlanner.winningPlan.inputStage
 
-      A document that describes the child stage, which provides the 
-      documents or index keys to its parent. The field is present *if* 
-      the parent stage has only one child.
+      Document describing the child stage that provides documents or
+      index keys to its parent. Present when the parent has exactly one
+      child.
 
    .. data:: explain.queryPlanner.winningPlan.inputStages
 
-      An array of documents describing the child stages. Child stages 
-      provide the documents or index keys to the parent stage. The field 
-      is present *if* the parent stage has multiple child nodes. 
-      For example, stages for :ref:`$or expressions
-      <explain-output-or-expression>` might consume input from multiple 
-      sources.
+      Array of documents describing child stages. Child stages 
+      provide the documents or index keys to the parent stage. 
+      Present when the parent has multiple child nodes, like in an 
+      :ref:`$or expression <explain-output-or-expression>`.
 
-      This field appears if the operation used the classic query
-      execution engine. 
+      Present when the operation used the classic query execution
+      engine.
    
    .. data:: explain.queryPlanner.winningPlan.isCached
 
-      A boolean that indicates if the winningPlan is in the plan cache.  
+      A boolean that indicates if the winningPlan is in the plan cache. 
       
-      This field is ``true`` for a maximum of one plan between the winning plan 
-      and the rejected plans. If the query has no cached plan, the field is
-      ``false`` for the winning plan and the rejected plans.
+      At most one plan (winning or rejected) has this field set to ``true``. If
+      no cached plan exists, the field is ``false`` for all plans.
 
 
    .. data:: explain.queryPlanner.winningPlan.queryPlan
 
-      A document that details the plan selected by the :doc:`query
-      optimizer </core/query-plans>`. MongoDB presents the plan as a tree
-      of stages.
-      
-      This document appears if the query used the :ref:`slot-based 
-      execution query engine <sbe-landing>`.
-      
+      Document with the plan selected by the :doc:`query optimizer
+      </core/query-plans>`, presented as a tree of stages.
+
+      Present when the query used the :ref:`slot-based execution query
+      engine <sbe-landing>`.
+
       .. versionadded:: 5.1
 
       .. data:: explain.queryPlanner.winningPlan.queryPlan.stage
 
-         A string that denotes the name of the stage.
-
-         Each stage consists of information specific to the stage. For
-         example, an ``IXSCAN`` stage includes the index bounds along
-         with other data specific to the index scan.
+         A string that indicates the name of the stage. 
+         
+         Each stage contains information specific to its type. For example, ``IXSCAN``
+         includes index bounds.
 
       .. data:: explain.queryPlanner.winningPlan.queryPlan.type
 

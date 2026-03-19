@@ -22,28 +22,21 @@ Query Optimization
    :skill: Query Optimization
    :url: https://learn.mongodb.com/skills?openTab=query
 
-Query optimization improves the efficiency of read operations by 
-reducing the amount of data that query operations need to process. 
-Use indexes, projections, and query limits to enhance query 
-performance and reduce resource consumption.
-
-Query optimization can occur both during development and later as your
-data usage and demand changes. As collections grow, a periodic review of
-query performance can help determine when clusters need to scale up or
-scale out.
+Query optimization reduces the amount of data a query must process.
+Use indexes, projections, and query limits to improve performance and
+reduce resource consumption. Review query performance periodically as
+collections grow to determine when to scale.
 
 Create Indexes to Support Queries
 ---------------------------------
 
-:ref:`Indexes <indexes>` store values from individual fields or sets of
-fields from a collection in a separate data structure. In read
-operations, they allow MongoDB to search in the index to identify
-relevant documents instead of the entire collection. In write
-operations, MongoDB must both write the change to the collection and
-update the index.
+:ref:`Indexes <indexes>` store field values in a separate data structure.
+In read operations, MongoDB searches the index instead of scanning the
+entire collection. In write operations, MongoDB updates both the
+collection and the index.
 
-Create indexes for commonly issued queries. If a query searches multiple
-fields, create a :ref:`compound index <index-type-compound>`.
+Create indexes for your most common queries. If a query searches
+multiple fields, create a :ref:`compound index <index-type-compound>`.
 
 For example, consider the following query on the ``type`` field in the
 ``inventory`` collection:
@@ -53,14 +46,13 @@ For example, consider the following query on the ``type`` field in the
    let typeValue = <someUserInput>;
    db.inventory.find( { type: typeValue } );
 
-To improve performance for this query, add an index to the ``inventory``
-collection on the ``type`` field. [#ensureIndexOrder]_ In
-:binary:`~bin.mongosh`, create indexes using the
-:method:`db.collection.createIndex()` method:
+To improve performance on this query, add an index on the ``type`` field.
 
 .. code-block:: javascript
 
    db.inventory.createIndex( { type: 1 } )
+
+[#ensureIndexOrder]_ In :binary:`~bin.mongosh`, use :method:`db.collection.createIndex()`:
 
 To analyze query performance, see :doc:`/tutorial/analyze-query-plan`.
 
@@ -74,33 +66,30 @@ To analyze query performance, see :doc:`/tutorial/analyze-query-plan`.
 Create Selective Queries
 ------------------------
 
-Query selectivity refers to how well the query predicate filters out
-documents in a collection. Query selectivity determines whether queries
-can use indexes effectively.
+Query selectivity measures how well a query predicate filters documents and 
+determines whether queries can use indexes effectively.
 
-More selective queries match a smaller percentage of documents. For
-instance, an equality match on the unique ``_id`` field is highly
-selective as it can match at most one document.
+- **Highly selective queries** match fewer documents and use indexes 
+  more effectively. For instance, an equality match on ``_id`` is highly 
+  selective as it can match at most one document.
 
-Less selective queries match a larger percentage of documents and
-cannot use indexes effectively.
+- **Less selective queries** match more documents and use indexes
+  less efficiently.   
 
 .. include:: /includes/extracts/inequality_operators_selectivity.rst
 
-The selectivity of :query:`regular expressions <$regex>` depends on the
-expressions themselves. For details, see :ref:`regular expression and
-index use <regex-index-use>`.
+The selectivity of a :query:`regular expression <$regex>` depends on the
+expression itself. For details, see :ref:`regular expression and index
+use <regex-index-use>`.
 
 Project Only Necessary Data
 ---------------------------
 
-When you need a subset of fields from documents, you can improve
-performance by returning only the fields you need. Projections reduce
-network traffic and processing time.
+When you need a subset of fields from documents, you can improve performance by 
+returning only the fields you need. Projections reduce network traffic and processing time.
 
-For example, if your query to the ``posts`` collection needs only the
-``timestamp``, ``title``, ``author``, and ``abstract`` fields, specify
-those fields in the projection:
+For example, consider the following query to return only the ``timestamp``, ``title``, 
+``author``, and ``abstract`` fields.
 
 .. code-block:: javascript
 
@@ -113,26 +102,24 @@ those fields in the projection:
 
 .. include:: /includes/aggregation/fact-project-stage-placement.rst
 
-For more information on using projections, see
-:ref:`read-operations-projection`.
+For more information, see :ref:`read-operations-projection`.
 
 Example
 ~~~~~~~
 
-To achieve a covered query, you must index projected fields. The :ref:`ESR (Equality, Sort, Range) rule <esr-indexing-guideline>`
-applies to the order of fields in the index.
+To achieve a covered query, index the projected fields. The :ref:`ESR (Equality, Sort, Range) rule
+<esr-indexing-guideline>` applies to the order of fields in the index.
 
-For example, consider the following index on an ``inventory`` collection:
+For example, consider the following index on the ``inventory`` collection:
 
 .. code-block:: javascript
 
    db.inventory.createIndex( { type: 1, _id: 1, price: 1, item: 1, expiryDate: 1} )
 
-The above query, while technically correct, is not structured to optimize query 
-performance.
+The above query, while technically correct, is not structured to optimize query performance.
 
-The following query uses the ESR (Equality, Sort, Range) rule to create a more efficient
-compound index and improve query response times. 
+The following query applies the ESR rule for a more efficient compound
+index:
 
 .. code-block:: javascript
 
@@ -152,42 +139,36 @@ Limit Query Results
 -------------------
 
 MongoDB :term:`cursors <cursor>` return results in batches. If you know
-the number of results you want, specify that value in the
-:method:`~cursor.limit()` method. Limiting results reduces the demand on
-network resources.
+how many results you need, pass that value to the :method:`~cursor.limit()`
+method to reduce network resource usage.
 
-Generally, limiting results is most useful when results are sorted so
-you know which documents will be returned. For example, if you need only
-10 results from your query to the ``posts`` collection, run the
-following query:
+Limit results after sorting so you know which documents are returned.
+For example, the following query returns only the 10 most recent results from the 
+``posts`` collection:
 
 .. code-block:: javascript
 
    db.posts.find().sort( { timestamp : -1 } ).limit(10)
 
-For more information on limiting results, see :method:`~cursor.limit()`.
+For more information, see :method:`~cursor.limit()`.
 
 Use Index Hints
 ---------------
 
 The :ref:`query optimizer <read-operations-query-optimization>`
-typically selects the optimal index for a specific operation. However,
-you can force MongoDB to use a specific index using the
-:method:`~cursor.hint()` method. Use :method:`~cursor.hint()` to support
-performance testing or when you are querying a field that appears in
-several indexes to guarantee that MongoDB uses the correct index.
+selects the optimal index for a specific operation. However, 
+you can force a specific index using the :method:`~cursor.hint()` method. 
+This is useful for performance testing or when a field appears in several indexes 
+and you need to guarantee which index MongoDB uses.
 
 Use Server-Side Operations
 --------------------------
 
-Use MongoDB's :update:`$inc` operator to increment or decrement
-values in documents. The operator increments the value of the field on
-the server side, as an alternative to selecting a document, making
-simple modifications in the client, and then writing the entire
-document to the server. The :update:`$inc` operator can also help
-avoid race conditions that occur when two application instances query
-for a document, manually increment a field, and save the entire
-document back at the same time.
+Use the :update:`$inc` operator to increment or decrement values in documents.
+The operator increments the field value on the server side, as an alternative
+to selecting a document, making simple modifications on the client side, and then
+writing the document to the server. Additionaly, the operator prevents race conditions
+when multiple application instances update the same field concurrently.
 
 .. _covered-queries:
 .. _indexes-covered-queries:
@@ -196,13 +177,11 @@ document back at the same time.
 Run Covered Queries
 -------------------
 
-A covered query is a query that can be satisfied entirely using an 
-index and does not have to examine any documents. An index covers a 
-query when all of the following apply:
+A covered query is a query than can be satisfied entirely by an index without
+having to examine any documents. An index covers a query when all of the following are true:
 
-- All the fields in the query (both as specified by the application and
-  as needed internally such as for sharding purposes) are part of an
-  index.
+- All the fields in the query (including fields specified by the application
+  and any fields needed internally, such as for sharding) are part of the index.  
 
 - All the fields returned in the results are in the same index.
 
@@ -215,15 +194,14 @@ query when all of the following apply:
 Example
 ~~~~~~~
 
-An ``inventory`` collection has the following index on the ``type`` and
-``item`` fields:
+An ``inventory`` collection has the following index on the ``type`` and ``item`` fields:
 
 .. code-block:: javascript
 
    db.inventory.createIndex( { type: 1, item: 1 } )
 
-The index covers the following operation which queries on the ``type``
-and ``item`` fields and returns only the ``item`` field:
+The index covers the following query, which filters on ``type`` and
+``item`` and returns only ``item``:
 
 .. code-block:: javascript
 
@@ -241,8 +219,7 @@ Embedded Documents
 
 An index can cover a query on fields within embedded documents.
 
-For example, consider a ``userdata`` collection with documents of the
-following form:
+For example, consider the following ``userdata`` collection:
 
 .. code-block:: javascript
 
@@ -277,25 +254,22 @@ The ``{ "user.login": 1 }`` index covers the following query:
 Multikey Covering
 ~~~~~~~~~~~~~~~~~
 
-Multikey indexes can cover queries over the non-array fields
-if the index tracks which field or fields cause the index to be multikey.
+Multikey indexes can cover queries over non-array fields if the index
+tracks which field or fields make it multikey.
 
 .. include:: /includes/fact-multikey-index-covered-query.rst
 
-For an example of a covered query with a multikey index, see
-:ref:`multikey-covered-queries` on the multikey indexes page.
+For an example, see :ref:`multikey-covered-queries` on the multikey
+indexes page.
 
 Performance
 ~~~~~~~~~~~
 
-Because the index contains all fields required by the query, MongoDB can both
-match the :ref:`query conditions <read-operations-query-document>`
-and return the results using only the index.
-
-Querying *only* the index can be much faster than querying documents
-outside of the index. Index keys are typically smaller than the
-documents they catalog, and indexes are typically available in RAM or
-located sequentially on disk.
+Covered queries match :ref:`query conditions
+<read-operations-query-document>` and return results using only the
+index. This is faster than fetching documents because index keys are
+typically smaller than documents and indexes are usually in RAM or
+stored sequentially on disk.
 
 Limitations
 ~~~~~~~~~~~
@@ -303,9 +277,8 @@ Limitations
 Index Types
 ```````````
 
-Not all :ref:`index types <index-types>` can cover queries. For details
-on covered index support, refer to the documentation page for the
-corresponding index type.
+Not all :ref:`index types <index-types>` support covered queries. See
+the documentation for the specific index type.
 
 .. _covered-index-sharded-collection:
 
@@ -317,9 +290,8 @@ Sharded Collections
 Explain Results
 ~~~~~~~~~~~~~~~
 
-To determine whether a query is a covered query, use the
-:method:`db.collection.explain()` or the :method:`~cursor.explain()`
-method. See :ref:`explain-output-covered-queries`.
+To check whether a query is covered, use :method:`db.collection.explain()`
+or :method:`~cursor.explain()`. See :ref:`explain-output-covered-queries`.
 
 .. toctree::
    :titlesonly:
