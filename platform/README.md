@@ -94,6 +94,11 @@ Commands should generally be run from the root of the `platform` directory:
 - `pnpm convert:rst-to-mdx -- <name_of_content_folder>`: Convert Snooty rST to MDX for a specific content folder
   - For example: `pnpm convert:rst-to-mdx -- atlas` will convert the Snooty rST in the `content/atlas` folder to MDX.
 
+### MDX Validation Commands
+- `pnpm validate:mdx-parse`: Validate all generated MDX files in `content-mdx/`
+- `pnpm validate:mdx-parse -- <name_of_content_folder>`: Validate a specific project
+  - For example: `pnpm validate:mdx-parse -- django-mongodb` will validate the MDX in `content-mdx/django-mongodb/`
+
 ### Blob Storage Commands
 - `pnpm blobs:seed`: Seed the local blob storage with the MDX content (requires dev server to be running)
 - `pnpm blobs:clear`: Clear the local blob storage (requires dev server to be running)
