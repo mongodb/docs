@@ -3937,6 +3937,16 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/operator/aggregation/toObjectId',
           },
           {
+            label: '$top',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/operator/top',
+          },
+          {
+            label: '$topN',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/operator/topN',
+          },
+          {
             label: '$toString',
             contentSite: 'docs',
             url: '/docs/:version/reference/operator/aggregation/toString',
