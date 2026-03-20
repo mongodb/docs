@@ -1,0 +1,62 @@
+name: Redirect Linting
+
+on:
+  pull_request:
+    paths:
+      - '**/netlify.toml'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: |
+          cd .github/lint-docs && pnpm install
+      
+      - name: Get changed redirect files
+        id: changed-files
+        run: |
+          # Get list of changed netlify.toml files in this PR
+          FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -E 'netlify\.toml' | tr '\n' ' ' || true)
+          
+          if [ -n "$FILES" ]; then
+            echo "has_files=true" >> $GITHUB_OUTPUT
+            echo "📄 Found changed redirect files:"
+            echo "$FILES"
+            echo "$FILES" > /tmp/changed-redirect-files.txt
+          else
+            echo "has_files=false" >> $GITHUB_OUTPUT
+            echo "No redirect files changed"
+          fi
+      
+      - name: Run Redirect Linter
+        if: steps.changed-files.outputs.has_files == 'true'
+        run: |
+          echo "🔄 Running redirect linter..."
+          FILES=$(cat /tmp/changed-redirect-files.txt)
+          npx tsx .github/lint-docs/redirect-lint-cli.ts $FILES
+      
+      - name: Summary
+        if: always()
+        run: |
+          echo "## 🔄 Redirect Lint Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Checked redirect files for circular redirects." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**This check is blocking** - circular redirects cause infinite loops in browsers." >> $GITHUB_STEP_SUMMARY

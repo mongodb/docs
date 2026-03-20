@@ -187,15 +187,18 @@ function checkTitle(content: string, filename: string): LintIssue[] {
   
   const len = title.length;
   
-  if (len < 30) {
+  // Minimum is 15 chars because MongoDB appends ~18-35 chars of branding to titles
+  // (e.g., " | MongoDB Documentation"), making the final title longer in search results
+  // Example: "Install MongoDB" (15 chars) is perfectly valid
+  if (len < 15) {
     issues.push({
       file: filename,
       line: line,
       rule: 'seo-title-length',
       severity: 'error',
-      message: `Title is ${len} characters (minimum 30 required)`,
+      message: `Title is ${len} characters (at least 15 required)`,
       current: title,
-      suggestion: `Expand title to 30-60 characters`
+      suggestion: `Expand title to at least 15 characters`
     });
   } else if (len > 60) {
     issues.push({
@@ -205,7 +208,7 @@ function checkTitle(content: string, filename: string): LintIssue[] {
       severity: 'error',
       message: `Title is ${len} characters (maximum 60 allowed)`,
       current: title,
-      suggestion: `Shorten title to 30-60 characters`
+      suggestion: `Shorten title to 15-60 characters`
     });
   }
   

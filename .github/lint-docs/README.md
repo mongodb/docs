@@ -1,12 +1,18 @@
 # Documentation Linters
 
-Automated linters for MongoDB documentation that check SEO compliance and broken links.
+Automated linters for MongoDB documentation that check SEO compliance, broken links, and redirect issues.
 
 ## How It Works
 
-These linters run automatically as a **pre-push hook**. When you `git push`, they check any doc files in your commits and warn about issues. They're **advisory only** — they won't block your push.
+| Linter | Trigger | Blocking? |
+|--------|---------|-----------|
+| **SEO Linter** | Pre-push hook + PR | No (advisory) |
+| **404 Linter** | Pre-push hook + PR | No (advisory) |
+| **Redirect Linter** | PR (when redirect files change) | **Yes** |
 
-You can also run them manually on any files.
+SEO and 404 linters run on every push and PR as warnings. The redirect linter runs only when redirect files change and **will block the PR** if circular redirects are found.
+
+You can also run all linters manually on any files.
 
 ---
 
@@ -42,6 +48,18 @@ npx tsx .github/lint-docs/404-lint-cli.ts content/drivers/node/source/*.txt
 npx tsx .github/lint-docs/404-lint-cli.ts -o broken-links.txt content/**/*.txt
 ```
 
+### Redirect Linter
+
+Checks for circular redirects in `netlify.toml` files.
+
+```bash
+# Check a netlify.toml file
+npx tsx .github/lint-docs/redirect-lint-cli.ts content/atlas/netlify.toml
+
+# Check all redirect files
+npx tsx .github/lint-docs/redirect-lint-cli.ts content/*/netlify.toml
+```
+
 ### Wrapper Script
 
 For convenience, use the wrapper script from anywhere in the repo:
@@ -59,7 +77,7 @@ For convenience, use the wrapper script from anywhere in the repo:
 | Rule | Severity | Description |
 |------|----------|-------------|
 | `seo-title-missing` | Error | No title found on content page |
-| `seo-title-length` | Error | Title not 30-60 characters |
+| `seo-title-length` | Error | Title not 15-60 characters |
 | `seo-meta-missing` | Error | No meta description found |
 | `seo-meta-length` | Error | Meta description not 150-200 characters |
 | `structure-h1-required` | Error | No H1 heading found |
@@ -68,10 +86,25 @@ For convenience, use the wrapper script from anywhere in the repo:
 | `image-alt-missing` | Warning | Image missing alt text |
 | `image-png-figwidth` | Error | PNG missing `:figwidth:` attribute |
 | `image-svg-dimensions` | Warning | SVG missing width/height |
-| `nested-admonition` | Error | Nested admonition detected |
+| `nested-component` | Error | Nested container component (callouts, tabs, tables) |
 | `syntax-malformed-ref` | Error | Malformed `:ref:` with angle brackets |
 | `syntax-empty-link` | Error | Empty link URL `[text]()` |
 | `seo-low-content` | Warning | Page has < 100 characters |
+
+---
+
+## Redirect Linter Rules
+
+| Rule | Severity | Description |
+|------|----------|-------------|
+| `self-redirect` | Error | Page redirects to itself |
+| `circular-redirect` | Error | Redirect chain loops back (A → B → C → A) |
+
+**Supported formats:**
+- `netlify.toml` - Standard Netlify redirect blocks
+
+**Skipped:**
+- Rewrites with `status = 200` (these are proxies, not redirects)
 
 ---
 
@@ -101,9 +134,9 @@ Uses [lychee](https://github.com/lycheeverse/lychee) to check external links.
    Fix: Add description via :description: directive or YAML frontmatter
 
 🔴 content/my-page.txt:4
-   [seo-title-length] Title is 20 characters (minimum 30 required)
+   [seo-title-length] Title is 10 characters (at least 15 required)
    Current: My Short Title
-   Fix: Expand title to 30-60 characters
+   Fix: Expand title to at least 15 characters
 
 Found 2 error(s), 0 warning(s)
 ```
@@ -118,6 +151,20 @@ Found 2 error(s), 0 warning(s)
    Status: 404
 
 Found 1 broken link(s)
+```
+
+### Redirect Linter
+
+```
+🔴 content/kotlin/netlify.toml:111
+   [self-redirect] Page redirects to itself
+   Chain: /docs/drivers/kotlin/coroutine/:version/crud/query-document → /docs/drivers/kotlin/coroutine/:version/crud/query-document
+
+🔴 content/test/netlify.toml:1
+   [circular-redirect] Circular redirect detected
+   Chain: /docs/a → /docs/b → /docs/c → /docs/a
+
+Checked 2 file(s), found 2 issue(s) in 2 file(s).
 ```
 
 ---
@@ -163,12 +210,14 @@ Some sites block automated checkers or are slow. We've excluded common culprits 
 
 ```
 .github/lint-docs/
-├── README.md           # This file
-├── seo-lint-cli.ts     # SEO linter CLI
-├── seo-lint-rules.ts   # SEO linter rules (pure functions)
-├── 404-lint-cli.ts     # 404 linter CLI (wraps lychee)
-├── package.json        # Dependencies
-└── tsconfig.json       # TypeScript config
+├── README.md               # This file
+├── seo-lint-cli.ts         # SEO linter CLI
+├── seo-lint-rules.ts       # SEO linter rules (pure functions)
+├── 404-lint-cli.ts         # 404 linter CLI (wraps lychee)
+├── redirect-lint-cli.ts    # Redirect linter CLI
+├── redirect-lint-rules.ts  # Redirect linter rules (cycle detection)
+├── package.json            # Dependencies
+└── tsconfig.json           # TypeScript config
 ```
 
 ---
