@@ -287,6 +287,10 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (directiveName === 'meta') {
         return null;
       }
+      // Facet directives are page metadata collected into frontmatter – skip here.
+      if (directiveName === 'facet') {
+        return null;
+      }
       // Pass over container directives: emit only their children, no wrapper.
       if (DIRECTIVE_NAMES_TO_SKIP.includes(directiveName)) {
         return convertChildren({ nodes: node.children, depth, ctx });
@@ -849,6 +853,18 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
     collectedRefs,
   };
 
+  // Pre-scan the whole tree for facet directives (they can be anywhere, e.g. inside a section).
+  const facets: Record<string, string> = {};
+  findAllDirectivesByName(root.children ?? [], 'facet').forEach((node) => {
+    if (node.options) {
+      const name = node.options.name;
+      const values = node.options.values;
+      if (typeof name === 'string' && typeof values === 'string') {
+        facets[name] = values;
+      }
+    }
+  });
+
   (root.children ?? []).forEach((child: SnootyNode) => {
     // Collect <meta> directives: they appear as directive nodes with name 'meta'.
     if (child.type === 'directive' && String(child.name).toLowerCase() === 'meta' && child.options) {
@@ -870,6 +886,7 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
     ...(root.fileid ? { fileId: root.fileid } : {}),
     ...(Object.keys(pageOptions).length ? { options: pageOptions } : {}),
     ...metaFromDirectives,
+    ...(Object.keys(facets).length ? { facets } : {}),
   };
 
   // Compose final children array with optional frontmatter

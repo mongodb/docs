@@ -429,6 +429,37 @@ const cases: Array<[string, SnootyNode]> = [
       children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Collapsible body' }] }],
     },
   ],
+  [
+    'directive facet genre',
+    {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'facet',
+          options: { name: 'genre', values: 'reference' },
+        },
+      ],
+    },
+  ],
+  [
+    'directive facet genre and programming_language',
+    {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'facet',
+          options: { name: 'genre', values: 'reference' },
+        },
+        {
+          type: 'directive',
+          name: 'facet',
+          options: { name: 'programming_language', values: 'shell, python' },
+        },
+      ],
+    },
+  ],
   ['hidden directive (toctree)', { type: 'directive', name: 'toctree' }],
   ['unknown node type', { type: 'mystery' }],
   ['title node', { type: 'title', children: [{ type: 'text', value: 'A Title' }] }],

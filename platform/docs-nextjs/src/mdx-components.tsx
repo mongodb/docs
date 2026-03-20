@@ -75,7 +75,6 @@ export const components = (injectedProps?: InjectedProps) =>
     // TODO: This needs a new name - to not interfere with new "inline" code that is better for literals
     Code: ({ children }) => <span>{children}</span>,
     Contents: ({ children }) => <span>{children}</span>,
-    Facet: ({ children }) => <span>{children}</span>,
     Collapsible: ({ children, ...props }) => <Collapsible {...props}>{children}</Collapsible>,
     CommunityDriver: ({ children, ...props }) => <CommunityPillLink {...props}>{children}</CommunityPillLink>,
     ComposableContent: ({ children, selections, ...props }) => (
