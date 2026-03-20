@@ -1,16 +1,16 @@
 .. _entity-framework-query-data:
 
-==========
-Query Data
-==========
+====================================
+Find and Query Entity Data with LINQ 
+====================================
 
 .. facet::
    :name: genre
    :values: reference
 
 .. meta::
-   :keywords: EF, EF Core, code example, read
-   :description: Explore how to query data using Entity Framework Core with LINQ syntax, including finding, sorting, and retrieving entities from a MongoDB database.
+   :keywords: EF, EF Core, code example, read, exists, missing, null
+   :description: Explore how to query data using Entity Framework Core with LINQ syntax, including finding, sorting, checking field existence, and retrieving entities from a MongoDB database.
 
 .. contents:: On this page
    :local:
@@ -36,12 +36,29 @@ an application configured to use the {+provider-short+}.
    To learn how to configure an application to use the {+provider-short+}, see
    :ref:`entity-framework-configure`.
 
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``planets`` collection from the
+``sample_guides`` database. The documents in this collection use the
+following ``Planet`` class as a model:
+
+.. literalinclude:: /includes/code-examples/quick-reference.cs
+   :start-after: // start-planet
+   :end-before: // end-planet
+   :language: csharp
+   :copyable:
+   :dedent:
+
+This collection is from the :atlas:`sample datasets </sample-data>`
+provided by Atlas. See the :ref:`entity-framework-quickstart` guide to
+learn how to create a free MongoDB cluster and load this sample data.
+
 Find Entities
 -------------
 
 Find a single entity by using the ``FirstOrDefault()`` method, or find
 multiple entities by using the ``Where()`` method.
-
 
 .. _entity-framework-find-one:
 
@@ -77,6 +94,105 @@ The following code uses the ``Where()`` method to find all planets that have the
 .. literalinclude:: /includes/code-examples/quick-reference.cs
    :start-after: // start-find-many
    :end-before: // end-find-many
+   :language: csharp
+   :dedent:
+
+.. _entity-framework-query-shadow-property:
+
+Query a Shadow Property
+~~~~~~~~~~~~~~~~~~~~~~~
+
+A *shadow property* is a property that isn't defined on your .NET entity
+class but is included in the Entity Framework model and mapped to fields
+in the database. You can use shadow properties to query or track data in your
+documents without exposing it as a property on your entity.
+
+To reference a shadow property in a LINQ query, call the ``EF.Property<T>()`` method and
+pass the configured property name as an argument. The generic type argument must match the
+data type of the shadow property.
+
+For example, the ``Planet`` class does not define a property for the ``mainAtmosphere``
+field. To configure this field as a shadow property, call the
+``Property<T>()`` method in the ``OnModelCreating()`` method of
+``PlanetDbContext``, as shown in the following example:
+
+.. literalinclude:: /includes/code-examples/quick-reference.cs
+   :start-after: // start-db-context
+   :end-before: // end-db-context
+   :language: csharp
+   :copyable:
+   :dedent:
+   :emphasize-lines: 19
+
+The call to ``modelBuilder.Entity<Planet>().Property<string[]>("mainAtmosphere")``
+instructs the framework to include ``mainAtmosphere`` in the model
+and map it to a ``string[]`` field in MongoDB.
+
+The following code uses the ``EF.Property<string[]>()`` method to find all planets that
+have a non-empty ``mainAtmosphere`` shadow property and prints the planet
+names to the console:
+
+.. literalinclude:: /includes/code-examples/quick-reference.cs
+   :start-after: // start-find-shadow-property
+   :end-before: // end-find-shadow-property
+   :language: csharp
+   :dedent:
+
+.. _entity-framework-field-existence:
+
+Check Field Existence
+---------------------
+
+You can query documents based on whether a field exists, is missing, or has a ``null``
+value by using methods in the ``Mql`` class.
+
+.. note::
+
+   These methods work with both real properties and shadow properties.
+
+Mql.Exists
+~~~~~~~~~~
+
+The ``Mql.Exists()`` method matches documents that contain the specified field,
+including documents where the field value is ``null``.
+
+The following code uses the ``Mql.Exists()`` method to find all planets that
+have the ``hasRings`` field and prints the planet names to the console:
+
+.. literalinclude:: /includes/code-examples/quick-reference.cs
+   :start-after: // start-mql-exists
+   :end-before: // end-mql-exists
+   :language: csharp
+   :dedent:
+
+Mql.IsMissing
+~~~~~~~~~~~~~
+
+The ``Mql.IsMissing()`` method matches documents that do not contain the
+specified field.
+
+The following code uses the ``Mql.IsMissing()`` method to find all planets that
+do not have the ``hasRings`` field and prints the planet names to the console:
+
+.. literalinclude:: /includes/code-examples/quick-reference.cs
+   :start-after: // start-mql-is-missing
+   :end-before: // end-mql-is-missing
+   :language: csharp
+   :dedent:
+
+Mql.IsNullOrMissing
+~~~~~~~~~~~~~~~~~~~
+
+The ``Mql.IsNullOrMissing()`` method matches documents where the specified
+field is either missing or has a ``null`` value.
+
+The following code uses the ``Mql.IsNullOrMissing()`` method to find all planets
+where the ``hasRings`` field is missing or ``null`` and prints the planet
+names to the console:
+
+.. literalinclude:: /includes/code-examples/quick-reference.cs
+   :start-after: // start-mql-is-null-or-missing
+   :end-before: // end-mql-is-null-or-missing
    :language: csharp
    :dedent:
 
@@ -280,7 +396,6 @@ the ``mass`` field in the ``Planets`` collection:
    :start-after: // start-average
    :end-before: // end-average
 
-
 Additional Information
 ----------------------
 
@@ -296,3 +411,10 @@ documentation links:
 - `OrderByDescending() <https://learn.microsoft.com/en-us/dotnet/api/system.linq.queryable.orderbydescending>`__
 - `ThenBy() <https://learn.microsoft.com/en-us/dotnet/api/system.linq.queryable.thenby>`__
 - `ThenByDescending() <https://learn.microsoft.com/en-us/dotnet/api/system.linq.queryable.thenbydescending>`__
+
+To learn more about the ``Mql`` class methods, see the following {+csharp-driver-short+}
+API documentation links:
+
+- `Mql.Exists() <{+driver-api-root+}/MongoDB.Driver/MongoDB.Driver.Mql.Exists.html>`__
+- `Mql.IsMissing() <{+driver-api-root+}/MongoDB.Driver/MongoDB.Driver.Mql.IsMissing.html>`__
+- `Mql.IsNullOrMissing() <{+driver-api-root+}/MongoDB.Driver/MongoDB.Driver.Mql.IsNullOrMissing.html>`__
