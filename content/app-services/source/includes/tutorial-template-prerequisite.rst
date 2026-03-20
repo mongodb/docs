@@ -2,8 +2,7 @@
   <https://cloud.mongodb.com/user/register>`_, an API key, and 
   {+cli+} to create a Template App.
 
-  - You can learn more about creating an Atlas account in the 
-    :atlas:`Atlas Getting Started </getting-started>` documentation. For this 
+  - To learn more about creating an Atlas account, see :ref:`Get Started with Atlas <unified-get-started>`. For this
     tutorial, you need an Atlas account with a free-tier cluster.
 
   - You also need an Atlas :atlas:`API key

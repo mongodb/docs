@@ -1,7 +1,7 @@
 .. ia::
 
    .. entry:: MongoDB Atlas
-      :url: https://www.mongodb.com/docs/atlas/getting-started/
+      :url: https://www.mongodb.com/docs/atlas/
 
    .. entry:: Database Manual
       :url: https://www.mongodb.com/docs/manual/
