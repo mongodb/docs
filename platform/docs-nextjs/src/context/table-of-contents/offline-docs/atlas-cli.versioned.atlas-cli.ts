@@ -2092,7 +2092,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-kubernetes/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51'],
+                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -2114,17 +2114,9 @@ export const toc: L1TocItem[] = [
                         ],
                       },
                       {
-                        label: 'dry',
+                        label: 'dry-run',
                         contentSite: 'atlas-cli',
-                        collapsible: true,
-                        url: '/docs/atlas/cli/:version/command/atlas-kubernetes-dry/',
-                        items: [
-                          {
-                            label: 'run',
-                            contentSite: 'atlas-cli',
-                            url: '/docs/atlas/cli/:version/command/atlas-kubernetes-dry-run/',
-                          },
-                        ],
+                        url: '/docs/atlas/cli/:version/command/atlas-kubernetes-dry-run/',
                       },
                       {
                         label: 'operator',

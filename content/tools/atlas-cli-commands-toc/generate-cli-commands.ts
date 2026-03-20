@@ -407,9 +407,39 @@ async function copyExamplesFromGit(tagOrBranch: string): Promise<void> {
 function createHierarchicalStructure(files: string[], versionAvailability?: Map<string, string[]>): CommandTree {
   const tree: CommandTree = {};
   
+  // Known compound command names that should not be split on hyphens
+  // These are command names where the hyphen is part of the command name itself
+  const compoundCommands = ['dry-run'];
+  
   for (const file of files) {
-    // Remove .txt extension and split by hyphens
-    const commandPath = file.replace(/\.txt$/, '').split('-');
+    // Remove .txt extension
+    let commandName = file.replace(/\.txt$/, '');
+    
+    // Replace compound commands with placeholders before splitting
+    const placeholders: { placeholder: string; original: string }[] = [];
+    for (let i = 0; i < compoundCommands.length; i++) {
+      const compound = compoundCommands[i];
+      if (commandName.includes(compound)) {
+        const placeholder = `__COMPOUND${i}__`;
+        placeholders.push({ placeholder, original: compound });
+        commandName = commandName.replace(compound, placeholder);
+      }
+    }
+    
+    // Split by hyphens
+    let commandPath = commandName.split('-');
+    
+    // Restore compound commands from placeholders
+    if (placeholders.length > 0) {
+      commandPath = commandPath.map(part => {
+        for (const { placeholder, original } of placeholders) {
+          if (part === placeholder) {
+            return original;
+          }
+        }
+        return part;
+      });
+    }
     let currentLevel = tree;
     
     // Build the tree structure

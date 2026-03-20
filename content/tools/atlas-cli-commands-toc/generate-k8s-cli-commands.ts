@@ -154,6 +154,11 @@ function createHierarchicalStructure(files: string[]): CommandTree {
       // Remove .txt extension and split by dashes
       const commandName = file.replace('.txt', '').replace(/\//g, '-');
 
+      // Skip the root atlas-kubernetes.txt file - it's just the parent documentation page
+      if (commandName === 'atlas-kubernetes') {
+        return;
+      }
+
       // Remove 'atlas-kubernetes-' prefix to get the clean command name
       let cleanName = commandName;
       if (cleanName.startsWith('atlas-kubernetes-')) {
@@ -300,7 +305,7 @@ async function copyCommandFilesFromGit(tagOrBranch: string): Promise<string[]> {
       // Adjust filename for kubernetes commands
       const fileName = file.replace(/\//g, '-');
       // Avoid double-prefixing if file already starts with atlas-kubernetes
-      const k8sFileName = (fileName.startsWith('atlas-kubernetes-') || fileName.startsWith('atlas-kubernetes.'))
+      const k8sFileName = fileName.startsWith('atlas-kubernetes')
         ? fileName
         : `atlas-kubernetes-${fileName}`;
 
