@@ -24,13 +24,13 @@
       
    .. step:: Select the :guilabel:`M0` option.
 
-      ``M0`` {+clusters+} are free forever and suitable for
+      {+Free-clusters+} are free forever and suitable for
       users learning MongoDB or developing small proof-of-concept
       applications.
       
    .. step:: Select your preferred :guilabel:`Provider`.
 
-      |service| supports ``M0`` {+Free-clusters+} on
+      |service| supports {+Free-clusters+} on
       :ref:`Amazon Web Services (AWS) <amazon-aws>`,
       :ref:`Google Cloud Platform (GCP) <google-gcp>`, and
       :ref:`Microsoft Azure <microsoft-azure>`.
@@ -38,7 +38,7 @@
    .. step:: Select your preferred :guilabel:`Region`.
 
       |service| displays only the cloud provider
-      regions that support ``M0`` {+Free-clusters+}.
+      regions that support {+Free-clusters+}.
       
    .. step:: Specify a name for your {+cluster+} in the :guilabel:`Name` box.
       

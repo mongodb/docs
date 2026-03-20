@@ -23,7 +23,7 @@
 .. note::
 
    The {+atlas-ui+} doesn't support building indexes with a rolling build
-   for ``M0`` {+Free-clusters+} and {+Flex-clusters+}.
+   for {+Free-clusters+} and {+Flex-clusters+}.
 
 For workloads which cannot tolerate performance decrease due to index 
 builds, consider building indexes in a rolling fashion.

@@ -24,8 +24,8 @@
       
       .. note::
       
-         |service| pauses monitoring for these metrics on ``M0``
-         {+clusters+} without connection activity for seven days. |service|
+         |service| pauses monitoring for these metrics on {+Free-clusters+}
+         without connection activity for seven days. |service|
          indicates which {+clusters+} fell into this state in the
          :guilabel:`Cluster Detail` view. |service| limits details
          displayed for these clusters.

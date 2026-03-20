@@ -1441,12 +1441,12 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/reference/atlas-limits',
           },
           {
-            label: 'Atlas Flex Limits',
+            label: 'Flex Cluster Limits',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/reference/flex-limitations',
           },
           {
-            label: 'M0 Limits',
+            label: 'Free Cluster Limits',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/reference/free-shared-limitations',
           },

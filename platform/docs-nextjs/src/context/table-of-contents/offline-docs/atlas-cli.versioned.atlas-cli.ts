@@ -10986,6 +10986,11 @@ export const toc: L1TocItem[] = [
                 contentSite: 'atlas-cli',
                 url: '/docs/atlas/cli/:version/atlas-cli-admin-api',
               },
+              {
+                label: 'Extend with Custom Plugins',
+                contentSite: 'atlas-cli',
+                url: '/docs/atlas/cli/:version/atlas-cli-extend-plugins',
+              },
             ],
           },
           {

@@ -17,7 +17,7 @@ A synonym mapping configures a |fts| index to support queries that apply synonym
 source collection in the same database as the collection you are indexing. You can use synonyms 
 only in queries that use the :ref:`text <text-ref>` operator.
 
-.. note:: Free (``M0``) Tier Cluster Limitation
+.. note:: {+Free-Cluster+} Limitation
 
    .. include:: /includes/fts/facts/fact-fts-synonym-mapping-limitation.rst
 

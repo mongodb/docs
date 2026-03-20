@@ -13,10 +13,10 @@
       
    .. step:: In the :guilabel:`Cloud Provider & Region` view, select the desired new region for the new cluster.
       
-      For ``M0`` {+clusters+}:
-        
+      For {+Free-clusters+}:
+
       - You must also select a higher {+cluster+} tier. |service| supports
-        moving ``M0`` {+clusters+} only when you :doc:`increase the
+        moving {+Free-clusters+} only when you :doc:`increase the
         cluster tier </scale-cluster>`.
       - The available regions are a subset of the total supported regions for any
         given cloud service provider.

@@ -1,6 +1,6 @@
-``M0`` Tier Clusters
+{+Free-cluster+} Tier Clusters
   You can modify the cloud provider and region only when
-  you scale up your ``M0`` {+cluster+} to a larger {+cluster+}.
+  you scale up your {+Free-cluster+} to a larger {+cluster+}.
 
 {+Flex-cluster+} or larger Tier Clusters
   You can modify the cloud provider and region when you

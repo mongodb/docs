@@ -20,12 +20,12 @@
   ``ap-east-2`` and ``ap-southeast-6``, and {+azure+} regions
   ``chilecentral``, ``indonesiacentral``, and ``malaysiawest``.
   
-- Reduces the inactivity policy for pausing inactive |service| ``M0`` {+Free-clusters+} 
-  from 60 to 30 days. You'll receive an email notification 7 days before {+service+} 
-  pauses your cluster. To resume a paused cluster, see :ref:`resume-cluster`. If 
-  you don't plan on using your cluster in the next few weeks, we recommend 
-  :ref:`exporting <mongodump>` the data and :ref:`terminating <terminate-cluster>` 
-  the cluster. 
+- Reduces the inactivity policy for pausing inactive |service| {+Free-clusters+}
+  from 60 to 30 days. You'll receive an email notification 7 days before {+service+}
+  pauses your cluster. To resume a paused cluster, see :ref:`resume-cluster`. If
+  you don't plan on using your cluster in the next few weeks, we recommend
+  :ref:`exporting <mongodump>` the data and :ref:`terminating <terminate-cluster>`
+  the cluster.
 
 - Adds a configurable expiration duration for regional outage simulations to solve 
   stuck simulations. 

@@ -373,15 +373,7 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Insert',
                 contentSite: 'docs',
-                collapsible: true,
                 url: '/docs/:version/tutorial/insert-documents',
-                items: [
-                  {
-                    label: 'Methods',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/insert-methods',
-                  },
-                ],
               },
               {
                 label: 'Query',
@@ -452,15 +444,7 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Remove',
                 contentSite: 'docs',
-                collapsible: true,
                 url: '/docs/:version/tutorial/remove-documents',
-                items: [
-                  {
-                    label: 'Methods',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/delete-methods',
-                  },
-                ],
               },
               {
                 label: 'Bulk Write',
@@ -8108,6 +8092,16 @@ export const toc: L1TocItem[] = [
                         label: '$toObjectId',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/toObjectId',
+                      },
+                      {
+                        label: '$top',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/operator/top',
+                      },
+                      {
+                        label: '$topN',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/operator/topN',
                       },
                       {
                         label: '$toString',

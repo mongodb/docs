@@ -25,6 +25,6 @@ M10
 
 {+Free-clusters+}
   A {+Free-cluster+} provides a free sandbox replica set. You can deploy 
-  one M0 {+cluster+} per |service| project. Free clusters are more 
+  one {+Free-cluster+} per |service| project. Free clusters are more
   limited than {+Atlas-Flex+} and Dedicated clusters. For information on 
   these limitations, refer to :ref:`<shared-limits-config>`.

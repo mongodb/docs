@@ -5,7 +5,7 @@ into tiers as follows:
 
 :guilabel:`{+Free-Clusters+} and {+Flex-Clusters+}`
   Sandbox cluster tiers for getting started with MongoDB, such as the 
-  ``M0`` {+Free-cluster+} or a {+Flex-Cluster+}.
+  {+Free-cluster+} or a {+Flex-Cluster+}.
 
   These clusters support replica set deployments in a shared 
   environment with access to a subset of |service| features and

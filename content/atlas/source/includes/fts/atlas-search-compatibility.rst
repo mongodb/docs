@@ -56,10 +56,10 @@ specific MongoDB versions.
 
 .. _atlas-fts-shared-tier-limitations:
 
-Search M0 (Free Cluster) and {+Flex-Clusters+} Limitations
+Search {+Free-Cluster+} and {+Flex-Clusters+} Limitations
 ------------------------------------------------------------------
 
-The following limitations apply to |fts| on ``M0`` and Flex
+The following limitations apply to |fts| on {+Free-clusters+} and Flex
 {+clusters+} only:
 
 - .. include:: /includes/search-shared/fact-fts-shared-tier-limitations.rst

@@ -64,6 +64,11 @@ export const toc: L1TocItem[] = [
                 url: '/docs/drivers/php-frameworks/drupal/',
               },
               {
+                label: 'LLPhant Integration',
+                contentSite: 'drivers',
+                url: '/docs/drivers/php-frameworks/llphant/',
+              },
+              {
                 label: 'Libraries, Frameworks, & Tools',
                 contentSite: 'drivers',
                 url: '/docs/drivers/php-libraries/',

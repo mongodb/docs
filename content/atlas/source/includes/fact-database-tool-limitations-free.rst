@@ -1,4 +1,4 @@
-M0 {+Free-clusters+} and {+Flex-clusters+} don't support the following
+{+Free-clusters+} and {+Flex-clusters+} don't support the following
 command line tool options:
 
 .. list-table::

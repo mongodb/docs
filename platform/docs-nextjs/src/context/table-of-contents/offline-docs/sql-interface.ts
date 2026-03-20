@@ -17,50 +17,30 @@ export const toc: L1TocItem[] = [
             url: '/docs/sql-interface',
           },
           {
-            label: 'Enable SQL Access',
-            contentSite: 'sql-interface',
-            url: '/docs/sql-interface/connect-with-sql-composable',
-          },
-          {
             label: 'Migration Guide',
             contentSite: 'sql-interface',
             url: '/docs/sql-interface/transition-bic-to-atlas-sql/',
           },
           {
-            label: 'Connect',
+            label: 'Install',
             contentSite: 'sql-interface',
             collapsible: true,
-            url: '/docs/sql-interface/connect',
+            url: '/docs/sql-interface/sql-interface-install',
             items: [
               {
-                label: 'MongoDB Shell',
+                label: 'Server Setup',
                 contentSite: 'sql-interface',
-                url: '/docs/sql-interface/connect/shell',
+                url: '/docs/sql-interface/connect-with-sql-composable',
               },
               {
-                label: 'JDBC Driver',
+                label: 'Driver Setup',
                 contentSite: 'sql-interface',
-                url: '/docs/sql-interface/connect/jdbc',
+                url: '/docs/sql-interface/install-driver',
               },
               {
-                label: 'ODBC',
+                label: 'Connect BI Tool',
                 contentSite: 'sql-interface',
-                url: '/docs/sql-interface/connect/odbc',
-              },
-              {
-                label: 'Tableau',
-                contentSite: 'sql-interface',
-                url: '/docs/sql-interface/connect/tableau',
-              },
-              {
-                label: 'Power BI',
-                contentSite: 'sql-interface',
-                url: '/docs/sql-interface/connect/power-bi',
-              },
-              {
-                label: 'Private Endpoint',
-                contentSite: 'sql-interface',
-                url: '/docs/sql-interface/connect/private-endpoint',
+                url: '/docs/sql-interface/connect',
               },
             ],
           },
@@ -91,6 +71,16 @@ export const toc: L1TocItem[] = [
             label: 'Language Reference',
             contentSite: 'sql-interface',
             url: '/docs/sql-interface/language-reference',
+          },
+          {
+            label: 'Private Endpoint',
+            contentSite: 'sql-interface',
+            url: '/docs/sql-interface/connect/private-endpoint',
+          },
+          {
+            label: 'MongoDB Shell',
+            contentSite: 'sql-interface',
+            url: '/docs/sql-interface/connect/shell',
           },
           {
             label: 'Changelog',

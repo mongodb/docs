@@ -26,7 +26,7 @@ disk space. You can reduce the size and performance footprint of your
 
 .. note::
 
-   Some limitations apply to |fts| on ``M0`` and {+Flex-clusters+}
+   Some limitations apply to |fts| on {+Free-clusters+} and {+Flex-clusters+}
    only. To learn more, see 
    :ref:`{+fts+} Search Free and Flex Tier Limitations 
    <atlas-fts-shared-tier-limitations>`.
