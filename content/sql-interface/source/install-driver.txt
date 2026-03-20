@@ -1,0 +1,897 @@
+.. _install-sql-interface-driver:
+.. _sql-standalone-drivers:
+
+==============================
+{+sql-interface+} Driver Setup
+==============================
+
+.. meta::
+   :keywords: connect, sql, mongodb
+   :description: Install the MongoDB ODBC or JDBC driver that is required to connect your business intelligence (BI) tool to your MongoDB database.
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes how to install and configure the MongoDB |jdbc| or |odbc| drivers
+for connecting your |bi| tool to your |service| or self-managed {+ea+} database.
+
+Reference the table below to find the correct driver for your |bi| tool.  
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Driver
+     - BI Tool
+
+   * - **JDBC Driver**
+     - `Tableau <https://www.tableau.com/>`__ Desktop or Server or other JDBC-supported tools such as DBeaver, DataGrip, or a Maven project.
+
+   * - **ODBC Driver**
+     - `Power BI Desktop <https://learn.microsoft.com/en-us/power-bi/fundamentals/desktop-get-the-desktop/>`__ or other ODBC-supported tools such as Excel.
+
+.. include:: /includes/fact-driver-bi-tool-compatibility.rst
+
+.. _sql-connect-jdbc:
+
+Install the JDBC Driver
+-----------------------
+
+The MongoDB |jdbc| driver is required for connecting to your database with Tableau, 
+DBeaver, DataGrip, and other Java applications that accept a |jdbc| API, such as 
+a `Maven <https://maven.apache.org/>`__ project.
+
+JDBC Driver Compatibility
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The MongoDB |jdbc| driver is compatible with:
+
+  - Windows x86_64
+
+  - macOS x86_64 and macOS aarch64 architectures
+
+  - linux x86_64 and linux arm64 architectures
+
+- OpenSSL 3.0 or greater is required for secure connections.
+
+- You can authenticate with :manual:`SCRAM-SHA-1, SCRAM-SHA-256
+  </core/security-scram/>`, :ref:`MONGODB-X509 <security-auth-x509>`, and
+  :ref:`MongoDB Passwordless Authentication with AWS <set-up-pwdless-auth>`.
+
+Procedure
+~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Download the MongoDB JDBC driver.
+
+      Download the latest |jdbc| driver from the `MongoDB download center <https://www.mongodb.com/try/download/jdbc-driver>`__.
+
+      .. include:: /includes/fact-jdbc-formats.rst
+
+   .. step:: Move the ``jar`` file to the appropriate directory for your operating system.
+
+      Copy the ``jar`` file to the appropriate directory for your |bi| tool. For example,
+      if you're installing the |jdbc| driver for Tableau: 
+      
+      - **Windows:** ``C:\Program Files\Tableau\Drivers``
+
+      - **macOS:** ``~/Library/Tableau/Drivers``
+
+      - **Linux:** ``/opt/tableau/tableau_driver/jdbc``
+
+   .. step:: Verify the integrity of the downloaded package.
+
+      The MongoDB release team digitally signs all software packages to
+      certify that a particular MongoDB package is a valid and unaltered
+      MongoDB release. MongoDB signs each release branch with a different
+      PGP key in ``.asc`` format.  
+
+      a. Run the following command to download the ``.asc`` file from the 
+         `Maven Central Repository <https://search.maven.org/artifact/org.mongodb/mongodb-jdbc>`__.
+         Replace ``<versionNumber>`` with the version of the driver you downloaded and ``<artifactToVerify>`` with the name of the file you downloaded.  
+
+         .. code-block:: sh 
+
+            curl -O https://repo1.maven.org/maven2/org/mongodb/mongodb-jdbc/<versionNumber>/<artifactToVerify>.asc
+      
+         For example, if you downloaded ``mongodb-jdbc-2.2.3-all.jar``, you would run the following command.
+
+         .. code-block:: sh 
+
+            curl -O https://repo1.maven.org/maven2/org/mongodb/mongodb-jdbc/2.2.3/mongodb-jdbc-2.2.3-all.jar.asc
+
+
+      #. Run the following command to download then import the key file. Replace 
+         ``<serverUrl>`` with one of the current GPG key servers supported by Maven:
+
+         - ``keyserver.ubuntu.com``
+         - ``keys.openpgp.org``
+         - ``pgp.mit.edu``
+
+         .. io-code-block::
+            :copyable: true 
+
+            .. input:: 
+               :language: shell 
+
+               gpg --keyserver <serverUrl> --recv-keys BDDC8671F1BE6F4D5464096624A4A8409351E954
+
+            .. output:: 
+               :language: shell 
+
+               gpg: key BDDC8671F1BE6F4D5464096624A4A8409351E954: public key "MongoDB JDBC Driver Release Signing Key <packaging@mongodb.com>" imported
+               gpg: Total number processed: 1
+               gpg:               imported: 1
+
+      #. Run the following command to verify the MongoDB |jdbc| driver installation file. Replace ``<detachedSignatureFile>`` and ``<artifactToVerify>`` with the names of the files you downloaded.
+
+         .. code-block:: 
+
+            gpg --verify <detachedSignatureFile> <artifactToVerify>
+
+         For example, if you downloaded ``mongodb-jdbc-2.2.3-all.jar`` and ``mongodb-jdbc-2.2.3-all.jar.asc`` to your current directory, you would run the following. 
+
+         .. code-block::
+         
+            gpg --verify mongodb-jdbc-2.2.3-all.jar.asc mongodb-jdbc-2.2.3-all.jar
+
+         GPG should return a response similar to the following:
+
+         .. code-block:: shell
+
+            gpg: Signature made Wed May 22 13:24:36 2024 MDT
+            gpg:                using RSA key BDDC8671F1BE6F4D5464096624A4A8409351E954
+            gpg: Good signature from "MongoDB JDBC Driver Release Signing Key <packaging@mongodb.com>"
+
+         If the package is properly signed, but you don't yet trust
+         the signing key in your local ``trustdb``, ``gpg`` will also return
+         the following message: 
+
+         .. code-block:: shell 
+
+            gpg: WARNING: This key is not certified with a trusted signature!
+            gpg:          There is no indication that the signature belongs to the owner.
+            Primary key fingerprint: D2C4 5B7E 66A5 DCA1 8B76  57A8 91A2 1577 3066 6110
+
+         If you receive the following error message, confirm that you
+         imported the correct public key: 
+
+         .. code-block:: shell 
+
+            gpg: Can't check signature: public key not found
+
+
+Integrate with a Maven Project
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you use {+adf+}, you can connect the MongoDB |jdbc| driver with your Maven 
+application. 
+
+
+.. procedure::
+   :style: normal
+
+   .. step:: Configure the driver for your Maven application.
+  
+      Copy the dependency snippet from the
+      `Maven Central Repository <https://central.sonatype.com/artifact/org.mongodb/mongodb-jdbc>`__. 
+      Edit the version number in the dependency snippet to match your JDBC driver version.
+     
+      For example:
+
+      .. code-block:: xml
+     
+         <dependency>
+            <groupId>org.mongodb</groupId>
+            <artifactId>mongodb-jdbc</artifactId>
+            <version>2.1.0</version>
+         </dependency>
+
+   .. step:: Add the dependency to your Maven project.
+      
+
+      In the ``pom.xml`` file for your project, paste the snippet into 
+      the dependencies list as follows:
+
+      .. code-block:: xml
+         :emphasize-lines: 2-6
+
+         <dependencies>
+           <dependency>
+               <groupId>org.mongodb</groupId>
+               <artifactId>mongodb-jdbc</artifactId>
+               <version>2.1.0</version>
+           </dependency>
+         </dependencies>
+
+   .. step:: Connect to your {+fdi+}.
+
+      To connect to your {+fdi+}, create a connection string and
+      open a connection from your application. The connection string
+      for the |jdbc| driver follows the format of the standard MongoDB
+      connection string, except with the ``jdbc:`` prefix:
+
+      .. code-block::
+      
+         jdbc:mongodb://[username:password]@[host].a.query.mongodb.net/<databaseName>[?option1=value1[&option2=value2]...]
+
+      To get the
+      connection string from the {+atlas-ui+}, do the following:
+
+      a. In the {+atlas-ui+}, go to the :guilabel:`Data Federation` page
+         and click :guilabel:`Connect` for the {+fdi+} that you want to
+         connect to.  
+      #. Under :guilabel:`Access your data through tools`, select
+         :guilabel:`Atlas SQL`.  
+      #. Under :guilabel:`Select your driver`, select :guilabel:`JDBC
+         Driver` from the dropdown.
+      #. Under :guilabel:`Get Connection String`, select the database that
+         you want to connect to and copy the connection string.
+   
+      The following example demonstrates how to open a connection.
+      In addition to the connection string, you must also specify 
+      the database to use through a ``Properties`` object parameter.
+      To learn more, see :manual:`Connection Strings
+      </reference/connection-string/#std-label-connections-connection-options>`
+      and :github:`Connection Properties </mongodb/mongo-jdbc-driver#connection-properties>`.
+
+      .. code-block:: java
+
+         java.util.Properties p = new java.util.Properties();
+         p.setProperty("database", "<databaseName>");
+         Connection conn = DriverManager.getConnection("<connectionString>", p);
+
+      .. note:: 
+
+         The driver can only connect to |service| and not to a
+         {+fdi+}. Any special characters in the connection string for the
+         |jdbc| driver must be URL encoded.
+
+.. _sql-connect-odbc:
+
+Install the ODBC Driver
+-----------------------
+
+The MongoDB |odbc| driver is required for connecting to your database with Power BI, Excel, 
+or other ODBC-supported |bi| tools.
+
+Choose your deployment type to get started:
+
+.. composable-tutorial::
+   :options: deployment-type
+   :defaults: atlas
+
+   .. selected-content::
+      :selections: atlas
+
+      ODBC Driver Compatibility
+      ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      - The MongoDB |odbc| driver is compatible with:
+
+        - Windows
+        - Ubuntu 22.04 (x86_64)
+
+      - OpenSSL 3.0 or greater is required for secure connections.
+
+      - You can authenticate with :manual:`SCRAM-SHA-1, SCRAM-SHA-256
+        </core/security-scram/>`, :ref:`MONGODB-X509 <security-auth-x509>`, and
+        :ref:`MongoDB Passwordless Authentication with AWS <set-up-pwdless-auth>`.
+
+      Prerequisites
+      ~~~~~~~~~~~~~
+
+      .. tabs::
+
+         .. tab:: Windows
+            :tabid: windows
+
+            .. include:: /includes/fact-shared-prereqs-odbc-driver.rst
+
+         .. tab:: Ubuntu
+            :tabid: ubuntu
+
+            - The `unixODBC <https://www.unixodbc.org/>`__ package:
+               
+              .. code-block:: sh
+
+                 sudo apt install unixodbc
+
+            - The `odbcinst <https://packages.debian.org/unstable/odbcinst>`__ package:
+
+              .. code-block:: sh
+
+                 sudo apt install odbcinst
+
+            .. include:: /includes/fact-shared-prereqs-odbc-driver.rst
+
+      Procedure
+      ~~~~~~~~~
+
+      .. tabs::
+         :hidden: true
+
+         .. tab:: Windows
+            :tabid: windows
+
+            .. procedure::
+               :style: normal
+
+               .. step:: Download the MongoDB ODBC driver.
+
+                  Download the latest |odbc| driver from the `MongoDB download center <https://www.mongodb.com/try/download/odbc-driver>`__.
+  
+               .. step:: Verify the integrity of the downloaded package.
+
+                  The MongoDB release team digitally signs all software packages to
+                  certify that a particular MongoDB package is a valid and unaltered
+                  MongoDB release. Complete the following steps to verify the ODBC driver
+                  binary against its SHA256 key:
+  
+                  a. Download the ``.sha256`` file for Windows x64 from the `MongoDB ODBC Drivers Downloads page <https://translators-connectors-releases.s3.amazonaws.com/mongosql-odbc-driver/windows/{+sql-odbc-version+}/release/mongoodbc.msi.sha256>`__. 
+  
+                  #. Compare the signature file to the MongoDB installer hash using the
+                     following Powershell script:
+    
+                     .. code-block:: shell
+      
+                        $sigHash = (Get-Content $Env:HomePath\Downloads\mongodbodbc.msi.sha256 | Out-String).SubString(0,64).ToUpper(); `
+                        $fileHash = (Get-FileHash $Env:HomePath\Downloads\mongodbodbc.msi).Hash.Trim(); `
+                        echo $sigHash; echo $fileHash; `
+                        $sigHash -eq $fileHash
+        
+                     The command outputs three lines:
+
+                     - A SHA256 hash that you downloaded directly from MongoDB.
+                     - A SHA256 hash computed from the MongoDB ODBC driver binary you downloaded from MongoDB.
+                     - A True or False result depending if the hashes match.
+         
+                     If the hashes match, the MongoDB binary is verified.
+
+               .. step:: Install the ODBC driver.
+                  
+                  a. Run the installation file that you downloaded to open the :guilabel:`Atlas SQL ODBC Setup Wizard`. 
+                  
+                  #. Follow the steps in the Setup Wizard.
+
+               .. step:: Configure a System DSN.
+
+                  To configure your |odbc| connection:
+
+                  a. Open your ODBC Data Source Administrator.
+
+                     .. note::
+
+                        If you use a 64-bit processor, be sure to open the 64-bit
+                        ODBC Data Source Administrator.
+
+                  #. Navigate to the **System DSN** tab.
+
+                  #. Add a new **System DSN**.
+
+                  #. When prompted to select a driver for your data source,
+                     select the :guilabel:`MongoDB Atlas SQL ODBC Driver`.
+
+                  #. Enter your connection information. You must enter:
+
+                     .. include:: /includes/fact-connection-info-atlas-sql.rst
+
+                     .. list-table::
+                        :widths: 20 80
+                        :header-rows: 1
+
+                        * - Field
+                          - Description
+
+                        * - DSN
+                          - A name for your new DSN.
+
+                        * - Username
+                          - A database username to use to connect to your database.
+
+                        * - Password
+                          - The database user's password.
+
+                        * - MongoDB URI
+                          - Your MongoDB deployment URI.
+
+                        * - Database
+                          - The name of the database to which to connect.
+          
+                        * - Enable maximum
+                          - Checkbox to enforce maximum string length of 4000
+                            characters. You must enable this option to work with |bi|
+                            tools like Microsoft SQL Server Management Studio that
+                            can't support variable length string data with unknown
+                            maximum length. 
+
+                  #. Once you enter the required connection information, 
+                     you can test your connection with 
+                     your ODBC Data Source Administrator.
+
+               .. step:: Configure logging for the ODBC driver.
+
+                  Enable SQL trace logging within the |odbc| driver either by setting it
+                  in the connection string or by adding a key value pair to the Windows 
+                  System registry. You can configure the |odbc| driver log level by
+                  adding a key-value pair to the Windows System registry, either
+                  directly or by using a ``.ini`` file. To learn more, see the `Windows
+                  documentation on configuring the system registry
+                  <https://learn.microsoft.com/en-us/windows/win32/sysinfo/registry>`__.
+  
+                  If you set in both the driver and the connection
+                  string, the connection string setting takes precedence. You can
+                  specify the desired log level. Logs are hierarchical, which means
+                  {+asql+} logs all messages at or above the level you set. You can
+                  configure one of the following log levels:  
+
+                  - ``error`` - to log only error messages 
+                  - ``warn`` - to log all warnings 
+                  - ``info`` - to log messages of info, errors, and warnings :icon-fa5:`cog`
+                  - ``debug`` - to log all messages of error and info :icon-fa5:`star`
+                  - ``trace`` - to log all trace messages
+                  - ``off`` - to disable logging
+
+                  :icon-fa5:`cog` ``info`` excludes debug and trace messages.
+                  :icon-fa5:`star` ``debug`` messages don't appear in the logs.
+
+                  The default log level is ``info``. You can change the log level by
+                  appending the key ``loglevel`` and value to your ODBC connection string. 
+
+                  .. example:: 
+
+                     The following changes the log level to ``debug``:  
+
+                     .. code-block:: 
+
+                        loglevel=debug
+
+                     The following changes the log level to ``error``: 
+
+                     .. code-block:: 
+
+                        loglevel=error
+
+                  By default, {+asql+} writes logs to a file named ``mongo_odbc.log``
+                  that it creates in the ``logs`` folder. {+asql+} writes logs to the
+                  file in the following path:
+
+                  .. code-block:: 
+
+                     C:\Users<user>\Documents\MongoDB\Atlas SQL ODBC<version>\logs\mongo_odbc.log
+      
+                  {+asql+} automatically rotates the logs when the file size reaches
+                  ``.5MB``. The log files are named ``mongo_odbc.log.x`` where the ``x``
+                  denotes the number of rotation. {+asql+} only keeps up to 10 log
+                  files. When there are 10 log files, {+asql+} automatically rotates and
+                  shuffles such that ``mongo_odbc.log.1`` becomes ``mongo_odbc.log.2``
+                  and so on. 
+
+
+         .. tab:: Ubuntu
+            :tabid: ubuntu
+
+            .. procedure::
+               :style: normal
+            
+               .. step:: Download the MongoDB ODBC driver.
+
+                  Download the latest |odbc| driver from the `MongoDB download center <https://www.mongodb.com/try/download/odbc-driver>`__.
+
+                  .. note::
+
+                     Click :guilabel:`Copy link` to save the URL you need to construct 
+                     the download link for the signature file in a later step.
+
+                  .. code-block:: sh
+
+                     curl https://translators-connectors-releases.s3.amazonaws.com/mongosql-odbc-driver/ubuntu2204/{+sql-odbc-version+}/release/mongoodbc.tar.gz --output mongoodbc.tar.gz
+
+               .. step:: Verify the integrity of the downloaded package.
+               
+                  The MongoDB release team digitally signs all software packages to
+                  certify that a particular MongoDB package is a valid and unaltered
+                  MongoDB release. The ``atlas-sql-odbc.asc`` key is available on 
+                  `pgp.mongodb.com <https://pgp.mongodb.com/atlas-sql-odbc.asc>`__  
+       
+                  a. Run the following command to download the ``.sig`` file.
+             
+                     .. code-block:: sh 
+                  
+                        curl -LO https://translators-connectors-releases.s3.amazonaws.com/mongosql-odbc-driver/ubuntu2204/{+sql-odbc-version+}/release/mongoodbc.tar.gz.sig
+
+                  #. Run the following command to download then import the key file. 
+         
+                     .. io-code-block::
+                        :copyable: true 
+         
+                        .. input:: 
+                           :language: shell 
+         
+                           curl -LO https://pgp.mongodb.com/atlas-sql-odbc.asc
+                           gpg --import atlas-sql-odbc.asc
+
+                        .. output:: 
+                           :language: shell 
+
+                           gpg: key 1CCF1A1263CDD699: public key "Atlas SQL ODBC Release Signing Key <packaging@mongodb.com>" imported
+                           gpg: Total number processed: 1
+                           gpg:               imported: 1
+      
+                  #. Run the following command to verify the MongoDB installation file.
+         
+                     .. code-block:: 
+            
+                        gpg --verify mongoodbc.tar.gz.sig mongoodbc.tar.gz
+
+                     GPG should return this response:
+         
+                     .. code-block:: shell
+            
+                        gpg: Signature made Wed May 22 13:24:36 2024 MDT
+                        gpg:                using RSA key 0C5F007ABC491E4A
+                        gpg: Good signature from "Atlas SQL ODBC Release Signing Key <packaging@mongodb.com>" [unknown]
+         
+                     If the package is properly signed, but you do not currently trust
+                     the signing key in your local ``trustdb``, ``gpg`` will also return
+                     the following message: 
+         
+                     .. code-block:: shell 
+                     
+                        gpg: WARNING: This key is not certified with a trusted signature!
+                        gpg:          There is no indication that the signature belongs to the owner.
+                        Primary key fingerprint: 1CF5 B0D7 B2F8 9E16 52D8 BA79 0C5F 007A BC49 1E4A
+       
+                     If you receive the following error message, confirm that you
+                     imported the correct public key: 
+        
+                     .. code-block:: shell 
+            
+                        gpg: Can't check signature: public key not found
+
+               .. step:: Extract the ODBC driver.
+
+                  The following example extracts the archive contents to 
+                  ``/usr/local/lib/mongoodbc``. The ``mongoodbc`` directory 
+                  contains a ``LICENSE`` file, a ``README.MD`` file, and a 
+                  ``bin`` directory. The ``bin`` directory contains the 
+                  ``libatsql.so`` ODBC driver library.
+
+                  .. code-block:: sh
+
+                     sudo tar -zxf mongoodbc.tar.gz --directory /usr/local/lib
+
+               .. step:: Locate the ODBC driver configuration files.
+
+                  a. Run the following command:
+                     
+                     .. code-block:: sh
+
+                        odbcinst -j
+
+                  #. Note the locations of the configuration files for the 
+                     ``DRIVERS``, ``SYSTEM DATA SOURCES``, and 
+                     ``USER DATA SOURCES``.
+
+                     .. code-block:: sh
+
+                        unixODBC 2.3.9
+                        DRIVERS............: /etc/odbcinst.ini
+                        SYSTEM DATA SOURCES: /etc/odbc.ini
+                        FILE DATA SOURCES..: /etc/ODBCDataSources
+                        USER DATA SOURCES..: /home/ubuntu/.odbc.ini
+                        SQLULEN Size.......: 8
+                        SQLLEN Size........: 8
+                        SQLSETPOSIROW Size.: 8
+
+               .. step:: Configure the ODBC driver.
+
+                  a. Open the ``odbcinst.ini`` file in your preferred 
+                     editor.
+
+                     .. code-block:: sh
+
+                        sudo vim /etc/odbcinst.ini
+
+                  #. Add the following entries to the file and specify the 
+                     path to the ``libatsql.so``  |odbc| driver library.
+
+                     .. code-block:: sh
+
+                        [ODBC Drivers]
+                        MongoDB Atlas SQL ODBC Driver = Installed
+
+                        [MongoDB Atlas SQL ODBC Driver]
+                        Driver=/usr/local/lib/mongoodbc/bin/libatsql.so
+
+               .. step:: Configure the System DSN or User DSN.
+
+                  If multiple users share the DSN, configure the System DSN. 
+                  If multiple users user shouldn't share the DSN, configure 
+                  the User DSN. If a single user uses the DSN, you can 
+                  configure the System DSN or User DSN.
+
+                  a. Open the ``SYSTEM DATA SOURCES`` file or
+                     ``USER DATA SOURCES`` file in your preferred 
+                     editor.
+
+                     **System DSN Example:**
+
+                     .. code-block:: sh
+
+                        sudo vim /etc/odbc.ini
+
+                     **User DSN Example:**
+
+                     .. code-block:: sh
+
+                        sudo vim /home/ubuntu/.odbc.ini
+
+                  #. Add the following entries to the file and specify the 
+                     appropriate values.
+
+                     .. include:: /includes/fact-system-user-odbc-config.rst
+
+               .. step:: Test your connection.
+
+                  Run the following command:
+
+                  .. code-block:: sh
+
+                     iusql -v MongoDB_Atlas_SQL
+
+                  The following example shows a successful connection:
+
+                  .. code-block:: sh
+
+                     +---------------------------------------+
+                     | Connected!                            |
+                     |                                       |
+                     | sql-statement                         |
+                     | help [tablename]                      |
+                     | quit                                  |
+                     |                                       |
+                     +---------------------------------------+
+
+                  If the connection fails, verify the details in your 
+                  configuration files against your {+adf+} instance.
+
+                  .. note::
+
+                     The following warning doesn't impact the |odbc| driver 
+                     operation:
+
+                     .. code-block:: sh
+                        
+                        [MongoDB][API] Buffer size "0" not large enough for data.
+                    
+                     The |odbc| driver doesn't support the ``iusql`` query 
+                     function.
+
+   .. selected-content::
+      :selections: self
+
+      ODBC Driver Compatibility
+      ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      The MongoDB ODBC driver is compatible with:
+
+      - Windows x86_64 architecture
+      - linux x86_64
+      - linux arm64 systems
+      
+      Prerequisites
+      ~~~~~~~~~~~~~
+
+      For Windows operating systems, you need `Microsoft Visual C++ (MSVC) Redistributable 17.0 or higher <https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist?view=msvc-170>`__
+      for the MSVC runtime libraries.
+
+      Procedure
+      ~~~~~~~~~
+
+      .. tabs::
+
+         .. tab:: Windows
+            :tabid: windows
+      
+            Perform the following steps to install the |odbc| driver on a Windows system: 
+      
+            .. procedure::
+               :style: normal
+    
+               .. step:: Download the MongoDB ODBC driver.
+                  
+                  Download the |odbc| driver from the `MongoDB Download Center <https://www.mongodb.com/try/download/odbc-driver>`__.
+    
+                  .. note::
+                   
+                     The |odbc| driver is available for Windows and Ubuntu. Ensure you
+                     select the :guilabel:`Windows` option in the :guilabel:`Platform` 
+                     dropdown menu.
+    
+               .. step:: Open the downloaded file.
+                  
+                  Double-click the downloaded file to run the installer. 
+                  Follow the steps in the Setup Wizard to complete the installation.
+
+               .. step:: Open your ODBC Data Source Administrator.
+
+               .. step:: Navigate to the :guilabel:`System DSN` tab.
+
+               .. step:: Add a new System DSN (or User DSN for non-shared DSNs).
+
+               .. step:: When prompted to select a driver for your data source, select the
+                  :guilabel:`MongoDB Atlas SQL ODBC Driver`.
+
+               .. step:: Enter your connection information.
+
+                  At a minimum, you must enter the following information:
+                
+                  - **Data Source Name (DSN):**  A name for your new DSN.
+                  - **Username:**  A database username to connect to your database.
+                  - **Password:**  The database user's password.
+                  - **MongoDB URI:**  Your MongoDB deployment |uri|.
+                  - **Database:**  The name of the database to which to connect.
+                  - **Enable maximum:**  Checkbox to enforce maximum string length of
+                    4000 characters. You must enable this option to work with BI tools
+                    like Microsoft SQL Sever Management Studio that can't support
+                    variable length string data with unknown maximum length.
+
+               .. step:: Once you enter the required connection information, click the :guilabel:`Test` 
+                  button to test your connection.
+
+         .. tab:: Linux
+            :tabid: linux
+
+            Perform the following steps to install the |odbc| driver on a Linux system:
+      
+            .. procedure::
+               :style: normal
+
+               .. step:: Install ``unixodbc``.
+
+                  .. code-block:: sh
+
+                     sudo apt install unixodbc
+
+               .. step:: Extract the ODBC driver and translation library.
+
+                  .. code-block:: sh
+
+                     sudo tar -zxf mongoodbc.tar.gz --directory /usr/local/lib
+
+               .. step:: Install the ODBC driver.
+
+                  Locate the |odbc| driver configuration files. Note the locations of the configuration
+                  files for ``DRIVERS``, ``SYSTEM DATA SOURCES``, and ``USER DATA SOURCES``. Run the following
+                  command:
+
+                  .. code-block:: sh
+
+                     odbcinst -j
+
+                  **Example output:**
+
+                  .. code-block:: sh
+
+                     unixODBC 2.3.9 
+                     DRIVERS............: /etc/odbcinst.ini 
+                     SYSTEM DATA SOURCES: /etc/odbc.ini 
+                     FILE DATA SOURCES..: /etc/ODBCDataSources 
+                     USER DATA SOURCES..: /home/ubuntu/.odbc.ini 
+                     SQLULEN Size.......: 8 
+                     SQLLEN Size........: 8
+                     SQLSETPOSIROW Size.: 8
+
+               .. step::Configure the ODBC driver.
+
+                     - Open the ``odbcinst.ini`` file in your preferred editor.
+
+                       .. code-block:: sh
+
+                          sudo vim /etc/odbcinst.ini
+
+                     - Add the following entries to the file and specify the path to the ``libatsql.so`` ODBC
+                       driver library.
+
+                       .. code-block:: ini
+
+                          [ODBC Drivers] 
+                          MongoDB Atlas SQL ODBC Driver = Installed
+
+                          [MongoDB Atlas SQL ODBC Driver] 
+                          Driver=/usr/local/lib/mongoodbc/bin/libatsql.so
+ 
+      Linux Verification
+      ~~~~~~~~~~~~~~~~~~  
+
+      By default, system DSNs are added to the ``/etc/obdbc.ini``, while User DSNs are
+      added to ``/home/<user>/.odbc.ini``. Your choice of DSN depends on your use case. If
+      multiple users share a DSN, use a System DSN, otherwise use a User DSN.
+
+      The following steps set up a System DSN.
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Open your ``odbc.ini`` file in your preferred editor.
+
+            .. code-block:: sh
+
+               sudo vim /etc/odbc.ini
+
+         .. step:: Enter your connection and driver information.
+
+            -  **Driver:**  Path to the ``libatsql.so`` ODBC driver library.
+            -  **User:**  A database username to use to connect to your database.
+            -  **Password:**  The database user’s password.
+            -  **URI:**  Your MongoDB deployment |uri|.
+            -  **Database:**  The name of the database to which to connect.
+            -  **UnicodeTranslationOption:**  Unicode encoding for MongoSQL. Set to utf16.
+            -  **Enable maximum:**  A flag to enforce maximum string length of 4000 characters. 
+               
+               .. important:: 
+               
+                  You must enable this option to work with BI tools like Microsoft SQL Server
+                  Management Studio that can’t support variable length string data with
+                  unknown maximum length. To enable, set the value to ``1``. To disable, set the
+                  value to ``0``.
+
+            **Example:**
+
+            .. code-block:: ini
+
+               [ODBC Data Sources] MongoDB_Atlas_SQL = "MongoDB Atlas SQL ODBC Driver"
+               
+               [MongoDB_Atlas_SQL] Password = your_password 
+               Driver = /usr/local/lib/mongoodbc/bin/libatsql.so 
+               Database = sample_mflix 
+               User =  your_username 
+               Uri = mongodb://your.uri.domain/?options 
+               UnicodeTranslationOption = utf16
+
+         .. step:: Test your connection.
+
+            Run the following command:
+
+            .. code-block:: sh
+
+                  iusql -v MongoDB_Atlas_SQL
+
+            .. note::
+               
+               Specify the DSN name you chose in the previous example.
+
+               A successful connection shows the following:
+
+            .. code-block:: sh
+
+                +---------------------------------------+
+                | Connected!                            |
+                |                                       |
+                | sql-statement                         |
+                | help [tablename]                      |
+                | quit                                  |
+                |                                       |
+                +---------------------------------------+
+
+            .. note::
+               
+               The warning ``[MongoDB][API] Buffer size "0" not large enough for data`` does not impact driver operation and is not a sign of a faulty installation.
+
+
+Next Steps
+----------
+
+After you have installed the correct driver for your |bi| tool, 
+:ref:`connect your BI tool to your database <sql-connect>`.

@@ -1,13 +1,12 @@
-:orphan:
-
 .. _sql-connect:
+.. _sql-custom-connectors:
 
-=====================================
-Connect Using the Atlas SQL Interface
-=====================================
+====================
+Connect Your BI Tool 
+====================
 
 .. meta::
-   :description: Connect to Atlas Data Federation using the SQL Interface with custom connectors for Tableau and Power BI, or standalone JDBC/ODBC drivers for other BI tools.
+   :description: Connect to your BI tool, such as Tableau and Power BI, to your MongoDB Atlas or EA database using MongoDB custom drivers and connectors.
 
 .. default-domain:: mongodb
 
@@ -17,74 +16,289 @@ Connect Using the Atlas SQL Interface
    :depth: 1
    :class: singlecol
 
-Get Your Connection Information
--------------------------------
+Connect your |bi| tool, such as Tableau, Power BI, or DBeaver to your MongoDB 
+{+service+} or {+ea+} database.
 
-After you configure your {+fdi+}, you can connect to it from various
-|bi| tools or from the MongoDB Shell. To find the information you need to connect, select 
-:guilabel:`Connect using the {+sql-interface+}` in the 
-{+fdi+} connection modal.
+.. include:: /includes/fact-driver-bi-tool-compatibility.rst
 
-.. figure:: /images/asql-connect-modal.png
-   :alt: Screenshot of the Atlas connection modal with "Connect using the {+sql-interface+}" option highlighted.
+.. _sql-connect-tableau:
 
-Connect with a BI Tool
-----------------------
+Connect Tableau
+---------------
+
+Connect either an {+service+} {+fdi+} or an self-hosted {+ea+} database to Tableau (Desktop or Server) using the 
+Tableau Connector for MongoDB.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+- A MongoDB database, :ref:`configured for the {+sql-interface+} <connect-with-sql-composable>`.
+
+- The MongoDB |jdbc| driver. To install, see :ref:`sql-connect-jdbc`.
+
+- `Tableau <https://www.tableau.com/>`__ Desktop or Server. For Tableau Server,
+  :manual:`SCRAM authentication </core/security-scram/>` is the only authentication
+  mechanism supported at this time.
+
+.. _sql-connect-tableau-get-info:
+
+Procedure
+~~~~~~~~~
+
+The following steps show you how to connect to MongoDB with Tableau:
+
+.. procedure::
+   :style:  normal
+
+   .. step:: Download the Tableau Connector for MongoDB.
+
+      a. Download the latest Tableau Connector ``taco`` file from the `MongoDB download center <https://www.mongodb.com/try/download/tableau-connector>`__. 
+
+      #. Move the ``taco`` file into the appropriate 
+         directory for your operating system:
+      
+         - **Windows:** ``C:\Users\<user>\Documents\My Tableau Repository\Connectors``
+      
+         - **MacOS:** ``~/Documents/My Tableau Repository/Connectors``
+
+         - **Linux:** ``/opt/tableau/connectors``
+
+      .. important::
+
+         If you download a new version of the Tableau Connector for MongoDB, 
+         delete the previous ``taco`` file from your ``Connectors``
+         directory to ensure that Tableau uses the latest version.
+
+   .. step:: Get your MongoDB database connection information.
+
+      Select the tab for your deployment type for instructions on how to get your connection information:
+
+      .. tabs::
+
+         .. tab:: Atlas
+            :tabid: atlas
+
+            a. Go to your |service| {+fdi+} for your project.
+
+            #. Click the :guilabel:`Connect` button.
+
+            #. Select the :guilabel:`Atlas SQL Interface` option.
+
+            #. Select the :guilabel:`Tableau Connector` option under the :guilabel:`Select your driver` dropdown.
+
+            #. Select :guilabel:`Tableau` from the dropdown.
+
+            #. Select the database you want to connect to from the :guilabel:`Database` dropdown.
+
+            #. Copy your connection string and connection parameters.
+
+               Use this information to connect with Tableau in a later step.
+
+         .. tab:: Self-Managed (On-premises)
+            :tabid: ea-database
+
+            Use your connection string for {+mongosh+}.
+   
+   .. step:: Open Tableau Desktop or Tableau Server.
+
+   .. step:: Go to the :guilabel:`Connect` menu.
+
+   .. step:: Select :guilabel:`MongoDB SQL Interface by MongoDB`.
+
+      A connection modal displays.
+
+   .. step:: Enter your database connection information:
+      
+      Enter your {+sql-interface+} connection string you saved in a previous step.
+
+   .. step:: Select your authentication method.
+
+      Choose your :guilabel:`Authentication Mechanism` from the dropdown.
+      
+      .. tabs::
+
+         .. tab:: Username and Password
+            :tabid: username-password
+
+            - :guilabel:`Username`: Enter your MongoDB username.
+            - :guilabel:`Password`: Enter your MongoDB password.
+
+         .. tab:: X509
+            :tabid: x509
+
+            Configure your PEM certificate using one of the following methods:
+
+            - **Use a PEM File Path:**
+
+              In your ``mongodb_jdbc.properties`` file, set the ``x509pempath`` 
+              property to your PEM file's path. For example, ``x509pempath=/certs/client-cert.pem``.
+
+              - If your PEM file is **unencrypted**, do not select :guilabel:`Provide PEM Contents`. 
+                No further action is required.
+              - If your PEM file is **encrypted**, select :guilabel:`Provide PEM Contents` and 
+                enter the file's passphrase in the :guilabel:`Password` field.
+
+            - **Provide PEM Contents:**
+
+              Select the checkbox next to :guilabel:`Provide PEM Contents` and enter your 
+              certificate data into the :guilabel:`Password` field:
+
+              - **Unencrypted Content**: Paste the full certificate content directly into the field.
+              - **Encrypted Content**: Paste a JSON object containing the content and passphrase:
+
+                .. code-block:: json
+                 
+                   { "pem": "<PEM-CONTENT>", "passphrase": "<PEM-PASSPHRASE>" }
+
+
+         .. tab:: GSSAPI (Kerberos)
+            :tabid: kerberos
+
+            Enter the Kerberos principal name in the :guilabel:`Username` field. 
+            For example, ``user@EXAMPLE.COM``.
+
+         .. tab:: OIDC
+            :tabid: oidc
+
+            No additional properties or fields are required in the connection dialog for {+oidc+}.
+
+   .. step:: Click :guilabel:`Sign In`.
+
+.. _sql-connect-powerbi:
+
+Connect Power BI
+----------------
+
+Connect either an {+service+} {+fdi+} or a self-hosted {+ea+} database to Power BI using the 
+Power BI Connector for MongoDB.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+- A MongoDB database, :ref:`configured for the {+sql-interface+} <connect-with-sql-composable>`.
+
+- The MongoDB |odbc| driver. To install, see :ref:`sql-connect-odbc`. 
+  To use :ref:`<direct-query-mode>`, you must install version 1.2 or later.
+
+- `Power BI Desktop <https://learn.microsoft.com/en-us/power-bi/fundamentals/desktop-get-the-desktop/>`__ 64 bit.      
+  Microsoft updates and releases Power BI monthly, and |service| supports only
+  the latest version of Power BI Desktop.
+
+- Windows operating system. To learn the Windows OS versions that
+  Power BI Desktop supports, see the `Microsoft documentation
+  <https://www.microsoft.com/en-us/download/details.aspx?id=58494>`__.
+
+.. _connect-powerbi:
+
+Procedure
+~~~~~~~~~
+
+The following steps show you how to connect to MongoDB with Power BI:
+
+.. procedure::
+   :style: normal
+   
+   .. step:: Download the Power BI Connector for MongoDB.
+
+      a. Download the latest Power BI Connector ``pqx`` file from the `MongoDB download center <https://www.mongodb.com/try/download/power-bi-connector/>`__. 
+
+         .. note:: 
+         
+            The Power BI Connector for MongoDB ships with Power BI Desktop.
+            If your version of Power BI Desktop already has the MongoDB Atlas SQL connector, skip this step. 
+            To use a different version than the one bundled with Power BI Desktop, complete this step.
+   
+      #. Move the connector file to the following directory path: 
+      
+         ``C:\Users\<user>\Documents\Power BI Desktop\Custom Connectors``.
+
+         Create this folder if it doesn't already exist.
+
+   .. step:: Connect from Power BI Desktop.
+
+      a. Open Power BI Desktop.
+
+      #. Select :guilabel:`Get data` from the :guilabel:`Home` menu.
+
+      #. Find and select the :guilabel:`MongoDB Atlas SQL` connector.
+            
+         i. Type ``mongo`` in the search bar to find the new connector.
+         #. Select :guilabel:`MongoDB Atlas SQL`.
+         #. Click :guilabel:`Connect`.
+
+      #. Enter the URI and the database name and click :guilabel:`OK`.
+
+         The :guilabel:`MongoDB URI` is the URL is the from the previous step.
+
+         You can also enter a SQL query in the :guilabel:`Native query` field. Power BI
+         uses the SQL query as the direct source for the data.
+
+      #. Enter your {+service+} :guilabel:`User name` and :guilabel:`Password` and click :guilabel:`Connect`.
+
+         By default, a user can access all clusters and {+fdi+}s in projects to which
+         they have access. If you restricted access to specific clusters and {+fdi+}s,
+         you can grant access to the new {+fdi+} in the :guilabel:`Edit User` menu. To learn more, see
+         :ref:`Configure Database Users <modify-mongodb-users>`.
+
+.. _direct-query-mode:
+
+About Direct Query
+~~~~~~~~~~~~~~~~~~
+
+Direct Query is a connection mode available with the Power BI Connector for MongoDB version
+1.2 and later. To use Direct Query, you must install `MongoDB ODBC Driver
+<https://www.mongodb.com/try/download/odbc-driver/>`__ version 1.2 or later.
+
+Direct Query is alternative to the standard Import Mode, and allows you to query your
+database directly. This guarantees up-to-date data but may take longer to return results.
+
+Direct Query does not support some actions. If you try to perform an unsupported
+action, Power BI prompts you to switch to Import Mode.
+
+
+.. _sql-connect-dbeaver:
+
+Connect DBeaver
+---------------
+
+Connect your {+service+} {+fdi+} to `DBeaver <https://dbeaver.io/>`__ using the MongoDB |jdbc| Driver.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+- An {+service+} {+fdi+} mapped to one or more data stores. To learn more, see :ref:`gst-deploy-adf`.
+
+  .. include:: includes/data-federation/fact-asql-recommended-mongodb-version
+
+- `DBeaver (Community Edition) <https://dbeaver.io/download/>`__.
+
+- The MongoDB |jdbc| driver. To install, see :ref:`sql-connect-jdbc`.
+
+Procedure
+~~~~~~~~~
+
+To connect to your {+fdi+} from DBeaver:
+
+.. include:: /includes/connect-to-fdi
+
+
+Next Steps
+----------
+
+After you connect your |bi| tool with your MongoDB database, you can query your data.
+To learn more, see: 
+
+- :ref:`asql-write-asql-queries`
+- :ref:`sql-connect-tutorial`
 
 .. note::
    
-   To connect to your {+fdi+} with the MongoDB Shell, 
-   see :ref:`sql-connect-shell`.
-
-To connect to your {+fdi+} with a |bi| tool, you can use a *custom connector* with 
-its associated and officially supported BI tool, or a *standalone driver* to 
-integrate with a BI tool of your choice.
-
-.. _sql-custom-connectors:
-
-Custom Connectors
-~~~~~~~~~~~~~~~~~~
-
-MongoDB supports and regularly updates the following custom Atlas SQL 
-connectors. To ensure a successful connection and support for the 
-full range of Atlas SQL capabilities, use one of the following custom connectors
-with its associated BI tool:
-
-- :ref:`Tableau <sql-connect-tableau>`
-- :ref:`Power BI <sql-connect-powerbi>`
-
-.. _sql-standalone-drivers:
-
-Standalone Drivers
-~~~~~~~~~~~~~~~~~~
-
-.. important:: 
-   If you use a standalone driver with a BI tool that MongoDB doesn't officially
-   support, you must test the features of Atlas SQL that you want to use in order 
-   to confirm they are supported by that tool.
-   
-   MongoDB can't guarantee that all BI tools are fully supported.
-
-MongoDB provides the Atlas SQL standalone JDBC and ODBC drivers for
-experimentation and custom integration with SQL-92 dialect-based 
-third-party BI tools that support a generic ODBC or JDBC driver connection.
-Use the type of driver that your BI tool specifies:
-
-- :ref:`JDBC driver <sql-connect-jdbc>`
-- :ref:`ODBC driver <sql-connect-odbc>`
-
-Supported Authentication Mechanisms
-````````````````````````````````````
-
-.. include:: /includes/fact-asql-driver-auth-mechanism.rst
+   To connect using a private endpoint, see :ref:`sql-connect-powerbi-private-endpoint`. 
+   To connect using the MongoDB Shell, see :ref:`sql-connect-shell`.
 
 .. toctree::
    :titlesonly:
    :hidden:
 
    MongoDB Shell </connect/shell>
-   JDBC Driver </connect/jdbc>
-   ODBC </connect/odbc>
-   Tableau </connect/tableau>
-   Power BI </connect/power-bi>
    Private Endpoint <connect/private-endpoint>
