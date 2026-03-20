@@ -1,0 +1,402 @@
+.. _rm-benchmarks:
+
+====================
+Migration Benchmarks
+====================
+
+.. meta::
+   :description: Explore data migration performance benchmarks and best practices for optimizing your migration.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page explains {+rel-mig+} data migration benchmark results 
+and provides recommendations based on those results. You can use the results and 
+recommendations to estimate migration timelines, select appropriate infrastructure 
+configurations, and plan resource requirements for your relational-to-MongoDB 
+migration.
+
+Benchmark Overview
+------------------
+
+The {+rel-mig+} benchmarks measured migration performance based on the
+following factors:
+
+- Schema mapping complexity
+- Relational database size
+- Relational database storage type
+- {+rel-mig+} instance configuration
+- MongoDB Atlas configuration
+
+The benchmarks used MongoDB Atlas and AWS infrastructure. However, the performance 
+patterns and recommendations apply broadly to other cloud providers and on-premises 
+deployments. To learn more about the infrastructure used in the benchmarks, see 
+:ref:`<rm-benchmark-configuration>`.
+
+Schema Mapping Complexity
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+rel-mig+} allows you to transform your relational schema into a
+document model. The following terms describe different MongoDB schema 
+mapping complexities used by the benchmarks:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Complexity Level
+     - Description
+
+   * - One-to-one
+     - A MongoDB schema that matches your relational schema: each table
+       maps to a single MongoDB collection, and each row maps to a single
+       document. Minimal usage of advanced features.
+
+   * - Embedded Mappings
+     - A MongoDB schema containing some embedded arrays or embedded documents. 
+       Maximum of two levels of nested documents.
+
+   * - Advanced
+     - A MongoDB schema that uses many advanced features that can increase migration 
+       times. Some examples of advanced features include the following:
+        - Mapping filters
+        - Table filters
+        - Primitive arrays
+        - Array conditions
+
+       The advanced schema has a maximum of three levels of nested documents.
+
+To learn more about mapping relational data to MongoDB schemas, see
+:ref:`Data Modeling <rm-mapping-rules>`.
+
+.. _rm-benchmark-configuration:
+
+Benchmark Configuration
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table describes the configuration of each component used
+in the benchmark tests:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Component
+     - Configuration
+
+   * - Source Database (Oracle)
+     - - **Platform**: AWS RDS
+       - **vCPUs**: 2
+       - **RAM**: 8 GB
+       - **Region**: AWS ``ap-southeast-2``
+       - **Storage**: AWS RDS storage type varied based on database size
+         and mapping complexity. To learn more about AWS RDS storage types, see the
+         :aws:`AWS RDS Storage Types documentation </AmazonRDS/latest/UserGuide/CHAP_Storage.html>`.
+      
+       The Oracle instance was isolated and received traffic exclusively 
+       from the {+rel-mig+} instance.
+
+   * - {+rel-mig+}
+     - - **Platform**: AWS ECS
+       - **vCPUs**: 32
+       - **RAM**: 64 GB
+       - **Region**: AWS ``ap-southeast-2``
+       - **Version**: {+rel-mig+} v1.15
+       - **Mode**: Default (embedded mode with multi-threading enabled)
+
+   * - Target Database (MongoDB Atlas)
+     - - **Platform**: MongoDB Atlas
+       - **Region**: AWS ``ap-southeast-2``
+       - **Configuration**: MongoDB Atlas cluster configuration varied 
+         based on database size and mapping complexity. To learn more about 
+         modifying a MongoDB Atlas cluster, see :ref:`<modify-cluster>`.
+
+Benchmark Results
+-----------------
+
+The following table shows the results of the benchmark tests. The benchmarks used the Atlas UI or 
+:ref:`mongostat` to monitor document metrics. The ``Average Throughput (MB/s)``
+column is rounded to two decimal places. The ``Cluster Documents/s`` column is rounded to the nearest ten thousand 
+documents per second. For long-running ``One-to-one`` migrations, the ``Cluster Documents/s`` column provides 
+an observed lower and upper bound due to speed changes during the benchmark.
+
+.. note::
+
+   The Oracle database showed no significant CPU or RAM usage during the benchmark testing.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 15 15 15 15 15 10
+
+   * - Database Size
+     - Mapping Complexity
+     - Oracle RDS Storage Type
+     - Atlas Cluster Tier
+     - Migration Duration
+     - Average Throughput (MB/s)
+     - Cluster Documents/s
+
+   * - 10 GB
+     - One-to-one
+     - gp2
+     - M60
+     - 15 minutes
+     - 11.11
+     - 80,000 (insert)
+
+   * - 10 GB
+     - Embedded Mappings
+     - gp2
+     - M60
+     - 37 minutes
+     - 4.50
+     - 80,000 (insert), 40,000 (update)
+
+   * - 10 GB
+     - Advanced
+     - gp2
+     - M60
+     - 47 minutes
+     - 3.55
+     - 90,000 (insert), 40,000 (update)
+
+   * - 100 GB
+     - One-to-one
+     - gp3
+     - M60
+     - 2 hours, 31 minutes
+     - 11.04
+     - 80,000 to 100,000 (insert)
+
+   * - 100 GB
+     - Embedded Mappings
+     - gp3
+     - M80
+     - 16 hours, 25 minutes
+     - 1.69
+     - 90,000 (insert), 40,000 (update)
+
+   * - 100 GB
+     - Advanced
+     - gp3
+     - M140
+     - 15 hours, 47 minutes
+     - 1.76
+     - 90,000 (insert), 40,000 (update)
+
+   * - 1 TB
+     - One-to-one
+     - IOPS SSD
+     - M60
+     - 30 hours, 50 minutes
+     - 9.01
+     - 85,000 to 100,000 (insert)
+
+{+rel-mig+} always starts with a series of :dbcommand:`insert` operations to write the root documents. It then uses 
+the :dbcommand:`update` operation to insert embedded documents or embedded arrays. As a result, ``One-to-one`` benchmark 
+results contain only insert operations while ``Embedded Mappings`` and ``Advanced`` results
+contain both insert and update operations.
+
+Performance Estimates
+~~~~~~~~~~~~~~~~~~~~~~
+
+Based on the benchmark results, {+rel-mig+} can migrate approximately:
+
+- **21 GB/hour** for one-to-one schemas.
+- **7 GB/hour** for schemas with up to two levels of embedded mappings.
+
+Database migration speed for one-to-one schemas is approximately linear. For example, 
+a one-to-one 100 GB migration takes approximately 10 times as long as a one-to-one
+10 GB migration.
+
+Migration speed for more complex schemas does not scale linearly with database size. The 
+more embedded documents, embedded arrays, and other features in your schema, the slower 
+your migration speed.
+
+Recommendations
+---------------
+
+Recommended Configurations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table provides recommended Atlas cluster tiers and AWS
+RDS storage types based on source database size and mapping complexity.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40 20 20
+
+   * - Source Dataset Size
+     - Mapping Complexity
+     - Recommended Atlas Cluster Tier
+     - Recommended AWS RDS Storage Type
+
+   * - 0-50 GB
+     - One-to-one
+     - M60
+     - gp2
+
+   * - 0-50 GB
+     - Embedded Mappings
+     - M60
+     - gp2
+
+   * - 0-50 GB
+     - Advanced
+     - M60
+     - gp2
+
+   * - 50 GB-300 GB
+     - One-to-one
+     - M60
+     - gp3
+
+   * - 50 GB-300 GB
+     - Embedded Mappings
+     - M80
+     - gp3
+
+   * - 50 GB-300 GB
+     - Advanced
+     - M80
+     - gp3
+
+   * - 300 GB-1 TB
+     - One-to-one
+     - M60
+     - gp3
+
+   * - 300 GB-1 TB
+     - Embedded Mappings
+     - M140
+     - IOPS SSD
+
+   * - 300 GB-1 TB
+     - Advanced
+     - M140
+     - IOPS SSD
+
+   * - 1 TB+
+     - One-to-one
+     - M60
+     - IOPS SSD
+
+   * - 1 TB+
+     - Embedded Mappings
+     - M200
+     - IOPS SSD
+
+   * - 1 TB+
+     - Advanced
+     - M200
+     - IOPS SSD
+
+Although the table specifies MongoDB Atlas and AWS RDS configurations, you can apply these 
+recommendations to other cloud providers and self-managed deployments. To learn more about the 
+infrastructure configuration associated with a given MongoDB Atlas cluster tier, 
+see :ref:`<cloud-providers-list>`. To learn more about AWS RDS storage types, see the
+:aws:`AWS RDS Storage Types documentation </AmazonRDS/latest/UserGuide/CHAP_Storage.html>`.
+
+Optimize Network Latency
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To minimize network latency, ensure the source database, {+rel-mig+},
+and the target cluster are running in the same data center.
+
+Monitor for Bottlenecks
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To optimize migration performance, monitor metrics to identify performance bottlenecks.
+As a best practice, follow the flow of data when identifying performance bottlenecks: start
+by monitoring the source database, then move on to {+rel-mig+}, and finally the target cluster.
+
+Source Database Bottlenecks
+```````````````````````````
+
+If you observe low (< 50) read IOPS, the source database might be the bottleneck.
+Consider taking the following actions to improve source database performance:
+
+- **AWS RDS**: Use ``Provisioned IOPS`` or upgrade the storage type.
+- **On-premises**: To improve performance, you may require physical storage
+  upgrades, or a migration to a more performant storage solution.
+
+{+rel-mig+} Bottlenecks
+```````````````````````````````
+
+If you observe that the CPU and RAM on the {+rel-mig+} instance are fully utilized, {+rel-mig+} is the bottleneck. 
+Consider increasing the instance size to improve migration performance.
+
+The following test results show the impact of increasing the {+rel-mig+} instance vCPU count 
+and RAM on migration performance:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 15 25 25 20
+
+   * - Source Database Size
+     - Mapping Complexity
+     - 16 vCPU, 32 GB RAM Duration
+     - 32 vCPU, 64 GB RAM Duration
+     - Improvement
+
+   * - 10 GB
+     - One-to-one
+     - 15 minutes
+     - 15 minutes
+     - 0%
+
+   * - 10 GB
+     - Embedded Mappings
+     - 50 minutes
+     - 37 minutes
+     - 26%
+
+   * - 10 GB
+     - Advanced
+     - 63 minutes
+     - 47 minutes
+     - 25.40%
+
+   * - 100 GB
+     - One-to-one
+     - 3 hours, 34 minutes
+     - 2 hours, 31 minutes
+     - 29.44%
+
+   * - 100 GB
+     - Embedded Mappings
+     - 18 hours, 24 minutes
+     - 16 hours, 25 minutes
+     - 10.78%
+
+   * - 100 GB
+     - Advanced
+     - 16 hours, 35 minutes
+     - 15 hours, 47 minutes
+     - 4.82%
+
+   * - 1 TB
+     - One-to-one
+     - 45 hours, 20 minutes
+     - 30 hours, 50 minutes
+     - 31.99%
+
+When the {+rel-mig+} instance was the bottleneck, increasing the vCPU count and RAM resulted in a 25-30% 
+performance improvement.
+
+Target Database Bottlenecks
+````````````````````````````
+
+If you observe low document insert or update rates compared to the benchmark results table, the MongoDB 
+cluster might be the bottleneck. Consider taking the following actions to improve 
+migration performance:
+
+- Increase provisioned IOPS
+- Increase vCPU or RAM
+- Increase cluster tier
+
+If you observe that updates have been throttled due to replication lag, increasing provisioned IOPS has
+the greatest impact on migration performance.

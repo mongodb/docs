@@ -270,6 +270,11 @@ const tocData: TocItem[] = [
         ],
       },
       {
+        label: 'Migration Benchmarks',
+        contentSite: 'docs-relational-migrator',
+        url: '/docs/relational-migrator/benchmarks',
+      },
+      {
         label: 'Data Modeling',
         contentSite: 'docs-relational-migrator',
         url: '/docs/relational-migrator/mapping-rules/introduction',
