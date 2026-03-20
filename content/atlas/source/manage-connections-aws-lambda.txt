@@ -1,6 +1,6 @@
 .. facet::
    :name: programming_language
-   :values: csharp, go, java, javascript/typescript, python, ruby, rust
+   :values: csharp, go, java, javascript/typescript, php, python, ruby, rust
 
 .. _atlas-lambda-connections:
 
@@ -108,15 +108,59 @@ and |service|:
 
 
       - .. include:: /includes/fact-aws-lambda-sharded.rst
-        
+
         To learn more, see :driver:`Connection Options
         </node/current/fundamentals/connection/connection-options/>`.
-   
+
+   .. tab::
+      :tabid: php
+
+      - .. include:: /includes/fact-aws-lambda-sharded.rst
+
+        To learn more, see `Connection Options
+        <https://www.mongodb.com/docs/php-library/current/connect/connection-options/>`__.
+
+      - To deploy serverless PHP applications to AWS Lambda, use the
+        `Bref <https://bref.sh/>`__ framework. To install the prerequisites
+        and configure Bref, follow the `Setup <https://bref.sh/docs/setup>`__
+        tutorial in the Bref documentation.
+       
+        Next, you can create a project directory, install the MongoDB and Bref
+        dependencies, and initialize the serverless configuration by running
+        the following commands:
+
+        .. code-block:: bash
+
+           mkdir bref-mongodb-app && cd bref-mongodb-app
+           composer init
+           composer require bref/bref bref/extra-php-extensions mongodb/mongodb
+           vendor/bin/bref init
+
+        Finally, add the MongoDB PHP extension to your project. The ``bref/extra-php-extensions``
+        Composer package provides a Serverless Framework plugin that adds the MongoDB PHP extension
+        as a `Lambda layer <https://docs.aws.amazon.com/lambda/latest/dg/chapter-layers.html>`__.
+        Update your ``serverless.yml`` file to include the following highlighted
+        lines:
+
+        .. code-block:: yaml
+           :emphasize-lines: 3, 10
+
+           plugins:
+               - ./vendor/bref/bref
+               - ./vendor/bref/extra-php-extensions
+
+           functions:
+               api:
+                   handler: index.php
+                   runtime: php-85-fpm
+                   layers:
+                       - ${bref-extra:mongodb2-php-85}
+
    .. tab::
       :tabid: python
 
       - .. include:: /includes/fact-aws-lambda-sharded.rst
-        
+
         To learn more, see `Tools for Connecting to MongoDB
         <https://pymongo.readthedocs.io/en/stable/api/pymongo/mongo_client.html>`_.
 
@@ -299,6 +343,47 @@ Connection Example
          :language: js
          :copyable:
          :dedent:
+
+   .. tab::
+      :tabid: php
+
+      Set AWS Credentials
+      ```````````````````
+
+      After you configure |aws| IAM authentication, copy your connection string
+      from the |service| UI. Remove the ``<AWS access key>:<AWS secret key>``
+      section from your connection string, because the driver reads these credentials
+      from environment variables. In your project's ``serverless.yml`` file, set the
+      ``MONGODB_URI`` environment variable to this modified connection string,
+      as shown in the following code:
+
+      .. code-block:: yaml
+         :emphasize-lines: 3
+
+         provider:
+            environment:
+               MONGODB_URI: "<connection string without credentials>"
+
+      Define Your Lambda Function
+      ```````````````````````````
+
+      Replace the contents of your ``index.php`` file with the following code:
+
+      .. literalinclude:: /includes/drivers-examples/aws_lambda_handler.php
+         :start-after: // Start AWS Lambda Example 1
+         :end-before: // End AWS Lambda Example 1
+         :language: php
+         :copyable:
+         :dedent:
+
+      Deploy Your Application
+      ```````````````````````
+
+      To deploy your application, run the following command:
+
+      .. code-block:: bash
+
+         serverless deploy
 
    .. tab::
       :tabid: python

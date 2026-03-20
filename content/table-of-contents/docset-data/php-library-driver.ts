@@ -53,8 +53,8 @@ const tocData: TocItem[] = [
           },
           {
             label: 'AWS Lambda',
-            contentSite: 'php-library',
-            url: '/docs/php-library/:version/connect/aws-lambda',
+            contentSite: 'cloud-docs',
+            url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda',
           },
           {
             label: 'Connection Troubleshooting',
