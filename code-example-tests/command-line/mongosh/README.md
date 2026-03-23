@@ -73,6 +73,43 @@ For pages that demonstrate multi-step mongosh operations, such as loading
 data and running an aggregation pipeline, group related examples into a directory
 together.
 
+#### Multiple snippets per file
+
+You can extract multiple snippets from a single example file using Bluehawk
+markup. Add ``:snippet-start: <name>`` and ``:snippet-end:`` tags around each
+section you want to extract. The snip script produces separate files for each
+snippet (e.g. ``run-example.snippet.match-year.js``, ``run-example.snippet.query-step.js``).
+
+Writers can then use ``literalinclude`` with the snippet filename to show only
+the relevant portion in docs. See the demos in ``examples/demo/multi-snippet/``
+and ``examples/demo/concatenated/`` for working examples.
+
+#### Concatenated examples (load + query in one file)
+
+For multi-step operations (e.g., load data then run a pipeline), you can
+combine both steps into a single file using the JavaScript comma operator.
+Wrap the sequence in parentheses so the last expression's output is captured
+for test validation:
+
+```javascript
+// :snippet-start: full-example
+(
+  // :snippet-start: load-step
+  db.collection.insertMany([...])
+  // :snippet-end:
+  ,
+  // :snippet-start: query-step
+  db.collection.aggregate([...])
+  // :snippet-end:
+)
+// :snippet-end:
+```
+
+This produces three snippet files: ``full-example`` (both steps), ``load-step``
+(standalone insert), and ``query-step`` (standalone aggregate). Each snippet
+is valid JavaScript on its own. See ``examples/demo/concatenated/load-and-query.js``
+for a complete example.
+
 ### Create an output file
 
 Create a file to store the output alongside the example. For example:
@@ -550,6 +587,12 @@ The updated example files output to `content/code-examples/tested/command-line/m
 Subdirectory structure is also automatically transferred. For example, generating
 updated example files from `code-example-tests/command-line/mongosh/aggregation/filter`
 automatically outputs to `content/code-examples/tested/command-line/mongosh/aggregation/filter`.
+
+When you use ``:snippet-start:`` and ``:snippet-end:`` tags in your example files,
+Bluehawk creates additional files with the naming pattern
+``<filename>.snippet.<snippet-name>.<ext>``. Use these snippet files in
+``literalinclude`` when you want to show only part of an example (e.g., a single
+pipeline stage or the load step without the query).
 
 This script will automatically create the specified output path if it does not
 exist.

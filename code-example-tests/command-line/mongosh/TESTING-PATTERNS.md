@@ -281,6 +281,51 @@ utility is incorrectly wrapping your code.
 2. Look at the temp file content shown in the error message
 3. If your code looks correct, contact DevDocs - the utility may need updating
 
+## Multiple Snippets and Concatenated Files
+
+### Multiple Snippets Per File
+
+You can extract multiple snippets from a single example file using Bluehawk
+`:snippet-start:` and `:snippet-end:` tags. The snip script produces separate
+files (e.g. `run-example.snippet.load-step.js`, `run-example.snippet.query-step.js`)
+that writers can reference via `literalinclude` in docs.
+
+**Demo**: `examples/demo/multi-snippet/` shows multiple pipeline-stage snippets
+from one file.
+
+### Concatenated Examples (Load + Query in One File)
+
+For multi-step operations (load data, then run a pipeline), you can combine
+both steps into a single file using the JavaScript comma operator. The test
+harness wraps the last expression in `printjson()`, so the pipeline output is
+validated. Use nested snippets so writers can include:
+
+- The full example (both steps)
+- The load step only (standalone `insertMany`)
+- The query step only (standalone `aggregate`)
+
+**Pattern**:
+
+```javascript
+// :snippet-start: full-example
+(
+  // :snippet-start: load-step
+  db.persons.insertMany([...])
+  // :snippet-end:
+  ,
+  // :snippet-start: query-step
+  db.persons.aggregate([...])
+  // :snippet-end:
+)
+// :snippet-end:
+```
+
+**Important**: Place `:snippet-end:` so each snippet is valid standalone
+JavaScript. The comma must be *outside* the `load-step` snippet so it doesn't
+produce invalid syntax when extracted.
+
+**Demo**: `examples/demo/concatenated/load-and-query.js` shows the full pattern.
+
 ## Test Structure Best Practices
 
 ### Each Test Should Be Independent

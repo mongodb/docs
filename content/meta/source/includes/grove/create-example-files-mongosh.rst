@@ -3,23 +3,30 @@
 
    .. step:: Create an example file.
 
-      Create a new file in the ``command-line/mongosh/examples`` directory, or
-      within a subdirectory to organize these examples to group related concepts.
-      For example, you might create a file for an aggregation pipeline unwind
-      tutorial in ``/aggregation/pipelines/unwind``, or a file for an insert
-      example in ``/crud/insert``.
+      Create a new file in the ``code-example-tests/command-line/mongosh/examples``
+      directory. Use subdirectories to group related concepts (for example,
+      ``aggregation/pipelines/unwind`` or ``crud/insert``).
 
-      With the goal of single-sourcing code examples across different docs
-      projects, avoid matching a specific docs project's page structure and
-      instead group code examples by related concept or topic for easy reuse.
-
-      For file and directory names, use kebab case. For example,
+      Use kebab case for file and directory names. For example,
       ``aggregation/pipelines/join-one-to-one/load-data-orders.js``.
 
-   .. step:: Add the example code to your file.
+      .. tip:: Name based on concepts, not docs page structure.
 
-      Add the example code to your file. For most cases, this is a single
-      block of code that can be executed in mongosh. For example:
+         With the goal of single-sourcing code examples across different docs
+         projects, avoid matching a specific docs project's page structure and
+         instead group code examples by related concept or topic for easy reuse.
+
+   .. step:: Add runnable mongosh code to your file.
+
+      Add code that mongosh can execute directly. The test harness runs your file
+      with ``mongosh --file`` and validates the output of the last expression.
+      Do not add imports, connection logic, or wrapper functions—mongosh handles
+      the connection.
+
+      Single-operation Examples
+      ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      For a single command, add the mongosh code directly to a single file:
 
       .. code-block:: javascript
 
@@ -28,9 +35,12 @@
             { name: "Jane", age: 25 }
          ]);
 
-      If you want to show multiple mongosh commands, add each command to a
-      separate file. For example, for an aggregation page, you might create
-      ``load-data.js`` and ``run-pipeline.js`` with the following code:
+      Multi-step Examples (Separate Files)
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      For operations that require a load step followed by a query (for example,
+      load data then run a pipeline), create two separate files. The test runs them in
+      order; only the last file's output is validated.
 
       .. code-block:: javascript
          :caption: load-data.js
@@ -63,38 +73,59 @@
             }
          ] )
 
-      And:
-
       .. code-block:: javascript
          :caption: run-pipeline.js
 
          db.persons.aggregate( [
-            // Stage 1: Match documents of people who are engineers
             { $match: { "vocation": "ENGINEER" } },
-
-            // Stage 2: Sort documents from youngest to oldest
             { $sort: { "dateofbirth": -1 } },
-
-            // Stage 3: Limit the results to 3 documents
             { $limit: 3 },
-
-            // Stage 4: Remove unneeded fields
             { $unset: [ "_id", "address"] }
          ] )
 
+      Multi-step Examples (Single Concatenated File)
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      To combine load and query in one file for a single ``literalinclude``,
+      use the comma operator. Wrap the sequence in parentheses so the last
+      expression's output is captured for validation. Add Bluehawk snippet
+      tags so writers can include the full example or individual steps. Refer to :ref:`grove-mark-up-examples` for details.
+
+      .. code-block:: javascript
+
+         // :snippet-start: full-example
+         (
+            // :snippet-start: load-step
+            db.persons.insertMany([...])
+            // :snippet-end:
+            ,
+            // :snippet-start: query-step
+            db.persons.aggregate([...])
+            // :snippet-end:
+         )
+         // :snippet-end:
+
+   .. step:: Optional: Add snippet markup.
+
+      Use ``:snippet-start: <name>`` and ``:snippet-end:`` to extract
+      portions of your file for docs. The snip script produces
+      ``<filename>.snippet.<name>.js`` files that writers reference with
+      ``literalinclude``. 
+      
+      Refer to :ref:`grove-mark-up-examples` for details.
+
    .. step:: Create an expected output file.
 
-      If you want to show the output of your example in the docs, create an
-      expected output file. This file should contain the output that you
-      want to show in the docs.
+      Create an expected output file for every example. The mongosh test harness
+      validates code by comparing actual output to this file. You must include
+      an output file even if you do not intend to show it in the docs.
 
-      Save it alongside your example file, and give it a name that includes
-      ``output``. For example,
-      ``aggregation/pipelines/unwind/output.sh``.
+      Save it alongside your example file with a name that includes ``output``.
+      For example, ``aggregation/pipelines/unwind/output.sh``.
 
-      Grove uses a comparison library to compare the output from your
-      expected output file with the actual output from running your mongosh
-      code example files.
+      The file should contain the output you expect when the last expression
+      in your example runs. Grove uses a comparison library to match the actual
+      output against this file.
 
       You can use ellipses to truncate long output blocks. The comparison
       library recognizes specific ellipsis patterns and can match truncated
