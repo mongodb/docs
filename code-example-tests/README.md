@@ -42,7 +42,7 @@ For docs purposes, writers should _only_ use code examples from the
 
 ## Automated testing
 
-When any file in any of the `language/driver/examples` directories are updated in a PR,
+When any file in any of the `language/driver/examples` directories is updated in a PR,
 the GitHub workflows contained in the `.github/workflows` directory automatically
 run the test suite. These workflows report the results of the test suite runs
 as passes or failures on the PR.
@@ -131,7 +131,7 @@ For example, to access the snippet generated from tutorial_app.py, use
 this file path:
 
 ```
-.. literalincude:: /code-examples/tested/python/pymongo/aggregation/pipelines/filter_tutorial.snippet.sort.py
+.. literalinclude:: /code-examples/tested/python/pymongo/aggregation/pipelines/filter_tutorial.snippet.sort.py
    :language: python
    :copyable: true
    :category: usage example
