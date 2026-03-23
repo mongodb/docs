@@ -1,30 +1,17 @@
 ``$expr`` can contain expressions that compare fields from the same
 document.
 
-Create a ``monthlyBudget`` collection with these documents:
+The following operation uses :query:`$expr` to find documents in the
+``movies`` collection where the Rotten Tomatoes viewer rating exceeds
+the critic rating:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.monthlyBudget.insertMany( [
-      { _id : 1, category : "food", budget : 400, spent : 450 },
-      { _id : 2, category : "drinks", budget : 100, spent : 150 },
-      { _id : 3, category : "clothes", budget : 100, spent : 50 },
-      { _id : 4, category : "misc", budget : 500, spent : 300 },
-      { _id : 5, category : "travel", budget : 200, spent : 650 }
-   ] )
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/expr/find.snippet.expr-find-viewer-gt-critic.js
+      :language: javascript
+      :category: usage example
 
-The following operation uses :query:`$expr` to find documents 
-where the ``spent`` amount exceeds the ``budget``:
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/expr/find-output.js
+      :language: javascript
 
-.. code-block:: javascript
-
-   db.monthlyBudget.find( { $expr: { $gt: [ "$spent" , "$budget" ] } } )
-
-Output:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { _id : 1, category : "food", budget : 400, spent : 450 }
-   { _id : 2, category : "drinks", budget : 100, spent : 150 }
-   { _id : 5, category : "travel", budget : 200, spent : 650 }

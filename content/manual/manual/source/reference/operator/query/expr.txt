@@ -59,6 +59,8 @@ variables defined by the ``$lookup`` stage. For an example, see
 Examples
 --------
 
+.. include:: /includes/sample-data-usage.rst
+
 .. _expr-reference-single-document-example:
 
 Compare Two Fields from a Single Document
@@ -75,91 +77,62 @@ defining a query filter. The aggregation pipeline provides the
 ``$expr`` with the :expression:`$cond` operator, you can
 specify a conditional filter for your query statement.
 
-Create a sample ``supplies`` collection:
+Assume you want to calculate a weighted score for movies so that
+highly-rated movies with few votes do not dominate the results:
 
-.. code-block:: javascript
+- If ``imdb.votes`` is greater than or equal to 1000, the weighted
+  score is the full ``imdb.rating``.
 
-   db.supplies.insertMany( [
-      { _id : 1, item : "binder", qty : Int32("100"), price : Decimal128("12") },
-      { _id : 2, item : "notebook", qty : Int32("200"), price : Decimal128("8") },
-      { _id : 3, item : "pencil", qty : Int32("50"), price : Decimal128("6") },
-      { _id : 4, item : "eraser", qty : Int32("150"), price : Decimal128("3") },
-      { _id : 5, item : "legal pad", qty : Int32("42"), price : Decimal128("10") }
-   ] )
+- If ``imdb.votes`` is less than 1000, the weighted score is 0.5 of
+  the ``imdb.rating``.
 
-Assume that for an upcoming sale next month, you want to discount the
-prices:
-
-- If ``qty`` is greater than or equal to 100, the discounted price will
-  be 0.5 of the ``price``.
-
-- If ``qty`` is less than 100, the discounted price is 0.75 of the
-  ``price``.
-
-Before applying the discounts, you would like to know which items in the
-``supplies`` collection have a discounted price of less than ``5``.
+You would like to know which movies in the ``movies`` collection have a
+weighted score greater than ``9``.
 
 The following example uses ``$expr`` with :expression:`$cond` to
-calculate the discounted price based on the ``qty`` and 
-:expression:`$lt` to return documents whose calculated discount price
-is less than ``Decimal128("5")``:
+calculate the weighted score based on ``imdb.votes`` and 
+:expression:`$gt` to return documents whose calculated weighted score
+is greater than ``9``:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/expr/weighted-score.snippet.expr-weighted-score.js
+   :language: javascript
+   :category: usage example
 
-   // Aggregation expression to calculate discounted price 
-
-   let discountedPrice = { 
-      $cond: { 
-         if: { $gte: ["$qty", 100] }, 
-         then: { $multiply: ["$price", Decimal128("0.50")] }, 
-         else: { $multiply: ["$price", Decimal128("0.75")] } 
-      } 
-   };
-
-   // Query the supplies collection using the aggregation expression
-
-   db.supplies.find( { $expr: { $lt:[ discountedPrice,  Decimal128("5") ] } });
-
-The following table shows the discounted price for each document and
-whether discounted price is less than ``Decimal128("5")``, which means
-the document meets the query condition:
+The following table shows the weighted score for selected documents and
+whether the weighted score is greater than ``9`` (i.e. whether the
+document meets the query condition).
 
 .. list-table::
  :header-rows: 1
- :widths: 80 20 30
+ :widths: 60 10 30
 
  * - Document
-   - Discounted Price
-   - < Decimal128("5")
- * - {"_id": 1, "item": "binder", "qty": 100, "price": Decimal128("12") }
-   - Decimal128("6.00")
+   - Weighted Score
+   - > 9
+ * - ``{ title: "The Shawshank Redemption", imdb: { rating: 9.3, votes: 1521105 } }``
+   - 9.3
+   - ``true``
+ * - ``{ title: "The Godfather", imdb: { rating: 9.2, votes: 1038358 } }``
+   - 9.2
+   - ``true``
+ * - ``{ title: "Fight Club", imdb: { rating: 8.9, votes: 1191784 } }``
+   - 8.9
    - ``false``
- * - {"_id": 2, "item": "notebook", "qty": 200, "price": Decimal128("8") }
-   - Decimal128("4.00")
+ * - ``{ title: "Planet Earth", imdb: { rating: 9.5, votes: 82896 } }``
+   - 9.5
    - ``true``
- * - {"_id": 3, "item": "pencil", "qty": 50, "price": Decimal128("6") }
-   - Decimal128("4.50")
-   - ``true``  
- * - {"_id": 4, "item": "eraser", "qty": 150, "price": Decimal128("3") }
-   - Decimal128("1.50")
-   - ``true``
- * - {"_id": 5, "item": "legal pad", "qty": 42, "price": Decimal128("10") }
-   - Decimal128("7.50")
-   - ``false``  
+ * - ``{ title: "Hollywood", imdb: { rating: 9.1, votes: 511 } }``
+   - 4.55
+   - ``false``
 
-The :method:`db.collection.find()` operation returns the documents whose
-calculated discount price is less than ``Decimal128("5")``:
+The :method:`db.collection.find()` operation returns 5 documents whose
+calculated weighted score is greater than ``9``:
 
-.. code-block:: javascript
-   :copyable: false
 
-   { _id : 2, item : "notebook", qty : 200 , price : Decimal128("8") }
-   { _id : 3, item : "pencil", qty : 50 , price : Decimal128("6") }
-   { _id : 4, item : "eraser", qty : 150 , price : Decimal128("3") }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/expr/weighted-score-output.sh
+   :language: javascript
+   :category: example return object
 
-Even though :expression:`$cond` calculates an effective discounted
-price, that price is not reflected in the returned documents. Instead,
-the returned documents represent the matching documents in their
-original state. The find operation did not return the ``binder``
-or ``legal pad`` documents because the discounted price was greater than
-``5``.
+Even though :expression:`$cond` calculates a weighted score, that score
+is not reflected in the returned documents. Instead, the returned
+documents represent the matching documents in their original state. 
