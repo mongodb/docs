@@ -6,12 +6,55 @@
      - Metric Type
      - Description
 
-   * - | ``CONNECTIONS`` 
+   * - | ``CONNECTIONS``
        | (mongodb.atlas.connections.current)
      - Process
      - Number of open connections currently open on the cluster.
 
-   * - | ``DB_STORAGE_TOTAL`` 
+   * - | ``CONNECTIONS_ACTIVE``
+       | (mongodb.atlas.connections.active)
+     - Process
+     - Number of active client connections to the database server. Active
+       connections are those currently performing operations.
+
+   * - | ``CONNECTIONS_TOTAL``
+       | (mongodb.atlas.connections.total)
+     - Process
+     - Rate of total connections per second created to the database server.
+
+   * - | ``INGRESS_SESSION_ESTABLISHMENT_ADDED_TO_QUEUE``
+       | (mongodb.atlas.queues.ingressSessionEstablishment.addedToQueue)
+     - Process
+     - Rate at which new connection requests are added to the ingress
+       session establishment queue.
+
+   * - | ``INGRESS_SESSION_ESTABLISHMENT_REMOVED_FROM_QUEUE``
+       | (mongodb.atlas.queues.ingressSessionEstablishment.removedFromQueue)
+     - Process
+     - Rate at which connection requests are removed from the ingress
+       session establishment queue.
+
+   * - | ``INGRESS_SESSION_ESTABLISHMENT_REJECTED_ADMISSIONS``
+       | (mongodb.atlas.queues.ingressSessionEstablishment.rejectedAdmissions)
+     - Process
+     - Rate at which connection requests are rejected by the ingress
+       session establishment rate limiter. A non-zero value indicates the
+       rate limiter is actively rejecting new connections due to load.
+
+   * - | ``INGRESS_SESSION_ESTABLISHMENT_SUCCESSFUL_ADMISSIONS``
+       | (mongodb.atlas.queues.ingressSessionEstablishment.successfulAdmissions)
+     - Process
+     - Rate at which connection requests successfully pass through the
+       ingress session establishment rate limiter and are admitted.
+
+   * - | ``INGRESS_SESSION_ESTABLISHMENT_INTERRUPTED_IN_QUEUE``
+       | (mongodb.atlas.queues.ingressSessionEstablishment.interruptedInQueue)
+     - Process
+     - Rate per second at which connection requests are interrupted while
+       waiting in the ingress session establishment queue, such as due to
+       timeout or cancellation.
+
+   * - | ``DB_STORAGE_TOTAL``
        | (mongodb.atlas.stats.totalstoragesize)
        | ``DB_DATA_SIZE_TOTAL``
        | (mongodb.atlas.stats.totaldatasize)
@@ -80,7 +123,7 @@
      - Process
      - Average rate of requests sent to the database server per second. 
 
-   * - | ``OPCOUNTER_CMD`` 
+   * - | ``OPCOUNTER_CMD``
        | (mongodb.atlas.opcounters.command)
        | ``OPCOUNTER_QUERY``
        | (mongodb.atlas.opcounters.query)
@@ -95,7 +138,59 @@
      - Process
      - Number of operations per second, separated by operation type.
 
-   * - | ``OP_EXECUTION_TIME_READS`` 
+   * - | ``OPCOUNTER_TTLDELETED``
+       | (mongodb.atlas.opcounters.ttldeleted)
+     - Process
+     - Rate of documents deleted per second by the TTL (Time-To-Live)
+       index monitor. Tracks automatic cleanup of expired documents.
+
+   * - | ``TRANSACTIONS_CURRENT_ACTIVE``
+       | (mongodb.atlas.transactions.currentActive)
+     - Process
+     - Number of currently active transactions on this server.
+
+   * - | ``TRANSACTIONS_CURRENT_OPEN``
+       | (mongodb.atlas.transactions.currentOpen)
+     - Process
+     - Number of currently open transactions (active + inactive) on this
+       server.
+
+   * - | ``TRANSACTIONS_TOTAL_STARTED``
+       | (mongodb.atlas.transactions.totalStarted)
+     - Process
+     - Rate per second of transactions started on this server.
+
+   * - | ``TRANSACTIONS_TOTAL_ABORTED``
+       | (mongodb.atlas.transactions.totalAborted)
+     - Process
+     - Rate per second of transactions aborted on this server.
+
+   * - | ``TRANSACTIONS_TOTAL_COMMITTED``
+       | (mongodb.atlas.transactions.totalCommitted)
+     - Process
+     - Rate per second of transactions committed on this server.
+
+   * - | ``TRANSACTIONS_TOTAL_PREPARED``
+       | (mongodb.atlas.transactions.totalPrepared)
+     - Process
+     - Rate per second of transactions that have entered the prepared state
+       on this server. Indicates participation in cross-shard two-phase
+       commit transactions. Available on ``mongod`` instances only.
+
+   * - | ``TRANSACTIONS_TWO_PHASE_COMMIT_INITIATED``
+       | (mongodb.atlas.transactions.commitTypes.twoPhaseCommit.initiated)
+     - Process
+     - Rate per second at which cross-shard two-phase commit transactions
+       are initiated. A non-zero value indicates the presence of multi-shard
+       write transactions. Available on ``mongos`` instances only.
+
+   * - | ``TRANSACTIONS_TWO_PHASE_COMMIT_SUCCESSFUL``
+       | (mongodb.atlas.transactions.commitTypes.twoPhaseCommit.successful)
+     - Process
+     - Rate per second at which cross-shard two-phase commit transactions
+       are successfully committed. Available on ``mongos`` instances only.
+
+   * - | ``OP_EXECUTION_TIME_READS``
        | (mongodb.atlas.oplatencies.reads.avg)
        | ``OP_EXECUTION_TIME_WRITES``
        | (mongodb.atlas.oplatencies.writes.avg)
@@ -117,13 +212,13 @@
      - Ratio of documents examined to documents returned by queries 
        with the given query shape.
 
-   * - | ``QUERY_STATS_DOCS_EXAMINED_ SUM_TOTAL``
+   * - | ``QUERY_STATS_DOCS_EXAMINED_SUM_TOTAL``
        | (mongodb.atlas.querystats.docs_examined_sum_total)
      - Counter
      - Total number of documents examined by queries with the given 
        query shape.
 
-   * - | ``QUERY_STATS_DOCS_RETURNED_ SUM_TOTAL``
+   * - | ``QUERY_STATS_DOCS_RETURNED_SUM_TOTAL``
        | (mongodb.atlas.querystats.docs_returned_sum_total)
      - Counter
      - Total number of documents returned by queries with the given 
@@ -175,10 +270,142 @@
      - Ratio measuring number of objects scanned over objects
        returned. Lower values indicate more efficient queries.
 
+   * - | ``CURSOR_OPEN_SINGLE_TARGET``
+       | (mongodb.atlas.metrics.cursor.open.singleTarget)
+     - Process
+     - Number of currently open cursors that target a single shard.
+       Available on ``mongos`` instances only.
+
+   * - | ``CURSOR_OPEN_MULTI_TARGET``
+       | (mongodb.atlas.metrics.cursor.open.multiTarget)
+     - Process
+     - Number of currently open cursors that target multiple shards
+       (scatter-gather cursors). Available on ``mongos`` instances only.
+
    * - | ``QUERY_SPILL_TO_DISK_DURING_SORT``
        | (mongodb.atlas.metrics.query.sort.spillToDisk)
      - Process
      - The total number of writes to disk caused by :pipeline:`$sort` stages.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_FIND_ALL_SHARDS``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.find.allShards)
+     - Process
+     - Rate per second of find operations that targeted all shards.
+       Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_FIND_MANY_SHARDS``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.find.manyShards)
+     - Process
+     - Rate per second of find operations that targeted more than one but
+       not all shards. Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_FIND_ONE_SHARD``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.find.oneShard)
+     - Process
+     - Rate per second of find operations that targeted exactly one shard.
+       Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_FIND_UNSHARDED``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.find.unsharded)
+     - Process
+     - Rate per second of find operations on unsharded collections.
+       Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_INSERT_ALL_SHARDS``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.insert.allShards)
+     - Process
+     - Rate per second of insert operations that targeted all shards.
+       Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_INSERT_MANY_SHARDS``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.insert.manyShards)
+     - Process
+     - Rate per second of insert operations that targeted more than one but
+       not all shards. Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_INSERT_ONE_SHARD``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.insert.oneShard)
+     - Process
+     - Rate per second of insert operations that targeted exactly one shard.
+       Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_INSERT_UNSHARDED``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.insert.unsharded)
+     - Process
+     - Rate per second of insert operations on unsharded collections.
+       Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_UPDATE_ALL_SHARDS``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.update.allShards)
+     - Process
+     - Rate per second of update operations that targeted all shards.
+       Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_UPDATE_MANY_SHARDS``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.update.manyShards)
+     - Process
+     - Rate per second of update operations that targeted more than one but
+       not all shards. Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_UPDATE_ONE_SHARD``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.update.oneShard)
+     - Process
+     - Rate per second of update operations that targeted exactly one shard.
+       Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_UPDATE_UNSHARDED``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.update.unsharded)
+     - Process
+     - Rate per second of update operations on unsharded collections.
+       Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_DELETE_ALL_SHARDS``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.delete.allShards)
+     - Process
+     - Rate per second of delete operations that targeted all shards.
+       Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_DELETE_MANY_SHARDS``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.delete.manyShards)
+     - Process
+     - Rate per second of delete operations that targeted more than one but
+       not all shards. Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_DELETE_ONE_SHARD``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.delete.oneShard)
+     - Process
+     - Rate per second of delete operations that targeted exactly one shard.
+       Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_DELETE_UNSHARDED``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.delete.unsharded)
+     - Process
+     - Rate per second of delete operations on unsharded collections.
+       Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_AGGREGATE_ALL_SHARDS``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.aggregate.allShards)
+     - Process
+     - Rate per second of aggregate operations that targeted all shards.
+       Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_AGGREGATE_MANY_SHARDS``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.aggregate.manyShards)
+     - Process
+     - Rate per second of aggregate operations that targeted more than one
+       but not all shards. Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_AGGREGATE_ONE_SHARD``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.aggregate.oneShard)
+     - Process
+     - Rate per second of aggregate operations that targeted exactly one
+       shard. Available on ``mongos`` instances only.
+
+   * - | ``SHARDING_STATS_NUM_HOSTS_TARGETED_AGGREGATE_UNSHARDED``
+       | (mongodb.atlas.shardingStatistics.numHostsTargeted.aggregate.unsharded)
+     - Process
+     - Rate per second of aggregate operations on unsharded collections.
+       Available on ``mongos`` instances only.
 
    * - | ``REPLICATION_LAG``
        | (mongodb.atlas.replset.replicationlag)
@@ -325,7 +552,45 @@
      - Memory (in ``MB``) consumed by the MongoDB process on
        the server, separated by memory type.
 
-   * - | ``OPCOUNTER_REPL_CMD`` 
+   * - | ``PROFILER_TOTAL_WRITES``
+       | (mongodb.atlas.profiler.totalWrites)
+     - Process
+     - Rate per second of total writes to profile collections across all
+       databases. Available on ``mongod`` instances only.
+
+   * - | ``PROFILER_ACTIVE_WRITERS``
+       | (mongodb.atlas.profiler.activeWriters)
+     - Process
+     - Instantaneous number of operations currently writing to a profile
+       collection across all databases. Available on ``mongod`` instances only.
+
+   * - | ``CATALOG_STATS_SYSTEM_PROFILE``
+       | (mongodb.atlas.catalogStats.systemProfile)
+     - Process
+     - Total number of system.profile collections that exist across all
+       databases on this server. Available on ``mongod`` instances only.
+
+   * - | ``PROFILER_COLLECTION_SCANS_NON_TAILABLE``
+       | (mongodb.atlas.metrics.queryExecutor.profiler.collectionScans.nonTailable)
+     - Process
+     - Rate per second of non-tailable cursors opened on a profile
+       collection. Available on MongoDB 8.0 and 8.1 only on ``mongod``
+       instances.
+
+   * - | ``PROFILER_COLLECTION_SCANS_TAILABLE``
+       | (mongodb.atlas.metrics.queryExecutor.profiler.collectionScans.tailable)
+     - Process
+     - Rate per second of tailable cursors opened on a profile collection.
+       Available on MongoDB 8.0 and 8.1 only on ``mongod`` instances.
+
+   * - | ``PROFILER_COLLECTION_SCANS_TOTAL``
+       | (mongodb.atlas.metrics.queryExecutor.profiler.collectionScans.total)
+     - Process
+     - Total rate per second of cursors, both tailable and non-tailable,
+       opened on a profile collection. Available on MongoDB 8.0 and 8.1
+       only on ``mongod`` instances.
+
+   * - | ``OPCOUNTER_REPL_CMD``
        | (mongodb.atlas.opcountersrepl.command)
        | ``OPCOUNTER_REPL_UPDATE``
        | (mongodb.atlas.opcountersrepl.update)
@@ -453,15 +718,25 @@
 
    * - | ``DISK_PARTITION_SPACE_FREE``
        | (mongodb.atlas.system.disk.space.free)
-       | ``DISK_PARTITION_SPACE_USED`` 
+       | ``DISK_PARTITION_SPACE_USED``
        | (mongodb.atlas.system.disk.space.used)
-       | ``DISK_PARTITION_SPACE_PERCENT_FREE`` 
+       | ``DISK_PARTITION_SPACE_PERCENT_FREE``
        | (mongodb.atlas.system.disk.space.percentfree)
-       | ``DISK_PARTITION_SPACE_PERCENT_USED`` 
+       | ``DISK_PARTITION_SPACE_PERCENT_USED``
        | (mongodb.atlas.system.disk.space.percentused)
      - Disk
      - Measure free disk space and used disk space (in bytes) on the
        disk partition used by MongoDB.
+
+   * - | ``DISK_THROUGHPUT_READS``
+       | (mongodb.atlas.system.disk.throughput.reads)
+     - Disk
+     - Disk read throughput in bytes per second for the data partition.
+
+   * - | ``DISK_THROUGHPUT_WRITES``
+       | (mongodb.atlas.system.disk.throughput.writes)
+     - Disk
+     - Disk write throughput in bytes per second for the data partition.
 
    * - | ``MAX_DISK_PARTITION_SPACE_FREE``
        | (mongodb.atlas.system.disk.max.space.free)
@@ -538,13 +813,22 @@
      - Measure number of bytes of data and number of bytes of dirty 
        data in :manual:`WiredTiger's cache </reference/command/serverStatus/#serverstatus.wiredTiger.cache>`.
 
-   * - | ``PAGES_READ_INTO_CACHE`` 
-       | (mongodb.atlas.wiredtiger.cache.pages_read_into_cache) 
+   * - | ``PAGES_READ_INTO_CACHE``
+       | (mongodb.atlas.wiredtiger.cache.pages_read_into_cache)
        | ``PAGES_REQUESTED_FROM_CACHE``
        | (mongodb.atlas.wiredtiger.cache.pages_requested_from_the_cache)
-     - Process 
+     - Process
      - Number of pages read into the cache and the number of pages
        requested from the cache.
+
+   * - | ``WIREDTIGER_CACHE_MAXIMUM_BYTES_CONFIGURED``
+       | (mongodb.atlas.wiredtiger.cache.maximum_bytes_configured)
+     - Process
+     - Maximum number of bytes configured for the WiredTiger cache. Used
+       to compute the cache fill ratio (bytes currently in cache / maximum
+       bytes configured) and the dirty fill ratio (tracked dirty bytes in
+       cache / maximum bytes configured). Available on ``mongod`` instances
+       only.
 
    * - | ``TICKETS_AVAILABLE_READS``
        | (mongodb.atlas.wiredtiger.concurrenttransactions.read.available)
