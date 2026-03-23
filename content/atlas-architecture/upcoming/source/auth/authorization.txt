@@ -1,0 +1,140 @@
+.. _arch-center-authorization-recs:
+
+======================================
+Guidance for {+service+} Authorization
+======================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta:   
+   :description: Learn about the different authorization mechanisms that Atlas supports.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: onecol
+
+|service-fullname| supports a variety of authorization methods to
+ensure robust access to resources. |service| requires all users to authenticate. 
+Once the user is authenticated, authorization determines the user's access to 
+resources.
+
+When implementing |service| authorization, you must use 
+:ref:`Role-Based Access Control (RBAC) <arch-center-rbac>`. Using an 
+:ref:`Federated Identity Provider's <arch-center-fip>` user groups with RBAC 
+simplifies management.
+
+The following recommendations apply to both workforce (human) and workload 
+(application) users in all :ref:`deployment paradigms <arch-center-paradigms>`.
+
+
+.. _arch-center-rbac:
+
+RBAC and Predefined Roles
+-------------------------
+
+|service| uses Role-Based Access Control (RBAC) to simplify management of user 
+authorization. |service| includes predefined 
+:atlas:`user roles </reference/user-roles/>` that 
+provide specific levels of access commonly needed for managing the |service| with 
+the UI and APIs. To simplify management, you can then map the roles to to 
+:abbr:`IdP (Identity Provider)` groups.
+
+For connecting to |service| {+clusters+}, use fine-grained custom database roles 
+to provide granular scoping based on the access required for the role to perform 
+its function. This approach enables you to follow the principle of least privilege.
+
+.. note:: 
+   You should always restrict access by assigning the lowest-needed RBAC roles.
+   You should also use domain restrictions.
+
+There are two levels of roles that you can assign: organization-level and 
+project-level.
+
+Organization-Level Roles
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Organization-level roles are used by service accounts to automate tasks 
+such as creating new projects, managing IAM, and billing. They may also be 
+used for platform team members.
+
+* The ``Organization Owner`` role should be heavily restricted and not assigned
+  to a human, as it has the ability to change organization-wide settings and delete 
+  configurations. This role should be assigned to a service account which you use 
+  only to initially set up and configure the organization. Minimize configuration 
+  changes after the initial creation. To avoid account lockouts, you
+  can create the following items: 
+  
+  - SAML Organization Owner group with :ref:`arch-center-just-in-time`. 
+  - Service account with the Organization Owner role. Keep it in a
+    secure place with strong access management for break-glass
+    emergency scenarios.
+
+* The ``Organization Member`` role should be for admins on the operations and 
+  platform team that can view settings and configuration for the organization.
+
+* The ``Organization Project Creator`` role should be a programmatic service 
+  account used to create projects on behalf of new applications for development 
+  and product teams.
+
+* The ``Organization Billing Admin`` role should be a programmatic service 
+  account used to pull invoices programmatically from the Billing API 
+  and feed them into your FinOps tool. This same service account should have 
+  access to all linked organizations for which it is responsible for reporting usage. 
+
+Project-Level Roles
+~~~~~~~~~~~~~~~~~~~
+
+Project-level roles are for the development, test, and product teams that are 
+responsible for application development and maintenance. As with 
+organization-level roles, you should always follow the principle of least 
+privilege. For example, the ``Project Owner`` role should only be used for 
+governance enforced by the operations and provisioning team. Because a Project
+Owner can create and delete {+clusters+}, you should assign this role to a 
+programmatic service account unless you are working in a sandbox environment.
+
+To learn more about project-level roles, see:
+
+- :atlas:`Atlas User Roles </reference/user-roles/>`
+
+.. _arch-center-fip:
+
+Federated Identity Providers
+----------------------------
+
+By integrating |service| with a federated identity provider, 
+you can use just-in-time provisioning by mapping identity provider groups to 
+|service| roles. This streamlines access management and ensures secure and 
+organized role assignments throughout the platform. You can grant access 
+programmatically based on the provisioning process of your orchestration layer.
+
+You should use a modern Federated Identity Provider (FIP) that 
+provides SSO, such as Azure Entra ID, Okta, or Ping Identity. 
+This makes the authorization process more secure and supports the 
+flexibility needed to programmatically assign :abbr:`IdP (Identity Provider)` 
+groups to |service| roles. You should restrict access to your company's domain, 
+which prevents users from logging into |service| when they are not authorized 
+for access.
+
+To learn more about mapping roles to Federated Identity provider groups, see
+:atlas:`Role Mapping Process </security/manage-role-mapping/#role-mapping-process>`. 
+
+.. _arch-center-just-in-time:
+
+Just-in-Time Access 
+-------------------
+
+|service| also supports creating temporary database users
+that automatically expire after the predefined times. A user can be
+created for 6 hours, 1 day, or 1 week.
+
+To learn more, see :ref:`mongodb-users`. 
+
+Examples
+--------
+For examples of configuring Authorization, see :ref:`arch-center-examples`.

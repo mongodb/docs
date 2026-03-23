@@ -1,0 +1,490 @@
+.. _arch-center-is-agentic-ai-powered-fleet-incident-advisor:  
+  
+===================================================
+Agentic AI-Powered Connected Fleet Incident Advisor  
+===================================================
+  
+.. facet::  
+   :name: genre  
+   :values: tutorial  
+  
+.. contents:: On this page  
+   :local:  
+   :backlinks: none  
+   :depth: 1  
+   :class: singlecol  
+  
+Learn how to use MongoDB to manage fleets of connected vehicles,
+optimize route planning, and improve driver safety.
+
+**Use cases:** `App Driven-Analytics <https://www.mongodb.com/collateral/application-driven-analytics>`__,
+`Gen AI <https://www.mongodb.com/solutions/use-cases/artificial-intelligence>`__,
+`IoT <https://www.mongodb.com/use-cases/internet-of-things>`__
+    
+**Industries:** `Manufacturing & Motion <https://www.mongodb.com/solutions/industries/manufacturing>`__
+
+**Products and tools:** `Atlas Database <https://www.mongodb.com/atlas/database>`__,
+`Atlas Vector Search <https://www.mongodb.com/products/platform/atlas-vector-search>`__   
+  
+Solution Overview  
+-----------------  
+
+In this solution, we build an AI-powered Connected Fleet Advisor  
+built using MongoDB Atlas, Voyage AI, OpenAI, and LangGraph. 
+
+The system receives driver complaints or fleet manager queries,  
+processes vehicle telemetry data, generates a chain-of-thought,  
+performs a vector search for similar issues, persists the data in  
+MongoDB, and finally produces a diagnostic recommendation using an  
+OpenAI LLM.  
+
+An agent is an operational application that attempts to achieve a goal  
+by observing the world and acting upon it using the data and tools it  
+has at its disposal. The term "agentic" denotes having agency as an AI  
+agent, proactively taking steps to achieve objectives without constant  
+human oversight. For example, rather than just reporting an anomaly  
+based on connected car telemetry data analysis, an agentic AI system  
+for a connected fleet autonomously cross-checks that anomaly  
+against known issues, decides whether it's critical, and schedules
+a maintenance appointment all on its own.
+  
+.. figure:: /includes/images/industry-solutions/fleet-management-agent.svg
+   :figwidth: 1200px
+   :alt: Basic Components of an AI Agent 
+
+   Figure 1. Basic components of an AI agent  
+
+.. video:: https://www.youtube.com/watch?v=_CAOb7BR-Rg
+
+Future Growth and Challenges
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The automotive and mobility industry is undergoing a significant  
+transformation, driven by advancements in vehicle connectivity,  
+autonomous systems, shared mobility, and electrification. Vehicles  
+are now sophisticated machines that generate massive amounts of  
+data. Automotive demand grows by `3% annually
+<https://content.rolandberger.com/hubfs/Roland%20Berger_Automotive%20Outlook%202040.pdf?utm_medium=email&_hsenc=p2ANqtz--pRUUzx6hoOYwFuxLmOUM1jGvJGL-lfOVP8JqFSVWJKJ-RIIN3Fl1uszX9BrGiroCoNOvvnC02HmKUEZrwsfUP0wvkyWPMoIwbA5CvzF0WIlYnS24&_hsmi=327069747&utm_content=327069747&utm_source=hs_automation>`__
+over the next 20  
+years with increased preference towards connected and electric  
+vehicles. Automotive players embrace `artificial intelligence
+<https://www.mongodb.com/resources/basics/what-is-artificial-intelligence>`__ (AI),  
+battery electrical vehicles (BEVs) and software-defined vehicles (SDVs)  
+to maintain their competitive advantage. The global connected  
+vehicles market size expects to reach around `USD 446.6 billion
+<https://market.us/report/connected-vehicles-market/>`__  
+by 2033, growing at a CAGR of 19.5% between 2024 to 2033. Managing  
+fleets of connected vehicles presents a challenge. As cars get more  
+sophisticated and integrate with internal and external systems, the  
+volume of data increases. You need to store, transfer, and 
+consume this data with various downstream applications to unlock new 
+business opportunities. The global fleet management market projects to 
+reach `USD 65.7 billion
+<https://businessoutstanders.com/automobile/fleet-telematics-statistics>`__
+by 2030, growing at a rate  
+of almost 10.8% annually. 
+
+A `2024 study
+<https://www.webfleet.com/en_gb/webfleet/lp/fleet-digitisation-report/>`__
+conducted by Webfleet revealed that 32% of fleet  
+managers believe AI and machine learning will significantly impact  
+fleet operations in the coming years. This narrowly surpasses the 30%  
+who cited EVs as the primary game-changer. Optimising route  
+planning and improving driver safety are the two most commonly cited  
+ways fleet managers believe AI changes their working day. As fleet  
+management software providers continue to invest in AI, integrating  
+agentic AI, autonomous systems capable of making real-time  
+decisions, can significantly help with use cases like route 
+optimization and driver safety enhancement. For example, AI agents 
+process real-time traffic updates and weather conditions to dynamically 
+adjust routes, ensuring timely deliveries while advising drivers on 
+their car condition as needed. This proactive approach contrasts with  
+traditional reactive methods, improving vehicle utilization and  
+reducing operational and maintenance costs.  
+  
+Reference Architectures  
+-----------------------  
+  
+The reference architecture shown below illustrates the inner workings
+and data flow of the AI agent. The workflow begins when a user, a driver,
+submits a query about a potential issue. For example, hearing a
+knocking sound. The LangGraph-based agent orchestrator then processes
+this request using an LLM (OpenAI GPT-4o) to interpret the
+request and create a chain of thought (CoT) reasoning and workflow. The
+workflow executes by the agent using tools such as `Atlas Vector
+Search
+<https://www.mongodb.com/products/platform/atlas-vector-search>`__.  
+
+The agent processes an issue report, as follows:  
+  
+- **Reads telemetry data:** Ingests vehicle sensor data from a CSV
+  file (or an API in a production setup).  
+
+- **Generates an embedding:** Uses Voyage AI embedding API to convert
+  the complaint text into a numerical representation.  
+
+- **Uses Atlas Vector Search:** Searches for similar issues in MongoDB 
+  Atlas using the generated embedding.  
+
+- **Persists data:** Saves telemetry data, session logs, and
+  recommendations in MongoDB Atlas.  
+
+- **Provides a final recommendation:** Uses OpenAI chat API to produce 
+  actionable diagnostic advice.    
+
+.. figure:: /includes/images/industry-solutions/fleet-management-architecture.svg
+   :figwidth: 1200px
+   :alt: Reference architecture of the fleet management solution   
+
+   Figure 2. Reference architecture of the proposed solution
+  
+Data Model Approach  
+-------------------
+  
+An agent requires different types of data to function.  :ref:`MongoDB's 
+document model <manual-data-modeling-intro>`  allows you to easily model 
+all of this data in one database. Below you find one example per different 
+data type found in an agentic AI application for fleet management. Notice  
+how the flexibility of the document model adapts to suit the  
+type of data required for storage.  
+  
+Agent Profile  
+~~~~~~~~~~~~~  
+
+This data contains the identity of the agent, including instructions, goals
+and constraints.  
+  
+**Example of an Agent Profile**  
+  
+.. code-block:: javascript  
+  
+   {  
+     "_id": "67c20cf886f35bcb8c71e53c",  
+     "agent_id": "default_agent",  
+     "profile": "Default Agent Profile",  
+     "instructions": "Follow diagnostic procedures meticulously.",  
+     "rules": "Ensure safety; validate sensor data; document all steps.",  
+     "goals": "Provide accurate diagnostics and actionable recommendations."  
+   } 
+
+Short-term Memory  
+~~~~~~~~~~~~~~~~~    
+  
+Short-term memory holds temporary, contextual information—recent data 
+inputs or ongoing interactions—that the agent uses in real-time. For 
+example, short-term memory stores sensor data from the last few hours of  
+vehicle activity. In certain agentic AI frameworks like LangGraph, 
+short-term memory implements through a checkpointer. The  
+checkpointer stores intermediate states of the agent's actions and 
+reasoning. This memory allows the agent to seamlessly pause and  
+resume operations.  
+  
+**Example of short-term memory: Telemetry data stored in time series  
+collections**
+  
+.. code-block:: javascript  
+  
+   {  
+     "_id": "67cb23ee370eb8f40c9bf677",    
+     "timestamp": "2025-02-19T13:00:00",  
+     "vin":"5TFUW5F13CX228552",   
+     "engine_temperature": "90",  
+     "oil_pressure": "35",  
+     "avg_fuel_consumption": "8.5",  
+     "thread_id": "thread_20250307_125027"  
+   } 
+
+Long-term Memory  
+~~~~~~~~~~~~~~~~  
+
+Long-term memory stores accumulated knowledge over time for the agent. This  
+may include patterns, trends, logs, historical recommendations, and  
+decisions.  
+  
+**Example of long-term memory: Historical issues with connected  
+vehicles vectorized and stored in MongoDB**
+   
+.. code-block:: javascript  
+  
+   {  
+     "_id": "67ca173679c7c286f44f4a24",  
+     "issue": "Engine knocking when turning",  
+     "recommendation": "Inspect spark plugs and engine oil.",  
+     "embedding": [  
+       -0.021414414048194885,  
+       -0.0031116530299186707,  
+       0.014275052584707737,  
+       -0.030444633215665817,  
+       0.018614845350384712,  
+       0.06425976008176804,  
+       0.0060801152139902115,  
+       -0.012883528135716915,  
+       -0.007000760640949011,
+       -0.04991862177848816,
+   ...  
+     ]  
+   } 
+  
+Build the Solution  
+------------------
+  
+To build this solution, follow the instructions in the Fleet Management
+Agent `GitHub repository
+<https://github.com/mongodb-industry-solutions/fleet-management-agent>`__.
+The repository provides step-by-step guidance for setting up the
+application.
+  
+Prerequisites
+~~~~~~~~~~~~~  
+
+- Python 3.11+ (backend)  
+- Node.js (for the Next.js frontend)  
+- MongoDB Atlas account  
+- OpenAI API Key  
+- Voyage AI API Key  
+
+System Architectures 
+~~~~~~~~~~~~~~~~~~~~
+
+**Backend Workflow**  
+
+You implement a multi-step diagnostic workflow using LangGraph, as follows:
+
+- The agent receives a driver's issue report. For example, "My vehicle's fuel
+  consumption has increased significantly over the past week. What might
+  be wrong with the engine or fuel system?".  
+
+- The agent retrieves telemetry data and
+  logs the update.  
+
+- The agent generates an embedding for the complaint using Voyage AI
+  voyage-3-large embedding API.  
+
+- The system then performs a vector search against historical issues in
+  MongoDB to find similar cases.  
+
+- MongoDB stores all telemetry, embeddings, and session logs to ensure traceability.
+
+- Finally, the agent uses OpenAI's ChatCompletion API to produce a final
+  recommendation.   
+  
+**MongoDB Atlas**
+
+- The flexible document model database stores agent profiles, historical  
+  recommendations, telemetry data, session logs, and more. This  
+  persistent storage logs every step of the diagnostic process for  
+  traceability and enables efficient querying and reusability of past  
+  data, makeing the system highly traceable and scalable.
+  
+**Frontend Interface** 
+
+The Next.js frontend provides a two-column view:  
+
+- **Left column:** Displays the real-time agent workflow updates such as
+  the chain-of-thought reasoning, update messages, and final
+  recommendations.  
+
+- **Right column:** Shows the documents inserted into MongoDB during the
+  agent run, including session details, telemetry logs, historical
+  recommendations, agent profiles, and sample past issues.    
+
+Set Up the Application  
+~~~~~~~~~~~~~~~~~~~~~~
+
+To set up the application, perform the following steps:
+
+.. procedure::  
+   :style: normal  
+  
+   .. step:: Clone the repository and navigate to the backend directory
+
+      .. code-block:: sh  
+  
+         cd agent/backend   
+  
+   .. step:: Create and activate a virtual environment  
+  
+      .. code-block:: sh  
+  
+         python -m venv venv  
+         source venv/bin/activate   # On Windows: venv\Scripts\activate  
+  
+   .. step:: Install dependencies  
+  
+      .. code-block:: sh  
+  
+         pip install -r requirements.txt  
+  
+   .. step:: Configure environment variables  
+  
+      Create a ``.env`` file in the backend directory with the following content:  
+  
+      .. code-block:: sh  
+  
+         OPENAI_API_KEY=your_openai_api_key_here  
+         VOYAGE_API_KEY=your_voyage_api_key_here  
+         MONGO_URI=your_mongo_uri_here  
+         DATABASE=fleet_issues  
+         TELEMETRY_PATH=data/telemetry_data.csv  
+         VECTOR_SEARCH_INDEX=issues_index  
+  
+   .. step:: Run create_issue_embeddings.py to create and store embeddings in MongoDB  
+  
+   .. step:: Create an Atlas Vector Search index with name issues_index and path embeddings  
+  
+      For more details on how to set up Vector Search index, see `Create Vector Search Indexes <https://mongodb-developer.github.io/search-lab/docs/vector-search/create-index>`__.  
+  
+   .. step:: Run the backend server  
+  
+      .. code-block:: sh  
+  
+         uvicorn main:app --host 0.0.0.0 --port 8000 --reload  
+  
+   .. step:: Setup the frontend
+
+      Navigate to the frontend directory and install dependencies.  
+  
+      .. code-block:: sh  
+  
+         cd ../frontend  
+         npm install  
+  
+   .. step:: Run the Next.js development server  
+  
+      .. code-block:: sh  
+  
+         npm run dev  
+  
+      The frontend is accessible at ``http://localhost:3000``.  
+
+Feel free to adjust the prompt in main.py or update the telemetry data in the ``telemetry_data.csv`` file. 
+  
+Explore the Solution
+~~~~~~~~~~~~~~~~~~~~
+  
+**Start a New Diagnosis**  
+  
+- Open the frontend and choose "New Diagnosis".  
+
+- Enter an issue report in the text box, for example:
+
+
+  - I hear a knocking sound while turning at low speeds.  
+
+  - My car makes a persistent rattling noise when I accelerate  
+    at low speeds.  
+
+  - I noticed a sudden drop in oil pressure with a slight  
+    rise in engine temperature.  
+
+  - My vehicle's fuel consumption increased significantly over  
+    the past week. What might be wrong with the engine or fuel  
+    system?  
+
+  - A warning light recently appeared on my dashboard, and the car  
+    struggles to accelerate.  
+  
+- Click the "Run Agent" button and wait for a minute or two as the agent
+  finishes its run.  
+
+**Check the Workflow**  
+  
+- The workflow, chain-of-thought output, and the final recommendation
+  display in the left column.  
+  
+- The workflow generates in real time, giving transparency into the
+  agent's decision-making process.
+
+.. figure:: /includes/images/industry-solutions/fleet-management-diagram.svg
+   :figwidth: 1200px
+   :alt: Sequence Diagram of AI Agent Workflow     
+
+   Figure 3: Sequence diagram of AI agent workflow  
+  
+**Review the MongoDB Documents**  
+
+- In the right column, the documents shown are the records inserted during the current agent run:
+
+  - **agent_sessions:** Contains session metadata and the thread ID.  
+
+  - **historical_recommendations:** Stores the final recommendations and related diagnostics.  
+
+  - **telemetry_data:** Holds the telemetry sensor readings.  
+        
+  - **logs:** Contains log entries for the diagnostic process.  
+        
+  - **agent_profiles:** Shows the agent's profile that was used during diagnosis.  
+        
+  - **past_issues:** (If available) Displays a sample of historical issues.  
+        
+  - **checkpoints:** (From the checkpointing database) Shows the last saved state for potential recovery.  
+  
+**Resume Functionality**
+
+- Optionally, we can demonstrate the "Resume Diagnosis" feature by  
+  entering a thread ID and showing how the system retrieves the  
+  corresponding session.
+ 
+Key Learnings  
+-------------  
+
+- **Scalability and flexibility:** Connected car platforms such as fleet  
+  management systems handle extreme data volumes and variety. MongoDB Atlas 
+  scales horizontally across cloud clusters, letting you ingest millions of 
+  telemetry events per minute and store terabytes of telemetry data. For 
+  example, ZF SCALAR uses MongoDB to process `90,000 vehicle messages per minute 
+  <https://www.mongodb.com/solutions/customer-case-studies/zf>`__ (over 50 GB  
+  of data per day) from hundreds of thousands of connected cars. The  
+  :manual:`MongoDB document model </core/data-modeling-introduction/>` adapts 
+  as the fleet grows. You can evolve schemas as vehicles add new sensors or 
+  features. This flexibility accelerates development and ensures your data 
+  model stays aligned with the real-world entities such as vehicles, trips, or 
+  incidents that it represents. 
+
+- **Implement built-in vector search:** AI Agents require a robust set of tools to work  
+  with. Vector search allows agents to semantically search on unstructured data 
+  such as driver logs, error codes descriptions, and repair manuals. MongoDB 
+  Atlas has native support for vector search, which stores and indexes 
+  high-dimensional vectors alongside your operational data and performs fast 
+  similarity queries over them. In practice, this means your AI embeddings live 
+  next to the relevant vehicle telemetry and operational data in the 
+  database. This simplifies architectures for use cases such as the connected 
+  car incident advisor, where an issue can match against past issues 
+  encountered before passing the context to LLM. (See how an automotive OEM 
+  leverages vector search for `audio based diagnostics 
+  <https://www.mongodb.com/blog/post/ai-driven-noise-analysis-for-automotive-diagnostics>`__ 
+  with MongoDB Atlas Vector Search).
+
+- **Deploy time series collections and real-time data processing:** MongoDB Atlas  
+  is designed for real-time applications. It provides time series  
+  collections for connected car telemetry data storage, change streams,  
+  and triggers that react to new data instantly. Given that real-time  
+  visibility is a top feature in modern fleet management systems,  
+  MongoDB's ability to serve immediate insights to the AI agents ensures the  
+  decisions they make are based on the latest information. This is crucial  
+  for agentic AI feedback loops, where ongoing data ingestion and  
+  learning happen continuously.  
+
+- **Use best-in-class embedding models with Voyage AI:** MongoDB   
+  recently `acquired Voyage AI 
+  <https://investors.mongodb.com/news-releases/news-release-details/mongodb-announces-acquisition-voyage-ai-enable-organizations>`__, 
+  who specializes in embedding and reranking models. As MongoDB Atlas 
+  integrates Voyage AI embedding models, developers no longer need to 
+  manage external embedding APIs, standalone vector stores, or complex search 
+  pipelines. AI retrieval becomes built into the database itself, making 
+  semantic search, vector retrieval, and ranking as seamless as traditional 
+  queries. This reduces the time required for developing Agentic AI 
+  applications.
+  
+Author  
+------  
+  
+- Humza Akhtar, MongoDB  
+
+Learn More
+----------
+
+- :ref:`arch-center-is-automotive-diagnostics`
+- `Blog Post: Next-Generation Mobility Solutions with Agentic and MongoDB Atlas <https://www.mongodb.com/company/blog/innovation/next-generation-mobility-solutions-agentic-ai-mongodb-atlas>`_
+- :ref:`arch-center-is-predictive-maintenance`
+- :ref:`arch-center-is-car-assistant`

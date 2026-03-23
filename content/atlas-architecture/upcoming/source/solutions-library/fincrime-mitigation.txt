@@ -1,0 +1,511 @@
+.. _arch-center-is-fincrime-mitigation:
+
+================================================
+Financial Crime Mitigation with MongoDB Atlas
+================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta:: 
+   :keywords: RAG, Atlas
+   :description: Complete implementation guide for building a unified fraud detection and AML/KYC compliance system using MongoDB's document model, advanced search capabilities and more.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+**Use cases:** `Artificial Intelligence
+<https://www.mongodb.com/use-cases/artificial-intelligence>`__, `Intelligent Search <https://www.mongodb.com/solutions/use-cases/intelligent-search>`__, `Single View <https://www.mongodb.com/solutions/use-cases/single-view>`__
+
+**Industries:** `Financial Services
+<https://www.mongodb.com/industries/financial-services>`__
+
+**Products:** `MongoDB Atlas <http://mongodb.com/atlas>`__, `MongoDB Atlas Search <https://www.mongodb.com/products/platform/atlas-search>`__, `MongoDB Atlas Vector Search <https://www.mongodb.com/products/platform/atlas-vector-search>`__, `MongoDB Atlas Stream Processing <https://www.mongodb.com/products/platform/atlas-stream-processing>`__
+
+**Partners:** `Anthropic <https://cloud.mongodb.com/ecosystem/anthropic>`__, 
+`AWS <https://cloud.mongodb.com/ecosystem/amazon-bedrock>`__
+
+
+Solution Overview
+------------------
+
+This solution showcases MongoDB's capabilities for financial crime
+prevention. Real-time transaction screening with vector
+embeddings, sophisticated entity resolution with ``$rankFusion`` hybrid
+search, LLM-powered risk classification and case generation,
+relationship network traversal with ``$graphLookup``, and dynamic risk
+models that update without system downtime.
+
+.. figure:: /includes/images/industry-solutions/fincrime-mitigation-1.svg
+   :figwidth: 750px
+   :alt: Financial Crime Mitigation Platform 
+
+   Figure 1. Financial Crime Mitigation Platform with MongoDB
+
+Figure 1 presents a high-level overview of the Financial Crime
+Mitigation Platform "ThreatSight 360", illustrating the end-to-end
+entity resolution and financial crime mitigation workflow, which focuses
+on the following key capabilities:
+  
+- **Fraud detection flow**: Demonstrates an end-to-end, real-time
+  pipeline. A Transaction Simulator generates synthetic events to
+  exercise fraud scenarios. Then, a Fraud Detection Engine enriches each
+  transaction with customer profile data, applies rules, performs vector
+  search, and generates embeddings via AWS Bedrock. A Risk Model
+  Engine manages risk models that update in real
+  time using MongoDB change streams to ensure decisions always reflect the
+  latest risk logic.
+
+- **Search and entity resolution**: Use MongoDB Atlas Search for fuzzy,
+  text‑based matching (names, addresses, identifiers) and MongoDB Atlas
+  Vector Search for semantic similarity. Run both in parallel and merge
+  the results with ``$rankFusion`` to produce a single ranked candidate
+  list for each entity.  
+
+- **Network analysis and graph traversal**: Store explicit and inferred
+  relationships in a dedicated collection. Use ``$graphLookup`` and
+  aggregation pipelines to traverse multi‑hop networks, uncover hidden
+  links, and enrich entity context with connectivity metrics.  
+
+- **AI‑assisted risk assessment**: Package entity profiles, transaction
+  histories, search matches, and network context into prompts for an LLM
+  such as AWS Bedrock Claude‑3 Sonnet. The model evaluates risk
+  indicators, explains rationale, and recommends next‑best actions under
+  your institution’s policies and risk thresholds.  
+
+- **Case management and reporting**: Store case files, analyst notes,
+  LLM‑generated narratives, and audit trails as MongoDB documents. 
+  This reduces false positives, enables analytics, and creates a consistent, 
+  queryable record for compliance teams, internal auditors, and regulators.
+
+
+Reference Architectures
+------------------------
+
+This solution consists of four core modules that together implement an
+end‑to‑end entity resolution and financial crime mitigation workflow: 
+
+Transaction Monitoring and Risk Scoring Engine
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Purpose:** Semantic fraud pattern detection with Vector Search
+
+- Use MongoDB Atlas Vector Search to identify transactions that behave
+  like known fraud patterns, even when they do not match an explicit rule.  
+  
+- Generate embeddings from the qualitative and behavioral aspects of
+  each transaction, such as:  
+  
+  - Merchant category and description  
+  
+  - Channel and device fingerprints  
+  
+  - IP ranges and ASN information  
+  
+  - Temporal patterns, such as time‑of‑day sequences or session behavior  
+  
+  - Narrative fields or free‑text notes, if applicable  
+  
+- Store these 1536‑dimensional embeddings in the same transaction
+  documents that hold your operational data.  
+  
+- Keep high‑signal numeric features—such as raw amount, balance changes,
+  and simple velocity counters—outside the embeddings and evaluate them
+  with rule‑based or scorecard models. This separation lets you:  
+  
+  - Use Vector Search to surface semantically similar behaviors that
+    cross simple thresholds or rules.  
+  
+  - Use deterministic rules and risk models to enforce numeric limits
+    and regulatory constraints.  
+  
+- When screening a new transaction, generate an embedding and query MongoDB Atlas with
+  ``$vectorSearch``.
+  
+  - The system returns semantically similar transactions, including ones
+    that evade static rules but resemble prior fraud in behavior. 
+  
+  - Combine vector similarity scores with numeric risk scores to create a
+    unified risk decision pipeline. 
+
+Risk Model Management
+~~~~~~~~~~~~~~~~~~~~~~~
+
+**Purpose:** Real-Time Risk Intelligence with Change Streams
+
+Use MongoDB change streams to receive instant notifications when risk
+models, compliance rules, or watchlists change. Stream updates directly
+into your fraud detection and case management services instead of
+polling or relying on ad‑hoc cache invalidation.  
+  
+When analysts activate a new risk model, all transaction screening
+engines receive the change within milliseconds and apply updated rules
+to incoming traffic. This removes batch delays that allow fraudulent
+transactions to clear before detection.  
+  
+Open a change stream cursor on your risk models or configuration
+collections, and MongoDB pushes every insert, update, or replace
+operation to your application. Use `resume tokens
+<https://www.mongodb.com/docs/manual/changeStreams/>`__ to restart
+processing from the exact point of interruption after service restarts
+or network failures, so you do not miss any updates. 
+
+
+.. figure:: /includes/images/industry-solutions/fincrime-mitigation-2.svg
+   :figwidth: 750px
+   :alt: Financial Crime Mitigation Platform 
+
+   Figure 2. Real‑time fraud detection pipeline with Change Streams, Vector Search, and Risk Models
+
+
+Entity Onboarding and Case Management
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This module has two main purposes:
+
+**Purpose:** AI-Powered Entity Resolution with Hybrid Search
+
+Use MongoDB’s ``$rankFusion`` operator to combine multiple search
+strategies during entity onboarding or investigation. Run Atlas Search
+for fuzzy text matching and Atlas Vector Search for semantic similarity
+in parallel. ``$rankFusion`` merges the result sets and ranks entities
+by combined relevance from text similarity and embeddings.  
+  
+For the top candidates, traverse relationship and transaction networks
+using ``$graphLookup``. MongoDB returns network context including entity
+connections, transaction patterns, shared identifiers, and risk
+indicators in a single aggregation pipeline. This avoids querying multiple
+systems or performing expensive joins.  
+  
+Feed entity data, search results, and network analysis into an LLM such
+as AWS Bedrock Claude‑3 Sonnet for AI‑assisted risk classification. The
+model evaluates compliance flags, relationship patterns, behavioral
+indicators, and watchlist matches to generate risk assessments with
+confidence scores and recommended actions. 
+
+Create case documents automatically in MongoDB with LLM‑generated 
+investigation summaries. This reduces manual report writing and 
+improves the consistency of compliance documentation.
+
+**Purpose:** Network Discovery with Graph Traversal
+
+Investigators often need to trace money‑laundering networks and hidden connections between entities. Use MongoDB’s ``$graphLookup`` aggregation stage to perform this network analysis directly in your operational database—no separate graph store required.  
+  
+- Start with a suspicious entity and recursively traverse relationships through business associates, shared addresses, transaction counterparties, or corporate structures. Each traversal returns complete entity documents with embedded behavioral analytics, risk scores, and compliance flags. 
+
+- Filter relationships by confidence score, relationship type, or risk thresholds during traversal.  
+  
+- Discover networks across multiple hops in milliseconds, then combine graph results with standard aggregation operations such as filtering, sorting, and grouping. 
+
+.. code-block:: javascript
+
+   // Multi-hop relationship traversal with MongoDB $graphLookup
+   db.entities.aggregate([
+      {
+         $match: { entityId: 'ENT_12345' },
+      },
+      {
+         $graphLookup: {
+            from: 'entity_relationships',
+            startWith: '$entityId',
+            connectFromField: 'target_entity_id',
+            connectToField: 'source_entity_id',
+            as: 'relationship_network',
+            maxDepth: 2,
+            restrictSearchWithMatch: {
+               confidence_score: { $gte: 0.7 },
+               relationship_type: {
+                  $in: [
+                     'BUSINESS_ASSOCIATE',
+                     'SHARED_ADDRESS',
+                     'TRANSACTION_COUNTERPARTY',
+                  ],
+               },
+            },
+         },
+      },
+      {
+         $lookup: {
+            from: 'entities',
+            localField: 'relationship_network.target_entity_id',
+            foreignField: 'entityId',
+            as: 'connected_entities',
+         },
+      },
+      {
+         $project: {
+            entityId: 1,
+            name: 1,
+            riskAssessment: 1,
+            networkDepth: { $size: '$relationship_network' },
+            connectedEntities: {
+               $map: {
+                  input: '$connected_entities',
+                  as: 'entity',
+                  in: {
+                     id: '$$entity.entityId',
+                     name: '$$entity.name.full',
+                     riskLevel: '$$entity.riskAssessment.level',
+                  },
+               },
+            },
+         },
+      },
+   ]);
+
+.. figure:: /includes/images/industry-solutions/fincrime-mitigation-3.svg
+   :figwidth: 750px
+   :alt: Financial Crime Mitigation Platform 
+
+   Figure 3.  Entity resolution with MongoDB Search and $graphLookup and Case Management with LLM
+
+
+Data Model Approach
+--------------------
+
+
+The platform centers on three MongoDB collections that take advantage 
+of the document model’s flexibility:
+  
+- **Entities Collection**: Stores data for individuals and organizations with 
+  complete, single‑view customer profiles. Each document aggregates 
+  identification data, contact information, KYC attributes, risk assessments, 
+  behavioral analytics, and vector embeddings. Nested documents capture 
+  transaction patterns, device fingerprints, and location history, giving you 
+  a full view of each customer without joining across multiple systems. 
+  You can add new risk factors or data sources without schema migrations.
+  
+- **Transactions Collection**: Records financial transactions with embedded 
+  merchant details, location data (as GeoJSON points), device information, and 
+  risk assessments. Each transaction document stands alone with full context, 
+  enabling geospatial queries and pattern analysis without joins.  
+  
+- **Risk Models Collection**: Maintains versioned risk assessment models as 
+  documents. Each model includes risk factors, weights, thresholds, and 
+  performance metrics. MongoDB change streams notify services when models 
+  activate or update, which enables immediate deployment of new risk logic. 
+
+Relationships Between Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The design models relationships through a mix of embedded references and a dedicated ``relationships`` collection:
+  
+- Entity documents can embed references to related entities in ``connected_entities`` arrays.  
+- Transaction documents store ``customer_id`` fields that link to entities.  
+- The ``entity_relationships`` collection stores explicit relationships with confidence scores, relationship types, and audit trails.  
+  
+This pattern enables efficient graph traversal with ``$graphLookup`` while keeping the schema flexible as new relationship types emerge. 
+
+Indexing Strategy for Performance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use Atlas Search indexes to support entity resolution and investigative workflows:
+  
+- Configure autocomplete on ``name.full`` with edge n‑grams (2–15 characters) for real‑time name suggestions.  
+- Configure string facets on ``entityType``, ``nationality``, ``residency``, and ``riskAssessment.overall.level`` to filter search results.  
+
+Use Atlas Vector Search indexes on embedding fields to enable semantic similarity 
+matching by configuring cosine similarity with 1536‑dimensional vectors for entity 
+and behavioral pattern matching. You can create separate embeddings for identifier 
+data and behavioral patterns to target specific use cases.  
+
+Use standard indexes for operational workloads:  
+  
+- Use single‑field indexes on ``entityId``, ``customer_id``, and ``timestamp`` for lookups and range queries.  
+- Use ``2dsphere`` indexes on location coordinates for radius‑based fraud rules.  
+- Use compound indexes on risk level and entity type for common investigative filters. 
+
+Example Document
+~~~~~~~~~~~~~~~~
+
+.. code-block:: json
+
+   {
+      "_id": ObjectId("674a83b654c7f1b869cb1c2"),
+      "customer_id": "CUST_67890",
+      "transaction_id": "TXN_54321",
+      "timestamp": ISODate("2024-11-15T14:22:36Z"),
+      "amount": 2500.75,
+      "currency": "USD",
+      "merchant": {
+         "name": "Global Electronics",
+         "category": "electronics",
+         "id": "MERCH_123"
+      },
+      "location": {
+         "city": "San Francisco",
+         "state": "California",
+         "country": "US",
+         "coordinates": {
+            "type": "Point",
+            "coordinates": [
+               -122.4194,
+               37.7749
+            ]
+         }
+      },
+      "device_info": {
+         "device_id": "device_abc123",
+         "type": "desktop",
+         "os": "macOS",
+         "browser": "Chrome",
+         "ip": "203.0.113.45"
+      },
+      "transaction_type": "purchase",
+      "payment_method": "credit_card",
+      "status": "completed",
+      "risk_assessment": {
+         "score": 78.5,
+         "level": "high",
+         "flags": [
+            "unusual_amount",
+            "unexpected_location",
+            "velocity_alert"
+         ],
+         "transaction_type": "suspicious",
+         "diagnostics": {
+            "customer_base_risk": 35.0,
+            "transaction_factors": {
+               "amount": 85.0,
+               "location": 90.0,
+               "device": 0,
+               "velocity": 75.0,
+               "pattern": 60.0
+            }
+         }
+      },
+      "vector_embedding": [
+         0.234,
+         -0.567,
+         0.890, ...
+      ]
+   }
+
+Build the Solution
+-------------------
+
+For detailed setup instructions, environment variables, and deployment
+options, see the README in the `GitHub repository
+<https://github.com/mongodb-industry-solutions/fsi-aml-fraud-detection>`__.
+The repository includes Docker configurations for containerized
+deployment and instructions for production deployment.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Prerequisites and Setup
+   
+      a. Install Python 3.10+, Node.js 18+, and `Poetry <https://python-poetry.org/docs/>`__ for dependency management. 
+   
+      #. Create a `MongoDB Atlas M10 cluster <https://www.mongodb.com/docs/atlas/getting-started/>`__ and configure network access. 
+    
+      #. Request AWS Bedrock access for LLM‑based embeddings and risk classification, or configure an alternative embedding provider. 
+    
+      #. Clone the ``fsi-aml-fraud-detection`` repository from `GitHub <https://github.com/mongodb-industry-solutions/fsi-aml-fraud-detection>`__.  
+   
+   .. step:: Configure Atlas Search Indexes  
+  
+      Create Atlas Search and Atlas Vector Search indexes on your collections. In the `Atlas Search tab <https://www.mongodb.com/docs/atlas/atlas-search/create-index/>`__:  
+        
+      a. Create an index named ``entity_resolution_search`` on the ``entities`` collection. 
+      
+      #. Configure ``autocomplete`` tokenization on ``name.full`` with edge n‑grams and 2–15 characters.  
+      
+      #. Configure ``string`` or ``stringFacet`` fields for ``entityType``, ``nationality``, ``residency``, and ``riskAssessment.overall.level``.  
+  
+      #. Create `vector search indexes <https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/#mongodb-vector-search-indexes>`__ named ``entity_vector_search_index`` and ``transaction_vector_index`` on the respective collections. Use 1536 dimensions with cosine similarity for `semantic similarity matching <https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-type/>`__.
+      
+      **Example Atlas Search Index Definition**
+   
+      .. code-block:: json
+      
+         {
+            "mappings": {
+               "dynamic": false,
+               "fields": {
+                  "name": {
+                     "type": "document",
+                     "fields": {
+                        "full": [
+                           {
+                              "type": "autocomplete",
+                              "analyzer": "lucene.standard",
+                              "tokenization": "edgeGram",
+                              "minGrams": 2,
+                              "maxGrams": 15,
+                              "foldDiacritics": true
+                           },
+                           {
+                              "type": "string"
+                           }
+                        ],
+                        "aliases": {
+                           "type": "string"
+                        }
+                     }
+                  },
+                  "entityType": {
+                     "type": "stringFacet"
+                  },
+                  "riskAssessment": {
+                     "type": "document",
+                     "fields": {
+                        "overall": {
+                           "type": "document",
+                           "fields": {
+                              "level": {
+                                 "type": "stringFacet"
+                              },
+                              "score": {
+                                 "type": "numberFacet"
+                              }
+                           }
+                        }
+                     }
+                  },
+                  "addresses": {
+                     "type": "document",
+                     "fields": {
+                        "full": {
+                           "type": "string"
+                        }
+                     }
+                  }
+               }
+            }
+         }
+   
+   
+   .. step:: Launch the Application
+   
+      a. Create ``env`` files with your `MongoDB connection string <https://www.mongodb.com/docs/manual/reference/connection-string/>`__ and configuration values. 
+      
+      #. Run the following commands to install dependencies:
+      
+         .. code-block::
+      
+            poetry install
+            npm install 
+      #. Start the services, then access the web interface at ``http://localhost:3000``.  
+  
+      #. Generate synthetic test data such as customer profiles, transactions, entity networks, and vector embeddings using Jupyter notebooks from the ``docs`` directory.
+
+
+Key Learnings
+--------------
+
+Six key capabilities differentiate MongoDB for financial crime detection:  
+  
+- **Eliminate schema migrations when threats evolve**: Add risk factors, behavioral metrics, or compliance flags to documents without ALTER TABLE operations or downtime.  
+- **Process transactions in real time with change streams**: Receive instant notifications when risk models or watchlists update,  and apply new rules to screening engines without batch delays or cache invalidation.  
+- **Find sophisticated fraud patterns with Vector Search**: Use semantic similarity across behavioral embeddings to detect transactions that resemble known fraud, even when they bypass rule‑based detection.  
+- **Discover hidden networks**: Traverse multi‑hop relationships between entities, trace money flows, and expose suspicious networks using native aggregation pipelines .  
+- **Combine fuzzy text and semantic search**: Merge Atlas Search and Atlas Vector Search results with weighted ranking using ``$rankFusion`` to surface the most relevant entity matches during onboarding and investigations.  
+- **Apply governed LLMs and embedding strategies to automate compliance**: Choose domain‑appropriate embedding models, separate numeric risk features into explainable rules, and enforce LLM guidelines (prompt templates, guardrails, and logging). Use these patterns to generate risk classifications, investigation summaries, and case reports, while storing all inputs and outputs in MongoDB for transparent, auditable AI. 
+
+
+

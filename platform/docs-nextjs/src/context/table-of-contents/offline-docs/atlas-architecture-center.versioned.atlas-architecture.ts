@@ -28,34 +28,22 @@ export const toc: L1TocItem[] = [
                 contentSite: 'atlas-architecture',
                 collapsible: true,
                 url: '/docs/atlas/architecture/:version/deployment-paradigms',
-                versions: {
-                  excludes: ['v20250604', 'v20250317', 'v20250228'],
-                },
                 items: [
                   {
                     label: 'Single-Region',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/deployment-paradigms/single-region',
-                    versions: {
-                      excludes: ['v20250604', 'v20250317', 'v20250228'],
-                    },
                   },
                   {
                     label: 'Multi-Region',
                     contentSite: 'atlas-architecture',
                     collapsible: true,
                     url: '/docs/atlas/architecture/:version/deployment-paradigms/multi-region',
-                    versions: {
-                      excludes: ['v20250604', 'v20250317', 'v20250228'],
-                    },
                     items: [
                       {
                         label: 'Global Data',
                         contentSite: 'atlas-architecture',
                         url: '/docs/atlas/architecture/:version/deployment-paradigms/global-data',
-                        versions: {
-                          excludes: ['v20250604', 'v20250317', 'v20250228'],
-                        },
                       },
                     ],
                   },
@@ -63,17 +51,11 @@ export const toc: L1TocItem[] = [
                     label: 'Multi-Cloud',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/deployment-paradigms/multi-cloud',
-                    versions: {
-                      excludes: ['v20250604', 'v20250317', 'v20250228'],
-                    },
                   },
                   {
                     label: 'Hybrid',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/deployment-paradigms/hybrid',
-                    versions: {
-                      excludes: ['v20250604', 'v20250317', 'v20250228'],
-                    },
                   },
                 ],
               },
@@ -86,17 +68,11 @@ export const toc: L1TocItem[] = [
                 label: 'Migration',
                 contentSite: 'atlas-architecture',
                 url: '/docs/atlas/architecture/:version/migration',
-                versions: {
-                  excludes: ['v20250604', 'v20250317', 'v20250228'],
-                },
               },
               {
                 label: 'Operational Readiness Checklist',
                 contentSite: 'atlas-architecture',
                 url: '/docs/atlas/architecture/:version/operational-readiness-checklist',
-                versions: {
-                  excludes: ['v20250604', 'v20250317', 'v20250228'],
-                },
               },
             ],
           },
@@ -120,9 +96,6 @@ export const toc: L1TocItem[] = [
                 label: 'Development and Testing',
                 contentSite: 'atlas-architecture',
                 url: '/docs/atlas/architecture/:version/dev-test',
-                versions: {
-                  excludes: ['v20250604', 'v20250317', 'v20250228'],
-                },
               },
             ],
           },
@@ -138,45 +111,25 @@ export const toc: L1TocItem[] = [
                 url: '/docs/atlas/architecture/:version/network-security',
               },
               {
-                label: 'Authorization and Authentication',
-                contentSite: 'atlas-architecture',
-                url: '/docs/atlas/architecture/:version/auth',
-                versions: {
-                  includes: ['v20250604', 'v20250317', 'v20250228'],
-                },
-              },
-              {
                 label: 'Authorization and Authentication ',
                 contentSite: 'atlas-architecture',
                 collapsible: true,
                 url: '/docs/atlas/architecture/:version/auth',
-                versions: {
-                  excludes: ['v20250604', 'v20250317', 'v20250228'],
-                },
                 items: [
                   {
                     label: 'Authentication',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/auth/authentication',
-                    versions: {
-                      excludes: ['v20250604', 'v20250317', 'v20250228'],
-                    },
                   },
                   {
                     label: 'Authorization',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/auth/authorization',
-                    versions: {
-                      excludes: ['v20250604', 'v20250317', 'v20250228'],
-                    },
                   },
                   {
                     label: 'Auth Examples',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/auth/auth-examples',
-                    versions: {
-                      excludes: ['v20250604', 'v20250317', 'v20250228'],
-                    },
                   },
                 ],
               },
@@ -189,85 +142,50 @@ export const toc: L1TocItem[] = [
                 label: 'Compliance',
                 contentSite: 'atlas-architecture',
                 url: '/docs/atlas/architecture/:version/compliance',
-                versions: {
-                  includes: ['v20250604', 'v20250317', 'v20250228'],
-                },
               },
               {
                 label: 'Compliance ',
                 contentSite: 'atlas-architecture',
                 collapsible: true,
                 url: '/docs/atlas/architecture/:version/compliance',
-                versions: {
-                  excludes: ['v20250604', 'v20250317', 'v20250228'],
-                },
                 items: [
                   {
                     label: 'DORA',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/compliance/dora',
-                    versions: {
-                      excludes: ['v20250604', 'v20250317', 'v20250228'],
-                    },
                   },
                   {
                     label: 'GDPR',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/compliance/gdpr',
-                    versions: {
-                      excludes: ['v20250829', 'v20250604', 'v20250317', 'v20250228'],
-                    },
                   },
                   {
                     label: 'HIPAA',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/compliance/hipaa',
-                    versions: {
-                      excludes: ['v20251125', 'v20250829', 'v20250604', 'v20250317', 'v20250228'],
-                    },
                   },
                   {
                     label: 'PCI DSS',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/compliance/pcidss',
-                    versions: {
-                      excludes: ['v20260204', 'v20251125', 'v20250829', 'v20250604', 'v20250317', 'v20250228'],
-                    },
                   },
                 ],
-              },
-              {
-                label: 'Auditing and Logging',
-                contentSite: 'atlas-architecture',
-                url: '/docs/atlas/architecture/:version/auditing-logging',
-                versions: {
-                  includes: ['v20250604', 'v20250317', 'v20250228'],
-                },
               },
               {
                 label: 'Auditing and Logging ',
                 contentSite: 'atlas-architecture',
                 collapsible: true,
                 url: '/docs/atlas/architecture/:version/auditing-logging',
-                versions: {
-                  excludes: ['v20250604', 'v20250317', 'v20250228'],
-                },
                 items: [
                   {
                     label: 'Auditing',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/auditing',
-                    versions: {
-                      excludes: ['v20250604', 'v20250317', 'v20250228'],
-                    },
                   },
                   {
                     label: 'Logging',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/logging',
-                    versions: {
-                      excludes: ['v20250604', 'v20250317', 'v20250228'],
-                    },
                   },
                 ],
               },
@@ -288,9 +206,6 @@ export const toc: L1TocItem[] = [
                 label: 'Resiliency',
                 contentSite: 'atlas-architecture',
                 url: '/docs/atlas/architecture/:version/resiliency',
-                versions: {
-                  includes: ['v20250604', 'v20250317', 'v20250228'],
-                },
               },
               {
                 label: 'Backups',
@@ -319,9 +234,6 @@ export const toc: L1TocItem[] = [
                 label: 'Latency Reduction',
                 contentSite: 'atlas-architecture',
                 url: '/docs/atlas/architecture/:version/latency-strategies',
-                versions: {
-                  excludes: ['v20250604', 'v20250317', 'v20250228'],
-                },
               },
             ],
           },
