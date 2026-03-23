@@ -6,7 +6,7 @@ using MongoDB.EntityFrameworkCore.Extensions;
 // start-create-instance
 // Replace the placeholder with your connection URI
 var client = new MongoClient("<Your connection URI>");
-var db = PlanetDbContext.Create(client.GetDatabase("sample_planets"));
+var db = PlanetDbContext.Create(client.GetDatabase("sample_guides"));
 // end-create-instance
 
 void FindOne()
@@ -27,6 +27,19 @@ void FindMultiple()
         Console.WriteLine(p.name);
     }
     // end-find-many
+}
+
+void FindByShadowProperty()
+{
+    // start-find-shadow-property
+    var planets = db.Planets.Where(
+        p => EF.Property<string[]>(p, "mainAtmosphere").Length > 0);
+
+    foreach (var p in planets)
+    {
+        Console.WriteLine(p.name);
+    }
+    // end-find-shadow-property
 }
 
 void InsertOne()
@@ -162,6 +175,42 @@ void SkipExample()
     // end-skip
 }
 
+void CheckFieldExists()
+{
+    // start-mql-exists
+    var planets = db.Planets.Where(p => Mql.Exists(p.hasRings));
+
+    foreach (var p in planets)
+    {
+        Console.WriteLine(p.name);
+    }
+    // end-mql-exists
+}
+
+void CheckFieldIsMissing()
+{
+    // start-mql-is-missing
+    var planets = db.Planets.Where(p => Mql.IsMissing(p.hasRings));
+
+    foreach (var p in planets)
+    {
+        Console.WriteLine(p.name);
+    }
+    // end-mql-is-missing
+}
+
+void CheckFieldIsNullOrMissing()
+{
+    // start-mql-is-null-or-missing
+    var planets = db.Planets.Where(p => Mql.IsNullOrMissing(p.hasRings));
+
+    foreach (var p in planets)
+    {
+        Console.WriteLine(p.name);
+    }
+    // end-mql-is-null-or-missing
+}
+
 // start-db-context
 public class PlanetDbContext : DbContext
 {
@@ -181,9 +230,11 @@ public class PlanetDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
         modelBuilder.Entity<Planet>().ToCollection("planets");
+        modelBuilder.Entity<Planet>().Property<string[]>("mainAtmosphere");
     }
 }
 // end-db-context
+// start-planet
 public class Planet
 {
     public ObjectId _id { get; set; }
@@ -191,3 +242,4 @@ public class Planet
     public int orderFromSun { get; set; }
     public bool hasRings { get; set; }
 }
+// end-planet
