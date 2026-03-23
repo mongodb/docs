@@ -45,6 +45,7 @@ Syntax
          { 
             input: <array>, 
             as: <string>,  
+            arrayIndexAs: <string>,
             cond: <expression>,
             limit: <number expression> 
          } 
@@ -73,6 +74,15 @@ Syntax
        individual element of the ``input`` array. If no name is
        specified, the variable name defaults to ``this``.
    
+   * - ``arrayIndexAs``
+
+     - .. include:: /includes/arrayIndexAs-field.rst
+
+       For examples, see :ref:`filter-index-example` and
+       :ref:`filter-IDX-example`.
+
+       .. versionadded:: 8.3
+
    * - ``cond``
 
      - An :ref:`expression <aggregation-expressions>` that resolves
@@ -411,3 +421,69 @@ The following aggregation uses :expression:`$regexMatch` to filter for
             items: [ { item_id: 4, quantity: 1, price: 23, name: 'paper' } ]
          }
       ]
+
+.. _filter-index-example:
+
+Access the Index of Each Item in an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/people-collection.rst
+
+The following example uses ``arrayIndexAs``. The ``myIndex`` variable
+has the index of each hobby in the ``hobbies`` array. The example
+returns documents with these fields:
+
+- Person name.
+- ``secondaryHobbies`` array that includes every other hobby.
+
+.. code-block:: javascript
+   :emphasize-lines: 9-10
+
+   db.people.aggregate( [
+      {
+         $project: {
+            _id: 0,
+            name: 1,
+            secondaryHobbies: {
+               $filter: {
+                  input: "$hobbies",
+                  arrayIndexAs: "myIndex",
+                  cond: { $eq: [ { $mod: [ "$$myIndex", 2 ] }, 0 ] }
+               }
+            }
+         }
+      }
+   ] )
+
+Output:
+
+.. include:: /includes/filter-index-example-output.rst
+
+.. _filter-IDX-example:
+
+Use ``$$IDX`` to Access the Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/IDX-use.rst
+
+The following example returns the same documents as the example in the
+previous section :ref:`filter-index-example`, but uses ``$$IDX`` instead
+of ``arrayIndexAs``:
+
+.. code-block:: javascript
+   :emphasize-lines: 9
+
+   db.people.aggregate( [
+      {
+         $project: {
+            _id: 0,
+            name: 1,
+            secondaryHobbies: {
+               $filter: {
+                  input: "$hobbies",
+                  cond: { $eq: [ { $mod: [ "$$IDX", 2 ] }, 0 ] }
+               }
+            }
+         }
+      }
+   ] )

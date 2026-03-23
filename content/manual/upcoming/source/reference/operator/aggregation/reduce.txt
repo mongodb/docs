@@ -29,7 +29,10 @@ Definition
           $reduce: {
               input: <array>,
               initialValue: <expression>,
-              in: <expression>
+              in: <expression>,
+              as: <string>,
+              valueAs: <string>,
+              arrayIndexAs: <string>
           }
       }
 
@@ -39,7 +42,7 @@ Definition
       :widths: 20 20 80
    
       * - Field
-   
+
         - Type
    
         - Description
@@ -82,9 +85,36 @@ Definition
           - ``this`` is the :ref:`variable <aggregation-variables>`
             that refers to the element being processed.
           
-          
+      * - ``as``
    
+        - string
 
+        - Optional. A name for the variable that represents each
+          individual element of the ``input`` array. If omitted,
+          the variable name defaults to ``this``.
+
+          .. versionadded:: 8.3
+
+      * - ``valueAs``
+   
+        - string
+
+        - Optional. A name for the variable that represents the
+          cumulative value of the expression. If omitted, the variable
+          name defaults to ``value``.
+
+          .. versionadded:: 8.3
+
+      * - ``arrayIndexAs``
+
+        - string
+
+        - .. include:: /includes/arrayIndexAs-field.rst
+
+          For examples, see :ref:`reduce-index-example` and
+          :ref:`reduce-IDX-example`.
+
+          .. versionadded:: 8.3
 
    If ``input`` resolves to an empty array, :expression:`$reduce` returns
    ``initialValue``.
@@ -412,3 +442,93 @@ The operation returns the following:
    { _id : 2, results : { collapsed : [ 39, 32, 43, 7, 62, 17, 80, 64, 17, 88, 11, 73 ], firstValues : [ 39, 62, 17 ] } }
    { _id : 3, results : { collapsed : [ 42, 26, 59, 17, 72, 19, 35 ], firstValues : [ 42, 26, 17, 72 ] } }
    { _id : 4, results : null }
+
+.. _reduce-index-example:
+
+Access the Index of Each Item in an Array
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/people-collection.rst
+
+The following example uses ``valueAs``, ``as``, and ``arrayIndexAs``.
+The ``myIndex`` variable has the index of each hobby in the ``hobbies``
+array. The example returns documents with these fields:
+
+- Person name.
+- ``text`` field, which includes the hobby name and the position of each
+  hobby in the list.
+
+.. code-block:: javascript
+   :emphasize-lines: 10-12, 17
+
+   db.people.aggregate( [
+      {
+         $project: {
+            _id: 0,
+            name: 1,
+            text: {
+               $reduce: {
+                  input: "$hobbies",
+                  initialValue: "My hobbies include:",
+                  valueAs: "accumulatedText",
+                  as: "hobby",
+                  arrayIndexAs: "myIndex",
+                  in: {
+                     $concat: [
+                        "$$accumulatedText",
+                        " ", 
+                        { $toString: { $add: [ "$$myIndex", 1 ] } }, 
+                        ") ", 
+                        "$$hobby" 
+                     ]
+                  }
+               }
+            }
+         }
+      }
+   ] )
+
+Output:
+
+.. include:: /includes/reduce-index-example-output.rst
+
+.. _reduce-IDX-example:
+
+Use ``$$IDX`` to Access the Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/IDX-use.rst
+
+The following example returns the same documents as the example in the
+previous section :ref:`reduce-index-example`, but uses ``$$IDX`` instead
+of ``arrayIndexAs``:
+
+.. code-block:: javascript
+   :emphasize-lines: 16
+   
+   db.people.aggregate( [
+      {
+         $project: {
+            _id: 0,
+            name: 1,
+            text: {
+               $reduce: {
+                  input: "$hobbies",
+                  initialValue: "My hobbies include:",
+                  valueAs: "accumulatedText",
+                  as: "hobby",
+                  in: {
+                     $concat: [
+                        "$$accumulatedText",
+                        " ", 
+                        { $toString: { $add: [ "$$IDX", 1 ] } }, 
+                        ") ", 
+                        "$$hobby" 
+                     ]
+                  }
+               }
+            }
+         }
+      }
+   ] )
+   
