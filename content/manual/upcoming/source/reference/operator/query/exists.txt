@@ -64,80 +64,61 @@ Query Data on Atlas by Using {+fts+}
 Examples
 --------
 
+.. include:: /includes/sample-data-usage.rst
+
 Exists and Not Equal To
 ~~~~~~~~~~~~~~~~~~~~~~~
 
 Consider the following example:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/exists/exists-and-not-equal.snippet.exists-and-not-equal.js
+   :language: javascript
+   :category: usage example
 
-   db.inventory.find( { qty: { $exists: true, $nin: [ 5, 15 ] } } )
-
-This query returns documents from the ``inventory`` collection where the
-``qty`` field exists and is not equal to ``5`` or ``15``.
+This query selects 5 documents in the ``movies`` collection
+where the ``rated`` field exists *and* its value does not equal ``"R"`` or
+``"PG-13"``.
 
 Null Values
 ~~~~~~~~~~~
 
-The following examples use a collection named ``spices`` with the
-following documents:
-
-.. code-block:: javascript
-
-   db.spices.insertMany( [
-      { saffron: 5, cinnamon: 5, mustard: null },
-      { saffron: 3, cinnamon: null, mustard: 8 },
-      { saffron: null, cinnamon: 3, mustard: 9 },
-      { saffron: 1, cinnamon: 2, mustard: 3 },
-      { saffron: 2, mustard: 5 },
-      { saffron: 3, cinnamon: 2 },
-      { saffron: 4 },
-      { cinnamon: 2, mustard: 4 },
-      { cinnamon: 2 },
-      { mustard: 6 }
-   ] )
+The ``movies`` collection in the ``sample_mflix`` database contains
+documents where some fields are present and others are missing. For
+example, the ``rated`` field exists in 11,455 documents and is absent
+from the remaining 9,894 documents.
 
 ``$exists: true``
 ^^^^^^^^^^^^^^^^^
 
-The following query specifies the query predicate ``saffron: { $exists: true }``:
+The following query specifies the query predicate ``rated: { $exists: true }``:
 
-.. code-block:: javascript
 
-   db.spices.find( { saffron: { $exists: true } } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/exists/null-values.snippet.exists-with-null.js
+   :language: javascript
+   :category: usage example
 
-The returned documents contain the field ``saffron``,
-including the document whose ``saffron`` field contains a null value:
+The results consist of three documents that contain the field ``rated``:
 
-.. code-block:: javascript
-   :copyable: false
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/exists/null-values-output.sh
+   :language: javascript
+   :category: example return object
 
-   { saffron: 5, cinnamon: 5, mustard: null }
-   { saffron: 3, cinnamon: null, mustard: 8 }
-   { saffron: null, cinnamon: 3, mustard: 9 }
-   { saffron: 1, cinnamon: 2, mustard: 3 }
-   { saffron: 2, mustard: 5 }
-   { saffron: 3, cinnamon: 2 }
-   { saffron: 4 }
-   
 
 ``$exists: false``
 ^^^^^^^^^^^^^^^^^^
 
-The following query specifies the query predicate ``cinnamon: { $exists: false }``:
+The following query specifies the query predicate ``rated: { $exists: false }``:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/exists/false.snippet.exists-false.js
+   :language: javascript
+   :category: usage example
 
-   db.spices.find( { cinnamon: { $exists: false } } )
+The results consist of three documents that do not contain the field
+``rated``:
 
-The returned documents do not contain the field ``cinnamon``:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { saffron: 2, mustard: 5 }
-   { saffron: 4 }
-   { mustard: 6 }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/exists/false-output.sh
+   :language: javascript
+   :category: example return object
 
 Use a Sparse Index to Improve ``$exists`` Performance 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -167,44 +148,28 @@ examine all documents in a collection. To improve performance, create
 a :ref:`sparse index <index-type-sparse>` on the ``field`` as shown in 
 the following scenario:
 
-#. Create a ``stockSales`` collection:
-
-   .. code-block:: javascript
-
-      db.stockSales.insertMany( [
-         { _id: 0, symbol: "MDB", auditDate: new Date( "2021-05-18T16:12:23Z" ) },
-         { _id: 1, symbol: "MDB", auditDate: new Date( "2021-04-21T11:34:45Z" ) },
-         { _id: 2, symbol: "MSFT", auditDate: new Date( "2021-02-24T15:11:32Z" ) },
-         { _id: 3, symbol: "MSFT", auditDate: null },
-         { _id: 4, symbol: "MSFT", auditDate: new Date( "2021-07-13T18:32:54Z" ) },
-         { _id: 5, symbol: "AAPL" }
-      ] )
-
-   The document with an ``_id`` of:
-
-   - ``3`` has a null ``auditDate`` value.
-   - ``5`` is missing the ``auditDate`` value.
+#. The ``movies`` collection contains documents where the
+   ``metacritic`` field is present in some documents and absent from
+   others. Of the 21,349 documents, 6,964 have the ``metacritic``
+   field and 14,385 do not.
 
 #. Create a :ref:`sparse index <index-type-sparse>` on the
-   ``auditDate`` field:
+   ``metacritic`` field:
 
-   .. code-block:: javascript
+   .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/exists/create-index.snippet.create-sparse-index.js
+      :language: javascript
+      :category: usage example
 
-      db.getCollection( "stockSales" ).createIndex( 
-         { auditDate: 1 },
-         { name: "auditDateSparseIndex", sparse: true }
-      )
-
-#. The following example counts the documents where the ``auditDate``
+#. The following example counts the documents where the ``metacritic``
    field has a value (including null) and uses the :ref:`sparse index
    <index-type-sparse>`:
 
-   .. code-block:: javascript
+   .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/exists/metacritic.snippet.exists-true.js
+      :language: javascript
+      :category: usage example
 
-      db.stockSales.countDocuments( { auditDate: { $exists: true } } )
-
-   The example returns 5. The document that is missing the ``auditDate``
-   value is not counted.
+   The example returns 6964. The operation does not count the documents that are
+   missing the ``metacritic`` field.
 
 .. tip::
 
@@ -215,14 +180,15 @@ the following scenario:
    - Do not need a :ref:`sparse index <index-type-sparse>` on the
      ``field``.
    
-   For example, using the ``stockSales`` collection:
+   For example, using the ``movies`` collection:
 
-   .. code-block:: javascript
+   .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/exists/metracritic-2.snippet.ne-null.js
+      :language: javascript
+      :category: usage example
 
-      db.stockSales.countDocuments( { auditDate: { $ne: null } } )
-
-   The example returns 4. Documents that are missing the ``auditDate``
-   value or have a null ``auditDate`` value are not counted.
+   The example returns 6964. Documents that are missing the
+   ``metacritic`` value or have a null ``metacritic`` value are not
+   counted.
 
 Learn More
 ----------
