@@ -8,18 +8,28 @@ not compatible.
    :stub-columns: 1
 
    * - Laravel MongoDB Version
+     - Laravel 13.x
      - Laravel 12.x
      - Laravel 11.x
      - Laravel 10.x
      - Laravel 9.x
 
+   * - 5.7
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - 
+
    * - 5.2 to 5.6
+     -
      - ✓
      - ✓
      - ✓
      -
 
    * - 4.2 to 5.1
+     -
      -
      - ✓
      - ✓
@@ -28,10 +38,12 @@ not compatible.
    * - 4.1
      -
      -
+     -
      - ✓
      -
 
    * - 4.0
+     -
      -
      -
      - ✓
