@@ -324,7 +324,6 @@ const tocData: TocItem[] = [
             label: 'Custom Authentication Provider',
             contentSite: 'kafka-connector',
             url: '/docs/kafka-connector/:version/security-and-authentication/custom-auth',
-            versions: { excludes: ['v1.12'] },
           },
         ],
       },
