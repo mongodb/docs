@@ -18,55 +18,99 @@ export const toc: L1TocItem[] = [
             url: '/docs/mongoid/:version',
           },
           {
-            label: 'Quick Start - Ruby on Rails',
+            label: 'Get Started: Ruby on Rails',
             contentSite: 'mongoid',
             url: '/docs/mongoid/:version/quick-start-rails',
           },
           {
-            label: 'Quick Start - Sinatra',
+            label: 'Get Started: Sinatra',
             contentSite: 'mongoid',
             url: '/docs/mongoid/:version/quick-start-sinatra',
           },
           {
-            label: 'Configuration',
+            label: 'Connect',
             contentSite: 'mongoid',
             collapsible: true,
-            url: '/docs/mongoid/:version/configuration',
+            url: '/docs/mongoid/:version/connect',
             items: [
               {
-                label: 'Application Configuration',
+                label: 'Forking Servers',
                 contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/configuration/app-config',
+                url: '/docs/mongoid/:version/connect/forking-server-config',
+              },
+            ],
+          },
+          {
+            label: 'Databases & Collections',
+            contentSite: 'mongoid',
+            collapsible: true,
+            items: [
+              {
+                label: 'Collection Configuration',
+                contentSite: 'mongoid',
+                url: '/docs/mongoid/:version/databases-collections/collection-config',
               },
               {
-                label: 'Persistence Targets',
+                label: 'Persistence Configuration',
                 contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/configuration/persistence-config',
+                url: '/docs/mongoid/:version/databases-collections/persistence-config',
               },
               {
                 label: 'Sharding',
                 contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/configuration/sharding',
+                url: '/docs/mongoid/:version/databases-collections/sharding',
+              },
+            ],
+          },
+          {
+            label: 'Model Data',
+            contentSite: 'mongoid',
+            collapsible: true,
+            items: [
+              {
+                label: 'Callbacks',
+                contentSite: 'mongoid',
+                url: '/docs/mongoid/:version/data-modeling/callbacks',
               },
               {
-                label: 'Logging',
+                label: 'Data Associations',
                 contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/configuration/logging-config',
+                url: '/docs/mongoid/:version/data-modeling/associations',
               },
               {
-                label: 'Query Cache Middleware',
+                label: 'Documents',
                 contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/configuration/query-cache-config',
+                url: '/docs/mongoid/:version/data-modeling/documents',
               },
               {
-                label: 'Forking Servers',
+                label: 'Document Validation',
                 contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/configuration/forking-server-config',
+                url: '/docs/mongoid/:version/data-modeling/validation',
               },
               {
-                label: 'Collection Configuration',
+                label: 'Field Behaviors',
                 contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/configuration/collection-config',
+                url: '/docs/mongoid/:version/data-modeling/field-behaviors',
+              },
+              {
+                label: 'Field Types',
+                contentSite: 'mongoid',
+                url: '/docs/mongoid/:version/data-modeling/field-types',
+              },
+              {
+                label: 'Indexes',
+                contentSite: 'mongoid',
+                url: '/docs/mongoid/:version/data-modeling/indexes',
+              },
+              {
+                label: 'Inheritance',
+                contentSite: 'mongoid',
+                url: '/docs/mongoid/:version/data-modeling/inheritance',
+              },
+              {
+                label: 'Nested Attributes',
+                contentSite: 'mongoid',
+                url: '/docs/mongoid/:version/data-modeling/nested-attributes',
               },
             ],
           },
@@ -74,12 +118,26 @@ export const toc: L1TocItem[] = [
             label: 'Interact with Data',
             contentSite: 'mongoid',
             collapsible: true,
-            url: '/docs/mongoid/:version/interact-data',
             items: [
               {
-                label: 'Perform Data Operations',
+                label: 'Aggregation',
+                contentSite: 'mongoid',
+                url: '/docs/mongoid/:version/interact-data/aggregation',
+              },
+              {
+                label: 'CRUD Operations',
                 contentSite: 'mongoid',
                 url: '/docs/mongoid/:version/interact-data/crud',
+              },
+              {
+                label: 'Modify Query Results',
+                contentSite: 'mongoid',
+                url: '/docs/mongoid/:version/interact-data/modify-results',
+              },
+              {
+                label: 'Query Text',
+                contentSite: 'mongoid',
+                url: '/docs/mongoid/:version/interact-data/text-search',
               },
               {
                 label: 'Specify a Query',
@@ -110,29 +168,9 @@ export const toc: L1TocItem[] = [
                 ],
               },
               {
-                label: 'Modify Query Results',
-                contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/interact-data/modify-results',
-              },
-              {
-                label: 'Aggregation',
-                contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/interact-data/aggregation',
-              },
-              {
-                label: 'Query Text',
-                contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/interact-data/text-search',
-              },
-              {
                 label: 'Transactions and Sessions',
                 contentSite: 'mongoid',
                 url: '/docs/mongoid/:version/interact-data/transaction',
-              },
-              {
-                label: 'Nested Attributes',
-                contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/interact-data/nested-attributes',
               },
               {
                 label: 'Tutorial: MongoDB Search',
@@ -142,86 +180,34 @@ export const toc: L1TocItem[] = [
             ],
           },
           {
-            label: 'Model Your Data',
+            label: 'Logging',
             contentSite: 'mongoid',
-            collapsible: true,
-            url: '/docs/mongoid/:version/data-modeling',
-            items: [
-              {
-                label: 'Documents',
-                contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/data-modeling/documents',
-              },
-              {
-                label: 'Field Types',
-                contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/data-modeling/field-types',
-              },
-              {
-                label: 'Field Behaviors',
-                contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/data-modeling/field-behaviors',
-              },
-              {
-                label: 'Inheritance',
-                contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/data-modeling/inheritance',
-              },
-              {
-                label: 'Document Validation',
-                contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/data-modeling/validation',
-              },
-              {
-                label: 'Callbacks',
-                contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/data-modeling/callbacks',
-              },
-              {
-                label: 'Data Associations',
-                contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/data-modeling/associations',
-              },
-              {
-                label: 'Indexes',
-                contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/data-modeling/indexes',
-              },
-            ],
+            url: '/docs/mongoid/:version/logging-config',
           },
           {
-            label: 'Secure Your Data',
+            label: 'In-Use Encryption',
             contentSite: 'mongoid',
-            collapsible: true,
-            url: '/docs/mongoid/:version/security',
-            items: [
-              {
-                label: 'In-Use Encryption',
-                contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/security/encryption',
-              },
-            ],
+            url: '/docs/mongoid/:version/encryption',
           },
           {
-            label: 'Integrations & Tools',
+            label: 'Third-Party Integrations',
             contentSite: 'mongoid',
             collapsible: true,
-            url: '/docs/mongoid/:version/integrations-tools',
             items: [
               {
-                label: 'Add Mongoid to an Existing Application',
+                label: 'External Tools',
+                contentSite: 'mongoid',
+                url: '/docs/mongoid/:version/integrations-tools/external-resources',
+              },
+              {
+                label: 'Mongoid for Existing Apps',
                 contentSite: 'mongoid',
                 url: '/docs/mongoid/:version/integrations-tools/add-existing',
               },
               {
-                label: 'Rails Integration',
+                label: 'Rails Configuration Options',
                 contentSite: 'mongoid',
                 url: '/docs/mongoid/:version/integrations-tools/rails-integration',
-              },
-              {
-                label: 'External Resources',
-                contentSite: 'mongoid',
-                url: '/docs/mongoid/:version/integrations-tools/external-resources',
               },
             ],
           },
@@ -229,7 +215,6 @@ export const toc: L1TocItem[] = [
             label: 'Reference',
             contentSite: 'mongoid',
             collapsible: true,
-            url: '/docs/mongoid/:version/reference',
             items: [
               {
                 label: 'Release Notes',
@@ -249,7 +234,7 @@ export const toc: L1TocItem[] = [
             ],
           },
           {
-            label: 'Compatibility',
+            label: 'Version Compatibility',
             contentSite: 'drivers',
             url: '/docs/drivers/compatibility/?driver-language=ruby&ruby-driver-framework=mongoid',
           },
@@ -257,15 +242,14 @@ export const toc: L1TocItem[] = [
             label: 'API Documentation',
             contentSite: 'mongoid',
             collapsible: true,
-            url: '/docs/mongoid/:version/api-docs',
             items: [
               {
-                label: ' Mongoid',
+                label: 'Mongoid',
                 isExternal: true,
                 url: 'https://www.mongodb.com/docs/mongoid/current/api',
               },
               {
-                label: ' Ruby Driver',
+                label: 'Ruby Driver',
                 isExternal: true,
                 url: 'https://www.mongodb.com/docs/ruby-driver/current/api',
               },

@@ -275,6 +275,11 @@ export const toc: L1TocItem[] = [
             ],
           },
           {
+            label: 'Migration Benchmarks',
+            contentSite: 'docs-relational-migrator',
+            url: '/docs/relational-migrator/benchmarks',
+          },
+          {
             label: 'Data Modeling',
             contentSite: 'docs-relational-migrator',
             collapsible: true,
