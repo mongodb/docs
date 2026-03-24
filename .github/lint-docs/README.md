@@ -2,6 +2,25 @@
 
 Automated linters for MongoDB documentation that check SEO compliance, broken links, and redirect issues.
 
+## First-Time Setup
+
+Clone the repo and run the setup script:
+
+```bash
+git clone git@github.com:10gen/docs-mongodb-internal.git
+cd docs-mongodb-internal
+./setup-docs.sh
+```
+
+This installs Node.js, pnpm, lychee, and all linter dependencies. Re-run anytime to update.
+
+> **Already cloned?** Just run `./setup-docs.sh` from the repo root.  
+> **Prefer HTTPS clone?** `DOCS_SETUP_HTTPS=1 ./setup-docs.sh`  
+> **`curl | bash` won't work** — this is a private repo. Clone first, or pass a GitHub token: `curl -fsSL -H "Authorization: Bearer <TOKEN>" "https://raw.githubusercontent.com/10gen/docs-mongodb-internal/main/setup-docs.sh" | bash`  
+> **`pnpm-lock.yaml`** is committed for reproducible installs. npm users can ignore it.
+
+---
+
 ## How It Works
 
 | Linter | Trigger | Blocking? |
@@ -62,12 +81,14 @@ npx tsx .github/lint-docs/redirect-lint-cli.ts content/*/netlify.toml
 
 ### Wrapper Script
 
-For convenience, use the wrapper script from anywhere in the repo:
+For convenience, use the wrapper script from anywhere:
 
 ```bash
 ./lint-docs.sh seo content/path/to/file.txt
 ./lint-docs.sh 404 content/path/to/file.txt
-./lint-docs.sh all content/path/to/file.txt   # Run both
+./lint-docs.sh redirects content/atlas/netlify.toml
+./lint-docs.sh all content/path/to/file.txt   # Run SEO + 404
+./lint-docs.sh help                           # Show all commands
 ```
 
 ---
@@ -209,15 +230,18 @@ Some sites block automated checkers or are slow. We've excluded common culprits 
 ## Files
 
 ```
-.github/lint-docs/
-├── README.md               # This file
-├── seo-lint-cli.ts         # SEO linter CLI
-├── seo-lint-rules.ts       # SEO linter rules (pure functions)
-├── 404-lint-cli.ts         # 404 linter CLI (wraps lychee)
-├── redirect-lint-cli.ts    # Redirect linter CLI
-├── redirect-lint-rules.ts  # Redirect linter rules (cycle detection)
-├── package.json            # Dependencies
-└── tsconfig.json           # TypeScript config
+docs-mongodb-internal/
+├── lint-docs.sh                # Wrapper script (seo/404/redirects)
+├── setup-docs.sh               # One-time setup script
+└── .github/lint-docs/
+    ├── README.md               # This file
+    ├── seo-lint-cli.ts         # SEO linter CLI
+    ├── seo-lint-rules.ts       # SEO linter rules (pure functions)
+    ├── 404-lint-cli.ts         # 404 linter CLI (wraps lychee)
+    ├── redirect-lint-cli.ts    # Redirect linter CLI
+    ├── redirect-lint-rules.ts  # Redirect linter rules (cycle detection)
+    ├── package.json            # Dependencies
+    └── tsconfig.json           # TypeScript config
 ```
 
 ---
