@@ -8,7 +8,7 @@ namespace QueryableEncryption;
 
 public static class QueryableEncryptionTutorial
 {
-    public static async void RunExample()
+    public static async Task RunExample()
     {
         var camelCaseConvention = new ConventionPack { new CamelCaseElementNameConvention() };
         ConventionRegistry.Register("CamelCase", camelCaseConvention, type => true);
@@ -25,6 +25,18 @@ public static class QueryableEncryptionTutorial
         var appSettings = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
         var uri = appSettings["MongoDbUri"];
         // end-setup-application-variables
+
+        // Validate configuration
+        if (string.IsNullOrEmpty(uri))
+        {
+            throw new InvalidOperationException("MongoDbUri is not set in appsettings.json");
+        }
+
+        var validKmsProviders = new[] { "aws", "gcp", "azure", "kmip", "local" };
+        if (!validKmsProviders.Contains(kmsProviderName))
+        {
+            throw new InvalidOperationException($"Invalid KMS provider name '{kmsProviderName}'. Must be one of: aws, gcp, azure, kmip, or local.");
+        }
 
         var qeHelpers = new QueryableEncryptionHelpers(appSettings);
         var kmsProviderCredentials = qeHelpers.GetKmsProviderCredentials(kmsProviderName,
@@ -118,14 +130,14 @@ public static class QueryableEncryptionTutorial
         var encryptedCollection = encryptedClient.GetDatabase(encryptedDatabaseName).
             GetCollection<Patient>(encryptedCollectionName);
 
-        encryptedCollection.InsertOne(patient);
+        await encryptedCollection.InsertOneAsync(patient);
         // end-insert-document
 
         // start-find-document
         var ssnFilter = Builders<Patient>.Filter.Eq("patientRecord.ssn", patient.PatientRecord.Ssn);
-        var findResult = await encryptedCollection.Find(ssnFilter).ToCursorAsync();
+        var findResult = await encryptedCollection.Find(ssnFilter).FirstOrDefaultAsync();
 
-        Console.WriteLine(findResult.FirstOrDefault().ToJson());
+        Console.WriteLine(findResult.ToJson());
         // end-find-document
     }
 }
