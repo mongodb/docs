@@ -115,10 +115,15 @@ Syntax
             - For more information on the conversion to string, see
               :ref:`convert-to-string`.
 
+          * - "object"
+            - 3
+            - For more information on the conversion to an object, see
+              :ref:`convert-to-object`.
+
           * - "array"
             - 4
             - For more information on the conversion to an array, see
-              :ref:`convert-bindata-to-array`.
+              :ref:`convert-to-array`.
 
           * - "binData"
             - 5
@@ -225,12 +230,14 @@ In addition to :expression:`$convert`, MongoDB provides the
 following aggregation operators as shorthand when the default
 "onError" and "onNull" behavior is acceptable:
 
+- :expression:`$toArray`
 - :expression:`$toBool`
 - :expression:`$toDate`
 - :expression:`$toDecimal`
 - :expression:`$toDouble`
 - :expression:`$toInt`
 - :expression:`$toLong`
+- :expression:`$toObject`
 - :expression:`$toObjectId`
 - :expression:`$toString`
 - :expression:`$toUUID`
@@ -501,6 +508,300 @@ The following examples demonstrate how to convert strings to binData.
 
    .. include:: /includes/convert-subtype.rst
 
+.. _convert-to-array:
+
+Convert to Array
+~~~~~~~~~~~~~~~~
+
+.. versionadded:: 8.3
+
+The following table lists the input types that can be converted to an
+array:
+
+.. include:: /includes/table-toArray-input-types.rst
+
+The following table lists some conversion of string to array examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 65 35
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "[1, 2, 3]", to: "array" }
+
+     - [ 1, 2, 3 ]
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: '["a", "b", "c"]', to: "array" }
+
+     - [ 'a', 'b', 'c' ]
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "[]", to: "array" }
+
+     - [ ]
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{}", to: "array" }
+
+     - Error: Input doesn't match expected type 'array'
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: 123, to: "array" }
+
+     - Error: Unsupported conversion from int to array in $convert with
+       no onError value
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "123", to: "array" }
+
+     - Error: Input doesn't represent valid JSON: Unexpected standalone
+       value
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "[{\"$oid\": \"507f1f77bcf86cd799439011\"}]", to:
+          "array" }
+
+     - [ { '$oid': '507f1f77bcf86cd799439011' } ]
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "[1, 2, 3]", to: "array", format: "base64url" }
+
+     - [ 1, 2, 3 ]
+
+       .. note::
+
+          The ``format`` option is ignored.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "asdf", to: "array", onError: "on error!" }
+
+     - 'on error!'
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: null, to: "array", onNull: "on null!" }
+
+     - 'on null!'
+
+.. _convert-bindata-to-array:
+
+Convert binData to Array
+`````````````````````````
+
+This example shows how ``$convert`` converts ``binData`` of different formats
+into arrays containing values of their respective types:
+
+**Input**:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/bindata-to-array/variants/load-data.snippet.insert-bindata-variants.js
+   :language: javascript
+   :category: usage example
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/bindata-to-array/variants/convert-bindata-to-array-variants.snippet.convert-bindata-to-array-variants.js
+   :language: javascript
+   :category: usage example
+
+**Output**:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/bindata-to-array/variants/output.sh
+   :language: javascript
+   :category: usage example
+   :copyable: false
+
+.. _convert-to-object:
+
+Convert to Object
+~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 8.3
+
+The following table lists the input types that can be converted to an
+object:
+
+.. include:: /includes/table-toObject-input-types.rst
+
+The following table lists some conversion to object examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 65 35
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"a\": 1, \"b\": 2}", to: "object" }
+
+     - { a: 1, b: 2 }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{}", to: "object" }
+
+     - { }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "[]", to: "object" }
+
+     - Error: Input doesn't match expected type 'object'
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "123", to: "object" }
+
+     - Error: Input doesn't represent valid JSON: Unexpected standalone value
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"nam\\u0000e\": \"foo\"}", to: "object" }
+
+     - Error: Input doesn't represent valid JSON: Illegal embedded null byte
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"name\": \"fo\\u0000o\"}", to: "object" }
+
+     - { name: 'fo\x00o' }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"a\": 1, \"b\": 2, \"a\": 3}", to: "object" }
+
+     - { a: 3, b: 2 }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"foo\": null}", to: "object" }
+
+     - { foo: null }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"foo\": false}", to: "object" }
+
+     - { foo: false }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"__proto__\": {\"foo\": null}}", to: "object" }
+
+     - { ['__proto__']: { foo: null } }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"foo\": \"NaN\"}", to: "object" }
+
+     - { foo: 'NaN' }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"foo\": 123}", to: "object" }
+
+     - { foo: 123 }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"foo\": 4294967296}", to: "object" }
+
+     - { foo: Long('4294967296') }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"foo\": 1.123123}", to: "object" }
+
+     - { foo: 1.123123 }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"foo\": 1.2e+3}", to: "object" }
+
+     - { foo: 1200 }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"largePos\": 18446744073709551615}", to: "object" }
+
+     - { largePos: 18446744073709552000 }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"largeNeg\": -18446744073709551615}", to: "object" }
+
+     - { largeNeg: -18446744073709552000 }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: null, to: "object" }
+
+     - null
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: "{\"objectId\": \"507f1f77bcf86cd799439011\",
+             \"uuid\": \"3b241101-e2bb-4255-8caf-4136c566a962\",
+             \"date\": \"2018-03-27T16:58:51.538Z\", \"regex\":
+             \"/^ABC/i\", \"js\": \"function (s) {return s +
+             \\\"foo\\\";}\", \"timestamp\": \"Timestamp(1565545664,
+             1)\", \"arr\": [1, 2, 3]}", to: "object"
+          }
+
+     - | {
+       |    objectId: '507f1f77bcf86cd799439011',
+       |    uuid: '3b241101-e2bb-4255-8caf-4136c566a962',
+       |    date: '2018-03-27T16:58:51.538Z',
+       |    regex: '/^ABC/i',
+       |    js: 'function (s) {return s + "foo";}',
+       |    timestamp: 'Timestamp(1565545664, 1)',
+       |    arr: [ 1, 2, 3 ]
+       | }
+
 .. _convert-to-bool:
 
 Convert to Boolean
@@ -592,10 +893,6 @@ The following table lists some conversion to boolean examples:
 
           { input: null, to: "bool" }
      - null
-
-.. seealso::
-
-   :expression:`$toBool`
 
 .. _convert-to-int:
 
@@ -783,12 +1080,8 @@ The following table lists some conversion to integer examples:
              byteOrder: "big",
           }
 
-     - Error: Failed to convert BinData because of invalid 
+     - Error: Failed to convert BinData because of invalid
        length: 7
-
-.. seealso::
-
-   :expression:`$toInt` operator.
 
 .. _convert-to-decimal:
 
@@ -902,10 +1195,6 @@ The following table lists some conversion to decimal examples:
           }
 
      -  Decimal128("1522039108044")
-
-.. seealso::
-
-   :expression:`$toDecimal`
 
 .. _convert-to-double:
 
@@ -1072,10 +1361,6 @@ Subnormal Numbers
 ~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/fact-float-parse-behavior-8.3.rst
-
-.. seealso::
-
-   :expression:`$toDouble`
 
 .. _convert-to-long:
 
@@ -1248,38 +1533,6 @@ The following table lists some conversion to long examples:
 
      - Long("1048576")
 
-.. seealso::
-
-   :expression:`$toLong`
-
-.. _convert-bindata-to-array:
-
-Convert binData to Array
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting in MongoDB 8.3, you can use ``$convert`` to convert ``binData`` to an 
-array of numeric values.
-
-This example shows how ``$convert`` converts ``binData`` of different formats
-into arrays containing values of their respective types:
-
-**Input**:
-
-.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/bindata-to-array/variants/load-data.snippet.insert-bindata-variants.js
-   :language: javascript
-   :category: usage example
-
-.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/bindata-to-array/variants/convert-bindata-to-array-variants.snippet.convert-bindata-to-array-variants.js
-   :language: javascript
-   :category: usage example
-
-**Output**:
-
-.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/bindata-to-array/variants/output.sh
-   :language: javascript
-   :category: usage example
-   :copyable: false
-
 .. _convert-to-date:
 
 Convert to Date
@@ -1435,12 +1688,6 @@ The following table lists some conversion to date examples:
 
      - ISODate("2021-11-23T17:21:58.000Z")
 
-
-.. seealso::
-
-   - :expression:`$toDate` operator
-   - :expression:`$dateFromString`
-
 .. _convert-to-objectId:
 
 Convert to ObjectId
@@ -1492,10 +1739,6 @@ The following table lists some conversion to date examples:
           }
 
      - Error
-
-.. seealso::
-
-   :expression:`$toObjectId` operator.
 
 .. _convert-to-string:
 
@@ -1599,11 +1842,6 @@ The following table lists some conversion to string examples:
           }
 
      - "invalid"
-
-.. seealso::
-
-   - :expression:`$toString` operator
-   - :expression:`$dateToString`
 
 Examples
 --------
@@ -1735,3 +1973,19 @@ The operation returns the following documents:
 
    These examples use :binary:`mongosh`. The default types are
    different in the legacy :binary:`mongo` shell.
+
+Learn More
+----------
+
+- Convert a value to an array with :expression:`$toArray`
+- Convert a string to an object with :expression:`$toObject`
+- Convert a value to a boolean with :expression:`$toBool`
+- Convert a value to an integer with :expression:`$toInt`
+- Convert a value to a decimal with :expression:`$toDecimal`
+- Convert a value to a double with :expression:`$toDouble`
+- Convert a value to a long with :expression:`$toLong`
+- Convert a value to a date with :expression:`$toDate`
+- Convert a value to an ObjectId with :expression:`$toObjectId`
+- Convert a value to a string with :expression:`$toString`
+- Convert a date string to a date object with :expression:`$dateFromString`
+- Convert a date object to a string with :expression:`$dateToString`

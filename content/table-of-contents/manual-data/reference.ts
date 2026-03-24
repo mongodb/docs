@@ -3897,6 +3897,12 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/operator/aggregation/tanh',
           },
           {
+            label: '$toArray',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/operator/aggregation/toArray',
+            versions: { excludes: manualVersions.before('v8.3') },
+          },
+          {
             label: '$toBool',
             contentSite: 'docs',
             url: '/docs/:version/reference/operator/aggregation/toBool',
@@ -3930,6 +3936,12 @@ const tocData: TocItem[] = [
             label: '$toLong',
             contentSite: 'docs',
             url: '/docs/:version/reference/operator/aggregation/toLong',
+          },
+          {
+            label: '$toObject',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/operator/aggregation/toObject',
+            versions: { excludes: manualVersions.before('v8.3') },
           },
           {
             label: '$toObjectId',
