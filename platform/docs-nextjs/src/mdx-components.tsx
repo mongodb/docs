@@ -35,6 +35,7 @@ import { Time } from '@/mdx-components/Time';
 
 type InjectedProps = Record<string, unknown>;
 
+// prettier-ignore
 export const components = (injectedProps?: InjectedProps) =>
   ({
     // basic components required for MDX rendering
@@ -162,7 +163,6 @@ export const components = (injectedProps?: InjectedProps) =>
     TabsSelector: ({ children }) => <span>{children}</span>,
     Target: ({ children }) => <span>{children}</span>,
     Time: (props) => <Time {...props} />,
-    TitleReference: ({ children }) => <span>{children}</span>,
     Toctree: ({ children }) => <span>{children}</span>,
     // built-in thematic break (--- / *** / ___) → hr; render with Transition component
     hr: () => <Transition />,
