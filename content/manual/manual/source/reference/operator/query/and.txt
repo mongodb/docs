@@ -69,96 +69,80 @@ help satisfy clauses of the :query:`$and` expression when
 Most programming languages and drivers, including the
 :ref:`MongoDB Shell <mdb-shell-overview>` (``mongosh``),
 do not allow the construction of objects with duplicate keys at the
-same object level. For example:
+same object level. For example, if you specify conditions like  ``{ $ne: "R",
+$ne: "PG" }``,  the second value overrides the first.
 
-.. code-block:: javascript
+To confirm multiple conditions, use an explicit ``AND``:
 
-   db.inventory.find( { price: { $in: [ 7.99, 3.99 ], $in: [ 4.99, 1.99 ] } } )
-
-The previous query is invalid because the field name ``price`` has
-duplicate operators at the same object level. The query sent to the
-server differs from the intent. To make the query work, use an explicit
-``AND``:
-
-.. code-block:: javascript
-
-   db.inventory.find( {
-      $and: [
-         { price: { $in: [ 7.99, 3.99 ] } },
-         { price: { $in: [ 4.99, 1.99 ] } }
-      ]
-   } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/in.snippet.in-example.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 The previous query explicitly checks that both conditions are satisfied:
-the ``price`` array must include at least one value from each
-:query:`$in` set. For more information, see :ref:`query-and-examples`.
+the ``genres`` array must include at least one value from each
+:query:`$in` set.
 
 .. _query-and-examples:
 
 Examples
 --------
 
-The examples match multiple expressions on the same field.
+.. include:: /includes/sample-data-usage.rst
+
+``$and`` matches multiple expressions on the same field.
 
 Consider this query:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/and.snippet.and-example.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
-   db.inventory.find( { $and: [ { price: { $ne: 1.99 } }, { price: { $exists: true } } ] } )
+The query selects all documents in the ``movies`` collection where:
 
-The query selects all documents in the ``inventory`` collection where:
+- the ``year`` is 1960 or later **and**
+- the ``year`` is 1970 or earlier **and**
+- the ``directors`` include Martin Scorsese
 
-- the ``price`` field value is not equal to ``1.99`` **and**
-- the ``price`` field exists.
+It also projects the results to only include the ``title``, ``directors``, and ``year`` fields. The query returns the following documents:
 
-You can simplify this query by combining the operator expressions for
-the ``price`` field into a single query object with a nested implicit
-``AND``:
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/and-output.sh
+   :language: shell
+   :copyable: false
+   :category: example return object
 
-.. code-block:: javascript
+You can simplify this query by combining the operators for
+the ``year`` field into a single query object, and using implicit ``AND`` operators:
 
-   db.inventory.find( { price: { $ne: 1.99, $exists: true } } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/and-simple.snippet.and-simple-example.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
-Rewrites are not always possible, particularly when duplicate
-conditions exist on the same field. For example:
-
-.. code-block:: javascript
-
-   db.inventory.find( { status: { $ne: "closed", $ne: "archived" } } )
-
-The previous query is invalid because it uses :query:`$ne` more than
-once on the ``status`` field at the same object level. Use :query:`$nin`
-instead:
-
-.. code-block:: javascript
-
-   db.inventory.find( { status: { $nin: [ "closed", "archived" ] } } )
-
-Rewrite the query based on your intent. Consider this query:
+Always review your query to confirm it matches intended behavior. Using the
+earlier ``genres`` example:
 
 .. code-block:: javascript
 
-   db.inventory.find( {
-      $and: [
-         { status: "new" },
-         { status: "processing" }
-      ]
-   } )
+   db.movies.find( { genres: { $in: [ "News", "Talk-Show" ], $in: [ "History", "Western" ] } } )
 
-To find documents where ``status`` is either ``new`` or ``processing``,
-use :query:`$in`:
+To find documents where the ``genres`` array contains either ``News`` or
+``Talk-Show`` and either ``History`` or ``Western``, use :query:`$in`:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/in.snippet.in-example.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
-   db.inventory.find( { status: { $in: [ "new", "processing" ] } } )
+If a field is an array, such as ``directors: [ "Jack Conway", "Howard Hawks",
+"William A. Wellman" ]``, and you want to check if the document contains
+multiple values instead of one, use :query:`$all`:
 
-If your ``status`` field is an array ``[ "new", "processing" ]`` and
-you want to check if the document contains both ``new`` and
-``processing``, use :query:`$all`:
-
-.. code-block:: javascript
-
-   db.inventory.find( { status: { $all: [ "new", "processing" ] } } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/all.snippet.all-example.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 The previous query is semantically equivalent to ``AND``, but
 :query:`$all` is clearer when querying array fields.
