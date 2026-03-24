@@ -2,8 +2,8 @@
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
-        QueryableEncryptionTutorial.RunExample();
+        await QueryableEncryptionTutorial.RunExample();
     }
 }
