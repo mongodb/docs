@@ -153,7 +153,6 @@ const tocData: TocItem[] = [
             label: 'Verify Package Integrity',
             contentSite: 'docs-k8s-operator',
             url: '/docs/kubernetes-operator/:version/tutorial/verify-mongodb-packages',
-            versions: { excludes: ['v1.25'] },
           },
           {
             label: 'Upgrade',
@@ -544,7 +543,6 @@ const tocData: TocItem[] = [
             label: 'Sharded Cluster',
             contentSite: 'docs-k8s-operator',
             url: '/docs/kubernetes-operator/:version/multi-cluster-sharded-cluster',
-            versions: { excludes: ['v1.25', 'v1.26', 'v1.27'] },
           },
           {
             label: 'Sharded Cluster Without a Service Mesh',
@@ -604,7 +602,6 @@ const tocData: TocItem[] = [
         label: 'Host on GDC',
         contentSite: 'docs-k8s-operator',
         url: '/docs/kubernetes-operator/:version/gdc-hosted',
-        versions: { excludes: ['v1.25'] },
       },
       {
         label: 'Reference Architectures',
