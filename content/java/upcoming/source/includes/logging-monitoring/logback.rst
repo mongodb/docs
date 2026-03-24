@@ -116,7 +116,7 @@ You should see output that resembles the following:
    :copyable: false
 
    ...
-   1317 [cluster-ClusterId{value='<your cluster id>', description='null'}-<your connection uri>] INFO  org.mongodb.driver.cluster - Discovered replica set primary <your connection uri>
+   1317 [cluster-<your cluster id>-<your connection uri>] INFO  org.mongodb.driver.cluster - Discovered replica set primary <your connection uri>
    1568 [main] INFO  org.mongodb.driver.connection - Opened connection [connectionId{localValue:7, serverValue:<server value>}] to <your connection uri>
 
 For more information about configuring Logback, see the
@@ -155,7 +155,7 @@ You should see output that resembles the following:
    :copyable: false
 
    ...
-   829  [cluster-rtt-ClusterId{value='<some value>', description='null'}-<your connection URI>] INFO  org.mongodb.driver.connection - Opened connection [connectionId{localValue:2, serverValue:<your server value>}] to <your connection uri>
+   829  [cluster-<your cluster id>-<your connection uri>] INFO  org.mongodb.driver.connection - Opened connection [connectionId{localValue:2, serverValue:<your server value>}] to <your connection uri>
    977  [main] INFO  org.mongodb.driver.connection - Opened connection [connectionId{localValue:7, serverValue:<your server value>}] to <your connection uri>
 
 For more information about configuring Logback, see the
