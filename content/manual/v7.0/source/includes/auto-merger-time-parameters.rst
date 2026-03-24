@@ -3,3 +3,8 @@ parameters:
 
 - :parameter:`autoMergerIntervalSecs`
 - :parameter:`autoMergerThrottlingMS`
+
+.. note::
+
+   You can set these parameters on :term:`config servers <config 
+   server>` only.
