@@ -342,9 +342,6 @@ export const toc: L1TocItem[] = [
                 label: 'Remove Shard',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/tutorial/remove-shard-using-automation',
-                versions: {
-                  excludes: ['v6.0'],
-                },
               },
               {
                 label: 'Stop Managing and/or Monitoring',
@@ -904,17 +901,11 @@ export const toc: L1TocItem[] = [
                         label: 'Workforce (Humans)',
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/tutorial/workforce-oidc',
-                        versions: {
-                          excludes: ['v6.0'],
-                        },
                       },
                       {
                         label: 'Workload (Applications)',
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/tutorial/workload-oidc',
-                        versions: {
-                          excludes: ['v6.0'],
-                        },
                       },
                     ],
                   },
@@ -945,9 +936,6 @@ export const toc: L1TocItem[] = [
                     label: 'Add CA Certificate',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/tutorial/add-ca-cert-to-om',
-                    versions: {
-                      excludes: ['v6.0'],
-                    },
                   },
                   {
                     label: 'Clear Settings',
@@ -1301,9 +1289,6 @@ export const toc: L1TocItem[] = [
                         label: 'Snapshots',
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/admin/backup/snapshots-page',
-                        versions: {
-                          excludes: ['v6.0'],
-                        },
                       },
                       {
                         label: 'Grooms',
@@ -1334,9 +1319,6 @@ export const toc: L1TocItem[] = [
                         label: 'Deployment Regions',
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/admin/backup/deployment-regions-page',
-                        versions: {
-                          excludes: ['v6.0'],
-                        },
                       },
                     ],
                   },
@@ -2481,49 +2463,31 @@ export const toc: L1TocItem[] = [
                             label: 'Get All',
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/backup/get-all-deployment-regions',
-                            versions: {
-                              excludes: ['v6.0'],
-                            },
                           },
                           {
                             label: 'Get One',
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/backup/get-one-deployment-region-by-id',
-                            versions: {
-                              excludes: ['v6.0'],
-                            },
                           },
                           {
                             label: 'Create',
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/backup/create-one-deployment-region',
-                            versions: {
-                              excludes: ['v6.0'],
-                            },
                           },
                           {
                             label: 'Create by ID',
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/backup/create-one-deployment-region-by-id',
-                            versions: {
-                              excludes: ['v6.0'],
-                            },
                           },
                           {
                             label: 'Assign',
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/backup/assign-deployment-region',
-                            versions: {
-                              excludes: ['v6.0'],
-                            },
                           },
                           {
                             label: 'Delete',
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/backup/delete-one-deployment-region-by-id',
-                            versions: {
-                              excludes: ['v6.0'],
-                            },
                           },
                         ],
                       },
@@ -2575,9 +2539,6 @@ export const toc: L1TocItem[] = [
                             label: 'Create One On-Demand (Cluster)',
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/snapshots/take-an-on-demand-snapshot',
-                            versions: {
-                              excludes: ['v6.0'],
-                            },
                           },
                           {
                             label: 'Get All (Config Server)',
@@ -2758,7 +2719,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/ops-manager/:version/reference/api/import-deployments',
                     versions: {
-                      excludes: ['v6.0', 'v7.0'],
+                      excludes: ['v7.0'],
                     },
                     items: [
                       {
@@ -2766,7 +2727,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/reference/api/import-deployments/create',
                         versions: {
-                          excludes: ['v6.0', 'v7.0'],
+                          excludes: ['v7.0'],
                         },
                       },
                       {
@@ -2774,7 +2735,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/reference/api/import-deployments/get-all',
                         versions: {
-                          excludes: ['v6.0', 'v7.0'],
+                          excludes: ['v7.0'],
                         },
                       },
                       {
@@ -2782,7 +2743,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/reference/api/import-deployments/get-status',
                         versions: {
-                          excludes: ['v6.0', 'v7.0'],
+                          excludes: ['v7.0'],
                         },
                       },
                       {
@@ -2790,7 +2751,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/reference/api/import-deployments/cancel',
                         versions: {
-                          excludes: ['v6.0', 'v7.0'],
+                          excludes: ['v7.0'],
                         },
                       },
                       {
@@ -2798,7 +2759,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/reference/api/import-deployments/delete',
                         versions: {
-                          excludes: ['v6.0', 'v7.0'],
+                          excludes: ['v7.0'],
                         },
                       },
                     ],
@@ -2957,25 +2918,16 @@ export const toc: L1TocItem[] = [
                     contentSite: 'ops-manager',
                     collapsible: true,
                     url: '/docs/ops-manager/:version/reference/api/telemetry',
-                    versions: {
-                      excludes: ['v6.0'],
-                    },
                     items: [
                       {
                         label: 'Retrieve Telemetry Data',
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/reference/api/telemetry/get-data',
-                        versions: {
-                          excludes: ['v6.0'],
-                        },
                       },
                       {
                         label: 'Toggle Telemetry Status',
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/reference/api/telemetry/toggle-status',
-                        versions: {
-                          excludes: ['v6.0'],
-                        },
                       },
                     ],
                   },

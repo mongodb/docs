@@ -1,2 +1,0 @@
-If the key later becomes invalid, |service| sends an email to the
-:authrole:`Project Owner` and eventually removes the key.

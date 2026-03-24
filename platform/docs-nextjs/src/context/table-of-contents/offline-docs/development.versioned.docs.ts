@@ -8054,6 +8054,14 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/operator/aggregation/tanh',
                       },
                       {
+                        label: '$toArray',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/operator/aggregation/toArray',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0', 'manual'],
+                        },
+                      },
+                      {
                         label: '$toBool',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/toBool',
@@ -8087,6 +8095,14 @@ export const toc: L1TocItem[] = [
                         label: '$toLong',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/toLong',
+                      },
+                      {
+                        label: '$toObject',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/operator/aggregation/toObject',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0', 'manual'],
+                        },
                       },
                       {
                         label: '$toObjectId',
