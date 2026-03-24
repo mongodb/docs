@@ -1,9 +1,9 @@
-.. COMMENT: Additional privileges needed 
+.. COMMENT: Additional privileges needed
 
-If the backup data includes :data:`system.profile
-<<database>.system.profile>` collection data or you run with
-:option:`--oplogReplay <mongorestore.--oplogReplay>`, you need
-additional privileges:
+You need additional privileges if the backup data includes
+:data:`system.profile <<database>.system.profile>` collection data
+or you run with :option:`--oplogReplay
+<mongorestore.--oplogReplay>`:
 
 .. list-table::
    :widths: 20 80
@@ -11,23 +11,26 @@ additional privileges:
    * - ``system.profile``
 
      - If the backup data includes :data:`system.profile
-       <<database>.system.profile>` collection data and the target database
-       does not contain the :data:`system.profile <<database>.system.profile>`
-       collection, :binary:`~bin.mongorestore` attempts to create the collection
-       even though the program does not actually restore ``system.profile``
-       documents. As such, the user requires additional privileges to perform
-       :authaction:`createCollection` and :authaction:`convertToCapped`
-       actions on the :data:`system.profile <<database>.system.profile>`
-       collection for a database.
+       <<database>.system.profile>` collection data and the target
+       database does not contain the :data:`system.profile
+       <<database>.system.profile>` collection,
+       :binary:`~bin.mongorestore` attempts to create the collection
+       even though the program does not actually restore
+       ``system.profile`` documents. The user requires additional
+       privileges to perform :authaction:`createCollection` and
+       :authaction:`convertToCapped` actions on the
+       :data:`system.profile <<database>.system.profile>` collection
+       for a database.
 
        Both the built-in roles :authrole:`dbAdmin` and
-       :authrole:`dbAdminAnyDatabase` provide the additional privileges.
+       :authrole:`dbAdminAnyDatabase` provide the additional
+       privileges.
 
    * - ``--oplogReplay``
 
      - To run with :option:`--oplogReplay
-       <mongorestore.--oplogReplay>`, create a 
-       :ref:`user-defined role <create-user-defined-role>` that has
+       <mongorestore.--oplogReplay>`, create a :ref:`user-defined
+       role <create-user-defined-role>` that has
        :authaction:`anyAction` on :ref:`resource-anyresource`.
 
        Grant only to users who must run :binary:`~bin.mongorestore`
