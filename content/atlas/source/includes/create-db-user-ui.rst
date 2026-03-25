@@ -19,6 +19,8 @@
 
        .. include:: /includes/steps-add-aws-iam-user.rst
 
+       .. _connections-string-example-mongodb-aws:
+
        AWS IAM Connection String Example
        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
