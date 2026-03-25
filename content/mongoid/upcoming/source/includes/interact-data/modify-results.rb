@@ -39,6 +39,14 @@ Band.offset(3)
 Band.batch_size(500)
 # end-batch
 
+# start-includes
+Band.where(name: 'The Beatles').includes({ albums: :songs }, :labels).first
+# end-includes
+
+# start-eager-load
+Band.where(name: 'The Beatles').eager_load({ albums: :songs }, :labels).first
+# end-eager-load
+
 # start-raw
 Band.where(country: 'Argentina').raw
 # end-raw
