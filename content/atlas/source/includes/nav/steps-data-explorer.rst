@@ -12,8 +12,8 @@
 
       The `Data Explorer <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fmetrics%2FreplicaSet%2F%3Creplset%3E%2Fexplorer>`__ displays.
 
-   
-:gold:`IMPORTANT:` You can also go to the :guilabel:`Clusters` page, and click 
-:guilabel:`Data Explorer` under the :guilabel:`Shortcuts` 
-heading.
+
+:gold:`IMPORTANT:` You can also click the name of a cluster
+to open the :guilabel:`Cluster` sidebar, and then click :guilabel:`Data Explorer` under
+the :guilabel:`Shortcuts` heading.
       

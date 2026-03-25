@@ -2550,6 +2550,14 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/tutorial/remove-shards-from-cluster',
                       },
                       {
+                        label: 'Embedded to Dedicated Config Server',
+                        contentSite: 'docs',
+                        url: '/docs/:version/tutorial/embedded-to-dedicated',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0', 'manual'],
+                        },
+                      },
+                      {
                         label: 'Clear jumbo Flag',
                         contentSite: 'docs',
                         url: '/docs/:version/tutorial/clear-jumbo-flag',

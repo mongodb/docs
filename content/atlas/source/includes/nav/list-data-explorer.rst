@@ -14,6 +14,6 @@ i. If it's not already displayed, select the
 
 .. note::
 
-   You can also go to the :guilabel:`Clusters` page, and click 
-   :guilabel:`Data Explorer` under the :guilabel:`Shortcuts` 
-   heading.
+   You can also click the name of a cluster
+   to open the :guilabel:`Cluster` sidebar, and then click :guilabel:`Data Explorer` under
+   the :guilabel:`Shortcuts` heading.

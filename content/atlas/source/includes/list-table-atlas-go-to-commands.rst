@@ -16,7 +16,7 @@
        location.
 
    * - ``advisor``
-     - Go to the :ref:`Performance Advisor <performance-advisor>` tab
+     - Go to the :ref:`Performance Advisor <performance-advisor>` in the :guilabel:`Cluster` sidebar
        for the current cluster.
 
        The ``advisor`` command is unavailable for sharded {+clusters+}.
@@ -26,7 +26,7 @@
        project or organization depending on your location.
 
    * - ``backup``
-     - Go to the :ref:`Backup <backup-cloud-provider>` tab for the current cluster.
+     - Go to the :ref:`Backup <backup-cloud-provider>` in the :guilabel:`Cluster` sidebar for the current cluster.
   
    * - ``billing``
      - Go to the :ref:`Billing <atlas-billing>` page for the current
@@ -48,19 +48,19 @@
        using :guilabel:`Tab`.
 
    * - ``cluster {clusterName} advisor``
-     - Go to the :ref:`Performance Advisor <performance-advisor>` tab
+     - Go to the :ref:`Performance Advisor <performance-advisor>` in the :guilabel:`Cluster` sidebar
        for the specified cluster within the current project.
 
-       You can also use the ``advisor`` command without specifying a cluster to go to the :ref:`Performance Advisor <performance-advisor>` tab for the current cluster.
+       You can also use the ``advisor`` command without specifying a cluster to go to the :ref:`Performance Advisor <performance-advisor>` in the :guilabel:`Cluster` sidebar for the current cluster.
 
-       The ``cluster {clusterName} advisor`` and ``advisor`` commands are unavailable for sharded {+clusters+}.       
+       The ``cluster {clusterName} advisor`` and ``advisor`` commands are unavailable for sharded {+clusters+}.
 
    * - ``cluster {clusterName} backup``
-     - Go to the :ref:`Backup <backup-cloud-provider>` tab for the specified
+     - Go to the :ref:`Backup <backup-cloud-provider>` in the :guilabel:`Cluster` sidebar for the specified
        cluster within the current project.
 
        You can also use the ``backup`` command without specifying a cluster to
-       go to the :ref:`Backup <backup-cloud-provider>` tab for the current cluster.
+       go to the :ref:`Backup <backup-cloud-provider>` in the :guilabel:`Cluster` sidebar for the current cluster.
 
    * - ``cluster {clusterName} collections``
      - Go to the :ref:`Collections <atlas-ui-view-collections>` tab for
@@ -75,11 +75,11 @@
        specified cluster.
 
    * - ``cluster {clusterName} metrics``
-     - Go to the :ref:`Metrics <monitor-cluster-metrics>` tab for the specified
+     - Go to the :ref:`Metrics <monitor-cluster-metrics>` in the :guilabel:`Cluster` sidebar for the specified
        cluster within the current project.
 
        You can also use the ``metrics`` command without specifying a cluster to
-       go to the :ref:`Metrics <monitor-cluster-metrics>` tab for the current 
+       go to the :ref:`Metrics <monitor-cluster-metrics>` in the :guilabel:`Cluster` sidebar for the current
        cluster.
 
    * - ``cluster {clusterName} profiler``
@@ -92,11 +92,11 @@
        The ``cluster {clusterName} profiler`` and ``profiler`` commands are unavailable for sharded {+clusters+}.
 
    * - ``cluster {clusterName} rtp``
-     - Go to the :ref:`Real Time <real-time-metrics-status-tab>` tab
+     - Go to the :ref:`Real-Time <real-time-metrics-status-tab>` in the :guilabel:`Cluster` sidebar
        for the specified cluster within the current project.
 
        You can also use the ``rtp`` command without specifying a cluster to
-       go to the :ref:`Real Time <real-time-metrics-status-tab>` tab for the
+       go to the :ref:`Real-Time <real-time-metrics-status-tab>` in the :guilabel:`Cluster` sidebar for the
        current cluster.
 
        The ``cluster {clusterName} rtp`` and ``rtp`` commands are
@@ -121,7 +121,7 @@
      - Go to this {+atlas-go-to+} page in the documentation for help.
 
    * - ``metrics``
-     - Go to the :ref:`Metrics <monitor-cluster-metrics>` tab for the 
+     - Go to the :ref:`Metrics <monitor-cluster-metrics>` in the :guilabel:`Cluster` sidebar for the
        current cluster.
 
    * - ``org``
@@ -191,7 +191,7 @@
        using :guilabel:`Tab`.
 
    * - ``rtp``
-     - Go to the :ref:`Real Time <real-time-metrics-status-tab>` tab
+     - Go to the :ref:`Real-Time <real-time-metrics-status-tab>` in the :guilabel:`Cluster` sidebar
        for the current cluster.
 
    * - ``search``
