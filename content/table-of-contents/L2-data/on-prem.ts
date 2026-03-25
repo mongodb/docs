@@ -762,6 +762,12 @@ const tocData: TocItem[] = [
                 url: '/docs/:version/tutorial/remove-shards-from-cluster',
               },
               {
+                label: 'Embedded to Dedicated Config Server',
+                contentSite: 'docs',
+                url: '/docs/:version/tutorial/embedded-to-dedicated',
+                versions: { excludes: manualVersions.before('v8.3') },
+              },
+              {
                 label: 'Clear jumbo Flag',
                 contentSite: 'docs',
                 url: '/docs/:version/tutorial/clear-jumbo-flag',
