@@ -565,6 +565,11 @@ export const toc: L1TocItem[] = [
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-event-driven-inventory',
                   },
+                  {
+                    label: 'Multi-Agent Supply Chain Disruption Management',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/supply-chain-disruption-management',
+                  },
                 ],
               },
               {
