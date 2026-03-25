@@ -33,6 +33,11 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: 'Manual File Configuration',
+            contentSite: 'mcp-server',
+            url: '/docs/mcp-server/configuration/manual-file-configuration',
+          },
+          {
             label: 'Options',
             contentSite: 'mcp-server',
             url: '/docs/mcp-server/configuration/options',
