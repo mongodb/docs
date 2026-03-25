@@ -122,6 +122,11 @@ const tocData: TocItem[] = [
         contentSite: 'mcp-server',
         url: '/docs/mcp-server/examples',
       },
+      {
+        label: 'Release Notes',
+        contentSite: 'mcp-server',
+        url: '/docs/mcp-server/release-notes',
+      },
     ],
   },
 ];
