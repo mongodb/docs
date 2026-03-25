@@ -83,7 +83,7 @@ embedding model using the ``model`` option in the :pipeline:`$vectorSearch`
 pipeline stage, but the specified embedding model must be compatible with 
 the embedding model used at index-time. {+avs+} uses the query API key that 
 you provided during MongoDB Community initialization to generate the 
-embeddings at query-time. To learn more, see :ref:`avs-auto-embed:-run-query`.
+embeddings at query-time. To learn more, see :ref:`avs-auto-embed-run-query`.
 
 You will incur charges for generating embeddings using the |api| keys. To 
 learn more, see :ref:`costs-for-auto-embed`. 
@@ -258,7 +258,7 @@ at index-time and run a text query against the indexed field,
 
       .. include:: /includes/avs/create-embeddings/automated/steps-create-index-csharp.rst
    
-   .. _avs-auto-embed:-run-query:
+   .. _avs-auto-embed-run-query:
 
    Run a Text Query 
    ~~~~~~~~~~~~~~~~
@@ -316,3 +316,127 @@ at index-time and run a text query against the indexed field,
       :selections: driver, csharp 
 
       .. include:: /includes/avs/create-embeddings/automated/steps-run-query-csharp.rst
+
+   .. _avs-troubleshooting-auto-embed:
+
+Troubleshoot 
+------------
+
+Check Index Status 
+~~~~~~~~~~~~~~~~~~
+
+To check the status of your {+avs+} index, run the following command 
+after replacing the following placeholders: 
+
+.. list-table:: 
+   :widths: 25 75 
+   :stub-columns: 1
+
+   * - ``<connection-string>`` 
+     - Your cluster connection string.
+
+   * - ``<database-name>``
+     - The name of the database the collection.
+
+   * - ``<collection-name>``
+     - The name of the collection for which you created the index.
+
+.. code-block:: javascript
+
+   mongosh <connection-string>/<database-name> --eval '
+     db.<collection-name>.getSearchIndexes().forEach(printjson);
+   '
+
+The preceding command connects to your cluster and for the specified 
+collection in the specified database, iterates through each index 
+on the collection and returns the index definition in |json| format. 
+
+.. example:: Sample Command to Retrieve Indexes on the movies Collection
+
+   .. io-code-block:: 
+      :copyable: true 
+      
+      .. input:: 
+         :language: javascript 
+
+         mongosh "mongodb://localhost:27017/sample_mflix" --eval '
+           db.movies.getSearchIndexes().forEach(printjson);
+         '
+
+      .. output:: 
+         :language: javascript 
+         :visible: false
+
+         {
+            id: '698d005f8bf34e5e6624d086',
+            name: 'vector_index',
+            type: 'vectorSearch',
+            status: 'READY',
+            numDocs: 21349,
+            latestDefinition: {
+               type: 'vectorSearch',
+               indexID: ObjectId('698d005f8bf34e5e6624d086'),
+               name: 'vector_index',
+               database: 'sample_mflix',
+               lastObservedCollectionName: 'movies',
+               collectionUUID: UUID('3920f806-ec08-46ae-a73e-8e1e191e85f5'),
+               numPartitions: 1,
+               fields: [
+                  {
+                  type: 'autoEmbed',
+                  path: 'fullplot',
+                  model: 'voyage-4',
+                  modality: 'text'
+                  }
+               ],
+               definitionVersion: 0,
+               definitionVersionCreatedAt: '2026-02-11T22:19:11Z',
+               indexFeatureVersion: 4
+            }
+         } 
+
+Verify Embeddings Were Generated 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To verify that {+avs+} has generated embeddings for your indexed text 
+data, run the following command after replacing the ``<connection-string>`` 
+placeholder with your cluster connection string: 
+
+.. code-block:: javascript 
+
+   mongosh <connection-string> --eval '
+      print("Embeddings: " +
+         db.getSiblingDB("__mdb_internal_search")
+            .getCollectionNames()
+            .filter(c => c.match(/^[0-9a-f]{24}$/))
+            .map(c => db.getSiblingDB("__mdb_internal_search").getCollection(c).countDocuments())
+            .reduce((a,b) => a+b, 0)
+      );
+   '
+
+The preceding command connects to your cluster and returns the total 
+number of vector embeddings stored across all collections in your 
+deployment.
+
+.. example:: Sample Command to Retrieve Embeddings Count
+
+   .. io-code-block:: 
+      :copyable: true 
+
+      .. input:: 
+         :language: javascript 
+
+         mongosh "mongodb://localhost:27017/" --eval '
+            print("Embeddings: " +
+               db.getSiblingDB("__mdb_internal_search")
+                  .getCollectionNames()
+                  .filter(c => c.match(/^[0-9a-f]{24}$/))
+                  .map(c => db.getSiblingDB("__mdb_internal_search").getCollection(c).countDocuments())
+                  .reduce((a,b) => a+b, 0)
+            );
+         '
+      .. output:: 
+         :language: javascript 
+         :visible: false 
+
+         Embeddings: 21349

@@ -428,3 +428,37 @@ Configure MongoDB Community Edition
 
          The initialization is complete when the logs return ``MongoDB
          initialization completed``.
+
+Troubleshoot 
+------------
+
+This section contains troubleshooting information for some 
+common issues.
+
+.. list-table:: 
+   :widths: 25 20 55 
+   :header-rows: 1 
+
+   * - Issue 
+     - Cause 
+     - Solution
+
+   * - ``NOT_STARTED`` index state
+     - Docker disk usage greater than 90%
+     - a. Run ``docker system prune -f`` command.
+       #. Restart ``mongot``. 
+
+   * - ``403`` from Voyage API
+     - Wrong endpoint
+     - Use: 
+   
+       - ``https://ai.mongodb.com/v1/embeddings`` for keys from {+atlas-ui+}.
+       - ``https://api.voyageai.com/v1/embeddings`` for keys from |voyage|.
+
+   * - No embeddings generated
+     - Follower mode
+     - Set ``isAutoEmbeddingViewWriter`` to ``true`` in the ``mongot.yml`` file.
+   
+   * - ``missing model`` error
+     - Configuration not loaded
+     - Restart ``mongot`` to apply configuration changes.
