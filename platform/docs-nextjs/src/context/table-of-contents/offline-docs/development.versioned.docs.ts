@@ -8037,6 +8037,9 @@ export const toc: L1TocItem[] = [
                         label: '$subtype',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/subtype',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0', 'manual'],
+                        },
                       },
                       {
                         label: '$switch',

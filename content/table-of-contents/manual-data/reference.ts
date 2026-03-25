@@ -3880,6 +3880,7 @@ const tocData: TocItem[] = [
             label: '$subtype',
             contentSite: 'docs',
             url: '/docs/:version/reference/operator/aggregation/subtype',
+            versions: { excludes: manualVersions.before('v8.3') },
           },
           {
             label: '$switch',
