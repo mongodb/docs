@@ -21,6 +21,52 @@ const tocData: TocItem[] = [
             url: '/docs/:version/release-notes/8.3-compatibility',
           },
           {
+            label: 'Upgrade 8.2 to 8.3',
+            contentSite: 'docs',
+            url: '/docs/:version/release-notes/8.3-upgrade',
+            collapsible: true,
+            items: [
+              {
+                label: 'Standalone',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/8.3-upgrade-standalone',
+              },
+              {
+                label: 'Replica Set',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/8.3-upgrade-replica-set',
+              },
+              {
+                label: 'Sharded Cluster',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/8.3-upgrade-sharded-cluster',
+              },
+            ],
+          },
+          {
+            label: 'Downgrade 8.3 to 8.2',
+            contentSite: 'docs',
+            url: '/docs/:version/release-notes/8.3-downgrade',
+            collapsible: true,
+            items: [
+              {
+                label: 'Standalone',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/8.3-downgrade-standalone',
+              },
+              {
+                label: 'Replica Set',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/8.3-downgrade-replica-set',
+              },
+              {
+                label: 'Sharded Cluster',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/8.3-downgrade-sharded-cluster',
+              },
+            ],
+          },
+          {
             label: 'Changelog',
             contentSite: 'docs',
             url: '/docs/:version/release-notes/8.3-changelog',

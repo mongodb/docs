@@ -46,5 +46,6 @@ environment.
 Downgrade Consideration
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-You cannot downgrade your deployment's binary version without assistance from 
-support.
+.. include:: /includes/downgrade/previous-minor-version.rst
+
+.. include:: includes/downgrade/single-version-support.rst
