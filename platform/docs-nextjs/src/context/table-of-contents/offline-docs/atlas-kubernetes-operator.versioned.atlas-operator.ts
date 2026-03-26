@@ -27,9 +27,6 @@ export const toc: L1TocItem[] = [
                 label: 'Verify Package Integrity',
                 contentSite: 'atlas-operator',
                 url: '/docs/atlas/operator/:version/ak8so-verify-packages',
-                versions: {
-                  excludes: ['v1.9', 'v2.0', 'v2.1'],
-                },
               },
               {
                 label: 'Helm Charts Quick Start',
@@ -45,9 +42,6 @@ export const toc: L1TocItem[] = [
                 label: 'Independent Custom Resource Definitions',
                 contentSite: 'atlas-operator',
                 url: '/docs/atlas/operator/:version/ak8so-independent-crd',
-                versions: {
-                  excludes: ['v1.9', 'v2.0', 'v2.1', 'v2.2', 'v2.3', 'v2.4'],
-                },
               },
               {
                 label: 'Migrate Parameters to CRDs',
@@ -66,9 +60,6 @@ export const toc: L1TocItem[] = [
                 label: 'Metrics',
                 contentSite: 'atlas-operator',
                 url: '/docs/atlas/operator/:version/ak8so-metrics',
-                versions: {
-                  excludes: ['v1.9', 'v2.0', 'v2.1', 'v2.2', 'v2.3', 'v2.4', 'v2.5', 'v2.6', 'v2.7', 'v2.8', 'v2.9'],
-                },
               },
             ],
           },
@@ -115,9 +106,6 @@ export const toc: L1TocItem[] = [
                 label: 'Custom Database Roles',
                 contentSite: 'atlas-operator',
                 url: '/docs/atlas/operator/:version/ak8so-configure-custom-database-roles',
-                versions: {
-                  excludes: ['current', 'upcoming', 'v2.6', 'v2.7', 'v2.8', 'v2.9'],
-                },
               },
               {
                 label: 'X.509',
@@ -163,25 +151,16 @@ export const toc: L1TocItem[] = [
             label: 'Atlas Search',
             contentSite: 'atlas-operator',
             url: '/docs/atlas/operator/:version/ak8so-create-atlas-search-index',
-            versions: {
-              excludes: ['v1.9', 'v2.0', 'v2.1', 'v2.2'],
-            },
           },
           {
             label: 'Atlas Vector Search',
             contentSite: 'atlas-operator',
             url: '/docs/atlas/operator/:version/ak8so-create-vector-search-index',
-            versions: {
-              excludes: ['v1.9', 'v2.0', 'v2.1', 'v2.2'],
-            },
           },
           {
             label: 'Atlas Stream Processing',
             contentSite: 'atlas-operator',
             url: '/docs/atlas/operator/:version/ak8so-stream-processing',
-            versions: {
-              excludes: ['v1.9', 'v2.0', 'v2.1', 'v2.2'],
-            },
           },
           {
             label: 'Atlas Cluster Backup',
@@ -193,9 +172,6 @@ export const toc: L1TocItem[] = [
                 label: 'Compliance Policies',
                 contentSite: 'atlas-operator',
                 url: '/docs/atlas/operator/:version/ak8so-bcp',
-                versions: {
-                  excludes: ['v1.9', 'v2.0', 'v2.1', 'v2.2', 'v2.3'],
-                },
               },
             ],
           },
@@ -289,9 +265,6 @@ export const toc: L1TocItem[] = [
                 label: 'AtlasOrgSettings',
                 contentSite: 'atlas-operator',
                 url: '/docs/atlas/operator/:version/atlasorgsettings-custom-resource',
-                versions: {
-                  excludes: ['v2.4', 'v2.5', 'v2.6', 'v2.7', 'v2.8', 'v2.9'],
-                },
               },
               {
                 label: 'AtlasPrivateEndpoint',
@@ -305,25 +278,16 @@ export const toc: L1TocItem[] = [
                 label: 'AtlasSearchIndexConfig',
                 contentSite: 'atlas-operator',
                 url: '/docs/atlas/operator/:version/atlassearchindexconfig-custom-resource',
-                versions: {
-                  excludes: ['v1.9', 'v2.0', 'v2.1', 'v2.2'],
-                },
               },
               {
                 label: 'AtlasStreamConnection',
                 contentSite: 'atlas-operator',
                 url: '/docs/atlas/operator/:version/atlasstreamconnection-custom-resource',
-                versions: {
-                  excludes: ['v1.9', 'v2.0', 'v2.1', 'v2.2'],
-                },
               },
               {
                 label: 'AtlasStreamWorkspace',
                 contentSite: 'atlas-operator',
                 url: '/docs/atlas/operator/:version/atlasstreamworkspace-custom-resource',
-                versions: {
-                  excludes: ['v1.9', 'v2.0', 'v2.1', 'v2.2'],
-                },
               },
               {
                 label: 'AtlasThirdPartyIntegration',
@@ -337,9 +301,6 @@ export const toc: L1TocItem[] = [
                 label: 'AtlasBackupCompliance',
                 contentSite: 'atlas-operator',
                 url: '/docs/atlas/operator/:version/bcp-custom-resource',
-                versions: {
-                  excludes: ['v1.9', 'v2.0', 'v2.1', 'v2.2', 'v2.3'],
-                },
               },
               {
                 label: 'AtlasTeam',
@@ -380,9 +341,6 @@ export const toc: L1TocItem[] = [
             label: 'Upgrade from v1.x to v2.x',
             contentSite: 'atlas-operator',
             url: '/docs/atlas/operator/:version/upgrade-ako-v1-to-v2',
-            versions: {
-              excludes: ['v1.9', 'v2.2'],
-            },
           },
         ],
       },
