@@ -34,7 +34,7 @@
       existing snapshots and :term:`oplog` for the cluster according to 
       your cluster's 
       :ref:`backup policy <cloud-provider-retention-policy>`. If you 
-      have {+Cloud-Backup+} disabled, this option is unavilable.
+      have {+Cloud-Backup+} disabled, this option is unavailable.
             
    .. step:: Confirm the termination.
       
