@@ -17,8 +17,8 @@
      - - atlasAdmin
        - :authaction:`bypassWriteBlockingMode`
 
-For details on Atlas roles, see: :atlas:`Built-In Roles and Privileges
-</mongodb-users-roles-and-privileges/>`.
+For details on Atlas roles, see :ref:`Atlas User Roles
+<user-roles>`.
 
 To update Atlas user permissions, see:
 :atlas:`Manage Access to a Project </access/manage-project-access/>`.
