@@ -482,6 +482,14 @@ const tocData: TocItem[] = [
     label: 'Review Deployment Options',
     contentSite: 'cloud-docs',
     url: '/docs/atlas/atlas-search/about/deployment-options',
+    collapsible: true,
+    items: [
+      {
+        label: 'Multi-Tenant Architecture',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/atlas-search/multi-tenant-architecture',
+      },
+    ],
   },
   {
     label: 'Monitor Atlas Search',

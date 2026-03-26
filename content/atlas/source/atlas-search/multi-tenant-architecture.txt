@@ -1,0 +1,218 @@
+.. _fts-multi-tenancy:
+
+===========================================
+Build a Multi-Tenant Architecture for |fts|
+===========================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Explore design patterns for Atlas Search multi-tenancy, including shared collections, per-tenant indexes, and strategies to ensure tenant isolation at scale.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can implement multi-tenancy with |fts| so that a single instance of
+an application serves multiple tenants. This page describes design
+recommendations that apply specifically to |fts| for structuring data 
+and |fts| indexes to scale safely while maintaining tenant isolation.
+
+.. important::
+
+   This guidance assumes that you can colocate tenants within a single 
+   |vpc|. If strict network isolation is required, you must maintain 
+   separate projects for each tenant.
+
+Choosing a Strategy
+-------------------
+
+Select a strategy based on your isolation needs, scaling goals, and 
+write-load requirements. The most common strategies are:
+
+- **A single collection for all tenants** - This :ref:`strategy
+  <fts-multi-tenant-recommendation-one-collection-for-all>` is 
+  **recommended** for most workloads.
+- **One Database per tenant** - This :ref:`strategy
+  <fts-multi-tenant-recommendation-one-db>` offers high isolation 
+  but increases index count.
+- **One Collection per tenant** - This :ref:`strategy
+  <fts-multi-tenant-recommendation-one-collection-per-tenant>` is 
+  **not recommended** for |fts| workloads.
+
+.. _fts-multi-tenant-recommendation-one-collection-for-all:
+
+A Single Collection for All Tenants (Recommended)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We recommend applying the *one collection for all tenants* strategy.
+In this architecture, you store all tenant data in a single collection 
+within a single database. You can distinguish between tenants by 
+including a ``tenant_id`` field within each document. This field can 
+be any unique identifier for the tenant, such as a UUID or a tenant 
+name.
+
+This centralized approach offers the following benefits:
+
+- Reduces the number of indexes
+
+  Since all tenant data is stored in one collection, you need only a
+  single index that serves documents for all tenants. You avoid 
+  hitting the cluster resource limits. For example, you can include 
+  the ``tenant_id`` and other shared or tenant-specific fields in a 
+  single index.  
+
+- Simplifies maintenance operations
+
+  With only a single collection storing all data, you don't have to
+  maintain multiple collections or scale resources across multiple
+  databases. You also simplify backup, sharding, and replication
+  operations as you need to target only a single collection in a single 
+  database. 
+
+- Processes query efficiently
+
+  You provide the ``tenant_id`` field in your queries as a filter using
+  the :ref:`equals <equals-ref>` operator within the
+  ``$search.compound.filter`` clause.
+
+  .. note::
+
+     Your query results will only include documents from the matching 
+     tenant, preventing data from leaking across tenants.
+
+If the tenants you colocate share similar access patterns and resource
+sizes, this strategy also keeps the Lucene index field count low.
+
+.. important::
+
+   When every tenant has a high write load, colocating all tenants into 
+   a single collection might create write contention. In that scenario,
+   consider splitting tenants with the most writes into separate
+   collections so that you can distribute the write load across more 
+   underlying resources.
+
+If you have large tenants with unique resourcing or indexing requirements, 
+use a :ref:`View <fts-transform-documents-collections>`:
+
+a. Isolate a tenant. Create a :ref:`View <fts-transform-documents-collections>` 
+   using a :pipeline:`$match` with a :query:`$expr` operation to filter 
+   only the tenant's documents. 
+#. Index separately. Create a |fts| index on the View. 
+
+   This allows you to customize the index definition for the large tenant 
+   without impacting the shared index used by others. All other tenants 
+   can use a single index. 
+   
+   We don't recommend exceeding 2500 indexes per cluster because this will 
+   generate a high load on the base cluster and risks disrupting your database 
+   workload. 
+
+If you currently apply the *one collection per tenant* :ref:`strategy 
+<fts-multi-tenant-recommendation-one-collection-per-tenant>`, we
+recommend :ref:`scaling up <scale-cluster>` the base tier to prevent 
+increased replication lagor :abbr:`OOM (Out of Memory)` errors due to 
+resource contention from ahigh number of indexes. We also recommend 
+migrating to the *one collection for all tenants* strategy.   
+
+Handling High-Write Tenants 
+```````````````````````````
+
+If specific tenants have massive write loads, they might cause contention in 
+a shared collection. We recommend that you move only the highest-volume tenants 
+to separate collections to distribute the I/O load.
+
+Handling Unique Requirements (Views) 
+````````````````````````````````````
+
+If a tenant requires unique indexing or is significantly larger than others, 
+use a :ref:`MongoDB View <views-landing-page>`:
+
+- Create a :ref:`View <fts-transform-documents-collections>` using 
+- :pipeline:`$match` to filter only that tenant's documents.
+- Create a |fts| :ref:`index <fts-about-indexing>` on that View. This allows 
+  customization for outlier tenants without disrupting the shared index used 
+  by the majority.
+
+.. _fts-multi-tenant-recommendation-one-db:
+
+One Database Per Tenant
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In a database-per-tenant setup, each tenant contains its own database.
+This setup isolates tenant data, but it also multiplies the number of
+indexes in the cluster. When each tenant has many indexed fields, the
+cluster might reach the 2500-index ceiling.
+
+.. warning::
+
+   A high index count generates significant load on the base cluster 
+   and might disrupt your workload. To keep the cluster stable, 
+   carefully monitor the number of indexes and avoid exceeding 2500 
+   indexes in total.
+
+.. _fts-multi-tenant-recommendation-one-collection-per-tenant:
+
+One Collection Per Tenant (Not Recommended)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The collection-per-tenant strategy maps each tenant to its own
+collection within a shared database. The overhead of maintaining an 
+index per collection might cause:
+
+- Increased replication lag
+- :abbr:`OOM (Out of Memory)` errors due to resource contention
+- Instability in the base tier
+
+We **do not recommend** this strategy for |fts| unless tenants have 
+very predictable, lightweight workloads. If you currently use this 
+strategy, migrate toward the *one collection for all tenants* 
+:ref:`strategy <fts-multi-tenant-recommendation-one-collection-for-all>`. 
+
+Managing Indexed Fields 
+------------------------
+
+Consider the following recommendations to manage indexed fields:
+
+.. collapsible:: 
+   :heading: Dynamically Index Unknown Fields
+   :sub_heading: Use dynamic mappings to index unknown fields.
+   :expanded: false
+
+   Multi-tenant applications often require custom per-tenant fields that 
+   can be searched, sorted, faceted, and filtered. Use a ``typeSet`` to
+   :ref:`dynamically index <fts-dynamic-mappings>` sub-fields of a path so
+   that |fts| picks up new fields automatically without a full index rebuild.
+   Avoid statically indexing these fields, as doing so triggers a rebuild
+   that adds CPU pressure and consumes up to 2x the index's disk space.
+
+   .. note:: Risk Too Many Fields
+
+      Lucene index performance can degrade if there are more than 1000
+      distinct fields. You can monitor the number of unique fields in the
+      |fts| index in the |fts| :ref:`metrics
+      <review-atlas-search-metrics>`. If you need to support one thousand
+      or more fields, we recommend the following: 
+
+      - Separating a subset of tenants into a separate index using a View,
+        so that the distinct number of fields existing in a single Lucene
+        index remains less than one thousand. 
+      - Limiting the number of fields that a single tenant can add.
+
+.. collapsible:: 
+   :heading: Avoid the Attribute Pattern
+   :sub_heading: Avoid using embedded documents to store different values.
+   :expanded: false
+
+   If you use the attribute pattern to store different keys per tenant, we
+   recommend that you do the following: 
+
+   a. Flatten the embedded array of documents using a View.
+   #. Create a |fts| index on the View, which is stored on disk.
+
+   If you don't flatten the array of documents, you will need to use
+   :ref:`embeddedDocuments <embedded-document-ref>` operator queries
+   (similar to :projection:`$elemMatch`) to query the attributes, which
+   is less performant than querying a flattened structure. 
