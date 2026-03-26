@@ -1,1 +1,0 @@
-unzip mongosync-*.zip
