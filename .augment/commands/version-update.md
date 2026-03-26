@@ -261,11 +261,11 @@ compatibility.
 For certain drivers, update version constants in `content/manual/upcoming/snooty.toml` when
 applicable:
 
-| Driver / Provider  | Constant to Update      | Scope                 |
-| ------------------ | ----------------------- | --------------------- |
-| C#                 | `csharp-driver-version` | Major / Minor / Patch |
-| Go                 | `go-api-docs`           | Major                 |
-| Java / JVM drivers | `java-driver-version`   | Major / Minor         |
+| Driver / Provider  | Constant to Update      | Scope         |
+| ------------------ | ----------------------- | ------------- |
+| C#                 | `csharp-driver-version` | Major / Minor |
+| Go                 | `go-api-docs`           | Major         |
+| Java / JVM drivers | `java-driver-version`   | Major / Minor |
 
 Search for and update these constants if they exist.
 
@@ -274,8 +274,6 @@ Search for and update these constants if they exist.
 Inform the user of these docset-specific tasks that require manual attention:
 
 - **C++**: Update the driver status table in `cpp-driver/upcoming/source/index.txt`.
-- **C#**: Update `content/manual/upcoming/snooty.toml` `csharp-driver-version` for patch
-  releases as well as major/minor releases.
 - **Entity Framework**:
   - Add release notes for all major, minor, and patch releases.
   - For patch releases, update the API Documentation link in the TOC to the new patch
