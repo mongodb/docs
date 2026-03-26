@@ -30,6 +30,10 @@ following actions to modify the way that results appear:
 
 - :ref:`mongoid-data-skip-limit`
 
+- :ref:`mongoid-eager-loading`
+
+- :ref:`mongoid-raw-results`
+
 Sample Data
 ~~~~~~~~~~~
 
@@ -306,10 +310,108 @@ The following code sets the batch size to ``500``:
    :language: ruby
    :dedent:
 
+.. _mongoid-eager-loading:
+
+Eager Load Associations
+------------------------
+
+When you query documents with associations, eager loading enables you to load the associated documents at the same time as the base documents, instead of lazy-loading them later. This reduces the number of database queries and improves performance for association-heavy workloads. {+odm+} provides two methods to eager load associated documents when you query documents with associations: ``includes`` and ``eager_load``.
+
+includes Method
+~~~~~~~~~~~~~~~
+
+The ``includes`` method loads associations using separate queries for each
+association. The following code loads bands and their associated albums and labels using
+separate queries:
+
+.. literalinclude:: /includes/interact-data/modify-results.rb
+   :start-after: start-includes
+   :end-before: end-includes
+   :language: ruby
+   :dedent:
+
+When you use the ``includes`` method, {+odm+} runs a query on the base class to get all base documents, then a separate query for each association it eager loads.
+
+The previous example executes the following queries:
+
+- One query to find the ``Band`` documents
+- One query to load the associated ``Album`` documents
+- One query to load the associated ``Label`` documents
+- One query to load the associated ``Song`` documents
+
+eager_load Method
+~~~~~~~~~~~~~~~~~
+
+The ``eager_load`` method uses the MongoDB aggregation pipeline with
+``$lookup`` operators to load all associations in a single query. The following code uses a single aggregation pipeline query to load bands and their associated albums and labels, with ``$lookup`` stages
+for each association:
+
+.. literalinclude:: /includes/interact-data/modify-results.rb
+   :start-after: start-eager-load
+   :end-before: end-eager-load
+   :language: ruby
+   :dedent:
+
+Performance Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Both ``includes`` and ``eager_load`` methods perform eager loading, but they do so
+in different ways. The ``includes`` method runs one query for the base documents, then separate queries
+for each association. The ``eager_load`` method uses a single aggregation pipeline with ``$lookup`` stages
+to load the associations.
+
+The ``eager_load`` method executes fewer queries and uses less memory than
+``includes``. However, the efficiency of the method differs based on the
+type of associations in your documents:
+
+- ``eager_load`` is faster for ``has_many``, ``has_and_belongs_to_many``,
+  and loading multiple associations on most datasets
+- ``includes`` is faster for ``belongs_to``, ``has_one``, and nested
+  associations on most datasets
+
+Choose the method that best fits your use case and association types.
+
+.. _mongoid-raw-results:
+
+Return Raw Data
+---------------
+
+You can return results as raw hashes without creating model instances by
+chaining the ``raw`` method to your query.
+
+The following code retrieves the query results as raw hashes:
+
+.. literalinclude:: /includes/interact-data/modify-results.rb
+   :start-after: start-raw
+   :end-before: end-raw
+   :language: ruby
+   :dedent:
+
+By default, the ``raw`` method returns documents exactly as {+odm+}
+receives them from the database. You can optionally cast fields in your
+result hashes to the types from your model field declarations by setting
+the ``typed`` option to ``true`` in the ``raw`` method:
+
+.. literalinclude:: /includes/interact-data/modify-results.rb
+   :start-after: start-raw-typed
+   :end-before: end-raw-typed
+   :language: ruby
+   :dedent:
+
+If you perform a query that returns raw results and later want to
+convert these results into models, you can call ``raw(false)`` on the
+results:
+
+.. literalinclude:: /includes/interact-data/modify-results.rb
+   :start-after: start-raw-false
+   :end-before: end-raw-false
+   :language: ruby
+   :dedent:
+
 Additional Information
 ----------------------
 
-For a complete catalog of methods you can use on ``Criteria`` objects to modify 
+For a complete catalog of methods you can use on ``Criteria`` objects to modify
 query results, see the `Mongoid::Criteria::Queryable <{+api+}/Mongoid/Criteria/Queryable.html>`__
 module reference in the API documentation.
 
