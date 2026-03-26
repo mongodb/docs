@@ -21,7 +21,7 @@
 
       #. Click :guilabel:`Next, enter service details`
 
-   .. step:: Provide your {+gcp+} storage endpoint region
+   .. step:: Provide your {+gcp+} region.
 
       Your endpoint must be in the same region in which you
       intend to host the stream processors that use it.
@@ -67,6 +67,4 @@
 
    .. step:: Click :guilabel:`Next, generate endpoint ID`
 
-      After a few minutes of processing, you have successfully 
-      created a private link to you {+gcp+} storage in Confluent Cloud with 
-      the {+atlas-ui+}.
+      You can now use your private link connection in stream processors.
