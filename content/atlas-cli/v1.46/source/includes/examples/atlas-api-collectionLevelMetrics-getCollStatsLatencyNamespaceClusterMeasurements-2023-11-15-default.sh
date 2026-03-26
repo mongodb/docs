@@ -1,1 +1,0 @@
-atlas api collectionLevelMetrics getCollStatsLatencyNamespaceClusterMeasurements --version 2023-11-15 --clusterName [clusterName] --clusterView [clusterView] --collectionName mycoll --databaseName mydb --groupId 32b6e34b3d91647abb20e7b8 --period PT10H
