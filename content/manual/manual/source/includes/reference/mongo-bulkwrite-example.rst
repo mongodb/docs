@@ -1,6 +1,6 @@
 This example uses :method:`Mongo.bulkWrite()` to perform the following
-operations in order on the the :atlas:`sample_mflix database
-<sample-data/sample-mflix>`. 
+operations in order on the the :ref:`sample_mflix database
+<sample-mflix>`. 
 
 - inserts a document into the ``users`` collection
 - updates a document in the ``theaters`` collection
