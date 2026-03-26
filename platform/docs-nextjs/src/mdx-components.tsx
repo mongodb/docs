@@ -32,6 +32,7 @@ import { Kbd } from '@/mdx-components/Kbd';
 import { Icon } from '@leafygreen-ui/icon';
 import { Abbr } from '@/mdx-components/Abbr';
 import { Time } from '@/mdx-components/Time';
+import { Kicker } from '@/mdx-components/Kicker';
 import { Deprecated } from './mdx-components/Deprecated';
 
 type InjectedProps = Record<string, unknown>;
@@ -120,7 +121,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Input: ({ children }) => <span>{children}</span>,
     IoCodeBlock: ({ children }) => <span>{children}</span>,
     Kbd: ({ children }) => <Kbd>{children}</Kbd>,
-    Kicker: ({ children }) => <span>{children}</span>,
+    Kicker: ({ children }) => <Kicker>{children}</Kicker>,
     // built-in list syntax → List/ListItem (prefer over custom List/ListItem directives)
     ol: ({ children, ...props }) => <List {...props}>{children}</List>,
     ul: ({ children, ...props }) => (
