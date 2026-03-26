@@ -520,7 +520,7 @@ export const toc: L1TocItem[] = [
                 contentSite: 'csharp',
                 url: '/docs/drivers/csharp/:version/security/socks',
                 versions: {
-                  includes: ['current'],
+                  includes: ['current', 'upcoming'],
                 },
               },
             ],

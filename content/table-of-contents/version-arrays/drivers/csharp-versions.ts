@@ -1,7 +1,7 @@
 import Versions from '../versions';
 
 // allVersions and deprecatedVersions must be in order: oldest -> newest
-const allVersions = ['v2.x', 'v3.x'];
+const allVersions = ['v2.x', 'v3.x', 'upcoming'];
 const namedVersions = new Map<string, string>([['v3.x', 'current']]);
 const deprecatedVersions = [''];
 
