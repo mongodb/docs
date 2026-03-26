@@ -32,6 +32,7 @@ import { Kbd } from '@/mdx-components/Kbd';
 import { Icon } from '@leafygreen-ui/icon';
 import { Abbr } from '@/mdx-components/Abbr';
 import { Time } from '@/mdx-components/Time';
+import { Deprecated } from './mdx-components/Deprecated';
 
 type InjectedProps = Record<string, unknown>;
 
@@ -97,7 +98,7 @@ export const components = (injectedProps?: InjectedProps) =>
     DefinitionListItem: ({ children, ...props }) => <DefinitionListItem {...props}>{children}</DefinitionListItem>,
     DefinitionTerm: ({ children }) => <dt>{children}</dt>,
     DefinitionDescription: ({ children }) => <DefinitionDescription>{children}</DefinitionDescription>,
-    Deprecated: ({ children }) => <span>{children}</span>,
+    Deprecated: (props) => <Deprecated {...props} />,
     DeprecatedVersionSelector: ({ children }) => <span>{children}</span>,
     Describe: ({ children, ...props }) => <Describe {...props}>{children}</Describe>,
     Example: ({ children }) => <span>{children}</span>,

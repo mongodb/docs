@@ -418,6 +418,14 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           children,
         };
       }
+      if (directiveName === 'deprecated') {
+        const version = parseSnootyArgument(node);
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'Deprecated',
+          attributes: [{ type: 'mdxJsxAttribute', name: 'version', value: version }],
+        };
+      }
       if (directiveName === 'selected-content') {
         const selections =
           typeof node.selections === 'object' && node.selections !== null && !Array.isArray(node.selections)
