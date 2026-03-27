@@ -17,6 +17,14 @@ describe("Time series create and query tests", () => {
     }
   });
 
+  /*
+    These examples use a far future date to prevent a bug where documents are
+    deleted almost immediately after being inserted due to the default 
+    expireAfterSeconds value of 0. 
+
+     For details, see https://jira.mongodb.org/browse/DOCSP-57259.
+  */
+
   it("Should return the expected timeseries options (granularity)", async () => {
     const exampleFiles = [
       "timeseries/create-query/create-collection.js",
