@@ -8,8 +8,8 @@
    The following list shows monitoring options for your deployment:
 
    - **Deploy a MongoDB Atlas dedicated cluster**. :ref:`Migrate your
-     data <live-migrate-c2c>` to a :ref:`MongoDB Atlas
-     <atlas-getting-started>` dedicated cluster sized M10 or greater,
+     data <live-migrate-c2c>` to a `MongoDB Atlas
+     <https://www.mongodb.com/docs/get-started/>`__ dedicated cluster sized M10 or greater,
      which includes several advanced monitoring and alerting features:
 
      - :ref:`Query Profiler <query-profiler>`
