@@ -1,9 +1,9 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create the ``.java`` file and  use the ``updateSearchIndex()`` method to define the index changes in the file.
+   .. step:: Create a ``.java`` file and use the ``updateSearchIndex()`` method to add or remove ``filter`` type fields.
 
-      .. literalinclude:: /includes/avs/index-management/update-index/edit-index.java
+      .. literalinclude:: /includes/avs/index-management/update-index/EditAutoEmbedIndex.java
          :language: java
          :copyable: true 
          :linenos: 
@@ -25,11 +25,11 @@
          * - ``<indexName>``
            - Name of your index. If you omit the index name, defaults to ``vector_index``.
 
-         * - ``<numberOfDimensions>``
-           - Number of vector dimensions that {+avs+} enforces at index-time and query-time.
+         * - ``<modelName>``
+           - |voyage| embedding model to use to generate embeddings.
 
          * - ``<fieldToIndex>``
-           - Vector and filter fields to index.
+           - Name of the field to index.
 
    .. step:: Execute the code to update the index.
 
