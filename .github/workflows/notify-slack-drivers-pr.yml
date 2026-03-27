@@ -1,0 +1,73 @@
+name: Notify Slack on "send-slack-review-message" label
+on:
+  pull_request:
+    types: [labeled]
+permissions:
+  pull-requests: read
+  contents: read
+jobs:
+  notify-slack:
+    runs-on: ubuntu-latest
+    if: github.event.label.name == 'send-slack-review-message'
+    steps:
+      - name: Get changed folders and Slack user
+        id: info
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const slackMap = {
+              'juliacsorba29': 'U05BLNCFC68', 
+              'norareidy': 'U03JB19AD4J',
+              'mcmorisi': 'U070SAN8G9G',
+              'shuangela': 'U075H8B52T1',
+              'lindseymoore': 'U023LU76QP5',
+              'rachel-mack': 'U061U1M6UTD',
+              'mongoKart': 'U03LWH2EZTN',
+              'tmcneil-mdb': 'U09H49N4JHH',
+              'stephmarie17': 'U07B75WQM2N'
+            };
+            const files = await github.paginate(
+              github.rest.pulls.listFiles,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                pull_number: context.payload.pull_request.number,
+                per_page: 100,
+              }
+            );
+            const folders = [...new Set(
+              files
+                .filter(f => f.filename.startsWith('content/'))
+                .map(f => {
+                  const parts = f.filename.split('/');
+                  return parts.length > 2 ? parts[1] : null;
+                })
+                .filter(Boolean)
+            )];
+            core.setOutput('folders', folders.length > 0 ? folders.join(', ') : 'N/A');
+            const githubUser = context.payload.sender.login;
+            const slackId = slackMap[githubUser] || githubUser;
+            core.setOutput('requester', slackId);
+
+      - name: Prepare Slack fields
+        id: slack_fields
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          TITLE=$(echo "*${PR_TITLE}*" | sed 's/"/\\"/g')
+          echo "title=$TITLE" >> $GITHUB_OUTPUT
+
+      - name: Send Slack notification
+        uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52 # v2.1.0
+        with:
+          webhook: ${{ secrets.DRIVER_DOCS_PR_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "title": "${{ steps.slack_fields.outputs.title }}",
+              "url": ${{ toJSON(github.event.pull_request.html_url) }},
+              "requester": ${{ toJSON(steps.info.outputs.requester) }},
+              "message": "",
+              "description": ${{ toJSON(github.event.pull_request.body) }},
+              "folder": ${{ toJSON(steps.info.outputs.folders) }}
+            }
