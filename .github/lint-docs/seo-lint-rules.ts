@@ -84,6 +84,15 @@ function isIncludeFile(filename: string): boolean {
   return normalizedPath.includes('/includes/') || normalizedPath.includes('/include/');
 }
 
+/**
+ * Agent skills and flows under .github/agents/ are internal tooling,
+ * not published docs. Skip all checks to avoid noise.
+ */
+function isAgentToolingFile(filename: string): boolean {
+  const normalizedPath = filename.replace(/\\/g, '/').toLowerCase();
+  return normalizedPath.includes('.github/agents/');
+}
+
 // =============================================================================
 // TITLE CHECKS
 // =============================================================================
@@ -908,6 +917,10 @@ function checkLowContent(content: string, filename: string): LintIssue[] {
  */
 export function lintContent(content: string, filename: string): LintIssue[] {
   const allIssues: LintIssue[] = [];
+
+  if (isAgentToolingFile(filename)) {
+    return allIssues;
+  }
   
   // Include files are fragments - skip page-level SEO checks (title, meta, headings)
   const isInclude = isIncludeFile(filename);

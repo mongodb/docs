@@ -197,6 +197,15 @@ Checked 2 file(s), found 2 issue(s) in 2 file(s).
 - `.md` (Markdown)
 - `.mdx` (MDX)
 
+## Paths excluded from linters
+
+These are not treated as site content:
+
+| Path | Behavior |
+|------|-----------|
+| `content/table-of-contents/` | Skipped by pre-push hook and CI changed-file step |
+| `.github/agents/**` | Agent skills and flows (internal tooling). **Pre-push** skips SEO + 404 for these paths. **SEO linter** returns no issues if run manually — avoids meta/H1/nested-component noise |
+
 ---
 
 ## Requirements
