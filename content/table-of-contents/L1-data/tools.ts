@@ -88,7 +88,7 @@ const tocData: TocItem[] = [
     ],
   },
   {
-    label: 'IDE & AI Integrations',
+    label: 'For Agents',
     contentSite: 'docs',
     group: true,
     items: [
@@ -99,6 +99,33 @@ const tocData: TocItem[] = [
         showSubNav: true,
         items: MCPData,
       },
+      {
+        label: 'Agent Skills',
+        contentSite: 'landing',
+        url: '/docs/agent-skills',
+      },
+      {
+        label: 'Claude Plugin',
+        contentSite: 'landing',
+        url: '/docs/claude',
+      },
+      {
+        label: 'Cursor Plugin',
+        contentSite: 'landing',
+        url: '/docs/cursor',
+      },
+      {
+        label: 'Gemini Extension',
+        contentSite: 'landing',
+        url: '/docs/gemini',
+      },
+    ],
+  },
+  {
+    label: 'IDEs',
+    contentSite: 'docs',
+    group: true,
+    items: [
       {
         label: 'C# Analyzer',
         contentSite: 'visual-studio-extension',

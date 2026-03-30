@@ -7,6 +7,33 @@ export const toc: L1TocItem[] = [
     url: '/docs/tools-and-connectors',
     items: [
       {
+        label: 'For Agents',
+        contentSite: 'docs',
+        group: true,
+        items: [
+          {
+            label: 'Agent Skills',
+            contentSite: 'landing',
+            url: '/docs/agent-skills',
+          },
+          {
+            label: 'Claude Plugin',
+            contentSite: 'landing',
+            url: '/docs/claude',
+          },
+          {
+            label: 'Cursor Plugin',
+            contentSite: 'landing',
+            url: '/docs/cursor',
+          },
+          {
+            label: 'Gemini Extension',
+            contentSite: 'landing',
+            url: '/docs/gemini',
+          },
+        ],
+      },
+      {
         label: 'Partner Integrations',
         contentSite: 'cloud-docs',
         group: true,

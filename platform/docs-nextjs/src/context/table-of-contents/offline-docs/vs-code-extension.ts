@@ -127,6 +127,11 @@ export const toc: L1TocItem[] = [
             url: '/docs/mongodb-vscode/mcp-server',
           },
           {
+            label: 'MongoDB Agent Skills',
+            contentSite: 'mongodb-vscode',
+            url: '/docs/mongodb-vscode/agent-skills',
+          },
+          {
             label: 'MongoDB Extension for Github Copilot',
             contentSite: 'mongodb-vscode',
             collapsible: true,

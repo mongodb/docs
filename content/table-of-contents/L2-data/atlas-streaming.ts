@@ -13,15 +13,15 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
-	    label: 'Get Started',
-	    contentSite: 'cloud-docs',
-	    url: '/docs/atlas/atlas-stream-processing/quickstart',
-	  },
+            label: 'Get Started',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/atlas-stream-processing/quickstart',
+          },
           {
-	    label: 'Tier Sizing Guide',
-	    contentSite: 'cloud-docs',
-	    url: '/docs/atlas/atlas-stream-processing/tier-guide',
-	  },	  
+            label: 'Tier Sizing Guide',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/atlas-stream-processing/tier-guide',
+          },
         ],
       },
       {
