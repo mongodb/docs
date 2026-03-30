@@ -462,8 +462,15 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           children: convertChildren({ nodes: node.children, depth, ctx }),
         };
       }
-      // Generic fallback for any Snooty directive (ex: ...tab -> <Tab>)
-      const componentName = pascalCase(node.name ?? 'Directive');
+
+      // Generic fallback for any Snooty directive (ex: ...tab -> <Tab>) where pascalCase doesn't produce the desired result
+      const DIRECTIVE_TO_COMPONENT: Record<string, string> = {
+        see: 'See',
+        seealso: 'See',
+      };
+
+      const componentName = DIRECTIVE_TO_COMPONENT[directiveName] ?? pascalCase(node.name ?? 'Directive');
+      
       const attributes: MdastNode[] = toJsxAttributes(node.options);
 
       const ADMONITION_DIRECTIVES = new Set(['tip', 'note', 'important', 'warning', 'example']);

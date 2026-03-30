@@ -148,15 +148,8 @@ export const components = (injectedProps?: InjectedProps) =>
     Rubric: ({ children }) => <span>{children}</span>,
     Replacement: ({ children }) => <span>{children}</span>,
     SearchResults: ({ children }) => <span>{children}</span>,
-    See: ({ children }) => <span>{children}</span>,
-    SeeAlso: ({ children, ...props }) => (
-      <Admonition name="note" {...props}>
-        {children}
-      </Admonition>
-    ),
-    // TODO: Remove duplicate once mapping is fixed in DOP-6577
-    Seealso: ({ children, ...props }) => (
-      <Admonition name="note" {...props}>
+    See: ({ children, ...props }) => (
+      <Admonition name="tip" {...props}>
         {children}
       </Admonition>
     ),
