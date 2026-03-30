@@ -767,16 +767,6 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       };
     }
 
-    case 'cta-banner': {
-      const attributes: MdastNode[] = toJsxAttributes(node.options);
-      return {
-        type: 'mdxJsxFlowElement',
-        name: 'CTABanner',
-        attributes,
-        children: convertChildren({ nodes: node.children, depth, ctx }),
-      };
-    }
-
     case 'tabs': {
       return {
         type: 'mdxJsxFlowElement',

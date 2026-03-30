@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react';
 import { Banner } from '@/mdx-components/Banner';
+import { OfflineBanner } from '@/mdx-components/Banner/OfflineBanner';
 import { getCurrLocale } from '@/utils/locale';
 
 jest.mock('@/utils/locale', () => ({
@@ -20,6 +21,11 @@ describe('Snapshots', () => {
         This is a localized banner message
       </Banner>,
     );
+    expect(wrapper.asFragment()).toMatchSnapshot();
+  });
+
+  it.skip('renders an offline banner correctly', () => {
+    const wrapper = render(<OfflineBanner />);
     expect(wrapper.asFragment()).toMatchSnapshot();
   });
 });

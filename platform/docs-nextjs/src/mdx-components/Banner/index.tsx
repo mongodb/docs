@@ -4,8 +4,7 @@ import { useEffect } from 'react';
 import LeafyBanner, { Variant as LeafyVariant } from '@leafygreen-ui/banner';
 import { css, cx } from '@leafygreen-ui/emotion';
 import { getCurrLocale } from '@/utils/locale';
-import { baseBannerStyle } from '@/components/banner/styles/banner-item-style';
-import { styleMapDark, styleMapLight } from '@/components/banner/styles/banner-item-style';
+import { baseBannerStyle, styleMapDark, styleMapLight } from './styles';
 import { usePageContext } from '@/context/page-context';
 
 export const alertMap = {

@@ -4,6 +4,7 @@ import { Include } from '@/mdx-components/Include';
 import { Reference } from '@/mdx-components/Reference';
 import { Admonition } from '@/mdx-components/Admonition';
 import { Banner } from '@/mdx-components/Banner';
+import { CTABanner } from './mdx-components/Banner/CTABanner';
 import { Collapsible } from '@/mdx-components/collapsible';
 import { DefinitionListItem } from '@/mdx-components/DefinitionListItem';
 import { DefinitionDescription } from '@/mdx-components/DefinitionDescription';
@@ -93,8 +94,7 @@ export const components = (injectedProps?: InjectedProps) =>
     ),
     IOCodeBlock: ({ children }) => <span>{children}</span>,
     Container: ({ children }) => <span>{children}</span>,
-    CtaBanner: ({ children }) => <span>{children}</span>,
-    CTABanner: ({ children }) => <span>{children}</span>,
+    CtaBanner: ({ children, ...props }) => <CTABanner {...props}>{children}</CTABanner>,
     DefaultDomain: ({ children }) => <span>{children}</span>,
     DefinitionList: ({ children }) => <dl>{children}</dl>,
     DefinitionListItem: ({ children, ...props }) => <DefinitionListItem {...props}>{children}</DefinitionListItem>,
