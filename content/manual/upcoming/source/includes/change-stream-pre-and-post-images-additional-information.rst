@@ -78,7 +78,17 @@ Additional considerations:
   - The ``config.system.preimages`` collection may become large. To
     limit the collection size, you can set ``expireAfterSeconds``
     time for the pre-images as shown earlier.
-  
+
+  - To monitor the size of ``config.system.preimages``, connect to a
+    shard node on a sharded cluster or a :binary:`~bin.mongod` node
+    on a replica set. Then, run the following commands:
+
+    .. code-block:: javascript
+
+       use config
+       db.system.preimages.totalSize()
+       db.system.preimages.stats()
+
   - Pre-images are removed asynchronously by a background process.
 
 .. important:: Backward-Incompatible Feature
