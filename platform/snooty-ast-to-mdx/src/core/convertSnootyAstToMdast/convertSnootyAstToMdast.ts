@@ -14,6 +14,16 @@ import { extractInlineDisplayText } from './extractInlineDisplayText';
 const HIDDEN_NODES = ['toctree', 'index', 'seealso'];
 const DIRECTIVE_NAMES_TO_SKIP = ['extract', 'glossary'];
 
+/** Recursively extract plain text from a snooty argument node tree */
+const extractArgText = (n: SnootyNode): string => {
+  if (isValueNode(n)) return n.value;
+  return (n.children ?? []).map(extractArgText).join('');
+};
+
+/** Extract the tab title from node.argument */
+const parseTabName = (node: SnootyNode): string =>
+  Array.isArray(node.argument) ? node.argument.map(extractArgText).join('').trim() : String(node.argument || '').trim();
+
 /** Append dangling punctuation to preceding reference/link nodes (mirrors appendTrailingPunctuation from docs-nextjs) */
 const appendTrailingPunctuation = (nodes: SnootyNode[]): SnootyNode[] => {
   const result: SnootyNode[] = [];
@@ -463,6 +473,40 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         };
       }
 
+      if (directiveName === 'tab') {
+        const tabid = typeof node.options?.tabid === 'string' ? node.options.tabid : '';
+        const name = parseTabName(node);
+        const attributes: MdastNode[] = [{ type: 'mdxJsxAttribute', name: 'tabid', value: tabid }];
+        if (name) {
+          attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: name });
+        }
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'Tab',
+          attributes,
+          children: convertChildren({ nodes: node.children, depth, ctx }),
+        };
+      }
+      if (directiveName === 'tabs' || directiveName === 'tabs-drivers') {
+        const attributes: MdastNode[] = [];
+        if (typeof node.options?.tabset === 'string') {
+          attributes.push({ type: 'mdxJsxAttribute', name: 'tabset', value: node.options.tabset });
+        }
+        if (node.options?.hidden) {
+          attributes.push({
+            type: 'mdxJsxAttribute',
+            name: 'hidden',
+            value: { type: 'mdxJsxAttributeValueExpression', value: 'true' },
+          });
+        }
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'Tabs',
+          attributes,
+          children: convertChildren({ nodes: node.children, depth, ctx }),
+        };
+      }
+
       // Generic fallback for any Snooty directive (ex: ...tab -> <Tab>) where pascalCase doesn't produce the desired result
       const DIRECTIVE_TO_COMPONENT: Record<string, string> = {
         see: 'See',
@@ -470,7 +514,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       };
 
       const componentName = DIRECTIVE_TO_COMPONENT[directiveName] ?? pascalCase(node.name ?? 'Directive');
-      
+
       const attributes: MdastNode[] = toJsxAttributes(node.options);
 
       const ADMONITION_DIRECTIVES = new Set(['tip', 'note', 'important', 'warning', 'example']);
@@ -739,7 +783,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       // Create Reference component with type="substitution"
       const attributes: MdastNode[] = [];
       if (refname) {
-        attributes.push({ type: 'mdxJsxAttribute', name: 'key', value: refname });
+        attributes.push({ type: 'mdxJsxAttribute', name: 'refKey', value: refname });
         attributes.push({ type: 'mdxJsxAttribute', name: 'type', value: 'substitution' });
       }
       return {
@@ -768,10 +812,36 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
     }
 
     case 'tabs': {
+      const attributes: MdastNode[] = [];
+      if (typeof node.options?.tabset === 'string') {
+        attributes.push({ type: 'mdxJsxAttribute', name: 'tabset', value: node.options.tabset });
+      }
+      if (node.options?.hidden) {
+        attributes.push({
+          type: 'mdxJsxAttribute',
+          name: 'hidden',
+          value: { type: 'mdxJsxAttributeValueExpression', value: 'true' },
+        });
+      }
       return {
         type: 'mdxJsxFlowElement',
         name: 'Tabs',
-        attributes: [],
+        attributes,
+        children: convertChildren({ nodes: node.children, depth, ctx }),
+      };
+    }
+
+    case 'tab': {
+      const tabid = typeof node.options?.tabid === 'string' ? node.options.tabid : '';
+      const name = parseTabName(node);
+      const attributes: MdastNode[] = [{ type: 'mdxJsxAttribute', name: 'tabid', value: tabid }];
+      if (name) {
+        attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: name });
+      }
+      return {
+        type: 'mdxJsxFlowElement',
+        name: 'Tab',
+        attributes,
         children: convertChildren({ nodes: node.children, depth, ctx }),
       };
     }
@@ -894,14 +964,18 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
   });
 
   // Merge page-level options that sit on the root node itself.
-  const pageOptions = (root as { options?: Record<string, unknown> }).options ?? {};
+  // Promote `template` out of options so it always lives at the top level of frontmatter,
+  // regardless of whether it came from root.options (e.g. product-landing) or a meta directive.
+  const { template: pageTemplate, ...pageOptions } = (root as { options?: Record<string, unknown> }).options ?? {};
   const composableData = computeComposableTutorialData(root);
   if (composableData) {
     pageOptions.composable_tutorial = composableData;
   }
   const frontmatterObj = {
     ...(root.fileid ? { fileId: root.fileid } : {}),
+    ...(pageTemplate ? { template: pageTemplate } : {}),
     ...(Object.keys(pageOptions).length ? { options: pageOptions } : {}),
+    // meta directives are spread last so they can override page-level options (including template)
     ...metaFromDirectives,
     ...(Object.keys(facets).length ? { facets } : {}),
   };

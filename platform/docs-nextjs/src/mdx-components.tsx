@@ -30,6 +30,7 @@ import { GUILabel } from '@/mdx-components/GUILabel';
 import { Red } from '@/mdx-components/Red';
 import { Gold } from '@/mdx-components/Gold';
 import { Kbd } from '@/mdx-components/Kbd';
+import { Tabs, Tab } from '@/mdx-components/Tabs';
 import { Icon } from '@leafygreen-ui/icon';
 import { Abbr } from '@/mdx-components/Abbr';
 import { Time } from '@/mdx-components/Time';
@@ -154,8 +155,8 @@ export const components = (injectedProps?: InjectedProps) =>
       </Admonition>
     ),
     SharedInclude: ({ children }) => <span>{children}</span>,
-    Tabs: ({ children }) => <span>{children}</span>,
-    Tab: ({ children }) => <span>{children}</span>,
+    Tabs: ({ children, ...props }) => <Tabs {...props}>{children}</Tabs>,
+    Tab: ({ children, ...props }) => <Tab {...props}>{children}</Tab>,
     TabsSelector: ({ children }) => <span>{children}</span>,
     Target: ({ children }) => <span>{children}</span>,
     Time: (props) => <Time {...props} />,

@@ -251,6 +251,22 @@ const cases: Array<[string, SnootyNode]> = [
     },
   ],
   [
+    'tab with nested argument title',
+    {
+      type: 'tabs',
+      children: [
+        {
+          type: 'tab',
+          options: { tabid: 'mac-linux' },
+          // Snooty puts the tab title (e.g. `.. tab:: macOS / Linux`) in node.argument as a
+          // (possibly nested) node tree. A flat isValueNode filter misses nested text — we recurse.
+          argument: [{ type: 'text', value: 'macOS / Linux' }],
+          children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Some content' }] }],
+        },
+      ],
+    },
+  ],
+  [
     'target node',
     {
       type: 'target',

@@ -11,14 +11,17 @@ import { InstruqtProvider } from '@/context/instruqt-context';
 import { PageContextProvider } from '@/context/page-context';
 import { TabProvider } from '@/context/tabs-context';
 
+type Template = NonNullable<MDXFrontmatter['template']>;
+
 interface ProvidersProps {
   children: React.ReactNode;
   metadata: RemoteMetadata;
   frontmatter: MDXFrontmatter;
   slug: string;
+  template: Template | null;
 }
 
-export const Providers = ({ children, metadata, frontmatter, slug }: ProvidersProps) => {
+export const Providers = ({ children, metadata, frontmatter, slug, template }: ProvidersProps) => {
   const headingNodes = frontmatter.options?.headings || [];
 
   return (
@@ -27,7 +30,7 @@ export const Providers = ({ children, metadata, frontmatter, slug }: ProvidersPr
         <PageContextProvider
           fileId={frontmatter.fileId}
           slug={slug}
-          template={frontmatter.template ?? null}
+          template={template}
           tabsMainColumn={frontmatter.options?.['tabs-selector-position'] === 'main'}
           options={frontmatter.options}
         >
