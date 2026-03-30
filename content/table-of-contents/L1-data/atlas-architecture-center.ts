@@ -166,6 +166,21 @@ const tocData: TocItem[] = [
                 contentSite: 'atlas-architecture',
                 url: '/docs/atlas/architecture/:version/compliance/pcidss',
               },
+              {
+                label: 'SOC 2 Type II',
+                contentSite: 'atlas-architecture',
+                url: '/docs/atlas/architecture/:version/compliance/soc2',
+                versions: {
+                  excludes: [
+                    'v20260204',
+                    'v20251125',
+                    'v20250829',
+                    'v20250604',
+                    'v20250317',
+                    'v20250228',
+                  ],
+                },
+              },
             ],
           },
           {
