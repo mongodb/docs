@@ -194,22 +194,21 @@ early and keep your indexing strategy lean and purposeful.
 To learn more, see 
 :atlas:`Analyze Slow Queries </analyze-slow-queries/>`.
 
-Paused |fts| Indexes
-~~~~~~~~~~~~~~~~~~~~
+Paused {+fts+} Indexes
+~~~~~~~~~~~~~~~~~~~~~~
 
-An |fts| index might be stale because of any of the following reasons: 
+A {+fts+} index might be stale because of any of the following reasons: 
        
 - Replication stopped due to high disk utilization. 
        
-  For dedicated |fts| nodes, the pause replication threshold
-  is 90% and the resume replication threshold is 85% disk utilization 
-  for all writes on the cluster. 
-  Without dedicated |fts| nodes, the pause replication threshold
-  is 96% and the resume replication threshold is 94% disk utilization 
-  for all writes on the cluster.
+  For dedicated {+fts+} nodes, the pause replication threshold is 90%
+  and the resume replication threshold is 85% disk utilization for all
+  writes on the cluster. Without dedicated {+fts+} nodes, the pause
+  replication threshold is 96% and the resume replication threshold is
+  94% disk utilization for all writes on the cluster.
 
 - If replication stops for a period longer than the oplog window, the 
-  |fts| ``mongot`` process falls off the oplog and then must be 
+  {+fts+} ``mongot`` process falls off the oplog and then must be 
   resynced. 
   
   This state commonly occurs when the current replication point

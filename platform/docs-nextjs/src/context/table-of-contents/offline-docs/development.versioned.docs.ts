@@ -2222,7 +2222,15 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Review Deployment Options',
                 contentSite: 'cloud-docs',
+                collapsible: true,
                 url: '/docs/atlas/atlas-search/about/deployment-options',
+                items: [
+                  {
+                    label: 'Multi-Tenant Architecture',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/atlas-search/multi-tenant-architecture',
+                  },
+                ],
               },
               {
                 label: 'Monitor Atlas Search',
@@ -8894,9 +8902,21 @@ export const toc: L1TocItem[] = [
             url: '/docs/atlas/atlas-stream-processing',
             items: [
               {
-                label: 'Get Started',
+                label: 'Guides',
                 contentSite: 'cloud-docs',
-                url: '/docs/atlas/atlas-stream-processing/quickstart',
+                collapsible: true,
+                items: [
+                  {
+                    label: 'Get Started',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/atlas-stream-processing/quickstart',
+                  },
+                  {
+                    label: 'Tier Sizing Guide',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/atlas-stream-processing/tier-guide',
+                  },
+                ],
               },
               {
                 label: 'Architecture',
@@ -9250,6 +9270,52 @@ export const toc: L1TocItem[] = [
                     label: 'Compatibility Changes',
                     contentSite: 'docs',
                     url: '/docs/:version/release-notes/8.3-compatibility',
+                  },
+                  {
+                    label: 'Upgrade 8.2 to 8.3',
+                    contentSite: 'docs',
+                    collapsible: true,
+                    url: '/docs/:version/release-notes/8.3-upgrade',
+                    items: [
+                      {
+                        label: 'Standalone',
+                        contentSite: 'docs',
+                        url: '/docs/:version/release-notes/8.3-upgrade-standalone',
+                      },
+                      {
+                        label: 'Replica Set',
+                        contentSite: 'docs',
+                        url: '/docs/:version/release-notes/8.3-upgrade-replica-set',
+                      },
+                      {
+                        label: 'Sharded Cluster',
+                        contentSite: 'docs',
+                        url: '/docs/:version/release-notes/8.3-upgrade-sharded-cluster',
+                      },
+                    ],
+                  },
+                  {
+                    label: 'Downgrade 8.3 to 8.2',
+                    contentSite: 'docs',
+                    collapsible: true,
+                    url: '/docs/:version/release-notes/8.3-downgrade',
+                    items: [
+                      {
+                        label: 'Standalone',
+                        contentSite: 'docs',
+                        url: '/docs/:version/release-notes/8.3-downgrade-standalone',
+                      },
+                      {
+                        label: 'Replica Set',
+                        contentSite: 'docs',
+                        url: '/docs/:version/release-notes/8.3-downgrade-replica-set',
+                      },
+                      {
+                        label: 'Sharded Cluster',
+                        contentSite: 'docs',
+                        url: '/docs/:version/release-notes/8.3-downgrade-sharded-cluster',
+                      },
+                    ],
                   },
                   {
                     label: 'Changelog',

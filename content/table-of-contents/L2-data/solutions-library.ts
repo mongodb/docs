@@ -373,6 +373,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/media-personalization',
           },
           {
+            label: 'Media Personalization with User Clickstream Data',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/stream-media-personalization',
+          },
+          {
             label: 'Editorial Workflows with Gen AI',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/streamline-editorial-workflows',

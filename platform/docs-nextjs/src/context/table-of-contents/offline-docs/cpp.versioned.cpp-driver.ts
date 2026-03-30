@@ -12,7 +12,7 @@ export const toc: L1TocItem[] = [
         group: true,
         versionDropdown: true,
         versions: {
-          includes: ['current'],
+          includes: ['current', 'upcoming'],
         },
         items: [
           {

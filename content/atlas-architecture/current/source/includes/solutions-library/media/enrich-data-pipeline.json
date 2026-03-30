@@ -1,0 +1,271 @@
+// start-full-pipeline
+{
+  "name": "userIntentSummarizer",
+  "pipeline": [
+    {
+      "$source": {
+        "connectionName": "userevents",
+        "db": "news",
+        "collection": "user_events"
+      }
+    },
+    {
+      "$lookup": {
+        "from": {
+          "connectionName": "userevents",
+          "db": "news",
+          "coll": "articles"
+        },
+        "localField": "article_id",
+        "foreignField": "_id",
+        "as": "article_details",
+        "pipeline": [
+          {
+            "$project": {
+              "_id": 0,
+              "description": 1,
+              "keywords": 1,
+              "title": 1
+            }
+          }
+        ]
+      }
+    },
+    {
+      "$addFields": {
+        "description": { "$arrayElemAt": [ "$article_details.description", 0 ] },
+        "keywords":    { "$arrayElemAt": [ "$article_details.keywords", 0 ] },
+        "title":       { "$arrayElemAt": [ "$article_details.title", 0 ] }
+      }
+    },
+    {
+      "$project": {
+        "userId": 1,
+        "article_id": 1,
+        "eventTime": 1,
+        "event_type": 1,
+        "device": 1,
+        "session_id": 1,
+        "description": 1,
+        "keywords": 1,
+        "title": 1
+      }
+    },
+    {
+      "$sessionWindow": {
+        "partitionBy": "$session_id",
+        "gap": { "unit": "second", "size": 60 },
+        "pipeline": [{
+          "$group": {
+            "_id": "$session_id", "titles": {
+              "$push": "$title"
+            }
+          }
+        }]
+      }
+    },
+    {
+      "$https": {
+        "connectionName": "azureopenai",
+        "method": "POST",
+        "as": "apiResults",
+        "config": { "parseJsonStrings": true },
+        "payload": [
+          {
+            "$project": {
+              "_id": 0,
+              "model": "gpt-4o-mini",
+              "response_format": { "type": "json_object" },
+              "messages": [
+                {
+                    "role": "system",
+                    "content": "You are an analytical assistant that specializes in behavioral summarization. You analyze short-term reading activity and infer user interests without making personal or sensitive assumptions the create a special field called summary. Summary must be a special field in the response. Respond only in JSON format.Return a JSON object with the following keys in this order: \n reasoning: (Internal scratchpad, briefly explain your analysis) \n user_interests: (The list of inferred interests) \n summary: (A concise summary based on the interests above)"
+                },
+                { 
+                  "role": "user", 
+                  "content": { "$toString": "$titles" } 
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+        "$match": {
+            "titles": {
+                "$exists": true
+            },
+            "apiResults": {
+                "$exists": true
+            }
+        }
+    },
+    {
+        "$addFields": {
+            "summary": {
+                "$arrayElemAt": [
+                    "$apiResults.choices.message.content.summary",
+                    0
+                ]
+            }
+        }
+    },
+    {
+        "$project": {
+            "apiResults": 0
+        }
+    },
+    {
+        "$merge": {
+            "into": {
+                "coll": "user_intent",
+                "connectionName": "userevents",
+                "db": "news"
+            }
+        }
+    }
+  ]
+}
+// end-full-pipeline
+
+// Individual Pipeline Stages
+
+// Source Stage
+// start-enrich-data-stage
+{
+  "$source": {
+    "connectionName": "userevents",
+    "db": "news",
+    "collection": "user_events"
+  }
+},
+{
+  "$lookup": {
+    "from": {
+      "connectionName": "userevents",
+      "db": "news",
+      "coll": "articles"
+    },
+    "localField": "article_id",
+    "foreignField": "_id",
+    "as": "article_details",
+    "pipeline": [
+      {
+        "$project": {
+          "_id": 0,
+          "description": 1,
+          "keywords": 1,
+          "title": 1
+        }
+      }
+    ]
+  }
+},
+{
+  "$addFields": {
+    "description": { "$arrayElemAt": [ "$article_details.description", 0 ] },
+    "keywords":    { "$arrayElemAt": [ "$article_details.keywords", 0 ] },
+    "title":       { "$arrayElemAt": [ "$article_details.title", 0 ] }
+  }
+},
+{
+  "$project": {
+    "userId": 1,
+    "article_id": 1,
+    "eventTime": 1,
+    "event_type": 1,
+    "device": 1,
+    "session_id": 1,
+    "description": 1,
+    "keywords": 1,
+    "title": 1
+  }
+},
+// end-enrich-data-stage
+
+// SessionWindow Stage
+// start-sessionwindow-stage
+{
+  "$sessionWindow": {
+    "partitionBy": "$session_id",
+    "gap": { "unit": "second", "size": 60 },
+    "pipeline": [{
+      "$group": {
+        "_id": "$session_id", "titles": {
+          "$push": "$title"
+        }
+      }
+    }]
+  }
+}
+// end-sessionwindow-stage
+
+// HTTPS Stage
+// start-https-stage
+{
+  "$https": {
+    "connectionName": "azureopenai",
+    "method": "POST",
+    "as": "apiResults",
+    "config": { "parseJsonStrings": true },
+    "payload": [
+      {
+        "$project": {
+          "_id": 0,
+          "model": "gpt-4o-mini",
+          "response_format": { "type": "json_object" },
+          "messages": [
+            {
+                "role": "system",
+                "content": "You are an analytical assistant that specializes in behavioral summarization. You analyze short-term reading activity and infer user interests without making personal or sensitive assumptions the create a special field called summary. Summary must be a special field in the response. Respond only in JSON format.Return a JSON object with the following keys in this order: \n reasoning: (Internal scratchpad, briefly explain your analysis) \n user_interests: (The list of inferred interests) \n summary: (A concise summary based on the interests above)"
+            },
+            { 
+              "role": "user", 
+              "content": { "$toString": "$titles" } 
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
+// end-https-stage
+
+// AddSummary Stages
+// start-addsummary-stage
+{
+    "$match": {
+        "titles": {
+            "$exists": true
+        },
+        "apiResults": {
+            "$exists": true
+        }
+    }
+},
+{
+    "$addFields": {
+        "summary": {
+            "$arrayElemAt": [
+                "$apiResults.choices.message.content.summary",
+                0
+            ]
+        }
+    }
+},
+{
+    "$project": {
+        "apiResults": 0
+    }
+},
+{
+    "$merge": {
+        "into": {
+            "coll": "user_intent",
+            "connectionName": "userevents",
+            "db": "news"
+        }
+    }
+}
+// end-addsummary-stage
