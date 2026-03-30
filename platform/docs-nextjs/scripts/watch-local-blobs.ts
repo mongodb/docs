@@ -5,7 +5,9 @@ import path from 'path';
 import chalk from 'chalk';
 import { BLOB_STORE_NAME } from '../src/mdx-utils/blob-store';
 import { IMAGE_EXTENSIONS, JSON_EXTENSION, MDX_EXTENSION } from '../src/mdx-utils/get-blob-key';
-import { CONTENT_MDX_DIR, getRelativePath, uploadFile, deleteFile } from '../src/mdx-utils/blob-upload';
+import { CONTENT_MDX_DIR, getRelativePath, deleteFile } from '../src/mdx-utils/blob-upload';
+
+const DEV_SERVER_URL = 'http://localhost:8888';
 
 const initializeWatcher = async () => {
   const patterns = [
@@ -22,31 +24,34 @@ const initializeWatcher = async () => {
 
   watcher
     .on('add', async (filePath) => {
-      const { error } = await uploadFile(filePath);
       const relativePath = getRelativePath(filePath);
-      if (error) {
-        console.error(chalk.red(`✗ Failed to upload ${relativePath}:`), error);
+      const res = await fetch(`${DEV_SERVER_URL}/api/blobs/seed?path=${encodeURIComponent(relativePath)}`);
+      const data = await res.json();
+      if (data.error) {
+        console.error(chalk.red(`✗ Failed to upload ${relativePath}:`), data.error);
       } else {
         console.log(chalk.green(`✓ Uploaded ${relativePath}`));
       }
     })
     .on('change', async (filePath) => {
-      const { error } = await uploadFile(filePath);
       const relativePath = getRelativePath(filePath);
-      if (error) {
-        console.error(chalk.red(`✗ Failed to upload ${relativePath}:`), error);
+      const res = await fetch(`${DEV_SERVER_URL}/api/blobs/seed?path=${encodeURIComponent(relativePath)}`);
+      const data = await res.json();
+      if (data.error) {
+        console.error(chalk.red(`✗ Failed to upload ${relativePath}:`), data.error);
       } else {
         console.log(chalk.green(`✓ Uploaded ${relativePath}`));
       }
     })
     .on('unlink', async (filePath) => {
-      const { error } = await deleteFile(filePath);
-      const relativePath = getRelativePath(filePath);
-      if (error) {
-        console.error(chalk.red(`✗ Failed to delete ${relativePath}:`), error);
-      } else {
-        console.log(chalk.green(`✓ Deleted ${relativePath}`));
-      }
+      // TODO: Implement delete  with an API route
+      // const { error } = await deleteFile(filePath);
+      // const relativePath = getRelativePath(filePath);
+      // if (error) {
+      //   console.error(chalk.red(`✗ Failed to delete ${relativePath}:`), error);
+      // } else {
+      //   console.log(chalk.green(`✓ Deleted ${relativePath}`));
+      // }
     })
     .on('error', (error) => {
       console.error(chalk.red('Watcher error:'), error);

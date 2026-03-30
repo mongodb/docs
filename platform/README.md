@@ -41,7 +41,10 @@ Start the dev server:
 pnpm dev
 ```
 
+> Starting the dev server automatically runs `blobs:watch`, which will upload any changes in `content-mdx` to the local blob store as you edit files.
+
 Then, in a separate terminal, seed the local blob storage with the entire `content-mdx` folder:
+
 ```bash
 pnpm blobs:seed
 ```
@@ -102,6 +105,7 @@ Commands should generally be run from the root of the `platform` directory:
 ### Blob Storage Commands
 - `pnpm blobs:seed`: Seed the local blob storage with the MDX content (requires dev server to be running)
 - `pnpm blobs:clear`: Clear the local blob storage (requires dev server to be running)
+- `pnpm blobs:watch`: Watch `content-mdx` for changes and upload them incrementally (runs automatically with `pnpm dev`)
 
 ### Ingest Commands
 - `pnpm ingest:pages`: Update pages using the ingest tool

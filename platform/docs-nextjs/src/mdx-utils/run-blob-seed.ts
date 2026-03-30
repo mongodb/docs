@@ -21,14 +21,15 @@ async function collectFilePaths(currentDir: string): Promise<string[]> {
   return filePaths;
 }
 
-export async function runBlobSeed(contentDir: string = CONTENT_MDX_DIR): Promise<{
+export async function runBlobSeed(contentPath: string = CONTENT_MDX_DIR): Promise<{
   successCount: number;
   failureCount: number;
   total: number;
   durationMs: number;
 }> {
   const start = Date.now();
-  const filePaths = await collectFilePaths(contentDir);
+  const stat = await fs.stat(contentPath);
+  const filePaths = stat.isFile() ? [contentPath] : await collectFilePaths(contentPath);
 
   const results = await Promise.all(
     filePaths.map(async (fullPath) => {
