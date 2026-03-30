@@ -310,6 +310,19 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           attributes: [{ type: 'mdxJsxAttribute', name: 'minutes', value: time }],
         };
       }
+      if (directiveName === 'video') {
+        let url = '';
+        if (Array.isArray(node.argument) && node.argument[0]?.refuri) {
+          url = node.argument[0].refuri;
+        } else {
+          url = parseSnootyArgument(node);
+        }
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'Video',
+          attributes: [{ type: 'mdxJsxAttribute', name: 'url', value: url }],
+        };
+      }
       if (directiveName === 'describe') {
         const term = parseSnootyArgument(node);
         const children = convertChildren({ nodes: node.children, depth, ctx });
@@ -449,7 +462,6 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           children: convertChildren({ nodes: node.children, depth, ctx }),
         };
       }
-
       // Generic fallback for any Snooty directive (ex: ...tab -> <Tab>)
       const componentName = pascalCase(node.name ?? 'Directive');
       const attributes: MdastNode[] = toJsxAttributes(node.options);

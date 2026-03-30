@@ -32,6 +32,7 @@ import { Kbd } from '@/mdx-components/Kbd';
 import { Icon } from '@leafygreen-ui/icon';
 import { Abbr } from '@/mdx-components/Abbr';
 import { Time } from '@/mdx-components/Time';
+import { Video } from '@/mdx-components/Video/Video';
 import { Kicker } from '@/mdx-components/Kicker';
 import { Deprecated } from './mdx-components/Deprecated';
 
@@ -170,7 +171,7 @@ export const components = (injectedProps?: InjectedProps) =>
     hr: () => <Transition />,
     VersionAdded: ({ children }) => <span>{children}</span>,
     VersionChanged: ({ children }) => <span>{children}</span>,
-    Video: ({ children }) => <span>{children}</span>,
+    Video: (props) => <Video {...props} />,
     UseSampleData: ({ children }) => <span>{children}</span>,
     Wayfinding: ({ children }) => <span>{children}</span>,
     DismissibleSkillsCard: ({ children }) => <span>{children}</span>,
