@@ -57,17 +57,27 @@ jobs:
           TITLE=$(echo "*${PR_TITLE}*" | sed 's/"/\\"/g')
           echo "title=$TITLE" >> $GITHUB_OUTPUT
 
+      - name: Build secure Slack payload
+        env:
+          TITLE: ${{ steps.slack_fields.outputs.title }}
+          URL: ${{ github.event.pull_request.html_url }}
+          REQUESTER: ${{ steps.info.outputs.requester }}
+          DESCRIPTION: ${{ github.event.pull_request.body }}
+          FOLDER: ${{ steps.info.outputs.folders }}
+        run: |
+          jq -n \
+            '{
+              "Title": env.TITLE,
+              "url": env.URL,
+              "requester": env.REQUESTER,
+              "description": env.DESCRIPTION,
+              "folder": env.FOLDER
+            }' > slack_payload.json
+     
       - name: Send Slack notification
         uses: slackapi/slack-github-action@b0fa283ad8fea605de13dc3f449259339835fc52 # v2.1.0
         with:
           webhook: ${{ secrets.DRIVER_DOCS_PR_WEBHOOK }}
           webhook-type: webhook-trigger
           errors: true
-          payload: |
-            {
-              "Title": "Hardcoded Test Title",
-              "url": "https://github.com/10gen/docs-mongodb-internal",
-              "requester": "TestUser",
-              "description": "This is a plain text description with no weird characters.",
-              "folder": "TestFolder"
-            }
+          payload-file-path: slack_payload.json
