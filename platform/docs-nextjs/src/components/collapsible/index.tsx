@@ -21,7 +21,7 @@ export interface CollapsibleProps {
   nodeChildren: ASTNode[];
   options?: CollapsibleOptions;
   // New props for the MDX version
-  children: React.ReactNode;
+  children?: React.ReactNode;
   childrenHashIds?: string[];
   id?: string;
   heading?: string;

@@ -12,7 +12,7 @@ import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { collapsibleStyle, headerContainerStyle, headerStyle, iconStyle, innerContentStyle } from './styles';
 
-export type CollapsibleProps = {
+type CollapsibleProps = {
   children: React.ReactNode;
   heading: string;
   headingLevel?: number;

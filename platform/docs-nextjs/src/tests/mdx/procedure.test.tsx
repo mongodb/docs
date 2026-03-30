@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react';
 import { mockLocation } from '../utils/mock-location';
-import Procedure from '@/mdx-components/procedure';
-import Step from '@/mdx-components/procedure/step';
+import Procedure from '@/mdx-components/Procedure';
+import Step from '@/mdx-components/Procedure/Step';
 import { Paragraph } from '@/mdx-components/Paragraph';
 import Link from '@/components/link';
 import Section from '@/components/section';

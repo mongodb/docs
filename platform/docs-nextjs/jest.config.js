@@ -21,8 +21,12 @@ const config = {
     '^@/(.*)$': '<rootDir>/src/$1',
   },
 
+  transformIgnorePatterns: [
+    'node_modules/(?!(\\.pnpm/(react-children-utilities|github-slugger)@|react-children-utilities/|github-slugger/))',
+  ],
+
   transform: {
-    '^.+\\.(ts|tsx)$': [
+    '^.+\\.(ts|tsx|js|jsx)$': [
       'ts-jest',
       {
         tsconfig: 'tsconfig.jest.json',
