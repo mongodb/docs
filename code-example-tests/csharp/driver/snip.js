@@ -6,17 +6,21 @@ import path from "path";
 
 const exec = promisify(childExec);
 
-// ------ CONFIGURATION: Set these values for your language/project ----------
-const IGNORE_PATTERNS = new Set([
-  'bin',
-  'Examples.csproj',
-  'ExampleStub.cs',
-  'Program.cs',
-  'obj'
-]);
-
-const START_DIRECTORY = "code-example-tests/csharp/driver/Examples";
-const OUTPUT_DIRECTORY = "content/code-examples/tested/csharp/driver";
+// ------ CONFIGURATION: Define project configs here --------------------------
+const PROJECTS = {
+  driver: {
+    ignorePatterns: new Set(['bin', 'Examples.csproj', 'ExampleStub.cs', 'Program.cs', 'obj']),
+    startDirectory: "code-example-tests/csharp/driver/Examples",
+    outputDirectory: "content/code-examples/tested/csharp/driver",
+    tempDirectory: "code-example-tests/csharp/driver/tempFormat",
+  },
+  "ef-core": {
+    ignorePatterns: new Set(['bin', 'Examples.csproj', 'Program.cs', 'obj']),
+    startDirectory: "code-example-tests/csharp/driver/Examples/EfCore",
+    outputDirectory: "content/code-examples/tested/csharp/ef-core",
+    tempDirectory: "code-example-tests/csharp/driver/tempFormat-efcore",
+  },
+};
 // ------ END CONFIGURATION --------------------------------------------------
 
 // Check if Bluehawk is installed
@@ -96,11 +100,11 @@ async function runFormatter(tempDirectory) {
 }
 
 // Helper to move files recursively from source to target directory
-async function moveFiles(sourceDirectory, targetDirectory) {
+async function moveFiles(sourceDirectory, targetDirectory, ignorePatterns) {
   try {
     const files = await fs.readdir(sourceDirectory, { withFileTypes: true });
     for (const file of files) {
-      if (IGNORE_PATTERNS.has(file.name)) {
+      if (ignorePatterns.has(file.name)) {
         continue; // Skip the file or directory
       }
 
@@ -109,7 +113,7 @@ async function moveFiles(sourceDirectory, targetDirectory) {
 
       if (file.isDirectory()) {
         await fs.mkdir(targetFilePath, { recursive: true });
-        await moveFiles(sourceFilePath, targetFilePath, IGNORE_PATTERNS); // Recursively handle subdirectories
+        await moveFiles(sourceFilePath, targetFilePath, ignorePatterns); // Recursively handle subdirectories
       } else {
         await fs.rename(sourceFilePath, targetFilePath); // Move file
       }
@@ -117,6 +121,46 @@ async function moveFiles(sourceDirectory, targetDirectory) {
   } catch (error) {
     console.error(`Error moving files from ${sourceDirectory} to ${targetDirectory}: ${error.message}`);
     throw error;
+  }
+}
+
+// Process a single project configuration
+async function processProject(projectName, config) {
+  console.log(`\n--- Processing project: ${projectName} ---`);
+  const resolvedStartDirectory = resolvePathFromGitRoot(config.startDirectory);
+  const resolvedOutputDirectory = resolvePathFromGitRoot(config.outputDirectory);
+
+  // If the person running the script has dotnet CLI installed, use it to
+  // run the formatting tool
+  const dotnetInstalled = isDotnetInstalled();
+
+  if (dotnetInstalled) {
+    const resolvedTempDirectory = resolvePathFromGitRoot(config.tempDirectory);
+
+    // Ensure the temp directory exists
+    await fs.mkdir(resolvedTempDirectory, { recursive: true });
+
+    // Snip the code example files into the temp directory
+    console.log(`Snipping files to temporary directory: ${resolvedTempDirectory}`);
+    await processFiles(resolvedStartDirectory, resolvedTempDirectory, config.ignorePatterns);
+
+    // Run dotnet format
+    console.log(`Running formatter`);
+    await runFormatter(resolvedTempDirectory);
+    console.log("Formatting completed.");
+
+    // Move formatted files to the output directory
+    console.log(`Moving formatted files to output directory: ${resolvedOutputDirectory}`);
+    await moveFiles(resolvedTempDirectory, resolvedOutputDirectory, config.ignorePatterns);
+
+    // Cleanup: Remove temp directory and intermediate files
+    await fs.rm(resolvedTempDirectory, { recursive: true, force: true });
+    console.log(`Temporary directory cleaned up: ${resolvedTempDirectory}`);
+  } else {
+    // If the user does not have dotnet CLI installed, snip files directly
+    // to the output directory without formatting them.
+    console.log(`Dotnet CLI not found. Processing files directly to output directory.`);
+    await processFiles(resolvedStartDirectory, resolvedOutputDirectory, config.ignorePatterns);
   }
 }
 
@@ -129,43 +173,21 @@ async function main() {
     process.exit(1);
   }
 
-  // If the user does have Bluehawk installed, process the code example files.
+  // Determine which project(s) to process from CLI argument.
+  // Usage: node snip.js [driver|ef-core|all]
+  // Default: driver
+  const arg = process.argv[2] || "driver";
+
   try {
-    const resolvedStartDirectory = resolvePathFromGitRoot(START_DIRECTORY);
-    const resolvedOutputDirectory = resolvePathFromGitRoot(OUTPUT_DIRECTORY);
-
-    // If the person running the script has dotnet CLI installed, use it to
-    // run the formatting tool
-    const dotnetInstalled = isDotnetInstalled();
-
-    if (dotnetInstalled) {
-      // Hard-coded temp directory inside .NET project scope
-      const resolvedTempDirectory = resolvePathFromGitRoot("code-example-tests/csharp/driver/tempFormat");
-
-      // Ensure the temp directory exists
-      await fs.mkdir(resolvedTempDirectory, { recursive: true });
-
-      // Snip the code example files into the temp directory
-      console.log(`Snipping files to temporary directory: ${resolvedTempDirectory}`);
-      await processFiles(resolvedStartDirectory, resolvedTempDirectory, IGNORE_PATTERNS);
-
-      // Run dotnet format
-      console.log(`Running formatter`);
-      await runFormatter(resolvedTempDirectory);
-      console.log("Formatting completed.");
-
-      // Move formatted files to the output directory
-      console.log(`Moving formatted files to output directory: ${resolvedOutputDirectory}`);
-      await moveFiles(resolvedTempDirectory, resolvedOutputDirectory);
-
-      // Cleanup: Remove temp directory and intermediate files
-      await fs.rm(resolvedTempDirectory, { recursive: true, force: true });
-      console.log(`Temporary directory cleaned up: ${resolvedTempDirectory}`);
+    if (arg === "all") {
+      for (const [name, config] of Object.entries(PROJECTS)) {
+        await processProject(name, config);
+      }
+    } else if (PROJECTS[arg]) {
+      await processProject(arg, PROJECTS[arg]);
     } else {
-      // If the user does not have dotnet CLI installed, snip files directly
-      // to the output directory without formatting them.
-      console.log(`Dotnet CLI not found. Processing files directly to output directory.`);
-      await processFiles(resolvedStartDirectory, resolvedOutputDirectory, IGNORE_PATTERNS);
+      console.error(`Unknown project: "${arg}". Available projects: ${Object.keys(PROJECTS).join(", ")}, all`);
+      process.exit(1);
     }
   } catch (error) {
     console.error("Error during processing, formatting, or moving files:", error);
