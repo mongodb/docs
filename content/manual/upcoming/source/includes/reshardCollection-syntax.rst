@@ -6,6 +6,7 @@
         key: { "<shardkey>" },
         unique: <boolean>,
         numInitialChunks: <integer>,
+        numSamplesPerChunk: <integer>,
         collation: { locale: "simple" },
         zones: [
             {
