@@ -48,7 +48,7 @@ func main() {
 			autoEmbedField{  
 				Type:     "autoEmbed",  
 				Modality: "text",  
-				Path:     "<field-to-index>",  
+				Path:     "<indexed-field>",  
 				Model:    "<embedding-model>",  
 			},  
 			filterField{  

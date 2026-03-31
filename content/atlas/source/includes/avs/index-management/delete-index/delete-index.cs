@@ -20,7 +20,7 @@ public class IndexService
 
             // Delete your search index
             var searchIndexView = collection.SearchIndexes;
-            var name = "vector_index";
+            var name = "<indexName>";
             searchIndexView.DropOne(name);
             
             Console.WriteLine($"Dropping search index named {name}. This may take up to a minute.");

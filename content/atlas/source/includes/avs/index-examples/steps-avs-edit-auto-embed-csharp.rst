@@ -1,10 +1,10 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create a file called ``edit-index.go`` and define the index changes in the file. 
+   .. step:: Create the ``.cs`` file and define the index changes in the file.
 
-      .. literalinclude:: /includes/avs/index-management/update-index/edit-auto-embed-index.go
-         :language: go
+      .. literalinclude:: /includes/avs/index-management/update-index/edit-auto-embed-index.cs
+         :language: csharp
          :copyable: true 
          :linenos: 
 
@@ -13,29 +13,35 @@
       .. list-table:: 
          :stub-columns: 1 
 
-         * - ``<connection-string>``
+         * - ``<connectionString>``
            - Cluster connection string. To learn more, see :ref:`connect-via-driver`.
 
-         * - ``<database-name>``
+         * - ``<databaseName>``
            - Database that contains the collection for which you want to create the index.
 
-         * - ``<collection-name>``
+         * - ``<collectionName>``
            - Collection for which you want to create the index.
 
-         * - ``<index-name>``
+         * - ``<indexName>``
            - Name of your index. If you omit the index name, defaults to ``vector_index``.
 
-         * - ``<indexed-field>``
-           - Name of the field indexed as the ``autoEmbed`` type. 
-
-         * - ``<embedding-model>``
+         * - ``<embeddingModel>``
            - Name of the |voyage| embedding model to use for generating embeddings.
 
-         * - ``<field-to-index>``
+         * - ``<fieldToIndex>``
            - Vector and filter fields to index.
 
-   .. step:: Run the following command to update the index.
+   .. step:: Initialize the class and call the method in ``Program.cs``.
+
+      .. code-block:: csharp
+
+         using query_quick_start;
+
+         var indexService = new IndexService();
+         indexService.EditVectorIndex();
+
+   .. step:: Compile and run your project.
 
       .. code-block:: shell
 
-         go run edit-index.go
+         dotnet run

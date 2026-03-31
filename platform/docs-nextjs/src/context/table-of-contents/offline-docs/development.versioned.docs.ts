@@ -4519,6 +4519,14 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/command/getShardMap',
                       },
                       {
+                        label: 'getTransitionToDedicatedConfigServerStatus',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/command/getTransitionToDedicatedConfigServerStatus',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0', 'manual'],
+                        },
+                      },
+                      {
                         label: 'isdbgrid',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/command/isdbgrid',

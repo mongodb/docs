@@ -22,6 +22,10 @@
          * - ``<collectionName>``
            - The name of the collection.
 
+         * - ``<indexName>``
+           - The name of the index to retrieve. To return all indexes on 
+             the collection, omit this value.
+
    .. step:: Initialize the class and call the method in ``Program.cs``.
 
       .. code-block:: csharp

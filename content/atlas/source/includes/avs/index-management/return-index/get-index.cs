@@ -20,7 +20,7 @@ public class IndexService
 
             // Get a list of the collection's search indexes and print them
             var searchIndexView = collection.SearchIndexes;
-            var indexes = searchIndexView.List();
+            var indexes = searchIndexView.List("<indexName>");
             
             foreach (var index in indexes.ToEnumerable())
             {

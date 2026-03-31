@@ -29,7 +29,7 @@ public class EditVectorIndex {
                     new Document("type", "autoEmbed")
                         .append("modality", "text")
                         .append("model", "<modelName>")
-                        .append("path", "<fieldToIndex>"),
+                        .append("path", "<indexedField>"),
                     new Document("type", "filter")
                         .append("path", "<filterField1>"),
                     new Document("type", "filter")

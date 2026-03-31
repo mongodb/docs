@@ -1,10 +1,10 @@
 .. procedure:: 
    :style: normal 
 
-   .. step:: Create a ``.java`` file and use the ``updateSearchIndex()`` method to add or remove ``filter`` type fields.
+   .. step:: Create the ``.cs`` file and define the index changes in the file.
 
-      .. literalinclude:: /includes/avs/index-management/update-index/EditAutoEmbedIndex.java
-         :language: java
+      .. literalinclude:: /includes/avs/index-management/update-index/edit-auto-embed-index.cs
+         :language: csharp
          :copyable: true 
          :linenos: 
 
@@ -28,12 +28,23 @@
          * - ``<indexedField>``
            - Name of the field indexed as the ``autoEmbed`` type. 
 
-         * - ``<modelName>``
-           - |voyage| embedding model to use to generate embeddings.
+         * - ``<embeddingModel>``
+           - |voyage| embedding model to use for generating embeddings.
 
          * - ``<fieldToIndex>``
-           - Name of the field to index.
+           - Vector and filter fields to index.
 
-   .. step:: Execute the code to update the index.
+   .. step:: Initialize the class and call the method in ``Program.cs``.
 
-      From your IDE, run the file to update the index with your changes.
+      .. code-block:: csharp
+
+         using query_quick_start;
+
+         var indexService = new IndexService();
+         indexService.EditVectorIndex();
+
+   .. step:: Compile and run your project.
+
+      .. code-block:: shell
+
+         dotnet run
