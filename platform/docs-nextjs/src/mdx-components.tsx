@@ -37,6 +37,7 @@ import { Time } from '@/mdx-components/Time';
 import { Video } from '@/mdx-components/Video/Video';
 import { Kicker } from '@/mdx-components/Kicker';
 import { Deprecated } from './mdx-components/Deprecated';
+import { TabsSelector } from '@/mdx-components/TabsSelector';
 
 type InjectedProps = Record<string, unknown>;
 
@@ -158,7 +159,7 @@ export const components = (injectedProps?: InjectedProps) =>
     SharedInclude: ({ children }) => <span>{children}</span>,
     Tabs: ({ children, ...props }) => <Tabs {...props}>{children}</Tabs>,
     Tab: ({ children, ...props }) => <Tab {...props}>{children}</Tab>,
-    TabsSelector: ({ children }) => <span>{children}</span>,
+    TabsSelector: () => <TabsSelector />,
     Target: ({ children }) => <span>{children}</span>,
     Time: (props) => <Time {...props} />,
     Toctree: ({ children }) => <span>{children}</span>,

@@ -121,6 +121,33 @@ describe('convertSnootyAstToMdast', () => {
     expect(refs.refs['/docs/page'].title).toBe('Doc');
   });
 
+  it('injects tabs-selector-position: main into frontmatter when tabs-selector directive is present', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      options: { selectors: { drivers: { nodejs: [{ type: 'text', value: 'Node.js' }] } } },
+      children: [
+        { type: 'directive', name: 'tabs-selector', argument: 'drivers' },
+        { type: 'paragraph', children: [{ type: 'text', value: 'Content' }] },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    const frontmatter = yaml.parse(mdx.split('---')[1]);
+
+    expect(frontmatter.options?.['tabs-selector-position']).toBe('main');
+  });
+
+  it('does not inject tabs-selector-position when no tabs-selector directive is present', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      options: { selectors: { drivers: { nodejs: [{ type: 'text', value: 'Node.js' }] } } },
+      children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Content' }] }],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    const frontmatter = yaml.parse(mdx.split('---')[1]);
+
+    expect(frontmatter.options?.['tabs-selector-position']).toBeUndefined();
+  });
+
   it('adds composable_tutorial (validSelections, refToSelection) to frontmatter when page has composable-tutorial', () => {
     const ast: SnootyNode = {
       type: 'root',

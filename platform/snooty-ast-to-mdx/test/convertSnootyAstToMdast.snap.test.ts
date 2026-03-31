@@ -476,6 +476,14 @@ const cases: Array<[string, SnootyNode]> = [
       ],
     },
   ],
+  [
+    'tabs-selector directive',
+    {
+      type: 'directive',
+      name: 'tabs-selector',
+      argument: 'drivers',
+    },
+  ],
   ['hidden directive (toctree)', { type: 'directive', name: 'toctree' }],
   ['unknown node type', { type: 'mystery' }],
   ['title node', { type: 'title', children: [{ type: 'text', value: 'A Title' }] }],

@@ -487,6 +487,18 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           children: convertChildren({ nodes: node.children, depth, ctx }),
         };
       }
+      if (directiveName === 'tabs-selector') {
+        // The argument (e.g. "drivers") indicates which tabset's selector to render.
+        // Selector option data lives in the page's frontmatter options.selectors.
+        // Emit an empty <TabsSelector /> marker; position is handled via the
+        // tabs-selector-position frontmatter option injected in convertSnootyAstToMdast.
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'TabsSelector',
+          attributes: [],
+          children: [],
+        };
+      }
       if (directiveName === 'tabs' || directiveName === 'tabs-drivers') {
         const attributes: MdastNode[] = [];
         if (typeof node.options?.tabset === 'string') {
@@ -990,6 +1002,16 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
   // Promote `template` out of options so it always lives at the top level of frontmatter,
   // regardless of whether it came from root.options (e.g. product-landing) or a meta directive.
   const { template: pageTemplate, ...pageOptions } = (root as { options?: Record<string, unknown> }).options ?? {};
+
+  // If the page body contains a tabs-selector directive, mark the selector position as
+  // "main" so the TabsSelector component renders inline in the content body.
+  const hasTabsSelector = (root.children ?? []).some(
+    (child: SnootyNode) => child.type === 'directive' && String(child.name).toLowerCase() === 'tabs-selector',
+  );
+  if (hasTabsSelector) {
+    pageOptions['tabs-selector-position'] = 'main';
+  }
+
   const composableData = computeComposableTutorialData(root);
   if (composableData) {
     pageOptions.composable_tutorial = composableData;
