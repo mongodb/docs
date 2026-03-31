@@ -2,8 +2,9 @@
 - |mc| can only move unsharded collections.
 - |mc| can only move a single collection at a time.
 - |mc| has a 5 minute minimum duration. 
-- Atlas Search indexes need to be rebuilt after ``moveCollection`` 
-  runs.
+- If the collection that is being moved uses {+fts+}, its search indexes become
+  unavailable after ``moveCollection`` completes. You must manually rebuild
+  the search indexes.
 - You cannot make topology changes, such as add or remove shard or 
   transition between embedded and dedicated config servers, until
   ``moveCollection`` completes.
