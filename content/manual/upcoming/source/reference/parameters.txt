@@ -1567,6 +1567,46 @@ General Parameters
       mongod \
         --setParameter "ingressRequestRateLimiterApplicationExemptions={\"appNames\":[\"MongoDB Internal Client\"]}"
 
+.. parameter:: overloadAwareServerSelectionEnabled
+
+   .. versionadded:: 8.3
+
+   |both|
+
+   *Type*: boolean
+
+   *Default*: ``false``
+
+   This parameter controls whether overload-induced retries against
+   other servers in the cluster avoid servers that recently returned an
+   error labeled ``SystemOverloaded``. It affects operations that
+   perform remote targeting, for example when ``mongos`` retries
+   requests against shard members or when ``mongod`` performs remote
+   reads during aggregation.
+
+   When you set this parameter to ``true``, retry logic for remote
+   targeting prefers non-overloaded members for operations that fail
+   with ``SystemOverloaded``. For example, when ``mongos`` retries
+   reads:
+
+   - With the ``primaryPreferred`` read preference, ``mongos`` can
+     route a retried read to a secondary if the primary indicates
+     overload, even if the primary remains reachable.
+
+   - With the ``secondaryPreferred`` read preference, ``mongos`` can
+     route a retried read to the primary if secondaries indicate
+     overload.
+
+   When you set this parameter to ``false``, retries do not avoid
+   members that signal overload. If a member continues to return
+   ``SystemOverloaded``, retries may continue targeting that member.
+
+   This parameter affects only operations retried after
+   ``SystemOverloaded`` errors that can occur when you enable ingress
+   request rate limiting or other overload mechanisms on shard nodes.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
 .. parameter:: maxIndexBuildMemoryUsageMegabytes
    
    |mongod-only|
