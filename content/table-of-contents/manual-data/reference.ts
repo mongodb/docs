@@ -380,6 +380,12 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/command/getShardMap',
           },
           {
+            label: 'getTransitionToDedicatedConfigServerStatus',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/command/getTransitionToDedicatedConfigServerStatus',
+            versions: { excludes: manualVersions.before('v8.3') },
+          },
+          {
             label: 'isdbgrid',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/isdbgrid',

@@ -1,0 +1,191 @@
+=============================================================
+getTransitionToDedicatedConfigServerStatus (database command)
+=============================================================
+.. meta::
+   :description: Shows status of the transition from an embedded config server to a dedicated config server.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: getTransitionToDedicatedConfigServerStatus
+
+.. include:: /includes/command/getTransitionToDedicatedConfigServerStatus.rst
+
+The command returns ``ok: 0`` with an error if the transition fails, otherwise
+it returns ``ok: 1``. 
+
+To start transitioning to a dedicated config server, see the 
+:dbcommand:`startTransitionToDedicatedConfigServer` command.
+
+.. versionadded:: 8.3
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+.. note::
+
+   This command is not supported in `{+atlas+} <https://www.mongodb.com/docs/atlas>`__.
+   See `Modify your Atlas Sharded Cluster <https://www.mongodb.com/docs/atlas/cluster-additional-settings/#atlas-managed-config-servers-for-sharded-clusters>`__
+   to add or remove shards from your Atlas cluster.
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.adminCommand( { 
+        getTransitionToDedicatedConfigServerStatus: 1 
+   } )
+
+Output Fields
+-------------
+
+This command returns the following output:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 30 15 55
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``msg``
+     - string
+     - Provides the current draining operation being performed by
+       the balancer.
+
+   * - ``state``
+     - string
+     - Provides the status of the transition to a dedicated config server.
+
+   * - ``remaining``
+     - document
+     - Shows the remaining tasks the balancer must perform to
+       drain the shard before fully transitioning to a dedicated config server.
+
+   * - ``remaining.chunks``
+     - long
+     - Indicates the number of chunks still on the shard.
+       
+   * - ``remaining.dbs``
+     - long
+     - Indicates the number of databases still on the shard.
+
+   * - ``remaining.jumboChunks``
+     - long
+     - Indicates the number of large chunks still on the shard.
+
+   * - ``remaining.collectionsToMove``
+     - long
+     - Indicates the number of collections still on the shard.
+
+   * - ``note``
+     - string
+     - Provides additional message for the user.
+
+   * - ``dbsToMove``
+     - array
+     - Indicates databases that use the draining shard as the
+       :term:`primary shard`. Before you can fully transition to a dedicated 
+       config server, you must manually move these databases
+       to a new shard using the :dbcommand:`movePrimary`
+       command.
+
+   * - ``collectionsToMove``
+     - array
+     - Indicates unsharded collections stored on the draining
+       shard. Before you can fully transition to a dedicated config server,
+       you must manually move these collections to another shard
+       using the :dbcommand:`moveCollection` command.
+
+Behavior
+--------
+
+Access Requirements
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/removeShard-access-requirements.rst
+
+Database Migration Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/config-server-database-migration-requirements.rst
+
+Collection Migration Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/config-server-collection-migration-requirements.rst
+
+Examples
+--------
+
+To start the transition to a dedicated config server, use the 
+:method:`db.adminCommand` method to run the 
+:dbcommand:`startTransitionToDedicatedConfigServer` command:
+
+.. code-block:: javascript
+
+   db.adminCommand( { startTransitionToDedicatedConfigServer: 1 } )
+
+To check the status of the draining operation, use the
+``getTransitionToDedicatedConfigServerStatus`` command:
+
+.. io-code-block:: 
+
+   .. input::
+      :language: javascript
+
+      db.adminCommand( { getTransitionToDedicatedConfigServerStatus: 1 } )
+
+   .. output::
+      :language: javascript
+
+      {
+	      "state" : "ongoing",
+	      "remaining" : {
+		      "chunks" : NumberLong(2),
+		      "collectionsToMove" : NumberLong(1),
+		      "dbs" : NumberLong(1),
+		      "jumboChunks" : NumberLong(0),
+		      "estimatedRemainingBytes" : NumberLong(18)
+	   },
+	      "msg" : "draining ongoing",
+	      "dbsToMove" : [
+		      "testDB"
+	  ],
+	      "note" : "you need to call moveCollection for collectionsToMove and afterwards movePrimary for the dbsToMove",
+	      "collectionsToMove" : [
+		      "testDB.testCollUnsharded"
+	   ],
+	      "ok" : 1,
+	      "$clusterTime" : {
+		      "clusterTime" : Timestamp(1772210444, 27),
+		      "signature" : {
+			      "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+			      "keyId" : NumberLong(0)
+		  }
+	   },
+	      "operationTime" : Timestamp(1772210444, 27)
+        }
+
+Learn More
+----------
+
+- :dbcommand:`startTransitionToDedicatedConfigServer`
+
