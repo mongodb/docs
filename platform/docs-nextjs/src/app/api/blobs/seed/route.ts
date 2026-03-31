@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 import { NextResponse } from 'next/server';
 import { runBlobSeed } from '@/mdx-utils/run-blob-seed';
-import { CONTENT_MDX_DIR } from '@/mdx-utils/blob-upload';
+import { CONTENT_MDX_DIR } from '@/mdx-utils/blob-constants';
 
 export const dynamic = 'force-dynamic';
 

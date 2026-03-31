@@ -1,7 +1,7 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { fetchMdxString } from '@/mdx-utils/fetch-mdx-string';
-import { CONTENT_MDX_DIR } from '@/mdx-utils/blob-upload';
+import { CONTENT_MDX_DIR } from '@/mdx-utils/blob-constants';
 import { mdxToMarkdown } from 'mdx-to-md';
 import { withCORS } from '@/app/lib/with-cors';
 

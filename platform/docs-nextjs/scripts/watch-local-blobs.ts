@@ -5,7 +5,8 @@ import path from 'path';
 import chalk from 'chalk';
 import { BLOB_STORE_NAME } from '../src/mdx-utils/blob-constants';
 import { IMAGE_EXTENSIONS, JSON_EXTENSION, MDX_EXTENSION } from '../src/mdx-utils/get-blob-key';
-import { CONTENT_MDX_DIR, getRelativePath } from '../src/mdx-utils/blob-path-utils';
+import { getRelativePath } from '../src/mdx-utils/blob-utils';
+import { CONTENT_MDX_DIR } from '../src/mdx-utils/blob-constants';
 
 const DEV_SERVER_URL = 'http://localhost:8888';
 
@@ -44,7 +45,7 @@ const initializeWatcher = async () => {
       }
     })
     .on('unlink', async (filePath) => {
-      // TODO: Implement delete  with an API route
+      // TODO(DOP-6715): Implement delete  with an API route
       // const { error } = await deleteFile(filePath);
       // const relativePath = getRelativePath(filePath);
       // if (error) {

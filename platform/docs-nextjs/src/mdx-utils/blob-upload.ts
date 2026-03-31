@@ -3,9 +3,7 @@ import path from 'path';
 import { store } from './blob-store';
 import { getBlobKey } from './get-blob-key';
 import { MDX_EXTENSION, JSON_EXTENSION } from './get-blob-key';
-import { CONTENT_MDX_DIR, getRelativePath } from './blob-path-utils';
-
-export { CONTENT_MDX_DIR, getRelativePath };
+import { getRelativePath } from './blob-utils';
 
 /** upload a file to the blob store */
 export const uploadFile = async (fullPath: string) => {

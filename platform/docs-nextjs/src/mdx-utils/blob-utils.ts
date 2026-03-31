@@ -1,5 +1,4 @@
 import path from 'path';
-
-export const CONTENT_MDX_DIR = path.join(process.cwd(), '..', '..', 'content-mdx');
+import { CONTENT_MDX_DIR } from './blob-constants';
 
 export const getRelativePath = (fullPath: string) => path.relative(CONTENT_MDX_DIR, fullPath);

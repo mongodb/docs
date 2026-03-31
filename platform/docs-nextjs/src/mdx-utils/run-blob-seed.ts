@@ -1,7 +1,8 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { ALL_FILE_EXTENSIONS } from './get-blob-key';
-import { CONTENT_MDX_DIR, uploadFile } from './blob-upload';
+import { uploadFile } from './blob-upload';
+import { CONTENT_MDX_DIR } from './blob-constants';
 
 async function collectFilePaths(currentDir: string): Promise<string[]> {
   const files = await fs.readdir(currentDir, { withFileTypes: true });
