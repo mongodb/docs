@@ -17,7 +17,7 @@ import ConditionalWrapper from '@/components/conditional-wrapper';
 import { useInstruqt } from '@/context/instruqt-context';
 import { disabledStyle } from '@/components/button/styles';
 import { Permalink } from '@/mdx-components/Permalink';
-import Contents from '@/components/contents';
+import { Contents } from '@/mdx-components/Contents';
 import CopyPageMarkdownButton from '@/components/widgets/markdown-widget';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { reportAnalytics } from '@/utils/report-analytics';

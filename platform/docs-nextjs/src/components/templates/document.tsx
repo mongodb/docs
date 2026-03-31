@@ -3,7 +3,7 @@
 import { InternalPageNav } from '@/components/internal-page-nav';
 import RightColumn from '@/components/right-column';
 import documentStyling from './document.module.scss';
-import Contents from '@/components/contents';
+import { Contents } from '@/mdx-components/Contents';
 import { usePageContext } from '@/context/page-context';
 import TabSelectors from '@/components/tabs/tab-selectors';
 import DismissibleSkillsCard from '@/components/dismissable-skills-card';
