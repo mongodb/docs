@@ -18,12 +18,18 @@ addition:
 - You can't run extensive ``CMD`` scripts for the static container.
 - You can't copy files between static containers using ``initContainer``. 
   
-.. note:: 
+.. note::
 
-   When deployed as static containers, a |k8s-op-short| deployment consists of 
-   two containers - a ``mongodb-agent`` container and a ``mongodb-enterprise-server``
-   container. The MongoDB database custom resource inherits resource limit 
-   definitions from the ``mongodb-agent`` container, which runs the ``mongod`` 
-   process in a static container deployment. In order to modify the resource 
-   limits for the MongoDB database resource, you must specify your desired 
-   resource limits on the ``mongodb-agent`` container. 
+   When deployed as static containers, a |k8s-op-short| deployment consists of
+   two containers with distinct roles:
+
+   - The ``mongodb-agent`` container runs the MongoDB Agent, which then runs the
+     ``mongod`` process. This container handles the actual database workload.
+   - The ``mongodb-enterprise-server`` container provides the MongoDB binaries but does not run any active processes.
+
+   The MongoDB database inherits resource limit definitions from
+   the ``mongodb-agent`` container that runs the actual workload. Resource
+   limits set on the ``mongodb-enterprise-server`` container have no functional
+   impact on performance, though they still count toward node resource
+   allocation. To modify the resource limits for the MongoDB database resource,
+   you must specify your desired resource limits on the ``mongodb-agent`` container.
