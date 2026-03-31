@@ -75,9 +75,17 @@ You can use the ``options`` parameter to configure your vector search operation.
 
    * - ``NumberOfCandidates``
      - The number of neighbors to search in the index.
-   
+
        | **Data type**: ``int?``
        | **Default**: ``null``
+
+   * - ``ReturnStoredSource``
+     - If set to ``true``, the vector search returns only the fields stored in
+       the index, rather than fetching full documents from the collection. 
+       Use this option to improve query performance when you need only a subset of document fields.
+
+       | **Data type**: ``bool``
+       | **Default**: ``false``
 
 Consider the ``embedded_movies`` collection in the ``sample_mflix`` database.
 The following ``EmbeddedMovie`` class represents a document in this database:
