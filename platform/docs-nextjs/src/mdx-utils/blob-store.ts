@@ -1,6 +1,5 @@
 import { getStore } from '@netlify/blobs';
-
-export const BLOB_STORE_NAME = process.env.NETLIFY_BLOB_STORE || 'mdx-content';
+import { BLOB_STORE_NAME } from './blob-constants';
 
 const isDev = process.env.NODE_ENV === 'development';
 

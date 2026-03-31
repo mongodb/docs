@@ -1,15 +1,11 @@
-import path from 'path';
 import fs from 'fs/promises';
+import path from 'path';
 import { store } from './blob-store';
 import { getBlobKey } from './get-blob-key';
 import { MDX_EXTENSION, JSON_EXTENSION } from './get-blob-key';
+import { CONTENT_MDX_DIR, getRelativePath } from './blob-path-utils';
 
-export const CONTENT_MDX_DIR = path.join(process.cwd(), '..', '..', 'content-mdx');
-
-/** get the relative path from the content-mdx directory */
-export const getRelativePath = (fullPath: string) => {
-  return path.relative(CONTENT_MDX_DIR, fullPath);
-};
+export { CONTENT_MDX_DIR, getRelativePath };
 
 /** upload a file to the blob store */
 export const uploadFile = async (fullPath: string) => {

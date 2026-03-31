@@ -3,9 +3,9 @@ import chokidar from 'chokidar';
 import fs from 'fs/promises';
 import path from 'path';
 import chalk from 'chalk';
-import { BLOB_STORE_NAME } from '../src/mdx-utils/blob-store';
+import { BLOB_STORE_NAME } from '../src/mdx-utils/blob-constants';
 import { IMAGE_EXTENSIONS, JSON_EXTENSION, MDX_EXTENSION } from '../src/mdx-utils/get-blob-key';
-import { CONTENT_MDX_DIR, getRelativePath, deleteFile } from '../src/mdx-utils/blob-upload';
+import { CONTENT_MDX_DIR, getRelativePath } from '../src/mdx-utils/blob-path-utils';
 
 const DEV_SERVER_URL = 'http://localhost:8888';
 
