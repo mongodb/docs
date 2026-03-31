@@ -3,6 +3,10 @@ entries, use the :option:`mongodump --oplog` option. To restore data
 from the backup file, use the :option:`mongorestore --oplogReplay`
 option.
 
+.. note::
+   
+   To back up sharded clusters with ``mongodump``, see :ref:`backup-sharded-dumps`.
+
 The :term:`oplog` contains the history of database write operations.
 
 ``mongodump`` outputs:
@@ -19,9 +23,6 @@ Use mongodump with oplog Option
 level of the ``mongodump`` output directory. The file contains write
 operations that occur during the ``mongodump`` run. Writes that occur
 after ``mongodump`` completes aren't recorded in the file.
-
-To back up sharded clusters with ``mongodump``, see
-:ref:`backup-sharded-dumps`.
 
 Use mongorestore with oplogReplay Option
 ````````````````````````````````````````
