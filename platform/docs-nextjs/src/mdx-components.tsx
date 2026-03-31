@@ -40,7 +40,6 @@ import { Deprecated } from './mdx-components/Deprecated';
 
 type InjectedProps = Record<string, unknown>;
 
-// prettier-ignore
 export const components = (injectedProps?: InjectedProps) =>
   ({
     // basic components required for MDX rendering
@@ -76,11 +75,10 @@ export const components = (injectedProps?: InjectedProps) =>
     Button: ({ children, ...props }) => <Button {...props}>{children}</Button>,
     Card: ({ children, ...props }) => <Card {...props}>{children}</Card>,
     CardGroup: ({ children, ...props }) => <CardGroup {...props}>{children}</CardGroup>,
-    Chapters: ({ children }) => <span>{children}</span>,
-    Chapter: ({ children }) => <span>{children}</span>,
     // TODO: This needs a new name - to not interfere with new "inline" code that is better for literals
     Code: ({ children }) => <span>{children}</span>,
-    Contents: ({ children }) => <span>{children}</span>,
+    Contents: () => null,
+    Facet: ({ children }) => children,
     Collapsible: ({ children, ...props }) => <Collapsible {...props}>{children}</Collapsible>,
     CommunityDriver: ({ children, ...props }) => <CommunityPillLink {...props}>{children}</CommunityPillLink>,
     ComposableContent: ({ children, selections, ...props }) => (
@@ -96,7 +94,7 @@ export const components = (injectedProps?: InjectedProps) =>
     IOCodeBlock: ({ children }) => <span>{children}</span>,
     Container: ({ children }) => <span>{children}</span>,
     CtaBanner: ({ children, ...props }) => <CTABanner {...props}>{children}</CTABanner>,
-    DefaultDomain: ({ children }) => <span>{children}</span>,
+    DefaultDomain: () => null,
     DefinitionList: ({ children }) => <dl>{children}</dl>,
     DefinitionListItem: ({ children, ...props }) => <DefinitionListItem {...props}>{children}</DefinitionListItem>,
     DefinitionTerm: ({ children }) => <dt>{children}</dt>,
@@ -104,7 +102,11 @@ export const components = (injectedProps?: InjectedProps) =>
     Deprecated: (props) => <Deprecated {...props} />,
     DeprecatedVersionSelector: ({ children }) => <span>{children}</span>,
     Describe: ({ children, ...props }) => <Describe {...props}>{children}</Describe>,
-    Example: ({ children }) => <span>{children}</span>,
+    Example: ({ children, ...props }) => (
+      <Admonition name="example" {...props}>
+        {children}
+      </Admonition>
+    ),
     Extract: ({ children }) => children,
     Field: ({ children }) => <span>{children}</span>,
     FieldList: ({ children }) => <span>{children}</span>,
