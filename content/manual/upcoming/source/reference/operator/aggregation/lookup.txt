@@ -25,7 +25,7 @@ Definition
 
    .. versionchanged:: 8.0
 
-   Performs a left outer join to a different collection to
+   Performs a left outer join to a collection in the *same* database to
    filter in documents from the foreign collection for processing. The
    :pipeline:`$lookup` stage adds a new array field to each input
    document. The new array field contains the matching documents from
@@ -33,7 +33,7 @@ Definition
    reshaped documents to the next stage.
 
    Starting in MongoDB 5.1, you can use :pipeline:`$lookup` with sharded
-   collections, as long as they are in the same database.
+   collections.
 
    To combine elements from two different collections, use the
    :pipeline:`$unionWith` pipeline stage.
@@ -90,21 +90,12 @@ The :pipeline:`$lookup` accepts a document with these fields:
 
      - .. _lookup-subquery-from:
      
-       Specifies the foreign collection to join
+       Specifies the foreign collection in the *same* database to join
        to the local collection.
-
-       Pass a string to ``from`` to specify a foreign collection in the same 
-       database as the local collection. Starting in MongoDB 8.3, to specify a 
-       foreign collection in a different database, pass an object of the 
-       form ``{ db: <database>, coll: <collection> }`` to ``from``. You cannot
-       use cross-database ``$lookup`` in a sharded cluster.
-       
-       .. include:: /includes/aggregation/lookup-cross-db-restrictions.rst
 
        .. include:: /includes/lookup-from.rst
        
-       Starting in MongoDB 5.1, the foreign collection can be sharded if it is
-       in the same database as the local collection.
+       Starting in MongoDB 5.1, the ``from`` collection can be sharded.
 
    * - :ref:`localField <lookup-subquery-localField>`
 
@@ -225,7 +216,7 @@ The operation corresponds to this pseudo-SQL statement:
    MongoDB aggregation pipeline syntax. The SQL statements aren't
    runnable.
 
-See these examples:
+For MongoDB examples, see these pages:
 
 - :ref:`lookup-single-equality-example`
 - :ref:`unwind-example`
@@ -345,30 +336,6 @@ See this example:
 
 - :ref:`lookup-concise-correlated-subquery`
 
-Cross-Database Lookup
-~~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 8.3
-
-Starting in MongoDB 8.3, you can perform ``$lookup`` across databases. To 
-specify a foreign collection in a different database, pass an object of 
-the form ``{ db: <database>, coll: <collection> }`` to the ``from`` field:
-
-.. code-block:: javascript
-   :copyable: false
-
-   {
-      $lookup:
-         {
-            from: { db: <database>, coll: <collection> },
-            localField: <field from local collection's documents>,
-            foreignField: <field from foreign collection's documents>,
-            as: <output array field>
-         }
-   }
-
-See :ref:`lookup-single-equality-cross-db-example` for an example.
-
 .. _lookup-behavior:
 
 Behavior
@@ -421,10 +388,6 @@ the ``pipeline`` field.
          as: <output array field>
       }
    }
-
-.. include:: /includes/aggregation/lookup-cross-db-restrictions.rst
-
-Additionally, you cannot perform a cross-database ``$lookup`` in a sharded cluster.
 
 .. _fts-lookup-behavior:
 
@@ -503,8 +466,7 @@ Sharded Collections
 
 Starting in MongoDB 5.1, you can specify :ref:`sharded collections
 <sharding-sharded-cluster>` in the ``from`` parameter of
-:pipeline:`$lookup` stages, unless your foreign collection is in a 
-different database.
+:pipeline:`$lookup` stages.
 
 Starting in MongoDB 8.0, you can use the ``$lookup`` stage within a
 transaction while targeting a sharded collection.
@@ -694,35 +656,6 @@ Examples
 
       For more information, see
       :ref:`Equality Match Performance Considerations <equality-match-performance>`.
-
-      .. _lookup-single-equality-cross-db-example:
-
-      Perform a Single Equality Join Across Databases
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      In the preceding example, the ``orders`` and ``inventory`` collections 
-      are in the same database. To perform a single equality join across 
-      databases, specify the foreign collection by passing an object to
-      ``from`` that contains a ``db`` and ``coll`` field.
-
-      This example uses the ``orders`` and ``inventory`` collections from the 
-      preceding section. However, if the ``inventory`` collection is in a 
-      different database called ``store``, you can specify the foreign 
-      collection as follows:
-
-      .. code-block:: javascript
-
-         db.orders.aggregate( [
-            {
-              $lookup:
-                {
-                  from: { db: "store", coll: "inventory" },
-                  localField: "item",
-                  foreignField: "sku",
-                  as: "inventory_info"
-                }
-           }
-         ] )
 
       .. _unwind-example:
 
