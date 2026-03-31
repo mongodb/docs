@@ -6,7 +6,7 @@
         key: { "<shardkey>" },
         unique: <boolean>,
         numInitialChunks: <integer>,
-        numSamplesPerChunk: <integer>,
+        numSamplesPerChunk: <integer>,  // New in MongoDB 8.0.20
         collation: { locale: "simple" },
         zones: [
             {
