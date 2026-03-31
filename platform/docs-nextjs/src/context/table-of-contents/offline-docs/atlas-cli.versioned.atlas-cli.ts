@@ -69,7 +69,7 @@ export const toc: L1TocItem[] = [
                 collapsible: true,
                 url: '/docs/atlas/cli/:version/command/atlas/',
                 versions: {
-                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                 },
                 items: [
                   {
@@ -78,7 +78,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-accessLists/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -86,7 +86,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-accessLists-create/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -94,7 +94,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-accessLists-delete/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -102,7 +102,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-accessLists-describe/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -110,7 +110,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-accessLists-list/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -121,7 +121,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-accessLogs/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -129,7 +129,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-accessLogs-list/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -140,7 +140,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-alerts/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -148,7 +148,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-alerts-acknowledge/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -156,7 +156,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-alerts-describe/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -164,7 +164,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-alerts-list/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -173,7 +173,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-alerts-settings/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -181,7 +181,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-alerts-settings-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -189,7 +189,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-alerts-settings-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -197,7 +197,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-alerts-settings-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -205,7 +205,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-alerts-settings-disable/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -213,7 +213,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-alerts-settings-enable/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -222,7 +222,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-alerts-settings-fields/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -230,7 +230,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-alerts-settings-fields-type/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                             ],
@@ -240,7 +240,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-alerts-settings-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -248,7 +248,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-alerts-settings-update/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -258,7 +258,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-alerts-unacknowledge/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -269,7 +269,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-auditing/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -277,7 +277,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-auditing-describe/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -285,7 +285,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-auditing-update/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -296,7 +296,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-auth/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -304,7 +304,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-auth-login/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -312,7 +312,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-auth-logout/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -320,7 +320,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-auth-register/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -328,7 +328,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-auth-whoami/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -339,7 +339,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-backups/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -348,7 +348,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -357,7 +357,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-copyProtection/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -365,7 +365,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-copyProtection-disable/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -373,7 +373,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-copyProtection-enable/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                             ],
@@ -383,7 +383,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -391,7 +391,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-enable/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -400,7 +400,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-encryptionAtRest/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -408,7 +408,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-encryptionAtRest-disable/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -416,7 +416,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-encryptionAtRest-enable/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                             ],
@@ -427,7 +427,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-pointInTimeRestores/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -435,7 +435,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-pointInTimeRestores-enable/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                             ],
@@ -446,7 +446,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-policies/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -454,7 +454,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-policies-describe/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -463,7 +463,7 @@ export const toc: L1TocItem[] = [
                                 collapsible: true,
                                 url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-policies-ondemand/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                                 items: [
                                   {
@@ -471,7 +471,7 @@ export const toc: L1TocItem[] = [
                                     contentSite: 'atlas-cli',
                                     url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-policies-ondemand-create/',
                                     versions: {
-                                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                     },
                                   },
                                   {
@@ -479,7 +479,7 @@ export const toc: L1TocItem[] = [
                                     contentSite: 'atlas-cli',
                                     url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-policies-ondemand-describe/',
                                     versions: {
-                                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                     },
                                   },
                                   {
@@ -487,7 +487,7 @@ export const toc: L1TocItem[] = [
                                     contentSite: 'atlas-cli',
                                     url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-policies-ondemand-update/',
                                     versions: {
-                                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                     },
                                   },
                                 ],
@@ -498,7 +498,7 @@ export const toc: L1TocItem[] = [
                                 collapsible: true,
                                 url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-policies-scheduled/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                                 items: [
                                   {
@@ -506,7 +506,7 @@ export const toc: L1TocItem[] = [
                                     contentSite: 'atlas-cli',
                                     url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-policies-scheduled-create/',
                                     versions: {
-                                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                     },
                                   },
                                   {
@@ -514,7 +514,7 @@ export const toc: L1TocItem[] = [
                                     contentSite: 'atlas-cli',
                                     url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-policies-scheduled-describe/',
                                     versions: {
-                                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                     },
                                   },
                                 ],
@@ -526,7 +526,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-backups-compliancePolicy-setup/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -537,7 +537,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-backups-exports/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -546,7 +546,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-backups-exports-buckets/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -554,7 +554,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-backups-exports-buckets-create/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -562,7 +562,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-backups-exports-buckets-delete/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -570,7 +570,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-backups-exports-buckets-describe/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -578,7 +578,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-backups-exports-buckets-list/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                             ],
@@ -589,7 +589,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-backups-exports-jobs/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -597,7 +597,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-backups-exports-jobs-create/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -605,7 +605,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-backups-exports-jobs-describe/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -613,7 +613,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-backups-exports-jobs-list/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -621,7 +621,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-backups-exports-jobs-watch/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                             ],
@@ -634,7 +634,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-backups-restores/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -642,7 +642,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-backups-restores-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -650,7 +650,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-backups-restores-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -658,7 +658,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-backups-restores-start/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -666,7 +666,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-backups-restores-watch/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -677,7 +677,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-backups-schedule/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -685,7 +685,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-backups-schedule-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -693,7 +693,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-backups-schedule-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -701,7 +701,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-backups-schedule-update/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -712,7 +712,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-backups-snapshots/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -720,7 +720,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-backups-snapshots-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -728,7 +728,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-backups-snapshots-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -736,7 +736,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-backups-snapshots-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -744,7 +744,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-backups-snapshots-download/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -752,7 +752,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-backups-snapshots-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -760,7 +760,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-backups-snapshots-watch/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -773,7 +773,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-cloudProviders/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -782,7 +782,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-cloudProviders-accessRoles/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -791,7 +791,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-cloudProviders-accessRoles-aws/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -799,7 +799,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-cloudProviders-accessRoles-aws-authorize/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -807,7 +807,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-cloudProviders-accessRoles-aws-create/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -815,7 +815,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-cloudProviders-accessRoles-aws-deauthorize/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                             ],
@@ -825,7 +825,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-cloudProviders-accessRoles-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -838,7 +838,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-clusters/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -847,7 +847,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-clusters-advancedSettings/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -855,7 +855,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-advancedSettings-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -863,7 +863,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-advancedSettings-update/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -874,7 +874,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-clusters-availableRegions/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -882,7 +882,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-availableRegions-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -901,7 +901,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-clusters-connectionStrings/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -909,7 +909,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-connectionStrings-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -919,7 +919,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-clusters-create/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -927,7 +927,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-clusters-delete/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -935,7 +935,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-clusters-describe/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -943,7 +943,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-clusters-failover/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -952,7 +952,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-clusters-indexes/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -960,7 +960,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-indexes-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -970,7 +970,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-clusters-list/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -979,7 +979,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-clusters-onlineArchives/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -987,7 +987,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-onlineArchives-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -995,7 +995,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-onlineArchives-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1003,7 +1003,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-onlineArchives-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1011,7 +1011,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-onlineArchives-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1019,7 +1019,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-onlineArchives-pause/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1027,7 +1027,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-onlineArchives-start/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1035,7 +1035,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-onlineArchives-update/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1043,7 +1043,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-onlineArchives-watch/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -1053,7 +1053,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-clusters-pause/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1062,7 +1062,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-clusters-sampleData/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -1070,7 +1070,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-sampleData-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1078,7 +1078,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-sampleData-load/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1086,7 +1086,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-sampleData-watch/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -1097,7 +1097,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-clusters-search/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -1106,7 +1106,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-search-indexes/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -1114,7 +1114,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-clusters-search-indexes-create/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1122,7 +1122,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-clusters-search-indexes-delete/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1130,7 +1130,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-clusters-search-indexes-describe/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1138,7 +1138,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-clusters-search-indexes-list/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1146,7 +1146,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-clusters-search-indexes-update/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                             ],
@@ -1157,7 +1157,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-clusters-search-nodes/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -1165,7 +1165,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-clusters-search-nodes-create/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1173,7 +1173,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-clusters-search-nodes-delete/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1181,7 +1181,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-clusters-search-nodes-list/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1189,7 +1189,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-clusters-search-nodes-update/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                             ],
@@ -1201,7 +1201,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-clusters-start/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1209,7 +1209,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-clusters-update/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1217,7 +1217,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-clusters-upgrade/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1225,7 +1225,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-clusters-watch/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -1236,7 +1236,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-completion/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -1244,7 +1244,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-completion-bash/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1252,7 +1252,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-completion-fish/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1260,7 +1260,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-completion-powershell/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1268,7 +1268,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-completion-zsh/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -1279,23 +1279,15 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-config/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
-                      {
-                        label: 'delete',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-config-delete/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
-                        },
-                      },
                       {
                         label: 'describe',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-config-describe/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1303,15 +1295,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-config-edit/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'init',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-config-init/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1319,7 +1303,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-config-list/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1327,7 +1311,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-config-rename/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1335,7 +1319,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-config-set/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -1346,7 +1330,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-customDbRoles/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -1354,7 +1338,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-customDbRoles-create/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1362,7 +1346,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-customDbRoles-delete/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1370,7 +1354,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-customDbRoles-describe/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1378,7 +1362,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-customDbRoles-list/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1386,7 +1370,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-customDbRoles-update/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -1397,7 +1381,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-customDns/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -1406,7 +1390,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-customDns-aws/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -1414,7 +1398,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-customDns-aws-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1422,7 +1406,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-customDns-aws-disable/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1430,7 +1414,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-customDns-aws-enable/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -1443,7 +1427,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-dataFederation/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -1451,7 +1435,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-dataFederation-create/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1459,7 +1443,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-dataFederation-delete/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1467,7 +1451,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-dataFederation-describe/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1475,7 +1459,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-dataFederation-list/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1483,7 +1467,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-dataFederation-logs/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1492,7 +1476,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-dataFederation-privateEndpoints/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -1500,7 +1484,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-dataFederation-privateEndpoints-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1508,7 +1492,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-dataFederation-privateEndpoints-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1516,7 +1500,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-dataFederation-privateEndpoints-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1524,7 +1508,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-dataFederation-privateEndpoints-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -1535,7 +1519,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-dataFederation-queryLimits/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -1543,7 +1527,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-dataFederation-queryLimits-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1551,7 +1535,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-dataFederation-queryLimits-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1559,7 +1543,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-dataFederation-queryLimits-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1567,7 +1551,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-dataFederation-queryLimits-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -1577,7 +1561,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-dataFederation-update/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -1588,7 +1572,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-dbusers/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -1597,7 +1581,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-dbusers-certs/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -1605,7 +1589,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-dbusers-certs-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1613,7 +1597,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-dbusers-certs-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -1623,7 +1607,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-dbusers-create/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1631,7 +1615,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-dbusers-delete/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1639,7 +1623,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-dbusers-describe/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1647,7 +1631,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-dbusers-list/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1655,7 +1639,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-dbusers-update/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -1666,7 +1650,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-deployments/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -1674,7 +1658,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-deployments-connect/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1682,7 +1666,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-deployments-delete/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1690,7 +1674,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-deployments-list/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1698,7 +1682,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-deployments-logs/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1706,7 +1690,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-deployments-pause/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1715,7 +1699,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-deployments-search/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -1724,7 +1708,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-deployments-search-indexes/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -1732,7 +1716,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-deployments-search-indexes-create/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1740,7 +1724,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-deployments-search-indexes-delete/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1748,7 +1732,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-deployments-search-indexes-describe/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1756,7 +1740,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-deployments-search-indexes-list/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                             ],
@@ -1768,7 +1752,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-deployments-setup/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -1776,7 +1760,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-deployments-start/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -1787,7 +1771,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-events/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -1796,7 +1780,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-events-organizations/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -1804,7 +1788,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-events-organizations-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -1815,7 +1799,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-events-projects/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -1823,7 +1807,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-events-projects-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -1836,7 +1820,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -1845,7 +1829,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -1854,7 +1838,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings-connectedOrgConfigs/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -1862,7 +1846,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings-connectedOrgConfigs-connect/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1870,7 +1854,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings-connectedOrgConfigs-delete/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1878,7 +1862,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings-connectedOrgConfigs-describe/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1886,7 +1870,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings-connectedOrgConfigs-disconnect/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1894,7 +1878,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings-connectedOrgConfigs-list/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1902,7 +1886,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings-connectedOrgConfigs-update/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                             ],
@@ -1912,7 +1896,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -1921,7 +1905,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings-identityProvider/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -1930,7 +1914,7 @@ export const toc: L1TocItem[] = [
                                 collapsible: true,
                                 url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings-identityProvider-create/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                                 items: [
                                   {
@@ -1938,7 +1922,7 @@ export const toc: L1TocItem[] = [
                                     contentSite: 'atlas-cli',
                                     url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings-identityProvider-create-oidc/',
                                     versions: {
-                                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                     },
                                   },
                                 ],
@@ -1948,7 +1932,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings-identityProvider-delete/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1956,7 +1940,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings-identityProvider-describe/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1964,7 +1948,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings-identityProvider-list/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1972,7 +1956,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings-identityProvider-revokeJwk/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -1981,7 +1965,7 @@ export const toc: L1TocItem[] = [
                                 collapsible: true,
                                 url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings-identityProvider-update/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                                 items: [
                                   {
@@ -1989,7 +1973,7 @@ export const toc: L1TocItem[] = [
                                     contentSite: 'atlas-cli',
                                     url: '/docs/atlas/cli/:version/command/atlas-federatedAuthentication-federationSettings-identityProvider-update-oidc/',
                                     versions: {
-                                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                     },
                                   },
                                 ],
@@ -2006,7 +1990,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-integrations/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -2015,7 +1999,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-integrations-create/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -2023,7 +2007,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-integrations-create-DATADOG/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2031,7 +2015,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-integrations-create-OPS_GENIE/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2039,7 +2023,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-integrations-create-PAGER_DUTY/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2047,7 +2031,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-integrations-create-VICTOR_OPS/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2055,7 +2039,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-integrations-create-WEBHOOK/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -2065,7 +2049,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-integrations-delete/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -2073,7 +2057,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-integrations-describe/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -2081,7 +2065,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-integrations-list/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -2139,7 +2123,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-liveMigrations/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -2147,7 +2131,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-liveMigrations-create/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -2155,7 +2139,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-liveMigrations-cutover/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -2163,7 +2147,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-liveMigrations-describe/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -2172,7 +2156,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-liveMigrations-link/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -2180,7 +2164,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-liveMigrations-link-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2188,7 +2172,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-liveMigrations-link-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -2199,7 +2183,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-liveMigrations-validation/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -2207,7 +2191,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-liveMigrations-validation-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2215,7 +2199,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-liveMigrations-validation-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -2431,7 +2415,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-logs/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -2439,7 +2423,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-logs-download/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -2450,7 +2434,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-maintenanceWindows/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -2458,7 +2442,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-maintenanceWindows-clear/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -2466,7 +2450,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-maintenanceWindows-defer/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -2474,7 +2458,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-maintenanceWindows-describe/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -2482,7 +2466,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-maintenanceWindows-update/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -2493,7 +2477,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-metrics/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -2502,7 +2486,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-metrics-databases/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -2510,7 +2494,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-metrics-databases-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2518,7 +2502,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-metrics-databases-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -2529,7 +2513,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-metrics-disks/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -2537,7 +2521,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-metrics-disks-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2545,7 +2529,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-metrics-disks-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -2555,7 +2539,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-metrics-processes/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -2566,7 +2550,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-networking/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -2575,7 +2559,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-networking-containers/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -2583,7 +2567,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-networking-containers-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2591,7 +2575,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-networking-containers-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -2602,7 +2586,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-networking-peering/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -2611,7 +2595,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-networking-peering-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -2619,7 +2603,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-networking-peering-create-aws/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -2627,7 +2611,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-networking-peering-create-azure/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -2635,7 +2619,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-networking-peering-create-gcp/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                             ],
@@ -2645,7 +2629,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-networking-peering-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2653,7 +2637,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-networking-peering-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2661,7 +2645,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-networking-peering-watch/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -2674,7 +2658,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-organizations/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -2683,7 +2667,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-organizations-apiKeys/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -2692,7 +2676,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-organizations-apiKeys-accessLists/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -2700,7 +2684,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-organizations-apiKeys-accessLists-create/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -2708,7 +2692,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-organizations-apiKeys-accessLists-delete/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -2716,7 +2700,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-organizations-apiKeys-accessLists-list/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                             ],
@@ -2726,7 +2710,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-organizations-apiKeys-assign/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2734,7 +2718,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-organizations-apiKeys-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2742,7 +2726,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-organizations-apiKeys-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2750,7 +2734,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-organizations-apiKeys-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2758,7 +2742,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-organizations-apiKeys-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -2768,7 +2752,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-organizations-create/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -2776,7 +2760,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-organizations-delete/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -2784,7 +2768,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-organizations-describe/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -2793,7 +2777,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-organizations-invitations/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -2801,7 +2785,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-organizations-invitations-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2809,7 +2793,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-organizations-invitations-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2817,7 +2801,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-organizations-invitations-invite/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2825,7 +2809,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-organizations-invitations-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2833,7 +2817,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-organizations-invitations-update/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -2843,7 +2827,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-organizations-list/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -2852,7 +2836,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-organizations-users/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -2860,7 +2844,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-organizations-users-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -2873,7 +2857,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-performanceAdvisor/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -2882,7 +2866,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-performanceAdvisor-namespaces/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -2890,7 +2874,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-performanceAdvisor-namespaces-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -2901,7 +2885,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-performanceAdvisor-slowOperationThreshold/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -2909,7 +2893,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-performanceAdvisor-slowOperationThreshold-disable/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -2917,7 +2901,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-performanceAdvisor-slowOperationThreshold-enable/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -2928,7 +2912,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-performanceAdvisor-slowQueryLogs/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -2936,7 +2920,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-performanceAdvisor-slowQueryLogs-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -2947,7 +2931,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-performanceAdvisor-suggestedIndexes/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -2955,7 +2939,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-performanceAdvisor-suggestedIndexes-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -2968,7 +2952,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-plugin/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -2976,7 +2960,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-plugin-install/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -2984,7 +2968,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-plugin-list/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -2992,7 +2976,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-plugin-uninstall/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -3000,7 +2984,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-plugin-update/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -3011,7 +2995,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -3020,7 +3004,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-aws/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -3028,7 +3012,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-aws-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3036,7 +3020,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-aws-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3044,7 +3028,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-aws-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3053,7 +3037,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-aws-interfaces/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -3061,7 +3045,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-aws-interfaces-create/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -3069,7 +3053,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-aws-interfaces-delete/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -3077,7 +3061,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-aws-interfaces-describe/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                             ],
@@ -3087,7 +3071,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-aws-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3095,7 +3079,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-aws-watch/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -3106,7 +3090,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-azure/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -3114,7 +3098,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-azure-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3122,7 +3106,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-azure-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3130,7 +3114,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-azure-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3139,7 +3123,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-azure-interfaces/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -3147,7 +3131,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-azure-interfaces-create/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -3155,7 +3139,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-azure-interfaces-delete/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -3163,7 +3147,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-azure-interfaces-describe/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                             ],
@@ -3173,7 +3157,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-azure-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3181,7 +3165,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-azure-watch/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -3192,7 +3176,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-gcp/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -3200,7 +3184,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-gcp-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3208,7 +3192,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-gcp-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3216,7 +3200,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-gcp-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3225,7 +3209,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-gcp-interfaces/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -3233,7 +3217,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-gcp-interfaces-create/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -3241,7 +3225,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-gcp-interfaces-delete/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                               {
@@ -3249,7 +3233,7 @@ export const toc: L1TocItem[] = [
                                 contentSite: 'atlas-cli',
                                 url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-gcp-interfaces-describe/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                               },
                             ],
@@ -3259,7 +3243,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-gcp-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3267,7 +3251,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-gcp-watch/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -3278,7 +3262,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-regionalModes/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -3286,7 +3270,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-regionalModes-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3294,7 +3278,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-regionalModes-disable/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3302,7 +3286,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-privateEndpoints-regionalModes-enable/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -3315,7 +3299,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-processes/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -3323,7 +3307,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-processes-describe/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -3331,7 +3315,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-processes-list/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -3342,7 +3326,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-projects/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -3351,7 +3335,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-projects-apiKeys/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -3359,7 +3343,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-projects-apiKeys-assign/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3367,7 +3351,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-projects-apiKeys-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3375,7 +3359,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-projects-apiKeys-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3383,7 +3367,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-projects-apiKeys-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -3393,7 +3377,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-projects-create/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -3401,7 +3385,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-projects-delete/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -3409,7 +3393,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-projects-describe/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -3417,7 +3401,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-projects-list/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -3426,7 +3410,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-projects-settings/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -3434,7 +3418,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-projects-settings-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3442,7 +3426,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-projects-settings-update/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -3453,7 +3437,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-projects-teams/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -3461,7 +3445,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-projects-teams-add/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3469,7 +3453,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-projects-teams-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3477,7 +3461,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-projects-teams-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3485,7 +3469,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-projects-teams-update/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -3495,7 +3479,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-projects-update/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -3504,7 +3488,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-projects-users/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -3512,7 +3496,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-projects-users-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3520,7 +3504,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-projects-users-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -3533,7 +3517,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-security/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -3542,7 +3526,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-security-customerCerts/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -3550,7 +3534,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-security-customerCerts-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3558,7 +3542,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-security-customerCerts-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3566,7 +3550,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-security-customerCerts-disable/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -3577,7 +3561,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-security-ldap/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -3585,7 +3569,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-security-ldap-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3593,7 +3577,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-security-ldap-get/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3601,7 +3585,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-security-ldap-save/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3610,7 +3594,7 @@ export const toc: L1TocItem[] = [
                             collapsible: true,
                             url: '/docs/atlas/cli/:version/command/atlas-security-ldap-verify/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                             items: [
                               {
@@ -3619,7 +3603,7 @@ export const toc: L1TocItem[] = [
                                 collapsible: true,
                                 url: '/docs/atlas/cli/:version/command/atlas-security-ldap-verify-status/',
                                 versions: {
-                                  includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                  includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                 },
                                 items: [
                                   {
@@ -3627,7 +3611,7 @@ export const toc: L1TocItem[] = [
                                     contentSite: 'atlas-cli',
                                     url: '/docs/atlas/cli/:version/command/atlas-security-ldap-verify-status-watch/',
                                     versions: {
-                                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                                     },
                                   },
                                 ],
@@ -3643,7 +3627,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'atlas-cli',
                     url: '/docs/atlas/cli/:version/command/atlas-setup/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                   },
                   {
@@ -3652,7 +3636,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-streams/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -3661,7 +3645,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-streams-connections/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -3669,7 +3653,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-streams-connections-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3677,7 +3661,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-streams-connections-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3685,7 +3669,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-streams-connections-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3693,7 +3677,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-streams-connections-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3701,7 +3685,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-streams-connections-update/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -3712,7 +3696,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-streams-instances/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -3720,7 +3704,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-streams-instances-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3728,7 +3712,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-streams-instances-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3736,7 +3720,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-streams-instances-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3744,7 +3728,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-streams-instances-download/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3752,7 +3736,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-streams-instances-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3760,7 +3744,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-streams-instances-update/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -3771,7 +3755,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-streams-privateLinks/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -3779,7 +3763,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-streams-privateLinks-create/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3787,7 +3771,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-streams-privateLinks-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3795,7 +3779,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-streams-privateLinks-describe/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3803,7 +3787,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-streams-privateLinks-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -3816,7 +3800,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-teams/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -3824,7 +3808,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-teams-create/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -3832,7 +3816,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-teams-delete/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -3840,7 +3824,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-teams-describe/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -3848,7 +3832,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-teams-list/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -3856,7 +3840,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-teams-rename/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -3865,7 +3849,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/atlas/cli/:version/command/atlas-teams-users/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                         items: [
                           {
@@ -3873,7 +3857,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-teams-users-add/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3881,7 +3865,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-teams-users-delete/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                           {
@@ -3889,7 +3873,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'atlas-cli',
                             url: '/docs/atlas/cli/:version/command/atlas-teams-users-list/',
                             versions: {
-                              includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                              includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                             },
                           },
                         ],
@@ -3902,7 +3886,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-users/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -3910,7 +3894,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-users-describe/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -3918,7 +3902,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-users-invite/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -3937,7 +3921,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-accessTracking/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -3954,22 +3938,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-accessTracking-getAccessHistoryProcess/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listAccessLogsByClusterName',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-accessTracking-listAccessLogsByClusterName/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listAccessLogsByHostname',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-accessTracking-listAccessLogsByHostname/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                     ],
@@ -4248,7 +4216,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-alertConfigurations/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -4260,27 +4228,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'createAlertConfiguration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-createAlertConfiguration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'deleteAlertConfig',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-deleteAlertConfig/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'deleteAlertConfiguration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-deleteAlertConfiguration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -4300,43 +4252,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getAlertConfiguration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-getAlertConfiguration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listAlertConfigs',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-listAlertConfigs/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listAlertConfigurationMatchersFieldNames',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-listAlertConfigurationMatchersFieldNames/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listAlertConfigurations',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-listAlertConfigurations/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listAlertConfigurationsByAlertId',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-listAlertConfigurationsByAlertId/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -4356,27 +4276,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'toggleAlertConfiguration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-toggleAlertConfiguration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'updateAlertConfig',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-updateAlertConfig/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'updateAlertConfiguration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-alertConfigurations-updateAlertConfiguration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                     ],
@@ -4387,7 +4291,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-alerts/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -4395,7 +4299,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-alerts-acknowledgeAlert/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -4403,7 +4307,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-alerts-getAlert/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -4419,15 +4323,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-alerts-listAlerts/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listAlertsByAlertConfigurationId',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-alerts-listAlertsByAlertConfigurationId/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -4438,33 +4334,9 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
-                      {
-                        label: 'createAtlasSearchDeployment',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-createAtlasSearchDeployment/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'createAtlasSearchIndex',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-createAtlasSearchIndex/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'createAtlasSearchIndexDeprecated',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-createAtlasSearchIndexDeprecated/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                       {
                         label: 'createClusterFtsIndex',
                         contentSite: 'atlas-cli',
@@ -4487,38 +4359,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-createClusterSearchIndex/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'deleteAtlasSearchDeployment',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-deleteAtlasSearchDeployment/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'deleteAtlasSearchIndex',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-deleteAtlasSearchIndex/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'deleteAtlasSearchIndexByName',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-deleteAtlasSearchIndexByName/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'deleteAtlasSearchIndexDeprecated',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-deleteAtlasSearchIndexDeprecated/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -4554,38 +4394,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getAtlasSearchDeployment',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-getAtlasSearchDeployment/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getAtlasSearchIndex',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-getAtlasSearchIndex/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getAtlasSearchIndexByName',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-getAtlasSearchIndexByName/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getAtlasSearchIndexDeprecated',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-getAtlasSearchIndexDeprecated/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getClusterFtsIndex',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-getClusterFtsIndex/',
@@ -4618,30 +4426,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'listAtlasSearchIndexes',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-listAtlasSearchIndexes/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listAtlasSearchIndexesCluster',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-listAtlasSearchIndexesCluster/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listAtlasSearchIndexesDeprecated',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-listAtlasSearchIndexesDeprecated/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listClusterFtsIndex',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-listClusterFtsIndex/',
@@ -4663,38 +4447,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-listSearchIndex/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'updateAtlasSearchDeployment',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-updateAtlasSearchDeployment/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'updateAtlasSearchIndex',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-updateAtlasSearchIndex/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'updateAtlasSearchIndexByName',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-updateAtlasSearchIndexByName/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'updateAtlasSearchIndexDeprecated',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-atlasSearch-updateAtlasSearchIndexDeprecated/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -4737,31 +4489,15 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-auditing/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
-                      {
-                        label: 'getAuditingConfiguration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-auditing-getAuditingConfiguration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                       {
                         label: 'getGroupAuditLog',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-auditing-getGroupAuditLog/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'updateAuditingConfiguration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-auditing-updateAuditingConfiguration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -4780,7 +4516,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-awsClustersDns/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -4788,7 +4524,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-awsClustersDns-getAwsCustomDns/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -4796,7 +4532,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-awsClustersDns-toggleAwsCustomDns/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -4807,7 +4543,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -4815,7 +4551,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-cancelBackupRestoreJob/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -4824,14 +4560,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-createBackupExport/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'createBackupExportJob',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-createBackupExportJob/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -4847,7 +4575,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-createBackupRestoreJob/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -4855,15 +4583,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-createExportBucket/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'deleteAllBackupSchedules',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-deleteAllBackupSchedules/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -4903,23 +4623,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-deleteExportBucket/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'deleteReplicaSetBackup',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-deleteReplicaSetBackup/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'deleteShardedClusterBackup',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-deleteShardedClusterBackup/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -4931,27 +4635,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'disableDataProtectionSettings',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-disableDataProtectionSettings/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getBackupExport',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-getBackupExport/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getBackupExportJob',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-getBackupExportJob/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -4967,7 +4655,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-getBackupRestoreJob/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -4975,7 +4663,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-getBackupSchedule/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5003,43 +4691,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getDataProtectionSettings',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-getDataProtectionSettings/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getExportBucket',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-getExportBucket/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getReplicaSetBackup',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-getReplicaSetBackup/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getShardedClusterBackup',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-getShardedClusterBackup/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listBackupExportJobs',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-listBackupExportJobs/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5063,7 +4719,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-listBackupRestoreJobs/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5087,31 +4743,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-listExportBuckets/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listReplicaSetBackups',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-listReplicaSetBackups/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listShardedClusterBackups',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-listShardedClusterBackups/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'takeSnapshot',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-takeSnapshot/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5135,7 +4767,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-updateBackupSchedule/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5154,22 +4786,6 @@ export const toc: L1TocItem[] = [
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
-                      {
-                        label: 'updateDataProtectionSettings',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-updateDataProtectionSettings/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'updateSnapshotRetention',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudBackups-updateSnapshotRetention/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                     ],
                   },
                   {
@@ -5178,7 +4794,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -5194,15 +4810,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-createLinkToken/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'createPushMigration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-createPushMigration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5210,15 +4818,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-cutoverMigration/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'deleteLinkToken',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-deleteLinkToken/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5246,35 +4846,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getPushMigration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-getPushMigration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getValidationStatus',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-getValidationStatus/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listAvailableProjects',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-listAvailableProjects/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listSourceProjects',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-listSourceProjects/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -5285,14 +4861,6 @@ export const toc: L1TocItem[] = [
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
-                      {
-                        label: 'validateMigration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudMigrationService-validateMigration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                     ],
                   },
                   {
@@ -5301,17 +4869,9 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
-                      {
-                        label: 'authorizeCloudProviderAccessRole',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess-authorizeCloudProviderAccessRole/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                       {
                         label: 'authorizeProviderAccessRole',
                         contentSite: 'atlas-cli',
@@ -5326,22 +4886,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess-createCloudProviderAccess/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'createCloudProviderAccessRole',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess-createCloudProviderAccessRole/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'deauthorizeCloudProviderAccessRole',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess-deauthorizeCloudProviderAccessRole/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -5361,27 +4905,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getCloudProviderAccessRole',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess-getCloudProviderAccessRole/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listCloudProviderAccess',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess-listCloudProviderAccess/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listCloudProviderAccessRoles',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-cloudProviderAccess-listCloudProviderAccessRoles/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                     ],
@@ -5392,7 +4920,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-clusterOutageSimulation/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -5400,7 +4928,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusterOutageSimulation-endOutageSimulation/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5408,7 +4936,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusterOutageSimulation-getOutageSimulation/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5416,7 +4944,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusterOutageSimulation-startOutageSimulation/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -5427,7 +4955,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-clusters/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -5435,7 +4963,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusters-autoScalingConfiguration/',
                         versions: {
-                          includes: ['v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50'],
+                          includes: ['v1.49', 'v1.50'],
                         },
                       },
                       {
@@ -5443,7 +4971,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusters-createCluster/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5451,7 +4979,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusters-deleteCluster/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5459,15 +4987,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusters-getCluster/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getClusterAdvancedConfiguration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-clusters-getClusterAdvancedConfiguration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5475,7 +4995,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusters-getClusterStatus/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5495,35 +5015,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getSampleDatasetLoadStatus',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-clusters-getSampleDatasetLoadStatus/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'grantMongoDbEmployeeAccess',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-clusters-grantMongoDbEmployeeAccess/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'grantMongoEmployeeAccess',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusters-grantMongoEmployeeAccess/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listCloudProviderRegions',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-clusters-listCloudProviderRegions/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -5547,23 +5043,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusters-listClusters/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listClustersForAllProjects',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-clusters-listClustersForAllProjects/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'loadSampleDataset',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-clusters-loadSampleDataset/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5571,7 +5051,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusters-pinFeatureCompatibilityVersion/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5591,14 +5071,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'revokeMongoDbEmployeeAccess',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-clusters-revokeMongoDbEmployeeAccess/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'revokeMongoEmployeeAccess',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusters-revokeMongoEmployeeAccess/',
@@ -5607,19 +5079,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'testFailover',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-clusters-testFailover/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'unpinFeatureCompatibilityVersion',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusters-unpinFeatureCompatibilityVersion/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5627,15 +5091,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusters-updateCluster/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'updateClusterAdvancedConfiguration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-clusters-updateClusterAdvancedConfiguration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5644,14 +5100,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-clusters-updateProcessArgs/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'upgradeSharedCluster',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-clusters-upgradeSharedCluster/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -5670,7 +5118,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -5679,54 +5127,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-getClusterNamespaces/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getCollStatsLatencyNamespaceClusterMeasurements',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-getCollStatsLatencyNamespaceClusterMeasurements/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getCollStatsLatencyNamespaceHostMeasurements',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-getCollStatsLatencyNamespaceHostMeasurements/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getCollStatsLatencyNamespaceMetrics',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-getCollStatsLatencyNamespaceMetrics/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getCollStatsLatencyNamespacesForCluster',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-getCollStatsLatencyNamespacesForCluster/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getCollStatsLatencyNamespacesForHost',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-getCollStatsLatencyNamespacesForHost/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getPinnedNamespaces',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-getPinnedNamespaces/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -5778,27 +5178,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'pinNamespacesPatch',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-pinNamespacesPatch/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'pinNamespacesPut',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-pinNamespacesPut/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'unpinNamespaces',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-collectionLevelMetrics-unpinNamespaces/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5817,31 +5201,15 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
-                      {
-                        label: 'createCustomDatabaseRole',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-createCustomDatabaseRole/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                       {
                         label: 'createCustomDbRole',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-createCustomDbRole/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'deleteCustomDatabaseRole',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-deleteCustomDatabaseRole/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -5853,14 +5221,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getCustomDatabaseRole',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-getCustomDatabaseRole/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getCustomDbRole',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-getCustomDbRole/',
@@ -5869,27 +5229,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'listCustomDatabaseRoles',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-listCustomDatabaseRoles/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listCustomDbRoles',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-listCustomDbRoles/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'updateCustomDatabaseRole',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-customDatabaseRoles-updateCustomDatabaseRole/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -5908,7 +5252,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-databaseUsers/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -5916,7 +5260,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-databaseUsers-createDatabaseUser/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5924,7 +5268,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-databaseUsers-deleteDatabaseUser/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5932,7 +5276,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-databaseUsers-getDatabaseUser/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5940,7 +5284,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-databaseUsers-listDatabaseUsers/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -5948,7 +5292,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-databaseUsers-updateDatabaseUser/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -5959,7 +5303,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -5968,30 +5312,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-createDataFederation/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'createDataFederationPrivateEndpoint',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-createDataFederationPrivateEndpoint/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'createFederatedDatabase',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-createFederatedDatabase/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'createOneDataFederationQueryLimit',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-createOneDataFederationQueryLimit/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -6019,43 +5339,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'deleteDataFederationPrivateEndpoint',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-deleteDataFederationPrivateEndpoint/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'deleteFederatedDatabase',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-deleteFederatedDatabase/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'deleteOneDataFederationInstanceQueryLimit',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-deleteOneDataFederationInstanceQueryLimit/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'deletePrivateEndpointId',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-deletePrivateEndpointId/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'downloadFederatedDatabaseQueryLogs',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-downloadFederatedDatabaseQueryLogs/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -6083,22 +5371,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getDataFederationPrivateEndpoint',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-getDataFederationPrivateEndpoint/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getFederatedDatabase',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-getFederatedDatabase/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getPrivateEndpointId',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-getPrivateEndpointId/',
@@ -6123,43 +5395,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'listDataFederationPrivateEndpoints',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-listDataFederationPrivateEndpoints/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listFederatedDatabases',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-listFederatedDatabases/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listPrivateEndpointIds',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-listPrivateEndpointIds/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'returnFederatedDatabaseQueryLimit',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-returnFederatedDatabaseQueryLimit/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'returnFederatedDatabaseQueryLimits',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-returnFederatedDatabaseQueryLimits/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -6178,129 +5418,6 @@ export const toc: L1TocItem[] = [
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
-                      {
-                        label: 'updateFederatedDatabase',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataFederation-updateFederatedDatabase/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                    ],
-                  },
-                  {
-                    label: 'dataLakePipelines',
-                    contentSite: 'atlas-cli',
-                    collapsible: true,
-                    url: '/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines/',
-                    versions: {
-                      includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
-                    },
-                    items: [
-                      {
-                        label: 'createPipeline',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-createPipeline/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
-                        },
-                      },
-                      {
-                        label: 'deletePipeline',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-deletePipeline/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
-                        },
-                      },
-                      {
-                        label: 'deletePipelineRunDataset',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-deletePipelineRunDataset/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
-                        },
-                      },
-                      {
-                        label: 'getPipeline',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-getPipeline/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
-                        },
-                      },
-                      {
-                        label: 'getPipelineRun',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-getPipelineRun/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
-                        },
-                      },
-                      {
-                        label: 'listPipelineRuns',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-listPipelineRuns/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
-                        },
-                      },
-                      {
-                        label: 'listPipelines',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-listPipelines/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
-                        },
-                      },
-                      {
-                        label: 'listPipelineSchedules',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-listPipelineSchedules/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
-                        },
-                      },
-                      {
-                        label: 'listPipelineSnapshots',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-listPipelineSnapshots/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
-                        },
-                      },
-                      {
-                        label: 'pausePipeline',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-pausePipeline/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
-                        },
-                      },
-                      {
-                        label: 'resumePipeline',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-resumePipeline/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
-                        },
-                      },
-                      {
-                        label: 'triggerSnapshotIngestion',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-triggerSnapshotIngestion/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
-                        },
-                      },
-                      {
-                        label: 'updatePipeline',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-dataLakePipelines-updatePipeline/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
-                        },
-                      },
                     ],
                   },
                   {
@@ -6309,17 +5426,9 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-encryptionAtRestUsingCustomerKeyManagement/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
-                      {
-                        label: 'createEncryptionAtRestPrivateEndpoint',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-createEncryptionAtRestPrivateEndpoint/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                       {
                         label: 'createRestPrivateEndpoint',
                         contentSite: 'atlas-cli',
@@ -6333,23 +5442,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-getEncryptionAtRest/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getEncryptionAtRestPrivateEndpoint',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-getEncryptionAtRestPrivateEndpoint/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getEncryptionAtRestPrivateEndpointsForCloudProvider',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-getEncryptionAtRestPrivateEndpointsForCloudProvider/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6369,14 +5462,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'requestEncryptionAtRestPrivateEndpointDeletion',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-requestEncryptionAtRestPrivateEndpointDeletion/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'requestPrivateEndpointDeletion',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-requestPrivateEndpointDeletion/',
@@ -6389,7 +5474,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-encryptionAtRestUsingCustomerKeyManagement-updateEncryptionAtRest/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -6400,7 +5485,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-events/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -6412,14 +5497,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getOrganizationEvent',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-events-getOrganizationEvent/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getOrgEvent',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-events-getOrgEvent/',
@@ -6428,19 +5505,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getProjectEvent',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-events-getProjectEvent/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listEventTypes',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-events-listEventTypes/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6452,27 +5521,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'listOrganizationEvents',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-events-listOrganizationEvents/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listOrgEvents',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-events-listOrgEvents/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listProjectEvents',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-events-listProjectEvents/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                     ],
@@ -6483,7 +5536,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -6491,7 +5544,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-createIdentityProvider/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6499,15 +5552,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-createRoleMapping/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'deleteFederationApp',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-deleteFederationApp/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6523,7 +5568,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-deleteIdentityProvider/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6531,7 +5576,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-deleteRoleMapping/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6539,7 +5584,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-getConnectedOrgConfig/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6547,7 +5592,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-getFederationSettings/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6555,7 +5600,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-getIdentityProvider/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6563,7 +5608,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-getIdentityProviderMetadata/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6571,7 +5616,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-getRoleMapping/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6579,7 +5624,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-listConnectedOrgConfigs/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6587,7 +5632,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-listIdentityProviders/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6595,7 +5640,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-listRoleMappings/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6603,7 +5648,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-removeConnectedOrgConfig/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6615,19 +5660,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'revokeJwksFromIdentityProvider',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-revokeJwksFromIdentityProvider/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'updateConnectedOrgConfig',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-updateConnectedOrgConfig/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6635,7 +5672,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-updateIdentityProvider/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6643,7 +5680,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-federatedAuthentication-updateRoleMapping/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -6654,7 +5691,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-flexClusters/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -6662,7 +5699,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-flexClusters-createFlexCluster/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6670,7 +5707,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-flexClusters-deleteFlexCluster/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6678,7 +5715,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-flexClusters-getFlexCluster/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6686,7 +5723,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-flexClusters-listFlexClusters/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6702,15 +5739,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-flexClusters-updateFlexCluster/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'upgradeFlexCluster',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-flexClusters-upgradeFlexCluster/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -6721,17 +5750,9 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-flexRestoreJobs/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
-                      {
-                        label: 'createFlexBackupRestoreJob',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-flexRestoreJobs-createFlexBackupRestoreJob/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                       {
                         label: 'createFlexRestoreJob',
                         contentSite: 'atlas-cli',
@@ -6741,27 +5762,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getFlexBackupRestoreJob',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-flexRestoreJobs-getFlexBackupRestoreJob/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getFlexRestoreJob',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-flexRestoreJobs-getFlexRestoreJob/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listFlexBackupRestoreJobs',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-flexRestoreJobs-listFlexBackupRestoreJobs/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -6780,7 +5785,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-flexSnapshots/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -6788,15 +5793,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-flexSnapshots-downloadFlexBackup/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getFlexBackup',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-flexSnapshots-getFlexBackup/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6805,14 +5802,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-flexSnapshots-getFlexBackupSnapshot/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listFlexBackups',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-flexSnapshots-listFlexBackups/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -6831,7 +5820,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-globalClusters/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -6839,7 +5828,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-globalClusters-createCustomZoneMapping/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6847,15 +5836,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-globalClusters-createManagedNamespace/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'deleteAllCustomZoneMappings',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-globalClusters-deleteAllCustomZoneMappings/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6864,14 +5845,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-globalClusters-deleteCustomZoneMapping/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'deleteManagedNamespace',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-globalClusters-deleteManagedNamespace/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -6890,14 +5863,6 @@ export const toc: L1TocItem[] = [
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
-                      {
-                        label: 'getManagedNamespace',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-globalClusters-getManagedNamespace/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                     ],
                   },
                   {
@@ -6906,7 +5871,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-invoices/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -6915,30 +5880,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-invoices-createCostExplorerProcess/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'createCostExplorerQueryProcess',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-invoices-createCostExplorerQueryProcess/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'downloadInvoiceCsv',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-invoices-downloadInvoiceCsv/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getCostExplorerQueryProcess',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-invoices-getCostExplorerQueryProcess/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -6954,7 +5895,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-invoices-getInvoice/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -6986,15 +5927,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-invoices-listInvoices/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listPendingInvoices',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-invoices-listPendingInvoices/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -7003,14 +5936,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-invoices-listSkus/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'queryLineItemsFromSingleInvoice',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-invoices-queryLineItemsFromSingleInvoice/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -7029,39 +5954,15 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
-                      {
-                        label: 'deleteLdapConfiguration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration-deleteLdapConfiguration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                       {
                         label: 'deleteLdapUserMapping',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration-deleteLdapUserMapping/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getLdapConfiguration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration-getLdapConfiguration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getLdapConfigurationStatus',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration-getLdapConfigurationStatus/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -7081,27 +5982,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'saveLdapConfiguration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration-saveLdapConfiguration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'updateUserSecurity',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration-updateUserSecurity/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'verifyLdapConfiguration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-ldapConfiguration-verifyLdapConfiguration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -7120,7 +6005,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-legacyBackup/',
                     versions: {
-                      includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50'],
+                      includes: ['v1.49', 'v1.50'],
                     },
                     items: [
                       {
@@ -7132,27 +6017,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'createLegacyBackupRestoreJob',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-legacyBackup-createLegacyBackupRestoreJob/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'deleteClusterSnapshot',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-legacyBackup-deleteClusterSnapshot/',
                         versions: {
                           includes: ['v1.49', 'v1.50'],
-                        },
-                      },
-                      {
-                        label: 'deleteLegacySnapshot',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-legacyBackup-deleteLegacySnapshot/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -7188,38 +6057,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getLegacyBackupCheckpoint',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-legacyBackup-getLegacyBackupCheckpoint/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getLegacyBackupRestoreJob',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-legacyBackup-getLegacyBackupRestoreJob/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getLegacySnapshot',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-legacyBackup-getLegacySnapshot/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getLegacySnapshotSchedule',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-legacyBackup-getLegacySnapshotSchedule/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listClusterBackupCheckpoints',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-legacyBackup-listClusterBackupCheckpoints/',
@@ -7244,30 +6081,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'listLegacyBackupCheckpoints',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-legacyBackup-listLegacyBackupCheckpoints/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listLegacyBackupRestoreJobs',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-legacyBackup-listLegacyBackupRestoreJobs/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listLegacySnapshots',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-legacyBackup-listLegacySnapshots/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'updateClusterSnapshot',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-legacyBackup-updateClusterSnapshot/',
@@ -7283,22 +6096,6 @@ export const toc: L1TocItem[] = [
                           includes: ['v1.49', 'v1.50'],
                         },
                       },
-                      {
-                        label: 'updateLegacySnapshotRetention',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-legacyBackup-updateLegacySnapshotRetention/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'updateLegacySnapshotSchedule',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-legacyBackup-updateLegacySnapshotSchedule/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                     ],
                   },
                   {
@@ -7307,7 +6104,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-maintenanceWindows/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -7315,7 +6112,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-maintenanceWindows-deferMaintenanceWindow/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -7323,7 +6120,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-maintenanceWindows-getMaintenanceWindow/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -7331,7 +6128,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-maintenanceWindows-resetMaintenanceWindow/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -7339,7 +6136,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-maintenanceWindows-toggleMaintenanceAutoDefer/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -7347,7 +6144,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-maintenanceWindows-updateMaintenanceWindow/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -7358,7 +6155,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -7378,14 +6175,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'addOrganizationRole',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-addOrganizationRole/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'addOrgRole',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-addOrgRole/',
@@ -7402,38 +6191,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'addProjectRole',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-addProjectRole/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'addProjectUser',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-addProjectUser/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'addUserToTeam',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-addUserToTeam/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'createOrganizationUser',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-createOrganizationUser/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'createOrgUser',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-createOrgUser/',
@@ -7446,7 +6203,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-createUser/',
                         versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50'],
+                          includes: ['v1.49', 'v1.50'],
                         },
                       },
                       {
@@ -7458,14 +6215,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getOrganizationUser',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-getOrganizationUser/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getOrgUser',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-getOrgUser/',
@@ -7474,19 +6223,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getProjectUser',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-getProjectUser/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getUser',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-getUser/',
                         versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50'],
+                          includes: ['v1.49', 'v1.50'],
                         },
                       },
                       {
@@ -7498,27 +6239,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getUserByUsername',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-getUserByUsername/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listGroupUsers',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-listGroupUsers/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listOrganizationUsers',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-listOrganizationUsers/',
-                        versions: {
-                          includes: ['v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -7530,19 +6255,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'listProjectUsers',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-listProjectUsers/',
-                        versions: {
-                          includes: ['v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listTeamUsers',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-listTeamUsers/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -7559,22 +6276,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-removeGroupUserRole/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'removeOrganizationRole',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-removeOrganizationRole/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'removeOrganizationUser',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-removeOrganizationUser/',
-                        versions: {
-                          includes: ['v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -7602,38 +6303,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'removeProjectRole',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-removeProjectRole/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'removeProjectUser',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-removeProjectUser/',
-                        versions: {
-                          includes: ['v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'removeUserFromTeam',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-removeUserFromTeam/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'updateOrganizationUser',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-updateOrganizationUser/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'updateOrgUser',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-mongoDbCloudUsers-updateOrgUser/',
@@ -7649,7 +6318,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -7661,19 +6330,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getAtlasProcess',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getAtlasProcess/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getDatabase',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getDatabase/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -7681,15 +6342,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getDatabaseMeasurements/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getDiskMeasurements',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getDiskMeasurements/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -7701,43 +6354,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getHostLogs',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getHostLogs/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getHostMeasurements',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getHostMeasurements/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getIndexMeasurements',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getIndexMeasurements/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getIndexMetrics',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getIndexMetrics/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getMeasurements',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-getMeasurements/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -7765,35 +6386,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'listAtlasProcesses',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-listAtlasProcesses/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listDatabases',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-listDatabases/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listDiskMeasurements',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-listDiskMeasurements/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listDiskPartitions',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-listDiskPartitions/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -7821,27 +6418,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'listIndexMetrics',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-listIndexMetrics/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listMeasurements',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-listMeasurements/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listMetricTypes',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-monitoringAndLogs-listMetricTypes/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -7860,7 +6441,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -7880,22 +6461,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'createPeeringConnection',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering-createPeeringConnection/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'createPeeringContainer',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering-createPeeringContainer/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'deleteGroupContainer',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering-deleteGroupContainer/',
@@ -7912,27 +6477,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'deletePeeringConnection',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering-deletePeeringConnection/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'deletePeeringContainer',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering-deletePeeringContainer/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'disablePeering',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering-disablePeering/',
                         versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50'],
+                          includes: ['v1.49', 'v1.50'],
                         },
                       },
                       {
@@ -7949,22 +6498,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering-getGroupPeer/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getPeeringConnection',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering-getPeeringConnection/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getPeeringContainer',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering-getPeeringContainer/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -7992,30 +6525,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'listPeeringConnections',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering-listPeeringConnections/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listPeeringContainerByCloudProvider',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering-listPeeringContainerByCloudProvider/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listPeeringContainers',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering-listPeeringContainers/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'updateGroupContainer',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering-updateGroupContainer/',
@@ -8029,30 +6538,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering-updateGroupPeer/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'updatePeeringConnection',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering-updatePeeringConnection/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'updatePeeringContainer',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering-updatePeeringContainer/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'verifyConnectViaPeeringOnlyModeForOneProject',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-networkPeering-verifyConnectViaPeeringOnlyModeForOneProject/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -8071,7 +6556,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-onlineArchive/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -8079,7 +6564,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-onlineArchive-createOnlineArchive/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -8087,15 +6572,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-onlineArchive-deleteOnlineArchive/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'downloadOnlineArchiveQueryLogs',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-onlineArchive-downloadOnlineArchiveQueryLogs/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -8111,7 +6588,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-onlineArchive-getOnlineArchive/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -8119,7 +6596,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-onlineArchive-listOnlineArchives/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -8127,7 +6604,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-onlineArchive-updateOnlineArchive/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -8138,7 +6615,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-organizations/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -8147,22 +6624,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-organizations-createOrg/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'createOrganization',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-organizations-createOrganization/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'createOrganizationInvitation',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-organizations-createOrganizationInvitation/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -8182,22 +6643,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'deleteOrganization',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-organizations-deleteOrganization/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'deleteOrganizationInvitation',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-organizations-deleteOrganizationInvitation/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'deleteOrgInvite',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-organizations-deleteOrgInvite/',
@@ -8211,30 +6656,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-organizations-getOrg/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getOrganization',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-organizations-getOrganization/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getOrganizationInvitation',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-organizations-getOrganizationInvitation/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getOrganizationSettings',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-organizations-getOrganizationSettings/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -8262,30 +6683,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'listOrganizationInvitations',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-organizations-listOrganizationInvitations/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listOrganizationProjects',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-organizations-listOrganizationProjects/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listOrganizations',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-organizations-listOrganizations/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listOrgInvites',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-organizations-listOrgInvites/',
@@ -8307,46 +6704,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-organizations-updateOrg/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'updateOrganization',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-organizations-updateOrganization/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'updateOrganizationInvitation',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-organizations-updateOrganizationInvitation/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'updateOrganizationInvitationById',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-organizations-updateOrganizationInvitationById/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'updateOrganizationRoles',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-organizations-updateOrganizationRoles/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'updateOrganizationSettings',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-organizations-updateOrganizationSettings/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -8389,7 +6746,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -8401,14 +6758,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'disableSlowOperationThresholding',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-disableSlowOperationThresholding/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'enableManagedSlowMs',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-enableManagedSlowMs/',
@@ -8417,19 +6766,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'enableSlowOperationThresholding',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-enableSlowOperationThresholding/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getManagedSlowMs',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-getManagedSlowMs/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -8437,15 +6778,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-listClusterSuggestedIndexes/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listDropIndexes',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-listDropIndexes/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -8469,15 +6802,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-listSchemaAdvice/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listSlowQueries',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-listSlowQueries/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -8489,19 +6814,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'listSlowQueryNamespaces',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-listSlowQueryNamespaces/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listSuggestedIndexes',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-performanceAdvisor-listSuggestedIndexes/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -8512,7 +6829,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-privateEndpointServices/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -8520,7 +6837,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-privateEndpointServices-createPrivateEndpoint/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -8528,7 +6845,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-privateEndpointServices-createPrivateEndpointService/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -8536,7 +6853,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-privateEndpointServices-deletePrivateEndpoint/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -8544,7 +6861,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-privateEndpointServices-deletePrivateEndpointService/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -8552,7 +6869,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-privateEndpointServices-getPrivateEndpoint/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -8560,7 +6877,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-privateEndpointServices-getPrivateEndpointService/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -8572,27 +6889,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getRegionalizedPrivateEndpointSetting',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-privateEndpointServices-getRegionalizedPrivateEndpointSetting/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listPrivateEndpointService',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-privateEndpointServices-listPrivateEndpointService/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listPrivateEndpointServices',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-privateEndpointServices-listPrivateEndpointServices/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -8603,14 +6904,6 @@ export const toc: L1TocItem[] = [
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
-                      {
-                        label: 'toggleRegionalizedPrivateEndpointSetting',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-privateEndpointServices-toggleRegionalizedPrivateEndpointSetting/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                     ],
                   },
                   {
@@ -8619,7 +6912,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -8628,30 +6921,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-addGroupApiKey/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'addProjectApiKey',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-addProjectApiKey/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'createApiKey',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-createApiKey/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'createApiKeyAccessList',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-createApiKeyAccessList/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -8679,14 +6948,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'createProjectApiKey',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-createProjectApiKey/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'deleteAccessEntry',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-deleteAccessEntry/',
@@ -8695,43 +6956,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'deleteApiKey',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-deleteApiKey/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'deleteApiKeyAccessListEntry',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-deleteApiKeyAccessListEntry/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'deleteOrgApiKey',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-deleteOrgApiKey/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getApiKey',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-getApiKey/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getApiKeyAccessList',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-getApiKeyAccessList/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -8748,22 +6977,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-getOrgApiKey/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listApiKeyAccessListsEntries',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-listApiKeyAccessListsEntries/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listApiKeys',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-listApiKeys/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -8791,14 +7004,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'listProjectApiKeys',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-listProjectApiKeys/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'removeGroupApiKey',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-removeGroupApiKey/',
@@ -8807,27 +7012,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'removeProjectApiKey',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-removeProjectApiKey/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'updateApiKey',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-updateApiKey/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'updateApiKeyRoles',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-programmaticApiKeys-updateApiKeyRoles/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -8846,7 +7035,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -8858,27 +7047,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'createProjectIpAccessList',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList-createProjectIpAccessList/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'deleteAccessListEntry',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList-deleteAccessListEntry/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'deleteProjectIpAccessList',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList-deleteProjectIpAccessList/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -8898,35 +7071,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getProjectIpAccessListStatus',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList-getProjectIpAccessListStatus/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getProjectIpList',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList-getProjectIpList/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listAccessListEntries',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList-listAccessListEntries/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listProjectIpAccessLists',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projectIpAccessList-listProjectIpAccessLists/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                     ],
@@ -8937,7 +7086,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-projects/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -8946,14 +7095,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-projects-addGroupUser/',
                         versions: {
                           includes: ['v1.49', 'v1.50'],
-                        },
-                      },
-                      {
-                        label: 'addUserToProject',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-addUserToProject/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -8970,22 +7111,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-projects-createGroupInvite/',
                         versions: {
                           includes: ['v1.49', 'v1.50'],
-                        },
-                      },
-                      {
-                        label: 'createProject',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-createProject/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'createProjectInvitation',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-createProjectInvitation/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -9010,30 +7135,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-projects-deleteGroupLimit/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'deleteProject',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-deleteProject/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'deleteProjectInvitation',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-deleteProjectInvitation/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'deleteProjectLimit',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-deleteProjectLimit/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -9093,54 +7194,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getProject',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-getProject/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getProjectByName',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-getProjectByName/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getProjectInvitation',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-getProjectInvitation/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getProjectLimit',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-getProjectLimit/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getProjectLtsVersions',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-getProjectLtsVersions/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getProjectSettings',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-getProjectSettings/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listGroupInvites',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-projects-listGroupInvites/',
@@ -9165,30 +7218,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'listProjectInvitations',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-listProjectInvitations/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listProjectLimits',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-listProjectLimits/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listProjects',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-listProjects/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'migrateGroup',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-projects-migrateGroup/',
@@ -9197,35 +7226,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'migrateProjectToAnotherOrg',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-migrateProjectToAnotherOrg/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'returnAllIpAddresses',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-returnAllIpAddresses/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'setGroupLimit',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-projects-setGroupLimit/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'setProjectLimit',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-setProjectLimit/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -9268,46 +7273,6 @@ export const toc: L1TocItem[] = [
                           includes: ['v1.49', 'v1.50'],
                         },
                       },
-                      {
-                        label: 'updateProject',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-updateProject/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'updateProjectInvitation',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-updateProjectInvitation/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'updateProjectInvitationById',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-updateProjectInvitationById/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'updateProjectRoles',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-updateProjectRoles/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'updateProjectSettings',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-projects-updateProjectSettings/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                     ],
                   },
                   {
@@ -9316,7 +7281,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-pushBasedLogExport/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -9336,14 +7301,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'createPushBasedLogConfiguration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-pushBasedLogExport-createPushBasedLogConfiguration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'deleteGroupLogIntegration',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-pushBasedLogExport-deleteGroupLogIntegration/',
@@ -9360,14 +7317,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'deletePushBasedLogConfiguration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-pushBasedLogExport-deletePushBasedLogConfiguration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getGroupLogIntegration',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-pushBasedLogExport-getGroupLogIntegration/',
@@ -9381,14 +7330,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-pushBasedLogExport-getLogExport/',
                         versions: {
                           includes: ['v1.49', 'v1.50', 'v1.51'],
-                        },
-                      },
-                      {
-                        label: 'getPushBasedLogConfiguration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-pushBasedLogExport-getPushBasedLogConfiguration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -9415,14 +7356,6 @@ export const toc: L1TocItem[] = [
                           includes: ['v1.49', 'v1.50', 'v1.51'],
                         },
                       },
-                      {
-                        label: 'updatePushBasedLogConfiguration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-pushBasedLogExport-updatePushBasedLogConfiguration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                     ],
                   },
                   {
@@ -9431,7 +7364,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-queryShapeInsights/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -9440,22 +7373,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-queryShapeInsights-getClusterQueryShape/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getGroupClusterQueryShapeInsightDetails',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-queryShapeInsights-getGroupClusterQueryShapeInsightDetails/',
-                        versions: {
-                          includes: ['v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getGroupClusterQueryShapeInsightSummaries',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-queryShapeInsights-getGroupClusterQueryShapeInsightSummaries/',
-                        versions: {
-                          includes: ['v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -9525,31 +7442,15 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-resourcePolicies/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
-                      {
-                        label: 'createAtlasResourcePolicy',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-createAtlasResourcePolicy/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
-                        },
-                      },
                       {
                         label: 'createOrgResourcePolicy',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-createOrgResourcePolicy/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'deleteAtlasResourcePolicy',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-deleteAtlasResourcePolicy/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -9557,23 +7458,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-deleteOrgResourcePolicy/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getAtlasResourcePolicies',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-getAtlasResourcePolicies/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
-                        },
-                      },
-                      {
-                        label: 'getAtlasResourcePolicy',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-getAtlasResourcePolicy/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -9589,15 +7474,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-getOrgResourcePolicy/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getResourcesNonCompliant',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-getResourcesNonCompliant/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -9605,15 +7482,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-listOrgResourcePolicies/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'updateAtlasResourcePolicy',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-updateAtlasResourcePolicy/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -9621,15 +7490,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-updateOrgResourcePolicy/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'validateAtlasResourcePolicy',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-resourcePolicies-validateAtlasResourcePolicy/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -9648,7 +7509,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-rollingIndex/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -9656,7 +7517,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-rollingIndex-createRollingIndex/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                     ],
@@ -9667,7 +7528,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-root/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -9675,7 +7536,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-root-getSystemStatus/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -9686,14 +7547,6 @@ export const toc: L1TocItem[] = [
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
-                      {
-                        label: 'returnAllControlPlaneIpAddresses',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-root-returnAllControlPlaneIpAddresses/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                     ],
                   },
                   {
@@ -9702,17 +7555,9 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
-                      {
-                        label: 'addProjectServiceAccount',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-addProjectServiceAccount/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                       {
                         label: 'createAccessList',
                         contentSite: 'atlas-cli',
@@ -9759,54 +7604,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createOrgServiceAccount/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'createProjectServiceAccount',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createProjectServiceAccount/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'createProjectServiceAccountAccessList',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createProjectServiceAccountAccessList/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'createProjectServiceAccountSecret',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createProjectServiceAccountSecret/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'createServiceAccount',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createServiceAccount/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'createServiceAccountAccessList',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createServiceAccountAccessList/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'createServiceAccountSecret',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-createServiceAccountSecret/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -9858,54 +7655,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'deleteProjectServiceAccount',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteProjectServiceAccount/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'deleteProjectServiceAccountAccessListEntry',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteProjectServiceAccountAccessListEntry/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'deleteProjectServiceAccountSecret',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteProjectServiceAccountSecret/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'deleteServiceAccount',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteServiceAccount/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'deleteServiceAccountAccessListEntry',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteServiceAccountAccessListEntry/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'deleteServiceAccountSecret',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-deleteServiceAccountSecret/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getGroupServiceAccount',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-getGroupServiceAccount/',
@@ -9919,22 +7668,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-getOrgServiceAccount/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getProjectServiceAccount',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-getProjectServiceAccount/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getServiceAccount',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-getServiceAccount/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -9986,46 +7719,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'listProjectServiceAccountAccessList',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-listProjectServiceAccountAccessList/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listProjectServiceAccounts',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-listProjectServiceAccounts/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listServiceAccountAccessList',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-listServiceAccountAccessList/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listServiceAccountProjects',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-listServiceAccountProjects/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listServiceAccounts',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-listServiceAccounts/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'updateGroupServiceAccount',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-updateGroupServiceAccount/',
@@ -10041,22 +7734,6 @@ export const toc: L1TocItem[] = [
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
-                      {
-                        label: 'updateProjectServiceAccount',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-updateProjectServiceAccount/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'updateServiceAccount',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-serviceAccounts-updateServiceAccount/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                     ],
                   },
                   {
@@ -10065,7 +7742,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-sharedTierRestoreJobs/',
                     versions: {
-                      includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50'],
+                      includes: ['v1.49', 'v1.50'],
                     },
                     items: [
                       {
@@ -10077,27 +7754,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'createSharedClusterBackupRestoreJob',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-sharedTierRestoreJobs-createSharedClusterBackupRestoreJob/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getBackupTenantRestore',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-sharedTierRestoreJobs-getBackupTenantRestore/',
                         versions: {
                           includes: ['v1.49', 'v1.50'],
-                        },
-                      },
-                      {
-                        label: 'getSharedClusterBackupRestoreJob',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-sharedTierRestoreJobs-getSharedClusterBackupRestoreJob/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -10108,14 +7769,6 @@ export const toc: L1TocItem[] = [
                           includes: ['v1.49', 'v1.50'],
                         },
                       },
-                      {
-                        label: 'listSharedClusterBackupRestoreJobs',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-sharedTierRestoreJobs-listSharedClusterBackupRestoreJobs/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                     ],
                   },
                   {
@@ -10124,7 +7777,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-sharedTierSnapshots/',
                     versions: {
-                      includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50'],
+                      includes: ['v1.49', 'v1.50'],
                     },
                     items: [
                       {
@@ -10136,27 +7789,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'downloadSharedClusterBackup',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-sharedTierSnapshots-downloadSharedClusterBackup/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getBackupTenantSnapshot',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-sharedTierSnapshots-getBackupTenantSnapshot/',
                         versions: {
                           includes: ['v1.49', 'v1.50'],
-                        },
-                      },
-                      {
-                        label: 'getSharedClusterBackup',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-sharedTierSnapshots-getSharedClusterBackup/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -10167,14 +7804,6 @@ export const toc: L1TocItem[] = [
                           includes: ['v1.49', 'v1.50'],
                         },
                       },
-                      {
-                        label: 'listSharedClusterBackups',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-sharedTierSnapshots-listSharedClusterBackups/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                     ],
                   },
                   {
@@ -10183,7 +7812,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-streams/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -10191,7 +7820,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-acceptVpcPeeringConnection/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10199,7 +7828,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-createPrivateLinkConnection/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10207,23 +7836,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-createStreamConnection/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'createStreamInstance',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-streams-createStreamInstance/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'createStreamInstanceWithSampleConnections',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-streams-createStreamInstanceWithSampleConnections/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10231,7 +7844,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-createStreamProcessor/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10247,7 +7860,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-deletePrivateLinkConnection/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10255,15 +7868,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-deleteStreamConnection/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'deleteStreamInstance',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-streams-deleteStreamInstance/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10271,7 +7876,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-deleteStreamProcessor/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10287,7 +7892,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-deleteVpcPeeringConnection/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10307,27 +7912,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'downloadStreamTenantAuditLogs',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-streams-downloadStreamTenantAuditLogs/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getAccountDetails',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-getAccountDetails/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getActiveVpcPeeringConnections',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-streams-getActiveVpcPeeringConnections/',
-                        versions: {
-                          includes: ['v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10335,7 +7924,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-getPrivateLinkConnection/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10343,15 +7932,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-getStreamConnection/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'getStreamInstance',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-streams-getStreamInstance/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10359,7 +7940,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-getStreamProcessor/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10379,14 +7960,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getVpcPeeringConnections',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-streams-getVpcPeeringConnections/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listActivePeeringConnections',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-listActivePeeringConnections/',
@@ -10399,7 +7972,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-listPrivateLinkConnections/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10407,23 +7980,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-listStreamConnections/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listStreamInstances',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-streams-listStreamInstances/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'listStreamProcessors',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-streams-listStreamProcessors/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10443,19 +8000,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'modifyStreamProcessor',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-streams-modifyStreamProcessor/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'rejectVpcPeeringConnection',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-rejectVpcPeeringConnection/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10463,7 +8012,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-startStreamProcessor/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10471,7 +8020,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-startStreamProcessorWith/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10479,7 +8028,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-stopStreamProcessor/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10487,15 +8036,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-streams-updateStreamConnection/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'updateStreamInstance',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-streams-updateStreamInstance/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10530,31 +8071,15 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-teams/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
-                      {
-                        label: 'addAllTeamsToProject',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-teams-addAllTeamsToProject/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                       {
                         label: 'addGroupTeams',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-teams-addGroupTeams/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'addTeamUser',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-teams-addTeamUser/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -10574,27 +8099,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'createTeam',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-teams-createTeam/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'deleteOrgTeam',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-teams-deleteOrgTeam/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'deleteTeam',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-teams-deleteTeam/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -10614,27 +8123,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getProjectTeam',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-teams-getProjectTeam/',
-                        versions: {
-                          includes: ['v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'getTeamById',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-teams-getTeamById/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'getTeamByName',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-teams-getTeamByName/',
                         versions: {
-                          includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                          includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
                       {
@@ -10646,14 +8139,6 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'listOrganizationTeams',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-teams-listOrganizationTeams/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listOrgTeams',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-teams-listOrgTeams/',
@@ -10662,35 +8147,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'listProjectTeams',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-teams-listProjectTeams/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'removeGroupTeam',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-teams-removeGroupTeam/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'removeProjectTeam',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-teams-removeProjectTeam/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'removeTeamUser',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-teams-removeTeamUser/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -10710,27 +8171,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'renameTeam',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-teams-renameTeam/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'updateGroupTeam',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-teams-updateGroupTeam/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'updateTeamRoles',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-teams-updateTeamRoles/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                     ],
@@ -10741,7 +8186,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -10753,27 +8198,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'createThirdPartyIntegration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations-createThirdPartyIntegration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'deleteGroupIntegration',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations-deleteGroupIntegration/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'deleteThirdPartyIntegration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations-deleteThirdPartyIntegration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -10785,27 +8214,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'getThirdPartyIntegration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations-getThirdPartyIntegration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'listGroupIntegrations',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations-listGroupIntegrations/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listThirdPartyIntegrations',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations-listThirdPartyIntegrations/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
@@ -10816,14 +8229,6 @@ export const toc: L1TocItem[] = [
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                         },
                       },
-                      {
-                        label: 'updateThirdPartyIntegration',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-thirdPartyIntegrations-updateThirdPartyIntegration/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
                     ],
                   },
                   {
@@ -10832,7 +8237,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-api-x509Authentication/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
+                      includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
                     },
                     items: [
                       {
@@ -10844,35 +8249,11 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
-                        label: 'createDatabaseUserCertificate',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-x509Authentication-createDatabaseUserCertificate/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
-                        label: 'disableCustomerManagedX509',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-x509Authentication-disableCustomerManagedX509/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
-                        },
-                      },
-                      {
                         label: 'disableSecurityCustomerX509',
                         contentSite: 'atlas-cli',
                         url: '/docs/atlas/cli/:version/command/atlas-api-x509Authentication-disableSecurityCustomerX509/',
                         versions: {
                           includes: ['current', 'upcoming', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'listDatabaseUserCertificates',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-api-x509Authentication-listDatabaseUserCertificates/',
-                        versions: {
-                          includes: ['v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48'],
                         },
                       },
                       {
