@@ -115,7 +115,6 @@ export const components = (injectedProps?: InjectedProps) =>
     FootnoteReference: ({ children }) => <span>{children}</span>,
     Glossary: ({ children }) => <span>{children}</span>,
     Gold: ({ children }) => <Gold>{children}</Gold>,
-    GuideNext: ({ children }) => <span>{children}</span>,
     Guilabel: ({ children }) => <GUILabel>{children}</GUILabel>,
     Heading: ({ children, ...props }) => <Heading {...props}>{children}</Heading>,
     Highlight: ({ children, ...props }) => <Highlight {...props}>{children}</Highlight>,
