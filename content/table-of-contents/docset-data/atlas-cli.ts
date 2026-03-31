@@ -309,6 +309,14 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/cli/:version/atlas-cli-changelog',
       },
       {
+        label: 'Atlas Local Changelog',
+        contentSite: 'atlas-cli',
+        url: '/docs/atlas/cli/:version/atlas-local-changelog',
+        versions: {
+          includes: ['current', 'upcoming'],
+        },
+      },
+      {
         label: 'Plugin Changelogs',
         contentSite: 'atlas-cli',
         url: '/docs/atlas/cli/:version/plugin-changelogs',

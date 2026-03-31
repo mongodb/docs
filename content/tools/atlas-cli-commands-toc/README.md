@@ -180,6 +180,18 @@ npx tsx generate-local-cli-commands.ts v0.0.5
 
 # Use main branch for development
 npx tsx generate-local-cli-commands.ts main
+```
+
+#### Atlas Local CLI Changelog
+```bash
+# Generate Atlas Local CLI plugin changelog
+npx tsx generate-atlas-local-changelog.ts v0.11.0
+
+# Use latest release tag
+npx tsx generate-atlas-local-changelog.ts v0.11.0
+
+# Use main branch for development
+npx tsx generate-atlas-local-changelog.ts main
 ```enerate Kubernetes plugin commands for reference
 npx tsx generate-k8s-cli-commands.ts
 
