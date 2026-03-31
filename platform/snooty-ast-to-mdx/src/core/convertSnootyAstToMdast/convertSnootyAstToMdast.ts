@@ -720,7 +720,12 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
             type: 'mdxJsxFlowElement',
             name: 'DefinitionTerm',
             attributes: [],
-            children: termChildren,
+            // Wrap inline term nodes in a paragraph so that sibling inline nodes
+            // (e.g. inline_target anchors, inline code, bold runs) do not become
+            // direct JSX flow siblings. remark-mdx inserts blank lines between
+            // every direct sibling inside a JSX flow element, so keeping all term
+            // content inside a single paragraph block avoids that problem.
+            children: [{ type: 'paragraph', children: termChildren }],
           },
           {
             type: 'mdxJsxFlowElement',
@@ -902,7 +907,10 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (typeof node.html_id === 'string') ids.push(node.html_id);
       if (ids.length === 0) return null;
       return ids.map((id) => ({
-        type: 'mdxJsxFlowElement',
+        // Use mdxJsxTextElement (inline JSX) so the anchor span stays inline
+        // alongside the term text inside the paragraph wrapper in DefinitionTerm,
+        // rather than becoming a block-level sibling with a blank line before it.
+        type: 'mdxJsxTextElement',
         name: 'span',
         attributes: [{ type: 'mdxJsxAttribute', name: 'id', value: id }],
         children: [],

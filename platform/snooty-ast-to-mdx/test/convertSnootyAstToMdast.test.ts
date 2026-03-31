@@ -166,3 +166,100 @@ describe('convertSnootyAstToMdast', () => {
     });
   });
 });
+
+describe('DefinitionTerm inline content rendering', () => {
+  it('renders an inline_target anchor inline with the term text — no blank line before the span', () => {
+    // Reproduces the blank-line bug where <span id="..."/> was a separate block sibling
+    // of the term text inside <DefinitionTerm>, causing a blank line between them.
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'definitionList',
+          children: [
+            {
+              type: 'definitionListItem',
+              term: [
+                { type: 'text', value: 'mongot' },
+                {
+                  type: 'inline_target',
+                  domain: 'std',
+                  name: 'term',
+                  html_id: 'std-term-mongot',
+                  children: [
+                    { type: 'target_identifier', children: [{ type: 'text', value: 'mongot' }], ids: ['mongot'] },
+                  ],
+                },
+              ],
+              children: [{ type: 'paragraph', children: [{ type: 'text', value: 'A search daemon.' }] }],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+
+    expect(mdx).toContain('mongot');
+    expect(mdx).toContain('std-term-mongot');
+    expect(mdx).not.toMatch(/<DefinitionTerm>[\s\S]*?\n[ \t]*\n[\s\S]*?<\/DefinitionTerm>/);
+  });
+
+  it('renders a term with text + inline code + text inline — no blank lines between parts', () => {
+    // e.g. "Sort on ``{ field: 1 }`` uses an index" — three inline siblings that previously
+    // rendered with blank lines between each one.
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'definitionList',
+          children: [
+            {
+              type: 'definitionListItem',
+              term: [
+                { type: 'text', value: 'Sort on ' },
+                { type: 'literal', children: [{ type: 'text', value: '{ field: 1 }' }] },
+                { type: 'text', value: ' uses an index' },
+              ],
+              children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Index used.' }] }],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+
+    expect(mdx).toContain('Sort on');
+    expect(mdx).toContain('`{ field: 1 }`');
+    expect(mdx).toContain('uses an index');
+    expect(mdx).not.toMatch(/<DefinitionTerm>[\s\S]*?\n[ \t]*\n[\s\S]*?<\/DefinitionTerm>/);
+  });
+
+  it('renders a term with bold text mixed with plain text inline — no blank lines between parts', () => {
+    // e.g. "Field does **not** exist" from wildcard-query-restrictions.rst
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'definitionList',
+          children: [
+            {
+              type: 'definitionListItem',
+              term: [
+                { type: 'text', value: 'Field does ' },
+                { type: 'strong', children: [{ type: 'text', value: 'not' }] },
+                { type: 'text', value: ' exist' },
+              ],
+              children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Unsupported.' }] }],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+
+    expect(mdx).toContain('Field does');
+    expect(mdx).toContain('**not**');
+    expect(mdx).toContain('exist');
+    expect(mdx).not.toMatch(/<DefinitionTerm>[\s\S]*?\n[ \t]*\n[\s\S]*?<\/DefinitionTerm>/);
+  });
+});

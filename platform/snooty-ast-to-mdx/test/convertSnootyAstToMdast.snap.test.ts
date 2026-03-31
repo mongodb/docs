@@ -149,7 +149,7 @@ const cases: Array<[string, SnootyNode]> = [
         {
           type: 'definitionListItem',
           term: [
-            { type: 'text', value: 'agent' },
+            { type: 'text', value: 'agent ' },
             {
               type: 'inline_target',
               domain: 'std',
