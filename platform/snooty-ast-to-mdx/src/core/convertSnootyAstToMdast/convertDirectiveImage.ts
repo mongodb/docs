@@ -37,7 +37,8 @@ export const convertDirectiveImage = ({ node, ctx }: ConvertDirectiveImageArgs):
   } as MdastNode);
   const altText = typeof node.options?.alt === 'string' ? node.options.alt : '';
   if (altText) attrs.push({ type: 'mdxJsxAttribute', name: 'alt', value: altText } as MdastNode);
-  const widthAttr = toNumericAttr({ name: 'width', value: node.options?.width });
+  // RST uses :width: or :figwidth: for image width; prefer :width: if both are present
+  const widthAttr = toNumericAttr({ name: 'width', value: node.options?.width ?? node.options?.figwidth });
   const heightAttr = toNumericAttr({ name: 'height', value: node.options?.height });
   if (widthAttr) attrs.push(widthAttr);
   if (heightAttr) attrs.push(heightAttr);

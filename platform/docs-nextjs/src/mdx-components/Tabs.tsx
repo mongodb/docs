@@ -93,6 +93,7 @@ const productLandingTabContentStyling = css`
     grid-column: 2;
     margin-top: 0px;
     display: block;
+    max-width: 100%;
   }
 
   @media ${theme.screenSize.upToLarge} {
@@ -125,7 +126,7 @@ export const Tabs = ({ children, tabset, hidden }: TabsProps) => {
   const hash = useHash();
   const { activeTabs, selectors, setActiveTab } = useContext(TabContext);
   const { setActiveTabToHashTab } = useContext(TabHashContext);
-  const { options: pageOptions } = useContext(PageContext);
+  const { template } = useContext(PageContext);
   const tabIdArray = useMemo(
     () =>
       React.Children.toArray(children)
@@ -140,7 +141,7 @@ export const Tabs = ({ children, tabset, hidden }: TabsProps) => {
 
   const scrollAnchorRef = useRef<HTMLDivElement>(null);
   const isHidden = !!hidden || Object.keys(selectors).includes(tabsetName);
-  const isProductLanding = pageOptions?.template === 'product-landing';
+  const isProductLanding = template === 'product-landing';
 
   const initLoad = useRef(false);
 

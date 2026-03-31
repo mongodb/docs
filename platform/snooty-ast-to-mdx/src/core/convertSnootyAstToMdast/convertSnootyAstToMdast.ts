@@ -507,6 +507,21 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         };
       }
 
+      // Kicker must serialize as inline JSX (<Kicker>text</Kicker>) so MDX does not wrap
+      // its content in a <p>. Using mdxJsxTextElement inside a paragraph achieves this.
+      if (directiveName === 'kicker') {
+        const inlineChildren: MdastNode[] = [];
+        if (Array.isArray(node.argument)) {
+          inlineChildren.push(...convertChildren({ nodes: node.argument, depth, ctx, parentType: directiveName }));
+        } else if (typeof node.argument === 'string') {
+          inlineChildren.push({ type: 'text', value: node.argument });
+        }
+        return {
+          type: 'paragraph',
+          children: [{ type: 'mdxJsxTextElement', name: 'Kicker', attributes: [], children: inlineChildren }],
+        };
+      }
+
       // Generic fallback for any Snooty directive (ex: ...tab -> <Tab>) where pascalCase doesn't produce the desired result
       const DIRECTIVE_TO_COMPONENT: Record<string, string> = {
         see: 'See',
