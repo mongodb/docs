@@ -1,5 +1,3 @@
-.. _gcp-create-master-key:
-
 a. Create a new {+cmk-long+}
 
    Create a key ring and a symmetric key by following the
