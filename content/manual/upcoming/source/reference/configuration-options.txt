@@ -4204,12 +4204,18 @@ Use the following options to configure ``mongot`` with ``mongod`` in Public Prev
          passwordFile: <string>
          authSource: <string>
          tls: <boolean>
+         x509:
+            tlsCertificateKeyFile: <string>
+            tlsCertificateKeyFilePasswordFile: <string>
          readPreference: <string>
       router: <object>
          hostAndPort: <string>
          username: <string>
          passwordFile: <string>
          tls: <boolean>
+         x509:
+            tlsCertificateKeyFile: <string>
+            tlsCertificateKeyFilePasswordFile: <string>
       caFile: <string>
    storage:
       dataPath: <string>
@@ -4253,19 +4259,22 @@ Use the following options to configure ``mongot`` with ``mongod`` in Public Prev
 
    *Type*: String
 
-   *Necessity*: Required
+   *Necessity*: Conditional
 
    Username to use to authenticate ``mongot`` with ``mongod``.
-   The specified user must have the :authrole:`searchCoordinator` role. 
+   The specified user must have the :authrole:`searchCoordinator` role. If you
+   don't configure :setting:`syncSource.replicaSet.x509`, this option is
+   required. 
 
 .. setting:: syncSource.replicaSet.passwordFile
 
    *Type*: String
 
-   *Necessity*: Required
+   *Necessity*: Conditional
 
    Path to the file that contains the password that ``mongot``
-   must use to authenticate with ``mongod``. 
+   must use to authenticate with ``mongod``. If you don't
+   configure :setting:`syncSource.replicaSet.x509`, this setting is required. 
 
 .. setting:: syncSource.replicaSet.authSource
 
@@ -4284,18 +4293,38 @@ Use the following options to configure ``mongot`` with ``mongod`` in Public Prev
 
    *Default*: false
 
-   Direct passthrough to the :ref:`TLS <uri-options-tls>`
-   connection string option. If omitted, defaults to ``false``. 
+   Direct passthrough to the :ref:`TLS <uri-options-tls>` connection string
+   option. If omitted, defaults to ``false``. If you configure
+   :setting:`syncSource.replicaSet.x509`, this setting must be ``true``
 
-   To use ``mongot`` with TLS, the ``mongod`` :setting:`net.tls.allowConnectionsWithoutCertificates`
-   setting must be ``true``. ``mongod`` must be configured to allow TLS connections 
-   and to allow connections without certificates. Clients can 
-   connect with mTLS, though this cannot be required.
+.. setting:: syncSource.replicaSet.x509
 
-   ``mongot`` uses a Java :ref:`MongoClient <java-mongoclient>` to connect. 
-   The ``MongoClient`` uses a username and password combination to authenticate. 
-   It can connect using TLS, but it will not send a certificate, meaning it 
-   won’t use mTLS.
+   *Type*: Object
+
+   *Necessity*: Conditional
+
+   X.509 certificate settings for authenticating ``mongot`` with ``mongod``.
+   If you do not set :setting:`syncSource.replicaSet.username` and
+   :setting:`syncSource.replicaSet.passwordFile`, this setting is required.
+
+.. setting:: syncSource.replicaSet.x509.tlsCertificateKeyFile
+
+   *Type*: String
+
+   *Necessity*: Required
+
+   Path to the PEM file that contains the x.509 certificate and
+   private key for authenticating ``mongot`` with ``mongod``.
+
+.. setting:: syncSource.replicaSet.x509.tlsCertificateKeyFilePasswordFile
+
+   *Type*: String
+
+   *Necessity*: Optional
+
+   Path to the file that contains the password to decrypt the
+   certificate key file specified in
+   :setting:`syncSource.replicaSet.x509.tlsCertificateKeyFile`.
 
 .. setting:: syncSource.replicaSet.readPreference
 
@@ -4337,20 +4366,21 @@ Use the following options to configure ``mongot`` with ``mongod`` in Public Prev
 
    *Type*: String
 
-   *Necessity*: Required
+   *Necessity*: Conditional
 
-   Username to use to authenticate ``mongot`` with ``mongos``.
-   The specified user must have the :authrole:`searchCoordinator`
-   role.
+   Username to use to authenticate ``mongot`` with ``mongos``. The specified
+   user must have the :authrole:`searchCoordinator` role. If you don't configure
+   :setting:`syncSource.router.x509`, this setting is required. 
 
 .. setting:: syncSource.router.passwordFile
 
    *Type*: String
 
-   *Necessity*: Required
+   *Necessity*: Conditional
 
    Path to the file that contains the password that ``mongot``
-   must use to authenticate with ``mongos``. 
+   must use to authenticate with ``mongos``. If you don't
+   configure :setting:`syncSource.router.x509`, this setting is required. 
 
 .. setting:: syncSource.router.tls
 
@@ -4360,8 +4390,38 @@ Use the following options to configure ``mongot`` with ``mongod`` in Public Prev
 
    *Default*: false
 
-   Direct passthrough to the :ref:`TLS <uri-options-tls>`
-   connection string option. If omitted, defaults to ``false``. 
+   Direct passthrough to the :ref:`TLS <uri-options-tls>` connection string
+   option. If omitted, defaults to ``false``. If you configure
+   :setting:`syncSource.router.x509`, this setting must be ``true``. 
+
+.. setting:: syncSource.router.x509
+
+   *Type*: Object
+
+   *Necessity*: Conditional
+
+   X.509 certificate settings for authenticating ``mongot`` with ``mongos``.
+   if you do not set :setting:`syncSource.router.username` and
+   :setting:`syncSource.router.passwordFile`, this setting is required .
+
+.. setting:: syncSource.router.x509.tlsCertificateKeyFile
+
+   *Type*: String
+
+   *Necessity*: Required
+
+   Path to the PEM file that contains the x.509 certificate and
+   private key for authenticating ``mongot`` with ``mongos``.
+
+.. setting:: syncSource.router.x509.tlsCertificateKeyFilePasswordFile
+
+   *Type*: String
+
+   *Necessity*: Optional
+
+   Path to the file that contains the password to decrypt the
+   certificate key file specified in
+   :setting:`syncSource.router.x509.tlsCertificateKeyFile`.
 
 .. setting:: syncSource.router.readPreference
 
@@ -4376,13 +4436,15 @@ Use the following options to configure ``mongot`` with ``mongod`` in Public Prev
 
    *Type*: String
 
-   *Necessity*: Optional
+   *Necessity*: Conditional
 
    Specifies the Certificate Authority (CA) file that contains trusted
-   certificates for verifying the certificate presented to the endpoint from
-   ``mongod``. The file must contain an X.509 certificate collection in PEM
-   format. If you specify this option, ``mongot`` uses this file instead of the
-   system keystore. 
+   certificates for verifying the certificate presented to the endpoint
+   from ``mongod``. The file must contain an X.509 certificate
+   collection in PEM format. If you specify this option, ``mongot``
+   uses this file instead of the system keystore. If you
+   configure :setting:`syncSource.replicaSet.x509` or
+   :setting:`syncSource.router.x509`, this setting is required. 
 
 .. setting:: server
    
