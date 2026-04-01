@@ -3,7 +3,7 @@
 import { css, cx } from '@leafygreen-ui/emotion';
 import Badge, { type Variant } from '@leafygreen-ui/badge';
 import { theme } from '@/styles/theme';
-import Link from '@/components/link';
+import { Link } from '@/mdx-components/Link';
 
 const pillLinkStyle = css`
   :last-of-type {

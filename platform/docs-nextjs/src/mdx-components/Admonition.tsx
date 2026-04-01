@@ -5,7 +5,7 @@ import { cx, css } from '@leafygreen-ui/emotion';
 import { Theme } from '@leafygreen-ui/lib';
 import { palette } from '@leafygreen-ui/palette';
 import { theme } from '@/styles/theme';
-import { sharedDarkModeOverwriteStyles } from '@/components/link';
+import { sharedDarkModeOverwriteStyles } from '@/mdx-components/Link';
 import { admonitionMap } from '@/mdx-components/Admonition/constants';
 
 export type AdmonitionName = 'tip' | 'note' | 'important' | 'warning' | 'example';

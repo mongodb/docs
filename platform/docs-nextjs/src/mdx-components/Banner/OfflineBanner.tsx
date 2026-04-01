@@ -1,6 +1,6 @@
 import LeafyBanner from '@leafygreen-ui/banner';
 import { cx } from '@leafygreen-ui/emotion';
-import Link from '@/components/link';
+import { Link } from '@/mdx-components/Link';
 import { assertTrailingSlash } from '@/utils/assert-trailing-slash';
 import type { PageTemplateType } from '@/context/page-context';
 import { baseBannerStyle, offlineBannerStyle, offlineBannerContainerStyle } from './styles';

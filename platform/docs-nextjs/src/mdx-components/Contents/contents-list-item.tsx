@@ -1,6 +1,6 @@
 import { css } from '@leafygreen-ui/emotion';
 import { palette } from '@leafygreen-ui/palette';
-import Link from '@/components/link';
+import { Link } from '@/mdx-components/Link';
 import { theme } from '@/styles/theme';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';

@@ -34,6 +34,7 @@ import { Tabs, Tab } from '@/mdx-components/Tabs';
 import { Icon } from '@leafygreen-ui/icon';
 import { Abbr } from '@/mdx-components/Abbr';
 import { Time } from '@/mdx-components/Time';
+import { Link } from '@/mdx-components/Link';
 import { Video } from '@/mdx-components/Video/Video';
 import { Kicker } from '@/mdx-components/Kicker';
 import { Deprecated } from './mdx-components/Deprecated';
@@ -71,6 +72,8 @@ export const components = (injectedProps?: InjectedProps) =>
         {children}
       </Admonition>
     ),
+    // Destructure onClick because it is not valid to pass a regular HTML onClick event handler to LinkComponent.
+    a: ({ children, onClick, ...props }) => <Link {...props}>{children}</Link>,
     Abbr: ({ children, ...props }) => <Abbr {...props}>{children}</Abbr>,
     Banner: ({ children, ...props }) => <Banner {...props}>{children}</Banner>,
     Button: ({ children, ...props }) => <Button {...props}>{children}</Button>,

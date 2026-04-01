@@ -11,7 +11,7 @@ import { Body } from '@leafygreen-ui/typography';
 import { palette } from '@leafygreen-ui/palette';
 import { theme } from '@/styles/theme';
 import ConditionalWrapper from '@/components/conditional-wrapper';
-import Link from '@/components/link';
+import { Link } from '@/mdx-components/Link';
 import { usePageContext } from '@/context/page-context';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { isRelativeUrl } from '@/utils/is-relative-url';
