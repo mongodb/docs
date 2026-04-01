@@ -1,4 +1,3 @@
-import ChartsData from '../docset-data/atlas-charts';
 import AtlasCliData from '../docset-data/atlas-cli';
 import BIConnectorData from '../docset-data/bi-connector';
 import CompassData from '../docset-data/compass';
@@ -207,13 +206,6 @@ const tocData: TocItem[] = [
     contentSite: 'docs',
     group: true,
     items: [
-      {
-        label: 'Charts',
-        contentSite: 'charts',
-        url: '/docs/charts/',
-        showSubNav: true,
-        items: ChartsData,
-      },
       {
         label: 'Compass',
         contentSite: 'compass',

@@ -1,5 +1,6 @@
 import AggregationData from '../manual-data/aggregation';
 import SearchData from '../manual-data/atlas-search';
+import ChartsData from '../docset-data/atlas-charts';
 import ClustersData from '../manual-data/clusters';
 import CRUDData from '../manual-data/crud';
 import FederationData from '../manual-data/data-federation';
@@ -661,6 +662,13 @@ const tocData: TocItem[] = [
         url: '/docs/:version/administration/performance-tuning',
       },
     ],
+  },
+  {
+    label: 'Charts',
+    contentSite: 'charts',
+    url: '/docs/charts/',
+    showSubNav: true,
+    items: ChartsData,
   },
   {
     label: 'Reference',
