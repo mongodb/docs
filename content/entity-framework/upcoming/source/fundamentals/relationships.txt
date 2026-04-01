@@ -1,0 +1,178 @@
+.. _entity-framework-relationships:
+
+============================================
+Embedded Relationships and Manual References
+============================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: EF, EF Core, code example, embedded, owned, relationship
+   :description: Learn how to model relationships between entities in MongoDB using the Entity Framework Core Provider, including owned entities and embedded documents.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+provider-long+} to model relationships
+among documents in your MongoDB database. The {+provider-short+} supports the following
+relationship types:
+
+- **Embedded Relationships:** Subdocuments embedded directly within a parent document.
+  This is the recommended approach for one-to-one and one-to-many relationships in MongoDB.
+- **Manual References:** A document that references another document by storing its ID in a
+  field, instead of embedding the document as a subdocument. This approach works well for
+  modeling many-to-many relationships or when you need to access the documents
+  independently.
+
+Embedded Relationships
+----------------------
+
+To embed a subdocument in a parent document, specify the model for the embedded document as
+an owned entity. Embedded relationships are the MongoDB-native way to model relationships
+and offer better performance for documents that you frequently access together.
+
+You can designate an owned entity in the following ways:
+
+- **[Owned] Attribute:** Apply the ``[Owned]`` data annotation attribute to the model
+  class for the subdocument. This approach is declarative and concise, but also
+  less flexible, because it applies globally to all usages of the owned type.
+- **Fluent API:** Call the ``OwnsOne()`` or ``OwnsMany()`` methods in your ``DbContext``
+  configuration. This approach offers more control and flexibility, allowing you to
+  configure the relationship differently for specific entities without modifying the
+  model class.
+
+The following sections provide examples of these approaches for modeling single and
+multiple owned entities.
+
+One Owned Entity
+~~~~~~~~~~~~~~~~
+
+To embed a single document within a parent document, call the ``OwnsOne()``
+method in your ``DbContext`` configuration or apply the ``[Owned]`` attribute
+to the embedded class.
+
+The following example shows a ``Customer`` entity that contains an embedded
+``Address`` document. Select the :guilabel:`[Owned] Attribute` or
+:guilabel:`Fluent API` tab to see the corresponding syntax:
+
+.. tabs::
+
+   .. tab:: [Owned] Attribute
+      :tabid: single-owned-attribute
+
+      .. literalinclude:: /code-examples/tested/csharp/ef-core/Relationships/Relationships.snippet.single-owned-entity.cs
+         :language: csharp
+         :copyable:
+
+   .. tab:: Fluent API
+      :tabid: single-owned-fluent
+
+      .. literalinclude:: /code-examples/tested/csharp/ef-core/Relationships/Relationships.snippet.single-owned-fluent.cs
+         :language: csharp
+         :copyable:
+
+When you save a ``Customer`` entity, MongoDB stores the ``Address`` as an embedded
+document within the ``Customer`` document. The following JSON shows how this relationship
+appears in MongoDB:
+
+.. code-block:: json
+
+   {
+     "_id": ObjectId("..."),
+     "Name": "John Doe",
+     "Address": {
+       "Street": "123 Main St",
+       "City": "New York",
+       "Country": "USA"
+     }
+   }
+
+Multiple Owned Entities
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To embed multiple documents in a parent document, call the ``OwnsMany()``
+method or apply the ``[Owned]`` attribute to the embedded class and define a
+collection property.
+
+The following example shows a ``Customer`` entity that contains multiple
+embedded ``Order`` documents. Select the :guilabel:`[Owned] Attribute` or
+:guilabel:`Fluent API` tab to see the corresponding syntax:
+
+.. tabs::
+
+   .. tab:: [Owned] Attribute
+      :tabid: many-owned-attribute
+
+      .. literalinclude:: /code-examples/tested/csharp/ef-core/Relationships/Relationships.snippet.many-owned-entity.cs
+         :language: csharp
+         :copyable:
+
+   .. tab:: Fluent API
+      :tabid: many-owned-fluent
+
+      .. literalinclude:: /code-examples/tested/csharp/ef-core/Relationships/Relationships.snippet.many-owned-fluent.cs
+         :language: csharp
+         :copyable:
+
+When you save a ``CustomerWithOrders`` entity, MongoDB stores the ``Orders`` as an array of
+embedded documents, as shown in the following JSON:
+
+.. code-block:: json
+
+   {
+     "_id": ObjectId("..."),
+     "Name": "Jane Smith",
+     "Orders": [
+       { "Product": "Laptop", "Quantity": 1 },
+       { "Product": "Mouse", "Quantity": 2 }
+     ]
+   }
+
+Manual References
+-----------------
+
+To model relationships among entities that aren't embedded, you
+can store references manually by saving the ID of one document in a field of
+another document. This approach requires you to manage the relationship in your
+application code.
+
+The following example shows how to store a reference to a related entity:
+
+.. literalinclude:: /code-examples/tested/csharp/ef-core/Relationships/Relationships.snippet.manual-reference.cs
+   :language: csharp
+   :copyable:
+
+To retrieve the related entity, you must query the referenced collection separately, as
+shown in the following example:
+
+.. literalinclude:: /code-examples/tested/csharp/ef-core/Relationships/Relationships.snippet.query-reference.cs
+   :language: csharp
+   :copyable:
+
+Additional Information
+----------------------
+
+To learn more about modeling data in MongoDB, see :manual:`Data Modeling
+</data-modeling/>` in the {+mdb-server+} documentation.
+
+To learn more about owned entity types in {+framework-core+}, see `Owned Entity
+Types <https://learn.microsoft.com/en-us/ef/core/modeling/owned-entities>`__
+in the Microsoft {+framework-core+} documentation.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types discussed in this guide, see the following
+Microsoft API documentation:
+
+- `[Owned] <https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.ownedattribute>`__
+- `OwnsOne() <https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.metadata.builders.ownednavigationbuilder.ownsone>`__
+- `OwnsMany() <https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.metadata.builders.ownednavigationbuilder.ownsmany>`__

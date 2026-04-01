@@ -58,6 +58,11 @@ const tocData: TocItem[] = [
             contentSite: 'entity-framework',
             url: '/docs/entity-framework/:version/fundamentals/indexes',
           },
+          {
+            label: 'Entity Relationships',
+            contentSite: 'entity-framework',
+            url: '/docs/entity-framework/:version/fundamentals/relationships',
+          },
         ],
       },
       {

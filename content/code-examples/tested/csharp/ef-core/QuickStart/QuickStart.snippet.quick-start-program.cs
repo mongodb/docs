@@ -1,16 +1,3 @@
-using Microsoft.EntityFrameworkCore;
-using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
-using MongoDB.Driver;
-using MongoDB.EntityFrameworkCore.Extensions;
-
-var connectionString = "<Your connection URI>";
-var client = new MongoClient(connectionString);
-var db = MflixDbContext.Create(client.GetDatabase("sample_mflix"));
-
-var movie = db.Movies.First(m => m.Title == "Back to the Future");
-Console.WriteLine(movie.Plot);
-
 public class MflixDbContext : DbContext
 {
     public DbSet<Movie> Movies { get; init; } = null!;
