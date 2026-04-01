@@ -12,7 +12,6 @@
      - Username must contain an ``@`` symbol followed by a period.
 
    * - ``strict``
-     - Username must adhere to a strict email address 
-       validation regular expression. 
-       
+     - Username must adhere to a strict email address
+       validation regular expression.
 

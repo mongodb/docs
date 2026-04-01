@@ -1,4 +1,4 @@
-You should find the client certificate in the |pem| file you
+Find the client certificate in the |pem| file you
 specified in the :setting:`mongodb.ssl.PEMKeyFile` setting.
 
 - Prepend the value of the *subject* from the

@@ -13,7 +13,7 @@
 
    * - isDeleted
      - boolean
-     - Flag indicating if the organization is deleted.
+     - Indicates whether the organization is deleted.
 
    * - name
      - string
