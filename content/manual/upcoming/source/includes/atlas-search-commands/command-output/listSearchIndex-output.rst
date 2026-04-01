@@ -51,7 +51,11 @@ contains the following fields:
 
    * - ``statusDetail.[n].hostname``
      - string
-     - Hostname of the corresponding ``mongot``.
+     - Hostname of the corresponding ``mongot``. MongoDB represents this field
+       as ``<replSetName>.<server.name>.<server.id>``.
+
+       You can specify the :setting:`server.name` for
+       an on-prem deployment in your configuration file. 
 
    * - ``statusDetail.[n].status``
      - string

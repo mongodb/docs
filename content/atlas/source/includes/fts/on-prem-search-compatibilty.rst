@@ -88,12 +88,6 @@ On-Prem Limitations
 
 The following limitations apply to {+fts+} with on-prem deployments. 
 
-{+fts+} Index Stats
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-:pipeline:`$listSearchIndexes` operations on on-prem deployments do not output index stats
-or statuses. 
-
 {+fts+} Features
 ~~~~~~~~~~~~~~~~~~~~~~~
 
