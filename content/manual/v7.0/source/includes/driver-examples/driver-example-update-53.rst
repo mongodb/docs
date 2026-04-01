@@ -80,8 +80,8 @@
          .. literalinclude:: /driver-examples/kotlin_examples.kt
             :language: kotlin
             :dedent:
-            :start-after: Start Example 52
-            :end-before: End Example 52
+            :start-after: Start Example 53
+            :end-before: End Example 53
 
          .. include:: /includes/fact-update-many-operation-uses.rst
 
