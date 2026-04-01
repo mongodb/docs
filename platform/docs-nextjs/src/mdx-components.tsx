@@ -171,7 +171,6 @@ export const components = (injectedProps?: InjectedProps) =>
     VersionAdded: ({ children }) => <span>{children}</span>,
     VersionChanged: ({ children }) => <span>{children}</span>,
     Video: (props) => <Video {...props} />,
-    UseSampleData: ({ children }) => <span>{children}</span>,
     Wayfinding: ({ children }) => <span>{children}</span>,
     DismissibleSkillsCard: ({ children }) => <span>{children}</span>,
     Warning: ({ children, ...props }) => (

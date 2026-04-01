@@ -11,8 +11,8 @@ import { parseSnootyArgument } from './parseSnootyArgument';
 import { computeComposableTutorialData, buildComposableOptionsFromNode } from './computeComposableTutorialData';
 import { extractInlineDisplayText } from './extractInlineDisplayText';
 
-const HIDDEN_NODES = ['toctree', 'index', 'seealso'];
-const DIRECTIVE_NAMES_TO_SKIP = ['extract', 'glossary'];
+const DIRECTIVES_TO_REMOVE_IF_EMPTY = ['toctree', 'index'];
+const DIRECTIVES_TO_SKIP_CONTAINER = ['extract', 'glossary'];
 
 /** Recursively extract plain text from a snooty argument node tree */
 const extractArgText = (n: SnootyNode): string => {
@@ -302,7 +302,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         return null;
       }
       // Pass over container directives: emit only their children, no wrapper.
-      if (DIRECTIVE_NAMES_TO_SKIP.includes(directiveName)) {
+      if (DIRECTIVES_TO_SKIP_CONTAINER.includes(directiveName)) {
         return convertChildren({ nodes: node.children, depth, ctx });
       }
 
@@ -571,7 +571,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       children.push(...convertChildren({ nodes: node.children, depth, ctx, parentType: parentTypeForChildren }));
 
       // Filter out empty directive elements
-      if (HIDDEN_NODES.includes(directiveName) && children.length === 0 && attributes.length === 0) {
+      if (DIRECTIVES_TO_REMOVE_IF_EMPTY.includes(directiveName) && children.length === 0 && attributes.length === 0) {
         return null;
       }
 
@@ -946,6 +946,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
     // Parser-specific node types that we skip
     case 'comment':
     case 'comment_block':
+    case 'default-domain':
       return null;
 
     default:
