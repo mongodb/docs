@@ -37,6 +37,6 @@ object is optional.
    * - tls.clientCertificateMode
      - string
      - Conditional
-     - Declaration as to whether connections to |mms| require a |tls|
+     - Specifies whether connections to |mms| require a |tls|
        certificate. |mms| accepts **OPTIONAL** and **REQUIRE**.
        Required if you set **tls.CAFilePath**.

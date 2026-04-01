@@ -41,7 +41,8 @@
        certificates verify the server certificate returned from any
        MongoDB deployments running with |tls|.
 
-       Two boxes are provided: one each for the :guilabel:`Linux` and :guilabel:`Windows` file paths.
+       Two boxes are provided: one each for the :guilabel:`Linux`
+       and :guilabel:`Windows` file paths.
 
      - None
 
@@ -54,7 +55,8 @@
        connecting to any configured MongoDB that is running with the
        :setting:`net.ssl.CAFile` option.
 
-       Two boxes are provided: one each for the :guilabel:`Linux` and :guilabel:`Windows` file paths.
+       Two boxes are provided: one each for the :guilabel:`Linux`
+       and :guilabel:`Windows` file paths.
 
      - None
 

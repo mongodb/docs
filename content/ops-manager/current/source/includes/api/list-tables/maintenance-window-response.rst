@@ -18,7 +18,7 @@
 
    * - ``created``
      - string
-     - |iso8601-time| when the maintenance window was created. 
+     - |iso8601-time| when the maintenance window was created.
 
    * - ``updated``
      - string
@@ -39,5 +39,5 @@
 
    * - ``description``
      - string
-     - Description of the maintenance window. This field is returned 
+     - Description of the maintenance window. This field is returned
        only if you provided a description of the maintenance window.

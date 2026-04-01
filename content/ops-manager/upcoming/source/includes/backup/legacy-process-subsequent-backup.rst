@@ -1,10 +1,10 @@
 The head database works as a full copy of the deployment database. It
-needs oplogs applied to it on a regular basis to keep its data
+requires oplogs applied on a regular basis to keep its data
 synchronized with the deployment database. Snapshots are generated from
 the data stored in the head database according to your
 :ref:`snapshot schedule <snapshot-frequency-and-retention>`.
 
-Once the first full backup is completed, each active backup job follows
+After the first full backup completes, each active backup job follows
 this process:
 
 1. {+bagent+} tails the deployment's oplog.

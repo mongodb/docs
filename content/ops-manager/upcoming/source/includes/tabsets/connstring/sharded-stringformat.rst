@@ -28,7 +28,7 @@
 
       This option requires a |dns-srv| record for the application
       database. The |dns| entry uses the |dns| seedlist string format.
-      Make sure |mms| can connect to this application database.
+      Ensure |mms| can connect to this application database.
 
       .. seealso::
 

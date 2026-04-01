@@ -12,22 +12,22 @@
    * - ``links``
      - document array
      - One or more links to sub-resources and/or related resources. The
-       relations between URLs are explained in the `Web Linking Specification
-       <https://tools.ietf.org/html/rfc5988>`_.
+       `Web Linking Specification <https://tools.ietf.org/html/rfc5988>`_
+       explains the relations between URLs.
 
    * - ``name``
      - string
      - New name of the organization.
 
-   * - ldapGroupMappings
+   * - ``ldapGroupMappings``
      - object array
      - For LDAP-backed |onprem|, the mappings of
        :doc:`LDAP groups </tutorial/enable-ldap-authentication-for-group>`
        to |onprem| organization roles. Only present for LDAP-backed
        |onprem|.
 
-   * - | ldapGroupMappings
-       | .roleName
+   * - | ``ldapGroupMappings``
+       | ``.roleName``
      - string
      - |onprem| organization role. Possible values include:
 
@@ -36,7 +36,7 @@
        - ``ORG_GROUP_CREATOR``
        - ``ORG_READ_ONLY``
 
-   * - | ldapGroupMappings
-       | .ldapGroups
+   * - | ``ldapGroupMappings``
+       | ``.ldapGroups``
      - string array
-     - LDAP group(s) that map to the |onprem| role.
+     - LDAP groups that map to the |onprem| role.

@@ -29,7 +29,8 @@
    * - name
      - string
      - Required
-     - Label you gave to the physical host. This value must be unique.
+     - Label you assigned to the physical host. This value must be
+       unique.
 
    * - serverType
      - string

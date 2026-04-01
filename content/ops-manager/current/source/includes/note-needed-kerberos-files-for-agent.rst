@@ -1,5 +1,5 @@
 The following Kerberos configuration files are required on any host
-running {+magent+} or {+bagent+}: 
+running {+magent+} or {+bagent+}:
 
 - Create or configure the 
   `krb5.conf <https://web.mit.edu/kerberos/krb5-1.12/doc/admin/conf_files/krb5_conf.html>`_ 
@@ -31,7 +31,8 @@ running {+magent+} or {+bagent+}:
          out where the Kerberos configuration file is stored.
        
 
-- On Linux systems, ensure that the `kinit <http://web.mit.edu/KERBEROS/krb5-devel/doc/user/user_commands/kinit.html>`_
-  binary is located at ``/usr/bin/kinit``. ``kinit``
-  obtains or renews a Kerberos ticket-granting ticket, which
-  authenticates the Agent using Kerberos.
+- On Linux systems, ensure the
+  `kinit <http://web.mit.edu/KERBEROS/krb5-devel/doc/user/user_commands/kinit.html>`_
+  binary is located at ``/usr/bin/kinit``. ``kinit`` obtains or
+  renews a Kerberos ticket-granting ticket, which authenticates
+  the Agent using Kerberos.

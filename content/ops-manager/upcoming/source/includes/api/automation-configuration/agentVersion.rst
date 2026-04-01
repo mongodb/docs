@@ -2,10 +2,10 @@
 
 .. note::
 
-   While you can update the {+mdbagent+} version through this
-   configuration property, you should use the
+   To ensure your versions are up to date, use the
    :ref:`Update Agent Versions <update-monitoring-backup-versions>`
-   endpoint to ensure your versions are up to date.
+   endpoint rather than updating the {+mdbagent+} version through
+   this configuration property.
 
 .. code-block:: json
 
