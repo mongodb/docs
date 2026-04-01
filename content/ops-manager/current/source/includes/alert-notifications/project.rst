@@ -1,7 +1,7 @@
 Sends the alert by email or text message to users with specific roles
 in the Project.
 
-1. Select the Project roles that should receive the alerts from the
+1. Select the Project roles that receive the alerts from the
    :guilabel:`Select Role(s)` check boxes or select :guilabel:`All
    Roles` for all users in the Project to receive the alert.
 

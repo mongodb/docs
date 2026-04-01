@@ -14,7 +14,7 @@
    * - backupAgentVersion
      - string
      - Version of the Backup Agent in the specified project. |mms| has
-       removed the Backup Agent, so this parameter should return
+       removed the Backup Agent, so this parameter returns
        **null**.
 
    * - biConnectorVersion
@@ -28,5 +28,5 @@
    * - monitoringAgentVersion
      - string
      - Version of the Monitoring Agent in the specified project. |mms|
-       has removed the Monitoring Agent, so this parameter should
-       return **null**.
+       has removed the Monitoring Agent, so this parameter
+       returns **null**.

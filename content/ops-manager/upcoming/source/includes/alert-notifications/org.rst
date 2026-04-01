@@ -1,7 +1,7 @@
 Sends the alert by email or text message to users with specific roles
 in the Organization.
 
-1. Select the Organization roles that should receive the alerts from
+1. Select the Organization roles that receive the alerts from
    the :guilabel:`Select Role(s)` check boxes or select
    :guilabel:`All Roles` for all users in the Organization to receive
    the alert.

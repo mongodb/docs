@@ -20,4 +20,4 @@
 
    - :authrole:`Project Data Access Read Only`
 
-   Users without the aforementioned roles cannot see the field values.
+   Users without these roles cannot see the field values.

@@ -24,8 +24,8 @@
    * - pageNum
      - integer
      - Required
-     - Starting group of host assignments to return. Group size gets
-       defined in **itemsPerPage**. This value starts with 1.
+     - Starting group of host assignments to return. The group size is
+       defined by **itemsPerPage**. This value starts with 1.
      -
 
    * - itemsPerPage

@@ -1,4 +1,5 @@
-The **balancer** object is optional and defines balancer settings for each cluster.
+The **balancer** object is optional and defines balancer settings
+for each cluster.
 
 .. code-block:: json
    :linenos:
@@ -22,10 +23,10 @@ The **balancer** object is optional and defines balancer settings for each clust
    * - balancer
      - object
      - Optional
-     - Parameters named according to clusters, each parameter
-       containing an object with the desired balancer settings for the
-       cluster. The object uses the **stopped** and **activeWindow**
-       parameters, as described in the procedure to schedule the
-       balancing window in
-       :manual:`this tutorial </tutorial/manage-sharded-cluster-balancer>`
+     - Parameters named for each cluster, where each parameter
+       contains an object with the balancer settings for that
+       cluster. The object uses the **stopped** and
+       **activeWindow** parameters. To learn more, see
+       :manual:`Manage Sharded Cluster Balancer
+       </tutorial/manage-sharded-cluster-balancer>`
        in the MongoDB manual.

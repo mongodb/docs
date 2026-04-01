@@ -11,6 +11,6 @@ Using the |fim| model:
 - You configure |cloud-short| to authenticate using data passed from
   your |idp|.
 
-This goes beyond |sso| as your |idp| manages your credentials, not
-MongoDB. Your users can use |cloud-short| without needing to remember
+Federated Authentication goes beyond |sso| because your |idp|
+manages your credentials, not MongoDB. Your users can use |cloud-short| without remembering
 another username and password.

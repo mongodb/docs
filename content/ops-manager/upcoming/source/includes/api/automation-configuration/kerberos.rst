@@ -1,4 +1,5 @@
-The **kerberos** object is optional and defines a kerberos service name used in authentication.
+The **kerberos** object is optional and defines a Kerberos service
+name used in authentication.
 
 .. code-block:: json
 
@@ -19,8 +20,8 @@ The **kerberos** object is optional and defines a kerberos service name used in 
    * - kerberos
      - object
      - Optional
-     - Key-value pair that defines the kerberos service name
-       agents use to authenticate via kerberos.
+     - Key-value pair that defines the Kerberos service name
+       agents use to authenticate via Kerberos.
 
    * - kerberos.serviceName
      - string
@@ -28,6 +29,6 @@ The **kerberos** object is optional and defines a kerberos service name used in 
      - Label that sets:
 
        - The service name that the agents use to authenticate to a
-         |mongod| or |mongos| via Kerberos.
+         |mongod| or |mongos| through Kerberos.
        - The **saslServiceName** option in the
          :manual:`MongoDB Server Parameters </reference/parameters/>`.

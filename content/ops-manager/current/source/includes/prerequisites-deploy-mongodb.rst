@@ -5,8 +5,8 @@ clusters. |mms| requires access to these hosts.
 .. important::
 
    If you run :product:`MongoDB Enterprise <mongodb-enterprise-advanced>`
-   and provision your own Linux hosts, then you must manually install a
-   set of dependencies to each server **before installing MongoDB**.
+   and provision your own Linux hosts, you must install the required
+   dependencies on each server **before installing MongoDB**.
    The MongoDB manual provides the appropriate command to install the
    dependencies.
 

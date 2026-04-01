@@ -12,13 +12,13 @@
 
    * - ``isDeleted``
      - boolean
-     - Flag indicating if the organization is deleted.
-       
+     - Indicates whether the organization is deleted.
+
    * - ``links``
      - document array
      - One or more links to sub-resources and/or related resources. The
        relations between URLs are explained in the `Web Linking Specification
-       <https://tools.ietf.org/html/rfc5988>`_.
+       <https://tools.ietf.org/html/rfc8288>`_.
 
    * - ``name``
      - string
