@@ -1,159 +1,129 @@
 name: Sync Style Guide
 
 on:
-  # Run monthly on the 1st at 9am UTC
+  # 1st of each month, 9:00 UTC
   schedule:
     - cron: '0 9 1 * *'
-  
-  # Allow manual trigger
+
   workflow_dispatch:
 
-# Configure who gets notified when style guide updates
 env:
   STYLE_GUIDE_REVIEWER: 'emetozar'
+  STYLE_GUIDE_PATH: 'content/meta/source/style-guide'
 
 permissions:
-  contents: write
+  contents: read
   pull-requests: write
   issues: write
 
 jobs:
-  check-for-updates:
-    # Only run on main repo, not forks (forks inherit scheduled workflows)
+  check-for-drift:
     if: github.repository == '10gen/docs-mongodb-internal'
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
         with:
-          node-version: '20'
-      
-      - name: Check MongoDB docs-meta for updates
+          fetch-depth: 0
+
+      - name: Check for style guide changes since last sync
         id: check
         run: |
-          # Get the latest commit date from MongoDB docs-meta
-          LATEST_COMMIT=$(curl -s "https://api.github.com/repos/mongodb/docs-meta/commits?path=source&per_page=1" | jq -r '.[0].commit.committer.date')
-          LATEST_SHA=$(curl -s "https://api.github.com/repos/mongodb/docs-meta/commits?path=source&per_page=1" | jq -r '.[0].sha')
-          LATEST_MESSAGE=$(curl -s "https://api.github.com/repos/mongodb/docs-meta/commits?path=source&per_page=1" | jq -r '.[0].commit.message' | head -1)
-          
-          echo "latest_commit=$LATEST_COMMIT" >> $GITHUB_OUTPUT
-          echo "latest_sha=$LATEST_SHA" >> $GITHUB_OUTPUT
-          echo "latest_message=$LATEST_MESSAGE" >> $GITHUB_OUTPUT
-          
-          # Check if we have a record of the last known commit
+          set -euo pipefail
+
           LAST_KNOWN=""
           if [ -f ".github/ai-reviewer/.style-guide-version" ]; then
-            LAST_KNOWN=$(cat .github/ai-reviewer/.style-guide-version)
+            LAST_KNOWN=$(tr -d ' \n\r' < ".github/ai-reviewer/.style-guide-version")
           fi
-          
-          echo "last_known=$LAST_KNOWN" >> $GITHUB_OUTPUT
-          
+
+          LATEST_SHA=$(git log -1 --format='%H' -- "${STYLE_GUIDE_PATH}")
+
+          if [ -z "$LATEST_SHA" ]; then
+            echo "::error::No commits found for ${STYLE_GUIDE_PATH}"
+            exit 1
+          fi
+
+          LATEST_DATE=$(git log -1 --format='%ci' -- "${STYLE_GUIDE_PATH}")
+          LATEST_MESSAGE=$(git log -1 --format='%s' -- "${STYLE_GUIDE_PATH}")
+
+          echo "latest_sha=${LATEST_SHA}" >> "${GITHUB_OUTPUT}"
+          echo "latest_date=${LATEST_DATE}" >> "${GITHUB_OUTPUT}"
+          {
+            echo 'latest_message<<STYLE_GUIDE_MSG_EOF'
+            echo "${LATEST_MESSAGE}"
+            echo 'STYLE_GUIDE_MSG_EOF'
+          } >> "${GITHUB_OUTPUT}"
+          echo "last_known=${LAST_KNOWN}" >> "${GITHUB_OUTPUT}"
+
           if [ "$LATEST_SHA" != "$LAST_KNOWN" ]; then
-            echo "has_updates=true" >> $GITHUB_OUTPUT
-            echo "📢 Style guide has been updated!"
-            echo "   Latest commit: $LATEST_SHA"
-            echo "   Message: $LATEST_MESSAGE"
-            echo "   Date: $LATEST_COMMIT"
-          else
-            echo "has_updates=false" >> $GITHUB_OUTPUT
-            echo "✅ Style guide is up to date"
-          fi
-      
-      - name: Fetch latest style guide content
-        if: steps.check.outputs.has_updates == 'true'
-        run: |
-          mkdir -p .github/ai-reviewer/style-guide-source
-          
-          # Fetch key style guide pages
-          echo "Fetching style guide sections..."
-          
-          # Main sections to fetch (RST files from docs-meta)
-          SECTIONS=(
-            "style-guide"
-            "style-guide/writing/index"
-            "style-guide/style/index"
-            "style-guide/terminology/index"
-            "style-guide/seo-guidelines"
-          )
-          
-          for section in "${SECTIONS[@]}"; do
-            URL="https://raw.githubusercontent.com/mongodb/docs-meta/master/source/${section}.txt"
-            FILENAME=$(echo $section | tr '/' '-')
-            
-            if curl -sf "$URL" -o ".github/ai-reviewer/style-guide-source/${FILENAME}.txt"; then
-              echo "  ✓ Fetched $section"
+            echo "has_updates=true" >> "${GITHUB_OUTPUT}"
+
+            if [ -n "$LAST_KNOWN" ] && git cat-file -e "${LAST_KNOWN}" 2>/dev/null; then
+              CHANGED_FILES=$(git diff --name-only "${LAST_KNOWN}" HEAD -- "${STYLE_GUIDE_PATH}" | head -30)
+              CHANGE_COUNT=$(echo "$CHANGED_FILES" | grep -c . || true)
             else
-              echo "  ✗ Could not fetch $section (may not exist as .txt)"
+              CHANGED_FILES="(full diff unavailable — tracker was empty or commit not found)"
+              CHANGE_COUNT="unknown"
             fi
-          done
-          
-          # Also try .rst extension
-          for section in "${SECTIONS[@]}"; do
-            URL="https://raw.githubusercontent.com/mongodb/docs-meta/master/source/${section}.rst"
-            FILENAME=$(echo $section | tr '/' '-')
-            
-            if curl -sf "$URL" -o ".github/ai-reviewer/style-guide-source/${FILENAME}.rst"; then
-              echo "  ✓ Fetched $section.rst"
-            fi
-          done
-      
-      - name: Update version tracker
+
+            echo "change_count=${CHANGE_COUNT}" >> "${GITHUB_OUTPUT}"
+            {
+              echo 'changed_files<<STYLE_GUIDE_FILES_EOF'
+              echo "${CHANGED_FILES}"
+              echo 'STYLE_GUIDE_FILES_EOF'
+            } >> "${GITHUB_OUTPUT}"
+
+            echo "📢 Style guide has changed since last sync"
+            echo "   Latest commit: ${LATEST_SHA}"
+            echo "   Message: ${LATEST_MESSAGE}"
+            echo "   Date: ${LATEST_DATE}"
+            echo "   Files changed: ${CHANGE_COUNT}"
+          else
+            echo "has_updates=false" >> "${GITHUB_OUTPUT}"
+            echo "✅ style-guide-reference.md is in sync (${LATEST_SHA})"
+          fi
+
+      - name: Open reminder issue
         if: steps.check.outputs.has_updates == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "${{ steps.check.outputs.latest_sha }}" > .github/ai-reviewer/.style-guide-version
-      
-      - name: Create Pull Request
-        if: steps.check.outputs.has_updates == 'true'
-        id: create-pr
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: sync style guide from MongoDB docs-meta"
-          title: "📚 Style Guide Update Detected"
-          body: |
-            ## MongoDB Style Guide Update
-            
-            The [MongoDB Documentation Style Guide](https://www.mongodb.com/docs/meta/style-guide/) has been updated.
-            
-            **Latest commit:** `${{ steps.check.outputs.latest_sha }}`
-            **Commit message:** ${{ steps.check.outputs.latest_message }}
-            **Date:** ${{ steps.check.outputs.latest_commit }}
-            
-            ### What to do
-            
-            1. Review the [style guide changes](https://github.com/mongodb/docs-meta/commits/master/source)
-            2. Update `.github/ai-reviewer/style-guide-reference.md` if needed
-            3. Merge this PR to acknowledge the update
-            
-            ---
-            <sub>🤖 This PR was automatically created by the style guide sync workflow.</sub>
-          branch: style-guide-sync
-          delete-branch: true
-          labels: |
-            documentation
-            automated
-          reviewers: ${{ env.STYLE_GUIDE_REVIEWER }}
-      
-      - name: Create issue if PR fails
-        if: failure() && steps.check.outputs.has_updates == 'true'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: '📚 Style Guide Update Detected - Manual Review Needed',
-              body: `The MongoDB style guide has been updated but the automated sync failed.
-              
-              Please review the changes manually:
-              - [MongoDB docs-meta commits](https://github.com/mongodb/docs-meta/commits/master/source)
-              - [Style Guide](https://www.mongodb.com/docs/meta/style-guide/)
-              
-              Latest commit: \`${{ steps.check.outputs.latest_sha }}\`
-              `,
-              labels: ['documentation', 'manual-review']
-            });
+          set -euo pipefail
+
+          EXISTING=$(gh issue list \
+            --label "style-guide-sync" \
+            --state open \
+            --json number \
+            --jq '.[0].number' || echo '')
+
+          if [ -n "$EXISTING" ]; then
+            echo "Open issue #${EXISTING} already exists — skipping"
+            exit 0
+          fi
+
+          gh issue create \
+            --title "📚 Style guide updated — refresh style-guide-reference.md" \
+            --label "documentation" \
+            --label "style-guide-sync" \
+            --assignee "$STYLE_GUIDE_REVIEWER" \
+            --body "The style guide source at \`${STYLE_GUIDE_PATH}\` has changed since the last time \`.github/ai-reviewer/style-guide-reference.md\` was synced.
+
+          **Latest commit:** \`${{ steps.check.outputs.latest_sha }}\`
+          **Date:** ${{ steps.check.outputs.latest_date }}
+          **Message:** ${{ steps.check.outputs.latest_message }}
+          **Files changed:** ${{ steps.check.outputs.change_count }}
+
+          \`\`\`
+          ${{ steps.check.outputs.changed_files }}
+          \`\`\`
+
+          ### What to do
+
+          1. Review the changes above (or run \`git diff ${{ steps.check.outputs.last_known }}..${{ steps.check.outputs.latest_sha }} -- ${STYLE_GUIDE_PATH}\`)
+          2. Update \`.github/ai-reviewer/style-guide-reference.md\` if needed
+          3. Update \`.github/ai-reviewer/.style-guide-version\` with \`${{ steps.check.outputs.latest_sha }}\`
+          4. Close this issue
+
+          ---
+          *Opened by the style guide sync workflow.*"
