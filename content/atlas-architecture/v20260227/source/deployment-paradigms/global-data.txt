@@ -1,0 +1,88 @@
+.. _arch-center-global-data:
+
+===========
+Global Data
+===========
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: onecol
+
+{+service+} supports distributing your data globally, to ensure high 
+availability, low latency, and meet regulatory compliance. Careful 
+planning of the distribution of your data can ensure you meet 
+compliance requirements for :ref:`data sovereignty 
+<arch-center-compliance-data-sovereignty>`, such as the EU's General 
+Data Protection Regulation (GDPR) law. You can set up one or more 
+clusters in the regions where you need to ensure data sovereignty, and 
+configure your architecture to write that specific data to the correct 
+clusters or nodes with an appropriate zone or geo shard key. 
+
+The following diagram shows a topology distributed globally. It 
+has 3 clusters, one in each of 3 geographies. Each cluster has the same 
+regional distribution of 5 nodes spread across 3 regions.
+
+This topology allows the application to send region specific data to 
+only the appropriate cluster for that region. So EU data that is 
+covered by GDPR is written by the application to Cluster 2 with nodes 
+located in the EU. Similarly, APAC specific data is only written to 
+Cluster 3, where all nodes are located in APAC locations. Any global 
+data, or data that is not regionally specific, is written to all 3 
+clusters. This ensures that the outage of any one cluster does not have 
+the potential to impact other portions of the application.
+
+
+.. figure:: /includes/images/global.png
+   :alt: Three clusters distributed across nine regions in three geographies.
+
+With a large global enterprise or global application, architects may 
+want to deploy clusters across multiple geographies or continents. In 
+general, the best practice is to deploy separate multi-region clusters 
+in each geography. This gives the application high availability in a 
+single region and keeps the data sovereignty requirements 
+straightforward. A proxy or redirect layer should identify where the 
+request is coming from and assign them to the correct geography. 
+
+While customers can leverage Atlas’ multi-region deployments to deploy 
+across multiple geographies they tend not to avoid the complexity that 
+comes from complying with data sovereignty requirements. A replica set 
+will natively replicate all data to all secondary nodes, for 
+user-centric data that must satisfy sovereignty requirements like GDPR, 
+this will not work and this architecture should only be considered for 
+public reference data that is the same globally without sovereignty 
+requirements. Clusters can be sharded with a shard key that contains 
+the region information where data should be stored to comply with 
+sovereignty requirements and Atlas has a feature called Global Clusters 
+which streamlines the set-up of the shard key corresponding to the 
+geographic zone. However, in practice, enterprises opt to deploy 
+separate clusters in different regions for the same application so that 
+they do not have to deal with the complexity associated with ensuring 
+application code is properly setting the correct shard key by 
+geographic zone.
+
+Global Clusters
+---------------
+
+:atlas:`Global Atlas clusters </tutorial/create-global-cluster>` are 
+used in the most complex deployments, and therefore require very 
+careful planning. In almost all cases, a :ref:`Multi-Region Deployment 
+Paradigm <arch-center-paradigms-multi-region>` can fulfill your needs.
+
+You might consider a global deployment strategy if:
+
+- You need a single global connection string.
+- You need to perform global aggregations across all clusters/shards.
+- You need the ability to read/write for all clusters/shards from 
+  everywhere in one logical cluster, while also having regional reads/
+  writes.
+
+.. important::
+
+   The complexity of global clusters, and the unique needs and 
+   offerings of specific geographic regions, makes documenting a single 
+   best practice difficult. Contact MongoDB's {+ps+} team to discuss 
+   your specific requirements.

@@ -1,0 +1,271 @@
+
+.. _arch-center-authentication-recs:
+
+========================================
+Guidance for {+service+} Authentication
+========================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::   
+   :description: Learn about the different authentication mechanisms that Atlas supports.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: onecol
+
+
+|service-fullname| supports a variety of authentication methods to
+ensure robust security. |service| requires all users to authenticate to 
+access the {+atlas-ui+}, |service| databases, and  the {+atlas-admin-api+}. 
+
+.. note:: 
+
+   In this context, a "user" can be a human or an application. We refer to 
+   human users as "Workforce Identity" and applications as "Workload Identity".
+
+Two factors determine which authentication types to use: 
+
+- The identity type (human or machine)
+- The resource that the identity needs access to. The resource can be one
+  of the following: |service| UI, |service| Database, or |service| APIs.
+
+|service| UI Authentication
+---------------------------
+
+- Workforce Users
+
+  Use IP access restrictions, and then:
+
+  - Use :ref:`Federated Authentication <arch-center-federated_auth>` with an 
+    SAML 2.0 identity provider, such as Okta, Microsoft Entra ID, or Ping 
+    Identity, **and** 
+  - Use Atlas credentials with 
+    :ref:`Multi-factor Authentication (MFA) <arch-center-mfa>`. You should 
+    always use the most secure form of MFA available, such as a hardware key 
+    or biometrics.
+
+- Workload Users
+  
+  This only applies to Workforce users.
+
+|service| Database Authentication
+---------------------------------
+
+- Workforce Users
+
+  Use :ref:`Workforce Identity Federation <arch-center-workforce_if>`.
+
+  For development and test environments, you can also use 
+  :ref:`SCRAM <arch-center-scram>`. Consider :ref:`creating temporary database 
+  users <arch-center-just-in-time>` with just-in-time database access.
+
+- Workload Users
+
+  Use one of the following:
+
+  - :ref:`Workload Identity Federation <arch-center-workload_if>`
+  - :ref:`AWS-IAM authentication <arch-center-iam>`
+  - :ref:`X.509 <arch-center-x509>` certificates
+
+  For development and test environments, you can also use 
+  :ref:`X.509 <arch-center-x509>` certificates or :ref:`SCRAM <arch-center-scram>`.
+
+|service| API Authentication
+----------------------------
+
+.. note::
+
+   This applies to both Workforce and Workload users.
+
+Use :ref:`<arch-center-admin-service-accounts>`. 
+For development and test environments, you can also use 
+:ref:`<arch-center-admin-service-accounts>` or :ref:`<arch-center-admin-api-keys>`.
+
+Authentication Types
+--------------------
+
+The following sections provide details about the authentication methods used when 
+accessing the {+atlas-ui+}, |service| Database, or the {+atlas-admin-api+}.
+
+.. _arch-center-federated_auth:
+
+Federated Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Federated authentication allows you to manage all authentication to
+the {+atlas-ui+} across multiple systems and applications through a
+central identity provider, which reduces user management complexity. With 
+federated authentication, you can enforce security policies such as password 
+complexity, credential rotation, and :abbr:`MFA (Multi-Factor
+Authentication)` within your identity provider's tools. 
+
+For the {+atlas-ui+}, you can use any :abbr:`SAML (Security Assertion
+Markup Language) 2.0` compatible identity provider such as Okta, Microsoft
+Entra ID, or Ping Identity.
+
+.. _arch-center-workforce_if:
+
+Workforce Identity Federation
+`````````````````````````````
+
+Workforce Identity Federation allows you to manage all authentication to 
+the |service| database through your identity provider. To learn more, 
+see :ref:`oidc-authentication-workforce`.
+
+.. _arch-center-workload_if:
+
+Workload Identity Federation
+````````````````````````````
+
+Workload Identity Federation enables applications running in cloud
+environments like |azure| and Google Cloud to authenticate with
+|service| without the need to manage separate database user credentials.
+With Workload Identity Federation, you can manage |service| database
+users using |azure| Managed Identities, Google Service Accounts, or any
+OAuth 2.0-compliant service. These authentication mechanisms simplify
+management and enhance security by allowing for passwordless access to
+the |service| database. 
+
+.. _arch-center-iam:
+
+AWS IAM Role Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also authenticate through |aws| |iam| roles. To learn more, 
+see :ref:`set-up-pwdless-auth`.
+
+To learn more, see :ref:`oidc-authentication-workload` and 
+:ref:`atlas-federated-authentication`.
+
+.. _arch-center-mfa:
+
+Multi-Factor Authentication 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For any human user that has access to the |service| control plane, we **require** 
+:abbr:`MFA (Multi-Factor Authentication)` for enhanced security. |service| 
+supports the following MFA methods as secondary identification: 
+
+- Security keys
+- Biometrics
+- OTP authenticators 
+- Push notifications with Okta Verify
+- Email
+
+.. note::
+   
+   If you are using Federated Auth, you configure and manage MFA in the 
+   :abbr:`IdP (Identity Provider)`. If you are using |service| credentials, 
+   MFA is configured and managed within |service|. MFA is required when 
+   using |service| credentials.
+
+To learn more, see :ref:`atlas-enable-mfa`.
+
+.. _arch-center-x509:
+
+X.509 Client Certificates 
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+X.509 certificates provide the security of mutual TLS, 
+making them suitable for staging and production environments, and you
+can bring your own certificate authority for use with X.509.
+The disadvantage of X.509 is that you must manage certificates and
+the security of these certificates on the application side, while
+Workload Identity Federation allows for password-less access and easier
+application security.
+
+To learn more, see :manual:`X.509 </core/security-x.509/>`.
+
+.. _arch-center-scram:
+
+SCRAM Password Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| clusters support SCRAM password authentication for user authentication, 
+but we recommend SCRAM only for use in development and test environments. 
+
+If you leverage X.509 or SCRAM authentication, we recommend that you use 
+a third-party secrets manager like 
+`HashiCorp Vault <https://developer.hashicorp.com/vault/docs/secrets/databases/mongodbatlas>`__
+or |aws| Secrets Manager to generate and store complex database credentials. 
+
+To learn more, see :manual:`SCRAM </core/security-scram/>`.
+
+.. _arch-center-admin-service-accounts:
+
+Service Accounts
+~~~~~~~~~~~~~~~~
+
+Service accounts use industry-standard OAuth2.0 to securely authenticate
+with {+service+} through the {+atlas-admin-api+}. We recommend that you use 
+service accounts instead of |api| keys when possible because they provide added 
+security through short-lived access tokens and required credential rotations.
+
+You can manage programmatic access for service accounts by using the 
+{+atlas-ui+}, {+atlas-cli+}, {+atlas-admin-api+}, and Terraform.
+
+.. _arch-center-admin-api-keys:
+
+API Keys
+~~~~~~~~
+
+Service accounts are the preferred method of authentication. {+service+}  
+provides legacy support for |api| key-based authentication for managing 
+programmatic access. |api| key-based authentication uses |http| Digest 
+authentication to protect requests.
+
+To further enhance security and minimize the risk of unauthorized 
+access:
+
+- Follow best practices for rotating API keys regularly. To learn how 
+  to rotate these keys with `HashiCorp Vault 
+  <https://www.vaultproject.io/>`__, for example, see the 
+  `Hashicorp documentation 
+  <https://developer.hashicorp.com/vault/docs/secrets/mongodbatlas>`__.
+
+- Use the IP access list for your API keys. To learn more, see 
+  :atlas:`Require an IP Access List for the Atlas Administration API </configure-api-access/#optional--require-an-ip-access-list-for-the-atlas-administration-api>`.
+
+To learn more, see :ref:`api-authentication`.
+
+.. _arch-center-secrets:
+
+Secrets Management
+~~~~~~~~~~~~~~~~~~
+
+We recommend using a third-party secrets manager like `HashiCorp Vault
+<https://developer.hashicorp.com/vault/docs/secrets/databases/mongodbatlas>`__
+or |aws| Secrets Manager to generate and store complex database credentials.
+A secrets manager can generate database credentials dynamically based on configured
+roles for |service| databases. 
+
+To learn more, see the blog :website:`Manage
+MongoDB Atlas Database Secrets in HashiCorp Vault 
+</blog/post/manage-atlas-database-secrets-hashicorp-vault>`.
+
+Deployments 
+~~~~~~~~~~~
+
+To learn our recommendations for deployments that relate to authentication, 
+see :ref:`arch-center-hierarchy`.
+
+Additional Security Measures
+----------------------------
+
+To further enhance security and minimize the risk of unauthorized access, 
+consider these additional security measures:
+
+- :atlas:`Rotate service account secrets </tutorial/rotate-service-account-secrets/#std-label-rotate-service-account-secrets>` before they expire.
+
+- Use an :atlas:`IP access list </configure-api-access/#optional--require-an-ip-access-list-for-the-atlas-administration-api>` for your service accounts.
+
+- Assign the least privileged :atlas:`Atlas role </reference/user-roles/>` required for the service account's intended purpose to adhere to the principle of least privilege.
+
+To learn more, see :atlas:`Service Accounts Overview </api/api-authentication/>`.

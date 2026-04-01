@@ -1,0 +1,269 @@
+.. _arch-center-is-power-smart-meter-analysis:
+
+=================================
+Smart Meter Analysis with MongoDB
+=================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+MongoDB provides a scalable platform for smart meter systems, enabling
+real-time data collection, time series analysis, and anomaly detection.
+
+**Use cases:** `IoT <https://www.mongodb.com/solutions/use-cases/internet-of-things>`__, 
+`App Driven-Analytics <https://www.mongodb.com/collateral/application-driven-analytics>`__, 
+`Single View <https://www.mongodb.com/solutions/use-cases/single-view>`__
+
+**Industries:** `Manufacturing & Mobility <https://www.mongodb.com/solutions/industries/manufacturing>`__, 
+Energy and Environmental
+
+**Products and tools:** `MongoDB Atlas <https://www.mongodb.com/atlas/database>`__, 
+`MongoDB Atlas Charts <https://www.mongodb.com/products/platform/atlas-charts>`__, 
+`MongoDB Change Streams <https://www.mongodb.com/resources/products/capabilities/change-streams>`__, 
+`MongoDB Time Series Collections <https://www.mongodb.com/products/capabilities/time-series>`__,
+:ref:`MongoDB Query Language <mql-reference>`
+
+**Partners:** `Cedalo <https://cedalo.com/>`__
+
+Solution Overview
+-----------------
+
+As smart meter technology adoption rises, MongoDB provides a 
+comprehensive platform for managing and analyzing smart meter time 
+series data at scale. This smart meter solution helps utility 
+companies:
+
+- Collect high-frequency meter readings
+- Process streaming data in real time
+- Store historical data efficiently
+- Detect anomalies to identify issues like voltage spikes,
+  power outages, or unusual consumption patterns
+
+This solution leverages the following MongoDB integrations and 
+features to allow companies to scale while maintaining 
+performance and data accessibility:
+
+- **IoT messaging protocol integration**: MongoDB's integration with
+  IoT messaging protocols like MQTT allows for reliable data ingestion 
+  from smart meters' head-end units. 
+
+- **MongoDB Atlas**: MongoDB Atlas' native :ref:`time series <manual-timeseries-landing>` 
+  support enables efficient storage and querying of temporal data.
+
+- **Advanced MongoDB Features**: Advanced features like data tiering and 
+  :ref:`Atlas Online Archive <online-archive-overview>` 
+  help manage historical data cost-effectively. 
+
+- **Analytics and monitoring**: Built-in analytics capabilities enable 
+  real-time monitoring and operational insights through 
+  customizable dashboards and reports.
+
+Reference Architectures
+-----------------------
+
+This solution contains two main components: **Smart Meter Data Storage**
+and **Smart Meter Data Management with MongoDB**. 
+
+Smart Meter Data Storage
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To use smart metering, power utility companies deploy a core
+smart metering ecosystem that includes the following components: 
+
+- **Smart meters**: Smart meters collect data from end consumers and transmit it to the data 
+  aggregator through the :abbr:`LAN(Local Area Network)`. You can adjust the 
+  transmission frequency to 15 minutes, 30 minutes, or hourly, depending 
+  on data demand requirements.
+- **Meter data collection network**: The aggregator retrieves the smart meter data and then 
+  transmits it to the :abbr:`HES (head-end system)`. 
+- **Head-end system**: The HES analyzes the 
+  data and sends it to the :abbr:`MDMS (Meter Data Management System)`. 
+  The initial communications path uses commands that you can send directly 
+  to the meters, customer premise, or distribution device.
+- **Meter data management system**: The MDMS system uses :atlas:`MongoDB Atlas </>` as 
+  the backend database for this solution. Once the data reaches the HES, an 
+  `MQTT <https://mqtt.org/>`__ provider transmits it to MongoDB Atlas. MongoDB Atlas 
+  stores the smart meter data, including information such as 
+  meter ID, timestamp, and measurements like energy, current, or voltage.
+  
+Leading MQTT broker providers, such as Cedalo, 
+have MongoDB integrations that enable seamless data transfer and 
+efficient management of the information that smart meters collect.
+This solution employs the Cedalo Pro Mosquitto MQTT broker to facilitate
+effective message transmission. The Cedalo broker connects to MongoDB 
+and ensures a continuous flow of data between the two systems. 
+
+Smart Meter Data Management with MongoDB
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Once you store the smart meter data in MongoDB Atlas, you can analyze 
+it for anomalies and insights. This solution leverages three key 
+MongoDB features to create a next generation MDMS: 
+
+1. :ref:`MongoDB Change Streams <changeStreams>`
+2. :ref:`MongoDB Time Series Collections <manual-timeseries-landing>`
+3. :ref:`MongoDB Query Language <mql-reference>`
+
+MongoDB change streams enable real-time capturing and processing of
+database changes, like insert operations, to provide immediate
+insights into energy consumption patterns, system anomalies, and
+potential faults. Real-time capability in smart meter systems allows for 
+timely analysis using the MongoDB aggregation framework, detecting 
+anomalies and preventing costly damages and service disruptions.
+
+MongoDB stores the analyzed data in time series collections. These 
+specialized collections do the following for your smart meter data:  
+
+- Provide high compression
+- Enhance query performance of time series data 
+- Enable fast operations
+
+.. figure:: /includes/images/industry-solutions/smart-meter-architecture-1.svg
+   :figwidth: 1200px
+   :alt: End-to-end smart meter management system architecture
+
+   Figure 1. End-to-end smart meter management system architecture
+
+Data Model Approach
+-------------------
+
+This solution uses two time series data models. You can use the 
+first model for raw smart meter data with ``meter_id`` as the 
+``metaField``:
+
+.. code-block:: javascript
+
+   {
+     "_id": "668cb56d3830323642e562d9" ,
+     "timestamp": { "$date": "1720497517183" },
+     "power_factor": 0.89 ,
+     "power": 220.1 ,
+     "frequency": 49.85,
+     "meter_id": 1,
+     "energy": 0.22,
+     "current": 1,
+     "voltage": 219.38
+   }
+
+The second dataset includes anomalies detected in various measurements
+based on predefined criteria. In the following example, anomalies are
+readings that are over three standard deviations from the
+mean values. This dataset uses ``meter_id`` as the ``metaField``:
+
+.. code-block:: javascript
+
+   {
+     "_id": "668d4a023819ef77d3fc84d8",
+     "timestamp": { "$date": "1720535553856" },
+     "meter_id": 3,
+     "data": {
+       "voltage": 190.06,
+       "current": 18.13,
+       "power": 3445.67,
+       "energy": 3.45,
+       "power_factor": 0.76,
+       "frequency": 49.92
+     },
+     "anomalies": ["voltage", "current"]
+   }
+
+Build the Solution
+------------------
+
+This smart meter data management solution uses MQTT broker and MongoDB Atlas 
+to collect and analyze modern energy infrastructure data.
+
+.. note:: 
+  
+   While this implementation showcases Cedalo's MQTT Broker, this solution is 
+   broker-agnostic and supports integration with various MQTT providers.
+
+Use the following procedure to set up your smart meter data management 
+system with MongoDB. For a more detailed implementation of this solution, 
+see the `GitHub repository <https://github.com/mongodb-industry-solutions/Leafy-Smart-Meters>`__.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set up your MQTT broker
+
+      a. Set up your `MQTT broker <https://cedalo.com/mqtt-broker-pro-mosquitto/>`__
+         for reliable message handling.
+      #. Configure broker integration with MongoDB.
+      #. Establish secure data streaming pipelines.
+      #. Enable real-time data collection from smart meters.
+      #. Implement broker management and monitoring. 
+
+   .. step:: Configure your environment
+
+      Configure environment variables for:
+
+      - MQTT broker connection details
+      - MongoDB connection URI
+      - Database and collection names
+      - Analytics engine configuration
+      - Atlas Charts integration
+
+   .. step:: Configure your database
+
+      a. Create a MongoDB database with required collections.
+      #. Set up :ref:`time series <manual-timeseries-landing>` collections for:
+
+         - Anomalies data
+         - Metrics data
+         - Transformed data
+
+      #. Configure data transformation pipelines.
+      #. Enable real-time data processing capabilities. 
+
+   .. step:: Deploy your application
+
+      a. Deploy application components.
+      #. Implement real-time monitoring capabilities.
+      #. Set up anomaly detection algorithms.
+      #. Create customized dashboards.
+      #. Enable interactive data exploration.
+
+Key Learnings
+-------------
+
+- **Data management is critical:** Smart meters generate large volumes
+  of time series data, which creates challenges in data interoperability, 
+  privacy, and processing. Solutions require flexible, scalable 
+  databases that handle high-frequency, complex data streams.
+
+- **MQTT enables efficient IoT communication:** Smart meter ecosystems
+  need lightweight publish-subscribe protocols for efficient, secure
+  data transmission between devices, aggregators, and management systems.
+
+- **MongoDB offers comprehensive IoT data solutions:** Time series 
+  collections, change streams, aggregation frameworks, and flexible 
+  document models help MongoDB address key smart meter challenges like 
+  anomaly detection, real-time analytics, and scalable data storage.
+
+- **Use an integrated approach:** Successful smart meter implementations combine
+  messaging protocols like MQTT, advanced database technologies, and 
+  comprehehensive analytics to transform raw meter data into actionable insights.
+
+Authors
+-------
+
+- Dr. Humza Akhtar, MongoDB
+- Rami Pinto, MongoDB
+- Sebastian Rojas Arbulu, MongoDB
+- Diego Canales, MongoDB
+
+Learn More
+----------
+
+- :ref:`arch-center-is-rocket-launch`
+- `Blog Post: MongoDB and Cedalo for Smart Meter Systems <https://www.mongodb.com/company/blog/innovation/saving-energy-smarter-mongodb-cedalo-for-smart-meter-systems>`__
+- :ref:`arch-center-is-manufacturing-iot-data-hub-solution`
+- :ref:`arch-center-is-audio-based-ai-diagnostics`

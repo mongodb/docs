@@ -1,0 +1,382 @@
+.. _arch-center-is-unified-commerce:
+
+==================================
+Unified Commerce with Smart Search
+==================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta:: 
+   :keywords: MongoDB Atlas, retail, unified commerce, store associates, omnichannel, MongoDB Atlas Vector Search
+   :description: Learn how to use MongoDB to build a unified view that enables smart search and empowers store associates.
+   
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+**Use cases:** `Intelligent Search <https://www.mongodb.com/solutions/use-cases/intelligent-search>`__,
+`Single View <https://www.mongodb.com/solutions/use-cases/single-view>`__,
+`Catalog <https://www.mongodb.com/solutions/use-cases/catalog>`__
+
+**Industries:** `Retail <https://www.mongodb.com/solutions/industries/retail>`__
+
+**Products:** `MongoDB Atlas <https://www.mongodb.com/products/platform/atlas-database>`__, 
+`MongoDB Atlas Search <https://www.mongodb.com/atlas/search>`__, 
+`MongoDB Atlas Vector Search <https://www.mongodb.com/products/platform/atlas-vector-search>`__, 
+`Voyage AI Embeddings <https://www.voyageai.com/>`__
+
+Solution Overview
+-----------------
+
+Activating data is a challenge in many industries. Unified Commerce
+combines data across multiple channels into an operational layer to
+deliver  accurate, and accessible information to internal teams and
+customer applications.
+
+.. figure:: /includes/images/industry-solutions/unified-commerce-strategy.svg
+   :alt: A unified commerce strategy requirements
+
+   Figure 1. Unified commerce strategy
+
+With this solution, you can build a store associate application with
+MongoDB as the :abbr:`ODL (Operational Data Layer)` for a Unified
+Commerce strategy. This solution delivers better customer experiences
+and enables inventory visibility, advanced search, and geospatial
+queries. 
+
+To achieve these benefits, you first need first to break down siloed
+systems. 
+
+Siloed Systems and Fragmented Data Create Inefficiencies
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Retailers often use siloed systems, meaning that data is stored in
+different platforms and technologies. This fragmentation limits
+visibility and makes it difficult for store associates to access
+real-time information. As a result, answering customers' questions
+relies on other departments and outdated systems. 
+
+Store associates also have to manually check the stockroom, leading to
+delays and incorrect information. These inefficiencies erode customer
+trust and damage the customer experience.
+
+A Strong Data Foundation to Bridge Gaps
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An :abbr:`ODL (Operational Data Layer)` combines data from existing
+systems like inventory, orders, and customer profiles, and makes it
+available in a unified layer. MongoDB Atlas serves as the :abbr:`ODL
+(Operational Data Layer)`. Its flexible document model handles diverse,
+complex data structures from different systems and evolves as the
+business changes. This capacity unifies data without rigid schemas or
+complex transformations.
+
+Storing your data in MongoDB drives innovation in the following ways:
+
+- **Built-in search and AI capabilities:** Native full-text,
+  vector, and hybrid search capabilities enable in-house innovation,
+  such as smart product discovery and personalized recommendations. This
+  data foundation also powers :abbr:`RAG (Retrieval Augmented
+  Generation)`, LLM-based assistants and multi-agent systems. 
+
+- **The tech stack gets simplified:** MongoDB stores both operational
+  data and vector embeddings in a single place, reducing complexity and
+  eliminating single-purpose tools like vector databases or search
+  engines.
+
+- **Real-time access to unified data:** Applications can easily connect
+  to MongoDB Atlas to consume real-time, synchronized data for store
+  associates. 
+
+.. figure:: /includes/images/industry-solutions/unified-commerce-document.svg
+   :alt: A unified commerce strategy requirements
+
+   Figure 2. The three layers in every application
+
+Data Model Approach
+-------------------
+
+Retail environments are dynamic, with product details and inventory
+changing constantly. MongoDB’s flexible document model easily manages
+store configurations, including geospatial, time-series, and hierarchical
+data. This creates a strong foundation for unified commerce.
+
+.. figure:: /includes/images/industry-solutions/unified-commerce-essentials.svg
+   :alt: Essential capabilities for an ODL include a flexible model, live sync and smart search
+
+   Figure 3. ODL essentials: Flexible model, live sync, smart search
+
+This solution balances simplicity and performance, allowing you to model
+operational and search data for retail use cases. Here’s how data is
+modeled:
+
+- A canonical ``inventory`` collection tracks real-time stock data for
+  each product across stores, optimized for high-frequency writes.
+
+- A read-optimized ``products`` collection embeds a lightweight
+  ``inventorySummary`` array with store-level availability. This is
+  ideal for fast filtering, UI rendering, and search queries.
+
+- A trigger-based sync keeps inventory summaries fresh in real time,
+  using MongoDB Atlas Triggers.
+
+.. figure:: /includes/images/industry-solutions/unified-commerce-product.svg
+   :alt: Product schema: text, metadata and vectors
+
+   Figure 4. Product schema: Text, metadata and vectors
+
+This schema is validated for performance in the 50-store range. For
+larger scale scenarios, you can `adapt the model
+<https://www.youtube.com/watch?v=YsaOcUDUJKY&t=408s>`__ as follows:
+
+- Fetch store-level inventory dynamically as part of the query.
+
+- Restructure write and read paths with other `modeling strategies
+  <https://www.youtube.com/watch?v=3GHZd0zv170&t=867s>`__.
+
+Reference Architecture
+----------------------
+
+This demo uses a main application in Next.js and a dedicated advanced
+search microservice. The demo contains the following components: 
+
+- **MongoDB Atlas:** Centralizes all data, enables real-time sync, and
+  provides the infrastructure for performance, availability, and
+  security.
+
+- **Main application with Next.js:** Full-stack app that handles the UI and
+  `geospatial querying
+  <https://github.com/mongodb-industry-solutions/retail-unified-commerce/blob/main/docs/adr/adr-2025-07-geospatial-query-pipeline-usecase-backend.md>`__
+  to find nearby stores with available stock.
+
+- **Advanced search microservice with FastAPI:** A dedicated backend that
+  handles all search types, such as text, semantic, and hybrid, and
+  coordinates query embedding. 
+
+- **Embedding provider with Voyage AI:** Generates vector embeddings for
+  semantic search.
+
+.. figure:: /includes/images/industry-solutions/unified-commerce-architecture.svg
+   :alt: System diagram of store associate app with MongoDB and Voyage AI
+
+   Figure 5.  Behind the demo: System diagram of store associate app with MongoDB and Voyage AI
+
+In particular, the advanced search microservice makes the demo logic
+clearer and adaptable. This setup offers the following benefits:
+
+- **Layered design:** This solution uses a microservice that is composed
+  of interfaces for the API, an application for the business logic, and
+  infrastructure for integration with MongoDB and Voyage AI. This
+  structure keeps the codebase modular, making it easier to test, scale,
+  and adapt. You can also replace external services, such as switching
+  from Voyage AI to Bedrock, by updating only the infrastructure layer. 
+
+- **AI flexibility:**  The ability to switch between providers such as
+  Voyage AI or Bedrock using one adapter.
+
+- **Multichannel compatibility:** A single API that supports all frontend
+  platforms, including web, mobile and chatbots, bringing channels
+  online with minimal effort.
+
+Search Microservice Capabilities
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The search microservice provides one unified API to handle multiple
+retrieval mechanisms, including:
+
+- **Regex search:** Basic pattern matching used as a baseline to compare
+  against MongoDB’s advanced search features.
+
+- **Full-text search:** Uses MongoDB Atlas Search for fuzzy matches, boosted
+  fields, and store-level filtering.
+
+- **Semantic vector search:** Finds conceptually-similar products using
+  Voyage AI embeddings.
+
+- **Hybrid search:** Blends text and vector results using :abbr:`RRF
+  (Reciprocal Rank Function)`. Adjusts the weight of text and semantic
+  relevance based on search context.
+
+.. figure:: /includes/images/industry-solutions/unified-commerce-search.svg
+   :alt: Search strategy breakdown: Text, vectors, and hybrid search
+
+   Figure 6. Search strategy breakdown: Text, vectors, and hybrid search
+
+You can learn how to use the :ref:`aggregation <aggregation>` framework
+to customize search capabilities by reviewing these `files
+<https://github.com/mongodb-industry-solutions/retail-unified-commerce/tree/main/backend/advanced-search-ms/app/infrastructure/mongodb/pipelines>`__.
+
+With MongoDB, you unify search capabilities in one platform, combining
+precision, semantic understanding, and real-time data. As a result, you
+serve shoppers faster, empower store teams, and scale across all
+channels.
+
+Build the Solution
+------------------
+
+To reproduce this demo in your own environment, follow these steps:
+
+.. procedure::
+   :style: normal
+   
+   .. step:: Create your database in MongoDB Atlas
+
+      Sign in to `MongoDB Atlas <https://www.mongodb.com/products/platform/atlas-database>`__.
+
+      Spin up a Free Tier cluster.
+
+      Create a database named ``retail-unified-commerce``, or update
+      your ``.env`` if you're using another name.
+
+   .. step:: Clone the repo
+
+      Clone this `GitHub repository
+      <https://github.com/mongodb-industry-solutions/retail-unified-commerce>`__
+      by running the command below.
+
+      .. code-block:: sh
+      
+         git clone https://github.com/mongodb-industry-solutions/retail-unified-commerce.git
+
+   .. step:: Import demo collections
+
+      After cloning the repo, navigate to the folder with the sample
+      data.
+
+      .. code-block:: sh
+      
+         cd retail-unified-commerce/docs/setup/collections
+
+      There, you find the `JSON files to import <https://github.com/mongodb-industry-solutions/retail-unified-commerce/tree/main/docs/setup/collections>`__
+      into MongoDB Atlas — a sample dataset of 500 grocery products with
+      store-level inventory and vectors embedding from Voyage AI:
+
+      - ``inventory.json``
+      - ``products.json``
+      - ``stores.json``
+
+      In Atlas, go to :guilabel:`Browse Collections`. Create each
+      collection, then click :guilabel:`Add Data` to insert your
+      documents from the JSON files.
+
+   .. step:: Configure your indexes
+
+      On the ``products`` collection, create:
+      
+      - An `Atlas Search index <https://github.com/mongodb-industry-solutions/retail-unified-commerce/blob/main/docs/setup/indexes/search-index.json>`__.
+     
+      - An `Atlas Vector Search index <https://github.com/mongodb-industry-solutions/retail-unified-commerce/blob/main/docs/setup/indexes/vector-index.json>`__.
+
+      On the ``stores`` collection, create a `geospatial index <https://github.com/mongodb-industry-solutions/retail-unified-commerce/blob/main/docs/setup/indexes/geospatial-index.json>`__.
+   
+   .. step:: Set up real-time inventory sync (optional)
+   
+      Add the `inventory_sync
+      <https://github.com/mongodb-industry-solutions/retail-unified-commerce/blob/main/docs/setup/atlas-triggers/inventory_sync.js>`__
+      and the `daily_inventory_simulation
+      <https://github.com/mongodb-industry-solutions/retail-unified-commerce/blob/main/docs/setup/atlas-triggers/daily_inventory_simulation.js>`__
+      Atlas Triggers to integrate real-time updates in your inventory
+      collection. These features simulate live transactions and keep the
+      data in sync with the ``products`` collection.
+
+   .. step:: Add environment variables
+
+      Copy each ``.env.example`` file to ``.env`` in both the `frontend
+      <https://github.com/mongodb-industry-solutions/retail-unified-commerce/blob/main/frontend/.example.env>`__
+      and `advanced-search-ms
+      <https://github.com/mongodb-industry-solutions/retail-unified-commerce/blob/main/backend/advanced-search-ms/.env.example>`__
+      directories.
+
+      Paste your Atlas connection string and add your VoyageAI API key
+      in the ``advanced-search-ms/.env`` file to enable embedding-based
+      search.
+
+      .. code-block:: sh
+      
+         VOYAGE_API_KEY=your_voyage_api_key
+
+      To ensure accurate and meaningful vector comparisons, use the same
+      embedding provider for both your data and user queries. If you
+      switch providers, you must re-generate vectors, create a new
+      index, update the ``.env`` file with the new API key, and adjust
+      the implementation of the embedding `port
+      <https://github.com/mongodb-industry-solutions/retail-unified-commerce/blob/main/backend/advanced-search-ms/app/application/ports.py>`__
+      in the `infrastructure layer
+      <https://github.com/mongodb-industry-solutions/retail-unified-commerce/tree/main/backend/advanced-search-ms/app/infrastructure>`__. 
+
+   .. step:: Build and run the application with Docker Compose
+
+      Verify that you have Docker and Docker Compose installed, and
+      that you're in the root of the project folder
+      ``retail-unified-commerce``. From there, start the app with the
+      command below.
+
+      .. code-block:: sh
+
+         make build
+
+      After the app is running:
+
+      - Open your browser and go to http://localhost:3000 to use the
+        demo app.
+
+      - Check the microservice API docs at http://localhost:8000/docs or read the `README <https://github.com/mongodb-industry-solutions/retail-unified-commerce/tree/main/backend/advanced-search-ms>`__.
+
+      - Check the microservice health at http://localhost:8000/health. 
+
+      You can use these commands to control your Docker deployment:
+
+      - **Stop your app:** Stop all containers and remove images with
+        the following command:
+
+        .. code-block:: sh
+      
+           make clean
+
+      - **View logs:** Track your app deployment and visualize how your
+        data moves across layers with the following command: 
+        
+        .. code-block:: sh
+      
+           make logs
+
+Key Learnings
+-------------
+
+- **Unified commerce builds trust in-store:** MongoDB enables
+  real-time access to shelf status, stock location, and replenishment
+  data. By combining intelligent search with cross-channel visibility,
+  you give store associates the tools to deliver consistent and informed
+  services that drive trust and customer conversion.
+
+- **An ODL turns fragmented data into actionable insights:** MongoDB acts
+  as the :abbr:`ODL (Operational Data Layer)`, consolidating siloed data
+  into one real-time source. Its flexible document model adapts to
+  diverse retail structures, and its built-in security, availability,
+  and performance make it enterprise-grade.
+
+- **Unified data enables advanced search and AI applications:** MongoDB
+  unifies full-text, semantic, and geospatial search in one place. You can
+  also store your live data and embeddings together, enabling real-time
+  discovery and powering intelligent AI use cases for the future.
+
+Authors
+-------
+
+- Prashant Juttukonda, MongoDB
+- Florencia Arin, MongoDB
+- Angie Guemes, MongoDB
+- Diego Canales, MongoDB
+
+Learn More
+----------
+
+- To discover how MongoDB drives innovation in retail, visit `MongoDB for Retail <https://www.mongodb.com/solutions/industries/retail>`__.
+
+- To learn how unified commerce benefits retailers, read the `Unified Commerce for Retail Innovation with MongoDB Atlas Blog <https://www.mongodb.com/company/blog/innovation/unified-commerce-retail-innovation-with-mongodb-atlas>`__.
+
+- To explore ODL with Atlas in detail, check the `The Operational Data Layer Whitepaper <https://www.mongodb.com/resources/solutions/use-cases/implementing-an-operational-data-layer>`__. 

@@ -195,7 +195,7 @@ To learn more, see
 :atlas:`Analyze Slow Queries </analyze-slow-queries/>`.
 
 Paused |fts| Indexes
-~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 An |fts| index might be stale because of any of the following reasons: 
        
