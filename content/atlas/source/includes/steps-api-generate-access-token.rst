@@ -17,11 +17,11 @@ To generate an access token for a service account:
 
       .. code:: sh
 
-         echo -n {CLIENT-ID}:{CLIENT-SECRET} | base64
+         echo -n {clientId}:{clientSecret} | base64
 
    .. step:: Request an access token.
 
-      Replace ``{BASE64-AUTH}`` in the following example with the output from the 
+      Replace ``{base64Auth}`` in the following example with the output from the 
       preceding step, then run:
 
       .. io-code-block:: 
@@ -35,14 +35,14 @@ To generate an access token for a service account:
                --url https://cloud.mongodb.com/api/oauth/token \
                --header 'accept: application/json' \
                --header 'cache-control: no-cache' \
-               --header 'authorization: Basic {BASE64-AUTH}' \                                 
+               --header 'authorization: Basic {base64Auth}' \                                 
                --header 'content-type: application/x-www-form-urlencoded' \
                --data 'grant_type=client_credentials'
 
          .. output::
             :language: sh
 
-            {"access_token":"eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCIsImtpZCI6ImYyZjE2YmE4LTkwYjUtNDRlZS1iMWYwLTRkNWE2OTllYzVhNyJ9.eyJpc3MiOiJodHRwczovL2Nsb3VkLWRldi5tb25nb2RiLmNvbSIsImF1ZCI6ImFwaTovL2FkbWluIiwic3ViIjoibWRiX3NhX2lkXzY2MjgxYmM2MDNhNzFhNDMwYjkwNmVmNyIsImNpZCI6Im1kYl9zYV9pZF82NjI4MWJjNjAzYTcxYTQzMGI5MDZlZjciLCJhY3RvcklkIjoibWRiX3NhX2lkXzY2MjgxYmM2MDNhNzFhNDMwYjkwNmVmNyIsImlhdCI6MTcxMzkwNTM1OSwiZXhwIjoxNzEzOTA4OTU5LCJqdGkiOiI4ZTg1MTM3YS0wZGU1LTQ0N2YtYTA0OS1hMmVmNTIwZGJhNTIifQ.AZSFvhcjwVcJYmvW6E_K5UnDmeiX2sJgL27vo5ElzeBuPawRciKkn6ervZ6IpUTx2HHllGgAAMmhaP9B66NywhfjAXC697X9KcOzm81DTtvDjLrFeRSc_3vFmeGvfUKKXljEdWBnbmwCwtBlO5SJuBxb1V5swAl-Sbq9Ymo4NbyepSnF","expires_in":3600,"token_type":"Bearer"}%
+            {"access_token":"{accessToken}","expires_in":3600,"token_type":"Bearer"}%
 
       .. important:: 
 

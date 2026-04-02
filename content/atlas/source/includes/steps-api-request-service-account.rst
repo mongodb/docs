@@ -17,7 +17,7 @@ an access token, then use the access token in your request:
 
       .. code:: sh
 
-         echo -n {CLIENT-ID}:{CLIENT-SECRET} | base64
+         echo -n {clientId}:{clientSecret} | base64
 
    .. step:: Request an access token.
 
@@ -26,7 +26,7 @@ an access token, then use the access token in your request:
       <generate-oauth2-token-atlas>` endpoint to generate an access
       token for your service account.
       
-      Replace ``{BASE64-AUTH}`` in the following example with the output
+      Replace ``{base64Auth}`` in the following example with the output
       from the preceding step, then run:
 
       .. io-code-block:: 
@@ -40,14 +40,14 @@ an access token, then use the access token in your request:
                --url https://cloud.mongodb.com/api/oauth/token \
                --header 'accept: application/json' \
                --header 'cache-control: no-cache' \
-               --header 'authorization: Basic {BASE64-AUTH}' \                                 
+               --header 'authorization: Basic {base64Auth}' \                                 
                --header 'content-type: application/x-www-form-urlencoded' \
                --data 'grant_type=client_credentials'
 
          .. output::
             :language: sh
 
-            {"access_token":"eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCIsImtpZCI6ImYyZjE2YmE4LTkwYjUtNDRlZS1iMWYwLTRkNWE2OTllYzVhNyJ9.eyJpc3MiOiJodHRwczovL2Nsb3VkLWRldi5tb25nb2RiLmNvbSIsImF1ZCI6ImFwaTovL2FkbWluIiwic3ViIjoibWRiX3NhX2lkXzY2MjgxYmM2MDNhNzFhNDMwYjkwNmVmNyIsImNpZCI6Im1kYl9zYV9pZF82NjI4MWJjNjAzYTcxYTQzMGI5MDZlZjciLCJhY3RvcklkIjoibWRiX3NhX2lkXzY2MjgxYmM2MDNhNzFhNDMwYjkwNmVmNyIsImlhdCI6MTcxMzkwNTM1OSwiZXhwIjoxNzEzOTA4OTU5LCJqdGkiOiI4ZTg1MTM3YS0wZGU1LTQ0N2YtYTA0OS1hMmVmNTIwZGJhNTIifQ.AZSFvhcjwVcJYmvW6E_K5UnDmeiX2sJgL27vo5ElzeBuPawRciKkn6ervZ6IpUTx2HHllGgAAMmhaP9B66NywhfjAXC697X9KcOzm81DTtvDjLrFeRSc_3vFmeGvfUKKXljEdWBnbmwCwtBlO5SJuBxb1V5swAl-Sbq9Ymo4NbyepSnF","expires_in":3600,"token_type":"Bearer"}%
+            {"access_token":"{accessToken}","expires_in":3600,"token_type":"Bearer"}%
 
       .. important:: 
 
@@ -56,7 +56,7 @@ an access token, then use the access token in your request:
 
    .. step:: Make an |api| call.
 
-      Replace ``{ACCESS-TOKEN}`` in the following example with the output from the 
+      Replace ``{accessToken}`` in the following example with the output from the 
       preceding step. 
 
       The following sample ``GET`` request 
@@ -66,7 +66,7 @@ an access token, then use the access token in your request:
 
             curl --request GET \
                  --url https://cloud.mongodb.com/api/atlas/v2/groups \
-                 --header 'Authorization: Bearer {ACCESS-TOKEN}' \
+                 --header 'Authorization: Bearer {accessToken}' \
                  --header 'Accept: application/vnd.atlas.2023-02-01+json' \
                  --header 'Content-Type: application/json'
 
@@ -76,7 +76,7 @@ an access token, then use the access token in your request:
 
       .. code-block:: sh
 
-         curl --header 'Authorization: Bearer {ACCESS-TOKEN}' \
+         curl --header 'Authorization: Bearer {accessToken}' \
                --header "Content-Type: application/json" \
                --header "Accept: application/vnd.atlas.2023-02-01+json" \
                --include \
