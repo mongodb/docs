@@ -4,17 +4,9 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.updateMany(
-               { "qty": { $lt: 50 } },
-               {
-                 $set: { "size.uom": "in", status: "P" },
-                 $currentDate: { lastModified: true }
-               }
-            )
-
-         .. include:: /includes/fact-update-many-operation-uses.rst
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/crud-tutorials/update/update-many-popular-movies.js
+            :language: javascript
+            :category: usage example
 
      - id: compass
        content: |

@@ -4,15 +4,9 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.updateOne(
-               { item: "paper" },
-               {
-                 $set: { "size.uom": "cm", status: "P" },
-                 $currentDate: { lastModified: true }
-               }
-            )
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/crud-tutorials/update/update-one-godfather.js
+            :language: javascript
+            :category: usage example
 
          .. include:: /includes/fact-update-operation-uses.rst
 

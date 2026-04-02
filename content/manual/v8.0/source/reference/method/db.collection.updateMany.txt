@@ -428,111 +428,47 @@ for each successfully updated document. If no documents are updated,
 Examples
 --------
 
+.. include:: /includes/sample-data-usage.rst
+
 .. _updateMany-example-idempotent:
 
 Idempotent Updates
 ~~~~~~~~~~~~~~~~~~
 
-The following example demonstrates an :term:`idempotent` update with
-``updateMany()``:
+The ``sample_mflix.movies`` collection contains movies with IMDB ratings. 
+This :term:`idempotent` update does the following operations:
 
-A company is giving a $1,000 raise to all employees earning less than 
-$100,000.
+- matches all movies with IMDB ratings less than 3.0
+- increments those ratings by 0.5
+- sets a ``ratingBoosted`` field to ``true``
 
-Consider an ``employees`` collection with the following documents:
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/idempotent.js
+   :language: javascript
+   :category: usage example
 
-.. code-block:: javascript
+``updateMany()`` modifies the matching movie documents individually. The 
+individual document updates are atomic operations, but the ``updateMany()`` 
+operation as a whole is not atomic.
 
-   db.employees.insertMany( [
-      { _id: 1, name: "Rob", salary: 37000 },
-      { _id: 2, name: "Trish", salary: 65000 },
-      { _id: 3, name: "Zeke", salary: 99999 },
-      { _id: 4, name: "Mary", salary: 200000 }
-   ] )
-
-The following command matches all employees who earn less than 
-$100,000 and have not received a raise, increments those salaries 
-by $1,000, and sets ``raiseApplied`` to true:
-
-.. code-block:: javascript
-
-   db.employees.updateMany(
-      { salary: { $lt: 100000 }, raiseApplied: { $ne: true } },
-      { $inc: { salary: 1000 }, $set: { raiseApplied: true } }
-   )
-
-``updateMany()`` modifies the matching ``employee`` documents 
-individually. The individual document updates are atomic operations, 
-but the ``updateMany()`` operation as a whole is not atomic.
-
-If the operation fails to update all matched documents, you can 
-safely rerun an idempotent command until no additional documents 
-match the specified filter. In this case, each document's ``salary`` 
-field is only updated one time regardless of how many times it is 
-retried because the command is idempotent.
-
-After all eligible employees have received their raises, you can 
-remove the ``raiseApplied`` field with the following command:
-
-.. code-block:: javascript
-
-   db.employees.updateMany(
-      { },
-      { $unset: { raiseApplied: 1 } }
-   )
+If the operation fails to update all matched documents, you can safely rerun 
+an idempotent command until no additional documents match the specified filter. 
+In this case, each document's ``imdb.rating`` field is only updated one time 
+regardless of how many times it is retried because the command is idempotent.
 
 .. _updateMany-example-update-multiple-documents:
 
 Update Multiple Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``restaurant`` collection contains the  following documents:
+The ``sample_mflix.movies`` collection contains movies with a
+``num_mflix_comments`` field.
 
-.. code-block:: javascript
+The following operation finds all movies with more than 100 comments and adds a
+``popular`` flag to those movies:
 
-   db.restaurant.insertMany( [
-      { _id: 1, name: "Central Perk Cafe", violations: 3 },
-      { _id: 2, name: "Rock A Feller Bar and Grill", violations: 2 },
-      { _id: 3, name: "Empire State Sub", violations: 5 },
-      { _id: 4, name: "Pizza Rat's Pizzaria", violations: 8 },
-   ] )
-
-The following operation updates all documents where ``violations`` are 
-greater than ``4`` and :update:`$set` a flag for review:
-
-.. code-block:: javascript
-
-   try {
-      db.restaurant.updateMany( 
-         { violations: { $gt: 4 } }, 
-         { $set: { "Review" : true } } 
-      );
-   } catch (e) {
-      print(e);
-   }
-  
-The operation returns:
-
-.. code-block:: javascript
-
-   { "acknowledged" : true, "matchedCount" : 2, "modifiedCount" : 2 }
-   
-The collection now contains the following documents:
-
-.. code-block:: javascript
-
-   { _id: 1, name: "Central Perk Cafe", violations: 3 }
-   { _id: 2, name: "Rock A Feller Bar and Grill", violations: 2 }
-   { _id: 3, name: "Empire State Sub", violations: 5, Review: true }
-   { _id: 4, name: "Pizza Rat's Pizzaria", violations: 8, Review: true }
-
-If no matches were found, the operation instead returns:
-
-.. code-block:: javascript
-
-   { "acknowledged" : true, "matchedCount" : 0, "modifiedCount" : 0 }
-
-Setting ``upsert: true`` would insert a document if no match was found.
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/update-multiple.js
+   :language: javascript
+   :category: usage example
 
 .. _updateMany-example-agg:
 
@@ -551,36 +487,19 @@ field values or updating one field using the value of another field(s).
 Example 1: Update with Aggregation Pipeline Using Existing Fields
 `````````````````````````````````````````````````````````````````
 
-The following examples uses the aggregation pipeline to modify a field
+The following example uses the aggregation pipeline to modify a field
 using the values of the other fields in the document.
 
-Create a ``students`` collection with the following documents:
-
-.. code-block:: javascript
-
-   db.students.insertMany( [
-      { _id: 1, student: "Skye", points: 75, commentsSemester1: "great at math", commentsSemester2: "loses temper", lastUpdate: ISODate("2019-01-01T00:00:00Z") },
-      { _id: 2, students: "Elizabeth", points: 60, commentsSemester1: "well behaved", commentsSemester2: "needs improvement", lastUpdate: ISODate("2019-01-01T00:00:00Z") }
-   ] )
-
-Assume that instead of separate ``commentsSemester1`` and ``commentsSemester2``
-fields, you want to gather these into a new ``comments`` field. The following
-update operation uses an aggregation pipeline to:
+This pipeline: 
    
-- add the new ``comments`` field and set the ``lastUpdate`` field.
+- combines the IMDB and Tomatoes viewer ratings into a new ``combinedRatings`` array field
+- sets the ``ratingsUpdated`` field
+- removes the original ``imdb.rating`` and ``tomatoes.viewer.rating`` fields for all 
+  matching documents
 
-- remove the ``commentsSemester1`` and ``commentsSemester2`` fields for all 
-  documents in the collection.
-
-.. code-block:: javascript
-
-   db.students.updateMany(
-      { },
-      [
-         { $set: { comments: [ "$commentsSemester1", "$commentsSemester2" ], lastUpdate: "$$NOW" } },
-         { $unset: [ "commentsSemester1", "commentsSemester2" ] }
-      ]
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/aggregation-pipeline-1.js
+   :language: javascript
+   :category: usage example
 
 .. note::
 
@@ -589,64 +508,29 @@ update operation uses an aggregation pipeline to:
 First Stage
    The :pipeline:`$set` stage:
 
-   - creates a new array field ``comments`` whose elements are the current
-     content of the ``commentsSemester1`` and ``commentsSemester2`` fields and 
+   - creates a new array field ``combinedRatings`` whose elements are the current
+     content of the ``imdb.rating`` and ``tomatoes.viewer.rating`` fields 
 
-   - sets the field ``lastUpdate`` to the value of the aggregation
-     variable :variable:`NOW`. The aggregation variable
-     :variable:`NOW` resolves to the current datetime value and remains
-     the same throughout the pipeline. To access aggregation
-     variables, prefix the variable with double dollar signs ``$$``
-     and enclose in quotes.
+   - sets the field ``ratingsUpdated`` to the value of the aggregation
+     variable :variable:`NOW`.
 
 Second Stage
-   The :pipeline:`$unset` stage removes the ``commentsSemester1`` and 
-   ``commentsSemester2`` fields.
+   The :pipeline:`$unset` stage removes the ``imdb.rating`` and 
+   ``tomatoes.viewer.rating`` fields.
 
-After the command, the collection contains the following documents:
-
-.. code-block:: javascript
-
-   { _id: 1, student: "Skye", status: "Modified", points: 75, lastUpdate: ISODate("2020-01-23T05:11:45.784Z"), comments: [ "great at math", "loses temper" ] }
-   { _id: 2, student: "Elizabeth", status: "Modified", points: 60, lastUpdate: ISODate("2020-01-23T05:11:45.784Z"), comments: [ "well behaved", "needs improvement" ] }
+After the command, matching movies from the 2010s have a ``combinedRatings``
+array with both rating values and a timestamp.
    
 Example 2: Update with Aggregation Pipeline Using Existing Fields Conditionally
 ```````````````````````````````````````````````````````````````````````````````
 
-The aggregation pipeline allows the update to perform conditional
-updates based on the current field values as well as use current field
-values to calculate a separate field value.
+Using an aggregation pipeline, you can update movies from the 2010s with a
+calculated combined rating score (averaging IMDB and Tomatoes viewer ratings)
+and assign a letter grade based on that score.
 
-For example, create a ``students3`` collection with the following documents:
-
-.. code-block:: javascript
-
-   db.students3.insertMany( [
-      { _id: 1, tests: [ 95, 92, 90 ], lastUpdate: ISODate("2019-01-01T00:00:00Z") },
-      { _id: 2, tests: [ 94, 88, 90 ], lastUpdate: ISODate("2019-01-01T00:00:00Z") },
-      { _id: 3, tests: [ 70, 75, 82 ], lastUpdate: ISODate("2019-01-01T00:00:00Z") }
-   ] )
-
-Using an aggregation pipeline, you can update the documents with the
-calculated grade average and letter grade.
-
-.. code-block:: javascript
-
-   db.students3.updateMany(
-      { },
-      [
-        { $set: { average : { $trunc: [ { $avg: "$tests" }, 0 ] } , lastUpdate: "$$NOW" } },
-        { $set: { grade: { $switch: {
-                              branches: [
-                                  { case: { $gte: [ "$average", 90 ] }, then: "A" },
-                                  { case: { $gte: [ "$average", 80 ] }, then: "B" },
-                                  { case: { $gte: [ "$average", 70 ] }, then: "C" },
-                                  { case: { $gte: [ "$average", 60 ] }, then: "D" }
-                              ],
-                              default: "F"
-        } } } }
-      ]
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/aggregation-pipeline-2.js
+   :language: javascript
+   :category: usage example
 
 .. note::
 
@@ -655,32 +539,23 @@ calculated grade average and letter grade.
 First Stage
    The :pipeline:`$set` stage:
 
-   - calculates a new field ``average`` based on the average of the
-     ``tests`` field. See :group:`$avg` for more information on the
-     ``$avg`` aggregation operator and :expression:`$trunc` for more
-     information on the ``$trunc`` truncate aggregation operator.
+   - calculates a new field ``combinedScore`` based on the average of the
+     ``imdb.rating`` and ``tomatoes.viewer.rating`` fields. See :group:`$avg` 
+     for more information on the ``$avg`` aggregation operator and 
+     :expression:`$trunc` for more information on the ``$trunc`` truncate 
+     aggregation operator.
      
-   - sets the field ``lastUpdate`` to the value of the aggregation
-     variable :variable:`NOW`. The aggregation variable
-     :variable:`NOW` resolves to the current datetime value and remains
-     the same throughout the pipeline. To access aggregation
-     variables, prefix the variable with double dollar signs ``$$``
-     and enclose in quotes.
+   - sets the field ``scoreUpdated`` to the value of the aggregation
+     variable :variable:`NOW`.
    
 
 Second Stage
-   The :pipeline:`$set` stage calculates a new field ``grade`` based on
-   the ``average`` field calculated in the previous stage. See
+   The :pipeline:`$set` stage calculates a new field ``ratingGrade`` based on
+   the ``combinedScore`` field calculated in the previous stage. See
    :expression:`$switch` for more information on the ``$switch``
    aggregation operator.
 
-After the command, the collection contains the following documents:
-
-.. code-block:: javascript
-
-   { _id: 1, tests: [ 95, 92, 90 ], lastUpdate: ISODate("2020-01-24T17:31:01.670Z"), average: 92, grade: "A" }
-   { _id: 2, tests: [ 94, 88, 90 ], lastUpdate: ISODate("2020-01-24T17:31:01.670Z"), average: 90, grade: "A" }
-   { _id: 3, tests: [ 70, 75, 82 ], lastUpdate: ISODate("2020-01-24T17:31:01.670Z"), average: 75, grade: "C" }
+After the command, matching movies have a combined score and letter grade.
       
 .. seealso::
 
@@ -691,58 +566,17 @@ After the command, the collection contains the following documents:
 Update Multiple Documents with Upsert
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``inspectors`` collection contains the following documents:
+The following operation updates all movies released after 2020 and
+directed by Christopher Nolan:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/upsert.js
+   :language: javascript
+   :category: usage example
 
-   db.inspectors.insertMany( [
-      { _id: 92412, inspector: "F. Drebin", Sector: 1, Patrolling: true },
-      { _id: 92413, inspector: "J. Clouseau", Sector: 2, Patrolling: false },
-      { _id: 92414, inspector: "J. Clouseau", Sector: 3, Patrolling: true },
-      { _id: 92415, inspector: "R. Coltrane", Sector: 3, Patrolling: false }
-   ] )
-
-The following operation updates all documents with ``Sector`` greater
-than 4 and ``inspector`` equal to ``"R. Coltrane"``:
-
-.. code-block:: javascript
-
-   try {
-      db.inspectors.updateMany(
-         { "Sector" : { $gt : 4 }, "inspector" : "R. Coltrane" },
-         { $set: { "Patrolling" : false } },
-         { upsert: true }
-      );
-   } catch (e) {
-      print(e);
-   }
-
-The operation returns:
-
-.. code-block:: javascript
-
-   {
-      "acknowledged" : true,
-      "matchedCount" : 0,
-      "modifiedCount" : 0,
-      "upsertedId" : ObjectId("56fc5dcb39ee682bdc609b02"),
-      "upsertedCount": 1
-   }
-
-The collection now contains the following documents:
-
-.. code-block:: javascript
-
-   { _id: 92412, inspector: "F. Drebin", Sector: 1, Patrolling: true },
-   { _id: 92413, inspector: "J. Clouseau", Sector: 2, Patrolling: false },
-   { _id: 92414, inspector: "J. Clouseau", Sector: 3, Patrolling: true },
-   { _id: 92415, inspector: "R. Coltrane", Sector: 3, Patrolling: false },
-   { _id: ObjectId("56fc5dcb39ee682bdc609b02"), inspector: "R. Coltrane", Patrolling: false }
-
-Since no documents matched the filter, and ``upsert`` was ``true``,
-:method:`~db.collection.updateMany` inserted the document with a
-generated ``_id``, the equality conditions from the ``filter``, and the
-``update`` modifiers.
+In this example, since no documents match the filter, and ``upsert`` is
+``true``, :method:`~db.collection.updateMany` inserts a new document with a
+generated ``_id`` as well as the equality conditions from the ``filter``, and
+the ``update`` modifiers.
 
 .. _updateMany-example-update-with-write-concern:
 
@@ -752,35 +586,12 @@ Update with Write Concern
 Given a three member replica set, the following operation specifies a 
 ``w`` of ``majority`` and ``wtimeout`` of ``100``:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/write-concern.js
+   :language: javascript
+   :category: usage example
 
-   try {
-      db.restaurant.updateMany(
-          { "name" : "Pizza Rat's Pizzaria" },
-          { $inc: { "violations" : 3}, $set: { "Closed" : true } },
-          { w: "majority", wtimeout: 100 }
-      );
-   } catch (e) {
-      print(e);
-   }
-
-If the acknowledgment takes longer than the ``wtimeout`` limit, the following 
-exception is thrown:
-
-.. code-block:: javascript
-
-   WriteConcernError({
-      "code" : 64,
-      "errmsg" : "waiting for replication timed out",
-      "errInfo" : {
-        "wtimeout" : true,
-        "writeConcern" : {
-          "w" : "majority",
-          "wtimeout" : 100,
-          "provenance" : "getLastErrorDefaults"
-        }
-      }
-   })
+If the acknowledgment takes longer than the ``wtimeout`` limit, MongoDB throws
+an exception. 
 
 The following table explains the possible values of
 ``errInfo.writeConcern.provenance``:
@@ -793,26 +604,12 @@ Specify Collation
 
 .. include:: /includes/extracts/collation-description.rst
 
-A collection ``myColl`` has the following documents:
+The following operation uses a case-insensitive collation to match
+movies with the genre "drama" with any combination of lowercase and uppercase. 
 
-.. code-block:: javascript
-
-   db.myColl.insertMany( [
-      { _id: 1, category: "café", status: "A" },
-      { _id: 2, category: "cafe", status: "a" },
-      { _id: 3, category: "cafE", status: "a" }
-   ] )
-
-The following operation includes the :ref:`collation <collation>`
-option:
-
-.. code-block:: javascript
-
-   db.myColl.updateMany(
-      { category: "cafe" },
-      { $set: { status: "Updated" } },
-      { collation: { locale: "fr", strength: 1 } }
-   );
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/collation.js
+   :language: javascript
+   :category: usage example
 
 .. _updateMany-arrayFilters:
 
@@ -824,149 +621,71 @@ Specify ``arrayFilters`` for an Array Update Operations
 Update Elements Match ``arrayFilters`` Criteria
 ```````````````````````````````````````````````
 
-Create a collection ``students`` with the following documents:
+Add a ``ratings`` array to some movies by combining their various
+rating scores:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/array-filters-setup.js
+   :language: javascript
+   :category: usage example
 
-   db.students.insertMany( [
-      { _id: 1, grades: [ 95, 92, 90 ] },
-      { _id: 2, grades: [ 98, 100, 102 ] },
-      { _id: 3, grades: [ 95, 110, 100 ] }
-   ] )
-
-To update all elements that are greater than or equal to ``100`` in the
-``grades`` array, use the filtered positional operator
+To update all ratings that are greater than or equal to ``100`` in the
+``ratings`` array, use the filtered positional operator
 :update:`$[\<identifier\>]` with the ``arrayFilters`` option:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/array-filters-1.js
+   :language: javascript
+   :category: usage example
 
-   db.students.updateMany(
-      { grades: { $gte: 100 } },
-      { $set: { "grades.$[element]" : 100 } },
-      { arrayFilters: [ { "element": { $gte: 100 } } ] }
-   )
-
-After the operation, the collection contains the following documents:
-
-.. code-block:: javascript
-   :emphasize-lines: 2-3
-
-   { _id: 1, grades: [ 95, 92, 90 ] }
-   { _id: 2, grades: [ 98, 100, 100 ] }
-   { _id: 3, grades: [ 95, 100, 100 ] }
+After the operation, all rating values greater than or equal to 100
+in the ``ratings`` arrays are set to 100.
 
 Update Specific Elements of an Array of Documents
 `````````````````````````````````````````````````
 
-Create a collection ``students2`` with the following documents:
+Add a ``ratingDetails`` array to movies with individual rating sources:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/array-filters-2-setup.js
+   :language: javascript
+   :category: usage example
 
-   db.students2.insertMany( [
-      {
-         _id: 1,
-         grades: [
-            { grade: 80, mean: 75, std: 6 },
-            { grade: 85, mean: 90, std: 4 },
-            { grade: 85, mean: 85, std: 6 }
-         ]
-      },
-      {
-         _id: 2,
-         grades: [
-            { grade: 90, mean: 75, std: 6 },
-            { grade: 87, mean: 90, std: 3 },
-            { grade: 85, mean: 85, std: 4 }
-         ]
-      }
-   ] )
-
-
-To modify the value of the ``mean`` field for all elements in the
-``grades`` array where the grade is greater than or equal to ``85``,
+To modify the value of the ``weight`` field to 10 for all elements in the
+``ratingDetails`` array where the score is greater than or equal to ``8``,
 use the filtered positional operator :update:`$[\<identifier\>]` with
-the ``arrayFilters``:
+``arrayFilters``:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/array-filters-2.js
+   :language: javascript
+   :category: usage example
 
-   db.students2.updateMany(
-      { },
-      { $set: { "grades.$[elem].mean" : 100 } },
-      { arrayFilters: [ { "elem.grade": { $gte: 85 } } ] }
-   )
-
-After the operation, the collection has the following documents:
-
-.. code-block:: javascript
-   :emphasize-lines: 5-6,12-14
-
-   {
-      _id: 1,
-      grades: [
-         { grade: 80, mean: 75, std: 6 },
-         { grade: 85, mean: 100, std: 4 },
-         { grade: 85, mean: 100, std: 6 }
-      ]
-   }
-   { 
-      _id: 2,
-      grades: [
-         { grade: 90, mean: 100, std: 6 },
-         { grade: 87, mean: 100, std: 3 },
-         { grade: 85, mean: 100, std: 4 }
-      ]
-   }
+After the operation, all rating sources with scores less than or equal to 8 have their weight set to 10.
 
 .. _ex-update-many-hint:
 
 Specify ``hint`` for Update Operations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Create a sample ``students`` collection with the following documents:
+Create the following index on the collection:
 
-.. code-block:: javascript
-
-   db.students.insertMany( [
-      { _id: 1, student: "Richard", grade: "F", points:  0,  comments1: null, comments2: null },
-      { _id: 2, student: "Jane", grade: "A", points: 60,  comments1: "well behaved", comments2: "fantastic student" },
-      { _id: 3, student: "Ronan", grade: "F", points:  0,  comments1: null, comments2: null },
-      { _id: 4, student: "Noah", grade: "D", points: 20,  comments1: "needs improvement", comments2: null },
-      { _id: 5, student: "Adam", grade: "F", points:  0,  comments1: null, comments2: null },
-      { _id: 6, student: "Henry", grade: "A", points: 86,  comments1: "fantastic student", comments2: "well behaved" }
-   ] )
-
-Create the following indexes on the collection:
-
-.. code-block:: javascript
-
-   db.students.createIndex( { grade: 1 } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/hint-setup.js
+   :language: javascript
+   :category: usage example
 
 The following update operation explicitly hints to use the index ``{
-grade: 1 }``:
+rated: 1 }``:
 
 .. note::
 
    If you specify an index that does not exist, the operation errors.
 
-.. code-block:: javascript
-
-   db.students.updateMany(
-      { "points": { $lte: 20 }, "grade": "F" }, 
-      { $set: { "comments1": "failed class" } },
-      { hint: { grade: 1 } }
-   )
-
-The update command returns the following:
-
-.. code-block:: javascript
-
-   { "acknowledged" : true, "matchedCount" : 3, "modifiedCount" : 3 }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/hint.js
+   :language: javascript
+   :category: usage example
 
 To see if the hinted index is used, run the :pipeline:`$indexStats` pipeline:
 
-.. code-block:: javascript
-
-    db.students.aggregate( [ { $indexStats: { } }, { $sort: { name: 1 } }, { $match: {key: { grade: 1 } } } ] )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/hint-indexstats.js
+   :language: javascript
+   :category: usage example
 
 Write Concern Errors in Sharded Clusters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
