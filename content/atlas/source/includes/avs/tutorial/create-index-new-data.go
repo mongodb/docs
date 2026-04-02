@@ -1,25 +1,20 @@
 package main
-
 import (
 	"context"
 	"fmt"
 	"log"
 	"os"
 	"time"
-
 	"github.com/joho/godotenv"
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
-
 func main() {
 	ctx := context.Background()
-
 	if err := godotenv.Load(); err != nil {
 		log.Println("no .env file found")
 	}
-
 	// Connect to your MongoDB deployment
 	uri := os.Getenv("MONGODB_URI")
 	if uri == "" {
@@ -31,29 +26,25 @@ func main() {
 		log.Fatalf("failed to connect to the server: %v", err)
 	}
 	defer func() { _ = client.Disconnect(ctx) }()
-
 	// Set the namespace
 	coll := client.Database("sample_db").Collection("embeddings")
 	indexName := "vector_index"
 	opts := options.SearchIndexes().SetName(indexName).SetType("vectorSearch")
-
 	type vectorDefinitionField struct {
 		Type          string `bson:"type"`
 		Path          string `bson:"path"`
 		NumDimensions int    `bson:"numDimensions"`
 		Similarity    string `bson:"similarity"`
 	}
-
 	type vectorDefinition struct {
 		Fields []vectorDefinitionField `bson:"fields"`
 	}
-
 	indexModel := mongo.SearchIndexModel{
 		Definition: vectorDefinition{
 			Fields: []vectorDefinitionField{{
 				Type:          "vector",
 				Path:          "embedding",
-				NumDimensions: <dimensions>,
+				NumDimensions: 3072,
 				Similarity:    "dotProduct"}},
 		},
 		Options: opts,

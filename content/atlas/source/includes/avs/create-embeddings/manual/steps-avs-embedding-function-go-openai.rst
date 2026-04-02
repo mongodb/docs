@@ -3,16 +3,6 @@
 
    .. include:: /includes/avs/shared/steps-avs-go-config.rst
 
-   .. step:: Install and import dependencies.
-
-      In a terminal window, run the following commands:
-
-      .. code-block::
-
-         go get github.com/joho/godotenv
-         go get go.mongodb.org/mongo-driver/v2/mongo
-         go get github.com/milosgajdos/go-embeddings/openai
-
    .. step:: Create a ``.env`` file to manage secrets.
 
       In your project, create a ``.env`` file to store your MongoDB connection string
@@ -46,9 +36,15 @@
             :copyable:
             :caption: get-embeddings.go
 
-      #. Move back into the main project root directory.
+   .. step:: Install and import dependencies.
 
-         .. code-block:: console
+      .. code-block::
 
-            cd ../
+         go mod tidy
+
+   .. step:: Change directories back to your project root.
+
+      .. code-block::
+
+         cd ..
       

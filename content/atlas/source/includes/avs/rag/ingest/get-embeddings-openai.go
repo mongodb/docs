@@ -2,29 +2,38 @@ package common
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"os"
 
-	"github.com/milosgajdos/go-embeddings/openai"
+	openai "github.com/openai/openai-go/v3"
+	"github.com/openai/openai-go/v3/option"
 )
 
-func GetEmbeddings(docs []string) [][]float64 {
-	c := openai.NewClient()
+func GetEmbeddings(data []string) [][]float64 {
+	ctx := context.Background()
 
-	embReq := &openai.EmbeddingRequest{
-		Input:          docs,
-		Model:          openai.TextSmallV3,
-		EncodingFormat: openai.EncodingFloat,
-	}
+	c := openai.NewClient(
+		option.WithAPIKey(os.Getenv("OPENAI_API_KEY")),
+	)
 
-	embs, err := c.Embed(context.Background(), embReq)
+	resp, err := c.Embeddings.New(ctx, openai.EmbeddingNewParams{
+		Model: openai.EmbeddingModelTextEmbedding3Large,
+		Input: openai.EmbeddingNewParamsInputUnion{
+			OfArrayOfStrings: data,
+		},
+	})
 	if err != nil {
-		log.Fatalf("failed to connect to OpenAI: %v", err)
+		log.Fatal(err)
 	}
 
-	var vectors [][]float64
-	for _, emb := range embs {
-		vectors = append(vectors, emb.Vector)
+	embeddings := make([][]float64, len(resp.Data))
+	for i, d := range resp.Data {
+		embeddings[i] = d.Embedding
 	}
 
-	return vectors
+	fmt.Printf("Generated %d embeddings\n", len(embeddings))
+	fmt.Printf("Embedding length: %d\n", len(embeddings[0]))
+
+	return embeddings
 }
