@@ -1,4 +1,4 @@
-import type { ReactElement } from 'react';
+import type { ReactElement, ReactNode } from 'react';
 import { compileMDX } from 'next-mdx-remote/rsc';
 import remarkGfm from 'remark-gfm';
 import remarkSectionize from 'remark-sectionize';
@@ -13,13 +13,13 @@ export const VERSION_PLACEHOLDER = ':version';
 export const isVersionPlaceholder = (seg: string) => decodeURIComponent(seg) === VERSION_PLACEHOLDER;
 
 /** Load and compile MDX with import resolution */
-export const loadMDX = async (urlPath: string[]) => {
+export const loadMDX = async (urlPath: string[], replacements?: Record<string, ReactNode>) => {
   if (process.env.BUILD_STATIC_PAGES === 'true') {
-    return loadOfflineMDX(urlPath);
+    return loadOfflineMDX(urlPath, replacements);
   }
 
   const { projectPath } = await findProjectPathAndSiteJson(urlPath);
-  const injectedProps = { projectPath };
+  const injectedProps = { projectPath, replacements };
   const componentMapping = components(injectedProps);
 
   const filePath = urlPath.join('/');
@@ -45,7 +45,7 @@ export const loadMDX = async (urlPath: string[]) => {
 /** Cache compiled MDX during static build **/
 const mdxCache = new Map<string, { content: ReactElement; frontmatter: Record<string, unknown> }>();
 
-const loadOfflineMDX = async (urlPath: string[]) => {
+const loadOfflineMDX = async (urlPath: string[], replacements?: Record<string, ReactNode>) => {
   const cacheKey = urlPath.join('/');
   const cached = mdxCache.get(cacheKey);
   if (cached) return cached;
@@ -54,7 +54,7 @@ const loadOfflineMDX = async (urlPath: string[]) => {
   const resolvedPath = urlPath.map((seg) => (isVersionPlaceholder(seg) ? version : seg));
   const isVersionAt1 = resolvedPath.length >= 2 && resolvedPath[1] === version;
   const projectPath = isVersionAt1 ? resolvedPath.slice(0, 2).join('/') : resolvedPath[0] ?? '';
-  const componentMapping = components({ projectPath, includeRoot: projectPath });
+  const componentMapping = components({ projectPath, includeRoot: projectPath, replacements });
 
   const filePath = resolvedPath.join('/');
   const mdxString = await fetchMdxString(filePath);

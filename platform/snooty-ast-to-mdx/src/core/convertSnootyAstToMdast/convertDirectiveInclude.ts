@@ -18,14 +18,25 @@ export const convertDirectiveInclude = ({ node, ctx }: ConvertDirectiveIncludeAr
   const emittedPathNormalized = renameIncludesToUnderscore(pathWithoutLeadingSlash);
 
   const originalChildren: SnootyNode[] = Array.isArray(node.children) ? node.children : [];
-  let contentChildren: SnootyNode[] = originalChildren;
+
+  // Separate replacement directive children from the actual include content
+  const isReplacement = (child: SnootyNode) =>
+    child.type === 'directive' && String(child.name ?? '').toLowerCase() === 'replacement';
+
+  const replacementNodes = originalChildren.filter(isReplacement);
+  const nonReplacementChildren = originalChildren.filter((c) => !isReplacement(c));
+
+  // Unwrap a single `extract` wrapper if that is the only non-replacement child
+  let contentChildren: SnootyNode[] = nonReplacementChildren;
   if (
-    originalChildren.length === 1 &&
-    originalChildren[0] &&
-    originalChildren[0].type === 'directive' &&
-    String(originalChildren[0].name ?? '').toLowerCase() === 'extract'
+    nonReplacementChildren.length === 1 &&
+    nonReplacementChildren[0] &&
+    nonReplacementChildren[0].type === 'directive' &&
+    String(nonReplacementChildren[0].name ?? '').toLowerCase() === 'extract'
   ) {
-    contentChildren = Array.isArray(originalChildren[0].children) ? (originalChildren[0].children as SnootyNode[]) : [];
+    contentChildren = Array.isArray(nonReplacementChildren[0].children)
+      ? (nonReplacementChildren[0].children as SnootyNode[])
+      : [];
   }
 
   const nestedRoot: SnootyNode = { type: 'root', children: contentChildren };
@@ -37,18 +48,31 @@ export const convertDirectiveInclude = ({ node, ctx }: ConvertDirectiveIncludeAr
 
   // Generate absolute path from root
   const targetPosix = emittedPathNormalized.replace(/^\/*/, '').replace(/\\+/g, '/');
-
-  // Use absolute path starting from root (with leading slash)
   let includePath = `/${targetPosix}`;
-
-  // Remove .mdx extension for cleaner component usage
   includePath = includePath.replace(/\.mdx$/i, '');
+
+  // Convert each replacement directive into a <Replacement name="..."> child element.
+  // Content is converted through the normal mdast pipeline so markdown syntax works.
+  const replacementChildren: MdastNode[] = replacementNodes.map((replacementNode) => {
+    const key = parseSnootyArgument(replacementNode);
+    const valueRoot = convertSnootyAstToMdast(
+      { type: 'root', children: Array.isArray(replacementNode.children) ? replacementNode.children : [] },
+      { onEmitMdxFile: ctx.emitMdxFile, currentOutfilePath: path.normalize(emittedPathNormalized) },
+    );
+
+    return {
+      type: 'mdxJsxFlowElement',
+      name: 'Replacement',
+      attributes: [{ type: 'mdxJsxAttribute', name: 'name', value: key }],
+      children: valueRoot.children ?? [],
+    } as MdastNode;
+  });
 
   return {
     type: 'mdxJsxFlowElement',
     name: 'Include',
     attributes: [{ type: 'mdxJsxAttribute', name: 'src', value: includePath } as MdastNode],
-    children: [],
+    children: replacementChildren,
   } as MdastNode;
 };
 

@@ -40,6 +40,7 @@ import { Video } from '@/mdx-components/Video/Video';
 import { Kicker } from '@/mdx-components/Kicker';
 import { Deprecated } from './mdx-components/Deprecated';
 import { TabsSelector } from '@/mdx-components/TabsSelector';
+import { Replacement } from '@/mdx-components/Include/Replacement';
 
 type InjectedProps = Record<string, unknown>;
 
@@ -153,7 +154,7 @@ export const components = (injectedProps?: InjectedProps) =>
     ReleaseSpecification: ({ children }) => <span>{children}</span>,
     Root: ({ children }) => <span>{children}</span>,
     Rubric: ({ children }) => <span>{children}</span>,
-    Replacement: ({ children }) => <span>{children}</span>,
+    Replacement: ({ children, ...props }) => <Replacement {...props}>{children}</Replacement>,
     SearchResults: ({ children }) => <span>{children}</span>,
     See: ({ children, ...props }) => (
       <Admonition name="tip" {...props}>

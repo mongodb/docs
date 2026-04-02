@@ -16,6 +16,11 @@ export const Reference = async ({ projectPath, name, refKey, title }: ReferenceP
     return `Reference (unknown) not found in project (${projectPath})`;
   }
 
+  // Caller-provided replacements (from include/sharedinclude) take priority
+  if (replacements && lookupKey in replacements) {
+    return <>{replacements[lookupKey]}</>;
+  }
+
   const fullPath = `${REFERENCE_PREFIX}/${projectPath}/_references.json`;
   const references = await getBlobString(fullPath);
 
