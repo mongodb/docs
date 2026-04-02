@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { Link } from '@/mdx-components/Link';
 import { REFERENCE_PREFIX } from '@/mdx-utils/get-blob-key';
 import { getBlobString } from '@/mdx-utils/blob-read';
@@ -8,9 +9,10 @@ interface ReferenceProps {
   refKey?: string;
   title?: string;
   type?: string;
+  replacements?: Record<string, ReactNode>;
 }
 
-export const Reference = async ({ projectPath, name, refKey, title }: ReferenceProps) => {
+export const Reference = async ({ projectPath, name, refKey, title, replacements }: ReferenceProps) => {
   const lookupKey = name ?? refKey;
   if (!lookupKey) {
     return `Reference (unknown) not found in project (${projectPath})`;
@@ -33,15 +35,14 @@ export const Reference = async ({ projectPath, name, refKey, title }: ReferenceP
   }
 
   const href: string | undefined = parsedReferences?.refs?.[lookupKey];
-  if (!href) {
-    // External absolute URL with no entry in _references.json — render directly
-    if (lookupKey.startsWith('http')) {
-      return <Link to={lookupKey}>{title ?? lookupKey}</Link>;
-    }
-    return `Reference (${lookupKey}) not found in project (${projectPath})`;
+  if (href) {
+    const resolvedHref = href.startsWith('http') ? href : `/${href}`;
+    return <Link to={resolvedHref}>{title ?? lookupKey}</Link>;
   }
 
-  const resolvedHref = href.startsWith('http') ? href : `/${href}`;
-
-  return <Link to={resolvedHref}>{title ?? lookupKey}</Link>;
+  // External absolute URL with no entry in _references.json — render directly
+  if (lookupKey.startsWith('http')) {
+    return <Link to={lookupKey}>{title ?? lookupKey}</Link>;
+  }
+  return `Reference (${lookupKey}) not found in project (${projectPath})`;
 };
