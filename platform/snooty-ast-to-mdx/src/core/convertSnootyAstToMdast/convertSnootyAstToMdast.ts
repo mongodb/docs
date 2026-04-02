@@ -1067,6 +1067,8 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 interface ConvertSnootyAstToMdastOptions {
   onEmitMdxFile?: ConversionContext['emitMdxFile'];
   currentOutfilePath?: string;
+  /** Starting depth for root-level children. Defaults to 1. Set > 1 to bake a heading offset into include files. */
+  initialDepth?: number;
 }
 
 export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnootyAstToMdastOptions): MdastRoot => {
@@ -1100,7 +1102,7 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
       Object.assign(metaFromDirectives, child.options);
       return; // do not include this node in output
     }
-    const converted = convertNode({ node: child, depth: 1, ctx });
+    const converted = convertNode({ node: child, depth: options?.initialDepth ?? 1, ctx });
     if (Array.isArray(converted)) contentChildren.push(...converted);
     else if (converted) contentChildren.push(converted);
   });

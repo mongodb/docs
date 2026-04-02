@@ -10,7 +10,7 @@ interface ConvertDirectiveIncludeArgs {
   depth: number;
 }
 
-export const convertDirectiveInclude = ({ node, ctx }: ConvertDirectiveIncludeArgs): MdastNode => {
+export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIncludeArgs): MdastNode => {
   const pathText = parseSnootyArgument(node);
 
   const emittedPath = toMdxIncludePath(pathText);
@@ -43,6 +43,7 @@ export const convertDirectiveInclude = ({ node, ctx }: ConvertDirectiveIncludeAr
   const emittedMdast = convertSnootyAstToMdast(nestedRoot, {
     onEmitMdxFile: ctx.emitMdxFile,
     currentOutfilePath: path.normalize(emittedPathNormalized),
+    initialDepth: depth,
   });
   ctx.emitMdxFile?.({ outfilePath: emittedPathNormalized, mdastRoot: emittedMdast });
 
