@@ -4,12 +4,9 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.replaceOne(
-               { item: "paper" },
-               { item: "paper", instock: [ { warehouse: "A", qty: 60 }, { warehouse: "B", qty: 40 } ] }
-            )
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/crud-tutorials/update/replace-one-godfather.js
+            :language: javascript
+            :category: usage example
 
      - id: compass
        content: |
