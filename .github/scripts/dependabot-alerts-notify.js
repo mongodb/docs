@@ -138,6 +138,74 @@ function filterRecentAlerts(alerts) {
   return recentAlerts;
 }
 
+// Cache for PRs to avoid hitting API rate limits
+let graphqlPRCache = null;
+
+/**
+ * Fetch the exact Pull Request associated with an alert using GitHub's GraphQL API.
+ * 
+ * Unlike the REST API, GraphQL directly exposes the 'dependabotUpdate' relationship
+ * which accurately links an alert to its respective PR, preventing false matches.
+ */
+async function fetchDependabotPR(alert) {
+  // Initialize and populate the GraphQL cache on the first call
+  if (graphqlPRCache === null) {
+    graphqlPRCache = {};
+    console.log(`📡 Fetching PR mappings via GitHub GraphQL API...`);
+    
+    const query = `
+      query { 
+        repository(owner: "${CONFIG.repoOwner}", name: "${CONFIG.repoName}") { 
+          vulnerabilityAlerts(last: 100) { 
+            nodes { 
+              number 
+              dependabotUpdate { pullRequest { url } } 
+            } 
+          } 
+        } 
+      }
+    `;
+
+    const graphqlOptions = {
+      hostname: 'api.github.com',
+      path: '/graphql',
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${CONFIG.githubToken}`,
+        'User-Agent': 'dependabot-alerts-notify',
+        'Content-Type': 'application/json'
+      }
+    };
+
+    try {
+      const response = await httpsRequest(graphqlOptions, JSON.stringify({ query }));
+      if (response.statusCode === 200 && response.data?.data) {
+        const nodes = response.data.data.repository.vulnerabilityAlerts.nodes || [];
+        for (const node of nodes) {
+          if (node.dependabotUpdate?.pullRequest?.url) {
+            graphqlPRCache[node.number] = node.dependabotUpdate.pullRequest.url;
+          }
+        }
+        console.log(`✅ Loaded ${Object.keys(graphqlPRCache).length} explicit PR mappings from GraphQL`);
+      } else {
+        console.log(`⚠️ GraphQL PR mapping failed: ${response.statusCode} - ${JSON.stringify(response.data)}`);
+      }
+    } catch (e) {
+      console.log(`⚠️ Error fetching GraphQL PR mappings: ${e.message}`);
+    }
+  }
+
+  // Lookup the alert in the cache
+  const prUrl = graphqlPRCache[alert.number];
+  if (prUrl) {
+    console.log(`✅ Found exact PR match for Alert #${alert.number}: ${prUrl}`);
+    return prUrl;
+  }
+  
+  console.log(`ℹ️ No PR found for Alert #${alert.number}`);
+  return null;
+}
+
 /**
  * Extract the manifest path from the alert for directory matching
  */
@@ -273,7 +341,7 @@ function mapAlertToTeam(alert, directoryMapping, teamMapping) {
 /**
  * Compose a single alert message and get Slack IDs for tagging
  */
-async function composeSingleAlertMessage(alert, mapping) {
+async function composeSingleAlertMessage(alert, mapping, prUrl) {
   const alertNumber = alert.number;
   const severity = alert.security_advisory?.severity || 'unknown';
   const alertName = alert.security_advisory?.summary || alert.dependency?.package?.name || 'Unknown Alert';
@@ -295,6 +363,9 @@ async function composeSingleAlertMessage(alert, mapping) {
   message += `⚠️ *Alert #${alertNumber}: ${alertName}*\n`;
   message += `• *Severity*: ${severity}\n`;
   message += `• *Alert Link*: ${alertUrl}\n`;
+  if (prUrl) {
+    message += `• *Pull Request*: ${prUrl}\n`;
+  }
   message += `• *Responsible Team*: ${mapping.team}\n\n`;
   message += `${leadsTag} - Please review and work with your team to resolve this vulnerability.`;
 
@@ -304,7 +375,7 @@ async function composeSingleAlertMessage(alert, mapping) {
 /**
  * Compose an edge case alert message (no team assigned)
  */
-function composeEdgeCaseMessage(alert, mapping) {
+function composeEdgeCaseMessage(alert, mapping, prUrl) {
   const alertNumber = alert.number;
   const alertName = alert.security_advisory?.summary || alert.dependency?.package?.name || 'Unknown Alert';
   const alertUrl = alert.html_url;
@@ -312,6 +383,9 @@ function composeEdgeCaseMessage(alert, mapping) {
   let message = `🚨 *Dependabot Security Alert - Manual Assignment Required* 🚨\n\n`;
   message += `⚠️ *Alert #${alertNumber}: ${alertName}*\n`;
   message += `• *Alert Link*: ${alertUrl}\n`;
+  if (prUrl) {
+    message += `• *Pull Request*: ${prUrl}\n`;
+  }
   message += `• *Issue*: ${mapping.edgeCase}\n`;
   message += `• *Escalation Contact*: ${CONFIG.fallbackEmail}\n\n`;
   message += 'Please update the ownership mapping spreadsheet accordingly.';
@@ -416,26 +490,28 @@ async function main() {
     // Send messages for alerts with team mapping
     for (const { alert, mapping } of alertsWithMapping) {
       console.log(`\n📨 Processing Alert #${alert.number}...`);
-      const { message, slackIds } = await composeSingleAlertMessage(alert, mapping);
+      const prUrl = await fetchDependabotPR(alert);
+      const { message, slackIds } = await composeSingleAlertMessage(alert, mapping, prUrl);
       await sendSlackNotification(message, slackIds);
       messagesSent++;
 
       // Small delay between messages to avoid rate limiting
       if (alertsWithMapping.length > 1 || edgeCaseAlerts.length > 0) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
 
     // Send messages for edge case alerts
     for (const { alert, mapping } of edgeCaseAlerts) {
       console.log(`\n📨 Processing Edge Case Alert #${alert.number}...`);
-      const { message, slackIds } = composeEdgeCaseMessage(alert, mapping);
+      const prUrl = await fetchDependabotPR(alert);
+      const { message, slackIds } = composeEdgeCaseMessage(alert, mapping, prUrl);
       await sendSlackNotification(message, slackIds);
       messagesSent++;
 
       // Small delay between messages to avoid rate limiting
       if (edgeCaseAlerts.indexOf({ alert, mapping }) < edgeCaseAlerts.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
       }
     }
 
