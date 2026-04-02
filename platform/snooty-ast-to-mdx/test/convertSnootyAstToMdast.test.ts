@@ -50,28 +50,68 @@ describe('convertSnootyAstToMdast', () => {
     expect(frontmatterObject).toEqual({ options: { page: 'opts' }, foo: 'bar' });
   });
 
-  it('extracts image path from child nodes and handles alt/width/height numeric attributes', () => {
+  it('extracts image path from argument and caption from children', () => {
     const ast: SnootyNode = {
       type: 'root',
       children: [
         {
           type: 'directive',
           name: 'image',
-          // Provide no argument – path is nested in child nodes instead
-          children: [{ type: 'text', value: 'images/example.png' }],
+          argument: [{ type: 'text', value: 'images/example.png' }],
+          children: [{ type: 'paragraph', children: [{ type: 'text', value: 'This is the caption' }] }],
           options: { alt: 'Alt text', width: '300', height: 'abc' },
         },
       ],
     };
     const { mdx } = convertSnootyAst({ ast });
-
-    expect(mdx).toEqual(`<Image src="/images/example.png" alt="Alt text" width={300} height="abc" />`);
+    expect(mdx).toEqual(
+      `<Image src="/images/example.png" alt="Alt text" width={300} height="abc" caption="This is the caption" />`,
+    );
   });
 
-  it('registers image import and renders Image component', () => {
+  it('extracts image path from argument and caption and lightbox from children', () => {
     const ast: SnootyNode = {
       type: 'root',
-      children: [{ type: 'directive', name: 'image', argument: 'images/example.png' }],
+      children: [
+        {
+          type: 'directive',
+          name: 'image',
+          argument: [{ type: 'text', value: 'images/example.png' }],
+          children: [{ type: 'paragraph', children: [{ type: 'text', value: 'This is the caption' }] }],
+          options: { alt: 'Alt text', width: '300', height: 'abc', lightbox: true },
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    expect(mdx).toEqual(
+      `<Image src="/images/example.png" alt="Alt text" width={300} height="abc" lightbox caption="This is the caption" />`,
+    );
+  });
+
+  it('registers figure import and renders Image component', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'figure',
+          argument: [{ type: 'text', value: 'images/example.png' }],
+          children: [{ type: 'paragraph', children: [{ type: 'text', value: 'This is another caption' }] }],
+          options: { alt: 'Alt text', figwidth: '333', height: '0', lightbox: true },
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+
+    expect(mdx).toEqual(
+      `<Image src="/images/example.png" alt="Alt text" figwidth={333} height={0} lightbox caption="This is another caption" />`,
+    );
+  });
+
+  it('registers figure import and renders Image component', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [{ type: 'directive', name: 'figure', argument: 'images/example.png' }],
     };
     const { mdx } = convertSnootyAst({ ast });
 

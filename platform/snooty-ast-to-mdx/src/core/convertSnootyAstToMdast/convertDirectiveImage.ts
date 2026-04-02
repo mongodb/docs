@@ -9,9 +9,9 @@ interface ConvertDirectiveImageArgs {
 }
 
 export const convertDirectiveImage = ({ node, ctx }: ConvertDirectiveImageArgs): MdastNode => {
-  const argText = parseSnootyArgument(node);
-
-  const rawPath = extractPathFromNodes(node.children) || String(argText || '');
+  // Path is always in the argument; children contain the caption (if any)
+  const rawPath = parseSnootyArgument(node);
+  const captionText = extractTextFromNodes(node.children);
 
   // Normalise to POSIX form and strip leading "./" or "/"
   const pathWithoutLeadingSlash = path.normalize(rawPath.replace(/^[./\\]+/, '')).replace(/^\/+/, '');
@@ -35,13 +35,22 @@ export const convertDirectiveImage = ({ node, ctx }: ConvertDirectiveImageArgs):
     name: 'src',
     value: imagePath,
   } as MdastNode);
+
   const altText = typeof node.options?.alt === 'string' ? node.options.alt : '';
   if (altText) attrs.push({ type: 'mdxJsxAttribute', name: 'alt', value: altText } as MdastNode);
-  // RST uses :width: or :figwidth: for image width; prefer :width: if both are present
-  const widthAttr = toNumericAttr({ name: 'width', value: node.options?.width ?? node.options?.figwidth });
-  const heightAttr = toNumericAttr({ name: 'height', value: node.options?.height });
+  const widthAttr = toNumericAttr({ name: 'width', value: node.options?.width });
   if (widthAttr) attrs.push(widthAttr);
+  const figwidthAttr = toNumericAttr({ name: 'figwidth', value: node.options?.figwidth });
+  if (figwidthAttr) attrs.push(figwidthAttr);
+  const heightAttr = toNumericAttr({ name: 'height', value: node.options?.height });
   if (heightAttr) attrs.push(heightAttr);
+
+  if (node.options?.lightbox !== undefined) {
+    attrs.push({ type: 'mdxJsxAttribute', name: 'lightbox', value: null } as MdastNode);
+  }
+  if (captionText) {
+    attrs.push({ type: 'mdxJsxAttribute', name: 'caption', value: captionText } as MdastNode);
+  }
 
   return { type: 'mdxJsxFlowElement', name: 'Image', attributes: attrs, children: [] } as MdastNode;
 };
@@ -58,7 +67,7 @@ const toImportPath = ({ topLevelPath, assetPath }: ToImportPathArgs) => {
   return path.join('images', assetPath);
 };
 
-const extractPathFromNodes = (nodes?: SnootyNode[]): string => {
+const extractTextFromNodes = (nodes?: SnootyNode[]): string => {
   if (!Array.isArray(nodes)) return '';
   const parts: string[] = [];
   const walk = (n: SnootyNode) => {

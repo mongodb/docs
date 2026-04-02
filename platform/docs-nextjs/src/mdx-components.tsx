@@ -1,5 +1,4 @@
 import type { MDXComponents } from 'mdx/types';
-import { Image } from '@/mdx-components/Image';
 import { Include } from '@/mdx-components/Include';
 import { Reference } from '@/mdx-components/Reference';
 import { RefTarget } from '@/mdx-components/RefTarget';
@@ -35,6 +34,7 @@ import { Tabs, Tab } from '@/mdx-components/Tabs';
 import { Icon } from '@leafygreen-ui/icon';
 import { Abbr } from '@/mdx-components/Abbr';
 import { Time } from '@/mdx-components/Time';
+import { Image } from '@/mdx-components/Image';
 import { Link } from '@/mdx-components/Link';
 import { Video } from '@/mdx-components/Video/Video';
 import { Kicker } from '@/mdx-components/Kicker';
@@ -124,7 +124,6 @@ export const components = (injectedProps?: InjectedProps) =>
     Extract: ({ children }) => children,
     Field: ({ children }) => <span>{children}</span>,
     FieldList: ({ children }) => <span>{children}</span>,
-    Figure: ({ children }) => <span>{children}</span>,
     Footnote: ({ children }) => <span>{children}</span>,
     FootnoteReference: ({ children }) => <span>{children}</span>,
     Glossary: ({ children }) => <span>{children}</span>,
