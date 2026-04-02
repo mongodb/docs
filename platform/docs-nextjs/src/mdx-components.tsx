@@ -2,6 +2,7 @@ import type { MDXComponents } from 'mdx/types';
 import { Image } from '@/mdx-components/Image';
 import { Include } from '@/mdx-components/Include';
 import { Reference } from '@/mdx-components/Reference';
+import { RefTarget } from '@/mdx-components/RefTarget';
 import { Admonition } from '@/mdx-components/Admonition';
 import { Banner } from '@/mdx-components/Banner';
 import { Collapsible } from '@/mdx-components/Collapsible';
@@ -159,13 +160,11 @@ export const components = (injectedProps?: InjectedProps) =>
         {children}
       </Admonition>
     ),
-    SharedInclude: ({ children }) => <span>{children}</span>,
     Tabs: ({ children, ...props }) => <Tabs {...props}>{children}</Tabs>,
     Tab: ({ children, ...props }) => <Tab {...props}>{children}</Tab>,
     TabsSelector: () => <TabsSelector />,
-    Target: ({ children }) => <span>{children}</span>,
+    RefTarget: (props) => <RefTarget {...props} />,
     Time: (props) => <Time {...props} />,
-    Toctree: ({ children }) => <span>{children}</span>,
     // built-in thematic break (--- / *** / ___) → hr; render with Transition component
     hr: () => <Transition />,
     VersionAdded: ({ children }) => <span>{children}</span>,

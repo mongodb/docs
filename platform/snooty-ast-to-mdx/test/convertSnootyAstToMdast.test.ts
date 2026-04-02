@@ -126,7 +126,7 @@ describe('convertSnootyAstToMdast', () => {
 
     expect(refs).toBeDefined();
     expect(refs.substitutions).toHaveProperty('prod', 'MongoDB');
-    expect(refs.refs['/docs/page'].title).toBe('Doc');
+    expect(refs.refs['/docs/page']).toBe('/docs/page');
   });
 
   it('injects tabs-selector-position: main into frontmatter when tabs-selector directive is present', () => {

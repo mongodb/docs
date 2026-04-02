@@ -11,7 +11,7 @@ import { parseSnootyArgument } from './parseSnootyArgument';
 import { computeComposableTutorialData, buildComposableOptionsFromNode } from './computeComposableTutorialData';
 import { extractInlineDisplayText } from './extractInlineDisplayText';
 
-const DIRECTIVES_TO_REMOVE_IF_EMPTY = ['toctree', 'index'];
+const DIRECTIVES_TO_REMOVE_IF_EMPTY = ['index'];
 const DIRECTIVES_TO_SKIP_CONTAINER = ['extract', 'glossary'];
 
 /** Recursively extract plain text from a snooty argument node tree */
@@ -146,6 +146,16 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       // Apply punctuation transformation before converting (merges trailing punctuation into links)
       const processedChildren = appendTrailingPunctuation(node.children ?? []);
       const convertedChildren = convertChildren({ nodes: processedChildren, depth, ctx });
+
+      // RST preserves literal newlines inside paragraph text nodes (e.g. "see\n  ").
+      // remark-mdx serializes those newlines verbatim, which makes the MDX parser treat any
+      // following inline JSX as a block element. Collapse newline+whitespace to a single space
+      // so inline elements stay inside the <p>.
+      for (const child of convertedChildren) {
+        if (child.type === 'text' && typeof child.value === 'string') {
+          child.value = child.value.replace(/\n\s*/g, ' ');
+        }
+      }
 
       // When inside certain containers, skip the paragraph wrapper and return children directly.
       // This mirrors the SKIP_P_TAGS behaviour previously computed at runtime in the Paragraph component.
@@ -337,6 +347,10 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       }
       // Facet directives are page metadata collected into frontmatter – skip here.
       if (directiveName === 'facet') {
+        return null;
+      }
+      // Toctree is navigation structure only – not rendered in page content.
+      if (directiveName === 'toctree') {
         return null;
       }
 
@@ -632,20 +646,37 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 
     case 'ref_role':
     case 'doc': {
-      const url = node.url ?? node.refuri ?? node.target ?? '';
-      if (!url) {
+      const fileid = node.fileid as [string, string?] | undefined;
+      const externalUrl = typeof node.url === 'string' ? node.url : undefined;
+      const refTarget = typeof node.target === 'string' ? node.target : undefined;
+
+      // The lookup key: prefer the explicit ref target label, fall back to fileid path or external url
+      const key = refTarget ?? (fileid ? fileid[0] : undefined) ?? externalUrl ?? '';
+      if (!key) {
         return convertChildren({ nodes: node.children, depth, ctx });
       }
 
-      const childText = extractInlineDisplayText(node.children ?? []);
-      if (childText) {
-        ctx.collectedRefs.set(url, { title: childText, url });
+      // Store combined href so _references.json can resolve it at render time
+      if (fileid?.[0]) {
+        const href = fileid[1] ? `${fileid[0]}#${fileid[1]}` : fileid[0];
+        ctx.collectedRefs.set(key, href);
+      } else if (externalUrl) {
+        ctx.collectedRefs.set(key, externalUrl);
+      }
+
+      // Snooty always resolves the display title — either the author's custom text or the
+      // section heading for the target anchor. Always emit it inline as a prop.
+      const title = extractInlineDisplayText(node.children ?? []);
+
+      const attributes: MdastNode[] = [{ type: 'mdxJsxAttribute', name: 'name', value: key }];
+      if (title) {
+        attributes.push({ type: 'mdxJsxAttribute', name: 'title', value: title });
       }
 
       return {
         type: 'mdxJsxTextElement',
         name: 'Reference',
-        attributes: [{ type: 'mdxJsxAttribute', name: 'name', value: url }],
+        attributes,
         children: [],
       };
     }
@@ -948,7 +979,6 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
     }
 
     case 'target': {
-      // Convert to one or more invisible anchor <span> elements
       const ids: string[] = [];
       if (typeof node.html_id === 'string') ids.push(node.html_id);
       if (Array.isArray(node.ids)) ids.push(...node.ids);
@@ -956,7 +986,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (ids.length === 0) return null;
       return ids.map((id) => ({
         type: 'mdxJsxFlowElement',
-        name: 'span',
+        name: 'RefTarget',
         attributes: [{ type: 'mdxJsxAttribute', name: 'id', value: id }],
         children: [],
       }));
@@ -969,11 +999,11 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (typeof node.html_id === 'string') ids.push(node.html_id);
       if (ids.length === 0) return null;
       return ids.map((id) => ({
-        // Use mdxJsxTextElement (inline JSX) so the anchor span stays inline
+        // Use mdxJsxTextElement (inline JSX) so the anchor stays inline
         // alongside the term text inside the paragraph wrapper in DefinitionTerm,
         // rather than becoming a block-level sibling with a blank line before it.
         type: 'mdxJsxTextElement',
-        name: 'span',
+        name: 'RefTarget',
         attributes: [{ type: 'mdxJsxAttribute', name: 'id', value: id }],
         children: [],
       }));
@@ -1016,7 +1046,7 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
   const metaFromDirectives: Record<string, unknown> = {};
   const contentChildren: MdastNode[] = [];
   const collectedSubstitutions = new Map<string, string>();
-  const collectedRefs = new Map<string, { title: string; url: string }>();
+  const collectedRefs = new Map<string, string>();
 
   const ctx: ConversionContext = {
     emitMdxFile: options?.onEmitMdxFile,
@@ -1089,7 +1119,7 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
   if (collectedSubstitutions.size > 0 || collectedRefs.size > 0) {
     const substitutions: Record<string, string> = {};
     for (const [k, v] of collectedSubstitutions.entries()) substitutions[k] = v;
-    const refs: Record<string, { title: string; url: string }> = {};
+    const refs: Record<string, string> = {};
     for (const [k, v] of collectedRefs.entries()) refs[k] = v;
     rootNode.__references = { substitutions, refs };
   }

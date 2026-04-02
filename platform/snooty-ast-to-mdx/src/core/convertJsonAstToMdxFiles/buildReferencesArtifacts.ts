@@ -1,7 +1,7 @@
 import fs from 'node:fs/promises';
 
 type Substitutions = Record<string, string>;
-type Refs = Record<string, { title: string; url: string }>;
+type Refs = Record<string, string>;
 
 export interface ReferencesArtifact {
   substitutions: Substitutions;
@@ -20,7 +20,7 @@ export const buildReferencesArtifacts = ({
 
   const refsLines = Object.entries(refs)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([url, { title }]) => `    ${esc(url)}: { title: ${esc(title)}, url: ${esc(url)} },`)
+    .map(([key, href]) => `    ${esc(key)}: ${esc(href)},`)
     .join('\n');
 
   const ts =
