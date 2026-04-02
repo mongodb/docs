@@ -441,6 +441,10 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           children,
         };
       }
+      if (directiveName === 'rubric') {
+        const rubricText = (node.argument as SnootyNode[]).map(extractArgText).join('');
+        return { type: 'html', value: `\n\n**${rubricText}**\n\n` };
+      }
       if (directiveName === 'deprecated') {
         const version = parseSnootyArgument(node);
         return {

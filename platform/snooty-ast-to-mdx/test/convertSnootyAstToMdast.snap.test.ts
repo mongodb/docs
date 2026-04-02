@@ -335,7 +335,8 @@ const cases: Array<[string, SnootyNode]> = [
   [
     'cta-banner',
     {
-      type: 'cta-banner',
+      type: 'directive',
+      name: 'cta-banner',
       options: { color: 'green' },
       children: [{ type: 'paragraph', children: [{ type: 'text', value: 'CTA' }] }],
     },

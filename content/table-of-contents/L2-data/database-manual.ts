@@ -1,6 +1,6 @@
+import ChartsData from '../docset-data/atlas-charts';
 import AggregationData from '../manual-data/aggregation';
 import SearchData from '../manual-data/atlas-search';
-import ChartsData from '../docset-data/atlas-charts';
 import ClustersData from '../manual-data/clusters';
 import CRUDData from '../manual-data/crud';
 import FederationData from '../manual-data/data-federation';

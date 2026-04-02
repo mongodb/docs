@@ -5,7 +5,7 @@ import RightColumn from '@/components/right-column';
 import documentStyling from './document.module.scss';
 import { Contents } from '@/mdx-components/Contents';
 import { usePageContext } from '@/context/page-context';
-import TabSelectors from '@/components/tabs/tab-selectors';
+import { TabsSelector } from '@/mdx-components/TabsSelector';
 import DismissibleSkillsCard from '@/components/dismissable-skills-card';
 import type { BaseTemplateProps } from '.';
 import MainColumn from './main-column';
@@ -43,7 +43,7 @@ export default function DocumentTemplate({ children, pageOptions }: BaseTemplate
         {!!dismissibleSkillsCard && (
           <DismissibleSkillsCard skill={dismissibleSkillsCard.skill} url={dismissibleSkillsCard.url} />
         )}
-        {!hasMethodSelector && !tabsMainColumn && <TabSelectors rightColumn={true} />}
+        {!hasMethodSelector && !tabsMainColumn && <TabsSelector />}
         <Contents />
       </RightColumn>
     </div>

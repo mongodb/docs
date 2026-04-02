@@ -5,7 +5,6 @@
 
 import yaml from 'yaml';
 import { convertSnootyAst } from './utils';
-import { convertSnootyAstToMdast } from '../src/core/convertSnootyAstToMdast/convertSnootyAstToMdast';
 import type { SnootyNode } from '../src/core/convertSnootyAstToMdast/types';
 import type { ReferencesArtifact } from '../src/core/convertJsonAstToMdxFiles/buildReferencesArtifacts';
 
@@ -23,6 +22,15 @@ describe('convertSnootyAstToMdast', () => {
     const { mdx } = convertSnootyAst({ ast });
 
     expect(mdx).toBe('Hello world');
+  });
+
+  it('converts rubric directive', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [{ type: 'directive', name: 'rubric', argument: [{ type: 'text', value: 'Hey Rubric' }] }],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    expect(mdx).toBe('**Hey Rubric**');
   });
 
   it('collects meta directives into frontmatter', () => {
