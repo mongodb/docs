@@ -93,6 +93,45 @@ interface ConvertNodeArgs {
   parentType?: string;
 }
 
+/**
+ * Splits a paragraph's children at block-level (mdxJsxFlowElement) boundaries,
+ * hoisting those elements up as siblings alongside any surrounding text paragraphs.
+ *
+ * Example: [text, <Note />, text] → [<p>text</p>, <Note />, <p>text</p>]
+ *
+ * If no block-level children exist, returns a single paragraph wrapping all children.
+ */
+const hoistFlowElementsFromParagraph = (children: MdastNode[]): MdastNode | MdastNode[] => {
+  const containsBlockElement = children.some((child) => child.type === 'mdxJsxFlowElement');
+  if (!containsBlockElement) {
+    return { type: 'paragraph', children };
+  }
+
+  const isWhitespaceText = (node: MdastNode) => node.type === 'text' && String(node.value ?? '').trim() === '';
+
+  const outputNodes: MdastNode[] = [];
+  let pendingInlineNodes: MdastNode[] = [];
+
+  for (const child of children) {
+    if (child.type === 'mdxJsxFlowElement') {
+      // Emit any accumulated inline nodes as a paragraph before the block element
+      const nonEmptyInlineNodes = pendingInlineNodes.filter((node) => !isWhitespaceText(node));
+      if (nonEmptyInlineNodes.length > 0) outputNodes.push({ type: 'paragraph', children: nonEmptyInlineNodes });
+      outputNodes.push(child);
+      pendingInlineNodes = [];
+    } else {
+      pendingInlineNodes.push(child);
+    }
+  }
+
+  // Wrap any inline nodes that follow the last block element
+  const trailingInlineNodes = pendingInlineNodes.filter((node) => !isWhitespaceText(node));
+  if (trailingInlineNodes.length > 0) outputNodes.push({ type: 'paragraph', children: trailingInlineNodes });
+
+  // If hoisting reduced to a single node, unwrap the array
+  return outputNodes.length === 1 ? outputNodes[0] : outputNodes;
+};
+
 /** Convert a single Snooty node to mdast. Certain nodes (e.g. `section`) expand
     into multiple mdast siblings, so the return type can be an array. */
 /** Parent node types whose child paragraphs should be unwrapped (no <p> wrapper emitted). */
@@ -114,10 +153,9 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         return convertedChildren;
       }
 
-      return {
-        type: 'paragraph',
-        children: convertedChildren,
-      };
+      // Hoist any block-level (mdxJsxFlowElement) children out of the paragraph to avoid
+      // invalid MDX like `text <Note>...</Note> more text`.
+      return hoistFlowElementsFromParagraph(convertedChildren);
     }
 
     case 'emphasis':
@@ -301,6 +339,11 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (directiveName === 'facet') {
         return null;
       }
+
+      if (directiveName === 'default_domain') {
+        return null;
+      }
+
       // Pass over container directives: emit only their children, no wrapper.
       if (DIRECTIVES_TO_SKIP_CONTAINER.includes(directiveName)) {
         return convertChildren({ nodes: node.children, depth, ctx });
@@ -780,11 +823,14 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         // Fallback to emitting content inline if id missing
         return convertChildren({ nodes: node.children, depth, ctx, parentType: 'footnote' });
       }
+      const attributes: MdastNode[] = [{ type: 'mdxJsxAttribute', name: 'id', value: identifier }];
+      if (node.name) {
+        attributes.push({ type: 'mdxJsxAttribute', name: 'label', value: String(node.name) });
+      }
       return {
-        type: 'mdxJsxTextElement',
+        type: 'mdxJsxFlowElement',
         name: 'Footnote',
-        identifier,
-        label: node.name ?? undefined,
+        attributes,
         children: convertChildren({ nodes: node.children, depth, ctx, parentType: 'footnote' }),
       };
     }
@@ -950,7 +996,6 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
     // Parser-specific node types that we skip
     case 'comment':
     case 'comment_block':
-    case 'default-domain':
       return null;
 
     default:

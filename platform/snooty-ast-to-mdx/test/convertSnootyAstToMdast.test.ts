@@ -297,4 +297,168 @@ describe('DefinitionTerm inline content rendering', () => {
     expect(mdx).toContain('exist');
     expect(mdx).not.toMatch(/<DefinitionTerm>[\s\S]*?\n[ \t]*\n[\s\S]*?<\/DefinitionTerm>/);
   });
+
+  // Flow-element-in-paragraph hoisting tests
+  const FLOW_DIRECTIVE_CASES: Array<[string, string]> = [
+    ['note', 'Note'],
+    ['warning', 'Warning'],
+    ['important', 'Important'],
+    ['example', 'Example'],
+    ['banner', 'Banner'],
+    ['contents', 'Contents'],
+  ];
+
+  it.each(FLOW_DIRECTIVE_CASES)(
+    'hoists <%s> out of paragraph when directive is nested in a paragraph',
+    (directiveName, componentName) => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'paragraph',
+            children: [
+              {
+                type: 'directive',
+                name: directiveName,
+                children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Content' }] }],
+              },
+            ],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      // Component must not be serialised inline inside a paragraph
+      expect(mdx).not.toMatch(new RegExp(`\\(.*<${componentName}`, 's'));
+      // Component must appear at block level (start of a line)
+      expect(mdx).toMatch(new RegExp(`^<${componentName}`, 'm'));
+    },
+  );
+
+  it('hoists <See> out of paragraph (mapped via DIRECTIVE_TO_COMPONENT)', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'directive',
+              name: 'see',
+              children: [{ type: 'paragraph', children: [{ type: 'text', value: 'See also' }] }],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    expect(mdx).toMatch(/^<See/m);
+  });
+
+  it('hoists <DefinitionList> out of paragraph when nested in a paragraph', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'definitionList',
+              children: [
+                {
+                  type: 'definitionListItem',
+                  term: [{ type: 'text', value: 'Term' }],
+                  children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Desc' }] }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    expect(mdx).toMatch(/^<DefinitionList/m);
+  });
+
+  it('hoists <Table> out of paragraph when nested in a paragraph', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'table',
+              children: [
+                {
+                  type: 'table_body',
+                  children: [
+                    {
+                      type: 'table_row',
+                      children: [{ type: 'table_cell', children: [{ type: 'text', value: 'Cell' }] }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    expect(mdx).toMatch(/^<Table/m);
+  });
+
+  it('hoists <Footnote> out of paragraph when nested in a paragraph', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'footnote',
+              id: '1',
+              name: 'fn1',
+              children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Footnote text' }] }],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    expect(mdx).toMatch(/^<Footnote/m);
+  });
+
+  it('preserves surrounding text when hoisting a flow element out of a paragraph', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'text', value: 'Before.' },
+            {
+              type: 'directive',
+              name: 'note',
+              children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Note body' }] }],
+            },
+            { type: 'text', value: 'After.' },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    expect(mdx).toMatch(/^<Note/m);
+    expect(mdx).toContain('Before.');
+    expect(mdx).toContain('After.');
+  });
+
+  it('suppresses default_domain directive (produces no output)', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [{ type: 'directive', name: 'default_domain', argument: 'mongodb', children: [] }],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    expect(mdx).toBe('');
+  });
 });
