@@ -210,7 +210,34 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           .map(({ value }) => value)
           .join('');
       }
-      return { type: 'code', lang: node.lang ?? node.language ?? null, value };
+      const lang = node.lang ?? null;
+      const metaParts: string[] = [];
+      if (typeof node.copyable === 'boolean') {
+        metaParts.push(`copyable={${node.copyable}}`);
+      }
+      if (Array.isArray(node.emphasize_lines) && node.emphasize_lines.length > 0) {
+        metaParts.push(`emphasize_lines={${JSON.stringify(node.emphasize_lines)}}`);
+      }
+      if (typeof node.linenos === 'boolean') {
+        metaParts.push(`linenos={${node.linenos}}`);
+      }
+      if (typeof node.caption === 'string') {
+        // Use single-quoted JSX expression so double quotes in captions don't need backslash-escaping
+        // (remark double-escapes backslashes inside {}, making \" → \\" which is invalid JS)
+        metaParts.push(`caption={'${node.caption.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'}`);
+      }
+      if (typeof node.source === 'string') {
+        metaParts.push(`source={'${node.source.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'}`);
+      }
+      if (node.lineno_start !== undefined) {
+        metaParts.push(`lineno_start={${Number(node.lineno_start)}}`);
+      }
+      return {
+        type: 'code',
+        lang,
+        meta: metaParts.length > 0 ? metaParts.join(' ') : undefined,
+        value,
+      };
     }
 
     case 'bullet_list':

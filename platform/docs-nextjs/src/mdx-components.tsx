@@ -40,6 +40,7 @@ import { Video } from '@/mdx-components/Video/Video';
 import { Kicker } from '@/mdx-components/Kicker';
 import { Deprecated } from './mdx-components/Deprecated';
 import { TabsSelector } from '@/mdx-components/TabsSelector';
+import { Code } from '@/mdx-components/Code';
 import { Replacement } from '@/mdx-components/Include/Replacement';
 
 type InjectedProps = Record<string, unknown>;
@@ -58,6 +59,15 @@ export const components = (injectedProps?: InjectedProps) =>
     Reference: (props) => <Reference {...props} {...injectedProps} />,
     // standard markdown elements
     p: ({ children, ...props }) => <Paragraph {...props}>{children}</Paragraph>,
+    pre: ({ children, ...props }) => {
+      const lang =
+        (children as React.ReactElement<{ className?: string; children?: string }>)?.props?.className?.replace(
+          /^language-/,
+          '',
+        ) ?? '';
+      const value = (children as React.ReactElement<{ className?: string; children?: string }>)?.props?.children ?? '';
+      return <Code {...props} lang={lang} value={value} />;
+    },
     // dummy mappings for everything else
     Tip: ({ children, ...props }) => (
       <Admonition name="tip" {...props}>
@@ -81,8 +91,6 @@ export const components = (injectedProps?: InjectedProps) =>
     Button: ({ children, ...props }) => <Button {...props}>{children}</Button>,
     Card: ({ children, ...props }) => <Card {...props}>{children}</Card>,
     CardGroup: ({ children, ...props }) => <CardGroup {...props}>{children}</CardGroup>,
-    // TODO: This needs a new name - to not interfere with new "inline" code that is better for literals
-    Code: ({ children }) => <span>{children}</span>,
     Contents: () => null,
     Facet: ({ children }) => children,
     Collapsible: ({ children, ...props }) => <Collapsible {...props}>{children}</Collapsible>,

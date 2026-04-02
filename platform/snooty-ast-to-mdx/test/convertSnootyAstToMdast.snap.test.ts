@@ -51,6 +51,39 @@ const cases: Array<[string, SnootyNode]> = [
     },
   ],
   [
+    'code block — full attributes',
+    {
+      type: 'code',
+      lang: 'javascript',
+      copyable: true,
+      emphasize_lines: [1, 3],
+      linenos: true,
+      lineno_start: 5,
+      caption: 'My caption',
+      source: 'https://example.com/src.js',
+      value: 'const x = 1;\nconst y = 2;\nreturn x + y;',
+    },
+  ],
+  [
+    'code block — multi-line with quotes and backslashes',
+    {
+      type: 'code',
+      lang: 'sh',
+      copyable: true,
+      value:
+        'mongoimport --db test --collection inventory ^\n          --authenticationDatabase admin --username <user> --password <password> ^\n          --drop --file ~\\downloads\\inventory.crud.json',
+    },
+  ],
+  [
+    'code block — caption with inner double quotes',
+    {
+      type: 'code',
+      lang: 'js',
+      caption: 'Say "hello" world',
+      value: 'x = 1',
+    },
+  ],
+  [
     'bullet_list',
     {
       type: 'bullet_list',

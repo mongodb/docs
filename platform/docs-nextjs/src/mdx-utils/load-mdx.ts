@@ -2,6 +2,7 @@ import type { ReactElement, ReactNode } from 'react';
 import { compileMDX } from 'next-mdx-remote/rsc';
 import remarkGfm from 'remark-gfm';
 import remarkSectionize from 'remark-sectionize';
+import rehypeMdxCodeProps from 'rehype-mdx-code-props';
 import { components } from '@/mdx-components';
 import { getBlobString } from './blob-read';
 import { MDX_PREFIX } from './get-blob-key';
@@ -35,6 +36,7 @@ export const loadMDX = async (urlPath: string[], replacements?: Record<string, R
       parseFrontmatter: true,
       mdxOptions: {
         remarkPlugins: [remarkGfm, remarkSectionize],
+        rehypePlugins: [rehypeMdxCodeProps],
       },
     },
   });
@@ -68,6 +70,7 @@ const loadOfflineMDX = async (urlPath: string[], replacements?: Record<string, R
         parseFrontmatter: true,
         mdxOptions: {
           remarkPlugins: [remarkGfm, remarkSectionize],
+          rehypePlugins: [rehypeMdxCodeProps],
         },
       },
     });

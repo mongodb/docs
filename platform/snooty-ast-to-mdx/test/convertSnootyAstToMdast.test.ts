@@ -639,4 +639,171 @@ describe('DefinitionTerm inline content rendering', () => {
     const { mdx } = convertSnootyAst({ ast });
     expect(mdx).toBe('');
   });
+
+  describe('code node', () => {
+    it('emits a fenced code block with lang', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [{ type: 'code', lang: 'javascript', value: 'console.log("hi")' }],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).toMatch(/^```javascript$/m);
+      expect(mdx).toContain('console.log("hi")');
+    });
+
+    it('emits a fenced code block without lang when lang is null', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [{ type: 'code', lang: undefined, value: 'some code' }],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).toContain('some code');
+      expect(mdx).not.toContain('lang=');
+    });
+
+    it('puts copyable in the fence info string', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [{ type: 'code', lang: 'python', copyable: true, value: 'x = 1' }],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).toMatch(/^```python copyable={true}/m);
+    });
+
+    it('omits emphasize_lines from meta when array is empty', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [{ type: 'code', lang: 'js', emphasize_lines: [], value: 'x = 1' }],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).not.toContain('emphasize_lines');
+    });
+
+    it('puts non-empty emphasize_lines in the fence info string', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [{ type: 'code', lang: 'js', emphasize_lines: [1, 3], value: 'a\nb\nc' }],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).toContain('emphasize_lines={[1,3]}');
+    });
+
+    it('puts linenos=true in the fence info string', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [{ type: 'code', lang: 'sh', linenos: true, value: 'echo hi' }],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).toContain('linenos={true}');
+    });
+
+    it('puts caption in the fence info string as a single-quoted JSX expression', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [{ type: 'code', lang: 'js', caption: 'My caption', value: 'x = 1' }],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).toContain("caption={'My caption'}");
+    });
+
+    it('handles double quotes inside caption without backslash-escaping', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [{ type: 'code', lang: 'js', caption: 'Say "hello"', value: 'x = 1' }],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).toContain(`caption={'Say "hello"'}`);
+    });
+
+    it('puts source in the fence info string as a single-quoted JSX expression', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [{ type: 'code', lang: 'js', source: 'https://example.com/file.js', value: 'x = 1' }],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).toContain("source={'https://example.com/file.js'}");
+    });
+
+    it('puts lineno_start in the fence info string', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [{ type: 'code', lang: 'js', linenos: true, lineno_start: 5, value: 'x = 1' }],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).toContain('lineno_start={5}');
+    });
+
+    it('preserves multi-line content verbatim in the fenced block', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [{ type: 'code', lang: 'sh', value: 'line one\nline two' }],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).toContain('line one\nline two');
+      expect(mdx).not.toContain('\\n');
+    });
+
+    it('preserves quotes and backslashes in the fenced block verbatim', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [{ type: 'code', lang: 'sh', value: 'echo "hello" && cat C:\\file.txt' }],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).toContain('echo "hello" && cat C:\\file.txt');
+    });
+
+    it('handles a realistic multi-line code block with all attributes', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'code',
+            lang: 'javascript',
+            copyable: true,
+            emphasize_lines: [2],
+            linenos: true,
+            lineno_start: 10,
+            caption: 'Example',
+            source: 'https://example.com/src.js',
+            value: 'const x = 1;\nconst y = 2;\nreturn x + y;',
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).toMatch(/^```javascript/m);
+      expect(mdx).toContain('copyable={true}');
+      expect(mdx).toContain('emphasize_lines={[2]}');
+      expect(mdx).toContain('linenos={true}');
+      expect(mdx).toContain('lineno_start={10}');
+      expect(mdx).toContain("caption={'Example'}");
+      expect(mdx).toContain("source={'https://example.com/src.js'}");
+      expect(mdx).toContain('const x = 1;\nconst y = 2;\nreturn x + y;');
+    });
+
+    it('handles literal_block node type the same as code', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [{ type: 'literal_block', lang: 'json', value: '{"key": "val"}' }],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).toMatch(/^```json$/m);
+      expect(mdx).toContain('{"key": "val"}');
+    });
+
+    it('falls back to children text when value is empty', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'code',
+            lang: 'js',
+            value: '',
+            children: [{ type: 'text', value: 'fallback content' }],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).toContain('fallback content');
+    });
+  });
 });
