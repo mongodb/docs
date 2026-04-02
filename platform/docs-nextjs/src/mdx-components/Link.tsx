@@ -147,7 +147,7 @@ export const Link = ({
     <LGLink
       href={to}
       className={cx(lgLinkStyling, className)}
-      hideExternalIcon={false}
+      hideExternalIcon={!showExtIcon}
       target={target}
       onClick={onClick}
       {...anchorProps}
