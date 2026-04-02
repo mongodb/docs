@@ -33,9 +33,29 @@ You can configure the following alert conditions in the project-level
 :ref:`alert settings <configure-alerts>` page to trigger alerts.
 
 :alert:`Atlas Search: Index Replication Lag
-<Atlas Search: Index Replication Lag is>` occurs if the approximate 
-number of milliseconds that |fts| is behind in replicating changes from 
+<Atlas Search: Index Replication Lag is>` occurs if the approximate
+number of milliseconds that |fts| is behind in replicating changes from
 the :term:`oplog` of |mongod| is above or below the threshold.
+
+If replication lag grows large enough that ``mongot`` falls behind the configured oplog
+window, ``mongot`` can no longer sync incrementally. When this happens, ``mongot`` will
+automatically perform a full index rebuild. During the rebuild, search queries continue to
+work but will return stale results.
+
+To reduce replication lag:
+
+- Increase your oplog size to give ``mongot`` more time to sync during write bursts.
+  You can configure the minimum oplog size in your :ref:`cluster settings <set-oplog-size>`.
+- Upscale your Search Nodes to give ``mongot`` more CPU and memory for replication. To 
+  learn more about adding or scaling Search Nodes, see :ref:`fts-search-node-sizing-tips`. 
+- Reduce write burst volume by batching or throttling large bulk operations when possible.
+- Monitor write volume alongside replication lag. A sudden spike in write throughput is a
+  common trigger for oplog exhaustion. To learn more about monitoring write volume and issue
+  resolution, see :ref:`replication-oplog-alerts`.
+
+**Recommended threshold:** Set this alert well below your oplog window duration. For
+example, if your oplog window is 24 hours, consider alerting at 30–50% of that window
+(e.g., 8–12 hours) to give yourself time to respond before ``mongot`` falls off the oplog.
 
 :alert:`Atlas Search: Index Size on Disk
 <Atlas Search: Index Size on Disk is>` occurs if the total size of all 
