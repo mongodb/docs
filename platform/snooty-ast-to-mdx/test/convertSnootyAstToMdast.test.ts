@@ -200,6 +200,184 @@ describe('convertSnootyAstToMdast', () => {
       setup: { language: 'python', interface: 'drivers' },
     });
   });
+
+  describe('angle bracket escaping in text nodes', () => {
+    it('escapes < followed by a digit to prevent MDX parse errors', () => {
+      // Reproduces: "Unexpected character `1` (U+0031) before name"
+      // e.g. "Low Write Rate (<100 operations per second)"
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'paragraph',
+            children: [{ type: 'text', value: 'Low Write Rate (<100 operations per second)' }],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      expect(mdx).toContain('\\<100');
+    });
+
+    it('escapes < followed by a non-name-starting character (e.g. pipe)', () => {
+      // Reproduces: "Unexpected character `|` (U+007C) in name"
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'paragraph',
+            children: [{ type: 'text', value: 'bitwise OR: a <| b' }],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      expect(mdx).toContain('\\<|');
+    });
+
+    it('does not add extra escaping for < followed by a letter (valid tag name start)', () => {
+      // <Letter is a valid JSX tag start — the stringifier handles it; we must not double-escape.
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'paragraph',
+            children: [{ type: 'text', value: 'Application ID URI (<Application ID>)' }],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      expect(mdx).toContain('Application ID URI');
+      // Our function must not have added a second backslash on top of the stringifier's own escape
+      expect(mdx).not.toMatch(/\\\\</);
+    });
+
+    it('does not escape < inside inline code — backticks protect the content', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'paragraph',
+            children: [
+              { type: 'text', value: 'Replace ' },
+              { type: 'literal', value: '<your_admin_username>' },
+              { type: 'text', value: ' with your username' },
+            ],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      // Inline code is wrapped in backticks — < is safe there and must not be escaped
+      expect(mdx).toContain('`<your_admin_username>`');
+    });
+
+    it('does not escape < inside a fenced code block — the fence protects the content', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'literal_block',
+            value: 'from <your application name>.models import Movie',
+            language: 'python',
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      // Content inside a fenced block is not parsed as MDX — < is safe as-is
+      expect(mdx).toContain('from <your application name>.models import Movie');
+      expect(mdx).not.toContain('\\<your');
+    });
+
+    it('escapes < followed by a digit inside a JSX element (stringifier does not handle this context)', () => {
+      // In JSX element children the stringifier does NOT escape `<` to `\<`.
+      // Our injectJsxAngleBracketEscapes pass inserts html nodes so that `\<`
+      // appears verbatim in the output without the stringifier doubling the backslash.
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'directive',
+            name: 'note',
+            children: [
+              {
+                type: 'paragraph',
+                children: [{ type: 'text', value: 'Low Write Rate (<100 operations per second)' }],
+              },
+            ],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      // Exactly one backslash before `<` — not two or three
+      expect(mdx).toMatch(/\\<100/);
+      expect(mdx).not.toMatch(/\\\\<100/);
+    });
+
+    it('escapes < in DefinitionTerm text without adding blank lines around it', () => {
+      // Regression: the html-node-split approach inserted block-level siblings inside the
+      // DefinitionTerm JSX element, which remark-mdx serialized with blank lines between them.
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'definitionList',
+            children: [
+              {
+                type: 'definitionListItem',
+                term: [{ type: 'text', value: 'Low Write Rate (<100 operations per second)' }],
+                children: [
+                  {
+                    type: 'paragraph',
+                    children: [{ type: 'text', value: 'Standard hardware configurations are usually sufficient.' }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      // Exactly one backslash before `<` — not two or three
+      expect(mdx).toMatch(/\\<100/);
+      expect(mdx).not.toMatch(/\\\\<100/);
+      // No blank lines around the escaped bracket (all on one line inside DefinitionTerm)
+      expect(mdx).not.toMatch(/\(\s*\n\s*\n\s*\\</);
+    });
+
+    it('does not produce extra backslashes for <= in a flow list item (the triple-backslash regression)', () => {
+      // Before the fix, escapeInvalidTagOpeners added `\` to the text node value,
+      // then the stringifier added its own `\<` AND escaped our `\` → `\\\<`.
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'bullet_list',
+            children: [
+              {
+                type: 'list_item',
+                children: [
+                  {
+                    type: 'paragraph',
+                    children: [{ type: 'text', value: 'MongoDB version <= 6.0' }],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      // Exactly one backslash — the stringifier's own escape for flow text
+      expect(mdx).toMatch(/\\<=/);
+      expect(mdx).not.toMatch(/\\\\<=/);
+    });
+  });
 });
 
 describe('DefinitionTerm inline content rendering', () => {
