@@ -12,7 +12,7 @@ mongo_dns_names+=(
 )
 
 search_dns_names=(
-  "${MDB_RESOURCE_NAME}-search-svc.${MDB_NS}.svc.cluster.local"
+  "*.${MDB_RESOURCE_NAME}-search-svc.${MDB_NS}.svc.cluster.local"
 )
 
 render_dns_list() {

@@ -1,6 +1,6 @@
 Release "mongodb-kubernetes" does not exist. Installing it now.
 NAME: mongodb-kubernetes
-LAST DEPLOYED: Wed Dec 17 11:23:39 2025
+LAST DEPLOYED: Wed Apr  1 18:28:23 2026
 NAMESPACE: mongodb
 STATUS: deployed
 REVISION: 1
@@ -38,16 +38,13 @@ community:
     version: 4.4.0
 database:
   name: mongodb-kubernetes-database
-  version: 1.6.1
-initAppDb:
-  name: mongodb-kubernetes-init-appdb
-  version: 1.6.1
+  version: 1.8.0
 initDatabase:
   name: mongodb-kubernetes-init-database
-  version: 1.6.1
+  version: 1.8.0
 initOpsManager:
   name: mongodb-kubernetes-init-ops-manager
-  version: 1.6.1
+  version: 1.8.0
 managedSecurityContext: false
 mongodb:
   appdbAssumeOldFormat: false
@@ -61,10 +58,8 @@ multiCluster:
 operator:
   additionalArguments: []
   affinity: {}
-  baseName: mongodb-kubernetes
   createOperatorServiceAccount: true
   createResourcesServiceAccountsAndRoles: true
-  deployment_name: mongodb-kubernetes-operator
   enableClusterMongoDBRoles: true
   enablePVCResize: true
   env: prod
@@ -97,7 +92,7 @@ operator:
   vaultSecretBackend:
     enabled: false
     tlsSecretRef: ""
-  version: 1.6.1
+  version: 1.8.0
   watchedResources:
   - mongodb
   - opsmanagers
@@ -106,17 +101,17 @@ operator:
   - mongodbsearch
   webhook:
     installClusterRole: true
+    name: ""
     registerConfiguration: true
 opsManager:
   name: mongodb-enterprise-ops-manager-ubi
 readinessProbe:
   name: mongodb-kubernetes-readinessprobe
-  version: 1.0.23
+  version: 1.0.24
 registry:
   agent: quay.io/mongodb
   database: quay.io/mongodb
   imagePullSecrets: null
-  initAppDb: quay.io/mongodb
   initDatabase: quay.io/mongodb
   initOpsManager: quay.io/mongodb
   operator: quay.io/mongodb
@@ -125,9 +120,10 @@ registry:
   readinessProbe: quay.io/mongodb
   versionUpgradeHook: quay.io/mongodb
 search:
+  envoyImage: envoyproxy/envoy:v1.37-latest
   name: mongodb-search
   repo: quay.io/mongodb
-  version: 0.55.0
+  version: 0.64.0
 versionUpgradeHook:
   name: mongodb-kubernetes-operator-version-upgrade-post-start-hook
   version: 1.0.10
@@ -330,6 +326,7 @@ rules:
       - apps
     resources:
       - statefulsets
+      - deployments
     verbs:
       - create
       - get
@@ -467,7 +464,7 @@ spec:
         runAsUser: 2000
       containers:
         - name: mongodb-kubernetes-operator
-          image: "quay.io/mongodb/mongodb-kubernetes:1.6.1"
+          image: "quay.io/mongodb/mongodb-kubernetes:1.8.0"
           imagePullPolicy: Always
           args:
             - -watch-resource=mongodb
@@ -478,6 +475,9 @@ spec:
             - -watch-resource=clustermongodbroles
           command:
             - /usr/local/bin/mongodb-kubernetes-operator
+          volumeMounts:
+            - mountPath: /tmp/k8s-webhook-server/serving-certs
+              name: webhook-server-dir
           resources:
             limits:
               cpu: 1100m
@@ -512,21 +512,16 @@ spec:
             - name: INIT_DATABASE_IMAGE_REPOSITORY
               value: quay.io/mongodb/mongodb-kubernetes-init-database
             - name: INIT_DATABASE_VERSION
-              value: "1.6.1"
+              value: "1.8.0"
             - name: DATABASE_VERSION
-              value: "1.6.1"
+              value: "1.8.0"
             # Ops Manager
             - name: OPS_MANAGER_IMAGE_REPOSITORY
               value: quay.io/mongodb/mongodb-enterprise-ops-manager-ubi
             - name: INIT_OPS_MANAGER_IMAGE_REPOSITORY
               value: quay.io/mongodb/mongodb-kubernetes-init-ops-manager
             - name: INIT_OPS_MANAGER_VERSION
-              value: "1.6.1"
-            # AppDB
-            - name: INIT_APPDB_IMAGE_REPOSITORY
-              value: quay.io/mongodb/mongodb-kubernetes-init-appdb
-            - name: INIT_APPDB_VERSION
-              value: "1.6.1"
+              value: "1.8.0"
             - name: OPS_MANAGER_IMAGE_PULL_POLICY
               value: Always
             - name: AGENT_IMAGE
@@ -553,7 +548,7 @@ spec:
             - name: VERSION_UPGRADE_HOOK_IMAGE
               value: "quay.io/mongodb/mongodb-kubernetes-operator-version-upgrade-post-start-hook:1.0.10"
             - name: READINESS_PROBE_IMAGE
-              value: "quay.io/mongodb/mongodb-kubernetes-readinessprobe:1.0.23"
+              value: "quay.io/mongodb/mongodb-kubernetes-readinessprobe:1.0.24"
             - name: MDB_COMMUNITY_IMAGE
               value: "mongodb-community-server"
             - name: MDB_COMMUNITY_REPO_URL
@@ -566,5 +561,10 @@ spec:
             - name: MDB_SEARCH_NAME
               value: "mongodb-search"
             - name: MDB_SEARCH_VERSION
-              value: "0.55.0"
+              value: "0.64.0"
+            - name: MDB_ENVOY_IMAGE
+              value: "envoyproxy/envoy:v1.37-latest"
+      volumes:
+        - name: webhook-server-dir
+          emptyDir: {}
 
