@@ -4,7 +4,6 @@ import { isValueNode, isTextNode } from './types';
 import type { ConversionContext, SnootyNode, MdastNode, MdastRoot } from './types';
 import { convertDirectiveImage } from './convertDirectiveImage';
 import { convertDirectiveInclude } from './convertDirectiveInclude';
-import { convertDirectiveLiteralInclude } from './convertDirectiveLiteralInclude';
 import { convertDirectiveListTable } from './convertDirectiveListTable';
 import { convertDirectiveProcedure } from './convertDirectiveProcedure';
 import { parseSnootyArgument } from './parseSnootyArgument';
@@ -430,10 +429,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (directiveName === 'figure' || directiveName === 'image') {
         return convertDirectiveImage({ node, ctx });
       }
-      if (directiveName === 'literalinclude') {
-        return convertDirectiveLiteralInclude({ node });
-      }
-      if (directiveName === 'include' || directiveName === 'sharedinclude') {
+      if (directiveName === 'include' || directiveName === 'sharedinclude' || directiveName === 'literalinclude') {
         return convertDirectiveInclude({ node, ctx, depth: depth });
       }
       if (directiveName === 'list-table') {
