@@ -1,0 +1,469 @@
+.. _arch-center-asp-avs-media-personalization: 
+
+
+======================================================================================
+Real-Time Media Recommendations with {+atlas-sp+} and {+avs+}  
+======================================================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta:: 
+   :keywords: real-time, streams, personalization, vector search, GenAI, Atlas
+   :description: Build a real-time media personalization system that transforms clickstream data into AI-summarized user intent for semantic content recommendations.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: onecol
+
+**Use cases:** 
+`Personalization <https://www.mongodb.com/solutions/use-cases/personalization>`__,
+`Gen AI <https://www.mongodb.com/solutions/use-cases/artificial-intelligence>`__
+
+**Industries:** 
+Media,
+`Telecommunications <https://www.mongodb.com/solutions/industries/telecommunications>`__
+
+**Products and Tools:** 
+`MongoDB Atlas <https://www.mongodb.com/products/platform/atlas-database>`__,
+`MongoDB Vector Search <https://www.mongodb.com/products/platform/atlas-vector-search>`__,
+`MongoDB Atlas Stream Processing <https://www.mongodb.com/products/platform/atlas-stream-processing>`__
+
+**Partners:**
+`Voyage AI <https://www.voyageai.com/>`__,
+`Azure OpenAI <https://azure.microsoft.com/products/ai-services/openai-service>`__
+
+Solution Overview
+-----------------
+
+When a new user lands on your news site, you have seconds to understand
+what they are looking for before they might lose interest and leave.
+This introduces the **cold start problem**: how do you recommend content
+to users with no prior data about them?
+
+Consider an anonymous user who lands on your site and clicks three
+articles:
+
+- "NVIDIA creates new AI chip"
+- "TSMC expands production in Arizona" 
+- "Intel stock drops amid delays"
+
+A simple keyword search would only recommend other articles about Intel
+or Arizona. However, an intelligent system recognizes that all three
+clicks relate to *semiconductor supply chains*. This allows it to
+recommend relevant articles like "The Future of Silicon Valley," even
+when they don't share keywords with the user's browsing history.
+
+The solution in this article builds an intelligent media-personalization
+system that ingests and processes clickstream data to generate a
+natural-language summary of the user's interests and recommend relevant
+articles that the user is more likely to engage with.
+
+This solution combines:
+
+- **Atlas Stream Processing** for real-time data ingestion, enrichment,
+  and LLM integration to summarize user intent from clickstream data
+- **Atlas Vector Search** with automated `Voyage AI
+  <https://www.voyageai.com/>`__ embeddings for semantic retrieval and
+  recommendations
+
+.. _asp-avs-media-personalization-architecture: 
+
+Reference Architecture 
+----------------------
+
+This architecture shows how to build an AI-driven media 
+recommendation engine that ingests, processes, and reacts to user 
+behavior in real time using {+service-full+}. 
+
+.. figure:: /includes/images/industry-solutions/stream-media-personalization-architecture.png
+   :figwidth: 750px
+   :alt: An image showing the reference architecture of a media personalization pipeline with Atlas Stream Processing and MongoDB Vector Search
+
+   Figure 1. AI-driven media personalization architecture with Atlas Stream Processing and MongoDB Vector Search
+
+This architecture operates in three phases, which are described in
+detail in the next sections:
+
+1. **Ingest and Enrich**: Capture raw clickstream events from the 
+   user-facing application and join them with article metadata in real 
+   time using {+atlas-sp+}. 
+
+#. **Sessionize and Summarize**: Group related clicks into sessions
+   and use an LLM to generate natural-language summaries of user 
+   interests.
+
+#. **Search and Serve**: Use generated summaries to drive semantic 
+   vector search and return personalized recommendations. 
+
+Phase 1: Ingest and Enrich Clickstream Data 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the first phase, this solution architecture uses {+atlas-sp+} to
+ingest raw clickstream data from your media platform and enrich it with
+metadata from the articles in your database.
+
+.. procedure:: 
+   :style: connected 
+
+   .. step:: Set up your data sources. 
+
+      This solution uses the following two collections in the ``news``
+      database of the same MongoDB cluster: 
+
+      .. collapsible:: 
+         :heading: Article Metadata Collection
+         :expanded: false
+         
+         The ``articles`` collection contains metadata about the articles in your 
+         catalog. In this example, the collection is in the ``news`` database of the ``ClickstreamCluster`` cluster.
+         
+         Each document in the collection represents an article 
+         and contains relevant metadata. For example:
+
+         .. literalinclude:: /includes/solutions-library/media/sample-article-document.json
+            :language: json
+      
+      .. collapsible:: 
+         :heading: User Clickstream Events Collection 
+         :expanded: false
+         
+         The ``user_events`` collection contains raw clickstream events ingested from
+         your user-facing application. In this example, the collection is in the 
+         ``news`` database of the ``ClickstreamCluster`` cluster.
+
+         You can set up a clickstream data source using your preferred
+         event collection system. To recreate the method shown in the
+         reference architecture diagram, implement an event collection
+         API in your user-facing application to send click events to an
+         {+kafka+} topic. Then, use the MongoDB Kafka Sink Connector to
+         read from the clickstream topic and write to your MongoDB
+         cluster's ``user_events`` collection.
+         
+         Each article click generates an event document with fields like 
+         ``session_id``, ``article_id``, and ``timestamp``. For example:
+
+         .. literalinclude:: /includes/solutions-library/media/sample-event-document.json
+            :language: json
+
+   .. step:: Create a Stream Processing Workspace.
+
+      a. In |service|, go to the :guilabel:`Stream Processing` page for your project.
+
+         i. If it's not already displayed, select the 
+            organization that contains your project from the
+            |ui-org-menu| in the navigation bar.
+
+         #. If it's not already displayed, select your project 
+            from the :guilabel:`Projects` menu in the navigation bar.
+
+         #. In the sidebar, click :guilabel:`Stream Processing` under 
+            the :guilabel:`Streaming Data` heading.
+
+            The `Stream Processing <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2FstreamProcessing>`__ page displays.
+      
+      #. Click :guilabel:`Create a workspace`. 
+
+      #. On the :guilabel:`Create a stream processing workspace` page, 
+         configure your workspace as follows:
+
+         - :guilabel:`Tier`: ``SP30``
+         - :guilabel:`Provider`: ``AWS``
+         - :guilabel:`Region`: ``us-east-1``
+         - :guilabel:`Workspace Name`: ``article-personalization``
+ 
+   .. step:: Add a connection for your clickstream and article data. 
+      
+      The stream processor needs connections to both your clickstream 
+      data and your article metadata to perform the enrichment. Both 
+      data sources should be in the same {+service+} cluster. 
+
+      a. In the pane for your {+spw+}, click :guilabel:`Manage`.
+
+      #. In the :guilabel:`Connection Registry` tab, click 
+         :guilabel:`+ Add Connection` in the upper right.
+
+      #. On the :guilabel:`Edit Connection` page, configure your 
+         connection as follows:
+
+         - **Connection Type**: ``Atlas Database``
+         - **Connection Name**: ``userevents``
+         - **Atlas Cluster**: The name of the cluster where your
+           clickstream and article data lives (for example,
+           ``ClickstreamCluster``)
+         - **Execute As**: ``Read and write to any database``
+
+      #. Click :guilabel:`Save changes` to create the connection. 
+
+
+   .. step:: Create a persistent stream processor. 
+      
+      Create a stream processor named ``userIntentSummarizer`` with 
+      stages that read raw clickstream events from the ``user_events`` 
+      collection and enrich the events with article metadata.
+
+      a. On the `Stream Processing <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2FstreamProcessing>`__
+         page for your {+service+} project, click :guilabel:`Manage` 
+         in the pane for your {+spw+}. 
+           
+      #. In the :guilabel:`JSON editor`, copy and paste the following
+         |json| definition into the |json| editor text box to define a
+         stream processor named ``userIntentSummarizer`` with these
+         stages: 
+
+         - :pipeline:`$source`: Reads raw clickstream events from the 
+           ``user_events`` collection in the ``news`` database of your
+           connected clickstream cluster (``userevents`` connection).
+
+         - :pipeline:`$lookup`: Joins the raw clickstream events with 
+           the ``articles`` collection based on the ``article_id``
+           field, bringing in relevant article metadata from the
+           ``description``, ``keywords``, and ``title`` fields.
+          
+         - :pipeline:`$addFields`: Projects the ``description``, 
+           ``keywords``, and ``title`` fields from the 
+           ``article_details`` field into the top-level of the event 
+           stream to make them easily accessible for downstream stages.
+
+         - :pipeline:`$project`: Projects relevant fields for 
+           downstream processing.
+
+         .. literalinclude:: /includes/solutions-library/media/enrich-data-pipeline.json
+            :language: json
+            :start-after: // start-enrich-data-stage
+            :end-before: // end-enrich-data-stage
+
+      #. Click :guilabel:`Update stream processor` to save your changes.
+
+Phase 2: Sessionize and Summarize User Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In this phase, we extend the stream processor pipeline to group related
+clicks into sessions and use an LLM to generate a natural-language
+summary of each session that describes the user's interests.
+
+.. procedure:: 
+   :style: connected
+
+   .. step:: Connect your LLM provider to your {+spw+}.
+      
+      Add an external HTTPS connection to your LLM provider (for 
+      example, Azure OpenAI) to enable the stream processor to call the 
+      LLM directly from the pipeline to enrich your data:
+
+      a. In the pane for your {+spw+}, click :guilabel:`Manage`.
+
+      #. In the :guilabel:`Connection Registry` tab, click :guilabel:`+
+         Add Connection` in the upper right.
+
+      #. Configure the connection as follows:
+
+         - **Connection Type**: ``HTTPS``
+         - **Connection Name**: ``azureopenai``
+         - **URL**: The endpoint URL for your Azure OpenAI instance
+         - **Headers**: Add these key-value pairs to the headers: 
+
+           - Key: ``Content-Type``, Value: ``application/json``
+           - Key: ``api-key``, Value: Your Azure OpenAI API key
+
+   .. step:: Sessionize the clickstream data using the ``$sessionWindow`` stage.  
+      
+      Add a :pipeline:`$sessionWindow` stage to your stream processor 
+      pipeline to group related events into sessions based on a 
+      specified session gap. This solution defines a session as a 
+      sequence of events from the same ``session_id`` with 
+      no inactivity gap longer than 60 seconds. 
+
+      Add this stage to your ``userIntentSummarizer`` pipeline after the 
+      enrichment stages: 
+
+      .. literalinclude:: /includes/solutions-library/media/enrich-data-pipeline.json
+         :language: json
+         :start-after: // start-sessionwindow-stage
+         :end-before: // end-sessionwindow-stage
+      
+   .. step:: Summarize user sessions using the ``$https`` stage. 
+
+      Add an :pipeline:`$https` stage to call your LLM provider directly
+      from your stream processing pipeline. This solution calls Azure
+      OpenAI to generate a natural-language summary of each session that
+      describes the user's interests based on the article titles in the
+      session.
+
+      Add this stage to your pipeline after the ``$sessionWindow`` 
+      stage:
+
+      .. literalinclude:: /includes/solutions-library/media/enrich-data-pipeline.json
+         :language: json
+         :start-after: // start-https-stage
+         :end-before: // end-https-stage
+        
+      .. note:: 
+
+         The stream processor itself is "intelligent." It transforms a 
+         list of titles into a semantic summary (for example, "User is 
+         researching semiconductor manufacturing logistics") before the 
+         data reaches the disk. This differs fundamentally from 
+         traditional batch processing pipelines, which typically write 
+         raw session data to a database, then call an external API from 
+         an application server.
+
+   .. step:: Write session summaries to a new collection.
+      
+      Add the following stages to the pipeline to extract the summary 
+      from the LLM output and write it to a new collection:
+
+      - :pipeline:`$match`: Filters out any sessions where the LLM call 
+        failed and returned an error to avoid writing incomplete data to 
+        the database.
+
+      - :pipeline:`$addFields`: Extracts the ``summary`` field from the 
+        LLM output and adds it to the top level of the document. 
+
+      - :pipeline:`$project`: Removes the raw LLM output from the 
+        document to reduce noise and storage costs.
+
+      - :pipeline:`$merge`: Writes the resulting documents to a new 
+        collection called ``user_intent`` in the ``news`` database of 
+        your clickstream cluster (``userevents`` connection). Each 
+        document in this collection represents a user session and 
+        contains a summary of the user's interests.
+
+      .. literalinclude:: /includes/solutions-library/media/enrich-data-pipeline.json
+         :language: json
+         :start-after: // start-addsummary-stage
+         :end-before: // end-addsummary-stage
+
+   .. step:: Start the stream processor. 
+       
+      When you're ready to start summarizing your clickstream data, click 
+      the :guilabel:`Start` icon for the ``userIntentSummarizer`` 
+      processor in the list of stream processors for your {+spw+}.  
+     
+      This pipeline should write documents to the ``user_intent`` 
+      collection that contain session summaries that capture the user's 
+      interests. For example: 
+
+      .. literalinclude:: /includes/solutions-library/media/sample-user-intent-document.json
+         :language: json      
+
+.. collapsible:: 
+   :heading: Full Stream Processor Pipeline Definition
+   :sub_heading: The complete JSON definition for the ``userIntentSummarizer`` stream processor that performs all the operations described in Phases 1 and 2.
+   :expanded: false
+
+   The following is the full |json| definition for the
+   ``userIntentSummarizer`` stream processor that performs all the
+   operations described in Phases 1 and 2, including ingesting
+   clickstream data, enriching it with article metadata, sessionizing
+   user behavior, calling an LLM to summarize user intent, and writing
+   the summaries to a new collection.
+
+   .. literalinclude:: /includes/solutions-library/media/enrich-data-pipeline.json
+      :language: json
+      :start-after: // start-full-pipeline
+      :end-before: // end-full-pipeline
+
+
+Phase 3: Semantic Search and Serve Personalized Recommendations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Finally, we use {+avs+} to perform semantic search over the article
+catalog using the session summaries generated in the previous phase to
+drive personalized content recommendations. 
+
+.. procedure:: 
+   :style: connected
+
+   .. step:: Prepare article data for semantic retrieval.
+
+      Before you can perform semantic search, you need to generate
+      vector embeddings for your article data. To do this, create a
+      {+avs+} index named ``vector_index`` that indexes the
+      ``description`` field of your ``articles`` collection as the
+      ``autoEmbed`` type. This instructs {+avs+} to use :ref:`Automated
+      Embedding <avs-auto-embeddings>` to automatically generate vector
+      embeddings for the ``description`` field whenever documents are
+      inserted or updated in the collection. 
+      
+      .. include:: /includes/cloud-docs/fact-automated-embedding-preview.rst
+
+      Use this |json| definition to :ref:`create a vector index 
+      <avs-types-vector-search>` on these fields: 
+
+      - The ``description`` field as the ``autoEmbed`` type to instruct 
+        {+avs+} to automatically generate vector embeddings for the 
+        ``description`` field using the ``voyage-4-large`` embedding 
+        model whenever documents are inserted or updated in the 
+        collection.
+      - The ``title`` field as the ``filter`` type to prefilter the data 
+        for the semantic search using the string value in the field. This 
+        allows you to exclude articles the user has already read from 
+        search results.
+
+      .. literalinclude:: /includes/solutions-library/media/vector-index-auto-embedding.json
+         :language: json
+
+   .. step:: Run semantic search queries to serve personalized recommendations. 
+
+      When a user visits your site, take the summary of their current 
+      session and use it as the query for a vector search against your 
+      article catalog. Since you enabled Automated Embedding on the 
+      index, {+avs+} automatically generates the embedding for the 
+      summary at query time and uses it as the effective query vector.
+
+      This example shows a simplified vector search query that uses the 
+      session ``summary`` as the query vector and excludes articles the 
+      user has already read based on the ``titles`` field: 
+
+      .. literalinclude:: /includes/solutions-library/media/vector-search-query.json
+         :language: json
+
+Key Learnings
+-------------
+
+This architecture demonstrates several important advancements in 
+building modern data products:
+
+- **Reduced latency**: Embedding LLM calls directly inside the stream 
+  processor eliminates multiple network hops and intermediate 
+  persistence layers. The system transforms raw clicks into actionable 
+  intent in near real time.
+
+- **Enhanced developer experience**: Define pipelines with JSON-based 
+  MQL, enabling teams that already know MongoDB queries to build 
+  advanced streaming and AI-powered workloads without learning new DSLs 
+  or provisioning additional infrastructure.
+
+- **Semantic personalization**: Move beyond keyword matching and 
+  overnight batch jobs to build systems that listen, think, and respond 
+  instantly to user behavior.
+
+Authors
+-------
+
+- Vinod Krishnan, Solutions Architect, MongoDB 
+
+Learn More
+----------
+
+- To understand how Atlas Vector Search powers semantic search and 
+  enables real-time analytics, visit the `Atlas Vector Search page 
+  <https://www.mongodb.com/products/platform/atlas-vector-search>`__. 
+
+- To learn how MongoDB is transforming media operations, read the 
+  `AI-Powered Media Personalization: MongoDB and Vector Search article 
+  <https://www.mongodb.com/company/bloginnovationai-powered-media-personalization-mongodb-vector-search>`__.
+
+- To discover how MongoDB supports modern media workflows, visit the 
+  `MongoDB for Media and Entertainment page 
+  <https://www.mongodb.com/solutions/industries/media-and-entertainment>`__.
+
+- To learn more about {+atlas-sp+}, visit the :ref:`{+atlas-sp+} 
+  documentation <atlas-sp-overview>`.
+
