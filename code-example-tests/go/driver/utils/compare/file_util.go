@@ -1,7 +1,6 @@
 package compare
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -53,64 +52,113 @@ func resolveFilePath(path string) (string, error) {
 	return "", fmt.Errorf("failed to find file: %s from any driver directory", path)
 }
 
-// readExpectedOutput reads and parses the expected output file
+// readExpectedOutput reads and parses the expected output file.
+// It first tries to parse the entire file as a single JSON value (pretty-printed
+// object or array). If that fails, it falls back to newline-delimited JSON
+// (one complete JSON value per non-empty line).
 func readExpectedOutput(filePath string) ([]interface{}, error) {
-	file, err := os.Open(filePath)
+	raw, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
-	defer func() { _ = file.Close() }()
+	content := string(raw)
 
-	var docs []interface{}
-	scanner := bufio.NewScanner(file)
-	lineNum := 0
+	normalizedLines := splitNormalizedLines(content)
 	hasGlobalEllipsis := false
-
-	// First pass: check for global ellipsis
-	allLines := []string{}
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		allLines = append(allLines, line)
+	for _, line := range normalizedLines {
 		if line == "..." {
 			hasGlobalEllipsis = true
+			break
 		}
 	}
 
-	if err := scanner.Err(); err != nil {
-		return nil, err
+	// Standalone "..." lines are metadata (global ellipsis), not JSON; strip them so a
+	// pretty-printed document followed by "..." still parses as one value.
+	contentForFullParse := stripStandaloneEllipsisLines(content)
+	normalizedFull := preprocessMongoSyntax(contentForFullParse)
+
+	var root interface{}
+	if err := json.Unmarshal([]byte(normalizedFull), &root); err != nil {
+		return readExpectedOutputNDJSON(normalizedLines, hasGlobalEllipsis)
 	}
 
-	// Second pass: process lines
+	switch v := root.(type) {
+	case map[string]interface{}:
+		normalizedDoc := normalizeValue(v)
+		applyGlobalEllipsis(hasGlobalEllipsis, normalizedDoc)
+		return []interface{}{normalizedDoc}, nil
+	case []interface{}:
+		docs := make([]interface{}, 0, len(v))
+		for _, item := range v {
+			normalizedDoc := normalizeValue(item)
+			applyGlobalEllipsis(hasGlobalEllipsis, normalizedDoc)
+			docs = append(docs, normalizedDoc)
+		}
+		return docs, nil
+	default:
+		return nil, fmt.Errorf("expected JSON object or array at root, got %T", root)
+	}
+}
+
+// stripStandaloneEllipsisLines removes lines that contain only "..." (after trim).
+// Those lines mark global ellipsis and are not part of the JSON payload.
+func stripStandaloneEllipsisLines(content string) string {
+	content = strings.ReplaceAll(content, "\r\n", "\n")
+	lines := strings.Split(content, "\n")
+	var b strings.Builder
+	first := true
+	for _, line := range lines {
+		if strings.TrimSpace(line) == "..." {
+			continue
+		}
+		if !first {
+			b.WriteByte('\n')
+		}
+		first = false
+		b.WriteString(line)
+	}
+	return b.String()
+}
+
+func splitNormalizedLines(content string) []string {
+	content = strings.ReplaceAll(content, "\r\n", "\n")
+	lines := strings.Split(content, "\n")
+	out := make([]string, len(lines))
+	for i, line := range lines {
+		out[i] = strings.TrimSpace(line)
+	}
+	return out
+}
+
+func applyGlobalEllipsis(hasGlobalEllipsis bool, normalizedDoc interface{}) {
+	if !hasGlobalEllipsis {
+		return
+	}
+	if docMap, ok := normalizedDoc.(map[string]interface{}); ok {
+		docMap["..."] = "..."
+	}
+}
+
+func readExpectedOutputNDJSON(allLines []string, hasGlobalEllipsis bool) ([]interface{}, error) {
+	var docs []interface{}
+	lineNum := 0
 	for _, line := range allLines {
 		lineNum++
 		if line == "" {
-			continue // Skip empty lines
+			continue
 		}
-
-		// Skip global ellipsis marker but remember it was there
 		if line == "..." {
 			continue
 		}
 
-		// Preprocess the line to handle MongoDB syntax
 		normalizedLine := preprocessMongoSyntax(line)
-
-		// Parse as JSON
 		var doc interface{}
 		if err := json.Unmarshal([]byte(normalizedLine), &doc); err != nil {
 			return nil, fmt.Errorf("line %d: failed to parse JSON: %v", lineNum, err)
 		}
 
-		// Normalize the parsed document
 		normalizedDoc := normalizeValue(doc)
-
-		// Add global ellipsis marker to objects if detected
-		if hasGlobalEllipsis {
-			if docMap, ok := normalizedDoc.(map[string]interface{}); ok {
-				docMap["..."] = "..."
-			}
-		}
-
+		applyGlobalEllipsis(hasGlobalEllipsis, normalizedDoc)
 		docs = append(docs, normalizedDoc)
 	}
 
