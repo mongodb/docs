@@ -7,8 +7,8 @@
 .. default-domain::mongodb
 
 .. meta::
-   :keywords: atlas stream processing, atlas stream processing overview, streaming data, data stream, real time, data processing
-   :description: Learn key architectural concepts behind Atlas Stream Processing
+   :keywords: atlas stream processing, atlas stream processing overview, streaming data, data stream, real time, data processing, stream processor states, provisioning state
+   :description: Learn key architectural concepts behind Atlas Stream Processing including processor states, worker provisioning, checkpoints, and error handling for reliable data processing
 
 .. contents:: On this page
    :local:
@@ -177,6 +177,55 @@ a collection as a DLQ in your stream processor definitions.
 
 To learn more, see :ref:`Create a Stream Processor
 <streams-manage-create>`.
+
+.. _atlas-sp-processor-states:
+
+Stream Processor States
+-----------------------
+
+Stream processors transition between different states throughout their lifecycle. Understanding these states helps you monitor and troubleshoot your stream processing operations.
+
+Possible states include:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+
+   * - State
+     - Description
+
+   * - ``RUNNING``
+     - The stream processor is actively processing data and operating normally. This is the desired operational state where your processor consumes data from sources, applies transformations, and writes to sinks.
+
+   * - ``STOPPED``
+     - The stream processor has been manually stopped and is not processing data.  To learn how to start a stream processor, see :ref:`streams-manage-start`. 
+
+   * - ``PROVISIONING``
+     - The stream processor is in the process of allocating resources or scaling infrastructure.
+
+       **Common causes include:**
+
+       - Starting a new stream processor that requires additional worker resources
+       - Scaling operations when existing workers are at capacity
+       - Infrastructure rebalancing during peak usage periods
+       - Automatic resource provisioning triggered by workload demands
+       - {+SPW+} tier changes requiring resource reallocation
+
+       **Potential impacts include:**
+
+       - Temporary delay in stream processor startup (typically 2-5 minutes)
+       - Brief interruption in data processing during transitions
+
+       Once provisioning completes, processes resume automatically. No 
+       data loss occurs, as {+atlas-sp+} preserves state through 
+       :ref:`checkpoints <atlas-sp-checkpoints>`. 
+
+   * - ``FAILED``
+     - The stream processor has encountered an error that prevents it from running. This occurs due to user errors or configuration issues. For detailed information about failure causes and recovery, see :ref:`atlas-sp-error-handling`.
+
+.. note::
+
+   Stream processors might appear intermittently in PROVISIONING state in monitoring dashboards as the system allocates resources. This is normal behavior during scaling operations. If a processor remains in PROVISIONING state for extended periods (>10 minutes), check your {+spw+} resource limits and tier configuration.
 
 .. _atlas-sp-error-handling:
 
