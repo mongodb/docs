@@ -1,0 +1,283 @@
+stepnum: 1
+title: "Create a |certauth| secret."
+level: 4
+ref: create-cert-auth-secret
+content: |
+
+  .. note::
+
+     The following steps assume that you have already created a custom
+     |certauth| along with the corresponding ``tls.key`` private key 
+     and ``tls.crt`` signed certificate.
+
+  Create a secret to store your |certauth| data:
+
+  .. code-block:: yaml
+
+     apiVersion: v1
+     kind: Secret
+     metadata:
+       name: ca-key-pair
+       namespace: <namespace>
+     data:
+       tls.crt: <your-CA-certificate>
+       tls.key: <your-CA-private-key>
+
+---
+
+stepnum: 2
+ref: validate-tls-cert-for-cert-manager
+level: 4
+source:
+  file: steps-deploy-k8s-opsmgr-https.yaml
+  ref: validate-tls-cert
+
+---
+
+stepnum: 3
+title: "Configure a cert-manager |certauth| issuer"
+level: 4
+ref: configure-cert-manager-issuer
+content: |
+
+  a. Create a |certauth| issuer that references your |certauth| secret:
+
+     .. code-block:: yaml
+
+        apiVersion: cert-manager.io/v1
+        kind: Issuer
+        metadata: 
+          name: ca-issuer
+          namespace: <namespace>
+        spec:
+          ca:
+            secretName: ca-key-pair
+
+  #. Verify that the issuer is ready:
+
+     .. code-block:: sh
+
+       kubectl get issuer ca-issuer
+
+     The ``READY`` field in the output should have a value of ``True``.
+
+---
+
+stepnum: 4
+title: "Create a |certauth| ConfigMap"
+level: 4
+ref: create-ca-config-map
+content: |
+
+  Create a ConfigMap containing your |certauth|. It must have two 
+  fields, ``ca-pem`` and ``mms-ca.crt``, both pointing to your
+  |certauth| certificate. Replace ``<CA-certificate>`` with the path to your 
+  |certauth| certificate.
+
+
+  .. code-block:: sh
+
+     kubectl create cm ca-issuer --from-file=ca-pem=<CA-certificate> \
+     --from-file=mms-ca.crt=<CA-certificate>
+
+---
+
+stepnum: 5
+title: "Create certificates for your MongoDB resources"
+level: 4
+ref: create-cert-manager-certificate
+content: |
+
+  To secure a MongoDB resource with your generated certification, you
+  must create certificates for both the resource itself and the MongoDB
+  agent. 
+  
+  a. Create the MongoDB resource certificate. The following example 
+     assumes a replica set named ``my-replica-set`` with three members:
+
+     .. include:: /includes/fact-issuerRef.rst
+
+     .. code-block:: yaml
+
+        apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata:
+          name: my-replica-set-certificate
+          namespace: mongodb
+        spec:
+          dnsNames:
+          - my-replica-set-0
+          - my-replica-set-0.my-replica-set-svc.mongodb.svc.cluster.local
+          - my-replica-set-1
+          - my-replica-set-1.my-replica-set-svc.mongodb.svc.cluster.local
+          - my-replica-set-2
+          - my-replica-set-2.my-replica-set-svc.mongodb.svc.cluster.local
+          duration: 240h0m0s
+          issuerRef:
+            name: ca-issuer
+          renewBefore: 120h0m0s
+          secretName: mdb-my-replica-set-cert
+          usages:
+          - server auth
+          - client auth
+
+     For sharded clusters, you must create one certificate for each
+     |k8s-statefulset|. To learn more about sharded cluster 
+     configuration, see :ref:`deploy-sharded-cluster`.
+
+  #. Create the MongoDB agent certificate:
+
+     .. include:: /includes/fact-issuerRef.rst
+
+     .. code-block:: yaml
+
+        apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata:
+          name: agent-certs
+          namespace: mongodb
+        spec:
+          commonName: automation
+          dnsNames:
+          - automation
+          duration: 240h0m0s
+          issuerRef:
+            name: ca-issuer
+          renewBefore: 120h0m0s
+          secretName: mdb-my-replica-set-agent-certs
+          usages:
+          - digital signature
+          - key encipherment
+          - client auth          
+          subject:
+            countries:
+            - US
+            localities:
+            - NY
+            organizationalUnits:
+            - a-1635241837-m5yb81lfnrz
+            organizations:
+            - cluster.local-agent
+            provinces:
+            - NY
+
+  #. Create the MongoDB resource:
+
+     .. note::
+
+        If you leave the :opsmgrkube:`spec.security.tls.ca` 
+        parameter unspecified, it defaults to ``{replica-set}-ca``.
+
+     .. code-block:: yaml
+
+        apiVersion: mongodb.com/v1
+        kind: MongoDB
+        metadata:
+          name: my-replica-set
+          namespace: mongodb
+        spec:
+          type: ReplicaSet
+
+          members: 3
+          version: 8.0.0
+       
+          opsManager:
+            configMapRef:
+              name: my-project
+          credentials: my-credentials
+
+          security:
+            certsSecretPrefix: mdb
+            authentication:
+              enabled: true
+              modes:
+              - X509
+            tls:
+              ca: ca-issuer
+              enabled: true
+
+---
+
+stepnum: 6
+title: "Create certificates for |onprem| and AppDB with TLS"
+level: 4
+ref: create-om-appdb-tls-certs
+content: |
+
+  To secure an |onprem| resource, you must first create certificates
+  for |onprem| and AppDB, then create the |onprem| resource.
+
+  a. Create the Ops Manager certificate:
+
+     .. include:: /includes/fact-issuerRef.rst
+
+     .. code-block:: yaml
+
+        apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata:
+          name: cert-for-ops-manager
+          namespace: mongodb
+        spec:
+          dnsNames:
+          - om-with-https-svc.mongodb.svc.cluster.local
+          duration: 240h0m0s
+          issuerRef:
+            name: ca-issuer
+          renewBefore: 120h0m0s
+          secretName: mdb-om-with-https-cert
+          usages:
+          - server auth
+          - client auth
+
+  #. Create the AppDB certificate:
+
+     .. include:: /includes/fact-issuerRef.rst
+
+     .. code-block:: yaml
+
+        apiVersion: cert-manager.io/v1
+        kind: Certificate
+        metadata:
+          name: appdb-om-with-https-db-cert
+          namespace: mongodb
+        spec:
+          dnsNames:
+          - om-with-https-db-0
+          - om-with-https-db-0.om-with-https-db-svc.mongodb.svc.cluster.local
+          - om-with-https-db-1
+          - om-with-https-db-1.om-with-https-db-svc.mongodb.svc.cluster.local
+          - om-with-https-db-2
+          - om-with-https-db-2.om-with-https-db-svc.mongodb.svc.cluster.local
+          duration: 240h0m0s
+          issuerRef:
+            name: ca-issuer
+          renewBefore: 120h0m0s
+          secretName: appdb-om-with-https-db-cert
+          usages:
+          - server auth
+          - client auth
+
+  #. Create the |onprem| resource:
+
+     .. code-block:: yaml
+
+        apiVersion: mongodb.com/v1
+        kind: MongoDBOpsManager
+        metadata:
+          name: om-with-https
+          namespace: mongodb
+        spec:
+          adminCredentials: ops-manager-admin-secret
+          applicationDatabase:
+            members: 3
+            security:
+              certsSecretPrefix: appdb
+              tls:
+                ca: ca-issuer
+            version: 8.0.0-ubi8
+          replicas: 1
+          security:
+            certsSecretPrefix: mdb
+            tls:
+              ca: ca-issuer

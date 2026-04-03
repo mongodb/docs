@@ -101,31 +101,6 @@ database.version
       name: mongodb-enterprise-database
       version: {+version+}
 
-initAppDb.name
---------------
-
-Name of the ``initContainer`` image that contains the Application
-Database start-up scripts and the readiness probe.
-
-The default value is **mongodb-kubernetes-init-appdb**.
-
-.. code-block:: yaml
-
-   database:
-      name: mongodb-kubernetes-init-appdb
-      version: {+version+}
-
-initAppDb.version
------------------
-
-.. include:: /includes/op-setting-descs/init-appdb-version.rst
-
-.. code-block:: yaml
-
-   database:
-      name: mongodb-kubernetes-init-appdb
-      version: {+version+}
-
 initDatabase.name
 -----------------
 
@@ -217,21 +192,6 @@ The default value is ``false``, which automatically updates the image suffix.
    mongodb:
       appdbAssumeOldFormat: false
 
-.. _mongodb-image-type:
-
-mongodb.imageType
------------------
-
-The suffix of the :term:`application database` image. 
-
-The default is ``ubi8``. We recommend using only ``ubi`` images for consistency, but if you need to, you can change this setting to ``ubuntu2204``.
-
-.. code-block:: yaml
-
-   mongodb:
-      imageType: ubi8
-
-
 multiCluster.clusterClientTimeout
 ---------------------------------
 
@@ -251,31 +211,6 @@ namespace
 
    # Name of the Namespace to use
    namespace: mongodb
-
-needsCAInfrastructure
----------------------
-
-Determines whether |k8s| creates a |k8s-cr| that allows the |k8s-op-short|
-to sign |tls| certificates using
-the :k8sdocs:`certificates.k8s.io </tasks/tls/managing-tls-in-a-cluster/>` API.
-
-.. code-block:: yaml
-
-   needsCAInfrastructure: true
-
-The default value is **true**.
-
-operator.deployment_name
-------------------------
-
-Name of the |k8s-op-short| container.
-
-The default value is **mongodb-kubernetes-operator**.
-
-.. code-block:: yaml
-
-   operator:
-      deployment_name: mongodb-kubernetes-operator
 
 operator.env
 ------------
@@ -333,7 +268,8 @@ To enable static containers, set to ``static``.
 
 .. code-block:: yaml
 
-   operator.mdbDefaultArchitecture: static
+   operator:
+      mdbDefaultArchitecture: static
 
 operator.name
 -------------
@@ -372,7 +308,7 @@ security contexts in the `Kubernetes documentation <https://kubernetes.io/docs/t
 .. _helm-operator-security-context:
 
 operator.securityContext
-----------------------------
+------------------------
 Sets the security context of the |k8s-op-short| container. You can learn more about container 
 security contexts in the `Kubernetes documentation <https://kubernetes.io/docs/tasks/configure-pod-container/security-context/>`__.
 
@@ -398,7 +334,7 @@ The default for the following settings is ``true``.
 .. _helm-vault-secret-enabled:
 
 operator.vaultSecretBackend.enabled
-------------------------------------
+-----------------------------------
 
 Determines whether the |k8s-op-short| stores secrets in |hashicorp-vault|.
 To learn more, see :ref:`k8s-set-secret-storage-tool`.
@@ -501,7 +437,7 @@ The default value is **quay.io/mongodb**.
 .. code-block:: yaml
 
    registry:
-   agent: quay.io/mongodb/
+      agent: quay.io/mongodb/
 
 registry.appDb
 --------------
@@ -546,33 +482,6 @@ registry.imagePullSecrets
    # where you installed the Operator. The Operator synchronizes
    # the secret across all watched namespaces.
       imagePullSecrets: <openshift-pull-secret>
-
-registry.initAppDb
-------------------
-
-.. include:: /includes/op-setting-descs/init-appdb-image-repository.rst
-
-.. tabs::
-
-   .. tab:: Kubernetes
-      :tabid: k8s
-   
-      The default value is **quay.io/mongodb**.
-
-      .. code-block:: yaml
-
-         registry:
-            initAppDb: quay.io/mongodb
-
-   .. tab:: OpenShift
-      :tabid: os
-   
-      The default value is **registry.connect.redhat.com/mongodb**.
-
-      .. code-block:: yaml
-
-         registry:
-            initAppDb: registry.connect.redhat.com/mongodb
 
 registry.initOpsManager
 -----------------------
@@ -666,14 +575,19 @@ Specifications for the `CPU and memory consumption limits <https://kubernetes.io
 
     .. code-block:: yaml
 
-       # operator cpu requests and limits
-       resources:
-         requests:
-           cpu: 500m
-           memory: 200Mi
+       operator:
+          # operator requests
+          resources:
+             requests:
+                cpu: 500m
+                memory: 200Mi
+
+             limits:
+                cpu: 1100m
+                memory: 1Gi
 
 operator.resources.limits
----------------------------
+-------------------------
 
 Specifications for the `CPU and memory consumption limits <https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/#requests-and-limits>`__ of the |k8s-op-short|.
 
@@ -681,16 +595,17 @@ Specifications for the `CPU and memory consumption limits <https://kubernetes.io
 
     .. code-block:: yaml
 
-       # operator cpu requests and limits
-       resources:
-         limits:
-           cpu: 1100m
-           memory: 1Gi
+       operator:
+          # operator limits
+          resources:
+             limits:
+                cpu: 1100m
+                memory: 1Gi
 
 .. _webhook-install-cluster-role:
 
-webhook.installClusterRole
---------------------------
+operator.webhook.installClusterRole
+-----------------------------------
 
 Flag allows you to configure user :k8sdocs:`validating admission
 webhooks </reference/access-authn-authz/admission-controllers/#validatingadmissionwebhook>` 
@@ -705,5 +620,6 @@ The default value is **true**.
 
 .. code-block:: yaml
 
-   webhook:
-     installClusterRole: false
+   operator:
+      webhook:
+         installClusterRole: false

@@ -7,7 +7,7 @@ Deploy MongoDB Search and Vector Search
 =======================================
 
 .. meta::
-   :description: Deploy MongoDB Search and Vector Search with MongoDB Community and MongoDB Enterprise servers.
+   :description: Learn how to deploy MongoDB Search and Vector Search on Kubernetes using the MongoDB Controllers for Kubernetes Operator with MongoDB Community and Enterprise servers.
 
 .. default-domain:: mongodb
 
@@ -32,7 +32,7 @@ To enable the search capabilities such as full-text and semantic search
 in on-prem deployments, you must deploy the |text-search| and
 |vector-search| process (``mongot``) and connect it with your MongoDB
 database deployment (``mongod``). Deployment of ``mongot`` is optional
-and is needed only if you plan to leverage the search features it offers.
+and is needed only if you plan to use the search features it offers.
 
 The MongoDB Database processes (``mongod``) acts as the proxy for all
 search queries for ``mongot``. The ``mongod`` forwards the query to
@@ -68,8 +68,10 @@ The ``mongot`` performs the following actions:
 
 The ``mongot`` components are tightly coupled with a single MongoDB
 replica set and cannot be shared across multiple databases or replica
-sets. That means a replica set deployment has its own dedicated search
-nodes. 
+sets. For a replica set deployment, one group of dedicated search
+nodes serve the replica set. For a sharded cluster, each shard
+maintains its own independent group of ``mongot`` nodes. Shards do
+not share ``mongot`` instances.
 
 Network connectivity between ``mongot`` and ``mongod`` goes in both
 directions: 
@@ -78,6 +80,23 @@ directions:
   used to build indexes and run queries.
 - ``mongod`` connects to ``mongot`` to forward search related operations
   such as index management and querying the data.
+
+The ``spec.replicas`` field controls how many ``mongot`` instances
+the |k8s-op-short| deploys. For a replica set source,
+``spec.replicas`` sets the total number of ``mongot`` pods. For a
+sharded cluster source, ``spec.replicas`` sets the number of
+``mongot`` pods **per shard**.
+
+If you set ``spec.replicas`` to a value greater than ``1``, you
+must place an L7 load balancer between ``mongod`` and the
+``mongot`` pods. The ``mongod`` process opens a single long-lived
+TCP connection to ``mongot``, so an L4 load balancer cannot
+distribute queries across multiple ``mongot`` instances — all
+traffic flows over that one connection. An L7 load balancer
+understands HTTP/2 and gRPC, which allows it to distribute
+individual gRPC streams across ``mongot`` pods while pinning
+each stream to a single ``mongot`` for the duration of the
+query cursor.
 
 |text-search| and |vector-search| Deployment 
 --------------------------------------------
@@ -89,27 +108,29 @@ especially when the database is also managed by the |k8s-op-short|.
 
 To deploy, you apply the MongoDBSearch Custom Resource (CR), which
 the |k8s-op-short| picks up and starts deploying ``mongot`` pods and
-requests persistent storage specified in the ``spec``. The |text-search|
-and |vector-search| deployed using the |k8s-op-short| can target MongoDB
-replica set deployed by the |k8s-op-short| inside the same |k8s| cluster
-or a completely independent external MongoDB database. To learn how to
-deploy and configure ``mongot`` to use: 
+requests persistent storage specified in the ``spec``. |text-search|
+and |vector-search| deployed through the |k8s-op-short| can target a
+MongoDB replica set or sharded cluster deployed by the |k8s-op-short|
+inside the same |k8s| cluster, or a completely independent external
+MongoDB deployment (replica set or sharded cluster). To learn how to
+deploy and configure ``mongot`` to use:
 
 - A MongoDB replica set in |k8s|, see :ref:`k8s-fts-vs-install` or
-  :ref:`k8s-fts-vs-install-enterprise` 
+  :ref:`k8s-fts-vs-install-enterprise`
 - An external MongoDB replica set, see
-  :ref:`k8s-fts-vs-install-external-enterprise`. 
+  :ref:`k8s-fts-vs-install-external-enterprise`.
 
-Pre-Requisites 
-~~~~~~~~~~~~~~
+Prerequisites
+~~~~~~~~~~~~~
 
-In order to leverage |text-search| and |vector-search| in your: 
+To use |text-search| and |vector-search| in your:
 
-- MongoDB Community deployment, you must have a fully functional MongoDB
-  8.2+ replica set deployed inside a |k8s| cluster using the
-  |k8s-op-short|. 
+- MongoDB Community deployment, you must have a fully functional
+  MongoDB 8.2 or later replica set or sharded cluster deployed
+  inside a |k8s| cluster using the |k8s-op-short|.
 - MongoDB Enterprise deployment, you must have a fully functional
-  MongoDB 8.2+ replica set deployed in one of the following ways:  
+  MongoDB 8.2 or later replica set or sharded cluster deployed
+  in one of the following ways:
 
   - Inside a |k8s| cluster using the |k8s-op-short|
   - Outside a |k8s| cluster
@@ -124,7 +145,7 @@ Before you begin, consider the following:
    :expanded: false
 
    - You must have a working ``StorageClass`` for the creation of
-     persistent volumes in the|k8s| cluster. Without this, your
+     persistent volumes in the |k8s| cluster. Without this, your
      ``PersistentVolumeClaims`` might remain pending and MongoDB might
      not have durable storage. 
 
@@ -145,7 +166,25 @@ Before you begin, consider the following:
 
    - You must create any required :abbr:`RBAC (Role-Based Access
      Control)` roles and role bindings so that the |k8s-op-short| and
-     processes running within the Pods can manage resources. 
+     processes running within the Pods can manage resources.
+
+   - If you want multiple ``mongot`` instances (``spec.replicas``
+     greater than ``1``), you need a load balancer. The
+     |k8s-op-short| can deploy and manage an Envoy proxy
+     automatically (``spec.loadBalancer.managed: {}``), or
+     you can provide your own L7 load balancer
+     (``spec.loadBalancer.unmanaged``).
+
+   - If you want a sharded cluster with multiple ``mongot``
+     instances, ensure that you have sufficient cluster resources
+     for the total number of pods across all shards. Each shard
+     gets its own independent group of ``mongot`` pods. The load
+     balancer dispatches traffic to the correct ``mongot`` group.
+     It reads the |tls| |sni| field on incoming traffic to
+     identify the originating shard and routes the traffic to
+     ``mongot`` pods that belong to that shard. Therefore, you
+     **must** configure each shard with a distinct search
+     hostname.
 
 .. collapsible::
    :heading: Limitations
@@ -164,8 +203,8 @@ Configuration Tasks
 The following table shows the configuration tasks that the
 |k8s-op-short| automatically performs and the actions that you must
 take to successfully deploy |text-search| and |vector-search| in |k8s|
-and connect to a MongoDB replica set in |k8s| or an external MongoDB
-replica set. 
+and connect to a MongoDB replica set or sharded cluster in |k8s| or
+an external MongoDB deployment.
 
 .. list-table:: 
    :stub-columns: 1
@@ -186,7 +225,7 @@ replica set.
      - You 
      - You 
 
-   * - Deploy MongoDB replica set
+   * - Deploy MongoDB replica set or sharded cluster
      - |k8s-op-short|
      - You
 
@@ -194,7 +233,7 @@ replica set.
      - You
      - You
 
-   * - Provide connection string to MongoDB replica set
+   * - Provide connection string to MongoDB deployment
      - |k8s-op-short|
      - You
 
@@ -218,12 +257,34 @@ replica set.
      - You
      - You
 
-   * - Expose search pods externally for connecting from each ``mongod`` node
-     - Not necessary 
+   * - Expose search pods or load balancer externally for
+       connecting from each ``mongod`` node
+     - Not necessary
      - You
 
-   * - Expose mongod pods externally for connecting from ``mongot`` nodes
-     - Not necessary 
+   * - Expose ``mongod`` pods externally for connecting from ``mongot``
+       nodes
+     - Not necessary
+     - You
+
+   * - Configure managed load balancer (when ``spec.replicas``
+       is greater than ``1``)
+     - |k8s-op-short|
+     - |k8s-op-short|
+
+   * - Configure unmanaged load balancer (when ``spec.replicas``
+       is greater than ``1``)
+     - You
+     - You
+
+   * - Provision per-shard |tls| certificates (sharded clusters
+       with |tls|)
+     - You
+     - You
+
+   * - Expose load balancer externally (External MongoDB + Managed
+       LB)
+     - Not necessary
      - You
 
 .. collapsible::
@@ -257,7 +318,10 @@ replica set.
    1. Finds the MongoDB :abbr:`CR (Custom Resource)` referenced by
       MongoDBSearch using ``spec.source.mongodbResourceRef``, or by
       a naming convention by looking for MongoDB :abbr:`CR (Custom
-      Resource)` with the same name as MongoDBSearch.
+      Resource)` with the same name as MongoDBSearch. For sharded
+      clusters, the |k8s-op-short| auto-discovers the shard
+      topology (shard names, replica set members, and mongos
+      routers) from the referenced ``MongoDB`` resource.
 
    #. Generates ``mongot`` configuration in a |yaml| file and saves it
       to a config map named ``<MongoDBSearch.metadata.name>-search-config``.
@@ -268,16 +332,32 @@ replica set.
       settings, and so on.
      
    #. Deploys |text-search| and |vector-search| stateful set named
-      ``<MongoDBSearch.metadata.name>-search`` with storage and resource
-      requirements configured according to the ``spec.persistence``
-      and ``spec.resourceRequirements`` settings in the :abbr:`CR
-      (Custom Resource)`.
+      ``<MongoDBSearch.metadata.name>-search`` with storage and
+      resource requirements configured according to the
+      ``spec.persistence`` and ``spec.resourceRequirements`` settings
+      in the :abbr:`CR (Custom Resource)`. For sharded cluster
+      sources, the |k8s-op-short| creates one StatefulSet per
+      shard. Each StatefulSet uses the naming pattern
+      ``<name>-search-0-<shardName>`` and contains ``spec.replicas``
+      pods, which defaults to ``1``. The ``0`` in the naming
+      pattern reserves a cluster index for future multi-cluster
+      compatibility.
 
-   #. Updates configuration of every ``mongod`` process by adding the
-      necessary ``setParameter`` options, including the hostnames and port
-      numbers of the mongot hosts.
-      necessary ``setParameter`` options, including the hostnames and port
-      numbers of the MongoDB replica set members.
+   #. Deploys a single Envoy proxy Deployment for the MongoDB
+      cluster if you need a load balancer
+      (``spec.loadBalancer.managed``). The Envoy proxy handles
+      L7 routing, mTLS termination, and gRPC stream pinning
+      between ``mongod`` and
+      ``mongot`` pods.
+
+   #. Updates configuration of every ``mongod`` process by adding
+      the necessary ``setParameter`` options, including the
+      hostnames and port numbers of the ``mongot`` hosts. When you
+      configure a load balancer, ``mongotHost`` and
+      ``searchIndexManagementHostAndPort`` point to the load balancer
+      endpoint instead of the ``mongot`` pods. For sharded
+      clusters, each shard's ``mongod`` processes receive the load
+      balancer endpoint for that shard.
 
    You must perform the following actions: 
 
@@ -323,22 +403,22 @@ replica set.
       :figwidth: 600px
       :lightbox:
 
-   In order to leverage |text-search| and |vector-search| when you have
-   your MongoDB deployment outside of |k8s|, you deploy ``mongot`` using
-   the |k8s-op-short| and you must perform some steps manually. The
-   |k8s-op-short| handles configuration of the search pods. However,
-   when the MongoDB replica set is outside of |k8s|, you must
-   reconfigure your MongoDB nodes and the networking. 
+   To use |text-search| and |vector-search| when you have your
+   MongoDB deployment outside of |k8s|, deploy ``mongot`` using the
+   |k8s-op-short| and perform some steps manually. The |k8s-op-short|
+   handles configuration of the search pods. However, when the MongoDB
+   deployment is outside of |k8s|, you must reconfigure your MongoDB
+   nodes and the networking.
    
    You are responsible for the following manual configurations:
    
-   External MongoDB Configuration
-   ``````````````````````````````
+   External Replica Set Configuration
+   ``````````````````````````````````
 
    1. Configure the following parameter using ``setParameter`` on every
       ``mongod`` process in your external replica set. When configuring,
       replace ``<search-service-hostname>:27028`` with the actual
-      resolvable hostname and port of your MongoDBSearch service. 
+      resolvable hostname and port of your MongoDBSearch service.
 
       .. code-block:: javascript
 
@@ -348,6 +428,21 @@ replica set.
            skipAuthenticationToSearchIndexManagementServer: false
            searchTLSMode: "disabled"  # or "requireTLS" for TLS deployments
            useGrpcForSearch: true
+
+      - For a single ``mongot`` instance (no load balancer),
+        ``mongotHost`` points directly to the ``mongot`` service
+        hostname (``<name>-search-svc:27028``).
+      - For multiple ``mongot`` instances with a load balancer,
+        ``mongotHost`` points to the load balancer endpoint
+        instead.
+      - For managed load balancers, the |k8s-op-short|
+        configures the ``mongotHost`` automatically using
+        ``spec.source.mongodbResourceRef``.
+      - For external MongoDB deployments, you must set
+        ``mongotHost`` to the load balancer endpoint that you
+        specified in
+        ``spec.loadBalancer.managed.externalHostname`` or
+        ``spec.loadBalancer.unmanaged.endpoint``.
 
    #. Create a user in the external replica set for the search
       synchronization process. This user must have the ``searchCoordinator``
@@ -362,7 +457,77 @@ replica set.
              - role: "searchCoordinator" 
                db: "admin"
 
-   |k8s| Configuration 
+   External Sharded Cluster Configuration
+   ``````````````````````````````````````
+
+   .. important::
+
+      In a standard MongoDB sharded cluster deployment,
+      clients connect only to ``mongos`` routers and never
+      directly to shard replica sets. However, when you
+      deploy ``mongot``, the ``mongot`` processes in each
+      shard group connect to both ``mongos`` routers and
+      all ``mongod`` processes in that shard. Therefore,
+      you **must** expose each shard's replica set directly
+      to ``mongot`` processes. Ensure that your network and
+      firewall rules allow direct connectivity from the
+      |k8s| cluster to each shard's ``mongod`` instances,
+      not only to the ``mongos`` routers.
+
+   The ``shardName`` values you specify in
+   ``spec.source.external.shardedCluster.shards`` must follow
+   |k8s| naming rules:
+
+   - Contain only lowercase alphanumeric characters, ``-``, or
+     ``.``.
+   - Start with an alphabetic character and end with an
+     alphanumeric character.
+   - Not contain underscores. If your MongoDB shard names use
+     underscores, replace them with dashes.
+   - The combined length of ``MongoDBSearch.metadata.name`` and
+     ``shardName`` must be less than 50 characters.
+
+   The ``shardName`` does not need to match the exact shard name
+   in MongoDB. The |k8s-op-short| uses it only for naming |k8s|
+   resources.
+
+   When you connect MongoDBSearch to an external sharded cluster,
+   you must:
+
+   1. Configure ``spec.source.external.shardedCluster`` in the
+      MongoDBSearch :abbr:`CR (Custom Resource)` with the ``mongos``
+      router hosts and per-shard replica set hosts.
+
+   #. Set the ``mongotHost`` and
+      ``searchIndexManagementHostAndPort`` parameters on each
+      shard's ``mongod`` processes. Point each shard to its own
+      ``mongot`` group (or its own load balancer endpoint if you
+      use multiple ``mongot`` instances).
+
+   #. Ensure bidirectional network connectivity between:
+
+      - Each shard's ``mongod`` nodes and the corresponding
+        ``mongot`` pods (or load balancer).
+      - The ``mongot`` pods and the ``mongos`` routers (for query
+        routing).
+      - The ``mongot`` pods and each shard's ``mongod`` nodes
+        (for data synchronization).
+
+   If you use a managed load balancer with an external sharded
+   cluster, specify
+   ``spec.loadBalancer.managed.externalHostname`` with a
+   ``{shardName}`` placeholder (for example,
+   ``{shardName}.search-lb.example.com``). Expose the Envoy
+   service externally so that each shard's ``mongod`` nodes can
+   reach it using a hostname unique to that shard. The load
+   balancer reads the |tls| |sni| field from incoming connections
+   to determine which shard the traffic originates from and
+   dispatches it to the ``mongot`` pods that belong to that shard.
+   This |sni|-based routing is the only mechanism the load balancer
+   uses to distinguish traffic between shards, which is why each
+   shard must connect through a different hostname.
+
+   |k8s| Configuration
    ```````````````````
 
    1. Configure and apply the MongoDBSearch :abbr:`CR (Custom
@@ -379,7 +544,7 @@ replica set.
          stringData:
            password: "your-search-sync-password" 
 
-   #. Configure networking and DNS to ensure bi-directional connectivity
+   #. Configure networking and |dns| to ensure bidirectional connectivity
       between your external MongoDB and the search pods. Your external
       MongoDB environment must be able to resolve your search service
       hostname (``<search-service-hostname>``). 
@@ -426,22 +591,110 @@ enable mTLS authentication for search query requests.
 Transport Layer Security  
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-MongoDBSearch can protect data and credentials in transit using TLS. 
-For index management commands and search queries, specify (even an empty
-object, ``{}``) ``spec.security.tls`` field and provide a |tls|
-certificate in a |k8s| Secret in the
-``spec.security.tls.certificateKeySecretRef`` field. This |tls| 
-certificate must be issued and signed by the same CA that issued the CA 
-certificate that the MongoDB replica set uses.
+MongoDBSearch can protect data and credentials in transit using
+|tls|. For index management commands and search queries, set the
+``spec.security.tls`` field and provide a |tls| certificate. You
+can set this field to an empty object (``{}``) to enable |tls|
+with default settings.
+
+.. deprecated:: 1.8.0
+
+   ``spec.security.tls.certificateKeySecretRef`` is deprecated. For
+   replica set deployments, the |k8s-op-short| still supports
+   ``certificateKeySecretRef``, but you should migrate to
+   ``spec.security.tls.certsSecretPrefix``. For sharded cluster
+   deployments, you cannot use ``certificateKeySecretRef`` because
+   the |k8s-op-short| reads a separate ``mongot`` server certificate
+   secret for each shard.
+
+``spec.security.tls.certsSecretPrefix`` is an optional field. When
+you specify it, the |k8s-op-short| prepends
+``<certsSecretPrefix>-`` to all certificate secret names it reads.
+The |k8s-op-short| reads the following certificate secrets:
+
+``mongot`` Certificates
+```````````````````````
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Cluster Topology
+     - ``mongot`` Certificate
+
+   * - Replica set
+     - ``[<certsSecretPrefix>-]<name>-search-cert``
+
+   * - Sharded cluster
+     - ``[<certsSecretPrefix>-]<name>-search-0-<shardName>-cert``
+       (per shard)
+
+Load Balancer Certificates
+``````````````````````````
+
+If you set ``spec.loadBalancer.managed``, the load balancer
+client certificate is
+``[<certsSecretPrefix>-]<name>-search-lb-0-client-cert``.
+The following table shows the load balancer server
+certificates:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Cluster Topology
+     - Certificate
+
+   * - Replica set
+     - ``[<certsSecretPrefix>-]<name>-search-lb-0-cert``
+
+   * - Sharded cluster
+     - ``[<certsSecretPrefix>-]<name>-search-lb-0-<shardName>-cert``
+
+The |tls| certificate must be issued and signed by the same CA that
+issued the CA certificate that the MongoDB replica set uses.
 
 When both MongoDBSearch and ``MongoDB`` are deployed by the
-|k8s-op-short|, the underlying ``mongot`` and ``mongod`` configuration
-is largely handled by the |k8s-op-short| itself. When the MongoDB
-replica set is deployed outside of |k8s|, the
-``.spec.source.external.tls`` field must be populated with a |k8s|
-Secret containing the same CA certificate ``mongod`` is configured with,
-and ``mongod`` configuration itself must have the ``searchTLSMode``
-parameter set to ``requireTLS``.
+|k8s-op-short|, the underlying ``mongot`` and ``mongod``
+configuration is largely handled by the |k8s-op-short| itself. If
+you deploy the MongoDB replica set outside the |k8s| cluster:
+
+- ``.spec.source.external.tls`` field must be populated with a
+  |k8s| Secret containing the same CA certificate that you used
+  to configure the ``mongod``.
+- ``searchTLSMode`` parameter must be set to ``requireTLS`` in
+  the ``mongod`` configuration.
+
+Load Balancer mTLS
+~~~~~~~~~~~~~~~~~~
+
+Without a load balancer, ``mongod`` connects directly to
+``mongot`` using mTLS. The ``mongod`` presents its own client
+certificate, and ``mongot`` validates it against a trusted CA.
+
+If you configure a managed load balancer
+(``spec.loadBalancer.managed``), the Envoy proxy terminates the
+mTLS connection from ``mongod`` and establishes a new mTLS
+connection to ``mongot``. Because the load balancer terminates
+and re-establishes the connection, it uses its own client
+certificate when connecting to ``mongot``, not the original
+``mongod`` certificate. The ``mongot`` CA must trust the
+certificate authority that issued the load balancer's client
+certificate. The |k8s-op-short| manages the Envoy |tls|
+configuration automatically. It requires the following
+certificates:
+
+- **Server certificate** for the Envoy proxy, which ``mongod``
+  connects to. The load balancer uses this certificate to
+  terminate the incoming mTLS connection.
+- **Client certificate** for the Envoy proxy, which the load
+  balancer presents to ``mongot`` when establishing the
+  upstream mTLS connection.
+
+Provision these certificates as |k8s| Secrets following the
+naming convention that ``spec.security.tls.certsSecretPrefix``
+defines. See :ref:`k8s-fts-vs-settings` for the full naming
+pattern.
 
 .. toctree::
    :titlesonly:

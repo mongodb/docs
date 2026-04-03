@@ -1,0 +1,36 @@
+apiVersion: mongodb.com/v1
+kind: MongoDBMultiCluster
+metadata:
+  name: my-multi-cluster-oidc-replicaset
+spec:
+  type: ReplicaSet
+  members: 3
+  version: 7.0.11-ent
+  opsManager:
+    configMapRef:
+      name: <my-project-configmap>
+  credentials: <my-credentials-secret>
+  security:
+    authentication:
+      modes: ["SCRAM", "OIDC"]
+      oidcProviderConfigs:
+        - configurationName: "idp-human-users"
+          issuerURI: "https://<your-idp-domain>"
+          clientId: "<your-client-id>"
+          audience: "api://default"
+          groupsClaim: "groups"
+          authorizationMethod: "WorkforceIdentityFederation"
+          authorizationType: "GroupMembership"
+    roles:
+      - role: "idp-human-users/app-devs"
+        db: "admin"
+        roles:
+          - role: "readWrite"
+            db: "app-data"
+  clusterSpecList:
+    - clusterName: ${MDB_CLUSTER_1_FULL_NAME}
+      members: 3
+    - clusterName: ${MDB_CLUSTER_2_FULL_NAME}
+      members: 2
+    - clusterName: ${MDB_CLUSTER_3_FULL_NAME}
+      members: 3

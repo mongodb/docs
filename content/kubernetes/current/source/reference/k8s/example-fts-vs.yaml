@@ -1,24 +1,66 @@
 
 spec:
   source:
-    mongodbResourceRef: 
+    mongodbResourceRef:
       name: mdb
-    external: 
+    external:
       hostAndPorts:
         - mdb-rs-external-0.example.com:27017
         - mdb-rs-external-1.example.com:27017
         - mdb-rs-external-2.example.com:27017
+      shardedCluster:
+        router:
+          hosts:
+            - mongos1.example.com:27017
+            - mongos2.example.com:27017
+        shards:
+          - shardName: shard-0
+            hosts:
+              - shard0-node1.example.com:27018
+              - shard0-node2.example.com:27018
+          - shardName: shard-1
+            hosts:
+              - shard1-node1.example.com:27018
+              - shard1-node2.example.com:27018
       tls:
         ca:
-          name: mdbc-rs-ca            
+          name: mdbc-rs-ca
     username: search-sync-source
     passwordSecretRef:
       name: mdbc-rs-search-sync-source-password
       key: password
+    # x509 authentication (mutually exclusive with
+    # username/passwordSecretRef)
+    x509:
+      clientCertificateSecretRef:
+        name: mongot-x509-client-cert
+  replicas: 2
+  loadBalancer:
+    # Option 1: Operator-managed Envoy load balancer
+    managed:
+      externalHostname: "search.apps.example.com"
+      resourceRequirements:
+        requests:
+          cpu: "100m"
+          memory: 128Mi
+        limits:
+          cpu: "500m"
+          memory: 512Mi
+      deployment:
+        spec:
+          template:
+            spec:
+              nodeSelector:
+                kubernetes.io/os: linux
+    # Option 2: User-provided (BYO) load balancer
+    # (mutually exclusive with managed)
+    unmanaged:
+      endpoint: "search-lb.corp.example.com:443"
   security:
     tls:
       certificateKeySecretRef:
-        name: mdbs-tls-secret        
+        name: mdbs-tls-secret
+      certsSecretPrefix: my-prefix
   resourceRequirements:
     limits:
       cpu: "3"
@@ -26,8 +68,22 @@ spec:
     requests:
       cpu: "2"
       memory: 3Gi
+  persistence:
+    single:
+      storage: 16Gi
+      storageClass: standard
+  version: "0.64.0"
+  statefulSet:
+    spec:
+      template:
+        spec:
+          nodeSelector:
+            kubernetes.io/os: linux
+  jvmFlags:
+    - -Xms2g
+    - -Xmx2g
   autoEmbedding:
-    embeddingModelAPIKeySecret: 
+    embeddingModelAPIKeySecret:
       name: embedding-model-api-query-key
     providerEndpoint: https://ai.mongodb.com/v1/embeddings
   logLevel: INFO

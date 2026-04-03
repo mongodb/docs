@@ -1,0 +1,802 @@
+---
+ref: configure-kubectl-om
+stepnum: 1
+inherit:
+  file: steps-configure-kubectl-namespace.yaml
+  ref: configure-kubectl-namespace
+---
+title: "Create secrets for your certificates."
+stepnum: 2
+ref: create-cert-secret
+content: |
+
+  .. include:: /includes/facts/fact-if-use-vault.rst
+  .. include:: /includes/facts/fact-learn-more-secret-storage.rst
+
+  a. Once you have your |tls| certificates and private keys, run the 
+     following command to create a |k8s-secret| that stores |onprem|\'s
+     |tls| certificate:
+
+     .. code-block:: sh
+
+        kubectl create secret tls <prefix>-<metadata.name>-cert \
+          --cert=<om-tls-cert> \
+          --key=<om-tls-key>
+
+  b. Run the following command to create a new |k8s-secret| that stores
+     the application database's |tls| certificate:
+
+     .. code-block:: sh
+
+        kubectl create secret tls <prefix>-<metadata.name>-db-cert \
+          --cert=<appdb-tls-cert> \
+          --key=<appdb-tls-key>
+
+---
+title: "Add additional certificates to custom :abbr:`CA (Certificate Authority)` certificates." 
+stepnum: 3
+ref: validate-tls-cert
+content: |
+
+  If your |onprem| |tls| certificate is signed by a custom |certauth|, 
+  the :abbr:`CA (Certificate Authority)` certificate must also contain
+  additional certificates that allow |onprem| Backup Daemon to download
+  MongoDB binaries from the internet. To create the |tls|
+  certificate(s), create a |k8s-configmap| to hold the |certauth|
+  certificate: 
+
+  .. important::
+
+     The |k8s-op-short| requires that your |onprem| certificate is named
+     ``mms-ca.crt`` in the ConfigMap. 
+
+  a. Obtain the entire |tls| certificate chain for |onprem| from
+     ``downloads.mongodb.com``. The following ``openssl`` command
+     outputs the certificate in the chain to your current working
+     directory, in ``.crt`` format:
+
+     .. code-block:: sh
+
+        openssl s_client -showcerts -verify 2 \
+        -connect downloads.mongodb.com:443 -servername downloads.mongodb.com < /dev/null \
+        | awk '/BEGIN/,/END/{ if(/BEGIN/){a++}; out="cert"a".crt"; print >out}'
+
+  #. Concatenate your |certauth|\'s certificate file for |onprem|
+     with the entire |tls| certificate chain from 
+     ``downloads.mongodb.com`` that
+     you obtained in the previous step:
+
+     .. code-block:: sh
+
+        cat <custom_ca_cert.pem> cert2.crt cert3.crt cert4.crt  >> mms-ca.crt
+
+     .. note:: 
+       
+        - Replace the placeholder ``<custom_ca_cert.pem>`` with your custom CA certificate PEM file. 
+        - Don't include your ``cert1.crt`` file, as it is your server certificate from 
+          MongoDB that shouldn't be included.
+
+  #. Create the |k8s-configmap| for |onprem|:
+
+     .. code-block:: sh
+
+        kubectl create configmap om-http-cert-ca --from-file="mms-ca.crt"
+
+---
+title: "Copy one of the following |onprem| |k8s| |k8s-obj| examples."
+stepnum: 4
+level: 4
+ref: copy-k8s-example
+content: |
+
+  Change the settings to match your |onprem| and application database configuration.
+
+  .. tabs::
+
+     .. tab:: Single Kubernetes Cluster
+        :tabid: single-cluster-tls
+
+        .. literalinclude:: /reference/k8s/example-opsmgr-https.yaml
+           :language: yaml
+           :linenos:
+
+
+     .. tab:: Multi-Kubernetes Cluster
+        :tabid: multi-cluster-tls
+
+        .. literalinclude:: /reference/k8s/example-opsmgr-multi-cluster-https.yaml
+           :language: yaml
+           :linenos:
+
+---
+title: "Open your preferred text editor and paste the |k8s-obj| specification into a new text file."
+stepnum: 5
+level: 4
+ref: paste-k8s-example
+---
+title: "Configure the settings specific to your deployment."
+stepnum: 6
+level: 4
+ref: change-k8s-values
+content: |
+
+   .. list-table::
+      :widths: 30 15 40 15
+      :header-rows: 1
+
+      * - Key
+        - Type
+        - Description
+        - Example
+
+      * - :opsmgrkube:`metadata.name`
+        - string
+        - Name for this |k8s| |onprem| |k8s-obj|.
+
+          .. include:: /includes/fact-resource-name-char-limit.rst
+
+          See also :opsmgrkube:`metadata.name` and |k8s| documentation on :k8sdocs:`names </concepts/overview/working-with-objects/names/>`.
+
+        - ``om``
+
+      * - :opsmgrkube:`spec.replicas`
+        - number
+        - Number of |onprem| instances to run in parallel. 
+
+          The minimum valid value is ``1``. This field is ignored if you
+          specify ``MultiCluster`` in the :opsmgrkube:`spec.topology <spec.topology>`
+          setting.
+
+
+        - ``1``
+
+      * - :opsmgrkube:`spec.version`
+        - string
+        - Version of |onprem| to be installed.
+
+          The format should be :manual:`X.Y.Z </reference/versioning>`.
+          To view available |onprem| versions, view the
+          `container registry <https://quay.io/repository/mongodb/mongodb-enterprise-ops-manager?tag=latest&tab=tags>`__.
+        - {+om-version-val+}
+
+      * - :opsmgrkube:`spec.adminCredentials`
+        - string
+        - Name of the |k8s-secret| you :ref:`created <om-rsrc-prereqs>`
+          for the |onprem| admin user. Configure the secret to use the
+          same |k8s-ns| as the |onprem| resource.
+
+        - ``om-admin-secret``
+
+      * - | ``spec``
+          | ``.security``
+          | ``.``:opsmgrkube:`~spec.security.certsSecretPrefix`
+        - string
+        - *Required*.
+        
+          Text to prefix to the name of the secret that contains
+          |onprem|\s |tls| certificates.
+        - ``om-prod``
+
+      * - | ``spec``
+          | ``.security``
+          | ``.tls``
+          | ``.``:opsmgrkube:`~spec.security.tls.ca`
+        - string
+        - Name of the |k8s-configmap| you created to verify your
+          |onprem| |tls|
+          certificates signed using a custom |certauth|. This field is
+          required if you signed your |onprem| |tls| certificates using
+          a custom |certauth|.
+
+        - ``om-http-cert-ca``
+
+      * - | ``spec``
+          | ``.externalConnectivity``
+          | ``.``:opsmgrkube:`~spec.externalConnectivity.type`
+        - string
+        - The |k8s| service :k8sdocs:`ServiceType
+          </concepts/services-networking/service/#publishing-services-service-types>`
+          that exposes |onprem| outside of |k8s|. Exclude the
+          ``spec.``:opsmgrkube:`~spec.externalConnectivity` setting and its
+          children if you don't want the |k8s-op-short| to create a |k8s|
+          service to route external traffic to the |onprem| application.
+
+
+        - ``LoadBalancer``
+
+      * - | ``spec``
+          | ``.applicationDatabase``
+          | ``.``:setting:`~spec.members`
+        - integer
+        - Number of members of the :ref:`mms-application-database`
+          replica set.
+        - ``3``
+
+      * - | ``spec``
+          | ``.applicationDatabase``
+          | ``.``:opsmgrkube:`~spec.applicationDatabase.version`
+        - string
+        - *Required*.
+
+          Version of MongoDB that the :ref:`mms-application-database`
+          should run.
+
+          The format should be
+          ``X.Y.Z-ubi8`` for the :product:`Enterprise edition
+          </mongodb-enterprise-advanced>` and ``X.Y.Z`` for the Community edition.
+          Do not add the ``-ubi8`` tag suffix to the Community edition image because the |k8s-op-short| adds the tag suffix automatically.
+
+          .. include:: /includes/admonitions/ubi-8-min-db-versions-nested.rst
+
+          To learn more about MongoDB versioning, see
+          :ref:`release-version-numbers` in the MongoDB Manual.
+
+        - .. include:: /includes/facts/fact-which-appdb-version.rst
+
+      * - | ``spec``
+          | ``.applicationDatabase``
+          | ``.``:opsmgrkube:`~spec.applicationDatabase.topology`
+        - string
+        - *Optional*.
+
+          The type of the |k8s| deployment for the {+appdb+}.
+          If omitted, the default is ``SingleCluster``.
+
+          If you specify ``MultiCluster``, the |k8s-op-short| ignores values
+          that you set for the :setting:`spec.applicationDatabase.members <spec.members>` field, if specified.
+          Instead, you must specify the :opsmgrkube:`clusterSpecList <spec.applicationDatabase.clusterSpecList>`
+          and include in it the :opsmgrkube:`clusterName <spec.applicationDatabase.clusterSpecList.clusterName>`
+          of each selected |k8s| member cluster on which you want to deploy the
+          {+appdb+}, and the number of :opsmgrkube:`members <spec.applicationDatabase.clusterSpecList.members>`
+          (MongoDB nodes) in each |k8s| cluster.
+
+          .. include:: /includes/facts/fact-cannot-convert-om-crd-multi.rst
+
+          See also the :ref:`example of the resource specification <om_resource_spec_example_multi_cluster>`.
+
+        - ``MultiCluster``
+
+      * - | ``spec``
+          | ``.applicationDatabase``
+          | ``.security``
+          | ``.``:opsmgrkube:`~spec.applicationDatabase.security.certsSecretPrefix`
+        - string
+        - *Required*.
+        
+          Text to prefix to the name of the secret that contains
+          the application database's |tls| certificates.
+        - ``appdb-prod``
+
+      * - | ``spec``
+          | ``.applicationDatabase``
+          | ``.security``
+          | ``.tls``
+          | ``.``:opsmgrkube:`~spec.applicationDatabase.security.tls.ca`
+        - string
+        - Name of the |k8s-configmap| you created to verify your
+          application database |tls|
+          certificates signed using a custom |certauth|.
+          This field is required if you signed your application database |tls|
+          certificates using a custom |certauth|.
+
+        - ``ca``
+
+          The |k8s-op-short| mounts the |certauth| you add using the
+          :opsmgrkube:`spec.applicationDatabase.security.tls.ca` setting to
+          both the |onprem| and the {+appdb+} Pods.
+
+---
+title: "Configure Backup settings."
+stepnum: 7
+level: 4
+optional: true
+ref: configure-backup-https
+content: |
+
+  To configure backup, you must enable it, and then:
+  
+  - Choose to configure an :term:`S3 snapshot store <S3 Snapshot Store>`
+    or a :term:`blockstore <Backup Blockstore Database>`. If you deploy
+    both an |s3| :term:`snapshot store <S3 Snapshot Store>` and a
+    :term:`blockstore <Backup Blockstore Database>`, |onprem| 
+    randomly choses one to use for backup.
+  
+  - Choose to configure an oplog store or an |s3| oplog store.
+    If you deploy both an oplog store and an |s3| oplog store, |onprem|
+    randomly choses one of them to use for the oplog backup.
+
+  .. list-table::
+     :widths: 30 15 40 15
+     :header-rows: 1
+
+     * - Key
+       - Type
+       - Description
+       - Example
+
+     * - | ``spec``
+         | ``.backup``
+         | ``.``:opsmgrkube:`~spec.backup.enabled`
+       - boolean
+       - Flag that indicates that Backup is enabled. You must
+         specify ``spec.backup.enabled: true`` to configure settings
+         for the head database, oplog store, and snapshot store.
+       - ``true``
+
+     * - | ``spec``
+         | ``.backup``
+         | ``.headDB``
+       - collection
+       - A collection of configuration settings for the 
+         :term:`head database`. For descriptions of the individual
+         settings in the collection, see 
+         :opsmgrkube:`spec.backup.headDB`.
+       - 
+
+     * - | ``spec``
+         | ``.backup``
+         | ``.opLogStores``
+         | ``.``:opsmgrkube:`~spec.backup.opLogStores.name`
+       - string
+       - Name of the oplog store.
+       - ``oplog1``
+
+     * - | ``spec``
+         | ``.backup``
+         | ``.s3OpLogStores``
+         | ``.``:opsmgrkube:`~spec.backup.s3OpLogStores.name`
+       - string
+       - Name of the |s3| oplog store.
+       - ``my-s3-oplog-store``
+
+     * - | ``spec``
+         | ``.backup``
+         | ``.opLogStores``
+         | ``.mongodbResourceRef``
+         | ``.``:opsmgrkube:`~spec.backup.opLogStores.mongodbResourceRef.name`
+       - string
+       - Name of the |k8s-mdbrsc| or |mongodb-multi| for the oplog store.
+         The resource's ``metadata.name`` must match this name.
+       - ``my-oplog-db``
+
+     * - | ``spec``
+         | ``.backup``
+         | ``.s3OpLogStores``
+         | ``.mongodbResourceRef``
+         | ``.``:opsmgrkube:`~spec.backup.s3OpLogStores.mongodbResourceRef.name`
+       - string
+       - Name of the |k8s-mdbrsc| or |mongodb-multi| for the |s3| oplog store.
+         The resource's ``metadata.name`` must match this name.
+       - ``my-s3-oplog-db``
+
+  You must also configure an :term:`S3 snapshot store <S3 Snapshot Store>`
+  or a :term:`blockstore <Backup Blockstore Database>`.
+
+  If you deploy both an :term:`S3 snapshot store <S3 Snapshot Store>`
+  and a :term:`blockstore <Backup Blockstore Database>`, |onprem|
+  randomly choses one to use for Backup.
+
+  To configure a snapshot store, configure the following settings:
+
+  .. list-table::
+    :widths: 20 20 40 20
+    :header-rows: 1
+
+    * - Key
+      - Type
+      - Description
+      - Example
+
+    * - | ``spec``
+        | ``.backup``
+        | ``.s3Stores``
+        | ``.``:opsmgrkube:`~spec.backup.s3Stores.name`
+      - string
+      - Name of the |s3| snapshot store.
+      - ``s3store1``
+
+    * - | ``spec``
+        | ``.backup``
+        | ``.s3Stores``
+        | ``.s3SecretRef``
+        | ``.``:opsmgrkube:`~spec.backup.s3Stores.s3SecretRef.name`
+      - string
+      - Name of the |k8s-secret| that contains the ``accessKey`` and
+        ``secretKey`` fields. The :ref:`backup-daemon` uses the
+        values of these fields as credentials to access the |s3| or
+        |s3|-compatible bucket.
+      - ``my-s3-credentials``
+
+    * - | ``spec``
+        | ``.backup``
+        | ``.s3Stores``
+        | ``.``:opsmgrkube:`~spec.backup.s3Stores.s3BucketEndpoint`
+      - string
+      - |url| of the |s3| or |s3|-compatible bucket that
+        :opsmgr:`stores </tutorial/manage-s3-blockstore-storage>` the
+        database Backup snapshots.
+      - ``s3.us-east-1.amazonaws.com``
+
+    * - | ``spec``
+        | ``.backup``
+        | ``.s3Stores``
+        | ``.``:opsmgrkube:`~spec.backup.s3Stores.s3BucketName`
+      - string
+      - Name of the |s3| or |s3|-compatible bucket that stores the
+        database Backup snapshots.
+      - ``my-bucket``
+
+  To configure a blockstore, configure the following settings:
+
+  .. list-table::
+    :widths: 20 20 40 20
+    :header-rows: 1
+
+    * - Key
+      - Type
+      - Description
+      - Example
+
+    * - | ``spec``
+        | ``.backup``
+        | ``.blockStores``
+        | ``.``:opsmgrkube:`~spec.backup.blockStores.name`
+      - string
+      - Name of the blockstore.
+      - ``blockStore1``
+
+    * - | ``spec``
+        | ``.backup``
+        | ``.blockStores``
+        | ``.mongodbResourceRef``
+        | ``.``:opsmgrkube:`~spec.backup.blockStores.mongodbResourceRef.name`
+      - string
+      - Name of the |k8s-mdbrsc| that you create for the blockstore. You must
+        deploy this database resource in the same namespace as the |onprem| resource.
+      - ``my-mongodb-blockstore``
+
+---
+title: "Configure any additional settings for an |onprem| backup."
+stepnum: 8
+level: 4
+optional: true
+ref: add-k8s-optional-values-backups-https
+content: |
+
+  Add any :ref:`optional settings <optional-om-k8s-settings>` for backups
+  that you want to apply to your deployment to the |k8s-obj| specification
+  file. For example, for each type of backup store, and for |onprem| backup
+  daemon processes, you can assign labels to associate particular backup
+  stores or backup daemon processes with specific projects.
+  Use ``spec.backup.[*].assignmentLabels`` elements of the OpsManager
+  resources.
+
+---
+title: "Configure any additional settings for an |onprem| deployment."
+stepnum: 9
+level: 4
+optional: true
+ref: add-k8s-values
+content: |
+
+  Add any :ref:`optional settings <optional-om-k8s-settings>` that you
+  want to apply to your deployment to the |k8s-obj| specification file.
+---
+title: "Save this file with a ``.yaml`` file extension."
+stepnum: 10
+level: 4
+ref: save-object-spec
+
+---
+title: "Create your |onprem| instance."
+stepnum: 11
+level: 4
+ref: start-k8s-instance
+content: |
+
+   Run the following ``kubectl`` command on the filename of the
+   |onprem| resource definition:
+
+   .. code-block:: sh
+
+      kubectl apply -f <opsmgr-resource>.yaml
+
+   .. note::
+
+      .. include:: /includes/admonitions/note-om-kubectl-apply-multi-cluster.rst
+
+---
+title: "Track the status of your |onprem| instance."
+stepnum: 12
+level: 4
+ref: track-k8s-instance
+content: |
+
+  To check the status of your |onprem| resource, invoke the following
+  command:
+
+  .. code-block:: sh
+
+     kubectl get om -o yaml -w
+
+  The command returns the output similar to the following under the ``status``
+  field while the resource deploys:
+
+  .. code-block:: yaml
+     :copyable: false
+
+     status:
+      applicationDatabase:
+       lastTransition: "2022-04-01T09:49:22Z"
+       message: AppDB Statefulset is not ready yet
+       phase: Pending
+       type: ""
+       version: ""
+      backup:
+       phase: ""
+      opsManager:
+       phase: ""
+
+  The |k8s-op-short| reconciles the resources in the following order:
+
+  1. {+appdb+}.
+  #. |onprem|.
+  #. Backup.
+
+  The |k8s-op-short| doesn't reconcile a resource until the preceding
+  one enters the ``Running`` phase.
+
+  After the |onprem| resource completes the ``Pending`` phase, the
+  command returns output similar to the following under the ``status``
+  field if you enabled Backup:
+
+  .. code-block:: yaml
+     :copyable: false
+
+     status:
+      applicationDatabase:
+          lastTransition: "2022-04-01T09:50:20Z"
+          members: 3
+          phase: Running
+          type: ReplicaSet
+          version: "8.0.0-ubi8"
+       backup:
+        lastTransition: "2022-04-01T09:57:42Z"
+        message: The MongoDB object <namespace>/<oplogresourcename>
+          doesn't exist
+        phase: Pending
+        opsManager:
+          lastTransition: "2023-04-01T09:57:40Z"
+          phase: Running
+          replicas: 1
+          url: https://om-svc.cloudqa.svc.cluster.local:8443
+          version: "8.0.0"
+
+  Backup remains in a ``Pending`` state until you configure the Backup
+  databases.
+
+  .. tip::
+
+     The ``status.opsManager.url`` field states the resource's
+     connection |url|. Using this |url|, you can reach |onprem| from
+     inside the |k8s| cluster or :ref:`create a project using a
+     ConfigMap <create-k8s-project>`.
+
+  After the resource completes the ``Pending`` phase, the command
+  returns output similar to the following under the ``status`` field:
+
+  .. code-block:: yaml
+     :copyable: false
+
+     status:
+       applicationDatabase:
+          lastTransition: "2022-12-06T18:23:22Z"
+          members: 3
+          phase: Running
+          type: ReplicaSet
+          version: "8.0.0-ubi8"
+        opsManager:
+          lastTransition: "2022-12-06T18:23:26Z"
+          message: The MongoDB object namespace/oplogdbname doesn't exist
+          phase: Pending
+          url: https://om-svc.dev.svc.cluster.local:8443
+          version: ""
+
+  Backup remains in a ``Pending`` state until you configure the Backup
+  databases.
+
+  .. tip::
+
+     The ``status.opsManager.url`` field states the resource's
+     connection |url|. Using this |url|, you can reach |onprem| from
+     inside the |k8s| cluster or :ref:`create a project using a
+     ConfigMap <create-k8s-project>`.
+
+---
+title: "Access the |onprem| application."
+stepnum: 13
+level: 4
+ref: access-opsmgr-instance
+content: |
+
+  The steps you take differ based on how you are routing traffic to the
+  |onprem| application in |k8s|. If you configured the |k8s-op-short| to
+  create a |k8s| service for you, or you created a |k8s| service
+  manually, use one of the following methods to access the |onprem|
+  application:
+
+  .. tabs::
+
+     .. tab:: LoadBalancer Service
+        :tabid: om-loadbalancer-svc-access
+
+        a. Query your cloud provider to get the |fqdn| of the load
+           balancer service. See your cloud provider's documentation
+           for details.
+
+        #. Open a browser window and navigate to the |onprem|
+           application using the |fqdn| and port number of your load
+           balancer service.
+
+           .. code-block:: sh
+              :copyable: false
+
+              https://ops.example.com:8443
+
+        #. Log in to |onprem| using the :ref:`admin user credentials
+           <om-rsrc-prereqs>`.
+
+     .. tab:: NodePort Service
+        :tabid: om-nodeport-svc-access
+
+        a. Set your firewall rules to allow access from the Internet to
+           the ``spec.externalConnectivity.``:opsmgrkube:`~spec.externalConnectivity.port`
+           on the host on which your |k8s| cluster is running.
+
+        #. Open a browser window and navigate to the |onprem|
+           application using the |fqdn| and the
+           ``spec.externalConnectivity.``:opsmgrkube:`~spec.externalConnectivity.port`.
+
+           .. code-block:: sh
+              :copyable: false
+
+              https://ops.example.com:30036
+
+        #. Log in to |onprem| using the :ref:`admin user credentials <om-rsrc-prereqs>`.
+
+  To learn how to access the |onprem| application using a third-party
+  service, refer to the documentation for your solution.
+
+---
+title: "Create credentials for the Kubernetes Operator."
+stepnum: 14
+level: 4
+ref: create-credentials
+content: |
+
+  To configure credentials, you must create an |onprem| organization,
+  generate programmatic API keys, and create a |k8s-secret|. These
+  activities follow the prerequisites and procedure on the
+  :ref:`create-k8s-credentials` page.
+
+---
+title: "Create a project using a |k8s-configmap|."
+stepnum: 15
+level: 4
+ref: create-project
+content: |
+
+  To create a project, follow the prerequisites and procedure on the
+  :ref:`create-k8s-project` page.
+
+  Set the following fields in your project ConfigMap:
+
+  - Set ``data.baseUrl`` in the ConfigMap to the |application|\'s |url|.
+    To find this |url|, invoke the following command:
+
+    .. code-block:: sh
+
+       kubectl get om -o yaml -w
+
+    The command returns the URL of the |application| in the
+    ``status.opsManager.url`` field, similar to the following example:
+
+    .. code-block:: yaml
+       :copyable: false
+
+       status:
+          applicationDatabase:
+            lastTransition: "2022-12-06T18:23:22Z"
+            members: 3
+            phase: Running
+            type: ReplicaSet
+            version: "8.0.0-ubi8"
+          opsManager:
+            lastTransition: "2022-12-06T18:23:26Z"
+            message: The MongoDB object namespace/oplogdbname doesn't exist
+            phase: Pending
+            url: https://om-svc.dev.svc.cluster.local:8443
+            version: ""
+
+    .. include:: /includes/admonitions/data-url-config-map-external-dbs.rst
+
+  - Set ``data.sslMMSCAConfigMap`` to the name of your
+    |k8s-configmap| containing the root
+    :abbr:`CA (Certificate Authority)` certificate used to sign the
+    |onprem| host's certificate. The |k8s-op-short| requires that you name
+    this |onprem| resource's certificate ``mms-ca.crt`` in the ConfigMap.
+
+---
+title: "Deploy MongoDB database resources to complete the backup configuration."
+stepnum: 16
+level: 4
+ref: configure-backup
+content: |
+
+  By default, |onprem| enables :ref:`mms-backup-functional-overview`.
+  Create a MongoDB database resource for the oplog and snapshot stores
+  to complete the configuration.
+
+  a. Deploy a :ref:`MongoDB database resource
+     <k8s-deploy-mdb-resources>` for the oplog store in the same
+     namespace as the |onprem| resource.
+
+     .. note::
+
+        Create this database as a three-member :ref:`replica set
+        <deploy-replica-set>`.
+
+     Match the ``metadata.name`` of the resource with the
+     :opsmgrkube:`spec.backup.opLogStores.mongodbResourceRef.name`
+     that you specified in your |onprem| resource definition.
+
+  #. Deploy a :ref:`MongoDB database resource
+     <k8s-deploy-mdb-resources>` for the |s3| snapshot store in the
+     same namespace as the |onprem| resource.
+
+     .. note::
+
+        Create the |s3| snapshot store as a replica set.
+
+     Match the ``metadata.name`` of the resource to the
+     :opsmgrkube:`spec.backup.s3Stores.mongodbResourceRef.name`
+     that you specified in your |onprem| resource definition.
+
+---
+title: "Confirm that the |onprem| resource is running."
+stepnum: 17
+level: 4
+ref: confirm-running
+content: |
+
+  To check the status of your |onprem| resource, invoke the following
+  command:
+
+  .. code-block:: sh
+
+     kubectl get om -o yaml -w
+
+  When |onprem| is running, the command returns the output similar to the
+  following, under the ``status`` field:
+
+  .. code-block:: yaml
+     :copyable: false
+
+     status:
+       applicationDatabase:
+         lastTransition: "2022-12-06T17:46:15Z"
+         members: 3
+         phase: Running
+         type: ReplicaSet
+         version: "8.0.0-ubi8"
+       opsManager:
+         lastTransition: "2022-12-06T17:46:32Z"
+         phase: Running
+         replicas: 1
+         url: https://om-backup-svc.dev.svc.cluster.local:8443
+         version: "8.0.0"
+
+  See :doc:`/reference/troubleshooting` for information about the
+  resource deployment statuses.
+
+...

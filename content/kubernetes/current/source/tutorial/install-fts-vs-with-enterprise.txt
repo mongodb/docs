@@ -14,310 +14,605 @@ Install and Use Search With MongoDB Enterprise Edition
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
-You can use the |k8s-op-short| to deploy |text-search| and 
-|vector-search| resources to run with MongoDB enterprise v8.2.0 
-or higher on a |k8s| cluster. This procedure demonstrates how to deploy
-and configure the ``mongot`` process to run with a new or existing
-replica set in your |k8s| cluster. The deployment uses |tls|
-certificates to ensure secure communication between MongoDB nodes and
-the ``mongot`` search process.
+You can use the |k8s-op-short| to deploy |text-search| and
+|vector-search| resources to run with MongoDB enterprise v8.2.0
+or later on a |k8s| cluster.
 
-Prerequisites 
--------------
+This procedure demonstrates how to deploy
+and configure one or more ``mongot`` processes to run with a new or existing
+replica set or sharded cluster in your |k8s| cluster.
 
-To deploy |text-search| and |vector-search|, you must have the
-following: 
+The deployment uses |tls| certificates to ensure secure communication between
+MongoDB nodes and the ``mongot`` search process.
 
-- A running |k8s| cluster with ``kubeconfig`` available locally. 
-- |k8s| command-line tool, ``kubectl``, configured to communicate with
-  your cluster.
-- |helm|, the package manager for |k8s|, to install the |k8s-op-short|.
-- Bash v5.1 or higher for running the commands in this tutorial. 
-- |mms-full| or |cloud| project and |api| credentials. 
+.. composable-tutorial::
+   :options: cluster-topology, mongot-instances
+   :defaults: repl, single
 
-Procedure 
----------
+   Overview
+   --------
 
-.. procedure:: 
-   :style: normal 
+   .. selected-content::
+      :selections: repl, multiple
 
-   .. step:: Required. Set the environment variables. 
+      About the Managed Envoy Load Balancer
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      Set the environment variables for use in the subsequent steps in
-      this procedure. Copy the following commands, update the values for
-      your environment, and then run them to load the variables:   
+      When you set ``spec.loadBalancer.managed`` in your |fts| resource, the
+      operator automatically:
 
-      .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/env_variables.sh
-         :language: yaml 
-         :copyable: true 
-         :linenos:
+      1. Deploys an Envoy proxy to handle load balancing at application layer.
+      2. Generates routing configuration to route traffic to ``mongot`` pods.
+      3. Creates a service, a single Kubernetes Service for the Replica Set topology.
+      4. Manages |tls| by configuring mTLS between mongod, Envoy, and ``mongot``.
+      5. Configures |mongod| by automatically setting search parameters on the Replica Set.
+
+      .. note::
+
+         Envoy uses application-layer (L7) load balancing because ``mongod`` opens a
+         single long-lived TCP connection to ``mongot``. An L4 load balancer would
+         route all traffic to one ``mongot`` pod, whereas Envoy distributes individual
+         HTTP/2 streams across multiple ``mongot`` pods.
+
+      .. important::
+         You don't need to write Envoy configuration, deploy Envoy, create proxy
+         Services manually, or configure |mongod| search parameters.
+
+      .. image:: /images/mongodb-k8s-replicaset-search-arch.svg
+         :alt: Traffic flow diagram showing the Kubernetes cluster with an operator-managed MongoDB replica set (rs-0, rs-1, rs-2), an Envoy proxy load balancer, and ``mongot`` StatefulSet pods.
+
+   .. selected-content::
+      :selections: shard, multiple
+
+      This guide walks you through deploying **MongoDB Search** against an
+      **operator-managed MongoDB sharded cluster**, deployed through the MongoDB
+      Enterprise Kubernetes Operator, using the operator's **managed Envoy load balancer**.
+
+      In this scenario, setting ``spec.source.mongodbResourceRef`` lets the operator automatically
+      configure ``mongod`` search parameters, eliminating the need for ``shardOverrides`` or manual
+      proxy endpoint configuration.
+
+      About the Managed Envoy Load Balancer
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      When you set ``spec.loadBalancer.managed`` in your |fts| resource, the
+      operator automatically:
+
+      1. Deploys an Envoy proxy to handle load balancing at application layer.
+      2. Generates routing configuration: |sni| based routing rules for each shard.
+      3. Creates proxy Services: One |k8s| service per shard for traffic routing.
+      4. Manages |tls| by configuring mTLS between mongod, Envoy, and ``mongot``.
+      5. Configures |mongod| by automatically setting search parameters on the Replica Set.
+
+      .. important::
+         You don't need to write Envoy configuration, deploy Envoy, create proxy
+         Services manually, or configure |mongod| search parameters.
+
+
+      .. image:: /images/mongodb-k8s-sharded-search-arch.svg
+         :alt: Architecture diagram showing the traffic flow from operator-managed shards through Envoy Proxy to ``mongot`` StatefulSets within a Kubernetes cluster.
+
+      About Per-Shard Routing
+      ~~~~~~~~~~~~~~~~~~~~~~~
+
+      In a sharded cluster, each shard has its own data. |fts| deploys
+      separate ``mongot`` instances per shard, and each shard's |mongod| must connect
+      to its corresponding ``mongot``. SNI (Server Name Indication) routing allows the
+      Envoy proxy to inspect the TLS handshake and route traffic to the correct
+      ``mongot`` based on the hostname.
+
+   Prerequisites
+   -------------
+
+   .. selected-content::
+      :selections: repl, single
+
+      .. include:: /includes/install/fts-vs/prerequisites-search-k8-mdb-enterprise.rst
+
+   .. selected-content::
+      :selections: repl, multiple
+
+      .. include:: /includes/install/fts-vs/prerequisites-search-sharded-k8-mdb-enterprise.rst
+
+   .. selected-content::
+      :selections: shard, multiple
+
+      .. important::
+
+         Shard names must follow RFC 1123 DNS label rules, which allows 
+         lowercase alphanumeric characters or hyphen (``-``) and 
+         requires starting with a letter and ending with an alphanumeric 
+         character. Underscores are not allowed. The combined length of the 
+         resource name and shard name must be less than 50 characters.
+
+      .. include:: /includes/install/fts-vs/prerequisites-search-sharded-k8-mdb-enterprise.rst
+
+   Before you Begin
+   ----------------
+
+   .. selected-content::
+      :selections: repl, multiple
+
+      Before you install MongoDB Search and Vector Search using the Kubernetes
+      Operator, you must do the following:
 
       .. collapsible::
-         :heading: Optional
-         :sub_heading: Validate that the environment variables have been set.
+         :heading: Set Up Your Environment
+         :expanded: false
+         
+         .. procedure:: 
+            :style: normal 
+
+            .. step:: Required. Set The Environment Variables
+
+               Copy the following code snippet and run the commands in your
+               terminal to set your environment variables:
+
+               .. literalinclude:: /includes/code-examples/search/11-search-rs-mongod-managed-lb/env_variables.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+            .. step:: Optional. Validate Environment Variables
+
+               Check that all required environment variables are set and the 
+               Kubernetes context exists.
+
+               .. literalinclude:: /includes/code-examples/search/11-search-rs-mongod-managed-lb/code_snippets/11_0040_validate_env.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+      .. collapsible::
+         :heading: Set Up Kubernetes and the Operator
          :expanded: false
 
-         To verify that all necessary environment variables are set,
-         run the following the following code in your terminal:
+         .. procedure::
+            :style: normal 
 
-         .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0040_validate_env.sh
-            :language: yaml 
-            :copyable: true 
-            :linenos:
+            .. step:: Required. Create Kubernetes Namespace
 
-   .. step:: Conditional. Add the MongoDB Helm repository. 
+               The |k8s-op-short| uses the ``mongodb`` namespace by default. To
+               simplify your installation, create the ``mongodb`` namespace using
+               the following |kubectl| command:
 
-      |helm| automates the deployment and management of MongoDB
-      instances on |k8s|. If you have already added the Helm
-      repository that contains the Helm chart for installing the
-      |k8s-op-short| operator, skip this step. Otherwise, add the
-      Helm repository.
-      
-      To add, copy, paste, and run the following command:  
+               .. literalinclude:: /includes/code-examples/search/11-search-rs-mongod-managed-lb/code_snippets/11_0045_create_namespaces.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
 
-      .. io-code-block:: 
-         :copyable: true 
-         
-         .. input:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0090_helm_add_mogodb_repo.sh 
-            :language: shell 
-            :linenos:
+            .. step:: Optional. Install the |k8s-op|
 
-         .. output:: /includes/code-examples/outputs/test_kind_search_enterprise_snippets/02_0090_helm_add_mogodb_repo.out
-            :language: shell 
-            :linenos:
-            :visible: false    
+               The |k8s-op-short| watches ``MongoDB``, ``MongoDBOpsManager``, and
+               ``MongoDBSearch`` custom resources and manages the lifecycle of
+               your MongoDB deployments. If you already installed the |k8s-op|,
+               skip this step. 
 
-   .. step:: Conditional. Install the |k8s-op|. 
+               To install the |k8s-op| in the ``mongodb`` namespace, copy, paste,
+               and run the following:
 
-      The |k8s-op-short| watches ``MongoDB``, ``MongoDBOpsManager``, and
-      MongoDBSearch custom resources and manages the lifecycle of
-      your MongoDB deployments. If you already installed the |k8s-op|,
-      skip this step. Otherwise, install the |k8s-op| from the Helm
-      repository you added in the previous step. 
+               .. literalinclude:: /includes/code-examples/search/11-search-rs-mongod-managed-lb/code_snippets/11_0100_install_operator.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+               
 
-      To install the |k8s-op| in the ``mongodb`` namespace, copy, paste,
-      and run the following: 
+            .. step:: Required. Create Ops Manager Resources
 
-      .. io-code-block:: 
-         :copyable: true 
-         
-         .. input:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0100_install_operator.sh
-            :language: shell 
-            :linenos:
+               Create an Ops Manager project ConfigMap and credentials Secret.
 
-         .. output:: /includes/code-examples/outputs/test_kind_search_enterprise_snippets/02_0100_install_operator.out
-            :language: shell 
-            :linenos:
-            :visible: false 
+               .. literalinclude:: /includes/code-examples/search/11-search-rs-mongod-managed-lb/code_snippets/11_0300_create_ops_manager_resources.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
 
-   .. step:: Conditional. Install the ``cert-manager``.
+      .. collapsible::
+         :heading: Configure TLS Certificates
+         :expanded: false
 
-      The ``cert-manager`` is required for managing |tls| certificates.
-      If you already have ``cert-manager`` installed in your cluster,
-      skip this step. Otherwise, install ``cert-manager`` using |helm|.
+         .. procedure:: 
+            :style: normal
 
-      To install ``cert-manager`` in the ``cert-manager`` namespace,
-      run the following command in your terminal:
+            .. step:: Conditional. Install cert-manager
 
-      .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0301_install_cert_manager.sh
-         :language: shell
-         :copyable: true
-         :linenos:
+               The ``cert-manager`` is required for managing |tls| certificates,
+               which secure connections between ``mongod``, the Envoy load
+               balancer, and ``mongot`` pods. If you already have ``cert-manager``
+               installed in your cluster, skip this step. Otherwise, install
+               ``cert-manager``.
 
-   .. step:: Required. Prepare certificate issuer and CA infrastructure.
+               To install ``cert-manager`` in the ``cert-manager`` namespace,
+               run the following commands in your terminal: 
 
-      Create the certificate authority infrastructure that will issue |tls|
-      certificates for ``MongoDB`` and ``MongoDBSearch`` resources. The
-      commands perform the following actions: 
-      
-      - Create a self-signed ``ClusterIssuer``.
-      - Generate a CA certificate.
-      - Publish a cluster-wide CA issuer that all namespaces can use. 
-      - Expose the CA bundle through a ``ConfigMap`` so MongoDB
-        resources can use it. 
 
-      .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0302_configure_tls_prerequisites.sh
-         :language: shell
-         :copyable: true
-         :linenos:
+               .. literalinclude:: /includes/code-examples/search/11-search-rs-mongod-managed-lb/code_snippets/11_0301_install_cert_manager.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
 
-   .. step:: Required. Issue TLS certificates.
+            .. step:: Required. Configure TLS Prerequisites
 
-      Issue |tls| certificates for both the ``MongoDB`` server
-      (``${MDB_RESOURCE_NAME}-server-tls``) and the ``MongoDBSearch``
-      service (``${MDB_RESOURCE_NAME}-search-tls``). The MongoDB server
-      certificate includes all necessary DNS names for the pod and
-      service communication. Both certificates support server and client
-      authentication. 
+               Create the ``cert-manager`` bootstrap chain needed before any
+               certificates can be issued.
 
-      .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0304_generate_tls_certificates.sh
-         :language: shell
-         :copyable: true
-         :linenos:
+               .. image:: /images/cert-manager-bootstrap-chain.svg
+                  :alt: cert-manager bootstrap chain
 
-   .. step:: Conditional. Create and deploy the MongoDB Enterprise resource. 
+               .. list-table::
+                  :header-rows: 1
+                  :widths: 30 35 35
 
-      If you have already deployed MongoDB Enterprise, skip to the next
-      step. Otherwise, deploy the MongoDB Enterprise resource. 
-      
-      To deploy the MongoDB Enterprise, complete the following steps:
-    
-      a. Create the ConfigMap and secret for the |mms-full| project if
-         you are using |mms-full|.
+                  * - cert-manager Object
+                    - Env Var
+                    - Purpose
+                  * - Self-Signed ClusterIssuer
+                    - ``MDB_TLS_SELF_SIGNED_ISSUER``
+                    - Bootstrap-only issuer; can only sign the CA's own certificate
+                  * - CA Certificate (``isCA: true``)
+                    - ``MDB_TLS_CA_CERT_NAME`` / ``MDB_TLS_CA_SECRET_NAME``
+                    - The root CA; stored as a Secret in the cert-manager namespace
+                  * - CA ClusterIssuer
+                    - ``MDB_TLS_CA_ISSUER``
+                    - References the CA Secret; all ``mongot``, LB, and ``mongod`` certs are signed by this issuer
 
-         To store the configuration and credentials for integration with
-         |mms-full|, copy, paste, and run the following commands:
+               .. literalinclude:: /includes/code-examples/search/11-search-rs-mongod-managed-lb/code_snippets/11_0302_configure_tls_prerequisites.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
 
-         .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0300_create_ops_manager_resources.sh 
-            :language: shell 
-            :copyable: true 
-            :linenos:
+            .. step:: Required. Distribute CA Certificate for mongod
 
-      #. Create a ``MongoDB`` custom resource named ``mdb-rs``. 
-         
-         The resource defines CPU and memory resources for the ``mongod``
-         and ``mongodb-agent`` containers and instructs the
-         |k8s-op-short| to configure a MongoDB replica set with 3
-         members:
+               MongoDB Enterprise expects the CA in a ConfigMap (key ``ca-pem``).
+               The following commands extract the CA from the ``cert-manager``
+               namespace and create the ConfigMap in the target namespace.
 
-         To deploy MongoDB Enterprise, copy, paste, and run the
-         following in the namespace: 
+               .. literalinclude:: /includes/code-examples/search/11-search-rs-mongod-managed-lb/code_snippets/11_0302a_configure_tls_prerequisites_mongod.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
 
-         .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0305_create_mongodb_database_resource.sh 
-            :language: shell 
-            :copyable: true 
-            :linenos:
+            .. step:: Required. Distribute CA Certificate for mongot
 
-      #. Wait for the ``MongoDB`` resource deployment to complete.
+               ``MongoDBSearch`` expects the CA in a Secret (key ``ca.crt``).
+               The following commands extract the CA from the ``cert-manager``
+               namespace and create the ConfigMap in the target namespace.
 
-         When you apply the ``MongoDB`` custom resource, the
-         |k8s| operator begins deploying the MongoDB nodes (pods). This
-         step pauses the execution until the ``mdbc-rs`` resource's
-         status phase is ``Running``, which indicates that the
-         MongoDB Community replica set is operational.
+               .. literalinclude:: /includes/code-examples/search/11-search-rs-mongod-managed-lb/code_snippets/11_0302b_configure_tls_prerequisites_mongot.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
 
-         .. io-code-block:: 
-            :copyable: true 
-         
-            .. input:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0310_wait_for_database_resource.sh
-               :language: shell 
-               :linenos:
+            .. step:: Required. Generate TLS Certificate for MongoDB Replica Set
 
-            .. output:: 
-               :language: shell 
-               :linenos:
-               :visible: false 
+               Generate a |tls| certificate for the operator-managed MongoDB replica set.
 
-               Waiting for MongoDB resource to reach Running phase...
-               mongodb.mongodb.mongodb.com/mdbc-rs condition met
+               .. literalinclude:: /includes/code-examples/search/11-search-rs-mongod-managed-lb/code_snippets/11_0304_generate_tls_certificates.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
 
-               MongoDB resource
-               NAME      PHASE     VERSION
-               mdbc-rs   Running   8.2
+   .. selected-content::
+      :selections: shard, multiple
 
-               Pods running in cluster minikube
-               NAME                                           READY   STATUS    RESTARTS   AGE
-               mdbc-rs-0                                      2/2     Running   0          2m30s
-               mdbc-rs-1                                      2/2     Running   0          82s
-               mdbc-rs-2                                      2/2     Running   0          38s
-               mongodb-kubernetes-operator-5776c8b4df-cppnf   1/1     Running   0          7m37s
+      Before you install MongoDB Search and Vector Search using the Kubernetes
+      Operator, you must do the following:
 
-   .. step:: Required. Create and load the MongoDB user secrets. 
+      .. collapsible::
+         :heading: Set up Your Environment
+         :expanded: false
 
-      MongoDB requires authentication for secure access. In this step,
-      you create three |k8s| secrets: 
-      
-      - ``mdb-admin-user-password``: Credentials for the MongoDB administrator.
-      - ``mdb-user-password``: Credentials for the user authorized to perform search queries.
-      - ``mdbc-rs-search-sync-source-password``: Credentials for a
-        dedicated search user used internally by the ``mongot`` process
-        to synchronize data and manage indexes.  
-       
-      |k8s-op-short| mounts these secrets into the MongoDB pods. 
+         .. procedure::
+            :style: normal
 
-      To create the secrets, copy, paste, and run the following in the
-      namespace where you deployed MongoDB Server and plan to deploy
-      |text-search| and |vector-search|:
+            .. step:: Required. Set The Environment Variables
 
-      .. io-code-block:: 
-         :copyable: true 
-         
-         .. input:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0315_create_mongodb_users.sh 
-            :language: shell 
-            :linenos:
+               Copy the following code snippet and run the commands in your
+               terminal to set your environment variables:
 
-         .. output:: 
-            :linenos:
-            :visible: false 
+               .. literalinclude:: /includes/code-examples/search/09-search-sharded-mongod-managed-lb/env_variables.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
 
-            secret/mdb-admin-user-password created
-            secret/mdbc-rs-search-sync-source-password created
-            secret/mdb-user-password created
+            .. step:: Optional. Validate Environment Variables
 
-   .. step:: Required. Create and deploy the resource for |text-search| and |vector-search|.
+               Check that all required environment variables are set and the 
+               Kubernetes context exists.
 
-      You can deploy one instance of the search node without any load
-      balancing. To deploy, complete the following steps: 
+               .. literalinclude:: /includes/code-examples/search/09-search-sharded-mongod-managed-lb/code_snippets/09_0040_validate_env.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
 
-      a. Create a MongoDBSearch custom resource named ``mdbc-rs``.
+      .. collapsible::
+         :heading: Set Up Kubernetes and the Operator
+         :expanded: false
 
-         This resource specifies the CPU and memory resource
-         requirements for the search nodes. To learn more about the
-         settings in this custom resource, see :ref:`k8s-fts-vs-settings`.
+         .. procedure::
+            :style: normal
 
-         .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0320_create_mongodb_search_resource.sh
-            :language: shell 
-            :copyable: true 
-            :linenos:
+            .. step:: Required. Create Kubernetes Namespace
 
-      #. Wait for the MongoDBSearch resource deployment to
-         complete.
+               The |k8s-op-short| uses the ``mongodb`` namespace by default. To
+               simplify your installation, create the ``mongodb`` namespace using
+               the following |kubectl| command:
 
-         When you apply the MongoDBSearch custom resource, the
-         |k8s| operator begins deploying the search nodes (pods). This
-         step pauses the execution until the ``mdbc-rs`` resource's
-         status phase is ``Running``, which indicates that the
-         MongoDB Community replica set is operational.
+               .. literalinclude:: /includes/code-examples/search/09-search-sharded-mongod-managed-lb/code_snippets/09_0045_create_namespaces.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
 
-         .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0325_wait_for_search_resource.sh
-            :language: shell 
-            :copyable: true 
-            :linenos:
+            .. step:: Conditional. Install the |k8s-op|
 
-   .. step:: Optional. Verify the MongoDB Enterprise resource status. 
+               The |k8s-op-short| watches ``MongoDB``, ``MongoDBOpsManager``, and
+               ``MongoDBSearch`` custom resources and manages the lifecycle of
+               your MongoDB deployments. If you already installed the |k8s-op|,
+               skip this step. 
 
-      Ensure that the ``MongoDB`` resource deployment with
-      MongoDBSearch was successful.
+               To install the |k8s-op| in the ``mongodb`` namespace, copy, paste,
+               and run the following:
 
-      .. literalinclude:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0330_wait_for_database_resource.sh
-         :language: javascript 
-         :copyable: true 
-         :linenos:
 
-   .. step:: Optional. View all the running pods in your namespace. 
+               .. literalinclude:: /includes/code-examples/search/09-search-sharded-mongod-managed-lb/code_snippets/09_0100_install_operator.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
 
-      View all the running pods in your namespace pods for the MongoDB
-      replica set members, the |k8s-op|, and the Search nodes.
+            .. step:: Required. Create Ops Manager Resources
 
-      .. io-code-block:: 
-         :copyable: true 
-    
-         .. input:: /includes/code-examples/search/02-search-enterprise-deploy/code_snippets/02_0335_show_running_pods.sh
-            :language: shell 
-            :linenos:
+               Create an Ops Manager project ConfigMap and credentials Secret.
 
-         .. output:: /includes/code-examples/outputs/test_kind_search_enterprise_snippets/02_0335_show_running_pods.out
-            :language: shell 
-            :linenos:
-            :visible: false 
+               .. literalinclude:: /includes/code-examples/search/09-search-sharded-mongod-managed-lb/code_snippets/09_0300_create_ops_manager_resources.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
 
-Next Steps 
+      .. collapsible::
+         :heading: Configure TLS Certificates
+         :expanded: false
+
+         .. procedure::
+            :style: normal
+
+            .. step:: Conditional. Install cert-manager
+               
+               The ``cert-manager`` is required for managing |tls| certificates,
+               which secure connections between ``mongod``, the Envoy load
+               balancer, and ``mongot`` pods. If you already have ``cert-manager``
+               installed in your cluster, skip this step. Otherwise, install
+               ``cert-manager``.
+
+               To install ``cert-manager`` in the ``cert-manager`` namespace,
+               run the following commands in your terminal: 
+
+               .. literalinclude:: /includes/code-examples/search/09-search-sharded-mongod-managed-lb/code_snippets/09_0301_install_cert_manager.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+            .. step:: Required. Configure TLS Prerequisites
+
+               Create the ``cert-manager`` bootstrap chain needed before any
+               certificates can be issued:
+
+               .. image:: /images/cert-manager-bootstrap-chain.svg
+                  :alt: cert-manager bootstrap chain
+
+               .. list-table::
+                  :header-rows: 1
+                  :widths: 30 35 35
+
+                  * - ``cert-manager`` Object
+                    - Env Var
+                    - Purpose
+                  * - Self-Signed ClusterIssuer
+                    - ``MDB_TLS_SELF_SIGNED_ISSUER``
+                    - Bootstrap-only issuer; can only sign the CA's own certificate
+                  * - CA Certificate (``isCA: true``)
+                    - ``MDB_TLS_CA_CERT_NAME`` / ``MDB_TLS_CA_SECRET_NAME``
+                    - The root CA; stored as a Secret in the ``cert-manager`` namespace
+
+               .. literalinclude:: /includes/code-examples/search/09-search-sharded-mongod-managed-lb/code_snippets/09_0302_configure_tls_prerequisites.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+            .. step:: Required. Distribute CA Certificate for mongod
+
+               MongoDB Enterprise expects the CA in a ConfigMap (key ``ca-pem``).
+               The following commands extract the CA from the ``cert-manager``
+               namespace and create the ConfigMap in the target namespace.
+
+               .. literalinclude:: /includes/code-examples/search/09-search-sharded-mongod-managed-lb/code_snippets/09_0302a_configure_tls_prerequisites_mongod.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+            .. step:: Required. Distribute CA Certificate for mongot
+
+               ``MongoDBSearch`` expects the CA in a Secret (key ``ca.crt``).
+               The following commands extract the CA from the ``cert-manager``
+               namespace and create the ConfigMap in the target namespace.
+
+               .. literalinclude:: /includes/code-examples/search/09-search-sharded-mongod-managed-lb/code_snippets/09_0302b_configure_tls_prerequisites_mongot.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+            .. step:: Required. Generate TLS Certificates for MongoDB
+
+               Generate TLS certificates for each shard's ``mongod``, config servers, and ``mongos``.
+
+               .. literalinclude:: /includes/code-examples/search/09-search-sharded-mongod-managed-lb/code_snippets/09_0304_generate_tls_certificates.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+
+   Install |text-search| and |vector-search|
+   -----------------------------------------
+
+   Procedure
+   ~~~~~~~~~
+
+   .. selected-content::
+      :selections: repl, single
+
+      .. include:: /includes/install/fts-vs/steps-single-replica-set-search-mdb-enterprise.rst
+
+   .. selected-content::
+      :selections: repl, multiple
+
+      .. include:: /includes/install/fts-vs/steps-multiple-replica-set-search-mdb-enterprise.rst
+
+   .. selected-content::
+      :selections: shard, multiple
+
+      .. include:: /includes/install/fts-vs/steps-sharded-search-mdb-enterprise.rst
+
+   Troubleshooting
+   ~~~~~~~~~~~~~~~
+
+   .. selected-content::
+      :selections: repl, multiple
+
+      Envoy Pod Not Starting
+      ``````````````````````
+      **Symptoms:** The ``{name}-search-0-lb`` Deployment has 0/1 ready pods.
+
+      **Check**
+
+      .. code-block:: shell
+         :copyable: false
+
+         kubectl describe deployment ${MDB_RESOURCE_NAME}-search-lb-0 -n ${MDB_NS}
+         kubectl logs -l app=${MDB_RESOURCE_NAME}-search-lb-0 -n ${MDB_NS}
+
+      **Common causes:**
+
+      - TLS certificate Secrets were not found. Ensure that the ``mongot`` and load 
+        balancer certificates are created before the ``MongoDBSearch`` resource.
+      - The ConfigMap ``${MDB_SEARCH_RESOURCE_NAME}-search-lb-0-config`` does not 
+        exist. Verify that the ``MongoDBSearch`` resource reached Running state.
+      - Image pull errors. Check image pull secrets and registry access.
+
+      Search Index Creation Fails
+      ````````````````````````````
+      **Symptoms:** Search indexes remain in the ``BUILDING`` or ``FAILED``
+      state and do not become queryable. Atlas Search queries return errors
+      or empty results even after the pods reach the ``Running`` state.
+
+      **Check**
+
+      .. code-block:: shell
+         :copyable: false
+
+         kubectl get pods -n ${MDB_NS} | grep search
+         kubectl logs ${MDB_RESOURCE_NAME}-search-0 -n ${MDB_NS}
+
+      **Common causes:**
+
+      - ``mongot`` cannot connect to MongoDB. Verify that the source credentials
+        are correct and that the ``MongoDBSearch`` resource references a valid secret.
+      - TLS CA mismatch between ``mongod`` and ``mongot``. Ensure both components 
+        are configured to use the same Certificate Authority.
+      - ``mongot`` pods are not ready yet. Wait for all search pods to reach the
+        ``Running`` state before attempting to use Atlas Search features.
+
+      MongoDBSearch Stuck in Pending
+      ``````````````````````````````
+
+      **Symptoms:** The ``MongoDBSearch`` resource stays in ``Pending`` state.
+
+      **Check**
+
+      .. code-block:: shell
+         :copyable: false
+
+         kubectl describe mongodbsearch ${MDB_RESOURCE_NAME} -n ${MDB_NS}
+         kubectl get events -n ${MDB_NS} --field-selector involvedObject.name=${MDB_RESOURCE_NAME}
+
+      **Common causes:**
+
+      - The password Secret for the ``search-sync-source`` user was not created.
+      - TLS certificates are not ready. Run ``kubectl get certificates -n ${MDB_NS}`` to check.
+      - The cluster is not reachable from the Kubernetes cluster.
+
+
+   .. selected-content::
+      :selections: shard, multiple
+
+      Envoy Pod Not Starting
+      ``````````````````````
+      **Symptoms:** The ``{name}-search-0-lb`` Deployment has 0/1 ready pods.
+
+      **Check**
+
+      .. code-block:: bash
+         :copyable: false
+
+         kubectl describe deployment ${MDB_RESOURCE_NAME}-search-lb-0 -n ${MDB_NS}
+         kubectl logs -l app=${MDB_RESOURCE_NAME}-search-lb-0 -n ${MDB_NS}
+
+      **Common causes:**
+
+      - TLS certificate Secrets were not found. Ensure that the ``mongot`` and load 
+        balancer certificates are created before the ``MongoDBSearch`` resource.
+      - The ConfigMap ``${MDB_SEARCH_RESOURCE_NAME}-search-lb-0-config`` does not 
+        exist. Verify that the ``MongoDBSearch`` resource reached Running state.
+      - Image pull errors. Check image pull secrets and registry access.
+
+      Search Index Creation Fails
+      ```````````````````````````
+
+      **Symptoms:** Search indexes remain in the ``BUILDING`` or ``FAILED``
+      state and do not become queryable. Atlas Search queries return errors
+      or empty results even after the pods reach the ``Running`` state.
+
+      **Check**
+
+      .. code-block:: bash
+         :copyable: false
+
+         kubectl get pods -n ${MDB_NS} | grep search
+         kubectl logs ${MDB_RESOURCE_NAME}-search-0-${MDB_SHARD_0_NAME}-0 -n ${MDB_NS}
+
+      **Common causes:**
+
+      - ``mongot`` cannot connect to MongoDB. Verify that the source credentials
+        are correct and that the ``MongoDBSearch`` resource references a valid secret.
+      - TLS CA mismatch between ``mongod`` and ``mongot``. Ensure both components 
+        are configured to use the same Certificate Authority.
+      - ``mongot`` pods are not ready yet. Wait for all search pods to reach the
+        ``Running`` state before attempting to use Atlas Search features.
+
+      ``MongoDBSearch`` Stuck in Pending
+      ``````````````````````````````````
+
+      **Symptoms:** The ``MongoDBSearch`` resource stays in ``Pending`` state.
+
+      **Check:**
+
+      .. code-block:: bash
+         :copyable: false
+
+         kubectl describe mongodbsearch ${MDB_RESOURCE_NAME} -n ${MDB_NS}
+         kubectl get events -n ${MDB_NS} --field-selector involvedObject.name=${MDB_RESOURCE_NAME}
+
+      **Common causes:**
+
+      - The password Secret for the ``search-sync-source`` user was not created.
+      - TLS certificates are not ready. Run ``kubectl get certificates -n ${MDB_NS}`` to check.
+      - The sharded cluster is not reachable from the Kubernetes cluster.
+
+
+Next Steps
 ----------
 
-Now that you've successfully deployed |text-search| and |vector-search|
-to use with MongoDB Enterprise Edition, you can add data in your MongoDB
-cluster, create |text-search| and |vector-search| indexes, and run
-queries against your data. To learn more, see :ref:`k8s-fts-vs-settings`. 
+After deploying MongoDB Search and Vector Search to use with MongoDB
+Enterprise Edition, you can add data to your MongoDB cluster,
+create MongoDB Search and Vector Search indexes, and run queries
+against your data. To learn more, see :ref:`k8s-fts-vs-settings`.

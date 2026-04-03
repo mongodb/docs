@@ -19,8 +19,7 @@ export MDB_TLS_SELF_SIGNED_ISSUER="${MDB_RESOURCE_NAME}-selfsigned-cluster-issue
 export MDB_TLS_CA_CERT_NAME="${MDB_RESOURCE_NAME}-selfsigned-ca"
 export MDB_TLS_CA_ISSUER="${MDB_RESOURCE_NAME}-cluster-issuer"
 
-# minimum required MongoDB version for running MongoDB Search is 8.2.0
-export MDB_VERSION="8.2.0"
+export MDB_VERSION="8.2.6"
 
 # root admin user for convenience, not used here at all in this guide
 export MDB_ADMIN_USER_PASSWORD="admin-user-password-CHANGE-ME"

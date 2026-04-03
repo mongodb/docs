@@ -1,0 +1,284 @@
+=================================
+Known Issues in the |k8s-op-full|
+=================================
+
+.. meta::
+   :description: Discover known issues with the Kubernetes Operator, including EBS volume underprovisioning, ConfigMap naming, and `mongos` readiness after disabling authentication.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Underprovisioned EBS Volume Causes Long IOPS Wait Times
+-------------------------------------------------------
+
+If you used `kops <https://kops.sigs.k8s.io/>`__ to provision a |k8s| cluster in |aws| and
+are experiencing poor performance and high |iops| wait times, your Elastic Block Store
+(EBS) volume may be underprovisioned. 
+
+To improve performance, increase the storage-to-IOPS ratio for your EBS volume. For
+example, if your database is 500 GB, increase IOPS to 1500, a 3:1 ratio per GB. To learn 
+more about increasing IOPS, see the
+:aws:`AWS documentation </AWSEC2/latest/UserGuide/requesting-ebs-volume-modifications.html>`.
+
+.. _hardcoded_configmap_multi-clusters:
+
+ConfigMap Name ``mongodb-kubernetes-operator-member-list`` is Hard-Coded
+------------------------------------------------------------------------
+
+When you run the |kubectl-mongodb|, such as during the
+:ref:`multi-Kubernetes-cluster quick start procedure <multi-cluster-quick-start-ref>`,
+the plugin creates a default ConfigMap named ``mongodb-kubernetes-operator-member-list``.
+This ConfigMap contains all the members of the |multi-cluster|. You can't change
+the ConfigMap's name. To learn more about plugin's flags and actions,
+see :ref:`kubectl-plugin-ref`.
+
+.. _disable_auth_pods_never_reconcile:
+
+``mongos`` Instances Fail to Reach Ready State After Disabling Authentication
+-----------------------------------------------------------------------------
+
+.. note::
+
+   This issue applies only to :manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>`
+   that meet the following criteria: 
+
+   - Deployed using the |k8s-op-short| 1.13.0
+   - Use X.509 authentication 
+   - Use :k8sdocs:`kubernetes.io/tls
+     </concepts/configuration/secret/#tls-secrets>` secrets for |tls|
+     certificates for the {+mdbagent+}
+
+If you disable authentication by setting 
+``spec.security.auth.enabled`` to  ``false``, the |mongos| Pods 
+never reach a ``ready`` state.
+
+As a workaround, delete each |mongos| Pod in your deployment. 
+
+Run the following command to list all of your Pods:
+
+.. code-block:: sh
+
+   kubectl get pods
+
+For each Pod with a name that contains ``mongos``, delete it with the
+following command:
+
+.. code-block:: sh
+
+   kubectl delete pod <podname>
+
+When you delete a Pod, Kubernetes recreates it. Each Pod that Kubernetes
+recreates receives the updated configuration and can reach a ``READY`` 
+state. To confirm that all of your |mongos| Pods are ``READY``, run the
+following command:
+
+.. code-block:: sh
+
+   kubectl get pods -n <metadata.namespace>
+
+A response like the following indicates that all of your |mongos| Pods
+are ``READY``:
+
+.. code-block:: sh
+   :copyable: false
+   :emphasize-lines: 7-8
+
+   NAME                                           READY   STATUS    RESTARTS   AGE
+   mongodb-kubernetes-operator-6495bdd947-ttwqf   1/1     Running   0          50m
+   my-sharded-cluster-0-0                         1/1     Running   0          12m
+   my-sharded-cluster-1-0                         1/1     Running   0          12m
+   my-sharded-cluster-config-0                    1/1     Running   0          12m
+   my-sharded-cluster-config-1                    1/1     Running   0          12m
+   my-sharded-cluster-mongos-0                    1/1     Running   0          11m
+   my-sharded-cluster-mongos-1                    1/1     Running   0          11m
+   om-0                                           1/1     Running   0          42m
+   om-db-0                                        2/2     Running   0          44m
+   om-db-1                                        2/2     Running   0          43m
+   om-db-2                                        2/2     Running   0          43m
+
+.. _k8s-private-cluster-on-gke:
+
+Update Google Firewall Rules to Fix WebHook Issues
+--------------------------------------------------
+
+When you deploy |k8s-op-short| to |gke| private clusters, the
+|k8s-mdbrscs| or MongoDBOpsManager resource creation could time out.
+The following message might appear in the logs: ``Error setting state
+to reconciling: Timeout: request did not complete within requested
+timeout 30s``.
+
+Google configures its firewalls to restrict access to your |k8s|
+|k8s-pods|. To use the webhook service,
+:gcp:`add a new firewall rule </kubernetes-engine/docs/how-to/private-clusters#add_firewall_rules>`
+to grant |gke| control plane access to your webhook service.
+
+The |k8s-op-short| webhook service runs on port 443.
+
+Configure Persistent Storage Correctly
+--------------------------------------
+
+If there are no
+:k8sdocs:`persistent volumes </concepts/storage/persistent-volumes/>`
+available when you create a resource, the resulting |k8s-pod| stays in
+transient state and the Operator fails  (after 20 retries) with the
+following error:
+
+.. code-block:: sh
+
+   Failed to update Ops Manager automation config: Some agents failed to register
+
+To prevent this error, either:
+
+- Provide |k8s-pvs| or
+- Set ``persistent : false`` for the resource
+
+For testing only, you may also set ``persistent : false``. This
+*must not be used in production*, as data is not preserved between
+restarts.
+
+.. _remove-rsrcs-before-removing-k8s:
+
+Remove Resources before Removing |k8s|
+--------------------------------------
+
+Sometimes |onprem| can diverge from |k8s|. This mostly occurs when
+|k8s| resources are removed manually. |onprem| can keep displaying an
+Automation Agent which has been shut down.
+
+If you want to remove deployments of MongoDB on |k8s|, use the
+resource specification to delete resources first so no dead Automation
+Agents remain.
+
+To troubleshoot any issues that might occur, see:
+
+- :ref:`remove-k8s-resource`
+- :ref:`k8s-disable-feature-controls`
+- :ref:`k8s-delete-om`
+
+
+Create Separate Namespaces for |k8s-op-short| and MongoDB Resources
+-------------------------------------------------------------------
+
+The best strategy is to create |k8s-op-short| and its resources in
+different namespaces so that the following operations would work
+correctly:
+
+.. code-block:: sh
+
+   kubectl delete pods --all
+
+or
+
+.. code-block:: sh
+
+   kubectl delete namespace mongodb
+
+If the |k8s-op-short| and resources sit in the same ``mongodb``
+|k8s-ns|, then operator would also be removed in the same operation.
+This would mean that it could not clean the configurations, which
+would have to be done in the |application|.
+
+.. _https-enablement-issues:
+
+HTTPS Enabled After Deployment
+------------------------------
+
+We recommend that you enable |https| *before* deploying your |onprem| resources.
+However, if you enable |https| after deployment,
+your managed resources can no longer communicate with |onprem| and 
+the |k8s-op-short| reports your resources' status as ``Failed``.
+
+To resolve this issue, you must delete your |k8s-pods| by
+running the following command for each Pod:
+
+.. code-block:: sh
+
+   kubectl delete pod <replicaset-pod-name>
+      
+After deletion, |k8s| automatically restarts the deleted Pods. 
+During this period, the resource is unreachable and incurs 
+downtime.
+
+.. seealso::
+   
+   - :ref:`config-https`
+   - :ref:`k8s-troubleshooting`
+
+.. _unable-to-upgrade-appdb-agent-in-om:
+
+Unable to Update the {+mdbagent+} on {+appdb+} Pods
+-----------------------------------------------------------------
+
+You can't use |onprem| to upgrade the {+mdbagent+}\'s that run on the
+{+appdb+} Pods. The {+mdbagent+} version that runs on these
+Pods is embedded in the {+appdb+} Docker image.
+
+You can use the |k8s-op-short| to upgrade the {+mdbagent+} version on
+{+appdb+} Pods as MongoDB publishes new images.
+
+.. seealso::
+
+   - :ref:`meko-appdb-agent-version`
+   - :ref:`registry-appdb-version`
+
+.. _pull_op_images_ibm:
+
+Unable to Pull Enterprise Kubernetes Operator Images from IBM Cloud Paks
+--------------------------------------------------------------------------
+
+If you pull the |k8s-op-short| images from a container registry hosted in 
+`IBM Cloud Paks <https://www.ibm.com/cloud/paks>`__, the IBM Cloud Paks
+changes the names of the images by adding a digest SHA to the official image 
+names. This action results in error messages from the |k8s-op-short| similar 
+to the following:
+
+.. code-block:: sh
+   :copyable: false
+
+   Failed to apply default image tag "cp.icr.io/cp/cpd/ibm-cpd-mongodb-agent@
+   sha256:10.14.24.6505-1": couldn't parse image reference "cp.icr.io/cp/cpd/
+   ibm-cpd-mongodb-agent@sha256:10.14.24.6505-1": invalid reference format
+
+As a workaround, update the Ops Manager {+appdb+} resource definition 
+in ``spec.applicationDatabase.podSpec.``:setting:`~spec.podSpec.podTemplate` to 
+specify the new names for the |k8s-op-short| images that contain the digest SHAs, 
+similar to the following example.
+
+.. code-block:: sh
+
+   applicationDatabase:
+     # The version specified must match the one in the image provided in the `mongod` field
+     version: 4.4.11-ubi8
+     members: 3
+     podSpec:
+       podTemplate:
+         spec:
+           containers:
+             - name: mongodb-agent
+               image: 'cp.icr.io/cp/cpd/ibm-cpd-mongodb-agent@sha256:689df23cc35a435f5147d9cd8a697474f8451ad67a1e8a8c803d95f12fea0b59'
+
+Machine Memory vs. Container Memory
+-----------------------------------
+
+The Automation Agent in |cloud-short| and |onprem| reports
+host memory (RAM) usage instead of the |k8s| container memory usage.
+
+On MacOS, hosts using Docker Desktop OpsManager fail to download database images
+--------------------------------------------------------------------------------
+
+If you see errors in OpsManager logs like:
+
+.. code-block:: sh
+
+   ['desiredState.FullVersion' is not a member of 'currentState.VersionsOnDisk' ('desiredState.FullVersion'={"trueName":"8.0.4","gitVersion":"bc35ab4305d9920d9d0491c1c9ef9b72383d31f9","modules":null,"major":8,"minor":0,"patch":4}, 'currentState.VersionsOnDisk'=[])] (err=<nil>). Outcome=Failure
+
+The following combination of Docker Desktop settings may resolve the issue:
+
+- `Enable Apple Virtualization framework <https://github.com/docker/enable-macos-virtualization-framework>`__
+- `Disable "Use Rosetta for x86_64/amd64 emulation on Apple Silicon" <https://docs.docker.com/desktop/settings-and-maintenance/settings/>`__
+- `Enable gRPC FUSE <http://docs.docker.com/desktop/settings-and-maintenance/settings/>`__

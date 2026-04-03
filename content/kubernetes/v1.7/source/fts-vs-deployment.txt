@@ -1,0 +1,454 @@
+:noprevnext:
+
+.. _k8s-deploy-search-resources:
+
+=======================================
+Deploy MongoDB Search and Vector Search 
+=======================================
+
+.. meta::
+   :description: Deploy MongoDB Search and Vector Search with MongoDB Community and MongoDB Enterprise servers.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can deploy |text-search| and |vector-search| in your |k8s| cluster
+to build powerful search experiences directly within your applications.
+Using |text-search| and |vector-search|, you can build both traditional
+text search and AI-powered vector search capabilities that automatically
+sync with an on-premises MongoDB database. This eliminates the need to
+maintain separate systems in sync while providing advanced search
+features. To learn more, see: 
+
+- :ref:`atlas-search`
+- :ref:`avs-overview`
+
+To enable the search capabilities such as full-text and semantic search
+in on-prem deployments, you must deploy the |text-search| and
+|vector-search| process (``mongot``) and connect it with your MongoDB
+database deployment (``mongod``). Deployment of ``mongot`` is optional
+and is needed only if you plan to leverage the search features it offers.
+
+The MongoDB Database processes (``mongod``) acts as the proxy for all
+search queries for ``mongot``. The ``mongod`` forwards the query to
+``mongot``, which processes the query. The ``mongot`` returns the query
+results to the ``mongod``, which then forwards the results to you. You
+never interact directly with the ``mongot``. 
+
+Each ``mongot`` process has its own persistent volume that is not shared
+with the database or other search nodes. Storage is used to maintain
+indexes that are built from the data continuously sourced from the
+database. The index definitions (metadata) are stored in the database
+itself.
+
+The ``mongot`` performs the following actions: 
+
+- Manages the index. 
+  
+  The ``mongot`` is responsible for updating the index definitions in
+  the database. 
+  
+- Sources the data from the database. 
+  
+  The ``mongot`` nodes establish permanent connections to the database
+  in order to update indexes from the database in real time. 
+
+- Processes search queries. 
+  
+  When ``mongod`` receives a :pipeline:`$search`,
+  :pipeline:`$searchMeta`, or :pipeline:`$vectorSearch` query, it
+  directs the query to one of the ``mongot`` nodes. The ``mongot`` that
+  receives the query processes the query, aggregates the data, and
+  returns the results to ``mongod``, which it forwards to the user. 
+
+The ``mongot`` components are tightly coupled with a single MongoDB
+replica set and cannot be shared across multiple databases or replica
+sets. That means a replica set deployment has its own dedicated search
+nodes. 
+
+Network connectivity between ``mongot`` and ``mongod`` goes in both
+directions: 
+
+- ``mongot`` establishes connection to the replica set to source the data
+  used to build indexes and run queries.
+- ``mongod`` connects to ``mongot`` to forward search related operations
+  such as index management and querying the data.
+
+|text-search| and |vector-search| Deployment 
+--------------------------------------------
+
+There are not many differences between the search deployment
+architecture with or without the |k8s-op-short|. The |k8s-op-short|
+simplifies the steps required to deploy fully functioning search nodes,
+especially when the database is also managed by the |k8s-op-short|.
+
+To deploy, you apply the MongoDBSearch Custom Resource (CR), which
+the |k8s-op-short| picks up and starts deploying ``mongot`` pods and
+requests persistent storage specified in the ``spec``. The |text-search|
+and |vector-search| deployed using the |k8s-op-short| can target MongoDB
+replica set deployed by the |k8s-op-short| inside the same |k8s| cluster
+or a completely independent external MongoDB database. To learn how to
+deploy and configure ``mongot`` to use: 
+
+- A MongoDB replica set in |k8s|, see :ref:`k8s-fts-vs-install` or
+  :ref:`k8s-fts-vs-install-enterprise` 
+- An external MongoDB replica set, see
+  :ref:`k8s-fts-vs-install-external-enterprise`. 
+
+Pre-Requisites 
+~~~~~~~~~~~~~~
+
+In order to leverage |text-search| and |vector-search| in your: 
+
+- MongoDB Community deployment, you must have a fully functional MongoDB
+  8.2+ replica set deployed inside a |k8s| cluster using the
+  |k8s-op-short|. 
+- MongoDB Enterprise deployment, you must have a fully functional
+  MongoDB 8.2+ replica set deployed in one of the following ways:  
+
+  - Inside a |k8s| cluster using the |k8s-op-short|
+  - Outside a |k8s| cluster
+
+- |com| Instance
+
+Before you begin, consider the following:
+
+.. collapsible::
+   :heading: Considerations
+   :sub_heading: Describes storage, network, resource, Kubernetes version and compatibility, namespace and RBAC, and cluster DNS requirements.
+   :expanded: false
+
+   - You must have a working ``StorageClass`` for the creation of
+     persistent volumes in the|k8s| cluster. Without this, your
+     ``PersistentVolumeClaims`` might remain pending and MongoDB might
+     not have durable storage. 
+
+   - You must have a correctly configured cluster networking. Services
+     such as ClusterIP, NodePort, or LoadBalancer must be able to route
+     traffic. If external clients need access, set up an ingress or
+     load balancer.
+
+   - Your database and search nodes must have enough CPU, memory, and
+     disk space allocated because MongoDB database, and |text-search|
+     and |vector-search| workloads are resource-intensive. We recommend
+     using requests and limits in your Pod specs to avoid eviction or
+     throttling. 
+
+   - Your |k8s| version must be supported by the MongoDB operator or
+     Helm chart you want to use. Some CRDs or APIs differ across
+     versions. To learn more, see :ref:`k8s-compatibility`.
+
+   - You must create any required :abbr:`RBAC (Role-Based Access
+     Control)` roles and role bindings so that the |k8s-op-short| and
+     processes running within the Pods can manage resources. 
+
+.. collapsible::
+   :heading: Limitations
+   :sub_heading: Describes limitations when deploying MongoDB Search and Vector Search.
+   :expanded: false
+
+   You can't deploy |text-search| and |vector-search| on the following
+   architectures: 
+
+   - IBM Power (ppc64le)
+   - IBM Z (s390x)
+
+Configuration Tasks  
+~~~~~~~~~~~~~~~~~~~
+
+The following table shows the configuration tasks that the
+|k8s-op-short| automatically performs and the actions that you must
+take to successfully deploy |text-search| and |vector-search| in |k8s|
+and connect to a MongoDB replica set in |k8s| or an external MongoDB
+replica set. 
+
+.. list-table:: 
+   :stub-columns: 1
+   :header-rows: 1
+   :widths: 60 20 20
+
+   * - Task
+     - | (Inside |k8s|)
+       | Performed by  
+     - | (External MongoDB)
+       | Performed by 
+
+   * - Deploy |mms| inside |k8s|
+     - |k8s-op-short|
+     - |k8s-op-short|
+
+   * - Deploy |com| outside |k8s| 
+     - You 
+     - You 
+
+   * - Deploy MongoDB replica set
+     - |k8s-op-short|
+     - You
+
+   * - Create MongoDBSearch custom resource
+     - You
+     - You
+
+   * - Provide connection string to MongoDB replica set
+     - |k8s-op-short|
+     - You
+
+   * - Create ``mongot`` configuration |yaml| 
+     - |k8s-op-short|
+     - |k8s-op-short|
+
+   * - Set necessary replica set parameters in each ``mongod`` process
+     - |k8s-op-short|
+     - You
+
+   * - Create user for ``mongot`` with ``searchCoordinator`` role
+     - Kubernetes Operator and you by applying MongoDBUser resource
+     - You
+
+   * - Configure MongoDB replica set with a user that has necessary permissions to query search
+     - You
+     - You
+
+   * - Create |text-search| and |vector-search| indexes
+     - You
+     - You
+
+   * - Expose search pods externally for connecting from each ``mongod`` node
+     - Not necessary 
+     - You
+
+   * - Expose mongod pods externally for connecting from ``mongot`` nodes
+     - Not necessary 
+     - You
+
+.. collapsible::
+   :heading: Both mongod and mongot Deployed in Kubernetes
+   :sub_heading: Architecture of mongod and mongot processes running in a Kubernetes cluster.
+   :expanded: false
+
+   The following diagram shows the deployment architecture of a single
+   |text-search| and |vector-search| instance with a MongoDB Enterprise
+   replica set in a |k8s| cluster. 
+
+   .. figure:: /images/search-mdb-in-k8s-deployment-arch.png
+      :alt: Diagram showing the deployment architecture of MongoDB Search and Vector Search with MongoDB Enterprise in a Kubernetes cluster.
+      :figwidth: 600px
+      :lightbox:
+
+   The following diagram shows the components that the |k8s-op-short| 
+   deploys in a |k8s| cluster for |text-search| and |vector-search| with
+   a MongoDB Enterprise Edition replica set.
+
+   .. figure:: /images/mdb-search-in-k8s.png
+      :alt: Diagram showing the components included in the MongoDB Enterprise replica set with MongoDB Search and Vector Search deployment using the operator.
+      :figwidth: 600px
+      :lightbox:
+   
+   When both the ``mongot`` and ``mongod`` processes are deployed inside
+   the |k8s| cluster, the |k8s-op-short| performs configuration for both 
+   processes automatically. Specifically, the |k8s-op-short| performs the 
+   following operations: 
+
+   1. Finds the MongoDB :abbr:`CR (Custom Resource)` referenced by
+      MongoDBSearch using ``spec.source.mongodbResourceRef``, or by
+      a naming convention by looking for MongoDB :abbr:`CR (Custom
+      Resource)` with the same name as MongoDBSearch.
+
+   #. Generates ``mongot`` configuration in a |yaml| file and saves it
+      to a config map named ``<MongoDBSearch.metadata.name>-search-config``.
+     
+      The Config map is mounted by the search pods and the |yaml| configuration
+      is used by ``mongot``\'s process on startup. The generated |yaml|
+      contains all the information about how to connect to the replica set, TLS
+      settings, and so on.
+     
+   #. Deploys |text-search| and |vector-search| stateful set named
+      ``<MongoDBSearch.metadata.name>-search`` with storage and resource
+      requirements configured according to the ``spec.persistence``
+      and ``spec.resourceRequirements`` settings in the :abbr:`CR
+      (Custom Resource)`.
+
+   #. Updates configuration of every ``mongod`` process by adding the
+      necessary ``setParameter`` options, including the hostnames and port
+      numbers of the mongot hosts.
+      necessary ``setParameter`` options, including the hostnames and port
+      numbers of the MongoDB replica set members.
+
+   You must perform the following actions: 
+
+   1. Create a user in the replica set using a ``MongoDBUser`` custom
+      resource. The ``mongot`` uses the credentials of this user to
+      connect to the replica set to source the data:
+
+      - The user name is arbitrary (in the examples, we use
+        ``search-sync-source-user``), but it must have the
+        ``searchCoordinator`` role set.  
+      - The username and password of this user is passed in
+        ``MongoDBSearch.spec.source.username`` and
+        ``MongoDBSearch.spec.source.passwordSecretRef`` respectively. 
+        
+        The password secret can refer to the same secret containing
+        user password that was used to create ``MongoDBUser`` spec (in
+        ``MongoDBUser.spec.source.passwordSecretKeyRef``). 
+
+   #. Configure and apply the MongoDBSearch custom resource.
+
+   To learn more about the :abbr:`CR (Custom Resource)` settings for the
+   ``mongot`` process, see :ref:`k8s-fts-vs-settings`.
+
+.. collapsible::
+   :heading: mongot Deployed in Kubernetes with mongod Running Outside Kubernetes
+   :sub_heading: Architecture of mongot processes deployed in a Kubernetes cluster to use mongod processes running outside the Kubernetes cluster.
+   :expanded: false
+
+   The following diagram shows the deployment architecture of
+   |text-search| and |vector-search| in a |k8s| cluster using an
+   external MongoDB Enterprise Edition replica set.
+   
+   .. figure:: /images/search-only-in-k8s-deployment-arch.png
+      :alt: Diagram showing the deployment architecture of MongoDB Search and Vector Search with MongoDB Enterprise in a Kubernetes cluster.
+      :figwidth: 600px
+      :lightbox:
+
+   The following diagram shows the components that the |k8s-op-short| 
+   deploys in a |k8s| cluster for |text-search| and |vector-search|.  
+
+   .. figure:: /images/external-mdb-with-search-in-k8s.png 
+      :alt: Diagram showing the components included in the deployment of MongoDB Enterprise Replica Set with MongoDB Search using the operator.
+      :figwidth: 600px
+      :lightbox:
+
+   In order to leverage |text-search| and |vector-search| when you have
+   your MongoDB deployment outside of |k8s|, you deploy ``mongot`` using
+   the |k8s-op-short| and you must perform some steps manually. The
+   |k8s-op-short| handles configuration of the search pods. However,
+   when the MongoDB replica set is outside of |k8s|, you must
+   reconfigure your MongoDB nodes and the networking. 
+   
+   You are responsible for the following manual configurations:
+   
+   External MongoDB Configuration
+   ``````````````````````````````
+
+   1. Configure the following parameter using ``setParameter`` on every
+      ``mongod`` process in your external replica set. When configuring,
+      replace ``<search-service-hostname>:27028`` with the actual
+      resolvable hostname and port of your MongoDBSearch service. 
+
+      .. code-block:: javascript
+
+         setParameter:
+           mongotHost: "<search-service-hostname>:27028"
+           searchIndexManagementHostAndPort: "<search-service-hostname>:27028"
+           skipAuthenticationToSearchIndexManagementServer: false
+           searchTLSMode: "disabled"  # or "requireTLS" for TLS deployments
+           useGrpcForSearch: true
+
+   #. Create a user in the external replica set for the search
+      synchronization process. This user must have the ``searchCoordinator``
+      role. 
+
+      .. code-block:: yaml 
+
+         - userName: "search-sync-source" 
+           password: "<your-search-sync-password>" 
+           database: "admin" 
+           roles: 
+             - role: "searchCoordinator" 
+               db: "admin"
+
+   |k8s| Configuration 
+   ```````````````````
+
+   1. Configure and apply the MongoDBSearch :abbr:`CR (Custom
+      Resource)` with ``spec.source.external`` pointing to your external
+      MongoDB hosts.  
+   #. Create a |k8s| secret for the search synchronization user's password.
+
+      .. code-block:: yaml 
+
+         apiVersion: v1
+         kind: Secret
+         metadata:
+           name: search-sync-source-password
+         stringData:
+           password: "your-search-sync-password" 
+
+   #. Configure networking and DNS to ensure bi-directional connectivity
+      between your external MongoDB and the search pods. Your external
+      MongoDB environment must be able to resolve your search service
+      hostname (``<search-service-hostname>``). 
+
+   To learn more about the :abbr:`CR (Custom Resource)` settings for the
+   ``mongot`` process to connect to an external ``mongod`` process, see
+   :ref:`k8s-fts-vs-settings`. 
+
+Security 
+--------
+
+The following image illustrates the security configuration for the
+``mongot`` process. If the MongoDB server is inside of the |k8s|
+cluster, the |k8s-op-short| automatically sets up keyfile authentication
+for |text-search| and |vector-search|. If the MongoDB server is
+external, you must create a |k8s| Secret containing the replica set's
+keyfile credential and reference it in the MongoDBSearch :abbr:`CR
+(Custom Resource)`. 
+
+.. figure:: /images/search-security.png
+   :alt: Diagram showing the keyfile authentication and TLS configuration for search.
+   :figwidth: 600px
+   :lightbox:
+
+Authentication 
+~~~~~~~~~~~~~~
+
+The ``mongot`` process authenticates ``mongod`` connections using mTLS.
+When you enable TLS, the ``mongot`` process uses the MongoDB server's
+TLS certificate as the client certificate for authentication. This
+certificate is verified against the CA certificate that ``mongot`` is
+configured with. For authentication to work properly, you must configure
+both ``mongot`` and ``mongod`` with TLS enabled. 
+
+When configured to index a MongoDB resource within the same |k8s|
+cluster, the |k8s-op-short| automatically propagates the ``mongod`` CA
+certificate to ``mongot`` and enables mTLS for search query connections 
+if both the ``MongoDB`` and MongoDBSearch resources are configured for
+TLS. If the MongoDB replica set is deployed outside |k8s|, you must
+create a |k8s| Secret containing the replica set's CA certificate and 
+reference it in the ``MongoDBSearch.spec.source.external.tls.ca`` field to
+enable mTLS authentication for search query requests.
+
+Transport Layer Security  
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDBSearch can protect data and credentials in transit using TLS. 
+For index management commands and search queries, specify (even an empty
+object, ``{}``) ``spec.security.tls`` field and provide a |tls|
+certificate in a |k8s| Secret in the
+``spec.security.tls.certificateKeySecretRef`` field. This |tls| 
+certificate must be issued and signed by the same CA that issued the CA 
+certificate that the MongoDB replica set uses.
+
+When both MongoDBSearch and ``MongoDB`` are deployed by the
+|k8s-op-short|, the underlying ``mongot`` and ``mongod`` configuration
+is largely handled by the |k8s-op-short| itself. When the MongoDB
+replica set is deployed outside of |k8s|, the
+``.spec.source.external.tls`` field must be populated with a |k8s|
+Secret containing the same CA certificate ``mongod`` is configured with,
+and ``mongod`` configuration itself must have the ``searchTLSMode``
+parameter set to ``requireTLS``.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+   
+   Install Search and Vector Search with MongoDB Community </tutorial/install-fts-vs-with-community>
+   Install Search and Vector Search with MongoDB Enterprise </tutorial/install-fts-vs-with-enterprise>
+   Install and Use with External MongoDB Enterprise </tutorial/install-fts-vs-with-external-enterprise>
+   Migrate External MongoDB Enterprise to Use gRPC </tutorial/migrate-fts-vs-with-external-mongod-to-grpc>
+   Use Search and Vector Search </tutorial/fts-vs-quickstart>

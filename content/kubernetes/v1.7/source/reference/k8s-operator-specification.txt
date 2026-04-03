@@ -1,0 +1,688 @@
+.. _k8s-specification:
+
+=======================================
+MongoDB Database Resource Specification
+=======================================
+
+.. meta::
+   :description: Explore how to create and manage MongoDB resources in Kubernetes using the MongoDB Controllers for Kubernetes Operator, including configuration and deployment options.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecols
+
+.. include:: /includes/admonitions/note-substitute-opsm-with-cloudm.rst
+
+.. include:: /includes/facts/fact-custom-resource-intro.rst
+
+.. list-table::
+   :widths: 20 40 40
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Deployment Type
+     - StatefulSets
+     - Size of StatefulSet
+
+   * - Standalone
+     - 1
+     - 1 |k8s-pod|
+
+   * - Replica Set
+     - 1
+     - 1 |k8s-pod| per member
+
+   * - Sharded Cluster
+     - <numberOfShards> + 2
+     - 1 |k8s-pod| per |mongos|, shard, or config server member
+
+Each |k8s-mdbrsc| uses an object specification in |yaml| to define the
+characteristics and settings of the MongoDB object: standalone,
+:manual:`replica set </reference/glossary/#std-term-replica-set>`, and :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`.
+
+Common Resource Settings
+------------------------
+
+Every resource type must use the following settings:
+
+Required
+~~~~~~~~
+
+.. include:: /includes/setting-k8sSaConf-apiVersion.rst
+.. include:: /includes/setting-k8sSaConf-kind.rst
+.. include:: /includes/setting-k8sSaConf-metadata.name.rst
+.. include:: /includes/setting-k8sSaConf-spec.credentials.rst
+.. include:: /includes/setting-k8sSaConf-spec.persistent.rst
+.. include:: /includes/setting-k8sSaConf-spec.type.rst
+.. include:: /includes/setting-k8sSaConf-spec.version.rst
+
+Conditional
+~~~~~~~~~~~
+
+Every resource must use *one* of the following settings:
+
+.. include:: /includes/setting-k8sSaConf-spec.opsManager.configMapRef.name.rst
+.. include:: /includes/setting-k8sSaConf-spec.cloudManager.configMapRef.name.rst
+
+Optional
+~~~~~~~~
+
+Every resource type may use the following settings:
+
+.. setting:: metadata.annotations.mongodb.com/v1.architecture
+
+   *Type*: string
+
+   Determines the container architecture used by a specific deployment:
+   
+   - The default non-static containers that download the MongoDB binary at runtime, or
+   -  :ref:`static-containers` that are immutable at runtime.
+
+   Accepted values are:
+
+   - ``static``
+   - ``non-static``
+
+   .. code-block:: yaml
+
+      apiVersion: mongodb.com/v1
+      kind: MongoDB
+      metadata:
+        name: my-project
+        annotations:
+          mongodb.com/v1.architecture: "static"
+
+.. setting:: spec.agent.backupAgent.logRotate
+
+   *Type*: object
+
+   Thresholds after which the {+mdbagent+} rotates the backup log.
+
+.. setting:: spec.agent.backupAgent.logRotate.sizeThresholdMB
+
+   *Type*: integer
+
+   Maximum size, in MB, of a backup log file before the {+mdbagent+} rotates the logs.
+
+.. setting:: spec.agent.backupAgent.logRotate.timeThresholdHrs
+
+   *Type*: integer
+
+   Number of hours after which the {+mdbagent+} rotates the backup log file.
+
+.. setting:: spec.agent.mongod.auditlogRotate
+
+   *Type*: object 
+
+   Object that contains the audit log rotation configuration for the MongoDB processes.
+
+.. setting:: spec.agent.mongod.auditlogRotate.sizeThresholdMB
+   
+   *Type*: number
+
+   Maximum size, in MB, of an audit log file before the {+mdbagent+} rotates the logs.
+
+.. setting:: spec.agent.mongod.auditlogRotate.timeThresholdHrs
+   
+   *Type*: integer
+
+   Number of hours after which the {+mdbagent+} rotates the audit log file.
+
+.. setting:: spec.agent.mongod.auditlogRotate.numUncompressed
+
+   *Type*: integer
+
+   Maximum number of total audit log files to leave uncompressed, including the 
+   current log file.
+
+.. setting:: spec.agent.mongod.auditlogRotate.numTotal
+
+   *Type*: integer
+
+   Total number of audit log files that |onprem| retains. If you don't set this 
+   value, the total number of audit log files defaults to **0**.
+
+.. setting:: spec.agent.mongod.auditlogRotate.percentOfDiskspace
+
+   *Type*: number
+
+   Maximum percentage of total disk space that |onprem| can use to store the log 
+   files expressed as decimal. If this limit is exceeded, |onprem| deletes compressed 
+   log files until it meets this limit. |onprem| deletes the oldest log files first.
+
+   The default is **0.02**.
+
+.. setting:: spec.agent.mongod.logRotate
+
+   *Type*: object
+
+   Thresholds after which |onprem| rotates the MongoDB logs of a process.
+
+.. setting:: spec.agent.mongod.logRotate.sizeThresholdMB
+
+   *Type*: integer
+
+   Maximum size in MB for an individual log file before |onprem| rotates it. 
+   |onprem| rotates the log file immediately if it meets the value given in either 
+   this ``sizeThresholdMB`` or the :setting:`spec.agent.mongod.logRotate.timeThresholdHrs`.
+
+.. setting:: spec.agent.mongod.logRotate.timeThresholdHrs
+
+   *Type*: integer
+
+   Maximum duration in hours for an individual log file before the next rotation. The time is since the last rotation.
+
+   |onprem| rotates the log file once the file meets either this ``timeThresholdHrs`` 
+   or the :setting:`spec.agent.mongod.logRotate.sizeThresholdMB`.
+
+.. setting:: spec.agent.monitoringAgent.logRotate
+
+   *Type*: object
+
+   Thresholds after which the {+mdbagent+} rotates the monitoring log.
+
+.. setting:: spec.agent.monitoringAgent.logRotate.sizeThresholdMB
+
+   *Type*: integer
+
+   Maximum size in MB for an individual log file before the {+mdbagent+} rotates 
+   the monitoring log.
+
+.. setting:: spec.agent.monitoringAgent.logRotate.timeThresholdHrs
+
+   *Type*: integer
+
+   Number of hours after which the {+mdbagent+} rotates the monitoring log.
+
+.. setting:: spec.agent.readinessProbe.environmentVariables
+
+   *Type*: object
+
+   Configures the following environment variables used to control the log files for 
+   the Readiness Probe:
+
+   * :ref:`readiness-probe-logger-backups`
+   * :ref:`readiness-probe-logger-compress`
+   * :ref:`readiness-probe-logger-max-size`
+   * :ref:`readiness-probe-logger-max-age`
+   * :ref:`mdb-agent-file-logging`
+   * :ref:`log-file-path`
+
+   .. code-block:: yaml
+
+      apiVersion: mongodb.com/v1
+      kind: MongoDB
+      metadata:
+        name: my-project 
+      spec:
+        agent:
+          readinessProbe:
+            environmentVariables:
+              READINESS_PROBE_LOGGER_BACKUPS: 1
+              READINESS_PROBE_LOGGER_MAX_SIZE: 10
+              READINESS_PROBE_LOGGER_MAX_AGE: 3
+              READINESS_PROBE_LOGGER_COMPRESS: true
+              MDB_WITH_AGENT_FILE_LOGGING: false
+              LOG_FILE_PATH: /var/log/mongodb-mms-automation/readiness.log
+
+.. include:: /includes/setting-k8sSaConf-spec.featureCompatibilityVersion.rst
+.. include:: /includes/setting-k8sSaConf-spec.clusterDomain.rst
+.. include:: /includes/setting-k8sSaConf-spec.clusterName.rst
+.. include:: /includes/setting-k8sSaConf-metadata.namespace.rst
+.. include:: /includes/setting-k8sSaConf-spec.service.rst
+.. include:: /includes/setting-k8sSaConf-spec.logLevel.rst
+.. include:: /includes/setting-k8sSaConf-spec.security.authentication.ignoreUnknownUsers.rst
+
+Deployment-Specific Resource Settings
+-------------------------------------
+
+Other settings you can and must use in a |k8s-mdbrsc| specification
+depend upon which MongoDB deployment item you want to create:
+
+- :ref:`standalone-settings`
+
+- :ref:`replica-set-settings`
+
+- :ref:`sharded-cluster-settings`
+
+.. _standalone-settings:
+
+Standalone Settings
+~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   All of the :ref:`standalone-settings` also apply to replica set
+   resources.
+
+.. include:: /includes/setting-k8sSaConf-spec.additionalMongodConfig.rst
+.. include:: /includes/setting-k8sSaConf-spec.agent.rst
+.. include:: /includes/setting-k8sSaConf-spec.agent.startupOptions.rst
+.. include:: /includes/setting-k8sSaConf-spec.podSpec.rst
+
+.. _spec-external-access:
+
+.. setting:: spec.externalAccess
+
+   *Type*: collection
+
+   Specification to expose your cluster for external connections. 
+   To learn how to connect to your MongoDB resource from outside of the |k8s| cluster, see
+   :ref:`connect-from-outside-k8s`.
+
+   .. include:: /includes/facts/fact-external-access-spec.rst
+
+   .. note:: 
+
+      If you set :setting:`spec.externalAccess.externalDomain`,
+      the external service adds another port (``Port Number + 1``) for backups.
+
+.. _spec-external-access-external-service:
+
+.. setting:: spec.externalAccess.externalService
+
+   *Type*: collection
+
+   Specification for overriding the default values in :setting:`spec.externalAccess`.
+
+   .. |external-access| replace:: :setting:`spec.externalAccess`
+   .. |default-values| replace:: :ref:`default values <spec-external-access>`
+
+   .. include:: /includes/facts/fact-external-service-spec.rst
+
+.. setting:: spec.externalAccess.externalService.annotations
+
+   *Type*: collection
+
+   .. include:: /includes/facts/fact-external-service-annotation-spec.rst
+   
+   .. include:: /includes/list-tables/annotation-placeholders.rst
+
+   .. include:: /includes/facts/annotation-placeholders-example.rst
+
+.. setting:: spec.externalAccess.externalService.spec
+  
+   *Type*: collection
+
+   Configuration for the :k8sdocs:`ServiceSpec </reference/kubernetes-api/service-resources/service-v1/#ServiceSpec>`.
+   To learn more, see :setting:`spec.externalAccess.externalService`.
+      
+.. include:: /includes/setting-k8sSaConf-spec.podSpec.persistence.single.rst
+.. include:: /includes/setting-k8sSaConf-spec.podSpec.persistence.multiple.data.rst
+.. include:: /includes/setting-k8sSaConf-spec.podSpec.persistence.multiple.journal.rst
+.. include:: /includes/setting-k8sSaConf-spec.podSpec.persistence.multiple.logs.rst
+.. include:: /includes/setting-k8sSaConf-spec.podSpec.podTemplate.rst
+.. include:: /includes/setting-k8sSaConf-spec.podSpec.podTemplate.metadata.rst
+.. include:: /includes/setting-k8sSaConf-spec.podSpec.podTemplate.spec.rst
+.. include:: /includes/setting-k8sSaConf-spec.podSpec.podTemplate.spec.affinity.nodeAffinity.rst
+.. include:: /includes/setting-k8sSaConf-spec.podSpec.podTemplate.spec.affinity.podAffinity.rst
+.. include:: /includes/setting-k8sSaConf-spec.podSpec.podTemplate.spec.affinity.podAntiAffinity.rst
+.. include:: /includes/setting-k8sSaConf-spec.podSpec.podTemplate.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.topologyKey.rst
+
+.. _replica-set-settings:
+
+Replica Set Settings
+~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   All of the :ref:`standalone-settings` also apply to replica set
+   resources.
+
+The following settings apply to replica set resource types:
+
+.. include:: /includes/setting-k8sRsConf-spec.backup.rst
+.. include:: /includes/setting-k8sRsConf-spec.backup.assignmentLabels.rst
+.. include:: /includes/setting-k8sRsConf-spec.backup.mode.rst
+.. include:: /includes/setting-k8sRsConf-spec.backup.encryption.rst
+.. include:: /includes/setting-k8sRsConf-spec.backup.encryption.kmip.rst
+.. include:: /includes/setting-k8sRsConf-spec.backup.encryption.kmip.client.rst
+.. include:: /includes/setting-k8sRsConf-spec.backup.encryption.kmip.client.clientCertificatePrefix.rst
+.. include:: /includes/setting-k8sRsConf-spec.backup.snapshotSchedule.rst
+.. include:: /includes/setting-k8sRsConf-spec.backup.snapshotSchedule.snapshotIntervalHours.rst
+.. include:: /includes/setting-k8sRsConf-spec.backup.snapshotSchedule.snapshotRetentionDays.rst
+.. include:: /includes/setting-k8sRsConf-spec.backup.snapshotSchedule.dailySnapshotRetentionDays.rst
+.. include:: /includes/setting-k8sRsConf-spec.backup.snapshotSchedule.weeklySnapshotRetentionWeeks.rst
+.. include:: /includes/setting-k8sRsConf-spec.backup.snapshotSchedule.monthlySnapshotRetentionMonths.rst
+.. include:: /includes/setting-k8sRsConf-spec.backup.snapshotSchedule.pointInTimeWindowHours.rst
+.. include:: /includes/setting-k8sRsConf-spec.backup.snapshotSchedule.referenceHourOfDay.rst
+.. include:: /includes/setting-k8sRsConf-spec.backup.snapshotSchedule.referenceMinuteOfHour.rst
+.. include:: /includes/setting-k8sRsConf-spec.backup.snapshotSchedule.fullIncrementalDayOfWeek.rst
+.. include:: /includes/setting-k8sSaConf-spec.clusterName.rst
+.. include:: /includes/setting-k8sRsConf-spec.connectivity.replicaSetHorizons.rst
+
+.. setting:: spec.externalAccess.externalDomain
+
+   *Type*: string
+
+   .. |hostname-format| replace:: ``<replica-set-name>-<pod-idx>.<externalDomain>``
+
+   .. |hostname-example| replace:: ``replica-set-1.example.com``
+
+   .. include:: /includes/facts/fact-external-domain-spec.rst
+
+.. include:: /includes/setting-k8sRsConf-spec.members.rst
+.. include:: /includes/setting-k8sRsConf-spec.memberConfig.rst
+.. include:: /includes/setting-k8sRsConf-spec.memberConfig.priority.rst
+.. include:: /includes/setting-k8sRsConf-spec.memberConfig.tags.rst
+.. include:: /includes/setting-k8sRsConf-spec.memberConfig.votes.rst
+
+The following settings apply only to replica set resource types:
+
+.. include:: /includes/setting-k8sRsConf-spec.backup.autoTerminateOnDeletion.rst
+
+
+
+.. _sharded-cluster-settings:
+
+Sharded Cluster Settings
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   All of the :ref:`replica-set-settings` also apply to sharded cluster
+   resources unless otherwise specified.
+
+The following settings apply only to sharded cluster resource types:
+
+.. include:: /includes/setting-k8sRsConf-spec.backup.snapshotSchedule.clusterCheckpointIntervalMin.rst
+.. include:: /includes/setting-k8sScConf-spec.configServerCount.rst
+.. include:: /includes/setting-k8sScConf-spec.configSrv.additionalMongodConfig.rst
+.. include:: /includes/setting-k8sScConf-spec.configSrv.agent.rst
+.. include:: /includes/setting-k8sScConf-spec.configSrv.agent.startupOptions.rst
+.. include:: /includes/setting-k8sScConf-spec.configSrvPodSpec.rst
+.. include:: /includes/setting-k8sScConf-spec.configSrvPodSpec.persistence.single.rst
+.. include:: /includes/setting-k8sScConf-spec.configSrvPodSpec.persistence.multiple.data.rst
+.. include:: /includes/setting-k8sScConf-spec.configSrvPodSpec.persistence.multiple.journal.rst
+.. include:: /includes/setting-k8sScConf-spec.configSrvPodSpec.persistence.multiple.logs.rst
+.. include:: /includes/setting-k8sScConf-spec.configSrvPodSpec.podTemplate.rst
+.. include:: /includes/setting-k8sScConf-spec.configSrvPodSpec.podTemplate.metadata.rst
+.. include:: /includes/setting-k8sScConf-spec.configSrvPodSpec.podTemplate.spec.rst
+.. include:: /includes/setting-k8sScConf-spec.configSrvPodSpec.podTemplate.spec.affinity.podAffinity.rst
+.. include:: /includes/setting-k8sScConf-spec.configSrvPodSpec.podTemplate.spec.affinity.nodeAffinity.rst
+.. include:: /includes/setting-k8sScConf-spec.configSrvPodSpec.podTemplate.spec.affinity.podAntiAffinity.rst
+.. include:: /includes/setting-k8sScConf-spec.configSrvPodSpec.podTemplate.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.topologyKey.rst
+.. include:: /includes/setting-k8sScConf-spec.mongodsPerShardCount.rst
+.. include:: /includes/setting-k8sScConf-spec.mongosCount.rst
+.. include:: /includes/setting-k8sScConf-spec.mongos.additionalMongodConfig.rst
+.. include:: /includes/setting-k8sScConf-spec.mongos.agent.rst
+.. include:: /includes/setting-k8sScConf-spec.mongos.agent.startupOptions.rst
+.. include:: /includes/setting.k8sScConf-spec.mongosPodSpec.rst
+.. include:: /includes/setting-k8sScConf-spec.mongosPodSpec.podTemplate.rst
+.. include:: /includes/setting-k8sScConf-spec.mongosPodSpec.podTemplate.metadata.rst
+.. include:: /includes/setting-k8sScConf-spec.mongosPodSpec.podTemplate.spec.rst
+.. include:: /includes/setting-k8sScConf-spec.mongosPodSpec.podTemplate.spec.affinity.podAffinity.rst
+.. include:: /includes/setting-k8sScConf-spec.mongosPodSpec.podTemplate.spec.affinity.nodeAffinity.rst
+.. include:: /includes/setting-k8sScConf-spec.mongosPodSpec.podTemplate.spec.affinity.podAntiAffinity.rst
+.. include:: /includes/setting-k8sScConf-spec.mongosPodSpec.podTemplate.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.topologyKey.rst   
+.. include:: /includes/setting-k8sScConf-spec.shardCount.rst
+.. include:: /includes/setting-k8sScConf-spec.shard.additionalMongodConfig.rst
+.. include:: /includes/setting-k8sScConf-spec.shard.agent.rst
+.. include:: /includes/setting-k8sScConf-spec.shard.agent.startupOptions.rst
+.. include:: /includes/setting-k8sScConf-spec.shardPodSpec.rst
+.. include:: /includes/setting-k8sScConf-spec.shardPodSpec.persistence.multiple.data.rst
+.. include:: /includes/setting-k8sScConf-spec.shardPodSpec.persistence.multiple.journal.rst
+.. include:: /includes/setting-k8sScConf-spec.shardPodSpec.persistence.multiple.logs.rst
+.. include:: /includes/setting-k8sScConf-spec.shardPodSpec.podTemplate.rst
+.. include:: /includes/setting-k8sScConf-spec.shardPodSpec.podTemplate.metadata.rst
+.. include:: /includes/setting-k8sScConf-spec.shardPodSpec.podTemplate.spec.rst
+.. include:: /includes/setting-k8sScConf-spec.shardPodSpec.podTemplate.spec.affinity.podAffinity.rst
+.. include:: /includes/setting-k8sScConf-spec.shardPodSpec.podTemplate.spec.affinity.nodeAffinity.rst
+.. include:: /includes/setting-k8sScConf-spec.shardPodSpec.podTemplate.spec.affinity.podAntiAffinity.rst
+.. include:: /includes/setting-k8sScConf-spec.shardPodSpec.podTemplate.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.topologyKey.rst
+.. include:: /includes/setting-k8sScConf-spec.shardSpecificPodSpec.rst
+.. include:: /includes/setting-k8sScConf-spec.shardSpecificPodSpec.podTemplate.rst
+.. include:: /includes/setting-k8sScConf-spec.shardSpecificPodSpec.podTemplate.metadata.rst
+.. include:: /includes/setting-k8sScConf-spec.shardSpecificPodSpec.podTemplate.spec.rst
+.. include:: /includes/setting-k8sScConf-spec.shardSpecificPodSpec.podTemplate.spec.affinity.podAffinity.rst
+.. include:: /includes/setting-k8sScConf-spec.shardSpecificPodSpec.podTemplate.spec.affinity.podAntiAffinity.rst
+.. include:: /includes/setting-k8sScConf-spec.shardSpecificPodSpec.podTemplate.spec.affinity.podAntiAffinity.requiredDuringSchedulingIgnoredDuringExecution.topologyKey.rst
+.. include:: /includes/setting-k8sScConf-spec.topology.rst
+
+.. _prometheus-settings:
+
+Prometheus Settings
+-------------------
+
+You can use Prometheus with your standalone resource, replica sets, or 
+sharded clusters. To learn more, see :ref:`deploy-prometheus`. To view 
+an example, see :ref:`mdb-resource-prometheus`.
+
+The following settings apply when you use Prometheus 
+with your MongoDB resource:
+
+.. setting:: spec.prometheus
+
+   *Type*: array
+
+   *Optional*
+
+   List that contains the parameters for exposing metrics to Prometheus.
+
+.. setting:: spec.prometheus.metricsPath
+
+   *Type*: string
+
+   *Optional*
+
+   *Default*: ``"/metrics"``
+
+   Human-readable string that indicates the path to the metrics 
+   endpoint. If you don't specify this setting, the default applies.
+
+.. setting:: spec.prometheus.passwordSecretRef
+
+   *Type*: object
+
+   *Conditional*
+
+   Object that contains the details of the |k8s-secret| for 
+   basic HTTP authentication. If you want to use Prometheus with your 
+   MongoDB resource, you must specify this setting.
+
+.. setting:: spec.prometheus.passwordSecretRef.key
+
+   *Type*: string
+
+   *Optional*
+
+   *Default*: ``"password"``
+
+   Human-readable string that indentifies the key in the |k8s-secret| 
+   that stores the password for basic HTTP authentication. If you don't 
+   specify this setting, the default applies.
+
+.. setting:: spec.prometheus.passwordSecretRef.name
+
+   *Type*: string
+
+   *Conditional*
+
+   Human-readable label that identifies the |k8s-secret| that contains 
+   the password for basic HTTP authentication. If you want to use 
+   Prometheus with your MongoDB resource, you must specify this setting.
+
+.. setting:: spec.prometheus.port
+
+   *Type*: integer
+
+   *Optional*
+
+   *Default:* 9216
+
+   Number that identifies the port that the metrics endpoint will 
+   bind to. If you don't specify this setting, the default applies.
+
+.. setting:: spec.prometheus.tlseSecretKeyRef
+
+   *Type*: object
+
+   *Optional*
+
+   Object that contains the details of the |k8s-secret| for |tls| 
+   authentication.
+
+.. setting:: spec.prometheus.tlseSecretKeyRef.key
+
+   *Type*: string
+
+   *Optional*
+
+   *Default*: ``"password"``
+
+   Human-readable string that indentifies the key in the |k8s-secret| 
+   that stores the password for |tls| authentication. If you don't 
+   specify this setting, the default applies.
+
+.. setting:: spec.prometheus.tlseSecretKeyRef.name
+
+   *Type*: string
+
+   *Conditional*
+
+   Human-readable label that identifies the |k8s-secret| that contains 
+   the password for |tls| authentication. If you want to use 
+   Prometheus with your MongoDB resource and you want to use |tls| 
+   authentication, you must specify this setting.
+
+.. setting:: spec.prometheus.username
+
+   *Type*: string
+
+   *Conditional*
+
+   Human-readable label that identifies the user for basic HTTP 
+   authentication. If you want to use Prometheus with your MongoDB 
+   resource, you must specify this setting.
+
+.. _tls-settings:
+.. _security-settings:
+
+Security Settings
+-----------------
+
+The following security settings apply only to replica set and sharded
+cluster resource types:
+
+.. include:: /includes/setting-k8sRsConf-spec.security.tls.ca.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.certsSecretPrefix.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.tls.additionalCertificateDomains.rst
+.. include:: /includes/setting-k8sRsConf-spec.additionalMongodConfig.net.ssl.mode.rst
+.. include:: /includes/setting-k8sRsConf-spec.additionalMongodConfig.net.tls.disabledProtocols.rst   
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.enabled.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.modes.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.internalCluster.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.requireClientTLSAuthentication.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.ldap.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.ldap.servers.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.ldap.timeoutMS.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.ldap.transportSecurity.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.ldap.caConfigMapRef.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.ldap.caConfigMapRef.name.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.ldap.caConfigMapRef.key.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.ldap.bindQueryUser.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.ldap.bindQueryPasswordSecretRef.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.ldap.bindQueryPasswordSecretRef.name.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.ldap.authzQueryTemplate.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.agents.automationLdapGroupDN.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.ldap.userToDNMapping.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.ldap.userCacheInvalidationInterval.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.oidcProviderConfigs.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.oidcProviderConfigs.audience.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.oidcProviderConfigs.authorizationMethod.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.oidcProviderConfigs.authorizationType.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.oidcProviderConfigs.clientID.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.oidcProviderConfigs.configurationName.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.oidcProviderConfigs.groupsClaim.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.oidcProviderConfigs.issuerURI.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.roleRefs.rst  
+.. include:: /includes/setting-k8sRsConf-spec.security.roleRefs.name.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.roleRefs.kind.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.oidcProviderConfigs.requestedScopes.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.oidcProviderConfigs.userClaim.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.agents.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.agents.mode.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.agents.automationUserName.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.agents.automationPasswordSecretRef.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.agents.automationPasswordSecretRef.name.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.agents.automationPasswordSecretRef.key.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.authentication.agents.clientCertificateSecretRef.name.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.roles.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.roles.role.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.roles.db.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.roles.authenticationRestrictions.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.roles.authenticationRestrictions.clientSource.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.roles.authenticationRestrictions.serverAddress.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.roles.privileges.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.roles.privileges.actions.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.roles.privileges.resource.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.roles.privileges.resource.database.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.roles.privileges.resource.collection.rst
+.. include:: /includes/setting-k8sRsConf-spec.security.roles.privileges.resource.cluster.rst
+
+Examples
+--------
+
+.. tabs::
+
+   tabs:
+     - id: standalone
+       name: Standalone Pod
+       content: |
+
+         The following example shows a resource specification for a
+         standalone deployment with every setting provided:
+
+         .. literalinclude:: /reference/k8s/standalonepodspec.yaml
+            :language: yaml
+
+     - id: replicaset
+       name: Replica Set Pod
+       content: |
+
+         The following example shows a resource specification for a
+         :manual:`replica set </reference/glossary/#std-term-replica-set>` with every setting provided:
+
+         .. literalinclude:: /reference/k8s/replicasetpodspec.yaml
+            :language: yaml
+
+     - id: shardedcluster
+       name: Sharded Cluster Pod
+       content: |
+
+         The following example shows a resource specification for a
+         :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` with every setting provided:
+
+         .. literalinclude:: /reference/k8s/shardedclusterpodspec.yaml
+            :language: yaml
+
+.. _statefulset-settings:
+
+StatefulSet Settings
+--------------------
+
+The following |k8s-statefulsets| settings apply only to replica set and
+sharded cluster resource types.
+
+.. setting:: spec.statefulSet.spec
+
+   *Type*: collection
+
+   Specification for the |k8s-statefulset| that the |k8s-op| creates
+   for |k8s-mdbrscs|.
+
+.. setting:: spec.statefulSet.spec.serviceName
+
+   *Type*: string
+
+   *Default*: ``<resource_name>-svc`` and ``<resource_name>-svc-external``
+
+   Name of the |k8s| service to be created or used for a |k8s-statefulset|.
+   If the service with this name already exists, the |k8s-op-full| doesn't
+   delete or recreate it. This setting lets you create your own custom
+   services and lets the |k8s-op-short| reuse them.

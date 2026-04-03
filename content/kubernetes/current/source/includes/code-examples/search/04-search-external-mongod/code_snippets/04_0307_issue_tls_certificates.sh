@@ -12,10 +12,8 @@ mongo_dns_names+=("${MDB_RESOURCE_NAME}-svc.${MDB_NS}.svc.cluster.local" "*.${MD
 
 # DNS names for MongoDB Search certificate
 search_dns_names=(
-  "${MDB_SEARCH_SERVICE_NAME}"
-  "${MDB_SEARCH_SERVICE_NAME}.${MDB_NS}.svc.cluster.local"
-  "${MDB_SEARCH_SERVICE_NAME}-search-svc.${MDB_NS}.svc.cluster.local"
   "*.${MDB_SEARCH_SERVICE_NAME}-search-svc.${MDB_NS}.svc.cluster.local"
+  "${MDB_SEARCH_SERVICE_NAME}-search-0-proxy-svc.${MDB_NS}.svc.cluster.local"
 )
 [[ -n "${MDB_SEARCH_HOSTNAME}" ]] && search_dns_names+=("${MDB_SEARCH_HOSTNAME}")
 

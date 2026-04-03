@@ -1,0 +1,189 @@
+.. _disaster-recovery-ref:
+
+=================
+Disaster Recovery
+=================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: Kubernetes, multicluster, multi-cluster, MongoDB, kubectl mongodb multicluster recover, multi-Kubernetes, cluster, MongoDBMultiCluster, argo-cd
+   :description: Set up automatic failover in multi-Kubernetes MongoDB deployments for disaster recovery and manually recover from cluster failures using the kubectl mongodb plugin.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The |k8s-op-short| can orchestrate the recovery of MongoDB replica set
+members to a healthy |k8s| cluster when the |k8s-op-short| identifies
+that the original |k8s| cluster is down.
+
+.. _disaster-recovery-modes:
+
+Disaster Recovery Modes
+-----------------------
+
+The |k8s-op-short| can orchestrate either an automatic or manual remediation
+of the |mongodb-multis| in a disaster recovery scenario, using one of the following modes:
+
+- **Auto Failover Mode** allows the |k8s-op-short| to shift the affected
+  MongoDB replica set members from an unhealthy |k8s| cluster to healthy
+  |k8s| clusters. When the |k8s-op-short| performs this auto remediation,
+  it evenly distributes replica set members across the healthy |k8s| clusters.
+  
+  To enable this mode, use ``--set multiCluster.performFailover=true`` in
+  the MongoDB Helm Charts for |k8s|. In the ``values.yaml`` file in the
+  `MongoDB Helm Charts for Kubernetes 
+  <https://mongodb.github.io/helm-charts>`__ directory,
+  the environment's variable default value is ``true``.
+
+  Alternatively, you can set the |multi-cluster| environment variable
+  ``PERFORM_FAILOVER`` to ``true``, as in the following abbreviated example:
+
+  .. code-block:: yaml
+     :copyable: false
+
+     spec:
+       template:
+         ...
+         spec:
+           containers:
+           - name: mongodb-kubernetes-operator
+             ...
+             env:
+             ...   
+             - name: PERFORM_FAILOVER
+               value: "true"
+             ...
+  
+
+- **Manual(plugin-based) Failover Mode** allows you to use the
+  :ref:`MongoDB kubectl plugin <kubectl-plugin-ref>` to
+  reconfigure the |k8s-op-short| to use new healthy |k8s| clusters.
+  In this mode, you distribute replica set members across the new healthy
+  clusters by configuring the |mongodb-multi| based on your configuration.
+
+  To enable this mode, use ``--set multiCluster.performFailover=true``
+  in the `MongoDB Helm Charts for Kubernetes 
+  <https://mongodb.github.io/helm-charts>`__,
+  or set the |multi-cluster| environment variable ``PERFORM_FAILOVER``
+  to ``false``, as in the following abbreviated example:
+
+  .. code-block:: yaml
+     :copyable: false
+
+     spec:
+       template:
+         ...
+         spec:
+           containers:
+           - name: mongodb-kubernetes-operator
+             ...
+             env:
+             ...   
+             - name: PERFORM_FAILOVER
+               value: "false"
+             ...
+
+.. note::
+   
+   You can't rely on the :ref:`auto or manual failover modes <disaster-recovery-modes>`
+   when a |k8s| cluster hosting one or more |k8s-op-short| instances goes
+   down, or the replica set member resides on the same failed |k8s|
+   cluster as the |k8s| that manages it.
+
+   In such cases, to restore replica set members from lost |k8s| clusters
+   to the remaining healthy |k8s| clusters, you must first restore the
+   |k8s-op-short| instance that manages your |multi-clusters|, or
+   redeploy the |k8s-op-short| to one of the remaining |k8s| clusters,
+   and rerun the |kubectl-mongodb|. To learn more, see :ref:`disaster-recovery-manual`.
+
+.. _disaster-recovery-manual:
+
+Manually Recover from a Failure Using the MongoDB Plugin
+---------------------------------------------------------
+
+When a |k8s| cluster hosting one or more |k8s-op-short| instances goes down,
+or the replica set member resides on the same failed |k8s| cluster as the
+|k8s| that manages it, you can't rely on the
+:ref:`auto or manual failover modes <disaster-recovery-modes>`
+and must use the following procedure to manually recover from a failed
+|k8s| cluster.
+
+The following procedure uses the :ref:`MongoDB kubectl Plugin <kubectl-plugin-ref>`
+to:
+
+- Configure new healthy |k8s| clusters.
+- Add these |k8s| clusters as new member clusters to the ``mongodb-kubernetes-operator-member-list``
+  ConfigMap for your |multi-cluster|.
+- Rebalance nodes hosting |mongodb-multis| on the nodes in the healthy |k8s| clusters.
+
+The following tutorial for manual disaster recovery assumes that you:
+
+- Deployed one operator cluster and three member clusters, following the
+  :ref:`multi-cluster-quick-start-ref`. In this case, the
+  |k8s-op-short| is installed with the automated failover disabled with
+  ``--set multiCluster.performFailover=false``.
+
+- Deployed a |mongodb-multi| as follows:
+
+  .. code-block:: sh
+
+     kubectl apply -n mongodb -f - <<EOF
+     apiVersion: mongodb.com/v1
+     kind: MongoDBMultiCluster
+     metadata:
+      name: multi-replica-set
+     spec:
+      version: 8.0.0
+      type: ReplicaSet
+      persistent: false
+      duplicateServiceObjects: true
+      credentials: my-credentials
+      opsManager:
+        configMapRef:
+          name: my-project
+      security:
+        tls:
+          ca: custom-ca
+      clusterSpecList:
+        - clusterName: ${MDB_CLUSTER_1_FULL_NAME}
+          members: 3
+        - clusterName: ${MDB_CLUSTER_2_FULL_NAME}
+          members: 2
+        - clusterName: ${MDB_CLUSTER_3_FULL_NAME}
+          members: 3
+     EOF
+
+
+The |k8s-op-short| periodically checks for connectivity to the clusters
+in the |multi-cluster| by pinging the ``/readyz`` endpoints of the
+corresponding servers. To learn more about ``/readyz``, see the |k8s-healthchecks|.
+
+In the case that ``CLUSTER_3`` in our example becomes unavailable, the
+|k8s-op-short| detects the failed connections to the cluster and marks the
+|mongodb-multis| with the ``failedClusters`` annotation for subsequent reconciliations.
+
+The resources with data nodes deployed on this cluster fail reconciliation
+until you run the manual recovery steps as in the following procedure.
+
+To rebalance the MongoDB data nodes so that all the workloads run on
+``CLUSTER_1`` and ``CLUSTER_2``:
+
+.. include:: /includes/steps/rebalance-mc-nodes.rst
+
+.. _disaster-recovery-manual-gitops:
+
+Manually Recover from a Failure Using GitOps Workflows
+------------------------------------------------------
+
+For an example of use of the :ref:`MongoDB kubectl plugin <kubectl-plugin-ref>`
+in a GitOps workflow with `Argo CD <https://argoproj.github.io/cd>`__, see
+:github:`multi-cluster plugin example for GitOps </mongodb/mongodb-kubernetes/tree/master/public/samples/multi-cluster-cli-gitops>`.
+
+GitOps recovery requires manual reconfiguration of
+:k8sdocs:`Role Based Access Control </reference/access-authn-authz/rbac>`
+using ``.yaml`` resource files. To learn more, see
+:ref:`multi-cluster-rbac-manual`.

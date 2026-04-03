@@ -1,0 +1,128 @@
+---
+stepnum: 0
+level: 4
+ref: create-om-appdb-secret
+title: "Create a secret with your {+appdb+} |tls| certificate."
+content: |
+
+  Run this ``kubectl`` command to create a new |k8s-secret| that stores
+  the {+appdb+}\'s |tls| certificate:
+
+  .. code-block:: sh
+
+     kubectl create secret tls <prefix>-<metadata.name>-db-cert \
+       --cert=<appdb-tls-cert> \
+       --key=<appdb-tls-key>
+
+  .. include:: /includes/facts/fact-if-use-vault.rst
+
+  .. include:: /includes/facts/fact-learn-more-secret-storage.rst
+
+---
+stepnum: 0
+level: 4
+ref: create-om-appdb-configmap
+title: "Create a ConfigMap that contains the certificate authority (CA)."
+optional: true
+content: |
+
+  You must provide a |certauth| certificate when the |certauth| that
+  signed the certificates might be not "recognized" as an official
+  authority. You can create valid certificates with
+  `cert-manager <https://cert-manager.io/docs/>`__ or `HashiCorp Vault
+  <https://www.vaultproject.io/>`__.
+
+  If you signed the certificates using a |k8s| certificate management
+  tool, such as `cert-manager <https://cert-manager.io/docs/>`__ or
+  `HashiCorp Vault <https://www.vaultproject.io/>`__, you must create a
+  |k8s-configmap| containing the |certauth|\'s certificate file.
+
+  If you output the certificate as a file, name this file ``ca-pem``.
+  This simplifies creating the |k8s-configmap|.
+
+  .. include:: /includes/admonitions/warning-concatenate-download-certs.rst
+
+  a. Obtain the entire |tls| certificate chain from
+     ``downloads.mongodb.com``. The following ``openssl`` command
+     outputs each certificate in the chain to your current working
+     directory, in ``.crt`` format:
+
+     .. code-block:: sh
+
+        openssl s_client -showcerts -verify 2 \ 
+        -connect downloads.mongodb.com:443 -servername downloads.mongodb.com < /dev/null \ 
+        | awk '/BEGIN/,/END/{ if(/BEGIN/){a++}; out="cert"a".crt"; print >out}'
+
+  #. Concatenate your |certauth|\'s certificate file with the
+     entire |tls| certificate chain from ``downloads.mongodb.com`` that
+     you obtained in the previous step:
+
+     .. code-block:: sh
+
+        cat cert1.crt cert2.crt cert3.crt cert4.crt  >> ca-pem
+
+  #. Create the |k8s-configmap|:
+
+     .. code-block:: sh
+
+        kubectl create configmap ca --from-file="ca-pem"
+
+  This creates a |k8s-configmap| named ``ca``. This
+  |k8s-configmap| contains one entry called ``ca-pem`` with the
+  contents of the |certauth| file and the certificate chain for
+  ``downloads.mongodb.com``.
+
+---
+stepnum: 0
+level: 4
+ref: create-om-appdb-set-secret
+title: "Specify the Secret with certificates to the |onprem| yaml definition."
+content: |
+
+  .. code-block:: yaml
+     :linenos:
+     :copyable: false
+     
+     apiVersion: mongodb.com/v1
+     kind: MongoDBOpsManager
+     metadata:
+     name: om-appdb-tls-enabled
+     spec:
+      replicas: 1
+      version: "8.0.0"
+      adminCredentials: ops-manager-admin-secret
+      configuration:
+         mms.fromEmailAddr: admin@example.com
+         mms.security.allowCORS: "false"
+      security:
+         certsSecretPrefix:  <prefix> # Required. Text to prefix to the name of the
+                                       # secret that contains Ops Manager's TLS 
+                                       # certificate. Name the secret 
+                                       # <prefix>-<metadata.name>-cert.    
+         tls:
+            ca: "opsmgr-ca" # Optional. Name of the ConfigMap file
+                           # containing the certicate authority that
+                           # signs the certificates that the Ops Manager
+                           # resource uses.
+                           # Ops Manager custom  resource.
+      applicationDatabase:
+         members: 3
+         version: "8.0.0"
+         security:
+            certsSecretPrefix: <prefix> # Required. Text to prefix to the 
+                                       # name of the secret that contains the Application
+                                       # Database's TLS certificate. Name the secret 
+                                       # <prefix>-<metadata.name>-db-cert.
+            tls:
+            ca: "appdb-ca" # Optional, unless enabling TLS for |mms|. 
+                           # Name of the ConfigMap file
+                           # containing the certicate authority that
+                           # signs the certificates used by the
+                           # application database.
+
+  .. note::
+
+     The |k8s-op-short| mounts the |certauth| you add using the
+     :opsmgrkube:`spec.applicationDatabase.security.tls.ca` setting to
+     both the |onprem| and the {+appdb+} pods.
+...

@@ -1,6 +1,6 @@
 Release "mongodb-kubernetes-operator-multi-cluster" does not exist. Installing it now.
 NAME: mongodb-kubernetes-operator-multi-cluster
-LAST DEPLOYED: Mon Nov 17 13:40:35 2025
+LAST DEPLOYED: Wed Apr  1 18:34:52 2026
 NAMESPACE: mongodb-operator
 STATUS: deployed
 REVISION: 1
@@ -9,9 +9,9 @@ USER-SUPPLIED VALUES:
 dummy: value
 multiCluster:
   clusters:
-  - gke_scratch-kubernetes-team_europe-central2-a_k8s-mdb-0-68ef6309c47x7449f6b-9412
-  - gke_scratch-kubernetes-team_europe-central2-b_k8s-mdb-1-68ef6309c47x7449f6b-9412
-  - gke_scratch-kubernetes-team_europe-central2-c_k8s-mdb-2-68ef6309c47x7449f6b-9412
+  - gke_scratch-kubernetes-team_europe-central2-a_k8s-mdb-0-mongodb-kubx7d456e3-8794
+  - gke_scratch-kubernetes-team_europe-central2-b_k8s-mdb-1-mongodb-kubx7d456e3-8794
+  - gke_scratch-kubernetes-team_europe-central2-c_k8s-mdb-2-mongodb-kubx7d456e3-8794
 namespace: mongodb-operator
 operator:
   createOperatorServiceAccount: false
@@ -51,39 +51,33 @@ community:
     version: 4.4.0
 database:
   name: mongodb-kubernetes-database
-  version: 1.6.0
+  version: 1.8.0
 dummy: value
-initAppDb:
-  name: mongodb-kubernetes-init-appdb
-  version: 1.6.0
 initDatabase:
   name: mongodb-kubernetes-init-database
-  version: 1.6.0
+  version: 1.8.0
 initOpsManager:
   name: mongodb-kubernetes-init-ops-manager
-  version: 1.6.0
+  version: 1.8.0
 managedSecurityContext: false
 mongodb:
   appdbAssumeOldFormat: false
-  imageType: ubi8
   name: mongodb-enterprise-server
   repo: quay.io/mongodb
 multiCluster:
   clusterClientTimeout: 10
   clusters:
-  - gke_scratch-kubernetes-team_europe-central2-a_k8s-mdb-0-68ef6309c47x7449f6b-9412
-  - gke_scratch-kubernetes-team_europe-central2-b_k8s-mdb-1-68ef6309c47x7449f6b-9412
-  - gke_scratch-kubernetes-team_europe-central2-c_k8s-mdb-2-68ef6309c47x7449f6b-9412
+  - gke_scratch-kubernetes-team_europe-central2-a_k8s-mdb-0-mongodb-kubx7d456e3-8794
+  - gke_scratch-kubernetes-team_europe-central2-b_k8s-mdb-1-mongodb-kubx7d456e3-8794
+  - gke_scratch-kubernetes-team_europe-central2-c_k8s-mdb-2-mongodb-kubx7d456e3-8794
   kubeConfigSecretName: mongodb-enterprise-operator-multi-cluster-kubeconfig
   performFailOver: true
 namespace: mongodb-operator
 operator:
   additionalArguments: []
   affinity: {}
-  baseName: mongodb-kubernetes
   createOperatorServiceAccount: false
   createResourcesServiceAccountsAndRoles: false
-  deployment_name: mongodb-kubernetes-operator
   enableClusterMongoDBRoles: true
   enablePVCResize: true
   env: dev
@@ -93,6 +87,9 @@ operator:
   namespace: mongodb-operator
   nodeSelector: {}
   operator_image_name: mongodb-kubernetes
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 2000
   replicas: 1
   resources:
     limits:
@@ -101,6 +98,7 @@ operator:
     requests:
       cpu: 500m
       memory: 200Mi
+  securityContext: {}
   telemetry:
     collection:
       clusters: {}
@@ -113,7 +111,7 @@ operator:
   vaultSecretBackend:
     enabled: false
     tlsSecretRef: ""
-  version: 1.6.0
+  version: 1.8.0
   watchNamespace: mongodb-om,mongodb
   watchedResources:
   - mongodb
@@ -123,17 +121,17 @@ operator:
   - mongodbsearch
   webhook:
     installClusterRole: true
+    name: ""
     registerConfiguration: true
 opsManager:
   name: mongodb-enterprise-ops-manager-ubi
 readinessProbe:
   name: mongodb-kubernetes-readinessprobe
-  version: 1.0.23
+  version: 1.0.24
 registry:
   agent: quay.io/mongodb
   database: quay.io/mongodb
   imagePullSecrets: null
-  initAppDb: quay.io/mongodb
   initDatabase: quay.io/mongodb
   initOpsManager: quay.io/mongodb
   operator: quay.io/mongodb
@@ -142,9 +140,10 @@ registry:
   readinessProbe: quay.io/mongodb
   versionUpgradeHook: quay.io/mongodb
 search:
+  envoyImage: envoyproxy/envoy:v1.37-latest
   name: mongodb-search
   repo: quay.io/mongodb
-  version: 0.55.0
+  version: 0.64.0
 versionUpgradeHook:
   name: mongodb-kubernetes-operator-version-upgrade-post-start-hook
   version: 1.0.10
@@ -262,7 +261,7 @@ spec:
         runAsUser: 2000
       containers:
         - name: mongodb-kubernetes-operator-multi-cluster
-          image: "quay.io/mongodb/mongodb-kubernetes:1.6.0"
+          image: "quay.io/mongodb/mongodb-kubernetes:1.8.0"
           imagePullPolicy: Always
           args:
             - -watch-resource=mongodb
@@ -275,6 +274,8 @@ spec:
           command:
             - /usr/local/bin/mongodb-kubernetes-operator
           volumeMounts:
+            - mountPath: /tmp/k8s-webhook-server/serving-certs
+              name: webhook-server-dir
             - mountPath: /etc/config/kubeconfig
               name: kube-config-volume
           resources:
@@ -309,21 +310,16 @@ spec:
             - name: INIT_DATABASE_IMAGE_REPOSITORY
               value: quay.io/mongodb/mongodb-kubernetes-init-database
             - name: INIT_DATABASE_VERSION
-              value: 1.6.0
+              value: "1.8.0"
             - name: DATABASE_VERSION
-              value: 1.6.0
+              value: "1.8.0"
             # Ops Manager
             - name: OPS_MANAGER_IMAGE_REPOSITORY
               value: quay.io/mongodb/mongodb-enterprise-ops-manager-ubi
             - name: INIT_OPS_MANAGER_IMAGE_REPOSITORY
               value: quay.io/mongodb/mongodb-kubernetes-init-ops-manager
             - name: INIT_OPS_MANAGER_VERSION
-              value: 1.6.0
-            # AppDB
-            - name: INIT_APPDB_IMAGE_REPOSITORY
-              value: quay.io/mongodb/mongodb-kubernetes-init-appdb
-            - name: INIT_APPDB_VERSION
-              value: 1.6.0
+              value: "1.8.0"
             - name: OPS_MANAGER_IMAGE_PULL_POLICY
               value: Always
             - name: AGENT_IMAGE
@@ -334,8 +330,6 @@ spec:
               value: mongodb-enterprise-server
             - name: MONGODB_REPO_URL
               value: quay.io/mongodb
-            - name: MDB_IMAGE_TYPE
-              value: ubi8
             - name: PERFORM_FAILOVER
               value: 'true'
             - name: MDB_MAX_CONCURRENT_RECONCILES
@@ -352,7 +346,7 @@ spec:
             - name: VERSION_UPGRADE_HOOK_IMAGE
               value: "quay.io/mongodb/mongodb-kubernetes-operator-version-upgrade-post-start-hook:1.0.10"
             - name: READINESS_PROBE_IMAGE
-              value: "quay.io/mongodb/mongodb-kubernetes-readinessprobe:1.0.23"
+              value: "quay.io/mongodb/mongodb-kubernetes-readinessprobe:1.0.24"
             - name: MDB_COMMUNITY_IMAGE
               value: "mongodb-community-server"
             - name: MDB_COMMUNITY_REPO_URL
@@ -365,9 +359,14 @@ spec:
             - name: MDB_SEARCH_NAME
               value: "mongodb-search"
             - name: MDB_SEARCH_VERSION
-              value: "0.55.0"
+              value: "0.64.0"
+            - name: MDB_ENVOY_IMAGE
+              value: "envoyproxy/envoy:v1.37-latest"
       volumes:
+        - name: webhook-server-dir
+          emptyDir: {}
         - name: kube-config-volume
           secret:
             defaultMode: 420
             secretName: mongodb-enterprise-operator-multi-cluster-kubeconfig
+

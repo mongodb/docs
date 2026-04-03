@@ -1,0 +1,96 @@
+.. _reference-architectures-ca-certs-no-mesh:
+
+=========================================
+Manage TLS Certificates (No Service Mesh)
+=========================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This section provides guidance on the creation of TLS certificates for each 
+component of MongoDB, and the creation of |k8s| Secrets in each of your |k8s| 
+clusters to mount the TLS certificates securely into the appropriate |k8s| Pods. 
+
+The process outlined below utilizes `Cert Manager <https://cert-manager.io/>`__ 
+for creating the TLS certificates. However, note that this is an 
+opinionated guide, and CertManager is not supported by MongoDB. Moreover, CertManager 
+is only one of many ways in which you can add TLS certificates to your |k8s| clusters.
+Additionally, self-signed certificates may not be suitable for production deployments, 
+depending on the security requirements of your organization. If you require 
+publicly trusted certificates configure your `Issuer <https://cert-manager.io/docs/configuration/issuers/>`__ accordingly 
+or provide the TLS certificate directly. To learn more, see :ref:`<cert-manager-integration>`.
+
+Prerequisites
+-------------
+
+Before you begin, perform the following tasks:
+
+- Install ``kubectl``.
+- |helm-install|.
+- Set the ``K8S_CLUSTER_*_CONTEXT_NAME`` environment variables as 
+  explained in the :ref:`GKE Clusters guide <reference-architectures-gke-clusters>`.
+
+Source Code
+-----------
+
+You can find all included source code in the :github:`MongoDB Kubernetes Operator repository <mongodb/mongodb-kubernetes/tree/{+github-branch+}/public/architectures/setup-multi-cluster/ra-05-setup-cert-manager>`.
+
+Procedure
+----------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Add the Helm charts repo.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/ra-05-setup-cert-manager/code_snippets/ra-05_0215_helm_configure_repo.sh
+         :language: bash
+         :linenos:
+
+         .. output:: /includes/code-examples/outputs/test_gke_multi_cluster_snippets/ra-05_0215_helm_configure_repo.out
+
+   .. step:: Use Helm to install cert-manager.
+
+      .. io-code-block::
+
+         .. input:: /includes/code-examples/reference-architectures/setup-multi-cluster/ra-05-setup-cert-manager/code_snippets/ra-05_0216_helm_install_cert_manager.sh
+            :language: bash
+            :linenos:
+
+         .. output:: /includes/code-examples/outputs/test_gke_multi_cluster_snippets/ra-05_0216_helm_install_cert_manager.out
+
+   .. step:: Create a certificate issuer.
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/ra-05-setup-cert-manager/code_snippets/ra-05_0220_create_issuer.sh
+         :language: bash
+         :linenos:
+
+   .. step::  Verify creation of the issuer.
+
+      .. io-code-block::
+
+         .. input:: /includes/code-examples/reference-architectures/setup-multi-cluster/ra-05-setup-cert-manager/code_snippets/ra-05_0221_verify_issuer.sh
+            :language: bash
+            :linenos:
+
+         .. output:: /includes/code-examples/outputs/test_gke_multi_cluster_snippets/ra-05_0221_verify_issuer.out
+
+   .. step:: Create CA configMap.
+
+      If your |onprem| TLS certificate is signed by a custom CA, the CA 
+      certificate must also contain additional certificates that allows the 
+      agents to download MongoDB binaries from the internet. To create the TLS 
+      certificate(s), create a ConfigMap to hold the CA certificate:
+
+      .. literalinclude:: /includes/code-examples/reference-architectures/setup-multi-cluster/ra-05-setup-cert-manager/code_snippets/ra-05_0225_create_ca_configmap.sh
+         :language: bash
+         :linenos:

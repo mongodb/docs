@@ -1,0 +1,167 @@
+.. _multi-cluster-arch-ref:
+
+===========================================
+Architecture, Capabilities, and Limitations
+===========================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: multicluster, multi-cluster
+   :description: Explore the architecture, capabilities, and limitations of deploying MongoDB across multiple Kubernetes clusters using the Kubernetes Operator.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _multi-cluster-limitations:
+
+Limitations
+-----------
+
+The following limitations exist for |multi-clusters|:
+
+- Use |onprem| versions later than 5.0.7.
+- Use only |k8s| |k8s-secrets| for your secret storage tool. The |hashicorp-vault| 
+  secret storage tool isn't supported.
+- For deployments where the same |k8s-op-short| instance is not managing both the
+  :ref:`MongoDBOpsManager <k8s-om-specification>` and 
+  :ref:`MongoDB <k8s-specification>` custom resources, 
+  you must manually configure |kmip| backup encryption client settings in |onprem|. 
+  To learn more, see :ref:`kmip-manual-procedure`.   
+- Don't add a :github:`ServiceMonitor<prometheus-operator/prometheus-operator/blob/main/Documentation/developer/getting-started.md>`
+  to your |mongodb-multis|. The |k8s-op-short| doesn't support integration with Prometheus.
+
+- .. include:: /includes/facts/fact-migrating-to-multi-clusters.rst
+
+.. _multi-cluster-capabilities:
+
+Multi-Cluster Deployment Capabilities
+---------------------------------------------------------
+
+This section describes the |multi-cluster| capabilities that you can
+configure using the same procedures as the procedures for single clusters
+of MongoDB resources deployed with the |k8s-op-short|. Other |multi-cluster|
+capabilities have their own documentation in this guide.
+
+- :ref:`multi-cluster-connection-string`
+- :ref:`multi-cluster-security-db-users`
+- :ref:`multi-cluster-queryable-backups-for-om`
+
+.. _multi-cluster-connection-string:
+
+Connect with |dns-srv| Records
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To connect to the |multi-cluster| database as a user, you can use
+the ``connectionString.standardSrv``: :manual:`DNS seed list connection string </reference/connection-string/#dns-seed-list-connection-format>`.
+This string is included in the secret that the |k8s-op-short| creates for your |multi-cluster|.
+Use the same procedure for connecting to the |multi-cluster| as for single
+clusters deployed with |k8s-op-short|. See :ref:`Connect to a MongoDB Database Resource from Inside Kubernetes <connect-from-inside-k8s>`
+and select the tab :guilabel:`Using the Kubernetes Secret`.
+
+.. _multi-cluster-security-db-users:
+
+Manage Security for Database Users
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use these methods to manage security for database users:
+
+- :ref:`LDAP authentication <k8s-manage-db-users-ldap>`
+- :ref:`SCRAM authentication <k8s-manage-db-users-scram>`
+- :ref:`TLS and X.509 for internal cluster authentication <k8s-manage-db-users-x509>`
+- :ref:`OIDC authentication <secure-oidc-auth>`
+
+These procedures are the same as the procedures for single clusters deployed
+with the |k8s-op-short|, with the following exceptions:
+
+- The procedures apply to replica sets only. |Multi-clusters| :ref:`don't support creating sharded clusters <multi-cluster-limitations>`.
+- In the ``mongodbResourceRef``, specify the name of the |multi-cluster|
+  replica set: ``name: "<my-multi-cluster-replica-set>"``.
+
+.. _multi-cluster-queryable-backups-for-om:
+
+Set up Queryable Backups for Single-Cluster |onprem| Resources
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you deploy an |onprem| instance on a single |k8s| cluster with the |k8s-op-short|,
+the operator-hosting cluster may also host |onprem|. In this case, you can
+:ref:`configure queryable backups <configure-om-queryable-backups>`
+for |onprem| resources. Queryable backups aren't supported in deployments
+of |onprem| resources on multiple |k8s| clusters.
+
+.. _multi-cluster-diagram:
+
+Deployment Architecture and Diagrams
+-------------------------------------
+
+You can create |multi-clusters| with or without relying on a service mesh.
+To learn more, see :ref:`mc_plan_external_connectivity`
+
+In both the following diagrams, the |k8s-op-full| performs these actions:
+
+- Watches for the |mongodb-multi| spec creation in the operator cluster.
+- Uses the mounted ``kubeconfig`` file to communicate with member clusters.
+- Creates the necessary resources, such as ConfigMaps, Secrets, Services
+  and StatefulSet |k8s| objects in each member cluster corresponding to
+  the number of replica set members in the MongoDB cluster.
+- Identifies the cluster for deploying each MongoDB replica set using
+  the corresponding |mongodb-multi| spec, and deploys the MongoDB replica sets.
+- Watches for the ``CentralCluster`` and ``MemberCluster`` events.
+- Reconciles the resources it created to confirm that the |multi-cluster|
+  is in the desired state.
+
+.. include:: /includes/facts/fact-central-member-clusters.rst
+
+Note that if the operator cluster (also known as the operator cluster) fails,
+you can't use the |k8s-op-short|
+to change your deployment until you restore access to this cluster or
+until you redeploy the |k8s-op-short| to another available |k8s| cluster.
+To learn more, see :ref:`disaster-recovery-ref`.
+
+.. _multi-cluster-diagram-with-service-mesh:
+
+Diagram: Multi-Kubernetes Cluster Deployment with a Service Mesh
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following diagram shows the high-level architecture of a |multi-cluster|
+across regions and availability zones. This deployment uses a service mesh,
+such as Istio. The service mesh:
+
+- Manages the discovery of MongoDB nodes deployed in different |k8s| member clusters.
+- Handles communication between replica set members.
+
+You can host your application on any of the member clusters inside the
+service mesh, such as:
+
+- On |k8s| clusters outside of the ones that you deploy with the |k8s-op-short|, or
+- On the member clusters in a |multi-cluster|.
+
+.. figure:: /images/multi-cluster-arch-with-service-mesh.svg
+   :alt: Diagram showing the high-level architecture of a multi-cluster-Kubernetes
+         deployment across regions and availability zones using the
+         MongoDB Controllers for Kubernetes Operator, with a service mesh
+   :figwidth: 600px
+
+.. _multi-cluster-diagram-no-service-mesh:
+
+Diagram: Multi-Kubernetes Cluster Deployment without a Service Mesh
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following diagram shows the high-level architecture of a |multi-cluster|
+across regions and availability zones. This deployment doesn't rely on a
+service mesh for connectivity between the |k8s| clusters hosting Pods
+with MongoDB instances.
+
+To handle external communication between MongoDB replica set members hosted
+on Pods in distinct |k8s| clusters, :ref:`use external domains and DNS zones <dns-and-external-domain>`.
+
+.. figure:: /images/multi-cluster-arch-no-service-mesh.svg
+   :alt: Diagram showing the high-level architecture of a multi-cluster-Kubernetes
+         deployment across regions and availability zones using the
+         MongoDB Controllers for Kubernetes Operator, and without a service mesh
+   :figwidth: 600px
+
+You can host your application on any of the member clusters.
