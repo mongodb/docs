@@ -38,8 +38,8 @@ import { Image } from '@/mdx-components/Image';
 import { Link } from '@/mdx-components/Link';
 import { Video } from '@/mdx-components/Video/Video';
 import { Kicker } from '@/mdx-components/Kicker';
-import { Deprecated } from './mdx-components/Deprecated';
 import { TabsSelector } from '@/mdx-components/TabsSelector';
+import { Version } from '@/mdx-components/Version';
 import { Code } from '@/mdx-components/Code';
 import { Replacement } from '@/mdx-components/Include/Replacement';
 
@@ -117,8 +117,11 @@ export const components = (injectedProps?: InjectedProps) =>
     DefinitionListItem: ({ children, ...props }) => <DefinitionListItem {...props}>{children}</DefinitionListItem>,
     DefinitionTerm: ({ children }) => <dt>{children}</dt>,
     DefinitionDescription: ({ children }) => <DefinitionDescription>{children}</DefinitionDescription>,
-    Deprecated: (props) => <Deprecated {...props} />,
-    DeprecatedVersionSelector: ({ children }) => <span>{children}</span>,
+    Deprecated: ({ children, ...props }) => (
+      <Version changeType="deprecated" {...props}>
+        {children}
+      </Version>
+    ),
     Describe: ({ children, ...props }) => <Describe {...props}>{children}</Describe>,
     Example: ({ children, ...props }) => (
       <Admonition name="example" {...props}>
@@ -179,8 +182,16 @@ export const components = (injectedProps?: InjectedProps) =>
     Time: (props) => <Time {...props} />,
     // built-in thematic break (--- / *** / ___) → hr; render with Transition component
     hr: () => <Transition />,
-    VersionAdded: ({ children }) => <span>{children}</span>,
-    VersionChanged: ({ children }) => <span>{children}</span>,
+    VersionAdded: ({ children, ...props }) => (
+      <Version changeType="versionadded" {...props}>
+        {children}
+      </Version>
+    ),
+    VersionChanged: ({ children, ...props }) => (
+      <Version changeType="versionchanged" {...props}>
+        {children}
+      </Version>
+    ),
     Video: (props) => <Video {...props} />,
     Wayfinding: ({ children }) => <span>{children}</span>,
     DismissibleSkillsCard: ({ children }) => <span>{children}</span>,

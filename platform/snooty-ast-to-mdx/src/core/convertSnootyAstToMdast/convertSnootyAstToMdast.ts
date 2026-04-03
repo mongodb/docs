@@ -521,17 +521,52 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           children,
         };
       }
-      if (directiveName === 'rubric') {
-        const rubricText = (node.argument as SnootyNode[]).map(extractArgText).join('');
-        return { type: 'html', value: `\n\n**${rubricText}**\n\n` };
-      }
       if (directiveName === 'deprecated') {
         const version = parseSnootyArgument(node);
         return {
-          type: 'mdxJsxFlowElement',
-          name: 'Deprecated',
-          attributes: [{ type: 'mdxJsxAttribute', name: 'version', value: version }],
+          type: 'paragraph',
+          children: [
+            {
+              type: 'mdxJsxTextElement',
+              name: 'Deprecated',
+              attributes: [{ type: 'mdxJsxAttribute', name: 'version', value: version }],
+              children: node.children,
+            },
+          ],
         };
+      }
+      if (directiveName === 'versionchanged') {
+        const version = parseSnootyArgument(node);
+
+        return {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'mdxJsxTextElement',
+              name: 'VersionChanged',
+              attributes: [{ type: 'mdxJsxAttribute', name: 'version', value: version }],
+              children: node.children,
+            },
+          ],
+        };
+      }
+      if (directiveName === 'versionadded') {
+        const version = parseSnootyArgument(node);
+        return {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'mdxJsxTextElement',
+              name: 'VersionAdded',
+              attributes: [{ type: 'mdxJsxAttribute', name: 'version', value: version }],
+              children: node.children,
+            },
+          ],
+        };
+      }
+      if (directiveName === 'rubric') {
+        const rubricText = (node.argument as SnootyNode[]).map(extractArgText).join('');
+        return { type: 'html', value: `\n\n**${rubricText}**\n\n` };
       }
       if (directiveName === 'selected-content') {
         const selections =

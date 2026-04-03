@@ -100,6 +100,7 @@ type DirectiveName =
   | 'dismissible-skills-card'
   | 'entry'
   | 'facet'
+  | 'guide-next'
   | 'hlist'
   | 'figure'
   | 'ia'
@@ -151,6 +152,7 @@ type NodeType =
   | 'field_list'
   | 'footnote'
   | 'footnote_reference'
+  | 'guide-next'
   | 'heading'
   | 'inline_target'
   | 'line'
@@ -635,6 +637,8 @@ type ImageNodeOptions = {
   loading?: string;
   class?: string;
   border?: boolean;
+  //className?: string; <-- working without these listed here!
+  //caption?: string;
 };
 
 interface FigureNode extends Directive<ImageNodeOptions> {
