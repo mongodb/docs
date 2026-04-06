@@ -1,6 +1,7 @@
 import type { MDXComponents } from 'mdx/types';
 import { Include } from '@/mdx-components/Include';
 import { Reference } from '@/mdx-components/Reference';
+import { RefRole } from '@/mdx-components/RefRole';
 import { RefTarget } from '@/mdx-components/RefTarget';
 import { Admonition } from '@/mdx-components/Admonition';
 import { Banner } from '@/mdx-components/Banner';
@@ -57,6 +58,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Image: (props) => <Image {...props} {...injectedProps} />,
     Include: (props) => <Include {...props} {...injectedProps} />,
     Reference: (props) => <Reference {...props} {...injectedProps} />,
+    RefRole: (props) => <RefRole {...props} {...injectedProps} />,
     // standard markdown elements
     p: ({ children, ...props }) => <Paragraph {...props}>{children}</Paragraph>,
     pre: ({ children, ...props }) => {

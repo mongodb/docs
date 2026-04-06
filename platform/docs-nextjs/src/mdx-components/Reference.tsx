@@ -14,12 +14,9 @@ interface ReferenceProps {
 
 export const Reference = async ({ projectPath, name, refKey, title, replacements }: ReferenceProps) => {
   const lookupKey = name ?? refKey;
-  if (!lookupKey) {
-    return `Reference (unknown) not found in project (${projectPath})`;
-  }
 
   // Caller-provided replacements (from include/sharedinclude) take priority
-  if (replacements && lookupKey in replacements) {
+  if (lookupKey && replacements && lookupKey in replacements) {
     return <>{replacements[lookupKey]}</>;
   }
 
@@ -29,20 +26,22 @@ export const Reference = async ({ projectPath, name, refKey, title, replacements
   const parsedReferences = JSON.parse(references ?? '{}');
 
   // Substitution references (e.g. <Reference refKey="service" type="substitution" />) are plain text
-  const substitution = parsedReferences?.substitutions?.[lookupKey];
+  const substitution = lookupKey ? parsedReferences?.substitutions?.[lookupKey] : undefined;
   if (substitution) {
     return <span>{substitution}</span>;
   }
 
-  const href: string | undefined = parsedReferences?.refs?.[lookupKey];
+  const href: string | undefined = lookupKey ? parsedReferences?.refs?.[lookupKey] : undefined;
   if (href) {
     const resolvedHref = href.startsWith('http') ? href : `/${href}`;
     return <Link to={resolvedHref}>{title ?? lookupKey}</Link>;
   }
 
   // External absolute URL with no entry in _references.json — render directly
-  if (lookupKey.startsWith('http')) {
+  if (lookupKey?.startsWith('http')) {
     return <Link to={lookupKey}>{title ?? lookupKey}</Link>;
   }
-  return `Reference (${lookupKey}) not found in project (${projectPath})`;
+
+  // Unresolved reference — render a dead link so content remains visible
+  return <Link to="">{title ?? lookupKey ?? ''}</Link>;
 };

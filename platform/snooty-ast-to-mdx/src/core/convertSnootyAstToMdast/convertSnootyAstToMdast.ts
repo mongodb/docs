@@ -707,6 +707,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       const fileid = node.fileid as [string, string?] | undefined;
       const externalUrl = typeof node.url === 'string' ? node.url : undefined;
       const refTarget = typeof node.target === 'string' ? node.target : undefined;
+      const roleName = typeof node.name === 'string' ? node.name : undefined;
 
       // The lookup key: prefer the explicit ref target label, fall back to fileid path or external url
       const key = refTarget ?? (fileid ? fileid[0] : undefined) ?? externalUrl ?? '';
@@ -722,8 +723,24 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         ctx.collectedRefs.set(key, externalUrl);
       }
 
-      // Snooty always resolves the display title — either the author's custom text or the
-      // section heading for the target anchor. Always emit it inline as a prop.
+      // Typed ref roles (e.g. :authrole:, :binary:, :term:) preserve children so that
+      // formatting encoded in the AST (e.g. literal → code font) is retained.
+      if (node.type === 'ref_role' && roleName && roleName !== 'ref') {
+        const children = convertChildren({ nodes: node.children, depth, ctx });
+        const attributes: MdastNode[] = [
+          { type: 'mdxJsxAttribute', name: 'type', value: roleName },
+          { type: 'mdxJsxAttribute', name: 'name', value: key },
+        ];
+        return {
+          type: 'mdxJsxTextElement',
+          name: 'RefRole',
+          attributes,
+          children,
+        };
+      }
+
+      // Plain :ref: and :doc: — snooty resolves the display title to the section heading.
+      // Always emit it inline as a prop.
       const title = extractInlineDisplayText(node.children ?? []);
 
       const attributes: MdastNode[] = [{ type: 'mdxJsxAttribute', name: 'name', value: key }];

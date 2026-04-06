@@ -417,6 +417,17 @@ const cases: Array<[string, SnootyNode]> = [
     },
   ],
   [
+    'ref_role typed (authrole)',
+    {
+      type: 'ref_role',
+      domain: 'mongodb',
+      name: 'authrole',
+      target: 'Organization Owner',
+      fileid: ['reference/user-roles', 'mongodb-authrole-Organization-Owner'],
+      children: [{ type: 'literal', children: [{ type: 'text', value: 'Organization Owner' }] }],
+    },
+  ],
+  [
     'inline_target',
     {
       type: 'inline_target',
