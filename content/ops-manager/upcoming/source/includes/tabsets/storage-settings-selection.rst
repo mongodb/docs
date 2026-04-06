@@ -1,4 +1,4 @@
-The format of the Username and Password depend upon the authentication
+The format of the Username and Password depends on the authentication
 mechanism. Select one of the following tabs:
 
 .. tabs::
