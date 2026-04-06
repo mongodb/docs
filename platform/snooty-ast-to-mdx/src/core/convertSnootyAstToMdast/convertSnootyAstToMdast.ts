@@ -931,14 +931,14 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         // Fallback to emitting content inline if id missing
         return convertChildren({ nodes: node.children, depth, ctx, parentType: 'footnote' });
       }
-      const attributes: MdastNode[] = [{ type: 'mdxJsxAttribute', name: 'id', value: identifier }];
-      if (node.name) {
-        attributes.push({ type: 'mdxJsxAttribute', name: 'label', value: String(node.name) });
-      }
+      const attributes: MdastNode[] = [];
+      if (node.name) attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: String(node.name) });
       return {
         type: 'mdxJsxFlowElement',
         name: 'Footnote',
         attributes,
+        identifier,
+        label: node.name ?? undefined,
         children: convertChildren({ nodes: node.children, depth, ctx, parentType: 'footnote' }),
       };
     }
@@ -946,9 +946,12 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
     case 'footnote_reference': {
       const identifier = String(node.id ?? '');
       if (!identifier) return null;
+      const attributes: MdastNode[] = [];
+      if (node.refname) attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: String(node.refname) });
       return {
         type: 'mdxJsxTextElement',
         name: 'FootnoteReference',
+        attributes,
         identifier,
         label: node.refname ?? undefined,
       };

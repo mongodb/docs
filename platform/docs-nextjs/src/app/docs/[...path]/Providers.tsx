@@ -14,6 +14,7 @@ import { VersionContextProvider } from '@/context/version-context';
 import type { Environments } from '@/utils/env-config';
 
 type Template = NonNullable<MDXFrontmatter['template']>;
+import { FootnoteProvider } from '@/context/footnote-context';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -43,7 +44,9 @@ export const Providers = ({ children, metadata, frontmatter, slug, template, doc
               <ContentsProvider headingNodes={headingNodes}>
                 <TabProvider selectors={frontmatter.options?.selectors} defaultTabs={frontmatter.options?.default_tabs}>
                   <InstruqtProvider hasLabDrawer={!!frontmatter.options?.instruqt}>
-                    <ChatbotProvider>{children}</ChatbotProvider>
+                    <FootnoteProvider>
+                      <ChatbotProvider>{children}</ChatbotProvider>
+                    </FootnoteProvider>
                   </InstruqtProvider>
                 </TabProvider>
               </ContentsProvider>
