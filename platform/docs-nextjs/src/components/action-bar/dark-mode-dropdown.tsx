@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useContext, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { cx, css } from '@leafygreen-ui/emotion';
 import Icon from '@leafygreen-ui/icon';
 import IconButton from '@leafygreen-ui/icon-button';
@@ -48,6 +48,11 @@ const DarkModeDropdown = () => {
   const { setDarkModePref, darkModePref } = useContext(DarkModeContext);
 
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const select = useCallback(
     (selectedPref: DarkModePref) => {
@@ -89,10 +94,10 @@ const DarkModeDropdown = () => {
         }}
         trigger={
           <IconButton className={cx(iconStyling)} aria-label="Dark Mode Menu" aria-labelledby="Dark Mode Menu">
-            {darkModePref === 'system' ? (
+            {mounted && darkModePref === 'system' ? (
               <IconDarkmode />
             ) : (
-              <Icon size={24} glyph={darkModePref === 'dark-theme' ? 'Moon' : 'Sun'} />
+              <Icon size={24} glyph={mounted && darkModePref === 'dark-theme' ? 'Moon' : 'Sun'} />
             )}
           </IconButton>
         }
