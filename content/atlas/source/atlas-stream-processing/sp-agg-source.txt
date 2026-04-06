@@ -1110,105 +1110,23 @@ stages:
    database. If no such database or collection exist, {+service+}
    creates them.
 
-.. code-block:: json
+.. literalinclude:: /includes/examples/sp-agg-source/kafka-pipeline.json
+   :language: json
    :copyable: true
-   
-   {
-     '$source': {
-       connectionName: 'sample_weatherdata',
-       topic: 'my_weatherdata'
-     }
-   },
-   { '$match': { 'dewPoint.value': { '$gt': 5 } } },
-   {
-     '$merge': {
-       into: {
-	 connectionName: 'weatherStreamOutput',
-	 db: 'sample_weatherstream',
-	 coll: 'stream'
-       }
-     }
-   }
 
 To view the documents in the resulting ``sample_weatherstream.stream``
-collection, connect to your {+service+} cluster and run the following command:
+collection, connect to your {+service+} cluster and run the
+following command:
 
 .. io-code-block::
    :copyable: true
 
-   .. input::
-      :language: json
+   .. input:: /includes/examples/sp-agg-source/kafka-find.js
+      :language: javascript
 
-      db.getSiblingDB("sample_weatherstream").stream.find()
-
-   .. output::
+   .. output:: /includes/examples/sp-agg-source/kafka-find-result.sh
       :language: json
       :visible: false
-
-      {
-	_id: ObjectId('66ad2edfd4fcac13b1a28ce3'),
-	airTemperature: { quality: '1', value: 27.7 },
-	atmosphericPressureChange: {
-	  quantity24Hours: { quality: '9', value: 99.9 },
-	  quantity3Hours: { quality: '1' },
-	  tendency: { code: '1', quality: '1' }
-	},
-	atmosphericPressureObservation: {
-	  altimeterSetting: { quality: '1', value: 1015.9 },
-	  stationPressure: { quality: '1', value: 1021.9 }
-	},
-	callLetters: 'CGDS',
-	dataSource: '4',
-	dewPoint: { quality: '9', value: 25.7 },
-	elevation: 9999,
-	extremeAirTemperature: { code: 'N', period: 99.9, quantity: '9', value: -30.4 },
-	ingestionTime: ISODate('2024-08-02T19:09:18.071Z'),
-	liquidPrecipitation: { condition: '9', depth: 160, period: 24, quality: '2' },
-	pastWeatherObservationManual: {
-	  atmosphericCondition: { quality: '1', value: '8' },
-	  period: { quality: '9', value: 3 }
-	},
-	position: { coordinates: [ 153.3, 50.7 ], type: 'Point' },
-	precipitationEstimatedObservation: { discrepancy: '4', estimatedWaterDepth: 4 },
-	presentWeatherObservationManual: { condition: '53', quality: '1' },
-	pressure: { quality: '1', value: 1016.3 },
-	qualityControlProcess: 'V020',
-	seaSurfaceTemperature: { quality: '9', value: 27.6 },
-	sections: [ 'AA2', 'SA1', 'MW1', 'AG1', 'GF1' ],
-	skyCondition: {
-	  cavok: 'N',
-	  ceilingHeight: { determination: 'C', quality: '1', value: 6900 }
-	},
-	skyConditionObservation: {
-	  highCloudGenus: { quality: '1', value: '05' },
-	  lowCloudGenus: { quality: '9', value: '03' },
-	  lowestCloudBaseHeight: { quality: '9', value: 150 },
-	  lowestCloudCoverage: { quality: '1', value: '05' },
-	  midCloudGenus: { quality: '9', value: '08' },
-	  totalCoverage: { opaque: '99', quality: '1', value: '06' }
-	},
-	skyCoverLayer: {
-	  baseHeight: { quality: '9', value: 99999 },
-	  cloudType: { quality: '9', value: '05' },
-	  coverage: { quality: '1', value: '04' }
-	},
-	st: 'x+35700-027900',
-	type: 'SAO',
-	visibility: {
-	  distance: { quality: '1', value: 4000 },
-	  variability: { quality: '1', value: 'N' }
-	},
-	waveMeasurement: {
-	  method: 'I',
-	  seaState: { code: '99', quality: '9' },
-	  waves: { height: 99.9, period: 14, quality: '9' }
-	},
-	wind: {
-	  direction: { angle: 280, quality: '9' },
-	  speed: { quality: '1', rate: 30.3 },
-	  type: '9'
-	}
-      }
 
 .. note::
 
@@ -1237,58 +1155,69 @@ change stream and record changes to the ``data`` collection in the
    the ``sample_weatherdata`` database.  If no such collection exists,
    {+service+} creates it.
 
-.. code-block:: json
+.. literalinclude:: /includes/examples/sp-agg-source/change-stream-pipeline.json
+   :language: json
+   :copyable: true
 
-   {
-     $source: {
-       connectionName: "cluster0-connection",
-       db : "sample_weatherdata",
-       coll : "data"
-     },
-     $merge: { 
-       into: {
-         connectionName: "cluster0-connection", 
-         db: "sample_weatherdata",
-         coll: "data_changes"
-       }
-     }  
-   }  
+The following :binary:`~bin.mongosh` command deletes a ``data``
+document:
 
-The following :binary:`~bin.mongosh` command deletes a ``data`` document: 
+.. literalinclude:: /includes/examples/sp-agg-source/change-stream-delete.js
+   :language: javascript
+   :copyable: true
 
-.. code-block:: json
-
-   db.getSiblingDB("sample_weatherdata").data.deleteOne(
-      { _id: ObjectId("5553a99ae4b02cf715120e4b") }
-   )
-
-After the ``data`` document is deleted, the stream processor writes the change stream event 
-document to the ``sample_weatherdata.data_changes`` collection.  
-To view the documents in the resulting ``sample_weatherdata.data_changes``
-collection, use :binary:`~bin.mongosh` to connect to your {+service+} cluster and run the following command:
+After the ``data`` document is deleted, the stream processor writes
+the change stream event document to the
+``sample_weatherdata.data_changes`` collection. To view the documents
+in the resulting ``sample_weatherdata.data_changes`` collection, use
+:binary:`~bin.mongosh` to connect to your {+service+} cluster and
+run the following command:
 
 .. io-code-block::
    :copyable: true
 
-   .. input::
-      :language: json
+   .. input:: /includes/examples/sp-agg-source/change-stream-find.js
+      :language: javascript
 
-      db.getSiblingDB("sample_weatherdata").data_changes.find()
-
-   .. output::
+   .. output:: /includes/examples/sp-agg-source/change-stream-find-result.sh
       :language: json
       :visible: false
 
-      [
-        {
-          _id: {
-            _data: '8267A3D7A3000000012B042C0100296E5A1004800951B8EDE4430AB5C1B254BB3C96D6463C6F7065726174696F6E54797065003C64656C6574650046646F63756D656E744B65790046645F696400645553A99AE4B02CF715120E4B000004'
-          },
-          clusterTime: Timestamp({ t: 1738790819, i: 1 }),
-          documentKey: { _id: ObjectId('5553a99ae4b02cf715120e4b') },
-          ns: { db: 'sample_weatherdata', coll: 'data' },
-          operationType: 'delete',
-          wallTime: ISODate('2025-02-05T21:26:59.313Z')
-        }
-      ]
+Document Array Example
+~~~~~~~~~~~~~~~~~~~~~~
+
+The following aggregation uses an inline document array as the streaming
+data source, containing weather observations for three locations. The array
+uses the same schema as the :ref:`Sample Weather Dataset <sample-weather>`.
+This aggregation runs three stages:
+
+1. The :pipeline:`$source` stage defines an inline ``documents`` array of
+   weather observations as the streaming data source, and uses ``timeField``
+   to designate the ``timestamp`` field of each document as the authoritative
+   timestamp.
+
+2. The :pipeline:`$match` stage passes along only the documents with
+   ``dewPoint.value`` greater than ``5.0`` to the next stage.
+
+3. The :pipeline:`$merge` stage writes the output to an {+service+}
+   collection named ``stream`` in the ``sample_weatherstream`` database. If
+   no such database or collection exist, {+service+} creates them.
+
+.. literalinclude:: /includes/examples/sp-agg-source/docarray-pipeline.json
+   :language: json
+   :copyable: true
+
+To view the documents in the resulting ``sample_weatherstream.stream``
+collection, connect to your {+service+} cluster and run the
+following command:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/examples/sp-agg-source/docarray-find.js
+      :language: javascript
+
+   .. output:: /includes/examples/sp-agg-source/docarray-find-result.sh
+      :language: json
+      :visible: false
 

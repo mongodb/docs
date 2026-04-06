@@ -1,0 +1,13 @@
+[
+  {
+    _id: {
+      _data: '8267A3D7A3000000012B042C0100296E5A1004800951B8EDE4430AB5C1B254BB3C96D6463C6F7065726174696F6E54797065003C64656C6574650046646F63756D656E744B65790046645F696400645553A99AE4B02CF715120E4B000004'
+    },
+    clusterTime: Timestamp({ t: 1738790819, i: 1 }),
+    documentKey: { _id: ObjectId('5553a99ae4b02cf715120e4b') },
+    ns: { db: 'sample_weatherdata', coll: 'data' },
+    operationType: 'delete',
+    wallTime: ISODate('2025-02-05T21:26:59.313Z')
+  }
+]
+
