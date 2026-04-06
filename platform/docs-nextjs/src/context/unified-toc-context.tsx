@@ -8,6 +8,8 @@ import type { ActiveVersions, AvailableVersions } from './version-context';
 import { useVersionContext } from './version-context';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 
+export const legacyTocProjects = ['realm', 'atlas-app-services', 'cloudgov', 'meta'];
+
 interface UnfiedTocContextType {
   tocTree: TocItem[];
   processedUnifiedToc: TocItem[];
@@ -82,18 +84,19 @@ const updateURLs = ({ tree, contentSite, activeVersions, versionsData }: UpdateU
 export const UnifiedTocProvider = ({ children }: { children: ReactNode }) => {
   const { activeVersions, availableVersions } = useVersionContext();
   const { project, eol } = useSnootyMetadata();
+  const useLegacyTocStructure = eol || legacyTocProjects.includes(project);
 
   const cacheKey = project ? `${project}-${activeVersions[project]}` : '';
   const [legacyToc, setLegacyToc] = useState<TocItem[] | null>(() => legacyTocCache[cacheKey] || null);
 
   useEffect(() => {
-    if (eol && project) {
+    if (project && useLegacyTocStructure) {
       loadLegacyToc(project, activeVersions[project]).then(setLegacyToc);
     }
   }, [eol, project, activeVersions]);
 
   // For EOL pages use legacyToc (may be null while loading), otherwise use tocData
-  const tree = eol ? legacyToc : tocData;
+  const tree = useLegacyTocStructure ? legacyToc : tocData;
 
   const processedTree = useMemo(() => {
     if (!tree) return [];
@@ -104,7 +107,7 @@ export const UnifiedTocProvider = ({ children }: { children: ReactNode }) => {
     });
   }, [tree, activeVersions, availableVersions]);
 
-  if (eol && !legacyToc) {
+  if (useLegacyTocStructure && !legacyToc) {
     return null;
   }
 

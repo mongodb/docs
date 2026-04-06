@@ -1,7 +1,8 @@
-import type { RemoteMetadata } from '@/types/data';
 import { Providers } from './Providers';
 import { UnifiedSidenav } from '@/components/unified-sidenav/UnifiedSidenav';
 import type { BaseTemplateProps } from '@/components/templates';
+import type { RemoteMetadata, Docset } from '@/types/data';
+import type { Environments } from '@/utils/env-config';
 import {
   ChangelogTemplate,
   DocumentTemplate,
@@ -86,9 +87,11 @@ interface CustomTemplateProps {
   frontmatter: MDXFrontmatter;
   path: string[];
   metadata: RemoteMetadata;
+  docsets: Docset[];
+  env: Environments;
 }
 
-export const CustomTemplate = ({ content, frontmatter, path, metadata }: CustomTemplateProps) => {
+export const CustomTemplate = ({ content, frontmatter, path, metadata, docsets, env }: CustomTemplateProps) => {
   const template = (frontmatter.template || 'document') as PageTemplateType;
   const { Template, renderSidenav } = getTemplate(template);
   // TODO: Temporary fix — prepend 'docs/' so the slug matches TOC node URLs (which use the
@@ -101,7 +104,14 @@ export const CustomTemplate = ({ content, frontmatter, path, metadata }: CustomT
   };
 
   return (
-    <Providers metadata={metadata} frontmatter={frontmatter} slug={slug} template={template}>
+    <Providers
+      metadata={metadata}
+      frontmatter={frontmatter}
+      slug={slug}
+      template={template}
+      docsets={docsets}
+      env={env}
+    >
       <Header eol={metadata?.eol ?? false} />
       {renderSidenav && <UnifiedSidenav />}
       <div className={layoutStyles['content-container']}>

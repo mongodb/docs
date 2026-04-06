@@ -13,8 +13,9 @@ import OfflineBanner from '../banner/offline-banner';
 import { getFullSlug } from '@/utils/get-full-slug';
 import { useVersionContext } from '@/context/version-context';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
+import { CONTENT_MAX_WIDTH } from '@/constants';
 
-export const CONTENT_MAX_WIDTH = 1200;
+export { CONTENT_MAX_WIDTH };
 
 const formstyle = css`
   position: absolute;

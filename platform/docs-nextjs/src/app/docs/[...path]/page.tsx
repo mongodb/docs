@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import { loadMDX } from '@/mdx-utils/load-mdx';
 import { findProjectPathAndSiteJson } from '@/mdx-utils/load-metadata';
+import { getAllDocsetsWithVersionsCached } from '@/services/db/docsets';
+import envConfig from '@/utils/env-config';
 import type { RemoteMetadata } from '@/types/data';
 import { CustomTemplate } from './custom-template';
 
@@ -30,9 +32,19 @@ export default async function MDXPage({ params: { path } }: PageProps) {
     throw new Error('[page.tsx] Error loading metadata');
   }
 
+  const docsets = await getAllDocsetsWithVersionsCached();
+  const env = envConfig.DB_ENV;
+
   return (
     <>
-      <CustomTemplate content={result.content} frontmatter={result.frontmatter} path={path} metadata={siteMetadata} />
+      <CustomTemplate
+        content={result.content}
+        frontmatter={result.frontmatter}
+        path={path}
+        metadata={siteMetadata}
+        docsets={docsets}
+        env={env}
+      />
     </>
   );
 }

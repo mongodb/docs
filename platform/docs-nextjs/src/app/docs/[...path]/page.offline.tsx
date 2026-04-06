@@ -3,6 +3,7 @@ import { toc } from '@/context/toc-data';
 import { loadMDX, isVersionPlaceholder } from '@/mdx-utils/load-mdx';
 import type { RemoteMetadata } from '@/types/data';
 import { getPathArraysFromTocItems, getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
+import envConfig from '@/utils/env-config';
 import { CustomTemplate } from './custom-template';
 
 export const dynamic = 'force-static';
@@ -39,7 +40,14 @@ export default async function MDXOfflinePage({ params: { path } }: PageProps) {
   const metadata = getMinimalMetadataForStatic(path);
   return (
     <>
-      <CustomTemplate content={result.content} frontmatter={result.frontmatter} path={path} metadata={metadata} />
+      <CustomTemplate
+        content={result.content}
+        frontmatter={result.frontmatter}
+        path={path}
+        metadata={metadata}
+        docsets={[]}
+        env={envConfig.DB_ENV}
+      />
     </>
   );
 }

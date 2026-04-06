@@ -1,6 +1,6 @@
 import { css } from '@leafygreen-ui/emotion';
 import { theme } from '@/styles/theme';
-import { CONTENT_MAX_WIDTH } from '@/components/templates/product-landing';
+import { CONTENT_MAX_WIDTH } from '@/constants';
 import type { PageTemplateType } from '@/context/page-context';
 import { palette } from '@leafygreen-ui/palette';
 

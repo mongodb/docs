@@ -255,12 +255,20 @@ for rel_path in "${TARGET_REL_PATHS[@]}"; do
   # Ensure nested directory exists when rel_path contains slashes
   mkdir -p "$(dirname "$zip_path")"
 
-  log_step "1/3" "${CYAN}Building Snooty AST zip from: ${YELLOW}$abs_input${RESET}\n"
+  # Versioned projects (e.g. manual/upcoming) use the last path segment as the branch;
+  # non-versioned projects (e.g. atlas) default to main.
+  if [[ "$(dirname "$rel_path")" == "." ]]; then
+    branch="main"
+  else
+    branch="$(basename "$rel_path")"
+  fi
+
+  log_step "1/3" "${CYAN}Building Snooty AST zip from: ${YELLOW}$abs_input${RESET} ${GRAY}(branch/version: $branch)${RESET}\n"
   # Conditionally hide snooty build logs
   redirect_output="> /dev/null 2>&1"
   [[ "$SNOOTY_VERBOSE" == "true" ]] && redirect_output=""
   # Run Snooty build, but gracefully handle exit code 0 (often indicates validation errors we can ignore)
-  if ! eval "$SNOOTY_BIN build '$abs_input' --output '$zip_path' $redirect_output"; then
+  if ! eval "$SNOOTY_BIN build '$abs_input' --output '$zip_path' --branch='$branch' $redirect_output"; then
     exit_code=$?
     if [[ $exit_code -eq 0 ]]; then
       log_warning "Snooty build exited with code ${YELLOW}0${RESET}. Continuing...\n"

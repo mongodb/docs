@@ -27,3 +27,5 @@ export const ICONS_BASE_URL = `https://webimages.mongodb.com/_com_assets/icons/`
 // Append "docs" to the beginning of SIDE_NAV_CONTAINER_ID due to differentiate from LG's internal side-nav-container testid
 export const SIDE_NAV_CONTAINER_ID = 'docs-side-nav-container';
 export const TEMPLATE_CONTAINER_ID = 'template-container';
+
+export const CONTENT_MAX_WIDTH = 1200;
