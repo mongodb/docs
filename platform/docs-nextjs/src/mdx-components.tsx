@@ -43,6 +43,7 @@ import { TabsSelector } from '@/mdx-components/TabsSelector';
 import { Version } from '@/mdx-components/Version';
 import { Code } from '@/mdx-components/Code';
 import { Replacement } from '@/mdx-components/Include/Replacement';
+import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell } from '@/mdx-components/Table';
 
 type InjectedProps = Record<string, unknown>;
 
@@ -155,7 +156,6 @@ export const components = (injectedProps?: InjectedProps) =>
       </List>
     ),
     li: ({ children, ...props }) => <ListItem {...props}>{children}</ListItem>,
-    ListTable: ({ children }) => <span>{children}</span>,
     code: ({ children }) => <Literal>{children}</Literal>,
     LiteralBlock: ({ children }) => <span>{children}</span>,
     LiteralInclude: ({ children }) => <span>{children}</span>,
@@ -202,10 +202,10 @@ export const components = (injectedProps?: InjectedProps) =>
         {children}
       </Admonition>
     ),
-    Table: ({ children }) => <span>{children}</span>,
-    TableHeaderCell: ({ children }) => <span>{children}</span>,
-    TableCell: ({ children }) => <span>{children}</span>,
-    TableBody: ({ children }) => <span>{children}</span>,
-    TableHead: ({ children }) => <span>{children}</span>,
-    TableRow: ({ children }) => <span>{children}</span>,
+    Table: ({ children, ...props }) => <Table {...props}>{children}</Table>,
+    TableHead: ({ children }) => <TableHead>{children}</TableHead>,
+    TableBody: ({ children }) => <TableBody>{children}</TableBody>,
+    TableRow: ({ children }) => <TableRow>{children}</TableRow>,
+    TableHeaderCell: ({ children }) => <TableHeaderCell>{children}</TableHeaderCell>,
+    TableCell: ({ children }) => <TableCell>{children}</TableCell>,
   } satisfies MDXComponents);

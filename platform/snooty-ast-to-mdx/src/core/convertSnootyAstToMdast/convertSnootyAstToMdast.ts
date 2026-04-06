@@ -1059,16 +1059,35 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (Array.isArray(node.ids)) ids.push(...node.ids);
       if (ids.length === 0 && typeof node.name === 'string') ids.push(node.name);
       if (ids.length === 0) return null;
-      return ids.map((id) => ({
+      const refTargets = ids.map((id) => ({
         type: 'mdxJsxFlowElement',
         name: 'RefTarget',
         attributes: [{ type: 'mdxJsxAttribute', name: 'id', value: id }],
         children: [],
       }));
+      // For named directives like `authrole`, the `target_identifier` children
+      // contain the plain-text display name (e.g. "Organization Owner").
+      // Sibling nodes (e.g. a literal wrapper) are skipped to avoid code formatting.
+      // For plain label targets (name: 'label'), all children are skipped since the
+      // section heading that follows already renders the text.
+      if (node.name !== 'label') {
+        const identifierNodes = (node.children ?? []).filter((c) => c.type === 'target_identifier');
+        const childContent = convertChildren({ nodes: identifierNodes, depth, ctx });
+        if (childContent.length > 0) {
+          const textValue = childContent.map((n) => (n as { value?: string }).value ?? '').join('');
+          return [
+            ...refTargets,
+            {
+              type: 'paragraph',
+              children: [{ type: 'strong', children: [{ type: 'inlineCode', value: textValue }] }],
+            },
+          ];
+        }
+      }
+      return refTargets;
     }
 
-    case 'inline_target':
-    case 'target_identifier': {
+    case 'inline_target': {
       const ids: string[] = [];
       if (Array.isArray(node.ids)) ids.push(...node.ids);
       if (typeof node.html_id === 'string') ids.push(node.html_id);
@@ -1082,6 +1101,12 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         attributes: [{ type: 'mdxJsxAttribute', name: 'id', value: id }],
         children: [],
       }));
+    }
+
+    case 'target_identifier': {
+      // The parent `target` node already emits the RefTarget anchor(s).
+      // Here we only emit the display text children (e.g., "Organization Owner" from authrole).
+      return convertChildren({ nodes: node.children, depth, ctx });
     }
     case 'admonition': {
       const admonitionName = String(node.name ?? node.admonition_type ?? 'note');
