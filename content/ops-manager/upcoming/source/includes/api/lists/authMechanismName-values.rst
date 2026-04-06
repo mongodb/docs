@@ -1,4 +1,5 @@
-- ``MONGODB_CR`` (This covers SCRAM-SHA-1, SCRAM-SHA-256, and MONGODB-CR.)
+- ``MONGODB_CR`` (This covers SCRAM-SHA-1, SCRAM-SHA-256, and
+  MONGODB-CR.)
 - ``GSSAPI``
 - ``PLAIN``
 - ``MONGODB_X509``
