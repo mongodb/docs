@@ -178,8 +178,8 @@ describe('Expect API (file-based comparison tests)', () => {
     });
 
     it('normalizes and matches date strings in different formats', () => {
-      const a = [{ date: '2021-12-18T15:55:00.000Z' }];
-      const b = [{ date: new Date('2021-12-18T15:55:00Z').toISOString() }];
+      const a = [{ date: '2045-12-18T15:55:00.000Z' }];
+      const b = [{ date: new Date('2045-12-18T15:55:00Z').toISOString() }];
       expect(areObjectsEqual(a, b, { comparisonType: 'unordered' })).toBe(true);
     });
 
@@ -448,16 +448,23 @@ describe('Expect API (file-based comparison tests)', () => {
     });
   });
 
+  /*
+    These examples use a far future date to prevent a bug where documents are
+    deleted almost immediately after being inserted due to the default
+    expireAfterSeconds value of 0.
+
+    For details, see https://jira.mongodb.org/browse/DOCSP-58779.
+  */
   describe('handles new Date expressions correctly', () => {
     it('matches objects with new Date expressions in expected output', () => {
       const expected = `[
   {
-    time: new Date('2021-12-18T00:00:00.000Z'),
+    time: new Date('2045-12-18T00:00:00.000Z'),
     sensor: { sensorId: 5578, type: 'temperature' },
     temp: 45.2
   },
   {
-    time: new Date('2021-12-18T06:00:00.000Z'),
+    time: new Date('2045-12-18T06:00:00.000Z'),
     sensor: { sensorId: 5578, type: 'temperature' },
     temp: 47.3
   }
@@ -466,12 +473,12 @@ describe('Expect API (file-based comparison tests)', () => {
 
       const actual = [
         {
-          time: new Date('2021-12-18T00:00:00.000Z'),
+          time: new Date('2045-12-18T00:00:00.000Z'),
           sensor: { sensorId: 5578, type: 'temperature' },
           temp: 45.2,
         },
         {
-          time: new Date('2021-12-18T06:00:00.000Z'),
+          time: new Date('2045-12-18T06:00:00.000Z'),
           sensor: { sensorId: 5578, type: 'temperature' },
           temp: 47.3,
         },
@@ -484,14 +491,14 @@ describe('Expect API (file-based comparison tests)', () => {
 
     it('matches single objects with new Date expressions', () => {
       const expected = `{
-  time: new Date('2021-12-19T18:00:00.000Z'),
+  time: new Date('2045-12-19T18:00:00.000Z'),
   sensor: { sensorId: 5578, type: 'temperature' },
   temp: 48.2
 }`;
       fs.writeFileSync(tempFile, expected);
 
       const actual = {
-        time: new Date('2021-12-19T18:00:00.000Z'),
+        time: new Date('2045-12-19T18:00:00.000Z'),
         sensor: { sensorId: 5578, type: 'temperature' },
         temp: 48.2,
       };
@@ -504,12 +511,12 @@ describe('Expect API (file-based comparison tests)', () => {
     it('matches objects with mixed new Date and bare date expressions', () => {
       const expected = `[
   {
-    time: 2021-12-18T00:00:00.000Z,
+    time: 2045-12-18T00:00:00.000Z,
     sensor: { sensorId: 5578, type: 'temperature' },
     temp: 45.2
   },
   {
-    time: new Date('2021-12-18T06:00:00.000Z'),
+    time: new Date('2045-12-18T06:00:00.000Z'),
     sensor: { sensorId: 5578, type: 'temperature' },
     temp: 47.3
   }
@@ -518,12 +525,12 @@ describe('Expect API (file-based comparison tests)', () => {
 
       const actual = [
         {
-          time: new Date('2021-12-18T00:00:00.000Z'),
+          time: new Date('2045-12-18T00:00:00.000Z'),
           sensor: { sensorId: 5578, type: 'temperature' },
           temp: 45.2,
         },
         {
-          time: new Date('2021-12-18T06:00:00.000Z'),
+          time: new Date('2045-12-18T06:00:00.000Z'),
           sensor: { sensorId: 5578, type: 'temperature' },
           temp: 47.3,
         },
@@ -537,13 +544,13 @@ describe('Expect API (file-based comparison tests)', () => {
     it('does not double-wrap new Date expressions', () => {
       // This test ensures we don't create Date(Date("...")) constructions
       const expected = `{
-  time: new Date('2021-12-18T00:00:00.000Z'),
+  time: new Date('2045-12-18T00:00:00.000Z'),
   value: 123
 }`;
       fs.writeFileSync(tempFile, expected);
 
       const actual = {
-        time: new Date('2021-12-18T00:00:00.000Z'),
+        time: new Date('2045-12-18T00:00:00.000Z'),
         value: 123,
       };
 

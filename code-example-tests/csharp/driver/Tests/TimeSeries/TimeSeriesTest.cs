@@ -6,6 +6,13 @@ using Utilities.Comparison;
 
 namespace Tests.TimeSeries;
 
+/*
+  These examples use a far future date to prevent a bug where documents are
+  deleted almost immediately after being inserted due to the default
+  expireAfterSeconds value of 0.
+
+  For details, see https://jira.mongodb.org/browse/DOCSP-58779.
+*/
 public class TimeSeriesTest
 {
     private static readonly string Uri = DotNetEnv.Env.GetString("CONNECTION_STRING",
@@ -35,7 +42,7 @@ public class TimeSeriesTest
         var findResult = await QueryTimeSeriesCollection.TimeSeriesFindOne();
         var expected = new BsonDocument
         {
-            { "timestamp", DateTime.Parse("2021-11-19T08:00:00Z").ToUniversalTime() },
+            { "timestamp", DateTime.Parse("2045-11-19T08:00:00Z").ToUniversalTime() },
             { "temp", 43.299999999999997 },
             {
                 "sensor", new BsonDocument

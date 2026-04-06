@@ -1,5 +1,5 @@
-var startTime = new DateTime(2021, 11, 18, 0, 0, 0, 0);
-var endTime = new DateTime(2021, 11, 19, 0, 0, 0, 0);
+var startTime = new DateTime(2045, 11, 18, 0, 0, 0, 0);
+var endTime = new DateTime(2045, 11, 19, 0, 0, 0, 0);
 
 var query =
     Builders<SensorReading>.Filter.Where

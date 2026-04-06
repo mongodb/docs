@@ -38,6 +38,13 @@ public abstract class CreateAndPopulateTimeSeriesCollection
 
     }
 
+    /*
+      These examples use a far future date to prevent a bug where documents are
+      deleted almost immediately after being inserted due to the default
+      expireAfterSeconds value of 0.
+
+      For details, see https://jira.mongodb.org/browse/DOCSP-58779.
+    */
     private static void PopulateTimeSeriesCollection()
     {
         // :snippet-start: timeseries-insert-many
@@ -53,31 +60,31 @@ public abstract class CreateAndPopulateTimeSeriesCollection
             new SensorReading(
                 new Sensor(5578, "temperature"),
                 temp: 45.2,
-                timestamp: new DateTime(2021, 11, 18, 0, 0, 0, 0)),
+                timestamp: new DateTime(2045, 11, 18, 0, 0, 0, 0)),
             new SensorReading(
                 new Sensor(5578, "temperature"),
                 47.3,
-                new DateTime(2021, 11, 18, 6, 0, 0, 0)),
+                new DateTime(2045, 11, 18, 6, 0, 0, 0)),
             new SensorReading(
                 new Sensor(5578, "temperature"),
                 48.8,
-                new DateTime(2021, 11, 18, 18, 0, 0, 0)),
+                new DateTime(2045, 11, 18, 18, 0, 0, 0)),
             new SensorReading(
                 new Sensor(5578, "temperature"),
                 43.3,
-                new DateTime(2021, 11, 19, 0, 0, 0, 0)),
+                new DateTime(2045, 11, 19, 0, 0, 0, 0)),
             new SensorReading(
                 new Sensor(5578, "temperature"),
                 47.2,
-                new DateTime(2021, 11, 19, 6, 0, 0, 0)),
+                new DateTime(2045, 11, 19, 6, 0, 0, 0)),
             new SensorReading(
                 new Sensor(5578, "temperature"),
                 51.5,
-                new DateTime(2021, 11, 19, 12, 0, 0, 0)),
+                new DateTime(2045, 11, 19, 12, 0, 0, 0)),
             new SensorReading(
                 new Sensor(5578, "temperature"),
                 48.2,
-                new DateTime(2021, 11, 19, 18, 0, 0, 0)),
+                new DateTime(2045, 11, 19, 18, 0, 0, 0)),
         };
 
         try

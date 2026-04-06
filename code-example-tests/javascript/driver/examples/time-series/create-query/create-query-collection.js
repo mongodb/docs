@@ -51,46 +51,53 @@ export async function createCollection() {
     const weather = await timeSeriesDB.createCollection('weather', settings);
     // :snippet-end:
 
+    /*
+      These examples use a far future date to prevent a bug where documents are
+      deleted almost immediately after being inserted due to the default
+      expireAfterSeconds value of 0.
+
+      For details, see https://jira.mongodb.org/browse/DOCSP-58779.
+    */
     // :snippet-start: insert-many
     const sampleDocuments = [
       {
         sensor: { sensorId: 5578, type: 'temperature' },
-        time: new Date(2021, 11, 18, 0, 0, 0, 0),
+        time: new Date(2045, 11, 18, 0, 0, 0, 0),
         temp: 45.2,
       },
       {
         sensor: { sensorId: 5578, type: 'temperature' },
-        time: new Date(2021, 11, 18, 6, 0, 0, 0),
+        time: new Date(2045, 11, 18, 6, 0, 0, 0),
         temp: 47.3,
       },
       {
         sensor: { sensorId: 5578, type: 'temperature' },
-        time: new Date(2021, 11, 18, 12, 0, 0, 0),
+        time: new Date(2045, 11, 18, 12, 0, 0, 0),
         temp: 49.1,
       },
       {
         sensor: { sensorId: 5578, type: 'temperature' },
-        time: new Date(2021, 11, 18, 18, 0, 0, 0),
+        time: new Date(2045, 11, 18, 18, 0, 0, 0),
         temp: 48.8,
       },
       {
         sensor: { sensorId: 5578, type: 'temperature' },
-        time: new Date(2021, 11, 19, 0, 0, 0, 0),
+        time: new Date(2045, 11, 19, 0, 0, 0, 0),
         temp: 43.3,
       },
       {
         sensor: { sensorId: 5578, type: 'temperature' },
-        time: new Date(2021, 11, 19, 6, 0, 0, 0),
+        time: new Date(2045, 11, 19, 6, 0, 0, 0),
         temp: 47.2,
       },
       {
         sensor: { sensorId: 5578, type: 'temperature' },
-        time: new Date(2021, 11, 19, 12, 0, 0, 0),
+        time: new Date(2045, 11, 19, 12, 0, 0, 0),
         temp: 51.5,
       },
       {
         sensor: { sensorId: 5578, type: 'temperature' },
-        time: new Date(2021, 11, 19, 18, 0, 0, 0),
+        time: new Date(2045, 11, 19, 18, 0, 0, 0),
         temp: 48.2,
       },
     ];
@@ -112,7 +119,7 @@ export async function queryCollectionFindOne() {
 
     // :snippet-start: find-one
     const result = await weather.findOne(
-      { time: new Date(2021, 11, 19, 18, 0, 0, 0) },
+      { time: new Date(2045, 11, 19, 18, 0, 0, 0) },
       { projection: { _id: 0 } }
     );
     // :snippet-end:
@@ -151,8 +158,8 @@ export async function queryCollectionTimeField() {
     const timeSeriesDB = client.db('timeseries');
     const weather = timeSeriesDB.collection('weather');
 
-    const start = new Date(2021, 11, 18, 0, 0, 0, 0);
-    const end = new Date(2021, 11, 19, 0, 0, 0, 0);
+    const start = new Date(2045, 11, 18, 0, 0, 0, 0);
+    const end = new Date(2045, 11, 19, 0, 0, 0, 0);
 
     const query = {
       $and: [{ time: { $gte: start } }, { time: { $lt: end } }],

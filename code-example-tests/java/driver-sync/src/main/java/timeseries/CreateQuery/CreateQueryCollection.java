@@ -43,34 +43,41 @@ public class CreateQueryCollection {
                 timeSeriesDB.createCollection("weather", collectionOptions);
                 // :snippet-end:
 
+                /*
+                  These examples use a far future date to prevent a bug where documents are
+                  deleted almost immediately after being inserted due to the default
+                  expireAfterSeconds value of 0.
+
+                  For details, see https://jira.mongodb.org/browse/DOCSP-58779.
+                */
                 // :snippet-start: insert-documents
                 weather = timeSeriesDB.getCollection("weather");
 
                 weather.insertMany(
                     Arrays.asList(
                         new Document("sensor", new Document("sensorId", 5578).append("type", "temperature"))
-                                .append("time", Date.from(Instant.parse("2021-11-18T00:00:00Z")))
+                                .append("time", Date.from(Instant.parse("2045-11-18T00:00:00Z")))
                                 .append("temp", 45.2),
                         new Document("sensor", new Document("sensorId", 5578).append("type", "temperature"))
-                                .append("time", Date.from(Instant.parse("2021-11-18T06:00:00Z")))
+                                .append("time", Date.from(Instant.parse("2045-11-18T06:00:00Z")))
                                 .append("temp", 47.3),
                         new Document("sensor", new Document("sensorId", 5578).append("type", "temperature"))
-                                .append("time", Date.from(Instant.parse("2021-11-18T12:00:00Z")))
+                                .append("time", Date.from(Instant.parse("2045-11-18T12:00:00Z")))
                                 .append("temp", 49.1),
                         new Document("sensor", new Document("sensorId", 5578).append("type", "temperature"))
-                                .append("time", Date.from(Instant.parse("2021-11-18T18:00:00Z")))
+                                .append("time", Date.from(Instant.parse("2045-11-18T18:00:00Z")))
                                 .append("temp", 48.8),
                         new Document("sensor", new Document("sensorId", 5578).append("type", "temperature"))
-                                .append("time", Date.from(Instant.parse("2021-11-19T00:00:00Z")))
+                                .append("time", Date.from(Instant.parse("2045-11-19T00:00:00Z")))
                                 .append("temp", 43.3),
                         new Document("sensor", new Document("sensorId", 5578).append("type", "temperature"))
-                                .append("time", Date.from(Instant.parse("2021-11-19T06:00:00Z")))
+                                .append("time", Date.from(Instant.parse("2045-11-19T06:00:00Z")))
                                 .append("temp", 47.2),
                         new Document("sensor", new Document("sensorId", 5578).append("type", "temperature"))
-                                .append("time", Date.from(Instant.parse("2021-11-19T12:00:00Z")))
+                                .append("time", Date.from(Instant.parse("2045-11-19T12:00:00Z")))
                                 .append("temp", 51.5),
                         new Document("sensor", new Document("sensorId", 5578).append("type", "temperature"))
-                                .append("time", Date.from(Instant.parse("2021-11-19T18:00:00Z")))
+                                .append("time", Date.from(Instant.parse("2045-11-19T18:00:00Z")))
                                 .append("temp", 48.2)
                     )
                 );
@@ -103,7 +110,7 @@ public class CreateQueryCollection {
             weather = timeSeriesDB.getCollection("weather");
 
             // :snippet-start: find-one
-            Date target = Date.from(Instant.parse("2021-11-19T18:00:00Z"));
+            Date target = Date.from(Instant.parse("2045-11-19T18:00:00Z"));
 
             FindIterable<Document> findResults = weather.find(new Document("time", target))
                     .projection(new Document("_id", 0));
@@ -146,8 +153,8 @@ public class CreateQueryCollection {
             MongoCollection<Document> weather = timeSeriesDB.getCollection("weather");
 
             Document query = new Document("$and", Arrays.asList(
-                    new Document("time", new Document("$gte", Date.from(Instant.parse("2021-11-18T00:00:00Z")))),
-                    new Document("time", new Document("$lt", Date.from(Instant.parse("2021-11-19T00:00:00Z"))))
+                    new Document("time", new Document("$gte", Date.from(Instant.parse("2045-11-18T00:00:00Z")))),
+                    new Document("time", new Document("$lt", Date.from(Instant.parse("2045-11-19T00:00:00Z"))))
             ));
 
             FindIterable<Document> timeFieldResults = weather.find(query)

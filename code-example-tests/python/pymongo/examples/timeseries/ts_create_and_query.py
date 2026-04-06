@@ -52,46 +52,50 @@ def load_sample_data(CONNECTION_STRING):
         timeseries_db = client["timeseries"]
         weather_coll = timeseries_db["weather"]
 
+        # These examples use a far future date to prevent a bug where documents are
+        # deleted almost immediately after being inserted due to the default
+        # expireAfterSeconds value of 0.
+        # For details, see https://jira.mongodb.org/browse/DOCSP-58779.
         # :snippet-start: add-sample-docs
         sample_documents = [
             {
                 "sensor": {"sensorId": 5578, "type": "temperature"},
-                "time": datetime(2021, 12, 18, 0, 0, 0),
+                "time": datetime(2045, 12, 18, 0, 0, 0),
                 "temp": 45.2,
             },
             {
                 "sensor": {"sensorId": 5578, "type": "temperature"},
-                "time": datetime(2021, 12, 18, 6, 0, 0),
+                "time": datetime(2045, 12, 18, 6, 0, 0),
                 "temp": 47.3,
             },
             {
                 "sensor": {"sensorId": 5578, "type": "temperature"},
-                "time": datetime(2021, 12, 18, 12, 0, 0),
+                "time": datetime(2045, 12, 18, 12, 0, 0),
                 "temp": 49.1,
             },
             {
                 "sensor": {"sensorId": 5578, "type": "temperature"},
-                "time": datetime(2021, 12, 18, 18, 0, 0),
+                "time": datetime(2045, 12, 18, 18, 0, 0),
                 "temp": 48.8,
             },
             {
                 "sensor": {"sensorId": 5578, "type": "temperature"},
-                "time": datetime(2021, 12, 19, 0, 0, 0),
+                "time": datetime(2045, 12, 19, 0, 0, 0),
                 "temp": 43.3,
             },
             {
                 "sensor": {"sensorId": 5578, "type": "temperature"},
-                "time": datetime(2021, 12, 19, 6, 0, 0),
+                "time": datetime(2045, 12, 19, 6, 0, 0),
                 "temp": 47.2,
             },
             {
                 "sensor": {"sensorId": 5578, "type": "temperature"},
-                "time": datetime(2021, 12, 19, 12, 0, 0),
+                "time": datetime(2045, 12, 19, 12, 0, 0),
                 "temp": 51.5,
             },
             {
                 "sensor": {"sensorId": 5578, "type": "temperature"},
-                "time": datetime(2021, 12, 19, 18, 0, 0),
+                "time": datetime(2045, 12, 19, 18, 0, 0),
                 "temp": 48.2,
             },
         ]
@@ -113,7 +117,7 @@ def query_collection(CONNECTION_STRING):
 
         # :snippet-start: query-time-series
         result = weather_coll.find_one(
-            {"time": datetime(2021, 12, 19, 18, 0, 0)},
+            {"time": datetime(2045, 12, 19, 18, 0, 0)},
             {"_id": 0}
         )
         # :snippet-end:

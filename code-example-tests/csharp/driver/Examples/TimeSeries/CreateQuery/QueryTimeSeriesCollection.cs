@@ -3,6 +3,13 @@ using MongoDB.Driver;
 
 namespace Examples.TimeSeries;
 
+/*
+  These examples use a far future date to prevent a bug where documents are
+  deleted almost immediately after being inserted due to the default
+  expireAfterSeconds value of 0.
+
+  For details, see https://jira.mongodb.org/browse/DOCSP-58779.
+*/
 public class QueryTimeSeriesCollection
 {
     private static readonly string Uri = DotNetEnv.Env.GetString("CONNECTION_STRING",
@@ -16,7 +23,7 @@ public class QueryTimeSeriesCollection
         // :snippet-start: timeseries-find-one
         var query =
             Builders<SensorReading>.Filter.Where
-                (s => s.Timestamp == new DateTime(2021, 11, 19, 0, 0, 0, 0));
+                (s => s.Timestamp == new DateTime(2045, 11, 19, 0, 0, 0, 0));
 
         var projection = Builders<SensorReading>.Projection
             .Exclude(s => s.Id); // Exclude the _id field
@@ -47,8 +54,8 @@ public class QueryTimeSeriesCollection
     public static async Task<List<BsonDocument>> TimeSeriesFindByTimeRange()
     {
         // :snippet-start: timeseries-find-time-range
-        var startTime = new DateTime(2021, 11, 18, 0, 0, 0, 0);
-        var endTime = new DateTime(2021, 11, 19, 0, 0, 0, 0);
+        var startTime = new DateTime(2045, 11, 18, 0, 0, 0, 0);
+        var endTime = new DateTime(2045, 11, 19, 0, 0, 0, 0);
 
         var query =
             Builders<SensorReading>.Filter.Where
