@@ -114,7 +114,7 @@ Check `$ARGUMENTS`. If it contains a recognized team name, load the correspondin
 - `server` → **Server** — read `references/server.md`
 - `drivers` or `dbx` → **Drivers/DBX** — read `references/drivers-dbx.md`
 
-If `$ARGUMENTS` is empty or unrecognized, ask the user: "Which team are you triaging for? (CET/Cloud, Server, or Drivers/DBX)"
+If `$ARGUMENTS` is empty or unrecognized, you **must** ask the user before doing anything else: "Which team are you triaging for? (CET/Cloud, Server, or Drivers/DBX)" Do not infer the team from context or prior conversation. Do not proceed to Step 2 until the user replies with one of the specified options.
 
 **If the team is CET/Cloud**, immediately ask: "Who is this week's CET captain? (Please provide their MongoDB email address, e.g. asmith@mongodb.com)" before proceeding. Use the answer to assign all captain-duty tickets (as determined by the Captain Duty and Captain FAQ wikis) without asking again.
 
@@ -144,6 +144,7 @@ If no tickets are returned, note that and proceed directly to Step 4.
 
 Present a "No-Component Triage Plan" to the user. For each ticket, output:
 - **Ticket ID & Summary**
+- **Description** (full ticket description, so the triager can verify the recommendation)
 - **Recommended component(s)**
 - **URL(s)** (only if a `mongodb.com/docs/` URL is clearly present in the ticket content; otherwise omit)
 - **Rationale** (what in the ticket content led to this recommendation)
@@ -167,6 +168,7 @@ Cross-reference each ticket with the knowledge from Step 4 and all applicable ru
 
 For each ticket, prepare:
 - **Ticket ID & Summary**
+- **Description** (full ticket description, so the triager can verify the recommendation)
 - **Triage Recommendation** (components, labels, status change, close, or flag for manual review; individual assignee for CET/Cloud only)
 - **URL(s)** (only if a `mongodb.com/docs/` URL is clearly present in the ticket content; otherwise omit)
 - **Rationale** (why this recommendation was made, citing the applicable rule or source)
