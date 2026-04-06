@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Link } from '@/mdx-components/Link';
 import { REFERENCE_PREFIX } from '@/mdx-utils/get-blob-key';
 import { getBlobString } from '@/mdx-utils/blob-read';
+import { Literal } from '@/mdx-components/Literal';
 
 interface RefRoleProps {
   projectPath: string;
@@ -18,13 +19,25 @@ export const RefRole = async ({ projectPath, name, children }: RefRoleProps) => 
   const href: string | undefined = parsedReferences?.refs?.[name];
   if (href) {
     const resolvedHref = href.startsWith('http') ? href : `/${href}`;
-    return <Link to={resolvedHref}>{children ?? name}</Link>;
+    return (
+      <Link to={resolvedHref}>
+        <Literal>{children ?? name}</Literal>
+      </Link>
+    );
   }
 
   if (name.startsWith('http')) {
-    return <Link to={name}>{children ?? name}</Link>;
+    return (
+      <Link to={name}>
+        <Literal>{children ?? name}</Literal>
+      </Link>
+    );
   }
 
   // Unresolved reference — render a dead link so content remains visible
-  return <Link to="">{children ?? name}</Link>;
+  return (
+    <Link to="">
+      <Literal>{children ?? name}</Literal>
+    </Link>
+  );
 };

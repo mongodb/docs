@@ -529,7 +529,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
               type: 'mdxJsxTextElement',
               name: 'Deprecated',
               attributes: [{ type: 'mdxJsxAttribute', name: 'version', value: version }],
-              children: node.children,
+              children: convertChildren({ nodes: node.children, depth, ctx }),
             },
           ],
         };
@@ -544,7 +544,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
               type: 'mdxJsxTextElement',
               name: 'VersionChanged',
               attributes: [{ type: 'mdxJsxAttribute', name: 'version', value: version }],
-              children: node.children,
+              children: convertChildren({ nodes: node.children, depth, ctx }),
             },
           ],
         };
@@ -558,7 +558,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
               type: 'mdxJsxTextElement',
               name: 'VersionAdded',
               attributes: [{ type: 'mdxJsxAttribute', name: 'version', value: version }],
-              children: node.children,
+              children: convertChildren({ nodes: node.children, depth, ctx }),
             },
           ],
         };
