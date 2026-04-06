@@ -18,11 +18,11 @@ It uses Claude (Anthropic API) to understand context and provide actionable feed
 
 ### Option 1: Add a Label
 
-Add the `ai-review` label to any PR. The review runs automatically.
+Add the `ai-review-style` label to any PR. The review runs automatically.
 
 ### Option 2: Comment Command
 
-Comment `/ai-review` on a PR to trigger a review.
+Comment `/ai-review-style` on a PR to trigger a review.
 
 ---
 
@@ -65,8 +65,8 @@ Settings are in `config.yml`:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| `trigger.label` | `ai-review` | Label that triggers review |
-| `trigger.command` | `/ai-review` | Comment command to trigger |
+| `trigger.label` | `ai-review-style` | Label that triggers review |
+| `trigger.command` | `/ai-review-style` | Comment command to trigger |
 | `feedback.granularity` | `minimal` | Only HIGH severity issues |
 | `feedback.max_inline_comments` | `5` | Limit comments to avoid overload |
 | `review.max_files` | `20` | Max files to review per PR |
@@ -116,7 +116,7 @@ No. These are AI suggestions. Use your judgment. Some may not apply to your cont
 To avoid cognitive overload. The AI prioritizes the most important issues.
 
 **Can I re-run the review?**  
-Yes. Remove and re-add the `ai-review` label, or comment `/ai-review` again.
+Yes. Remove and re-add the `ai-review-style` label, or comment `/ai-review-style` again.
 
 **What if I disagree with a suggestion?**  
 Ignore it! The AI doesn't have full context. If you see repeated bad suggestions, let us know so we can improve the prompts.
