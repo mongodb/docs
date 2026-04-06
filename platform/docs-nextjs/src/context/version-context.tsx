@@ -229,8 +229,10 @@ export const VersionContextProvider = ({ docsets, slug, env, children }: Version
           ? gitBranchName
           : targetBranch?.urlSlug || targetBranch?.urlAliases?.[0] || targetBranch?.gitBranchName;
 
-      const urlTarget = getUrl(target, metadata.project, siteBasePrefix, slug);
-      router.push(urlTarget.replace(/\/index\/?$/, '/')); // gets rid of trailing /index/
+      const pagePath = slug.replace(new RegExp(`^/?${siteBasePrefixWithVersion}/?`), '');
+
+      const urlTarget = getUrl(target, metadata.project, siteBasePrefix, pagePath);
+      router.push(urlTarget.replace(/\/index\/?$/, '/'));
     },
     [versions, metadata, siteBasePrefix, slug], // eslint-disable-line react-hooks/exhaustive-deps
   );
