@@ -35,6 +35,7 @@ messages to. The following connection types are supported:
 - MongoDB :manual:`time series collection </core/timeseries-collections>`
 - {+aws+} Kinesis data stream
 - {+aws+} |s3| bucket
+- |azure| Blob Storage
 
 .. _atlas-sp-agg-emit-placement:
 
@@ -235,7 +236,7 @@ The ``$emit`` stage takes a document with the following fields:
        If ``$emit.config.dateFormat`` is set to ``default``,
        output looks similar to the following:
 
-       .. code-block:: shell 
+       .. code-block:: json 
           :copyable: false
 
           { "flightTime" :  {$date :"2025-01-10T20:17:38.387Z"}}
@@ -243,7 +244,7 @@ The ``$emit`` stage takes a document with the following fields:
        If ``$emit.config.dateFormat`` is set to ``ISO8601``,
        output looks similar to the following:
 
-       .. code-block:: shell
+       .. code-block:: json
           :copyable: false
 
           { "flightTime" :  "2025-01-10T20:17:38.387Z" }
@@ -504,7 +505,7 @@ The ``$emit`` stage takes a document with the following fields:
        If ``$emit.config.dateFormat`` is set to ``default``,
        output looks similar to the following:
 
-       .. code-block:: shell 
+       .. code-block:: json 
           :copyable: false
 
           { "flightTime" :  {$date :"2025-01-10T20:17:38.387Z"}}
@@ -512,7 +513,7 @@ The ``$emit`` stage takes a document with the following fields:
        If ``$emit.config.dateFormat`` is set to ``ISO8601``,
        output looks similar to the following:
 
-       .. code-block:: shell
+       .. code-block:: json
           :copyable: false
 
           { "flightTime" :  "2025-01-10T20:17:38.387Z" }
@@ -676,7 +677,8 @@ The ``$emit`` stage takes a document with the following fields:
        Defaults to "``relaxedJson``".
 
        To learn more, see :ref:`Basic JSON
-       <atlas-sp-agg-emit-basic-json>`.
+       <atlas-sp-agg-emit-basic-json>` and :ref:`Extended JSON
+       <mongodb-extended-json-v2>`.
 
    * - ``config.dateFormat``
      - string
@@ -697,7 +699,7 @@ The ``$emit`` stage takes a document with the following fields:
        then if ``$emit.config.dateFormat`` is set to ``default``,
        output looks similar to the following:
 
-       .. code-block:: shell 
+       .. code-block:: json 
           :copyable: false
 
           { "flightTime" :  {$date :"2025-01-10T20:17:38.387Z"}}
@@ -705,7 +707,7 @@ The ``$emit`` stage takes a document with the following fields:
        If ``$emit.config.dateFormat`` is set to ``ISO8601``,
        output looks similar to the following:
 
-       .. code-block:: shell 
+       .. code-block:: json 
           :copyable: false
 
           { "flightTime" :  "2025-01-10T20:17:38.387Z" }
@@ -730,6 +732,240 @@ The ``$emit`` stage takes a document with the following fields:
        This parameter is required for and limited to ``gzip``. If you
        set ``config.compression`` to ``snappy``, setting this parameter
        has no effect.
+
+.. _sp-emit-azure-blob:
+
+|azure| Blob Storage 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To write processed data to |azure| Blob Storage, use the ``$emit``
+pipeline stage with the following prototype form:
+
+.. code-block:: json
+
+   {
+     "$emit": {
+       "connectionName": "<registered-connection>",
+       "container": "<storage-container>",
+       "path": "<prefix-key>" | <expression>,
+       "config": {
+         "dateFormat": "default" | "ISO8601",
+	 "compression": "uncompressed" | "gzip" | "snappy",
+	 "compressionLevel": [1-9],
+         "outputFormat": "relaxedJson"| "canonicalJson" | "basicJson",
+	 "delimiter": "<delimiter>",
+	 "writeOptions": {
+	   "count": <int>,
+	   "interval": {
+	     "size": <int>,
+	     "unit": "ms" | "second" | "minute" | "hour" | "day"	    
+	   },
+	   "bytes": <int> 
+	 },
+	 "parallelism": <int>,
+	 "partitionBy": "<key>" | expression
+       }
+     }
+   }
+
+The ``$emit`` stage takes a document with the following fields:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 25 10 12 40
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``connectionName`` 
+     - string
+     - Required 
+     - Name, as it appears in the 
+       :ref:`Connection Registry <atlas-sp-manage-connections>`, of the
+       connection to which to write data.
+
+   * - ``container``
+     - string
+     - Required
+     - Storage container to which to write blobs.
+
+   * - ``path``
+     - string | expression
+     - Required
+     - Prefix of the key of objects written to |azure| Blob
+       Storage. Must either be a literal string or an expression that
+       evaluates to a string.
+
+   * - ``config``
+     - document
+     - Optional
+     - Document containing additional parameters that override various
+       default values.
+
+   * - ``config.dateFormat``
+     - string
+     - Optional
+     - Date format for the date value. Valid values are:
+
+       - ``default`` - to use the default of the ``outputFormat``.
+       - ``ISO8601`` - to convert dates to strings in the ``ISO8601``
+         format, which includes millisecond precision
+         (``YYYY-MM-DDTHH:mm:ss.sssZ``).
+
+       For example, if you add the following record to the pipeline:
+   
+       .. code-block:: json
+
+          { "flightTime" :  ISODate("2025-01-10T20:17:38.387Z") }
+
+       then if ``$emit.config.dateFormat`` is set to ``default``,
+       output looks similar to the following:
+
+       .. code-block:: json 
+          :copyable: false
+
+          { "flightTime" :  {$date :"2025-01-10T20:17:38.387Z"}}
+
+       If ``$emit.config.dateFormat`` is set to ``ISO8601``,
+       output looks similar to the following:
+
+       .. code-block:: json 
+          :copyable: false
+
+          { "flightTime" :  "2025-01-10T20:17:38.387Z" }
+
+   * - ``config.compression``
+     - string
+     - Optional
+     - Name of the compression algorithm to use.
+       Must be one of the following values:
+
+       - ``"gzip"``
+       - ``"snappy"``
+
+       If you don't specify a value for this field, {+atlas-sp+}
+       writes data without compression.
+
+   * - ``config.compressionLevel``
+     - string
+     - Conditional
+     - Level of compression to apply to the emitted message. Supports
+       values ``1-9`` inclusive; higher values mean more compression.
+
+       Defaults to ``6``.
+
+       This parameter is required for and limited to ``gzip``. If you
+       set ``config.compression`` to ``snappy``, setting this parameter
+       has no effect.
+
+   * - ``config.outputFormat``
+     - string
+     - Optional
+     - Specifies the output format of the JSON written to |azure| Blob
+       Storage. Must be one of the following values:
+
+       - ``"basicJson"``
+       - ``"canonicalJson"``
+       - ``"relaxedJson"``
+
+       Defaults to ``"relaxedJson"``.
+
+       To learn more, see :ref:`Basic JSON
+       <atlas-sp-agg-emit-basic-json>` and :ref:`Extended JSON
+       <mongodb-extended-json-v2>`.
+
+   * - ``config.delimiter``
+     - string
+     - Optional 
+     - Delimiter between each entry in the emitted file.
+
+       Defaults to ``\n``.
+
+   * - ``config.writeOptions``
+     - document
+     - Optional 
+     - Document containing additional parameters governing write behavior.
+       These parameters trigger write behavior according to which threshold is
+       met first.
+
+       For example, if the ingested documents reach the
+       ``config.writeOptions.count`` threshold without reaching the
+       ``config.writeOptions.interval`` threshold, the stream
+       processor still emits these documents to |azure| Blob Storage
+       according to the ``config.writeOptions.count`` threshold.
+
+   * - ``config.writeOptions.count``
+     - integer
+     - Optional 
+     - Number of documents to group into each file written to |azure|
+       Blob Storage.
+
+   * - ``config.writeOptions.bytes``
+     - integer
+     - Optional
+     - Specifies the minimum number of bytes that must accumulate
+       before a file is written to |azure| Blob Storage. The byte
+       count is determined by the size of the BSON documents ingested
+       by the pipeline, not the size of the final output file.
+
+   * - ``config.writeOptions.interval``
+     - document
+     - Optional
+     - Specifies a timer for bulk writing documents as a combination of
+       ``size`` and ``unit``.
+
+       Defaults to 1 minute. You can't set the ``size`` to ``0`` for any
+       ``unit``. The maximum interval is 7 days.
+
+   * - ``config.writeOptions.interval.size``
+     - integer
+     - Conditional
+     - The number of units specified by
+       ``writeOptions.interval.unit`` after which the stream
+       processor bulk writes documents to |azure| Blob Storage.
+
+       Defaults to ``1``. You can't set a ``size`` of ``0``. If you define
+       ``writeOptions.interval``, you must also define this parameter.
+
+   * - ``config.writeOptions.interval.unit``
+     - string
+     - Conditional
+     - The denomination of time in which to count the bulk write
+       timer. This parameter supports the following values:
+
+       - ``ms``
+       - ``second``
+       - ``minute``
+       - ``hour``
+       - ``day``
+
+       Defaults to ``minute``. If you define
+       ``writeOptions.interval``, you must also define this parameter.
+
+   * - ``parallelism``
+     - integer
+     - Optional
+     - Number of internal write threads that {+atlas-sp+} uses
+       to write data to |azure| Blob Storage. This improves throughput
+       for high-volume workloads by distributing write operations
+       across multiple threads.
+
+       Defaults to ``1``. Maximum value is ``16``.
+
+   * - ``partitionBy``
+     - string | expression
+     - Optional
+     - String or expression that determines how {+atlas-sp+}
+       partitions documents across write threads when ``parallelism``
+       is greater than ``1``. The hash of the evaluated expression
+       determines which thread processes each document.
+
+       If ``parallelism`` is greater than ``1`` but ``partitionBy`` is
+       not specified, {+atlas-sp+} uses a round-robin strategy to
+       assign documents to threads.
+       
 
 .. _atlas-sp-agg-emit-basic-json:
 
@@ -803,6 +1039,9 @@ specified. You must specify an existing database.
 
 {+atlas-sp+} doesn't support writing BSON documents larger than ``125
 MB`` using the :ref:`$emit <atlas-sp-agg-emit>` stage to an {+aws+} |s3| bucket.
+
+The :ref:`Azure Blob Storage <sp-emit-azure-blob>` ``$emit`` variant
+also supports writing to |azure| Datalake Storage v2 containers.
 
 You can use a :manual:`dynamic expression
 </reference/mql/expressions/>` as the value

@@ -1,6 +1,7 @@
-The :oas-bump-atlas-op:`Create One Connection <creategroupstreamconnection>` 
-API endpoint requires digest authorization when creating a Kinesis connection. 
-To support this, you must create an API Key.
+The :oas-bump-atlas-op:`Create One Connection
+<creategroupstreamconnection>` API endpoint requires digest
+authorization when creating a connection. To support this, you must
+create an API Key.
 
 a. In the :guilabel:`Project Access Manager`, select the :guilabel:`Applications`
    tab, then click :guilabel:`API Keys`.
