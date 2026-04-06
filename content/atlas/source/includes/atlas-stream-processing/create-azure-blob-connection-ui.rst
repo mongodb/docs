@@ -9,7 +9,15 @@ To add an |azure| Blob Storage connection to your {+spw+} through
 .. procedure::
    :style: normal
 
-   .. step:: Set up Azure Service Principal Access
+   .. step:: Set up {+atlas-sp+} permissions.
+
+      Ensure you have at least one of the following roles to manage
+      connections:
+
+      - :authrole:`Project Owner`
+      - :authrole:`Project Stream Processing Owner`
+	   
+   .. step:: Set up Azure Service Principal Access.
 
       Follow the procedure described in :ref:`Set Up and Manage Azure
       Service Principal Access <manage-azure-access>`.
@@ -24,12 +32,8 @@ To add an |azure| Blob Storage connection to your {+spw+} through
 
       Note the ``Service Principal ID`` you used for later in this procedure.
 
-   .. step:: Configure a Service Account
-
-      .. include:: /includes/atlas-stream-processing/create-service-account.rst
-
    .. include:: /includes/nav/steps-stream-processing.rst  
-
+		
    .. step:: Go to the :guilabel:`Connection Registry`.  
 
       a. Locate the overview panel of the {+spw+} you want to  
