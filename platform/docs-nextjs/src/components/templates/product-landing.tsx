@@ -161,8 +161,7 @@ const wrapperStyles = css`
       grid-row: header;
     }
 
-    > img,
-    > .gatsby-image-wrapper {
+    > img {
       display: block;
       grid-column: 2;
       margin-top: auto;

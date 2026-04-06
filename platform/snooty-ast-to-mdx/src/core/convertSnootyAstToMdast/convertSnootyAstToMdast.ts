@@ -663,7 +663,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 
       const attributes: MdastNode[] = toJsxAttributes(node.options);
 
-      const ADMONITION_DIRECTIVES = new Set(['tip', 'note', 'important', 'warning', 'example']);
+      const ADMONITION_DIRECTIVES = new Set(['tip', 'note', 'important', 'warning', 'example', 'see', 'seealso']);
       let includeArgumentAsChild = true;
       if (node.argument && directiveName === 'only') {
         // Convert the condition expression into an attribute instead of child text

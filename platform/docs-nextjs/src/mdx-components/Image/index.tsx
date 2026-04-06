@@ -89,15 +89,14 @@ export const Image = ({
   }
 
   return (
-    <div>
+    <>
       <img
         src={imageUrl}
         alt={alt}
-        height="500px"
-        className={cx(figureStyle(normalizeWidth(), normalizeHeight()))}
+        className={cx(figureStyle(normalizeWidth(), normalizeHeight()), className)}
         onClick={openModal}
       />
       <Caption caption={caption} />
-    </div>
+    </>
   );
 };

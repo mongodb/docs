@@ -170,8 +170,8 @@ export const components = (injectedProps?: InjectedProps) =>
     Rubric: ({ children }) => <span>{children}</span>,
     Replacement: ({ children, ...props }) => <Replacement {...props}>{children}</Replacement>,
     SearchResults: ({ children }) => <span>{children}</span>,
-    See: ({ children, ...props }) => (
-      <Admonition name="tip" {...props}>
+    See: ({ children, title, ...props }) => (
+      <Admonition name="tip" title={title ? `See: ${title}` : undefined} {...props}>
         {children}
       </Admonition>
     ),
