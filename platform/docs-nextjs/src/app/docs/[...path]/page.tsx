@@ -36,16 +36,14 @@ export default async function MDXPage({ params: { path } }: PageProps) {
   const env = envConfig.DB_ENV;
 
   return (
-    <>
-      <CustomTemplate
-        content={result.content}
-        frontmatter={result.frontmatter}
-        path={path}
-        metadata={siteMetadata}
-        docsets={docsets}
-        env={env}
-      />
-    </>
+    <CustomTemplate
+      content={result.content}
+      frontmatter={result.frontmatter}
+      path={path}
+      metadata={siteMetadata}
+      docsets={docsets}
+      env={env}
+    />
   );
 }
 

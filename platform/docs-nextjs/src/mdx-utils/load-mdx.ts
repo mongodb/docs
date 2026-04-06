@@ -1,8 +1,12 @@
-import type { ReactElement, ReactNode } from 'react';
+import type { ReactElement } from 'react';
+import type { MDXComponents } from 'mdx/types';
 import { compileMDX } from 'next-mdx-remote/rsc';
 import remarkGfm from 'remark-gfm';
 import remarkSectionize from 'remark-sectionize';
 import rehypeMdxCodeProps from 'rehype-mdx-code-props';
+import { remarkHowToSeoMetadata } from './remark-how-to-seo-metadata';
+import { remarkResolveIncludes } from './remark-resolve-includes';
+import { remarkStepNumbers } from './remark-step-numbers';
 import { components } from '@/mdx-components';
 import { getBlobString } from './blob-read';
 import { MDX_PREFIX } from './get-blob-key';
@@ -13,8 +17,49 @@ export const VERSION_PLACEHOLDER = ':version';
 
 export const isVersionPlaceholder = (seg: string) => decodeURIComponent(seg) === VERSION_PLACEHOLDER;
 
-/** Load and compile MDX with import resolution */
-export const loadMDX = async (urlPath: string[], replacements?: Record<string, ReactNode>) => {
+const fetchMdxString = async (filePath: string) => {
+  // lookup the file by name
+  const mdxString = await getBlobString(`${MDX_PREFIX}/${filePath}.mdx`);
+  if (mdxString) {
+    return mdxString;
+  }
+  // If not found by file name, try folder name with index path
+  return await getBlobString(`${MDX_PREFIX}/${filePath}/index.mdx`);
+};
+
+interface CompileMdxWithPluginsOptions {
+  mdxString: string;
+  componentMapping: MDXComponents;
+  projectPath: string;
+}
+
+const compileMdxWithPlugins = async ({ mdxString, componentMapping, projectPath }: CompileMdxWithPluginsOptions) => {
+  try {
+    return await compileMDX({
+      source: mdxString,
+      components: componentMapping,
+      options: {
+        parseFrontmatter: true,
+        mdxOptions: {
+          remarkPlugins: [
+            [remarkResolveIncludes, { projectPath }],
+            remarkGfm,
+            remarkSectionize,
+            remarkStepNumbers,
+            remarkHowToSeoMetadata,
+          ],
+          rehypePlugins: [rehypeMdxCodeProps],
+        },
+      },
+    });
+  } catch (err) {
+    console.error(`[compileMdxWithPlugins] failed (${err instanceof Error ? err.message : err})`);
+    throw err;
+  }
+};
+
+/** Load and compile MDX, including fetching metadata from JSON files */
+export const loadMDX = async (urlPath: string[], replacements?: Record<string, React.ReactNode>) => {
   if (process.env.BUILD_STATIC_PAGES === 'true') {
     return loadOfflineMDX(urlPath, replacements);
   }
@@ -29,16 +74,10 @@ export const loadMDX = async (urlPath: string[], replacements?: Record<string, R
     return null;
   }
 
-  const { content, frontmatter } = await compileMDX({
-    source: mdxString,
-    components: componentMapping,
-    options: {
-      parseFrontmatter: true,
-      mdxOptions: {
-        remarkPlugins: [remarkGfm, remarkSectionize],
-        rehypePlugins: [rehypeMdxCodeProps],
-      },
-    },
+  const { content, frontmatter } = await compileMdxWithPlugins({
+    mdxString,
+    componentMapping,
+    projectPath,
   });
 
   return { content, frontmatter };
@@ -47,7 +86,7 @@ export const loadMDX = async (urlPath: string[], replacements?: Record<string, R
 /** Cache compiled MDX during static build **/
 const mdxCache = new Map<string, { content: ReactElement; frontmatter: Record<string, unknown> }>();
 
-const loadOfflineMDX = async (urlPath: string[], replacements?: Record<string, ReactNode>) => {
+const loadOfflineMDX = async (urlPath: string[], replacements?: Record<string, React.ReactNode>) => {
   const cacheKey = urlPath.join('/');
   const cached = mdxCache.get(cacheKey);
   if (cached) return cached;
@@ -63,16 +102,10 @@ const loadOfflineMDX = async (urlPath: string[], replacements?: Record<string, R
   if (!mdxString) return null;
 
   try {
-    const { content, frontmatter } = await compileMDX({
-      source: mdxString,
-      components: componentMapping,
-      options: {
-        parseFrontmatter: true,
-        mdxOptions: {
-          remarkPlugins: [remarkGfm, remarkSectionize],
-          rehypePlugins: [rehypeMdxCodeProps],
-        },
-      },
+    const { content, frontmatter } = await compileMdxWithPlugins({
+      mdxString,
+      componentMapping,
+      projectPath,
     });
 
     const result = { content, frontmatter: frontmatter as Record<string, unknown> };
@@ -82,14 +115,4 @@ const loadOfflineMDX = async (urlPath: string[], replacements?: Record<string, R
     console.warn(`[loadOfflineMDX] compile failed for ${cacheKey}:`, err instanceof Error ? err.message : err);
     return null;
   }
-};
-
-const fetchMdxString = async (filePath: string) => {
-  // lookup the file by name
-  const mdxString = await getBlobString(`${MDX_PREFIX}/${filePath}.mdx`);
-  if (mdxString) {
-    return mdxString;
-  }
-  // If not found by file name, try folder name with index path
-  return await getBlobString(`${MDX_PREFIX}/${filePath}/index.mdx`);
 };

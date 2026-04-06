@@ -1,11 +1,11 @@
 'use client';
 
+import { useContext } from 'react';
 import { cx, css } from '@leafygreen-ui/emotion';
 import styled from '@emotion/styled';
 import { palette } from '@leafygreen-ui/palette';
 import { theme } from '@/styles/theme';
-
-type ProcedureStyle = 'connected' | 'normal';
+import { ProcedureStyleContext } from './index';
 
 const circleIndividualStyles = {
   connected: css`
@@ -113,21 +113,20 @@ const contentStyles = {
   `,
 };
 
-export type StepProps = {
-  children?: React.ReactNode;
+type StepProps = {
+  children: React.ReactNode;
   stepNumber: number;
-  stepStyle?: ProcedureStyle;
 };
 
-const Step = ({ children, stepNumber, stepStyle = 'connected' }: StepProps) => {
+export const Step = ({ children, stepNumber }: StepProps) => {
+  const procedureStyle = useContext(ProcedureStyleContext);
+
   return (
-    <StyledStep className={cx(landingStepStyles[stepStyle])}>
+    <StyledStep className={cx(landingStepStyles[procedureStyle])}>
       <StepBlock>
-        <Circle className={cx(circleIndividualStyles[stepStyle])}>{stepNumber}</Circle>
+        <Circle className={cx(circleIndividualStyles[procedureStyle])}>{stepNumber}</Circle>
       </StepBlock>
-      <Content className={cx(contentStyles[stepStyle])}>{children}</Content>
+      <Content className={cx(contentStyles[procedureStyle])}>{children}</Content>
     </StyledStep>
   );
 };
-
-export default Step;

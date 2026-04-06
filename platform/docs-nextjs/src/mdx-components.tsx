@@ -1,5 +1,4 @@
 import type { MDXComponents } from 'mdx/types';
-import { Include } from '@/mdx-components/Include';
 import { Reference } from '@/mdx-components/Reference';
 import { RefRole } from '@/mdx-components/RefRole';
 import { RefTarget } from '@/mdx-components/RefTarget';
@@ -15,8 +14,9 @@ import { Paragraph } from '@/mdx-components/Paragraph';
 import { Transition } from '@/mdx-components/Transition';
 import { List } from '@/mdx-components/List';
 import { ListItem } from '@/mdx-components/ListItem';
-import Procedure from '@/mdx-components/Procedure';
-import Step from '@/mdx-components/Procedure/Step';
+import { Procedure } from '@/mdx-components/Procedure';
+import { Step } from '@/mdx-components/Procedure/Step';
+import { StepHeading } from '@/mdx-components/Procedure/StepHeading';
 import { Introduction } from '@/mdx-components/Introduction';
 import { CommunityPillLink } from '@/mdx-components/CommunityPillLink';
 import ComposableTutorial from '@/mdx-components/ComposableTutorial';
@@ -57,7 +57,6 @@ export const components = (injectedProps?: InjectedProps) =>
     h5: ({ children }) => <Heading headingLevel={5}>{children}</Heading>,
     h6: ({ children }) => <Heading headingLevel={6}>{children}</Heading>,
     Image: (props) => <Image {...props} {...injectedProps} />,
-    Include: (props) => <Include {...props} {...injectedProps} />,
     Reference: (props) => <Reference {...props} {...injectedProps} />,
     RefRole: (props) => <RefRole {...props} {...injectedProps} />,
     // standard markdown elements
@@ -165,6 +164,7 @@ export const components = (injectedProps?: InjectedProps) =>
     OpenAPIChangelog: ({ children }) => <span>{children}</span>,
     Procedure: ({ children, ...props }) => <Procedure {...props}>{children}</Procedure>,
     Step: ({ children, ...props }) => <Step {...props}>{children}</Step>,
+    StepHeading: ({ children }) => <StepHeading>{children}</StepHeading>,
     Ref: ({ children }) => <span>{children}</span>,
     Red: ({ children }) => <Red>{children}</Red>,
     ReleaseSpecification: ({ children }) => <span>{children}</span>,

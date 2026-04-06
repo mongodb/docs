@@ -529,6 +529,85 @@ const cases: Array<[string, SnootyNode]> = [
       argument: 'drivers',
     },
   ],
+  [
+    'standalone step with plain text argument',
+    {
+      type: 'directive',
+      name: 'step',
+      argument: [{ type: 'text', value: 'Connect to your deployment' }],
+      children: [
+        { type: 'directive_argument', children: [{ type: 'text', value: 'Connect to your deployment' }] },
+        { type: 'heading', depth: 4, children: [{ type: 'text', value: 'Connect to your deployment' }] },
+        { type: 'paragraph', children: [{ type: 'text', value: 'Use the connection string.' }] },
+      ],
+    },
+  ],
+  [
+    'standalone step with rich argument (guilabel)',
+    {
+      type: 'directive',
+      name: 'step',
+      argument: [
+        { type: 'text', value: 'Click ' },
+        { type: 'role', name: 'guilabel', children: [{ type: 'text', value: 'Save' }] },
+      ],
+      children: [
+        {
+          type: 'directive_argument',
+          children: [
+            { type: 'text', value: 'Click ' },
+            { type: 'role', name: 'guilabel', children: [{ type: 'text', value: 'Save' }] },
+          ],
+        },
+        {
+          type: 'heading',
+          depth: 4,
+          children: [
+            { type: 'text', value: 'Click ' },
+            { type: 'role', name: 'guilabel', children: [{ type: 'text', value: 'Save' }] },
+          ],
+        },
+        { type: 'paragraph', children: [{ type: 'text', value: 'The settings are saved.' }] },
+      ],
+    },
+  ],
+  [
+    'standalone step without argument',
+    {
+      type: 'directive',
+      name: 'step',
+      children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Body only step.' }] }],
+    },
+  ],
+  [
+    'procedure with two steps',
+    {
+      type: 'directive',
+      name: 'procedure',
+      children: [
+        {
+          type: 'directive',
+          name: 'step',
+          argument: [{ type: 'text', value: 'First step' }],
+          children: [
+            { type: 'directive_argument', children: [{ type: 'text', value: 'First step' }] },
+            { type: 'heading', depth: 4, children: [{ type: 'text', value: 'First step' }] },
+            { type: 'paragraph', children: [{ type: 'text', value: 'Do the first thing.' }] },
+          ],
+        },
+        {
+          type: 'directive',
+          name: 'step',
+          argument: [{ type: 'text', value: 'Second step' }],
+          children: [
+            { type: 'directive_argument', children: [{ type: 'text', value: 'Second step' }] },
+            { type: 'heading', depth: 4, children: [{ type: 'text', value: 'Second step' }] },
+            { type: 'paragraph', children: [{ type: 'text', value: 'Do the second thing.' }] },
+          ],
+        },
+      ],
+    },
+  ],
   ['hidden directive (toctree)', { type: 'directive', name: 'toctree' }],
   ['unknown node type', { type: 'mystery' }],
   ['title node', { type: 'title', children: [{ type: 'text', value: 'A Title' }] }],

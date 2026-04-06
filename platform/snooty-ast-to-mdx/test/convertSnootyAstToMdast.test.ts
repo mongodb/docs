@@ -846,4 +846,129 @@ describe('DefinitionTerm inline content rendering', () => {
       expect(mdx).toContain('fallback content');
     });
   });
+
+  describe('step directive', () => {
+    it('produces StepHeading from argument and removes duplicate heading', () => {
+      const ast: SnootyNode = {
+        type: 'directive',
+        name: 'step',
+        argument: [{ type: 'text', value: 'Do the thing' }],
+        children: [
+          { type: 'directive_argument', children: [{ type: 'text', value: 'Do the thing' }] },
+          { type: 'heading', depth: 4, children: [{ type: 'text', value: 'Do the thing' }] },
+          { type: 'paragraph', children: [{ type: 'text', value: 'Body text.' }] },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      expect(mdx).toContain('<StepHeading>');
+      expect(mdx).toContain('Do the thing');
+      expect(mdx).toContain('Body text.');
+      expect(mdx).not.toMatch(/^#{1,6}\s/m);
+    });
+
+    it('preserves body headings that are not the step title', () => {
+      const ast: SnootyNode = {
+        type: 'directive',
+        name: 'step',
+        argument: [{ type: 'text', value: 'Step title' }],
+        children: [
+          { type: 'directive_argument', children: [{ type: 'text', value: 'Step title' }] },
+          { type: 'heading', depth: 4, children: [{ type: 'text', value: 'Step title' }] },
+          { type: 'paragraph', children: [{ type: 'text', value: 'Intro.' }] },
+          { type: 'heading', depth: 5, children: [{ type: 'text', value: 'Sub-section' }] },
+          { type: 'paragraph', children: [{ type: 'text', value: 'More content.' }] },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      expect(mdx).toContain('<StepHeading>');
+      expect(mdx).not.toMatch(/^\s*#{1,6}\s+Step title/m);
+      expect(mdx).toMatch(/^\s*#{1,6}\s+Sub-section/m);
+    });
+
+    it('omits StepHeading when step has no argument', () => {
+      const ast: SnootyNode = {
+        type: 'directive',
+        name: 'step',
+        children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Just body.' }] }],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      expect(mdx).not.toContain('StepHeading');
+      expect(mdx).toContain('Just body.');
+    });
+
+    it('handles rich inline content in the argument', () => {
+      const ast: SnootyNode = {
+        type: 'directive',
+        name: 'step',
+        argument: [
+          { type: 'text', value: 'Go to ' },
+          { type: 'role', name: 'guilabel', children: [{ type: 'text', value: 'Settings' }] },
+        ],
+        children: [
+          {
+            type: 'directive_argument',
+            children: [
+              { type: 'text', value: 'Go to ' },
+              { type: 'role', name: 'guilabel', children: [{ type: 'text', value: 'Settings' }] },
+            ],
+          },
+          {
+            type: 'heading',
+            depth: 4,
+            children: [
+              { type: 'text', value: 'Go to ' },
+              { type: 'role', name: 'guilabel', children: [{ type: 'text', value: 'Settings' }] },
+            ],
+          },
+          { type: 'paragraph', children: [{ type: 'text', value: 'Configure options.' }] },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      expect(mdx).toContain('<StepHeading>');
+      expect(mdx).toContain('<Guilabel>Settings</Guilabel>');
+      expect(mdx).not.toMatch(/^#{1,6}\s/m);
+    });
+  });
+
+  describe('procedure directive with steps', () => {
+    it('wraps steps in Procedure and produces StepHeading for each', () => {
+      const ast: SnootyNode = {
+        type: 'directive',
+        name: 'procedure',
+        children: [
+          {
+            type: 'directive',
+            name: 'step',
+            argument: [{ type: 'text', value: 'Step one' }],
+            children: [
+              { type: 'directive_argument', children: [{ type: 'text', value: 'Step one' }] },
+              { type: 'heading', depth: 4, children: [{ type: 'text', value: 'Step one' }] },
+              { type: 'paragraph', children: [{ type: 'text', value: 'First body.' }] },
+            ],
+          },
+          {
+            type: 'directive',
+            name: 'step',
+            argument: [{ type: 'text', value: 'Step two' }],
+            children: [
+              { type: 'directive_argument', children: [{ type: 'text', value: 'Step two' }] },
+              { type: 'heading', depth: 4, children: [{ type: 'text', value: 'Step two' }] },
+              { type: 'paragraph', children: [{ type: 'text', value: 'Second body.' }] },
+            ],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      expect(mdx).toContain('<Procedure');
+      expect(mdx).toContain('<StepHeading>');
+      expect(mdx).toContain('Step one');
+      expect(mdx).toContain('Step two');
+      expect(mdx).not.toMatch(/^#{1,6}\s/m);
+    });
+  });
 });

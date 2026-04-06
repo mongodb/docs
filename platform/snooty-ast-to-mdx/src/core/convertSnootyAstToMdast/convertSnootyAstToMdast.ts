@@ -6,6 +6,7 @@ import { convertDirectiveImage } from './convertDirectiveImage';
 import { convertDirectiveInclude } from './convertDirectiveInclude';
 import { convertDirectiveListTable } from './convertDirectiveListTable';
 import { convertDirectiveProcedure } from './convertDirectiveProcedure';
+import { convertDirectiveStep } from './convertDirectiveStep';
 import { parseSnootyArgument } from './parseSnootyArgument';
 import { computeComposableTutorialData, buildComposableOptionsFromNode } from './computeComposableTutorialData';
 import { extractInlineDisplayText } from './extractInlineDisplayText';
@@ -334,9 +335,6 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       const result: MdastNode[] = [];
 
       if (titleNode) {
-        const headingText = extractInlineDisplayText(titleNode.children ?? []);
-        if (headingText) ctx.lastHeadingText = headingText;
-
         result.push({
           type: 'heading',
           depth: Math.min(depth, 6),
@@ -355,8 +353,6 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 
     case 'title':
     case 'heading': {
-      const headingText = extractInlineDisplayText(node.children ?? []);
-      if (headingText) ctx.lastHeadingText = headingText;
       return {
         type: 'heading',
         depth: Math.min(depth, 6),
@@ -437,6 +433,9 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       }
       if (directiveName === 'procedure') {
         return convertDirectiveProcedure({ node, ctx, depth, convertChildren });
+      }
+      if (directiveName === 'step') {
+        return convertDirectiveStep({ node, ctx, depth, convertChildren });
       }
       if (directiveName === 'hlist') {
         const attributes: MdastNode[] = toJsxAttributes(node.options);
@@ -682,9 +681,12 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       const parentTypeForChildren = directiveName;
       if (includeArgumentAsChild) {
         if (Array.isArray(node.argument)) {
-          children.push(...convertChildren({ nodes: node.argument, depth, ctx, parentType: parentTypeForChildren }));
+          const argChildren = convertChildren({ nodes: node.argument, depth, ctx, parentType: parentTypeForChildren });
+          if (argChildren.length > 0) {
+            children.push({ type: 'paragraph', children: argChildren });
+          }
         } else if (typeof node.argument === 'string') {
-          children.push({ type: 'text', value: node.argument });
+          children.push({ type: 'paragraph', children: [{ type: 'text', value: node.argument }] });
         }
       }
       children.push(...convertChildren({ nodes: node.children, depth, ctx, parentType: parentTypeForChildren }));
