@@ -150,6 +150,28 @@ re-evaluated for each operation.
 For details on read preference and sharded clusters, see
 :ref:`read-preference-mechanics-sharded-cluster`.
 
+Targeting Behavior Under Overload
+---------------------------------
+
+When you enable the ingress request rate limiter, a ``mongod`` or ``mongos`` 
+node can reject operations if the rate of incoming requests exceeds the 
+configured limit. In this case, the server returns an error that includes the 
+``SystemOverloadedError`` error label. 
+
+When the :parameter:`overloadAwareServerSelectionEnabled` is set to ``true``, if
+a target server responds with an error labeled ``SystemOverloadedError``, the 
+router deprioritizes that server in later targeting decisions for retries of 
+that request. By default, ``overloadAwareServerSelectionEnabled`` is set to
+``false``.
+
+For example, when the :readmode:`primaryPreferred` read preference is in use and
+the primary is overloaded, the router can re‑target the read to an appropriate 
+secondary instead of continuing to send traffic to the overloaded primary.
+
+Overload‑aware targeting helps the cluster maintain availability during overload
+conditions by routing work away from servers that are actively shedding load, 
+while still honoring read preference rules.
+
 Confirm Connection to ``mongos`` Instances
 ------------------------------------------
 
