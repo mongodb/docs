@@ -17,10 +17,7 @@
 
          * - ``<connectionString>``
            - Cluster connection string. To learn more, see :ref:`connect-via-driver`.
-
-             .. note:: 
-
-                The connection string must specify ``directConnection=true``.
+             The connection string must specify ``directConnection=true``.
 
          * - ``<databaseName>``
            - Database that contains the collection for which you want to create the index.

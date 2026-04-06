@@ -81,11 +81,9 @@
       
                 https://{keyvault-name}.vault.azure.net/{object-type}/{object-name}
 
-             .. note::
-                
-                You may append ``/{object-version}``. However, we 
-                recommend you omit the version to enable automatic 
-                resolution to the latest version.
+             You may append ``/{object-version}``. However, we
+             recommend you omit the version to enable automatic
+             resolution to the latest version.
 
    .. step:: (Optional) Configure private endpoint connections to your |akv|.
 

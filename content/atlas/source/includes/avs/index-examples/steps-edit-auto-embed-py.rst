@@ -29,13 +29,9 @@
            - Name of the embedding model to use to generate embeddings.
 
          * - ``<fieldToIndex>``
-           - Name of field to index.
-
-             .. note:: 
-
-                You can add text fields to index as the ``autoEmbed`` type, but 
-                you can't replace or delete existing ``autoEmbed`` type fields in 
-                the index definition.
+           - Name of field to index. You can add text fields to index as
+             the ``autoEmbed`` type, but you can't replace or delete
+             existing ``autoEmbed`` type fields in the index definition.
 
    .. step:: Run the following command to update the index.
 

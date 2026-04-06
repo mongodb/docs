@@ -29,13 +29,10 @@
              ``vector_index``. 
 
          * - ``<fieldToIndex>``
-           - Text and filter fields to index. 
-
-             .. note:: 
-
-                You can add text fields to index as the ``autoEmbed`` type, but 
-                you can't replace or delete existing ``autoEmbed`` type fields in 
-                the index definition. 
+           - Text and filter fields to index. You can add text fields to
+             index as the ``autoEmbed`` type, but you can't replace or
+             delete existing ``autoEmbed`` type fields in the index
+             definition.
 
          * - ``<modelName>``
            - Name of the embedding model to use to generate the
