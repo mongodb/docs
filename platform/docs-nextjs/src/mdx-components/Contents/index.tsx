@@ -6,6 +6,7 @@ import { css, cx } from '@leafygreen-ui/emotion';
 import { isEmpty } from 'lodash';
 import { ContentsContext, type ActiveSelectorIds } from '@/context/contents-context';
 import type { HeadingNodeSelectorIds } from '@/types/ast';
+import { formatText } from '@/utils/format-text';
 import { ContentsList } from './contents-list';
 import { ContentsListItem } from './contents-list-item';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
@@ -101,8 +102,7 @@ export const Contents = ({ className }: { className?: string }) => {
             const listItemDepth = Math.max(depth - 2, 0);
             return (
               <ContentsListItem depth={listItemDepth} key={id} id={id} isActive={activeHeadingId === id}>
-                {/* TODO: address this when we have a solution for MDX headings data which is currently in frontmatter */}
-                {title[0].value}
+                {formatText(title, { literalEnableInline: true })}
               </ContentsListItem>
             );
           })}

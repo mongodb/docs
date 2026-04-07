@@ -19,25 +19,15 @@ export const RefRole = async ({ projectPath, name, children }: RefRoleProps) => 
   const href: string | undefined = parsedReferences?.refs?.[name];
   if (href) {
     const resolvedHref = href.startsWith('http') ? href : `/${href}`;
-    return (
-      <Link to={resolvedHref}>
-        <Literal>{children ?? name}</Literal>
-      </Link>
-    );
+    // children is provided by typed ref roles (e.g. :binary:, :term:) where the AST
+    // encodes inline formatting. Plain :ref: uses the Reference component instead.
+    return <Link to={resolvedHref}>{children ?? <Literal>{name}</Literal>}</Link>;
   }
 
   if (name.startsWith('http')) {
-    return (
-      <Link to={name}>
-        <Literal>{children ?? name}</Literal>
-      </Link>
-    );
+    return <Link to={name}>{children ?? <Literal>{name}</Literal>}</Link>;
   }
 
   // Unresolved reference — render a dead link so content remains visible
-  return (
-    <Link to="">
-      <Literal>{children ?? name}</Literal>
-    </Link>
-  );
+  return <Link to="">{children ?? <Literal>{name}</Literal>}</Link>;
 };

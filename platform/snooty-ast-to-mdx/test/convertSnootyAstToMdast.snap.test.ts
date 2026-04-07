@@ -482,6 +482,20 @@ const cases: Array<[string, SnootyNode]> = [
     },
   ],
   [
+    'substitution node with abbr child',
+    {
+      type: 'substitution',
+      refname: 'aws',
+      children: [
+        {
+          type: 'role',
+          name: 'abbr',
+          children: [{ type: 'text', value: 'AWS (Amazon Web Services)' }],
+        },
+      ],
+    },
+  ],
+  [
     'directive collapsible',
     {
       type: 'directive',

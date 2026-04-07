@@ -969,6 +969,25 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
     case 'substitution': {
       // parser sometimes uses 'substitution' instead
       const refname = node.refname || node.name || '';
+
+      // If the substitution expands to an abbr role, emit <Abbr> directly
+      const abbrChild = node.children?.find(
+        (child) => child.type === 'role' && typeof child.name === 'string' && child.name.toLowerCase() === 'abbr',
+      );
+      if (abbrChild) {
+        const textContent = extractInlineDisplayText(abbrChild.children ?? []);
+        const match = textContent.match(/^(.+?)\s*\((.+)\)$/);
+        if (match) {
+          const [, abbr, tooltip] = match;
+          return {
+            type: 'mdxJsxTextElement',
+            name: 'Abbr',
+            attributes: [{ type: 'mdxJsxAttribute', name: 'tooltip', value: tooltip }],
+            children: [{ type: 'text', value: abbr }],
+          };
+        }
+      }
+
       const text = extractInlineDisplayText(node.children ?? []);
       if (refname && text) {
         ctx.collectedSubstitutions.set(refname, text);

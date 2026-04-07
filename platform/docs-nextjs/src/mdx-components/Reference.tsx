@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Link } from '@/mdx-components/Link';
+import { Abbr } from '@/mdx-components/Abbr';
 import { REFERENCE_PREFIX } from '@/mdx-utils/get-blob-key';
 import { getBlobString } from '@/mdx-utils/blob-read';
 
@@ -25,9 +26,15 @@ export const Reference = async ({ projectPath, name, refKey, title, replacements
 
   const parsedReferences = JSON.parse(references ?? '{}');
 
-  // Substitution references (e.g. <Reference refKey="service" type="substitution" />) are plain text
+  // Substitution references (e.g. <Reference refKey="service" type="substitution" />) are plain text,
+  // unless the value is an abbreviation in "term (expansion)" format — render those as Abbr tooltips.
   const substitution = lookupKey ? parsedReferences?.substitutions?.[lookupKey] : undefined;
   if (substitution) {
+    const abbrMatch = substitution.match(/^(.+?)\s*\((.+)\)$/);
+    if (abbrMatch) {
+      const [, abbr, tooltip] = abbrMatch;
+      return <Abbr tooltip={tooltip}>{abbr}</Abbr>;
+    }
     return <span>{substitution}</span>;
   }
 

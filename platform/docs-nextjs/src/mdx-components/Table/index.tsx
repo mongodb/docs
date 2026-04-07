@@ -110,11 +110,6 @@ const headerCellStyle = css`
 const stubCellStyle = css`
   background-color: ${palette.gray.light3};
   border-right: 3px solid ${palette.gray.light2};
-  font-weight: 600;
-
-  * {
-    font-weight: 600 !important;
-  }
 
   .dark-theme & {
     background-color: ${palette.gray.dark4};
