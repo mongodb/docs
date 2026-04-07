@@ -34,8 +34,9 @@
       The following example index definitions:
 
       - Index the ``plot_embedding_voyage_3_large`` field as the
-        ``vector`` type and the ``genres`` and ``year`` fields as the
-        ``filter`` type in a {+avs+} index.
+        ``vector`` type using the default indexing method, |hnsw|, and 
+        the ``genres`` and ``year`` fields as the ``filter`` type in a 
+        {+avs+} index.
       - Specifies the ``plot_embedding_voyage_3_large`` field as the
         vector embeddings field, which contains embeddings created using
         |voyage|'s ``voyage-3-large`` embedding model. 
@@ -66,8 +67,9 @@
 
             - A string field (``genres``) and a numeric field (``year``)
               for pre-filtering the data.
-            - The vector embeddings field (``plot_embedding_voyage_3_large``) for
-              performing vector search against pre-filtered data.
+            - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+              using the default indexing method, |hnsw|, for performing vector 
+              search against pre-filtered data.
 
             Copy and paste the following into the file you created, and replace
             the ``<connectionString>`` placeholder value.

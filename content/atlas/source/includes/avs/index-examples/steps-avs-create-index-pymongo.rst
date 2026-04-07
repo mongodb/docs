@@ -79,12 +79,11 @@
                   Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-basic.ipynb>`.
 
                The following index definition indexes only the vector
-               embeddings field (``plot_embedding_voyage_3_large``) for performing
+               embeddings field (``plot_embedding_voyage_3_large``) using 
+               the default indexing method, |hnsw|, for performing
                vector search.
 
-               ..
-                  NOTE: If you edit this Python file, also update the Jupyter Notebook
-                  at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-basic.ipynb
+               .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-basic.ipynb
 
                .. literalinclude:: /includes/avs/index-management/create-index/basic-example.py
                   :language: python
@@ -104,14 +103,37 @@
       
                - A string field (``genres``) and a numeric field (``year``)
                  for pre-filtering the data. 
-               - The vector embeddings field (``plot_embedding_voyage_3_large``) for
+               - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+                 using the |hnsw| indexing method for
                  performing vector search against pre-filtered data.
 
-               ..
-                  NOTE: If you edit this Python file, also update the Jupyter Notebook
-                  at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb
+               .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb
 
                .. literalinclude:: /includes/avs/index-management/create-index/filter-example.py
+                  :language: python
+                  :copyable: true 
+                  :linenos:
+
+            .. tab:: Flat Example 
+               :tabid: flat
+
+               .. cta-banner::
+                  :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb
+                  :icon: Code
+
+                  Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb>`.
+
+               This index definition indexes the following fields: 
+      
+               - A string field (``genres``) and a numeric field (``year``)
+                 for pre-filtering the data. 
+               - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+                 using the ``flat`` indexing method for
+                 performing vector search against pre-filtered data.
+
+               .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb
+
+               .. literalinclude:: /includes/avs/index-management/create-index/flat-example.py
                   :language: python
                   :copyable: true 
                   :linenos:

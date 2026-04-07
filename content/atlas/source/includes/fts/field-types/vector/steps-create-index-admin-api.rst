@@ -20,7 +20,7 @@
       - Replace {``clusterName``} with the name of the cluster where 
         you want to create the |fts| index
 
-      .. literalinclude:: /includes/fts/field-types/token/create-index-api.sh
+      .. literalinclude:: /includes/fts/field-types/vector/create-index-api.sh
          :language: shell
          :copyable: true
          :linenos:

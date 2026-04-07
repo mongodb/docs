@@ -31,7 +31,7 @@
          can filter on {+avs-filter-types+}.
 
        To learn more, see :ref:`avs-types-auto-embed` and
-       :ref:`avs-types-filter`. 
+       :ref:`avs-types-filter-auto-embed`. 
 
    * - | ``fields.``
        | ``path``

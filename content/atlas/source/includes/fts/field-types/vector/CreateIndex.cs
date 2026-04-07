@@ -24,6 +24,7 @@ var index =  new CreateSearchIndexModel(
                 { "numDimensions", "<number-of-dimensions>" },
                 { "similarity", "euclidean | cosine | dotProduct" },
                 { "quantization", "none | scalar | binary" },
+                { "indexingMethod", "flat | hnsw" },
                 { "hnswOptions", new BsonDocument
                   {
                     { "maxEdges", "<number-of-connected-neighbors>" },

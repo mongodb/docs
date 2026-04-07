@@ -79,6 +79,24 @@ The |fts| |fts-field-type| type takes the following parameters:
 
        To learn more, see :ref:`avs-quantization`.
 
+   * - ``indexingMethod``
+     - String
+     - Optional 
+     - Index structure for the vector field. Value can be: 
+       
+       - ``hnsw`` - for graph-based index where similar vectors are 
+         connected
+       - ``flat`` - for flat, non-graph, index
+
+       If omitted, defaults to ``hnsw``. If you specify ``hnsw``, {+avs+} 
+       performs |ann| search over the |hnsw| graph and |enn| search over 
+       full-fidelity vectors. You can also specify ``hnswOptions``. 
+
+       If you specify ``flat``, {+avs+} performs a full scan over 
+       full-fidelity or quantized vectors. During an |ann| search, {+avs+} 
+       ignores the settings for ``numCandidates``. For |enn| search, {+avs+} 
+       performs a full scan over full-fidelity vectors.
+
    * - ``hnswOptions`` 
      - Object 
      - Optional 

@@ -27,7 +27,7 @@
        - ``filter`` - for additional fields to filter on. You
          can filter on {+avs-filter-types+}.
 
-       To learn more, see |avs-types-vector-link| and :ref:`avs-types-filter`.
+       To learn more, see :ref:`avs-types-vector` and :ref:`avs-types-filter-vector`.
 
    * - | ``fields.``
        | ``path``
@@ -73,7 +73,7 @@
        - ``dotProduct`` - measures similarity like ``cosine``, but takes 
          into account the magnitude of the vector.  
          
-       To learn more, see |similarity-functions-link|.
+       To learn more, see :ref:`avs-similarity-functions`.
 
    * - | ``fields.``
        | ``quantization``
@@ -100,15 +100,31 @@
        To learn more, see :ref:`avs-quantization`.
 
    * - | ``fields.``
+       | ``indexingMethod``
+     - String
+     - Optional 
+     - Index structure for the vector field. Value can be: 
+       
+       - ``hnsw`` - for graph-based index where similar vectors are 
+         connected
+       - ``flat`` - for flat, non-graph, index
+
+       If omitted, defaults to ``hnsw``. To learn more, see 
+       :ref:`avs-vector-index-method`.
+
+   * - | ``fields.``
        | ``hnswOptions`` 
      - Object 
      - Optional 
-     - Parameters to use for |hnsw| graph construction. If omitted, uses
+     - Parameters to use for |hnsw| graph construction. You can specify   
+       this field only if ``indexingMethod`` is ``hnsw``. If omitted, uses
        the default values for the ``maxEdges`` and ``numEdgeCandidates``
        parameters. 
+       
+       To learn more, see :ref:`About the Indexing Methods 
+       <avs-vector-index-method>`.
 
-       :gold:`IMPORTANT:` This is available as a Preview feature. Modifying 
-       the default values might negatively impact your {+avs+} index and queries.
+       .. include:: /includes/avs/index/fact-hnsw-options-preview.rst
 
    * - | ``fields.`` 
        | ``hnswOptions.`` 
@@ -116,18 +132,19 @@
      - Int
      - Optional 
      - Maximum number of edges (or connections) that a node can have in
-       the |hnsw| graph. Value can be between ``16`` and ``64``, both 
-       inclusive. If omitted, defaults to ``16``. For example, for a
-       value of ``16``, each node can have a maximum of sixteen outgoing
-       edges at each layer of the |hnsw| graph.
+       the :abbr:`HNSW (Hierarchical Navigable Small Worlds)` graph. Value 
+       can be between ``16`` and ``64``, both inclusive. If omitted, defaults 
+       to ``16``. For example, for a value of ``16``, each node can have 
+       a maximum of sixteen outgoing edges at each layer of the |hnsw| graph.
 
        A higher number improves :term:`recall` (accuracy of search
        results) because the graph is better connected. However, this
        slows down query speed because of the number of neighbors to
-       evaluate per graph node, increases the memory for the |hnsw| graph because each
-       node stores more connections, and slows down indexing because
-       {+avs+} evaluates more neighbors and adjusts for every new node
-       added to the graph. 
+       evaluate per graph node, increases the memory for the :abbr:`HNSW 
+       (Hierarchical Navigable Small Worlds)` graph because each node 
+       stores more connections, and slows down indexing because {+avs+} 
+       evaluates more neighbors and adjusts for every new node added to 
+       the graph. 
 
    * - | ``fields.``
        | ``hnswOptions.``

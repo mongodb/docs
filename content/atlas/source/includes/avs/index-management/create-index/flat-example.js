@@ -7,32 +7,31 @@ const client = new MongoClient(uri);
 
 async function run() {
    try {
-     const database = client.db("<databaseName>");
-     const collection = database.collection("<collectionName>");
+     const database = client.db("sample_mflix");
+     const collection = database.collection("embedded_movies");
     
      // define your MongoDB Vector Search index
      const index = {
-         name: "<indexName>",
+         name: "vector_index",
          type: "vectorSearch",
          definition: {
            "fields": [
              {
                "type": "vector",
-               "numDimensions": <numberOfDimensions>,
-               "path": "<fieldToIndex>",
-               "similarity": "euclidean | cosine | dotProduct",
-               "quantization": "none | scalar | binary",
-               "indexingMethod": "flat | hnsw",
-               "hnswOptions": {
-                 "maxEdges": <number-of-connected-neighbors>,
-                 "numEdgeCandidates": <number-of-nearest-neighbors>
-               }
+               "numDimensions": 2048,
+               "path": "plot_embedding_voyage_3_large",
+               "similarity": "dotProduct",
+               "quantization": "scalar",
+               "indexingMethod": "flat"
              },
              {
                "type": "filter",
-               "path": "<fieldToIndex>"
+               "path": "genres"
              },
-             ...
+             {
+               "type": "filter",
+               "path": "year"
+             }
            ]
          }
      }
@@ -40,6 +39,7 @@ async function run() {
      // run the helper method
      const result = await collection.createSearchIndex(index);
      console.log(`New search index named ${result} is building.`);
+
      // wait for the index to be ready to query
      console.log("Polling to check if the index is ready. This may take up to a minute.")
      let isQueryable = false;

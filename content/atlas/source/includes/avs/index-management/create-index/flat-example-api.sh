@@ -1,4 +1,4 @@
-curl --header "Authorization: Bearer {ACCESS-TOKEN}" \
+curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
 --header "Accept: application/json" \
 --header "Content-Type: application/json" \
 --include \
@@ -16,7 +16,7 @@ curl --header "Authorization: Bearer {ACCESS-TOKEN}" \
           "path": "plot_embedding_voyage_3_large",
           "numDimensions": 2048,
           "similarity": "dotProduct",
-          "indexingMethod": "hnsw"
+          "indexingMethod": "flat"
         },
         {
           "type": "filter",

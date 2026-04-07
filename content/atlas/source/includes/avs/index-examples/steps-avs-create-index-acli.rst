@@ -52,7 +52,8 @@
                :tabid: basic
 
                The following index definition indexes only the vector
-               embeddings field for performing vector search.
+               embeddings field using the default indexing method, |hnsw|,
+               for performing vector search.
                   
                .. literalinclude:: /includes/avs/index-management/create-index/basic-example-acli.json 
                   :language: json
@@ -66,10 +67,27 @@
          
                - A string field (``genres``) and a numeric field (``year``)
                  for pre-filtering the data. 
-               - The vector embeddings field (``plot_embedding_voyage_3_large``) for
-                 performing vector search against pre-filtered data.
+               - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+                 using the |hnsw| indexing method for performing vector search 
+                 against pre-filtered data.
 
                .. literalinclude:: /includes/avs/index-management/create-index/filter-example-acli.json 
+                  :language: json
+                  :copyable:
+                  :linenos:
+
+            .. tab:: Flat Example 
+               :tabid: flat
+
+               This index definition indexes the following fields: 
+         
+               - A string field (``genres``) and a numeric field (``year``)
+                 for pre-filtering the data. 
+               - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+                 using the ``flat`` indexing method for performing vector search 
+                 against pre-filtered data.
+
+               .. literalinclude:: /includes/avs/index-management/create-index/flat-example-acli.json 
                   :language: json
                   :copyable:
                   :linenos:

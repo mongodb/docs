@@ -18,7 +18,13 @@ def create_indexes():
              "type": "vector",
              "numDimensions": <numberOfDimensions>,
              "path": "<fieldToIndex>",
-             "similarity": "euclidean | cosine | dotProduct"
+             "similarity": "euclidean | cosine | dotProduct",
+             "quantization": "none | scalar | binary",
+             "indexingMethod": "flat | hnsw",
+             "hnswOptions": {
+               "maxEdges": <number-of-connected-neighbors>,
+               "numEdgeCandidates": <number-of-nearest-neighbors>
+             }
            },
            {
              "type": "filter",
@@ -38,7 +44,13 @@ def create_indexes():
              "type": "vector",
              "numDimensions": <numberOfDimensions>,
              "path": "<fieldToIndex>",
-             "similarity": "euclidean | cosine | dotProduct"
+             "similarity": "euclidean | cosine | dotProduct",
+             "quantization": "none | scalar | binary",
+             "indexingMethod": "flat | hnsw",
+             "hnswOptions": {
+               "maxEdges": <number-of-connected-neighbors>,
+               "numEdgeCandidates": <number-of-nearest-neighbors>
+             }
            },
            {
              "type": "filter",

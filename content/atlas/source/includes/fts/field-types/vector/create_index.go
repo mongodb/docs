@@ -40,6 +40,7 @@ func main() {
 						{"numDimensions", "<number-of-dimensions>"},
 						{"similarity", "euclidean | cosine | dotProduct"},
 						{"quantization", "none | scalar | binary"},
+						{"indexingMethod", "flat | hnsw"},
 						{"hnswOptions", bson.D{
 							{"maxEdges", "<number-of-connected-neighbors>"},
 							{"numEdgeCandidates", "<number-of-nearest-neighbors>"},

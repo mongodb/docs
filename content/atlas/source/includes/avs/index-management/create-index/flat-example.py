@@ -20,7 +20,7 @@ search_index_model = SearchIndexModel(
         "numDimensions": 2048,
         "similarity": "dotProduct",
         "quantization": "scalar",
-        "indexingMethod": "hnsw"
+        "indexingMethod": "flat"
       },
       {
         "type": "filter",

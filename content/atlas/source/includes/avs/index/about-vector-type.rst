@@ -1,5 +1,5 @@
-Your index definition's ``vector`` field must contain an array of numbers of 
-*one* of the following types: 
+Your index definition's ``vector`` type field must contain an array of 
+numbers of *one* of the following types: 
 
 - |bson| ``double`` 
 - |bson| :manual:`BinData </reference/method/BinData/>` ``vector``
@@ -17,14 +17,14 @@ Your index definition's ``vector`` field must contain an array of numbers of
    :ref:`avs-bindata-vector-subtype`.
 
 You must index the vector field as the ``vector`` type inside the
-``fields`` array.
-
-The following syntax defines the ``vector`` field type: 
+``fields`` array. In the index definition for the ``vector`` type, 
+you configure some additional required and optional parameters 
+(highlighted below) to index the field:
 
 .. code-block:: json
    :copyable: true 
    :linenos:
-   :emphasize-lines: 4-12
+   :emphasize-lines: 6-13
 
    {
      "fields":[ 
@@ -34,6 +34,7 @@ The following syntax defines the ``vector`` field type:
          "numDimensions": <number-of-dimensions>,
          "similarity": "euclidean | cosine | dotProduct",
          "quantization": "none | scalar | binary",
+         "indexingMethod": "flat | hnsw",
          "hnswOptions": {
            "maxEdges": <number-of-connected-neighbors>,
            "numEdgeCandidates": <number-of-nearest-neighbors>

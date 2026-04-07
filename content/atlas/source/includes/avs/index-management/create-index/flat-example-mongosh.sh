@@ -8,7 +8,7 @@ db.embedded_movies.createSearchIndex(
         "path": "plot_embedding_voyage_3_large",
         "numDimensions": 2048,
         "similarity": "dotProduct",
-        "indexingMethod": "hnsw"
+        "indexingMethod": "flat"
       },
       {
         "type": "filter",

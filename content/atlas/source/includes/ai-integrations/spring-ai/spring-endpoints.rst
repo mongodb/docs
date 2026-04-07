@@ -119,7 +119,7 @@
       .. note::
 
          You must add the path for your metadata field to your {+avs+}
-         index. See the :ref:`avs-types-filter` section of the How to
+         index. See the :ref:`avs-types-filter-vector` section of the How to
          Index Fields for Vector Search tutorial to learn more.
 
       To learn more about metadata pre-filtering, see 

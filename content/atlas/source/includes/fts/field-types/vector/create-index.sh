@@ -1,0 +1,22 @@
+db.<collection>.createSearchIndex(
+  "default",
+  {
+    "mappings": { 
+      "dynamic": true|false,
+      "fields": {
+        "<field-name>": {
+          "type": "vector",
+          "numDimensions": <number-of-dimensions>,
+          "similarity": "euclidean | cosine | dotProduct",
+          "quantization": "none | scalar | binary",
+          "indexingMethod": "flat | hnsw",
+          "hnswOptions": {
+            "maxEdges": <number-of-connected-neighbors>,
+            "numEdgeCandidates": <number-of-nearest-neighbors>
+          }
+        },
+        ...
+      }
+    }
+  }
+)

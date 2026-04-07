@@ -33,6 +33,7 @@ int main(){
                         kvp("numDimensions", "<number-of-dimensions>"),
                         kvp("similarity", "euclidean | cosine | dotProduct"),
                         kvp("quantization", "none | scalar | binary"),
+                        kvp("indexingMethod", "flat | hnsw"),
                         kvp("hnswOptions", make_document(
                             kvp("maxEdges", "<number-of-connected-neighbors>"),
                             kvp("numEdgeCandidates", "<number-of-nearest-neighbors>")

@@ -29,30 +29,8 @@
       .. io-code-block::
          :copyable: true
 
-         .. input::
+         .. input:: /includes/fts/field-types/vector/create-index.sh
             :language: shell
-
-            db.<collection>.createSearchIndex(
-              "default",
-                {
-                  "mappings": { 
-                    "dynamic": true|false,
-                    "fields": {
-                    "<field-name>": {
-                      "type": "vector",
-                      "numDimensions": <number-of-dimensions>,
-                      "similarity": "euclidean | cosine | dotProduct",
-                      "quantization": "none | scalar | binary",
-                      "hnswOptions": {
-                        "maxEdges": <number-of-connected-neighbors>,
-                        "numEdgeCandidates": <number-of-nearest-neighbors>
-                      }
-                    },
-                    ...
-                  }
-                }
-              }
-            )
 
          .. output::
             :visible: false

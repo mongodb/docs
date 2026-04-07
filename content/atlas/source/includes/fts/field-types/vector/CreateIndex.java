@@ -21,6 +21,7 @@ public class CreateIndex {
                                                   .append("numDimensions", "<number-of-dimensions>")
                                                   .append("similarity", "euclidean | cosine | dotProduct")
                                                   .append("quantization", "none | scalar | binary")
+                                                  .append("indexingMethod", "flat | hnsw")
                                                   .append("hnswOptions", new Document("maxEdges", "<number-of-connected-neighbors>")
                                                       .append("numEdgeCandidates", "<number-of-nearest-neighbors>"))
                                                   )));

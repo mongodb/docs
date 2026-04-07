@@ -29,17 +29,21 @@
                   .. tab:: Basic Example
                      :tabid: basic
 
-                     For the ``embedded_movies`` collection, the ``plot_embedding_voyage_3_large`` field displays. 
+                     For the ``embedded_movies`` collection, |service| displays the 
+                     ``plot_embedding_voyage_3_large`` and ``plot_embedding`` fields. 
 
                      .. include:: /includes/avs/extracts/steps-avs-index-basic.rst
 
                      This index definition indexes only the vector
-                     embeddings field (``plot_embedding_voyage_3_large``) for performing vector search.  
+                     embeddings field (``plot_embedding_voyage_3_large``) for 
+                     performing vector search. By default, {+avs+} uses the |hnsw| 
+                     ``indexingMethod`` for indexing the field.
 
                   .. tab:: Filter Example 
                      :tabid: advanced
 
-                     For the ``embedded_movies`` collection, the ``plot_embedding_voyage_3_large`` field displays.
+                     For the ``embedded_movies`` collection, |service| displays the 
+                     ``plot_embedding_voyage_3_large`` and ``plot_embedding`` fields. 
 
                      .. include:: /includes/avs/extracts/steps-avs-index-quantization-filters.rst
 
@@ -51,12 +55,13 @@
                        performing vector search against pre-filtered data.       
                      
                      It also enables automatic quantization (``scalar``) for efficient 
-                     processing of the embeddings.
+                     processing of the embeddings. By default, {+avs+} uses the |hnsw| 
+                     ``indexingMethod`` for indexing the field.
 
          .. tab:: JSON Editor 
             :tabid: jsoneditor 
 
-            a {+avs+} index resembles the following example: 
+            {+avs+} index resembles the following example: 
 
             .. code-block:: json
                :copyable: true 
@@ -92,7 +97,9 @@
                      :tabid: basic
 
                      The following index definition indexes only the vector
-                     embeddings field for performing vector search.  
+                     embeddings field using the ``dotProduct`` similarity function 
+                     for performing vector search. It uses the default |hnsw| 
+                     ``indexingMethod``.
 
                      .. code-block:: json 
                         :linenos:
@@ -106,15 +113,52 @@
                           }]
                         }
 
-                  .. tab:: Advanced Example 
+                  .. tab:: Filter Example 
                      :tabid: advanced
 
                      This index definition indexes the following fields: 
             
                      - A string field (``genres``) and a numeric field (``year``)
                        for pre-filtering the data. 
-                     - The vector embeddings field (``plot_embedding_voyage_3_large``) for
-                       performing vector search against pre-filtered data.
+                     - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+                       using the |hnsw| ``indexingMethod`` for performing vector 
+                       search against pre-filtered data.
+                     
+                     It also enables automatic quantization (``scalar``) for efficient 
+                     processing of the embeddings and uses the |hnsw| ``indexingMethod``.
+
+                     .. code-block:: json 
+                        :linenos:
+
+                        {
+                          "fields": [{
+                            "type": "vector",
+                            "path": "plot_embedding_voyage_3_large",
+                            "numDimensions": 2048,
+                            "similarity": "dotProduct",
+                            "quantization": "scalar",
+                            "indexingMethod": "hnsw"
+                          },
+                          {
+                            "type": "filter",
+                            "path": "genres"
+                          },
+                          {
+                            "type": "filter",
+                            "path": "year"
+                          }]
+                        }
+
+                  .. tab:: Flat Example 
+                     :tabid: flat 
+
+                     This index definition indexes the following fields: 
+            
+                     - A string field (``genres``) and a numeric field (``year``)
+                       for pre-filtering the data. 
+                     - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+                       using the ``flat`` indexing method for performing vector 
+                       search against pre-filtered data.
                      
                      It also enables automatic quantization (``scalar``) for efficient 
                      processing of the embeddings.
@@ -128,7 +172,9 @@
                             "path": "plot_embedding_voyage_3_large",
                             "numDimensions": 2048,
                             "similarity": "dotProduct",
-                            "quantization": "scalar"
+                            "quantization": "scalar",
+                            "indexingMethod": "flat"
+
                           },
                           {
                             "type": "filter",

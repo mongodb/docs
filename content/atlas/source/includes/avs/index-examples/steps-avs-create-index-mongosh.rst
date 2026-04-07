@@ -40,7 +40,13 @@
                  "type": "vector",
                  "numDimensions": <number-of-dimensions>,
                  "path": "<field-to-index>",
-                 "similarity": "euclidean | cosine | dotProduct"
+                 "similarity": "euclidean | cosine | dotProduct",
+                 "quantization": "none | scalar | binary",
+                 "indexingMethod": "flat | hnsw",
+                 "hnswOptions": {
+                   "maxEdges": <number-of-connected-neighbors>,
+                   "numEdgeCandidates": <number-of-nearest-neighbors>
+                 }
                },
                {
                  "type": "filter",
@@ -61,7 +67,8 @@
                :tabid: basic
 
                The following index definition indexes only the vector
-               embeddings field for performing vector search.  
+               embeddings field using the default |hnsw| indexing method for 
+               performing vector search.  
 
                .. literalinclude:: /includes/avs/index-management/create-index/basic-example-mongosh.sh  
                   :language: shell
@@ -75,10 +82,27 @@
       
                - A string field (``genres``) and a numeric field (``year``)
                  for pre-filtering the data. 
-               - The vector embeddings field (``plot_embedding_voyage_3_large``) for
-                 performing vector search against pre-filtered data.
+               - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+                 using the |hnsw| ``indexingMethod`` for performing vector 
+                 search against pre-filtered data.
 
                .. literalinclude:: /includes/avs/index-management/create-index/filter-example-mongosh.sh  
+                  :language: shell
+                  :copyable: true 
+                  :linenos:
+
+            .. tab:: Flat Example 
+               :tabid: flat
+
+               This index definition indexes the following fields: 
+      
+               - A string field (``genres``) and a numeric field (``year``)
+                 for pre-filtering the data. 
+               - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+                 using the ``flat`` indexing method for performing vector 
+                 search against pre-filtered data.
+
+               .. literalinclude:: /includes/avs/index-management/create-index/flat-example-mongosh.sh  
                   :language: shell
                   :copyable: true 
                   :linenos:

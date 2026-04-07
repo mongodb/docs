@@ -21,7 +21,8 @@ async function run() {
                "numDimensions": 2048,
                "path": "plot_embedding_voyage_3_large",
                "similarity": "dotProduct",
-               "quantization": "scalar"
+               "quantization": "scalar",
+               "indexingMethod": "hnsw"
              },
              {
                "type": "filter",
