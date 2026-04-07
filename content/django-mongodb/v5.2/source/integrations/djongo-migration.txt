@@ -10,6 +10,7 @@ Migrate Your Djongo Application
 
 .. meta::
    :keywords: model, settings, connection, embedded, code example
+   :description: Learn how to migrate your Djongo application to use Django MongoDB Backend. See code examples that show the required updates to your project files and queries.
 
 .. contents:: On this page
    :local:
@@ -32,6 +33,7 @@ This guide shows how to migrate a Djongo application to {+django-odm+}
 by updating the following application components:
 
 - :ref:`django-migration-update-settings`
+- :ref:`django-migration-update-installed-apps`
 - :ref:`django-migration-update-models`
 - :ref:`django-migration-update-indexes`
 - :ref:`django-migration-update-queries`
@@ -90,6 +92,112 @@ updated setting:
                     'NAME': 'my_database'
                 },
             }
+
+.. _django-migration-update-installed-apps:
+
+Installed Apps
+--------------
+
+Djongo does not require any additional configuration of Django's built-in
+``contrib`` apps. However, {+django-odm+} requires each ``contrib`` app
+that includes models to use ``ObjectIdAutoField`` as its default
+primary key field type. This affects the following apps:
+
+- ``django.contrib.admin``
+- ``django.contrib.auth``
+- ``django.contrib.contenttypes``
+
+.. tip:: Project Template
+
+   The :github:`django-mongodb-project <mongodb-labs/django-mongodb-project>` template includes the required
+   ``AppConfig`` subclasses and ``MIGRATION_MODULES`` setting for
+   the preceding apps. To learn how to create a project by using this template, see the
+   :ref:`django-get-started` tutorial.
+
+To configure these apps, create or update the ``apps.py`` file in your
+project directory to define a custom ``AppConfig`` subclass for each
+of the preceding apps. The following example shows a sample ``apps.py`` file
+that defines these ``AppConfig`` subclasses:
+
+.. code-block:: python
+
+   from django.contrib.admin.apps import AdminConfig
+   from django.contrib.auth.apps import AuthConfig
+   from django.contrib.contenttypes.apps import ContentTypesConfig
+
+
+   class MongoAdminConfig(AdminConfig):
+       default_auto_field = "django_mongodb_backend.fields.ObjectIdAutoField"
+
+
+   class MongoAuthConfig(AuthConfig):
+       default_auto_field = "django_mongodb_backend.fields.ObjectIdAutoField"
+
+
+   class MongoContentTypesConfig(ContentTypesConfig):
+       default_auto_field = "django_mongodb_backend.fields.ObjectIdAutoField"
+
+Then, update the ``INSTALLED_APPS`` setting in your ``settings.py``
+file to use your custom ``AppConfig`` classes instead of the default
+classes. The following example updates the settings of a project named
+``myproject`` to use the custom ``AppConfig`` classes. Select the
+:guilabel:`Djongo` tab to see the initial settings, and select the
+:guilabel:`{+django-odm+}` tab to see the updated settings:
+
+.. tabs::
+
+   .. tab:: Djongo
+      :tabid: djongo
+
+      .. code-block:: python
+
+         INSTALLED_APPS = [
+             'myapp.apps.MyAppConfig',
+             'django.contrib.admin',
+             'django.contrib.auth',
+             'django.contrib.contenttypes',
+             'django.contrib.sessions',
+             'django.contrib.messages',
+             'django.contrib.staticfiles',
+         ]
+
+   .. tab:: {+django-odm+}
+      :tabid: django-mongodb
+
+      .. code-block:: python
+
+         INSTALLED_APPS = [
+             'myapp.apps.MyAppConfig',
+             'myproject.apps.MongoAdminConfig',
+             'myproject.apps.MongoAuthConfig',
+             'myproject.apps.MongoContentTypesConfig',
+             'django.contrib.sessions',
+             'django.contrib.messages',
+             'django.contrib.staticfiles',
+             'django_mongodb_backend',
+         ]
+
+Finally, add the ``MIGRATION_MODULES`` setting to your ``settings.py``
+file to instruct {+django-odm+} to use MongoDB-compatible migration modules for
+the affected ``contrib`` apps:
+
+.. code-block:: python
+
+   MIGRATION_MODULES = {
+       'admin': 'mongo_migrations.admin',
+       'auth': 'mongo_migrations.auth',
+       'contenttypes': 'mongo_migrations.contenttypes',
+   }
+
+.. tip:: Run Migrations
+
+   After you complete the preceding steps, run the following commands to apply
+   the migrations for the ``contrib`` apps:
+
+   .. code-block:: bash
+
+      python manage.py makemigrations
+      python manage.py migrate
 
 .. _django-migration-update-models:
 
