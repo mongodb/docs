@@ -2,6 +2,7 @@ import CDriverData from '../docset-data/c-driver';
 import CsharpDriverData from '../docset-data/csharp-driver';
 import DjangoDriverData from '../docset-data/django';
 import CppDriverData from '../docset-data/drivers/cpp/cpp-driver';
+import RustDriverData from '../docset-data/drivers/rust/rust-driver';
 import EntityDriverData from '../docset-data/entity-framework';
 import GoDriverData from '../docset-data/golang-drivers';
 import HibernateExtData from '../docset-data/hibernate';
@@ -16,7 +17,6 @@ import PHPLibraryData from '../docset-data/php-library-driver';
 import PymongoArrowDriverData from '../docset-data/pymongo-arrow-driver';
 import PymongoDriverData from '../docset-data/pymongo-driver';
 import RubyDriverData from '../docset-data/ruby-driver';
-import RustDriverData from '../docset-data/rust-driver';
 import ScalaDriverData from '../docset-data/scala-driver';
 import type { TocItem } from '../types';
 

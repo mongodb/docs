@@ -1,0 +1,237 @@
+.. _rust-connection-pools:
+
+========================================
+Manage Connections with Connection Pools
+========================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, connection options, performance
+   :description: Learn how to configure and optimize MongoDB Rust Driver connection pools, including settings for performance, concurrency, and resource management.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _rust-performance-pool:
+
+Overview
+--------
+
+In this guide, you can learn how the {+driver-short+} uses **connection pools**
+to manage connections to a MongoDB deployment and how to configure connection
+pool settings in your application.
+
+A connection pool is a cache of open database connections maintained by the
+driver. When your application needs to perform an operation, the driver checks
+out a connection from the pool, uses it to run the operation, and returns the
+connection to the pool for reuse. Reusing connections helps reduce application
+latency and avoids the overhead of creating new connections for each operation.
+
+Use a Connection Pool
+---------------------
+
+To connect to MongoDB, you create a ``Client`` instance. Each ``Client`` maintains an
+internal connection pool and automatically handles most aspects of connection
+management, including discovering server topology and monitoring your
+deployment. 
+
+The follow code shows how to create a client that uses default connection settings:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/connection-pools.rs
+   :language: rust
+   :dedent:
+   :start-after: start-default-client
+   :end-before: end-default-client
+
+If your workload has specific performance or concurrency requirements, you can
+tune the connection pool by setting options on ``ClientOptions`` before you construct
+the ``Client``.
+
+Configure Connection Pools
+--------------------------
+
+Every ``Client`` instance has a built-in connection pool for each server in your
+MongoDB topology. If you do not configure the ``min_pool_size`` option, the driver
+opens sockets on demand to support concurrent requests from your application.
+
+You can configure connection pool behavior by setting the following options in a
+``ClientOptions`` instance:
+
+.. list-table::
+    :header-rows: 1
+    :widths: 30 70
+
+    * - Option
+      - Description
+
+    * - ``max_pool_size``
+      - | Maximum number of concurrent connections that each pool maintains.
+        | Default: ``10``
+
+    * - ``max_connecting``
+      - | Maximum number of connections that each pool can establish concurrently.
+        | Default: ``2``
+  
+    * - ``min_pool_size``
+      - | Minimum number of concurrent connections that each pool maintains.
+        | Default: ``0``
+
+    * - ``max_idle_time``
+      - | Maximum amount of time that a connection can remain idle in the pool before the driver removes and replaces it.
+        | Default: ``0`` (no limit)
+
+The following example shows how to configure connection pool options when creating a client:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/connection-pools.rs
+   :language: rust
+   :dedent:
+   :start-after: start-connection-options
+   :end-before: end-connection-options
+
+.. _rust-max-pool:
+
+Configure Maximum Pool Size
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``max_pool_size`` option controls the maximum number of connections that each
+pool maintains for a given server. It defaults to ``10``. When the number of in-use
+connections to a server reaches this limit, subsequent requests that need a
+connection from that pool must wait until an existing connection checks back
+in.
+
+In addition to the sockets used to serve your application's requests, each
+``Client`` opens two extra sockets per server in your topology to monitor server
+state. For example, a three-node replica set performs the following actions:
+
+- The driver opens six monitoring sockets, or two per node.
+
+- If your application uses the default ``max_pool_size`` and only reads from and
+  writes to the primary, the connection pool can hold at most **16 total
+  connections**. This total consists of 10 application connections and 6
+  monitoring connections.
+
+- If your application uses a read preference that also targets the secondaries,
+  the driver maintains pools for those nodes as well, and there can be **36
+  total connections** across all pools and monitoring sockets.
+
+For workloads that require a high level of concurrency from a single process,
+increase ``max_pool_size`` to allow more concurrent connections. The following
+example increases ``max_pool_size`` to ``20`` connections:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/connection-pools.rs
+   :language: rust
+   :dedent:
+   :start-after: start-max-pool-size
+   :end-before: end-max-pool-size
+
+.. _rust-concurrent-connections:
+
+Configure Concurrent Connection Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Connection pools limit how many new connections they create in parallel. The
+``max_connecting`` option controls the maximum number of connections that each pool
+can establish concurrently. The default value is ``2``.
+
+For example, when ``max_connecting`` is set to ``2``, the third concurrent
+request that needs a new connection succeeds only after one of the following
+occurs:
+
+- The pool finishes creating a connection and the total number of connections is
+  less than or equal to ``max_pool_size``.
+
+- An in-use connection is returned to the pool.
+
+Rate-limiting connection creation in this way encourages the driver to reuse
+existing connections instead of opening new ones.
+
+To increase the number of connections that can be created in parallel, set a
+higher value for ``max_connecting``, as shown in the following example:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/connection-pools.rs
+   :language: rust
+   :dedent:
+   :start-after: start-concurrent-connections
+   :end-before: end-concurrent-connections
+
+Configure Minimum Pool Size
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``min_pool_size`` option sets the minimum number of connections that each pool
+maintains for a server. It defaults to ``0``. When you set a positive ``min_pool_size``,
+the driver initializes the pool with that many connections and attempts to keep
+at least that number of connections open at all times.
+
+If connections are closed and the total number of in-use and idle connections
+drops below ``min_pool_size``, the pool opens new connections until it reaches
+the configured minimum. This can be useful for workloads that need a pool
+of ready connections when traffic spikes.
+
+To configure a minimum pool size, set ``min_pool_size`` to the desired number
+of connections when you create your ``Client``, as shown in the following example:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/connection-pools.rs
+   :language: rust
+   :dedent:
+   :start-after: start-min-pool-size
+   :end-before: end-min-pool-size
+
+.. _rust-max-idle:
+
+Configure Maximum Idle Time
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``max_idle_time`` option controls how long a connection can remain idle in the
+pool before the driver removes and replaces it. The default value is ``0``, which
+means there is no idle time limit.
+
+When a connection has been idle for the duration specified by ``max_idle_time``, the
+pool discards that connection and opens a replacement as needed. This helps
+prevent your application from holding on to long-idle connections that might be
+closed by firewalls or network infrastructure.
+
+The following example shows how to configure a maximum idle time of ``90`` seconds:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/connection-pools.rs
+   :language: rust
+   :dedent:
+   :start-after: start-max-idle-time
+   :end-before: end-max-idle-time
+
+Closing Connections
+-------------------
+
+To proactively close connections managed by a ``Client``, call the
+``Client::shutdown()`` method. When you call this method, the driver performs the
+following actions:
+
+- Closes all idle sockets in the pool
+
+- Closes sockets that are currently in use as they are returned to the pool
+
+Calling ``Client::shutdown()`` does not interrupt in-progress operations. The driver
+only closes sockets after the associated operations complete and the connections
+are checked back into the pool. The driver also closes any remaining sockets
+when the process exits.
+
+Additional Information
+----------------------
+
+To learn more about connections pools, see :manual:`Tuning Your Connection Pool
+Settings </tutorial/connection-pool-performance-tuning/>` in the MongoDB Server
+manual.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types discussed in this guide, see the
+following API documentation:
+
+- `Client() <{+api+}/struct.Client.html>`__
+- `ClientOptions <{+api+}/options/struct.ClientOptions.html>`__

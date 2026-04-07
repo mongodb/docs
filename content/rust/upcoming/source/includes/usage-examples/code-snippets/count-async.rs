@@ -22,11 +22,28 @@ async fn main() -> mongodb::error::Result<()> {
         .database("sample_restaurants")
         .collection("restaurants");
 
-    let ct = my_coll.estimated_document_count().await?;
-    println!("Number of documents: {}", ct);
+    {
+        // start-estimated-count-async
+        let ct = my_coll.estimated_document_count().await?;
+        println!("Number of documents: {}", ct);
+        // end-estimated-count-async
+    }
 
-    let ct = my_coll.count_documents(doc! { "name": doc! { "$regex": "Sunset" } }).await?;
-    println!("Number of matching documents: {}", ct);
+    {
+        // start-count-async
+        let ct = my_coll.count_documents().await?;
+        println!("Number of matching documents: {}", ct);
+        // end-count-async
+    }
+
+    {
+        // start-count-filter-async
+        let ct = my_coll
+            .count_documents(doc! { "name": doc! { "$regex": "Sunset" } })
+            .await?;
+        println!("Number of matching documents: {}", ct);
+        // end-count-filter-async
+    }
 
     Ok(())
 }

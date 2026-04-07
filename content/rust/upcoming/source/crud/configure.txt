@@ -1,0 +1,196 @@
+.. _rust-crud-configure:
+
+=========================
+Configure CRUD Operations
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: insert, update, replace, delete, options, code example
+   :description: Learn how to configure read and write operations in the MongoDB Rust Driver, including how to set read preferences, read concerns, and write concerns.
+
+Overview
+--------
+
+In this guide, you can learn how to configure read and write
+operations in the {+driver-short+}.
+
+Read and Write Settings
+-----------------------
+
+You can control how the driver routes read operations by setting a
+**read preference**. You can also control options for how the driver
+waits for acknowledgment of read and write operations on a replica
+set by setting a **read concern** and a **write concern**.
+
+By default, databases inherit these settings from the ``Client``
+instance, and collections inherit them from the database. However,
+you can set custom read or write settings for a database or collection
+by using the `database_with_options()
+<{+api+}/struct.Client.html#method.database_with_options>`__ or
+`collection_with_options()
+<{+api+}/struct.Database.html#method.collection_with_options>`__
+method. These methods create a new ``Database`` or ``Collection``
+instance with the specified settings.
+
+To configure read or write settings, create an instance of the `ReadConcern
+<{+api+}/options/struct.ReadConcern.html>`__, `WriteConcern
+<{+api+}/options/struct.WriteConcern.html>`__, or
+`SelectionCriteria
+<{+api+}/options/enum.SelectionCriteria.html>`__ type and pass
+them to the options builder.
+
+.. tip::
+
+   To learn more about the read and write settings, see the
+   following guides in the {+server+} manual:
+
+   - :manual:`Read Preference </core/read-preference/>`
+   - :manual:`Read Concern </reference/read-concern/>`
+   - :manual:`Write Concern </reference/write-concern/>`
+
+The following sections show how to configure your read and write settings
+at the client, database, and collection levels.
+
+Client Configuration
+~~~~~~~~~~~~~~~~~~~~
+
+This example shows how to set the read preference, read concern,
+and write concern of a ``Client`` instance by passing a
+``ClientOptions`` object to the `Client::with_options()
+<{+api+}/struct.Client.html#method.with_options>`__ method. The
+code configures the following settings:
+
+- ``Secondary`` read preference: Read operations retrieve data
+  from secondary replica set members
+- ``local`` read concern: Read operations return the instance's
+  most recent data without guaranteeing that the data has been
+  written to a majority of the replica set members
+- ``Majority`` write concern: The majority of all replica set
+  members must acknowledge the write operation
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/configure.rs
+    :language: rust
+    :dedent:
+    :start-after: start-client-settings
+    :end-before: end-client-settings
+
+Alternatively, you can specify the read and write settings in the
+connection URI, then pass the URI to the ``Client::with_uri_str()``
+constructor as shown in the following example:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/configure.rs
+    :language: rust
+    :dedent:
+    :start-after: start-client-settings-uri
+    :end-before: end-client-settings-uri
+
+Database Configuration
+~~~~~~~~~~~~~~~~~~~~~~
+
+This example shows how to set the read preference, read concern,
+and write concern of a database named ``test_database`` by passing
+a ``DatabaseOptions`` object to the `database_with_options()
+<{+api+}/struct.Client.html#method.database_with_options>`__
+method. The code configures the following settings:
+
+- ``PrimaryPreferred`` read preference: Read operations retrieve
+  data from the primary replica set member, or secondary members
+  if the primary is unavailable
+- ``available`` read concern: Read operations return the
+  instance's most recent data without guaranteeing that the data
+  has been written to a majority of the replica set members
+- ``majority`` write concern: The majority of all replica set
+  members must acknowledge the write operation
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/configure.rs
+    :language: rust
+    :dedent:
+    :start-after: start-database-settings
+    :end-before: end-database-settings
+
+Collection Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+This example shows how to set the read preference, read concern,
+and write concern of a collection named ``test_collection`` by
+passing a ``CollectionOptions`` object to the
+`collection_with_options()
+<{+api+}/struct.Database.html#method.collection_with_options>`__
+method. The code configures the following settings:
+
+- ``SecondaryPreferred`` read preference: Read operations
+  retrieve data from secondary replica set members, or the
+  primary member if no secondaries are available
+- ``available`` read concern: Read operations return the
+  instance's most recent data without guaranteeing that the data
+  has been written to a majority of the replica set members
+- ``w: 0`` write concern: The client does not request acknowledgment of the
+  write operation
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/configure.rs
+    :language: rust
+    :dedent:
+    :start-after: start-collection-settings
+    :end-before: end-collection-settings
+
+Retryable Reads and Writes
+--------------------------
+
+The {+driver-short+} automatically retries certain read and write
+operations one time if they fail due to a network or server
+error.
+
+You can explicitly disable retryable reads or retryable writes by
+setting the ``retry_reads`` or ``retry_writes`` option to
+``false`` when building a ``ClientOptions`` instance. The
+following example disables retryable reads and writes for a
+client:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/crud/configure.rs
+    :language: rust
+    :dedent:
+    :start-after: start-retry-reads-writes
+    :end-before: end-retry-reads-writes
+
+To learn more about supported retryable read operations, see
+:manual:`Retryable Reads </core/retryable-reads/>` in the
+{+server+} manual. To learn more about supported retryable
+write operations, see :manual:`Retryable Writes
+</core/retryable-writes/>` in the {+server+} manual.
+
+Collation
+---------
+
+You can specify a **collation** to modify the behavior of read and
+write operations. A collation is a set of language-specific rules
+for string comparison, such as for letter case and accent marks.
+
+For more information about collations and to view code examples,
+see the :ref:`rust-collations` guide.
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `Client <{+api+}/struct.Client.html>`__
+- `Database <{+api+}/struct.Database.html>`__
+- `Collection <{+api+}/struct.Collection.html>`__
+- `ClientOptions <{+api+}/options/struct.ClientOptions.html>`__
+- `DatabaseOptions <{+api+}/options/struct.DatabaseOptions.html>`__
+- `CollectionOptions <{+api+}/options/struct.CollectionOptions.html>`__
+- `ReadConcern <{+api+}/options/struct.ReadConcern.html>`__
+- `WriteConcern <{+api+}/options/struct.WriteConcern.html>`__
+- `ReadPreference <{+api+}/options/struct.ReadPreference.html>`__
+- `SelectionCriteria <{+api+}/options/enum.SelectionCriteria.html>`__

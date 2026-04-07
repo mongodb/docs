@@ -1,0 +1,191 @@
+.. _rust-authentication-aws:
+.. _rust-auth-aws:
+
+=======
+AWS IAM
+=======
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, authorize, AWS
+
+Overview
+--------
+
+The ``MONGODB-AWS`` authentication mechanism uses your Amazon Web Services
+Identity and Access Management (AWS IAM) credentials to authenticate your
+user.
+
+You can use AWS IAM to authenticate to MongoDB Atlas, but not to MongoDB
+Enterprise Advanced or MongoDB Community Edition.
+
+Code Placeholders
+~~~~~~~~~~~~~~~~~
+
+The code examples on this page use the following placeholders:
+
+- ``access key ID``: Your AWS access key ID
+- ``secret access key``: Your AWS secret access key
+- ``session token``: Your AWS session token
+- ``db``: The authentication database associated with the user
+
+Setup
+-----
+
+To use this authentication mechanism, you must add the ``aws-auth``
+feature flag to your ``mongodb`` dependency in your project's
+``Cargo.toml`` file. The following shows an example of what your
+``mongodb`` dependency feature list must include to enable the
+``MONGODB-AWS`` authentication mechanism:
+
+.. code-block:: none
+   :emphasize-lines: 3
+
+   [dependencies.mongodb]
+   version = "{+version+}"
+   features = [ "aws-auth", ... ]
+
+.. important::
+
+   To use the ``MONGODB-AWS`` authentication mechanism in the
+   {+driver-short+}, your application must meet the following
+   requirements:
+
+   - You are connected to MongoDB Server version 4.4 or later.
+   - You are using the ``tokio`` asynchronous runtime.
+
+Credential Sources
+------------------
+
+The driver obtains the credentials only from the first source in which
+they are found. The driver checks for your credentials from the following
+sources in the following order:
+
+1. ``Credential`` struct or connection string.
+#. Environment variables.
+#. Web identity token file.
+#. AWS ECS endpoint specified in the ``AWS_CONTAINER_CREDENTIALS_RELATIVE_URI``
+   environment variable.
+#. AWS EC2 endpoint. For more information, see `IAM Roles for Tasks
+   <https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-iam-roles.html>`__
+   in the AWS documentation.
+
+For example, if you specify your AWS credentials in your connection string, the
+driver uses those credentials and ignores any that you might have
+specified in environment variables.
+
+Select from the :guilabel:`Credential Struct`, :guilabel:`Environment
+Variables`, and :guilabel:`Web Identity Token File` tabs below for
+code samples that demonstrate how to set your AWS IAM credentials in
+the corresponding ways.
+
+.. tabs::
+
+   .. tab:: Credential Struct
+      :tabid: credential struct
+
+      To specify the ``MONGODB-AWS`` authentication mechanism, set the
+      ``mechanism`` field of your ``Credential`` struct to
+      ``AuthMechanism::MongoDbAws``.
+
+      If you are using temporary credentials, create a document that
+      contains the value of your AWS session token, and then set the
+      ``mechanism_properties`` field of the ``Credential`` struct to
+      this document. If you are not using temporary credentials, omit
+      line 9 of the following example:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/auth.rs
+         :language: rust
+         :dedent:
+         :start-after: start-aws
+         :end-before: end-aws
+         :linenos:
+
+      .. tip::
+
+         You can obtain temporary AWS IAM credentials from a Security
+         Token Service (STS) Assume Role request. Learn more about
+         this process in the `AssumeRole AWS documentation <https://docs.aws.amazon.com/STS/latest/APIReference/API_AssumeRole.html>`__.
+
+   .. tab:: Environment Variables
+      :tabid: environment variables
+
+      To store your AWS credentials in environment variables, run the
+      following commands in your shell:
+
+      .. code-block:: bash
+
+         export AWS_ACCESS_KEY_ID=<access key ID>
+         export AWS_SECRET_ACCESS_KEY=<secret access key>
+         export AWS_SESSION_TOKEN=<session token>
+
+      If you are not using an AWS session token, omit the line
+      that sets the ``AWS_SESSION_TOKEN`` environment variable.
+
+      Set the ``mechanism`` option in your
+      ``Credential`` struct to ``AuthMechanism::MongoDbAws``. The driver
+      reads your AWS IAM credentials from your environment variables.
+      The following code shows how to define a ``Credential`` struct
+      with AWS authentication specified and connect to MongoDB:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/auth.rs
+         :language: rust
+         :dedent:
+         :start-after: start-aws-env-var
+         :end-before: end-aws-env-var
+
+   .. tab:: Web Identity Token File
+      :tabid: web-identity-token-file
+
+      You can use the OpenID Connect (OIDC) token obtained from a web
+      identity provider to authenticate to Amazon Elastic Kubernetes
+      Service (EKS) or other services. To use an OIDC token, create a
+      file that contains your token, then define an environment variable
+      whose value is the absolute path to the token file as shown in the
+      following shell command:
+
+      .. code-block:: bash
+
+         export AWS_WEB_IDENTITY_TOKEN_FILE=<absolute path to OIDC token file>
+
+      Set the ``mechanism`` option in your
+      ``Credential`` struct to ``AuthMechanism::MongoDbAws``. The driver
+      reads your AWS IAM credentials from the token file.
+      The following code shows how to define a ``Credential`` struct
+      with AWS authentication specified and connect to MongoDB:
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/auth.rs
+         :language: rust
+         :dedent:
+         :start-after: start-aws-env-var
+         :end-before: end-aws-env-var
+
+Additional Information
+----------------------
+
+To learn more about authenticating to MongoDB, see
+:manual:`Authentication </core/authentication/>` in the {+server+} manual.
+
+To learn more about managing users of your MongoDB deployment, see
+:manual:`Users </core/security-users/>` in the {+server+} manual.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- `Credential <{+api+}/options/struct.Credential.html>`__
+- `ClientOptions <{+api+}/options/struct.ClientOptions.html>`__
+- `Client <{+api+}/struct.Client.html>`__
+- `Client::with_options() <{+api+}/struct.Client.html#method.with_options>`__
+- `ClientOptions::parse() <{+api+}/options/struct.ClientOptions.html#method.parse>`__

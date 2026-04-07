@@ -1,0 +1,234 @@
+.. _rust-distinct-usage:
+.. _rust-distinct:
+
+==============================
+Retrieve Distinct Field Values
+==============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: runnable, code example, read operation
+   :description: Find distinct field values in a MongoDB collection with the MongoDB Rust Driver.
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to retrieve the
+distinct values of a specified field across a collection.
+
+Within a collection, documents might contain different values for a
+single field. For example, one document in a ``restaurants`` collection has a
+``borough`` value of ``"Manhattan"``, and another has a ``borough`` value of
+``"Queens"``. You can use the {+driver-short+} to retrieve the values
+``"Manhattan"``, ``"Queens"``, and all other unique values in the ``borough`` field
+across all documents in the ``restaurants`` collection.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To learn how to create a
+free MongoDB Atlas cluster and load the sample datasets, see the
+:ref:`MongoDB Get Started <unified-get-started>` guide.
+
+You can access the documents in the ``restaurants`` collection as instances
+of the ``Document`` type or a custom data type. To specify which data type represents
+the collection's data, replace the ``<T>`` type parameter with one of the following values:
+
+- ``<Document>``: Represents collection documents as BSON documents
+- ``<Restaurant>``: Represents collection documents as instances of the ``Restaurant``
+  struct, defined in the code examples
+
+Retrieve Distinct Values
+-------------------------
+
+To retrieve the distinct values for a specified field, call the
+`distinct() <{+api+}/struct.Collection.html#method.distinct>`__
+method on a ``Collection`` instance and pass the name of the field you want to
+find distinct values for.
+
+The ``distinct()`` method returns the list of distinct values as a ``Vec<Bson>``
+object, a vector of `Bson <{+bson-api+}/enum.Bson.html>`__ values.
+
+Retrieve Values Across a Collection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example retrieves the distinct values of the ``borough`` field in
+the ``restaurants`` collection.
+
+Select the :guilabel:`Asynchronous` or :guilabel:`Synchronous` tab to
+see the corresponding code for each runtime:
+
+.. tabs::
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/usage-examples/code-snippets/distinct-async.rs
+            :language: rust
+            :start-after: start-distinct-async
+            :end-before: end-distinct-async
+            :dedent:
+
+         .. output::
+            :language: console
+            :visible: false
+
+            List of field values for 'borough':
+            String("Bronx")
+            String("Brooklyn")
+            String("Manhattan")
+            String("Missing")
+            String("Queens")
+            String("Staten Island")
+
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/usage-examples/code-snippets/distinct-sync.rs
+            :language: rust
+            :start-after: start-distinct-sync
+            :end-before: end-distinct-sync
+            :dedent:
+
+         .. output::
+            :language: console
+            :visible: false
+
+            List of field values for 'borough':
+            String("Bronx")
+            String("Brooklyn")
+            String("Manhattan")
+            String("Missing")
+            String("Queens")
+            String("Staten Island")
+
+The operation returns a vector that stores each distinct ``borough`` field value. Although
+several documents have the same value in the ``borough`` field, each value appears in the
+results only once.
+
+Retrieve Values Across Specified Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can provide a **query filter** to the ``distinct()`` method to find the distinct
+field values across a subset of documents in a collection. A query filter is an expression
+that specifies search criteria used to match documents in an operation. For example, you
+can use the ``distinct()`` method to find distinct field values from only a subset of
+matched documents.
+
+.. tip::
+
+   To learn more about creating a query filter, see the :ref:`rust-query-guide`
+   guide.
+
+The following example retrieves the distinct values of the ``borough`` field for
+all documents that have a ``cuisine`` field value of ``"Turkish"``.
+
+Select the :guilabel:`Asynchronous` or :guilabel:`Synchronous` tab to
+see the corresponding code for each runtime:
+
+.. tabs::
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/usage-examples/code-snippets/distinct-async.rs
+            :language: rust
+            :start-after: start-distinct-filter-async
+            :end-before: end-distinct-filter-async
+            :dedent:
+
+         .. output::
+            :language: console
+            :visible: false
+
+            List of field values for 'borough':
+            String("Brooklyn")
+            String("Manhattan")
+            String("Queens")
+            String("Staten Island")
+
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/usage-examples/code-snippets/distinct-sync.rs
+            :language: rust
+            :start-after: start-distinct-filter-sync
+            :end-before: end-distinct-filter-sync
+            :dedent:
+
+         .. output::
+            :language: console
+            :visible: false
+
+            List of field values for 'borough':
+            String("Brooklyn")
+            String("Manhattan")
+            String("Queens")
+            String("Staten Island")
+
+Modify Distinct Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of the ``distinct()`` method by chaining one or
+more option methods to your ``count_documents()`` call before the ``await`` or
+``run()`` method call. The following table describes options you can set to
+customize the distinct operation:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Option
+     - Description
+
+   * - ``collation()``
+     - | The collation to use for the operation.
+       | **Type**: ``Collation``
+
+   * - ``hint()``
+     - | The index to use for the operation.
+       | **Type**: ``Hint``
+
+   * - ``comment()``
+     - | The comment to attach to the operation.
+       | **Type**: ``Bson``
+
+   * - ``max_time()``
+     - | The maximum amount of time that the operation can run.
+       | **Type**: ``Duration``
+
+   * - ``read_concern()``
+     - | The read concern to use for the operation.
+       | **Type**: ``ReadConcern``
+
+   * - ``selection_criteria()``
+     - | The read preference and tags to use for the operation.
+       | **Type**: ``SelectionCriteria``
+
+API Documentation
+-----------------
+
+To learn more about the ``distinct()`` method, see the
+`API documentation <{+api+}/struct.Collection.html#method.distinct>`__.

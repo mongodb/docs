@@ -5,11 +5,13 @@ use mongodb::{
 };
 use serde::{ Deserialize, Serialize };
 
+// start-restaurant
 #[derive(Serialize, Deserialize, Debug)]
 struct Restaurant {
     name: String,
     cuisine: String,
 }
+// end-restaurant
 
 fn main() -> mongodb::error::Result<()> {
     let uri = "<connection string>";
@@ -20,13 +22,28 @@ fn main() -> mongodb::error::Result<()> {
         .database("sample_restaurants")
         .collection("restaurants");
 
-    let ct = my_coll.estimated_document_count().run()?;
-    println!("Number of documents: {}", ct);
+    {
+        // start-estimated-count-sync
+        let ct = my_coll.estimated_document_count().run()?;
+        println!("Number of documents: {}", ct);
+        // end-estimated-count-sync
+    }
 
-    let ct = my_coll
-        .count_documents(doc! { "name": doc! { "$regex": "Sunset" } })
-        .run()?;
-    println!("Number of matching documents: {}", ct);
+    {
+        // start-count-sync
+        let ct = my_coll.count_documents().run()?;
+        println!("Number of matching documents: {}", ct);
+        // end-count-sync
+    }
+
+    {
+        // start-count-filter-sync
+        let ct = my_coll
+            .count_documents(doc! { "name": doc! { "$regex": "Sunset" } })
+            .run()?;
+        println!("Number of matching documents: {}", ct);
+        // end-count-filter-sync
+    }
 
     Ok(())
 }

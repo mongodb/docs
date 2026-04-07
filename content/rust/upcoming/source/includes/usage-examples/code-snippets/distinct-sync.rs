@@ -21,12 +21,27 @@ fn main() -> mongodb::error::Result<()> {
         .database("sample_restaurants")
         .collection("restaurants");
 
-    let filter = doc! { "cuisine": "Turkish" };
-    let boroughs = my_coll.distinct("borough", filter).run()?;
+    {
+        // start-distinct-sync
+        let boroughs = my_coll.distinct("borough", None).run()?;
 
-    println!("List of field values for 'borough':");
-    for b in boroughs.iter() {
-        println!("{:?}", b);
+        println!("List of field values for 'borough':");
+        for b in boroughs {
+            println!("{:?}", b);
+        }
+        // end-distinct-sync
+    }
+
+    {
+        // start-distinct-filter-sync
+        let filter = doc! { "cuisine": "Turkish" };
+        let boroughs = my_coll.distinct("borough", filter).run()?;
+
+        println!("List of field values for 'borough':");
+        for b in boroughs {
+            println!("{:?}", b);
+        }
+        // end-distinct-filter-sync
     }
 
     Ok(())

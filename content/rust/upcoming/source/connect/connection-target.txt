@@ -1,0 +1,159 @@
+.. _rust-connection-target:
+
+==========================
+Choose a Connection Target
+==========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: access deployment, code example
+   :description: Learn how to connect to MongoDB Atlas, local servers, and replica sets by using the Rust driver with code examples. 
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use a connection string and a ``Client`` instance
+to connect to different types of MongoDB deployments.
+
+.. _rust-atlas-connection-example:
+
+Connect to an Atlas Deployment
+-------------------------------
+
+To connect to a MongoDB deployment on Atlas, include the following elements
+in your connection string:
+
+- URL of your Atlas cluster
+- MongoDB username
+- MongoDB password
+
+Then, construct a ``Client`` instance with your connection string.
+
+.. tip::
+
+   Follow the :atlas:`Atlas driver connection guide </driver-connection>`
+   to retrieve your connection string.
+
+When you connect to Atlas, we recommend using the {+stable-api+} client option to avoid
+breaking changes when Atlas upgrades to a new version of the {+server+}.
+To learn more about the {+stable-api+} feature, see the :ref:`<rust-stable-api>`
+guide.
+
+The following code shows how you can create a client that uses an Atlas
+connection string and the {+stable-api+} version, connect to MongoDB, and
+verify that the connection is successful. Select from the
+:guilabel:`Asynchronous API` or :guilabel:`Synchronous API` tabs below for corresponding
+connection code samples.
+
+.. tip::
+
+   To learn more about asynchronous and synchronous runtimes, see the
+   :ref:`rust-runtimes` guide.
+
+.. tabs::
+
+   .. tab:: Asynchronous API
+      :tabid: rust-async
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/connection-async.rs
+         :language: rust
+
+   .. tab:: Synchronous API
+      :tabid: rust-sync
+
+      .. literalinclude:: /includes/fundamentals/code-snippets/connection-sync.rs
+         :language: rust
+
+.. _rust-other-ways-to-connect:
+
+Other Ways to Connect to MongoDB
+--------------------------------
+
+If you must connect to a single MongoDB server instance or replica set
+that is not hosted on Atlas, see the following sections to find out how to
+connect.
+
+Connect to a MongoDB Server on Your Local Machine
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/localhost-connection.rst
+
+.. _rust-connect-replica-set:
+
+Connect to a Replica Set
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+A MongoDB replica set deployment is a group of connected instances, or nodes,
+where the nodes store the same set of data. This configuration of instances
+provides data redundancy and high data availability.
+
+To connect to a replica set deployment, specify the hostname and port numbers
+of each instance, separated by commas, and the replica set name as the value
+of the ``replicaSet`` parameter in the connection string.
+
+In the following example, the hostnames are ``host1``, ``host2``, and
+``host3``, and the port numbers are all ``27017``. The replica set name
+is ``myRS``. The following code shows the connection URI for the replica
+set with these specifications:
+
+.. code-block:: none
+
+   mongodb://host1:27017,host2:27017,host3:27017/?replicaSet=myRS
+
+When connecting to a replica set, the driver takes the following actions by default:
+
+- Discovers all replica set members when given the address of any one member.
+- Sends operations to the appropriate member, such as instructions
+  to write against the **primary** node. To learn more about the replica
+  set primary, see :manual:`Replica Set Primary </core/replica-set-primary/>` in the Server manual.
+
+.. tip::
+
+   You are only required to specify one host to connect to a replica set.
+   However, to ensure connectivity when the specified host
+   is unavailable, provide the full list of hosts.
+
+Direct Connection
+`````````````````
+
+To force operations on the host designated in the connection URI,
+specify the ``directConnection`` option. Direct connections display the
+following behavior:
+
+- They don't support SRV strings.
+- They fail on writes when the specified host is not the primary.
+- They require you to :manual:`specify a secondary read preference
+  </core/read-preference/#mongodb-readmode-secondary>` when the
+  specified host isn't the primary member. To learn more about these
+  replica set members, see :manual:`Replica Set Secondary Members
+  </core/replica-set-secondary/>` in the Server manual.
+
+.. note:: Replica Set in Docker
+
+   .. sharedinclude:: dbx/docker-replica-set.rst
+
+Connect with DNS Service Discovery
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. sharedinclude:: dbx/srv-polling.rst
+
+   .. replacement:: srv-uri
+
+      .. code-block:: rust
+
+         let uri = "mongodb+srv://<hostname>/";
+
+API Documentation
+-----------------
+
+To learn more about creating a ``Client`` instance with the {+driver-short+},
+see the API documentation for `Client <{+api+}/struct.Client.html>`__.
