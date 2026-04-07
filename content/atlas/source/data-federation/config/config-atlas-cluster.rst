@@ -213,7 +213,7 @@ The following table describes the fields in the ``databases`` object:
      - array
      - required
      - Array of objects where each object represents a database, its 
-       collections, and, optionally, any :manual:`views </core/views/>` on 
+       collections, and, optionally, any :ref:`views <views-landing-page>` on 
        the collections. Each database can have multiple ``collections`` and 
        ``views`` objects.
 

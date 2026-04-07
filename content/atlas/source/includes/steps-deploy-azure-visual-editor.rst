@@ -130,7 +130,7 @@ a. Select the dataset for your {+fdi+} from the :guilabel:`Data Sources` section
       - :icon-fa4:`plus` associated with the database to add collections 
         to the database. 
       - :icon-fa4:`plus` associated with the collection to add 
-        :manual:`views </core/views/>` on the collection. To create a 
+        :ref:`views <views-landing-page>` on the collection. To create a 
         view, you must specify: 
        
         - The name of the view.
@@ -145,7 +145,7 @@ a. Select the dataset for your {+fdi+} from the :guilabel:`Data Sources` section
 
         To learn more about views, see: 
 
-        - :manual:`Views </core/views/>`
+        - :ref:`Views <views-landing-page>`
         - :manual:`db.createView </reference/method/db.createView/>`
 
       - :icon-fa4:`trash-o` associated with the database, collection, or 

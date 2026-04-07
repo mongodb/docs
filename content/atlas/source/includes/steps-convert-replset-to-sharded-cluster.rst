@@ -35,23 +35,22 @@
       If you don't restart the application clients, your data might be 
       inconsistent after |service| begins distributing data across shards. 
       
-      - If you are using a :manual:`DNS Seed List 
-        </reference/connection-string/#dns-seed-list-connection-format>`
+      - If you are using a :ref:`DNS Seed List <connections-dns-seedlist>`
         connection string, your application automatically connects to the
         :binary:`mongos` for your sharded cluster after you restart your
         application.
       
-      - If you are using a :manual:`standard connection string
-        </reference/connection-string/#standard-connection-string-format>`,
+      - If you are using a
+        :ref:`standard connection string
+        <connections-standard-connection-string-format>`,
         you must update your connection string to reflect your new cluster
         topology.
       
-      - If you are using :doc:`private endpoints 
-        </security-private-endpoint>` to connect to your |service| 
-        {+cluster+}, your {+cluster+} experiences downtime during the
-        conversion.
+      - If you are using :ref:`private endpoints <private-endpoint-overview>`
+        to connect to your |service| {+cluster+}, your {+cluster+} experiences
+        downtime during the conversion.
       
-      To learn more, see :doc:`/connect-to-database-deployment`.
+      To learn more, see :ref:`atlas-connect-to-deployment`.
       
    .. step:: Increase the number of shards.
       

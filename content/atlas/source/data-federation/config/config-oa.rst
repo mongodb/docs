@@ -146,7 +146,7 @@ The following table describes the fields in the database object:
      - Array of objects that define the mapping between each {+fdi+} 
        store defined in ``stores`` and online archives. Each object
        represents a database, its collections, and, optionally, any
-       :manual:`views </core/views/>` on the collections. Each database 
+       :ref:`views <views-landing-page>` on the collections. Each database 
        can have multiple ``collections`` and ``views`` objects.
 
    * - .. datalakeconf-adl:: databases.[n].name

@@ -904,7 +904,7 @@
    * - | ``VIEWS``
        | (mongodb.atlas.dbstats.views)
      - Gauge
-     - Number of :manual:`views </core/views/>` in the database.
+     - Number of :ref:`views <views-landing-page>` in the database.
 
    * - | ``COLLECTION_READ_LATENCY``
        | (mongodb.atlas.latencyStats.read.sum)
