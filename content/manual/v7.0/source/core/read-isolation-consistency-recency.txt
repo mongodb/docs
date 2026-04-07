@@ -23,7 +23,7 @@ Read Uncommitted
 .. include:: /includes/extracts/concurrent-operations-read-uncommitted.rst
 
 Read uncommitted is the default isolation level and applies to
-:binary:`~bin.mongod` standalone instances as well as to replica sets and
+:binary:`~bin.mongod` standalone instances, replica sets, and
 sharded clusters.
 
 Read Uncommitted And Single Document Atomicity
@@ -52,7 +52,7 @@ Cursor Snapshot
 
 .. include:: /includes/extracts/isolate-cursor-snapshot.rst
 
-Consider using read isolation. To learn more, see 
+Use read isolation to improve consistency. To learn more, see
 :ref:`read-concern-snapshot`.
 
 Monotonic Writes
@@ -71,20 +71,19 @@ Writes that don't modify any documents are known as no-operation
 
 To ensure monotonicity with no-operation writes, use :ref:`causal
 consistency guarantees <causal-consistency-guarantees>`. For all other
-writes, the monotonicity guarantees are described in the following
-sections.
+writes, the following sections describe the monotonicity guarantees.
 
 .. _consistency-linearizable-reads:
 
 Real Time Order
 ---------------
 
-For read and write operations on the primary, issuing read operations
-with :readconcern:`"linearizable"` read concern and write operations
-with :writeconcern:`"majority"` write concern enables multiple threads
-to perform reads and writes on a single document as if a single thread
-performed these operations in real time; that is, the corresponding
-schedule for these reads and writes is considered linearizable.
+For read and write operations on the primary, issuing 
+:readconcern:`"linearizable"` read concern for
+reads and :writeconcern:`"majority"` write concern for writes enables
+multiple threads to read and write a single document
+as if a single thread performed these operations in real time. The
+resulting schedule for these reads and writes is linearizable.
 
 .. seealso::
 
@@ -95,28 +94,27 @@ schedule for these reads and writes is considered linearizable.
 Causal Consistency
 ------------------
 
-If an operation logically depends on a preceding operation, there is a
-causal relationship between the operations. For example, a write
-operation that deletes all documents based on a specified condition and
-a subsequent read operation that verifies the delete operation have a
-causal relationship.
+Operations that logically depend on a preceding operation have a causal
+relationship. For example, a write that deletes all documents matching
+a specified condition and a subsequent read that verifies the delete
+operation have a causal relationship.
 
 With causally consistent sessions, MongoDB executes causal operations
-in an order that respect their causal relationships, and clients
-observe results that are consistent with the causal relationships.
+in an order that respects their causal relationships. Clients observe
+results consistent with those relationships.
 
 .. _sessions:
 
 Client Sessions and Causal Consistency Guarantees
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To provide causal consistency, MongoDB enables causal consistency
-in client sessions. A causally consistent session denotes that the
-associated sequence of read operations with :readconcern:`"majority"`
-read concern and write operations with :writeconcern:`"majority"` write
-concern have a causal relationship that is reflected by their ordering.
-:red:`Applications must ensure that only one thread at a time executes these
-operations in a client session.`
+MongoDB enables causal consistency through client sessions. A causally
+consistent session ensures that read operations with
+:readconcern:`"majority"` read concern and write operations with
+:writeconcern:`"majority"` write concern have a causal relationship
+reflected in their ordering.
+:red:`Applications must ensure that only one thread at a time executes
+these operations in a client session.`
 
 For causally related operations:
 
@@ -126,29 +124,28 @@ For causally related operations:
 
       Client sessions only guarantee causal consistency for:
 
-      - Read operations with :readconcern:`"majority"`; i.e. the return
-        data has been acknowledged by a majority of the replica set
-        members and is durable.
+      - Read operations with :readconcern:`"majority"` read concern.
+        The return data has been acknowledged by a majority of the
+        replica set members and is durable.
 
-      - Write operations with :writeconcern:`"majority"` write concern;
-        i.e. the write operations that request acknowledgment that the
-        operation has been applied to a majority of the replica set's
-        voting members.
+      - Write operations with :writeconcern:`"majority"` write concern.
+        These operations request acknowledgment that the write has been
+        applied to a majority of the replica set's voting members.
 
       For more information on causal consistency and various read and
       write concerns, see
       :doc:`/core/causal-consistency-read-write-concerns`.
 
-#. As the client issues a sequence of read with
-   :readconcern:`"majority"` read concern and write operations (with
-   :writeconcern:`"majority"` write concern), the client includes the
-   session information with each operation.
+#. As the client issues read operations with :readconcern:`"majority"`
+   read concern and write operations with :writeconcern:`"majority"`
+   write concern, the client includes session information with each
+   operation.
 
 #. For each read operation with :readconcern:`"majority"` read concern
    and write operation with :writeconcern:`"majority"` write concern
    associated with the session, MongoDB returns the operation time and
    the cluster time, even if the operation errors. The client session
-   keeps track of the operation time and the cluster time.
+   tracks the operation time and the cluster time.
 
    .. note::
 
@@ -156,12 +153,11 @@ For causally related operations:
       for *unacknowledged* (``w: 0``) write operations. Unacknowledged
       writes do not imply any causal relationship.
 
-      Although, MongoDB returns the operation time and the cluster time
-      for read operations and acknowledged write operations in a client
-      session, only the read operations with
-      :readconcern:`"majority"` read concern and write operations with
-      :writeconcern:`"majority"` write concern can guarantee causal
-      consistency. For details, see
+      MongoDB returns the operation time and the cluster time for read
+      operations and acknowledged write operations in a client session.
+      Only read operations with :readconcern:`"majority"` read concern
+      and write operations with :writeconcern:`"majority"` write concern
+      guarantee causal consistency. For details, see
       :doc:`/core/causal-consistency-read-write-concerns`.
 
 #. The associated client session tracks these two time fields.
@@ -169,21 +165,21 @@ For causally related operations:
    .. note::
 
       Operations can be causally consistent across different sessions.
-      MongoDB drivers and :binary:`~bin.mongosh` provide the
-      methods to advance the operation time and the cluster time for a
-      client session. So, a client can advance the cluster time and the
-      operation time of one client session to be consistent with the
-      operations of another client session.
+      MongoDB drivers and :binary:`~bin.mongosh` provide methods to
+      advance the operation time and the cluster time for a client
+      session. A client can advance the cluster time and the operation
+      time of one client session to be consistent with the operations
+      of another client session.
 
 .. _causal-consistency-guarantees:
 
 Causal Consistency Guarantees
 `````````````````````````````
 
-The following table lists the causal consistency guarantees provided by
-causally consistent sessions for read operations with
-:readconcern:`"majority"` read concern and 
-write operations with :writeconcern:`"majority"` write concern.
+The following table describes the causal consistency guarantees for
+causally consistent sessions that use :readconcern:`"majority"` read
+concern for read operations and :writeconcern:`"majority"` write concern
+for write operations.
 
 .. list-table::
    :header-rows: 1
@@ -236,10 +232,10 @@ Read Preference
 ```````````````
 
 These guarantees hold across all members of the MongoDB deployment. For
-example, if, in a causally consistent session, you issue a write with
-:writeconcern:`"majority"` write concern followed by a read that reads
-from a secondary (i.e. read preference :readmode:`secondary`) with
-:readconcern:`"majority"` read concern, the read operation will reflect
+example, in a causally consistent session, if you issue a write with
+:writeconcern:`"majority"` write concern followed by a read from a
+secondary with read preference :readmode:`secondary` and
+:readconcern:`"majority"` read concern, the read operation reflects
 the state of the database after the write operation.
 
 Isolation
@@ -271,18 +267,16 @@ Examples
 
 .. important::
 
-   Causally consistent
-   sessions can only guarantee causal consistency for reads with
-   :readconcern:`"majority"` read concern and writes with
+   Causally consistent sessions only guarantee causal consistency for
+   reads with :readconcern:`"majority"` read concern and writes with
    :writeconcern:`"majority"` write concern.
 
-Consider a collection ``items`` that maintains the current and
-historical data for various items. Only the historical data has a
-non-null ``end`` date. If the ``sku`` value for an item changes, the
-document with the old ``sku`` value needs to be updated with the
-``end`` date, after which the new document is inserted with the current
-``sku`` value. The client can use a causally consistent session to
-ensure that the update occurs before the insert.
+Consider a collection ``items`` that maintains current and historical
+data for various items. Only historical data has a non-null ``end``
+date. If the ``sku`` value for an item changes, update the document
+with the old ``sku`` value to add the ``end`` date, then insert a new
+document with the current ``sku`` value. Use a causally consistent
+session to ensure that the update occurs before the insert.
 
 ----------
 
@@ -371,10 +365,10 @@ upper-right to set the language of this example.
              :end-before:  End Causal Consistency Example 1
                 
 
-If another client needs to read all current ``sku`` values, you can
-advance the cluster time and the operation time to that of the other
-session to ensure that this client is causally consistent with the
-other session and read after the two writes:
+To read all current ``sku`` values from another client, advance the
+cluster time and the operation time to match the other session. This
+ensures that the client is causally consistent with the other session
+and reads after the two writes:
 
 .. tabs-drivers::
 
@@ -456,7 +450,7 @@ other session and read after the two writes:
 Limitations
 ~~~~~~~~~~~
 
-The following operations that build in-memory structures are not
+The following operations build in-memory structures and are not
 causally consistent:
 
 .. list-table::
