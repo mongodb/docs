@@ -3,8 +3,8 @@
 import { Suspense } from 'react';
 import dynamic from 'next/dynamic';
 import Button from '@leafygreen-ui/button';
-import Icon from '@leafygreen-ui/icon';
-import IconButton from '@leafygreen-ui/icon-button';
+import { Icon } from '@leafygreen-ui/icon';
+import { IconButton } from '@leafygreen-ui/icon-button';
 import { cx } from '@leafygreen-ui/emotion';
 import type { Environments } from '@/utils/env-config';
 import { chatbotButtonStyling, ActionsBox as ActionsBoxStyled } from './styles';
