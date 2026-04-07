@@ -5,3 +5,4 @@
    complete until all members are started.
 
 .. |cluster| replace:: cluster
+.. include:: includes/upgrade-downgrade-support-matrix.rst
