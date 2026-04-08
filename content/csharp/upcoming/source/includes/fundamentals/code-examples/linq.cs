@@ -123,3 +123,31 @@ var query = queryableCollection
     .Select(i => i.IsAvailable ^ i.IsCheap);
 
 // end-bitXor-example
+
+// start-vector-model
+public class VectorDocument
+{
+    public int Id { get; set; }
+
+    [BsonElement("vector1")]
+    public float[] Vector1 { get; set; }
+
+    [BsonElement("vector2")]
+    public float[] Vector2 { get; set; }
+}
+// end-vector-model
+
+// start-similarityDotProduct-example
+var query = queryableCollection
+    .Select(x => Mql.SimilarityDotProduct(x.Vector1, x.Vector2, true));
+// end-similarityDotProduct-example
+
+// start-similarityCosine-example
+var query = queryableCollection
+    .Select(x => Mql.SimilarityCosine(x.Vector1, x.Vector2, true));
+// end-similarityCosine-example
+
+// start-similarityEuclidean-example
+var query = queryableCollection
+    .Select(x => Mql.SimilarityEuclidean(x.Vector1, x.Vector2, true));
+// end-similarityEuclidean-example
