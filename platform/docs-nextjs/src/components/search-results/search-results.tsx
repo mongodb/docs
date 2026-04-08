@@ -571,7 +571,7 @@ const SearchResults = () => {
             </>
           )}
 
-          {searchParams.get(TERM_PARAM) && !!searchResults?.length && (
+          {searchParams.get(TERM_PARAM) && searchFinished && (
             <div className={cx(FiltersContainer)}>
               {showFacets ? (
                 <>

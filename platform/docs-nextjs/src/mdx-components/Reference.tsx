@@ -10,7 +10,7 @@ interface ReferenceProps {
   refKey?: string;
   title?: string;
   type?: string;
-  replacements?: Record<string, ReactNode>;
+  replacements?: Record<string, React.ReactNode>;
 }
 
 export const Reference = async ({ projectPath, name, refKey, title, replacements }: ReferenceProps) => {

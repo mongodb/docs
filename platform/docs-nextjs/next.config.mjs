@@ -6,11 +6,10 @@ const withPWA = withPWAInit({
   aggressiveFrontEndNavCaching: true,
   reloadOnOnline: true,
   swcMinify: true,
-  disable: false,
   workboxOptions: {
     disableDevLogs: true,
   },
-  disable: process.env.BUILD_STATIC_PAGES === 'true',
+  disable: process.env.NODE_ENV === 'development' || process.env.BUILD_STATIC_PAGES === 'true',
 });
 
 const nextConfig = {

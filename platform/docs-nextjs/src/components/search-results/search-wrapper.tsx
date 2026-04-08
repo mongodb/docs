@@ -1,13 +1,13 @@
 import { SearchContextProvider } from './search-context';
-import SearchResults from './search-results';
+import SearchResultsInner from './search-results';
 
 // Wraps the main SearchResults component with a context provider to limit scope of data
-const SearchWrapper = () => {
+const SearchResults = () => {
   return (
     <SearchContextProvider>
-      <SearchResults />
+      <SearchResultsInner />
     </SearchContextProvider>
   );
 };
 
-export default SearchWrapper;
+export default SearchResults;

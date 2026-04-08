@@ -15,8 +15,6 @@ import { useVersionContext } from '@/context/version-context';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import { CONTENT_MAX_WIDTH } from '@/constants';
 
-export { CONTENT_MAX_WIDTH };
-
 const formstyle = css`
   position: absolute;
   left: 0;
