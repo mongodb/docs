@@ -29,31 +29,31 @@
          :guilabel:`Add Peering Connection`.
       
    .. step:: In |service|, configure your network peering connection.
-      
+
+      .. important::
+
+         |service| does not support adding |aws| security groups of
+         cross-region peered |vpc|\s to IP access lists. Instead,
+         use the |cidr| block of the peer VPC. To learn more about
+         this limitation, see the :aws:`AWS documentation
+         </vpc/latest/peering/vpc-peering-security-groups.html>`.
+
+         To learn more about |cidr| blocks, see
+         :rfc:`RFC 4632 <4632>`.
+
       .. tabs::
-      
+
          .. tab:: {+atlas-cli+}
             :tabid: atlascli
-      
+
             .. include:: /includes/extracts/atlas-networking-peering-create-and-watch-aws.rst
-      
+
          .. tab:: {+atlas-ui+}
             :tabid: ui
-      
+
             a. In the :guilabel:`Peering Connection` modal, select
                :guilabel:`AWS` and click :guilabel:`Next`. |service| displays
                the :guilabel:`Peering Connection` modal.
-      
-               .. important::
-      
-                  |service| does not support adding |aws| security groups of
-                  cross-region peered |vpc|\s to IP access lists. Instead, 
-                  use the |cidr| block of the peer VPC. To learn more about 
-                  this limitation, see the :aws:`AWS documentation
-                  </vpc/latest/peering/vpc-peering-security-groups.html>`.
-      
-                  To learn more about |cidr| blocks, see
-                  :rfc:`RFC 4632 <4632>`.
       
             #. Fill out the fields in the :guilabel:`Your Application VPC`
                section.
