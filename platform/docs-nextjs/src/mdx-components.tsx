@@ -137,7 +137,6 @@ export const components = (injectedProps?: InjectedProps) =>
     FieldList: ({ children }) => <span>{children}</span>,
     Footnote: ({ children, ...props }) => <Footnote {...props}>{children}</Footnote>,
     FootnoteReference: (props) => <FootnoteReference {...props} />,
-    Glossary: ({ children }) => <span>{children}</span>,
     Gold: ({ children }) => <Gold>{children}</Gold>,
     Guilabel: ({ children }) => <GUILabel>{children}</GUILabel>,
     Heading: ({ children, ...props }) => <Heading {...props}>{children}</Heading>,
@@ -158,20 +157,13 @@ export const components = (injectedProps?: InjectedProps) =>
     ),
     li: ({ children, ...props }) => <ListItem {...props}>{children}</ListItem>,
     code: ({ children }) => <Literal>{children}</Literal>,
-    LiteralBlock: ({ children }) => <span>{children}</span>,
-    LiteralInclude: ({ children }) => <span>{children}</span>,
-    MethodSelector: ({ children }) => <span>{children}</span>,
-    Only: ({ children }) => <span>{children}</span>,
     Output: ({ children }) => <span>{children}</span>,
     OpenAPIChangelog: ({ children }) => <span>{children}</span>,
     Procedure: ({ children, ...props }) => <Procedure {...props}>{children}</Procedure>,
     Step: ({ children, ...props }) => <Step {...props}>{children}</Step>,
     StepHeading: ({ children }) => <StepHeading>{children}</StepHeading>,
-    Ref: ({ children }) => <span>{children}</span>,
     Red: ({ children }) => <Red>{children}</Red>,
-    ReleaseSpecification: ({ children }) => <span>{children}</span>,
     Root: ({ children }) => <span>{children}</span>,
-    Rubric: ({ children }) => <span>{children}</span>,
     Replacement: ({ children, ...props }) => <Replacement {...props}>{children}</Replacement>,
     SearchResults: ({ children }) => <span>{children}</span>,
     See: ({ children, title, ...props }) => (
@@ -198,7 +190,6 @@ export const components = (injectedProps?: InjectedProps) =>
     ),
     Video: (props) => <Video {...props} />,
     Wayfinding: ({ children }) => <span>{children}</span>,
-    DismissibleSkillsCard: ({ children }) => <span>{children}</span>,
     Warning: ({ children, ...props }) => (
       <Admonition name="warning" {...props}>
         {children}

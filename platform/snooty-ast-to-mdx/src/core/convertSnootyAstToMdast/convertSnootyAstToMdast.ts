@@ -380,6 +380,11 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         return null;
       }
 
+      // dismissible-skills-card is rendered via pageOptions in the sidebar – skip here.
+      if (directiveName === 'dismissible-skills-card') {
+        return null;
+      }
+
       // Pass over container directives: emit only their children, no wrapper.
       if (DIRECTIVES_TO_SKIP_CONTAINER.includes(directiveName)) {
         return convertChildren({ nodes: node.children, depth, ctx });
