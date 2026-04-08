@@ -17,6 +17,8 @@ describeWithSampleData("find command examples", () => {
 		await Expect
 			.outputFromExampleFiles(["database-commands/find/read-concern-find.js"])
 			.withDbName(dbName)
+			// Ignore tomatoes field — its presence varies across sample data archive updates
+			.withIgnoredFields("tomatoes")
 			.shouldMatch("database-commands/find/read-concern-find-output.sh");
 	});
 
