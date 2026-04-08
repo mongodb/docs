@@ -496,6 +496,12 @@ const tocData: TocItem[] = [
             versions: { excludes: manualVersions.before('v8.3') },
           },
           {
+            label: 'stopTransitionToDedicatedConfigServer',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/command/stopTransitionToDedicatedConfigServer',
+            versions: { excludes: manualVersions.before('v8.3') },
+          },
+          {
             label: 'transitionFromDedicatedConfigServer',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/transitionFromDedicatedConfigServer',
