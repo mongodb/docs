@@ -9,7 +9,7 @@ mongoose.connect("<connection string>");
 // start-create-user
 // Create a new user
 const user = await User.create({
-  name: 'Jess Garica',
+  name: 'Jess Garcia',
   email: 'jgarcia@email.com',
 });
 // end-create-user
