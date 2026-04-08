@@ -20,16 +20,27 @@ addition:
   
 .. note::
 
-   When deployed as static containers, a |k8s-op-short| deployment consists of
-   two containers with distinct roles:
+   When using static containers, the container layout and resource
+   limits differ between MongoDB Database CR and {+appdb+}
+   deployments.
 
-   - The ``mongodb-agent`` container runs the MongoDB Agent, which then runs the
-     ``mongod`` process. This container handles the actual database workload.
-   - The ``mongodb-enterprise-server`` container provides the MongoDB binaries but does not run any active processes.
+   When deployed as static containers, a MongoDB Database CR
+   consists of two containers with distinct roles:
 
-   The MongoDB database inherits resource limit definitions from
-   the ``mongodb-agent`` container that runs the actual workload. Resource
-   limits set on the ``mongodb-enterprise-server`` container have no functional
-   impact on performance, though they still count toward node resource
-   allocation. To modify the resource limits for the MongoDB database resource,
-   you must specify your desired resource limits on the ``mongodb-agent`` container.
+   - The ``mongodb-agent`` container runs the MongoDB Agent, which
+     then runs the ``mongod`` process. This container handles the
+     actual database workload.
+   - The ``mongodb-enterprise-server`` container provides the
+     MongoDB binaries but does not run any active processes.
+
+   To modify the resource limits for the MongoDB database resource,
+   specify your desired resource limits on the ``mongodb-agent``
+   container. Resource limits set on the
+   ``mongodb-enterprise-server`` container have no functional
+   impact on performance, though they still count toward node
+   resource allocation.
+
+   For the {+appdb+} in static architecture, ``mongod`` runs
+   directly in the ``mongod`` container, not in ``mongodb-agent``.
+   To modify the resource limits for the {+appdb+}, specify your
+   desired resource limits on the ``mongod`` container instead.
