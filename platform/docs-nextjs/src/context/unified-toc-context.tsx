@@ -7,6 +7,7 @@ import { tocData } from '@/context/toc-data';
 import type { ActiveVersions, AvailableVersions } from './version-context';
 import { useVersionContext } from './version-context';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 export const legacyTocProjects = ['realm', 'atlas-app-services', 'cloudgov', 'meta'];
 
@@ -84,7 +85,7 @@ const updateURLs = ({ tree, contentSite, activeVersions, versionsData }: UpdateU
 export const UnifiedTocProvider = ({ children }: { children: ReactNode }) => {
   const { activeVersions, availableVersions } = useVersionContext();
   const { project, eol } = useSnootyMetadata();
-  const useLegacyTocStructure = eol || legacyTocProjects.includes(project);
+  const useLegacyTocStructure = !isOfflineBuild && (eol || legacyTocProjects.includes(project));
 
   const cacheKey = project ? `${project}-${activeVersions[project]}` : '';
   const [legacyToc, setLegacyToc] = useState<TocItem[] | null>(() => legacyTocCache[cacheKey] || null);

@@ -200,6 +200,121 @@ async function postProcess(): Promise<void> {
   }
 }
 
+// Minimum conservative byte size a fully-rendered page is expected to reach.
+// A page that passes the layout-shell check but is still suspiciously small
+const MIN_PAGE_BYTES = 40_000;
+
+/**
+ * Verify that each HTML file was fully server-rendered and correctly
+ * post-processed.  Checks are grouped into four failure classes:
+ *
+ * 1. SSR / Emotion – Emotion SSR must have run so LeafyGreen styles are
+ *    inlined. Missing styles means a client component (or context provider)
+ *    returned null during static generation.
+ *
+ * 2. Content  – The page body must not be an empty layout shell, must
+ *    reach a minimum byte size, and must not silently resolve to a 404 page.
+ *
+ * 3. Post-processing – CSS must have been merged into a single styles.css
+ *    reference; raw /_next/static/css/ links indicate the merge step failed.
+ *    All in-HTML navigation links must have been rewritten to relative paths.
+ *
+ * 4. Next.js RSC  – The React Server Components hydration payload
+ *    (self.__next_f) must be present; its absence means next build did not
+ *    produce a complete static export for that route.
+ */
+async function verifyOutput(): Promise<void> {
+  const htmlFiles = await findHtmlFiles(OUT_DIR);
+  const failures: { file: string; reason: string }[] = [];
+
+  for (const filePath of htmlFiles) {
+    const content = await fs.readFile(filePath, 'utf-8');
+    const rel = path.relative(OUT_DIR, filePath);
+
+    // 1. SSR / Emotion
+    if (!content.includes('<style data-emotion=')) {
+      failures.push({
+        file: rel,
+        reason: 'missing <style data-emotion="…"> — Emotion SSR did not run',
+      });
+    }
+
+    // 2. Content
+    if (/<div[^>]+layout_layout[^>]+>\s*<\/div>/.test(content)) {
+      failures.push({
+        file: rel,
+        reason: 'body is an empty layout shell — page content did not render',
+      });
+    }
+
+    if (content.length < MIN_PAGE_BYTES) {
+      failures.push({
+        file: rel,
+        reason: `file is only ${content.length} bytes (< ${MIN_PAGE_BYTES}) — content may be partially missing`,
+      });
+    }
+
+    // 3. Post-processing
+    if (/<link[^>]+href=["']\/_next\/static\/css\/[^"']+["']/i.test(content)) {
+      failures.push({
+        file: rel,
+        reason: 'raw /_next/static/css/ <link> still present — CSS merge step may have failed',
+      });
+    }
+
+    if (!content.includes('styles.css')) {
+      failures.push({
+        file: rel,
+        reason: 'merged styles.css reference not found — CSS merge step may have failed',
+      });
+    }
+
+    if (/<a\b[^>]+href=["']\/docs\/[^"']*["']/i.test(content)) {
+      failures.push({
+        file: rel,
+        reason: 'found absolute /docs/ href in an <a> tag — link-rewriting step may have failed',
+      });
+    }
+
+    // 4. Next.js RSC payload
+    if (!content.includes('self.__next_f')) {
+      failures.push({
+        file: rel,
+        reason: 'missing RSC payload (self.__next_f) — Next.js static export may be incomplete for this route',
+      });
+    }
+  }
+
+  if (failures.length > 0) {
+    console.error('\nOffline build verification FAILED:');
+    for (const { file, reason } of failures) {
+      console.error(`  ✗ ${file}: ${reason}`);
+    }
+    console.error(
+      '\nLikely causes by failure class:\n' +
+        '  SSR / Emotion\n' +
+        '    • A React context provider (e.g. UnifiedTocProvider) returned null during SSG\n' +
+        '    • A "use client" component calls useEffect/browser hooks that skip SSR\n' +
+        '  Content\n' +
+        '    • CONTENT_MDX_DIR does not contain the expected .mdx files\n' +
+        '    • pnpm convert:rst-to-mdx was not run before the build\n' +
+        '    • loadMDX returned null for the route\n' +
+        '  Post-processing\n' +
+        '    • mergeCssIntoOutput or replaceCssLinksInHead did not run / threw an error\n' +
+        '    • postProcess (rewriteHtmlLinks) did not run / threw an error\n' +
+        '  Next.js RSC\n' +
+        '    • next build did not generate a static HTML file for this route\n' +
+        '    • The page called notFound() or threw during static generation\n',
+    );
+    process.exit(1);
+  }
+
+  console.log(
+    `Verified ${htmlFiles.length} HTML file(s): SSR styles present, content rendered, ` +
+      `CSS merged, links rewritten, RSC payload intact.`,
+  );
+}
+
 async function main(): Promise<void> {
   try {
     await fs.access(OUT_DIR);
@@ -220,6 +335,7 @@ async function main(): Promise<void> {
   await moveDocsContentsUp();
   await removeAllTxtFiles(OUT_DIR);
   await postProcess();
+  await verifyOutput();
 }
 
 main().catch((err) => {
