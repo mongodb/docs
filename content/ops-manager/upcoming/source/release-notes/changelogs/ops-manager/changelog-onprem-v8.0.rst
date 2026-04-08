@@ -17,6 +17,14 @@ Improvements
 ~~~~~~~~~~~~
 
 - Updates the {+mdbagent+} to :ref:`108.0.21.8971-1 <mongodb-108.0.21.8971-1>`.
+- Removes support for the following platforms from the {+mdbagent+}:
+
+  - RHEL 7 (all minor and major versions)
+  - Debian 9.2
+  - Debian 10
+  - Ubuntu 16.04
+  - Ubuntu 18.04
+
 - Supports :dbtools:`MongoDB Database Tools 100.15.0 </release-notes/database-tools-changelog/#100.15.0-changelog>`.
 - Sets a Content-Security-Policy (CSP) header to strengthen
   protection against malicious browser-side code and unauthorized
@@ -24,12 +32,17 @@ Improvements
 - Improves logging and alerting for metric rollup issues.
 - Displays the status of ``mongos`` instances on the
   :guilabel:`Overview` and :guilabel:`Servers` pages.
-- Adds an ``appSetting`` to allow you to pass validations when
-  using object lock on the S3 bucket but not in |onprem|.
-- Adds a backup alert that triggers when the last *N* consecutive
-  snapshot attempts for a replica set or sharded cluster are all
-  aborted. You can configure *N* using the ``backupAppSetting``
-  setting (default: ``3``).
+- Makes the following improvements to backups:
+
+  - Adds an ``appSetting`` to allow validation bypass when using object lock on
+    an S3 bucket that is not configured in |onprem|.
+  - Adds a backup alert that triggers when multiple consecutive snapshot
+    attempts for a replica set or sharded cluster are aborted. You can
+    configure how many aborted attempts trigger the alert using the
+    ``backupAppSetting`` setting (default: 3).
+  - Automatically pins the last successful snapshot when scheduled snapshots
+    or |pitr| backups are failing, preventing retention policies from deleting 
+    the only available good backup until a new successful backup completes.
 
 Bug Fixes
 ~~~~~~~~~
