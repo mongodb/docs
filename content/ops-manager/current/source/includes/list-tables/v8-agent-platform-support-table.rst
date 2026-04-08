@@ -8,7 +8,7 @@
       - 7.0
       - 6.0
     * - x86_64
-      - RHEL/Oracle Linux 7
+      - RHEL/Oracle Linux 7 :sup:`3`
       - 
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -43,8 +43,8 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
     * -
-      - Debian 10
-      - 
+      - Debian 10 :sup:`3`
+      -
       -
       - :icon:`check-circle`
     * -
@@ -58,7 +58,7 @@
       - :icon:`check-circle`
       - 
     * -
-      - Ubuntu 18.x 
+      - Ubuntu 18.x :sup:`3`
       -
       -
       - :icon:`check-circle`
@@ -118,7 +118,7 @@
       - 
       -
     * - PowerPC/ ppc64le
-      - RHEL 7
+      - RHEL 7 :sup:`3`
       - 
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -127,8 +127,8 @@
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
-    * - zSeries/ 390x
-      - RHEL 7 
+    * - zSeries/ 390x :sup:`2`
+      - RHEL 7 :sup:`3`
       - 
       - :icon:`check-circle`
       - :icon:`check-circle`
@@ -139,3 +139,14 @@
       - :icon:`check-circle`
 
 :sup:`1` |bic-full| isn't supported on Ubuntu 22.04.
+
+:sup:`2` Do not upgrade IBM Z (s390x) deployments to |onprem| 8.0.21.
+The {+mdbagent+} 8.0.21 binaries for this architecture are not yet
+available. Deployments on earlier versions continue to run as before.
+
+:sup:`3` |onprem| 8.0.21 removed support for the following platforms
+from the {+mdbagent+}:
+
+- Debian 10
+- RHEL 7 (all minor versions)
+- Ubuntu 18.04
