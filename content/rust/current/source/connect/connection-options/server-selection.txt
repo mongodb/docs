@@ -1,0 +1,185 @@
+.. _rust-server-selection:
+
+==========================
+Customize Server Selection
+==========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, read preference, write
+
+Overview
+--------
+
+All MongoDB drivers follow a defined algorithm when selecting a
+server to read or write from. The {+driver-long+} lets you
+customize this algorithm to choose a server that works best for
+your application.
+
+You can influence server selection in the following ways:
+
+- Use a read preference to describe suitable servers in a
+  standardized way, such as primary, secondary, or nearest
+  with tag sets and max staleness.
+- Provide a custom predicate via ``SelectionCriteria::Predicate``
+  to apply your own logic when filtering suitable servers.
+
+.. important::
+
+   Customizing the server-selection algorithm can have unintended
+   consequences, such as degraded read or write performance.
+
+
+Customized Selection Algorithm
+------------------------------
+
+When the {+driver-short+} executes an operation with custom
+selection criteria, it performs the following steps, in order,
+to select a MongoDB deployment:
+
+1. **Choose eligible servers**: From the list of known servers,
+   the driver selects servers that match the active
+   ``SelectionCriteria``, either those matching a read preference
+   or those for which a custom predicate returns ``true``.
+#. **Apply latency window**: The driver applies the
+   ``local_threshold`` setting to the list of eligible servers,
+   filtering any server whose average round-trip time is outside
+   the configured window of the fastest eligible server.
+#. **Random selection**: The driver randomly selects a server from
+   those remaining in the latency window and executes the operation
+   against this server.
+
+When the {+driver-short+} executes a write operation, it begins by
+selecting all writable servers, not just those that match the active
+read preference. The remaining steps are identical.
+
+To learn more about the default server-selection algorithm, see
+:manual:`Server Selection Algorithm </core/read-preference-mechanics/>`
+in the MongoDB Server manual.
+
+SelectionCriteria and Predicates
+--------------------------------
+
+The {+driver-short+} represents server-selection rules with the
+``SelectionCriteria`` enum, as shown in the following example:
+
+.. literalinclude:: /includes/connection-options-examples/server-selection.rs
+   :language: rust
+   :start-after: //start-selection-criteria-enum
+   :end-before: //end-selection-criteria-enum
+
+For any given operation, you use either
+``SelectionCriteria::ReadPreference`` or
+``SelectionCriteria::Predicate``, not both:
+
+- ``ReadPreference``: Describes suitable servers based on server
+  type, tag sets, and max staleness, following the standard MongoDB
+  read preference rules.
+- ``Predicate``: Enables you to provide custom logic for cases that
+  ``ReadPreference`` cannot express, such as preferring servers based
+  on hostname patterns or other custom criteria.
+
+A predicate is any closure that accepts a ``ServerInfo`` reference and
+returns ``true``, indicating server suitability. The driver defines
+this as the type alias ``Predicate``, shown in the following code:
+
+.. literalinclude:: /includes/connection-options-examples/server-selection.rs
+   :language: rust
+   :start-after: //start-predicate
+   :end-before: //end-predicate
+
+A server is considered suitable when your predicate returns ``true``
+for that server's ``ServerInfo`` value. The ``ServerInfo`` type
+exposes information about the server such as the address, type, and
+other monitoring metadata.
+
+
+Example: Use Predicates to Select Servers on localhost
+---------------------------------------------------------
+
+If you use a sharded cluster with multiple ``mongos`` servers, you
+may prefer deployments running on ``localhost``. Operations against
+these deployments have lower latency and higher throughput. This
+example shows how to customize the server-selection algorithm to
+consider only servers running on ``localhost``.
+
+Write a Predicate Function
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The predicate function must meet the following criteria:
+
+- Accepts a reference to a ``ServerInfo`` object as a parameter
+- Returns a boolean indicating whether the server is suitable
+  for selection
+- Does not create or modify any ``ServerInfo`` objects
+
+The following example defines a predicate that prefers servers
+whose host address is ``localhost``:
+
+.. literalinclude:: /includes/connection-options-examples/server-selection.rs
+   :language: rust
+   :dedent:
+   :start-after: //start-localhost-predicate
+   :end-before: //end-localhost-predicate
+
+Handle the Case When No Servers Match
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your predicate returns ``false`` for every available server,
+the driver cannot select a server. In this case, the operation
+fails and returns a server selection timeout error indicating that
+none of the available servers are suitable for the specified
+criteria.
+
+To avoid this outcome, ensure your predicate matches
+at least one server under normal conditions,
+or handles server selection errors in your application code 
+and retries with a less restrictive ``SelectionCriteria``
+if necessary.
+
+Use Your Predicate in Connection Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To use your predicate for server selection, pass it to the 
+``selection_criteria`` option when you create the client. Select the 
+:guilabel:Asynchronous or :guilabel:Synchronous tab to see 
+the corresponding code for each runtime:
+
+.. tabs::
+
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. literalinclude:: /includes/connection-options-examples/server-selection-sync.rs
+         :language: rust
+         :dedent:
+         :start-after: // start-localhost-predicate
+         :end-before: // end-localhost-predicate
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. literalinclude:: /includes/connection-options-examples/server-selection-async.rs
+         :language: rust
+         :dedent:
+         :start-after: // start-localhost-predicate
+         :end-before: // end-localhost-predicate
+
+API Documentation
+-----------------
+
+For more information about customizing the {+driver-short+}'s
+server-selection algorithm, see the following API documentation:
+
+- `SelectionCriteria <{+api+}/options/enum.SelectionCriteria.html>`__
+- `ServerInfo <{+api+}/struct.ServerInfo.html>`__
+- `MongoClient <{+api+}/sync/struct.Client.html>`__

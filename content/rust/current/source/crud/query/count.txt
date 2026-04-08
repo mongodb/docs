@@ -1,0 +1,320 @@
+.. _rust-count-usage:
+.. _rust-count-documents:
+
+===============
+Count Documents
+===============
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn to count documents in a MongoDB collection using the MongoDB Rust Driver, with examples for both asynchronous and synchronous runtimes.
+   :keywords: number, amount, estimation, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to retrieve an accurate
+and estimated count of the number of documents in a collection. The ``count_documents()``
+method returns the exact number of documents that match a query filter or that exist in
+a collection, and the ``estimated_document_count()`` method returns the estimated number
+of documents in a collection.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``restaurants`` collection in the ``sample_restaurants``
+database from the :atlas:`Atlas sample datasets </sample-data>`. To access this collection
+from your Rust application, create a ``Client`` that connects to an Atlas
+cluster and assign the following values to your ``my_coll`` variable.
+
+Select the :guilabel:`Asynchronous` or :guilabel:`Synchronous` tab to
+see the corresponding code for each runtime:
+
+.. tabs::
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. code-block:: rust
+
+         let uri = "<connection string>";
+         let client = Client::with_uri_str(uri).await?;
+
+         let my_coll: Collection<Document> = client
+             .database("sample_restaurants")
+             .collection("restaurants");
+
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. code-block:: rust
+
+         let uri = "<connection string>";
+         let client = Client::with_uri_str(uri)?;
+
+         let my_coll: Collection<Document> = client
+             .database("sample_restaurants")
+             .collection("restaurants");
+
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:ref:`Get Started with the Rust Driver <rust-quickstart>` guide.
+
+The examples in this guide use the following ``Restaurant`` struct as
+a model for documents in the ``restaurants`` collection:
+
+.. literalinclude:: /includes/usage-examples/code-snippets/count-sync.rs
+   :language: rust
+   :start-after: // start-restaurant
+   :end-before: // end-restaurant
+   :dedent:
+
+.. _rust-accurate-count:
+
+Retrieve an Accurate Count
+---------------------------
+
+Use the ``count_documents()`` method to count the number of documents that are in a
+collection. To count the number of documents that match a specific search
+criteria, pass a query filter document to the ``count_documents()`` method.
+
+To learn more about specifying a query, see the :ref:`rust-query-guide` guide.
+
+Count All Documents
+~~~~~~~~~~~~~~~~~~~
+
+To return a count of all documents in the collection, pass an empty filter document to
+the ``count_documents()`` method as shown in the following example. Select the
+:guilabel:`Asynchronous` or :guilabel:`Synchronous` tab to see the corresponding code
+for each runtime:
+
+.. tabs::
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/usage-examples/code-snippets/count-async.rs
+            :language: rust
+            :dedent:
+            :start-after: // start-count-async
+            :end-before: // end-count-async
+         
+         .. output::
+            :visible: false
+
+            Number of documents: 25216
+   
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/usage-examples/code-snippets/count-sync.rs
+            :language: rust
+            :dedent:
+            :start-after: // start-count-sync
+            :end-before: // end-count-sync
+
+         .. output::
+            :visible: false
+
+            Number of documents: 25216
+
+Count Specific Documents
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To return a count of documents that match specific search criteria, pass your query
+filter document to the ``count_documents()`` method.
+
+The following example counts the number of documents in which the value of the ``name``
+field includes the string ``"Sunset"``. Select the :guilabel:`Asynchronous` or
+:guilabel:`Synchronous` tab to see the corresponding code for each runtime:
+
+.. tabs::
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/usage-examples/code-snippets/count-async.rs
+            :language: rust
+            :dedent:
+            :start-after: // start-count-filter-async
+            :end-before: // end-count-filter-async
+
+         .. output::
+            :language: console
+            :visible: false
+
+            Number of matching documents: 10
+
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/usage-examples/code-snippets/count-sync.rs
+            :language: rust
+            :dedent:
+            :start-after: // start-count-filter-sync
+            :end-before: // end-count-filter-sync
+
+         .. output::
+            :language: console
+            :visible: false
+
+            Number of matching documents: 10
+
+Customize Count Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of the ``count_documents()`` method by chaining
+option methods to your ``count_documents()`` call before the ``await`` or
+``run()`` method call. The following table describes options you can set to
+customize the count operation:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Option
+     - Description
+
+   * - ``collation()``
+     - | The collation to use for the operation.
+       | **Type**: ``Collation``
+
+   * - ``hint()``
+     - | The index to use for the operation.
+       | **Type**: ``Hint``
+
+   * - ``comment()``
+     - | The comment to attach to the operation.
+       | **Type**: ``Bson``
+
+   * - ``limit()``
+     - | The maximum number of documents to count. This value must be a positive integer.
+       | **Type**: ``u64``
+
+   * - ``max_time()``
+     - | The maximum amount of time in milliseconds that the operation can run.
+       | **Type**: ``Duration``
+
+   * - ``read_concern()``
+     - | The read concern to use for the operation.
+       | **Type**: ``ReadConcern``
+
+   * - ``skip()``
+     - | The number of documents to skip before counting documents.
+       | **Type**: ``u64``
+
+   * - ``selection_criteria()``
+     - | The read preference and tags to use for the operation.
+       | **Type**: ``SelectionCriteria``
+
+.. _rust-estimated-count:
+
+Retrieve an Estimated Count
+----------------------------
+
+You can retrieve an estimate of the number of documents in a collection by calling
+the ``estimated_document_count()`` method before the ``await`` or ``run()`` method
+call. The method estimates the amount of
+documents based on collection metadata, which can be faster than performing an 
+accurate count.
+
+The following example estimates the number of documents in a collection. Select the
+:guilabel:`Asynchronous` or :guilabel:`Synchronous` tab to
+see the corresponding code for each runtime:
+
+.. tabs::
+
+   .. tab:: Asynchronous
+      :tabid: async
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/usage-examples/code-snippets/count-async.rs
+            :language: rust
+            :dedent:
+            :start-after: // start-estimated-count-async
+            :end-before: // end-estimated-count-async
+
+         .. output::
+            :language: console
+            :visible: false
+
+            Number of documents: 25216
+
+   .. tab:: Synchronous
+      :tabid: sync
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/usage-examples/code-snippets/count-sync.rs
+            :language: rust
+            :dedent:
+            :start-after: // start-estimated-count-sync
+            :end-before: // end-estimated-count-sync
+
+         .. output::
+            :language: console
+            :visible: false
+
+            Number of documents: 25216
+
+Customize Estimated Count Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can modify the behavior of the ``estimated_document_count()`` method by chaining
+option methods to your ``estimated_document_count()`` call. The following table
+describes options you can set to customize the estimated count operation:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Option
+     - Description
+
+   * - ``max_time()``
+     - | The maximum amount of time in milliseconds that the operation can run.
+       | **Type**: ``Duration``
+
+   * - ``comment()``
+     - | The comment to attach to the operation.
+       | **Type**: ``Bson``
+
+   * - ``read_concern()``
+     - | The read concern to use for the operation.
+       | **Type**: ``ReadConcern``
+
+   * - ``selection_criteria()``
+     - | The read preference and tags to use for the operation.
+       | **Type**: ``SelectionCriteria``
+
+API Documentation
+-----------------
+
+To learn more about any of the methods or types discussed in this
+guide, see the following API documentation:
+
+- `count_documents() <{+api+}/struct.Collection.html#method.count_documents>`__
+- `estimated_document_count() <{+api+}/struct.Collection.html#method.estimated_document_count>`__

@@ -1,0 +1,102 @@
+.. _rust-result-option:
+
+=========================
+Result and Option Enums
+=========================
+
+.. meta::
+   :keywords: data format, result, option, code example
+   :description: Learn how to work with the Result and Option enums as return values in the MongoDB Rust driver.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to work with the ``Result`` and ``Option`` enums in the
+{+driver-short+}.
+
+Rust provides the ``Result`` and ``Option`` enums as safeguards for your application
+code. Many methods offered by the {+driver-short+} return values wrapped in one of these
+two types. 
+
+Result Enum
+------------
+
+The ``Result`` enum can return the following variants:
+
+- ``Ok(T)``: wraps the value of the result of the operation
+- ``Err(E)``: wraps an error value if the operation is unsuccessful
+
+For example, the ``insert_one()`` method returns a ``Result`` type to wrap either a successful
+response or an error.
+
+To access the unwrapped result of ``insert_one()``, use the ``?`` operator. If the operation is
+successful, the method returns the ``Ok(InsertOneResult)`` variant of the ``Result`` enum. In this
+case, the ``?`` operator unwraps the ``InsertOneResult`` value and assigns it to the ``insert_one_result``
+variable. If the operation is unsuccessful, the method returns the ``Err(E)`` enum variant, and the
+``?`` operator unwraps and returns the error value. 
+
+The following code demonstrates the syntax for
+using the ``?`` operator while handling an insert operation result:
+
+.. code-block:: rust
+   :copyable: true
+
+   let insert_one_result = my_coll.insert_one(doc).await?;
+
+Alternatively, you can create a conditional to handle the unwrapped values of ``InsertOneResult``.
+The following code uses the ``match`` keyword to process the ``insert_one()`` result:
+
+.. code-block:: rust
+   :copyable: true
+
+   let insert_one_result = my_coll.insert_one(doc).await;
+
+   match insert_one_result {
+      Ok(val) => {
+        println!("Document inserted with ID: {}", val.inserted_id);
+      },
+      Err(err) => {
+        println!("Operation not successful");
+      }
+   }
+
+Option Enum
+------------
+
+The ``Option`` enum can return the following variants:
+
+- ``None``: represents an empty value returned by an operation
+- ``Some(T)``: wraps a non-empty return value
+
+Some {+driver-short+} methods return an ``Option`` type, such as the ``read_concern()``
+method. This method returns an ``Option`` that wraps either an empty value, if no read
+concern exists, or a ``ReadConcern`` value.
+
+To access the result of ``read_concern()``, you can use the same ``match`` syntax as shown
+in the preceding example to process the ``None`` and ``Some(T)`` variants. Alternatively, you
+can use the ``if let`` syntax to process only the ``Some(T)`` variant. The following code unwraps
+and prints the non-empty ``read_concern()`` return value, if it exists:
+
+.. code-block:: rust
+   :copyable: true
+
+   if let Some(rc) = my_coll.read_concern() {
+      println!("Read concern: {:?}", rc);
+   }
+
+Additional Resources
+--------------------
+
+For more information about the ``Result`` and ``Option`` enums, see the following
+resources in the Rust language documentation:
+
+- `Result <https://doc.rust-lang.org/std/result/enum.Result.html>`__
+- `Option <https://doc.rust-lang.org/std/option/enum.Option.html>`__
+- `? Operator <https://doc.rust-lang.org/rust-by-example/std/result/question_mark.html>`__
+- `Concise Control Flow with if let <https://doc.rust-lang.org/book/ch06-03-if-let.html>`__

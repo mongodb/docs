@@ -22,12 +22,27 @@ async fn main() -> mongodb::error::Result<()> {
         .database("sample_restaurants")
         .collection("restaurants");
 
-    let filter = doc! { "cuisine": "Turkish" };
-    let boroughs = my_coll.distinct("borough", filter).await?;
+    {
+        // start-distinct-async
+        let boroughs = my_coll.distinct("borough", None).await?;
 
-    println!("List of field values for 'borough':");
-    for b in boroughs.iter() {
-        println!("{:?}", b);
+        println!("List of field values for 'borough':");
+        for b in boroughs {
+            println!("{:?}", b);
+        }
+        // end-distinct-async
+    }
+
+    {
+        // start-distinct-filter-async
+        let filter = doc! { "cuisine": "Turkish" };
+        let boroughs = my_coll.distinct("borough", filter).await?;
+
+        println!("List of field values for 'borough':");
+        for b in boroughs {
+            println!("{:?}", b);
+        }
+        // end-distinct-filter-async
     }
 
     Ok(())

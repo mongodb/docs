@@ -3,440 +3,359 @@ import { inheritContentSite, type TocItem } from '../../../types';
 const tocData: TocItem[] = inheritContentSite('rust', [
   {
     label: 'Overview',
-    contentSite: 'rust',
     url: '/docs/drivers/rust/:version/',
   },
   {
-    label: 'Quick Start',
-    contentSite: 'rust',
-    url: '/docs/drivers/rust/:version/quick-start',
+    label: 'Get Started',
+    url: '/docs/drivers/rust/:version/get-started/',
+  },
+  {
+    label: 'Connect',
     collapsible: true,
     items: [
       {
-        label: 'Download & Install',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/quick-start/download-and-install',
+        label: 'Create a MongoDB Client',
+        url: '/docs/drivers/rust/:version/connect/mongodb-client/',
       },
       {
-        label: 'Create a Deployment',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/quick-start/create-a-deployment',
+        label: 'Choose a Connection Target',
+        url: '/docs/drivers/rust/:version/connect/connection-target/',
       },
       {
-        label: 'Create a Connection String',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/quick-start/create-a-connection-string',
+        label: 'Connection Options',
+        url: '/docs/drivers/rust/:version/connect/connection-options/',
+        collapsible: true,
+        items: [
+          {
+            label: 'Compress Network Traffic',
+            url: '/docs/drivers/rust/:version/connect/connection-options/network-compression/',
+          },
+          {
+            label: 'Customize Server Selection',
+            url: '/docs/drivers/rust/:version/connect/connection-options/server-selection/',
+          },
+          {
+            label: 'Stable API',
+            url: '/docs/drivers/rust/:version/connect/connection-options/stable-api/',
+          },
+          {
+            label: 'Connection Pools',
+            url: '/docs/drivers/rust/:version/connect/connection-options/connection-pools/',
+          },
+        ],
       },
       {
-        label: 'Connect',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/quick-start/connect-to-mongodb',
+        label: 'Peformance Considerations',
+        url: '/docs/drivers/rust/:version/connect/performance/',
       },
       {
-        label: 'Next Steps',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/quick-start/next-steps',
+        label: 'Connection Troubleshooting',
+        url: '/docs/drivers/rust/:version/connect/connection-troubleshooting/',
+      },
+      {
+        label: 'AWS Lambda',
+        url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda/',
       },
     ],
   },
   {
-    label: 'Quick Reference',
-    contentSite: 'rust',
-    url: '/docs/drivers/rust/:version/quick-reference',
+    label: 'Databases & Collections',
+    url: '/docs/drivers/rust/:version/database-collection/',
   },
   {
-    label: "What's New",
-    contentSite: 'rust',
-    url: '/docs/drivers/rust/:version/whats-new',
-  },
-  {
-    label: 'CRUD Examples',
-    contentSite: 'rust',
-    url: '/docs/drivers/rust/:version/usage-examples',
+    label: 'CRUD Operations',
+    url: '/docs/drivers/rust/:version/crud/',
     collapsible: true,
     items: [
       {
-        label: 'Find One',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/usage-examples/findOne',
+        label: 'Insert Documents',
+        url: '/docs/drivers/rust/:version/crud/insert/',
       },
       {
-        label: 'Find Multiple',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/usage-examples/find',
-      },
-      {
-        label: 'Insert One',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/usage-examples/insertOne',
-      },
-      {
-        label: 'Insert Multiple',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/usage-examples/insertMany',
-      },
-      {
-        label: 'Update One',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/usage-examples/updateOne',
-      },
-      {
-        label: 'Update Multiple',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/usage-examples/updateMany',
-      },
-      {
-        label: 'Replace One',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/usage-examples/replace',
-      },
-      {
-        label: 'Delete One',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/usage-examples/deleteOne',
-      },
-      {
-        label: 'Delete Multiple',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/usage-examples/deleteMany',
-      },
-      {
-        label: 'Count',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/usage-examples/count',
-      },
-      {
-        label: 'List Distinct Values',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/usage-examples/distinct',
-      },
-    ],
-  },
-  {
-    label: 'Fundamentals',
-    contentSite: 'rust',
-    collapsible: true,
-    items: [
-      {
-        label: 'Connections',
-        contentSite: 'rust',
+        label: 'Query Documents',
         collapsible: true,
         items: [
           {
-            label: 'Connection Guide',
-            contentSite: 'rust',
-            url: '/docs/drivers/rust/:version/fundamentals/connections/connection-guide',
+            label: 'Specify a Query',
+            url: '/docs/drivers/rust/:version/crud/query/specify-query/',
           },
           {
-            label: 'Connection Options',
-            contentSite: 'rust',
-            url: '/docs/drivers/rust/:version/fundamentals/connections/connection-options',
+            label: 'Find Documents',
+            url: '/docs/drivers/rust/:version/crud/query/retrieve/',
           },
           {
-            label: 'Network Compression',
-            contentSite: 'rust',
-            url: '/docs/drivers/rust/:version/fundamentals/connections/network-compression',
+            label: 'Specify Documents to Return',
+            url: '/docs/drivers/rust/:version/crud/query/specify-documents/',
           },
           {
-            label: 'Enable & Configure TLS',
-            contentSite: 'rust',
-            url: '/docs/drivers/rust/:version/fundamentals/connections/tls',
+            label: 'Specify Fields to Return',
+            url: '/docs/drivers/rust/:version/crud/query/specify-fields/',
           },
           {
-            label: 'AWS Lambda',
-            isExternal: true,
-            url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda',
+            label: 'Count Documents',
+            url: '/docs/drivers/rust/:version/crud/query/count/',
+          },
+          {
+            label: 'Distinct Field Values',
+            url: '/docs/drivers/rust/:version/crud/query/distinct/',
+          },
+          {
+            label: 'Query Text',
+            url: '/docs/drivers/rust/:version/crud/query/text-search/',
+          },
+          {
+            label: 'Access Data from a Cursor',
+            url: '/docs/drivers/rust/:version/crud/query/cursor/',
+          },
+          {
+            label: 'Geospatial Queries',
+            url: '/docs/drivers/rust/:version/crud/query/geo/',
           },
         ],
       },
       {
-        label: 'Stable API',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/stable-api',
-      },
-      {
-        label: 'Authentication',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/authentication',
-      },
-      {
-        label: 'Enterprise Authentication',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/enterprise-auth',
-      },
-      {
-        label: 'CRUD',
-        contentSite: 'rust',
+        label: 'Update Documents',
+        url: '/docs/drivers/rust/:version/crud/update/',
         collapsible: true,
         items: [
           {
-            label: 'Read',
-            contentSite: 'rust',
-            collapsible: true,
-            items: [
-              {
-                label: 'Retrieve Data',
-                contentSite: 'rust',
-                url: '/docs/drivers/rust/:version/fundamentals/crud/read-operations/retrieve',
-              },
-              {
-                label: 'Specify a Query',
-                contentSite: 'rust',
-                url: '/docs/drivers/rust/:version/fundamentals/crud/read-operations/query',
-              },
-              {
-                label: 'Data Cursors',
-                contentSite: 'rust',
-                url: '/docs/drivers/rust/:version/fundamentals/crud/read-operations/cursor',
-              },
-              {
-                label: 'Open Change Streams',
-                contentSite: 'rust',
-                url: '/docs/drivers/rust/:version/fundamentals/crud/read-operations/change-streams',
-              },
-              {
-                label: 'Query Text',
-                contentSite: 'rust',
-                url: '/docs/drivers/rust/:version/fundamentals/crud/read-operations/text-search',
-              },
-              {
-                label: 'Sort Results',
-                contentSite: 'rust',
-                url: '/docs/drivers/rust/:version/fundamentals/crud/read-operations/sort',
-              },
-              {
-                label: 'Skip Results',
-                contentSite: 'rust',
-                url: '/docs/drivers/rust/:version/fundamentals/crud/read-operations/skip',
-              },
-              {
-                label: 'Limit Results',
-                contentSite: 'rust',
-                url: '/docs/drivers/rust/:version/fundamentals/crud/read-operations/limit',
-              },
-            ],
+            label: 'Replace Documents',
+            url: '/docs/drivers/rust/:version/crud/update/replace/',
           },
           {
-            label: 'Write',
-            contentSite: 'rust',
-            collapsible: true,
-            items: [
-              {
-                label: 'Insert',
-                contentSite: 'rust',
-                url: '/docs/drivers/rust/:version/fundamentals/crud/write-operations/insert',
-              },
-              {
-                label: 'Modify',
-                contentSite: 'rust',
-                url: '/docs/drivers/rust/:version/fundamentals/crud/write-operations/change',
-              },
-              {
-                label: 'Delete',
-                contentSite: 'rust',
-                url: '/docs/drivers/rust/:version/fundamentals/crud/write-operations/delete',
-              },
-              {
-                label: 'Bulk Operations',
-                contentSite: 'rust',
-                url: '/docs/drivers/rust/:version/fundamentals/crud/write-operations/bulk',
-              },
-            ],
-          },
-          {
-            label: 'Compound Operations',
-            contentSite: 'rust',
-            url: '/docs/drivers/rust/:version/fundamentals/crud/compound-operations',
-          },
-          {
-            label: 'Tutorial: CRUD Web App',
-            contentSite: 'rust',
-            url: '/docs/drivers/rust/:version/fundamentals/crud/web-app-tutorial',
+            label: 'Update Arrays',
+            url: '/docs/drivers/rust/:version/crud/update/embedded-arrays/',
           },
         ],
       },
       {
-        label: 'Serialization',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/serialization',
+        label: 'Delete Documents',
+        url: '/docs/drivers/rust/:version/crud/delete/',
       },
       {
-        label: 'Databases & Collections',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/database-collection',
-      },
-      {
-        label: 'Schema Validation',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/schema-validation',
-      },
-      {
-        label: 'Aggregation',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/aggregation',
-      },
-      {
-        label: 'Indexes',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/indexes',
-        collapsible: true,
-        items: [
-          {
-            label: 'MongoDB Search & Vector Search Indexes',
-            contentSite: 'rust',
-            url: '/docs/drivers/rust/:version/fundamentals/indexes/atlas-search-indexes',
-          },
-          {
-            label: 'MongoDB Search Indexes',
-            contentSite: 'rust',
-            url: '/docs/drivers/rust/:version/fundamentals/indexes/atlas-search-indexes',
-          },
-        ],
-      },
-      {
-        label: 'MongoDB Search',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/atlas-search',
-      },
-      {
-        label: 'MongoDB Vector Search',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/vector-search',
+        label: 'Bulk Write Operations',
+        url: '/docs/drivers/rust/:version/crud/bulk/',
       },
       {
         label: 'Transactions',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/transactions',
+        url: '/docs/drivers/rust/:version/crud/transactions/',
       },
       {
-        label: 'Time Series Collections',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/time-series',
+        label: 'Compound Operations',
+        url: '/docs/drivers/rust/:version/crud/compound-operations/',
       },
       {
-        label: 'Tracing & Logging',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/tracing-logging',
+        label: 'Configure CRUD Operations',
+        url: '/docs/drivers/rust/:version/crud/configure/',
       },
       {
-        label: 'Database Commands',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/run-command',
+        label: 'Store Large Files',
+        url: '/docs/drivers/rust/:version/crud/gridfs/',
       },
       {
-        label: 'Performance Considerations',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/performance',
+        label: 'Tutorial: CRUD Web Application',
+        url: '/docs/drivers/rust/:version/crud/web-app-tutorial/',
+      },
+    ],
+  },
+  {
+    label: 'Schema Validation',
+    url: '/docs/drivers/rust/:version/schema-validation/',
+  },
+  {
+    label: 'Aggregation',
+    url: '/docs/drivers/rust/:version/aggregation/',
+    collapsible: true,
+    items: [
+      {
+        label: 'Collations',
+        url: '/docs/drivers/rust/:version/aggregation/collations/',
+      },
+    ],
+  },
+  {
+    label: 'Data Formats',
+    collapsible: true,
+    items: [
+      {
+        label: 'BSON',
+        url: '/docs/drivers/rust/:version/data-formats/bson/',
       },
       {
-        label: 'Async & Sync APIs',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/runtimes',
+        label: 'Serialization',
+        url: '/docs/drivers/rust/:version/data-formats/serialization/',
       },
+      {
+        label: 'Time Series',
+        url: '/docs/drivers/rust/:version/data-formats/time-series/',
+      },
+      {
+        label: 'Bounds and Bounds Errors',
+        url: '/docs/drivers/rust/:version/data-formats/bounds/',
+      },
+      {
+        label: 'Result and Option Enums',
+        url: '/docs/drivers/rust/:version/data-formats/result-option/',
+      },
+    ],
+  },
+  {
+    label: 'Indexes',
+    url: '/docs/drivers/rust/:version/indexes/',
+    collapsible: true,
+    items: [
+      {
+        label: 'MongoDB Search & Vector Search Indexes',
+        url: '/docs/drivers/rust/:version/indexes/atlas-search-indexes/',
+      },
+    ],
+  },
+  {
+    label: 'Run a Database Command',
+    url: '/docs/drivers/rust/:version/run-command/',
+  },
+  {
+    label: 'Async and Sync APIs',
+    url: '/docs/drivers/rust/:version/runtimes/',
+  },
+  {
+    label: 'MongoDB Search',
+    url: '/docs/drivers/rust/:version/atlas-search/',
+  },
+  {
+    label: 'MongoDB Vector Search',
+    url: '/docs/drivers/rust/:version/vector-search/',
+  },
+  {
+    label: 'Logging and Monitoring',
+    collapsible: true,
+    items: [
       {
         label: 'Monitoring',
-        contentSite: 'rust',
+        url: '/docs/drivers/rust/:version/monitoring-logging/monitoring/',
+      },
+      {
+        label: 'Tracing and Logging',
+        url: '/docs/drivers/rust/:version/monitoring-logging/tracing-logging/',
+      },
+      {
+        label: 'Change Streams',
+        url: '/docs/drivers/rust/:version/monitoring-logging/change-streams/',
+      },
+    ],
+  },
+  {
+    label: 'Security',
+    collapsible: true,
+    items: [
+      {
+        label: 'Authentication',
+        url: '/docs/drivers/rust/:version/security/authentication/',
         collapsible: true,
         items: [
           {
-            label: 'Cluster Monitoring',
-            contentSite: 'rust',
-            url: '/docs/drivers/rust/:version/fundamentals/monitoring/cluster-monitoring',
+            label: 'SCRAM',
+            url: '/docs/drivers/rust/:version/security/authentication/scram/',
           },
           {
-            label: 'Command Monitoring',
-            contentSite: 'rust',
-            url: '/docs/drivers/rust/:version/fundamentals/monitoring/command-monitoring',
+            label: `X.509`,
+            url: '/docs/drivers/rust/:version/security/authentication/x509/',
           },
           {
-            label: 'Connection Monitoring',
-            contentSite: 'rust',
-            url: '/docs/drivers/rust/:version/fundamentals/monitoring/connection-monitoring',
+            label: 'AWS IAM',
+            url: '/docs/drivers/rust/:version/security/authentication/aws-iam/',
+          },
+          {
+            label: 'OIDC',
+            url: '/docs/drivers/rust/:version/security/authentication/oidc/',
+          },
+          {
+            label: 'LDAP (PLAIN)',
+            url: '/docs/drivers/rust/:version/security/authentication/ldap/',
+          },
+          {
+            label: 'Kerberos (GSSAPI)',
+            url: '/docs/drivers/rust/:version/security/authentication/kerberos/',
           },
         ],
       },
       {
-        label: 'Collations',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/collations',
+        label: 'In-Use Encryption',
+        url: '/docs/drivers/rust/:version/security/in-use-encryption/',
       },
       {
-        label: 'Search Geospatially',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/geo',
-      },
-      {
-        label: 'GridFS',
-        contentSite: 'rust',
-        url: '/docs/drivers/rust/:version/fundamentals/gridfs',
+        label: 'TLS/SSL Configuration',
+        url: '/docs/drivers/rust/:version/security/tls/',
       },
     ],
   },
   {
     label: 'Third-Party Integrations',
-    contentSite: 'rust',
-    url: '/docs/drivers/rust/:version/integrations',
+    url: '/docs/drivers/rust/:version/integrations/',
+  },
+  {
+    label: 'Reference',
+    collapsible: true,
+    items: [
+      {
+        label: 'Release Notes',
+        url: '/docs/drivers/rust/:version/reference/release-notes/',
+      },
+      {
+        label: 'Compatibility',
+        contentSite: 'drivers',
+        url: '/docs/drivers/compatibility/?driver-language=rust',
+      },
+      {
+        label: 'Upgrade Versions',
+        url: '/docs/drivers/rust/:version/reference/upgrade/',
+      },
+      {
+        label: 'Quick Reference',
+        url: '/docs/drivers/rust/:version/reference/quick-reference/',
+      },
+      {
+        label: 'View the Source',
+        collapsible: true,
+        items: [
+          {
+            label: 'MongoDB Rust Driver',
+            isExternal: true,
+            url: 'https://github.com/mongodb/mongo-rust-driver',
+          },
+          {
+            label: 'BSON Crate',
+            isExternal: true,
+            url: 'https://github.com/mongodb/bson-rust',
+          },
+        ],
+      },
+    ],
+  },
+  {
+    label: 'Operation Error Handling',
+    url: '/docs/drivers/rust/:version/op-error-handling/',
   },
   {
     label: 'API Documentation',
     contentSite: 'rust',
-    url: '/docs/drivers/rust/:version/api',
     collapsible: true,
     items: [
       {
         label: 'MongoDB Rust Driver',
         isExternal: true,
-        url: 'https://docs.rs/mongodb/latest/mongodb/index.html',
+        url: 'https://docs.rs/mongodb/3.5.0/mongodb/index.html',
       },
       {
         label: 'BSON Crate',
         isExternal: true,
-        url: 'https://docs.rs/bson/latest/bson/index.html',
+        url: 'https://docs.rs/bson/3.1.0/bson/index.html',
       },
     ],
-  },
-  {
-    label: 'FAQ',
-    contentSite: 'rust',
-    url: '/docs/drivers/rust/:version/faq',
-  },
-  {
-    label: 'Connection Troubleshooting',
-    contentSite: 'rust',
-    url: '/docs/drivers/rust/:version/connection-troubleshooting',
-  },
-  {
-    label: 'Operation Error Handling',
-    contentSite: 'rust',
-    url: '/docs/drivers/rust/:version/op-error-handling',
   },
   {
     label: 'Issues & Help',
-    contentSite: 'rust',
-    url: '/docs/drivers/rust/:version/issues-and-help',
-  },
-  {
-    label: 'Compatibility',
-    contentSite: 'drivers',
-    url: '/docs/drivers/compatibility/?driver-language=rust',
-  },
-  {
-    label: 'View the Source',
-    contentSite: 'rust',
-    url: '/docs/drivers/rust/:version/view-source',
-    collapsible: true,
-    items: [
-      {
-        label: 'MongoDB Rust Driver',
-        isExternal: true,
-        url: 'https://github.com/mongodb/mongo-rust-driver',
-      },
-      {
-        label: 'BSON Crate',
-        isExternal: true,
-        url: 'https://github.com/mongodb/bson-rust',
-      },
-    ],
+    url: '/docs/drivers/rust/:version/issues-and-help/',
   },
 ]);
 

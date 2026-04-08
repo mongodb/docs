@@ -1,0 +1,235 @@
+.. _rust-bson:
+
+===================
+Work with BSON Data
+===================
+
+.. meta::
+   :keywords: data format, bson, code example, document
+   :description: Learn how to work with BSON data in the MongoDB Rust driver. Construct documents, serialize Rust types, customize serialization, and read and write BSON files. 
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how the {+driver-long+} and the ``bson`` crate
+represent BSON data, convert between BSON and Rust types, and work with BSON
+documents directly in your application code.
+
+The driver uses the ``bson`` crate to encode and decode BSON data and uses the
+Serde framework to serialize and deserialize your Rust types. To learn more
+about serialization, see the :ref:`rust-serialization` guide.
+
+For more information about BSON and the full list of BSON types, see
+:manual:`BSON Types </reference/bson-types/>` in the {+server+} manual.
+
+.. _rust-bson-sample-document:
+
+Sample BSON Document
+~~~~~~~~~~~~~~~~~~~~
+
+The examples in this guide use the following sample document, which represents a
+restaurant called "Mongo's Pizza" with an embedded address document and
+coordinates:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/bson.rs
+   :language: rust
+   :dedent:
+   :start-after: begin-represent-bson
+   :end-before: end-represent-bson
+
+BSON Data Types
+---------------
+
+MongoDB stores documents in a binary representation called BSON (Binary JSON).
+BSON supports all JSON data structure types and adds additional types such as
+dates, different-sized integers, ObjectId values, binary data, and more.
+
+In the Rust ecosystem, the ``bson`` crate models BSON values by using the ``bson::Bson``
+enum and BSON documents by using the ``bson::Document`` struct.
+
+.. tip::
+
+   You don't need to add ``bson`` as a direct dependency if you are already
+   using the ``mongodb`` crate. The driver re-exports ``bson``, so you can
+   import it from your application without a separate entry in your
+   ``Cargo.toml`` file.
+
+Represent BSON in Rust
+----------------------
+
+The ``bson`` crate provides the following core types and macros for working with BSON data:
+
+- ``bson::Bson``: Enum that represents any BSON value, such as string, integer, document, or array.
+- ``bson::Document``: Ordered map from UTF-8 string keys to Bson values that represents a BSON document.
+- ``bson!`` macro: Constructs a ``Bson`` value from a literal.
+- ``doc!`` macro: Constructs a ``Document`` from a literal.
+
+For example, you can use the ``doc!`` macro to construct the sample ``restaurant``
+document shown at the :ref:`start of this guide <rust-bson-sample-document>`.
+
+You can access fields in a ``Document`` either as untyped ``Bson`` values or as
+strongly typed Rust values by using helper methods, as shown in the following
+example:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/bson.rs
+   :language: rust
+   :dedent:
+   :start-after: begin-access-fields
+   :end-before: end-access-fields
+
+Modify a BSON Document
+----------------------
+
+You can modify the contents of a ``Document`` by using standard map-like operations
+such as insertion, replacement, and removal, as shown in the following example:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/bson.rs
+   :language: rust
+   :dedent:
+   :start-after: begin-modify-document
+   :end-before: end-modify-document
+
+Use Rust Types to Model BSON Documents
+--------------------------------------
+
+Instead of working directly with ``Document`` values, you can model your
+collection data with custom Rust types. The driver and the ``bson`` crate
+integrate with Serde to serialize your types to BSON and deserialize BSON back
+into your types. To use a custom type as the generic parameter of a
+``mongodb::Collection``, derive the ``serde::Serialize`` and
+``serde::Deserialize`` traits on your struct. 
+
+The following example defines a ``Restaurant`` struct that includes ``name``,
+``cuisine``, and ``last_updated`` fields, parameterizes a collection by using
+this struct, and then constructs and inserts a ``Restaurant`` document with the
+current timestamp as the ``last_updated`` value:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/bson.rs
+   :language: rust
+   :dedent:
+   :start-after: begin-use-rust-types
+   :end-before: end-use-rust-types
+
+When you parameterize a collection by using a custom type, the driver automatically 
+serializes your type to BSON when writing and deserializes BSON back into your 
+type when reading.
+
+Customize Serialization Behavior
+--------------------------------
+The ``bson`` crate provides Rust types that represent BSON value types, such as
+``ObjectId`` and ``DateTime``, which implement ``Serialize`` and ``Deserialize``.
+You can embed these types directly in your domain structs to control how fields
+are serialized to and deserialized from BSON. 
+
+The following example defines an ``Order`` struct that uses the ``ObjectId``
+type for the ``_id`` field and the ``DateTime`` type for the ``delivery_date``
+field, ensuring that these fields are stored and retrieved as their
+corresponding BSON types:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/bson.rs
+   :language: rust
+   :dedent:
+   :start-after: begin-customize-serialization
+   :end-before: end-customize-serialization
+
+For additional customization options such as renaming fields, skipping fields, and
+how to use helper functions, see the :ref:`rust-serialization` guide.
+
+Work with UUID Values
+---------------------
+
+The ``bson`` crate models UUID values with the `Uuid <{+bson-api+}/uuid/struct.Uuid.html>`__ 
+type, which corresponds to a BSON binary value with subtype 0x04 (UUID). With the 
+appropriate feature flags, you can also integrate with the ``uuid`` crate through the 
+`bson::uuid <{+bson-api+}/uuid/index.html>`__ module.
+
+You can embed UUID values directly in your domain types, as shown in the following 
+example:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/bson.rs
+   :language: rust
+   :dedent:
+   :start-after: begin-uuid
+   :end-before: end-uuid
+
+Because the driver and ``bson`` integrate with Serde, UUID values are automatically 
+serialized as BSON binary UUIDs and deserialized back into the appropriate Rust type.
+
+Work with Raw BSON Data
+-----------------------
+
+For performance-sensitive workloads, you might want to inspect or validate BSON 
+documents without fully deserializing them into strongly typed Rust structs. The 
+``bson`` crate exposes the following raw types for this purpose:
+
+- `RawDocument <{+bson-api+}/raw/struct.RawDocument.html>`__ - Borrowed slice of 
+  a BSON document, similar to ``str``
+- `RawDocumentBuf <{+bson-api+}/raw/struct.RawDocumentBuf.html>`__ - Owned BSON 
+  document, similar to ``String``
+- `RawBsonRef <{+bson-api+}/raw/enum.RawBsonRef.html>`__ - Borrowed reference to
+  a single raw BSON value
+
+You can create a ``RawDocumentBuf`` from a byte slice or ``Vec<u8>`` and then look 
+up fields by key, as shown in the following example:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/bson.rs
+   :language: rust
+   :dedent:
+   :start-after: begin-raw-bson
+   :end-before: end-raw-bson
+
+These raw APIs let you access specific fields and validate document structure 
+without allocating or deserializing entire documents into higher-level Rust types.
+
+Write BSON to a File
+--------------------
+
+You can serialize a ``Document`` or any Serde-serializable type to its BSON 
+wire-format representation and write it to disk. The ``bson`` crate provides the
+`Document::to_vec() <{+bson-api+}/document/struct.Document.html#method.to_vec>`__
+method to encode a document to its BSON byte representation.
+
+The following example writes the sample restaurant document to a file:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/bson.rs
+   :language: rust
+   :dedent:
+   :start-after: begin-write-bson
+   :end-before: end-write-bson
+
+Read BSON from a File
+---------------------
+
+To read BSON data from a file, you can load the raw bytes and then decode them 
+into a ``Document`` or another Serde-serializable type. The ``bson`` crate supports 
+reading documents directly from an in-memory buffer or reader.
+
+The following example reads a BSON document from disk and prints it as Extended 
+JSON for debugging:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/bson.rs
+   :language: rust
+   :dedent:
+   :start-after: begin-read-bson
+   :end-before: end-read-bson
+
+The encoding and decoding helpers in the ``bson`` crate are designed to interoperate 
+with MongoDB drivers and other BSON libraries, so you can use the same BSON 
+representation both on disk and over the network.
+
+Additional Resources
+--------------------
+
+To learn more about the types and methods described in this guide, see the 
+following documentation:
+
+- :ref:`rust-serialization` guide
+- `bson crate API documentation <{+bson-api+}/index.html>`__ for ``Bson``, ``Document``, 
+  raw types, UUIDs, and Extended JSON helpers
+- :manual:`BSON Types </reference/bson-types/>` in the {+server+} manual

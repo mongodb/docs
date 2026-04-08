@@ -1,0 +1,108 @@
+.. _rust-bounds:
+
+=========================
+Bounds and Bounds Errors
+=========================
+
+.. meta::
+   :keywords: data format, bounds, bounds errors, code example
+   :description: Learn how to work with bounds in the MongoDB Rust driver to enforce restrictive typing and resolve common bounds errors.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn about bounds and how to resolve a common bounds error. 
+
+What are Bounds?
+-----------------
+
+Trait bounds allow methods to restrict which types they accept as parameters
+and what functionality those types must implement. For example, if you define
+a method that accepts a generic type parameter and prints its value, the parameter
+must implement the ``Display`` trait for printing purposes. The following example
+defines the ``printer()`` method and specifies that its parameter must implement
+``Display``: 
+
+.. code-block:: rust
+   :copyable: true
+
+   fn printer<T: Display>(t: T) {
+      println!("{}", t);
+   }
+
+Common Bounds Error
+--------------------
+
+When calling a method on a data type, you might encounter an error stating that
+the method's trait bounds are not satisfied. For example, the driver might raise
+the following error message when you call the ``try_next()`` method on a ``Cursor``
+instance:
+
+.. code-block:: none
+   :copyable: false
+
+   error[E0599]: the method `try_next` exists for struct `mongodb::Cursor<T>`,
+   but its trait bounds were not satisfied
+
+The ``Cursor<T>`` type only implements the ``Stream`` trait, which is required to access
+the ``try_next()`` method, if the trait bounds for ``T`` are satisfied. Namely, ``T``
+must implement the ``DeserializeOwned`` trait, as specified in the `Cursor
+<{+api+}/struct.Cursor.html>`__ API documentation. The following example reproduces the
+preceding error message by defining a custom ``Actor`` struct that models documents in the
+``actors`` collection. However, this struct does not implement the ``DeserializeOwned`` trait
+and iterating over ``Actor`` by using the ``try_next()`` method causes an error:
+
+.. code-block:: rust
+
+   // This code example produces a trait bounds error because 
+   // the Actor struct does not implement the DeserializeOwned trait.
+
+   struct Actor {
+      name: String,
+   }
+
+   // Add setup code here 
+
+   let my_coll: Collection<Actor> = client.database("db").collection("actors");
+   let mut cursor = my_coll.find(doc! {}).await?;
+   while let Some(result) = cursor.try_next().await? {
+        println!("{:?}", result);
+    };
+
+To resolve the trait bounds error, identify the data type over which the cursor 
+iterates and ensure that this data type implements the ``DeserializeOwned`` trait.
+You can use the ``derive`` attribute to apply the required trait bound. 
+
+.. note:: Deserialize and DeserializeOwned Traits
+
+   The ``serde`` crate provides derive macros to generate the implementation of
+   certain traits, including the ``Deserialize`` trait. However, this crate does not
+   offer a derive macro for the ``DeserializeOwned`` trait. Data types that implement
+   ``Deserialize`` without lifetime restrictions automatically implement ``DeserializeOwned``,
+   so you can implement ``Deserialize`` to fulfill the ``DeserializeOwned`` trait bound.
+
+The following example adjusts the ``Actor`` struct definition to implement ``Deserialize``:
+
+.. code-block:: rust
+   :copyable: true
+
+   #[derive(Deserialize)]
+   struct Actor {
+      name: String,
+   }
+
+Additional Resources
+--------------------
+
+For more information about trait bounds, see the following resources:
+
+- `Bounds <https://doc.rust-lang.org/rust-by-example/generics/bounds.html>`__ in the
+  Rust language documentation
+- `Derive <https://doc.rust-lang.org/rust-by-example/trait/derive.html>`__
+  in the Rust language documentation

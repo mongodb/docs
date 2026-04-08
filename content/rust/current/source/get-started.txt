@@ -1,0 +1,325 @@
+.. _rust-quickstart:
+.. _rust-get-started:
+
+=====================
+Get Started with Rust
+=====================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: get started, tutorial, code example
+   :description: Learn how to install the Rust driver, connect your Rust application to a MongoDB Atlas cluster, and query a database collection in this get started guide..
+
+Overview
+--------
+
+This guide shows you how to create an application that uses the {+driver-long+}
+to connect to a MongoDB cluster hosted on MongoDB Atlas. To learn how to connect
+to MongoDB by using a different driver or programming language, see our
+:driver:`list of official drivers <>`.
+
+The {+driver-short+} is a library of functions that you can use to connect
+to and communicate with MongoDB.
+
+MongoDB Atlas is a fully managed cloud database service that hosts your
+MongoDB deployments. You can create your own free (no credit card
+required) MongoDB Atlas deployment by following the steps in this guide.
+
+Follow the steps in this guide to connect a sample Rust application to
+a MongoDB Atlas deployment.
+
+.. _rust-quick-start-download-and-install:
+
+Download and Install
+--------------------
+
+.. procedure::
+   :style: connected
+
+   .. step:: Install Rust and Cargo.
+
+      Ensure you have Rust {+min-rust-version+} or later, and Cargo, the
+      Rust package manager, installed in your development environment.
+
+      For information about how to install Rust and Cargo, see
+      the official Rust guide on `downloading and installing Rust <https://www.rust-lang.org/tools/install>`__.
+
+   .. step:: Create a project directory.
+
+      In your shell, run the following command to create a
+      directory called ``rust_quickstart`` for this project:
+
+      .. code-block:: bash
+
+         cargo new rust_quickstart
+      
+      When this command successfully completes, you have a ``Cargo.toml`` 
+      file and a ``src`` directory with a ``main.rs`` file in your
+      ``rust_quickstart`` directory.
+
+      Run the following command to navigate into the project 
+      directory:
+
+      .. code-block:: bash
+
+         cd rust_quickstart
+
+   .. step:: Install the Rust Driver.
+
+      Add the following crates to your project by including them in the
+      dependencies list located in your project's ``Cargo.toml`` file:
+      
+      - ``mongodb``, the {+driver-short+} crate
+      - ``serde``, the serialization crate
+      - ``futures``, an asynchronous runtime crate that provides core abstractions
+
+      .. tip::
+   
+         The ``mongodb`` crate resolves the ``bson`` crate, which is the primary
+         MongoDB data representation crate. You can omit the ``bson``
+         crate in your dependencies list.
+
+      The driver supports both asynchronous and synchronous runtimes.
+      To see example dependency lists for each runtime, select
+      from the following :guilabel:`Asynchronous API` and
+      :guilabel:`Synchronous API` tabs:
+
+      .. tabs::
+
+         .. tab:: Asynchronous API
+            :tabid: asynchronous-api
+
+            .. code-block:: bash
+
+               [dependencies]
+               serde = "1.0.188"
+               futures = "0.3.28"
+               tokio = {version = "1.32.0", features = ["full"]}
+               
+               [dependencies.mongodb]
+               version = "{+version+}"
+
+         .. tab:: Synchronous API
+            :tabid: synchronous-api
+
+            .. code-block:: bash
+               
+               [dependencies]
+               serde = "1.0.188"
+
+               [dependencies.mongodb]
+               version = "{+version+}"
+               features = ["sync"]
+
+      To learn more about asynchronous and synchronous runtimes, see the :ref:`rust-runtimes`
+      guide.
+
+After you complete these steps, you have Rust and Cargo installed 
+and a new Rust project with the necessary driver dependencies.
+
+.. _rust-quick-start-create-deployment:
+
+Create a MongoDB Deployment
+---------------------------
+
+You can create a free tier MongoDB deployment on MongoDB Atlas
+to store and manage your data. MongoDB Atlas hosts and manages
+your MongoDB database in the cloud.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a free MongoDB deployment on Atlas.
+
+      Complete the `MongoDB Get Started
+      <https://www.mongodb.com/docs/get-started/?language=rust>`__ guide
+      to set up a new Atlas account and load sample data into a new free
+      tier MongoDB deployment.
+      
+   .. step:: Save your credentials.
+
+      After you create your database user, save that user's 
+      username and password to a safe location for use in an upcoming step.
+  
+After you complete these steps, you have a new free tier MongoDB
+deployment on Atlas, database user credentials, and sample data loaded
+into your database.
+
+.. _rust-quick-start-connection-string:
+
+Create a Connection String
+--------------------------
+
+You can connect to your MongoDB deployment by providing a
+**connection URI**, also called a *connection string*. The
+connection string instructs the driver on how to connect to a
+MongoDB deployment and how to behave while connected.
+
+The connection string includes the hostname or IP address and 
+port of your deployment, the authentication mechanism, user credentials 
+when applicable, and connection options.
+
+To connect to an instance or deployment not hosted on Atlas, see
+:ref:`Other Ways to Connect to MongoDB <rust-other-ways-to-connect>`.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Find your MongoDB Atlas connection string.
+
+      To retrieve your connection string for the deployment that
+      you created in the :ref:`previous step <rust-quick-start-create-deployment>`,
+      log in to your Atlas account and navigate to the :guilabel:`Clusters` 
+      page under the :guilabel:`Database` section. Click the :guilabel:`Connect` 
+      button for your new deployment.
+
+      .. figure:: /includes/figures/atlas_connect_to_cluster.png
+         :alt: The connect button in the clusters section of the Atlas UI
+
+      If you do not already have a database user configured,
+      MongoDB prompts you to create and configure a new user.
+
+      Click the :guilabel:`Drivers` button under
+      :guilabel:`Connect to your application` and select
+      "Rust" from the :guilabel:`Driver` selection menu and the version
+      that best matches the version you installed from the :guilabel:`Version`
+      selection menu.
+
+      Ensure the :guilabel:`View full code sample` option is deselected to
+      view only the connection string.
+
+   .. step:: Copy your connection string.
+
+      Click the copy icon on the right of the connection string to copy it to
+      your clipboard as shown in the following screenshot:
+
+      .. figure:: /includes/figures/atlas_copy_connection_string_rust.png
+         :alt: The connection string copy button in the Atlas UI
+
+   .. step:: Update the password placeholder.
+
+      Paste this connection string into a file in your preferred text editor
+      and replace the ``<db_password>`` placeholder with your database user's
+      password. The connection string is already populated with your database
+      user's username.
+
+      Save this file to a safe location for use in the next step.
+
+After completing these steps, you have a connection string that
+contains your database username and password.
+
+.. include:: /includes/quick-start/troubleshoot.rst
+
+.. _rust-quick-start-connect-to-mongodb:
+
+Connect to MongoDB
+------------------
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create your Rust application.
+
+      Open the file called ``main.rs`` in your
+      ``rust_quickstart/src`` project directory.  In this file, you can
+      begin writing your application.
+      
+      Copy and paste the following code into the ``main.rs`` file:
+      
+      .. tabs::
+
+         .. tab:: Asynchronous API
+            :tabid: asynchronous-api
+
+            .. literalinclude:: /shared/drivers-get-started/rust/get-started-connect.rs
+               :language: rust
+         
+         .. tab:: Synchronous API
+            :tabid: synchronous-api
+
+            .. literalinclude:: /includes/quick-start/code-snippets/connect-sync.rs
+               :language: rust
+
+   .. step:: Assign the connection string.
+
+      Replace the ``<connection string URI>`` placeholder with the 
+      connection string that you copied from the :ref:`rust-quick-start-connection-string`
+      step of this guide.
+
+   .. step:: Run your Rust application.
+
+      From your ``rust_quickstart`` project directory, run the following command
+      to compile and run this application:
+      
+      .. code-block:: none
+
+         cargo run
+
+      The command line output contains details about the retrieved movie
+      document:
+
+      .. code-block:: none
+         :copyable: false
+
+         Found a movie:
+         Some(
+             Document({
+                 "_id": ObjectId(...),
+                 "title": String(
+                     "The Perils of Pauline",
+                 ),
+                 "plot": String(
+                     "Young Pauline is left a lot of money ...",
+                 ),
+                 "runtime": Int32(
+                     199,
+                 ),
+                 "cast": Array([
+                     String(
+                         "Pearl White",
+                     ),
+                     String(
+                         "Crane Wilbur",
+                     ),
+                     ...
+                 ]),
+             }),
+         )
+
+      If you encounter an error or see no output, ensure that you specified the
+      proper connection string in the ``main.rs`` file and that you loaded the
+      sample data.
+
+      .. include:: /includes/quick-start/troubleshoot.rst
+
+After you complete these steps, you have a working application that
+uses the driver to connect to your MongoDB deployment, runs a query on
+the sample data, and prints out the result.
+
+.. _rust-quick-start-next-steps:
+
+Next Steps
+----------
+
+Congratulations on completing the quick start tutorial!
+
+In this tutorial, you created a Rust application that
+connects to a MongoDB deployment hosted on MongoDB Atlas
+and retrieves a document that matches a query.
+
+Learn more about the {+driver-long+} from the following resources:
+
+- Discover how to perform read and write operations in the 
+  :ref:`CRUD Operations <rust-insert-guide>` section.
+- Learn how to apply CRUD concepts to build a simple web app with Rocket
+  in the :ref:`Create a CRUD Web App with Rocket
+  <rust-rocket-web-app-tutorial>` tutorial.

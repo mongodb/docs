@@ -60,12 +60,19 @@ async fn main() -> mongodb::error::Result<()> {
 
     let filter_doc = doc! {};
 
-    // begin-options
+    // begin-update-options
     let res = my_coll
         .update_one(filter_doc, update_doc)
         .upsert(true)
         .await?;
-    // end-options
+    // end-update-options
+
+    // begin-replace-options
+    let res = my_coll
+        .replace_one(filter_doc, replace_doc)
+        .upsert(true)
+        .await?;
+    // end-replace-options
 
     Ok(())
 }

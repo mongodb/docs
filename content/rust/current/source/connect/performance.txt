@@ -1,0 +1,139 @@
+.. _rust-performance:
+
+==========================
+Performance Considerations
+==========================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, optimization, speed, memory
+   :description: Learn to optimize MongoDB Rust Driver performance by reusing Client instances, running parallel operations, and managing synchronous and asynchronous runtimes.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to optimize the performance of the
+{+driver-short+}. To connect to MongoDB, you must create a ``Client`` instance.
+Your ``Client`` instance automatically handles most aspects of connection, such
+as discovering server topology and monitoring your connection. This guide
+describes best practices for configuring and using your ``Client`` instance.
+
+This guide includes the following sections:
+
+- :ref:`Client Lifecycle <rust-performance-client-lifecycle>` describes
+  best practices for creating and managing a ``Client`` instance.
+
+- :ref:`Parallelism <rust-performance-parallelism>` provides sample code
+  for running parallel, asynchronous tasks.
+
+- :ref:`Runtime <rust-performance-runtime>` describes how to manage
+  runtimes by using functionalities of the ``tokio`` and ``async_std`` crates.
+
+- :ref:`Additional Information <rust-perf-addtl-info>`
+  provides links to resources and API documentation for types
+  and methods mentioned in this guide.
+
+.. tip::
+
+   You can optimize performance by using connection pools. To learn more, see
+   the :ref:`rust-connection-pools` guide.
+
+.. _rust-performance-client-lifecycle:
+
+Client Lifecycle
+----------------
+
+We recommend that you reuse your client across sessions and operations.
+You can use the same ``Client`` instance to perform multiple tasks, as
+the ``Client`` type is safe for concurrent use by multiple threads.
+Creating a new ``Client`` instance for each request results in slower
+performance.
+
+The following code creates a method that accepts a pointer to an
+existing ``Client`` instance, which allows you to perform many requests
+by using the same client:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/performance.rs
+   :language: rust
+   :dedent:
+
+.. _rust-performance-parallelism:
+
+Parallelism
+-----------
+
+You can optimize performance by running asynchronous, concurrent tasks
+to execute parallel data operations. The following example uses the
+``spawn()`` method from the ``tokio::task`` module to create separate,
+concurrent tasks to perform insert operations:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/performance-parallel.rs
+   :language: rust
+   :dedent:
+
+.. _rust-performance-runtime:
+
+Runtime
+-------
+
+A ``Client`` instance is bound to the instance of the ``tokio`` or
+``async-std`` runtime in which you created it. If you use a ``Client``
+instance to perform operations on a different runtime, you might
+experience unexpected behavior or failures.
+
+If you use the ``test`` helper macro from the ``tokio`` or
+``async_std`` crate to test your application, you might unintentionally run
+operations on a different runtime than the ``Client`` instance expects. This occurs because these
+helper macros create a new runtime for each test. You can use
+one of the following strategies to avoid this issue:
+
+- Attach the runtime to the ``Client`` instance without using the ``test`` helper macros.
+- Create a new ``Client`` instance for every ``async`` test.
+
+The following example attaches a global runtime to a ``Client`` instance for testing.
+The ``test_list_dbs()`` method uses a client that
+connects to this runtime to list databases in the deployment:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/performance-bundle-runtime.rs
+   :language: rust
+   :dedent:
+
+The following example creates a new ``Client`` instance for each test
+run with ``tokio::test``, ensuring that there are no unintended
+interactions between runtimes:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/performance-new-client.rs
+   :language: rust
+   :dedent:
+
+.. _rust-perf-addtl-info:
+
+Additional Information
+----------------------
+
+To learn more about connecting to MongoDB, see the
+:ref:`rust-connect-to-mongodb` guide.
+
+To learn more about the available runtimes for the {+driver-short+}, see
+the :ref:`rust-runtimes` guide.
+
+To learn how to optimize performance by using connection pools, see the
+:ref:`rust-connection-pools` guide.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+- `Client() <{+api+}/struct.Client.html>`__
+- `ClientOptions <{+api+}/options/struct.ClientOptions.html>`__
+- `spawn() <https://docs.rs/tokio/latest/tokio/task/fn.spawn.html>`__ in
+  the ``tokio::task`` module
+- `tokio::runtime <https://docs.rs/tokio/latest/tokio/runtime/index.html>`__ module
