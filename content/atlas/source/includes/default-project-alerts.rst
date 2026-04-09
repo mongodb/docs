@@ -14,6 +14,7 @@ project:
      ratio of documents scanned to documents returned meets or 
      exceeds the specified threshold for at least 10 minutes.
 
+- :alert:`Profiler configured to capture all operations on a host, which might result in a significant performance impact.`
 - :alert:`Replica set has no primary`
 - :alert:`Replication Oplog Window is`, ``below 1 hours``
 - :alert:`System: CPU (User) % is`, ``above 95``
