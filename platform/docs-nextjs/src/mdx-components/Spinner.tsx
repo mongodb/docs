@@ -14,7 +14,7 @@ const rotate = keyframes`
   }
 `;
 
-export type SpinnerProps = {
+type SpinnerProps = {
   className?: string;
   size: number;
 };

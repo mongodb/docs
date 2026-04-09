@@ -22,7 +22,7 @@ import Box from '@leafygreen-ui/box';
 import Button, { Variant as ButtonVariant } from '@leafygreen-ui/button';
 import { theme } from '@/styles/theme';
 // import fetchAndSaveFile from '@/utils/download-file';
-import { Spinner } from '../spinner';
+import { Spinner } from '@/mdx-components/Spinner';
 import { VersionSelect } from './version-selector';
 import { useOfflineDownloadContext, type OfflineVersion, type OfflineObject } from './download-context';
 
@@ -138,11 +138,9 @@ const DownloadModal = ({ open, setOpen }: ModalProps) => {
               </Body>
               {repo.subTitle && (
                 <Disclaimer
-                  className={cx(
-                    css`
-                      margin-top: ${theme.size.small};
-                    `,
-                  )}
+                  className={cx(css`
+                    margin-top: ${theme.size.small};
+                  `)}
                 >
                   {repo.subTitle}
                 </Disclaimer>

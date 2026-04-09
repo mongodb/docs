@@ -48,6 +48,7 @@ import { WayfindingOption } from './mdx-components/Wayfinding/WayfindingOption';
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell } from '@/mdx-components/Table';
 import { Footnote } from '@/mdx-components/footnote/Footnote';
 import { FootnoteReference } from '@/mdx-components/footnote/FootnoteReference';
+import { OpenAPI } from '@/mdx-components/OpenAPI';
 
 type InjectedProps = Record<string, unknown>;
 
@@ -160,6 +161,7 @@ export const components = (injectedProps?: InjectedProps) =>
     li: ({ children, ...props }) => <ListItem {...props}>{children}</ListItem>,
     code: ({ children }) => <Literal>{children}</Literal>,
     Output: ({ children }) => <span>{children}</span>,
+    OpenAPI: () => <OpenAPI />,
     OpenAPIChangelog: ({ children }) => <span>{children}</span>,
     Procedure: ({ children, ...props }) => <Procedure {...props}>{children}</Procedure>,
     Step: ({ children, ...props }) => <Step {...props}>{children}</Step>,

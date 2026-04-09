@@ -642,6 +642,13 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         };
       }
 
+      // We can ignore any data passed into this since it is only used for https://www.mongodb.com/docs/openapi/preview/,
+      // which fallbacks to a static default template when not pulling in a spec from the query param.
+      if (directiveName === 'openapi') {
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'OpenAPI',
+       }
       if (directiveName === 'wayfinding') {
         const title = parseSnootyArgument(node);
         const children = node.children ?? [];
