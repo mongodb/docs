@@ -1,19 +1,9 @@
-Database auditing lets administrators track system activity for 
-deployments with multiple users. |service| administrators can select 
-the actions, database users, |service| roles, and LDAP groups that they 
-want to audit. |service| supports :manual:`auditing </core/auditing>` 
-most of the documented :ref:`system event actions 
-<audit-action-details-results>`, with the following limitation:
-
-- The |service| audit logs don't track user creation or modification 
-  events because |service| performs these operations directly in the 
-  ``admin`` database.
-
-.. important:: Performing a Full Database Audit
-
-   Due to this limitation, you must use a combination of audit logs,
-   the ``mongodb.log``, and the :ref:`Project Activity Feed <view-activity-feed>`
-   to perform a full audit.
+Database auditing lets administrators track system activity for
+deployments with multiple users. |service| administrators can select
+the actions, database users, |service| roles, and LDAP groups that they
+want to audit. |service| supports :manual:`auditing </core/auditing>`
+most of the documented :ref:`system event actions
+<audit-action-details-results>`.
 
 The ``authCheck`` event action logs authorization attempts by users
 trying to read from and write to databases in the {+clusters+} in your
