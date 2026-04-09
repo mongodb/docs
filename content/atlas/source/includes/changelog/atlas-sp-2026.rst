@@ -1,3 +1,12 @@
+.. _atlas-sp-20260406:
+
+6 April 2026 Release
+--------------------
+
+- Adds support for |azure| Blob Storage as a sink. To learn more, see
+  :ref:`Azure Blob Storage <sp-emit-azure-blob>` (``$emit`` stage) and
+  :ref:`Azure Blob Storage Connections <atlas-sp-add-connection>`.
+
 .. _atlas-sp-20260325:
 
 25 March 2026 Release
