@@ -642,6 +642,62 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         };
       }
 
+      if (directiveName === 'wayfinding') {
+        const title = parseSnootyArgument(node);
+        const children = node.children ?? [];
+        const descriptionNode = children.find(
+          (child) => child.type === 'directive' && String(child.name) === 'wayfinding-description',
+        );
+        const description = descriptionNode ? extractInlineDisplayText(descriptionNode.children ?? []) : '';
+        const optionNodes = children.filter(
+          (child) => child.type === 'directive' && String(child.name) === 'wayfinding-option',
+        );
+        const optionChildren: MdastNode[] = optionNodes.map((optionNode) => {
+          const opts = optionNode.options ?? {};
+          const id = typeof opts.id === 'string' ? opts.id : undefined;
+          const title = typeof opts.title === 'string' ? opts.title : undefined;
+          let href = '';
+          if (Array.isArray(optionNode.argument)) {
+            const ref = optionNode.argument.find(
+              (node) => node.type === 'reference' && typeof node.refuri === 'string',
+            );
+            if (ref?.refuri) href = ref.refuri;
+          } else if (typeof optionNode.argument === 'string') {
+            href = optionNode.argument;
+          }
+          const attributes: MdastNode[] = [];
+          if (id) {
+            attributes.push({ type: 'mdxJsxAttribute', name: 'id', value: id });
+          }
+          if (title) {
+            attributes.push({ type: 'mdxJsxAttribute', name: 'title', value: title });
+          }
+          if (href) {
+            attributes.push({ type: 'mdxJsxAttribute', name: 'href', value: href });
+          }
+          return {
+            type: 'mdxJsxFlowElement',
+            name: 'WayfindingOption',
+            attributes: attributes,
+            children: [],
+          } as MdastNode;
+        });
+
+        const attributes: MdastNode[] = [];
+        if (title) {
+          attributes.push({ type: 'mdxJsxAttribute', name: 'title', value: title });
+        }
+        if (description) {
+          attributes.push({ type: 'mdxJsxAttribute', name: 'description', value: description });
+        }
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'Wayfinding',
+          attributes: attributes,
+          children: optionChildren,
+        };
+      }
+
       // Kicker must serialize as inline JSX (<Kicker>text</Kicker>) so MDX does not wrap
       // its content in a <p>. Using mdxJsxTextElement inside a paragraph achieves this.
       if (directiveName === 'kicker') {

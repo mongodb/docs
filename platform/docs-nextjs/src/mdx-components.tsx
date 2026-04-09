@@ -43,6 +43,8 @@ import { TabsSelector } from '@/mdx-components/TabsSelector';
 import { Version } from '@/mdx-components/Version';
 import { Code } from '@/mdx-components/Code';
 import { Replacement } from '@/mdx-components/Include/Replacement';
+import { Wayfinding } from './mdx-components/Wayfinding/Wayfinding';
+import { WayfindingOption } from './mdx-components/Wayfinding/WayfindingOption';
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell } from '@/mdx-components/Table';
 import { Footnote } from '@/mdx-components/footnote/Footnote';
 import { FootnoteReference } from '@/mdx-components/footnote/FootnoteReference';
@@ -189,7 +191,8 @@ export const components = (injectedProps?: InjectedProps) =>
       </Version>
     ),
     Video: (props) => <Video {...props} />,
-    Wayfinding: ({ children }) => <span>{children}</span>,
+    Wayfinding: ({ children, ...props }) => <Wayfinding {...props}>{children}</Wayfinding>,
+    WayfindingOption: (props) => <WayfindingOption {...props} />,
     Warning: ({ children, ...props }) => (
       <Admonition name="warning" {...props}>
         {children}
