@@ -12,7 +12,7 @@
             mkdir mongodb-ai-agent
             cd mongodb-ai-agent
             npm init -y
-            npm install --quiet dotenv mongodb voyageai openai langchain @langchain/community @langchain/core mathjs pdf-parse
+            npm install --quiet dotenv mongodb voyageai openai langchain @langchain/community @langchain/core mathjs pdf-parse@1
 
          .. note::
 

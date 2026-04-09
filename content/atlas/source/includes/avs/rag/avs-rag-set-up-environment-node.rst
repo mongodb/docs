@@ -16,7 +16,7 @@ a. Initialize your Node.js project.
 
    .. code-block::
 
-      npm install mongodb voyageai openai @huggingface/inference @xenova/transformers langchain @langchain/community pdf-parse
+      npm install mongodb voyageai openai @huggingface/inference @xenova/transformers langchain @langchain/community pdf-parse@1
 
 #. Update your ``package.json`` file.
 

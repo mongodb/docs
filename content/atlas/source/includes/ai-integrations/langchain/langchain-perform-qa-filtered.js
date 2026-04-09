@@ -1,6 +1,6 @@
 // Implement RAG to answer questions on your data 
 const retriever = await vectorStore.asRetriever({
-    searchType: "mmr", // Defaults to "similarity
+    searchType: "mmr", // Defaults to "similarity"
     filter: { preFilter: { "loc.pageNumber": { "$eq": 17 } } },
     searchKwargs: {
       fetchK: 20,
@@ -30,9 +30,9 @@ console.log("Question: " + question);
 console.log("Answer: " + answer);
 
 // Return source documents
-const retrievedResults = await retriever.getRelevantDocuments(question)
+const retrievedResults = await retriever.invoke(question)
 const documents = retrievedResults.map((documents => ({
   pageContent: documents.pageContent,
   pageNumber: documents.metadata.loc.pageNumber,
 })))
-console.log("\nSource documents:\n" + JSON.stringify(documents, 1, 2))
+console.log("\nSource documents:\n" + JSON.stringify(documents, null, 2))

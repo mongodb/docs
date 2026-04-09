@@ -32,7 +32,8 @@ async function run() {
     const docs = await textSplitter.splitDocuments(data);
 
     // Instantiate MongoDB as a vector store
-    const embeddingModel = new VoyageEmbeddings({ model: "voyage-3-large" });
+    const embeddingModel = new VoyageEmbeddings({ modelName: "voyage-4" });
+    embeddingModel.apiUrl = 'https://ai.mongodb.com/v1/embeddings';
     const vectorStore = await MongoDBAtlasVectorSearch.fromDocuments(docs, embeddingModel, dbConfig);
 
   } finally {

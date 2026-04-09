@@ -21,7 +21,7 @@
 
          .. code-block::
 
-            npm install mongodb voyageai @huggingface/inference langchain @langchain/community pdf-parse
+            npm install mongodb voyageai @huggingface/inference langchain @langchain/community pdf-parse@1
 
       #. Update your ``package.json`` file.
 

@@ -19,7 +19,7 @@
 
       .. code-block::
 
-         npm install langchain @langchain/community @langchain/mongodb @langchain/openai @langchain/textsplitters pdf-parse fs
+         npm install langchain@latest @langchain/community@latest @langchain/core@latest @langchain/mongodb@latest @langchain/openai@latest @langchain/textsplitters@latest pdf-parse@1 --legacy-peer-deps
 
    .. include:: /includes/avs/shared/steps-avs-nodejs-config-modules.rst
 
@@ -35,7 +35,6 @@
 
       .. code-block:: javascript
 
-         import { formatDocumentsAsString } from "langchain/util/document";
          import { MongoClient } from "mongodb";
          import { MongoDBAtlasVectorSearch } from "@langchain/mongodb";
          import { ChatOpenAI } from "@langchain/openai";
@@ -51,6 +50,7 @@
          process.env.OPENAI_API_KEY = "<api-key>";
          process.env.MONGODB_URI = "<connection-string>";
          const client = new MongoClient(process.env.MONGODB_URI);
+         const formatDocumentsAsString = (docs) => docs.map(d => d.pageContent).join("\n\n");
 
    .. step:: Replace the placeholder values.
 

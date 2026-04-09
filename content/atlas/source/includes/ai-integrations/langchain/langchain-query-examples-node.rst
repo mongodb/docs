@@ -17,14 +17,20 @@
             .. code-block:: javascript
 
                // Basic semantic search
-               const basicOutput = await vectorStore.similaritySearch("MongoDB Atlas security");
-               const basicResults = basicOutput.map((results => ({ 
-                  pageContent: results.pageContent, 
-                  pageNumber: results.metadata.loc.pageNumber,
+               const basicOutput = await vectorStore.similaritySearch(
+                 "MongoDB Atlas security"
+               );
+               const basicResults = basicOutput.map((results => ({
+                 pageContent: results.pageContent,
+                 pageNumber: results.metadata.loc.pageNumber,
                })))
-               
+
                console.log("Semantic Search Results:")
                console.log(basicResults)
+
+               if (basicResults.length === 0) {
+                 console.log("No results found after waiting for index sync. Check Atlas Search index status and embedding configuration.");
+               }
 
          .. step:: Run the following command to execute the query.
 
@@ -42,6 +48,17 @@
                   Semantic Search Results:
                   [
                     {
+                      pageContent: 'read isolation.  \n' +
+                        'With MongoDB Atlas, you can achieve workload isolation with dedicated analytics nodes. Visualization \n' +
+                        'tools like Atlas Charts can be configured to read from analytics nodes only.',
+                      pageNumber: 21
+                    },
+                    {
+                      pageContent: 'well-tuned queries.\n' +
+                        'Built-in slow query profiling is also available if you’re deploying MongoDB with Atlas.',
+                      pageNumber: 16
+                    },
+                    {
                       pageContent: 'Atlas free tier, or download MongoDB for local \n' +
                         'development.\n' +
                         'Review the MongoDB manuals and tutorials in our \n' +
@@ -51,20 +68,9 @@
                       pageNumber: 30
                     },
                     {
-                      pageContent: 'read isolation.  \n' +
-                        'With MongoDB Atlas, you can achieve workload isolation with dedicated analytics nodes. Visualization \n' +
-                        'tools like Atlas Charts can be configured to read from analytics nodes only.',
+                      pageContent: 'If you are running MongoDB on your own infrastructure, you can configure replica set tags to achieve \n' +
+                        'read isolation.',
                       pageNumber: 21
-                    },
-                    {
-                      pageContent: '• Zoned Sharding — You can define specific rules governing data placement in a sharded cluster.\n' +
-                        'Global Clusters in MongoDB Atlas allows you to quickly implement zoned sharding using a visual UI or',
-                      pageNumber: 27
-                    },
-                    {
-                      pageContent: 'are updated, associated indexes must be maintained, incurring additional CPU and disk I/O overhead. \n' +
-                        'If you\'re running fully managed databases on MongoDB Atlas, the built-in Performance Advisor',
-                      pageNumber: 20
                     }
                   ]
 

@@ -5,7 +5,7 @@ const prompt =
   {context}
 
   Question: {question}`);
-const model = new ChatOpenAI({});
+const model = new ChatOpenAI({ modelName: "gpt-5-mini" }) // Pick your preferred model. Ensure to enable it in your OpenAI settings dashboard.
 const chain = RunnableSequence.from([
   {
     context: retriever.pipe(formatDocumentsAsString),
@@ -23,9 +23,9 @@ console.log("Question: " + question);
 console.log("Answer: " + answer);
 
 // Return source documents
-const retrievedResults = await retriever.getRelevantDocuments(question)
+const retrievedResults = await retriever.invoke(question)
 const documents = retrievedResults.map((documents => ({
   pageContent: documents.pageContent,
   pageNumber: documents.metadata.loc.pageNumber,
 })))
-console.log("\nSource documents:\n" + JSON.stringify(documents, 1, 2))
+console.log("\nSource documents:\n" + JSON.stringify(documents, null, 2))
