@@ -22,7 +22,7 @@
      - :icon-fa5:`check`
      - 
 
-   * - |service| Search
+   * - |fts|
      - :icon-fa5:`check`
      - :icon-fa5:`check`
 
@@ -34,7 +34,7 @@
      - :icon-fa5:`check`
      - 
 
-   * - |service| Vector Search
+   * - |avs|
      - :icon-fa5:`check`
      - :icon-fa5:`check`
 
