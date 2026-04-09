@@ -147,28 +147,33 @@
    * - | ``TRANSACTIONS_CURRENT_ACTIVE``
        | (mongodb.atlas.transactions.currentActive)
      - Process
-     - Number of currently active transactions on this server.
+     - Number of currently active transactions (transactions executing a
+       command) on this server. Available on both ``mongod`` and ``mongos``
+       instances.
 
    * - | ``TRANSACTIONS_CURRENT_OPEN``
        | (mongodb.atlas.transactions.currentOpen)
      - Process
      - Number of currently open transactions (active + inactive) on this
-       server.
+       server. Available on both ``mongod`` and ``mongos`` instances.
 
    * - | ``TRANSACTIONS_TOTAL_STARTED``
        | (mongodb.atlas.transactions.totalStarted)
      - Process
-     - Rate per second of transactions started on this server.
+     - Rate per second of transactions started on this server. Available
+       on both ``mongod`` and ``mongos`` instances.
 
    * - | ``TRANSACTIONS_TOTAL_ABORTED``
        | (mongodb.atlas.transactions.totalAborted)
      - Process
-     - Rate per second of transactions aborted on this server.
+     - Rate per second of transactions aborted on this server. Available
+       on both ``mongod`` and ``mongos`` instances.
 
    * - | ``TRANSACTIONS_TOTAL_COMMITTED``
        | (mongodb.atlas.transactions.totalCommitted)
      - Process
-     - Rate per second of transactions committed on this server.
+     - Rate per second of transactions committed on this server. Available
+       on both ``mongod`` and ``mongos`` instances.
 
    * - | ``TRANSACTIONS_TOTAL_PREPARED``
        | (mongodb.atlas.transactions.totalPrepared)
