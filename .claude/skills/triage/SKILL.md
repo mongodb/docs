@@ -133,7 +133,7 @@ For each ticket returned, read its summary, description, comments, and any direc
 | Component(s) | Team |
 |---|---|
 | Atlas, Cloud, Ops Manager, Cloud Manager, One Agent, BI Connector, Charts, Kubernetes Operator, Kubernetes Atlas, Atlas OSB, Style Guide, Data Lake, FTS, mcli, MongoDB Agent, mongomirror, Terraform, MEKO, Onboarding, OpenAPI, FedRAMP, Atlas CLI, IDE, Atlas DevOps Integrations, Atlas Streams, API, Atlas SDK, Atlas Search, Atlas Vector Search, Data Federation, kafka, Atlas Architecture Center, Online Archive, AI Integrations, VoyageAI | CET/Cloud |
-| Server, Manual, mongosh, TOOLS, Compass, VSCode, C2C, mongosync, Migrator, IntelliJ, mcp-server | Server |
+| Server, manual, mongosh, TOOLS, Compass, VSCode, C2C, mongosync, Migrator, IntelliJ, mcp-server | Server |
 | Drivers, Kafka, Spark, Spark Connector, VSExt, Guides, CSFLE, Field Level Encryption, C, C++, C#/.NET, Golang, Java, Kotlin, Laravel, Node, PHP, Pymongo / Arrow / Django, Ruby / Mongoid, Rust, Scala, VS, Magenta | Drivers/DBX |
 
 If a ticket clearly belongs to a different team than the one being triaged, include it in the plan with the recommended component and a note that it belongs to the other team. Do not process it further in the team-specific steps (Step 4 onward) — it will surface in that team's triage once the component is applied.
