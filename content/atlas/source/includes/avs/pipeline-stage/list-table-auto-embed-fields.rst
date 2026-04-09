@@ -129,4 +129,9 @@
        compatible with the |voyage| embeddings model specified in the index 
        definition for the field that you want to query. 
        
-       This is mutually exclusive with ``model`` and ``query``. 
+       This is mutually exclusive with ``model`` and ``query``.
+
+   * - ``searchNodePreference``
+     - Object 
+     - Optional 
+     - .. include:: /includes/search/search-node-preference.rst       

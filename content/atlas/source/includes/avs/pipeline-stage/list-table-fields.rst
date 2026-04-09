@@ -113,3 +113,8 @@
      - Array of objectIDs
      - Required 
      - List of document ``_id``\s.
+
+   * - ``searchNodePreference``
+     - Object 
+     - Optional 
+     - .. include:: /includes/search/search-node-preference.rst
