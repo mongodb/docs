@@ -1,3 +1,15 @@
+.. _atlas-sp-20260325:
+
+25 March 2026 Release
+---------------------
+
+- Replaces the test icon with a labeled :guilabel:`TEST` button for Sample, 
+  {+kafka+}, and {+service+} connections.
+- Blocks deletion of clusters that stream processors still reference.
+- Allows changing {+kafka+} connection authentication between ``PLAIN`` 
+  and ``OIDC`` in the connection registry.
+- Adds additional validation for {+kafka+} bootstrap server hostnames.
+
 .. _atlas-sp-20260216: 
 
 16 February 2026 Release
