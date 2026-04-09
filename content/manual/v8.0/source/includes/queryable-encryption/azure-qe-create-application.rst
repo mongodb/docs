@@ -790,3 +790,87 @@
             :end-before: end-create-client
             :language: php
             :dedent:
+
+.. selected-content::
+   :selections: azure, ruby
+
+   Full Application Code
+   ~~~~~~~~~~~~~~~~~~~~~
+
+   To see the complete code for the sample application, select your programming
+   language in the language selector.
+
+   `Complete Ruby Application <{+sample-app-url-qe+}/ruby/>`__
+
+   Each sample application repository includes a ``README.md``
+   file that you can use to learn how to set up your environment and run
+   the application.
+
+   .. procedure::
+      :style: normal
+
+      .. step:: Assign application variables
+
+         .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-ruby.rst
+
+         You can declare these variables by using the following code:
+
+         .. literalinclude:: /includes/qe-tutorials/ruby/queryable-encryption-tutorial.rb
+            :start-after: start-setup-application-variables
+            :end-before: end-setup-application-variables
+            :language: ruby
+            :dedent:
+
+         .. important:: {+key-vault-long-title+} Namespace Permissions
+
+            The {+key-vault-long+} is in the ``encryption.__keyVault``
+            namespace. Ensure that the database user your application uses to connect
+            to MongoDB has :ref:`ReadWrite <manual-reference-role-read-write>`
+            permissions on this namespace.
+
+         .. tip:: Environment Variables
+
+            The sample code in this tutorial references environment variables that
+            you need to set. Alternatively, you can replace the values directly in
+            the code.
+
+            To learn how you can setup these environment variables, see the
+            `README.md <{+sample-app-url-qe+}/ruby/README.md>`__ file
+            included in the sample application on GitHub.
+
+      .. step:: Add your KMS credentials
+
+         Create a variable containing your KMS credentials with the
+         following structure. Use the {+azure-kv+} credentials you
+         recorded when you :ref:`registered your application with Azure <qe-register-cmk-azure>`.
+
+         .. literalinclude:: /includes/qe-tutorials/ruby/queryable-encryption-helpers.rb
+            :start-after: start-azure-kms-credentials
+            :end-before: end-azure-kms-credentials
+            :language: ruby
+            :dedent:
+
+      .. step:: Add your CMK credentials
+
+         Create a variable containing your {+cmk-long+} credentials
+         with the following structure. Use the CMK details you
+         recorded when you :ref:`created a CMK <qe-create-cmk-azure>`.
+
+         .. literalinclude:: /includes/qe-tutorials/ruby/queryable-encryption-helpers.rb
+            :start-after: start-azure-cmk-credentials
+            :end-before: end-azure-cmk-credentials
+            :language: ruby
+            :dedent:
+
+      .. step:: Create an encryption client
+
+         To create a client for encrypting and decrypting data in
+         encrypted collections, instantiate a new ``Mongo::Client``
+         using your connection URI and automatic encryption
+         options.
+
+         .. literalinclude:: /includes/qe-tutorials/ruby/queryable-encryption-tutorial.rb
+            :start-after: start-create-client
+            :end-before: end-create-client
+            :language: ruby
+            :dedent:

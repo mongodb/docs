@@ -1116,3 +1116,126 @@
             :end-before: end-create-client
             :language: php
             :dedent:
+
+.. selected-content::
+   :selections: aws, ruby
+
+   Full Application Code
+   ~~~~~~~~~~~~~~~~~~~~~
+
+   To see the complete code for the sample application, select your programming
+   language in the language selector.
+
+   `Complete Ruby Application <{+sample-app-url-qe+}/ruby/>`__
+
+   Each sample application repository includes a ``README.md``
+   file that you can use to learn how to set up your environment and run
+   the application.
+
+   .. procedure::
+      :style: normal
+
+      .. step:: Assign application variables
+
+             .. include:: /includes/queryable-encryption/tutorials/assign-app-variables-ruby.rst
+
+             You can declare these variables by using the following code:
+
+             .. literalinclude:: /includes/qe-tutorials/ruby/queryable-encryption-tutorial.rb
+                  :start-after: start-setup-application-variables
+                  :end-before: end-setup-application-variables
+                  :language: ruby
+                  :dedent:
+
+             .. important:: {+key-vault-long-title+} Namespace Permissions
+
+                  The {+key-vault-long+} is in the ``encryption.__keyVault``
+                  namespace. Ensure that the database user your application uses to connect
+                  to MongoDB has :ref:`ReadWrite <manual-reference-role-read-write>`
+                  permissions on this namespace.
+
+             .. tip:: Environment Variables
+
+                  The sample code in this tutorial references environment variables that
+                  you need to set. Alternatively, you can replace the values directly in
+                  the code.
+
+                  To learn how you can setup these environment variables, see the
+                  `README.md <{+sample-app-url-qe+}/ruby/README.md>`__ file
+                  included in the sample application on GitHub.
+
+      .. step:: Add your KMS credentials
+
+         Create a variable containing your KMS credentials with the
+         following structure. Use the Access Key ID and Secret Access
+         Key that you used in step 2.2 when you :ref:`created an AWS IAM user <qe-create-aws-iam-user>`.
+
+         .. literalinclude:: /includes/qe-tutorials/ruby/queryable-encryption-helpers.rb
+            :start-after: start-aws-kms-credentials
+            :end-before: end-aws-kms-credentials
+            :language: ruby
+            :dedent:
+
+         .. important:: Reminder: Authenticate with IAM Roles in Production
+
+            To use an {+aws-iam-abbr+} role instead of an {+aws-iam-abbr+} user
+            to authenticate your application,
+            specify an empty hash for your credentials in your KMS provider
+            hash. This instructs the driver to automatically retrieve the credentials
+            from the environment:
+
+            .. code-block:: ruby
+
+               kms_provider_credentials = {
+                 aws: {}
+               }
+
+            You cannot automatically retrieve credentials if you are using a named KMS provider.
+
+      .. step:: Add your CMK credentials
+
+         Create a variable containing your {+cmk-long+} credentials
+         with the following structure. Use the {+aws-arn-abbr+} and
+         Region you recorded in step 1.3 when you :ref:`created a CMK <qe-create-cmk-aws>`.
+
+         .. literalinclude:: /includes/qe-tutorials/ruby/queryable-encryption-helpers.rb
+            :start-after: start-aws-cmk-credentials
+            :end-before: end-aws-cmk-credentials
+            :language: ruby
+            :dedent:
+
+      .. step:: Set automatic encryption options
+
+         .. note:: Automatic Encryption Options
+
+            The automatic encryption options provide configuration
+            information to the {+shared-library+},
+            which modifies the application's behavior when accessing encrypted fields.
+
+            To learn more about the {+shared-library+}, see
+            the :ref:`<qe-reference-shared-library>` page.
+
+         Create an ``auto_encryption_options`` hash that contains the following
+         options:
+
+         - The namespace of your {+key-vault-long+}
+         - The ``kms_providers`` hash, which contains your AWS KMS credentials
+         - The path to your {+shared-library+}
+
+         .. literalinclude:: /includes/qe-tutorials/ruby/queryable-encryption-helpers.rb
+            :start-after: start-auto-encryption-options
+            :end-before: end-auto-encryption-options
+            :language: ruby
+            :dedent:
+
+      .. step:: Create a Client to Set Up an Encrypted Collection
+
+         To create a client used to encrypt and decrypt data in
+         your collection, instantiate a new ``Mongo::Client`` by using your
+         connection URI and your automatic encryption options.
+
+         .. literalinclude:: /includes/qe-tutorials/ruby/queryable-encryption-tutorial.rb
+            :start-after: start-create-client
+            :end-before: end-create-client
+            :language: ruby
+            :dedent:
