@@ -7,6 +7,8 @@ using MongoDB.Bson;
 using MongoDB.Driver;
 using Utilities.Comparison;
 
+// We create test data inline in each test rather than using the Atlas sample dataset
+// because these tests perform write operations that would corrupt shared sample data.
 [TestFixture]
 public class RelationshipsTests
 {

@@ -1,10 +1,10 @@
 // :replace-start: {
 //   "terms": {
 //     "DotNetEnv.Env.GetString(\"CONNECTION_STRING\")": "\"<connection string URI>\"",
-//     "\"test_quick_reference\"": "\"sample_planets\""
+//     "\"test_query_data\"": "\"sample_guides\""
 //   }
 // }
-namespace Examples.EfCore.QuickReference;
+namespace Examples.EfCore.QueryData;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -47,11 +47,11 @@ public class Planet
 }
 // :snippet-end:
 
-public class QuickReference
+public class QueryData
 {
     private readonly PlanetDbContext _db;
 
-    public QuickReference(string dbName = "test_quick_reference")
+    public QueryData(string dbName = "test_query_data")
     {
         var connectionString = DotNetEnv.Env.GetString("CONNECTION_STRING");
         var client = new MongoClient(connectionString);
@@ -62,7 +62,7 @@ public class QuickReference
     {
         // :snippet-start: create-instance
         var client = new MongoClient(DotNetEnv.Env.GetString("CONNECTION_STRING"));
-        var db = PlanetDbContext.Create(client.GetDatabase("test_quick_reference"));
+        var db = PlanetDbContext.Create(client.GetDatabase("test_query_data"));
         // :snippet-end:
         return db;
     }
@@ -109,131 +109,44 @@ public class QuickReference
         return planets.ToList();
     }
 
-    public void InsertOne()
-    {
-        var db = _db;
-
-        // :snippet-start: insert-one
-        db.Planets.Add(new Planet()
-        {
-            name = "Pluto",
-            hasRings = false,
-            orderFromSun = 9
-        });
-
-        db.SaveChanges();
-        // :snippet-end:
-    }
-
-    public void InsertMany()
-    {
-        var db = _db;
-
-        // :snippet-start: insert-many
-        var planets = new[]
-        {
-            new Planet()
-            {
-                _id = ObjectId.GenerateNewId(),
-                name = "Pluto",
-                hasRings = false,
-                orderFromSun = 9
-            },
-            new Planet()
-            {
-                _id = ObjectId.GenerateNewId(),
-                name = "Scadrial",
-                hasRings = false,
-                orderFromSun = 10
-            }
-        };
-
-        db.Planets.AddRange(planets);
-        db.SaveChanges();
-        // :snippet-end:
-    }
-
-    public void UpdateOne()
-    {
-        var db = _db;
-
-        // :snippet-start: update-one
-        var planet = db.Planets.FirstOrDefault(p => p.name == "Mercury");
-        planet!.name = "Mercury the first planet";
-
-        db.SaveChanges();
-        // :snippet-end:
-    }
-
-    public void UpdateMany()
-    {
-        var db = _db;
-
-        // :snippet-start: update-many
-        var planets = db.Planets.Where(p => p.orderFromSun > 0);
-        foreach (var p in planets)
-        {
-            p.orderFromSun++;
-        }
-
-        db.SaveChanges();
-        // :snippet-end:
-    }
-
-    public void DeleteOne()
-    {
-        var db = _db;
-
-        // :snippet-start: delete-one
-        var planet = db.Planets.FirstOrDefault(p => p.name == "Pluto");
-        db.Planets.Remove(planet!);
-
-        db.SaveChanges();
-        // :snippet-end:
-    }
-
-    public void DeleteMany()
-    {
-        var db = _db;
-
-        // :snippet-start: delete-many
-        var pluto = db.Planets.FirstOrDefault(p => p.name == "Pluto");
-        var scadrial = db.Planets.FirstOrDefault(p => p.name == "Scadrial");
-        var planets = new[] { pluto!, scadrial! };
-        db.Planets.RemoveRange(planets);
-
-        db.SaveChanges();
-        // :snippet-end:
-    }
-
-    public List<Planet> OrderByExample()
+    public string OrderByExample()
     {
         var db = _db;
 
         // :snippet-start: order-by
         var planetList = db.Planets.OrderBy(p => p.orderFromSun);
+        // :remove-start:
+        var sw = new StringWriter();
+        Console.SetOut(sw);
+        // :remove-end:
 
         foreach (var p in planetList)
         {
             Console.WriteLine(p.name);
         }
         // :snippet-end:
-        return planetList.ToList();
+        Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true });
+        return sw.ToString().TrimEnd();
     }
 
-    public List<Planet> DoubleOrderBy()
+    public string DoubleOrderBy()
     {
         var db = _db;
 
         // :snippet-start: order-by-then-by
         var planetList = db.Planets.OrderBy(o => o.hasRings).ThenBy(o => o.name);
+        // :remove-start:
+        var sw = new StringWriter();
+        Console.SetOut(sw);
+        // :remove-end:
 
         foreach (var p in planetList)
         {
             Console.WriteLine("Has rings: " + p.hasRings + ", Name: " + p.name);
         }
         // :snippet-end:
-        return planetList.ToList();
+        Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true });
+        return sw.ToString().TrimEnd();
     }
 
     public List<Planet> TakeExample()

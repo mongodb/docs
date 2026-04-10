@@ -5,7 +5,7 @@
 // }
 namespace Examples.EfCore.Faq;
 
-using Examples.EfCore.QuickReference;
+using Examples.EfCore.QueryData;
 using MongoDB.Driver;
 
 public class Movie

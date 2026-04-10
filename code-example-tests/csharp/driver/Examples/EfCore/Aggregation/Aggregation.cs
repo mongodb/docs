@@ -1,6 +1,6 @@
 namespace Examples.EfCore.Aggregation;
 
-using Examples.EfCore.QuickReference;
+using Examples.EfCore.QueryData;
 
 public class Aggregation
 {

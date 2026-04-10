@@ -14,12 +14,6 @@ const PROJECTS = {
     outputDirectory: "content/code-examples/tested/csharp/driver",
     tempDirectory: "code-example-tests/csharp/driver/tempFormat",
   },
-  "ef-core": {
-    ignorePatterns: new Set(['bin', 'Examples.csproj', 'Program.cs', 'obj']),
-    startDirectory: "code-example-tests/csharp/driver/Examples/EfCore",
-    outputDirectory: "content/code-examples/tested/csharp/ef-core",
-    tempDirectory: "code-example-tests/csharp/driver/tempFormat-efcore",
-  },
 };
 // ------ END CONFIGURATION --------------------------------------------------
 

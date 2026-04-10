@@ -1,7 +1,7 @@
 namespace Tests.EfCore.Aggregation;
 
 using Examples.EfCore.Aggregation;
-using Examples.EfCore.QuickReference;
+using Examples.EfCore.QueryData;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Utilities.Comparison;
@@ -13,6 +13,8 @@ public class AggregationTests
     private IMongoDatabase _database = null!;
     private const string DbName = "test_aggregation";
 
+    // We seed test data rather than using the Atlas sample dataset because these tests
+    // perform write operations that would corrupt shared sample data.
     private static readonly Planet[] SeedPlanets =
     [
         new() { _id = ObjectId.GenerateNewId(), name = "Mercury", orderFromSun = 1, hasRings = false },

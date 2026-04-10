@@ -22,6 +22,11 @@ public class SecondaryIndexes
     {
         _client = new MongoClient(uri);
         _database = _client.GetDatabase(databaseName);
+        var collectionNames = _database.ListCollectionNames().ToList();
+        if (collectionNames.Contains(collectionName))
+        {
+            _database.DropCollection(collectionName);
+        }
 
         // :snippet-start: secondary-create-collection
         var createCollectionOptions = new CreateCollectionOptions

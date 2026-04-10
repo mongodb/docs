@@ -1,6 +1,6 @@
 namespace Examples.EfCore.Indexes;
 
-using Examples.EfCore.QuickReference;
+using Examples.EfCore.QueryData;
 using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 using MongoDB.EntityFrameworkCore.Extensions;

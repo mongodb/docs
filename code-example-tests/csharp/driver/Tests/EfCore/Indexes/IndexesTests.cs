@@ -1,7 +1,7 @@
 namespace Tests.EfCore.Indexes;
 
 using Examples.EfCore.Indexes;
-using Examples.EfCore.QuickReference;
+using Examples.EfCore.QueryData;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using MongoDB.Driver;
