@@ -1054,30 +1054,7 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Configure Access Control',
                 contentSite: 'ops-manager',
-                collapsible: true,
                 url: '/docs/ops-manager/:version/tutorial/nav/configure-mongodb-agent',
-                items: [
-                  {
-                    label: 'SCRAM-SHA',
-                    contentSite: 'ops-manager',
-                    url: '/docs/ops-manager/:version/tutorial/configure-mongodb-agent-for-scram',
-                  },
-                  {
-                    label: 'LDAP',
-                    contentSite: 'ops-manager',
-                    url: '/docs/ops-manager/:version/tutorial/configure-mongodb-agent-for-ldap',
-                  },
-                  {
-                    label: 'Kerberos',
-                    contentSite: 'ops-manager',
-                    url: '/docs/ops-manager/:version/tutorial/configure-mongodb-agent-for-kerberos',
-                  },
-                  {
-                    label: 'X.509',
-                    contentSite: 'ops-manager',
-                    url: '/docs/ops-manager/:version/tutorial/configure-mongodb-agent-for-x509',
-                  },
-                ],
               },
               {
                 label: 'Configure TLS',

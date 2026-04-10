@@ -347,7 +347,7 @@ export const toc: L1TocItem[] = [
             contentSite: 'kafka-connector',
             url: '/docs/kafka-connector/:version/kafka-connector-atlas-stream-processing-comparison',
             versions: {
-              includes: ['upcoming'],
+              includes: ['upcoming', 'current', 'v2.0', 'v1.16'],
             },
           },
           {

@@ -341,7 +341,7 @@ const tocData: TocItem[] = [
         label: 'Compare Kafka Connector and Atlas Stream Processing',
         contentSite: 'kafka-connector',
         url: '/docs/kafka-connector/:version/kafka-connector-atlas-stream-processing-comparison',
-        versions: { includes: ['upcoming'] },
+        versions: { includes: ['upcoming', 'current', 'v2.0', 'v1.16'] },
       },
       {
         label: 'Troubleshooting',

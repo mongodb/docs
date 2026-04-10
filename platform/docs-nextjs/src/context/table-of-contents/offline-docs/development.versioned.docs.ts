@@ -4647,6 +4647,14 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
+                        label: 'stopTransitionToDedicatedConfigServer',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/command/stopTransitionToDedicatedConfigServer',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0', 'manual'],
+                        },
+                      },
+                      {
                         label: 'transitionFromDedicatedConfigServer',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/command/transitionFromDedicatedConfigServer',
