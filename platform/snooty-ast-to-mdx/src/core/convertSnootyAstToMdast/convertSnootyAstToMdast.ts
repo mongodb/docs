@@ -708,7 +708,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           name: 'OpenAPI',
         };
       }
-      
+
       if (directiveName === 'wayfinding') {
         const title = parseSnootyArgument(node);
         const children = node.children ?? [];

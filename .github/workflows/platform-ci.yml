@@ -1,22 +1,19 @@
-name: Unit Tests (docs-nextjs)
+name: CI (platform)
 
 on:
-  push:
-    paths:
-      - '.github/workflows/unit-tests-docs-nextjs.yml'
-      - 'platform/docs-nextjs/**'
   pull_request:
     paths:
-      - 'platform/docs-nextjs/**'
+      - '.github/workflows/platform-ci.yml'
+      - 'platform/**'
   workflow_dispatch:
 
 jobs:
   test:
-    name: Run Tests in platform/docs-nextjs
+    name: Run Tests in platform
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: platform/docs-nextjs
+        working-directory: platform
     env:
       NPM_BASE_64_AUTH: ${{ secrets.NPM_BASE_64_AUTH }}
       NPM_EMAIL: ${{ secrets.NPM_EMAIL }}
@@ -25,23 +22,22 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v4
 
+      - name: Install pnpm
+        run: npm install -g pnpm@10.27.0
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: 'pnpm'
+          cache-dependency-path: platform/pnpm-lock.yaml
 
-      - name: Install pnpm
-        run: npm install -g pnpm@10
-      
       - name: Install dependencies
         # Remove --no-frozen-lockfile as soon as possible
         run: pnpm install --no-frozen-lockfile
-        working-directory: platform/docs-nextjs
 
       - name: Lint
         run: pnpm run lint
-        working-directory: platform/docs-nextjs
 
       - name: Unit tests
         run: pnpm run test
-        working-directory: platform/docs-nextjs
