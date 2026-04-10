@@ -19,7 +19,7 @@ Troubleshoot Live Migration
    :class: singlecol
 
 .. meta::
-   :description: Troubleshoot common validation and post-validation errors during Atlas live migration and learn how to resolve them.
+   :description: Troubleshoot common validation errors and post-migration warnings during Atlas live migration, including how to find and resolve temporary mongosync index cleanup failures.
    :keywords: atlas live migration, migration errors, c2c, mongosync
 
 Before the :ref:`live migration <live-migrate-c2c>` process begins,
@@ -140,3 +140,33 @@ Common Live Migration Validation Errors
        user must have sufficient system privileges.
        To learn more,
        see :ref:`Source Cluster Security <live-import-c2c-security>`.
+
+   * - We encountered the following issue(s): We were unable
+       to drop dummy indexes from your destination cluster.
+       To prevent performance and storage impact on your
+       cluster, please manually drop indexes suffixed with
+       ``_mongosync_dummy_shard_key_index``.
+     - To find which collections still contain the dummy
+       index, run the following query in {+mongosh+}:
+
+       .. code-block:: javascript
+
+          db.adminCommand('listDatabases').databases
+            .filter(
+              d => !['admin', 'local', 'config'].includes(d.name)
+            )
+            .forEach(database => {
+              const currentDb = db.getSiblingDB(database.name);
+              currentDb.getCollectionNames().forEach(collName => {
+                const indexes =
+                  currentDb.getCollection(collName).getIndexes();
+                const hasTargetIndex = indexes.some(
+                  idx => idx.name.startsWith(
+                    '_mongosync_dummy_shard_key_index'
+                  )
+                );
+                if (hasTargetIndex) {
+                  print(`${database.name}.${collName}`);
+                }
+              });
+            });
