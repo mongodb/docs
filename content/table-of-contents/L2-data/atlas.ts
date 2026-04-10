@@ -1,3 +1,4 @@
+import CloudgovData from '../docset-data/cloudgov';
 import AtlasK8sData from '../L2-data/atlas-k8s';
 import type { TocItem } from '../types';
 
@@ -1752,6 +1753,13 @@ const tocData: TocItem[] = [
     contentSite: 'atlas-operator',
     url: '/docs/atlas/operator/:version/',
     items: AtlasK8sData,
+    showSubNav: true,
+  },
+  {
+    label: 'Atlas for Government',
+    contentSite: 'cloudgov',
+    url: '/docs/atlas/government/',
+    items: CloudgovData,
     showSubNav: true,
   },
   {

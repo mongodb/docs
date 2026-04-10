@@ -4,13 +4,12 @@ const tocData: TocItem[] = [
   {
     label: 'MongoDB Atlas for Government',
     contentSite: 'cloudgov',
-    url: '/docs/atlas/government/',
-    collapsible: true,
+    group: true,
     items: [
       {
         label: ' Overview',
         contentSite: 'cloudgov',
-        url: '/docs/atlas/government/overview',
+        url: '/docs/atlas/government/',
         collapsible: true,
         items: [
           {
@@ -120,7 +119,7 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/government/security',
       },
       {
-        label: 'API',
+        label: 'Atlas for Government API',
         contentSite: 'cloudgov',
         url: '/docs/atlas/government/api',
       },

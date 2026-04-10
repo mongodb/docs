@@ -9,7 +9,7 @@ import { useVersionContext } from './version-context';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
-export const legacyTocProjects = ['realm', 'atlas-app-services', 'cloudgov', 'meta'];
+export const legacyTocProjects = ['realm', 'atlas-app-services', 'meta'];
 
 interface UnfiedTocContextType {
   tocTree: TocItem[];

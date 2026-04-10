@@ -4494,6 +4494,14 @@ export const toc: L1TocItem[] = [
                         },
                       },
                       {
+                        label: 'commitTransitionToDedicatedConfigServer',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/command/commitTransitionToDedicatedConfigServer',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0', 'manual'],
+                        },
+                      },
+                      {
                         label: 'configureCollectionBalancing',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/command/configureCollectionBalancing',
