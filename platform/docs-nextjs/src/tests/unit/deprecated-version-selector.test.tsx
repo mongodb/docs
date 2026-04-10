@@ -426,7 +426,8 @@ describe('DeprecatedVersionSelector when rendered', () => {
     await user.click(versionDropdown);
     expect(versionDropdown).toHaveAttribute('aria-expanded', 'true');
 
-    const versionChoices = screen.queryAllByRole('option').slice(3);
+    // Scope to version options only.
+    const versionChoices = screen.queryAllByRole('option').filter((el) => el.textContent?.startsWith('Version '));
 
     const sortedManualChoices = [
       'Version 1.1',
