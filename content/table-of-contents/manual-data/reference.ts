@@ -355,6 +355,12 @@ const tocData: TocItem[] = [
             versions: { excludes: manualVersions.before('v8.3') },
           },
           {
+            label: 'commitTransitionToDedicatedConfigServer',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/command/commitTransitionToDedicatedConfigServer',
+            versions: { excludes: manualVersions.before('v8.3') },
+          },
+          {
             label: 'configureCollectionBalancing',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/configureCollectionBalancing',
