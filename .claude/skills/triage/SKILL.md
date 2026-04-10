@@ -186,6 +186,6 @@ If any ticket in the plan is **P1 or P2**, surface the following after the plan 
 **STOP HERE.** Ask the user to confirm the plan is accurate. Do not proceed or make any Jira changes until the user explicitly approves. If the user requests adjustments, revise the plan and present it again before proceeding.
 
 Once approved, use the `mcp-atlassian` tool to apply all approved changes:
-1. Apply components, labels, priority, and status changes. Always **add** — never remove or replace existing labels or components. For status changes, use the Jira transition that moves the ticket to the target status.
+1. Apply components, labels, priority, and status changes. Always **add** — never remove or replace existing labels or components. For status changes, use the Jira transition that moves the ticket to the target status. **For Server tickets:** when using the Close transition, always include `{"story_points": 0}` in the `fields` parameter — Story Points is a required field for this transition.          
 2. For CET/Cloud only: assign individual writers.
 3. Add a comment to **every triaged ticket** using the appropriate template from `assets/comment-templates.md` (Assigned to Backlog, Moved to Ready for Work, or Closed).
