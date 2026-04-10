@@ -141,8 +141,9 @@
 :sup:`1` |bic-full| isn't supported on Ubuntu 22.04.
 
 :sup:`2` Do not upgrade IBM Z (s390x) deployments to |onprem| 8.0.21.
-The {+mdbagent+} 8.0.21 binaries for this architecture are not yet
-available. Deployments on earlier versions continue to run as before.
+The {+mdbagent+} 8.0.21 binaries for IBM Z (s390x) are unavailable.
+|onprem| 8.0.22 adds {+mdbagent+} binary support for IBM Z (s390x)
+on RHEL 8. Deployments on earlier versions continue to run as before.
 
 :sup:`3` |onprem| 8.0.21 removed support for the following platforms
 from the {+mdbagent+}:

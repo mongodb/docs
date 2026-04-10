@@ -1,3 +1,110 @@
+.. _opsmgr-server-8.0.22:
+
+|onprem| Server 8.0.22
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-04-09*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to
+  :ref:`108.0.22.8983-1 <mongodb-108.0.22.8983-1>`.
+- Enables the {+mdbagent+} to use OIDC tokens to authenticate
+  with your existing IdP, including for Workload Federation,
+  replacing long-lived database usernames and passwords with
+  short-lived tokens from your IdP (Okta, Azure AD, GCP, and
+  others) for stronger, centralized security.
+- Makes the {+mdbagent+} available as a supported binary for
+  IBM Z (s390x) on RHEL 8.
+- Improves log output for full snapshot enforcement reasons.
+- Makes the following improvements to the {+admin-api+}:
+
+  - Adds endpoints to create, retrieve, update, and delete S3 import
+    block store configurations.
+
+- Makes the following security improvements:
+
+  - Adds a Content-Security-Policy header to responses.
+  - Encrypts {+aws+} S3 credentials at rest in AppDB.
+  - Fixes an open redirect bypass via backslash in the login redirect.
+  - Replaces MD5-based session ID generation with a 256-bit secure
+    value.
+  - Fixes cleartext storage of sensitive database credentials.
+  - Fixes a Cross-Site Request Forgery vulnerability in the snapshot
+    and clustershot extend endpoints.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes a bug where third-party restores could be permanently blocked
+  by a stale draft automation config (``CONCURRENT_RESTORES``).
+- Fixes the :guilabel:`View More Details` button in the Query
+  Profiler to correctly display extended query details in Edge
+  and Chrome.
+- Fixes a bug where automation could get stuck in AdjustUsers when
+  creating a user with duplicate roles in x.509 mode.
+- Fixes a bug where the :guilabel:`Delete` button for an imported
+  S3 bucket was incorrectly disabled when no imported snapshots
+  were present.
+- Fixes S3 blockstore URI formatting to include credentials when
+  appropriate.
+- Fixes |onprem| not displaying the arbiter version in
+  monitoring-only mode with authentication enabled for MongoDB
+  server versions prior to 8.1.0. Arbiter version information
+  remains unavailable for MongoDB 8.1.0 and later.
+- Fixes a bug where the Content Security Policy ``connect-src``
+  directive blocked version manifest fetches.
+- Fixes a silent {+mdbagent+} crash caused by a panic in the
+  monitoring module during restart.
+- Fixes the following |cve|\s:
+
+  - `CVE-2023-50570 <https://nvd.nist.gov/vuln/detail/CVE-2023-50570>`__
+  - `CVE-2026-27727 <https://nvd.nist.gov/vuln/detail/CVE-2026-27727>`__
+  - `GHSA-m2cm-222f-qw44 <https://github.com/advisories/GHSA-m2cm-222f-qw44>`__
+  - `CVE-2026-27830 <https://nvd.nist.gov/vuln/detail/CVE-2026-27830>`__
+  - `GHSA-5476-xc4j-rqcv <https://github.com/advisories/GHSA-5476-xc4j-rqcv>`__
+  - `CVE-2026-29074 <https://nvd.nist.gov/vuln/detail/CVE-2026-29074>`__
+  - `GHSA-xpqw-6gx7-v673 <https://github.com/advisories/GHSA-xpqw-6gx7-v673>`__
+  - `CVE-2026-27601 <https://nvd.nist.gov/vuln/detail/CVE-2026-27601>`__
+  - `GHSA-qpx9-hpmf-5gmw <https://github.com/advisories/GHSA-qpx9-hpmf-5gmw>`__
+  - `CVE-2026-27942 <https://nvd.nist.gov/vuln/detail/CVE-2026-27942>`__
+  - `GHSA-fj3w-jwp8-x2g3 <https://github.com/advisories/GHSA-fj3w-jwp8-x2g3>`__
+  - `CVE-2026-25896 <https://nvd.nist.gov/vuln/detail/CVE-2026-25896>`__
+  - `GHSA-m7jm-9gc2-mpf2 <https://github.com/advisories/GHSA-m7jm-9gc2-mpf2>`__
+  - `GHSA-jmr7-xgp7-cmfj <https://github.com/advisories/GHSA-jmr7-xgp7-cmfj>`__
+  - `CVE-2026-25128 <https://nvd.nist.gov/vuln/detail/CVE-2026-25128>`__
+  - `CVE-2026-26278 <https://nvd.nist.gov/vuln/detail/CVE-2026-26278>`__
+  - `GHSA-3ppc-4f35-3m26 <https://github.com/advisories/GHSA-3ppc-4f35-3m26>`__
+  - `GHSA-23c5-xmqv-rm74 <https://github.com/advisories/GHSA-23c5-xmqv-rm74>`__
+  - `GHSA-7r86-cg39-jmmj <https://github.com/advisories/GHSA-7r86-cg39-jmmj>`__
+  - `CVE-2026-26996 <https://nvd.nist.gov/vuln/detail/CVE-2026-26996>`__
+  - `CVE-2026-27903 <https://nvd.nist.gov/vuln/detail/CVE-2026-27903>`__
+  - `CVE-2026-27904 <https://nvd.nist.gov/vuln/detail/CVE-2026-27904>`__
+  - `CVE-2026-33228 <https://nvd.nist.gov/vuln/detail/CVE-2026-33228>`__
+  - `GHSA-rf6f-7fwh-wjgh <https://github.com/advisories/GHSA-rf6f-7fwh-wjgh>`__
+  - `CVE-2026-32141 <https://nvd.nist.gov/vuln/detail/CVE-2026-32141>`__
+  - `GHSA-25h7-pfq9-p65f <https://github.com/advisories/GHSA-25h7-pfq9-p65f>`__
+  - `CVE-2023-43646 <https://nvd.nist.gov/vuln/detail/CVE-2023-43646>`__
+  - `GHSA-4q6p-r6v2-jvc5 <https://github.com/advisories/GHSA-4q6p-r6v2-jvc5>`__
+  - `GHSA-73rr-hh4g-fpgx <https://github.com/advisories/GHSA-73rr-hh4g-fpgx>`__
+  - `CVE-2026-24001 <https://nvd.nist.gov/vuln/detail/CVE-2026-24001>`__
+  - `CVE-2025-43865 <https://nvd.nist.gov/vuln/detail/CVE-2025-43865>`__
+  - `CVE-2025-43864 <https://nvd.nist.gov/vuln/detail/CVE-2025-43864>`__
+  - `CVE-2025-68470 <https://nvd.nist.gov/vuln/detail/CVE-2025-68470>`__
+  - `GHSA-9jcx-v3wj-wh4m <https://github.com/advisories/GHSA-9jcx-v3wj-wh4m>`__
+  - `CVE-2024-39249 <https://nvd.nist.gov/vuln/detail/CVE-2024-39249>`__
+  - `CVE-2024-45296 <https://nvd.nist.gov/vuln/detail/CVE-2024-45296>`__
+  - `GHSA-9wv6-86v2-598j <https://github.com/advisories/GHSA-9wv6-86v2-598j>`__
+  - `CVE-2026-4800 <https://nvd.nist.gov/vuln/detail/CVE-2026-4800>`__
+  - `GHSA-r5fr-rjxr-66jc <https://github.com/advisories/GHSA-r5fr-rjxr-66jc>`__
+  - `CVE-2026-2950 <https://nvd.nist.gov/vuln/detail/CVE-2026-2950>`__
+  - `GHSA-f23m-r3pf-42rh <https://github.com/advisories/GHSA-f23m-r3pf-42rh>`__
+  - `GHSA-2w69-qvjg-hvjx <https://github.com/advisories/GHSA-2w69-qvjg-hvjx>`__
+  - `CVE-2023-45133 <https://nvd.nist.gov/vuln/detail/CVE-2023-45133>`__
+  - `GHSA-67hx-6x53-jw92 <https://github.com/advisories/GHSA-67hx-6x53-jw92>`__
+  - `GHSA-5c6j-r48x-rmvq <https://github.com/advisories/GHSA-5c6j-r48x-rmvq>`__
+
 .. _opsmgr-server-8.0.21:
 
 |onprem| Server 8.0.21
