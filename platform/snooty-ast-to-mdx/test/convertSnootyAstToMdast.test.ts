@@ -847,6 +847,251 @@ describe('DefinitionTerm inline content rendering', () => {
     });
   });
 
+  describe('io-code-block directive', () => {
+    // Minimal helper to build an input or output child directive for these tests.
+    const makeIoChild = (
+      name: 'input' | 'output',
+      codeNode: Record<string, unknown>,
+      options?: Record<string, unknown>,
+    ): SnootyNode => ({
+      type: 'directive',
+      name,
+      options: { language: codeNode.lang ?? 'javascript', linenos: false, ...options },
+      children: [{ type: 'code', copyable: true, emphasize_lines: [], linenos: false, ...codeNode } as SnootyNode],
+    });
+
+    it('emits an IoCodeBlock with a single Input child', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'directive',
+            name: 'io-code-block',
+            options: { copyable: true },
+            children: [makeIoChild('input', { lang: 'javascript', value: 'db.find()' })],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      expect(mdx).toContain('<IoCodeBlock>');
+      expect(mdx).toContain('<Input>');
+      expect(mdx).toContain('```javascript');
+      expect(mdx).toContain('db.find()');
+      expect(mdx).not.toContain('<Output');
+      expect(mdx).toContain('</IoCodeBlock>');
+    });
+
+    it('emits an IoCodeBlock with Input and Output children', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'directive',
+            name: 'io-code-block',
+            options: { copyable: true },
+            children: [
+              makeIoChild('input', { lang: 'javascript', value: 'db.find()' }),
+              makeIoChild('output', { lang: 'shell', value: '[{ _id: 1 }]' }),
+            ],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      expect(mdx).toContain('<IoCodeBlock>');
+      expect(mdx).toContain('<Input>');
+      expect(mdx).toContain('```javascript');
+      expect(mdx).toContain('db.find()');
+      expect(mdx).toContain('<Output>');
+      expect(mdx).toContain('```shell');
+      expect(mdx).toContain('[{ _id: 1 }]');
+    });
+
+    it('always emits copyable={false} on the Output code block regardless of source AST', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'directive',
+            name: 'io-code-block',
+            options: { copyable: true },
+            children: [
+              makeIoChild('input', { lang: 'javascript', value: 'db.find()', copyable: true }),
+              // Source AST says copyable: true — conversion must override it to false.
+              makeIoChild('output', { lang: 'shell', value: '[{ _id: 1 }]', copyable: true }),
+            ],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      // Split on the Output block opening so we can assert only within that block.
+      const outputSection = mdx.split('<Output>')[1];
+      expect(outputSection).toContain('copyable={false}');
+      expect(outputSection).not.toContain('copyable={true}');
+    });
+
+    it('emits copyable={false} on Output even when the code block has no language', () => {
+      // remark only serializes the info string when lang is present — without a lang
+      // fallback, copyable={false} would be silently dropped.
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'directive',
+            name: 'io-code-block',
+            children: [
+              makeIoChild('input', { lang: 'javascript', value: 'db.find()' }),
+              // No lang on the output code node — the converter must supply one so
+              // remark does not discard the meta string entirely.
+              makeIoChild('output', { value: '[{ _id: 1 }]' }),
+            ],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      const outputSection = mdx.split('<Output>')[1];
+      expect(outputSection).toContain('copyable={false}');
+    });
+
+    it('passes visible={false} on Output when the option is false', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'directive',
+            name: 'io-code-block',
+            options: { copyable: true },
+            children: [
+              makeIoChild('input', { lang: 'javascript', value: 'db.find()' }),
+              makeIoChild('output', { lang: 'shell', value: '[]' }, { visible: false }),
+            ],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      expect(mdx).toContain('<Output visible={false}>');
+    });
+
+    it('omits visible attribute on Output when the option is true (true is the default)', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'directive',
+            name: 'io-code-block',
+            options: { copyable: true },
+            children: [
+              makeIoChild('input', { lang: 'javascript', value: 'db.find()' }),
+              makeIoChild('output', { lang: 'shell', value: '[]' }, { visible: true }),
+            ],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      expect(mdx).toContain('<Output>');
+      expect(mdx).not.toContain('visible={true}');
+    });
+
+    it('passes code-block meta props (copyable, linenos, emphasize_lines) through to the fenced block', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'directive',
+            name: 'io-code-block',
+            options: { copyable: true },
+            children: [
+              makeIoChild('input', {
+                lang: 'python',
+                value: 'x = 1',
+                copyable: true,
+                linenos: true,
+                emphasize_lines: [1],
+              }),
+            ],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      expect(mdx).toContain('```python');
+      expect(mdx).toContain('copyable={true}');
+      expect(mdx).toContain('linenos={true}');
+      expect(mdx).toContain('emphasize_lines={[1]}');
+    });
+
+    it('falls back to options.language when the code node has no lang', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'directive',
+            name: 'io-code-block',
+            options: { copyable: true },
+            children: [
+              {
+                type: 'directive',
+                name: 'input',
+                options: { language: 'ruby', linenos: false },
+                children: [{ type: 'code', value: 'puts "hi"', copyable: true } as SnootyNode],
+              },
+            ],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      expect(mdx).toContain('```ruby');
+      expect(mdx).toContain('puts "hi"');
+    });
+
+    it('does not emit visible attribute on Input', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'directive',
+            name: 'io-code-block',
+            options: { copyable: true },
+            children: [makeIoChild('input', { lang: 'javascript', value: 'db.find()' }, { visible: false })],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      // visible is only meaningful on Output; Input must not carry it
+      expect(mdx).toContain('<Input>');
+      expect(mdx).not.toContain('<Input visible');
+    });
+
+    it('skips unknown child directive names inside io-code-block', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'directive',
+            name: 'io-code-block',
+            options: { copyable: true },
+            children: [
+              makeIoChild('input', { lang: 'javascript', value: 'db.find()' }),
+              { type: 'directive', name: 'unexpected', children: [] },
+            ],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      expect(mdx).toContain('<IoCodeBlock>');
+      expect(mdx).toContain('<Input>');
+      expect(mdx).not.toContain('<Unexpected');
+    });
+  });
+
   describe('step directive', () => {
     it('produces StepHeading from argument and removes duplicate heading', () => {
       const ast: SnootyNode = {

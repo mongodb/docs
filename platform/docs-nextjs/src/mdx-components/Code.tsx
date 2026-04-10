@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useContext, useMemo } from 'react';
+import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
 import { css, cx } from '@leafygreen-ui/emotion';
 import styled from '@emotion/styled';
 import { default as CodeBlock } from '@leafygreen-ui/code';
@@ -17,7 +18,7 @@ import { DRIVER_ICON_MAP } from '@/components/icons/DriverIconMap';
 import { getLanguage } from '@/utils/get-language';
 import { STRUCTURED_DATA_CLASSNAME } from '@/utils/structured-data/structured-data';
 import { CodeContext } from '@/components/code/code-context';
-import { baseCodeStyle, borderCodeStyle, lgStyles } from '@/components/code/style';
+import { baseCodeStyle, borderCodeStyle, lgStyles } from '@/mdx-components/IOCode/style';
 import { SoftwareSourceCodeSd } from '@/utils/structured-data/software-source-code-sd';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 
@@ -30,14 +31,15 @@ export type CodeProps = {
   value?: string;
   source?: string;
   lineno_start?: number;
+  darkMode?: boolean;
 };
 
-const codeContainerStyle = css`
+const codeContainerStyle = (darkMode: boolean) => css`
   ${baseCodeStyle}
 
   pre {
-    background-color: ${palette.gray.light3};
-    color: ${palette.black};
+    background-color: ${darkMode ? palette.black : palette.gray.light3};
+    color: ${darkMode ? palette.gray.light3 : palette.black};
 
     .dark-theme & {
       background-color: ${palette.black};
@@ -46,8 +48,8 @@ const codeContainerStyle = css`
   }
 
   [data-testid='leafygreen-code-panel'] {
-    background-color: ${palette.white};
-    border-color: ${palette.gray.light2};
+    background-color: ${darkMode ? palette.gray.dark2 : palette.white};
+    border-color: ${darkMode ? palette.gray.dark2 : palette.gray.light2};
 
     .dark-theme & {
       background-color: ${palette.gray.dark2};
@@ -87,7 +89,9 @@ export const Code = ({
   value = '',
   source,
   lineno_start,
+  darkMode,
 }: CodeProps) => {
+  const { darkMode: resolvedDarkMode } = useDarkMode(darkMode);
   const { setActiveTab } = useContext(TabContext);
   const { languageOptions, codeBlockLanguage } = useContext(CodeContext);
   const { slug } = usePageContext();
@@ -177,7 +181,7 @@ export const Code = ({
           }}
         />
       )}
-      <div className={cx(codeContainerStyle, captionAndWhitespaceStyle, 'intro-code-block')}>
+      <div className={cx(codeContainerStyle(resolvedDarkMode), captionAndWhitespaceStyle, 'intro-code-block')}>
         {captionSpecified && (
           <div>
             <CaptionContainer>
@@ -198,6 +202,7 @@ export const Code = ({
           showCustomActionButtons={customActionButtonList.length > 0}
           customActionButtons={customActionButtonList}
           lineNumberStart={lineno_start}
+          darkMode={resolvedDarkMode}
         >
           {code}
         </CodeBlock>

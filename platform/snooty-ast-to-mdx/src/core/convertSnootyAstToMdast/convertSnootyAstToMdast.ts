@@ -78,6 +78,50 @@ interface ConvertChildrenArgs {
   parentType?: string;
 }
 
+/**
+ * Build a fenced mdast `code` node from a Snooty code/literal_block node.
+ * Accepts an optional `fallbackLang` for cases where the lang lives on a
+ * parent node (e.g. the `language` option of an io-code-block input/output).
+ */
+const convertCodeNode = (node: SnootyNode, fallbackLang?: string | null): MdastNode => {
+  let value = node.value ?? '';
+  if (!value && Array.isArray(node.children)) {
+    value = node.children
+      .filter(isValueNode)
+      .map(({ value }) => value)
+      .join('');
+  }
+  const lang = node.lang ?? fallbackLang ?? null;
+  const metaParts: string[] = [];
+  if (typeof node.copyable === 'boolean') {
+    metaParts.push(`copyable={${node.copyable}}`);
+  }
+  if (typeof node.darkMode === 'boolean') {
+    metaParts.push(`darkMode={${node.darkMode}}`);
+  }
+  if (Array.isArray(node.emphasize_lines) && node.emphasize_lines.length > 0) {
+    metaParts.push(`emphasize_lines={${JSON.stringify(node.emphasize_lines)}}`);
+  }
+  if (typeof node.linenos === 'boolean') {
+    metaParts.push(`linenos={${node.linenos}}`);
+  }
+  if (typeof node.caption === 'string') {
+    metaParts.push(`caption={'${node.caption.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'}`);
+  }
+  if (typeof node.source === 'string') {
+    metaParts.push(`source={'${node.source.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'}`);
+  }
+  if (node.lineno_start !== undefined) {
+    metaParts.push(`lineno_start={${Number(node.lineno_start)}}`);
+  }
+  return {
+    type: 'code',
+    lang,
+    meta: metaParts.length > 0 ? metaParts.join(' ') : undefined,
+    value,
+  };
+};
+
 /** Convert a list of Snooty nodes to a list of mdast nodes */
 const convertChildren = ({ nodes, depth, ctx, parentType }: ConvertChildrenArgs): MdastNode[] => {
   if (!nodes || !Array.isArray(nodes)) return [];
@@ -202,43 +246,8 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
     }
 
     case 'code': // literal_block is mapped to `code` in AST
-    case 'literal_block': {
-      let value = node.value ?? '';
-      if (!value && Array.isArray(node.children)) {
-        value = node.children
-          .filter(isValueNode)
-          .map(({ value }) => value)
-          .join('');
-      }
-      const lang = node.lang ?? null;
-      const metaParts: string[] = [];
-      if (typeof node.copyable === 'boolean') {
-        metaParts.push(`copyable={${node.copyable}}`);
-      }
-      if (Array.isArray(node.emphasize_lines) && node.emphasize_lines.length > 0) {
-        metaParts.push(`emphasize_lines={${JSON.stringify(node.emphasize_lines)}}`);
-      }
-      if (typeof node.linenos === 'boolean') {
-        metaParts.push(`linenos={${node.linenos}}`);
-      }
-      if (typeof node.caption === 'string') {
-        // Use single-quoted JSX expression so double quotes in captions don't need backslash-escaping
-        // (remark double-escapes backslashes inside {}, making \" → \\" which is invalid JS)
-        metaParts.push(`caption={'${node.caption.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'}`);
-      }
-      if (typeof node.source === 'string') {
-        metaParts.push(`source={'${node.source.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'}`);
-      }
-      if (node.lineno_start !== undefined) {
-        metaParts.push(`lineno_start={${Number(node.lineno_start)}}`);
-      }
-      return {
-        type: 'code',
-        lang,
-        meta: metaParts.length > 0 ? metaParts.join(' ') : undefined,
-        value,
-      };
-    }
+    case 'literal_block':
+      return convertCodeNode(node);
 
     case 'bullet_list':
       return {
@@ -427,6 +436,55 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           children,
         };
       }
+      if (directiveName === 'io-code-block') {
+        const ioChildren: MdastNode[] = [];
+
+        for (const child of node.children ?? []) {
+          const childName = String(child.name ?? '').toLowerCase();
+          if (childName !== 'input' && childName !== 'output') continue;
+
+          // The code content is the first child of the input/output directive.
+          // Fall back to options.language when the code node has no lang set.
+          const codeNode = child.children?.[0];
+          if (!codeNode) continue;
+          const fallbackLang = typeof child.options?.language === 'string' ? child.options.language : null;
+          // Output code blocks are never copyable — force the prop regardless of the source AST.
+          // Also ensure lang is non-null so remark serializes the meta string (copyable={false}).
+          // remark only emits the info string when lang is present; without it the meta is dropped.
+          const normalizedCodeNode =
+            childName === 'output'
+              ? { ...codeNode, copyable: false, darkMode: true, lang: codeNode.lang ?? fallbackLang ?? 'text' }
+              : codeNode;
+          const codeMdast = convertCodeNode(normalizedCodeNode, fallbackLang);
+
+          const componentName = childName === 'input' ? 'Input' : 'Output';
+          const attributes: MdastNode[] = [];
+
+          // visible={false} is the only meaningful value to emit — true is the default and can be omitted.
+          if (childName === 'output' && !child.options?.visible && child.options?.visible !== undefined) {
+            attributes.push({
+              type: 'mdxJsxAttribute',
+              name: 'visible',
+              value: { type: 'mdxJsxAttributeValueExpression', value: 'false' },
+            });
+          }
+
+          ioChildren.push({
+            type: 'mdxJsxFlowElement',
+            name: componentName,
+            attributes,
+            children: [codeMdast],
+          });
+        }
+
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'IoCodeBlock',
+          attributes: [],
+          children: ioChildren,
+        };
+      }
+
       if (directiveName === 'figure' || directiveName === 'image') {
         return convertDirectiveImage({ node, ctx });
       }
@@ -648,7 +706,9 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         return {
           type: 'mdxJsxFlowElement',
           name: 'OpenAPI',
-       }
+        };
+      }
+      
       if (directiveName === 'wayfinding') {
         const title = parseSnootyArgument(node);
         const children = node.children ?? [];

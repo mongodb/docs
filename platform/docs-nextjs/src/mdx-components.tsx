@@ -48,6 +48,8 @@ import { WayfindingOption } from './mdx-components/Wayfinding/WayfindingOption';
 import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell } from '@/mdx-components/Table';
 import { Footnote } from '@/mdx-components/footnote/Footnote';
 import { FootnoteReference } from '@/mdx-components/footnote/FootnoteReference';
+import { IoCodeBlock } from '@/mdx-components/IOCode';
+import { Output } from '@/mdx-components/IOCode/Output';
 import { OpenAPI } from '@/mdx-components/OpenAPI';
 import { Field } from '@/mdx-components/Field';
 import { FieldList } from '@/mdx-components/FieldList';
@@ -118,7 +120,6 @@ export const components = (injectedProps?: InjectedProps) =>
         {children}
       </ComposableTutorial>
     ),
-    IOCodeBlock: ({ children }) => <span>{children}</span>,
     Container: ({ children }) => <span>{children}</span>,
     CtaBanner: ({ children, ...props }) => <CTABanner {...props}>{children}</CTABanner>,
     DefaultDomain: () => null,
@@ -149,8 +150,8 @@ export const components = (injectedProps?: InjectedProps) =>
     Hlist: ({ children, ...props }) => <HorizontalList {...props}>{children}</HorizontalList>,
     Icon: ({ children, ...props }) => <Icon {...props}>{children}</Icon>,
     Introduction: ({ children }) => <Introduction>{children}</Introduction>,
-    Input: ({ children }) => <span>{children}</span>,
-    IoCodeBlock: ({ children }) => <span>{children}</span>,
+    Input: ({ children }) => <>{children}</>,
+    IoCodeBlock: ({ children, ...props }) => <IoCodeBlock {...props}>{children}</IoCodeBlock>,
     Kbd: ({ children }) => <Kbd>{children}</Kbd>,
     Kicker: ({ children }) => <Kicker>{children}</Kicker>,
     // built-in list syntax → List/ListItem (prefer over custom List/ListItem directives)
@@ -162,7 +163,7 @@ export const components = (injectedProps?: InjectedProps) =>
     ),
     li: ({ children, ...props }) => <ListItem {...props}>{children}</ListItem>,
     code: ({ children }) => <Literal>{children}</Literal>,
-    Output: ({ children }) => <span>{children}</span>,
+    Output: ({ children, ...props }) => <Output {...props}>{children}</Output>,
     OpenAPI: () => <OpenAPI />,
     OpenAPIChangelog: ({ children }) => <span>{children}</span>,
     Procedure: ({ children, ...props }) => <Procedure {...props}>{children}</Procedure>,
