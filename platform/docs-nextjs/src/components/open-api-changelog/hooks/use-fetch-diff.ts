@@ -42,7 +42,9 @@ export const useFetchDiff = ({
       const isStaging = ['staging', 'development', 'dotcomstg'].includes(env);
 
       try {
-        const res = await fetch(`/api/openapi/diff/?diff=${fromAndToDiffLabel}${isStaging ? `&staging=true` : ''}`);
+        const res = await fetch(
+          `/docs/platform/api/openapi/diff/?diff=${fromAndToDiffLabel}${isStaging ? `&staging=true` : ''}`,
+        );
         const diffResponse = await res.json();
         const filteredDiff = hideDiffChanges(diffResponse);
         setDiff(filteredDiff);

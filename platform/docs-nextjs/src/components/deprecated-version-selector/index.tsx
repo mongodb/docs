@@ -171,7 +171,7 @@ const DeprecatedVersionSelector = () => {
   useEffect(() => {
     const createReposMap = async () => {
       try {
-        const docsetsResponse = await fetch(`/api/docsets`);
+        const docsetsResponse = await fetch(`/docs/platform/api/docsets`);
         const docsets: Docset[] = await docsetsResponse.json();
 
         const reposBranchesMap = keyBy(

@@ -36,6 +36,11 @@ const nextConfig = {
         source: '/docs/:path*.md',
         destination: '/api/markdown/:path*',
       },
+      // Canonical public paths for Next.js API routes under /docs/platform/api/*
+      {
+        source: '/docs/platform/api/:path*',
+        destination: '/api/:path*',
+      },
     ];
   },
   images: {

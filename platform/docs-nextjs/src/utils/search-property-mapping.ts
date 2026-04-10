@@ -12,6 +12,6 @@ import type { SnootyEnv } from '@/types/data';
  */
 export const fetchSearchPropertyMapping = async (snootyEnv: SnootyEnv): Promise<SearchPropertyMapping> => {
   const isStaging = ['staging', 'development', 'dotcomstg'].includes(snootyEnv);
-  const res = await fetch(`/api/search-mapping/${isStaging ? `?staging=true` : ''}`);
+  const res = await fetch(`/docs/platform/api/search-mapping/${isStaging ? `?staging=true` : ''}`);
   return res.json();
 };

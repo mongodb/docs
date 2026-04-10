@@ -10,8 +10,9 @@ import { Caption } from './Caption';
 
 // Netlify's image transformation CDN does not support animated GIFs or SVGs —
 // serve those directly through the internal API to avoid broken images.
+// TODO: /.netlify/images/?url= won't work when hosted behind Kanopy
 const NETLIFY_IMAGE_API_PATH = '/.netlify/images/?url=';
-const INTERNAL_IMAGE_API_PATH = '/api/images?path=';
+const INTERNAL_IMAGE_API_PATH = '/docs/platform/api/images?path=';
 const NETLIFY_TRANSFORM_UNSUPPORTED = new Set(['.gif', '.svg']);
 
 // Formats the image url to the api path

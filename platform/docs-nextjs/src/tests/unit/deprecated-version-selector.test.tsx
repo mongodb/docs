@@ -258,7 +258,7 @@ const mockedReposBranches: Docset[] = [
   },
 ];
 
-// Mock the fetch API for /api/docsets
+// Mock the fetch API for /docs/platform/api/docsets
 const mockFetch = jest.fn();
 
 jest.mock('@/utils/use-snooty-metadata', () => ({
@@ -283,7 +283,7 @@ const mountConsumer = async () => {
   // Wait for the fetch to complete - the component calls fetch on mount
   await waitFor(
     () => {
-      expect(mockFetch).toHaveBeenCalledWith('/api/docsets');
+      expect(mockFetch).toHaveBeenCalledWith('/docs/platform/api/docsets');
     },
     { timeout: 3000 },
   );
@@ -396,7 +396,7 @@ describe('DeprecatedVersionSelector when rendered', () => {
       wrapper = await mountConsumer();
 
       // Wait for the fetch to complete
-      await waitFor(() => expect(mockFetch).toHaveBeenCalledWith('/api/docsets'));
+      await waitFor(() => expect(mockFetch).toHaveBeenCalledWith('/docs/platform/api/docsets'));
 
       const productDropdown = wrapper.container.querySelectorAll('button')[0];
       await user.click(productDropdown);
@@ -468,7 +468,7 @@ describe('DeprecatedVersionSelector when rendered', () => {
     wrapper = render(<DeprecatedVersionSelector />);
 
     // Wait for the fetch to complete
-    await waitFor(() => expect(mockFetch).toHaveBeenCalledWith('/api/docsets'));
+    await waitFor(() => expect(mockFetch).toHaveBeenCalledWith('/docs/platform/api/docsets'));
 
     const productDropdown = wrapper.container.querySelectorAll('button')[0];
     await user.click(productDropdown);

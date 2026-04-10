@@ -73,7 +73,7 @@ export function isValidWindow() {
 export async function upsertFeedback({ page, user, attachment, ...rest }: FeedbackPayload): Promise<string> {
   const { viewport, comment, category, rating, snootyEnv, feedback_id } = rest;
 
-  const res = await fetch('/api/feedback/upsert/', {
+  const res = await fetch('/docs/platform/api/feedback/upsert/', {
     method: 'POST',
     body: JSON.stringify({
       page,
