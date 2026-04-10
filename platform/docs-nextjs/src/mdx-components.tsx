@@ -49,6 +49,8 @@ import { Table, TableHead, TableBody, TableRow, TableHeaderCell, TableCell } fro
 import { Footnote } from '@/mdx-components/footnote/Footnote';
 import { FootnoteReference } from '@/mdx-components/footnote/FootnoteReference';
 import { OpenAPI } from '@/mdx-components/OpenAPI';
+import { Field } from '@/mdx-components/Field';
+import { FieldList } from '@/mdx-components/FieldList';
 
 type InjectedProps = Record<string, unknown>;
 
@@ -136,10 +138,10 @@ export const components = (injectedProps?: InjectedProps) =>
       </Admonition>
     ),
     Extract: ({ children }) => children,
-    Field: ({ children }) => <span>{children}</span>,
-    FieldList: ({ children }) => <span>{children}</span>,
     Footnote: ({ children, ...props }) => <Footnote {...props}>{children}</Footnote>,
     FootnoteReference: (props) => <FootnoteReference {...props} />,
+    Field: ({ children, ...props }) => <Field {...props}>{children}</Field>,
+    FieldList: ({ children }) => <FieldList>{children}</FieldList>,
     Gold: ({ children }) => <Gold>{children}</Gold>,
     Guilabel: ({ children }) => <GUILabel>{children}</GUILabel>,
     Heading: ({ children, ...props }) => <Heading {...props}>{children}</Heading>,

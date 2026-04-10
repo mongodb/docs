@@ -135,7 +135,7 @@ const hoistFlowElementsFromParagraph = (children: MdastNode[]): MdastNode | Mdas
 /** Convert a single Snooty node to mdast. Certain nodes (e.g. `section`) expand
     into multiple mdast siblings, so the return type can be an array. */
 /** Parent node types whose child paragraphs should be unwrapped (no <p> wrapper emitted). */
-const SKIP_P_TAG_PARENTS = new Set(['caption', 'footnote', 'field']);
+const SKIP_P_TAG_PARENTS = new Set(['caption', 'footnote']);
 
 const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): MdastNode | MdastNode[] | null => {
   switch (node.type) {
@@ -1151,7 +1151,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (Array.isArray(node.ids)) ids.push(...node.ids);
       if (ids.length === 0 && typeof node.name === 'string') ids.push(node.name);
       if (ids.length === 0) return null;
-      const refTargets = ids.map((id) => ({
+      const refTargets: MdastNode[] = ids.map((id) => ({
         type: 'mdxJsxFlowElement',
         name: 'RefTarget',
         attributes: [{ type: 'mdxJsxAttribute', name: 'id', value: id }],
@@ -1159,22 +1159,23 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       }));
       // For named directives like `authrole`, the `target_identifier` children
       // contain the plain-text display name (e.g. "Organization Owner").
-      // Sibling nodes (e.g. a literal wrapper) are skipped to avoid code formatting.
       // For plain label targets (name: 'label'), all children are skipped since the
       // section heading that follows already renders the text.
       if (node.name !== 'label') {
         const identifierNodes = (node.children ?? []).filter((c) => c.type === 'target_identifier');
+        const otherNodes = (node.children ?? []).filter(
+          (c) => c.type !== 'target_identifier' && c.type !== 'directive_argument',
+        );
         const childContent = convertChildren({ nodes: identifierNodes, depth, ctx });
         if (childContent.length > 0) {
           const textValue = childContent.map((n) => (n as { value?: string }).value ?? '').join('');
-          return [
-            ...refTargets,
-            {
-              type: 'paragraph',
-              children: [{ type: 'strong', children: [{ type: 'inlineCode', value: textValue }] }],
-            },
-          ];
+          refTargets.push({
+            type: 'paragraph',
+            children: [{ type: 'strong', children: [{ type: 'inlineCode', value: textValue }] }],
+          });
         }
+        const otherChildren = convertChildren({ nodes: otherNodes, depth, ctx });
+        return [...refTargets, ...otherChildren];
       }
       return refTargets;
     }
