@@ -45,14 +45,14 @@ const initializeWatcher = async () => {
       }
     })
     .on('unlink', async (filePath) => {
-      // TODO(DOP-6715): Implement delete  with an API route
-      // const { error } = await deleteFile(filePath);
-      // const relativePath = getRelativePath(filePath);
-      // if (error) {
-      //   console.error(chalk.red(`✗ Failed to delete ${relativePath}:`), error);
-      // } else {
-      //   console.log(chalk.green(`✓ Deleted ${relativePath}`));
-      // }
+      const relativePath = getRelativePath(filePath);
+      const res = await fetch(`${DEV_SERVER_URL}/api/blobs/delete?path=${encodeURIComponent(relativePath)}`);
+      const data = await res.json();
+      if (data.error) {
+        console.error(chalk.red(`✗ Failed to delete ${relativePath}:`), data.error);
+      } else {
+        console.log(chalk.green(`✓ Deleted ${relativePath}`));
+      }
     })
     .on('error', (error) => {
       console.error(chalk.red('Watcher error:'), error);
