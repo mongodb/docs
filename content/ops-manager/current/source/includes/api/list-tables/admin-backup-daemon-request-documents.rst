@@ -42,11 +42,6 @@
        - ``HDD``
        - ``SSD``
 
-   * - ``id``
-     - string
-     - Required
-     - Unique identifier of this :opsmgr:`Backup Daemon </reference/glossary/#std-term-backup-daemon>`.
-
    * - ``labels``
      - array of strings
      - Optional
