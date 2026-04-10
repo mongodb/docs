@@ -1,4 +1,4 @@
-.. Last updated: March 24, 2026 at 2:51 PM EDT
+.. Last updated: April 10, 2026 at 2:50 PM EDT
 
 .. _api-rate-limits-aws-clusters-dns:
 
@@ -131,7 +131,7 @@ Atlas Search Indexes
 
 **Scope:** GROUP
 
-**Capacity:** 1200
+**Capacity:** 500
 
 **Refill:** 500/60s
 
@@ -924,6 +924,7 @@ Private Endpoint Services
 * **GET** ``/api/atlas/v2/groups/{groupId}/privateEndpoint/{cloudProvider}/endpointService``
 * **GET** ``/api/atlas/v2/groups/{groupId}/privateEndpoint/{cloudProvider}/endpointService/{endpointServiceId}``
 * **GET** ``/api/atlas/v2/groups/{groupId}/privateEndpoint/{cloudProvider}/endpointService/{endpointServiceId}/endpoint/{endpointId}``
+* **PATCH** ``/api/atlas/v2/groups/{groupId}/privateEndpoint/endpointService/{endpointServiceId}``
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/privateEndpoint/regionalMode``
 * **POST** ``/api/atlas/v2/groups/{groupId}/privateEndpoint/endpointService``
 * **POST** ``/api/atlas/v2/groups/{groupId}/privateEndpoint/{cloudProvider}/endpointService/{endpointServiceId}/endpoint``
