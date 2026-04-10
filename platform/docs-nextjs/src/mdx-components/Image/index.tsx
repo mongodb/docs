@@ -17,10 +17,11 @@ const NETLIFY_TRANSFORM_UNSUPPORTED = new Set(['.gif', '.svg']);
 // Formats the image url to the api path
 const formatImageUrl = (imagePath: string) => {
   const ext = imagePath.slice(imagePath.lastIndexOf('.')).toLowerCase();
+  const internalUrl = `${INTERNAL_IMAGE_API_PATH}${imagePath}`;
   if (NETLIFY_TRANSFORM_UNSUPPORTED.has(ext)) {
-    return `${INTERNAL_IMAGE_API_PATH}${imagePath}`;
+    return internalUrl;
   }
-  return `${NETLIFY_IMAGE_API_PATH}${INTERNAL_IMAGE_API_PATH}${imagePath}`;
+  return `${NETLIFY_IMAGE_API_PATH}${encodeURIComponent(internalUrl)}`;
 };
 
 const figureStyle = (width?: string, height?: string) => css`
