@@ -1,4 +1,4 @@
-.. Last updated: March 12, 2026 at 02:34 PM EDT
+.. Last updated: April 09, 2026 at 02:37 PM EDT
 
 .. list-table::
    :header-rows: 1
@@ -60,6 +60,18 @@
      - .. _atlas_event_admin_override_payment_method_expired:
 
        Admin Override payment method expired automatically
+     - no
+
+   * - ``AI_MODELS_API_KEY_CREATED``
+     - .. _atlas_event_ai_models_api_key_created:
+
+       AI Models API key created
+     - no
+
+   * - ``AI_MODELS_API_KEY_DELETED``
+     - .. _atlas_event_ai_models_api_key_deleted:
+
+       AI Models API key deleted
      - no
 
    * - ``ALERT_ACKNOWLEDGED_AUDIT``
@@ -2504,6 +2516,12 @@
        Encryption at Rest configuration no longer valid
      - yes
 
+   * - ``ENCRYPTION_AT_REST_KEY_ROTATION_STARTED``
+     - .. _atlas_event_encryption_at_rest_key_rotation_started:
+
+       MongoDB is re-wrapping internal encryption keys because the Customer Master Key was updated
+     - no
+
    * - ``ENCRYPTION_AT_REST_KMS_NETWORK_ACCESS_DENIED``
      - .. _atlas_event_encryption_at_rest_kms_network_access_denied:
 
@@ -2910,6 +2928,12 @@
      - .. _atlas_event_group_created:
 
        Project was created
+     - no
+
+   * - ``GROUP_DEFAULT_ALERTS_SETTINGS_CHANGED``
+     - .. _atlas_event_group_default_alerts_settings_changed:
+
+       Project default alert settings changed
      - no
 
    * - ``GROUP_DELETED``
@@ -3420,6 +3444,12 @@
      - .. _atlas_event_interface_endpoint_patched:
 
        Private endpoint patched
+     - no
+
+   * - ``INTERFACE_ENDPOINT_RETRIED``
+     - .. _atlas_event_interface_endpoint_retried:
+
+       Private endpoint retried
      - no
 
    * - ``INTER_NODE_DATA_VALIDATION_SUBMITTED_FOR_REPLICA_SET``
@@ -4052,10 +4082,22 @@
        A new organization has been linked to this paying organization
      - no
 
+   * - ``NODE_HIDDEN_BY_ADMIN``
+     - .. _atlas_event_node_hidden_by_admin:
+
+       Member of Replica Set is hidden by an admin
+     - no
+
    * - ``NODE_ROLLING_RESYNC_SCHEDULED``
      - .. _atlas_event_node_rolling_resync_scheduled:
 
        Node rolling resync scheduled
+     - no
+
+   * - ``NODE_UNHIDDEN_BY_ADMIN``
+     - .. _atlas_event_node_unhidden_by_admin:
+
+       Member of Replica Set is unhidden by an admin
      - no
 
    * - ``NO_ACTIVE_LEGACY_TLS_CONNECTIONS``
@@ -4758,6 +4800,12 @@
      - .. _atlas_event_pause_host_audit:
 
        Monitoring for host paused
+     - no
+
+   * - ``PAYMENT_DUE_DATE_EXTENDED``
+     - .. _atlas_event_payment_due_date_extended:
+
+       Payment due date extended
      - no
 
    * - ``PAYMENT_FORGIVEN``
