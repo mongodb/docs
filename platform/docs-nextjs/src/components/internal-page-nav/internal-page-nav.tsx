@@ -18,6 +18,8 @@ import type { TocItem } from '../unified-sidenav/types';
 import NextPrevLink from './next-prev-link';
 import { usePageContext } from '@/context/page-context';
 import { assertLeadingSlash } from '@/utils/assert-leading-slash';
+import { getFullSlug } from '@/utils/get-full-slug';
+import { removeLeadingSlash } from '@/utils/remove-leading-slash';
 
 interface FlatItem {
   label: string;
@@ -91,16 +93,31 @@ function groupContainsUrl(items: TocItem[], currentUrl: string): boolean {
   return false;
 }
 
+// Recursively finds the innermost (most specific) group containing the URL.
+// This ensures that pages whose URL also appears as an entry-point URL in a
+// parent group (e.g. the kafka-connector root in the "Connectors" group) are
+// matched against their own docset group rather than the outer wrapper group.
+function findDeepestGroupForUrl(items: TocItem[], currentUrl: string): TocItem | null {
+  for (const item of items) {
+    if (!item.items) continue;
+
+    // Depth-first: prefer a deeper match inside this item's children
+    const deeperMatch = findDeepestGroupForUrl(item.items, currentUrl);
+    if (deeperMatch) return deeperMatch;
+
+    // If no deeper group was found and this item is a group containing the URL, return it
+    if (item.group && groupContainsUrl(item.items, currentUrl)) {
+      return item;
+    }
+  }
+  return null;
+}
+
 function findGroupForUrl(toc: TocItem[], currentUrl: string): TocItem | null {
   for (const L1Item of toc) {
     if (!L1Item.items) continue;
-    for (const item of L1Item.items) {
-      if (item.group) {
-        if (groupContainsUrl(item.items || [], currentUrl)) {
-          return item;
-        }
-      }
-    }
+    const result = findDeepestGroupForUrl(L1Item.items, currentUrl);
+    if (result) return result;
   }
   return null;
 }
@@ -316,11 +333,14 @@ const InternalPageNav = () => {
   const { tocTree } = useUnifiedToc();
   const { project } = useSnootyMetadata();
   const { availableVersions, activeVersions, siteBasePrefixWithVersion } = useVersionContext();
-  const { slug } = usePageContext();
   const noVersionPathPrefix = assertLeadingSlash(
     replaceVersionInPath(siteBasePrefixWithVersion, availableVersions[project]),
   );
-  const fullSlug = slug === '/' ? noVersionPathPrefix : assertTrailingSlash(noVersionPathPrefix) + slug;
+  const { slug: pageSlug } = usePageContext();
+  const tempSlug = removeLeadingSlash(
+    getFullSlug(pageSlug, siteBasePrefixWithVersion).replace(siteBasePrefixWithVersion, ''),
+  );
+  const fullSlug = tempSlug === '' ? noVersionPathPrefix : assertTrailingSlash(noVersionPathPrefix) + tempSlug;
 
   const flattenedData = useMemo(() => {
     return getFlattenedTocData(tocTree, fullSlug, activeVersions, availableVersions);
