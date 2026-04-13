@@ -10,7 +10,7 @@ Batch Operations in Transactions
 
 .. meta::
    :keywords: code example, multi-document, atomic, acid
-   :description: Learn to perform transactions using the MongoDB .NET/C# Driver, ensuring data consistency and handling errors with session-based operations.
+   :description: Learn to perform multi-document transactions using the MongoDB .NET/C# Driver, ensuring data consistency and handling errors with session-based ACID operations.
 
 .. contents:: On this page
    :local:
@@ -22,7 +22,7 @@ Overview
 --------
 
 In this guide, you can learn how to use the {+driver-long+} to perform
-**transactions**. :manual:`Transactions </core/transactions/>` allow
+**transactions**. :ref:`Transactions <transactions>` allow
 you to run a series of operations that do not change any data until the
 transaction is committed. If any operation in the transaction returns an
 error, the driver cancels the transaction and discards all data changes
@@ -35,7 +35,7 @@ Sessions
 --------
 
 In MongoDB, transactions run within logical **sessions**. A
-:manual:`session </reference/server-sessions/>` is a grouping of related
+:ref:`session <server-sessions>` is a grouping of related
 read or write operations that you intend to run sequentially. Sessions
 enable causal consistency for a
 group of operations or allow you to execute operations in an
@@ -81,7 +81,7 @@ describes the properties that you can set on a ``ClientSessionOptions`` object:
    * - ``CausalConsistency``
      - | Specifies whether the session is causally consistent. In a causally consistent session,
          the driver executes operations in the order they were issued. To learn more, see
-         :ref:`<csharp-causal-consistency>`.
+         :ref:`csharp-causal-consistency`.
        |
        | **Data Type**: {+bool-data-type+}
        | **Default**: ``true``
@@ -95,7 +95,7 @@ describes the properties that you can set on a ``ClientSessionOptions`` object:
    
    * - ``Snapshot``
      - | Specifies whether the driver performs snapshot reads. To learn more about snapshot
-         reads, see :manual:`Read Concern "snapshot" </reference/read-concern-snapshot/>`
+         reads, see :ref:`Read Concern "snapshot" <read-concern-snapshot>`
          in the {+mdb-server+} manual.
        |
        | **Data Type**: {+bool-data-type+}
@@ -108,6 +108,68 @@ describes the properties that you can set on a ``ClientSessionOptions`` object:
          :ref:`Read Concern "snapshot" <atClusterTime>` in the {+mdb-server+} manual.
        |
        | **Data Type**: `BsonTimestamp <{+api-root+}/MongoDB.Bson/MongoDB.Bson.BsonTimestamp.html>`__
+       | **Default**: ``null``
+
+The ``DefaultTransactionOptions`` property accepts an instance of the
+``TransactionOptions`` class.
+The following table describes the properties that you can set on a
+``TransactionOptions`` object:
+
+.. list-table::
+   :widths: 35 65
+   :header-rows: 1
+
+   * - Property
+     - Description
+
+   * - ``MaxCommitTime``
+     - | Maximum amount of time that a single ``commitTransaction`` command
+         can run. If the commit exceeds this limit, {+mdb-server+} returns a
+         ``MaxTimeMSExpired`` error and doesn't commit the changes in the transaction.
+         The driver doesn't retry the commit after this error.
+       |
+       | If you omit this property, {+mdb-server+} applies the
+         :ref:`default transaction runtime limit <transaction-limit>`.
+       |
+       | **Data Type**: ``TimeSpan?``
+       | **Default**: ``null``
+
+   * - ``ReadConcern``
+     - | Read concern for each transaction in the session. To learn
+         more, see :ref:`Read Concern <read-concern>`
+         in the {+mdb-server+} manual.
+       |
+       | If you omit this property, the transactions use the session-level
+         read concern, if you set one. If you also omit the session-level read concern,
+         the transactions use the client-level read concern.
+       |
+       | **Data Type**: `ReadConcern <{+api-root+}/MongoDB.Driver/MongoDB.Driver.ReadConcern.html>`__
+       | **Default**: ``null``
+
+   * - ``ReadPreference``
+     - | Read preference for each transaction in the session. To learn
+         more, see
+         :ref:`Read Preference <read-preference>` in
+         the {+mdb-server+} manual.
+       |
+       | If you omit this property, the transactions use the session-level
+         read preference, if you set one. If you also omit the session-level read preference,
+         the transactions use the client-level read preference.
+       |
+       | **Data Type**: `ReadPreference <{+api-root+}/MongoDB.Driver/MongoDB.Driver.ReadPreference.html>`__
+       | **Default**: ``null``
+
+   * - ``WriteConcern``
+     - | Write concern for each transaction in the session. To learn
+         more, see
+         :ref:`Write Concern <write-concern>` in
+         the {+mdb-server+} manual.
+       |
+       | If you omit this property, the transactions use the session-level
+         write concern, if you set one. If you also omit the session-level write concern,
+         the transactions use the client-level write concern.
+       |
+       | **Data Type**: `WriteConcern <{+api-root+}/MongoDB.Driver/MongoDB.Driver.WriteConcern.html>`__
        | **Default**: ``null``
 
 The following code example shows how to create a session with custom options:
@@ -124,7 +186,7 @@ The following code example shows how to create a session with custom options:
             writeConcern:   WriteConcern.Acknowledged)
    };
 
-   var session = client.StartSession(sessionOptions); 
+   var session = client.StartSession(sessionOptions);
 
 .. _csharp-causal-consistency:
 
@@ -208,15 +270,15 @@ tabs to learn about the methods to manage your transaction:
 
             * - ``WithTransaction()``
               - | Starts a transaction on this session and runs the given callback. To
-                  learn more about this method, see the :manual:`withTransaction() page
-                  </reference/method/Session.withTransaction/>` in the Server manual.
+                  learn more about this method, see the :ref:`withTransaction() page
+                  <session-withTransaction>` in the Server manual.
 
                 :gold:`IMPORTANT:` When catching exceptions within the
                 callback function used by
                 ``WithTransaction()``, you  **must** rethrow the exception before
                 exiting the try-catch block. Failing to do so can result in an
                 infinite loop. For further details on how to handle exceptions in this
-                case, see :manual:`Transactions </core/transactions/>` in the Server
+                case, see :ref:`Transactions <transactions>` in the Server
                 manual and select :guilabel:`C#` from the language dropdown to view 
                 the example.
 
@@ -266,20 +328,28 @@ tabs to learn about the methods to manage your transaction:
 
             * - ``WithTransactionAsync()``
               - | Starts a transaction on this session and runs the given callback. To
-                  learn more about this method, see the :manual:`withTransaction() page
-                  </reference/method/Session.withTransaction/>` in the Server manual.
+                  learn more about this method, see the :ref:`withTransaction() page
+                  <session-withTransaction>` in the Server manual.
 
                 :gold:`IMPORTANT:` When catching exceptions within the callback function used by
                 ``WithTransactionAsync()``, you  **must** rethrow the exception
                 before exiting the try-catch block. Failing to do so can result in an
                 infinite loop. For further details on how to handle exceptions in this
-                case, see :manual:`Transactions </core/transactions/>` in the Server
+                case, see :ref:`Transactions <transactions>` in the Server
                 manual and select :guilabel:`C#` from the language dropdown to view 
                 the example.
 
                 |
                 | **Parameters**: ``Func <IClientSessionHandle, CancellationToken, Task<TResult>>``, ``TransactionOptions``, ``CancellationToken``
                 | **Return Type**: ``Task <TResult>``
+
+.. tip:: Configure Transactions
+
+   You can customize the behavior of individual transactions by passing an
+   instance of the ``TransactionOptions`` class to the
+   ``StartTransaction()`` or ``WithTransaction()`` method. The options that you set
+   here override the default transaction options that you set on the ``ClientSessionOptions``
+   object.
 
 Example
 -------
@@ -289,6 +359,7 @@ transaction, and insert documents into multiple collections within the transacti
 through the following steps:
 
 1. Create a session from the client by using the ``StartSession()`` method.
+#. Create a ``TransactionOptions`` object to configure the transaction.
 #. Use the ``StartTransaction()`` method to start a transaction.
 #. Insert documents into the ``books`` and ``films`` collections.
 #. Commit the transaction by using the ``CommitTransaction()`` method.
@@ -314,7 +385,7 @@ through the following steps:
       If you're using {+mdb-server+} v8.0 or later, you can perform
       write operations on multiple namespaces within a single transaction by using
       the ``BulkWrite()`` or ``BulkWriteAsync()`` method. For more information,
-      see :ref:`<csharp-bulk-write>`.
+      see :ref:`csharp-bulk-write`.
 
 Additional Information
 ----------------------
@@ -322,9 +393,9 @@ Additional Information
 To learn more about the concepts mentioned in this guide, see the
 following pages in the Server manual:
 
-- :manual:`Transactions </core/transactions/>`
-- :manual:`Server Sessions </reference/server-sessions/>`
-- :manual:`Read Isolation, Consistency, and Recency </core/read-isolation-consistency-recency/#causal-consistency>`
+- :ref:`Transactions <transactions>`
+- :ref:`Server Sessions <server-sessions>`
+- :ref:`Read Isolation, Consistency, and Recency <causal-consistency>`
 
 API Documentation
 ~~~~~~~~~~~~~~~~~
