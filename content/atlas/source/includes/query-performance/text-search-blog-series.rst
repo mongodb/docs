@@ -1,0 +1,3 @@
+- `MongoDB Text Search: B-Tree vs Inverted Index, Use Search Instead (Part 1) <https://medium.com/mongodb/mongodb-text-search-b-tree-vs-inverted-index-use-search-instead-part-1-501560cb0d59>`__
+- `MongoDB Text Search: Finding Words — Use Search Instead (Part 2) <https://medium.com/mongodb/mongodb-text-search-finding-words-use-search-instead-part-2-76219c7303b5>`__
+- `MongoDB Text Search: Substring Pattern Matching Including Regex and Wildcard, Use Search Instead (Part 3) <https://medium.com/mongodb/mongodb-text-search-substring-pattern-matching-including-regex-and-wildcard-use-search-instead-3633c6f7e604>`__

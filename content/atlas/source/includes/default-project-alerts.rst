@@ -28,8 +28,8 @@ using :ref:`security-aws-kms`:
 
 |service| provides the following default |fts| alerts:
 
-- :alert:`Atlas Search: Max Number of Fields Indexed is`   
-- :alert:`Atlas Search: Max Number of nGram Fields Indexed is`
+- :alert:`Atlas Search: Max Number of Fields Indexed is`, ``above 1000``
+- :alert:`Atlas Search: Max Number of nGram Fields Indexed is`, ``above 100``
 - :alert:`Atlas Search: Max Number of Lucene Docs is <Atlas Search: Max Number of Lucene Docs is>`
 - :alert:`Insufficient disk space to support rebuilding search indexes <Insufficient disk space to support rebuilding search indexes>`
 - :alert:`Atlas Search: Mongot stopped replication <Atlas Search: Mongot stopped replication>`
