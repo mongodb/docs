@@ -1,6 +1,4 @@
 import type { MDXComponents } from 'mdx/types';
-import { Reference } from '@/mdx-components/Reference';
-import { RefRole } from '@/mdx-components/RefRole';
 import { RefTarget } from '@/mdx-components/RefTarget';
 import { Admonition } from '@/mdx-components/Admonition';
 import { Banner } from '@/mdx-components/Banner';
@@ -58,7 +56,6 @@ type InjectedProps = Record<string, unknown>;
 
 export const components = (injectedProps?: InjectedProps) =>
   ({
-    // basic components required for MDX rendering
     h1: ({ children }) => <Heading headingLevel={1}>{children}</Heading>,
     h2: ({ children }) => <Heading headingLevel={2}>{children}</Heading>,
     h3: ({ children }) => <Heading headingLevel={3}>{children}</Heading>,
@@ -66,9 +63,6 @@ export const components = (injectedProps?: InjectedProps) =>
     h5: ({ children }) => <Heading headingLevel={5}>{children}</Heading>,
     h6: ({ children }) => <Heading headingLevel={6}>{children}</Heading>,
     Image: (props) => <Image {...props} {...injectedProps} />,
-    Reference: (props) => <Reference {...props} {...injectedProps} />,
-    RefRole: (props) => <RefRole {...props} {...injectedProps} />,
-    // standard markdown elements
     p: ({ children, ...props }) => <Paragraph {...props}>{children}</Paragraph>,
     pre: ({ children, ...props }) => {
       const lang =
@@ -79,7 +73,6 @@ export const components = (injectedProps?: InjectedProps) =>
       const value = (children as React.ReactElement<{ className?: string; children?: string }>)?.props?.children ?? '';
       return <Code {...props} lang={lang} value={value} />;
     },
-    // dummy mappings for everything else
     Tip: ({ children, ...props }) => (
       <Admonition name="tip" {...props}>
         {children}
@@ -153,7 +146,6 @@ export const components = (injectedProps?: InjectedProps) =>
     IoCodeBlock: ({ children, ...props }) => <IoCodeBlock {...props}>{children}</IoCodeBlock>,
     Kbd: ({ children }) => <Kbd>{children}</Kbd>,
     Kicker: ({ children }) => <Kicker>{children}</Kicker>,
-    // built-in list syntax → List/ListItem (prefer over custom List/ListItem directives)
     ol: ({ children, ...props }) => <List {...props}>{children}</List>,
     ul: ({ children, ...props }) => (
       <List enumtype="unordered" {...props}>
@@ -182,7 +174,6 @@ export const components = (injectedProps?: InjectedProps) =>
     TabsSelector: () => <TabsSelector />,
     RefTarget: (props) => <RefTarget {...props} />,
     Time: (props) => <Time {...props} />,
-    // built-in thematic break (--- / *** / ___) → hr; render with Transition component
     hr: () => <Transition />,
     VersionAdded: ({ children, ...props }) => (
       <Version changeType="versionadded" {...props}>

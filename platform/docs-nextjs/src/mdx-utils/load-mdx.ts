@@ -5,7 +5,7 @@ import remarkGfm from 'remark-gfm';
 import remarkSectionize from 'remark-sectionize';
 import rehypeMdxCodeProps from 'rehype-mdx-code-props';
 import { remarkHowToSeoMetadata } from './remark-how-to-seo-metadata';
-import { remarkResolveIncludes } from './remark-resolve-includes';
+import { remarkResolveImports } from './remark-resolve-imports';
 import { remarkStepNumbers } from './remark-step-numbers';
 import { components } from '@/mdx-components';
 import { getBlobString } from './blob-read';
@@ -42,7 +42,7 @@ const compileMdxWithPlugins = async ({ mdxString, componentMapping, projectPath 
         parseFrontmatter: true,
         mdxOptions: {
           remarkPlugins: [
-            [remarkResolveIncludes, { projectPath }],
+            [remarkResolveImports, { projectPath }],
             remarkGfm,
             remarkSectionize,
             remarkStepNumbers,
