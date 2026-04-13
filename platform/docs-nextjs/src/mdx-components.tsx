@@ -106,7 +106,6 @@ export const components = (injectedProps?: InjectedProps) =>
     Button: ({ children, ...props }) => <Button {...props}>{children}</Button>,
     Card: ({ children, ...props }) => <Card {...props}>{children}</Card>,
     CardGroup: ({ children, ...props }) => <CardGroup {...props}>{children}</CardGroup>,
-    Contents: () => null,
     Facet: ({ children }) => children,
     Collapsible: ({ children, ...props }) => <Collapsible {...props}>{children}</Collapsible>,
     CommunityDriver: ({ children, ...props }) => <CommunityPillLink {...props}>{children}</CommunityPillLink>,

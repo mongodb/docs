@@ -11,6 +11,22 @@ import { parseSnootyArgument } from './parseSnootyArgument';
 import { computeComposableTutorialData, buildComposableOptionsFromNode } from './computeComposableTutorialData';
 import { extractInlineDisplayText } from './extractInlineDisplayText';
 
+// Toctree is navigation structure only – not rendered in page content
+// Meta is page metadata collected into frontmatter
+// Facet is page metadata collected into frontmatter
+// Contents data is collected into frontmatter
+// Dismissible-skills-card data is collected into frontmatter
+// Default-domain is unnecessary
+// IA is legacy toc
+const DIRECTIVES_TO_REMOVE = [
+  'default-domain',
+  'dismissible-skills-card',
+  'ia',
+  'contents',
+  'meta',
+  'facet',
+  'toctree',
+];
 const DIRECTIVES_TO_REMOVE_IF_EMPTY = ['index'];
 const DIRECTIVES_TO_SKIP_CONTAINER = ['extract', 'glossary'];
 
@@ -371,26 +387,9 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 
     case 'directive': {
       const directiveName = String(node.name ?? '').toLowerCase();
-      // Special-case <Meta> directives here: we collect them at root level.
-      // This node will be handled separately – skip here.
-      if (directiveName === 'meta') {
-        return null;
-      }
-      // Facet directives are page metadata collected into frontmatter – skip here.
-      if (directiveName === 'facet') {
-        return null;
-      }
-      // Toctree is navigation structure only – not rendered in page content.
-      if (directiveName === 'toctree') {
-        return null;
-      }
 
-      if (directiveName === 'default_domain') {
-        return null;
-      }
-
-      // dismissible-skills-card is rendered via pageOptions in the sidebar – skip here.
-      if (directiveName === 'dismissible-skills-card') {
+      // Directives not needed in MDX
+      if (DIRECTIVES_TO_REMOVE.includes(directiveName)) {
         return null;
       }
 

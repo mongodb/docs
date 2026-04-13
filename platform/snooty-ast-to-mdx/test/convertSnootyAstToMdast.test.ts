@@ -523,7 +523,6 @@ describe('DefinitionTerm inline content rendering', () => {
     ['important', 'Important'],
     ['example', 'Example'],
     ['banner', 'Banner'],
-    ['contents', 'Contents'],
   ];
 
   it.each(FLOW_DIRECTIVE_CASES)(
@@ -671,10 +670,10 @@ describe('DefinitionTerm inline content rendering', () => {
     expect(mdx).toContain('After.');
   });
 
-  it('suppresses default_domain directive (produces no output)', () => {
+  it('suppresses default-domain directive (produces no output)', () => {
     const ast: SnootyNode = {
       type: 'root',
-      children: [{ type: 'directive', name: 'default_domain', argument: 'mongodb', children: [] }],
+      children: [{ type: 'directive', name: 'default-domain', argument: 'mongodb', children: [] }],
     };
     const { mdx } = convertSnootyAst({ ast });
     expect(mdx).toBe('');
