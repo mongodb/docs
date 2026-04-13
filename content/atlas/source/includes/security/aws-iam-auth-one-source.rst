@@ -1,26 +1,36 @@
-========================
-AWS IAM Authentication
-========================
+Overview
+--------
 
-.. default-domain:: mongodb
-
-.. meta::
-   :keywords: passwordless auth, passwordless, saml, federated identity management, iam roles
-   :description: Set up AWS IAM authentication for database users to connect to Atlas clusters using IAM roles, reducing authentication mechanisms and secret management.
-
-
-Use an |aws| |iam| User or Role :abbr:`ARN (Amazon Resource Name)` to authenticate a
-database user. Using |aws| |iam| reduces the number of authentication mechanisms and
+You can use |aws| |iam| Users or Roles to authenticate database users to your |service|
+{+database-deployments+} without managing passwords. Using |aws| |iam| reduces the number of authentication mechanisms and
 number of secrets to manage. |service| does not receive your authentication secret key
 over the wire and the driver does not persist it.
+
+Choose the appropriate authentication method for your use case:
+
+- **IAM Roles**: Roles that AWS services (EC2, Lambda, ECS) or
+  federated users assume. We recommend that you use IAM Roles for
+  application and workload access for workloads running on AWS compute
+  resources.
+- **IAM Users**: Individual AWS users that need direct database
+  access. This option might suit applications running with specific
+  user credentials. For human users such as developers and
+  administrators, we recommend that you use :atlas:`Workforce Identity
+  Federation with OIDC
+  </workforce-oidc/#std-label-oidc-authentication-workforce>` for a
+  direct SSO experience with your identity provider.
+
+.. important::
+
+   Before clients can connect using AWS IAM database authentication, you must create database users that are configured for IAM authentication. To learn how to create database users that use ``IAM Users`` or ``IAM Roles`` for authentication, see :ref:`add-mongodb-users`.
 
 .. note::
 
    |service| uses |aws| :abbr:`STS (Security Token Service)` to verify the
    identity of |iam| users and roles. |aws| enforces a `default request
    quota <https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_iam-quotas.html>`__
-   of 600 requests per second, per account, per region. This quota is 
-   applied against the |aws| account of the |iam| user or role. 
+   of 600 requests per second, per account, per region. This quota is
+   applied against the |aws| account of the |iam| user or role.
   
 .. _passwordless-auth-aws-no-saml:
 
@@ -75,32 +85,39 @@ This page describes how |aws| Lambda, |aws| :abbr:`ECS (Elastic Container Servic
       To learn more about these environment variables, see :aws:`Using AWS Lambda 
       environment variables </lambda/latest/dg/configuration-envvars.html>`.
 
-   .. tab:: AWS ECS 
+   .. tab:: AWS ECS
       :tabid: aws-ecs
 
-      |aws| :abbr:`ECS (Elastic Container Service)` gets the credentials from 
-      the following URI: 
+      |aws| :abbr:`ECS (Elastic Container Service)` gets the credentials from
+      the following URI:
 
-      .. code-block:: shell 
-         :copyable: false 
+      .. code-block:: shell
+         :copyable: false
 
          http://169.254.170.2${AWS_CONTAINER_CREDENTIALS_RELATIVE_URI}
 
-      ``AWS_CONTAINER_CREDENTIALS_RELATIVE_URI`` is an environment variable. 
+      ``AWS_CONTAINER_CREDENTIALS_RELATIVE_URI`` is an environment variable.
       To learn more, see :aws:`IAM Roles for Tasks
-      </AmazonECS/latest/developerguide/task-iam-roles.html>` in the AWS documentation. 
+      </AmazonECS/latest/developerguide/task-iam-roles.html>` in the AWS documentation.
 
-      |aws| EC2 gets the credentials from Instance Metadata Service V2 at the 
-      following |url|: 
+   .. tab:: AWS EC2
+      :tabid: aws-ec2
 
-      .. code-block:: shell 
+      |aws| EC2 instances get credentials automatically from the Instance Metadata Service V2 when an IAM role is attached. The credentials are retrieved from the
+      following |url|:
+
+      .. code-block:: shell
          :copyable: false
 
          http://169.254.169.254/latest/meta-data/iam/security-credentials/
 
-      To learn more, see :aws:`Launch an instance with an IAM role
+      .. important::
+
+         You must attach an IAM role to your EC2 instance for authentication to work. The IAM role must have the necessary permissions to access your |service| {+database-deployments+}.
+
+      To learn how to attach an IAM role to your EC2 instance, see :aws:`Launch an instance with an IAM role
       </AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html#attach-iam-role>` in the AWS
-      documentation. 
+      documentation.
 
    .. tab:: AWS ECS Fargate
       :tabid: aws-ecs-fargate

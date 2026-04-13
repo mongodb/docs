@@ -10,17 +10,34 @@
       
       #. Click :icon-fa5:`plus` :guilabel:`Add New Database User`.
       
-   .. step:: Select :guilabel:`AWS IAM`.
+   .. step:: Configure the Authentication Method as AWS IAM.
 
-      In the :guilabel:`Authentication Method` section of the :guilabel:`Add
-      New Database User` modal window, select the box marked :guilabel:`AWS IAM`.
-      
-   .. step:: Enter user information.
+      a. Choose :guilabel:`AWS IAM` in the :guilabel:`Authentication
+         Method` section of the :guilabel:`Add New Database User`
+         modal window.
 
-      a. Select a user type from the :guilabel:`AWS IAM Type` dropdown menu.
-      
-      #. Enter an AWS user :abbr:`ARN (Amazon Resource Name)`. Click the
-         :guilabel:`See instruction below` link for help with finding your ARN.
+      #. Select a user type from the :guilabel:`AWS IAM Type` dropdown
+         menu:
+
+         - :guilabel:`Role`: Authentication for AWS services (like
+           EC2, Lambda, ECS) or applications that assume roles. For
+           application access, MongoDB strongly recommends using IAM
+           roles instead of IAM users.
+
+         - :guilabel:`User`: Authentication for individual AWS users
+           that need direct database access. For human users, we
+           recommend that you use :atlas:`Workforce Identity Federation 
+           with OIDC
+           </workforce-oidc/#std-label-oidc-authentication-workforce>`
+           instead of AWS IAM authentication.
+
+      #. Enter an AWS role or user :abbr:`ARN (Amazon Resource Name)`:
+
+         - Role ARN format: ``arn:aws:iam::123456789012:role/MyRole``
+         - User ARN format: ``arn:aws:iam::123456789012:user/MyUser``
+
+         Click the :guilabel:`See instruction below` link for help
+         with finding your ARN.
       
    .. step:: Assign privileges.
       
