@@ -97,79 +97,81 @@ The |fts| |fts-field-type| type takes the following parameters:
 
           The quick brown fox jumps over the lazy dog. 
 
-       When tokenized with a ``minGrams`` value of ``2`` and a ``maxGrams`` 
-       value of ``5``, |fts| indexes the following sequence of 
-       characters based on the ``tokenization`` value you choose: 
+       When tokenized with a ``minGrams`` value of ``2`` and a
+       ``maxGrams`` value of ``5``, |fts| indexes the following
+       sequence of characters based on the ``tokenization`` value
+       you choose.
 
-       .. tabs:: 
+       .. collapsible::
+          :heading: edgeGram
+          :expanded: false
 
-          .. tab:: edgeGram
-             :tabid: edgegram
+          .. code-block:: none
+             :copyable: false
 
-             .. code-block:: none
-                :copyable: false 
+             th
+             the
+             the{SPACE}
+             the q
+             qu
+             qui
+             quic
+             uick
+             ...
 
-                th
-                the
-                the{SPACE}
-                the q
-                qu
-                qui
-                quic
-                uick
-                ...
+       .. collapsible::
+          :heading: rightEdgeGram
+          :expanded: false
 
-          .. tab:: rightEdgeGram 
-             :tabid: rightedgegram
+          .. code-block:: none
+             :copyable: false
 
-             .. code-block:: none
-                :copyable: false 
+             og
+             dog
+             {SPACE}dog
+             y dog
+             zy
+             azy
+             lazy
+             {SPACE}lazy
+             he
+             the
+             {SPACE}the
+             r the
+             er
+             ver
+             over
+             {SPACE}over
+             ...
 
-                og
-                dog
-                {SPACE}dog
-                y dog
-                zy
-                azy
-                lazy
-                {SPACE}lazy
-                he
-                the
-                {SPACE}the
-                r the
-                er
-                ver
-                over
-                {SPACE}over
-                ...
+       .. collapsible::
+          :heading: nGram
+          :expanded: false
 
-          .. tab:: nGram
-             :tabid: ngram
+          .. code-block:: none
+             :copyable: false
 
-             .. code-block:: none 
-                :copyable: false 
-
-                th
-                the
-                the{SPACE}
-                the q
-                he
-                he{SPACE}
-                he q
-                he qu
-                e{SPACE}
-                e q
-                e qu
-                e qui
-                {SPACE}q
-                {SPACE}qu
-                {SPACE}qui
-                {SPACE}quic
-                qu
-                qui
-                quic
-                quick
-                ...
+             th
+             the
+             the{SPACE}
+             the q
+             he
+             he{SPACE}
+             he q
+             he qu
+             e{SPACE}
+             e q
+             e qu
+             e qui
+             {SPACE}q
+             {SPACE}qu
+             {SPACE}qui
+             {SPACE}quic
+             qu
+             qui
+             quic
+             quick
+             ...
 
        Indexing a field for autocomplete with an ``edgeGram``, 
        ``rightEdgeGram``, or ``nGram`` tokenization strategy is more
