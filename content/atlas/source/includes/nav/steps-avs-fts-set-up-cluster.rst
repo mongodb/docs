@@ -23,5 +23,5 @@
 
       Loading the sample dataset can take several minutes to complete. 
 
-   #. In the left sidebar, click `Atlas Search <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2FatlasSearch>`__. 
+   #. In the left sidebar, click `Search & Vector Search <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fclusters%2FatlasSearch>`__. 
       Choose your cluster from the :guilabel:`Select data source` menu and click :guilabel:`Go to Atlas Search`.
