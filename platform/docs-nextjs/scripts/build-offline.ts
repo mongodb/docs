@@ -13,8 +13,12 @@
  */
 
 import fs from 'fs/promises';
+import { readFileSync } from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const OUT_DIR = path.join(process.cwd(), 'out');
 const CONTENT_MDX_DIR = path.join(process.cwd(), '..', '..', 'content-mdx');
@@ -277,12 +281,35 @@ async function removeAllTxtFiles(dir: string): Promise<void> {
   }
 }
 
+const OFFLINE_TABS_SCRIPT = `<script>\n${readFileSync(
+  path.join(__dirname, 'offline-ui', 'tabs.js'),
+  'utf-8',
+)}\n</script>`;
+
+// Override the default LeafyGreen tab activation behavior to use the tabset name to see the green underline.
+const OFFLINE_TABS_STYLE = `
+<style>
+  [data-lgid="lg-tabs-tab_list"] [role="tab"][aria-selected="true"]::after {
+    background-color: #00A35C;
+    transform: scaleX(1);
+  }
+</style>`;
+
+// Check to see if the page has a tabset and inject the script and style to override the default LeafyGreen tab activation behavior.
+function injectTabsScript(content: string): string {
+  if (!content.includes('data-lgid="lg-tabs"')) return content;
+  return content
+    .replace(/<\/head>/i, OFFLINE_TABS_STYLE + '\n</head>')
+    .replace(/<\/body>/i, OFFLINE_TABS_SCRIPT + '\n</body>');
+}
+
 async function postProcess(): Promise<void> {
   const htmlFiles = await findHtmlFiles(OUT_DIR);
   for (const filePath of htmlFiles) {
     const content = await fs.readFile(filePath, 'utf-8');
     const prefix = getRelativePrefix(filePath);
-    const rewritten = rewriteHtmlLinks(content, prefix);
+    let rewritten = rewriteHtmlLinks(content, prefix);
+    rewritten = injectTabsScript(rewritten);
     if (rewritten !== content) await fs.writeFile(filePath, rewritten, 'utf-8');
   }
 }
