@@ -1,7 +1,28 @@
+.. _atlas_2025_12_10:
+
+10 December 2025 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Updates {+Cloud-Backup+} to automatically take an on-demand snapshot
+  when you change the :guilabel:`Highest Priority` provider or region in
+  a cluster with {+Cloud-Backup+} enabled. {+service+} stores this
+  snapshot in the new primary region. To learn more, see
+  :ref:`change-highest-priority-provider-region`.
+
+- Adds support for changing your cluster's :term:`highest priority region` 
+  to a region configured for :ref:`copy snapshot distribution
+  <snapshot-distribution>`. {+service+} automatically updates your
+  {+Cloud-Backup+} snapshot copy policy to distribute snapshot copies to
+  the original primary region (now a secondary region).
+
+- Adds support for enforcing cluster topology (replica set, sharded
+  cluster, or Global cluster), disk size, and number of shards with
+  :ref:`{+arps+} <atlas-resource-policies-overview>`.
+
 .. _atlas_2025_12_05:
 
 05 December 2025 Release 
-------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Deprecates ``$search.tracking`` and Query
   Analytics UI. The official end-of-life and
