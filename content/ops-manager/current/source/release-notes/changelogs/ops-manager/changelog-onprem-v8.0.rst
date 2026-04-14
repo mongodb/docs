@@ -26,7 +26,7 @@ Improvements
 - Makes the following security improvements:
 
   - Adds a Content-Security-Policy header to responses.
-  - Encrypts {+aws+} S3 credentials at rest in AppDB.
+  - Encrypts |aws| S3 credentials at rest in AppDB.
   - Fixes an open redirect bypass via backslash in the login redirect.
   - Replaces MD5-based session ID generation with a 256-bit secure
     value.
