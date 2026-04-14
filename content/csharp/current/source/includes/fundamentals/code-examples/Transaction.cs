@@ -24,7 +24,13 @@ public class BookTransaction
         // Begins transaction
         using (var session = mongoClient.StartSession())
         {
-            session.StartTransaction();
+            // Configures transaction options
+            var transactionOptions = new TransactionOptions(
+                readConcern: ReadConcern.Majority,
+                writeConcern: WriteConcern.WMajority
+            );
+
+            session.StartTransaction(transactionOptions);
 
             try
             {
