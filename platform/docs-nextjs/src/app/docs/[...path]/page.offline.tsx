@@ -1,8 +1,8 @@
 import { notFound } from 'next/navigation';
-import { toc } from '@/context/toc-data';
-import { loadMDX, isVersionPlaceholder } from '@/mdx-utils/load-mdx';
+import { loadMDX } from '@/mdx-utils/load-mdx';
 import type { RemoteMetadata } from '@/types/data';
 import { getPathArraysFromTocItems, getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
+import { toc } from '@/context/toc-data/offline-toc-processed';
 import envConfig from '@/utils/env-config';
 import { CustomTemplate } from './custom-template';
 
@@ -67,8 +67,5 @@ export async function generateMetadata({ params: { path } }: PageProps) {
 
 export async function generateStaticParams() {
   if (process.env.BUILD_STATIC_PAGES !== 'true') return [];
-  const version = getStaticVersion();
-  return getPathArraysFromTocItems(toc).map(({ path }) => ({
-    path: path.map((seg) => (isVersionPlaceholder(seg) ? version : seg)),
-  }));
+  return getPathArraysFromTocItems(toc);
 }

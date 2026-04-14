@@ -17,6 +17,8 @@ const config = {
     '^.+\\.module\\.(css|sass|scss)$': 'identity-obj-proxy',
     // Static file imports (mock as empty string or stub)
     '^.+\\.(jpg|jpeg|png|gif|webp|svg)$': '<rootDir>/src/tests/__mocks__/fileMock.ts',
+    // data.copied is gitignored — point to a committed stub so jest.mock() factories can override it
+    '^@/context/toc-data/data\\.copied$': '<rootDir>/src/tests/__mocks__/toc-data-stub.ts',
     // Aliases like @components/*, @utils/*
     '^@/(.*)$': '<rootDir>/src/$1',
   },

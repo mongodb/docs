@@ -82,6 +82,33 @@ Commands should generally be run from the root of the `platform` directory:
 - `pnpm build`: Build all packages
 - `pnpm typecheck`: Run type checking across all packages
 
+### Offline Build
+
+An offline build produces a fully self-contained static snapshot of a docs site that can be opened directly from the filesystem (e.g. via `file://` or distributed as a zip).
+
+Run the command from the `platform/docs-nextjs` directory:
+
+**Prerequisite:** The project content must already be converted to MDX and present in `content-mdx/` before running this command. See [MDX Conversion Commands](#mdx-conversion-commands) above.
+
+```bash
+pnpm build:offline -- --tocFile=<name> --version=<version>
+```
+
+- `--tocFile`: the name of a TOC file (without `.ts`) from `src/context/table-of-contents/offline-docs/`. For example, `ai-models` or `kafka-connector.versioned.kafka-connector`.
+- `--version`: the version string to build (e.g. `current`, `v1.12`). Use `main` for unversioned sites.
+
+**Examples:**
+
+```bash
+# Unversioned site
+pnpm build:offline -- --tocFile=ai-models --version=main
+
+# Versioned site
+pnpm build:offline -- --tocFile=kafka-connector.versioned.kafka-connector --version=current
+```
+
+The output is written to `platform/docs-nextjs/out/` and is ready to open directly in a browser.
+
 ### Linting
 - `pnpm lint`: Run linting across all packages
 - `pnpm lint:fix`: Fix linting issues automatically
