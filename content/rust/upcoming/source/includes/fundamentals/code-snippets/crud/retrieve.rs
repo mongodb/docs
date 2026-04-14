@@ -85,5 +85,16 @@ async fn main() -> mongodb::error::Result<()> {
     }
     // end-agg
 
+    // begin-query-from-file
+    let json = std::fs::read_to_string("query.json")
+        .expect("failed to read query.json");
+    let filter: Document = serde_json::from_str(&json)
+        .expect("query.json contains invalid JSON");
+    let mut cursor = my_coll.find(filter).await?;
+    while let Some(doc) = cursor.try_next().await? {
+        println!("{:?}", doc);
+    }
+    // end-query-from-file
+
     Ok(())
 }
