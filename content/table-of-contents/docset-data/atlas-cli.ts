@@ -199,7 +199,7 @@ const tocData: TocItem[] = [
                 url: '/docs/atlas/cli/:version/atlas-cli-deploy-pvt-registry',
               },
               {
-                label: 'Use Atlas Search',
+                label: 'Use MongoDB Search',
                 contentSite: 'atlas-cli',
                 url: '/docs/atlas/cli/:version/atlas-cli-deploy-fts',
               },
