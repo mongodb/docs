@@ -1,4 +1,4 @@
-The MongoDB MCP server can connect to your MongoDB deployment for you.
+The MongoDB MCP Server can connect to your MongoDB deployment for you.
 However, if you do not want to expose your connection string to the
 LLM's context, or if you want to persist the connection across sessions,
 you can add your connection string to the configuration.
@@ -19,5 +19,5 @@ we recommend using environment variables for sensitive data.
        credentials in your connection string access only the data and
        operations you want the LLMs to use.
 
-       To learn more, see :ref:`Find Your Connection String
-       <mongodb-uri>`.
+       To learn more, see :ref:`Connection Strings <mongodb-uri>` in the 
+       MongoDB Database Manual. 

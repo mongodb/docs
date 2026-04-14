@@ -1,4 +1,4 @@
-The MCP Server configuration file examples set the ``type`` field to
+Most MCP Server configuration file examples set the ``type`` field to
 ``"stdio"``.
 
 ``type`` can be set to one of the following:
@@ -15,6 +15,6 @@ The MCP Server configuration file examples set the ``type`` field to
      authentication and security.
 
 The MCP Server configuration file examples also set the MCP Server name
-to ``"MongoDB"``. You can change the server name to match the name of
+to ``mongodb``. You can change the server name to match the name of
 your MCP Server after you start it. The server name identifies the MCP
 Server to the AI client.

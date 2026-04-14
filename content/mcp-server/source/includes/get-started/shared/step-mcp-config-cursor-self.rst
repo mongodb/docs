@@ -9,12 +9,13 @@
 
    Edit the configuration file for your AI client.
    For Cursor users, add the following configuration to your ``.cursor/mcp.json`` file in
-   your project or home directory to set up the MongoDB MCP server.
+   your project or home directory to set up the MongoDB MCP Server.
    For detailed configuration steps, see
    `Cursor documentation <https://docs.cursor.com/context/model-context-protocol#installing-mcp-servers>`__.
 
-   .. literalinclude:: /includes/get-started/shared/common-mcp-config.json
+   .. literalinclude:: /includes/get-started/shared/example-configs/common-mcp-config-self.json
       :language: json
       :emphasize-lines: 3-14
   
    .. include:: /includes/get-started/shared/connection-string-mcp-config.rst
+

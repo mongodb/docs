@@ -9,13 +9,14 @@
      
    Edit the configuration file for your AI client.
    For VS Code Github Copilot users, add the following configuration 
-   to your ``mcp.json`` file to set up the MongoDB MCP server
+   to your ``mcp.json`` file to set up the MongoDB MCP Server
    across all workspaces. For detailed configuration steps, including
    how to configure servers for separate workspaces, see 
    `MCP servers in VS Code <https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server>`__.
 
-   .. literalinclude:: /includes/get-started/shared/mcp-config-copilot.json
+   .. literalinclude:: /includes/get-started/shared/example-configs/mcp-config-copilot-self.json
       :language: json
-      :emphasize-lines: 4-15
+      :emphasize-lines: 3-14
 
    .. include:: /includes/get-started/shared/connection-string-mcp-config.rst
+

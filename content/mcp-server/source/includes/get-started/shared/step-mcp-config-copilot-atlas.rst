@@ -1,0 +1,28 @@
+.. step:: Add the server to your configuration file.
+
+   .. cta-banner::
+     :url: https://insiders.vscode.dev/redirect/mcp/install?name=mongodb&inputs=%5B%7B%22id%22%3A%22connection_string%22%2C%22type%22%3A%22promptString%22%2C%22description%22%3A%22MongoDB%20connection%20string%22%7D%5D&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22mongodb-mcp-server%22%2C%22--readOnly%22%5D%2C%22env%22%3A%7B%22MDB_MCP_CONNECTION_STRING%22%3A%22%24%7Binput%3Aconnection_string%7D%22%7D%7D
+     :icon: Code
+
+     Click this `shortcut <https://insiders.vscode.dev/redirect/mcp/install?name=mongodb&inputs=%5B%7B%22id%22%3A%22connection_string%22%2C%22type%22%3A%22promptString%22%2C%22description%22%3A%22MongoDB%20connection%20string%22%7D%5D&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22mongodb-mcp-server%22%2C%22--readOnly%22%5D%2C%22env%22%3A%7B%22MDB_MCP_CONNECTION_STRING%22%3A%22%24%7Binput%3Aconnection_string%7D%22%7D%7D>`__
+     to open VS code and start configuring the MCP server directly in your IDE.
+
+   .. include:: /includes/get-started/shared/create-atlas-service-account.rst
+
+   Edit the configuration file for your AI client.
+   For VS Code Github Copilot users, add the following configuration 
+   to your ``mcp.json`` file to set up the MongoDB MCP Server
+   for all workspaces. For detailed configuration steps, including
+   how to configure servers for separate workspaces, see 
+   `MCP servers in VS Code <https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server>`__.
+   
+   The following configuration uses your Atlas service account credentials to enable
+   Atlas-specific tools, including connection, access, and cluster management.
+   Replace ``<client-id>`` and ``<client-secret>`` with your Atlas service account credentials:
+
+   .. include:: /includes/get-started/shared/atlas-service-account-credentials-table.rst
+
+   .. literalinclude:: /includes/get-started/shared/example-configs/mcp-config-copilot-atlas.json
+      :language: json
+      :emphasize-lines: 3-15
+
