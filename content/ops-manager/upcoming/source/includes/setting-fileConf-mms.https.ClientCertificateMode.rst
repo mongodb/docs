@@ -9,8 +9,9 @@
    - ``none``
    - ``agents_only``
    - ``required``
-   
-   
+
+   These values are case-sensitive.
+
    Corresponds to :setting:`Client Certificate Mode`.
    
 
