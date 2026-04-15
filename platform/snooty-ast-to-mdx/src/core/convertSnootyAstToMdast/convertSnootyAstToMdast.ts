@@ -10,6 +10,7 @@ import { convertDirectiveStep } from './convertDirectiveStep';
 import { parseSnootyArgument } from './parseSnootyArgument';
 import { computeComposableTutorialData, buildComposableOptionsFromNode } from './computeComposableTutorialData';
 import { extractInlineDisplayText } from './extractInlineDisplayText';
+import stableStringify from 'fast-json-stable-stringify';
 
 // Toctree is navigation structure only – not rendered in page content
 // Meta is page metadata collected into frontmatter
@@ -548,7 +549,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
             name: 'composableOptions',
             value: {
               type: 'mdxJsxAttributeValueExpression',
-              value: JSON.stringify(composableOptions),
+              value: stableStringify(composableOptions),
             },
           });
         }
@@ -640,7 +641,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
             name: 'selections',
             value: {
               type: 'mdxJsxAttributeValueExpression',
-              value: JSON.stringify(selections),
+              value: stableStringify(selections),
             },
           },
         ];
@@ -1362,7 +1363,8 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
   // Compose final children array with optional frontmatter
   const children: MdastNode[] = [];
   if (Object.keys(frontmatterObj).length) {
-    children.push({ type: 'yaml', value: yaml.stringify(frontmatterObj) });
+    const sortedFrontmatter = Object.fromEntries(Object.entries(frontmatterObj).sort(([a], [b]) => a.localeCompare(b)));
+    children.push({ type: 'yaml', value: yaml.stringify(sortedFrontmatter) });
   }
   // Add content directly without any imports
   children.push(...contentChildren);
@@ -1385,6 +1387,7 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
 const toJsxAttributes = (obj?: Record<string, unknown>): MdastNode[] => {
   if (!obj || typeof obj !== 'object') return [];
   return Object.entries(obj)
+    .sort(([a], [b]) => a.localeCompare(b))
     .filter(([, v]) => v !== undefined)
     .map(([key, value]) => {
       if (typeof value === 'string') {
@@ -1393,7 +1396,7 @@ const toJsxAttributes = (obj?: Record<string, unknown>): MdastNode[] => {
       return {
         type: 'mdxJsxAttribute',
         name: key,
-        value: { type: 'mdxJsxAttributeValueExpression', value: JSON.stringify(value) },
+        value: { type: 'mdxJsxAttributeValueExpression', value: stableStringify(value) },
       };
     });
 };

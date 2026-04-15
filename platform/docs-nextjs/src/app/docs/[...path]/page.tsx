@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import { loadMDX } from '@/mdx-utils/load-mdx';
-import { findProjectPathAndSiteJson } from '@/mdx-utils/load-metadata';
+import { getSiteMetadata } from '@/mdx-utils/load-metadata';
 import { getAllDocsetsWithVersionsCached } from '@/services/db/docsets';
 import envConfig from '@/utils/env-config';
 import type { RemoteMetadata } from '@/types/data';
@@ -26,7 +26,7 @@ export default async function MDXPage({ params: { path } }: PageProps) {
 
   let siteMetadata: RemoteMetadata;
   try {
-    ({ siteMetadata } = await findProjectPathAndSiteJson(path));
+    ({ siteMetadata } = await getSiteMetadata(path));
   } catch (error) {
     console.error('[page.tsx] Error loading metadata: ', error);
     throw new Error('[page.tsx] Error loading metadata');

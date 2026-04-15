@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { store } from './blob-store';
+import { productionStore as store } from './blob-store';
 import { getBlobKey } from './get-blob-key';
 import { MDX_EXTENSION, JSON_EXTENSION } from './get-blob-key';
 import { getRelativePath } from './blob-utils';

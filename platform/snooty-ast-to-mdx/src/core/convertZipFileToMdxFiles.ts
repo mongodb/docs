@@ -5,6 +5,7 @@ import { BSON } from 'bson';
 import { convertJsonAstToMdxFiles } from './convertJsonAstToMdxFiles/convertJsonAstToMdxFiles';
 import type { SnootyNode } from './convertSnootyAstToMdast/types';
 import { type RouteCollision, detectRouteCollisions, resolveRouteCollisions } from './detectRouteCollision';
+import stableStringify from 'fast-json-stable-stringify';
 
 /** some BSON files are not AST JSON, but rather raw text or RST */
 const IGNORED_FILE_SUFFIXES = ['.txt.bson', '.rst.bson'] as const;
@@ -74,7 +75,7 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
       // Remove static_files property before writing
       delete siteData.static_files;
       const siteJsonPath = path.join(zipBaseName, '_site.json');
-      const siteJsonContent = `${JSON.stringify(siteData, null, 2)}\n`;
+      const siteJsonContent = `${stableStringify(siteData)}\n`;
       await fs.writeFile(siteJsonPath, siteJsonContent, 'utf-8');
       continue;
     }

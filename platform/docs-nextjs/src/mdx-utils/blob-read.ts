@@ -1,6 +1,7 @@
 import path from 'path';
 import fs from 'fs/promises';
-import { store } from './blob-store';
+import type { Store } from '@netlify/blobs';
+import { productionStore, branchSpecificStore } from './blob-store';
 
 const BUILD_STATIC_PAGES = process.env.BUILD_STATIC_PAGES === 'true';
 const CONTENT_MDX_DIR = process.env.CONTENT_MDX_DIR;
@@ -10,57 +11,56 @@ function keyToLocalPath(key: string): string {
   return key.slice(key.indexOf('/') + 1);
 }
 
-export const getBlobString = async (key: string) => {
-  if (BUILD_STATIC_PAGES) {
-    if (!CONTENT_MDX_DIR) {
-      throw new Error('CONTENT_MDX_DIR is required when BUILD_STATIC_PAGES is true.');
-    }
+/** Try branchSpecificStore first, fall back to productionStore. */
+async function getFromStores(key: string, type: 'string' | 'blob'): Promise<string | Blob | null> {
+  const stores: Store[] = branchSpecificStore !== null ? [branchSpecificStore, productionStore] : [productionStore];
+
+  for (const store of stores) {
     try {
-      const buf = await fs.readFile(path.join(CONTENT_MDX_DIR, keyToLocalPath(key)));
-      return buf.toString('utf-8');
-    } catch (err) {
-      const isENOENT = err instanceof Error && 'code' in err && (err as NodeJS.ErrnoException).code === 'ENOENT';
-      if (isENOENT) return null;
-      throw err;
+      if (type === 'blob') {
+        const result = await store.get(key, { type: 'blob' });
+        if (result) return result;
+      } else {
+        const result = await store.get(key, { type: 'text' });
+        if (result) return result;
+      }
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : String(error);
+      if (msg.toLowerCase().includes('not found') || msg.includes('404') || msg.includes('no such key')) {
+        continue;
+      }
+      throw error;
     }
+  }
+  return null;
+}
+
+/** Read from local filesystem when building static pages. */
+async function readLocalFile(key: string): Promise<Buffer | null> {
+  if (!CONTENT_MDX_DIR) {
+    throw new Error('CONTENT_MDX_DIR is required when BUILD_STATIC_PAGES is true.');
   }
   try {
-    const result = await store.get(key);
-    if (!result) return null;
-    return result.toString();
-  } catch (error) {
-    // Missing key: return null so callers can try alternatives (e.g. other project path candidates)
-    const msg = error instanceof Error ? error.message : String(error);
-    if (msg.toLowerCase().includes('not found') || msg.includes('404') || msg.includes('no such key')) {
-      return null;
-    }
-    throw error;
+    return await fs.readFile(path.join(CONTENT_MDX_DIR, keyToLocalPath(key)));
+  } catch (err) {
+    const isENOENT = err instanceof Error && 'code' in err && (err as NodeJS.ErrnoException).code === 'ENOENT';
+    if (isENOENT) return null;
+    throw err;
   }
+}
+
+export const getBlobString = async (key: string): Promise<string | null> => {
+  if (BUILD_STATIC_PAGES) {
+    const buf = await readLocalFile(key);
+    return buf ? buf.toString('utf-8') : null;
+  }
+  return getFromStores(key, 'string') as Promise<string | null>;
 };
 
-export const getBlob = async (key: string) => {
+export const getBlob = async (key: string): Promise<Blob | null> => {
   if (BUILD_STATIC_PAGES) {
-    if (!CONTENT_MDX_DIR) {
-      throw new Error('CONTENT_MDX_DIR is required when BUILD_STATIC_PAGES is true.');
-    }
-    try {
-      const buf = await fs.readFile(path.join(CONTENT_MDX_DIR, keyToLocalPath(key)));
-      return new Blob([new Uint8Array(buf)]);
-    } catch (err) {
-      const isENOENT = err instanceof Error && 'code' in err && (err as NodeJS.ErrnoException).code === 'ENOENT';
-      if (isENOENT) return null;
-      throw err;
-    }
+    const buf = await readLocalFile(key);
+    return buf ? new Blob([new Uint8Array(buf)]) : null;
   }
-  try {
-    const result = await store.get(key, { type: 'blob' });
-    if (!result) throw new Error('not found');
-
-    return result;
-  } catch (error) {
-    if (error instanceof Error && error.message.includes('not found')) {
-      return null;
-    }
-    throw error;
-  }
+  return getFromStores(key, 'blob') as Promise<Blob | null>;
 };

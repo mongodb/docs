@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { store } from '@/mdx-utils/blob-store';
+import { productionStore as store } from '@/mdx-utils/blob-store';
 
 export const dynamic = 'force-dynamic';
 

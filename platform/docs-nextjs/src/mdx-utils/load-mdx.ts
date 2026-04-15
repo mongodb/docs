@@ -11,7 +11,7 @@ import { components } from '@/mdx-components';
 import { getBlobString } from './blob-read';
 import { MDX_PREFIX } from './get-blob-key';
 import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
-import { findProjectPathAndSiteJson } from './load-metadata';
+import { getSiteMetadata } from './load-metadata';
 
 export const VERSION_PLACEHOLDER = ':version';
 
@@ -64,7 +64,7 @@ export const loadMDX = async (urlPath: string[], replacements?: Record<string, R
     return loadOfflineMDX(urlPath, replacements);
   }
 
-  const { projectPath } = await findProjectPathAndSiteJson(urlPath);
+  const { projectPath } = await getSiteMetadata(urlPath);
   const injectedProps = { projectPath, replacements };
   const componentMapping = components(injectedProps);
 
@@ -95,7 +95,11 @@ const loadOfflineMDX = async (urlPath: string[], replacements?: Record<string, R
   const resolvedPath = urlPath.map((seg) => (isVersionPlaceholder(seg) ? version : seg));
   const isVersionAt1 = resolvedPath.length >= 2 && resolvedPath[1] === version;
   const projectPath = isVersionAt1 ? resolvedPath.slice(0, 2).join('/') : resolvedPath[0] ?? '';
-  const componentMapping = components({ projectPath, includeRoot: projectPath, replacements });
+  const componentMapping = components({
+    projectPath,
+    includeRoot: projectPath,
+    replacements,
+  });
 
   const filePath = resolvedPath.join('/');
   const mdxString = await fetchMdxString(filePath);
@@ -108,7 +112,10 @@ const loadOfflineMDX = async (urlPath: string[], replacements?: Record<string, R
       projectPath,
     });
 
-    const result = { content, frontmatter: frontmatter as Record<string, unknown> };
+    const result = {
+      content,
+      frontmatter: frontmatter as Record<string, unknown>,
+    };
     mdxCache.set(cacheKey, result);
     return result;
   } catch (err) {
