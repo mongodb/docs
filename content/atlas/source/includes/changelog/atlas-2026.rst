@@ -29,7 +29,7 @@ March 2026
   existing observability platform.
 
 - Introduces a new alert that fires when a potentially dangerous
-  :ref:`database profiler <query-profiler>` configuration is detected
+  :ref:`database profiler <profiler>` configuration is detected
   on your cluster, such as profiling all operations or profiling with a
   zero-millisecond threshold. This alert helps prevent unintended
   performance degradation on production workloads.
