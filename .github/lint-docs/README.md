@@ -106,7 +106,7 @@ For convenience, use the wrapper script from anywhere:
 | `structure-h2-before-h1` | Error | H2 appears before H1 |
 | `image-alt-missing` | Warning | Image missing alt text |
 | `image-png-figwidth` | Error | PNG missing `:figwidth:` attribute |
-| `image-svg-dimensions` | Warning | SVG missing width/height |
+| `image-svg-dimensions` | Warning | SVG missing `:figwidth:` or `:width:` |
 | `nested-component` | Error | Nested container component (callouts, tabs, tables) |
 | `syntax-malformed-ref` | Error | Malformed `:ref:` with angle brackets |
 | `syntax-empty-link` | Error | Empty link URL `[text]()` |

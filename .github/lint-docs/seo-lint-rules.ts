@@ -636,26 +636,27 @@ function checkSvgDimensions(content: string, filename: string): LintIssue[] {
       }
       // For plain MD ![](svg), we can't easily specify dimensions - just warn
     } else {
-      // RST: Check for :width: and :height:
+      // RST: :height: is not a valid option for figure or image in our
+      // snooty build. Check for :figwidth: or :width: instead.
       const afterMatch = content.substring(content.indexOf(img.src), content.indexOf(img.src) + 500);
       const nextLines = afterMatch.split('\n').slice(0, 5).join('\n');
       
+      const hasFigwidth = /:figwidth:/i.test(nextLines);
       const hasWidth = /:width:/i.test(nextLines);
-      const hasHeight = /:height:/i.test(nextLines);
       
-      if (!hasWidth || !hasHeight) {
-        const missing: string[] = [];
-        if (!hasWidth) missing.push('width');
-        if (!hasHeight) missing.push('height');
+      if (!hasFigwidth && !hasWidth) {
+        const suggestion = img.type === 'rst-figure'
+          ? 'Add :figwidth: <value> to the figure directive'
+          : 'Add :width: <value> to the image directive';
         
         issues.push({
           file: filename,
           line: img.line,
           rule: 'image-svg-dimensions',
           severity: 'error',
-          message: `SVG image missing ${missing.join(' and ')} attribute(s)`,
+          message: `SVG ${img.type === 'rst-figure' ? 'figure' : 'image'} missing dimension attribute`,
           current: img.src,
-          suggestion: 'Add :width: and :height: attributes'
+          suggestion
         });
       }
     }
