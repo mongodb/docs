@@ -40,10 +40,13 @@ export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIn
   }
 
   const nestedRoot: SnootyNode = { type: 'root', children: contentChildren };
+  // Only slot-based includes (`.. replacement::` siblings) emit `type="replacement"` for
+  // substitution refs. Plain includes resolve from `_references.json` like normal pages.
   const emittedMdast = convertSnootyAstToMdast(nestedRoot, {
     onEmitMdxFile: ctx.emitMdxFile,
     currentOutfilePath: path.normalize(emittedPathNormalized),
     initialDepth: depth,
+    emitSubstitutionReferencesAsReplacement: replacementNodes.length > 0,
   });
   ctx.emitMdxFile?.({ outfilePath: emittedPathNormalized, mdastRoot: emittedMdast });
 

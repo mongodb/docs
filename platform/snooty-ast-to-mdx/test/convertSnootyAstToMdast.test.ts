@@ -5,6 +5,7 @@
 
 import yaml from 'yaml';
 import { convertSnootyAst } from './utils';
+import { convertMdastToMdx } from '../src/core/convertMdastToMdx';
 import type { SnootyNode } from '../src/core/convertSnootyAstToMdast/types';
 import type { ReferencesArtifact } from '../src/core/convertJsonAstToMdxFiles/buildReferencesArtifacts';
 
@@ -145,6 +146,86 @@ describe('convertSnootyAstToMdast', () => {
     expect(mdastRoot).toHaveProperty('type', 'root');
 
     expect(mdx).toBe(`<Include src="/included-file" />`);
+  });
+
+  it('emits substitution_reference in plain include body as type substitution (for _references.json)', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'include',
+          argument: 'nav/steps.rst',
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                { type: 'text', value: 'In ' },
+                {
+                  type: 'substitution_reference',
+                  refname: 'service',
+                  children: [{ type: 'text', value: 'Atlas' }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const onEmitMdxFile = jest.fn();
+    convertSnootyAst({ ast, onEmitMdxFile });
+
+    expect(onEmitMdxFile).toHaveBeenCalledTimes(1);
+    const [{ mdastRoot }] = onEmitMdxFile.mock.calls[0];
+    const emittedMdx = convertMdastToMdx(mdastRoot);
+    expect(emittedMdx).toContain('type="substitution"');
+    expect(emittedMdx).not.toContain('type="replacement"');
+    const refs = (mdastRoot as { __references?: ReferencesArtifact }).__references;
+    expect(refs?.substitutions).toHaveProperty('service', 'Atlas');
+  });
+
+  it('emits substitution_reference in include body as Reference type replacement (not _references)', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'include',
+          argument: 'chunk.rst',
+          children: [
+            {
+              type: 'directive',
+              name: 'replacement',
+              argument: 'field',
+              children: [{ type: 'paragraph', children: [{ type: 'text', value: 'MyType' }] }],
+            },
+            {
+              type: 'paragraph',
+              children: [
+                { type: 'text', value: 'Use ' },
+                {
+                  type: 'substitution_reference',
+                  refname: 'field',
+                  children: [{ type: 'text', value: 'PLACEHOLDER' }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const onEmitMdxFile = jest.fn();
+    const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
+
+    expect(onEmitMdxFile).toHaveBeenCalledTimes(1);
+    const [{ mdastRoot }] = onEmitMdxFile.mock.calls[0];
+    const emittedMdx = convertMdastToMdx(mdastRoot);
+    expect(emittedMdx).toContain('type="replacement"');
+    expect(emittedMdx).not.toContain('type="substitution"');
+    expect((mdastRoot as { __references?: ReferencesArtifact }).__references).toBeUndefined();
+
+    expect(mdx).toContain('<Replacement name="field">');
+    expect(mdx).toContain('<Include src="/chunk"');
   });
 
   it('collects substitutions and refs into root.__references', () => {

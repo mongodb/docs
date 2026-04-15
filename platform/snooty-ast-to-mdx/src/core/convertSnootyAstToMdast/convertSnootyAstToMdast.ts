@@ -1117,14 +1117,19 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       }
 
       const text = extractInlineDisplayText(node.children ?? []);
-      if (refname && text) {
+      const slotBody = ctx.emitSubstitutionReferencesAsReplacement;
+      if (!slotBody && refname && text) {
         ctx.collectedSubstitutions.set(refname, text);
       }
-      // Create Reference component with type="substitution"
+      // Include bodies: type="replacement" for parent <Replacement>; pages use type="substitution"
       const attributes: MdastNode[] = [];
       if (refname) {
         attributes.push({ type: 'mdxJsxAttribute', name: 'refKey', value: refname });
-        attributes.push({ type: 'mdxJsxAttribute', name: 'type', value: 'substitution' });
+        attributes.push({
+          type: 'mdxJsxAttribute',
+          name: 'type',
+          value: slotBody ? 'replacement' : 'substitution',
+        });
       }
       return {
         type: 'mdxJsxTextElement',
@@ -1295,6 +1300,11 @@ interface ConvertSnootyAstToMdastOptions {
   currentOutfilePath?: string;
   /** Starting depth for root-level children. Defaults to 1. Set > 1 to bake a heading offset into include files. */
   initialDepth?: number;
+  /**
+   * Slot-based include bodies only: emit substitution refs as `type="replacement"` for
+   * `<Replacement>` slots (see `convertDirectiveInclude` when `.. replacement::` is present).
+   */
+  emitSubstitutionReferencesAsReplacement?: boolean;
 }
 
 export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnootyAstToMdastOptions): MdastRoot => {
@@ -1306,6 +1316,7 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
   const ctx: ConversionContext = {
     emitMdxFile: options?.onEmitMdxFile,
     currentOutfilePath: options?.currentOutfilePath,
+    emitSubstitutionReferencesAsReplacement: options?.emitSubstitutionReferencesAsReplacement,
     collectedSubstitutions,
     collectedRefs,
   };

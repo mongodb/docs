@@ -12,6 +12,12 @@ export interface ConversionContext {
   emitMdxFile?: (args: EmitMdxFileArgs) => void;
   /** Relative path (POSIX) of the file currently being generated, e.g. '_includes/foo.mdx' */
   currentOutfilePath?: string;
+  /**
+   * When true (include emitted from `.. include::` **with** `.. replacement::` siblings), substitution
+   * references emit `<Reference type="replacement" />` for parent `<Replacement>` slots instead of
+   * `substitution` and are not merged into `_references.json`. Plain includes omit this flag.
+   */
+  emitSubstitutionReferencesAsReplacement?: boolean;
   /** Collected references to emit into a _references.ts artifact */
   collectedSubstitutions: Map<string, string>;
   collectedRefs: Map<string, string>;
