@@ -1,0 +1,450 @@
+.. _php-symfony-doctrine-qe:
+
+==================================================
+Queryable Encryption with Symfony and Doctrine ODM
+==================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to implement Queryable Encryption in a Symfony application with Doctrine MongoDB ODM for automatic encryption and decryption of sensitive patient records.
+   :keywords: integrations, symfony, doctrine, queryable encryption, field level encryption, security, automatic
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to create a Symfony application
+that uses **{+doctrine+}** to implement MongoDB's **Queryable
+Encryption** feature.
+
+Queryable Encryption allows you to automatically encrypt and decrypt
+document fields. You can use Queryable Encryption to encrypt sensitive
+data in your application, store data fields as randomized encrypted
+data on the server, and query the encrypted fields. This tutorial
+shows you how to set up Queryable Encryption by using {+doctrine+},
+which provides an Object Document Mapper (ODM) for PHP
+applications.
+
+.. tip::
+
+   To learn more about integrating Symfony and Doctrine with the {+php-library+}, see
+   the :ref:`php-symfony-integration` tutorial.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Before you begin this tutorial, complete the following prerequisite
+tasks:
+
+- Create a MongoDB Atlas account and configure a cluster. Ensure that
+  your cluster runs on {+mdb-server+} version 7.0 or later. To learn
+  more, see the `MongoDB Get Started
+  <https://www.mongodb.com/docs/get-started/>`__ guide.
+- Download the Automatic Encryption Shared Library. To view
+  instructions, see the :manual:`Install and Configure a Query
+  Analysis Component
+  </core/queryable-encryption/install-library/?encryption-component=crypt_shared#procedure>`
+  guide.
+- Download the {+extension-short+}. To learn more, see
+  :php:`Installation <mongodb.installation>` in the extension documentation.
+- Install `PHP <https://www.php.net/downloads>`__ 8.1 or later.
+- Install `Composer <https://getcomposer.org/download/>`__ 2.0 or
+  later.
+- Install the Symfony CLI. To learn more, see the
+  `Symfony CLI <https://symfony.com/download>`__ documentation.
+
+Tutorial
+--------
+
+This tutorial shows how to create a Queryable Encryption application
+that uses Symfony and {+doctrine+}. The application encrypts
+and decrypts patient medical records and queries encrypted medical
+data.
+
+Set Up Your Project
+~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in this section to install the project dependencies,
+configure your environment, and create the application structure.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Set up your environment.
+
+      Run the following commands in your terminal to create a new
+      Symfony application and install the necessary dependencies:
+
+      .. code-block:: bash
+
+         symfony new qe-symfony-app
+         cd qe-symfony-app
+         composer require doctrine/mongodb-odm-bundle mongodb/mongodb
+
+      These commands create a ``qe-symfony-app`` project directory
+      and install the following dependencies:
+
+      - `{+doctrine+} Bundle
+        <https://www.doctrine-project.org/projects/doctrine-mongodb-bundle.html>`__,
+        the Symfony integration for {+doctrine+}
+      - {+php-library+}, the official MongoDB driver for PHP
+
+   .. step:: Specify your environment variables.
+
+      In your project directory, open the ``.env`` file and add or modify the
+      following variables:
+
+      .. code-block:: bash
+
+         MONGODB_URI=<connection URI>
+         CRYPT_SHARED_LIB_PATH=<Automatic Encryption Shared Library path>
+
+      Replace the ``<connection URI>`` placeholder with the
+      connection URI that connects to your cluster, and replace
+      ``<Automatic Encryption Shared Library path>`` with the full
+      path to your Automatic Encryption Shared Library. Ensure the
+      path points to ``lib/mongo_crypt_v1.dylib`` inside your
+      downloaded package.
+
+   .. step:: Create your application files.
+
+      In your project's ``src/`` directory, create the following
+      subdirectories and files to define the document structure and
+      application logic:
+
+      - ``src/Document/Patient.php``
+      - ``src/Document/PatientRecord.php``
+      - ``src/Document/Billing.php``
+      - ``src/Command/QueryableEncryptionCommand.php``
+
+      Future steps in this tutorial instruct you to add code to each file.
+
+   .. step:: Define your document classes.
+
+      This tutorial uses ``Patient``, ``PatientRecord``, and
+      ``Billing`` classes to represent patient medical records.
+
+      Paste the following code into the ``src/Document/Patient.php`` file:
+
+      .. literalinclude:: /includes/integrations/Patient.php
+         :language: php
+         :dedent:
+         :caption: src/Document/Patient.php
+
+      Then, paste the following code into the ``src/Document/PatientRecord.php`` file:
+
+      .. literalinclude:: /includes/integrations/PatientRecord.php
+         :language: php
+         :dedent:
+         :caption: src/Document/PatientRecord.php
+
+      Finally, paste the following code into the ``src/Document/Billing.php`` file:
+
+      .. literalinclude:: /includes/integrations/Billing.php
+         :language: php
+         :dedent:
+         :caption: src/Document/Billing.php
+
+      The document classes define the structure for documents in
+      the ``patients`` collection. The ``PatientRecord`` class includes
+      the ``#[ODM\Encrypt]`` attribute to specify the following
+      encrypted fields:
+
+      - ``patientRecord.ssn``: Encrypted and configured for
+        equality queries
+      - ``patientRecord.billing``: Encrypted, but not queryable
+
+   .. step:: Create your console command.
+
+      Paste the following code into the
+      ``src/Command/QueryableEncryptionCommand.php`` file:
+
+      .. code-block:: php
+
+         <?php
+
+         namespace App\Command;
+
+         use App\Document\Billing;
+         use App\Document\Patient;
+         use App\Document\PatientRecord;
+         use Doctrine\ODM\MongoDB\Configuration;
+         use Doctrine\ODM\MongoDB\DocumentManager;
+         use Doctrine\ODM\MongoDB\Mapping\Driver\AttributeDriver;
+         use MongoDB\BSON\Binary;
+         use MongoDB\Client;
+         use Symfony\Component\Console\Attribute\AsCommand;
+         use Symfony\Component\Console\Command\Command;
+         use Symfony\Component\Console\Input\InputInterface;
+         use Symfony\Component\Console\Output\OutputInterface;
+
+         #[AsCommand(
+             name: 'app:queryable-encryption',
+             description: 'Demonstrates Queryable Encryption with '
+                 . 'Doctrine MongoDB ODM',
+         )]
+         class QueryableEncryptionCommand extends Command
+         {
+             protected function execute(
+                 InputInterface $input,
+                 OutputInterface $output,
+             ): int {
+                 // Paste application variables below
+
+                 // Paste encryption credentials below
+
+                 // Paste connection and configuration below
+
+                 // Paste collection setup below
+
+                 // Paste insert operation below
+
+                 // Paste encrypted query below
+
+                 return Command::SUCCESS;
+             }
+         }
+
+      Future steps in this tutorial instruct you to add code under
+      each corresponding comment.
+
+Encrypt and Connect to MongoDB
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After setting up your project files and dependencies, follow the steps in this
+section to configure your encryption credentials and connect to MongoDB.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Assign your application variables.
+
+      In your ``src/Command/QueryableEncryptionCommand.php`` file, add
+      the following code under the ``// Paste application variables below`` comment:
+
+      .. literalinclude:: /includes/integrations/QueryableEncryptionCommand.php
+         :start-after: start-app-vars
+         :end-before: end-app-vars
+         :language: php
+         :dedent:
+         :caption: src/Command/QueryableEncryptionCommand.php
+
+      The code sets the following variables:
+
+      - **keyVaultNamespace** - The namespace in MongoDB that
+        stores your Data Encryption Keys (DEKs). This tutorial
+        uses the ``__keyVault`` collection in the ``encryption`` database.
+      - **encryptedDatabase** - The database that stores your
+        encrypted data. This tutorial uses the
+        ``medicalRecords`` database.
+      - **encryptedCollection** - The collection that stores your
+        encrypted data. This tutorial uses the ``patients``
+        collection.
+
+   .. step:: Configure your Customer Master Key.
+
+      Add the following code under the
+      ``// Paste encryption credentials below`` comment:
+
+      .. literalinclude:: /includes/integrations/QueryableEncryptionCommand.php
+         :start-after: start-cmk
+         :end-before: end-cmk
+         :language: php
+         :dedent:
+         :caption: src/Command/QueryableEncryptionCommand.php
+
+      This code creates or loads a 96-byte local Customer Master
+      Key file. The ``$kmsProvider`` array configures the local
+      KMS provider used for encryption.
+
+      .. warning:: Local CMK Storage
+
+         This tutorial stores your Customer Master Key in a local
+         file. Do not use this approach in production. Without a
+         remote KMS, you risk unauthorized access to the encryption
+         key or loss of the key needed to decrypt your data.
+
+      .. tip:: Key Management Systems
+
+         To learn more about KMS, see the :wikipedia:`Key Management
+         <w/index.php?title=Key_management&oldid=1320428824>`
+         Wikipedia entry.
+
+   .. step:: Configure your auto-encryption options.
+
+      Add the following code directly under the KMS provider
+      configuration from the previous step:
+
+      .. literalinclude:: /includes/integrations/QueryableEncryptionCommand.php
+         :start-after: start-auto-encrypt
+         :end-before: end-auto-encrypt
+         :language: php
+         :dedent:
+         :caption: src/Command/QueryableEncryptionCommand.php
+
+      This code sets the key vault namespace and configures the path to the
+      Automatic Encryption Shared Library.
+
+   .. step:: Configure your ``DocumentManager``.
+
+      Add the following code under the
+      ``// Paste connection and configuration below`` comment:
+
+      .. literalinclude:: /includes/integrations/QueryableEncryptionCommand.php
+         :start-after: start-connection-config
+         :end-before: end-connection-config
+         :language: php
+         :dedent:
+         :caption: src/Command/QueryableEncryptionCommand.php
+
+      This code configures a Doctrine ``Configuration`` object
+      with your encryption settings, creates a MongoDB client
+      that passes encryption driver options, and initializes a
+      ``DocumentManager`` for encrypted operations.
+
+   .. step:: Create your encrypted collection.
+
+      Add the following code under the
+      ``// Paste collection setup below`` comment:
+
+      .. literalinclude:: /includes/integrations/QueryableEncryptionCommand.php
+         :start-after: start-collection-setup
+         :end-before: end-collection-setup
+         :language: php
+         :dedent:
+         :caption: src/Command/QueryableEncryptionCommand.php
+
+      This code drops any existing collection and creates a new
+      ``patients`` collection with the encryption metadata
+      required for Queryable Encryption. Each call to
+      ``createDocumentCollection()`` generates new Data
+      Encryption Keys for the encrypted fields.
+
+Perform Encrypted Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After configuring your application and database connection, follow
+the steps in this section to insert and query encrypted documents.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Insert encrypted data.
+
+      In your ``src/Command/QueryableEncryptionCommand.php`` file, add
+      the following code under the ``// Paste insert operation below`` comment:
+
+      .. literalinclude:: /includes/integrations/QueryableEncryptionCommand.php
+         :start-after: start-insert
+         :end-before: end-insert
+         :language: php
+         :dedent:
+         :caption: src/Command/QueryableEncryptionCommand.php
+
+      Queryable Encryption automatically encrypts the
+      ``patientRecord.ssn`` and ``patientRecord.billing`` fields
+      before storing the document in MongoDB.
+
+   .. step:: Query encrypted data.
+
+      Add the following code under the
+      ``// Paste encrypted query below`` comment:
+
+      .. literalinclude:: /includes/integrations/QueryableEncryptionCommand.php
+         :start-after: start-query
+         :end-before: end-query
+         :language: php
+         :dedent:
+         :caption: src/Command/QueryableEncryptionCommand.php
+
+      This code performs an equality query on the encrypted
+      ``patientRecord.ssn`` field.
+
+   .. step:: Run your application.
+
+      To start your application, run the following command from your
+      ``qe-symfony-app`` project directory:
+
+      .. code-block:: bash
+
+         php bin/console app:queryable-encryption
+
+      If successful, your command output resembles the following
+      example:
+
+      .. code-block:: none
+         :copyable: false
+
+         Successfully inserted the patient document.
+         Found patient:
+           Name: Jon Doe
+           SSN: 987-65-4320
+           Billing type: Visa
+           Billing number: 4111111111111111
+           Bill amount: 1500
+         Connection closed.
+
+      In the database, the document is encrypted. MongoDB stores fields marked
+      with the ``#[ODM\Encrypt]`` attribute as BSON binary data and includes
+      a ``__safeContent__`` field for metadata tags. The stored document resembles
+      the following:
+
+      .. code-block:: json
+         :copyable: false
+
+         {
+          "_id": {
+             "$oid": "..."
+          },
+          "patientName": "Jon Doe",
+          "patientId": 12345678,
+          "patientRecord": {
+            "ssn": {
+               "$binary": {
+                 ...
+               }
+            },
+            "billing": {
+               "$binary": {
+                  ...
+               }
+            },
+            "billAmount": 1500
+          },
+          "__safeContent__": [
+            {
+               "$binary": {
+                  ...
+               }
+            }
+          ]
+         }
+
+
+Next Steps
+----------
+
+Congratulations on completing the Doctrine ODM Queryable Encryption
+tutorial! You now have a sample Symfony application that uses
+Queryable Encryption to automatically encrypt and decrypt document
+fields. Your application encrypts sensitive data on the server side
+and queries the data on the client side.
+
+To learn more about Queryable Encryption and {+doctrine+},
+visit the following resources:
+
+- View more driver Queryable Encryption tutorials in the
+  :ref:`{+mdb-server+} manual <qe-tutorials>`.
+- Learn more about {+doctrine+} in the `{+doctrine+}
+  <https://www.doctrine-project.org/projects/doctrine-mongodb-odm/en/latest/index.html>`__
+  documentation.
+- Learn more about integrating {+doctrine+} with Symfony in
+  the :ref:`php-symfony-integration` tutorial.
