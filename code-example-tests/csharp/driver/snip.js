@@ -9,7 +9,7 @@ const exec = promisify(childExec);
 // ------ CONFIGURATION: Define project configs here --------------------------
 const PROJECTS = {
   driver: {
-    ignorePatterns: new Set(['bin', 'Examples.csproj', 'ExampleStub.cs', 'Program.cs', 'obj']),
+    ignorePatterns: new Set(['bin', 'Examples.csproj', 'ExampleStub.cs', 'Program.cs', 'obj', 'OutputFiles']),
     startDirectory: "code-example-tests/csharp/driver/Examples",
     outputDirectory: "content/code-examples/tested/csharp/driver",
     tempDirectory: "code-example-tests/csharp/driver/tempFormat",

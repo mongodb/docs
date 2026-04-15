@@ -50,16 +50,20 @@ public static class SearchIndexChecker
                 var index = indexes.FirstOrDefault(i =>
                     i.Contains("name") && i["name"].AsString == indexName);
 
-                if (index != null && index.Contains("queryable") && index["queryable"].AsBoolean)
+                var status = index != null && index.Contains("status")
+                    ? index["status"].AsString
+                    : "NOT FOUND";
+
+                // Wait for READY status, not just queryable. An index can report
+                // queryable:true while still building, returning incomplete results.
+                if (index != null &&
+                    index.Contains("queryable") && index["queryable"].AsBoolean &&
+                    string.Equals(status, "READY", StringComparison.OrdinalIgnoreCase))
                 {
                     Console.WriteLine(
                         $"Search index '{indexName}' is now queryable (took {stopwatch.Elapsed.TotalSeconds:F1}s)");
                     return true;
                 }
-
-                var status = index != null && index.Contains("status")
-                    ? index["status"].AsString
-                    : "NOT FOUND";
 
                 Console.WriteLine(
                     $"  Index '{indexName}' status: {status} ({stopwatch.Elapsed.TotalSeconds:F1}s elapsed)");
