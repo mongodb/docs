@@ -12,16 +12,18 @@
       #. Enable sharding in the :guilabel:`Shard your cluster` section 
          by setting the toggle to :guilabel:`On`.
       
-         :gold:`IMPORTANT:` After you convert a replica set to a sharded 
-         cluster, you can't convert it again to a replica set.
+         .. important::
+            
+            After you convert a replica set to a sharded cluster, you can't
+            convert it again to a replica set.
          
          |service| automatically selects :guilabel:`1 Shard` from the
          drop-down menu. You can increase the number of shards in a later
          step after you restart your application clients.
 
-         :red:`WARNING` 
+         .. warning:: 
          
-         .. include:: /includes/fts/facts/fact-sharded-cluster-upgrade.rst
+            .. include:: /includes/fts/facts/fact-sharded-cluster-upgrade.rst
 
       #. Click :guilabel:`Review Changes` to review the changes to 
          billing and click :guilabel:`Apply Changes`.

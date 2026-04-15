@@ -18,3 +18,4 @@ from data outages.
   you must update your connection string to reflect your new {+cluster+}
   topology.
   
+.. include:: /includes/admonitions/importants/ddl-ops-when-upgrading-replset.rst
