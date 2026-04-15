@@ -1,7 +1,6 @@
 .. warning::
 
-   MongoDB uses the third party `timelib
-   <https://github.com/derickr/timelib>`_ library to provide accurate
+   MongoDB uses the third-party ``timelib`` library to provide accurate
    conversions between timezones. Due to a recent update, ``timelib``
    could create inaccurate time zone conversions in older versions of
    MongoDB.
