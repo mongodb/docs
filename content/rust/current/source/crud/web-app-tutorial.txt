@@ -31,9 +31,10 @@ routes to perform CRUD operations.
 
 .. tip:: Complete App
 
-   To view a complete version of the app created in this tutorial, visit
-   the :github:`mongodb-api-rs <latonis/mongodb-api-rs>` repository on
-   GitHub.
+   To view the complete sample app for this tutorial, see the
+   :github:`web-app-tutorial
+   </mongodb/docs/tree/main/content/rust/current/source/includes/web-app-tutorial>`
+   folder on GitHub.
 
 Prerequisites
 -------------
@@ -104,8 +105,8 @@ Steps
 
       Select the :guilabel:`INSERT DOCUMENT` button and paste the
       contents of the :github:`bread_data.json
-      <latonis/mongodb-api-rs/blob/main/bread_data.json>` file in the
-      sample app repository.
+      </mongodb/docs/blob/main/content/rust/current/source/includes/web-app-tutorial/bread_data.json>`
+      file in the sample app.
 
       After you insert the data, you can see the sample documents in
       the ``recipes`` collection.
@@ -146,12 +147,11 @@ Steps
       this file to read configuration settings. You can also store your
       MongoDB connection string in this file.
 
-      Paste the following configuration into ``Rocket.toml``:
+      Paste the following configuration into the ``Rocket.toml`` file:
 
-      .. code-block:: toml
-
-         [default.databases.db]
-         url = "<connection string>"
+      .. literalinclude:: /includes/web-app-tutorial/Rocket.toml
+         :language: toml
+         :copyable: true
 
       To learn more about configuring Rocket, see `Configuration
       <https://rocket.rs/guide/v0.5/configuration/#configuration>`__ in
@@ -183,21 +183,20 @@ Steps
 
    .. step:: Set up the database connection.
 
-      Paste the following code into the ``db.rs`` file.
+      Paste the following code into the ``db.rs`` file:
 
-      .. code-block:: rust
-
-         use rocket_db_pools::{mongodb::Client, Database};
-
-         #[derive(Database)]
-         #[database("db")]
-         pub struct MainDatabase(Client);
+      .. literalinclude:: /includes/web-app-tutorial/src/db.rs
+         :language: rust
+         :copyable: true
+         :category: sample app
+         :caption: src/db.rs
 
       You must also attach the database struct to your Rocket
-      instance. In ``main.rs``, initialize the database and
-      attach it, as shown in the following code:
+      instance. Copy the following template code into your ``main.rs``
+      file:
 
       .. code-block:: rust
+         :caption: src/main.rs
 
          mod db;
          mod models;
@@ -208,14 +207,14 @@ Steps
 
          #[launch]
          fn rocket() -> _ {
-             rocket::build()
-                 .attach(db::MainDatabase::init())
-                 .mount()
+            rocket::build()
+               .attach(db::MainDatabase::init())
+               // Paste mount() call below
          }
 
-      Your IDE might raise an error that ``mount()`` is missing
-      arguments. You can ignore this error as you will add routes in a
-      later step.
+      Your IDE might raise an error that the function body is
+      incomplete. You can ignore this error, because you will add the
+      ``mount()`` call in a later step.
 
    .. step:: Create data models.
 
@@ -224,23 +223,12 @@ Steps
       runtime errors.
 
       In your ``models.rs`` file, define a ``Recipe`` struct that
-      represents a recipe to bake bread.
+      represents a recipe to bake bread:
 
-      .. code-block:: rust
-
-         use mongodb::bson::oid::ObjectId;
-         use rocket::serde::{Deserialize, Serialize};
-
-         #[derive(Debug, Serialize, Deserialize)]
-         #[serde(crate = "rocket::serde")]
-         pub struct Recipe {
-             #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
-             pub id: Option<ObjectId>,
-             pub title: String,
-             pub ingredients: Vec<String>,
-             pub temperature: u32,
-             pub bake_time: u32,
-         }
+      .. literalinclude:: /includes/web-app-tutorial/src/models.rs
+         :language: rust
+         :copyable: true
+         :caption: src/models.rs
 
    .. step:: Set up API routes.
 
@@ -248,63 +236,54 @@ Steps
       endpoint to send or receive the data. The file ``routes.rs``
       stores all the routes defined in the API.
 
-      Add the following code to your ``routes.rs`` file to define the
-      index route and a simple ``get_recipes()`` route:
+      Copy the following template code into your ``routes.rs`` file:
 
       .. code-block:: rust
+         :caption: src/routes.rs
 
          use crate::db::MainDatabase;
          use crate::models::Recipe;
          use mongodb::bson::doc;
-         use rocket::{futures::TryStreamExt, get, serde::json::Json};
-         use rocket_db_pools::{mongodb::Cursor, Connection};
+         use mongodb::bson::oid::ObjectId;
+         use rocket::{
+            delete, futures::TryStreamExt, get, http::Status, post, put, response::status,
+            serde::json::Json,
+         };
+         use rocket_db_pools::Connection;
+         use serde_json::{json, Value};
 
-         #[get("/")]
-         pub fn index() -> Json<Value> {
-             Json(json!({"status": "It is time to make some bread!"}))
-         }
+         // Paste index route below
 
-         #[get("/recipes", format = "json")]
-         pub async fn get_recipes(db: Connection<MainDatabase>) -> Json<Vec<Recipe>> {
-             let recipes: Cursor<Recipe> = db
-                 .database("bread")
-                 .collection("recipes")
-                 .find(None, None)
-                 .await
-                 .expect("Failed to retrieve recipes");
+         // Paste get_recipes route below
 
-             Json(recipes.try_collect().await.unwrap())
-         }
+         // Paste get_recipe route below
+
+         // Paste update_recipe route below
+
+         // Paste delete_recipe route below
+
+         // Paste create_recipe route below
+
+      Paste the following ``index`` route under the
+      ``// Paste index route below`` comment:
+
+      .. literalinclude:: /includes/web-app-tutorial/src/routes.rs
+         :language: rust
+         :start-after: // start-index-route
+         :end-before: // end-index-route
+         :copyable: true
 
       Before you write the remaining routes, add the routes to the main
       launch function for Rocket.
 
-      In ``main.rs``, replace the arguments to ``mount()`` so that the
-      file resembles the following code:
+      In your ``main.rs`` file, paste the following code under the
+      ``// Paste mount() call below`` comment:
 
-      .. code-block:: rust
-
-         mod db;
-         mod models;
-         mod routes;
-
-         use rocket::{launch, routes};
-         use rocket_db_pools::Database;
-
-         #[launch]
-         fn rocket() -> _ {
-             rocket::build().attach(db::MainDatabase::init()).mount(
-                 "/",
-                 routes![
-                     routes::index,
-                     routes::get_recipes,
-                     routes::create_recipe,
-                     routes::update_recipe,
-                     routes::delete_recipe,
-                     routes::get_recipe
-                 ],
-             )
-         }
+      .. literalinclude:: /includes/web-app-tutorial/src/main.rs
+         :language: rust
+         :copyable: true
+         :start-after: // start-mount
+         :end-before: // end-mount
 
    .. step:: Implement error handling and responses.
 
@@ -341,35 +320,16 @@ Steps
       - Error occurred during insertion, so your app returns ``HTTP
         400``.
       
-      Add the following route to your ``routes.rs`` file to define the
-      ``create_recipe()`` route and implement error handling:
+      Paste the following ``create_recipe()`` route under the
+      ``// Paste create_recipe route below`` comment in your
+      ``routes.rs`` file:
 
-      .. code-block:: rust
-      
-         #[post("/recipes", data = "<data>", format = "json")]
-         pub async fn create_recipe(
-             db: Connection<MainDatabase>,
-             data: Json<Recipe>,
-         ) -> status::Custom<Json<Value>> {
-             if let Ok(res) = db
-                 .database("bread")
-                 .collection::<Recipe>("recipes")
-                 .insert_one(data.into_inner(), None)
-                 .await
-             {
-                 if let Some(id) = res.inserted_id.as_object_id() {
-                     return status::Custom(
-                         Status::Created,
-                         Json(json!({"status": "success", "message": format!("Recipe ({}) created successfully", id.to_string())})),
-                     );
-                 }
-             }
-      
-             status::Custom(
-                 Status::BadRequest,
-                 Json(json!({"status": "error", "message":"Recipe could not be created"})),
-             )
-         }
+      .. literalinclude:: /includes/web-app-tutorial/src/routes.rs
+         :language: rust
+         :start-after: // start-create-recipe
+         :end-before: // end-create-recipe
+         :copyable: true
+         :caption: src/routes.rs
 
       Read
       ~~~~
@@ -381,35 +341,62 @@ Steps
       - Return an empty vector, because there are no matching documents
         or because an error occurred.
 
-      Because of these expected outcomes, replace your ``get_recipes()``
-      route with the following code:
-      
-      .. code-block:: rust
-      
-         #[get("/recipes", format = "json")]
-         pub async fn get_recipes(db: Connection<MainDatabase>) -> Json<Vec<Recipe>> {
-             let recipes = db
-                 .database("bread")
-                 .collection("recipes")
-                 .find(None, None)
-                 .await;
-      
-             if let Ok(r) = recipes {
-                 if let Ok(collected) = r.try_collect::<Vec<Recipe>>().await {
-                     return Json(collected);
-                 }
-             }
-      
-             return Json(vec![]);
-         }
+      Because of these expected outcomes, paste the following
+      ``get_recipes()`` route under the
+      ``// Paste get_recipes route below`` comment in your
+      ``routes.rs`` file:
 
-      Other Operations
-      ~~~~~~~~~~~~~~~~
+      .. literalinclude:: /includes/web-app-tutorial/src/routes.rs
+         :language: rust
+         :start-after: // start-get-recipes
+         :end-before: // end-get-recipes
+         :copyable: true
+         :caption: src/routes.rs
 
-      You can copy the ``get_recipe()``, ``update_recipe()``, and
-      ``delete_recipe()`` routes from the :github:`routes.rs
-      <latonis/mongodb-api-rs/blob/main/src/routes.rs>` file in the
-      sample app repository.
+      Retrieve by ID
+      ~~~~~~~~~~~~~~
+
+      Paste the following ``get_recipe()`` route under the
+      ``// Paste get_recipe route below`` comment:
+
+      .. literalinclude:: /includes/web-app-tutorial/src/routes.rs
+         :language: rust
+         :start-after: // start-get-recipe
+         :end-before: // end-get-recipe
+         :copyable: true
+         :caption: src/routes.rs
+
+      This route retrieves a single document by its ``_id`` value.
+
+      Update
+      ~~~~~~
+
+      Paste the following ``update_recipe()`` route under the
+      ``// Paste update_recipe route below`` comment:
+
+      .. literalinclude:: /includes/web-app-tutorial/src/routes.rs
+         :language: rust
+         :start-after: // start-update-recipe
+         :end-before: // end-update-recipe
+         :copyable: true
+         :caption: src/routes.rs
+
+      This route updates a single document by its ``_id`` value.
+
+      Delete
+      ~~~~~~
+
+      Paste the following ``delete_recipe()`` route after the
+      ``// Paste delete_recipe route below`` comment:
+
+      .. literalinclude:: /includes/web-app-tutorial/src/routes.rs
+         :language: rust
+         :start-after: // start-delete-recipe
+         :end-before: // end-delete-recipe
+         :copyable: true
+         :caption: src/routes.rs
+
+      This route deletes a single document by its ``_id`` value.
 
    .. step:: Test routes to perform CRUD operations.
 
