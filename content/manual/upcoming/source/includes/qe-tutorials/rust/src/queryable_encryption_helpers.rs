@@ -81,7 +81,7 @@ pub fn get_kms_provider_credentials(kms_provider_name: &str) -> Vec<(KmsProvider
         
             if !Path::new(key_file_path).exists() {
                 let mut key = [0u8; 96];
-                rand::thread_rng().fill_bytes(&mut key);
+                rand::rng().fill_bytes(&mut key);
         
                 // Write the key to the file
                 match OpenOptions::new().write(true).create(true).open(key_file_path) {
