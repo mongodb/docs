@@ -1,0 +1,133 @@
+.. _query-sentinel:
+
+==============
+Query Sentinel
+==============
+
+.. meta::
+   :description: Atlas automatically terminates long-running query operations to protect your cluster from overload. This policy is part of Intelligent Workload Management (IWM) in Atlas.
+   :keywords: mongotune
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Query Sentinel is an :ref:`Intelligent Workload Management
+<intelligent-workload-management>` (IWM) policy in {+service+} that
+automatically terminates inefficient, long-running query operations on a
+|mongod| node when a cluster is overloaded. By targeting only the most
+expensive, least efficient query operations, Query Sentinel reduces
+outage risk by quickly relieving pressure with minimal impact to the
+overall workload.
+
+.. include:: /includes/facts/node-overload-definition.rst
+
+.. include:: /includes/admonitions/importants/load-shedding-policy.rst
+
+When long-running queries consume excessive resources during high
+traffic, they can degrade cluster performance and increase the risk of
+outages. Query Sentinel protects cluster availability by:
+
+- Detecting and terminating long-running query operations during overload
+- Preserving availability for shorter operations that continue to succeed
+- Reducing outage risk without shutting down the entire workload
+
+Considerations
+--------------
+
+- Your {+service+} cluster must be running MongoDB 8.3 or later to use
+  this policy. On MongoDB 8.3, this policy is disabled by default. To
+  enable or disable IWM policies, see the :ref:`IWM settings
+  <configure-iwm-settings>`.
+
+- This policy is available only for ``M10+`` {+service+} replica set
+  clusters.
+  
+- This policy is not available on sharded clusters or :term:`analytics
+  nodes <analytics node>`. 
+
+- Query Sentinel does not terminate operations based on memory
+  consumption, including idle cursors that consume memory but are 
+  not actively executing.
+  
+- Query Sentinel does not pause or queue operations.
+
+Behavior
+--------
+
+When {+service+} runs the Query Sentinel policy on your cluster,
+it performs the following actions:
+
+1. **Monitors for overload**
+
+   - {+service+} continuously evaluates indicators of overload on each
+     node.
+   - When {+service+} detects overload conditions, the Query Sentinel
+     policy activates. {+service+} triggers an alert for the following
+     alert condition:
+
+     :alert:`Atlas has activated Query Sentinel to automatically terminate expensive queries and safeguard cluster stability.`
+
+     To modify your project's alert settings, see
+     :ref:`configure-alert-settings`.
+
+#. **Identifies long-running queries**
+
+   - Query Sentinel monitors the set of currently running operations and
+     evaluates each operation against predefined efficiency criteria,
+     which can include query runtime, query plan summary, and more.
+
+#. **Terminates matching operations**
+
+   - Query Sentinel issues a ``killOp`` command to terminate operations
+     that match the policy criteria. Only operations that match the
+     criteria are stopped; the rest of the workload is unaffected.
+   - When an operation is terminated, the server returns an
+     ``InterruptedDueToOverload`` error code. To learn more about error
+     handling, see :ref:`overload-errors`. 
+
+#. **Resumes normal operation**
+
+   - As overload conditions subside, the policy stops terminating
+     operations and the cluster returns to normal operation.
+
+   - When the policy is no longer active, the following informational
+     event appears in the cluster's :ref:`activity feed
+     <activity-feed>`: 
+     
+     ``"Atlas has switched Query Sentinel to monitoring mode and paused the automatic termination of expensive queries."``
+
+     To learn more, see :ref:`IWM activity feed events <iwm-activity-feed-events>`. 
+
+When the policy is active, long-running operations in your application
+fail with an ``InterruptedDueToOverload`` error. Shorter operations
+continue to succeed. To learn more about handling overload errors, see
+:ref:`overload-errors`.
+
+Observability
+-------------
+
+You can use the following methods to track how Query Sentinel is
+affecting your workload: 
+
+- **Monitor Cluster Metrics:** :ref:`Operation throttling metrics
+  <operation-throttling-metrics-list>` show the number of operations that IWM
+  policies have terminated.
+
+- **Configure Alerts:** 
+
+  - Cluster overload conditions trigger default alerts for
+    :ref:`Intelligent Workload Management alert conditions
+    <alert-conditions-iwm>`. To learn how to manage alerts, see
+    :ref:`configure-alerts`.
+  - When cluster overload conditions resolve, {+service+} writes
+    informational events to the :ref:`activity feed <activity-feed>`
+    that indicate the resolution of IWM policies. To learn more, see
+    the :ref:`IWM activity feed events <iwm-activity-feed-events>`.
+ 

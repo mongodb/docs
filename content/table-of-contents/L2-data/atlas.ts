@@ -1375,6 +1375,29 @@ const tocData: TocItem[] = [
     collapsible: true,
     items: [
       {
+        label: 'Reliability, Availability, and Workload Management',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/intelligent-workload-management',
+        collapsible: true,
+        items: [
+          {
+            label: 'Adaptive Operation Rate Limiting',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/cluster-operation-rate-limiting',
+          },
+          {
+            label: 'Query Sentinel',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/query-sentinel',
+          },
+          {
+            label: 'Overload Errors',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/overload-errors',
+          },
+        ],
+      },
+      {
         label: 'Cluster Sizing and Tiers',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/sizing-tier-selection',

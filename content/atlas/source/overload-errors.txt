@@ -1,0 +1,201 @@
+.. _overload-errors:
+
+===============
+Overload Errors
+===============
+
+.. meta::
+   :description: Learn how to handle retryable overload errors in older drivers when Atlas rejects operations during cluster overload, including code examples for retrying with exponential backoff.
+   
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+:ref:`Intelligent Workload Management <intelligent-workload-management>`
+(IWM) policies in {+service+} are load-shedding, meaning they reject or
+terminate operations to keep the cluster healthy under overload. When
+these policies act, your application might see new errors for operations
+that the server rejected or terminated due to server overload. These
+overload errors have the ``SystemOverloadedError`` label. 
+
+The following load-shedding IWM policies return errors when they reject
+or terminate operations:
+
+- :ref:`cluster-operation-rate-limiting`
+- :ref:`query-sentinel`
+
+.. collapsible:: 
+   :expanded: false
+   :heading: Adaptive Operation Rate Limiter Overload Error
+   :sub_heading: Example IngressOperationRateLimitExceeded error and associated error labels
+
+   When the Adaptive Operation Rate Limiter rejects operations, the
+   server returns an error with the
+   ``IngressOperationRateLimitExceeded`` code. For example: 
+
+   .. code-block:: javascript
+
+      {
+          "ok": 0.0,
+          "errmsg": "Request rejected: ingress operation rate limit exceeded",
+          "code": 463,
+          "codeName": "IngressOperationRateLimitExceeded",
+          "errorLabels": ["SystemOverloadedError", "RetryableError", "NoWritesPerformed"]
+      }
+
+   ``IngressOperationRateLimitExceeded`` errors have the
+   ``SystemOverloadedError`` label, which indicates that the server is
+   overloaded and shedding load. This label on its own does not mean
+   that the operation can be safely retried.
+
+   To determine if an error is retryable, check for the following
+   labels: 
+
+   - ``RetryableError`` - the operation was not executed and is safe to retry
+   - ``NoWritesPerformed`` - the server rejected the operation at ingress, before performing any writes
+
+   To learn how to implement retry logic for overload errors, see
+   :ref:`handle-overload-errors`.
+
+.. collapsible:: 
+   :expanded: false
+   :heading: Query Sentinel Overload Error
+   :sub_heading: Example InterruptedDueToOverload error and associated error labels
+
+   When Query Sentinel terminates inefficient, long-running query
+   operations, the server returns an error with the
+   ``InterruptedDueToOverload`` code. For example: 
+
+   .. code-block:: javascript
+
+      {
+        "ok": 0,
+        "errmsg": "operation was interrupted",
+        "code": 473,
+        "codeName": "InterruptedDueToOverload",
+        "errorLabels": ["SystemOverloadedError"]
+      }
+
+   ``InterruptedDueToOverload`` errors have the
+   ``SystemOverloadedError`` label, which indicates that the server is
+   overloaded and shedding load.
+
+   An ``InterruptedDueToOverload`` error means that the server
+   terminated the operation to protect cluster stability. This error is
+   not designated as retryable and does not include the
+   ``RetryableError`` label. If you retry the operation, ensure that it
+   is idempotent and wait before retrying so you do not contribute to
+   overload. Use exponential backoff and jitter in your retry logic. To
+   learn more, see :ref:`handle-overload-errors`.
+
+.. _backpressure-aware-driver-versions:
+
+Backpressure-Aware Client Libraries Versions
+--------------------------------------------
+ 
+Backpressure-aware drivers and other client libraries automatically recognize
+overload errors with the ``SystemOverloadedError`` label and treat them as a
+signal of overload. If the error has a label that induces a retry, including the
+``RetryableError`` label, the backpressure-aware client library automatically retries 
+the operation with exponential backoff and jitter.
+
+The following table lists the earliest client library versions that are backpressure-aware:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 60 40
+
+   * - Client Library
+     - Earliest Backpressure-Aware Version
+
+   * - C Driver
+     - 2.3
+
+   * - C++ Driver
+     - 4.3
+
+   * - .NET/C# Driver
+     - 3.8
+
+   * - Go Driver
+     - 2.6
+
+   * - Java Sync Driver
+     - 5.7
+
+   * - Java Reactive Streams Driver
+     - 5.7
+
+   * - Kotlin Coroutine Driver
+     - 5.7
+
+   * - Kotlin Sync Driver
+     - 5.7
+
+   * - Node.js Driver
+     - 7.2
+
+   * - PHP Library
+     - 2.3
+
+   * - PyMongo
+     - 4.17
+
+   * - Scala Driver
+     - 5.7
+
+If you are using a backpressure-aware client library, you don't need to
+implement any additional retry logic to handle overload errors from IWM
+policies. If you are not using a backpressure-aware client library, see 
+:ref:`handle-overload-errors` for guidance.
+
+.. _handle-overload-errors:
+
+Handling Overload Errors
+------------------------
+
+If you are not using a backpressure-aware client library, see the following
+procedure for examples of how to implement error detection and retry
+logic with exponential backoff to handle overload errors:
+
+.. composable-tutorial::
+   :options:  interface, language
+   :defaults: driver, python
+
+   Use the following procedure to implement 
+   utilities to detect overload errors and retry with exponential backoff.
+
+   .. selected-content::
+      :selections: driver, python
+
+      .. include:: /includes/overload-errors-python-procedure.rst
+
+   .. selected-content::
+      :selections: driver, c
+
+      .. include:: /includes/overload-errors-c-procedure.rst
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      .. include:: /includes/overload-errors-node-procedure.rst
+
+   Guidelines for Safe Overload Retries
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   When retrying operations that failed with overload errors, use the
+   following guidelines to avoid contributing to overload and to
+   increase the chances of successful retries:
+
+   - **Limit your retry attempts:** Use a maximum of 2 retries per operation.
+     Higher limits reduce error rates but increase server load during overload, 
+     while fewer retry attempts can reduce server load but increase errors rates.
+   - **Apply selectively:** Use this pattern only for latency-sensitive or 
+     business-critical operations. For background workloads, log errors and 
+     retry at a higher level with longer delays.

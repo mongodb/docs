@@ -1,0 +1,132 @@
+.. _cluster-operation-rate-limiting:
+
+================================
+Adaptive Operation Rate Limiting
+================================
+
+.. meta::
+   :description: Atlas dynamically adjusts the rate at which MongoDB admits and rejects all operations to your cluster based on overload. This policy is opt-in and is part of Intelligent Workload Management (IWM) in Atlas. 
+   :keywords: mongotune
+   
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The Adaptive Rate Limiter for Operations is an :ref:`Intelligent
+Workload Management <intelligent-workload-management>` (IWM) policy in
+|service|. IWM is a dynamic resource manager that provides real-time
+workload monitoring and automated safeguards to maintain high
+availability under load. The Adaptive Rate Limiter for Operations
+dynamically adjusts the rate at which MongoDB accepts and rejects
+operations that your applications send to a |mongod| when a cluster is
+overloaded.
+
+.. include:: /includes/facts/node-overload-definition.rst
+
+.. include:: /includes/admonitions/importants/load-shedding-policy.rst
+
+When traffic suddenly spikes, accepting more operations than your 
+node's maximum load can overwhelm your cluster, causing 
+degraded performance, timeouts, and potential failovers. 
+The cluster can take significant time to recover.
+
+The Adaptive Rate Limiter for Operations policy prevents overload by: 
+
+- Limiting the admission rate to what the system can safely handle
+- Maintaining cluster stability and avoiding outages
+- Keeping a portion of operations succeeding with predictable latency 
+- Enabling faster recovery from traffic spikes
+
+Considerations
+--------------
+
+- Your {+service+} cluster must be running MongoDB 8.3 or later to use
+  this policy. On MongoDB 8.3, this policy is disabled by default. To
+  enable or disable IWM policies, see the :ref:`IWM settings
+  <configure-iwm-settings>`.
+
+- This policy is available only for ``M10+`` {+service+} replica set
+  clusters.
+  
+- This policy is not available on sharded clusters. 
+
+Behavior
+--------
+
+When |service| runs the Adaptive Rate Limiter for Operations policy on
+your cluster, it performs the following actions:
+
+1. **Monitors for overload**
+
+   - {+service+} continuously evaluates indicators of overload on each
+     node.
+
+   - When {+service+} detects overload conditions, the Adaptive Rate
+     Limiter for Operations policy activates. {+service+} triggers an
+     alert for the following alert condition: 
+
+     :alert:`Atlas is actively regulating the admission rate of new operations in order to safeguard cluster stability as CPU pressure has exceeded <N>% and high operation latency has been detected.`
+
+     To modify your project's alert settings, see
+     :ref:`configure-alert-settings`.
+
+#. **Determines a safe admission rate**
+
+   - When the system approaches overload, |service| computes a maximum 
+     safe rate at which it can admit new operations on each node, 
+     based on recent conditions.
+
+#. **Admits or rejects operations at the entry point**
+
+   - MongoDB admits and runs as usual any operations that arrive 
+     within the safe rate.
+   - MongoDB immediately rejects any operations that arrive above 
+     the safe rate for :binary:`mongod <bin.mongod>` on each node. 
+     MongoDB doesn't queue these operations until they time out. 
+
+#. **Adapts the admission rate over time**
+
+   - As load decreases and the cluster recovers, |service| relaxes the 
+     rate limit so that it can admit more operations again. 
+
+   - When the policy is no longer active, the following informational
+     event appears in the cluster's :ref:`activity feed
+     <activity-feed>`: 
+     
+     ``"Atlas is no longer regulating the admission rate of new operations."``
+
+     To learn more, see the :ref:`IWM activity feed events <iwm-activity-feed-events>`.
+     
+When the policy is active, some operations in your application fail
+quickly with an error containing the ``SystemOverloadedError`` label.
+Other operations continue to succeed. This prevents a situation where
+all operation time out, causing a node crash. To learn more about how to
+catch overload errors and avoid retry storms, see
+:ref:`overload-errors`.
+
+Observability
+-------------
+
+You can use the following methods to track how the Adaptive Rate Limiter
+for Operations is affecting your workload: 
+
+- **Monitor Cluster Metrics:** :ref:`Operation throttling metrics
+  <operation-throttling-metrics-list>` show the number of operations that IWM
+  policies have terminated.
+
+- **Configure Alerts:** 
+
+  - Cluster overload conditions trigger default alerts for
+    :ref:`Intelligent Workload Management alert conditions
+    <alert-conditions-iwm>`. To learn how to manage alerts, see
+    :ref:`configure-alerts`.
+  - When cluster overload conditions resolve, {+service+} writes
+    informational events to the :ref:`activity feed <activity-feed>`
+    that indicate the resolution of IWM policies. To learn more, see
+    :ref:`IWM activity feed events <iwm-activity-feed-events>`.

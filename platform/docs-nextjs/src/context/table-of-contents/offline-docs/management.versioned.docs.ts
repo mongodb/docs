@@ -1383,6 +1383,29 @@ export const toc: L1TocItem[] = [
             url: '/docs/atlas/production-notes',
             items: [
               {
+                label: 'Reliability, Availability, and Workload Management',
+                contentSite: 'cloud-docs',
+                collapsible: true,
+                url: '/docs/atlas/intelligent-workload-management',
+                items: [
+                  {
+                    label: 'Adaptive Operation Rate Limiting',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/cluster-operation-rate-limiting',
+                  },
+                  {
+                    label: 'Query Sentinel',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/query-sentinel',
+                  },
+                  {
+                    label: 'Overload Errors',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/overload-errors',
+                  },
+                ],
+              },
+              {
                 label: 'Cluster Sizing and Tiers',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/sizing-tier-selection',
