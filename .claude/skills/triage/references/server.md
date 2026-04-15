@@ -70,6 +70,20 @@ See cross-team routing rules in `SKILL.md`. Any ticket related to Atlas Search o
 **Release Notes Tickets:**
 Apply `docs-rn` + `all-squads`, set status to **Ready for Work**, and ask the user: "Who is this week's Quick Wins person for Server? (Please provide their MongoDB email address, e.g. asmith@mongodb.com)" Then assign the ticket to that person.
 
+**Status:** Move tickets from **Needs Triage** to either **Ready for Work** or **Backlog**.
+
+  - Set **Ready for Work** when the ticket shows at least one of these signals: 
+    - P1/P2 priority
+    - tied to an active release
+    - quick fix (< 4 hours) assigned to the current captain or quick-wins queue
+  - Set **Backlog** by default for all other tickets including:
+    - feature requests
+    - proactive improvements
+    - anything without a clear signal it will be worked on in the next two weeks.
+
+Ask the user to confirm the proposed ticket status and provide a rationale for
+why the proposed status was chosen.
+
 **CVE / Critical Advisory Tickets:**
 Apply the `cve` label. If the ticket requires release note updates, also apply `docs-rn`. Do NOT apply `all-squads` or `security` — CVE tickets are process tickets, not content-area tickets. If the ticket is a Critical Advisory with no documentation work required, recommend closing it.
 
