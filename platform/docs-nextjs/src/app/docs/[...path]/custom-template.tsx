@@ -13,7 +13,7 @@ import {
   DriversIndexTemplate,
   FeatureNotAvailableTemplate,
 } from '@/components/templates';
-import ActionBar from '@/components/action-bar';
+import { ActionBar } from '@/mdx-components/ActionBar';
 import layoutStyles from '@/app/layout.module.scss';
 import ProductLandingTemplate from '@/components/templates/product-landing';
 import type { PageOptions, PageTemplateType } from '@/types/ast';

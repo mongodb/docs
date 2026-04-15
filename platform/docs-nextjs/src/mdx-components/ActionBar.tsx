@@ -10,6 +10,7 @@ import Icon from '@leafygreen-ui/icon';
 import { useSidenavContext } from '@/context/sidenav-context';
 import { overlineStyling } from '@/components/action-bar/styles';
 import { cx } from '@leafygreen-ui/emotion';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 interface ActionBarProps {
   template: PageTemplateType;
@@ -70,7 +71,7 @@ export const ActionBar = ({ template, sidenav, className }: ActionBarProps) => {
           <SearchInput />
         </Suspense>
       </div>
-      <UIContainer />
+      {!isOfflineBuild && <UIContainer />}
     </div>
   );
 };

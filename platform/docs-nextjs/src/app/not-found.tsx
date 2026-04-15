@@ -13,7 +13,7 @@ import layoutStyles from '@/app/layout.module.scss';
 import { ChatbotProvider } from '@/context/chatbot-context';
 
 import { DOTCOM_BASE_URL, DOTCOM_BASE_PREFIX } from '@/constants';
-import ActionBar from '@/components/action-bar';
+import { ActionBar } from '@/mdx-components/ActionBar';
 
 const BASE_URL = `${DOTCOM_BASE_URL}/${DOTCOM_BASE_PREFIX}`;
 

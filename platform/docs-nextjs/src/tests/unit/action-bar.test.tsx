@@ -1,6 +1,6 @@
 import type { RenderResult } from '@testing-library/react';
 import { render } from '@testing-library/react';
-import ActionBar from '@/components/action-bar';
+import { ActionBar } from '@/mdx-components/ActionBar';
 import { PLACEHOLDER_TEXT } from '@/components/action-bar/search-input';
 // import  { useSearchParams } from 'next/navigation';
 
