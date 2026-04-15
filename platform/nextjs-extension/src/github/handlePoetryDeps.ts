@@ -19,11 +19,11 @@ export const handlePoetryDeps = async ({
 }): Promise<void> => {
   console.log('Checking if poetry is installed...');
   try {
-    const { stdout } = await run.command(`${poetryPath} --version`, {
+    const { stdout } = await run.command('python3 -m poetry --version', {
       cwd: parserPath,
       stdout: 'pipe',
     });
-    console.log(`Found cached poetry installation: ${stdout.trim()}`);
+    console.log(`Found poetry installation: ${stdout.trim()}`);
   } catch (error) {
     console.log('Poetry not found in cache. Installing poetry...');
     await run.command('python3 -m pip install --user poetry', {
@@ -42,13 +42,13 @@ export const handlePoetryDeps = async ({
   }
 
   console.log('Pinning poetry environment to python3.12...');
-  await run.command('poetry env use python3.12', {
+  await run.command('python3 -m poetry env use python3.12', {
     cwd: parserPath,
     stdout: 'ignore',
   });
 
   console.log('Installing parser dependencies with poetry...');
-  await run.command('poetry install', {
+  await run.command('python3 -m poetry install', {
     cwd: parserPath,
     stdout: 'ignore',
   });

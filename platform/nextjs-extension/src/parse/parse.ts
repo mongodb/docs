@@ -32,12 +32,8 @@ export const parse = async ({
   try {
     console.log('Executing parser command...');
 
-    const poetryPath =
-      poetryCommand ||
-      path.join(process.env.HOME as string, '.local/bin', 'poetry');
-
     const { all, stdout, stderr } = await run.command(
-      `${poetryPath} run snooty build ${contentPath} --no-caching --output=${parsedOutputPath}.zip --branch=${version}`,
+      `python3 -m poetry run snooty build ${contentPath} --no-caching --output=${parsedOutputPath}.zip --branch=${version}`,
       {
         cwd: parserPath,
         all: true,

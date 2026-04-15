@@ -68,7 +68,7 @@ export const getParser = async ({
         });
       } else {
         console.log('Installing parser dependencies with poetry...');
-        await run.command('poetry install', {
+        await run.command('python3 -m poetry install', {
           cwd: parserPath,
           stdout: 'ignore',
         });
