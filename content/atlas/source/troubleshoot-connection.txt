@@ -317,120 +317,186 @@ receive in the following error:
 
    Error: querySrv ECONNREFUSED _mongodb._tcp.<SRV Record>
 
-To begin troubleshooting you will need both the DNS SRV name and the nodes' 
-individual hostnames and port numbers from the seed list connection string for 
-the cluster.
+To troubleshoot this error, complete the following steps.
 
-To find the DNS SRV name:
-~~~~~~~~~~~~~~~~~~~~~~~~~
+.. procedure::
+   :style: normal
 
-#. Follow the **Steps 1-6** in `Connect Your Application <https://www.mongodb.com/docs/atlas/driver-connection/#connect-your-application>`_.
-#. In **Step 7** select the latest version of the driver you chose.
-#. The DNS SRV name begins after the ``@`` symbol following the password and ends
-   with ``.mongodb.net``.
-   - For example, ``cluster0.dfget.mongodb.net``.
+   .. step:: Find the DNS SRV Name
 
-To find the nodes' hostnames and port numbers:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      a. Follow Steps 1-6 in
+         :ref:`drivers-connect-your-application`.
+      b. Select your driver and version.
+      c. Under :guilabel:`Use this connection string in your
+         application`, the |srv| hostname appears in the
+         ``mongodb+srv://`` connection string. It is the
+         part of the hostname ending with ``.mongodb.net``.
 
-#. Follow the **Steps 1-6** in `Connect Your Application <https://www.mongodb.com/docs/atlas/driver-connection/#connect-your-application>`_.
-#. In **Step 7** select the latest version of the driver you chose.
+         For example, ``cluster0.dfget.mongodb.net``.
 
-#. In **Step 7** select the oldest driver version under **Non-Stable API**
+   .. step:: Find the Nodes' Hostnames and Port Numbers
 
-   - Each of the hostnames is in a comma-separated list beginning after the ``@`` 
-     symbol following the password and ending with ``.mongodb.net``.
+      In the same Connect modal:
 
-#. Note the port numbers after each of the hostnames.
+      a. Under :guilabel:`Use this connection string in your
+         application`, turn off the
+         :guilabel:`SRV Connection String` toggle.
+      b. The standard connection string (``mongodb://``)
+         displays, listing each node's hostname and port
+         number.
 
-   - The cluster's connection string may have a variety of hostnames and ports, 
-     depending on its topology and the connection method. 
-   - For more information on how Private Endpoints work, see `Configure Private Endpoints <https://www.mongodb.com/docs/atlas/security-configure-private-endpoints/>`_.
+         The cluster's connection string may have a variety
+         of hostnames and ports, depending on its topology
+         and the connection method. To learn more about
+         Private Endpoints, see
+         :ref:`atlas-configure-private-endpoint`.
 
-Test Basic Network Connectivity:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   .. step:: Test Basic Network Connectivity
 
-Run the following commands in a terminal or command prompt on the application 
-server experiencing the issue:
+      Run the following commands in a terminal or command prompt on
+      the application server experiencing the issue:
 
-* DNS SRV resolution test:
-   **Linux/MacOS:** 
+      a. **DNS SRV resolution test**
 
-   .. code-block:: sh
+         For Linux or macOS, run the following command:
 
-      dig SRV _mongodb._tcp.<DNS SRV name>
+         .. code-block:: sh
 
-   **Windows:** 
+            dig SRV _mongodb._tcp.<DNS SRV name>
 
-   .. code-block:: sh
+         For Windows, run the following command:
 
-      nslookup -debug -q=SRV  _mongodb._tcp.<DNS SRV name>
+         .. code-block:: sh
 
-   Under the **ANSWER SECTION** in the response, you should see one result for each
-   of the nodes in the cluster.
-   - For example: 
+            nslookup -debug -q=SRV  _mongodb._tcp.<DNS SRV name>
 
-   .. code-block:: sh
+         Under the **ANSWER SECTION** in the response, you should
+         see one result for each of the nodes in the cluster.
+         For example:
 
-      ;; ANSWER SECTION:
-      _mongodb._tcp.gcluster0.dfget.mongodb.net. 60 IN SRV 0 0 27017 cluster0-shard-00-00.dfget.mongodb.net.
-      _mongodb._tcp.gcluster0.dfget.mongodb.net. 60 IN SRV 0 0 27017 cluster0-shard-00-01.dfget.mongodb.net.
-      _mongodb._tcp.gcluster0.dfget.mongodb.net. 60 IN SRV 0 0 27017 cluster0-shard-00-02.dfget.mongodb.net.
+         .. code-block:: sh
+            :copyable: false
 
-* DNS node hostname resolution tests:
+            ;; ANSWER SECTION:
+            _mongodb._tcp.gcluster0.dfget.mongodb.net. 60 IN SRV 0 0 27017 cluster0-shard-00-00.dfget.mongodb.net.
+            _mongodb._tcp.gcluster0.dfget.mongodb.net. 60 IN SRV 0 0 27017 cluster0-shard-00-01.dfget.mongodb.net.
+            _mongodb._tcp.gcluster0.dfget.mongodb.net. 60 IN SRV 0 0 27017 cluster0-shard-00-02.dfget.mongodb.net.
 
-  For each hostname in the cluster run this command:
+      b. **DNS node hostname resolution tests**
 
-  **Linux/MacOS:**
+         For each hostname in the cluster:
 
-  .. code-block:: sh
+         For Linux or macOS, run the following command:
 
-     dig <Node Hostname>
+         .. code-block:: sh
 
-  **Windows:** 
+            dig <Node Hostname>
 
-  .. code-block:: sh
+         For Windows, run the following command:
 
-     nslookup -debug -q=A <Node Hostname>
+         .. code-block:: sh
 
-  Under the **ANSWER SECTION** in the response, you should see the IP address that
-  the DNS hostname resolved to.
+            nslookup -debug -q=A <Node Hostname>
 
-  - For example: 
+         Under the **ANSWER SECTION** in the response, you should
+         see the IP address that the DNS hostname resolved to.
+         For example:
 
-  .. code-block:: sh
+         .. code-block:: sh
+            :copyable: false
 
-     ;; ANSWER SECTION: cluster0-shard-00-00.ag9in.mongodb.net. 60 IN A 10.10.10.10
+            ;; ANSWER SECTION: cluster0-shard-00-00.ag9in.mongodb.net. 60 IN A 10.10.10.10
 
-* Ping test:
-   .. note::
-      ICMP requests may be blocked by the cloud provider across Private Endpoint 
-      connections.
+      c. **Ping test**
 
-   For each hostname in the cluster run this command:
+         .. note::
+            ICMP requests may be blocked by the cloud provider
+            across Private Endpoint connections.
 
-   **Linux/Mac OS:** 
+         For each hostname in the cluster:
 
-   .. code-block:: sh
+         For Linux or macOS, run the following command:
 
-      ping -c 10 <Node Hostname>
+         .. code-block:: sh
 
-   **Windows:** 
+            ping -c 10 <Node Hostname>
 
-   .. code-block:: sh
+         For Windows, run the following command:
 
-      ping /n 10 <Node Hostname>
+         .. code-block:: sh
 
-* End-to-End network connection test:
-   **Linux/Mac/OS:**
+            ping /n 10 <Node Hostname>
 
-   .. code-block:: sh
+         Review the output to check for packet loss and round-trip
+         time (RTT). High packet loss or latency may indicate
+         network issues between your server and the cluster nodes.
 
-      nc -zv <Node Hostname> <Node Port Number>
+      d. **End-to-End network connection test**
 
-   **Windows:** 
+         For Linux or macOS, run the following command:
 
-   .. code-block:: sh
+         .. code-block:: sh
 
-      Test-NetConnection -Port <Node Port Number> -InformationLevel "Detailed" -ComputerName "<Node Hostname>"
+            nc -zv <Node Hostname> <Node Port Number>
+
+         For Windows, run the following command:
+
+         .. code-block:: sh
+
+            Test-NetConnection -Port <Node Port Number> -InformationLevel "Detailed" -ComputerName "<Node Hostname>"
+
+   .. step:: Resolve the Issue
+
+      After running the tests in the previous step, use the following
+      guidance to resolve the connection error based on which test
+      failed:
+
+      - **DNS SRV resolution test fails:** Your DNS resolver doesn't
+        support |srv| record lookups, or outbound DNS traffic is
+        blocked. Try either of the following:
+
+        - Switch to the :ref:`non-SRV connection string
+          <connections-standard-connection-string-format>` format
+          (``mongodb://``) instead of ``mongodb+srv://``. To get
+          the non-SRV connection string, open the
+          :guilabel:`Connect` modal in |service|, select your
+          driver and version, and turn off the
+          :guilabel:`SRV Connection String` toggle under
+          :guilabel:`Use this connection string in your application`.
+
+        - Configure your network to use a
+          :wikipedia:`public DNS server <Public_recursive_name_server>`
+          that supports |srv| lookups, such as
+          :google:`Google Public DNS </speed/public-dns/docs/using>`.
+
+      - **DNS node hostname resolution test fails:** Your DNS
+        resolver can't resolve the individual node hostnames. If
+        you use :ref:`private endpoints <private-endpoint>`, verify
+        that your private endpoint DNS configuration is correct.
+
+      - **Ping test fails:** ICMP traffic may be blocked by a
+        firewall or the cloud provider. This does not necessarily
+        indicate a TCP connection issue. Proceed to the
+        end-to-end network connection test to verify TCP
+        connectivity on port ``27017``.
+
+      - **End-to-end network connection test fails:** A firewall or
+        network policy is blocking access to port ``27017`` on the
+        node hostnames. Verify the following:
+
+        - Add your application server's IP address to your
+          cluster's :ref:`IP access list <access-list>`.
+        - Allow outbound TCP connections on port ``27017``
+          through your firewall.
+
+      - **All tests pass but the error persists:** The issue may be
+        in your driver version. Older driver versions might not
+        correctly support the |srv| connection string format.
+        Update your driver to the latest version. You can also
+        switch to the :ref:`standard (non-SRV) connection string
+        format <connections-standard-connection-string-format>`
+        (``mongodb://``) by turning off the
+        :guilabel:`SRV Connection String` toggle under
+        :guilabel:`Use this connection string in your application`
+        in the :guilabel:`Connect` modal.
 

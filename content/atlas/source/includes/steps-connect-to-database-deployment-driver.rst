@@ -125,14 +125,20 @@
       :guilabel:`Drivers`.
       
    .. step:: Select Your Driver and Version.
-      
+
       Select your driver and version from the dropdown menus.
       The code sample containing a connection string displays.
       Replace ``<password>`` with the password specified when you created
-      your database user. 
-      
+      your database user.
+
+      Under :guilabel:`Use this connection string in your application`,
+      the connection string uses the |srv| format
+      (``mongodb+srv://``) by default. To view the standard
+      (non-SRV) connection string (``mongodb://``), turn off
+      the :guilabel:`SRV Connection String` toggle.
+
       .. include:: /includes/admonitions/notes/note-escape-special-chars-pwd.rst
-      
+
       To learn more, see
       :driver:`Driver Compatibility </about-compatibility>`.
       
