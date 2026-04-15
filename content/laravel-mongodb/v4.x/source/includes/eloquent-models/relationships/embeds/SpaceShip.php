@@ -10,6 +10,7 @@ use MongoDB\Laravel\Relations\EmbedsMany;
 class SpaceShip extends Model
 {
     protected $connection = 'mongodb';
+    protected $with = ['cargo'];
 
     public function cargo(): EmbedsMany
     {

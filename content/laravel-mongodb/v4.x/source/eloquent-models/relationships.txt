@@ -10,6 +10,7 @@ Eloquent Model Relationships
 
 .. meta::
    :keywords: php framework, odm, code example, entity relationship, eloquent
+   :description: Learn how to define Eloquent model relationships in Laravel MongoDB, including one-to-one, one-to-many, many-to-many, embedded document, and cross-database patterns.
 
 .. contents:: On this page
    :local:
@@ -376,27 +377,40 @@ following methods:
    These methods return Eloquent collections, which differ from query builder
    objects.
 
-Automatic Hydration 
+Automatic Hydration
 ~~~~~~~~~~~~~~~~~~~
 
-When you use an embedded document pattern, the {+odm-short+} retrieves all of the embedded
-data from the document, unless you use the ``select()`` or ``project()`` query 
-builder methods. The embedded data is not automatically hydrated into model instances. To automatically hydrate 
-embedded objects, use the ``$with`` property when defining relationships.
+When you access an embedded relation, the {+odm-short+} returns the embedded data
+as raw objects instead of hydrated model instances by default. When embedded
+documents are returned as raw objects, the following behaviors apply:
 
-The following code example demonstrates how to use the ``$with`` property to automatically hydrate 
-embedded objects:
+- The ``id`` field is an ``ObjectId`` type, not a string.
+- Date fields are ``UTCDateTime`` objects, not formatted strings.
+- Model attribute casts, methods, and ``toArray()`` serialization
+  do not apply.
+
+To retrieve embedded documents as hydrated model instances, add the relation
+name to the ``$with`` property on the parent model. This property
+automatically loads the relation on every query so that the {+odm-short+}
+hydrates the embedded documents as model instances.
+
+The following example defines a ``User`` model that uses ``$with``
+to load its embedded ``addresses`` relation:
 
 .. literalinclude:: /includes/eloquent-models/relationships/embeds/User.php
    :language: php
    :dedent:
 
+Because the model includes ``$with = ['addresses']``, the {+odm-short+} returns the
+embedded addresses as ``Address`` model instances. The ``toArray()``
+method serializes the ``id`` field as a string and date fields as formatted
+strings. All ``Address`` model casts and methods are also available.
 
 To learn more about the MongoDB embedded document pattern, see the following
 MongoDB Server tutorials:
 
-- :manual:`Model One-to-One Relationships with Embedded Documents </tutorial/model-embedded-one-to-one-relationships-between-documents/>`
-- :manual:`Model One-to-Many Relationships with Embedded Documents </tutorial/model-embedded-one-to-many-relationships-between-documents/>`
+- :ref:`Model One-to-One Relationships with Embedded Documents <data-modeling-example-one-to-one>`
+- :ref:`Model One-to-Many Relationships with Embedded Documents <data-modeling-example-one-to-many>`
 
 The following section shows an example of how to use the embedded document
 pattern.
