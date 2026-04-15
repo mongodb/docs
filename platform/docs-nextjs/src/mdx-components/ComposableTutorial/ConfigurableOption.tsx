@@ -6,11 +6,13 @@ import { css, cx } from '@leafygreen-ui/emotion';
 import type { ComposableTutorialOption } from '@/types/ast';
 import { theme } from '@/styles/theme';
 import { joinKeyValuesAsString } from '@/mdx-components/ComposableTutorial';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
+import { OfflineMenu } from '@/components/select';
 
 const mainStyling = css`
   flex: 1 1 200px;
   font-size: ${theme.fontSize.small};
-  overflow: hidden;
+  overflow: ${isOfflineBuild ? 'visible' : 'hidden'};
   z-index: ${theme.zIndexes.actionBar};
   max-width: 200px;
 
@@ -90,7 +92,12 @@ const ConfigurableOption = ({
   }, [option, precedingOptions, selections, validSelections]);
 
   return (
-    <div className={cx('configurable-option', mainStyling)}>
+    <div
+      className={cx('configurable-option', mainStyling)}
+      data-option-value={isOfflineBuild ? option.value : undefined}
+      data-dependencies={isOfflineBuild ? JSON.stringify(option.dependencies) : undefined}
+      data-selection-value={isOfflineBuild ? '' : undefined}
+    >
       <Select
         className={cx(selectStyling)}
         label={option.text}
@@ -105,6 +112,7 @@ const ConfigurableOption = ({
           </Option>
         ))}
       </Select>
+      {isOfflineBuild && <OfflineMenu choices={option.selections} className="offline-composable-select" />}
     </div>
   );
 };

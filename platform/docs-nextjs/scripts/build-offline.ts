@@ -286,6 +286,11 @@ const OFFLINE_TABS_SCRIPT = `<script>\n${readFileSync(
   'utf-8',
 )}\n</script>`;
 
+const OFFLINE_COMPOSABLE_TUTORIAL_SCRIPT = `<script>\n${readFileSync(
+  path.join(__dirname, 'offline-ui', 'composable-tutorial.js'),
+  'utf-8',
+)}\n</script>`;
+
 // Override the default LeafyGreen tab activation behavior to use the tabset name to see the green underline.
 const OFFLINE_TABS_STYLE = `
 <style>
@@ -303,6 +308,11 @@ function injectTabsScript(content: string): string {
     .replace(/<\/body>/i, OFFLINE_TABS_SCRIPT + '\n</body>');
 }
 
+function injectComposableTutorialScript(content: string): string {
+  if (!content.includes('offline-composable')) return content;
+  return content.replace(/<\/body>/i, OFFLINE_COMPOSABLE_TUTORIAL_SCRIPT + '\n</body>');
+}
+
 async function postProcess(): Promise<void> {
   const htmlFiles = await findHtmlFiles(OUT_DIR);
   for (const filePath of htmlFiles) {
@@ -310,6 +320,7 @@ async function postProcess(): Promise<void> {
     const prefix = getRelativePrefix(filePath);
     let rewritten = rewriteHtmlLinks(content, prefix);
     rewritten = injectTabsScript(rewritten);
+    rewritten = injectComposableTutorialScript(rewritten);
     if (rewritten !== content) await fs.writeFile(filePath, rewritten, 'utf-8');
   }
 }

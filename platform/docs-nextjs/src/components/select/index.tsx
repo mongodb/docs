@@ -10,6 +10,7 @@ import { color, focusRing } from '@leafygreen-ui/tokens';
 import type { LGGlyph } from '@leafygreen-ui/icon';
 import Icon from '@leafygreen-ui/icon';
 import { theme } from '@/styles/theme';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 const Label = styled('p')`
   font-size: ${theme.fontSize.small};
@@ -64,10 +65,58 @@ const disabledLabelStyle = css`
   }
 `;
 
+const OFFLINE_SELECT_ID = 'offline-select';
+
+const offlineMenuStyling = css`
+  position: absolute;
+  background: white;
+  font-size: 13px;
+  width: 100%;
+`;
+
+const offlineListStyle = css`
+  list-style: none;
+  padding: 8px 0;
+  border-radius: 12px;
+  box-shadow: rgba(0, 30, 43, 0.25) 0px 4px 7px 0px;
+  margin: 6px 0 0 0;
+  max-height: 250px;
+`;
+
+const offlineListItemStyle = css`
+  display: flex;
+  width: 100%;
+  outline: none;
+  overflow-wrap: anywhere;
+  position: relative;
+  padding: 8px 12px;
+  cursor: pointer;
+  color: ${palette.gray.dark3};
+  align-items: center;
+  line-height: ${theme.fontSize.default};
+
+  &:hover {
+    background-color: ${palette.gray.light2};
+  }
+
+  svg {
+    opacity: 0;
+    margin-right: 6px;
+  }
+
+  &[selected='true'] {
+    font-weight: bold;
+    svg {
+      opacity: 1;
+    }
+  }
+`;
+
 const selectStyle = css`
   > button {
     background-color: ${color.light.background.primary.default};
     text-align: left;
+    ${isOfflineBuild && `color: ${palette.black}`};
 
     // Override button default color
     > *:last-child {
@@ -161,7 +210,7 @@ const optionStyling = css`
 `;
 
 const PortalContainer = forwardRef<HTMLDivElement, { className?: string; children: ReactNode }>(({ ...props }, ref) => (
-  <div className={cx(portalStyle, props.className)} ref={ref}>
+  <div id={isOfflineBuild ? OFFLINE_SELECT_ID : undefined} className={cx(portalStyle, props.className)} ref={ref}>
     {props.children}
   </div>
 ));
@@ -170,10 +219,15 @@ PortalContainer.displayName = 'PortalContainer';
 
 export const OfflineMenu = ({ choices, className }: { choices: Array<SelectOption>; className?: string }) => {
   return (
-    <div className={className}>
-      <ul>
+    <div className={cx(offlineMenuStyling, 'offline-select-menu', className)}>
+      <ul className={cx(offlineListStyle)}>
         {choices.map((choice, idx) => (
-          <li data-value={choice.value} data-text={choice.text} key={idx}>
+          <li
+            className={cx('offline-select-choice', offlineListItemStyle)}
+            data-value={choice.value}
+            data-text={choice.text}
+            key={idx}
+          >
             <Icon fill={palette.blue.base} glyph={'Checkmark'} />
             <span>{choice.text}</span>
           </li>
@@ -246,6 +300,7 @@ const Select = ({
           </Option>
         ))}
       </LGSelect>
+      {isOfflineBuild && <OfflineMenu choices={choices} />}
     </PortalContainer>
   );
 };

@@ -97,6 +97,8 @@ pnpm build:offline -- --tocFile=<name> --version=<version>
 - `--tocFile`: the name of a TOC file (without `.ts`) from `src/context/table-of-contents/offline-docs/`. For example, `ai-models` or `kafka-connector.versioned.kafka-connector`.
 - `--version`: the version string to build (e.g. `current`, `v1.12`). Use `main` for unversioned sites.
 
+The output of the offline build will be in `platform/docs-nextjs/out`
+
 **Examples:**
 
 ```bash

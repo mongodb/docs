@@ -14,6 +14,7 @@ import { useHash } from '@/hooks/use-hash';
 import { usePageContext } from '@/context/page-context';
 import ConfigurableOption from '@/mdx-components/ComposableTutorial/ConfigurableOption';
 import ComposableContext, { ComposableContextProvider } from '@/mdx-components/ComposableTutorial/composable-context';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 const DELIMITER_KEY = '**';
 const LOCAL_STORAGE_KEY = 'activeComposables';
@@ -33,6 +34,8 @@ const containerStyling = css`
   @media ${theme.screenSize.upToMedium} {
     flex-wrap: wrap;
   }
+
+  ${isOfflineBuild && 'position: relative; top: unset;'}
 `;
 
 /** helper function to join key-value pairs as one string
@@ -305,10 +308,10 @@ const ComposableTutorialInternal = ({ children, composableOptions, ...rest }: Co
   );
 
   return (
-    <div>
+    <div className={isOfflineBuild ? 'offline-composable' : ''} data-selections={isOfflineBuild ? '{}' : undefined}>
       <div className={cx(containerStyling)}>
         {composableOptions.map((option, index) => {
-          if (showComposable(option.dependencies, currentSelections)) {
+          if (showComposable(option.dependencies, currentSelections) || isOfflineBuild) {
             return (
               <ConfigurableOption
                 validSelections={validSelections}
