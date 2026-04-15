@@ -1,0 +1,804 @@
+:noprevnext:
+
+.. _configure-ops-manager-cr:
+
+============================================
+Configure the Ops Manager Custom Resource
+============================================
+
+.. meta::
+   :description: Conceptual guide to configuring the MongoDBOpsManager custom resource for Kubernetes, covering deployment topology, security, application database, backup infrastructure, and production considerations.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+|onprem| is the self-hosted control plane for MongoDB Enterprise 
+deployments. When you run it on Kubernetes, you define it as a 
+``MongoDBOpsManager`` custom resource, and the |k8s-op-short| handles 
+the lifecycle of the |onprem| application servers, the backing 
+{+appdb+}, and, optionally, the entire backup infrastructure. Getting 
+the configuration of this resource right is foundational: every 
+MongoDB database resource you deploy later depends on a healthy, 
+well-connected |onprem| instance.
+
+This guide takes you through the design decisions and conceptual 
+areas of the |onprem| custom resource, explaining what each block 
+controls, when you need it, and how the pieces fit together. The goal 
+is to prepare you to write a manifest that reflects your organization's 
+requirements from day one, and to give you a mental model for 
+iterating on that manifest as those requirements change.
+
+For the complete field-by-field specification, see the 
+:ref:`Ops Manager Resource Specification <k8s-om-specification>`.
+
+.. _om-cr-admin-and-identity:
+
+Admin Credentials and Initial Setup
+-------------------------------------
+
+Before the |onprem| application can start, it needs an initial 
+administrator account. You provide these credentials through a 
+Kubernetes Secret referenced by ``spec.adminCredentials``. The Secret 
+must contain four keys: ``Username`` (an email address), ``Password``, 
+``FirstName``, and ``LastName``. The |k8s-op-short| uses this information to 
+bootstrap the first Global Owner account when the |onprem| pod 
+initializes for the first time:
+
+.. code-block:: sh
+
+   kubectl create secret generic ops-manager-admin-secret \
+     --from-literal=Username="admin@example.com" \
+     --from-literal=Password="<secure-password>" \
+     --from-literal=FirstName="Admin" \
+     --from-literal=LastName="User"
+
+Once |onprem| is running, you can create additional users and API
+keys through the |onprem| UI or API. The initial admin secret is only
+used during first-time setup, but the |k8s-op-short| does reference it
+for reconciliation, so it should remain in the cluster.
+
+The ``spec.version`` field determines which |onprem| release the
+|k8s-op-short| deploys. Pin this to a specific ``X.Y.Z`` version
+rather than letting it float. When you are ready to upgrade, update
+this field and let the |k8s-op-short| perform a rolling upgrade, as
+shown in the following example:
+
+.. code-block:: yaml
+
+   apiVersion: mongodb.com/v1
+   kind: MongoDBOpsManager
+   metadata:
+     name: ops-manager
+   spec:
+     replicas: 1
+     version: "8.0.0"
+     adminCredentials: ops-manager-admin-secret
+
+For details on every required field, see the 
+:ref:`required settings <om_resource-spec-required>` in the 
+specification reference.
+
+.. _om-cr-topology-decisions:
+
+Sizing and Topology for the |onprem| Resource
+------------------------------------------------
+
+The ``spec.replicas`` field controls how many |onprem| application
+instances run in parallel behind a shared service. A single replica
+is sufficient for development and evaluation, but production
+environments should run at least two replicas behind a load balancer
+to survive Pod restarts and node failures without downtime. There is
+no functional difference between the replicas; they are all
+stateless application servers backed by the same {+appdb+}.
+
+For organizations that need geographic redundancy or cross-region
+high availability, the |k8s-op-short| supports a ``MultiCluster``
+topology for |onprem| itself. In this mode, set
+``spec.topology: MultiCluster`` and define a ``clusterSpecList``
+that distributes |onprem| instances across named |k8s| clusters, as
+shown in the following example:
+
+.. code-block:: yaml
+
+   spec:
+     topology: MultiCluster
+     clusterSpecList:
+       - clusterName: "cluster-us-east"
+         members: 1
+       - clusterName: "cluster-eu-west"
+         members: 1
+
+When you use ``MultiCluster`` topology, the ``spec.replicas`` field
+is ignored; member counts are drawn from the ``clusterSpecList``
+instead. Multi-cluster |onprem| deployments introduce cross-cluster
+networking requirements, so review :ref:`deploy-om-multi-cluster`
+before adopting this model.
+
+.. important::
+
+   Once an |onprem| resource is created with ``SingleCluster`` 
+   topology, it cannot be converted to ``MultiCluster`` in place. 
+   Plan your topology before the initial deployment.
+
+.. _om-cr-configuration-properties:
+
+Application Configuration Properties
+--------------------------------------
+
+|onprem| has an extensive set of server-side configuration properties,
+ranging from email settings to feature flags to binary download
+sources. Rather than translating each of these into a first-class
+CRD field, the |k8s-op-short| provides the ``spec.configuration`` block
+as a pass-through: you set key-value pairs that map directly to
+|onprem| system properties.
+
+The most common properties to set at deployment time are email
+configuration, so that |onprem| can send alerts and invitations,
+and security defaults, as shown in the following example:
+
+.. code-block:: yaml
+
+   spec:
+     configuration:
+       mms.fromEmailAddr: "ops-manager@example.com"
+       mms.replyToEmailAddr: "ops-manager@example.com"
+       mms.adminEmailAddr: "admin@example.com"
+       mms.mail.hostname: "smtp.example.com"
+       mms.mail.port: "587"
+       mms.mail.ssl: "true"
+       mms.mail.transport: "smtp"
+       mms.ignoreInitialUiSetup: "true"
+
+Setting ``mms.ignoreInitialUiSetup`` to ``"true"`` skips the
+interactive setup wizard on first launch, which is essential for
+fully automated deployments.
+
+Other useful properties include the following:
+
+- ``mms.security.allowCORS`` — controls whether the UI accepts
+  cross-origin requests.
+- ``automation.versions.source`` — set to ``"remote"`` (default), 
+  ``"local"``, or ``"hybrid"`` to control how MongoDB binaries are 
+  downloaded. See :ref:`Local and Remote Mode <om-cr-local-remote>` 
+  below.
+- ``mms.featureFlag.automation.verifyDownloads`` — when set to 
+  ``"enabled"``, the agent requires cryptographic signatures for 
+  all MongoDB binaries.
+
+For the full catalog of properties, see 
+:opsmgr:`Ops Manager Configuration Settings </reference/configuration/>` 
+and :opsmgrkube:`spec.configuration` in the specification reference.
+
+.. _om-cr-securing-connections:
+
+Securing Connections with TLS
+------------------------------
+
+Running |onprem| over HTTPS is strongly recommended for any
+environment beyond local development. Without it, admin credentials,
+API keys, and monitoring data traverse the network in clear text.
+
+Enabling HTTPS requires the following:
+
+- A TLS certificate for the |onprem| application itself.
+- A TLS certificate for the {+appdb+}.
+
+Each certificate is stored in a |k8s-secret| whose name follows
+the pattern ``<certsSecretPrefix>-<metadata.name>-cert`` (for the
+application) or ``<certsSecretPrefix>-<metadata.name>-db-cert`` (for
+the {+appdb+}).
+
+The ``certsSecretPrefix`` is how the |k8s-op-short| ties these naming
+conventions together. If you set ``spec.security.certsSecretPrefix``
+to ``"om-prod"`` and your resource is named ``ops-manager``, the
+|k8s-op-short| expects secrets named ``om-prod-ops-manager-cert`` and
+(for the {+appdb+}) ``appdb-prod-ops-manager-db-cert``, as shown in
+the following example:
+
+.. code-block:: sh
+
+   # Create the Ops Manager TLS certificate secret
+   kubectl create secret tls om-prod-ops-manager-cert \
+     --cert=om-tls.crt \
+     --key=om-tls.key
+
+   # Create the Application Database TLS certificate secret
+   kubectl create secret tls appdb-prod-ops-manager-db-cert \
+     --cert=appdb-tls.crt \
+     --key=appdb-tls.key
+
+If your certificates are signed by a custom Certificate Authority, 
+you must also create ConfigMaps containing the CA certificates. The 
+|onprem| CA certificate **must be named** ``mms-ca.crt`` inside the 
+ConfigMap. Additionally, this CA file must include the certificate 
+chain for ``downloads.mongodb.com`` so that the Backup Daemon can 
+download MongoDB binaries:
+
+.. code-block:: yaml
+
+   spec:
+     security:
+       certsSecretPrefix: "om-prod"
+       tls:
+         ca: "om-ca-configmap"
+     applicationDatabase:
+       security:
+         certsSecretPrefix: "appdb-prod"
+         tls:
+           ca: "appdb-ca-configmap"
+
+For step-by-step HTTPS deployment procedures, including the 
+``openssl`` commands to assemble the CA chain, see 
+:ref:`deploy-om-container`. For certificate renewal automation, 
+see :ref:`cert-manager-integration`.
+
+.. _om-cr-external-connectivity:
+
+External Connectivity
+----------------------
+
+Out of the box, |onprem| is accessible only within the Kubernetes 
+cluster's internal network. For administrators and monitoring agents 
+running outside the cluster to reach the |onprem| UI and API, you 
+need to configure external connectivity.
+
+The ``spec.externalConnectivity`` block instructs the |k8s-op-short|
+to create a |k8s| Service of the specified type. We strongly recommend
+that you use ``LoadBalancer`` when your cloud provider supports it, as
+it provisions a stable external endpoint automatically.
+``NodePort`` is a fallback for on-premises or bare-metal clusters,
+as shown in the following example:
+
+.. code-block:: yaml
+
+   spec:
+     externalConnectivity:
+       type: LoadBalancer
+
+You can add cloud-specific annotations to influence load balancer 
+behavior. For example, to use an AWS Network Load Balancer on an 
+internal subnet:
+
+.. code-block:: yaml
+
+   spec:
+     externalConnectivity:
+       type: LoadBalancer
+       annotations:
+         service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+         service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+
+If the external endpoint has a custom domain name (for example, 
+``https://opsmanager.example.com``), set ``spec.opsManagerURL`` so 
+that the |k8s-op-short| and its agents use the correct address when 
+communicating with |onprem|:
+
+.. code-block:: yaml
+
+   spec:
+     opsManagerURL: "https://opsmanager.example.com:8443"
+     externalConnectivity:
+       type: LoadBalancer
+
+For the full set of external connectivity fields, see 
+:opsmgrkube:`spec.externalConnectivity` in the specification 
+reference.
+
+.. _om-cr-appdb:
+
+The Application Database
+-------------------------
+
+The {+appdb+} is a MongoDB replica set that stores all of |onprem|'s 
+internal state: project configurations, user accounts, alert 
+definitions, and more. It is tightly coupled to the |onprem| 
+application servers and must be healthy for |onprem| to function. 
+The operator manages the {+appdb+} as part of the same custom 
+resource, which means a single YAML manifest controls both the 
+application and its backing database.
+
+Version and Members
+~~~~~~~~~~~~~~~~~~~
+
+You must specify the {+appdb+} version and replica set size. The 
+version uses the format ``X.Y.Z-ubi8`` for Enterprise edition. The 
+``-ubi8`` suffix ensures the |k8s-op-short| uses the UBI-based container 
+image. Three members is the standard minimum for a production-grade 
+replica set:
+
+.. code-block:: yaml
+
+   spec:
+     applicationDatabase:
+       members: 3
+       version: "8.0.0-ubi8"
+
+Feature Compatibility During Upgrades
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When upgrading the {+appdb+}, set ``featureCompatibilityVersion`` to 
+your currently deployed version to create a safe rollback point. Once 
+you have confirmed stability on the new binary version, raise the 
+FCV in a subsequent change:
+
+.. code-block:: yaml
+
+   spec:
+     applicationDatabase:
+       version: "8.0.0-ubi8"
+       featureCompatibilityVersion: "7.0"
+
+Authentication and Passwords
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can supply a custom password for the {+appdb+} user through a 
+Kubernetes Secret reference. This is optional; if omitted, the 
+operator manages the password automatically:
+
+.. code-block:: yaml
+
+   spec:
+     applicationDatabase:
+       passwordSecretKeyRef:
+         name: appdb-user-secret
+         key: password
+
+Storage and Resources
+~~~~~~~~~~~~~~~~~~~~~
+
+The {+appdb+} has its own storage and pod specification. Sizing it 
+appropriately depends on how many projects and deployments |onprem| 
+manages. The default storage claim for |onprem| is ``16Gi``. For a 
+small to medium deployment, 50-100 GiB of fast storage is a 
+reasonable starting point. For larger environments, consider 
+separating data and journal volumes:
+
+.. code-block:: yaml
+
+   spec:
+     applicationDatabase:
+       members: 3
+       version: "8.0.0-ubi8"
+       podSpec:
+         cpu: "2"
+         memory: "4Gi"
+         persistence:
+           multiple:
+             data:
+               storage: "100Gi"
+               storageClass: "fast-ssd"
+             journal:
+               storage: "30Gi"
+               storageClass: "fast-ssd"
+             logs:
+               storage: "10Gi"
+               storageClass: "standard"
+
+Multi-Cluster Application Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The {+appdb+} can also span multiple Kubernetes clusters for 
+resilience. Set ``spec.applicationDatabase.topology`` to 
+``MultiCluster`` and define how many members run in each cluster:
+
+.. code-block:: yaml
+
+   spec:
+     applicationDatabase:
+       topology: MultiCluster
+       version: "8.0.0-ubi8"
+       clusterSpecList:
+         - clusterName: "cluster-1"
+           members: 2
+         - clusterName: "cluster-2"
+           members: 2
+         - clusterName: "cluster-3"
+           members: 1
+
+When using ``MultiCluster`` topology, the ``members`` field at the 
+{+appdb+} level is ignored; each cluster's member count comes from 
+its ``clusterSpecList`` entry.
+
+For all {+appdb+} settings, see the 
+:ref:`specification reference <k8s-om-specification>` under 
+``spec.applicationDatabase``.
+
+.. _om-cr-backup-infrastructure:
+
+Backup Infrastructure
+----------------------
+
+|onprem| provides continuous backup for the MongoDB deployments it 
+manages. Unlike the per-deployment ``spec.backup.mode`` flag on a 
+MongoDB CR, the backup settings on the |onprem| resource define the 
+**infrastructure** that stores backup data: head databases, oplog 
+stores, and snapshot stores. Without this infrastructure in place, 
+enabling backup on individual MongoDB resources will fail.
+
+Enabling Backup
+~~~~~~~~~~~~~~~
+
+Set ``spec.backup.enabled`` to ``true`` to activate the backup 
+subsystem. This alone is not enough; you must also configure at 
+least one oplog store and one snapshot store:
+
+.. code-block:: yaml
+
+   spec:
+     backup:
+       enabled: true
+
+Head Database
+~~~~~~~~~~~~~
+
+The head database stores backup metadata and job state. Allocate 
+enough storage to accommodate the metadata footprint of all 
+deployments being backed up. For most environments, 30-100 GiB is 
+adequate:
+
+.. code-block:: yaml
+
+   spec:
+     backup:
+       enabled: true
+       headDB:
+         storage: "50Gi"
+         storageClass: "fast-ssd"
+
+Oplog Stores
+~~~~~~~~~~~~
+
+Oplog stores capture the MongoDB oplog, which enables point-in-time 
+recovery. Each oplog store is backed by a separate MongoDB deployment 
+(which you create as a regular MongoDB CR). You reference that 
+deployment by name:
+
+.. code-block:: yaml
+
+   spec:
+     backup:
+       enabled: true
+       opLogStores:
+         - name: oplog1
+           mongodbResourceRef:
+             name: oplog-db
+           mongodbUserRef:
+             name: oplog-user
+           assignmentLabels:
+             - "production"
+
+S3-backed oplog stores are available for organizations that prefer 
+object storage:
+
+.. code-block:: yaml
+
+   spec:
+     backup:
+       s3OpLogStores:
+         - name: s3-oplog-store
+           s3SecretRef:
+             name: s3-credentials
+           pathStyleAccessEnabled: true
+           s3BucketEndpoint: "s3.us-east-1.amazonaws.com"
+           s3BucketName: "oplog-bucket"
+
+Snapshot Stores
+~~~~~~~~~~~~~~~
+
+Snapshot stores hold the periodic full-state snapshots. You can use 
+MongoDB-backed blockstores or S3-backed stores. S3 is often 
+preferred for cost and scalability:
+
+.. code-block:: yaml
+
+   spec:
+     backup:
+       enabled: true
+       s3Stores:
+         - name: s3-snapshot-store
+           mongodbResourceRef:
+             name: s3-metadata-db
+           mongodbUserRef:
+             name: s3-store-user
+           s3SecretRef:
+             name: s3-credentials
+           pathStyleAccessEnabled: true
+           s3BucketEndpoint: "s3.us-east-1.amazonaws.com"
+           s3BucketName: "snapshot-bucket"
+           assignmentLabels:
+             - "production"
+
+MongoDB-backed blockstores follow the same pattern without the S3 
+fields:
+
+.. code-block:: yaml
+
+   spec:
+     backup:
+       blockStores:
+         - name: blockstore1
+           mongodbResourceRef:
+             name: blockstore-db
+           mongodbUserRef:
+             name: blockstore-user
+
+KMIP Encryption for Backups
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your compliance requirements mandate encryption of backup data 
+at rest, you can integrate with a KMIP-compliant key management 
+server:
+
+.. code-block:: yaml
+
+   spec:
+     backup:
+       enabled: true
+       encryption:
+         kmip:
+           server:
+             url: "kmip.example.com:5696"
+             ca: "kmip-ca-configmap"
+           client:
+             clientCertificatePrefix: "kmip-client"
+
+Assignment labels let you route specific MongoDB deployments to 
+specific stores, giving you fine-grained control over where backup 
+data lands.
+
+For the full backup specification, see 
+``spec.backup`` in the :ref:`specification reference <k8s-om-specification>`. 
+For step-by-step procedures, see :ref:`configure-file-store` and 
+:ref:`configure-kmip-backup-encryption`.
+
+.. _om-cr-resource-allocation:
+
+Resource Allocation and JVM Tuning
+-----------------------------------
+
+|onprem| is a Java application, and its resource consumption depends 
+on the number of monitored deployments, the volume of metrics data, 
+and whether backup is enabled. The operator deploys |onprem| as a 
+StatefulSet, and you control its pod specifications through 
+``spec.statefulSet``.
+
+At a minimum, set CPU and memory requests and limits. MongoDB 
+recommends at least 4 CPU and 8 GiB of memory for small deployments, 
+scaling up for larger environments:
+
+.. code-block:: yaml
+
+   spec:
+     statefulSet:
+       spec:
+         template:
+           spec:
+             containers:
+               - name: mongodb-ops-manager
+                 resources:
+                   requests:
+                     cpu: "4"
+                     memory: "8Gi"
+                   limits:
+                     cpu: "8"
+                     memory: "16Gi"
+
+The operator calculates JVM heap settings based on the container's 
+memory limits. If you need to override Java heap or GC parameters, 
+use ``spec.jvmParameters``, but do so with caution: incorrect heap 
+values can destabilize |onprem|:
+
+.. code-block:: yaml
+
+   spec:
+     jvmParameters:
+       - "-Xmx12g"
+       - "-Xms8g"
+       - "-XX:+UseG1GC"
+
+.. warning::
+
+   Setting memory limits above 32 GiB can cause issues with the 
+   backup service due to JVM compressed oops behavior. Keep limits 
+   at or below 32 GiB.
+
+For the full StatefulSet specification fields, see 
+:opsmgrkube:`spec.statefulSet.spec` in the specification reference.
+
+.. _om-cr-local-remote:
+
+Local and Remote Mode
+----------------------
+
+By default, |onprem| downloads MongoDB installation binaries from 
+the internet (Remote mode). In air-gapped or restricted-network 
+environments, you can configure Local mode, where binaries are served 
+from a PersistentVolume mounted to the |onprem| pods, or Remote mode 
+with a custom endpoint.
+
+**Remote mode** (default):
+
+.. code-block:: yaml
+
+   spec:
+     configuration:
+       automation.versions.source: "remote"
+
+**Local mode** (for air-gapped environments):
+
+.. code-block:: yaml
+
+   spec:
+     configuration:
+       automation.versions.source: "local"
+       automation.versions.directory: "/mongodb-ops-manager/mongodb-releases"
+
+For detailed procedures, see :ref:`deploy-om-container-local-mode` 
+and :ref:`deploy-om-container-remote-mode`.
+
+.. _om-cr-iterating:
+
+Iterating on Your |onprem| Configuration
+------------------------------------------
+
+An |onprem| custom resource evolves alongside your organization. 
+Common iteration scenarios include upgrading the |onprem| version, 
+scaling replicas for high availability, adding backup infrastructure 
+for newly deployed databases, and rotating TLS certificates.
+
+Guidelines for safe changes:
+
+- **Upgrade |onprem| in place.** Change ``spec.version`` and apply. 
+  The operator performs a rolling upgrade of the application pods. 
+  Ensure the {+appdb+} version is compatible with the new |onprem| 
+  version before upgrading.
+
+- **Scale replicas independently.** You can increase ``spec.replicas`` 
+  without downtime. The new pods join the existing service 
+  automatically.
+
+- **Add backup stores incrementally.** Define new oplog or snapshot 
+  stores in the CR and apply. Existing backup assignments are not 
+  affected.
+
+- **Rotate certificates proactively.** Update the TLS certificate 
+  Secrets and, if necessary, the CA ConfigMap. The operator detects 
+  the changed Secret and restarts the affected pods.
+
+- **Watch the resource status.** After any change, run 
+  ``kubectl get om`` and inspect the ``status`` field for 
+  reconciliation progress and any error conditions.
+
+For version upgrade procedures, see :ref:`meko-upgrade-om-version`. 
+For disaster recovery guidance, see 
+:ref:`disaster-recovery-om-appdb`.
+
+.. _om-cr-putting-it-together:
+
+Putting It All Together: A Complete |onprem| Resource Example
+--------------------------------------------------------------
+
+The following example combines the concepts covered on this page
+into a production-ready |onprem| deployment. It includes HTTPS,
+email configuration, a three-member {+appdb+} with split storage,
+backup with S3 snapshot and oplog stores, KMIP encryption, and
+resource limits:
+
+.. code-block:: yaml
+
+   apiVersion: mongodb.com/v1
+   kind: MongoDBOpsManager
+   metadata:
+     name: ops-manager-prod
+     namespace: ops-manager
+   spec:
+     replicas: 2
+     version: "8.0.0"
+     adminCredentials: ops-manager-admin-secret
+     opsManagerURL: "https://opsmanager.example.com:8443"
+     configuration:
+       mms.fromEmailAddr: "ops-manager@example.com"
+       mms.replyToEmailAddr: "ops-manager@example.com"
+       mms.adminEmailAddr: "admin@example.com"
+       mms.mail.hostname: "smtp.example.com"
+       mms.mail.port: "587"
+       mms.mail.ssl: "true"
+       mms.mail.transport: "smtp"
+       mms.ignoreInitialUiSetup: "true"
+     security:
+       certsSecretPrefix: "om-prod"
+       tls:
+         ca: "om-ca-configmap"
+     externalConnectivity:
+       type: LoadBalancer
+       annotations:
+         service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+     statefulSet:
+       spec:
+         template:
+           spec:
+             containers:
+               - name: mongodb-ops-manager
+                 resources:
+                   requests:
+                     cpu: "4"
+                     memory: "8Gi"
+                   limits:
+                     cpu: "8"
+                     memory: "16Gi"
+     jvmParameters:
+       - "-Xmx12g"
+       - "-Xms8g"
+     applicationDatabase:
+       members: 3
+       version: "8.0.0-ubi8"
+       featureCompatibilityVersion: "8.0"
+       security:
+         certsSecretPrefix: "appdb-prod"
+         tls:
+           ca: "appdb-ca-configmap"
+       podSpec:
+         cpu: "4"
+         memory: "8Gi"
+         persistence:
+           multiple:
+             data:
+               storage: "200Gi"
+               storageClass: "fast-ssd"
+             journal:
+               storage: "50Gi"
+               storageClass: "fast-ssd"
+             logs:
+               storage: "20Gi"
+               storageClass: "standard"
+     backup:
+       enabled: true
+       encryption:
+         kmip:
+           server:
+             url: "kmip.example.com:5696"
+             ca: "kmip-ca-configmap"
+           client:
+             clientCertificatePrefix: "kmip-client"
+       headDB:
+         storage: "100Gi"
+         storageClass: "fast-ssd"
+       opLogStores:
+         - name: oplog1
+           mongodbResourceRef:
+             name: oplog-db
+           mongodbUserRef:
+             name: oplog-user
+           assignmentLabels:
+             - "production"
+       s3Stores:
+         - name: s3-snapshots
+           mongodbResourceRef:
+             name: s3-metadata-db
+           mongodbUserRef:
+             name: s3-store-user
+           s3SecretRef:
+             name: s3-credentials
+           pathStyleAccessEnabled: true
+           s3BucketEndpoint: "s3.us-east-1.amazonaws.com"
+           s3BucketName: "backup-snapshots-prod"
+           assignmentLabels:
+             - "production"
+
+.. seealso::
+
+   - :ref:`k8s-om-specification` — Complete Ops Manager CR field reference
+   - :ref:`deploy-om-container` — Step-by-step single-cluster deployment
+   - :ref:`deploy-om-multi-cluster` — Multi-cluster Ops Manager deployment
+   - :ref:`deploy-om-container-local-mode` — Air-gapped deployment
+   - :ref:`deploy-om-container-remote-mode` — Remote binary source
+   - :ref:`configure-file-store` — File system backup stores
+   - :ref:`configure-kmip-backup-encryption` — KMIP backup encryption
+   - :ref:`cert-manager-integration` — Automated certificate renewal
+   - :ref:`disaster-recovery-om-appdb` — Disaster recovery procedures
+

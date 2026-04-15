@@ -42,30 +42,159 @@ content: |
 
 ---
 stepnum: 4
-title: "Configure the Kubernetes Operator"
+level: 4
+title: "Create the |onprem| admin credentials secret."
+ref: create-om-admin-secret-quickstart
+content: |
+
+  Create a |k8s-secret| that contains the initial |onprem| admin
+  user credentials. The |k8s-op-short| uses this secret to configure
+  the first admin user when it deploys the |onprem| resource.
+
+  Run the following command, replacing the placeholder values with
+  your preferred credentials:
+
+  .. code-block:: sh
+
+     kubectl create secret generic ops-manager-admin-secret \
+       --from-literal=Username="<admin-email>" \
+       --from-literal=Password="<admin-password>" \
+       --from-literal=FirstName="<first-name>" \
+       --from-literal=LastName="<last-name>"
+
+  .. note::
+
+     Store these credentials securely. You need them to log
+     in to the |onprem| UI after deployment.
+
+---
+stepnum: 5
+level: 4
+title: "Deploy the |onprem| resource."
+ref: deploy-om-resource-quickstart
+content: |
+
+  a. Copy and save the following |yaml| file as ``ops-manager.yaml``:
+
+     .. code-block:: yaml
+
+        apiVersion: mongodb.com/v1
+        kind: MongoDBOpsManager
+        metadata:
+          name: ops-manager
+          namespace: mongodb
+        spec:
+          replicas: 1
+          version: "8.0.0"
+          adminCredentials: ops-manager-admin-secret
+          externalConnectivity:
+            type: NodePort
+          configuration:
+            mms.ignoreInitialUiSetup: "true"
+            automation.versions.source: "mongodb"
+            mms.fromEmailAddr: admin@example.com
+            mms.replyToEmailAddr: admin@example.com
+            mms.adminEmailAddr: admin@example.com
+            mms.mail.transport: smtp
+            mms.mail.hostname: localhost
+            mms.mail.port: "25"
+          backup:
+            enabled: false
+          applicationDatabase:
+            topology: SingleCluster
+            members: 3
+            version: "8.0.0"
+
+     To learn more, see the :ref:`k8s-om-specification`.
+
+  #. Run the following command:
+
+     .. code-block:: sh
+
+        kubectl apply -f ops-manager.yaml
+
+---
+stepnum: 6
+level: 4
+title: "Wait for the |onprem| resource to reach the Running state."
+ref: wait-for-om-running-quickstart
+content: |
+
+  The |k8s-op-short| first deploys the {+appdb+} replica set, then
+  starts the |onprem| application. This process can take several 
+  minutes.
+
+  Run the following command to track the resource status:
+
+  .. code-block:: sh
+
+     kubectl get om -o yaml -w
+
+  Wait until the output shows the following phases:
+
+  .. code-block:: yaml
+
+     status:
+       applicationDatabase:
+         phase: Running
+       opsManager:
+         phase: Running
+
+  When both components reach ``Running``, retrieve the |onprem| URL:
+
+  .. code-block:: sh
+
+     kubectl get om ops-manager -o jsonpath='{.status.opsManager.url}'
+
+  Note this URL. You need it for the ConfigMap in a later step.
+
+---
+stepnum: 7
+level: 4
+title: "Configure the |k8s-op-short| for |onprem|."
 ref: configure-kubernetes-operator-quickstart
 content: |
 
-  a. :cloudmgr:`Go to the Kubernetes Setup Page in the Cloud Manager UI 
+  You can use the |onprem| UI to generate the ConfigMap and Secret,
+  or you can create them manually.
+
+  First, forward the |onprem| service port to your local machine so 
+  you can access the UI in your browser:
+
+  .. code-block:: sh
+
+     kubectl port-forward svc/ops-manager-svc-ext 8080:8080
+
+  Then, open ``http://localhost:8080`` in your browser and log in with 
+  the credentials you created in the admin secret.
+
+  To use the |onprem| UI:
+
+  a. :opsmgr:`Go to the Kubernetes Setup Page in the Ops Manager UI 
      </tutorial/nav/k8s-config-for-mdb-resource/#navigate-to-the-kubernetes-setup-page-in-the-mms-ui>`.
 
   #. Click :guilabel:`Create New API Keys` or 
      :guilabel:`Use Existing API Keys`.
 
   #. Complete the form. To learn more, see 
-     :cloudmgr:`Programmatic Access to Cloud Manager 
-     </tutorial/manage-programmatic-api-keys/>`.
+     :ref:`create-k8s-credentials`.
 
   #. Click :guilabel:`Generate Key and YAML`.
-  
+
+  Alternatively, you can create the ConfigMap and Secret manually in
+  the following steps.
+
 ---
-stepnum: 5
+stepnum: 8
 level: 4
-title: "Copy and save the ConfigMap."
+title: "Create and save the ConfigMap."
 ref: copy-k8s-configmap-quickstart
 content: |
 
-  Copy and save the generated ``config-map.yaml`` file.
+  If you generated the ConfigMap from the |onprem| UI, copy and save
+  the generated ``config-map.yaml`` file. Otherwise, create and save 
+  the following file. Set ``data.baseUrl`` to the URL of your 
+  |onprem| instance from ``status.opsManager.url``.
 
   **Example:**
 
@@ -77,22 +206,28 @@ content: |
        name: my-project
        namespace: mongodb
      data:
-       baseUrl: https://cloud.mongodb.com
+       baseUrl: http://ops-manager-svc.mongodb.svc.cluster.local:8080
+       projectName: my-project
+       orgId: <your-org-id>
 
-       projectName: my-project # this is an optional parameter
-       orgId: 5ecd252f8c1a75033c74106c # this is a required parameter
-  
+  Replace ``<your-org-id>`` with your |onprem| Organization ID. You
+  can find this value in the |onprem| UI URL:
+  ``http://<ops-manager-url>/v2#/org/<orgId>/projects``.
+
   To learn more, see the :doc:`parameter descriptions 
   </tutorial/create-project-using-configmap>`.
 
 ---
-stepnum: 6
+stepnum: 9
 level: 4
-title: "Copy and save the Secret."
+title: "Create and save the Secret."
 ref: copy-k8s-secret-quickstart
 content: |
 
-  Copy and save the generated ``secret.yaml`` file.
+  If you generated the Secret from the |onprem| UI, copy and save
+  the generated ``secret.yaml`` file. Otherwise, create a 
+  |k8s-secret| that contains the |api| keys for your |onprem| 
+  Organization.
 
   **Example:**
 
@@ -107,10 +242,11 @@ content: |
        publicKey: <public_key>
        privateKey: <private_key>
 
-  For security purposes, |cloud| displays this file only once.
+  To create Programmatic |api| Keys, see 
+  :ref:`create-k8s-credentials`.
 
 ---
-stepnum: 7
+stepnum: 10
 level: 4
 title: "Apply the ConfigMap and Secret."
 ref: apply-configmap-secret
@@ -123,7 +259,7 @@ content: |
      kubectl apply -f secret.yaml -f config-map.yaml
 
 ---
-stepnum: 8
+stepnum: 11
 level: 4
 title: "Deploy the :manual:`MongoDB replica set </reference/glossary/#std-term-replica-set>` resource."
 ref: deploy-replica-set-quickstart
@@ -146,7 +282,7 @@ content: |
             authentication:
               enabled: true
               modes: ["SCRAM"]
-          cloudManager:
+          opsManager:
             configMapRef:
               name: my-project
           credentials: organization-secret
@@ -174,21 +310,19 @@ content: |
         kubectl apply -f <replica-set-conf>.yaml
 
 ---
-stepnum: 9
+stepnum: 12
 level: 4
-title: "Create a secret with your database user password"
+title: "Create a secret with your database user password."
 ref: create-k8s-user-secret-quickstart
 content: |
 
-  You can choose to use a cleartext password or a Base64-encoded 
-  password. Plaintext passwords use ``stringData.password`` and 
-  Base64-encoded passwords use ``data.password``.
+  Choose a password for your MongoDB database user and store it in a 
+  |k8s-secret|. This password can be any value you choose. You 
+  reference this secret when you create the database user in the next 
+  step.
 
-  .. note::
-
-     Provide your values for the following parameters. To learn more, 
-     see the :doc:`parameter descriptions 
-     </tutorial/manage-database-users-scram>`.
+  You can store the password as cleartext (using ``stringData``) or 
+  as a Base64-encoded value (using ``data``).
 
   For a cleartext password, create and save the following |yaml| file:
 
@@ -219,8 +353,11 @@ content: |
        password: <base-64-encoded-password>
        # corresponds to user.spec.passwordSecretKeyRef.key
 
+  Replace the placeholder with your chosen password. To learn more, 
+  see :ref:`k8s-manage-db-users-scram`.
+
 ---
-stepnum: 10
+stepnum: 13
 level: 4
 title: "Create a database user."
 ref: add-k8s-user-configmap-quickstart
@@ -259,7 +396,7 @@ content: |
         kubectl apply -f <database-user-conf>.yaml
 
 ---
-stepnum: 11
+stepnum: 14
 level: 4
 ref: view-k8s-user-quickstart
 optional: true
@@ -268,13 +405,13 @@ source:
   ref: view-k8s-user
 
 ---
-stepnum: 12
+stepnum: 15
 level: 4
 title: "Connect to the :manual:`MongoDB replica set </reference/glossary/#std-term-replica-set>`."
 ref: connect-k8s-rs-quickstart
 content: |
 
-  Perform the following steps in the |cloud-link| application:
+  Perform the following steps in the |onprem| application:
 
   a. Click :guilabel:`Deployment` in the left navigation.
 

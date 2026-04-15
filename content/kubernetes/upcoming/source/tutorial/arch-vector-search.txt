@@ -1,0 +1,144 @@
+.. _arch-vector-search:
+
+==========================================
+MongoDB Vector Search Architecture
+==========================================
+
+.. meta::
+   :description: Architecture of MongoDB Vector Search deployed with the MongoDB Controllers for Kubernetes Operator, including mongot process deployment, networking, and reconciliation.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+MongoDB |vector-search| enables AI-powered semantic search capabilities in your
+|k8s| environment by deploying the ``mongot`` process alongside your
+MongoDB database deployment (``mongod``). The ``mongot`` process manages
+vector indexes, sources data from the database, and processes
+:pipeline:`$vectorSearch` queries. This eliminates the need to maintain
+separate systems in sync while providing advanced search features.
+
+To deploy |vector-search|, you apply the MongoDBSearch Custom Resource
+(CR), which the |k8s-op-short| picks up and uses to deploy ``mongot``
+pods and request persistent storage specified in the ``spec``.
+
+For deployment procedures, see :ref:`k8s-deploy-search-resources`.
+
+.. _arch-vector-search-mongot:
+
+The ``mongot`` Process
+----------------------
+
+Each ``mongot`` process has its own persistent volume that is not shared
+with the database or other search nodes. Storage is used to maintain
+vector indexes that are built from the data continuously sourced from the
+database. The index definitions (metadata) are stored in the database
+itself.
+
+The ``mongot`` performs the following actions:
+
+- Manages the vector index.
+
+  The ``mongot`` is responsible for updating the index definitions in
+  the database.
+
+- Sources the data from the database.
+
+  The ``mongot`` nodes establish permanent connections to the database
+  in order to update indexes from the database in real time.
+
+- Processes vector search queries.
+
+  When ``mongod`` receives a :pipeline:`$vectorSearch` query, it
+  directs the query to one of the ``mongot`` nodes. The ``mongot`` that
+  receives the query processes the query, aggregates the data, and
+  returns the results to ``mongod``, which forwards the results to the
+  user.
+
+The ``mongot`` components are tightly coupled with a single MongoDB
+replica set and cannot be shared across multiple databases or replica
+sets. Each replica set deployment has its own dedicated search nodes.
+
+.. _arch-vector-search-networking:
+
+Networking
+----------
+
+Network connectivity between ``mongot`` and ``mongod`` goes in both
+directions:
+
+- ``mongot`` establishes connections to the replica set to source the
+  data used to build indexes and run queries.
+- ``mongod`` connects to ``mongot`` to forward search-related
+  operations such as index management and querying the data.
+
+The ``mongod`` acts as the proxy for all search queries. You never
+interact directly with the ``mongot``.
+
+.. _arch-vector-search-operator-managed:
+
+Operator-Managed Deployment
+----------------------------
+
+When both the ``mongot`` and ``mongod`` processes are deployed inside
+the |k8s| cluster, the |k8s-op-short| performs configuration for both
+processes automatically. Specifically, the |k8s-op-short|:
+
+1. Finds the MongoDB :abbr:`CR (Custom Resource)` referenced by
+   MongoDBSearch using ``spec.source.mongodbResourceRef``, or by
+   a naming convention by looking for the MongoDB :abbr:`CR (Custom
+   Resource)` with the same name as MongoDBSearch.
+
+#. Generates ``mongot`` configuration in a |yaml| file and saves it
+   to a config map named
+   ``<MongoDBSearch.metadata.name>-search-config``.
+
+#. Deploys the |vector-search| stateful set named
+   ``<MongoDBSearch.metadata.name>-search`` with storage and resource
+   requirements configured according to ``spec.persistence``
+   and ``spec.resourceRequirements`` in the :abbr:`CR (Custom
+   Resource)`.
+
+#. Updates configuration of every ``mongod`` process by adding the
+   necessary ``setParameter`` options, including the hostnames and port
+   numbers of the ``mongot`` hosts.
+
+.. _arch-vector-search-external:
+
+External MongoDB Deployment
+----------------------------
+
+When the MongoDB replica set is outside of |k8s|, you deploy ``mongot``
+using the |k8s-op-short| and perform some steps manually. The
+|k8s-op-short| handles configuration of the search pods, but you must
+reconfigure your MongoDB nodes and the networking.
+
+.. _arch-vector-search-security:
+
+Security
+--------
+
+If the MongoDB server is inside the |k8s| cluster, the |k8s-op-short|
+automatically sets up keyfile authentication for |vector-search|.
+If the MongoDB server is external, you must create a |k8s| Secret
+containing the replica set's keyfile credential and reference it in
+the MongoDBSearch :abbr:`CR (Custom Resource)`.
+
+.. _arch-vector-search-limitations:
+
+Limitations
+-----------
+
+You can't deploy |vector-search| on the following architectures:
+
+- IBM Power (ppc64le)
+- IBM Z (s390x)
+
+.. seealso::
+
+   - :ref:`k8s-deploy-search-resources` — Deploy |text-search| and |vector-search|
+   - :ref:`k8s-fts-vs-settings` — MongoDBSearch CR settings

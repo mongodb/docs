@@ -1,0 +1,208 @@
+.. _mdb-resources-arch:
+.. _arch-mdb-resources:
+
+==========================================
+MongoDB Database Resource Architecture
+==========================================
+
+.. meta::
+   :description: Architecture of MongoDB database custom resources managed by the MongoDB Controllers for Kubernetes Operator, including deployment types, StatefulSet composition, and reconciliation workflows.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The MongoDB custom resource defines database deployments that the
+|k8s-op-short| manages. Your custom resource specifications define these
+resources, and the |k8s-op-short| monitors them. When you update a resource's
+specification, the |k8s-op-short| pushes the changes to |onprem|, which modifies
+the MongoDB deployment's configuration.
+
+The ``MongoDB`` CRD supports three deployment types. The following
+diagram illustrates the composition of each:
+
+.. figure:: /images/mdb-resources-arch.svg
+   :alt: Diagram showing the high-level architecture of the MongoDB
+         resources in the MongoDB Controllers for Kubernetes Operator
+   :figwidth: 600px
+
+.. include:: /includes/fact-arbiter-nodes.rst
+
+.. _arch-mdb-standalone:
+.. _mdb-resources-standalone:
+.. _mdb-resources-definition:
+
+Standalone Resource
+--------------------
+
+Even though you can deploy a ``Standalone`` resource, we recommend that
+you deploy a ``ReplicaSet`` resource with one member instead, because a
+replica set allows you to add members in the future. In |k8s|, a
+``Standalone`` resource is equivalent to a ``ReplicaSet`` resource with
+only one member.
+
+For a ``Standalone`` resource, the |k8s-op-short| deploys a replica set
+with a single member as a StatefulSet. The |k8s-op-short| creates the
+StatefulSet, which contains the Pod specification, and relies on the
+|k8s| StatefulSet Controller to create the Pod for this single
+``mongod`` instance.
+
+.. _arch-mdb-replicaset:
+.. _mdb-resources-rs:
+
+Replica Set Resource
+---------------------
+
+For a ``ReplicaSet`` resource, the |k8s-op-short| deploys a replica set
+as a StatefulSet, with a number of members equal to the value of
+:setting:`spec.members`. The |k8s-op-short| relies on the |k8s|
+StatefulSet Controller to create one Pod per member. Each Pod runs a
+{+mdbagent+} instance that manages the ``mongod`` process on that Pod.
+
+.. _arch-mdb-sharded:
+.. _mdb-resources-sharded:
+
+Sharded Cluster Resource
+-------------------------
+
+A ``ShardedCluster`` resource consists of config servers, ``mongos``
+instances, and shard members. The |k8s-op-short| deploys:
+
+- One StatefulSet for all config servers
+- One StatefulSet for all ``mongos`` instances
+- One StatefulSet for each shard
+
+The |k8s-op-short| relies on the |k8s| StatefulSet Controller to create
+one Pod in each StatefulSet. For a sharded cluster with 2 shards, this
+means 4 StatefulSets total (1 for config servers + 1 for ``mongos`` +
+2 for shards).
+
+.. list-table::
+   :widths: 30 30 40
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Deployment Type
+     - StatefulSets
+     - Size of StatefulSet
+
+   * - Standalone
+     - 1
+     - 1 Pod
+
+   * - Replica Set
+     - 1
+     - 1 Pod per member
+
+   * - Sharded Cluster
+     - <numberOfShards> + 2
+     - 1 Pod per ``mongos``, shard member, or config server member
+
+.. _arch-mdb-reconciliation:
+.. _mdb-resources-reconcile:
+.. _mdb-resources-diagram-rs:
+.. _mdb-resources-diagram-sharded:
+.. _reconciliation-workflow-current:
+
+MongoDB Resource Reconciliation
+--------------------------------
+
+When you apply a MongoDB custom resource specification, the
+|k8s-op-short| deploys each resource as a StatefulSet. The
+|k8s-op-short| then enters a continuous reconciliation loop:
+
+1. **Reads project configuration** from the ConfigMap specified in
+   ``spec.opsManager.configMapRef.name``.
+
+2. **Reads API credentials** from the Secret specified in
+   ``spec.credentials`` or from your
+   :ref:`secret storage tool <k8s-set-secret-storage-tool>`.
+
+3. **Connects to** |onprem| and performs the following:
+
+   - Reads the organization from the ``orgId`` in the ConfigMap.
+   - Reads or creates the project specified in ``projectName``.
+   - Verifies the ``<project-id>-group-secret`` exists, or creates it
+     with |onprem| API keys.
+   - Registers the |k8s-op-short| as a watcher of the ConfigMap and
+     credential Secrets.
+
+4. **Verifies TLS and X.509 certificates**, if enabled:
+
+   - For replica sets: looks for certificates in
+     ``<prefix>-<resource-name>-cert``.
+   - For sharded clusters: looks for certificates in
+     ``<prefix>-<resource-name>-x-cert`` (per shard),
+     ``<prefix>-<resource-name>-config-cert`` (config servers), and
+     ``<prefix>-<resource-name>-mongos-cert`` (``mongos`` instances).
+
+5. **Creates or updates StatefulSets**. The number depends on the
+   deployment type. At this point, each Pod runs a {+mdbagent+} but
+   does not yet contain ``mongod`` instances.
+
+   - Each {+mdbagent+} polls |onprem| for the automation configuration.
+   - On non-static containers, the {+mdbagent+} downloads MongoDB
+     binaries with the version specified in ``spec.version``.
+   - After receiving the configuration, the {+mdbagent+} starts
+     ``mongod``.
+   - The |k8s-op-short| generates PersistentVolumeClaims for each Pod
+     (except ``mongos`` Pods), unless ``spec.persistent`` is ``false``.
+
+6. **Pushes automation configuration** updates to |onprem|. Each
+   {+mdbagent+} polls for the updated configuration and applies it.
+   If you change any field, the |k8s-op-short| performs a rolling
+   update of the StatefulSets.
+
+7. **Creates or updates Kubernetes Services**:
+
+   - For ``ReplicaSet`` or ``Standalone``: a headless ``ClusterIP``
+     service named ``<resource-name>-svc``.
+   - For ``ShardedCluster``:
+
+     - ``mongos``: uses the name in ``spec.service`` or
+       ``<resource-name>-svc``.
+     - Config servers: ``<resource-name>-cs``.
+     - Each shard: ``<resource-name>-sh``.
+
+The following diagram illustrates the reconciliation flow for replica
+sets:
+
+.. figure:: /images/mdb-resources-replica-set-reconciliation.svg
+   :alt: Diagram showing replica set reconciliation flow
+   :figwidth: 600px
+
+The following diagram illustrates the reconciliation flow for sharded
+clusters:
+
+.. figure:: /images/mdb-resources-sharded-reconciliation.svg
+   :alt: Diagram showing sharded cluster reconciliation flow
+   :figwidth: 600px
+
+.. _arch-mdb-user-reconciliation:
+.. _mdb-user-resource-reconcile:
+
+MongoDBUser Resource Reconciliation
+------------------------------------
+
+If the user authentication method is SCRAM, the ``MongoDBUser`` resource
+depends on a |k8s-secret| that stores user credentials. The
+|k8s-op-short| watches the Secret for changes and reconciles as follows:
+
+1. Determines the MongoDB user's resource from
+   ``spec.MongoDBResourceRef.name``.
+2. Connects to |onprem|, reads the organization and project, and
+   verifies the agent secret.
+3. Updates the user's credentials in |onprem| or creates a new user if
+   it doesn't exist. If the username has changed, the |k8s-op-short|
+   removes the old name and adds a new one.
+
+The following diagram illustrates the ``MongoDBUser`` reconciliation
+flow:
+
+.. figure:: /images/mdb-user-resource-reconciliation.svg
+   :alt: Diagram showing MongoDBUser reconciliation flow
+   :figwidth: 600px

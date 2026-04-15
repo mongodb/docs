@@ -1,44 +1,116 @@
 .. _k8s-architecture:
 
-===========================
-|k8s-op-short| Architecture
-===========================
+=============================================================
+|k8s-op-full| Architecture Overview
+=============================================================
 
 .. meta::
-   :description: Explore the architecture of the Kubernetes Operator for managing MongoDB clusters, including Ops Manager integration and Persistent Volumes for state maintenance.
+   :description: Architecture guide for the MongoDB Controllers for Kubernetes Operator, covering the operator itself, MongoDB database resources, Ops Manager resources, reconciliation, multi-cluster deployments, and networking.
 
 .. default-domain:: mongodb
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 1
+   :depth: 2
    :class: singlecol
 
-.. |multi-cluster-ref| replace:: :ref:`multi-cluster-arch-ref`
+The |k8s-op-full| is a |k8s| controller that extends the
+|k8s| API with custom resource definitions (CRDs) for MongoDB
+database deployments and |onprem|. Understanding how these custom
+resources map to |k8s| primitives, how the |k8s-op-short| reconciles
+changes, and how components connect to each other is essential
+before you plan your first deployment.
 
-.. include:: /includes/admonitions/note-single-to-multi-cluster.rst
+This section covers the architecture of every resource the
+|k8s-op-short| manages, from a single-cluster standalone deployment
+through a multi-cluster |onprem| topology with backup infrastructure. 
 
-The |k8s-op| provides a container image for the {+mdbagent+} in |onprem|. This
-allows you to manage and deploy MongoDB database clusters with full monitoring,
-backups, and automation provided by |onprem|.
+.. _arch-operator-overview:
 
-The |k8s| container serves as a host on which |onprem| orchestrates the
-installation of |mongod| processes and deploys the cluster configuration.
+Operator Overview
+-----------------
 
-As part of deployment, the |k8s-op-short| creates |k8s-pvs| for
-the |onprem| StatefulSets. The |k8s| container uses |k8s-pvs| to maintain the cluster state
-between restarts.
+The |k8s-op-short| runs as a Deployment in a dedicated namespace. It
+watches for custom resources of type ``MongoDB``, ``MongoDBOpsManager``,
+``MongoDBUser``, and ``MongoDBMultiCluster``. When you create or update
+one of these resources, the |k8s-op-short| reads the specification,
+validates it, and reconciles the |k8s| objects (StatefulSets, Services,
+Secrets, ConfigMaps) needed to bring the actual state in line with your
+declared state.
 
-The |k8s-op-short| architecture consists of:
+The |k8s-op-short| provides a container image for the {+mdbagent+} in
+|onprem|, which allows you to manage and deploy MongoDB database
+clusters with full monitoring, backups, and automation. The |k8s|
+container serves as a host on which |onprem| orchestrates the
+installation of ``mongod`` processes and deploys the cluster
+configuration.
 
-- **An Ops Manager custom resource**. Through this resource, the |k8s-op-short|
-  deploys |onprem| components: the application database, the |onprem|
-  application, and the Backup Daemon in the |k8s| containers. After the deployment
-  is operational, the |onprem| components reconcile updates that you make to
-  the MongoDB cluster configuration. To learn more, see :ref:`meko-om-arch`.
-  
-- **MongoDB database custom resources**. The |k8s-op-short| deploys the ``MongoDB``
-  database and the :ref:`mongodbuser-specification`. After the deployment is
-  operational, these resources reconcile updates that you make to the
-  user or the MongoDB cluster configuration. To learn more, see :ref:`mdb-resources-arch`.
+As part of deployment, the |k8s-op-short| creates PersistentVolumes
+for the StatefulSets. The containers use these PersistentVolumes to
+maintain cluster state between restarts.
+
+The following diagram illustrates the flow of configuration for a
+|k8s| instance using the |k8s-op-short|:
+
+.. figure:: /images/kubernetes-operator.bakedsvg.svg
+   :alt: Diagram showing the flow of configuration for a Kubernetes
+         instance using the Kubernetes Operator.
+   :figwidth: 700px
+   :lightbox:
+
+The |k8s-op-short|'s architecture consists of two primary resource
+families:
+
+- **The** ``MongoDBOpsManager`` **custom resource**, through which the
+  |k8s-op-short| deploys |onprem| components: the {+appdb+}, the
+  |onprem| application, and the Backup Daemon. After the deployment is
+  operational, the |onprem| components reconcile updates that you make
+  to the MongoDB cluster configuration. To learn more, see
+  :ref:`meko-om-arch`.
+
+- **The** ``MongoDB`` **custom resource**, through which the
+  |k8s-op-short| deploys database instances (standalone, replica set,
+  or sharded cluster) and the ``MongoDBUser`` resources. After
+  deployment, these resources reconcile updates you make to the user
+  or MongoDB cluster configuration. To learn more, see
+  :ref:`mdb-resources-arch`.
+
+Architecture Guides
+-------------------
+
+:ref:`mdb-resources-arch`
+  Deployment types (Standalone, ReplicaSet, ShardedCluster),
+  StatefulSet composition, MongoDB and MongoDBUser reconciliation
+  workflows with diagrams.
+
+:ref:`meko-om-arch`
+  Application Database, Ops Manager Application, Backup Daemon
+  component architecture, topology considerations, and the
+  MongoDBOpsManager reconciliation workflow.
+
+:ref:`arch-multi-cluster`
+  Single- vs. multi-cluster modes, limitations, capability differences,
+  deployment diagrams (with and without service mesh), Ops Manager
+  multi-cluster diagram, networking, load balancing, service mesh
+  requirements, and performance considerations.
+
+.. seealso::
+
+   - :ref:`k8s-specification` — MongoDB database resource specification
+   - :ref:`k8s-om-specification` — Ops Manager resource specification
+   - :ref:`multi-cluster-specification` — Multi-cluster specification
+   - :ref:`multi-cluster-prereqs` — Multi-cluster prerequisites
+   - :ref:`deploy-om-multi-cluster` — Deploy Ops Manager on multiple clusters
+   - :ref:`disaster-recovery-om-appdb` — Disaster recovery procedures
+   - :ref:`reference-architectures` — Reference architectures
+
+.. toctree::
+   :titlesonly:
+
+   MongoDB Database Resources </tutorial/arch-mdb-resources>
+   Ops Manager Resources </tutorial/arch-om-resources>
+   Multi-Cluster Deployments </tutorial/arch-multi-cluster>
+   MongoDB Search </tutorial/arch-search>
+   MongoDB Vector Search </tutorial/arch-vector-search>
+

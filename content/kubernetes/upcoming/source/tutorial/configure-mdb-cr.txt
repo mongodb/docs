@@ -1,0 +1,745 @@
+:noprevnext:
+
+.. _configure-mdb-cr:
+
+============================================
+Configure the MongoDB Custom Resource
+============================================
+
+.. meta::
+   :description: Conceptual guide to configuring the MongoDB custom resource (CR) for Kubernetes, covering deployment types, security, storage, backup, and production considerations.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The MongoDB custom resource is the primary way you define and manage 
+MongoDB deployments through |k8s-op-short|. Rather than configuring 
+MongoDB instances directly, you declare your desired state in a YAML 
+manifest, and the operator reconciles the actual state of your cluster 
+to match. This guide walks you through the conceptual building blocks 
+of that manifest, helping you understand not just what each configuration 
+area does, but why and when you might need it as you plan a deployment 
+that suits your team's requirements.
+
+Whether you are standing up a development replica set for the first time 
+or iterating on a production sharded cluster, the decisions outlined 
+here form the foundation of a stable, secure, and well-performing 
+MongoDB deployment on Kubernetes.
+
+For the complete field-by-field specification, see the 
+:ref:`MongoDB Database Resource Specification <k8s-specification>`.
+
+.. _mdb-cr-choosing-deployment-type:
+
+Choosing a Deployment Type
+--------------------------
+
+The very first decision you need to make is which type of MongoDB 
+deployment to create. The ``spec.type`` field accepts three values, 
+each targeting a different set of workloads and operational 
+requirements. Understanding the trade-offs between them is essential 
+before you write a single line of YAML.
+
+**Standalone** instances run a single ``mongod`` process. They are 
+best suited for local development, testing scenarios, or evaluating 
+features where redundancy is not a concern. Because a standalone 
+deployment has no replication, it does not support automatic failover 
+and is not recommended for production data.
+
+**Replica Sets** are the default production topology for MongoDB. A 
+replica set consists of multiple ``mongod`` members (typically three 
+or more) that maintain identical copies of your data. If the primary 
+member fails, the surviving members elect a new primary without manual 
+intervention. Choosing a replica set gives you high availability, 
+read scalability through secondary reads, and the ability to perform 
+rolling maintenance. For most teams, this is where you start:
+
+.. code-block:: yaml
+
+   apiVersion: mongodb.com/v1
+   kind: MongoDB
+   metadata:
+     name: my-replica-set
+   spec:
+     type: ReplicaSet
+     members: 3
+     version: "8.0.0"
+     opsManager:
+       configMapRef:
+         name: my-project-configmap
+     credentials: my-credentials
+     persistent: true
+
+**Sharded Clusters** distribute data across multiple shards, each of 
+which is itself a replica set. In front of the shards sit ``mongos`` 
+routers that direct client traffic, and a dedicated config server 
+replica set that stores cluster metadata. If your dataset is growing 
+beyond what a single replica set can efficiently serve, or you need 
+to scale writes horizontally, a sharded cluster is the right choice. 
+The configuration is more involved because you must specify counts 
+for shards, ``mongod`` instances per shard, ``mongos`` routers, and 
+config servers:
+
+.. code-block:: yaml
+
+   apiVersion: mongodb.com/v1
+   kind: MongoDB
+   metadata:
+     name: my-sharded-cluster
+   spec:
+     type: ShardedCluster
+     shardCount: 2
+     mongodsPerShardCount: 3
+     mongosCount: 2
+     configServerCount: 3
+     version: "8.0.0"
+     opsManager:
+       configMapRef:
+         name: my-project-configmap
+     credentials: my-credentials
+     persistent: true
+
+For full details on every field specific to each deployment type, see 
+the :ref:`Standalone <standalone-settings>`, 
+:ref:`Replica Set <replica-set-settings>`, and 
+:ref:`Sharded Cluster <sharded-cluster-settings>` sections of the 
+specification reference.
+
+.. _mdb-cr-connecting-to-ops-manager:
+
+Connecting to |onprem|
+-------------------------------------------
+
+Every MongoDB custom resource must be linked to an |onprem|
+project. This connection is how the |k8s-op-short| registers your
+deployment for monitoring, automation, and backup. Two pieces of
+configuration make the connection work: a ConfigMap that identifies
+your project, and a Secret that stores your API credentials.
+
+The ConfigMap tells the |k8s-op-short| which |onprem| project to place
+the deployment in. At a minimum it must contain a ``projectName`` and a
+``baseUrl`` that points to your |onprem| instance.
+Optionally, you can pin the deployment to a specific organization
+with ``orgId``:
+
+.. code-block:: yaml
+
+   apiVersion: v1
+   kind: ConfigMap
+   metadata:
+     name: my-project-configmap
+   data:
+     projectName: "MyKubernetesProject"
+     baseUrl: "https://ops-manager.example.com"
+     orgId: "5e8f8b8b8b8b8b8b8b8b8b8b"
+
+The Secret holds the programmatic API key pair that the |k8s-op-short|
+uses to authenticate to the |onprem| API on your behalf:
+
+.. code-block:: sh
+
+   kubectl create secret generic my-credentials \
+     --from-literal="publicKey=<public-api-key>" \
+     --from-literal="privateKey=<private-api-key>"
+
+You then reference both in your MongoDB CR:
+
+.. code-block:: yaml
+
+   spec:
+     opsManager:
+       configMapRef:
+         name: my-project-configmap
+     credentials: my-credentials
+
+To learn more about creating these prerequisites, see 
+:ref:`create-k8s-credentials` and :ref:`create-k8s-project`.
+
+.. _mdb-cr-version-lifecycle:
+
+MongoDB Version and Feature Compatibility
+------------------------------------------
+
+The ``spec.version`` field sets the MongoDB server version that the
+|k8s-op-short| deploys (for example, ``"8.0.0"``). Choosing the right
+version is not just about getting the latest features. You should
+also consider the version compatibility matrix with your driver
+libraries, the |onprem| version you are running, and your team's
+upgrade cadence.
+
+When upgrading between major versions, the ``featureCompatibilityVersion`` 
+(FCV) field gives you a safety net. FCV controls which storage-engine 
+and replication features are active, and it can be set lower than the 
+binary version itself. This lets you upgrade the binaries first, 
+verify stability, and then raise the FCV to unlock new features in a 
+separate, deliberate step. If you need to roll back, a lower FCV 
+ensures the data files remain compatible with the previous binary 
+version.
+
+.. code-block:: yaml
+
+   spec:
+     version: "8.0.0"
+     featureCompatibilityVersion: "7.0"
+
+For reference, see :setting:`spec.version` and 
+:setting:`spec.featureCompatibilityVersion` in the specification.
+
+.. _mdb-cr-security-concepts:
+.. _mdb-cr-tls:
+.. _mdb-cr-auth-mechanism:
+
+Securing Your Deployment
+-------------------------
+
+Security on a MongoDB deployment in |k8s| has two dimensions:
+encrypting network traffic with TLS and authenticating clients and 
+cluster members. Both are configured under the ``spec.security`` block, 
+and understanding how they interact is critical to getting a deployment 
+that is both secure and functional.
+
+Encrypting Connections with TLS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+TLS encryption protects data in transit between clients and MongoDB
+servers, and between replica set members themselves. When you enable
+TLS, the |k8s-op-short| expects a |k8s-secret| containing the server
+certificate and private key, and optionally a ConfigMap with the CA
+certificate that signed it.
+
+The ``certsSecretPrefix`` field tells the |k8s-op-short| how to derive
+the name of the certificate Secret. If you set the prefix to ``mdb``
+and your deployment is named ``my-replica-set``, the |k8s-op-short|
+looks for a secret named ``mdb-my-replica-set-cert``. This naming
+convention avoids collisions when multiple deployments share a
+namespace, as shown in the following example:
+
+.. code-block:: yaml
+
+   spec:
+     security:
+       certsSecretPrefix: "mdb"
+       tls:
+         enabled: true
+         ca: "custom-ca-configmap"
+
+If you use the default MongoDB CA, you can omit the ``ca`` field. 
+Otherwise, upload your CA certificate into a ConfigMap and reference 
+it here. To learn more about generating and managing TLS certificates 
+for MongoDB in Kubernetes, including ``cert-manager`` integration, 
+see :ref:`k8s-encryption` and :ref:`cert-manager-integration`.
+
+Choosing an Authentication Mechanism
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Beyond encryption, you need to decide how clients prove their identity. 
+The operator supports four authentication modes, and you can enable 
+more than one simultaneously:
+
+- **SCRAM** (Salted Challenge Response Authentication Mechanism) is 
+  the simplest to set up. Users authenticate with a username and 
+  password. It works well for applications that manage credentials 
+  through environment-variable injection or Kubernetes Secrets, and it 
+  does not require a PKI infrastructure.
+
+- **X.509** uses TLS client certificates as identity proof. This is a 
+  good choice when you already have a certificate infrastructure and 
+  want to avoid password-based credentials entirely. It requires TLS 
+  to be enabled.
+
+- **LDAP** delegates authentication to an external directory service, 
+  making it a natural fit for organizations that manage user identities 
+  centrally. This mode requires a network-reachable LDAP server and 
+  a bind credential.
+
+- **OIDC** (OpenID Connect) integrates with identity providers such as 
+  Azure AD, Okta, or Google for token-based authentication. This is 
+  the most modern approach and works well with workload identity 
+  patterns in cloud environments.
+
+You configure authentication under ``spec.security.authentication``:
+
+.. code-block:: yaml
+
+   spec:
+     security:
+       tls:
+         enabled: true
+       authentication:
+         enabled: true
+         modes: ["SCRAM", "X509"]
+         internalCluster: "X509"
+
+The ``internalCluster`` field controls how replica set members 
+authenticate to each other. Setting it to ``"X509"`` means that 
+member-to-member traffic uses X.509 certificates, even if clients 
+authenticate with SCRAM.
+
+For detailed authentication setup procedures, see 
+:ref:`k8s-authentication`.
+
+.. _mdb-cr-storage-concepts:
+
+Storage and Persistence
+-----------------------
+
+MongoDB is a stateful workload, and how you configure storage directly
+impacts performance, durability, and your ability to recover from
+failures. The ``spec.persistent`` field must be set to ``true`` for
+any environment where data loss is unacceptable (which is essentially
+every environment beyond throwaway tests). When persistence is enabled,
+the |k8s-op-short| creates PersistentVolumeClaims (PVCs) that survive
+Pod restarts and rescheduling.
+
+Single vs. Multiple Volumes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, MongoDB uses a single volume for all data. This is
+adequate for development and many production workloads, but some teams
+benefit from placing data, the journal, and logs on separate volumes.
+Separating them lets you assign faster storage classes to
+performance-critical paths, such as the write-ahead journal, while
+using cheaper storage for logs, as shown in the following example:
+
+.. code-block:: yaml
+
+   spec:
+     podSpec:
+       persistence:
+         multiple:
+           data:
+             storage: "200Gi"
+             storageClass: "fast-ssd"
+           journal:
+             storage: "50Gi"
+             storageClass: "fast-ssd"
+           logs:
+             storage: "20Gi"
+             storageClass: "standard"
+
+If a single volume is sufficient, the configuration is simpler:
+
+.. code-block:: yaml
+
+   spec:
+     podSpec:
+       persistence:
+         single:
+           storage: "100Gi"
+           storageClass: "standard"
+
+Choosing storage classes thoughtfully is especially important for 
+sharded clusters, where each shard, each config server, and the 
+``mongos`` routers each have their own pod spec (``shardPodSpec``, 
+``configSrvPodSpec``, ``mongosPodSpec``). This lets you size and 
+tier storage independently for each component.
+
+For the full set of persistence fields, see the 
+:ref:`Standalone Settings <standalone-settings>` in the specification 
+reference, which covers ``spec.podSpec.persistence.single``, 
+``spec.podSpec.persistence.multiple.data``, and related fields.
+
+.. _mdb-cr-resource-allocation:
+
+Resource Allocation and Pod Templates
+--------------------------------------
+
+Right-sizing CPU and memory for MongoDB Pods is one of the most
+impactful decisions you make at deployment time, and one you will
+likely revisit as workloads evolve. The |k8s-op-short| exposes resource
+controls through the ``podSpec`` (for replica sets and standalones)
+and through ``shardPodSpec``, ``configSrvPodSpec``, and
+``mongosPodSpec`` (for sharded clusters).
+
+Setting both ``requests`` and ``limits`` for CPU and memory ensures
+that |k8s| schedules your Pods onto nodes with adequate capacity
+and prevents runaway processes from affecting other workloads on the
+same node. The following example illustrates a configuration that you
+can use as a starting point. In this configuration, you create
+production replica set members with at least 2 CPU cores and 4 GiB of
+memory as requests, with limits set to match or exceed those values:
+
+.. code-block:: yaml
+
+   spec:
+     podSpec:
+       podTemplate:
+         spec:
+           containers:
+             - name: mongodb-enterprise-database
+               resources:
+                 requests:
+                   cpu: "2"
+                   memory: "4Gi"
+                 limits:
+                   cpu: "4"
+                   memory: "8Gi"
+
+Pod templates also allow you to set labels, annotations, tolerations,
+and affinity rules. Affinity rules are particularly important in
+production, because they control how replica set members are distributed
+across |k8s| nodes and failure domains.
+
+For example, the following affinity rule spreads members across
+availability zones to protect against zone-level outages:
+
+.. code-block:: yaml
+
+   spec:
+     podSpec:
+       podTemplate:
+         spec:
+           affinity:
+             podAntiAffinity:
+               requiredDuringSchedulingIgnoredDuringExecution:
+                 - labelSelector:
+                     matchLabels:
+                       app.kubernetes.io/name: my-replica-set
+                   topologyKey: "topology.kubernetes.io/zone"
+
+For a complete list of podTemplate fields, see the 
+:ref:`specification reference <standalone-settings>`, particularly 
+``spec.podSpec.podTemplate.spec.affinity``.
+
+.. _mdb-cr-backup-concepts:
+
+Configuring Backups
+--------------------
+
+Backups in |k8s-op-short| use the continuous backup capability built
+into |onprem|. When enabled, |onprem| captures the oplog in real time
+and takes periodic snapshots, which together give you point-in-time
+recovery. This means you can restore to any second within your
+configured retention window, not just to the timestamp of the last
+snapshot.
+
+To enable backup on a MongoDB resource, set ``spec.backup.mode`` to
+``enabled``. You can also configure a snapshot schedule that controls
+how frequently snapshots are taken and how long they are retained,
+as shown in the following example:
+
+.. code-block:: yaml
+
+   spec:
+     backup:
+       mode: enabled
+       snapshotSchedule:
+         snapshotIntervalHours: 6
+         snapshotRetentionDays: 7
+         dailySnapshotRetentionDays: 30
+         pointInTimeWindowHours: 24
+
+If your organization requires encryption of backup data at rest, you
+can integrate with a |kmip|-compliant key management server, as shown
+in the following example:
+
+.. code-block:: yaml
+
+   spec:
+     backup:
+       mode: enabled
+       encryption:
+         kmip:
+           client:
+             clientCertificatePrefix: "backup-kmip"
+
+The ``autoTerminateOnDeletion`` flag controls whether backup data is 
+cleaned up when the MongoDB resource is deleted. Set it to ``true`` 
+in non-production environments to avoid orphaned backup state; leave 
+it ``false`` in production so that backup data survives accidental 
+resource deletion:
+
+.. code-block:: yaml
+
+   spec:
+     backup:
+       mode: enabled
+       autoTerminateOnDeletion: false
+
+Assignment labels let you control which backup infrastructure (oplog
+stores, snapshot stores) a particular deployment uses, which is useful
+when multiple deployments share a single |onprem| instance.
+
+For the full set of backup settings, see the 
+:ref:`Replica Set Settings <replica-set-settings>` in the 
+specification reference. To learn how to deploy the backup 
+infrastructure itself, see :ref:`back-up-mdb-resources`.
+
+.. _mdb-cr-external-access-concepts:
+
+Exposing Your Deployment Externally
+------------------------------------
+
+By default, MongoDB deployments in |k8s| are reachable only
+within the cluster. Many teams need to access their databases from
+applications running outside |k8s|, from client tools during
+development, or from a different |k8s| cluster in a multi-region
+architecture.
+
+The ``spec.externalAccess`` block instructs the |k8s-op-short| to
+create |k8s| Services that route external traffic to your MongoDB
+Pods. You can choose between ``LoadBalancer`` services, which provision
+cloud-provider load balancers, and ``NodePort`` services, which expose
+static ports on every cluster node, as shown in the following example:
+
+.. code-block:: yaml
+
+   spec:
+     externalAccess:
+       externalService:
+         spec:
+           type: LoadBalancer
+         annotations:
+           service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+
+For replica sets, you can additionally configure ``externalDomain`` 
+to assign predictable DNS hostnames to each member, which simplifies 
+connection string construction on the client side:
+
+.. code-block:: yaml
+
+   spec:
+     externalAccess:
+       externalDomain: "mongodb.example.com"
+       externalService:
+         spec:
+           type: LoadBalancer
+
+To learn more, see :ref:`connect-from-outside-k8s`.
+
+.. _mdb-cr-additional-mongod-config:
+
+Tuning MongoDB Server Parameters
+----------------------------------
+
+Not every MongoDB tuning setting has a first-class field in the custom
+resource. For any settings that are not included in the |k8s-op-short|'s
+explicit schema, the ``spec.additionalMongodConfig`` block lets you
+pass arbitrary ``mongod`` configuration options. These are translated
+directly into the server configuration that |onprem| applies.
+
+Common uses for ``additionalMongodConfig`` include adjusting the
+WiredTiger cache size, restricting TLS protocol versions, or changing
+the listening port, as shown in the following example:
+
+.. code-block:: yaml
+
+   spec:
+     additionalMongodConfig:
+       net:
+         tls:
+           disabledProtocols: "TLS1_0,TLS1_1"
+       storage:
+         wiredTiger:
+           engineConfig:
+             cacheSizeGB: 4
+
+In a sharded cluster, each component (shard, config server, mongos) 
+has its own ``additionalMongodConfig`` field, so you can tune them 
+independently. For the full list of supported options, see
+:ref:`MongoDB Server Parameters <server-parameters>` in the MongoDB
+Manual.
+
+.. _mdb-cr-agent-config:
+
+{+mdbagent+} Configuration
+----------------------------
+
+Each MongoDB Pod runs a {+mdbagent+} that manages the ``mongod``
+process, handles automation tasks, and reports health to |onprem|.
+You can tune {+mdbagent+} behavior through ``spec.agent``, including
+startup options like log rotation limits and connection timeouts,
+as shown in the following example:
+
+.. code-block:: yaml
+
+   spec:
+     agent:
+       startupOptions:
+         maxLogFiles: "10"
+         maxLogFileSize: "100"
+         dialTimeout: "20"
+
+The ``spec.logLevel`` field sets the {+mdbagent+}'s log verbosity.
+During initial setup or troubleshooting, ``DEBUG`` can be invaluable;
+in steady-state production, ``INFO`` or ``WARN`` avoids excessive log
+volume:
+
+.. code-block:: yaml
+
+   spec:
+     logLevel: "DEBUG"
+
+For complete {+mdbagent+}-related settings, see the
+:ref:`specification reference <k8s-specification>`.
+
+.. _mdb-cr-multi-cluster-concepts:
+
+Multi-Cluster Deployments
+--------------------------
+
+For teams that need to distribute a single MongoDB deployment across
+multiple |k8s| clusters, perhaps for geographic redundancy,
+disaster recovery, or data sovereignty, the |k8s-op-short| supports a
+multi-cluster topology. Setting ``spec.topology`` to ``MultiCluster``
+instructs the |k8s-op-short| that the replica set members defined in
+``spec.clusterSpecList`` live in different |k8s| clusters, as shown
+in the following example:
+
+.. code-block:: yaml
+
+   spec:
+     topology: MultiCluster
+     clusterSpecList:
+       - clusterName: "cluster-us-east"
+         members: 2
+       - clusterName: "cluster-us-west"
+         members: 2
+       - clusterName: "cluster-eu-west"
+         members: 1
+
+Multi-cluster deployments introduce additional prerequisites, 
+including cross-cluster networking and service mesh or external 
+DNS configuration. Before proceeding, review the 
+:ref:`multi-cluster prerequisites <multi-cluster-prereqs>` 
+and :ref:`multi-cluster architecture <multi-cluster-arch-ref>`.
+
+For the multi-cluster specification fields, see the 
+:ref:`Multi-Kubernetes-Cluster Specification <multi-cluster-specification>`.
+
+.. _mdb-cr-iterating:
+
+Maintaining Your MongoDB Custom Resource Configuration Over Time
+-----------------------------------------------------------------
+
+A MongoDB custom resource is not a one-time artifact. As your team's
+requirements evolve, you will scale members, add shards, enable
+backup, rotate TLS certificates, upgrade MongoDB versions, or adjust
+resource limits. The |k8s-op-short| is designed for this: you update
+the YAML manifest, apply it with ``kubectl apply``, and the
+|k8s-op-short| reconciles the changes incrementally.
+
+A few guidelines for safe iteration:
+
+- **Scale members gradually.** Adding or removing replica set members 
+  one at a time reduces the risk of election disruption.
+
+- **Upgrade versions in two steps.** Bump the binary version first 
+  while holding ``featureCompatibilityVersion`` at the previous level, 
+  then raise FCV after verifying stability.
+
+- **Rotate certificates before expiry.** TLS certificates have a 
+  finite lifetime. Plan a rotation process, ideally automated with 
+  ``cert-manager``, and test it in a non-production environment first.
+
+- **Test storage changes carefully.** Some storage changes (like 
+  switching storage classes) may require manual volume migration. 
+  Always validate in a staging cluster.
+
+- **Monitor the resource status.** After any change, validate that
+  the |k8s-op-short| reconciled your changes successfully by checking
+  the resource status with ``kubectl get mdb`` and reviewing the
+  |k8s-op-short| logs for reconciliation errors.
+
+For hands-on procedures for modifying a deployment, see 
+:ref:`k8s-edit-database-resource`.
+
+.. _mdb-cr-putting-it-together:
+
+Putting It All Together
+------------------------
+
+The following example combines the concepts covered on this page 
+into a production-ready replica set configuration. It includes TLS, 
+SCRAM authentication, backup, anti-affinity scheduling, split 
+data/journal/log volumes, and WiredTiger tuning:
+
+.. code-block:: yaml
+
+   apiVersion: mongodb.com/v1
+   kind: MongoDB
+   metadata:
+     name: prod-replica-set
+     namespace: mongodb-production
+   spec:
+     type: ReplicaSet
+     members: 3
+     version: "8.0.0"
+     featureCompatibilityVersion: "8.0"
+     opsManager:
+       configMapRef:
+         name: prod-project-configmap
+     credentials: prod-credentials
+     persistent: true
+     security:
+       certsSecretPrefix: "prod-mdb"
+       tls:
+         enabled: true
+         ca: "prod-ca-configmap"
+       authentication:
+         enabled: true
+         modes: ["SCRAM"]
+         internalCluster: "X509"
+     backup:
+       mode: enabled
+       autoTerminateOnDeletion: false
+       snapshotSchedule:
+         snapshotIntervalHours: 6
+         snapshotRetentionDays: 7
+         dailySnapshotRetentionDays: 30
+         pointInTimeWindowHours: 48
+     podSpec:
+       persistence:
+         multiple:
+           data:
+             storage: "500Gi"
+             storageClass: "fast-ssd"
+           journal:
+             storage: "100Gi"
+             storageClass: "fast-ssd"
+           logs:
+             storage: "50Gi"
+             storageClass: "standard"
+       podTemplate:
+         spec:
+           containers:
+             - name: mongodb-enterprise-database
+               resources:
+                 requests:
+                   cpu: "2"
+                   memory: "8Gi"
+                 limits:
+                   cpu: "4"
+                   memory: "16Gi"
+           affinity:
+             podAntiAffinity:
+               requiredDuringSchedulingIgnoredDuringExecution:
+                 - labelSelector:
+                     matchLabels:
+                       app.kubernetes.io/name: prod-replica-set
+                   topologyKey: "topology.kubernetes.io/zone"
+     additionalMongodConfig:
+       net:
+         tls:
+           disabledProtocols: "TLS1_0,TLS1_1"
+       storage:
+         wiredTiger:
+           engineConfig:
+             cacheSizeGB: 8
+
+.. seealso::
+
+   - :ref:`k8s-specification` — Complete MongoDB CR field reference
+   - :ref:`deploy-replica-set` — Step-by-step replica set deployment
+   - :ref:`deploy-sharded-cluster` — Step-by-step sharded cluster deployment
+   - :ref:`k8s-encryption` — TLS configuration details
+   - :ref:`k8s-authentication` — Authentication mechanisms
+   - :ref:`back-up-mdb-resources` — Backup procedures
+   - :ref:`connect-from-outside-k8s` — External access setup
+   - :ref:`multi-cluster-specification` — Multi-cluster field reference
+
