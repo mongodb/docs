@@ -324,6 +324,18 @@ export const toc: L1TocItem[] = [
             ],
           },
           {
+            label: 'Third-Party Integrations',
+            contentSite: 'php-library',
+            collapsible: true,
+            items: [
+              {
+                label: 'Queryable Encryption with Symfony',
+                contentSite: 'php-library',
+                url: '/docs/php-library/:version/integrations/symfony-qe',
+              },
+            ],
+          },
+          {
             label: 'Reference',
             contentSite: 'php-library',
             collapsible: true,
