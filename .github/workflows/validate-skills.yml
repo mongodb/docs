@@ -1,0 +1,37 @@
+name: Validate Skills
+
+on:
+  pull_request:
+    paths:
+      - ".claude/skills/**"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Full history is needed so git diff can compare against the base branch
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: stable
+          cache: false
+
+      - name: Install skill-validator
+        run: go install github.com/agent-ecosystem/skill-validator/cmd/skill-validator@latest
+
+      - name: Validate changed skills
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          echo "## Changed Skills" >> "$GITHUB_STEP_SUMMARY"
+          bash .github/scripts/validate-skills.sh "$BASE_REF"
+
+      - name: Validate all skills
+        run: |
+          echo "## All Skills" >> "$GITHUB_STEP_SUMMARY"
+          skill-validator check --allow-extra-frontmatter --strict --emit-annotations -o markdown .claude/skills/ \
+            2>&1 | tee >(grep -v '^::' >> "$GITHUB_STEP_SUMMARY")
