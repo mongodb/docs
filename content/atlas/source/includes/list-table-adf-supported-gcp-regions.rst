@@ -8,8 +8,8 @@
 
    * - Iowa, USA
      - ``us-central1``
-     - ``CENTRAL_US``
+     - ``IOWA_USA``
 
    * - Belgium
      - ``europe-west1``
-     - ``WESTERN_EUROPE``
+     - ``BELGIUM_EU``

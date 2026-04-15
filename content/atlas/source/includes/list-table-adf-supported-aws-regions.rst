@@ -29,11 +29,11 @@
    * - Frankfurt, Germany
      - ``eu-central-1``
      - ``EU_CENTRAL_1``
-    
+
    * - Tokyo, Japan
      - ``ap-northeast-1``
      - ``AP_NORTHEAST_1``
-   
+
    * - Seoul, South Korea
      - ``ap-northeast-2``
      - ``AP_NORTHEAST_2``
