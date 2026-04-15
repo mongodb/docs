@@ -35,7 +35,7 @@ export const remarkResolveImports = ({ projectPath }: { projectPath: string }) =
     if (!refs) return;
 
     resolveSubstitutions({ tree, refs });
-    resolveRefLinks({ tree, refs });
+    resolveRefLinks({ tree, refs, projectPath });
   };
 };
 
@@ -159,6 +159,7 @@ interface JsxReplacement {
 interface ResolveRefsArgs {
   tree: Root;
   refs: ReferencesData;
+  projectPath?: string;
 }
 
 const resolveSubstitutions = ({ tree, refs }: ResolveRefsArgs) => {
@@ -184,7 +185,7 @@ const resolveSubstitutions = ({ tree, refs }: ResolveRefsArgs) => {
   applyReplacements(replacements);
 };
 
-const resolveRefLinks = ({ tree, refs }: ResolveRefsArgs) => {
+const resolveRefLinks = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
   const replacements: JsxReplacement[] = [];
 
   visit(tree, (node: Node, index: number | undefined, parent: Parent | undefined) => {
@@ -201,7 +202,7 @@ const resolveRefLinks = ({ tree, refs }: ResolveRefsArgs) => {
       if (!href) return;
 
       const title = getAttr(node, 'title') ?? key;
-      const resolvedHref = href.startsWith('http') ? href : `/${href}`;
+      const resolvedHref = href.startsWith('http') ? href : `/docs/${projectPath}/${href}`;
 
       const linkNode: Link = {
         type: 'link',
@@ -219,7 +220,7 @@ const resolveRefLinks = ({ tree, refs }: ResolveRefsArgs) => {
       const href = refs.refs[name];
       if (!href) return;
 
-      const resolvedHref = href.startsWith('http') ? href : `/${href}`;
+      const resolvedHref = href.startsWith('http') ? href : `/docs/${projectPath}/${href}`;
       const children = node.children?.length ? [...node.children] : [{ type: 'text' as const, value: name }];
 
       const linkNode: Link = {
