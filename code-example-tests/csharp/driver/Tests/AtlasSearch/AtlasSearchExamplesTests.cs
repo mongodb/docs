@@ -66,6 +66,8 @@ public class AtlasSearchExamplesTests
     private static IMongoCollection<BsonDocument> _theatersCollection = null!;
     private static IMongoCollection<BsonDocument> _restaurantsCollection = null!;
 
+    [RequiresSampleData("sample_mflix", ["movies", "theaters"])]
+    [RequiresSampleData("sample_restaurants", ["restaurants"])]
     [OneTimeSetUp]
     public static async Task CreateSearchIndexes()
     {
@@ -83,9 +85,6 @@ public class AtlasSearchExamplesTests
         _theatersCollection = mflixDb.GetCollection<BsonDocument>("theaters");
         var restaurantsDb = _client.GetDatabase("sample_restaurants");
         _restaurantsCollection = restaurantsDb.GetCollection<BsonDocument>("restaurants");
-
-        SampleDataTestHelper.EnsureSampleDataOrSkip("sample_mflix");
-        SampleDataTestHelper.EnsureSampleDataOrSkip("sample_restaurants");
 
         // Register the camelCase convention before AutoMap() runs, so field names
         // are correctly lowercased. Mirrors AtlasSearchExamples' static constructor.

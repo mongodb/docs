@@ -7,6 +7,7 @@ using Utilities.Comparison;
 public class QuickStartTests
 {
     [Test]
+    [Utilities.SampleData.RequiresSampleData("sample_mflix", new[] { "movies" })]
     [Description("Verifies that the QuickStart example queries a movie and returns a non-empty plot.")]
     public void TestRunQuickStart()
     {

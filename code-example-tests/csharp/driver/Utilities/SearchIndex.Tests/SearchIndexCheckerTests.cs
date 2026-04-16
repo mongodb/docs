@@ -119,7 +119,7 @@ public class SearchIndexCheckerTests
 
         [Test]
         [Description("Verifies that EnsureIndexReadyAsync throws TimeoutException when the index never becomes ready")]
-        public async Task ShouldThrowTimeoutException_WhenIndexNeverBecomesReady()
+        public void ShouldThrowTimeoutException_WhenIndexNeverBecomesReady()
         {
             try
             {

@@ -422,7 +422,8 @@ if (!validation.IsSuccess)
 This test suite includes a **Sample Data Utility** (`Utilities.SampleData`) that
 allows tests to conditionally skip execution when MongoDB sample databases are
 not available. This provides a better experience for developers who may not have
-sample data loaded locally.
+sample data loaded locally. You use this library by using the `RequiresSampleData`
+attribute on your test methods.
 
 ### Basic Usage
 
@@ -435,9 +436,6 @@ using Utilities.SampleData;
 [RequiresSampleData("sample_mflix")]
 public async Task TestMovieAggregation()
 {
-    // Check sample data availability (skips test if missing)
-    SampleDataTestHelper.EnsureSampleDataOrSkip("sample_mflix");
-
     // Test code that uses sample_mflix database
     var movies = await collection.Find(filter).ToListAsync();
     // ... rest of test
@@ -446,35 +444,61 @@ public async Task TestMovieAggregation()
 
 ### Multiple Databases
 
-For tests requiring multiple sample databases:
+For tests requiring multiple sample databases, pass an array of database names:
 
 ```csharp
 [Test]
-[RequiresSampleData("sample_mflix", "sample_restaurants")]
+[RequiresSampleData(["sample_mflix", "sample_restaurants"])]
 public async Task TestCrossDatabaseQuery()
 {
-    SampleDataTestHelper.EnsureSampleDataOrSkip("sample_mflix", "sample_restaurants");
-
     // Test code using both databases
+}
+```
+
+### Multiple Collections in a Database
+
+For tests requiring multiple collections in a database, pass the database name and an array of collection names:
+
+```csharp
+[Test]
+[RequiresSampleData("sample_mflix", ["movies", "theaters"]])]
+public async Task TestCrossDatabaseQuery()
+{
+    // Test code using both collections
+}
+```
+
+### Multiple Collections in Multiple Databases
+
+For tests requiring multiple collections in multiple databases, use the attribute twice, once for each database and its collections:
+
+pass the database name and an array of collection names:
+
+```csharp
+[Test]
+[RequiresSampleData("sample_mflix", ["movies", "theaters"])]
+[RequiresSampleData("sample_restaurants", ["restaurants"])]
+public async Task TestCrossDatabaseQuery()
+{
+    // Test code using both collections
 }
 ```
 
 ### Fixture-Level Requirements
 
-Apply sample data requirements to entire test fixtures:
+Apply sample data requirements to entire test fixtures by using the attribute on
+the [SetUp] method:
 
 ```csharp
 [TestFixture]
-[RequiresSampleData("sample_mflix")]
 public class MovieAnalysisTests
 {
     [SetUp]
+    [RequiresSampleData("sample_mflix", ["movies", "theaters"])]
     public void SetUp()
     {
-        // Check once per fixture
-        SampleDataTestHelper.EnsureSampleDataOrSkip("sample_mflix");
+        
     }
-
     [Test]
     public async Task TestMoviesByGenre() { /* ... */ }
 
@@ -483,44 +507,9 @@ public class MovieAnalysisTests
 }
 ```
 
-### Specific Collections
-
-Require specific collections within a database:
-
-```csharp
-[Test]
-[RequiresSampleData("sample_mflix")]
-public async Task TestMovieTheaterData()
-{
-    var collections = new Dictionary<string, string[]>
-    {
-        ["sample_mflix"] = new[] { "movies", "theaters" }
-    };
-
-    SampleDataTestHelper.EnsureSampleDataOrSkip(new[] { "sample_mflix" }, collections);
-
-    // Test code requiring both movies and theaters collections
-}
-```
-
-### Available Sample Databases
-
-The utility automatically recognizes these standard MongoDB sample databases:
-
-- `sample_mflix` - Movie and theater data
-- `sample_restaurants` - Restaurant and neighborhood data
-- `sample_training` - Training datasets (posts, companies, trips, etc.)
-- `sample_analytics` - Customer and transaction analytics
-- `sample_airbnb` - Airbnb listings data
-- `sample_geospatial` - Geographic and mapping data
-- `sample_guides` - Planetary and comet data
-- `sample_stores` - Sales transaction data
-- `sample_supplies` - Supply chain data
-- `sample_weatherdata` - Weather and climate data
-
 ### Test Output Examples
 
-When sample data is missing, tests skip with helpful messages:
+When sample data is missing, NUnit skips the test(s) with helpful messages:
 
 ```
 📊 Sample Data Status: No MongoDB sample databases found

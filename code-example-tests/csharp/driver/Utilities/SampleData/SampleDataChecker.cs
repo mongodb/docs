@@ -1,5 +1,5 @@
-using System.Collections.Concurrent;
 using DotNetEnv;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace Utilities.SampleData;
@@ -12,120 +12,89 @@ namespace Utilities.SampleData;
 public static class SampleDataChecker
 {
     /// <summary>
-    ///     Standard MongoDB sample database names and their expected collections
+    /// Synchronously checks if a single database and its required collections exist and contain data.
+    /// Blocks until the async check completes. Use <see cref="CheckSampleDataAvailableAsync(string, string[], string)"/>
+    /// in async contexts to avoid deadlocks.
     /// </summary>
-    public static readonly Dictionary<string, string[]> StandardSampleDatabases = new()
+    /// <param name="databaseName">The name of the MongoDB database to check for existence.</param>
+    /// <param name="requiredCollections">Optional array of collection names that must exist and contain at least one document in the specified database. If null or empty, only database existence is verified.</param>
+    /// <param name="connectionString">Optional MongoDB connection string. If null or empty, falls back to the CONNECTION_STRING value in the .env file.</param>
+    /// <returns>A tuple where <c>isAvailable</c> is <c>true</c> if the database and all required collections exist and are non-empty, and <c>reason</c> describes the result or the first failure encountered.</returns>
+    public static (bool isAvailable, string reason) CheckSampleDataAvailable(string databaseName,
+        string[]? requiredCollections = null, string connectionString = "")
     {
-        ["sample_mflix"] = new[] { "movies", "theaters", "users", "comments", "sessions" },
-        ["sample_restaurants"] = new[] { "restaurants", "neighborhoods" },
-        ["sample_training"] = new[] { "posts", "companies", "inspections", "routes", "trips", "grades", "zips" },
-        ["sample_analytics"] = new[] { "customers", "accounts", "transactions" },
-        ["sample_airbnb"] = new[] { "listingsAndReviews" },
-        ["sample_geospatial"] = new[] { "shipwrecks" },
-        ["sample_guides"] = new[] { "planets", "comets" },
-        ["sample_stores"] = new[] { "sales" },
-        ["sample_supplies"] = new[] { "sales" },
-        ["sample_weatherdata"] = new[] { "data" }
-    };
-
-    /// <summary>
-    ///     Cache for sample data availability to avoid repeated database queries
-    /// </summary>
-    private static readonly ConcurrentDictionary<string, bool> SampleDataCache = new();
-
-    /// <summary>
-    ///     Global flag to track if we've shown sample data availability summary
-    /// </summary>
-    private static bool _hasShownSummary;
-
-    private static readonly object _summaryLock = new();
-
-    /// <summary>
-    ///     Shows a helpful summary of sample data availability (only once per test run).
-    ///     Returns immediately if already shown to avoid duplicate logging.
-    /// </summary>
-    /// <returns>Task representing the asynchronous operation</returns>
-    public static async Task ShowSampleDataSummaryAsync()
-    {
-        if (_hasShownSummary) return;
-
-        lock (_summaryLock)
-        {
-            if (_hasShownSummary) return;
-            _hasShownSummary = true;
-        }
-
-        try
-        {
-            var availableDatabases = await GetAvailableSampleDatabasesAsync();
-
-            if (availableDatabases.Count == 0)
-            {
-                Console.WriteLine("\n📊 Sample Data Status: No MongoDB sample databases found");
-                Console.WriteLine("   Some tests may be skipped. To load sample data:");
-                Console.WriteLine("   • Atlas: https://www.mongodb.com/docs/atlas/sample-data/");
-                Console.WriteLine("   • Local: Use mongorestore with sample data archive\n");
-            }
-            else
-            {
-                Console.WriteLine($"\n📊 Sample Data Status: {availableDatabases.Count} database(s) available");
-                Console.WriteLine($"   Found: {string.Join(", ", availableDatabases)}\n");
-            }
-        }
-        catch (Exception)
-        {
-            // Silently fail - we don't want to break test runs over this
-            // Only log for debugging if needed: Console.WriteLine($"Could not determine sample data status: {ex.Message}");
-        }
+        return CheckSampleDataAvailableAsync(databaseName, requiredCollections, connectionString)
+            .GetAwaiter().GetResult();
     }
 
     /// <summary>
-    ///     Checks if a specific sample database and its expected collections exist
+    /// Synchronously checks if all specified databases and their required collections exist and contain data.
+    /// Checks each database in order and returns on the first failure. Blocks until the async check completes.
+    /// Use <see cref="CheckSampleDataAvailableAsync(string[], string[], string)"/> in async contexts to avoid deadlocks.
     /// </summary>
-    /// <param name="databaseName">The sample database name to check</param>
-    /// <param name="requiredCollections">Optional array of specific collections to verify</param>
-    /// <returns>True if the sample database and collections exist</returns>
-    /// <example>
-    ///     <code>
-    /// // Check if sample_mflix database exists with default collections
-    /// var hasMovieData = await SampleDataChecker.CheckSampleDataAvailableAsync("sample_mflix");
-    /// 
-    /// // Check if specific collections exist
-    /// var hasCustomData = await SampleDataChecker.CheckSampleDataAvailableAsync("sample_mflix", new[] { "movies", "theaters" });
-    /// </code>
-    /// </example>
-    public static async Task<bool> CheckSampleDataAvailableAsync(string databaseName,
-        string[]? requiredCollections = null)
+    /// <param name="databaseNames">Array of MongoDB database names to check for existence. Each database is checked in order.</param>
+    /// <param name="requiredCollections">Optional array of collection names that must exist and contain at least one document in every specified database. If null or empty, only database existence is verified.</param>
+    /// <param name="connectionString">Optional MongoDB connection string. If null or empty, falls back to the CONNECTION_STRING value in the .env file.</param>
+    /// <returns>A tuple where <c>isAvailable</c> is <c>true</c> only if all databases and all required collections exist and are non-empty, and <c>reason</c> describes the result or the first failure encountered.</returns>
+    public static (bool isAvailable, string reason) CheckSampleDataAvailable(string[] databaseNames,
+        string[]? requiredCollections = null, string connectionString = "")
     {
-        var collectionsKey = requiredCollections != null
-            ? string.Join(",", requiredCollections.OrderBy(x => x))
-            : "default";
-        var cacheKey = $"{databaseName}:{collectionsKey}";
+        return CheckSampleDataAvailableAsync(databaseNames, requiredCollections, connectionString)
+            .GetAwaiter().GetResult();
+    }
 
-        if (SampleDataCache.TryGetValue(cacheKey, out var cachedResult)) return cachedResult;
+    /// <summary>
+    /// Asynchronously checks if all specified databases and their required collections exist and contain data.
+    /// Checks each database in order and short-circuits on the first failure.
+    /// </summary>
+    /// <param name="databaseNames">Array of MongoDB database names to check for existence. Each database is checked in order.</param>
+    /// <param name="requiredCollections">Optional array of collection names that must exist and contain at least one document in every specified database. If null or empty, only database existence is verified.</param>
+    /// <param name="connectionString">Optional MongoDB connection string. If null or empty, falls back to the CONNECTION_STRING value in the .env file.</param>
+    /// <returns>A tuple where <c>isAvailable</c> is <c>true</c> only if all databases and all required collections exist and are non-empty, and <c>reason</c> describes the result or the first failure encountered.</returns>
+    public static async Task<(bool isAvailable, string reason)> CheckSampleDataAvailableAsync(string[] databaseNames,
+        string[]? requiredCollections = null, string connectionString = "")
+    {
+        foreach (var dbName in databaseNames)
+        {
+            var (isAvailable, reason) = await CheckSampleDataAvailableAsync(dbName, requiredCollections, connectionString);
+            if (!isAvailable)
+            {
+                return (false, reason);
+            }
+        }
+        return (true, "All required sample databases are available.");
+    }
 
+    /// <summary>
+    /// Asynchronously checks if a single database and its required collections exist and contain data.
+    /// Connects with short timeouts (2 seconds each) to fail fast when MongoDB is unreachable.
+    /// Connection errors are caught and returned as a failure tuple rather than thrown.
+    /// </summary>
+    /// <param name="databaseName">The name of the MongoDB database to check for existence.</param>
+    /// <param name="requiredCollections">Optional array of collection names that must exist and contain at least one document in the specified database. If null or empty, only database existence is verified.</param>
+    /// <param name="connectionString">Optional MongoDB connection string. If null or empty, falls back to the CONNECTION_STRING value in the .env file.</param>
+    /// <returns>A tuple where <c>isAvailable</c> is <c>true</c> if the database and all required collections exist and are non-empty, and <c>reason</c> describes the result or the first failure encountered.</returns>
+    public static async Task<(bool isAvailable, string reason)> CheckSampleDataAvailableAsync(string databaseName,
+        string[]? requiredCollections = null, string connectionString = "")
+    {
         try
         {
-            // Load .env file from current directory or parent directories  
             Env.TraversePath().Load();
 
-            var connectionString = Env.GetString("CONNECTION_STRING");
+            if (string.IsNullOrWhiteSpace(connectionString)) connectionString = Env.GetString("CONNECTION_STRING");
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 Console.WriteLine(
                     "CONNECTION_STRING not found in .env file. Verify you have a .env file with a valid connection string.");
-                SampleDataCache.TryAdd(cacheKey, false);
-                return false;
+                return (false, "CONNECTION_STRING not found in .env file.");
             }
-
-            // Configure client with short timeouts for testing
             var clientSettings = MongoClientSettings.FromConnectionString(connectionString);
             clientSettings.ServerSelectionTimeout =
-                TimeSpan.FromMilliseconds(2000); // 2 second timeout for server selection
-            clientSettings.ConnectTimeout = TimeSpan.FromMilliseconds(2000); // 2 second timeout for initial connection
-            clientSettings.SocketTimeout = TimeSpan.FromMilliseconds(2000); // 2 second timeout for socket operations
+                TimeSpan.FromMilliseconds(2000);
+            clientSettings.ConnectTimeout = TimeSpan.FromMilliseconds(2000);
+            clientSettings.SocketTimeout = TimeSpan.FromMilliseconds(2000);
 
-            var client = new MongoClient(clientSettings);
+            using var client = new MongoClient(clientSettings);
 
             // Check if database exists
             var databases = await client.ListDatabaseNamesAsync();
@@ -134,123 +103,40 @@ public static class SampleDataChecker
 
             if (!dbExists)
             {
-                SampleDataCache.TryAdd(cacheKey, false);
-                return false;
+                return (false, $"Database '{databaseName}' does not exist.");
             }
 
             // Check collections if specified
-            var collectionsToCheck = requiredCollections ??
-                                     StandardSampleDatabases.GetValueOrDefault(databaseName, Array.Empty<string>());
-            if (collectionsToCheck.Length > 0)
+            if (requiredCollections != null && requiredCollections.Length > 0)
             {
                 var database = client.GetDatabase(databaseName);
                 var collections = await database.ListCollectionNamesAsync();
                 var existingCollections = await collections.ToListAsync();
 
-                var missingCollections = collectionsToCheck.Where(col => !existingCollections.Contains(col)).ToArray();
+                var missingCollections = requiredCollections.Where(col => !existingCollections.Contains(col)).ToArray();
 
                 if (missingCollections.Length > 0)
                 {
-                    SampleDataCache.TryAdd(cacheKey, false);
-                    return false;
+                    return (false, $"One or more collections in '{string.Join(", ", missingCollections)}' does not exist in database '{databaseName}'.");
+                }
+
+                foreach (var collection in requiredCollections)
+                {
+                    var count = await database.GetCollection<BsonDocument>(collection).EstimatedDocumentCountAsync();
+                    if (count == 0)
+                    {
+                        return (false, $"Collection '{collection}' in database '{databaseName}' is empty.");
+                    }
                 }
             }
 
-            SampleDataCache.TryAdd(cacheKey, true);
-            return true;
+            return (true, "Sample data is available.");
         }
-        catch (Exception)
+        catch (Exception ex)
         {
             // Quietly handle connection errors - this is expected when MongoDB is not available
-            // Only log for debugging if needed: Console.WriteLine($"Error checking sample data availability for {databaseName}: {ex.Message}");
-            SampleDataCache.TryAdd(cacheKey, false);
-            return false;
+            Console.WriteLine($"Error checking sample data availability for {databaseName}: {ex.Message}");
+            return (false, "Error checking sample data availability.");
         }
     }
-
-    /// <summary>
-    ///     Checks if any of the standard MongoDB sample databases are available
-    /// </summary>
-    /// <returns>List of available sample database names</returns>
-    /// <example>
-    ///     <code>
-    /// var availableDbs = await SampleDataChecker.GetAvailableSampleDatabasesAsync();
-    /// Console.WriteLine($"Available sample databases: {string.Join(", ", availableDbs)}");
-    /// </code>
-    /// </example>
-    public static async Task<List<string>> GetAvailableSampleDatabasesAsync()
-    {
-        var tasks = StandardSampleDatabases.Keys.Select(async dbName =>
-        {
-            var isAvailable = await CheckSampleDataAvailableAsync(dbName);
-            return new { DatabaseName = dbName, IsAvailable = isAvailable };
-        });
-
-        var results = await Task.WhenAll(tasks);
-        return results.Where(r => r.IsAvailable).Select(r => r.DatabaseName).ToList();
-    }
-
-    /// <summary>
-    ///     Checks if multiple sample databases are available
-    /// </summary>
-    /// <param name="requiredDatabases">The sample database names to check</param>
-    /// <param name="collectionsPerDatabase">Optional dictionary mapping database names to required collections</param>
-    /// <returns>SampleDataAvailability result containing availability status and missing databases</returns>
-    public static async Task<SampleDataAvailability> CheckMultipleSampleDatabasesAsync(
-        string[] requiredDatabases,
-        Dictionary<string, string[]>? collectionsPerDatabase = null)
-    {
-        var tasks = requiredDatabases.Select(async dbName =>
-        {
-            var requiredCollections = collectionsPerDatabase?.GetValueOrDefault(dbName);
-            var isAvailable = await CheckSampleDataAvailableAsync(dbName, requiredCollections);
-            return new { DatabaseName = dbName, IsAvailable = isAvailable };
-        });
-
-        var results = await Task.WhenAll(tasks);
-        var missingDatabases = results.Where(r => !r.IsAvailable).Select(r => r.DatabaseName).ToArray();
-
-        return new SampleDataAvailability
-        {
-            IsAvailable = missingDatabases.Length == 0,
-            MissingDatabases = missingDatabases,
-            AvailableDatabases = results.Where(r => r.IsAvailable).Select(r => r.DatabaseName).ToArray()
-        };
-    }
-
-    /// <summary>
-    ///     Clears the sample data availability cache.
-    ///     Useful for testing or when sample data availability may have changed.
-    /// </summary>
-    /// <example>
-    ///     <code>
-    /// // Clear cache after loading new sample data
-    /// SampleDataChecker.ClearSampleDataCache();
-    /// </code>
-    /// </example>
-    public static void ClearSampleDataCache()
-    {
-        SampleDataCache.Clear();
-    }
-}
-
-/// <summary>
-///     Result of checking sample data availability for multiple databases
-/// </summary>
-public class SampleDataAvailability
-{
-    /// <summary>
-    ///     True if all required sample databases and collections are available
-    /// </summary>
-    public bool IsAvailable { get; set; }
-
-    /// <summary>
-    ///     Array of database names that are missing or don't have required collections
-    /// </summary>
-    public string[] MissingDatabases { get; set; } = Array.Empty<string>();
-
-    /// <summary>
-    ///     Array of database names that are available with required collections
-    /// </summary>
-    public string[] AvailableDatabases { get; set; } = Array.Empty<string>();
 }
