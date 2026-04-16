@@ -13,7 +13,7 @@ embeddings. {+avs+} uses the |voyage| |api| key that you specified
 during deployment to generate the embeddings.
 
 You can also index additional fields in your collection for
-:ref:`pre-filtering <avs-types-filter-auto-embed>` your data. Filtering your data 
-is useful to narrow the scope of your semantic search and ensure that
-certain vector embeddings are not considered for comparison.
- 
+:ref:`pre-filtering <avs-types-filter-auto-embed>` your data. Filtering
+your data is useful to narrow the scope of your semantic search.
+
+.. include:: /includes/avs/facts/fact-avs-filter-performance.rst

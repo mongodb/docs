@@ -1,8 +1,9 @@
 You can optionally index additional fields to pre-filter your data.
-You can filter on {+avs-filter-types+}. Filtering your data helps
-narrow the scope of your semantic search and increase the accuracy
-of search results. Filtered queries are typically slower than an
-equivalent unfiltered query.
+You can filter on {+avs-filter-types+}. Filtering your data is useful
+to narrow the scope of your semantic search and increase the accuracy
+of search results.
+
+.. include:: /includes/avs/facts/fact-avs-filter-performance.rst
 
 You must index the fields that you want to filter by using the
 ``filter`` type inside the ``fields`` array. 
