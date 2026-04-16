@@ -8,9 +8,6 @@ import TrackJSProvider from '@/components/trackjs-provider';
 export const metadata: Metadata = {
   title: 'MongoDB Docs',
   description: 'MongoDB Documentation',
-  icons: {
-    icon: '/favicon.ico',
-  },
 };
 
 export default function RootLayout({
