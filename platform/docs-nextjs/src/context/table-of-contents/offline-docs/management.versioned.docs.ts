@@ -1052,8 +1052,8 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'AI Models',
-                contentSite: 'voyageai',
-                url: '/docs/voyageai/management/billing',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/voyageai/management/billing',
               },
               {
                 label: 'Stream Processing',

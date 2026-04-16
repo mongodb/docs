@@ -1044,8 +1044,8 @@ const tocData: TocItem[] = [
       },
       {
         label: 'AI Models',
-        contentSite: 'voyageai',
-        url: '/docs/voyageai/management/billing',
+        url: 'https://www.mongodb.com/docs/voyageai/management/billing',
+        isExternal: true,
       },
       {
         label: 'Stream Processing',
