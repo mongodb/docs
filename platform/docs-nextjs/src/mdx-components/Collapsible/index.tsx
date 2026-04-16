@@ -10,7 +10,10 @@ import { Heading } from '@/mdx-components/Heading';
 import { useHash } from '@/hooks/use-hash';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import { collapsibleStyle, headerContainerStyle, headerStyle, iconStyle, innerContentStyle } from './styles';
+
+const OFFLINE_COLLAPSIBLE_CLASSNAME = 'offline-collapsible';
 
 type CollapsibleProps = {
   children: React.ReactNode;
@@ -55,7 +58,11 @@ export const Collapsible = ({
   };
 
   return (
-    <Box as="details" open={open} className={cx('collapsible', collapsibleStyle)}>
+    <Box
+      as="details"
+      open={open}
+      className={cx('collapsible', collapsibleStyle, isOfflineBuild ? OFFLINE_COLLAPSIBLE_CLASSNAME : '')}
+    >
       <Box as="summary" className={cx(headerContainerStyle)} onClick={(e) => e.preventDefault()}>
         <Box>
           <Heading ref={headingRef} className={cx(headerStyle)} headingLevel={headingLevel}>

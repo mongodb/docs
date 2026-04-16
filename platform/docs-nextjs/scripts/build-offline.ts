@@ -308,6 +308,28 @@ function injectTabsScript(content: string): string {
     .replace(/<\/body>/i, OFFLINE_TABS_SCRIPT + '\n</body>');
 }
 
+const OFFLINE_COLLAPSIBLE_SCRIPT = `<script>\n${readFileSync(
+  path.join(__dirname, 'offline-ui', 'collapsible.js'),
+  'utf-8',
+)}\n</script>`;
+
+// Rotate the ChevronRight icon 90° clockwise to look like ChevronDown when open.
+const OFFLINE_COLLAPSIBLE_STYLE = `
+<style>
+  details.offline-collapsible[open] summary button svg {
+    transform: rotate(90deg);
+  }
+</style>`;
+
+// Restore toggle behaviour for Collapsible components whose React state
+// handler never runs because React does not hydrate in the offline build.
+function injectCollapsibleScript(content: string): string {
+  if (!content.includes('offline-collapsible')) return content;
+  return content
+    .replace(/<\/head>/i, OFFLINE_COLLAPSIBLE_STYLE + '\n</head>')
+    .replace(/<\/body>/i, OFFLINE_COLLAPSIBLE_SCRIPT + '\n</body>');
+}
+
 function injectComposableTutorialScript(content: string): string {
   if (!content.includes('offline-composable')) return content;
   return content.replace(/<\/body>/i, OFFLINE_COMPOSABLE_TUTORIAL_SCRIPT + '\n</body>');
@@ -320,6 +342,7 @@ async function postProcess(): Promise<void> {
     const prefix = getRelativePrefix(filePath);
     let rewritten = rewriteHtmlLinks(content, prefix);
     rewritten = injectTabsScript(rewritten);
+    rewritten = injectCollapsibleScript(rewritten);
     rewritten = injectComposableTutorialScript(rewritten);
     if (rewritten !== content) await fs.writeFile(filePath, rewritten, 'utf-8');
   }
