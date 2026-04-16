@@ -1,3 +1,8 @@
+Add a Kafka Connection through the {+atlas-ui+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To add a Kafka connection to your {+spw+} through the
+{+atlas-ui+}, follow these steps:
 
 .. procedure::  
    :style: normal  
@@ -11,7 +16,7 @@
            
       #. Select the :guilabel:`Connection Registry` tab.  
   
-   .. step:: Click :guilabel:`+ Add connection`.  
+   .. step:: Click :guilabel:`+ Add Connection`.  
   
    .. step:: Add a new connection.  
   
@@ -90,7 +95,7 @@
                   #. Scope - Scope of the access request to the broker specified by the Kafka clients.
                   #. SASL Extensions - Additional information to provide to the Kafka broker.
 
-               #. Click :guilabel:`Add connection`.
+               #. Click :guilabel:`+ Add Connection`.
 
             .. tab:: ``SASL_SSL``
                :tabid: stream-connect-kafka-ssl-auth
@@ -125,7 +130,7 @@
                   #. Scope - Scope of the access request to the broker specified by the Kafka clients.
                   #. SASL Extensions - Additional information to provide to the Kafka broker.
   
-               #. Click :guilabel:`Add connection`.  
+               #. Click :guilabel:`+ Add Connection`.  
   
             .. tab:: ``SSL``  
                :tabid: stream-connect-kafka-mtls-auth  
@@ -140,4 +145,15 @@
                #. **(Optional)** If your Client SSL Keyfile is password-protected,  
                   type your password into the :guilabel:`Client key password` field.  
   
-               #. Click :guilabel:`Add connection`.
+               #. Click :guilabel:`+ Add Connection`.
+
+.. important::
+
+   After adding an external connection such as an {+kafka+} cluster to
+   your connection registry, you must add {+service+} IP addresses to 
+   an access list for that external connection. To learn more, 
+   see :ref:`atlas-add-inbound-ips`. 
+
+.. include:: /includes/atlas-stream-processing/kafka-sp-params.rst		  
+
+.. include:: /includes/atlas-stream-processing/kafka-stage-support.rst

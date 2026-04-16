@@ -1,3 +1,9 @@
+Add an Atlas Cluster Connection through the {+atlas-ui+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To add an Atlas Cluster connection to your {+spw+} through the
+{+atlas-ui+}, follow these steps:
+
 .. procedure::
    :style: normal
 	   
@@ -10,7 +16,7 @@
 
       #. Select the :guilabel:`Connection Registry` tab.
 
-   .. step:: Click :guilabel:`+ Add connection`.
+   .. step:: Click :guilabel:`+ Add Connection`.
 
    .. step:: Add a new connection.
 
@@ -31,5 +37,7 @@
 	 support, the available {+clusters+} appear grouped by
 	 project.
 
-      #. Click :guilabel:`Add connection`.
+      #. Click :guilabel:`+ Add Connection`.
       
+
+.. include:: /includes/atlas-stream-processing/atlas-stage-support.rst

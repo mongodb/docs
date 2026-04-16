@@ -1,5 +1,5 @@
 Add a Schema Registry Connection through the {+atlas-admin-api+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To add a `Schema Registry
 <https://docs.confluent.io/platform/current/schema-registry/index.html>`__ connection
@@ -59,3 +59,5 @@ to your {+spw+} through the {+atlas-admin-api+}, follow these steps:
 
          * - ``schemaRegistryAuthentication.password``
 	   - The password associated with your Confluent Cloud API Key.	   
+
+.. include:: /includes/atlas-stream-processing/schema-registry-stage-support.rst

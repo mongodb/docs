@@ -7,7 +7,7 @@ To add a {+gcp+} Pub/Sub connection to your {+spw+} through the
 .. procedure::
    :style: normal
 
-   .. step:: Set up GCP Service Account Access
+   .. step:: Set up GCP Service Account Access.
 
       Follow the procedure described in :ref:`Set Up and Manage GCP
       Service Account Access <manage-gcp-access>`.
@@ -22,7 +22,7 @@ To add a {+gcp+} Pub/Sub connection to your {+spw+} through the
       For more information, see the `Pub/Sub documentation
       <https://docs.cloud.google.com/pubsub/docs/access-control#console>`__.
       
-   .. step:: Configure an {+service+} Service Account
+   .. step:: Configure an {+service+} Service Account.
 
       .. include:: /includes/atlas-stream-processing/create-service-account.rst
       
@@ -32,3 +32,5 @@ To add a {+gcp+} Pub/Sub connection to your {+spw+} through the
 
       For values specific to a GCP Pub/Sub connection, see
       the `field descriptions <https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupstreamconnection#operation-creategroupstreamconnection-body-application-vnd-atlas-2023-02-01-json-gcppubsub-object>`__.
+
+.. include:: /includes/atlas-stream-processing/gcp-pubsub-stage-support.rst

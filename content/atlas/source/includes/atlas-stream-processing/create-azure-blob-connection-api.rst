@@ -7,7 +7,7 @@ To add an |azure| Blob Storage connection to your {+spw+} through the
 .. procedure::
    :style: normal
 
-   .. step:: Set up Azure Service Principal Access
+   .. step:: Set up Azure Service Principal Access.
 
       Follow the procedure described in :ref:`Set Up and Manage Azure
       Service Principal Access <manage-azure-access>`.
@@ -32,3 +32,5 @@ To add an |azure| Blob Storage connection to your {+spw+} through the
 
       For values specific to an |azure| Blob Storage connection, see
       the `field descriptions <https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupstreamconnection#operation-creategroupstreamconnection-body-application-vnd-atlas-2023-02-01-json-azureblobstorage-object>`__.
+
+.. include:: /includes/atlas-stream-processing/azure-blob-stage-support.rst

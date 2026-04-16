@@ -26,3 +26,5 @@ Atlas CLI, follow these steps:
       .. code-block:: sh
 
          atlas streams connections create -i <instance-name> -f </path/to/config.json>
+
+.. include:: /includes/atlas-stream-processing/external-function-stage-support.rst

@@ -1,4 +1,4 @@
-Add a S3 Connection through the {+atlas-admin-api+}
+Add an S3 Connection through the {+atlas-admin-api+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To add an |s3| connection to your {+spw+} through the
@@ -51,3 +51,5 @@ To add an |s3| connection to your {+spw+} through the
 
          * - ``aws.roleArn``
            - Value of the ARN noted in an earlier step.
+	    
+.. include:: /includes/atlas-stream-processing/s3-stage-support.rst

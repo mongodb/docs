@@ -4,8 +4,6 @@ Add an Azure Blob Storage Connection through {+atlas-ui+}
 To add an |azure| Blob Storage connection to your {+spw+} through
 {+atlas-ui+}, follow these steps:
 
-
-
 .. procedure::
    :style: normal
 
@@ -41,7 +39,7 @@ To add an |azure| Blob Storage connection to your {+spw+} through
 
       #. Select the :guilabel:`Connection Registry` tab.  
 
-   .. step:: Click :guilabel:`+ Add connection`.  
+   .. step:: Click :guilabel:`+ Add Connection`.  
 
    .. step:: Add a new connection.  
 
@@ -59,4 +57,6 @@ To add an |azure| Blob Storage connection to your {+spw+} through
 	 `Azure Storage Account <https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview>`__
 	 to which you want to connect.
 
-      #. Click :guilabel:`Add connection`.
+      #. Click :guilabel:`+ Add Connection`.
+
+.. include:: /includes/atlas-stream-processing/azure-blob-stage-support.rst

@@ -1,4 +1,4 @@
-Add an Azure Blob Storage Connection through {+atlas-cli+}
+Add an Azure Blob Storage Connection through the {+atlas-cli+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To add an |azure| Blob Storage connection to your {+spw+} through the
@@ -7,7 +7,7 @@ To add an |azure| Blob Storage connection to your {+spw+} through the
 .. procedure::
    :style: normal
 
-   .. step:: Set up Azure Service Principal Access
+   .. step:: Set up Azure Service Principal Access.
 
       Follow the procedure described in :ref:`Set Up and Manage Azure
       Service Principal Access <manage-azure-access>`.
@@ -22,11 +22,11 @@ To add an |azure| Blob Storage connection to your {+spw+} through the
 
       Note the ``Service Principal ID`` you used for later in this procedure.	
 
-   .. step:: Configure a Service Account
+   .. step:: Configure a Service Account.
 
       .. include:: /includes/atlas-stream-processing/create-service-account.rst
 
-   .. step:: Create the |azure| Blob Storage connection
+   .. step:: Create the |azure| Blob Storage connection.
 
       .. include:: /includes/extracts/atlas-streams-connections-create.rst
 
@@ -49,3 +49,5 @@ To add an |azure| Blob Storage connection to your {+spw+} through the
 	   - Name of the `Azure Storage Account
 	     <https://learn.microsoft.com/en-us/azure/storage/common/storage-account-overview>`__
 	     to which you want to connect.
+
+.. include:: /includes/atlas-stream-processing/azure-blob-stage-support.rst

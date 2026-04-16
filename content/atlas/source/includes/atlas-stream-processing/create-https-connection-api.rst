@@ -1,25 +1,22 @@
-
-.. _https-sp-connection-atlas-api:
-
-Add an HTTPS Connection through {+atlas-admin-api+}
+Add an HTTPS Connection through the {+atlas-admin-api+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The {+atlas-admin-api+} provides an endpoint for adding a 
+The {+atlas-admin-api+} provides an endpoint for adding a
 connection to a connection registry.
 
 :oas-bump-atlas-op:`Create One Connection <creategroupstreamconnection>`
 
-If the API endpoint requires authentication, such as an API key or 
-Bearer Access Token authentication, you should add
-authentication details as headers when you define the connection to prevent
-providing these as plaintext as part of the :pipeline:`$https` operator.
+If the API endpoint requires authentication, such as an API key or
+Bearer Access Token authentication, you should add authentication
+details as headers when you define the connection to prevent
+providing these as plaintext as part of the :pipeline:`$https`
+operator.
 
-.. important:: 
-  
-Other authentication schemes, such as Digest Auth or OAuth, are not 
-currently supported.
+:gold:`IMPORTANT:` {+atlas-sp+} doesn't support other authentication
+schemes such as Digest Auth or OAuth for ``$https`` connections
 
-To learn how to use HTTPS connections with {+atlas-sp+}, see :ref:`<atlas-sp-agg-https>`.
+To learn how to use HTTPS connections with {+atlas-sp+},
+see :ref:`<atlas-sp-agg-https>`.
 
 **Example:**
 
@@ -31,3 +28,5 @@ To learn how to use HTTPS connections with {+atlas-sp+}, see :ref:`<atlas-sp-agg
      --include \
      --data '{"name": "HTTPSConnection","type": "Https","url": "<apiBasePath>"}' \
      --request POST "https://cloud.mongodb.com/api/atlas/v2/groups/<projectID>/streams/<tenantName>/connections"
+
+.. include:: /includes/atlas-stream-processing/https-stage-support.rst

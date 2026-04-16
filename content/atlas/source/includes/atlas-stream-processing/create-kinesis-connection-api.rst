@@ -31,7 +31,7 @@ To add a Kinesis connection to your {+spw+} through the
    .. step:: Create the Kinesis Connection.
 
       The {+atlas-admin-api+} provides an endpoint to
-      :oas-atlas-tag:`Create One Connection
+      :oas-bump-atlas-tag:`Create One Connection
       </Streams/operation/createStreamConnection>`. You must send this
       request using digest authorization.
 
@@ -54,3 +54,5 @@ To add a Kinesis connection to your {+spw+} through the
 
          * - ``aws.roleArn``
            - Value of the ARN noted in an earlier step.
+
+.. include:: /includes/atlas-stream-processing/kinesis-stage-support.rst

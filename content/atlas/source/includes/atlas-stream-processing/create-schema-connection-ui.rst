@@ -1,5 +1,5 @@
-Add a Schema Registry Connection through {+atlas-ui+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Add a Schema Registry Connection through the {+atlas-ui+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To add a `Schema Registry
 <https://docs.confluent.io/platform/current/schema-registry/index.html>`__ connection
@@ -26,15 +26,15 @@ to your {+spw+} through the {+atlas-ui+}, follow these steps:
    .. step:: Go to the :guilabel:`Connection Registry`.  
 
       a. Locate the overview panel of the {+spw+} you want to  
-         modify and click :guilabel:`Configure`.  
+         modify and click :guilabel:`Manage`.  
 
       #. Select the :guilabel:`Connection Registry` tab.  
 
-   .. step:: Click :guilabel:`+ Add connection`.  
+   .. step:: Click :guilabel:`+ Add Connection`.  
 
    .. step:: Add a new connection.  
 
-      a. Select an :guilabel:`Schema Registry` connection.  
+      a. Select a :guilabel:`Schema Registry` connection.  
 
       #. Provide a :guilabel:`Connection Name`. Each connection
          name must be unique within a {+spw+}.  This is the name
@@ -57,4 +57,6 @@ to your {+spw+} through the {+atlas-ui+}, follow these steps:
       #. In the :guilabel:`Schema Registry URL(s)` field, provide any
 	 URLs associated with your Schema Registry.
 	 
-      #. Click :guilabel:`Add connection`.
+      #. Click :guilabel:`+ Add Connection`.
+
+.. include:: /includes/atlas-stream-processing/schema-registry-stage-support.rst

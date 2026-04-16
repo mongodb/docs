@@ -1,7 +1,7 @@
 Add an S3 Connection through {+atlas-cli+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To add an |s3| connection to your {+spw+} through
+To add an |s3| connection to your {+spw+} through the
 {+atlas-cli+}, follow these steps:
 
 .. procedure::
@@ -43,3 +43,5 @@ To add an |s3| connection to your {+spw+} through
 
          * - ``aws.roleArn``
            - Value of the ARN noted in an earlier step.
+
+.. include:: /includes/atlas-stream-processing/s3-stage-support.rst

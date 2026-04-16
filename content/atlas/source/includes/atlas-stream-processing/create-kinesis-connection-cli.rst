@@ -1,7 +1,7 @@
 Add a Kinesis Connection through the {+atlas-cli+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To add a kinesis connection to your {+spw+} through
+To add an {+aws-kinesis+} connection to your {+spw+} through the
 {+atlas-cli+}, follow these steps:
 
 .. procedure::
@@ -46,3 +46,5 @@ To add a kinesis connection to your {+spw+} through
 
          * - ``aws.roleArn``
            - Value of the ARN noted in an earlier step.
+
+.. include:: /includes/atlas-stream-processing/kinesis-stage-support.rst

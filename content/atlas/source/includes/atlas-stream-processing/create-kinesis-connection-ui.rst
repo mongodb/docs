@@ -38,11 +38,11 @@ follow these steps:
    .. step:: Go to the :guilabel:`Connection Registry`.  
 
       a. Locate the overview panel of the {+spw+} you want to  
-         modify and click :guilabel:`Configure`.  
+         modify and click :guilabel:`Manage`.  
 
       #. Select the :guilabel:`Connection Registry` tab.  
 
-   .. step:: Click :guilabel:`+ Add connection`.  
+   .. step:: Click :guilabel:`+ Add Connection`.  
 
    .. step:: Add a new connection.  
 
@@ -60,4 +60,6 @@ follow these steps:
          the ARN of the unified access role you authorized in a
          prior step.
 
-      #. Click :guilabel:`Add connection`.
+      #. Click :guilabel:`+ Add Connection`.
+
+.. include:: /includes/atlas-stream-processing/kinesis-stage-support.rst

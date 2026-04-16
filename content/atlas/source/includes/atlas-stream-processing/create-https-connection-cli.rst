@@ -1,7 +1,5 @@
-.. _https-sp-connection-atlas-cli:
-
-Add an HTTPS Connection through Atlas CLI
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Add an HTTPS Connection through the {+atlas-cli+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To add an HTTPS connection to your {+spw+} through
 {+atlas-cli+}, follow these steps:
@@ -25,3 +23,5 @@ To add an HTTPS connection to your {+spw+} through
       .. code-block:: sh
 
          atlas streams connections create -i <instance-name> -f </path/to/config.json>
+
+.. include:: /includes/atlas-stream-processing/https-stage-support.rst

@@ -14,12 +14,12 @@ To add an external function connection to your Stream Processing Workspace throu
 
    .. step:: Configure your connection.
 
-      #. Click the :guilabel:`Configure` button for your +{spi+} to which
+      #. Click the :guilabel:`Manage` button for your {+spw+} to which
          you want to register a connection. 
 
       #. Select the :guilabel:`Connection Registry` tab. 
 
-      #. Click the :guilabel:`Add Connection` button. 
+      #. Click the :guilabel:`+ Add Connection` button. 
 
       #. Select :guilabel:`AWS Lambda` from the :guilabel:`Connection Type` dropdown menu. 
 
@@ -29,4 +29,6 @@ To add an external function connection to your Stream Processing Workspace throu
          To learn more about creating an :guilabel:`AWS IAM Role ARN`, 
          see :ref:`Set Up Unified AWS Access <set-up-unified-aws-access>`.
 
-      #. Click the :guilabel:`Create Connection` button to create the connection.
+      #. Click :guilabel:`+ Add Connection` to create the connection.
+
+.. include:: /includes/atlas-stream-processing/external-function-stage-support.rst

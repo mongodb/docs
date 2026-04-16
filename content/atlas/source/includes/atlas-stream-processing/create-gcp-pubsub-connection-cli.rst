@@ -2,12 +2,12 @@ Add a GCP Pub/Sub Connection through the {+atlas-cli+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To add a {+gcp+} Pub/Sub connection to your {+spw+} through the
-{+atlas-admin-api+}, follow these steps:
+{+atlas-cli+}, follow these steps:
 
 .. procedure::
    :style: normal
 
-   .. step:: Set up GCP Service Account Access
+   .. step:: Set up GCP Service Account Access.
 
       Follow the procedure described in :ref:`Set Up and Manage GCP
       Service Account Access <manage-gcp-access>`.
@@ -22,7 +22,7 @@ To add a {+gcp+} Pub/Sub connection to your {+spw+} through the
       For more information, see the `Pub/Sub documentation
       <https://docs.cloud.google.com/pubsub/docs/access-control#console>`__.
       
-   .. step:: Configure a Service Account
+   .. step:: Configure a Service Account.
 
       .. include:: /includes/atlas-stream-processing/create-service-account.rst
 
@@ -44,3 +44,5 @@ To add a {+gcp+} Pub/Sub connection to your {+spw+} through the
 
          * - ``gcp.serviceAccountId``
            - Value of the ``Service Account`` noted earlier.
+
+.. include:: /includes/atlas-stream-processing/gcp-pubsub-stage-support.rst
