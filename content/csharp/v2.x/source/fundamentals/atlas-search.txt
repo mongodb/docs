@@ -20,146 +20,155 @@ MongoDB Search
 Overview
 --------
 
-In this guide you can learn how to use the ``Search`` builder to build a ``$search``
-aggregation pipeline stage with the {+driver-long+}.
+In this guide you can learn how to use the ``Search`` builder to build
+a ``$search`` aggregation pipeline stage with the {+driver-long+}.
 
 To learn more about the ``$search`` pipeline stage, see :manual:`$search
 </reference/operator/aggregation/search/>`.
 
 .. note:: Only Available on Atlas for MongoDB v4.2 and Later
 
-   The ``$search`` aggregation-pipeline operator is available only for collections hosted
-   on :atlas:`MongoDB Atlas </>` clusters running MongoDB v4.2 or later that are
-   covered by an :atlas:`{+search+} index </reference/atlas-search/index-definitions/>`.
-   To learn more about the required setup and the functionality of this operator,
-   see the :ref:`{+search+} <fts-top-ref>` documentation.
+   The ``$search`` aggregation-pipeline operator is available only for
+   collections hosted on :atlas:`MongoDB Atlas </>` clusters running
+   MongoDB v4.2 or later that are covered by an :atlas:`{+search+} index
+   </reference/atlas-search/index-definitions/>`. To learn more about
+   the required setup and the functionality of this operator, see the
+   :ref:`{+search+} <fts-top-ref>` documentation.
 
-The examples in this guide use the following documents in a collection called
-``guitars``:
+Sample Data
+~~~~~~~~~~~
 
-.. code-block:: json
- 
-   { "_id": 1, "make": "Fender", "description": "Classic guitars known for their versatility.", "establishedYear": 1946, "in_stock": true, "rating": 9 }
-   { "_id": 2, "make": "Gibson", "description": "Classic guitars known for their rich, full tones.", "establishedYear": 1902, "in_stock": true, "rating": 8 }
-   { "_id": 3, "make": "PRS", "description": "High-end guitars known for their quality.", "establishedYear": 1985, "in_stock": true, "rating": 9 }
-   { "_id": 4, "make": "Kiesel", "description": "Quality guitars made only for custom orders.", "establishedYear": 2015, "in_stock": false }
-   { "_id": 5, "make": "Ibanez", "description": "Well-crafted guitars used by many professional guitarists.", "establishedYear": 1957, "in_stock": true, "rating": 7 }
-   { "_id": 6, "make": "Strandberg", "description": "Modern guitars known for their headless models.", "establishedYear": 1982, "in_stock": false }
+The examples in this guide use the ``movies`` collection from the
+``sample_mflix`` database. Documents in this collection contain
+information about films, including their title, plot, genre, and
+ratings. The following ``Movie`` class models the documents in this
+collection:
 
-The following ``Guitar`` class models the documents in this collection.
+.. literalinclude:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.movie-class.cs
+   :language: csharp
+   :category: usage example
 
-.. code-block:: csharp
+The ``Movie`` class references the following ``Imdb`` class, which
+models the nested ``imdb`` field in each document:
 
-   public class Guitar
-   {
-       public int Id { get; set; }
-       public string Make { get; set; }
-       public List<string> Models { get; set; }
-       public int EstablishedYear { get; set; }
-       [BsonElement("in_stock")]
-       public bool InStock { get; set; }
-       public int? Rating { get; set; }
-   }
+.. literalinclude:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.imdb-class.cs
+   :language: csharp
+   :category: usage example
 
-.. note::
+.. note:: Camel-Case Field Names in Sample Data
 
-   The documents in the ``guitars`` collection use the camel-case naming
+   The documents in the ``movies`` collection use the camel-case naming
    convention. The examples in this guide use a ``ConventionPack``
-   to deserialize the fields in the collection into Pascal case and map them to
-   the properties in the ``Guitar`` class.
+   to deserialize the fields in the collection into Pascal case and map
+   them to the properties in the ``Movie`` class.
 
-   To learn more about custom serialization, see :ref:`csharp-custom-serialization`.
+   To learn more about custom serialization, see
+   :ref:`csharp-custom-serialization`.
+
+Some examples in this guide use additional collections and model
+classes, which the relevant sections introduce. All collections are
+from the :atlas:`sample datasets </sample-data>` provided by Atlas. See
+:ref:`csharp-quickstart` to learn how to create a free MongoDB cluster
+and load this sample data.
 
 Create a {+search+} Index
 ------------------------------------
 
-Before you can perform a search on an Atlas collection, you must first create an **Atlas
-Search index** on the collection. A {+search+} index is a data structure that
-categorizes data in a searchable format. 
+Before you can perform a search on an Atlas collection, you must first
+create an **Atlas Search index** on the collection. A {+search+} index
+is a data structure that categorizes data in a searchable format.
 
 To learn how to create a {+search+} Index see the
-:atlas:`Create a {+search+} Index </atlas-search/create-index>` Atlas guide.
+:atlas:`Create a {+search+} Index </atlas-search/create-index>` Atlas
+guide.
 
 {+search+} Operators
 -----------------------------
 
-The ``Search`` class contains methods you can use to perform ``$search``
-operations. For a full list of available ``$search`` operators, see the :atlas:`Operators and Collectors
+The ``Search`` class contains methods you can use to perform
+``$search`` operations. For a full list of available ``$search``
+operators, see the :atlas:`Operators and Collectors
 </atlas-search/operators-and-collectors>` Atlas guide.
 
 Autocomplete
 ~~~~~~~~~~~~
 
-Use the ``Autocomplete()`` method to search for a word or phrase that contains a
-sequence of characters from an incomplete input string.
+Use the ``Autocomplete()`` method to search for a word or phrase that
+contains a sequence of characters from an incomplete input string.
 
-The following example performs an autocomplete query on the ``make``
-field for text that starts with the string ``"Gib"``.
+The following example performs an autocomplete query on the ``title``
+field for text that starts with the string ``"Gravity"``:
 
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: // start-autocomplete-search
-   :end-before: // end-autocomplete-search
-   :language: csharp
-   :dedent:
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.autocomplete-search.cs
+      :language: csharp
+      :category: usage example
+
+   .. output::
+      :language: json
+      :visible: false
+
+      ...
+      { "_id" : ObjectId("..."), "title" : "Gravity", "plot" : "...", "genres" : ["Drama", "Sci-Fi", "Thriller"], "year" : 2013, "rated" : "PG-13", "imdb" : { "rating" : 7.7, "votes" : "...", "id" : "..." } }
+      ...
 
 .. note:: Index for Autocomplete Queries
-   
+
    You must create a {+search+} index that supports autocompletion
    to successfully perform autocomplete queries. To learn more, see
-   :atlas:`How to Index Fields for Autocompletion </atlas-search/field-types/autocomplete-type/>`
+   :atlas:`How to Index Fields for Autocompletion
+   </atlas-search/field-types/autocomplete-type/>`
    in the Atlas documentation.
 
-   After you create the {+search+} index, you must pass the index name to
-   the ``Autocomplete()`` method, as shown in the preceding code.
+   After you create the {+search+} index, you must pass the index name
+   to the ``Autocomplete()`` method, as shown in the preceding example.
 
-The search returns the following document:
-
-.. code-block:: json
-
-    { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in_stock" : true, "rating" : 8 }
-
-To learn more about the ``autocomplete`` operator, see the :atlas:`autocomplete </atlas-search/autocomplete>` 
-Atlas guide.
+To learn more about the ``autocomplete`` operator, see the
+:atlas:`autocomplete </atlas-search/autocomplete>` Atlas guide.
 
 Compound
 ~~~~~~~~
 
-Use the ``Compound()`` method to combine two or more operators into a single
-search.
+Use the ``Compound()`` method to combine two or more operators into a
+single search.
 
-The following example searches the ``guitars`` collection for any documents
-that match all of the following criteria:
+The following example searches the ``movies`` collection for any
+documents that match all of the following criteria:
 
-- The ``rating`` field exists on the document
-- The ``in_stock`` field is not ``false``
-- The ``establishedYear`` field has a value greater than 1940
+- The ``imdb.rating`` field exists on the document
+- The ``rated`` field value is not ``"G"``
+- The ``year`` field has a value greater than 2000
 
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: // start-compound-search
-   :end-before: // end-compound-search
-   :language: csharp
-   :dedent:
+.. io-code-block::
+   :copyable: true
 
-The search returns the following documents:
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.compound-search.cs
+      :language: csharp
+      :category: usage example
 
-.. code-block:: json
+   .. output::
+      :language: json
+      :visible: false
 
-   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in_stock" : true, "rating" : 9 }
-   { "_id" : 3, "make" : "PRS", "description" : "...", "establishedYear" : 1985, "in_stock" : true, "rating" : 9 }
-   { "_id" : 5, "make" : "Ibanez", "description" : "...", "establishedYear" : 1957, "in_stock" : true, "rating" : 7 }
+      ...
+      { "_id" : ObjectId("..."), "title" : "The Dark Knight", "plot" : "...", "genres" : ["Action", "Crime", "Drama"], "year" : 2008, "rated" : "PG-13", "imdb" : { "rating" : 9.0, "votes" : "...", "id" : "..." } }
+      { "_id" : ObjectId("..."), "title" : "Inception", "plot" : "...", "genres" : ["Action", "Adventure", "Sci-Fi"], "year" : 2010, "rated" : "PG-13", "imdb" : { "rating" : 8.8, "votes" : "...", "id" : "..." } }
+      ...
 
-To learn more about the ``compound`` operator, see the :atlas:`compound </atlas-search/compound>` 
-Atlas guide.
+To learn more about the ``compound`` operator, see the
+:atlas:`compound </atlas-search/compound>` Atlas guide.
 
 EmbeddedDocument
 ~~~~~~~~~~~~~~~~
 
-Use the ``EmbeddedDocument()`` method to perform search operations on documents
-within a field's array value.
+Use the ``EmbeddedDocument()`` method to perform search operations on
+documents within a field's array value.
 
 .. note::
 
-   To search on embedded documents, you must create an 
+   To search on embedded documents, you must create an
    ``embeddedDocument`` index on the array field.
 
    To learn how to define an ``embeddedDocument`` index, see
@@ -167,478 +176,512 @@ within a field's array value.
    </atlas-search/field-types/embedded-documents-type/#define-the-index-for-the-fts-field-type-type>`
    in the Atlas documentation.
 
-Consider that some documents in the ``guitars`` collection have added a
-``productDetails`` field that holds an array of product detail objects:
+This example uses the ``restaurants`` collection from the
+``sample_restaurants`` database. The following classes model the
+documents in that collection:
 
-.. code-block:: json
-
-   { "_id": 1, "make": "Fender", "description": "...", "establishedYear": 1946, "in_stock": true, "rating": 9, "productDetails": [{"product_id": 1234, "serial": "YZ5678"}] }
-   { "_id": 2, "make": "Gibson", "description": "...", "establishedYear": 1902, "in_stock": true, "rating": 8 }
-   { "_id": 3, "make": "PRS", "description": "...", "establishedYear": 1985, "in_stock": true, "rating": 9, "productDetails": [{"product_id": 9870, "serial": "AB5555"}] }
-   { "_id": 4, "make": "Kiesel", "description": "...", "establishedYear": 2015, "in_stock": false }
-   { "_id": 5, "make": "Ibanez", "description": "...", "establishedYear": 1957, "in_stock": true, "rating": 7, "productDetails": [{"product_id": 5432, "serial": "ZZ1234"}] }
-   { "_id": 6, "make": "Strandberg", "description": "...", "establishedYear": 1982, "in_stock": false }
-
-After creating an ``embeddedDocument`` index on the ``productDetails`` field,
-you can perform {+search+} operations on documents in that field. The
-following example performs a text search on the ``productDetails`` array fields
-and returns any documents with a ``serial`` field value of ``"YZ5678"``:
-
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: // start-embedded-search
-   :end-before: // end-embedded-search
+.. literalinclude:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.restaurant-class.cs
    :language: csharp
-   :dedent:
+   :category: usage example
 
-The search returns the following document:
+.. literalinclude:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.grade-entry-class.cs
+   :language: csharp
+   :category: usage example
 
-.. code-block:: json
+The following example searches that collection for any restaurants
+whose ``grades`` array contains an entry with a ``grade`` field value
+of ``"A"``:
 
-   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in_stock" : true, "rating" : 9, "productDetails" : [{ "product_id" : 1234, "serial" : "YZ5678" }] }
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.embedded-search.cs
+      :language: csharp
+      :category: usage example
+
+   .. output::
+      :language: json
+      :visible: false
+
+      ...
+      { "_id" : ObjectId("..."), "name" : "Riviera Caterer", "cuisine" : "American", "borough" : "Brooklyn", "grades" : [{ "grade" : "A", "score" : 5 }, { "grade" : "B", "score" : 23 }] }
+      ...
 
 To learn more about the ``embeddedDocument`` operator, see the
-:atlas:`embeddedDocument </atlas-search/embedded-document/>` Atlas guide.
+:atlas:`embeddedDocument </atlas-search/embedded-document/>` Atlas
+guide.
 
 Equals
 ~~~~~~
 
-Use the ``Equals()`` method to check whether a field matches a specified
-value.
+Use the ``Equals()`` method to check whether a field matches a
+specified value.
 
-The following example searches the ``guitars`` collection for any documents in
-which the value of the ``in_stock`` field is ``true``.
+The following example searches the ``movies`` collection for any
+documents in which the value of the ``year`` field is ``2000``:
 
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: // start-equals-search
-   :end-before: // end-equals-search
-   :language: csharp
-   :dedent:
+.. io-code-block::
+   :copyable: true
 
-The search returns the following documents:
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.equals-search.cs
+      :language: csharp
+      :category: usage example
 
-.. code-block:: json
+   .. output::
+      :language: json
+      :visible: false
 
-   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in_stock" : true, "rating" : 9 }
-   { "_id" : 2, "make" : "Gibson", "description" : "...", "establishedYear" : 1902, "in_stock" : true, "rating" : 8 }
-   { "_id" : 3, "make" : "PRS", "description" : "...", "establishedYear" : 1985, "in_stock" : true, "rating" : 9 }
-   { "_id" : 5, "make" : "Ibanez", "description" : "...", "establishedYear" : 1957, "in_stock" : true, "rating" : 7 }
+      ...
+      { "_id" : ObjectId("..."), "title" : "Gladiator", "plot" : "...", "genres" : ["Action", "Adventure", "Drama"], "year" : 2000, "rated" : "R", "imdb" : { "rating" : 8.5, "votes" : "...", "id" : "..." } }
+      { "_id" : ObjectId("..."), "title" : "Cast Away", "plot" : "...", "genres" : ["Adventure", "Drama", "Romance"], "year" : 2000, "rated" : "PG-13", "imdb" : { "rating" : 7.8, "votes" : "...", "id" : "..." } }
+      ...
 
-
-To learn more about the ``equals`` operator, see the :atlas:`equals </atlas-search/equals>` 
-Atlas guide.
+To learn more about the ``equals`` operator, see the
+:atlas:`equals </atlas-search/equals>` Atlas guide.
 
 Exists
 ~~~~~~
 
-Use the ``Exists()`` method to search for documents in which a specified indexed
-field name exists. If the specified field exists but is not indexed, the
-document is not included with the result set.
+Use the ``Exists()`` method to search for documents in which a
+specified indexed field name exists. If the specified field exists but
+is not indexed, the document is not included with the result set.
 
-The following example searches the ``guitars`` collection for any documents in
-which the ``rating`` field exists.
+The following example searches the ``movies`` collection for any
+documents in which the ``imdb.rating`` field exists:
 
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: // start-exists-search
-   :end-before: // end-exists-search
-   :language: csharp
-   :dedent:
+.. io-code-block::
+   :copyable: true
 
-The search returns the following documents:
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.exists-search.cs
+      :language: csharp
+      :category: usage example
 
-.. code-block:: json
+   .. output::
+      :language: json
+      :visible: false
 
-   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in_stock" : true, "rating" : 9 }
-   { "_id" : 2, "make" : "Gibson", "description" : "...", "establishedYear" : 1902, "in_stock" : true, "rating" : 8 }
-   { "_id" : 3, "make" : "PRS", "description" : "...", "establishedYear" : 1985, "in_stock" : true, "rating" : 9 }
-   { "_id" : 5, "make" : "Ibanez", "description" : "...", "establishedYear" : 1957, "in_stock" : true, "rating" : 7 }
+      ...
+      { "_id" : ObjectId("..."), "title" : "The Godfather", "plot" : "...", "genres" : ["Crime", "Drama"], "year" : 1972, "rated" : "R", "imdb" : { "rating" : 9.2, "votes" : "...", "id" : "..." } }
+      { "_id" : ObjectId("..."), "title" : "The Shawshank Redemption", "plot" : "...", "genres" : ["Drama"], "year" : 1994, "rated" : "R", "imdb" : { "rating" : 9.3, "votes" : "...", "id" : "..." } }
+      ...
 
-
-To learn more about the ``exists`` operator, see the :atlas:`exists </atlas-search/exists>` 
-Atlas guide.
+To learn more about the ``exists`` operator, see the
+:atlas:`exists </atlas-search/exists>` Atlas guide.
 
 GeoShape
 ~~~~~~~~
 
-Use the ``GeoShape()`` method to search for documents in relation to a given
-geometry. When specifying the coordinates to search, longitude must be specified
-first, followed by latitude. Longitude values can be between ``-180`` and
-``180``, inclusive. Latitude values can be between ``-90`` and ``90``,
-inclusive.
+Use the ``GeoShape()`` method to search for documents in relation to a
+given geometry. When specifying the coordinates to search, longitude
+must be specified first, followed by latitude. Longitude values can be
+between ``-180`` and ``180``, inclusive. Latitude values can be
+between ``-90`` and ``90``, inclusive.
 
 .. include:: /includes/atlas-search-support-note.rst
 
-Consider some documents in the ``guitars`` collection have added an
-``in_stock_location`` field. The changed documents in the collection now look as
-follows:
+This example uses the ``theaters`` collection from the
+``sample_mflix`` database. The following classes model the documents
+in that collection:
 
-.. code-block:: json
- 
-   { "_id": 1, "make": "Fender", "description": "...", "establishedYear": 1946, "in_stock": true, "in_stock_location":  { "type": "Point", "coordinates": [ -73.93615, 40.69791 ]}, "rating": 9 }
-   { "_id": 2, "make": "Gibson", "description": "...", "establishedYear": 1902, "in_stock": true, "in_stock_location":  { "type": "Point", "coordinates": [ 47.6062, 122.321 ]}, "rating": 8 }
-
-The following example searches for all documents in which the
-coordinates in the ``in_stock_location`` field intersect with a specified
-polygon:
-
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: // start-geoshape-search
-   :end-before: // end-geoshape-search
+.. literalinclude:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.theater-class.cs
    :language: csharp
-   :dedent:
+   :category: usage example
 
-The search returns the following document:
+.. literalinclude:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.theater-location-class.cs
+   :language: csharp
+   :category: usage example
 
-.. code-block:: json
+The following example searches that collection for all documents in
+which the coordinates in the ``location.geo`` field intersect with a
+specified polygon in the Minneapolis, MN area:
 
-   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in_stock" : true, "in_stock_location" : { "type" : "Point", "coordinates" : ["-73.93615", "40.69791"] }, "rating" : 9 }
+.. io-code-block::
+   :copyable: true
 
-To learn more about the ``geoShape`` operator, see the :atlas:`geoShape </atlas-search/geoShape>` 
-Atlas guide.
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.geoshape-search.cs
+      :language: csharp
+      :category: usage example
+
+   .. output::
+      :language: json
+      :visible: false
+
+      ...
+      { "_id" : ObjectId("..."), "theaterId" : 1000, "location" : { "geo" : { "type" : "Point", "coordinates" : [-93.24565, 44.85466] } } }
+      ...
+
+To learn more about the ``geoShape`` operator, see the
+:atlas:`geoShape </atlas-search/geoShape>` Atlas guide.
 
 GeoWithin
 ~~~~~~~~~
 
-Use the ``GeoWithin()`` method to search for documents in which the coordinates of
-their specified :manual:`GeoJSON </reference/geojson/>` field are within a given
-geometry. You can search for points that are within a:
+Use the ``GeoWithin()`` method to search for documents in which the
+coordinates of their specified :manual:`GeoJSON </reference/geojson/>`
+field are within a given geometry. You can search for points that are
+within a:
 
 - Circle
 - Bounding box
 - Polygon
 
 When specifying the coordinates to search, longitude must be specified
-first, followed by latitude. Longitude values can be between ``-180`` and
-``180``, inclusive. Latitude values can be between ``-90`` and ``90``,
-inclusive.
+first, followed by latitude. Longitude values can be between ``-180``
+and ``180``, inclusive. Latitude values can be between ``-90`` and
+``90``, inclusive.
 
 .. include:: /includes/atlas-search-support-note.rst
 
-Consider some documents in the ``guitars`` collection have added an
-``in_stock_location`` field. The changed documents in the collection now look as
-follows:
+The following example searches the ``theaters`` collection for all
+documents in which the coordinates in the ``location.geo`` field fall
+within a specified polygon:
 
-.. code-block:: json
- 
-   { "_id": 1, "make": "Fender", "description": "...", "establishedYear": 1946, "in_stock": true, "in_stock_location":  { "type": "Point", "coordinates": [ -73.93615, 40.69791 ]}, "rating": 9 }
-   { "_id": 2, "make": "Gibson", "description": "...", "establishedYear": 1902, "in_stock": true, "in_stock_location":  { "type": "Point", "coordinates": [ 47.6062, 122.321 ]}, "rating": 8 }
+.. io-code-block::
+   :copyable: true
 
-The following example searches for all documents in which the
-coordinates in the ``in_stock_location`` field falls within a specified
-polygon: 
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.geowithin-search.cs
+      :language: csharp
+      :category: usage example
 
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: // start-geowithin-search
-   :end-before: // end-geowithin-search
-   :language: csharp
-   :dedent:
+   .. output::
+      :language: json
+      :visible: false
 
-The search returns the following document:
+      ...
+      { "_id" : ObjectId("..."), "theaterId" : 1000, "location" : { "geo" : { "type" : "Point", "coordinates" : [-93.24565, 44.85466] } } }
+      ...
 
-.. code-block:: json
-
-   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in_stock" : true, "in_stock_location" : { "type" : "Point", "coordinates" : ["-73.93615", "40.69791"] }, "rating" : 9 }
-
-To learn more about the ``geoWithin`` operator, see the :atlas:`geoWithin </atlas-search/geoWithin>` 
-Atlas guide.
+To learn more about the ``geoWithin`` operator, see the
+:atlas:`geoWithin </atlas-search/geoWithin>` Atlas guide.
 
 In
 ~~
 
-Use the ``In()`` method to search for documents with field values that match a list
-of specified values.
+Use the ``In()`` method to search for documents with field values that
+match a list of specified values.
 
-The following example searches the ``guitars`` collection for documents that have a
-``make`` field value of either ``"Fender"`` or ``"Gibson"``.
+The following example searches the ``movies`` collection for documents
+that have a ``genres`` array containing either ``"Action"`` or
+``"Comedy"``:
 
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: start-in-search
-   :end-before: end-in-search
-   :language: csharp
-   :dedent:
+.. io-code-block::
+   :copyable: true
 
-The search returns the following documents:
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.in-search.cs
+      :language: csharp
+      :category: usage example
 
-.. code-block:: json
+   .. output::
+      :language: json
+      :visible: false
 
-   { "_id": 1, "make": "Fender", "description": "...", "establishedYear": 1946, "in_stock": true, "rating": 9 }
-   { "_id": 2, "make": "Gibson", "description": "...", "establishedYear": 1902, "in_stock": true, "rating": 8 }
+      ...
+      { "_id" : ObjectId("..."), "title" : "Home Alone", "plot" : "...", "genres" : ["Comedy", "Family"], "year" : 1990, "rated" : "PG", "imdb" : { "rating" : 7.4, "votes" : "...", "id" : "..." } }
+      { "_id" : ObjectId("..."), "title" : "Die Hard", "plot" : "...", "genres" : ["Action", "Thriller"], "year" : 1988, "rated" : "R", "imdb" : { "rating" : 8.2, "votes" : "...", "id" : "..." } }
+      ...
 
 MoreLikeThis
 ~~~~~~~~~~~~
 
-Use the ``MoreLikeThis()`` method to search for documents that are similar to an
-input document.
+Use the ``MoreLikeThis()`` method to search for documents that are
+similar to an input document.
 
-The following example searches the ``guitars`` collection for documents that are
-similar to an object in which the value of the ``Description`` field is "high
-quality."
+This example uses the following class to specify the input document for
+the search:
 
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: // start-morelikethis-search
-   :end-before: // end-morelikethis-search
+.. literalinclude:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.movie-search-class.cs
    :language: csharp
-   :dedent:
+   :category: usage example
 
-The search returns the following documents:
+The following example searches the ``movies`` collection for documents
+similar to an object in which the value of the ``plot`` field is
+``"time travel"``:
 
-.. code-block:: json
+.. io-code-block::
+   :copyable: true
 
-   { "_id" : 3, "make" : "PRS", "description" : "High-end guitars known for their quality.", "establishedYear" : 1985, "in_stock" : true, "rating" : 9 }
-   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in_stock" : false, "rating" : null }
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.morelikethis-search.cs
+      :language: csharp
+      :category: usage example
 
+   .. output::
+      :language: json
+      :visible: false
 
-To learn more about the ``moreLikeThis`` operator, see the :atlas:`moreLikeThis </atlas-search/morelikethis>` 
-Atlas guide.
+      ...
+      { "_id" : ObjectId("..."), "title" : "Thrill Seekers", "plot" : "...", "genres" : ["Action", "Sci-Fi", "Thriller"], "year" : 1999, "rated" : "...", "imdb" : { "rating" : "...", "votes" : "...", "id" : "..." } }
+      { "_id" : ObjectId("..."), "title" : "About Time", "plot" : "...", "genres" : ["Drama", "Fantasy", "Romance"], "year" : 2013, "rated" : "R", "imdb" : { "rating" : 7.8, "votes" : "...", "id" : "..." } }
+      ...
+
+To learn more about the ``moreLikeThis`` operator, see the
+:atlas:`moreLikeThis </atlas-search/morelikethis>` Atlas guide.
 
 Near
 ~~~~
 
-Use the ``Near()`` method to search for documents in which a specified field is
-near a given value. You can perform the search on:
+Use the ``Near()`` method to search for documents in which a specified
+field is near a given value. You can perform the search on:
 
 - A number field
 - A date field
 - A geographic point
 
-The following example searches the ``guitars`` collection for documents in which
-the value of the ``rating`` field is near ``9``. The documents are returned in
-order based on how close the value is to the number ``9``.
+The following example searches the ``movies`` collection for documents
+in which the value of the ``imdb.rating`` field is near ``8.5``. The
+documents are returned in order based on how close the value is to
+``8.5``:
 
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: // start-near-search
-   :end-before: // end-near-search
-   :language: csharp
-   :dedent:
+.. io-code-block::
+   :copyable: true
 
-The search returns the following documents:
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.near-search.cs
+      :language: csharp
+      :category: usage example
 
-.. code-block:: json
+   .. output::
+      :language: json
+      :visible: false
 
-   { "_id" : 1, "make" : "Fender", "description" : "...", "establishedYear" : 1946, "in_stock" : true, "rating" : 9 }
-   { "_id" : 3, "make" : "PRS", "description" : "...", "establishedYear" : 1985, "in_stock" : true, "rating" : 9 }
-   { "_id" : 2, "make" : "Gibson", "description" : "...", "establishedYear" : 1902, "in_stock" : true, "rating" : 8 }
-   { "_id" : 5, "make" : "Ibanez", "description" : "...", "establishedYear" : 1957, "in_stock" : true, "rating" : 7 }
+      ...
+      { "_id" : ObjectId("..."), "title" : "The Dark Knight", "plot" : "...", "genres" : ["Action", "Crime", "Drama"], "year" : 2008, "rated" : "PG-13", "imdb" : { "rating" : 9.0, "votes" : "...", "id" : "..." } }
+      { "_id" : ObjectId("..."), "title" : "The Godfather", "plot" : "...", "genres" : ["Crime", "Drama"], "year" : 1972, "rated" : "R", "imdb" : { "rating" : 9.2, "votes" : "...", "id" : "..." } }
+      ...
 
-
-To learn more about the ``near`` operator, see the :atlas:`near </atlas-search/near>` 
-Atlas guide.
+To learn more about the ``near`` operator, see the
+:atlas:`near </atlas-search/near>` Atlas guide.
 
 Phrase
 ~~~~~~
 
-Use the ``Phrase()`` method to search for documents in which a specified field
-contains an input string.
+Use the ``Phrase()`` method to search for documents in which a
+specified field contains an input string.
 
-The following example searches the ``guitars`` collection for documents in which
-the ``description`` field contains the phrase "classic guitars."
+The following example searches the ``movies`` collection for documents
+in which the ``plot`` field contains the phrase ``"time travel"``:
 
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: // start-phrase-search
-   :end-before: // end-phrase-search
-   :language: csharp
-   :dedent:
+.. io-code-block::
+   :copyable: true
 
-The search returns the following documents:
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.phrase-search.cs
+      :language: csharp
+      :category: usage example
 
-.. code-block:: json
+   .. output::
+      :language: json
+      :visible: false
 
-   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in_stock" : true, "rating" : 9 }
-   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in_stock" : true, "rating" : 8 }
+      ...
+      { "_id" : ObjectId("..."), "title" : "The Time Traveler's Wife", "plot" : "...", "genres" : ["Drama", "Fantasy", "Romance"], "year" : 2009, "rated" : "PG-13", "imdb" : { "rating" : 7.1, "votes" : "...", "id" : "..." } }
+      { "_id" : ObjectId("..."), "title" : "Safety Not Guaranteed", "plot" : "...", "genres" : ["Comedy", "Drama", "Romance"], "year" : 2012, "rated" : "R", "imdb" : { "rating" : 7, "votes" : "...", "id" : "..." } }
+      ...
 
-You can also search the collection for documents that match multiple separate
-phrases as follows:
+You can also search the collection for documents that contain either
+``"time travel"`` or ``"space adventure"`` in the ``plot`` field:
 
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: // start-multiphrase-search
-   :end-before: // end-multiphrase-search
-   :language: csharp
-   :dedent:
+.. io-code-block::
+   :copyable: true
 
-This search returns the following documents:
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.multiphrase-search.cs
+      :language: csharp
+      :category: usage example
 
-.. code-block:: json
+   .. output::
+      :language: json
+      :visible: false
 
-   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in_stock" : true, "rating" : 9 }
-   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in_stock" : false, "rating" : null }
-   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in_stock" : true, "rating" : 8 }
+      ...
+      { "_id" : ObjectId("..."), "title" : "The Time Traveler's Wife", "plot" : "...", "genres" : ["Drama", "Fantasy", "Romance"], "year" : 2009, "rated" : "PG-13", "imdb" : { "rating" : 7.1, "votes" : "...", "id" : "..." } }
+      { "_id" : ObjectId("..."), "title" : "Safety Not Guaranteed", "plot" : "...", "genres" : ["Comedy", "Drama", "Romance"], "year" : 2012, "rated" : "R", "imdb" : { "rating" : 7, "votes" : "...", "id" : "..." } }
+      ...
 
-To learn more about the ``phrase`` operator, see the :atlas:`phrase </atlas-search/phrase>` 
-Atlas guide.
+To learn more about the ``phrase`` operator, see the
+:atlas:`phrase </atlas-search/phrase>` Atlas guide.
 
 QueryString
 ~~~~~~~~~~~
 
-Use the ``QueryString()`` method to search for documents using a string with
-the following operators and delimiters:
+Use the ``QueryString()`` method to search for documents using a
+string with the following operators and delimiters:
 
 - ``AND``
-- ``OR`` 
+- ``OR``
 - ``NOT``
 - ``()``
 
-The following example searches the ``guitars`` collection for documents in which
-the value of the ``description`` field matches each of the following criteria:
+The following example searches the ``movies`` collection for documents
+in which the value of the ``plot`` field matches each of the following
+criteria:
 
-- Contains the string "classic" *or* the string "quality"
-- Does not contain the string "custom"
+- Contains the string ``"time"`` *or* the string ``"space"``
+- Does not contain the string ``"comedy"``
 
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: // start-querystring-search
-   :end-before: // end-querystring-search
-   :language: csharp
-   :dedent:
+.. io-code-block::
+   :copyable: true
 
-The search returns the following documents:
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.querystring-search.cs
+      :language: csharp
+      :category: usage example
 
-.. code-block:: json
+   .. output::
+      :language: json
+      :visible: false
 
-   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in_stock" : true, "rating" : 9 }
-   { "_id" : 3, "make" : "PRS", "description" : "High-end guitars known for their quality.", "establishedYear" : 1985, "in_stock" : true, "rating" : 9 }
-   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in_stock" : true, "rating" : 8 }
+      ...
+      { "_id" : ObjectId("..."), "title" : "Interstellar", "plot" : "...", "genres" : ["Adventure", "Drama", "Sci-Fi"], "year" : 2014, "rated" : "PG-13", "imdb" : { "rating" : 8.7, "votes" : "...", "id" : "..." } }
+      { "_id" : ObjectId("..."), "title" : "Tomorrowland", "plot" : "...", "genres" : ["Action", "Adventure", "Family"], "year" : 2015, "rated" : "PG", "imdb" : { "rating" : 6.6, "votes" : "...", "id" : "..." } }
+      ...
 
-To learn more about the ``queryString`` operator, see the :atlas:`queryString </atlas-search/queryString>` 
-Atlas guide.
+To learn more about the ``queryString`` operator, see the
+:atlas:`queryString </atlas-search/queryString>` Atlas guide.
 
 Range
 ~~~~~
 
-Use the ``Range()`` method to search for documents in which the value of a
-specified field falls within a given numeric or date range.
+Use the ``Range()`` method to search for documents in which the value
+of a specified field falls within a given numeric or date range.
 
-The following example searches the ``guitars`` collection for all documents with
-an ``establishedYear`` value greater than 1980 and less than 2020.
+The following example searches the ``movies`` collection for all
+documents with a ``year`` value greater than ``2000`` and less than
+``2010``:
 
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: // start-range-search
-   :end-before: // end-range-search
-   :language: csharp
-   :dedent:
+.. io-code-block::
+   :copyable: true
 
-The search returns the following results:
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.range-search.cs
+      :language: csharp
+      :category: usage example
 
-.. code-block:: json
+   .. output::
+      :language: json
+      :visible: false
 
-   { "_id" : 3, "make" : "PRS", "description" : "High-end guitars known for their quality.", "establishedYear" : 1985, "in_stock" : true, "rating" : 9 }
-   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in_stock" : false, "rating" : null }
-   { "_id" : 6, "make" : "Strandberg", "description" : "Modern guitars known for their headless models.", "establishedYear" : 1982, "in_stock" : false, "rating" : null }
+      ...
+      { "_id" : ObjectId("..."), "title" : "The Dark Knight", "plot" : "...", "genres" : ["Action", "Crime", "Drama"], "year" : 2008, "rated" : "PG-13", "imdb" : { "rating" : 9.0, "votes" : "...", "id" : "..." } }
+      { "_id" : ObjectId("..."), "title" : "The Departed", "plot" : "...", "genres" : ["Crime", "Drama", "Thriller"], "year" : 2006, "rated" : "R", "imdb" : { "rating" : 8.5, "votes" : "...", "id" : "..." } }
+      ...
 
-To learn more about the ``range`` operator, see the :atlas:`range </atlas-search/range>` 
-Atlas guide.
+To learn more about the ``range`` operator, see the
+:atlas:`range </atlas-search/range>` Atlas guide.
 
 Regex
 ~~~~~
 
-Use the ``Regex()`` method to search for documents using a regular expression.
+Use the ``Regex()`` method to search for documents using a regular
+expression.
 
-The following example searches the ``guitars`` collection for documents in which
-the value of the ``make`` field contains exactly six letters.
+The following example searches the ``movies`` collection for documents
+in which the value of the ``title`` field contains exactly six letters:
 
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: // start-regex-search
-   :end-before: // end-regex-search
-   :language: csharp
-   :dedent:
+.. io-code-block::
+   :copyable: true
 
-The search returns the following results:
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.regex-search.cs
+      :language: csharp
+      :category: usage example
 
-.. code-block:: json
+   .. output::
+      :language: json
+      :visible: false
 
-   { "_id" : 1, "make" : "Fender", "description" : "Classic guitars known for their versatility.", "establishedYear" : 1946, "in_stock" : true, "rating" : 9 }
-   { "_id" : 2, "make" : "Gibson", "description" : "Classic guitars known for their rich, full tones.", "establishedYear" : 1902, "in_stock" : true, "rating" : 8 }
-   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in_stock" : false, "rating" : null }
-   { "_id" : 5, "make" : "Ibanez", "description" : "Well-crafted guitars used by many professional guitarists.", "establishedYear" : 1957, "in_stock" : true, "rating" : 7 }
+      ...
+      { "_id" : ObjectId("..."), "title" : "Gandhi", "plot" : "...", "genres" : ["Biography", "Drama", "History"], "year" : 1982, "rated" : "PG", "imdb" : { "rating" : 8.0, "votes" : "...", "id" : "..." } }
+      { "_id" : ObjectId("..."), "title" : "Batman", "plot" : "...", "genres" : ["Action", "Adventure"], "year" : 1989, "rated" : "PG-13", "imdb" : { "rating" : 7.5, "votes" : "...", "id" : "..." } }
+      ...
 
 .. note::
 
-   By default the ``regex`` operator cannot run on an analyzed field. You can
-   allow it to run on an analyzed field by setting ``allowAnalyzedField`` option
-   to true, as follows:
+   By default the ``regex`` operator cannot run on an analyzed field.
+   You can allow it to run on an analyzed field by setting
+   ``allowAnalyzedField`` option to true, as follows:
 
-   .. code-block:: csharp
+   .. literalinclude:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.regex-allow-analyzed-field.cs
+      :language: csharp
+      :category: usage example
 
-      var result = guitarsCollection.Aggregate()
-       .Search(Builders<Guitar>.Search.Regex(g => g.Make, regex, true))
-       .ToList();
-
-   Setting the ``allowAnalyzedField`` option to true may lead to unexpected
-   search results. To learn more, see :atlas:`regex Behavior
+   Setting the ``allowAnalyzedField`` option to true may lead to
+   unexpected search results. To learn more, see :atlas:`regex Behavior
    </atlas-search/regex/#behavior>`.
 
-To learn more about the ``regex`` operator, see the :atlas:`regex </atlas-search/regex>` 
-Atlas guide.
+To learn more about the ``regex`` operator, see the
+:atlas:`regex </atlas-search/regex>` Atlas guide.
 
 Span
 ~~~~
 
-Use the ``Span()`` method to search for text search matches within regions of a
-field. You can use this method to find strings which are near each other to
-specified degrees of precision.
+Use the ``Span()`` method to search for text search matches within
+regions of a field. You can use this method to find strings which are
+near each other to specified degrees of precision.
 
 .. note::
 
-   The ``span`` operator is more computationally intensive than other operators
-   because queries must keep track of positional information.
+   The ``span`` operator is more computationally intensive than other
+   operators because queries must keep track of positional information.
 
-The following example searches the ``guitars`` collection for documents in which
-the value of the ``description`` field contains the strings "guitars" and
-"quality" within one word of each other.
+The following example searches the ``movies`` collection for documents
+in which the value of the ``plot`` field contains the strings
+``"time"`` and ``"travel"`` within one word of each other:
 
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: // start-span-search
-   :end-before: // end-span-search
-   :language: csharp
-   :dedent:
+.. io-code-block::
+   :copyable: true
 
-The search returns the following document:
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.span-search.cs
+      :language: csharp
+      :category: usage example
 
-.. code-block:: json
+   .. output::
+      :language: json
+      :visible: false
 
-   { "_id" : 4, "make" : "Kiesel", "description" : "Quality guitars made only for custom orders.", "establishedYear" : 2015, "in_stock" : false, "rating" : null }
+      ...
+      { "_id" : ObjectId("..."), "title" : "The Time Traveler's Wife", "plot" : "...", "genres" : ["Drama", "Fantasy", "Romance"], "year" : 2009, "rated" : "PG-13", "imdb" : { "rating" : 7.1, "votes" : "...", "id" : "..." } }
+      { "_id" : ObjectId("..."), "title" : "About Time", "plot" : "...", "genres" : ["Drama", "Fantasy", "Romance"], "year" : 2013, "rated" : "R", "imdb" : { "rating" : 7.8, "votes" : "...", "id" : "..." } }
+      ...
 
-Although the document with ``_id: 3`` contains the strings "guitars" and
-"quality", they are separated by more than one word, so the search omits this
-document from the results.
-
-To learn more about the ``span`` operator, see the :atlas:`span </atlas-search/span>` 
-Atlas guide.
+To learn more about the ``span`` operator, see the
+:atlas:`span </atlas-search/span>` Atlas guide.
 
 Text
 ~~~~
 
-Use the ``Text()`` method to search a document for a given string or array of
-strings. If there are multiple terms in a given string, {+search+} also looks
-for a match for each term in the string separately.
+Use the ``Text()`` method to search a document for a given string or
+array of strings. If there are multiple terms in a given string,
+{+search+} also looks for a match for each term in the string
+separately.
 
-The following example searches the ``guitars`` collection for documents in which
-the value of the ``description`` field contains the string "used by
-professionals".
+The following example searches the ``movies`` collection for documents
+in which the value of the ``plot`` field contains the string
+``"secret agent"``:
 
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: // start-text-search
-   :end-before: // end-text-search
-   :language: csharp
-   :dedent:
+.. io-code-block::
+   :copyable: true
 
-The search returns the following document:
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.text-search.cs
+      :language: csharp
+      :category: usage example
 
-.. code-block:: json
+   .. output::
+      :language: json
+      :visible: false
 
-   { "_id" : 5, "make" : "Ibanez", "description" : "Well-crafted guitars used by many professional guitarists.", "establishedYear" : 1957, "in_stock" : true, "rating" : 7 }
+      ...
+      { "_id" : ObjectId("..."), "title" : "Spy Kids", "plot" : "...", "genres" : ["Action", "Adventure", "Comedy"], "year" : 2001, "rated" : "PG", "imdb" : { "rating" : 5.4, "votes" : "...", "id" : "..." } }
+      { "_id" : ObjectId("..."), "title" : "The Spy Who Loved Me", "plot" : "...", "genres" : ["Action", "Adventure", "Thriller"], "year" : 1977, "rated" : "PG", "imdb" : { "rating" : 7.1, "votes" : "...", "id" : "..." } }
+      ...
 
 .. tip::
 
-   If your search string contains multiple terms, the method also looks for a match
-   for each term in the string separately.
+   If your search string contains multiple terms, the method also looks
+   for a match for each term in the string separately.
 
-To learn more about the ``text`` operator, see the :atlas:`text </atlas-search/text>` 
-Atlas guide.
+To learn more about the ``text`` operator, see the
+:atlas:`text </atlas-search/text>` Atlas guide.
 
 Wildcard
 ~~~~~~~~
 
-Use the ``Wildcard()`` method to search for documents using special characters in
-your search string that can match any character. You can use the following
-characters in your search:
+Use the ``Wildcard()`` method to search for documents using special
+characters in your search string that can match any character. You can
+use the following characters in your search:
 
 .. list-table::
    :header-rows: 1
@@ -646,7 +689,7 @@ characters in your search:
 
    * - Character
      - Description
-   
+
    * - ``?``
      - Matches any single character
 
@@ -656,36 +699,39 @@ characters in your search:
    * - ``\``
      - Escape character
 
-The following example searches for documents in which the value of the ``make``
-field contains the string "Strand" followed by any other characters.
+The following example searches for documents in which the value of the
+``title`` field contains the string ``"Amer"`` followed by any other
+characters:
 
-.. literalinclude:: /includes/fundamentals/code-examples/atlas-search/AtlasSearchExamples.cs
-   :start-after: // start-wildcard-search
-   :end-before: // end-wildcard-search
-   :language: csharp
-   :dedent:
+.. io-code-block::
+   :copyable: true
 
-The search returns the following document:
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.wildcard-search.cs
+      :language: csharp
+      :category: usage example
 
-.. code-block:: json
+   .. output::
+      :language: json
+      :visible: false
 
-   { "_id" : 6, "make" : "Strandberg", "description" : "Modern guitars known for their headless models.", "establishedYear" : 1982, "in_stock" : false, "rating" : null }
+      ...
+      { "_id" : ObjectId("..."), "title" : "American Beauty", "plot" : "...", "genres" : ["Drama"], "year" : 1999, "rated" : "R", "imdb" : { "rating" : 8.4, "votes" : "...", "id" : "..." } }
+      { "_id" : ObjectId("..."), "title" : "American Gangster", "plot" : "...", "genres" : ["Biography", "Crime", "Drama"], "year" : 2007, "rated" : "R", "imdb" : { "rating" : 7.8, "votes" : "...", "id" : "..." } }
+      ...
 
 .. note::
 
-   By default the ``wildcard`` operator cannot run on an analyzed field. You can
-   allow it to run on an analyzed field by setting ``allowAnalyzedField`` option
-   to true, as follows:
+   By default the ``wildcard`` operator cannot run on an analyzed
+   field. You can allow it to run on an analyzed field by setting
+   ``allowAnalyzedField`` option to true, as follows:
 
-   .. code-block:: csharp
+   .. literalinclude:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.wildcard-search.cs
+      :language: csharp
+      :category: usage example
 
-      var result =  guitarsCollection.Aggregate()
-       .Search(Builders<Guitar>.Search.Wildcard(g => g.Make, "Strand*", true))
-       .ToList();
+   Setting the ``allowAnalyzedField`` option to true may lead to
+   unexpected search results. To learn more, see :atlas:`wildcard
+   Behavior </atlas-search/wildcard/#behavior>`.
 
-   Setting the ``allowAnalyzedField`` option to true may lead to unexpected
-   search results. To learn more, see :atlas:`wildcard Behavior
-   </atlas-search/wildcard/#behavior>`.
-
-To learn more about the ``wildcard`` operator, see the :atlas:`wildcard </atlas-search/wildcard>` 
-Atlas guide.
+To learn more about the ``wildcard`` operator, see the
+:atlas:`wildcard </atlas-search/wildcard>` Atlas guide.
