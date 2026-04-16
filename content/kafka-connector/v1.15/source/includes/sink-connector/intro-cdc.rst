@@ -20,10 +20,10 @@ CDC events corresponding to changes in the datastores.
 
    MongoDB change streams is an example of a CDC architecture. To learn more about
    change streams, see
-   :doc:`the {+connector+} guide on Change Streams </source-connector/fundamentals/change-streams>`.
+   :ref:`the {+connector+} guide on Change Streams <kafka-source-change-streams>`.
 
 If you would like to view a tutorial demonstrating how to replicate data, see the
-:doc:`Replicate Data With a Change Data Capture Handler tutorial </tutorials/replicate-with-cdc>`.
+:ref:`Replicate Data With a Change Data Capture Handler tutorial <kafka-tutorial-replicate-with-cdc>`.
 
 .. important:: CDC and Post Processors
 
@@ -41,7 +41,7 @@ You can specify a CDC handler on your sink connector with the following configur
    change.data.capture.handler=<cdc handler class>
 
 To learn more, see
-:doc:`change data capture configuration options </sink-connector/configuration-properties/cdc>`.
+:ref:`change data capture configuration options <sink-configuration-change-data-capture>`.
 
 Available CDC Handlers
 ~~~~~~~~~~~~~~~~~~~~~~
