@@ -1,7 +1,43 @@
+.. _atlas_2026_04:
+
+April 2026
+----------
+
+- Enables :ref:`cloud backup <backup-cloud-provider>` support for
+  clusters deployed in the {+azure+} government environment.
+
+- Enables configurable sampling for data model inference in
+  {+Compass+} and Data Explorer. Specify the number of documents
+  {+service+} samples when inferring a collection's schema.
+  To learn more, see :ref:`atlas-ui-data-modeling`.
+
+- Adds the uncompressed data size alongside compressed storage
+  size for each collection in Data Explorer. Compare these sizes
+  to identify collections with the most potential for space
+  reclamation after compression. To learn more, see
+  :ref:`atlas-ui-view-collections`.
+
+- Adds CPU time to :ref:`Query Shape Insights <query-shape-insights>`,
+  allowing you to identify and optimize resource-intensive
+  operations and prioritize queries for cluster resource
+  optimization.
+
+- Improves :ref:`independent shard scaling <atlas-cluster-sharding>`
+  by removing the two-tier zone gap limitation at the cluster
+  level and adding support for asymmetric auto-scaling range
+  configurations.
+
 .. _atlas_2026_03:
 
 March 2026
 ----------
+
+- Introduces MongoDB Agent Skills, a package that injects
+  MongoDB-specific engineering standards into AI agent development
+  environments. The package provides six specialized capabilities
+  covering schema design, query optimization, indexing, aggregation
+  pipelines, data modeling, and {+service+} configuration. To
+  learn more, see :ref:`ai-agents`.
 
 - Adds support for high |cpu|, low |cpu|, and storage-optimized
   instance types for :ref:`Search nodes <what-is-search-node>` in
@@ -10,16 +46,12 @@ March 2026
   ``AP_EAST_1``, ``AP_SOUTH_2``, ``AP_SOUTHEAST_3``,
   ``AP_SOUTHEAST_7``, ``EU_SOUTH_1``, ``EU_CENTRAL_2``,
   ``IL_CENTRAL_1``, ``MX_CENTRAL_1``, ``ME_CENTRAL_1``, and
-  ``AP_SOUTHEAST_2``.
-
-- Adds support for retrieving |kms| credentials from the same region
-  as the codec server, improving encryption key management reliability
-  for multi-region deployments.
+  ``AP_SOUTHEAST_2``.  
 
 - Improves :ref:`disk auto-scaling <cluster-autoscaling>` to trigger
-  during long-running operations such as shard drain operations, preventing
-  clusters from running out of disk space without requiring manual
-  intervention.
+  during long-running operations such as shard drain operations,
+  preventing clusters from running out of disk space without
+  requiring manual intervention.
 
 - Adds support for sending all :ref:`Atlas logs
   <export-logs-external-sinks>`, including {+fts+} and {+atlas-sp+}
@@ -40,21 +72,18 @@ March 2026
   copy destinations in sync as your cluster topology changes, reducing
   the risk of gaps in regional backup coverage.
 
-- Adds secure storage for AI prompt and response data in
-  Data Explorer, establishing an enterprise-standard approach for AI
-  data handling and enabling data-driven product improvements.
-
 - Removes the Search Query Analytics feature from |service|. Related
   developer content and documentation have been retired.
 
-- Improves Intelligent Workload Management :ref:`write blocking <cluster-blocking-writes>` to use dynamic range-based
-  thresholds instead of static values, reducing unnecessary write
-  blocking during disk scaling operations.
+- Improves Intelligent Workload Management
+  :ref:`write blocking <write-blocking-thresholds>`
+  to use dynamic range-based thresholds instead of static values,
+  reducing unnecessary write blocking during disk scaling operations.
 
-- Adds {+fts+} metrics to the
-  :ref:`Datadog integration <datadog-integration>`,
-  enabling monitoring of search index performance in your Datadog
-  dashboards.
+- Enables backup support for {+Dedicated-cluster+}s deployed in
+  {+azure+} that have data exfiltration prevention policies
+  enabled, allowing you to take backups while enforcing
+  preventative controls against data exfiltration.
 
 .. _atlas_2026_02:
 
@@ -162,4 +191,4 @@ January 2026
   with data exfiltration prevention policies enabled.
 
 
-.. last-run: 2026-03-27
+.. last-run: 2026-04-15
