@@ -12,6 +12,9 @@ import { isBrowser } from '@/utils/is-browser';
 import useNoScroll from '@/hooks/use-no-scroll';
 import { theme } from '@/styles/theme';
 import { SCREENSHOT_BUTTON_TEXT, SCREENSHOT_BUTTON_TEXT_LOW, SCREENSHOT_OVERLAY_ALT_TEXT } from '../constants';
+import screenshotIconDark from './screenshoticon-dark.svg';
+import screenshotIconLight from './screenshoticon-light.svg';
+import screenshotCTAImage from './screenshotCTA.svg';
 
 const HIGHLIGHT_BORDER_SIZE = 5;
 
@@ -266,7 +269,7 @@ const ScreenshotButton = ({ ...props }) => {
   useNoScroll(!!currElem.current && domElementClickedRef.current === 'solid');
 
   const { darkMode } = useDarkMode();
-  const glyphImage = darkMode ? '/screenshoticon-dark.svg' : '/screenshoticon-light.svg';
+  const glyphImage = darkMode ? screenshotIconDark.src : screenshotIconLight.src;
 
   return (
     <>
@@ -276,7 +279,7 @@ const ScreenshotButton = ({ ...props }) => {
             {/* eslint-disable-next-line @next/next/no-img-element -- images are pre-optimized via build pipeline */}
             <img
               className={cx(fwInstructionsId, instructionsPanelStyling)}
-              src={'/screenshotCTA.svg'}
+              src={screenshotCTAImage.src}
               alt={SCREENSHOT_OVERLAY_ALT_TEXT}
               onClick={handleInstructionClick}
             />
