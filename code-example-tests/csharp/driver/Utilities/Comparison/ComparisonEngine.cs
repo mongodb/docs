@@ -254,7 +254,7 @@ public static class ComparisonEngine
     {
         // Handle array ellipsis patterns
         if (EllipsisPatternMatcher.ArrayContainsEllipsis(expected))
-            return await CompareArrayWithEllipsisAsync(expected, actual, path);
+            return await CompareArrayWithEllipsisAsync(expected, actual, options, path, cancellationToken);
 
         // Length check for non-ellipsis arrays
         if (expected.Length != actual.Length)
@@ -461,21 +461,67 @@ public static class ComparisonEngine
     private static Task<ComparisonResult> CompareArrayWithEllipsisAsync(
         object[] expected,
         object[] actual,
-        string path)
+        ComparisonOptions options,
+        string path,
+        CancellationToken cancellationToken)
     {
-        // Simplified ellipsis array matching - can be enhanced based on specific needs
-        var nonEllipsisCount = expected.Count(item => item is not (string and "..."));
+        // Delegate to the backtracking subsequence matcher so that an ellipsis
+        // element can consume 0 or more actual elements (not just one).
+        return MatchSubsequenceAsync(expected, 0, actual, 0, options, path, cancellationToken);
+    }
 
-        if (actual.Length < nonEllipsisCount)
-            return Task.FromResult<ComparisonResult>(new ComparisonError(
+    /// <summary>
+    ///     Recursively matches expected[ei..] against actual[ai..] where each "..."
+    ///     element in expected may skip over 0 or more elements in actual.
+    ///     Non-ellipsis elements must match in order.
+    /// </summary>
+    private static async Task<ComparisonResult> MatchSubsequenceAsync(
+        object[] expected,
+        int expectedIndex,
+        object[] actual,
+        int actualIndex,
+        ComparisonOptions options,
+        string path,
+        CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        // All expected elements consumed — success regardless of remaining actuals.
+        if (expectedIndex == expected.Length)
+            return new ComparisonSuccess();
+
+        // Current expected element is an ellipsis: try consuming 0, 1, 2, … actual elements.
+        if (expected[expectedIndex] is string s && s == "...")
+        {
+            for (var skip = 0; actualIndex + skip <= actual.Length; skip++)
+            {
+                var result = await MatchSubsequenceAsync(
+                    expected, expectedIndex + 1, actual, actualIndex + skip, options, path, cancellationToken);
+                if (result.IsSuccess)
+                    return result;
+            }
+
+            return new ComparisonError(
                 path,
-                $"At least {nonEllipsisCount} elements",
-                $"{actual.Length} elements",
-                "Actual array has fewer elements than required by ellipsis pattern"));
+                "...",
+                $"Array[{actual.Length}]",
+                "Ellipsis could not match any subsequence of the remaining actual elements");
+        }
 
-        // For now, only verify that non-ellipsis elements exist somewhere in the actual array
-        // This can be made more sophisticated based on specific requirements
-        return Task.FromResult<ComparisonResult>(new ComparisonSuccess());
+        // Non-ellipsis: actual must have a corresponding element at this position.
+        if (actualIndex >= actual.Length)
+            return new ComparisonError(
+                path,
+                SafeToString(expected[expectedIndex]),
+                "missing",
+                $"Expected element at index {expectedIndex} has no corresponding actual element");
+
+        var elementResult = await CompareInternal(
+            expected[expectedIndex], actual[actualIndex], options, $"{path}[{actualIndex}]", cancellationToken);
+        if (!elementResult.IsSuccess)
+            return elementResult;
+
+        return await MatchSubsequenceAsync(expected, expectedIndex + 1, actual, actualIndex + 1, options, path, cancellationToken);
     }
 
     private static bool IsPrimitive(object? value)

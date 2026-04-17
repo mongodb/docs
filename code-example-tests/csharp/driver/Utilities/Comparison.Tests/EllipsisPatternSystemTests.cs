@@ -205,7 +205,9 @@ public class EllipsisPatternSystemTests
                        "users": [
                          { "name": "Alice", "role": "admin", "id": 1, "email": "alice@example.com" },
                          { "name": "Bob", "role": "user", "id": 2, "email": "bob@example.com" },
-                         { "name": "Charlie", "role": "guest", "id": 3, "email": "charlie@example.com" }
+                         { "name": "Charlie", "role": "guest", "id": 3, "email": "charlie@example.com" },
+                         { "blorp": "foozle" },
+                         { "cheese": "gouda" }
                        ],
                        "metadata": { "version": "1.0", "created": "2023-01-01", "lastModified": "2023-12-01" }
                      }

@@ -172,6 +172,7 @@ public readonly struct TruncatedStringPattern : IEllipsisPattern<TruncatedString
 
 /// <summary>
 ///     Handles array wildcard patterns like ["..."].
+///     Matches any array or collection, including value-type arrays such as int[].
 /// </summary>
 public readonly struct ArrayWildcardPattern : IEllipsisPattern<ArrayWildcardPattern>
 {
@@ -179,7 +180,7 @@ public readonly struct ArrayWildcardPattern : IEllipsisPattern<ArrayWildcardPatt
     {
         return expected is object[] { Length: 1 } expectedArray &&
                expectedArray[0] is string str && str == "..." &&
-               actual is IEnumerable<object>;
+               actual is System.Collections.IEnumerable and not string;
     }
 
     public static int Priority => 95;
