@@ -184,6 +184,7 @@ export const UnifiedTocNavItem = ({
         to={newUrl}
         onClick={handleClick}
         className={cx(l2ItemStyling({ level, isAccordion }))}
+        data-offline-level={isOfflineBuild ? level : undefined}
       >
         {label}
       </SideNavItem>
@@ -199,7 +200,12 @@ export const UnifiedTocNavItem = ({
   if (isVersionAllowed && group) {
     return (
       <>
-        <SideNavGroup header={label} collapsible={collapsible} className={cx(groupHeaderStyling({ isAccordion }))}>
+        <SideNavGroup
+          header={label}
+          collapsible={collapsible}
+          className={cx(groupHeaderStyling({ isAccordion }))}
+          data-offline-level={isOfflineBuild ? level : undefined}
+        >
           {versionDropdown && <VersionDropdown contentSite={contentSite} />}
           {items?.map((tocItem) => (
             <UnifiedTocNavItem
@@ -249,6 +255,7 @@ export const UnifiedTocNavItem = ({
           sidenavAnalytics(label, event.currentTarget as HTMLElement);
         }}
         className={cx(l2ItemStyling({ level, isAccordion }))}
+        data-offline-level={isOfflineBuild ? level : undefined}
       >
         {label}
       </SideNavItem>
@@ -318,9 +325,14 @@ export const CollapsibleNavItem = ({
         contentSite={contentSite}
         to={newUrl || undefined}
         active={isActive}
-        className={cx(l2ItemStyling({ level, isAccordion }), overwriteLinkStyle)}
+        className={cx(
+          l2ItemStyling({ level, isAccordion }),
+          overwriteLinkStyle,
+          isOfflineBuild ? 'offline-collapsible-nav' : '',
+        )}
         onClick={handleClick}
         hideExternalIcon={true}
+        data-offline-level={isOfflineBuild ? level : undefined}
       >
         <FormatTitle>{label}</FormatTitle>
         <Icon

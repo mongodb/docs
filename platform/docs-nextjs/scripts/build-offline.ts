@@ -291,12 +291,25 @@ const OFFLINE_COMPOSABLE_TUTORIAL_SCRIPT = `<script>\n${readFileSync(
   'utf-8',
 )}\n</script>`;
 
+const OFFLINE_SIDENAV_COLLAPSIBLE_SCRIPT = `<script>\n${readFileSync(
+  path.join(__dirname, 'offline-ui', 'sidenav-collapsible.js'),
+  'utf-8',
+)}\n</script>`;
+
 // Override the default LeafyGreen tab activation behavior to use the tabset name to see the green underline.
 const OFFLINE_TABS_STYLE = `
 <style>
   [data-lgid="lg-tabs-tab_list"] [role="tab"][aria-selected="true"]::after {
     background-color: #00A35C;
     transform: scaleX(1);
+  }
+</style>`;
+
+// Rotate the always-rendered CaretDown icon 180° to look like CaretUp when closed.
+const OFFLINE_SIDENAV_COLLAPSIBLE_STYLE = `
+<style>
+  .offline-collapsible-nav:not(.nav-open) svg[aria-label="Caret Down Icon"] {
+    transform: rotate(180deg);
   }
 </style>`;
 
@@ -335,6 +348,14 @@ function injectComposableTutorialScript(content: string): string {
   return content.replace(/<\/body>/i, OFFLINE_COMPOSABLE_TUTORIAL_SCRIPT + '\n</body>');
 }
 
+// Restore toggle behaviour for the sidenav CollapsibleNavItem.
+function injectSidenavCollapsibleScript(content: string): string {
+  if (!content.includes('offline-collapsible-nav')) return content;
+  return content
+    .replace(/<\/head>/i, OFFLINE_SIDENAV_COLLAPSIBLE_STYLE + '\n</head>')
+    .replace(/<\/body>/i, OFFLINE_SIDENAV_COLLAPSIBLE_SCRIPT + '\n</body>');
+}
+
 async function postProcess(): Promise<void> {
   const htmlFiles = await findHtmlFiles(OUT_DIR);
   for (const filePath of htmlFiles) {
@@ -344,6 +365,7 @@ async function postProcess(): Promise<void> {
     rewritten = injectTabsScript(rewritten);
     rewritten = injectCollapsibleScript(rewritten);
     rewritten = injectComposableTutorialScript(rewritten);
+    rewritten = injectSidenavCollapsibleScript(rewritten);
     if (rewritten !== content) await fs.writeFile(filePath, rewritten, 'utf-8');
   }
 }
