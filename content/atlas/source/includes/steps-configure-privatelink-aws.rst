@@ -1,83 +1,158 @@
 .. procedure::
    :style: normal
-      
+
+   .. note::
+
+      Cross-region private endpoint connectivity is available for
+      |aws|. This feature allows you to connect to your {+service+}
+      clusters from different |aws| regions through a single private
+      endpoint service. To learn more about managing accepted endpoint
+      regions, see :ref:`manage-accepted-endpoint-regions`.
+
    .. include:: /includes/nav/steps-network-access.rst
-      
-   .. step:: Click the :guilabel:`Private Endpoint` tab and then the following tab.
-      
-      Click :guilabel:`Dedicated Cluster` for a private endpoint 
-      for your dedicated |service| cluster. (default)
-      
-   .. step:: Click the button to set up the private endpoint.
-      
-      Click the :guilabel:`Add Private Endpoint` button. 
 
-      :gold:`IMPORTANT:` You must provide the billing information in the 
-      :guilabel:`Edit Payment Method` form if you don't have payment method already
-      configured for your organization.
-      
-   .. step:: Choose a cloud provider.
-      
-      Click the |aws| logo, then click :guilabel:`Next`.
-      
-   .. step:: Choose a region.
-      
-      a. From the :guilabel:`Atlas Region` list, select the region
-         in which you want to create the private endpoint. 
-      #. Click :guilabel:`Next`.
-      
-      :gold:`IMPORTANT:` If your organization has no payment information stored,
-      |service| prompts you to add it before continuing.
-      
-   .. step:: Configure your private endpoint.
+   .. step:: Navigate to the private endpoint for your dedicated cluster.
 
-      .. include:: /includes/fact-avoid-connection-interruptions.rst
+      a. In the sidebar, click :guilabel:`Private Endpoint`.
+      #. Click the :guilabel:`Dedicated Cluster` tab.
+
+   .. step:: Create an endpoint service.
+
+      a. Click the :guilabel:`Create Endpoint Service` button.
+
+         :gold:`IMPORTANT:` You must provide the billing information in the
+         :guilabel:`Edit Payment Method` form if you don't have payment method already
+         configured for your organization.
+
+      #. Click the |aws| logo to select your cloud provider.
+
+      #. From the :guilabel:`Atlas Region` list, select the primary
+         region where your |service| cluster is deployed.
+
+      #. Optional: In the :guilabel:`Accepted Endpoint Regions`
+         section, select additional |aws| regions from which you want
+         to allow endpoint connections. This enables cross-region
+         private endpoint connectivity.
+
+         .. note::
+
+            The primary region is automatically included as an accepted
+            region and cannot be removed. You can add or remove
+            additional regions at any time. To learn more, see
+            :ref:`manage-accepted-endpoint-regions`.
+
+      #. Click :guilabel:`Create Endpoint Service`.
+
+         The endpoint service creation process takes approximately 3-5
+         minutes.
+
+         :gold:`IMPORTANT:` If your organization has no payment information stored,
+         |service| prompts you to add it before continuing.
       
-      a. Enter the following details about your |aws| |vpc|:
+   .. step:: Add an endpoint to your endpoint service.
 
-         .. list-table::
-            :widths: 20 80
+      After the endpoint service is created, you can add endpoints to
+      connect your |aws| |vpc| to the service.
 
-            * - :guilabel:`Your VPC ID`
-              - Unique identifier of the peer |aws| |vpc|. Find this
-                value on the |vpc| dashboard in your |aws| account.
+      a. On the endpoint service card, click the :guilabel:`Add
+         Endpoint` button.
 
-            * - :guilabel:`Your Subnet IDs`
-              - Unique identifiers of the subnets your |aws| |vpc| 
-                uses. 
-                
-                Find these values on the :guilabel:`Subnet` dashboard 
-                in your |aws| account.
+      #. Choose how you want to add the endpoint:
 
-                You must specify at least one subnet. If you don't, 
-                |aws| won't provision an :term:`interface endpoint` in
-                your |vpc|. An interface endpoint is required for 
-                clients in your |vpc| to send traffic to the private 
-                endpoint.
+         - **Create New Endpoint**: Create a new |aws| interface
+           endpoint using the provided |aws| CLI command.
+         - **Connect Existing Endpoint**: Connect an existing |aws|
+           interface endpoint that you have already created.
 
-      #. Copy the command the dialog box displays and run it using 
-         the |aws| CLI.
+   .. step:: Create a new endpoint or connect an existing endpoint.
 
-         :gold:`IMPORTANT:` If you skip this step, the interface endpoint for the 
-         Private Endpoint service isn't created.
-        
-         You can't copy the command until |service| finishes 
-         creating |vpc| resources in the background.
+      .. tabs::
 
-         See :aws:`Creating an Interface Endpoint 
-         </vpc/latest/userguide/vpce-interface.html#create-interface-endpoint>` 
-         to perform this task using the |aws| CLI.
-            
-      #. Click :guilabel:`Next`.
-      
-   .. step:: Finalize your private endpoint connection.
-      
-      a. Enter your :guilabel:`VPC Endpoint ID`. This is a 
-         22-character alphanumeric string that identifies your private 
-         endpoint. Find this value on the |aws| VPC Dashboard under 
-         :guilabel:`Endpoints` > :guilabel:`VPC ID`.
+         .. tab:: Create New Endpoint
+            :tabid: create-new
 
-      #. Click :guilabel:`Create`.
+            To create a new endpoint:
+
+            a. Select :guilabel:`Create New Endpoint`.
+
+            #. Enter the following details about your |aws| |vpc|:
+
+               .. list-table::
+                  :widths: 20 80
+
+                  * - :guilabel:`Your VPC ID`
+                    - Unique identifier of the peer |aws| |vpc|. Find
+                      this value on the |vpc| dashboard in your |aws|
+                      account.
+
+                  * - :guilabel:`Your Subnet IDs`
+                    - Unique identifiers of the subnets your |aws|
+                      |vpc| uses.
+
+                      Find these values on the :guilabel:`Subnet`
+                      dashboard in your |aws| account.
+
+                      You must specify at least one subnet. If you
+                      don't, |aws| won't provision an :term:`interface
+                      endpoint` in your |vpc|. An interface endpoint is
+                      required for clients in your |vpc| to send
+                      traffic to the private endpoint.
+
+                  * - :guilabel:`Consumer Region`
+                    - |aws| region where your consumer |vpc| is
+                      located. This region must be one of the accepted
+                      endpoint regions configured for the endpoint
+                      service.
+
+            #. Click :guilabel:`Create Endpoint`.
+
+               |service| provides an |aws| CLI command pre-filled with
+               your configuration.
+
+            #. Copy the |aws| CLI command and run it in your terminal.
+
+               :gold:`IMPORTANT:` You must have the necessary |aws| permissions
+               to create interface endpoints. Ensure that the endpoint
+               is in the ``Pending Acceptance`` state in your |aws|
+               console before proceeding.
+
+               See :aws:`Creating an Interface Endpoint
+               </vpc/latest/userguide/vpce-interface.html#create-interface-endpoint>`
+               for more information.
+
+            #. After running the command, copy the resulting
+               :guilabel:`VPC Endpoint ID` from the |aws| CLI output.
+               This is a 22-character alphanumeric string (for example,
+               ``vpce-0123456789abcdef0``).
+
+            #. Paste the :guilabel:`VPC Endpoint ID` into the modal and
+               click :guilabel:`Add Endpoint`.
+
+               |service| accepts the endpoint connection. This process
+               typically takes a few minutes. When the endpoint is
+               ready, the endpoint status displays as
+               :guilabel:`Available`.
+
+         .. tab:: Connect Existing Endpoint
+            :tabid: connect-existing
+
+            To connect an existing endpoint that you have already
+            created in |aws|:
+
+            a. Select :guilabel:`Connect Existing Endpoint`.
+
+            #. Enter your :guilabel:`VPC Endpoint ID`. This is a
+               22-character alphanumeric string that identifies your
+               |aws| interface endpoint (for example,
+               ``vpce-0123456789abcdef0``).
+
+               Find this value on the |aws| VPC Dashboard under
+               :guilabel:`Endpoints` > :guilabel:`VPC ID`.
+
+            #. Click :guilabel:`Submit Endpoint`.
+
+               |service| validates and links the endpoint to your
+               private endpoint service.
       
    .. step:: Configure your resources' security groups to send traffic to and receive traffic from the :term:`interface endpoint`.
       
@@ -135,10 +210,10 @@
       and the private endpoint becomes available.
       
       To verify that the {+aws-pl+} private endpoint is available:
-      
-      On the :guilabel:`Private Endpoint` tab, select a 
-      {+database-deployment+} type and verify the following 
-      statuses for the region that contains the {+database-deployment+} 
+
+      On the :guilabel:`Private Endpoint` page, select a
+      {+database-deployment+} type and verify the following
+      statuses for the region that contains the {+database-deployment+}
       you want to connect to using {+aws-pl+}:
       
       .. list-table::
@@ -151,6 +226,16 @@
            - Available
       
       To learn more about possible status values, see :ref:`pl-troubleshooting`.
-      
+
       If you do not see these statuses, see :ref:`pl-troubleshooting` for
-      additional information.      
+      additional information.
+
+.. note::
+
+   If you encounter issues with endpoint connections, including failed
+   endpoints or missing regions, see :ref:`pl-troubleshooting` for
+   troubleshooting steps and common resolutions.
+
+   To learn more about cross-region private endpoint connectivity,
+   accepted endpoint regions, and limitations, see
+   :ref:`manage-accepted-endpoint-regions`.

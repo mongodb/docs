@@ -3,31 +3,31 @@
       
    .. include:: /includes/nav/steps-network-access.rst
       
-   .. step:: Click the :guilabel:`Private Endpoint` tab and then the following tab.
-      
-      Click :guilabel:`Dedicated Cluster` for a private endpoint 
-      for your dedicated |service| cluster. (default)
-      
-   .. step:: Click the button to set up the private endpoint.
-      
-      Click the :guilabel:`Add Private Endpoint` button. 
+   .. step:: Navigate to the private endpoint for your dedicated cluster.
 
-      :gold:`IMPORTANT:` You must provide the billing information in the 
-      :guilabel:`Edit Payment Method` form if you don't have payment 
-      method already configured for your organization.
+      a. In the sidebar, click :guilabel:`Private Endpoint`.
+      #. Click the :guilabel:`Dedicated Cluster` tab.
       
-   .. step:: Choose a cloud provider.
-      
-      Click the |azure| logo, then click :guilabel:`Next`.
-      
-   .. step:: Choose a region.
-      
-      a. From the :guilabel:`Atlas Region` list, select the region
-         in which you want to create the private endpoint. 
-      #. Click :guilabel:`Next`.
-      
-      :gold:`IMPORTANT:` If your organization has no payment information stored, |service| 
-      prompts you to add it before continuing.
+   .. step:: Create an endpoint service.
+
+      a. Click the :guilabel:`Create Endpoint Service` button.
+
+         :gold:`IMPORTANT:` You must provide the billing information in the
+         :guilabel:`Edit Payment Method` form if you don't have payment
+         method already configured for your organization.
+
+      #. Click the |azure| logo to select your cloud provider.
+
+      #. From the :guilabel:`Atlas Region` list, select the primary
+         region where your |service| cluster is deployed.
+
+      #. Click :guilabel:`Create Endpoint Service`.
+
+         The endpoint service creation process takes approximately 3-5
+         minutes.
+
+         :gold:`IMPORTANT:` If your organization has no payment information stored, |service|
+         prompts you to add it before continuing.
       
    .. step:: Configure your private endpoint.
 
@@ -187,10 +187,10 @@
       endpoint becomes available.
       
       To verify that the {+az-pl+} private endpoint is available:
-      
-      On the :guilabel:`Private Endpoint` tab, select a 
-      {+database-deployment+} type and verify the following 
-      statuses for the region that contains the cluster 
+
+      On the :guilabel:`Private Endpoint` page, select a
+      {+database-deployment+} type and verify the following
+      statuses for the region that contains the cluster
       you want to connect to using {+az-pl+}:
       
       .. list-table::

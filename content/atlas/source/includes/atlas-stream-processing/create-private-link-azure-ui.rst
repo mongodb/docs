@@ -5,9 +5,9 @@
 
    .. step:: Navigate to the {+atlas-sp+} private endpoint interface.
 
-      a. Select the :guilabel:`Private Endpoint` tab.
+      a. In the sidebar, click :guilabel:`Private Endpoint`.
 
-      #. Select the :guilabel:`{+atlas-sp+}` tab.
+      #. Click the :guilabel:`{+atlas-sp+}` tab.
 
          If you have not created an {+atlas-sp+} private endpoint
          previously, click :guilabel:`Create endpoint`. If you have,

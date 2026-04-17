@@ -5,7 +5,7 @@ To view the status of each private endpoint:
 
    .. include:: /includes/nav/steps-network-access.rst
 
-   .. step:: Click the :guilabel:`Private Endpoint` tab.
+   .. step:: In the sidebar, click :guilabel:`Private Endpoint`.
 
    .. step:: Review the statuses.
 
@@ -88,9 +88,11 @@ To view the status of each private endpoint:
               :guilabel:`Edit` and make sure the fields are accurate.
 
           * - Deleted
-            - You manually deleted the private endpoint from a region in 
+            - You manually deleted the private endpoint from a region in
               |service|. You must also delete the private endpoint in |gcp|
-              to delete resources. Pending deletion of the region group. 
+              to delete resources. Pending deletion of the region group.
+
+   .. include:: /includes/warning-delete-last-endpoint.rst
 
    .. step:: Make sure that your security groups are configured properly.
 

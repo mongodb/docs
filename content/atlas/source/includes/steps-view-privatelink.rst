@@ -3,7 +3,7 @@
       
    .. include:: /includes/nav/steps-network-access.rst
       
-   .. step:: Click the :guilabel:`Private Endpoint` tab and then the following tab.
-      
-      Click :guilabel:`Dedicated Cluster` for a private endpoint 
-      for your dedicated |service| cluster. (default)
+   .. step:: Navigate to the private endpoint for your dedicated cluster.
+
+      a. In the sidebar, click :guilabel:`Private Endpoint`.
+      #. Click the :guilabel:`Dedicated Cluster` tab.

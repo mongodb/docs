@@ -2,7 +2,7 @@ To view the status of each private endpoint:
 
 a. .. include:: /includes/nav/list-network-access.rst
 
-#. Click the :guilabel:`Private Endpoint` tab.
+#. In the sidebar, click :guilabel:`Private Endpoint`.
 
 #. Review the statuses.
 

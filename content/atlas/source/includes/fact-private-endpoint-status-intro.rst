@@ -5,7 +5,7 @@ To view the status of each private endpoint:
 
    .. include:: /includes/nav/steps-network-access.rst
 
-   .. step:: Click the :guilabel:`Private Endpoint` tab.
+   .. step:: In the sidebar, click :guilabel:`Private Endpoint`.
 
    .. step:: Review the statuses.
 

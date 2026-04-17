@@ -3,20 +3,21 @@
       
    .. include:: /includes/nav/steps-network-access.rst
       
-   .. step:: Click the :guilabel:`Private Endpoint` tab and then click :guilabel:`Add Private Endpoint`.
+   .. step:: Create an endpoint service.
 
-   .. step:: Choose a cloud provider.
-      
-      Click the |gcp| logo, then click :guilabel:`Next`.
-      
-   .. step:: Choose a region.
-      
-      a. From the :guilabel:`Atlas Region` list, select the region
-         in which you want to create the private endpoint. 
-      #. Click :guilabel:`Next`.
-      
-      :gold:`IMPORTANT:` If your organization has no payment information stored,
-      |service| prompts you to add it before continuing.
+      a. In the sidebar, click :guilabel:`Private Endpoint`.
+
+      #. Click :guilabel:`Create Endpoint Service`.
+
+      #. Click the |gcp| logo to select your cloud provider.
+
+      #. From the :guilabel:`Atlas Region` list, select the region
+         in which you want to create the private endpoint.
+
+      #. Click :guilabel:`Create Endpoint Service`.
+
+         :gold:`IMPORTANT:` If your organization has no payment information stored,
+         |service| prompts you to add it before continuing.
       
    .. step:: Configure your private endpoint.
 
@@ -72,9 +73,9 @@
       endpoint becomes available.
       
       To verify that the {+gcp-psc+} private endpoint is available:
-      
-      On the :guilabel:`Private Endpoint` tab, verify the following 
-      statuses for the region that contains the cluster 
+
+      On the :guilabel:`Private Endpoint` page, verify the following
+      statuses for the region that contains the cluster
       you want to connect to using {+gcp-psc+}:
       
       .. list-table::
