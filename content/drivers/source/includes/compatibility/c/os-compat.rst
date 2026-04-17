@@ -23,7 +23,8 @@ with the C driver:
      -
 
    * - macOS
-     - Versions 11.0 and later
+     - | C driver versions 2.1 and earlier require macOS 11.0 or later.
+       | C driver versions 2.2 and later require macOS 14.0 or later.
 
    * - Windows
      - Windows Server 2008 and later
