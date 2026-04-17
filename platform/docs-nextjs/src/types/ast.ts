@@ -835,6 +835,28 @@ type TwitterOptions = {
   title?: string;
 };
 
+/**
+ * Shape of the YAML frontmatter block emitted at the top of every converted MDX file.
+ */
+export interface MDXFrontmatter {
+  /** Snooty source file identifier, e.g. "api.txt". */
+  fileId?: string;
+  /** Page template, promoted from root options or a meta directive. */
+  template?: PageTemplateType;
+  /** Remaining root-level options (after `template` is promoted). */
+  options?: PageOptions;
+  /** Facet taxonomy values keyed by facet name. */
+  facets?: Record<string, string>;
+  /** Open Graph / Twitter card metadata from a `.. twitter::` directive. */
+  twitter?: TwitterOptions;
+  /** Arbitrary fields from `.. meta::` directive. */
+  description?: string;
+  keywords?: string;
+  robots?: string;
+  canonical?: string;
+  [key: string]: unknown;
+}
+
 interface TwitterNode extends Directive<TwitterOptions> {
   options: TwitterOptions;
 }

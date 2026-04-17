@@ -51,6 +51,114 @@ describe('convertSnootyAstToMdast', () => {
     expect(frontmatterObject).toEqual({ options: { page: 'opts' }, foo: 'bar' });
   });
 
+  it('collects meta directive inside a section into frontmatter', () => {
+    // .. meta:: can appear below the page heading (inside the first section)
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'section',
+          children: [
+            { type: 'title', children: [{ type: 'text', value: 'Page Title' }] },
+            {
+              type: 'directive',
+              name: 'meta',
+              options: { description: 'Section-level description', robots: 'noindex' },
+            },
+            { type: 'paragraph', children: [{ type: 'text', value: 'Body content.' }] },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+
+    const frontmatter = yaml.parse(mdx.split('---')[1]);
+
+    expect(frontmatter.description).toBe('Section-level description');
+    expect(frontmatter.robots).toBe('noindex');
+    // The meta directive must not appear as rendered content
+    expect(mdx).not.toContain('<Meta');
+  });
+
+  it('collects twitter directive into a nested twitter frontmatter object and excludes it from content', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'twitter',
+          options: {
+            creator: '@mongodb',
+            image: 'https://example.com/og.png',
+            'image-alt': 'MongoDB logo',
+            site: '@mongodb',
+            title: 'Twitter card title',
+          },
+        },
+        { type: 'paragraph', children: [{ type: 'text', value: 'Page body.' }] },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+
+    const frontmatter = yaml.parse(mdx.split('---')[1]);
+
+    expect(frontmatter.twitter).toEqual({
+      creator: '@mongodb',
+      image: 'https://example.com/og.png',
+      'image-alt': 'MongoDB logo',
+      site: '@mongodb',
+      title: 'Twitter card title',
+    });
+    // The directive must not bleed into rendered content
+    expect(mdx).not.toContain('<Twitter');
+    expect(mdx).toContain('Page body.');
+  });
+
+  it('collects partial twitter options and omits undefined fields from frontmatter', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'twitter',
+          options: { creator: '@mongodb', title: 'Card title' },
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+
+    const frontmatter = yaml.parse(mdx.split('---')[1]);
+
+    expect(frontmatter.twitter).toEqual({ creator: '@mongodb', title: 'Card title' });
+    expect(frontmatter.twitter.image).toBeUndefined();
+    expect(frontmatter.twitter['image-alt']).toBeUndefined();
+  });
+
+  it('collects twitter directive from inside a section into frontmatter', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'section',
+          children: [
+            { type: 'title', children: [{ type: 'text', value: 'Page Title' }] },
+            {
+              type: 'directive',
+              name: 'twitter',
+              options: { site: '@mongodb', title: 'Section twitter' },
+            },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+
+    const frontmatter = yaml.parse(mdx.split('---')[1]);
+
+    expect(frontmatter.twitter?.site).toBe('@mongodb');
+    expect(frontmatter.twitter?.title).toBe('Section twitter');
+  });
+
   it('extracts image path from argument and caption from children', () => {
     const ast: SnootyNode = {
       type: 'root',

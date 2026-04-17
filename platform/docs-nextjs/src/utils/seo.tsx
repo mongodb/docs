@@ -6,30 +6,30 @@ import { getSiteTitle } from '@/utils/get-site-title';
 import { getPlaintext } from '@/utils/get-plaintext';
 import { getNestedValue } from '@/utils/get-nested-value';
 import { getLocaleMapping } from '@/utils/locale';
-import { getMetaFromDirective } from '@/utils/get-meta-from-directive';
 import { assertLeadingSlash } from '@/utils/assert-leading-slash';
 import type { Docset, RemoteMetadata } from '@/types/data';
 import { assertTrailingSlash } from './assert-trailing-slash';
 import { normalizePath } from './normalize-path';
 import type { Environments } from './env-config';
 import { generateVersionedPrefix } from './generate-versioned-prefix';
+import type { MDXFrontmatter } from '@/types/ast';
 
 const DEFAULT_TWITTER_SITE = '@mongodb';
 const metaUrl = `https://www.mongodb.com/docs/assets/meta_generic.png`;
 
 export const getPageMetadata = ({
-  pageDoc,
+  frontmatter,
   snootyMetadata,
   docset,
 }: {
-  pageDoc: ASTDocument;
-  snootyMetadata: DBMetadataDocument;
+  frontmatter: MDXFrontmatter;
+  snootyMetadata: RemoteMetadata;
   docset: Docset;
 }) => {
-  const slug = pageDoc.filename.split('.')[0];
+  const { fileId = '', template = 'document' } = frontmatter;
+  const slug = fileId.split('.')[0];
   const lookup = slug === '/' ? 'index' : slug;
   const pageTitle = getPlaintext(getNestedValue(['slugToTitle', lookup], snootyMetadata) as TextNode[]);
-  const template = pageDoc.ast?.options?.template;
 
   const siteTitle = getSiteTitle(snootyMetadata);
   const showDocsLandingTitle = snootyMetadata.project === 'landing' && template === 'landing' && slug === '/';
@@ -41,13 +41,7 @@ export const getPageMetadata = ({
       ? 'MongoDB Documentation - Homepage'
       : `${pageTitle ? `${pageTitle} - ` : ''}${siteTitle} - MongoDB Docs`;
 
-  const {
-    description,
-    robots,
-    keywords,
-    canonical: metaCanonical,
-    twitter,
-  } = getMetaFromDirective({ rootNode: pageDoc.ast });
+  const { description, robots, keywords, canonical: metaCanonical, twitter = {} } = frontmatter;
 
   // Retrieves the canonical URL based on certain situations
   // i.e. eol'd, non-eol'd, snooty.toml or ..metadata:: directive (highest priority)
@@ -72,7 +66,7 @@ export const getPageMetadata = ({
     },
     openGraph: {
       title,
-      url: new URL(DOTCOM_BASE_URL), // see todo above
+      url: new URL(DOTCOM_BASE_URL),
       images: [
         {
           url: metaUrl,

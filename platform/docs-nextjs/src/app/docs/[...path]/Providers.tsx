@@ -6,7 +6,7 @@ import { HeadingContextProvider } from '@/context/heading-context';
 import type { RemoteMetadata, Docset } from '@/types/data';
 import { UnifiedTocProvider } from '@/context/unified-toc-context';
 import { ContentsProvider } from '@/context/contents-context';
-import type { MDXFrontmatter } from './custom-template';
+import type { MDXFrontmatter } from '@/types/ast';
 import { InstruqtProvider } from '@/context/instruqt-context';
 import { PageContextProvider } from '@/context/page-context';
 import { TabProvider } from '@/context/tabs-context';

@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { getSnootyMetadata } from '@/services/db/snooty-metadata';
 import { getAllDocsetsWithVersionsCached } from '@/services/db/docsets';
 import { getPageDocFromParams } from '@/services/db/pages';
-import { getPageMetadata, getLocaleLinks } from '@/utils/seo';
+import { getLocaleLinks } from '@/utils/seo';
 import type { DBMetadataDocument } from '@/services/db/snooty-metadata';
 import { fetchAllAssets } from '@/services/db/assets';
 import { CustomTemplate } from './custom-template';
@@ -91,9 +91,10 @@ export async function generateMetadata({ params: { path } }: PageProps) {
   const snootyMetadata = (await getSnootyMetadata(pageDoc?.buildId ?? '')) as DBMetadataDocument;
   const docset = docsets.find((docset: Docset) => docset.project === snootyMetadata.project);
 
-  let metadata = null;
-  if (pageDoc && docset) {
-    metadata = getPageMetadata({ pageDoc, snootyMetadata, docset });
-  }
+  const metadata = null;
+  // Won't work anymore - /ast path not needed
+  // if (pageDoc && docset) {
+  //   metadata = getPageMetadata({ pageDoc, snootyMetadata, docset });
+  // }
   return metadata;
 }

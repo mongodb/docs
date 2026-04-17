@@ -1,7 +1,7 @@
 import yaml from 'yaml';
 import { pascalCase } from 'change-case';
 import { isValueNode, isTextNode } from './types';
-import type { ConversionContext, SnootyNode, MdastNode, MdastRoot } from './types';
+import type { ConversionContext, SnootyNode, MdastNode, MdastRoot, MDXFrontmatter } from './types';
 import { convertDirectiveImage } from './convertDirectiveImage';
 import { convertDirectiveInclude } from './convertDirectiveInclude';
 import { convertDirectiveListTable } from './convertDirectiveListTable';
@@ -13,9 +13,7 @@ import { extractInlineDisplayText } from './extractInlineDisplayText';
 import stableStringify from 'fast-json-stable-stringify';
 
 // Toctree is navigation structure only – not rendered in page content
-// Meta is page metadata collected into frontmatter
-// Facet is page metadata collected into frontmatter
-// Contents data is collected into frontmatter
+// Meta, Twitter, Facet, and Contents are page metadata collected into frontmatter
 // Dismissible-skills-card data is collected into frontmatter
 // Default-domain is unnecessary
 // IA is legacy toc
@@ -27,6 +25,7 @@ const DIRECTIVES_TO_REMOVE = [
   'meta',
   'facet',
   'toctree',
+  'twitter',
 ];
 const DIRECTIVES_TO_REMOVE_IF_EMPTY = ['index'];
 const DIRECTIVES_TO_SKIP_CONTAINER = ['extract', 'glossary'];
@@ -1309,6 +1308,7 @@ interface ConvertSnootyAstToMdastOptions {
 
 export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnootyAstToMdastOptions): MdastRoot => {
   const metaFromDirectives: Record<string, unknown> = {};
+  const twitterFromDirectives: Record<string, unknown> = {};
   const contentChildren: MdastNode[] = [];
   const collectedSubstitutions = new Map<string, string>();
   const collectedRefs = new Map<string, string>();
@@ -1333,12 +1333,28 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
     }
   });
 
-  (root.children ?? []).forEach((child: SnootyNode) => {
-    // Collect <meta> directives: they appear as directive nodes with name 'meta'.
-    if (child.type === 'directive' && String(child.name).toLowerCase() === 'meta' && child.options) {
-      Object.assign(metaFromDirectives, child.options);
-      return; // do not include this node in output
+  // Pre-scan root-level children and the first section's children for meta and twitter
+  // directives. Both locations are valid in RST (meta can appear before or after the
+  // page heading). Place in frontmatter.
+  const collectMetaAndTwitter = (nodes: SnootyNode[]) => {
+    for (const node of nodes) {
+      if (node.type !== 'directive') continue;
+      const name = String(node.name ?? '').toLowerCase();
+      if (name === 'meta' && node.options) {
+        Object.assign(metaFromDirectives, node.options);
+      } else if (name === 'twitter' && node.options) {
+        Object.assign(twitterFromDirectives, node.options);
+      }
     }
+  };
+
+  collectMetaAndTwitter(root.children ?? []);
+  const firstSection = (root.children ?? []).find((n) => n.type === 'section');
+  if (firstSection?.children) {
+    collectMetaAndTwitter(firstSection.children);
+  }
+
+  (root.children ?? []).forEach((child: SnootyNode) => {
     const converted = convertNode({ node: child, depth: options?.initialDepth ?? 1, ctx });
     if (Array.isArray(converted)) contentChildren.push(...converted);
     else if (converted) contentChildren.push(converted);
@@ -1362,13 +1378,25 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
   if (composableData) {
     pageOptions.composable_tutorial = composableData;
   }
-  const frontmatterObj = {
-    ...(root.fileid ? { fileId: root.fileid } : {}),
-    ...(pageTemplate ? { template: pageTemplate } : {}),
+  // Build the twitter frontmatter object from the collected twitter directive options.
+  // Only include fields that are actually present; omit the key entirely when empty.
+  const rawTwitter: Record<string, string | undefined> = {
+    creator: twitterFromDirectives.creator as string | undefined,
+    image: twitterFromDirectives.image as string | undefined,
+    'image-alt': twitterFromDirectives['image-alt'] as string | undefined,
+    site: twitterFromDirectives.site as string | undefined,
+    title: twitterFromDirectives.title as string | undefined,
+  };
+  const twitter = Object.fromEntries(Object.entries(rawTwitter).filter(([, v]) => v !== undefined));
+
+  const frontmatterObj: MDXFrontmatter = {
+    ...(root.fileid ? { fileId: root.fileid as string } : {}),
+    ...(pageTemplate ? { template: pageTemplate as string } : {}),
     ...(Object.keys(pageOptions).length ? { options: pageOptions } : {}),
     // meta directives are spread last so they can override page-level options (including template)
     ...metaFromDirectives,
     ...(Object.keys(facets).length ? { facets } : {}),
+    ...(Object.keys(twitter).length ? { twitter } : {}),
   };
 
   // Compose final children array with optional frontmatter

@@ -3,8 +3,9 @@ import { loadMDX } from '@/mdx-utils/load-mdx';
 import { getSiteMetadata } from '@/mdx-utils/load-metadata';
 import { getAllDocsetsWithVersionsCached } from '@/services/db/docsets';
 import envConfig from '@/utils/env-config';
-import type { RemoteMetadata } from '@/types/data';
+import type { Docset, RemoteMetadata } from '@/types/data';
 import { CustomTemplate } from './custom-template';
+import { getPageMetadata } from '@/utils/seo';
 
 // ISR (Incremental Static Regeneration) behavior
 export const revalidate = 24 * 60 * 60; // 1 day in seconds
@@ -51,12 +52,24 @@ export default async function MDXPage({ params: { path } }: PageProps) {
 export async function generateMetadata({ params: { path } }: PageProps) {
   const result = await loadMDX(path);
 
-  if (!result) {
-    return { title: 'Not Found' };
+  if (!result || !result.frontmatter) {
+    return notFound();
   }
 
-  return {
-    title: result.frontmatter.title || path.join(' '),
-    description: result.frontmatter.description || '',
-  };
+  let siteMetadata: RemoteMetadata;
+  try {
+    ({ siteMetadata } = await getSiteMetadata(path));
+  } catch (error) {
+    console.error('[page.tsx] Error loading metadata: ', error);
+    throw new Error('[page.tsx] Error loading metadata');
+  }
+
+  const docsets = await getAllDocsetsWithVersionsCached();
+  const docset = docsets.find((docset: Docset) => docset.project === siteMetadata.project);
+
+  let metadata = null;
+  if (docset) {
+    metadata = getPageMetadata({ frontmatter: result.frontmatter, snootyMetadata: siteMetadata, docset });
+  }
+  return metadata;
 }

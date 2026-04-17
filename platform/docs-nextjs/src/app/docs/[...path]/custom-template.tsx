@@ -16,7 +16,7 @@ import {
 import { ActionBar } from '@/mdx-components/ActionBar';
 import layoutStyles from '@/app/layout.module.scss';
 import ProductLandingTemplate from '@/components/templates/product-landing';
-import type { PageOptions, PageTemplateType } from '@/types/ast';
+import type { MDXFrontmatter, PageTemplateType } from '@/types/ast';
 import Header from '@/components/header';
 
 type TemplateComponent = React.ComponentType<BaseTemplateProps>;
@@ -73,13 +73,6 @@ function getTemplate(templateOption: PageTemplateType): {
   }
 
   return { Template, renderSidenav };
-}
-
-export interface MDXFrontmatter {
-  fileId?: string;
-  template?: PageTemplateType;
-  options?: PageOptions;
-  [key: string]: unknown;
 }
 
 interface CustomTemplateProps {

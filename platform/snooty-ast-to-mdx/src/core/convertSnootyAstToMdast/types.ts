@@ -1,5 +1,6 @@
 import type { Node } from 'unist';
 import type { Root } from 'mdast';
+import type { ComposableTutorialComputedData } from './computeComposableTutorialData';
 
 export type { Root };
 
@@ -86,4 +87,91 @@ export const isLiteralNode = (n?: SnootyNode): n is LiteralNode =>
 
 export interface ConvertChildrenFn {
   (args: { nodes?: SnootyNode[]; ctx: ConversionContext; depth: number }): MdastNode[];
+}
+
+export interface MDXFrontmatterTwitter {
+  creator?: string;
+  image?: string;
+  'image-alt'?: string;
+  site?: string;
+  title?: string;
+}
+
+type Selectors = Record<string, Record<string, unknown[]>>;
+type ActiveTabs = Record<string, string>;
+
+interface DismissibleSkillsCardOptions {
+  skill: string;
+  url: string;
+}
+
+interface HeadingNodeSelectorIds {
+  tab?: string;
+  'method-option'?: string;
+  'selected-content'?: Record<string, string>;
+  children?: HeadingNodeSelectorIds;
+}
+
+interface HeadingOption {
+  depth: number;
+  id: string;
+  selector_ids: HeadingNodeSelectorIds;
+  title: TextNode[];
+}
+
+type PageTemplateType =
+  | 'blank'
+  | 'drivers-index'
+  | 'document'
+  | 'feature-not-avail'
+  | 'instruqt'
+  | 'landing'
+  | 'openapi'
+  | 'changelog'
+  | 'search'
+  | 'guide'
+  | 'errorpage'
+  | 'product-landing';
+
+interface PageOptions {
+  title?: string;
+  template: PageTemplateType;
+  default_tabs?: ActiveTabs;
+  composable_tutorial?: ComposableTutorialComputedData;
+  dismissible_skills_card?: DismissibleSkillsCardOptions;
+  has_composable_tutorial?: boolean;
+  hidefeedback?: string;
+  instruqt?: boolean;
+  has_method_selector?: boolean;
+  multi_page_tutorial_settings?: {
+    show_next_top?: boolean;
+  };
+  noprevnext?: string;
+  'pl-max-width-paragraphs'?: string;
+  selectors?: Selectors;
+  'tabs-selector-position'?: string;
+  time_required?: number;
+  headings?: HeadingOption[];
+}
+
+/**
+ * Shape of the YAML frontmatter block emitted at the top of every converted MDX file.
+ */
+export interface MDXFrontmatter {
+  /** Snooty source file identifier, e.g. "api.txt". */
+  fileId?: string;
+  /** Page template, promoted from root options or a meta directive. */
+  template?: string;
+  /** Remaining root-level options (after `template` is promoted). */
+  options?: PageOptions;
+  /** Facet taxonomy values keyed by facet name. */
+  facets?: Record<string, string>;
+  /** Open Graph / Twitter card metadata from a `.. twitter::` directive. */
+  twitter?: MDXFrontmatterTwitter;
+  /** Arbitrary fields from `.. meta::` directive. */
+  description?: string;
+  keywords?: string;
+  robots?: string;
+  canonical?: string;
+  [key: string]: unknown;
 }
