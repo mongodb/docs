@@ -30,7 +30,7 @@ const UIContainer = () => {
 
   const CHATBOT_SERVER_BASE_URL = ['dotcomprd', 'production'].includes(env)
     ? 'https://knowledge.mongodb.com/api/v1'
-    : 'https://knowledge.staging.corp.mongodb.com/api/v1';
+    : 'https://knowledge-dev.mongodb.com/api/v1';
 
   const openChatbot = () => {
     reportAnalytics('CTA Click', {
