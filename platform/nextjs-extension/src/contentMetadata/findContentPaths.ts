@@ -1,6 +1,7 @@
 import fsExists from 'fs.promises.exists';
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import type { AllContentData } from './processContentMetadata.js';
 
 /** DFS search for dirs that contain a snooty.toml up to maxDepth, baseDir depth is 0
  ** @param baseDir - absolute path to the starting directory to search from

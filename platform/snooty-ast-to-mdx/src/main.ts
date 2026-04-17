@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'node:path';
 import chalk from 'chalk';
 import { convertJsonAstToMdxFiles } from './core/convertJsonAstToMdxFiles/convertJsonAstToMdxFiles';
 import { convertZipFileToMdx } from './core/convertZipFileToMdxFiles';
@@ -48,9 +49,11 @@ const main = async () => {
   } else {
     console.log(chalk.magenta(`Converting ${chalk.yellow(input)} to MDX...`), '\n');
 
-    const { outputDirectory, fileCount, assetChecksumToKey, routeCollisions } = await convertZipFileToMdx({
+    const zipBaseName = path.basename(input, '.zip');
+    const outputDirectory = outputPrefix ? path.join(outputPrefix, zipBaseName) : zipBaseName;
+    const { fileCount, assetChecksumToKey, routeCollisions } = await convertZipFileToMdx({
       zipPath: input,
-      outputPrefix,
+      outputDirectory,
       onFileWrite: (count) => process.stdout.write(`\r${chalk.green(`✓ Wrote ${chalk.yellow(count)} MDX files`)}`),
     });
 

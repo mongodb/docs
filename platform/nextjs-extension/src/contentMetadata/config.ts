@@ -61,7 +61,10 @@ export const updateConfig = async ({
   configEnvironment.DEPLOY_ID = process.env.DEPLOY_ID;
   configEnvironment.REVIEW_ID = process.env.REVIEW_ID;
   configEnvironment.REPOSITORY_URL = process.env.REPOSITORY_URL;
-  configEnvironment.BRANCH = process.env.BRANCH;
+  const sanitizedBranch = (process.env.HEAD ?? '').replace(/\//g, '-');
+  configEnvironment.BRANCH = sanitizedBranch;
+  // Set branch name as env var so Next.js can access it at build & runtime
+  configEnvironment.NEXT_PUBLIC_GIT_BRANCH = sanitizedBranch;
   configEnvironment.IS_LOCAL_DEVELOPMENT = isLocalDevelopment();
 
   setDbNames(buildEnvironment, configEnvironment);

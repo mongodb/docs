@@ -14,7 +14,7 @@ export interface AllContentData {
   /** Content paths to build ex: /content/<dirName>/<versionName> */
   pathsToBuild: string[];
   baseDir: string;
-  /** path to the content dir from base dir ex: "../..". Does not include "content" dir name*/
+  /** path to the content dir from base dir ex: "../..". Does not include part of the path named "content" in the path*/
   relativePathToContent: string;
   /** docsPaths object keyed by content path */
   docsPaths: ContentBundleData;

@@ -12,24 +12,21 @@ const IGNORED_FILE_SUFFIXES = ['.txt.bson', '.rst.bson'] as const;
 
 interface ConvertZipFileToMdxOptions {
   zipPath: string;
-  outputPrefix?: string;
+  outputDirectory: string;
   onFileWrite?: (fileCount: number) => void;
 }
 
 type ConvertZipFileToMdx = (args: ConvertZipFileToMdxOptions) => Promise<{
-  outputDirectory: string;
   fileCount: number;
   assetChecksumToKey: Map<string, string>;
   routeCollisions: Array<RouteCollision>;
 }>;
 
 /** Convert a zip file to a folder of MDX files, preserving the zip's directory structure */
-export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, outputPrefix, onFileWrite }) => {
+export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, outputDirectory, onFileWrite }) => {
   const zipDir = await unzipper.Open.file(zipPath);
 
-  const zipBaseNameRaw = path.basename(zipPath, '.zip');
-  const zipBaseName = outputPrefix ? path.join(outputPrefix, zipBaseNameRaw) : zipBaseNameRaw;
-  await fs.mkdir(zipBaseName, { recursive: true });
+  await fs.mkdir(outputDirectory, { recursive: true });
 
   // Map asset checksum (compressed filename) -> semantic key (e.g., /images/foo.png)
   const assetChecksumToKey = new Map<string, string>();
@@ -74,7 +71,7 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
       const siteData = docs[0];
       // Remove static_files property before writing
       delete siteData.static_files;
-      const siteJsonPath = path.join(zipBaseName, '_site.json');
+      const siteJsonPath = path.join(outputDirectory, '_site.json');
       const siteJsonContent = `${stableStringify(siteData)}\n`;
       await fs.writeFile(siteJsonPath, siteJsonContent, 'utf-8');
       continue;
@@ -94,9 +91,9 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
     }
     const relativePath = file.path.replace('.bson', '.mdx');
     // remove the nesting of the "documents" directory from the output path
-    const outputPath = path.join(zipBaseName, relativePath).replace('documents/', '');
+    const outputPath = path.join(outputDirectory, relativePath).replace('documents/', '');
 
-    const { fileCount } = await convertJsonAstToMdxFiles({ ast: astRoot, outputPath, outputRootDir: zipBaseName });
+    const { fileCount } = await convertJsonAstToMdxFiles({ ast: astRoot, outputPath, outputRootDir: outputDirectory });
 
     totalCount += fileCount;
     onFileWrite?.(totalCount);
@@ -105,7 +102,7 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
   // EDIT: this is commented out for now, since we are trying JSON instead of TS, but haven't fully committed to it yet.
   // cleanup the _references.json file (only used for faster rebuilds during conversion)
   // try {
-  //   await fs.rm(path.join(zipBaseName, '_references.json'));
+  //   await fs.rm(path.join(outputDirectory, '_references.json'));
   // } catch (error) {
   //   console.warn(`Skipping '_references.json' cleanup due to error: ${(error as Error).message}`);
   // }
@@ -114,11 +111,11 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
   // example: a file called `about.mdx` would collide with `about/index.mdx` in Next.js
   const routeCollisions: Array<RouteCollision> = [];
 
-  const collisions = await detectRouteCollisions(zipBaseName);
+  const collisions = await detectRouteCollisions(outputDirectory);
   for (const [route, files] of collisions.entries()) {
     routeCollisions.push({ route, files });
   }
-  await resolveRouteCollisions({ outputDirectory: zipBaseName, collisions });
+  await resolveRouteCollisions({ outputDirectory: outputDirectory, collisions });
 
-  return { outputDirectory: zipBaseName, fileCount: totalCount, assetChecksumToKey, routeCollisions };
+  return { fileCount: totalCount, assetChecksumToKey, routeCollisions };
 };
