@@ -4,9 +4,9 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.find( { status: { $in: [ "A", "D" ] } } )
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/query-documents/find-in-operator.snippet.find-in-operator.js
+            :language: javascript
+            :category: usage example
 
      - id: compass
        content: |

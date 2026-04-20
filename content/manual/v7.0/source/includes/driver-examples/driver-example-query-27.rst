@@ -4,9 +4,9 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.find( { "dim_cm.1": { $gt: 25 } } )
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/query-arrays/array-index.snippet.array-index.js
+            :language: javascript
+            :category: usage example
 
      - id: compass
        content: |

@@ -4,9 +4,9 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.find( { dim_cm: { $gt: 15, $lt: 20 } } )
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/query-arrays/compound-filter.snippet.compound-filter.js
+            :language: javascript
+            :category: usage example
 
      - id: compass
        content: |

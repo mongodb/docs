@@ -4,9 +4,9 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.find( { tags: ["red", "blank"] } )
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/query-arrays/match-exact-array.snippet.match-exact-array.js
+            :language: javascript
+            :category: usage example
 
      - id: compass
        content: |

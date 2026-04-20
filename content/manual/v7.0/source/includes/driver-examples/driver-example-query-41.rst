@@ -3,10 +3,10 @@
    tabs:
      - id: shell
        content: |
-         
-         .. code-block:: javascript
 
-            db.inventory.find( { item : { $exists: false } } )
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/query-for-null-fields/find-missing-field.snippet.find-missing-field.js
+            :language: javascript
+            :category: usage example
 
      - id: compass
        content: |

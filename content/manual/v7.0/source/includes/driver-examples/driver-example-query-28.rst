@@ -4,9 +4,9 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.find( { "tags": { $size: 3 } } )
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/query-arrays/array-size.snippet.array-size.js
+            :language: javascript
+            :category: usage example
 
      - id: compass
        content: |

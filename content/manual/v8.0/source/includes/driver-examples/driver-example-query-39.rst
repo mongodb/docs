@@ -4,9 +4,9 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.find( { item: null } )
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/query-for-null-fields/find-null-or-missing.snippet.find-null-or-missing.js
+            :language: javascript
+            :category: usage example
 
      - id: compass
        content: |

@@ -4,9 +4,9 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.find( { dim_cm: { $elemMatch: { $gt: 22, $lt: 30 } } } )
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/query-arrays/elem-match.snippet.elem-match.js
+            :language: javascript
+            :category: usage example
 
      - id: compass
        content: |

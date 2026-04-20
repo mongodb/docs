@@ -4,9 +4,9 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.find( { tags: "red" } )
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/query-arrays/find-element.snippet.find-element.js
+            :language: javascript
+            :category: usage example
 
      - id: compass
        content: |

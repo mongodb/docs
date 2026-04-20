@@ -4,9 +4,9 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.find( { tags: { $all: ["red", "blank"] } } )
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/query-arrays/match-all.snippet.match-all.js
+            :language: javascript
+            :category: usage example
 
      - id: compass
        content: |

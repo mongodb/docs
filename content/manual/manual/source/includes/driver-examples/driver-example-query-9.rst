@@ -4,9 +4,9 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.find( { status: "D" } )
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/query-documents/find-equality.snippet.find-equality.js
+            :language: javascript
+            :category: usage example
 
      - id: compass
        content: |

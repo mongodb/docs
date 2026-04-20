@@ -4,9 +4,9 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.find( { item : { $type: 10 } } )
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/query-for-null-fields/find-null-type.snippet.find-null-type.js
+            :language: javascript
+            :category: usage example
 
      - id: compass
        content: |
