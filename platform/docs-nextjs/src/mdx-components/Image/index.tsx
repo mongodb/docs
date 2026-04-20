@@ -14,11 +14,15 @@ const INTERNAL_IMAGE_API_PATH = '/docs/platform/api/images/';
 const formatImageUrl = (imagePath: string) => `${INTERNAL_IMAGE_API_PATH}${imagePath}`;
 
 const figureStyle = (width?: string, height?: string) => css`
+  display: block;
   max-width: 100%;
   margin-top: ${theme.size.medium};
   margin-bottom: ${theme.size.medium};
   width: ${width};
   height: ${height};
+`;
+
+const borderStyle = css`
   border-radius: ${theme.size.default};
   border: 0.5px solid var(--border-color);
 `;
@@ -27,6 +31,7 @@ export interface ImageProps {
   projectPath: string;
   src: string;
   alt: string;
+  border?: boolean;
   lightbox?: boolean;
   figwidth?: number;
   width?: number;
@@ -42,6 +47,7 @@ export const Image = ({
   projectPath,
   src,
   alt,
+  border,
   width,
   height,
   figwidth,
@@ -70,7 +76,7 @@ export const Image = ({
             src={imageUrl}
             alt={alt}
             height="500px"
-            className={cx(figureStyle(normalizeWidth(), normalizeHeight()))}
+            className={cx(figureStyle(normalizeWidth(), normalizeHeight()), border ? borderStyle : '')}
           />
         }
         caption={caption}
@@ -83,7 +89,7 @@ export const Image = ({
       <img
         src={imageUrl}
         alt={alt}
-        className={cx(figureStyle(normalizeWidth(), normalizeHeight()), className)}
+        className={cx(figureStyle(normalizeWidth(), normalizeHeight()), border ? borderStyle : '', className)}
         onClick={openModal}
       />
       <Caption caption={caption} />

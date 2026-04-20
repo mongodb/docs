@@ -8,7 +8,7 @@ interface ConvertDirectiveImageArgs {
   ctx: ConversionContext;
 }
 
-export const convertDirectiveImage = ({ node, ctx }: ConvertDirectiveImageArgs): MdastNode => {
+export const convertDirectiveImage = ({ node }: ConvertDirectiveImageArgs): MdastNode => {
   // Path is always in the argument; children contain the caption (if any)
   const rawPath = parseSnootyArgument(node);
   const captionText = extractTextFromNodes(node.children);
@@ -21,10 +21,7 @@ export const convertDirectiveImage = ({ node, ctx }: ConvertDirectiveImageArgs):
     return { type: 'html', value: '<!-- figure missing src -->' } as MdastNode;
   }
 
-  // Generate absolute path from the root
-  const currentOutfilePath = ctx.currentOutfilePath || 'index.mdx';
-  const importerPosix = path.normalize(currentOutfilePath);
-  const targetPosix = getImportPath({ importerPosix, assetPosix });
+  const targetPosix = getImportPath({ assetPosix });
 
   // Use absolute path starting from root (with leading slash)
   const imagePath = `/${targetPosix}`;
@@ -45,6 +42,9 @@ export const convertDirectiveImage = ({ node, ctx }: ConvertDirectiveImageArgs):
   const heightAttr = toNumericAttr({ name: 'height', value: node.options?.height });
   if (heightAttr) attrs.push(heightAttr);
 
+  if (node.options?.border !== undefined) {
+    attrs.push({ type: 'mdxJsxAttribute', name: 'border', value: null } as MdastNode);
+  }
   if (node.options?.lightbox !== undefined) {
     attrs.push({ type: 'mdxJsxAttribute', name: 'lightbox', value: null } as MdastNode);
   }
@@ -53,18 +53,6 @@ export const convertDirectiveImage = ({ node, ctx }: ConvertDirectiveImageArgs):
   }
 
   return { type: 'mdxJsxFlowElement', name: 'Image', attributes: attrs, children: [] } as MdastNode;
-};
-
-interface ToImportPathArgs {
-  topLevelPath: string;
-  assetPath: string;
-}
-
-const toImportPath = ({ topLevelPath, assetPath }: ToImportPathArgs) => {
-  if (topLevelPath) {
-    return path.join(topLevelPath, 'images', assetPath);
-  }
-  return path.join('images', assetPath);
 };
 
 const extractTextFromNodes = (nodes?: SnootyNode[]): string => {
@@ -101,28 +89,17 @@ const toNumericAttr = ({ name, value }: ToNumericAttrArgs): MdastNode | null => 
 };
 
 interface GetImportPathArgs {
-  importerPosix: string;
   assetPosix: string;
 }
 
-const getImportPath = ({ importerPosix, assetPosix }: GetImportPathArgs) => {
-  // For top-level files (no directory), topLevelPath should be empty
-  // For nested files, take the first directory segment
-  const pathSegments = importerPosix.split('/');
-  const topLevelPath = pathSegments.length > 1 ? pathSegments[0] : '';
-
+const getImportPath = ({ assetPosix }: GetImportPathArgs) => {
   if (assetPosix.startsWith('images/')) {
-    // already rooted in images/
-    const assetPath = assetPosix.slice('images/'.length);
-    return toImportPath({ topLevelPath, assetPath });
+    return assetPosix;
   } else if (assetPosix.includes('/images/')) {
-    // contains images/ deeper inside the path
     const assetPath = assetPosix.split('images/')[1];
-    return toImportPath({ topLevelPath, assetPath });
+    return `images/${assetPath}`;
   } else if (!assetPosix.includes('/')) {
-    // bare filename – place in images folder under section
-    return toImportPath({ topLevelPath, assetPath: assetPosix });
+    return `images/${assetPosix}`;
   }
-  // generic relative path
   return assetPosix;
 };
