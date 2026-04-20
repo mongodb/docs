@@ -101,7 +101,7 @@ Americas
 ~~~~~~~~
 
 - ``CENTRAL_US``
-- ``EASTERN_US``
+- ``EASTERN_US`` (``us-east1``, South Carolina, USA)
 - ``US_EAST_4``
 - ``WESTERN_US``
 - ``US_WEST_3``
