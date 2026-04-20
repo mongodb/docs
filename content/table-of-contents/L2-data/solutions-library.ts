@@ -490,6 +490,11 @@ const tocData: TocItem[] = [
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/retail-as-you-type-suggestions',
           },
+          {
+            label: 'Real-Time Customer Retention',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/customer-retention',
+          },          
         ],
       },
     ],
