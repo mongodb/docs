@@ -1,11 +1,20 @@
 import { cx, css } from '@leafygreen-ui/emotion';
 
-const listParagraphStyles = css`
+const listItemStyles = css`
   ::marker {
     color: var(--font-color-primary);
   }
+`;
+
+const listItemContentStyles = css`
+  margin-bottom: 8px;
+
+  /** Some MDX ListItem children come through with a p tag, some don't.
+   *  This prevents margin-bottom on the first paragraph in the list item
+   *  as the listItem itself will have the margin.
+   */
   & > p {
-    margin-bottom: 8px;
+    margin-bottom: 0;
   }
 `;
 
@@ -14,5 +23,9 @@ export type ListItemProps = {
 };
 
 export const ListItem = ({ children }: ListItemProps) => {
-  return <li className={cx(listParagraphStyles)}>{children}</li>;
+  return (
+    <li className={cx(listItemStyles)}>
+      <div className={cx(listItemContentStyles)}>{children}</div>
+    </li>
+  );
 };
