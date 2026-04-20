@@ -1,0 +1,595 @@
+.. meta::
+   :robots: noindex, nosnippet
+
+============================
+How to Review an Agent Skill
+============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This guide helps reviewers evaluate Agent Skill PRs. It focuses on quality
+dimensions that require human judgment (things that automated tooling either
+can't catch or can only partially surface).
+
+Background
+----------
+
+Agent Skills
+~~~~~~~~~~~~
+
+An Agent Skill is a package of instructions and reference material that gets
+loaded into an AI agent's context window to give it specialized knowledge or
+capabilities. A skill consists of:
+
+- ``SKILL.md`` — The main instruction file. This is **always loaded** into the
+  agent's context when the skill activates, so every token here has a high
+  cost.
+
+- **Frontmatter metadata** — YAML at the top of ``SKILL.md`` including
+  ``name``, ``description`` (used by the agent platform to decide when to
+  activate the skill), ``allowed-tools``, and other fields.
+
+- **Reference files** (optional) — Supporting documents in a ``references/``
+  directory. These are **conditionally loaded**, and the agent decides which to
+  read based on routing instructions in ``SKILL.md``.
+
+- **Asset files** (optional) — Supporting documents in an ``assets/``
+  directory. These are **conditionally loaded**, and the agent uses these based
+  on instructions in either ``SKILL.md`` or a relevant reference file. Asset
+  files are typically things like templates that the agent may need to refer
+  to conditionally. Moving them out to this directory keeps them out of the
+  main ``SKILL.md`` and makes it more token efficient when these files are
+  not needed.
+
+- **Script files** (optional) — Supporting executable code files in a
+  ``scripts/`` directory. The agent doesn't read these at all. Instead, it
+  can execute them using the given runtime based on instructions defined in
+  ``SKILL.md`` or a reference file. For example, you might have a bash script
+  that performs some calculation and returns a result to an agent for use in a
+  skill-defined workflow.
+
+The `Agent Skill specification <https://agentskills.io/specification>`__
+defines the full structure and metadata requirements.
+
+Quality Tooling
+~~~~~~~~~~~~~~~
+
+We have two tools that automate parts of the quality review process. This
+manual review guide covers what they don't catch.
+
+- `skill-validator <https://github.com/agent-ecosystem/skill-validator>`__
+  is a CLI that runs structural validation against the Agent Skill spec.
+  It checks file structure, frontmatter compliance, link validity, and
+  other deterministic rules. It runs in CI and produces pass/fail results
+  with specific errors and warnings.
+
+- ``review-skill`` is an Agent Skill (in ``.claude/skills/review-skill/``)
+  that orchestrates a full quality review. It runs ``skill-validator`` for
+  structural checks, then optionally uses an LLM judge to score content
+  quality across multiple dimensions. It produces a summary with scores,
+  flagged issues, and a publish recommendation.
+
+LLM-as-Judge Scoring Dimensions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When ``review-skill`` runs with LLM scoring enabled, it evaluates content on
+a 1-5 scale across these dimensions.
+
+``SKILL.md`` dimensions:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Dimension
+     - What it measures
+   * - Clarity
+     - Are instructions unambiguous, well-organized, and have exactly one
+       interpretation?
+   * - Actionability
+     - Can an agent follow the instructions step-by-step without guessing?
+   * - Token Efficiency
+     - Is the content concise (no redundancy, boilerplate, or verbose
+       phrasing)?
+   * - Scope Discipline
+     - Does the skill stay focused on its stated purpose without sprawling?
+   * - Directive Precision
+     - Are directives clear and direct, not hedged with "consider", "may",
+       "possibly"?
+   * - Novelty
+     - Does the skill teach the agent something genuinely new — not already
+       in training data?
+
+Reference file dimensions:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Dimension
+     - What it measures
+   * - Clarity
+     - Same as above
+   * - Token Efficiency
+     - Same as above
+   * - Novelty
+     - Same as above
+   * - Instructional Value
+     - Are examples concrete and copy-pasteable, not abstract descriptions?
+   * - Skill Relevance
+     - Is the content tightly curated to the parent skill's purpose?
+
+**Key thresholds:** Overall >= 3.5 is good shape. Any dimension at 2 or below
+needs attention. Novelty below 3 is a warning that the skill may not justify
+its context window cost.
+
+For full details on score interpretation, see
+`.claude/skills/review-skill/assets/report.md <https://github.com/mongodb/agent-skills/blob/main/tools/review-skill/assets/report.md>`__.
+
+Before You Start
+----------------
+
+Confirm these automated checks have already run:
+
+- ``skill-validator check`` passes (CI enforces this).
+
+- ``review-skill`` LLM scores are attached to the PR or
+  available in comments. If you're uncertain, run it yourself.
+
+- If any LLM dimension scored **2 or below** across subsequent runs, the
+  author has addressed it or explained why.
+
+If automated checks haven't run, ask the author to run them first. Don't
+spend manual review time on things the tooling catches.
+
+Scope and Skill Boundaries
+--------------------------
+
+Automated tooling checks for the *presence* of scope gates. Your job is to
+evaluate whether they're correct and complete, and whether the boundaries
+actually make sense given the broader skill ecosystem.
+
+Cross-Skill Overlap
+~~~~~~~~~~~~~~~~~~~
+
+Does this skill's scope encroach on another skill's domain? Read the
+``description`` field and any "Use when" / "Do NOT use when" sections with
+the full skill catalog in mind.
+
+Ask yourself:
+
+- If a user asked about a given topic, which skill should activate? This one
+  or another? Is that unambiguous?
+
+- Does the skill mention concepts that belong to another skill (for example,
+  a connection skill mentioning query optimization)? If so, does it
+  explicitly defer ("for query optimization, see the query-optimizer skill")
+  rather than provide inline guidance?
+
+Trigger Specificity
+~~~~~~~~~~~~~~~~~~~
+
+The agent platform uses the ``description`` field to decide whether
+to load the skill. Generic descriptions like "helps with search functionality"
+will cause false activations. The description should contain specific,
+observable trigger conditions, such as user intents or situations the agent can
+recognize.
+
+**Good:** "When the user wants to create, modify, or troubleshoot Atlas
+Stream Processing pipelines, including pipeline definition, deployment, and
+diagnostic interpretation."
+
+**Bad:** "Helps users with stream processing tasks."
+
+Reference File Routing: File Descriptions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If the skill has reference files, check how they're listed in ``SKILL.md``.
+Descriptions should tell the agent *when* to load each file, not *what's in*
+it. This is a common mistake that the LLM judge will flag, but it benefits
+from human review because you can evaluate whether the trigger conditions
+are actually correct.
+
+**Good:** "Load when the user needs to model a relationship between entities
+and is deciding between embedding and referencing."
+
+**Bad:** "Decision framework for relationships."
+
+Reference File Routing: Inline Directives
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Check the language used wherever the workflow points the agent at a
+reference file mid-step (an inline directive). Soft, optional phrasing makes
+the load opt-in, and agents routinely skip it when they incorrectly judge they
+don't need more detail. Routing directives should be imperative, conditional on
+an observable trigger, and explicit about what the agent will get.
+
+**Good:** "If the user has existing collections to migrate, read
+``references/migration.md`` before proceeding — it contains the required
+pre-flight checks and the rollback procedure."
+
+**Bad:** "Refer to ``migration.md`` for more details." (Optional-sounding;
+the agent decides whether it "needs" details.)
+
+**Bad:** "See ``migration.md``." (No trigger, no required action.)
+
+The pattern:
+
+1. Trigger condition
+2. Imperative verb (read/load)
+3. What the agent will gain by loading it
+
+Without all three, agents will skip the file when they shouldn't.
+
+Decision Tree Walkthrough
+-------------------------
+
+This is the highest-value part of the review. Automated tools can flag
+*that* decision trees are incomplete, but only a human can trace through the
+actual logic and determine whether the branching makes sense for our
+customer use cases and best practices.
+
+How to Do It
+~~~~~~~~~~~~
+
+Pick three paths through the skill and mentally execute them as if you were
+the agent:
+
+.. procedure::
+
+   .. step:: Walk the happy path.
+
+      Trace the most common use case where everything goes right. Read
+      through the ``SKILL.md`` instructions step-by-step and confirm the
+      agent has unambiguous next steps at every point.
+
+   .. step:: Walk a branching path.
+
+      Pick a situation that triggers an alternative workflow. This might be:
+
+      - A different operation type
+      - A different auth method
+      - A different data shape
+
+      Trace it the same way. Confirm the branch is reachable from the main
+      flow and terminates cleanly.
+
+   .. step:: Walk an error or edge case.
+
+      Trace what happens when something goes wrong or the user's request
+      doesn't fit neatly. Confirm the skill defines what the agent should
+      do, not just that it acknowledges the case exists.
+
+Questions to Ask at Each Decision Point
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**"What if the opposite is true?"** Every conditional ("if X", "when Y",
+"check whether Z") should have a defined alternative. If the skill says
+"if the user has a connection string, proceed to step 3", what happens if
+they don't? Is that defined?
+
+**"How would the agent actually do this?"** Instructions like "determine
+whether the issue is client-side or infrastructure-related" sound reasonable
+but may not be actionable. What specific checks would the agent run? What
+observable output would distinguish one case from the other? If you can't
+answer this, the agent can't either.
+
+**"What happens if this step fails?"** For steps that involve running
+commands, checking configurations, or querying APIs, is there a defined
+path for failure? A step like "verify the MCP server is running" needs to
+specify what to do if it isn't.
+
+**"Does the agent have what it needs?"** Check that the skill surfaces
+prerequisites (project IDs, version requirements, permissions) *before* the
+agent invests tokens in reading and executing the workflow, not discovered
+mid-flow.
+
+Common Problems to Flag
+~~~~~~~~~~~~~~~~~~~~~~~
+
+- **Dead-end branches:** A conditional path that says "handle this
+  case" or "address the issue" without specifying how.
+
+- **Implicit knowledge assumptions:** Steps that require the agent to know
+  something not stated in the skill (for example, "use the appropriate API
+  endpoint" without providing the endpoint).
+
+- **Circular logic:** Diagnostic flows that tell the agent to "check if X
+  is the problem" and then "if X is the problem, fix X", without
+  explaining how to check or how to fix.
+
+- **Missing default recommendations:** When the user has to choose between
+  options and might not know which to pick, the skill should provide a
+  default recommendation or decision criteria.
+
+Content Justification
+---------------------
+
+Every piece of content in a skill occupies context window tokens. Your job
+is to evaluate whether the content justifies its cost, particularly for
+content that the LLM judge scored low on novelty.
+
+Ask: Does the Agent Need This to Succeed?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For each major section, ask:
+
+**"What would the agent do without this section?"** If the answer is
+"probably the same thing, because this is standard knowledge", then the section
+may not be worth including. This is especially common with:
+
+- Best practices that restate widely-known programming advice
+- API references that repeat official documentation
+- Checklists that summarize what the workflow already covers
+
+**"Has this been tested?"** Check whether the ``evals/`` directory contains
+results that demonstrate the skill improves agent output compared to
+baseline (no skill loaded). If there are no eval results, and the content
+seems like it could be in model training data, flag it. Ask the author: "Do you
+have evidence that agents need this guidance, or is this based on an assumption?"
+
+**"Is this the right level of detail?"** Reference files that are
+essentially reformatted documentation pages are low value. High-value
+reference content provides:
+
+- Decision frameworks that aren't in the docs (when to use X vs. Y)
+- Corrective guidance for known model failure modes (agents consistently
+  get Z wrong; here's the right approach)
+- Constraints, common pitfalls, and considerations that aren't obvious from
+  the API surface
+
+Evaluate Novelty Claims
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When the LLM judge scores novelty at 3 or below, it's surfacing content
+that likely overlaps with training data. But the judge can be wrong in
+both directions:
+
+- **False low:** Content may score low on novelty because it appears like
+  documentation, but actually contains proprietary thresholds, internal
+  best practices, or recently-changed behavior not yet in training data.
+  Ask the author what's genuinely novel.
+
+- **False high:** Content may score high because it's phrased unusually,
+  but the underlying information is standard. Read it critically.
+
+What to Move to a Reference File
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Content that justifies its presence in the skill still has to justify its
+placement. ``SKILL.md`` loads on every activation, so every token
+is paid every time the skill loads, including ones that never touch the content.
+Reference files are conditionally loaded, so they *only* cost tokens when
+the agent actually needs them.
+
+The default rule: **if content only applies to only sometimes, move it to a
+reference file.** ``SKILL.md`` should contain what every skill load needs
+(scope gates, the routing index, shared workflow scaffolding) and route to
+reference files for the rest.
+
+Signals that content should move out of ``SKILL.md``:
+
+- **Operation-specific guidance.** Sections that begin with "When creating
+  X…", "For migrations…", "If using auth method Y…" describe a branch of
+  the workflow, not the whole workflow. The branch belongs in a reference
+  file the agent loads when it confirms it's on that path.
+
+- **Long worked examples or code blocks.** A single example used to anchor
+  the main workflow is fine. Multiple examples covering different variants
+  are a reference file because agents only need the variant that matches their
+  case.
+
+- **Deep-dive explanations.** Background, rationale, or "why this works"
+  content that an agent doesn't need to execute the workflow. This is useful
+  for the subset of cases where the agent needs to explain or troubleshoot,
+  but not on the hot path.
+
+- **Lookup tables and enumerations.** Lists of error codes, status values,
+  configuration options, or supported types. The agent uses at most a
+  few entries per skill session, but inlining them in ``SKILL.md`` loads the
+  full list on every call.
+
+- **Conditional troubleshooting.** "If you see error X, do Y" sections
+  only matter when the agent hits the failure. Route to a troubleshooting
+  reference file from the relevant workflow step.
+
+Signals that content belongs in ``SKILL.md``:
+
+- It applies every time the skill loads (scope, prerequisites, the
+  top-level workflow shape).
+
+- It's the routing logic itself. The agent needs it to decide which
+  reference file to load.
+
+- It's short enough that the lookup cost (an extra file read) would
+  exceed the load cost.
+
+**How to flag this in review.** If you find conditional content in
+``SKILL.md``, suggest the specific reference file it should move to and
+what the ``SKILL.md`` routing line should say. For example:
+
+.. blockquote::
+
+   The "Migrating existing collections" subsection (lines 80-140) only
+   applies when the user has pre-existing data. Move to
+   ``references/migration.md`` and replace with a routing line in the
+   workflow: "If the user has existing collections to migrate, load
+   ``references/migration.md`` before proceeding."
+
+.. note:: Anti-pattern: inlining "just in case"
+
+   Authors often inline conditional content because they want to be sure
+   the agent has it. But inlining defeats the routing system. The agent
+   pays the token cost whether or not it's relevant, and the ``SKILL.md``
+   grows until the genuinely-shared content is buried. You must trust that if
+   ``SKILL.md`` tells the agent when to load the reference file, the
+   agent will load it.
+
+Instruction Precision Spot-Check
+--------------------------------
+
+The LLM judge flags vague language, but it works from a target word list
+and can miss contextual vagueness. Review the ``SKILL.md`` and key
+reference files looking for instructions that sound precise but aren't
+operationalizable.
+
+Subjective Thresholds Without Criteria
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Subject thresholds aren't specific enough for an agent to act consistently.
+Obvious examples include "large collections", "rapid increases", "high
+latency", and "appropriate permissions." But also watch for instructions that
+seem specific but aren't: "if the query is slow" (how does the agent
+measure this?), "when the collection is large enough to benefit from
+indexing" (what's the cutoff?).
+
+For each instance, suggest a concrete alternative:
+
+- "large collections" could be "collections with more than 1M documents or over
+  1GB"
+- "rapid increases" could be "a rate of change exceeding 100 connections per
+  hour"
+- "if the query is slow" could be "if ``explain()`` shows ``totalDocsExamined``
+  > 1000x ``nReturned``"
+
+Ambiguous Agent Behavior Directives
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Ambiguous terms like "gracefully", "appropriately", "as needed" leave the agent
+to invent behavior. Every instruction to the agent should have a concrete,
+observable outcome. "Exit gracefully" should specify: confirm with user,
+provide a summary of what was accomplished, suggest next steps.
+
+"Prefer X Over Y" Without Caveats
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Any recommendation to prefer one approach over another should note when
+the less-preferred approach is actually correct. Without this, agents will
+apply the rule absolutely and give wrong advice in edge cases.
+
+**Good:** "Prefer ``$ne: null`` over ``$exists: false`` for checking field
+existence, unless the query specifically needs to match documents where
+the field exists with an explicit ``null`` value (where ``$exists: true``
+is more appropriate)."
+
+**Bad:** "Prefer ``$ne: null`` over ``$exists: false``"
+
+Consistency and Narrative Coherence
+-----------------------------------
+
+Automated tools can catch metadata mismatches, but narrative consistency
+requires reading comprehension.
+
+Example Continuity
+~~~~~~~~~~~~~~~~~~
+
+If a reference file walks through an example using specific field names
+(for example, ``name``, ``email``), subsequent code in the same
+walkthrough should use those same fields. Switching fields mid-example
+(for example, suddenly using ``address`` in migration code) breaks the
+narrative and confuses agents trying to follow along.
+
+Weight and Severity Parity
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Skills that present multiple constraints should also distinguish between hard
+limits and soft guidelines. For example, a hard 16MB document size limit and a
+soft 1MB performance guideline should not be presented with equal weight.
+Agents may cite the soft guideline as if it were a hard constraint.
+
+Internal Contradictions
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Check whether guidance in one section conflicts with guidance in another.
+This often happens when:
+
+- A "best practices" section was written separately from the workflow
+- Partial fixes were applied to one section but not propagated
+- Multiple authors contributed different sections
+
+Reference File Accuracy
+~~~~~~~~~~~~~~~~~~~~~~~
+
+If ``SKILL.md`` describes what a reference file contains (for example,
+"includes code examples and monitoring APIs"), spot-check that the
+reference file actually contains those things. Mismatched descriptions
+waste agent effort and erode trust in the skill's routing.
+
+Cross-Skill Ecosystem Awareness
+-------------------------------
+
+This is something only a reviewer familiar with the broader skill catalog
+can evaluate. No automated tool currently reasons across skill boundaries.
+
+Redundant Coverage
+~~~~~~~~~~~~~~~~~~
+
+Is this skill covering ground that another skill already covers better?
+This is different from scope overlap because it's about whether the content
+adds value given what already exists.
+
+Deferral Completeness
+~~~~~~~~~~~~~~~~~~~~~
+
+If the skill mentions another skill's domain, does it defer correctly? A
+deferral should name the specific skill and describe the handoff
+condition.
+
+**Good:** "If the user's question is about query performance rather than
+index design, defer to the ``mongodb-query-optimizer`` skill."
+
+**Bad:** "Optimize queries instead." (Crosses into another skill's scope
+without explicit deferral.)
+
+Ecosystem Coherence
+~~~~~~~~~~~~~~~~~~~
+
+Do the naming conventions, metadata fields, and structural patterns match
+other skills in the catalog? If every other skill uses ``mongodb-`` prefix
+namespacing, a skill named ``search-and-ai`` stands out. If every other
+skill has a "Do NOT use when" section, a skill missing one breaks the
+pattern.
+
+Summary Checklist
+-----------------
+
+Use this as a final pass before approving.
+
+Must-Fix (Block Merge)
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Decision tree has dead-end branches where the agent has no defined next
+  step.
+- Prerequisites discovered mid-workflow instead of upfront.
+- Skill scope overlaps with existing skill and no deferral is defined.
+- Internal contradictions between sections.
+- Instructions that are impossible for the agent to follow (references
+  non-existent tools, APIs, or files).
+
+Should-Fix (Request Changes)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Vague instructions without concrete thresholds or criteria (3+
+  instances).
+- Content duplicated between ``SKILL.md`` and reference files.
+- Conditional or operation-specific content in ``SKILL.md`` that should
+  be in reference files.
+- Reference file descriptions are content-based rather than trigger-based.
+- Inline routing directives use soft phrasing ("see X for more details")
+  instead of imperative + trigger + payoff.
+- "Prefer X over Y" without noting when Y is correct.
+- Low-novelty content without eval evidence justifying inclusion.
+- Examples that switch field names or variables mid-walkthrough.
+
+Nice-to-Have (Non-Blocking)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Soft limits presented with same weight as hard limits.
+- External links without usage directives.
+- Abstract action verbs that could be more specific.
+- Missing "Do NOT use when" section (if other skills in the catalog have
+  one).
