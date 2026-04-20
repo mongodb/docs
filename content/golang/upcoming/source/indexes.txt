@@ -338,6 +338,93 @@ index with the specified name:
    :end-before: end-delete-index
    :dedent:
 
+.. _golang-auto-embedding-index:
+
+MongoDB Auto-Embedding Search Index Model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. important::
+
+   Automated embedding is available as a Preview feature only for
+   MongoDB Community Edition v8.2 and later. {+driver-short+} v2.1 and later are
+   compatible with this version of MongoDB.
+   The feature and the corresponding documentation might change at
+   any time during the Preview period.
+   To learn more, see `Preview Features <https://www.mongodb.com/docs/preview-features/>`__.
+
+You can use the {+driver-short+} to create a {+vector-search+} index that
+automatically generates vector embeddings for text fields by specifying an
+index definition that uses the ``autoEmbed`` field type in a
+``vectorSearch`` index. This allows MongoDB to call a Voyage AI embedding
+model on your behalf and keep embeddings in sync as documents are inserted
+or updated.
+
+When you define an auto-embedding {+vector-search+} index, you specify a
+``vectorSearch`` index whose definition document contains a required ``fields``
+array. of field definitions. This array must contain at least one ``autoEmbed``
+field and can optionally include ``filter`` fields. Each field document in this
+array uses the following options:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 65
+
+   * - Field option
+     - Type
+     - Description
+   * - ``type``
+     - ``string``
+     - Set to ``"autoEmbed"`` to indicate that this field uses automated
+       embedding. Required.
+   * - ``modality``
+     - ``string``
+     - Specifies the type of data to embed. To automatically generate
+       embeddings, you must set this to ``"text"``. Required.
+   * - ``path``
+     - ``string``
+     - Name of the text field in your documents to embed, for example
+       ``"summary"`` or ``"plot"``. Required.
+   * - ``model``
+     - ``string``
+     - Name of the Voyage AI embedding model to use, for example
+       ``"voyage-4"``, ``"voyage-4-large"``, ``"voyage-4-lite"``, or
+       ``"voyage-4-nano"``. Required.
+   * - ``type``
+     - ``string``
+     - Set to ``"filter"`` for additional fields you want to use for
+       pre-filtering in ``$vectorSearch`` queries (for example, numeric or
+       string metadata fields). Optional. To define filter fields, you must
+       specify the ``path``.
+
+The following example creates a ``vectorSearch`` index named
+``auto_embedding_index`` that completes the following actions:
+
+- Automatically generates embeddings for the ``plot`` field by using the
+  ``"voyage-4"`` model.
+- Adds optional filter fields on ``runtime`` and ``year`` so you can restrict
+  ``$vectorSearch`` queries by those values.
+
+The following example shows how to define the structs for the index model definition:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/indexes/autoembedding-index.go
+   :language: go
+   :start-after: start-autoembedding-index-structs
+   :end-before: end-autoembedding-index-structs
+   :dedent:
+
+The following example shows how to create the auto-embedding index on the
+``sample_mflix.movies`` collection:
+
+.. literalinclude:: /includes/fundamentals/code-snippets/indexes/autoembedding-index.go
+   :language: go
+   :start-after: start-autoembedding-index-create
+   :end-before: end-autoembedding-index-create
+   :dedent:
+
+To learn more about how to query an auto-embedding {+vector-search+} index, see the
+:ref:`golang-auto-embedding-search-index-query` section in the
+:ref:`golang-atlas-vector-search` guide.
+
 .. _golang-clustered-indexes:
 
 Clustered Indexes
