@@ -45,37 +45,16 @@ a. Add the Java driver version 4.11 or higher as a dependency in your Java proje
 
    Paste the following example into a file named ``CreateIndex.java``.
 
-   .. code-block:: java
+   .. literalinclude:: /includes/fts/search-index-management/create-index.java
       :caption: CreateIndex.java
+      :language: java
       :emphasize-lines: 10
       :linenos:
+      :copyable:
 
-      import com.mongodb.client.MongoClient;
-      import com.mongodb.client.MongoClients;
-      import com.mongodb.client.MongoCollection;
-      import com.mongodb.client.MongoDatabase;
-      import org.bson.Document;
+   .. include:: /includes/search-shared/find-connection-string.rst
 
-      public class CreateIndex {
-          public static void main(String[] args) {
-              // connect to your Atlas cluster
-              String uri = "<connection-string>";
-
-              try (MongoClient mongoClient = MongoClients.create(uri)) {
-                  // set namespace
-                  MongoDatabase database = mongoClient.getDatabase("sample_mflix");
-                  MongoCollection<Document> collection = database.getCollection("movies");
-
-                  Document index = new Document("mappings",
-                          new Document("dynamic", true));
-                  collection.createSearchIndex(index);
-              }
-          }
-      }
-
-   .. include:: /includes/steps-connection-string-drivers-hidden.rst
-
-.. step:: Compile and run the file to create the index.
+#. Compile and run the file to create the index.
 
    .. code-block:: shell
 

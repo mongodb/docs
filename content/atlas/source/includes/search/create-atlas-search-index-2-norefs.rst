@@ -2,7 +2,7 @@ Build a |fts| Query
 --------------------
 
 .. collapsible::
-   :heading: What are Atlas Search queries?
+   :heading: What are MongoDB Search queries?
    :expanded: false
 
    |fts| queries take the form of an :manual:`aggregation pipeline stage 

@@ -15,6 +15,6 @@ a. Install the MongoDB Kotlin Coroutine Driver.
       :emphasize-lines: 10
       :linenos:
 
-   .. include:: /includes/steps-connection-string-drivers-hidden.rst
+   .. include:: /includes/search-shared/find-connection-string.rst
 
 #. Run the ``CreateIndex.kt`` file in your IDE.

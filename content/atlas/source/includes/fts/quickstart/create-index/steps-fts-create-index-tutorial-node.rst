@@ -25,7 +25,7 @@ a. Initialize your Node.js project.
       :copyable:
       :linenos:
 
-   .. include:: /includes/steps-connection-string-drivers-hidden.rst
+   .. include:: /includes/search-shared/find-connection-string.rst
 
 #. Create the index.
 

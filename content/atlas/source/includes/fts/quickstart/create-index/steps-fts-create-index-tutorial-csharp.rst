@@ -25,7 +25,7 @@ a. Set up and initialize the .NET/C# project.
       :linenos:
       :copyable:
 
-   .. include:: /includes/steps-connection-string-drivers-hidden.rst
+   .. include:: /includes/search-shared/find-connection-string.rst
 
 #. Create the index.
    
