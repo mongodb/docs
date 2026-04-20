@@ -11,9 +11,11 @@ The following table shows compatibility between the Java driver and {+mdb-server
      - MongoDB 7.0
      - MongoDB 6.0
      - MongoDB 5.0
+     - MongoDB 4.4
      - MongoDB 4.2
 
    * - 5.2 to 5.6
+     - ✓
      - ✓
      - ✓
      - ✓
@@ -28,11 +30,13 @@ The following table shows compatibility between the Java driver and {+mdb-server
      - ✓
      - ✓
      - ✓
+     - ✓
 
    * - 4.8 to 4.9
      - ⊛
      - ⊛
      - ⊛
+     - ✓
      - ✓
      - ✓
      - ✓
@@ -44,12 +48,14 @@ The following table shows compatibility between the Java driver and {+mdb-server
      - ✓
      - ✓
      - ✓
+     - ✓
 
    * - 4.3 to 4.6
      - ⊛
      - ⊛
      - ⊛
      - ⊛
+     - ✓
      - ✓
      - ✓
 
@@ -60,8 +66,10 @@ The following table shows compatibility between the Java driver and {+mdb-server
      - ⊛
      - ⊛
      - ✓
+     - ✓
 
    * - 4.0
+     - ⊛
      - ⊛
      - ⊛
      - ⊛
@@ -76,9 +84,11 @@ The following table shows compatibility between the Java driver and {+mdb-server
      - ⊛
      - ⊛
      - ⊛
+     - ⊛
 
    * - 3.8 to 3.10
      - ✗ [#v3-note-sync]_
+     - ⊛
      - ⊛
      - ⊛
      - ⊛

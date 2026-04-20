@@ -10,6 +10,7 @@ The following table shows compatibility between the Kotlin Coroutine driver and 
      - MongoDB 7.0
      - MongoDB 6.0
      - MongoDB 5.0
+     - MongoDB 4.4
      - MongoDB 4.2
 
    * - 5.2 to 5.6
@@ -18,9 +19,11 @@ The following table shows compatibility between the Kotlin Coroutine driver and 
      - ✓
      - ✓
      - ✓
+     - ✓
 
    * - 4.10 to 5.1
      - ⊛
+     - ✓
      - ✓
      - ✓
      - ✓
