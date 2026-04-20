@@ -1,7 +1,15 @@
 import yaml from 'yaml';
 import { pascalCase } from 'change-case';
 import { isValueNode, isTextNode } from './types';
-import type { ConversionContext, SnootyNode, MdastNode, MdastRoot, MDXFrontmatter } from './types';
+import type {
+  ConversionContext,
+  SnootyNode,
+  MdastNode,
+  MdastRoot,
+  MDXFrontmatter,
+  PageTemplateType,
+  PageOptions,
+} from './types';
 import { convertDirectiveImage } from './convertDirectiveImage';
 import { convertDirectiveInclude } from './convertDirectiveInclude';
 import { convertDirectiveListTable } from './convertDirectiveListTable';
@@ -1391,8 +1399,8 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
 
   const frontmatterObj: MDXFrontmatter = {
     ...(root.fileid ? { fileId: root.fileid as string } : {}),
-    ...(pageTemplate ? { template: pageTemplate as string } : {}),
-    ...(Object.keys(pageOptions).length ? { options: pageOptions } : {}),
+    ...(pageTemplate ? { template: pageTemplate as PageTemplateType } : {}),
+    ...(Object.keys(pageOptions).length ? { options: pageOptions as unknown as PageOptions } : {}),
     // meta directives are spread last so they can override page-level options (including template)
     ...metaFromDirectives,
     ...(Object.keys(facets).length ? { facets } : {}),

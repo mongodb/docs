@@ -119,7 +119,7 @@ interface HeadingOption {
   title: TextNode[];
 }
 
-type PageTemplateType =
+export type PageTemplateType =
   | 'blank'
   | 'drivers-index'
   | 'document'
@@ -133,7 +133,7 @@ type PageTemplateType =
   | 'errorpage'
   | 'product-landing';
 
-interface PageOptions {
+export interface PageOptions {
   title?: string;
   template: PageTemplateType;
   default_tabs?: ActiveTabs;
@@ -161,7 +161,7 @@ export interface MDXFrontmatter {
   /** Snooty source file identifier, e.g. "api.txt". */
   fileId?: string;
   /** Page template, promoted from root options or a meta directive. */
-  template?: string;
+  template?: PageTemplateType;
   /** Remaining root-level options (after `template` is promoted). */
   options?: PageOptions;
   /** Facet taxonomy values keyed by facet name. */
