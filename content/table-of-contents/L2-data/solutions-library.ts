@@ -86,6 +86,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/document-intelligence',
           },
           {
+            label: 'Open Finance for Credit Portability',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/open-finance',
+          },
+          {
             label: 'Optimize RAG Applications with Fireworks AI',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/fin-services-fireworks-rag',

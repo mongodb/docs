@@ -1,0 +1,674 @@
+.. _arch-center-is-open-finance:  
+
+================================================
+Next Generation Open Finance: Credit Portability
+================================================
+
+.. facet::  
+   :name: genre  
+   :values: tutorial  
+
+.. meta:: 
+   :keywords: Open Finance, Credit Portability, Multi-agent
+    orchestration, Consent management
+   :description: Learn how to use MongoDB Atlas and agentic AI to
+    streamline Open Finance consent flows for credit portability.
+  
+.. contents:: On this page  
+   :local:  
+   :backlinks: none  
+   :depth: 1  
+   :class: singlecol 
+
+Build future-ready Open Finance ecosystems using MongoDB Atlas and
+agentic AI to power consent journeys and data sharing for credit
+portability.
+
+**Use cases:** `Artificial Intelligence
+<https://www.mongodb.com/solutions/use-cases/artificial-intelligence>`__,
+`Single View
+<https://www.mongodb.com/solutions/use-cases/single-view>`__,
+`Personalization
+<https://www.mongodb.com/solutions/use-cases/personalization>`__
+
+**Industries:** `Financial Services
+<https://www.mongodb.com/solutions/industries/financial-services>`__
+
+**Products and tools:** `MongoDB Vector Search
+<https://www.mongodb.com/products/platform/atlas-vector-search>`__,
+`MongoDB MCP Server
+<https://www.mongodb.com/products/tools/mcp-server>`__, :ref:`MongoDB
+Queryable Encryption <qe-manual-feature-qe>`
+
+**Partners:** `LangChain <https://cloud.mongodb.com/ecosystem/langchain>`__
+
+Solution Overview  
+-----------------  
+
+This solution presents an open finance ecosystem and demonstrates how to
+share financial data securely between institutions by using MongoDB
+Atlas and agentic AI. 
+
+Learn how to implement an agentic AI framework with LangGraph to
+streamline consent approval and improve financial offerings for credit
+portability . MongoDB Atlas serves as the operational data layer that
+underpins these open finance architectures.
+
+Reference Architectures
+-----------------------
+
+.. figure:: /includes/images/industry-solutions/open-finance01.svg
+   :figwidth: 1200px
+   :alt: Figure 1: Process diagram
+
+   Figure 1. Process diagram
+
+As the diagram shows, the process begins when the customer logs into
+Leafy Bank (our fictional financial institution). The customer grants or
+denies consent to access external data—Third-Party Provider (TPP) data
+or other financial institution data (in this demo: MongoDB Bank,
+NeoFinance, and Green Bank). 
+
+A multi-agent workflow receives the customer request and performs the
+following tasks:
+
+- **Supervisor Agent**: Reads the conversation and routes each request
+  to the correct specialist.
+
+- **Consent Agent**: Guides customers through secure data-sharing
+  consent with external banks. It handles institution selection, consent
+  creation, bank login, explicit customer approval, and revocation.
+
+- **Portability Agent**: Analyzes external bank data to produce spending
+  scores, credit assessments, and deterministic loan portability offers
+  that show potential savings.
+
+- **Leafy Bank Agent**: Answers ad hoc questions about the customer's
+  Leafy Bank accounts, transactions, and products by querying MongoDB
+  directly through the MCP server.  
+
+Core Capabilities
+~~~~~~~~~~~~~~~~~
+
+This demo shows four core capabilities where MongoDB Atlas and agentic
+AI power secure, intelligent Open Finance workflows. 
+
+Queryable Encryption for consent and agent privacy
+``````````````````````````````````````````````````
+Storing consent records in plaintext exposes sensitive fields to
+database administrators, backup processes, and potential breaches. To
+prevent these risks, Open Finance regulations require institutions to
+protect consumer identity across every consent life cycle event:
+creation, authorization, data retrieval, and revocation.  Encryption at
+rest also protects AI agent configurations—such as system prompts and
+tool definitions—to limit exposure of proprietary logic.
+
+MongoDB Queryable Encryption solves this problem by encrypting sensitive
+fields at the driver level, ensuring the server never sees plaintext.
+Fields that need filtering can be configured for equality queries. The
+driver encrypts the query value before sending it, so the server matches
+on ciphertext without ever seeing the plaintext. Fields that only
+require read-after-decrypt remain encrypted without query support.
+
+The demo applies Queryable Encryption in two places:
+
+1. **Consent collection** (``encrypted_consents`` in the Open Finance
+   backend), with four encrypted fields: 
+
+   - ``Consumer.UserName``
+
+   - ``Consumer.UserId``
+
+   - ``Permissions``
+
+   - ``SourceInstitution.InstitutionName``
+
+   The ``Consumer.UserName`` field supports equality queries so services
+   can list a customer's consents without the database ever seeing the
+   username in plaintext.
+
+#. **Agent profile collection** (``encrypted_agent_profiles`` in the
+   chatbot backend), with three encrypted fields: 
+
+   - ``agent_name`` (equality-queryable) 
+
+   - ``system_prompttool_config``
+
+Agent prompts are loaded from encrypted MongoDB at runtime. Queryable
+Encryption generates a separate Data Encryption Key for each field. It
+supports AWS Key Management Service (KMS), Azure Key Vault, and Google
+Cloud KMS as key management providers. The following example shows the
+encrypted connection setup for the Open Finance backend:
+
+.. code-block:: Python
+
+   from pymongo import MongoClient
+   from pymongo.encryption_options import AutoEncryptionOpts
+
+   class EncryptedMongoDBConnection(MongoDBConnection):
+       """Subclasses the standard connection — services that type-hint
+       MongoDBConnection accept it without modification."""
+
+       def __init__(self, uri: str, auto_encryption_opts: AutoEncryptionOpts):
+           self.uri = uri
+           self.client = MongoClient(self.uri, auto_encryption_opts=auto_encryption_opts)
+
+Consent queries work identically to plaintext—the driver handles
+encryption and decryption transparently:
+
+.. code-block:: Python
+
+   # Standard query on a plaintext field — works as usual
+   consent = consents_collection.find_one({"ConsentId": consent_id})
+
+   # Equality query on an encrypted field — same syntax, driver encrypts the filter value
+   consents = list(consents_collection.find({"Consumer.UserName": user_name}))
+
+The encrypted connection extends the standard ``MongoDBConnection``, so
+every service that type-hints the base class accepts it without
+modification.
+
+Intelligent transaction classification with MongoDB Atlas Vector Search
+```````````````````````````````````````````````````````````````````````
+
+When a consumer shares external bank data through a consent, transaction
+records arrive without standardized merchant categories. Raw merchant
+strings such as "Nobu Restaurant" or "UBER TRIP"—carry no category
+metadata. Without classification, spending analysis and credit scoring
+cannot function.
+
+Atlas Vector Search classifies these transactions by matching merchant
+descriptions against a reference collection of 49 Merchant Category
+Codes (MCC). The demo uses Voyage AI's ``voyage-finance-2`` embedding
+model—purpose-built for financial text—to generate 1024-dimension
+vectors for both the MCC reference data and incoming transaction
+descriptions.
+
+The following example shows the vector search classification pipeline:
+
+.. code-block:: Python
+
+   class MCCClassificationService:
+       def __init__(self, connection, db_name, collection_name):
+           self.collection = connection.get_collection(db_name, collection_name)
+           self.vo = voyageai.Client()
+           self.model = "voyage-finance-2"
+
+       def classify_batch(self, transactions):
+           # Build query text from merchant name + description
+           query_texts = [
+               self._build_query_text(txn.get("merchant_name", ""), txn.get("description", ""))
+               for txn in transactions
+           ]
+
+           # Single batch embedding call — input_type="query" for search queries
+           embed_result = self.vo.embed(query_texts, model=self.model, input_type="query")
+
+           # Vector search each embedding against MCC reference codes
+           for txn, embedding in zip(transactions, embed_result.embeddings):
+               match = self._vector_search(embedding)
+               if match:
+                   txn.update({
+                       "MCC": match["MCC"],
+                       "CategoryName": match["CategoryName"],
+                       "confidence": round(match["score"], 4),
+                   })
+
+       def _vector_search(self, query_embedding, num_candidates=20, limit=1):
+           pipeline = [
+               {"$vectorSearch": {
+                   "index": "mcc_codes_vector_index",
+                   "path": "embedding",
+                   "queryVector": query_embedding,
+                   "numCandidates": num_candidates, "limit": limit,
+               }},
+               {"$project": {
+                   "MCC": 1, "MCCDescription": 1, "CategoryId": 1,
+                   "CategoryName": 1, "score": {"$meta": "vectorSearchScore"}, "_id": 0,
+               }},
+           ]
+           results = list(self.collection.aggregate(pipeline))
+           return results[0] if results else None
+
+MCC reference documents are embedded at seed time with
+``input_type="document"``, while transaction queries use
+``input_type="query"``, following Voyage AI's asymmetric embedding best
+practice for retrieval workloads.
+
+Classification is ephemeral—results are returned to the agent but never
+persisted. External bank data is borrowed through consent, not owned.
+The portability agent uses classified transactions to compute spending
+scores, compare them against best-practice benchmarks, and generate
+deterministic loan portability offers.
+
+Agentic data access with the MongoDB MCP Server
+```````````````````````````````````````````````
+
+Financial advisors and consumers often need ad hoc answers about account
+data: "What's my total balance?", "Show my last 10 transactions", or
+"Which products do I qualify for?". Building custom API endpoints for
+every possible query is impractical.
+
+The MongoDB MCP Server exposes MongoDB collections as tools that LLM
+agents can invoke directly. The demo launches the MCP server as a
+subprocess at application startup, connects it to the ``leafy_bank``
+database in read-only mode, and passes the resulting tools to a
+LangGraph agent through a persistent session.
+
+The following example shows the MCP server integration:
+
+.. code-block:: Python
+
+   from langchain_mcp_adapters.client import MultiServerMCPClient
+   from langchain_mcp_adapters.tools import load_mcp_tools
+
+   mcp_client = MultiServerMCPClient({
+       "mongodb": {
+           "command": "npx",
+           "args": ["-y", "mongodb-mcp-server@latest"],
+           "transport": "stdio",
+           "env": {
+               **os.environ,
+               "MDB_MCP_CONNECTION_STRING": LEAFY_BANK_MONGODB_URI,
+               "MDB_MCP_READ_ONLY": "true",
+               "MDB_MCP_DISABLED_TOOLS": disabled_tools,
+           },
+       }
+   })
+
+   # Persistent session keeps MongoDB connection state across tool calls
+   async with mcp_client.session("mongodb") as session:
+       all_mcp_tools = await load_mcp_tools(session)
+
+       # Pre-connect so the agent never handles connection strings
+       connect_tool = next((t for t in all_mcp_tools if t.name == "connect"), None)
+       if connect_tool:
+           await connect_tool.ainvoke({"connectionString": LEAFY_BANK_MONGODB_URI})
+
+       # Only expose read/query tools to the agent
+       allowed_tools = {"find", "aggregate", "count", "list-collections", "collection-schema"}
+       mcp_tools = [t for t in all_mcp_tools if t.name in allowed_tools]
+
+The leafy bank agent receives these filtered tools plus a
+``get_current_user_id`` tool that reads the authenticated customer's
+identifier from the LangGraph config. It answers natural language
+questions by generating MongoDB queries autonomously—the agent can
+perform the following actions:
+
+- ``find``: use for lookups
+
+- ``aggregate``: use for calculations
+
+- ``Collection-schema``: use for discovery. 
+
+No custom tool code is needed per collection.
+
+Multi-agent orchestration with LangGraph
+````````````````````````````````````````
+
+Open Finance workflows span distinct domains—consent management,
+financial analysis, and internal bank data queries. A single monolithic
+agent handling all three would need a large toolset and a system prompt
+covering conflicting concerns. Splitting into specialized agents keeps
+each toolset small and each prompt focused.
+
+A supervisor agent orchestrates three specialists:
+
+- **Consent Agent**: Manages data-sharing flows
+
+- **Portability Agent**: Analyzes external data for loan offers
+
+- **Leafy Bank Agent**: Queries Leafy Bank data through the MCP server. 
+
+LangGraph routes each customer message to the appropriate specialist
+based on intent, and MongoDB Atlas persists conversation state through
+checkpoint collections.
+
+The following example shows supervisor routing with structured output:
+
+.. code-block:: Python
+
+   from langgraph.graph import StateGraph, START, END
+
+   class RouterDecision(BaseModel):
+       next: Literal["consent_agent", "portability_agent", "internal_data_agent", "FINISH"]
+       response: str = ""
+
+   workflow = StateGraph(AgentState)
+
+   workflow.add_node("supervisor", supervisor)
+   workflow.add_node("consent_agent", consent_agent)
+   workflow.add_node("portability_agent", portability_agent)
+   workflow.add_node("internal_data_agent", internal_data_agent)
+
+   workflow.add_edge(START, "supervisor")
+   workflow.add_conditional_edges("supervisor", route_from_supervisor, {
+       "consent_agent": "consent_agent",
+       "portability_agent": "portability_agent",
+       "internal_data_agent": "internal_data_agent",
+       "FINISH": END,
+   })
+   workflow.add_edge("consent_agent", "supervisor")
+   workflow.add_edge("portability_agent", "supervisor")
+   workflow.add_edge("internal_data_agent", "supervisor")
+
+   graph = workflow.compile(checkpointer=MongoDBSaver(client=db.client, db_name=DATABASE_NAME))
+
+Regulated workflows—consent approvals, KYC reviews, payment
+authorizations—require human checkpoints where an agent must pause and
+wait for a decision before proceeding. LangGraph's ``interrupt()``
+mechanism handles this requirement by serializing the full graph state
+to MongoDB and returning a payload to the caller. The workflow resumes
+when the external process completes:
+
+.. code-block:: Python
+
+   from langgraph.types import interrupt, Command
+
+   # Agent pauses, returns review payload to the calling application
+   review = interrupt({
+       "type": "APPROVAL_REQUIRED",
+       "details": approval_details,
+   })
+
+   # Application resumes the workflow after the human decision
+   await agent.ainvoke(Command(resume=decision), config)
+
+MongoDB Atlas checkpoint collections persist the full conversation
+state:
+
+- Message history
+
+- Active consents 
+
+- Routing decisions 
+
+The workflow survives interrupts that last seconds (a button click) or
+hours (an overnight compliance review). Each sub-agent runs a ReAct loop
+(reason → act → observe) until it produces a final response and then
+returns control to the supervisor agent for the next routing decision.
+
+Data Model Approach
+-------------------
+
+The demo uses two MongoDB Atlas databases:
+
+- ``leafy_bank``: Stores the institution's own data, such as customer
+  accounts, transaction history, loan products, and the underwriting
+  rules that drive portability offers. It also holds MCC code references
+  and spending benchmarks that the portability agent uses for
+  classification. 
+
+- ``open_finance``: Stores data obtained through consent, such as
+  external accounts, loans, transactions, and repayment history from
+  partner institutions. Consents themselves live here in an encrypted
+  collection. A separate institutions collection registers available
+  external banks.
+
+The following are examples of documents in the collections:
+
+- ``accounts`` (leafy_bank): 
+
+  .. code-block:: JSON
+
+     {
+         "_id": {
+             "$oid": "675488b874a6710be0583b3e"
+         },
+         "AccountNumber": "514624177",
+         "AccountBank": "LeafyBank",
+         "AccountStatus": "Active",
+         "AccountIdentificationType": "AccountNumber",
+         "AccountDate": {
+             "OpeningDate": {
+                 "$date": "2024-12-07T17:41:12.710Z"
+             }
+         },
+         "AccountType": "Savings",
+         "AccountBalance": 3910,
+         "AccountCurrency": "USD",
+         "AccountDescription": "Savings account for fridaklo",
+         "AccountUser": {
+             "UserName": "fridaklo",
+             "UserId": {
+                 "$oid": "65a546ae4a8f64e8f88fb89e"
+             }
+         }
+     }
+
+- ``encrypted_consents`` (open_finance)
+
+  .. code-block:: JSON
+
+     {
+         "_id": {
+             "$oid": "69b444e3090356f30066927f"
+         },
+         "ConsentId": "urn:greenbank:Cf5b9ff59e06f77",
+         "Status": "CONSUMED",
+         "Consumer": {
+             "UserName": <encrypted data>,
+             "UserId": <encrypted data>
+         },
+         "Permissions": <encrypted data>,
+         "Purpose": "PERSONAL_LOAN_PORTABILITY",
+         "SourceInstitution": {
+             "InstitutionName": <encrypted data>,
+             "InstitutionId": "679a1001a9711d00a3bb01a1"
+         },
+         "CreationDateTime": {
+             "$date": "2026-02-05T10:55:30.061Z"
+         },
+         "ExpirationDateTime": {
+             "$date": "2026-08-04T10:55:30.061Z"
+         },
+         "StatusUpdateDateTime": {
+             "$date": "2026-02-05T11:13:52.900Z"
+         },
+         "StatusHistory": [
+             {
+                 "Status": "AWAITING_AUTHORISATION",
+                 "DateTime": {
+                     "$date": "2026-02-05T10:55:30.061Z"
+                 },
+                 "Reason": "Consent created"
+             },
+             {
+                 "Status": "AUTHORISED",
+                 "DateTime": {
+                     "$date": "2026-02-05T10:56:06.100Z"
+                 },
+                 "Reason": "Status changed to AUTHORISED"
+             },
+             {
+                 "Status": "CONSUMED",
+                 "DateTime": {
+                     "$date": "2026-02-05T11:13:52.900Z"
+                 },
+                 "Reason": "Data retrieved successfully"
+             }
+         ],
+         "__safeContent__": [
+             {
+                 "$binary": {
+                     "base64": "36UjEj4mfh1fKHren43cLiOy6HVs4/b/g+e6viTwQ9Q=",
+                     "subType": "00"
+                 }
+             }
+         ]
+     }
+
+Visit the GitHub repositories in the next section to explore sample data
+from all the collections in the solution.
+
+Build the Solution
+------------------
+
+To build this solution, implement two coordinated services:
+
+For the complete implementation, follow the instructions in the
+corresponding GitHub repositories.
+
+**Part 1: Open Finance backend** (`GitHub repository
+<https://github.com/mongodb-industry-solutions/open-finance-next-gen/tree/main>`__)
+
+.. procedure::
+   :style: normal
+
+   .. step:: Provision MongoDB Atlas  
+
+      - Create a MongoDB Atlas project and cluster.
+
+      - Create the two databases used in this demo: one for Leafy Bank
+        internal data and one for Open Finance external data.
+
+   .. step:: Seed core collections
+
+      - Populate the collections described in the planning document and
+        README.
+
+      - Load sample customers and transactions to run the reference
+        flows end-to-end. 
+
+   .. step:: Deploy the FastAPI Service
+
+      - Deploy the ``open-finance-next-gen`` FastAPI app (locally or to
+        your preferred runtime).
+
+      - Configure environment variables for the MongoDB connection,
+        security, and any feature flags documented in the repository.
+
+   .. step:: Expose Open Finance APIs
+
+      Implement and verify the secure endpoints for the following tasks:
+
+      - Manage consents: Create, approve, revoke, and list consents for
+        a customer.
+
+      - Fetch external customer data: Retrieve accounts, loans,
+        repayment history, identification, and transactions filtered by
+        consent scope.
+
+      - Calculate data: Determine balances, debt totals, and loan
+        portability offers by using aggregation pipelines.
+
+      - Classify transactions and MCC categories using Atlas Vector
+        Search.
+
+      Configure indexes, TTL policies, and unique constraints as
+      described in the README to support consent expiry, performance,
+      and data integrity.
+
+**Part 2: Agentic chatbot backend** (`GitHub repository
+<https://github.com/mongodb-industry-solutions/leafy-bank-backend-openfinance-reactagent-chatbot/tree/main>`__)
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set up the agentic framework
+
+      - Deploy the LangGraph-based multi-agent backend from the chatbot
+        repository. 
+
+      - Configure the LLM provider (for example, Claude through Amazon
+        Bedrock), HTTP client, and the MongoDB connection for
+        checkpointing conversation state. 
+
+   .. step:: Configure the supervisor and child agents
+
+      Implement the supervisor pattern so it routes customer messages to
+      the correct agent.Configure the three agents to perform the
+      following tasks:
+
+      - **Consent Agent**: List institutions, create consents, trigger
+        external bank login, and approve or revoke data sharing.
+
+      - **Portability Agent** Call Open Finance and Leafy Bank APIs for
+        spending analysis, loan portability evaluation, and consolidated
+        financial position calculations.
+
+      - **Leafy Bank Agent:** Answer ad hoc questions about the
+        customer's Leafy Bank data by querying MongoDB through the MCP
+        server. The agent resolves the authenticated customer's identity
+        from the session config and queries six read-only collections:
+        accounts, internal transactions, users, products, credit bureau
+        scores, and spending best practices.
+
+      Register all tools defined in the repository so each agent can
+      call the corresponding backend endpoints.
+
+   .. step:: Expose the chatbot API
+
+      - Provide a chat endpoint (for example, FastAPI with server-sent
+        events) that a web or mobile frontend can call.
+
+      - Ensure the endpoint streams intermediate messages and handles
+        LangGraph interrupts for bank login and consent approval.
+
+   .. step:: Connect both services end-to-end
+
+      Point the chatbot backend to the running Open Finance backend base
+      URL. Run the reference scenarios from the README files:
+
+      - Compare an external bank loan with a Leafy Bank portability
+        offer.
+
+      - Generating a spending score by using MCC-based classification
+        and Atlas Vector Search.
+
+      Validate that MongoDB Atlas: 
+
+      - Persists operational data 
+
+      - Powers aggregation and vector workloads
+
+      - Supports the full agentic consent and advice journey
+
+      For step-by-step setup commands, environment variables, and API
+      details, follow the instructions in the README file of each
+      repository.
+
+Key Learnings
+-------------
+
+- **Unify open finance data on MongoDB Atlas**: Unify internal and
+  external datasets on MongoDB Atlas as your operational data layer to
+  reduce integration complexity and duplication.
+
+- **Simplify analytics with aggregation pipelines**: Use MongoDB
+  aggregation pipelines to compute balances, debt totals, portability
+  savings, and spending scores across internal and external accounts in
+  a single query path.
+
+- **Protect sensitive consent data with MongoDB queryable encryption**:
+  Apply Queryable Encryption to consent attributes so you can query on
+  sensitive fields while maintaining strong privacy controls for
+  regulated Open Finance workloads.
+
+- **Streamline consent journeys with agentic AI**: Integrate a
+  LangGraph-based multi-agent chatbot to explain consent scope,
+  duration, and purpose in natural language, reducing abandonment across
+  multibank flows and improving customer experience.
+
+- **Align data structures with ISO 20022 best practices**: Model
+  external transactions by using ISO 20022-inspired fields and codes so
+  you standardize data across institutions without over-engineering
+  deeply nested schemas.
+
+Authors
+-------
+
+- Saul Calderon
+- Kiran Tulsulkar
+- Ainhoa Múgica
+- Andrea Alaman Calderon
+- Daniel Jamir
+
+Learn More
+----------
+
+- :ref:`Agentic AI-Powered Payments Orchestration
+  <arch-center-is-agentic-powered-payments>` 
+
+- :ref:`Financial Crime Mitigation with MongoDB Atlas
+  <arch-center-is-fincrime-mitigation>`
