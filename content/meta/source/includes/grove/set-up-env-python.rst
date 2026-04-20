@@ -23,18 +23,38 @@
 
    .. step:: Activate the virtual environment.
 
-      Every time you want to work with the Python examples, you must activate the
-      virtual environment. Run the following command to activate the virtual
-      environment:
+      Every time you want to work with the Python examples, you
+      must activate the virtual environment. Run one of the
+      following commands to activate the virtual environment:
 
-      .. code-block:: console
+      .. code-block:: bash
+         :caption: macOS/Linux (bash/zsh)
 
          source ./venv/bin/activate
 
-      This isolates project dependencies to install and execute in the context
-      of this virtual environment. It also creates a ``deactivate`` command that
-      you can run to deactivate the virtual environment when you're done
-      working with the examples.
+      .. code-block:: bat
+         :caption: Windows (cmd)
+
+         venv\Scripts\activate
+
+      .. code-block:: powershell
+         :caption: Windows (PowerShell)
+
+         venv\Scripts\Activate.ps1
+
+      Alternatively, you can skip activation and invoke tools
+      directly through the venv:
+
+      .. code-block:: console
+
+         ./venv/bin/pip install -r requirements.txt
+         ./venv/bin/python -m unittest discover tests_package
+
+      If you activate the venv, this isolates project dependencies
+      to install and execute in the context of this virtual
+      environment. It also creates a ``deactivate`` command that
+      you can run to deactivate the virtual environment when
+      you're done working with the examples.
 
    .. step:: Install project dependencies.
 

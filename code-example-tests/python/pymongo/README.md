@@ -30,8 +30,14 @@ into this test project and add a test.
 TLDR: from the `/code-example-tests/python/pymongo` directory, run
 
 ```sh
+# macOS/Linux
 source ./venv/bin/activate && python3 -m unittest discover tests_package && node snip.js && deactivate
 
+# Windows (cmd)
+venv\Scripts\activate && python -m unittest discover tests_package && node snip.js && deactivate
+
+# Or, without activating the venv:
+./venv/bin/python -m unittest discover tests_package && node snip.js
 ```
 
 ## Create and/or activate a Python Virtual Environment
@@ -60,15 +66,30 @@ dependencies remain scoped to this project.
 
 ### At the start of the session
 
-When you want to work with Python examples in this project, run the
-following command to activate the virtual environment:
+When you want to work with Python examples in this project, run one of the
+following commands to activate the virtual environment:
 
-```
+```sh
+# macOS/Linux (bash/zsh)
 source ./venv/bin/activate
+
+# Windows (cmd)
+venv\Scripts\activate
+
+# Windows (PowerShell)
+venv\Scripts\Activate.ps1
 ```
 
-Among other things, this creates a shell script called `deactivate` that you
-can run when you're ready to exit the virtual environment.
+Alternatively, you can skip activation and invoke tools directly through the
+venv:
+
+```sh
+./venv/bin/pip install -r requirements.txt
+./venv/bin/python -m unittest discover tests_package
+```
+
+If you activate the venv, this creates a shell command called `deactivate`
+that you can run when you're ready to exit the virtual environment.
 
 ### While working with examples
 

@@ -12,20 +12,37 @@
       To do so, open a terminal window and navigate to the
       ``code-example-tests/python/pymongo`` directory.
 
-      .. tip:: Activate your virtual environment before running the tests.
+      .. tip:: Activate your virtual environment before running
+         the tests.
 
-         Run the following command to activate the virtual environment:
+         Run one of the following commands to activate the virtual
+         environment:
 
          .. code-block:: bash
+            :caption: macOS/Linux (bash/zsh)
 
             source ./venv/bin/activate
 
-         When you're finished running tests, you can deactivate the virtual
-         environment by running the following command in the same terminal:
+         .. code-block:: bat
+            :caption: Windows (cmd)
+
+            venv\Scripts\activate
+
+         .. code-block:: powershell
+            :caption: Windows (PowerShell)
+
+            venv\Scripts\Activate.ps1
+
+         Alternatively, you can skip activation and run tools
+         directly through the venv. For example:
 
          .. code-block:: bash
 
-            deactivate
+            ./venv/bin/python -m unittest discover tests_package
+
+         When you're finished running tests, you can deactivate
+         the virtual environment by running ``deactivate`` in the
+         same terminal where you activated it.
 
       Then, use one of these commands to run the tests:
 

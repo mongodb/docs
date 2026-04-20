@@ -699,12 +699,23 @@ environment:
 
 .. code-block:: python
 
-   # Create and activate a virtual environment (recommended)
+   # Create a virtual environment (recommended)
    # python -m venv venv
-   # source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+   # Activate the virtual environment
+   # source venv/bin/activate       # macOS/Linux (bash/zsh)
+   # venv\Scripts\activate          # Windows (cmd)
+   # venv\Scripts\Activate.ps1      # Windows (PowerShell)
+
+   # Or, skip activation and use the venv directly:
+   # ./venv/bin/pip install pymongo
 
    # Install PyMongo
    # pip install pymongo
 
-- Don't include virtual environment setup in every example, but reference it
-  in getting started guides and tutorials.
+- When showing virtual environment activation, include commands
+  for macOS/Linux and Windows, or use the direct path approach
+  (``./venv/bin/pip``, ``./venv/bin/python``) as a
+  shell-agnostic alternative.
+- Don't include virtual environment setup in every example, but
+  reference it in getting started guides and tutorials.
