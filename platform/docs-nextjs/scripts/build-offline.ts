@@ -326,6 +326,11 @@ const OFFLINE_COLLAPSIBLE_SCRIPT = `<script>\n${readFileSync(
   'utf-8',
 )}\n</script>`;
 
+const OFFLINE_IO_CODE_SCRIPT = `<script>\n${readFileSync(
+  path.join(__dirname, 'offline-ui', 'io-code.js'),
+  'utf-8',
+)}\n</script>`;
+
 // Rotate the ChevronRight icon 90° clockwise to look like ChevronDown when open.
 const OFFLINE_COLLAPSIBLE_STYLE = `
 <style>
@@ -348,6 +353,11 @@ function injectComposableTutorialScript(content: string): string {
   return content.replace(/<\/body>/i, OFFLINE_COMPOSABLE_TUTORIAL_SCRIPT + '\n</body>');
 }
 
+function injectIoCodeScript(content: string): string {
+  if (!content.includes('data-io-toggle')) return content;
+  return content.replace(/<\/body>/i, OFFLINE_IO_CODE_SCRIPT + '\n</body>');
+}
+
 // Restore toggle behaviour for the sidenav CollapsibleNavItem.
 function injectSidenavCollapsibleScript(content: string): string {
   if (!content.includes('offline-collapsible-nav')) return content;
@@ -365,6 +375,7 @@ async function postProcess(): Promise<void> {
     rewritten = injectTabsScript(rewritten);
     rewritten = injectCollapsibleScript(rewritten);
     rewritten = injectComposableTutorialScript(rewritten);
+    rewritten = injectIoCodeScript(rewritten);
     rewritten = injectSidenavCollapsibleScript(rewritten);
     if (rewritten !== content) await fs.writeFile(filePath, rewritten, 'utf-8');
   }

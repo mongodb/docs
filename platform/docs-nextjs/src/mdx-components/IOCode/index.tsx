@@ -126,7 +126,7 @@ export const IoCodeBlock = ({ children }: IoCodeBlockProps) => {
       <div className={inputWrapperStyle(hasOutput)}>{inputChild}</div>
       {hasOutput && (
         <>
-          <div className={cx(ioToggleStyling)}>
+          <div className={cx(ioToggleStyling)} data-io-toggle>
             <Button
               role="button"
               className={cx(outputButtonStyling)}
@@ -138,6 +138,7 @@ export const IoCodeBlock = ({ children }: IoCodeBlockProps) => {
             </Button>
           </div>
           <div
+            data-io-output
             className={cx(
               outputWrapperStyle,
               !showOutput &&

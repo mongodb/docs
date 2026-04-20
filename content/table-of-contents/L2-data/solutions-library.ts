@@ -494,7 +494,7 @@ const tocData: TocItem[] = [
             label: 'Real-Time Customer Retention',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/customer-retention',
-          },          
+          },
         ],
       },
     ],

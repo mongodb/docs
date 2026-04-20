@@ -352,6 +352,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/architecture/:version/solutions-library/document-intelligence',
                   },
                   {
+                    label: 'Open Finance for Credit Portability',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/open-finance',
+                  },
+                  {
                     label: 'Optimize RAG Applications with Fireworks AI',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/fin-services-fireworks-rag',
@@ -750,6 +755,11 @@ export const toc: L1TocItem[] = [
                     label: 'As-You-Type Suggestions',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/retail-as-you-type-suggestions',
+                  },
+                  {
+                    label: 'Real-Time Customer Retention',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/customer-retention',
                   },
                 ],
               },
