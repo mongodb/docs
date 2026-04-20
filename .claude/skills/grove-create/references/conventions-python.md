@@ -145,14 +145,18 @@ def test_multiple_databases(self):
 
 ```bash
 cd code-example-tests/python/pymongo
-source ./venv/bin/activate
-pip install -r requirements.txt       # First time only
-python3 -m unittest discover tests_package
+python3 -m venv venv                                    # First time only
+./venv/bin/pip install -r requirements.txt              # First time only
+./venv/bin/python -m unittest discover tests_package
 ```
+
+Use `./venv/bin/pip` and `./venv/bin/python` directly instead of
+`source venv/bin/activate`, which is shell-specific and may not work in
+all environments.
 
 Run a single test:
 ```bash
-python3 -m unittest tests_package/topic/subtopic/test_your_topic.py -k test_your_example
+./venv/bin/python -m unittest tests_package/topic/subtopic/test_your_topic.py -k test_your_example
 ```
 
 ## Snipping

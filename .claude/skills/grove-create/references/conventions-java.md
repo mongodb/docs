@@ -103,7 +103,7 @@ public class YourExampleTest {
 
     @Test
     @DisplayName("Test that YourExample produces expected output")
-    void testYourExample() {
+    void TestYourExample() {
         var example = new topic.subtopic.YourExample();
         var output = example.runApp();
 
@@ -119,7 +119,7 @@ public class YourExampleTest {
 - File naming: `YourExampleTest.java`
 - `@BeforeEach` for setup, `@AfterEach` for teardown
 - `@Test` + `@DisplayName` annotations on each test method
-- Test method naming: `testYourExample()` (camelCase, starts with lowercase `test`)
+- Test method naming: `TestYourExample()` (PascalCase, starts with uppercase `Test`)
 - Output file paths are relative to `java/driver-sync/`
 - Connection via `System.getenv("CONNECTION_STRING")`
 - Comparison import: `import mongodb.comparison.Expect;`
@@ -138,12 +138,12 @@ mvn spotless:apply
 
 ```bash
 cd code-example-tests/java/driver-sync
-mvn clean test
+mvn test
 ```
 
 Run a single test:
 ```bash
-mvn test -Dtest="topic.subtopic.YourExampleTest#testYourExample"
+mvn -Dtest=TutorialTests#TestFilter test
 ```
 
 ## Snipping

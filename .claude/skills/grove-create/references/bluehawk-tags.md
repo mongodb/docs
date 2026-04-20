@@ -9,7 +9,9 @@ in the target language to see the patterns in context.
 ## `:snippet-start:` / `:snippet-end:`
 
 Wraps the section of code that will be extracted as a docs snippet. Snippet
-names must be unique within the file. Use lowercase kebab-case.
+identifiers must be unique within the file. Use lowercase kebab-case.
+Bluehawk validates this — duplicate identifiers in the same file cause an
+error and the file is skipped entirely during extraction.
 
 ## `:remove:` / `:remove-start:` / `:remove-end:`
 

@@ -225,6 +225,22 @@ For each approved update:
    roll back — the old examples are now inaccurate against the version
    readers will be using.
 
+### Step 5: Update Version References in Documentation
+
+After all approved upgrades are applied and tests pass, update hardcoded
+version numbers in the suite's documentation files:
+
+1. **CLAUDE.md**: Grep the suite's `CLAUDE.md` (e.g.,
+   `code-example-tests/javascript/driver/CLAUDE.md`) for the old version
+   string and replace with the new version.
+2. **Convention reference files**: Grep the matching convention file at
+   `.claude/skills/grove-create/references/conventions-{language}.md` for
+   the old version string. These files typically do not hardcode versions,
+   but check to be safe.
+
+Only update version strings that refer to the package that was actually
+upgraded — do not blindly replace all occurrences of a version number.
+
 ---
 
 ## Cleanup Mode

@@ -132,12 +132,11 @@ public class YourExampleTest
 ## Sample Data
 
 ```csharp
-using Utilities;
+using Utilities.SampleData;
 
 [RequiresSampleData("sample_mflix")]
 public void TestWithSampleData()
 {
-    SampleDataTestHelper.EnsureSampleDataOrSkip("sample_mflix");
     // Test code using sample data
 }
 ```
@@ -159,7 +158,7 @@ dotnet test
 
 Run a single test:
 ```bash
-dotnet test --filter "FullyQualifiedName~Tests.Topic.Subtopic.YourExampleTest.TestYourExample"
+dotnet test --filter "FullyQualifiedName=Tests.Topic.Subtopic.YourExampleTest.TestYourExample"
 ```
 
 ## Snipping

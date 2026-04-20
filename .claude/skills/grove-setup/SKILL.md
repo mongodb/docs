@@ -114,6 +114,26 @@ cd code-example-tests/command-line/mongosh && npm install
 Report success or failure. If install fails, diagnose the error (version
 mismatch, network issue, etc.).
 
+### Bluehawk (all suites)
+
+Bluehawk is required when **creating or modifying examples** — it
+extracts doc-ready snippets from example files. Check whether it is
+installed:
+
+```bash
+which bluehawk
+```
+
+If not found, tell the user to install it globally:
+
+```bash
+npm install -g bluehawk
+```
+
+Bluehawk is not blocking for **running tests only**. If the user only
+needs to run tests, note that Bluehawk can be installed later and
+proceed.
+
 ## Step 4: Set Up Environment File
 
 **Security**: Do not read, write, or modify `.env` files directly. Do not
@@ -241,6 +261,7 @@ Provide a summary headed with `Skill: grove-setup`:
 |-------|--------|
 | [runtime] >= [min from config] | [version found] |
 | Dependencies installed | Yes |
+| Bluehawk | Installed / Not installed (needed for creating/modifying examples) |
 | .env file | Created / Already existed |
 | MongoDB connectivity | Connected to [cluster name or localhost] |
 | Sample databases | X of 10 found: [list] |

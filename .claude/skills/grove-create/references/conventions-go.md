@@ -201,14 +201,13 @@ utils.RequiresSampleDataWithCollections(t, requiredCollections)
 ## Running Tests
 
 ```bash
-cd code-example-tests/go/driver
-go mod download           # First time only
+cd code-example-tests/go/driver/tests
 go test -v -p 1 ./...
 ```
 
 Run a single test:
 ```bash
-go test -v -run TestYourFeature/YourExample ./tests/topic/subtopic/
+go test -v ./... -run TestExampleOperations/YourExampleName
 ```
 
 ## Snipping
