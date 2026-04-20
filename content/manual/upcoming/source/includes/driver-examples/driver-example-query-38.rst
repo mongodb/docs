@@ -4,12 +4,7 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.insertMany([
-               { _id: 1, item: null },
-               { _id: 2 }
-            ])
+         .. include:: /includes/sample-data-usage.rst
 
      - id: compass
        content: |

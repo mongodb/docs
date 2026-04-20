@@ -4,9 +4,9 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.find( { $or: [ { status: "A" }, { qty: { $lt: 30 } } ] } )
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/query-documents/find-or.snippet.find-or-conditions.js
+            :language: javascript
+            :category: usage example
 
      - id: compass
        content: |
