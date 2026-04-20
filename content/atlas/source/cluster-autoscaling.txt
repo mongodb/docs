@@ -114,6 +114,13 @@ How |service| Scales {+Cluster+} Tier
    :guilabel:`Low-CPU` classes, but *not* on {+clusters+} in
    the :guilabel:`Local NVMe SSD` class.
 
+|service| relies on host ping data for autoscaling decisions.
+Dedicated cluster data nodes continuously send this ping data
+to the control plane regardless of whether autoscaling is
+enabled. When you enable autoscaling, |service| can use this
+historical data to scale immediately if scaling conditions
+are met.
+
 |service| analyzes the following {+cluster+} metrics to
 determine when to reactively scale a {+cluster+}, and whether to scale the
 {+cluster+} tier up or down:
@@ -131,6 +138,12 @@ In the previous calculation, ``memoryFree``, ``memoryBuffers``, and ``memoryCach
 amounts of available memory that |service| can reclaim for other
 purposes. To learn more, see :guilabel:`System Memory` in
 :ref:`review-available-metrics`.
+
+.. note::
+
+   The :guilabel:`System Memory Utilization` value that |service|
+   uses for autoscaling decisions may differ slightly from the value
+   shown in the |service| metrics panel.
 
 |service| won't scale your {+cluster+} tier if the new {+cluster+} 
 tier would fall outside of your specified :guilabel:`Minimum` and 
@@ -157,6 +170,31 @@ Scaling Up a {+Cluster+} Tier Reactively
 To manage dynamic workloads for your applications, |service| reactively
 scales up nodes in your {+cluster+} under the conditions described in this
 section.
+
+To help you interpret the conditions, |service| uses the
+following CPU utilization concepts:
+
+- **Baseline CPU Utilization**: The fraction of full CPU
+  guaranteed to your instance by the cloud provider,
+  typically 20%–50% for burstable instance types. Not
+  visible in |service| metrics.
+
+- **Absolute System CPU Utilization**: Total CPU usage
+  summed across all cores. Visible as :guilabel:`System
+  CPU` in |service| metrics. |service| doesn't use this
+  value directly in autoscaling decisions.
+
+- **Relative System CPU Utilization**: The value |service|
+  uses for autoscaling decisions on ``M10`` and ``M20``
+  clusters. Calculated as the
+  :guilabel:`Normalized System CPU` value divided by the
+  :term:`baseline CPU utilization`. This value is not
+  directly visible in |service| metrics, and the baseline
+  CPU percentage is not exposed in the metrics panel. To
+  estimate it, divide your :guilabel:`Normalized System CPU`
+  reading by a baseline value in the 20%–50% range typical
+  of burstable instance types. |service| caps this value
+  at 100% even when the calculation exceeds it.
 
 If the next {+cluster+} tier is within your :guilabel:`Maximum Cluster Size`
 range, |service| scales :term:`operational nodes <operational node>` in your
@@ -196,12 +234,33 @@ is true for *any* {+cluster+} node of this type.
   - The average :guilabel:`System Memory Utilization` has exceeded 75% of
     resources available to the {+cluster+} for the past one hour.
 
+  .. note::
+
+     For ``M10`` and ``M20`` tiers, |service| bases CPU thresholds on
+     the instance :term:`baseline CPU utilization` rather than the
+     standard 100% baseline. The baseline is not exposed in the
+     |service| metrics panel and can range from 20%–50% for burstable
+     instance types. See the |aws-burstable-instances| documentation
+     for the :guilabel:`Baseline CPU utilization per vCPU` column.
+     Using 20% as a lower-end estimate, the effective absolute CPU
+     thresholds are at most:
+
+     - The 75% :term:`Relative System CPU Utilization <relative system
+       CPU utilization>` threshold equals **15%** absolute CPU
+       (75% of 20%).
+     - The 90% :term:`Relative System CPU Utilization <relative system
+       CPU utilization>` threshold equals **18%** absolute CPU
+       (90% of 20%).
+
+     If a scale-up occurs when :guilabel:`Normalized System CPU`
+     appears low, contact |mdb-support|.
+
 - ``M30+`` {+clusters+}:
 
-  - The average :guilabel:`System CPU Utilization` has exceeded 90% of
+  - The average :guilabel:`Normalized System CPU` has exceeded 90% of
     resources available to the {+cluster+} for the past 10 minutes.
 
-  - The average :guilabel:`System CPU Utilization` has exceeded 75% of
+  - The average :guilabel:`Normalized System CPU` has exceeded 75% of
     resources available to the {+cluster+} for the past one hour.
 
   - The average :guilabel:`System Memory Utilization` has exceeded 90% of
@@ -218,10 +277,51 @@ traffic or usage, maintaining its performance and reliability.
 
    The conditions in this section describe operational nodes.
    For :term:`analytics nodes <analytics node>` on any cloud provider,
-   |service| scales them up to the next tier if the average normalized
-   :guilabel:`System CPU Utilization` or
+   |service| scales them up to the next tier if the average
+   :guilabel:`Normalized System CPU` or
    the :guilabel:`System Memory Utilization` has exceeded 75% of resources
    available to any {+cluster+} node for the past one hour.
+
+.. example:: AWS ``M10`` Cluster Scaling Conditions
+
+   Consider an example scenario with the following values to
+   see how |service| evaluates the scaling conditions. The
+   baseline CPU utilization is not visible in the |service|
+   metrics panel and can range from 20%–50% for burstable
+   instance types. You can use any value in that range to
+   estimate upper and lower bounds, and this example uses
+   20% as the lower end of that range.
+
+   - :guilabel:`Normalized System CPU`: 60%
+   - :term:`Baseline CPU utilization <baseline CPU
+     utilization>`: 20%
+   - :term:`CPU steal`: 10%
+
+   Evaluating the conditions:
+
+   **Condition 1 (AWS)**: Requires average
+   :term:`Relative System CPU Utilization
+   <relative system CPU utilization>` > 90% for 20 minutes
+   AND average :term:`CPU steal` > 30% for 3 minutes.
+
+   - Relative CPU: 60% ÷ 20% = 300%, capped at 100%.
+     First threshold met.
+   - CPU steal is 10%, which doesn't exceed 30%.
+     Second threshold not met.
+   - **Result: Not met.** Both thresholds must be true.
+
+   **Condition 2**: Requires average
+   :guilabel:`Normalized System CPU` > 90% for 20 minutes.
+
+   - Normalized System CPU is 60%, which doesn't exceed 90%.
+   - **Result: Not met.**
+
+   **Condition 3**: Requires average
+   :term:`Relative System CPU Utilization
+   <relative system CPU utilization>` > 75% for 1 hour.
+
+   - Relative CPU: 60% ÷ 20% = 300%, capped at 100%.
+   - **Result: Met.** |service| triggers auto-scaling.
 
 To achieve optimal resource utilization and cost profile, |service| avoids
 scaling up the {+cluster+} to the next tier if:
@@ -243,7 +343,14 @@ For example, if the cluster tier has not been changed since ``12:00``,
    To reduce the risk of running out of resources, plan to scale up
    {+clusters+} before bulk inserts and other workload spikes.
 
-Scaling Down a {+Cluster+} Tier Reactively 
+.. note::
+
+   |service| does not trigger cluster tier auto-scaling during a
+   :ref:`simulated regional outage <test-outage>`. This behavior may
+   also occur during an actual regional outage if the {+cluster+} has
+   insufficient healthy nodes to support scaling operations.
+
+Scaling Down a {+Cluster+} Tier Reactively
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To optimize costs, |service| reactively scales down nodes in your {+cluster+} under
@@ -272,13 +379,21 @@ are true for *all* nodes of the specified {+cluster+} type:
 
 - :term:`Operational nodes <operational node>`:
 
-  - The average normalized :guilabel:`System CPU Utilization` is below 45% of resources
+  - The average :guilabel:`Normalized System CPU` is below 45% of resources
     available to the {+cluster+} over at least the last 10 minutes **AND**
     the last 4 hours. |service| uses the "4 hours average" checkpoint as
     an indication that the CPU load has settled down on the observed level.
     |service| uses the "10 minutes average" checkpoint as an indication
     that no recent CPU spikes have occurred that |service| didn't capture
     with the "4 hour average" checkpoint.
+
+    .. note::
+
+       For ``M10`` and ``M20`` tiers, |service| applies the 45% CPU
+       threshold relative to the instance :term:`baseline CPU utilization`
+       rather than the standard 100% baseline. Using 20% as a lower-end
+       estimate, the effective absolute CPU threshold for scale-down is
+       approximately **9%** (45% of 20%).
 
   - The average :manual:`WiredTiger cache </reference/command/serverStatus/#serverstatus.wiredTiger.cache>`
     usage is below 90% of the maximum WiredTiger cache size for at least
@@ -300,20 +415,35 @@ are true for *all* nodes of the specified {+cluster+} type:
 
     .. note::
 
-       |service| includes the WiredTiger cache in its memory calculation
-       to make it more likely that {+clusters+} with a full cache, but
-       otherwise low traffic, will scale down. In other words,
-       |service| examines the size of the WiredTiger cache to determine that it can
-       safely down scale an otherwise idle {+cluster+} with low Normalized System CPU Utilization
-       in cases where the {+cluster+}\'s WiredTiger caches might reach 90% of
-       the {+cluster+}\'s maximum WiredTiger cache size.
+       |service| includes the WiredTiger cache in its memory
+       calculation to make it more likely that {+clusters+} with a
+       full cache, but otherwise low traffic, will scale down.
+       This check applies two thresholds:
+
+       - **90%**: The current tier's WiredTiger cache usage must
+         be below 90% of its maximum size. If it exceeds this,
+         |service| doesn't scale down.
+
+       - **60%**: The projected total memory on the new lower tier
+         must be below 60%. To calculate this projection,
+         |service| assumes WiredTiger cache usage on the new tier
+         would be 80% of that tier's maximum cache size.
 
   These conditions ensure that |service| scales down operational nodes
   in your {+cluster+} to prevent high utilization states.
 
+  .. note::
+
+     |service| evaluates memory-based scaling using a projected
+     metric that differs from the
+     :guilabel:`System Memory Utilization` shown in the
+     |service| UI. If a scale-down does not occur when
+     :guilabel:`System Memory Utilization` appears low,
+     contact |mdb-support|.
+
 - :term:`Analytics nodes <analytics node>`:
 
-  - The average :guilabel:`Normalized System CPU Utilization` and
+  - The average :guilabel:`Normalized System CPU` and
     :guilabel:`System Memory Utilization` over the past 24 hours is below 50% of
     resources available to the {+cluster+}.
 
