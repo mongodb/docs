@@ -1,0 +1,688 @@
+:noprevnext:
+:orphan:
+
+.. meta::
+   :robots: noindex, nosnippet
+
+.. _rerank-agg-pipeline:
+
+===========
+``$rerank``
+===========
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: MongoDB search, MongoDB Vector Search, $rerank pipeline stage, Reranker Models, Reranking
+   :description: Learn about the MongoDB $rerank aggregation stage syntax, options, and usage for reordering search results by relevance using Voyage AI reranking models in Atlas.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. important:: 
+
+   The ``$rerank`` aggregation stage is in Private Preview. The feature and the 
+   corresponding documentation might change at any time during the Preview period. 
+   Therefore, we don't recommend using this feature in production environments. To 
+   learn more, see `Preview Features <https://www.mongodb.com/docs/preview-features/>`__. 
+
+.. pipeline:: $rerank
+
+   The :pipeline:`$rerank` stage reorders input documents
+   using `Voyage AI's reranking models
+   <https://www.mongodb.com/docs/voyageai/models/rerankers>`__
+   and returns the same documents sorted by relevance to
+   the query. The ``$rerank`` stage can appear anywhere in 
+   an aggregation pipeline. We recommend that you use 
+   ``$rerank`` after a :pipeline:`$vectorSearch`,
+   :pipeline:`$search`, :pipeline:`$rankFusion`, or
+   :pipeline:`$scoreFusion` stage. 
+
+Syntax 
+------
+
+A ``$rerank`` pipeline stage has the following syntax:
+
+.. code-block:: json
+
+   {
+     "$rerank": {
+       "query": {
+         "text": "<query-text>"
+       },
+       "path": "<text-field-name>",
+       "numDocsToRerank": <number-of-documents-to-rerank>,
+       "model": "<reranker-model>"
+     }
+   }
+
+.. _rerank-agg-pipeline-fields: 
+
+Fields
+------
+
+The ``$rerank`` stage takes a document with the following
+fields:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 15 10 15 70
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``query``
+     - Object 
+     - Required
+     - Query to use for reranking. 
+
+   * - | ``query.`` 
+       | ``text``
+     - String 
+     - Required
+     - Query text to use for reranking. For example, you can
+       specify:
+
+       - What you are searching for
+       - Which fields of a document are most relevant
+       - Complementary information to clarify ambiguous queries
+ 
+   * - ``path``
+     - String or Array of Strings
+     - Required
+     - Path to the fields to use for reranking. If ``$rerank``
+       is an intermediary stage, specify a field from the
+       results of the preceding stage.
+
+       :gold:`NOTE:` The ``$rerank`` query fails if fields 
+       specified in the ``path`` do not exist. Use a prior 
+       :pipeline:`$match` stage to filter out documents with 
+       missing fields, or use :pipeline:`$set` to set missing 
+       fields to ``""``.
+
+   * - ``numDocsToRerank``
+     - Int
+     - Required
+     - Maximum number of documents to send to |voyage| for reranking
+       and return in the results. Documents are selected based on the 
+       pipeline's defined document order.
+
+       The maximum value must be less than or equal to ``1000``.
+
+   * - ``model``
+     - Object
+     - Required
+     - |voyage| `model
+       <https://www.mongodb.com/docs/voyageai/models/rerankers>`__ to use to
+       rerank the documents. Value can be one of the following:
+
+       - ``rerank-2.5`` - Generalist reranker optimized for quality 
+         with instruction-following and multilingual support.
+       - ``rerank-2.5-lite`` - Generalist reranker optimized for both 
+         latency and quality with instruction-following and multilingual 
+         support.
+       - ``rerank-2`` - Legacy model. 
+       - ``rerank-2-lite`` - Legacy model. 
+
+.. _rerank-examples:
+
+Example 
+-------
+
+The following example demonstrates how to use the ``$rerank``
+stage to reorder documents in the ``sample_mflix.embedded_movies``
+collection based on a |voyage| reranker model. The query uses
+``$rerank`` after the :pipeline:`$match` stage to reorder
+documents using the ``rerank-2.5`` reranker model. In the
+following aggregation pipeline, the:
+
+- ``$match`` stage filters the documents to include only
+  documents that have a ``plot`` field of type string.
+- ``$sort`` stage sorts the documents in descending order of the
+  ``released`` field to ensure deterministic ordering.
+- ``$rerank`` stage reorders the documents to match the
+  query using the ``rerank-2.5`` reranker model.
+- ``$addFields`` stage adds a field named ``rerankScore`` to the 
+  documents.
+
+.. io-code-block:: 
+   :copyable: true 
+
+   .. input:: 
+      :language: json 
+      :linenos: 
+
+      db.embedded_movies.aggregate([
+        {
+          "$match": {
+            "plot": { "$exists": true, "$type": "string" }
+          }
+        },
+        {
+          "$sort": { "released": -1 }
+        },
+        {
+          "$rerank": {
+            "model": "rerank-2.5",
+            "query": {
+              "text": "a group of heroes band together to stop a powerful enemy and save the world"
+            },
+            "numDocsToRerank": 100,
+            "path": ["title", "plot"]
+          }
+        },
+        {
+          "$addFields": {
+            "rerankScore": { "$meta": "score" }
+          }
+        },
+        { "$limit": 10 },
+        {
+          "$project": {
+            "_id": 0,
+            "title": 1,
+            "plot": 1,
+            "rerankScore": 1
+          }
+        }
+      ])
+
+   .. output:: 
+      :language: json 
+      :visible: false
+
+      [
+        {
+          plot: 'No treason, no surrender.',
+          title: 'Ti mene nosis',
+          rerankScore: 0.5986876487731934
+        },
+        {
+          plot: 'The life of the greatest karate master of a generation.',
+          title: 'The Real Miyagi',
+          rerankScore: 0.5986876487731934
+        },
+        {
+          plot: 'A shy genius is employed by his former university to design robot software.',
+          title: 'Eva',
+          rerankScore: 0.5986876487731934
+        },
+        {
+          plot: 'The owners of a failing security company start robbing houses to boost business.',
+          title: 'Armed Response',
+          rerankScore: 0.5986876487731934
+        },
+        {
+          plot: 'A live telecast of the beloved J. M. Barrie story.',
+          title: 'Peter Pan Live!',
+          rerankScore: 0.5986876487731934
+        },
+        {
+          plot: "A French police magistrate spends years trying to take down one of the country's most powerful drug rings.",
+          title: 'The Connection',
+          rerankScore: 0.5986876487731934
+        },
+        {
+          plot: 'A documentary that follows undercover activists trying to stave off a man-made mass extinction.',
+          title: 'Racing Extinction',
+          rerankScore: 0.5986876487731934
+        },
+        {
+          plot: 'An ex-hitman comes out of retirement to track down the gangsters that took everything from him.',
+          title: 'John Wick',
+          rerankScore: 0.5986876487731934
+        },
+        {
+          plot: 'A former hit-man for a drug cartel becomes a vigilante to pay for his sins and find redemption.',
+          title: 'Redeemer',
+          rerankScore: 0.5986876487731934
+        },
+        {
+          plot: 'Charles Ingvar Jènsson gathers three criminals to take vengeance upon the people who killed his uncle.',
+          title: 'The Master Plan',
+          rerankScore: 0.5986876487731934
+        }
+      ]
+
+Considerations 
+--------------
+
+Before using ``$rerank``, consider the compatibility, limitations, 
+behavior, and permissions for using ``$rerank``.
+
+Compatibility 
+~~~~~~~~~~~~~
+
+The ``$rerank`` stage is available only on
+:atlas:`MongoDB Atlas </>` running MongoDB 8.3 or later.
+
+Before using ``$rerank``, you must enable Native Reranking through 
+:guilabel:`Project Settings`. To learn more, see :ref:`rerank-enable-disable`.
+
+Limitations
+~~~~~~~~~~~
+
+You can't use the ``$rerank`` stage:
+
+- In the :pipeline:`$rankFusion` or :pipeline:`$scoreFusion` input 
+  pipelines.
+- On a :ref:`View definition<views-landing-page>`.
+
+Behavior
+~~~~~~~~
+
+:pipeline:`$rerank` can appear anywhere in the pipeline.
+However, we recommend using ``$rerank`` after a stage like ``$search`` or 
+``$vectorSearch`` that already returns relevant documents in sorted order. 
+
+``$rerank`` reranks and returns the first ``numDocsToRerank`` documents 
+that are passed to the stage. If ``$rerank`` is the first stage, or prior 
+stages do not return deterministically sorted results, then the documents 
+used for  ``$rerank`` might change between queries. 
+
+``$rerank`` returns an error if any of the fields specified in ``path`` 
+are not present in one or more input documents. To mitigate this, use 
+the :pipeline:`$set` stage to set missing fields to an empty string. 
+
+Query
+~~~~~
+
+The ``query.text`` field determines how the reranker
+model scores each document. The reranker computes a
+relevance score between the query text and the content
+of each document at the specified ``path``. For most use cases,  
+``$rerank.query.text`` should be the same or similar to the
+query from the preceding ``$search`` or ``$vectorSearch`` stage.
+
+.. _rerank-metrics:
+
+Metrics
+~~~~~~~
+
+The following metrics are available for monitoring
+``$rerank`` usage:
+
+``$rerank`` Query Status Rate
+`````````````````````````````
+
+The ``$rerank`` query success rate metric tracks the
+percentage of ``$rerank`` queries that complete
+successfully. You can view this metric on the
+:guilabel:`Metrics` tab for your cluster in the
+{+atlas-ui+}. Use this metric to identify failures
+in ``$rerank`` queries, such as rate limit errors or
+connectivity issues with |voyage|.
+
+``$rerank`` Token Usage Rate 
+````````````````````````````
+
+The ``$rerank`` token usage metric tracks the total
+number of tokens that ``$rerank`` queries consume.
+You can view this metric on the :guilabel:`Metrics`
+tab for your cluster in the {+atlas-ui+}. Use this
+metric to monitor token consumption and correlate
+usage with billing.
+
+Scoring
+~~~~~~~
+
+Use the ``score`` variable with the :expression:`$meta`
+expression to retrieve the score of each document in the
+results of the ``$rerank`` stage.
+
+.. code-block:: json
+   :caption: Example: Add Rerank Score to Pipeline
+
+   {
+     "$addFields": {
+       "rerankScore": { "$meta": "score" }
+     }
+   }
+
+The ``$rerank`` stage replaces the value of ``$meta: "score"`` with 
+a new score. To preserve the value from a preceding stage like 
+``$$rankFusion``, you can project the scores into named fields before the ``$rerank`` stage.
+
+.. code-block:: 
+   :caption: Example: Preserve Score from Preceding Stage
+   
+   {
+     "$addFields": {
+       "originalRankFusionScore": { "$meta": "score" }
+     }
+   },
+   {
+     "$rerank": {
+       ...
+     }
+   },
+   {
+     "$addFields": {
+       "rerankScore": { "$meta": "score" }
+     }
+   }
+
+Billing 
+~~~~~~~
+
+MongoDB uses a pay-as-you-go pricing model and charges
+for usage based on the total number of processed tokens.
+The following formula calculates the total:
+
+.. code-block:: shell
+   :copyable: false
+
+   total number of processed tokens = (# of query tokens * numDocsToRerank) + sum(# of tokens across all documents )
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 30 30 20
+
+   * - Model
+     - Price per 1K tokens
+     - Price per 1M tokens
+     - Free Tokens
+
+   * - ``rerank-2.5``
+     - $0.00005
+     - $0.05
+     - 200,000,000
+
+   * - ``rerank-2.5-lite``
+     - $0.00002
+     - $0.02
+     - 200,000,000
+
+   * - ``rerank-2``
+     - $0.00005
+     - $0.05
+     -
+
+   * - ``rerank-2-lite``
+     - $0.00002
+     - $0.02
+     -
+
+
+The ``$rerank`` stage is charged separately from other
+|voyage| operations in your {+service+} project. You can
+manage payments and billing through the billing and
+payments interface in the {+atlas-ui+}. In the
+{+atlas-ui+}, you can:
+
+- Track your token usage on the :guilabel:`Usage` page.
+  To learn more, see :ref:`rerank-monitor-usage`.
+- View detailed cost breakdowns through the
+  :ref:`Cost Explorer <cost-explorer>`.
+- View your current monthly costs on the
+  :guilabel:`Invoices` page. To learn more, see
+  :ref:`atlas-invoices`.
+
+.. _rerank-rate-limits:
+
+Usage Tiers and Rate Limits 
+```````````````````````````
+
+|service| enforces rate limits on the number of requests
+that you can make within a specific time frame, measured
+in tokens per minute (TPM) or requests per minute (RPM).
+Rate limits follow a tiered system, with higher tiers
+offering increased limits. 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Tier
+     - Description
+
+   * - Free Tier
+     - No payment information required. 
+
+   * - Tier 1
+     - Payment information required. Rate limits are twice
+       those of the Free Tier.
+
+
+.. tabs:: 
+
+   .. tab:: Free Tier
+      :tabid: free-tier
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 40 40
+
+         * - Model
+           - Requests Per Minute (RPM)
+           - Tokens Per Minute (TPM)
+
+         * - ``rerank-2.5``
+           - 2,000
+           - 2,000,000
+
+         * - ``rerank-2.5-lite``
+           - 2,000
+           - 4,000,000
+
+         * - ``rerank-2``
+           - 2,000
+           - 2,000,000
+
+         * - ``rerank-2-lite``
+           - 2,000
+           - 4,000,000
+
+   .. tab:: Usage Tier 1
+      :tabid: usage-tier-1
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 40 40
+
+         * - Model
+           - Requests Per Minute (RPM)
+           - Tokens Per Minute (TPM)
+
+         * - ``rerank-2.5``
+           - 4,000
+           - 4,000,000
+
+         * - ``rerank-2.5-lite``
+           - 4,000
+           - 8,000,000
+
+         * - ``rerank-2``
+           - 4,000
+           - 4,000,000
+
+         * - ``rerank-2-lite``
+           - 4,000
+           - 8,000,000
+
+.. _rerank-usage-page:
+
+Token Usage 
+~~~~~~~~~~~
+
+Monitor your token usage on the :guilabel:`Usage` page in
+the {+atlas-ui+}. Usage is constrained by requests per
+minute (RPM) and tokens per minute (TPM) per cluster. To
+learn more, see :ref:`rerank-rate-limits`.
+
+The :guilabel:`Usage` page provides several views to
+monitor and analyze your token usage. Click the
+:guilabel:`Free Usage` tab to view remaining free tokens 
+by model, for your organization.
+
+In the :guilabel:`Usage Activity` tab, the
+:guilabel:`Total Usage` chart displays the total tokens
+used across your project over time. You can filter usage
+data by using the following options:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Option
+     - Description
+
+   * - :guilabel:`Usage Period`
+     - View usage data for a specific time range. 
+   * - :guilabel:`Models`
+     - Filter by specific |voyage| models.
+
+To learn how to monitor token usage on a more granular level, see 
+:ref:`rerank-monitor-usage`.
+
+.. _rerank-resource-policy:
+
+Resource Policy 
+~~~~~~~~~~~~~~~
+
+You can configure a resource policy at the organization
+level to block ``$rerank`` entirely or with exceptions.
+To do this, add a ``forbid`` rule, written in Cedar, that
+targets the ``$rerank`` action. If you configure this
+policy, new projects can't enable ``$rerank``. However, it
+does not disable already-enabled projects. You must disable
+``$rerank`` individually for projects for which it is
+already enabled. To disable ``$rerank`` for a project,
+see :ref:`rerank-enable-disable`.
+
+You can disable ``$rerank`` with exceptions by using the
+``unless`` clause in the ``forbid`` rule.
+
+.. code-block:: text
+   :copyable: false
+   :caption: Example: Disable $rerank with Exceptions
+
+   forbid (principal, action == ResourcePolicy::Action::"$rerank", resource) 
+   unless { <exception> };
+
+To learn more about setting the resource policy, see
+:ref:`atlas-resource-policies-overview`.
+
+Procedures
+----------
+
+You can perform the following tasks in the {+atlas-ui+}: 
+
+- :ref:`Enable or disable reranking for a project <rerank-enable-disable>` 
+- :ref:`Monitor reranking usage <rerank-monitor-usage>`
+- :ref:`View Rate Limits and Usage <rerank-view-rate-limits>`
+- :ref:`Set a resource policy <rerank-resource-policy>`
+- :ref:`View metrics <rerank-metrics>`
+
+.. _rerank-enable-disable:
+
+.. collapsible:: 
+   :heading: Enable or Disable Native Reranking for a Project
+   :expanded: false
+
+   Before you can use the ``$rerank`` stage, you must enable reranking for your
+   project. To enable reranking, you must do the following:
+
+   .. procedure:: 
+      :style: Normal 
+
+      .. step:: Navigate to the project settings page.
+
+         a. Select the organization that
+            contains your project from the |ui-org-menu| in the
+            navigation bar.
+
+         #. Select your project
+            from the :guilabel:`Projects` menu in the navigation bar.
+
+         #. Click :guilabel:`Settings` in the sidebar.
+
+      .. step:: Enable or disable reranking.
+
+         To enable reranking, do the following:
+
+         a. In the :guilabel:`Project Settings` tab, set the
+            :guilabel:`Native Reranking: $rerank in the Aggregation Pipeline`
+            toggle to :guilabel:`On`.
+         #. In the :guilabel:`Confirm Rerank Model Usage`
+            window, select the checkbox to confirm that you
+            understand the costs associated with using the
+            ``$rerank`` stage and click :guilabel:`Confirm`.
+
+         To disable reranking, do the following:
+
+         a. In the :guilabel:`Project Settings` tab, set the
+            :guilabel:`Native Reranking: $rerank in the Aggregation Pipeline`
+            toggle to :guilabel:`Off`.
+         #. In the :guilabel:`Disable Native Reranking`
+            confirmation window, type ``Disable`` and click
+            :guilabel:`Disable`.
+
+            Disabling reranking might cause running queries
+            that use the ``$rerank`` stage to fail.      
+
+.. _rerank-monitor-usage:
+
+.. collapsible:: 
+   :heading: Monitor Token Usage 
+   :expanded: false
+
+   Monitor your token usage on the :guilabel:`Usage` page in
+   the {+atlas-ui+}. To view usage:
+
+   .. procedure:: 
+      :style: Normal 
+
+      .. step:: Navigate to the :guilabel:`Search & Vector Search` page.
+
+         a. Select the organization that
+            contains your project from the |ui-org-menu| in the
+            navigation bar.
+
+         #. Select your project from the :guilabel:`Projects` menu 
+            in the navigation bar.
+
+         #. In the sidebar, click :guilabel:`Search & Vector Search` 
+            under the :guilabel:`Database` heading.
+
+      .. step:: Click :guilabel:`Usage` under :guilabel:`Native Reranking` in the navigation bar.
+
+         The :guilabel:`Usage` page provides several views to
+         monitor and analyze your token usage. To learn more,
+         see :ref:`rerank-usage-page`.
+
+.. _rerank-view-rate-limits:
+
+.. collapsible:: 
+   :heading: View Rate Limits and Usage 
+   :expanded: false
+
+   .. procedure:: 
+      :style: Normal 
+
+      .. step:: Navigate to the :guilabel:`Search & Vector Search` page.
+
+         a. Select the organization that
+            contains your project from the |ui-org-menu| in the
+            navigation bar.
+
+         #. Select your project from the :guilabel:`Projects` menu 
+            in the navigation bar.
+
+         #. In the sidebar, click :guilabel:`Search & Vector Search` 
+            under the :guilabel:`Database` heading.
+
+      .. step:: Click :guilabel:`Rate Limits` under :guilabel:`Native Reranking` in the navigation bar.
+
+         The :guilabel:`Rate Limits` page provides information
+         on the rate limits for your project and guidance for
+         how to increase the rate limits.
