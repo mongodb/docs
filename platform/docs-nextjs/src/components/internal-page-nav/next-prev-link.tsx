@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import { Link } from '@/mdx-components/Link';
 import { css, cx } from '@leafygreen-ui/emotion';
 import Button from '@leafygreen-ui/button';
 import { Body } from '@leafygreen-ui/typography';
@@ -65,6 +65,13 @@ const baseButtonStyle = css`
   }
 `;
 
+const noUnderlineLinkStyling = css`
+  &:hover,
+  &:focus {
+    text-decoration: none;
+  }
+`;
+
 function scrollToTopHtml() {
   Promise.resolve().then(() => {
     requestAnimationFrame(() => {
@@ -98,7 +105,7 @@ const NextPrevLink = ({ className, icon, direction, pageTitle, title, targetSlug
 
   return (
     <div className={className}>
-      <Link href={targetSlug} title={title} onClick={handleClick}>
+      <Link to={targetSlug} {...{ title }} onClick={handleClick} className={noUnderlineLinkStyling}>
         <div className={cx({ [nextLinkContainerStyling]: isNext, [prevLinkContainerStyling]: isPrev })}>
           <Button className={cx(baseButtonStyle, navLinkButtonStyle)}>
             <Icon glyph={icon} />

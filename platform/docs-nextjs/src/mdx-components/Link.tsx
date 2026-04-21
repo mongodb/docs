@@ -9,6 +9,7 @@ import { validateHTMAttributes } from '@/utils/validate-element-attributes';
 import { Icon } from '@leafygreen-ui/icon';
 import { isRelativeUrl } from '@/utils/is-relative-url';
 import { assertLeadingAndTrailingSlash } from '@/utils/assert-leading-and-trailing-slash';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 type LinkThemeStyle = {
   color: string;
@@ -72,6 +73,17 @@ const linkStyling = (linkThemeStyle: LinkThemeStyle) => css`
   }
 `;
 
+/**
+ * Inserts index.html before the hash fragment (or at the end) for offline builds
+ */
+function addOfflineIndexHtml(url: string): string {
+  const hashIdx = url.indexOf('#');
+  if (hashIdx === -1) return url.replace(/\/?$/, '/index.html');
+  const path = url.slice(0, hashIdx);
+  const hash = url.slice(hashIdx).replace(/\/$/, '');
+  return path.replace(/\/?$/, '/index.html') + hash;
+}
+
 // DOP-3091: LG anchors are not inline by default
 const lgLinkStyling = css`
   display: inline;
@@ -126,6 +138,7 @@ export const Link = ({
 
   if (to && isRelativeUrl(to) && !anchor) {
     to = assertLeadingAndTrailingSlash(to);
+    if (isOfflineBuild) to = addOfflineIndexHtml(to);
 
     return (
       <NextLink
