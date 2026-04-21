@@ -2,6 +2,7 @@ import path from 'path';
 import fs from 'fs/promises';
 import type { Store } from '@netlify/blobs';
 import { productionStore, branchSpecificStore } from './blob-store';
+import { blobRelativeToDiskCandidates, loadDirNameToPrefixMap } from './blob-path-remap';
 
 const BUILD_STATIC_PAGES = process.env.BUILD_STATIC_PAGES === 'true';
 const CONTENT_MDX_DIR = process.env.CONTENT_MDX_DIR;
@@ -40,13 +41,19 @@ async function readLocalFile(key: string): Promise<Buffer | null> {
   if (!CONTENT_MDX_DIR) {
     throw new Error('CONTENT_MDX_DIR is required when BUILD_STATIC_PAGES is true.');
   }
-  try {
-    return await fs.readFile(path.join(CONTENT_MDX_DIR, keyToLocalPath(key)));
-  } catch (err) {
-    const isENOENT = err instanceof Error && 'code' in err && (err as NodeJS.ErrnoException).code === 'ENOENT';
-    if (isENOENT) return null;
-    throw err;
+  const blobRelative = keyToLocalPath(key);
+  const map = await loadDirNameToPrefixMap();
+  const candidates = blobRelativeToDiskCandidates(blobRelative, map);
+  for (const rel of candidates) {
+    try {
+      return await fs.readFile(path.join(CONTENT_MDX_DIR, rel));
+    } catch (err) {
+      const isENOENT = err instanceof Error && 'code' in err && (err as NodeJS.ErrnoException).code === 'ENOENT';
+      if (isENOENT) continue;
+      throw err;
+    }
   }
+  return null;
 }
 
 export const getBlobString = async (key: string): Promise<string | null> => {

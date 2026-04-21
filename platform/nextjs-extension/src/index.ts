@@ -17,6 +17,7 @@ import { getParser } from "./github/getParser";
 import { runPrebuildModules } from "./parse/runModules";
 import {
 	getAllProjectNames,
+	getDocsMonorepoRoot,
 	type ProjectNames,
 } from "./contentMetadata/readSnootyToml";
 import { fetchAtlasData } from "./contentMetadata/fetchAndStoreAtlasData";
@@ -27,7 +28,6 @@ import {
 import { getParserVersion } from "./parse/runModules";
 import { runMdxConversionForContentPaths } from "./parse/runMdxConversion";
 import { buildToc } from "./buildTOC/index";
-import { handleSearchManifests } from "./searchManifests/index";
 import { handleOfflineDownloads } from "./offline-docs/index";
 import { writePathPrefixListToFile } from "./blobUploads/buildPrefixList";
 import { handleAllBlobUploads } from "./blobUploads/handleAllBlobUploads";
@@ -88,9 +88,11 @@ extension.addBuildEventHandler(
 			dbEnvVars,
 		});
 
+		const monorepoRoot = getDocsMonorepoRoot(RELATIVE_PATH_TO_CONTENT);
 		const contentDirectories = await findAllContentPaths(
 			CONTENT_DIR,
 			TOML_SEARCH_MAX_DEPTH,
+			monorepoRoot,
 		);
 		if (!contentDirectories.length) {
 			console.warn("No snooty.toml files found");
@@ -123,7 +125,7 @@ extension.addBuildEventHandler(
 		}
 
 		const projectNames: ProjectNames =
-			await getAllProjectNames(contentDirectories);
+			await getAllProjectNames(contentDirectories, monorepoRoot);
 		console.log("Retrieved all project names for changed content paths");
 
 		const atlasProjectDocuments = await fetchAtlasData({

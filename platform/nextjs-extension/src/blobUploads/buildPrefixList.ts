@@ -4,7 +4,7 @@ import type { AllContentData } from '../contentMetadata/processContentMetadata.j
 import { stripDocsPrefix } from './utils.js';
 
 /** Build prefix-map.json: list of all valid project paths, sorted longest-first for use in site.json lookup in next */
-const buildPrefixList = (allContentData: AllContentData): string[] => {
+export const buildPrefixList = (allContentData: AllContentData): string[] => {
   const projectPrefixes: Set<string> = new Set<string>();
   for (const entry of Object.values(allContentData.docsPaths)) {
     const projectDocs = allContentData.atlasProjectDocuments[entry.projectName];

@@ -85,8 +85,8 @@ export class Extension<
 		type: BuildHookType,
 		func: BuildHookWithEnvVars<
 			StaticEnvVars,
-			Zod.infer<BuildContext>,
-			Zod.infer<BuildConfigSchema>
+			z.infer<BuildContext>,
+			z.infer<BuildConfigSchema>
 		>,
 		options?: BuildHookOptions,
 	): Promise<void> => {
@@ -99,7 +99,7 @@ export class Extension<
 			},
 			{
 				...options,
-				if: (buildConfig: Zod.infer<BuildConfigSchema>) => {
+				if: (buildConfig: z.infer<BuildConfigSchema>) => {
 					if (!this.isEnabled) {
 						return false;
 					}

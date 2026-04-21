@@ -1,16 +1,17 @@
 import fsExists from 'fs.promises.exists';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import type { AllContentData } from './processContentMetadata.js';
 
 /** DFS search for dirs that contain a snooty.toml up to maxDepth, baseDir depth is 0
  ** @param baseDir - absolute path to the starting directory to search from
  ** @param maxDepth - maximum depth to search to below baseDir
- ** @returns absolute paths of dirs that contain a snooty.toml
+ ** @param pathsRelativeTo - absolute monorepo root; returned paths are
+ **   `path.relative(pathsRelativeTo, dir)` for each directory that contains a snooty.toml
  */
 export const findAllContentPaths = async (
   baseDir: string,
   maxDepth: number,
+  pathsRelativeTo: string,
 ): Promise<string[]> => {
   const dirsWithToml: string[] = [];
   const directoryStack: Array<{ dir: string; depth: number }> = [
@@ -48,7 +49,7 @@ export const findAllContentPaths = async (
       directoryStack.push({ dir: subdir, depth: depth + 1 });
     }
   }
-  return dirsWithToml.map((contentPath) =>
-    path.relative('/opt/build/repo', contentPath),
-  );
+
+  const relativeBase = path.resolve(pathsRelativeTo);
+  return dirsWithToml.map((contentPath) => path.relative(relativeBase, contentPath));
 };

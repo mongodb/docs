@@ -1,4 +1,3 @@
-import type { NetlifyPluginUtils } from '@netlify/build';
 import type { AtlasProjectDocuments } from './fetchAndStoreAtlasData';
 import type { ProjectNames } from './readSnootyToml';
 import type {

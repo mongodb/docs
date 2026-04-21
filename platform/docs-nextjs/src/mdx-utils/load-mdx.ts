@@ -9,7 +9,7 @@ import { remarkResolveImports } from './remark-resolve-imports';
 import { remarkStepNumbers } from './remark-step-numbers';
 import { components } from '@/mdx-components';
 import { getBlobString } from './blob-read';
-import { MDX_PREFIX } from './get-blob-key';
+import { getBlobKey } from './get-blob-key';
 import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
 import { getSiteMetadata } from './load-metadata';
 
@@ -18,13 +18,12 @@ export const VERSION_PLACEHOLDER = ':version';
 export const isVersionPlaceholder = (seg: string) => decodeURIComponent(seg) === VERSION_PLACEHOLDER;
 
 const fetchMdxString = async (filePath: string) => {
-  // lookup the file by name
-  const mdxString = await getBlobString(`${MDX_PREFIX}/${filePath}.mdx`);
+  const pageKey = getBlobKey(`${filePath}.mdx`);
+  const mdxString = await getBlobString(pageKey);
   if (mdxString) {
     return mdxString;
   }
-  // If not found by file name, try folder name with index path
-  return await getBlobString(`${MDX_PREFIX}/${filePath}/index.mdx`);
+  return await getBlobString(getBlobKey(`${filePath}/index.mdx`));
 };
 
 interface CompileMdxWithPluginsOptions {
