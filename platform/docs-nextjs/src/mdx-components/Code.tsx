@@ -18,6 +18,7 @@ import { DRIVER_ICON_MAP } from '@/components/icons/DriverIconMap';
 import { getLanguage } from '@/utils/get-language';
 import { STRUCTURED_DATA_CLASSNAME } from '@/utils/structured-data/structured-data';
 import { CodeContext } from '@/components/code/code-context';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import { baseCodeStyle, borderCodeStyle, lgStyles } from '@/mdx-components/IOCode/style';
 import { SoftwareSourceCodeSd } from '@/utils/structured-data/software-source-code-sd';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
@@ -114,6 +115,15 @@ export const Code = ({
   const captionBorderRadius = captionSpecified ? '0px' : '12px';
 
   const customActionButtonList: JSX.Element[] = [];
+
+  // Add a copy button for offline builds
+  if (isOfflineBuild) {
+    customActionButtonList.push(
+      <IconButton aria-label="Copy">
+        <Icon glyph="Copy" />
+      </IconButton>,
+    );
+  }
 
   if (sourceSpecified) {
     customActionButtonList.push(

@@ -281,89 +281,67 @@ async function removeAllTxtFiles(dir: string): Promise<void> {
   }
 }
 
-const OFFLINE_TABS_SCRIPT = `<script>\n${readFileSync(
-  path.join(__dirname, 'offline-ui', 'tabs.js'),
-  'utf-8',
-)}\n</script>`;
+interface OfflineUIModule {
+  /** HTML marker string that must be present for this module to activate. */
+  detect: string;
+  /** Filename under offline-ui/ to inline as a <script> before </body>. */
+  jsFile: string;
+  /** Optional inline CSS to inject before </head>. */
+  headStyle?: string;
+}
 
-const OFFLINE_COMPOSABLE_TUTORIAL_SCRIPT = `<script>\n${readFileSync(
-  path.join(__dirname, 'offline-ui', 'composable-tutorial.js'),
-  'utf-8',
-)}\n</script>`;
-
-const OFFLINE_SIDENAV_COLLAPSIBLE_SCRIPT = `<script>\n${readFileSync(
-  path.join(__dirname, 'offline-ui', 'sidenav-collapsible.js'),
-  'utf-8',
-)}\n</script>`;
-
-// Override the default LeafyGreen tab activation behavior to use the tabset name to see the green underline.
-const OFFLINE_TABS_STYLE = `
-<style>
+// Each entry describes one offline UI enhancement. Order matters: more specific
+// detect strings (e.g. 'offline-collapsible-nav') must come before substrings
+// they contain (e.g. 'offline-collapsible') to avoid double-injecting styles.
+const OFFLINE_UI_MODULES: OfflineUIModule[] = [
+  {
+    detect: 'data-lgid="lg-tabs"',
+    jsFile: 'tabs.js',
+    // Override the default LeafyGreen tab activation behavior to show the green underline.
+    headStyle: `<style>
   [data-lgid="lg-tabs-tab_list"] [role="tab"][aria-selected="true"]::after {
     background-color: #00A35C;
     transform: scaleX(1);
   }
-</style>`;
-
-// Rotate the always-rendered CaretDown icon 180° to look like CaretUp when closed.
-const OFFLINE_SIDENAV_COLLAPSIBLE_STYLE = `
-<style>
+</style>`,
+  },
+  {
+    detect: 'offline-collapsible-nav',
+    jsFile: 'sidenav-collapsible.js',
+    // Rotate the always-rendered CaretDown icon 180° to look like CaretUp when closed.
+    headStyle: `<style>
   .offline-collapsible-nav:not(.nav-open) svg[aria-label="Caret Down Icon"] {
     transform: rotate(180deg);
   }
-</style>`;
-
-// Check to see if the page has a tabset and inject the script and style to override the default LeafyGreen tab activation behavior.
-function injectTabsScript(content: string): string {
-  if (!content.includes('data-lgid="lg-tabs"')) return content;
-  return content
-    .replace(/<\/head>/i, OFFLINE_TABS_STYLE + '\n</head>')
-    .replace(/<\/body>/i, OFFLINE_TABS_SCRIPT + '\n</body>');
-}
-
-const OFFLINE_COLLAPSIBLE_SCRIPT = `<script>\n${readFileSync(
-  path.join(__dirname, 'offline-ui', 'collapsible.js'),
-  'utf-8',
-)}\n</script>`;
-
-const OFFLINE_IO_CODE_SCRIPT = `<script>\n${readFileSync(
-  path.join(__dirname, 'offline-ui', 'io-code.js'),
-  'utf-8',
-)}\n</script>`;
-
-// Rotate the ChevronRight icon 90° clockwise to look like ChevronDown when open.
-const OFFLINE_COLLAPSIBLE_STYLE = `
-<style>
+</style>`,
+  },
+  {
+    detect: 'offline-collapsible',
+    jsFile: 'collapsible.js',
+    // Rotate the ChevronRight icon 90° clockwise to look like ChevronDown when open.
+    headStyle: `<style>
   details.offline-collapsible[open] summary button svg {
     transform: rotate(90deg);
   }
-</style>`;
+</style>`,
+  },
+  { detect: 'offline-composable', jsFile: 'composable-tutorial.js' },
+  { detect: 'data-io-toggle', jsFile: 'io-code.js' },
+  { detect: 'data-testid="leafygreen-code-panel"', jsFile: 'code-copy.js' },
+];
 
-// Restore toggle behaviour for Collapsible components whose React state
-// handler never runs because React does not hydrate in the offline build.
-function injectCollapsibleScript(content: string): string {
-  if (!content.includes('offline-collapsible')) return content;
-  return content
-    .replace(/<\/head>/i, OFFLINE_COLLAPSIBLE_STYLE + '\n</head>')
-    .replace(/<\/body>/i, OFFLINE_COLLAPSIBLE_SCRIPT + '\n</body>');
-}
+const loadedOfflineUIModules = OFFLINE_UI_MODULES.map((m) => ({
+  ...m,
+  script: `<script>\n${readFileSync(path.join(__dirname, 'offline-ui', m.jsFile), 'utf-8')}\n</script>`,
+}));
 
-function injectComposableTutorialScript(content: string): string {
-  if (!content.includes('offline-composable')) return content;
-  return content.replace(/<\/body>/i, OFFLINE_COMPOSABLE_TUTORIAL_SCRIPT + '\n</body>');
-}
-
-function injectIoCodeScript(content: string): string {
-  if (!content.includes('data-io-toggle')) return content;
-  return content.replace(/<\/body>/i, OFFLINE_IO_CODE_SCRIPT + '\n</body>');
-}
-
-// Restore toggle behaviour for the sidenav CollapsibleNavItem.
-function injectSidenavCollapsibleScript(content: string): string {
-  if (!content.includes('offline-collapsible-nav')) return content;
-  return content
-    .replace(/<\/head>/i, OFFLINE_SIDENAV_COLLAPSIBLE_STYLE + '\n</head>')
-    .replace(/<\/body>/i, OFFLINE_SIDENAV_COLLAPSIBLE_SCRIPT + '\n</body>');
+function applyOfflineUI(content: string): string {
+  for (const { detect, script, headStyle } of loadedOfflineUIModules) {
+    if (!content.includes(detect)) continue;
+    if (headStyle) content = content.replace(/<\/head>/i, headStyle + '\n</head>');
+    content = content.replace(/<\/body>/i, script + '\n</body>');
+  }
+  return content;
 }
 
 async function postProcess(): Promise<void> {
@@ -372,11 +350,7 @@ async function postProcess(): Promise<void> {
     const content = await fs.readFile(filePath, 'utf-8');
     const prefix = getRelativePrefix(filePath);
     let rewritten = rewriteHtmlLinks(content, prefix);
-    rewritten = injectTabsScript(rewritten);
-    rewritten = injectCollapsibleScript(rewritten);
-    rewritten = injectComposableTutorialScript(rewritten);
-    rewritten = injectIoCodeScript(rewritten);
-    rewritten = injectSidenavCollapsibleScript(rewritten);
+    rewritten = applyOfflineUI(rewritten);
     if (rewritten !== content) await fs.writeFile(filePath, rewritten, 'utf-8');
   }
 }
