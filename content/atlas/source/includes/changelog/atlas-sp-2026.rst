@@ -1,3 +1,14 @@
+.. _atlas-sp-20260415:
+
+15 April 2026 Release
+---------------------
+
+- Adds support for {+gcp+} Pub/Sub as a sink. To learn more, see :ref:`{+gcp+} Pub/Sub Connections
+  <atlas-sp-add-connection>`.
+- Adds support for uploading processor definitions directly from
+  local ``.json`` files using a new :guilabel:`Upload file` button
+  on the JSON Editor UI page.
+
 .. _atlas-sp-20260406:
 
 6 April 2026 Release
