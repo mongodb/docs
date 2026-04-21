@@ -43,8 +43,6 @@
                 Ensure that ``0.0.0.0/0`` isn't on the list. Having this entry
                 disables the integration.
 
-                .. include:: /includes/fact-nested-wildcard-ip.rst
-      
              b. In the :guilabel:`Choose Discovery API Target Type`
                 step in the {+atlas-ui+}, do one of the following tasks:
       
@@ -138,7 +136,11 @@
       
       To learn more about the Discovery API, see
       :ref:`prometheus-discovery-endpoint`.
-      
+
+      .. include:: /includes/fact-nested-wildcard-ip.rst
+
+      .. include:: /includes/security/fact-unrestricted-ip-access.rst
+
    .. step:: Click :guilabel:`Save`.
       
    .. step:: View Your Cluster Metrics on Prometheus.

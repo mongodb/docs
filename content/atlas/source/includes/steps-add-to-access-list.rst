@@ -16,8 +16,10 @@
          
          Ensure that you add the IP address you will use to
          access MongoDB as the ``admin`` user.
+
+         .. include:: /includes/security/fact-unrestricted-ip-access.rst
       
-      Enter the desired IP address or |cidr|\-notated range of addresses:
+      Enter the desired IP address or |cidr|-notated range of addresses:
       
       .. list-table::
          :header-rows: 1
@@ -41,14 +43,7 @@
              The Internet provides online tools for converting a range of
              IP addresses to |cidr|, such as
              `<http://www.ipaddressguide.com/cidr>`_.
-      
-             :gold:`IMPORTANT:` Adding the |cidr| ``0.0.0.0/0`` allows access from anywhere.
-             Ensure that strong credentials (username and password) are
-             used for all database users when allowing access from
-             anywhere.
 
-             .. include:: /includes/fact-nested-wildcard-ip.rst
-      
          * - Security Group ID (AWS Only)
       
            - Access via Security Group membership from a peered VPC.
@@ -56,7 +51,11 @@
              :gold:`IMPORTANT:` |service| does not support adding |aws| security groups to
              IP access lists in projects with |vpc| peering connections
              in multiple regions.
-      
+
+      .. include:: /includes/fact-nested-wildcard-ip.rst
+
+      .. include:: /includes/security/fact-unrestricted-ip-access.rst
+
    .. step:: (Optional) Set the IP access list as temporary.
       
       Check the :guilabel:`Save as temporary access list` option to specify

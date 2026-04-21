@@ -78,9 +78,11 @@
          MongoDB live migration server IP addresses to the source {+cluster+}
          IP access list. You can find the IP addresses in the walk-through screen.
 
-         Add only the specific IP addresses from the UI to your access list. 
-         Do not configure your source {+cluster+} to allow access from anywhere (0.0.0.0/0), 
-         as this exposes it to the entire internet.
+         Add only the specific IP addresses from the UI to your access list.
+         Do not configure your source {+cluster+} to allow access from
+         anywhere (0.0.0.0/0).
+
+         .. include:: /includes/security/fact-unrestricted-ip-access.rst
 
          If your source {+cluster+} does not have IP access list enabled,
          you can skip this step.
