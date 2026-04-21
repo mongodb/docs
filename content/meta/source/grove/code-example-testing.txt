@@ -1,11 +1,18 @@
 .. meta::
    :robots: noindex, nosnippet
+   :description: Overview of Grove's code example testing infrastructure, covering why tested examples matter, how the workflow maps files, supported languages, and what a test file looks like.
 
 .. _grove-test-code-examples:
 
 ==================
 Test Code Examples
 ==================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
 
 .. toctree::
    :titlesonly:
@@ -16,3 +23,194 @@ Test Code Examples
    /grove/code-testing/run-tests-locally
    /grove/code-testing/snip-tested-examples
    /grove/code-testing/mark-up-code-examples
+
+Grove's code example testing infrastructure validates
+code examples used in MongoDB documentation. Use the
+pages in this section for detailed instructions on how
+to:
+
+- Set up a local environment
+- Create example files
+- Add tests for examples
+- Run tests locally
+- Format and snip tested examples for inclusion in
+  documentation
+
+For guidance on writing tests that prove what your
+example actually teaches, see
+:ref:`grove-writing-good-tests`.
+
+Why Test Code Examples
+----------------------
+
+Consider what happens without tested examples:
+
+1. A writer copies a code snippet into a docs page.
+#. Six months later, a driver release changes a default
+   behavior.
+#. The code now returns different output, or errors
+   entirely.
+#. Nobody notices until a reader files a bug.
+
+Grove surfaces these issues before a reader encounters
+them. When we bump the driver version in Grove, the
+test fails, and you know to update the example.
+
+Grove also validates the original example and verifies
+that the output is what the writer expects. For example,
+Grove checks that there are no hallucinated or deprecated
+APIs and no invalid options.
+
+.. important::
+
+   Not all code examples are considered tested. Only
+   examples that you create using Grove are considered
+   tested code examples.
+
+How Grove Tests Work
+--------------------
+
+The following diagram shows how the files you write map
+to the files that Grove produces:
+
+.. image:: /images/grove-snippet-flow.png
+   :alt: Grove file mapping
+   :figwidth: 600px
+
+Each code example has three files that serve three roles:
+
+.. list-table::
+   :widths: 20 40 40
+   :header-rows: 1
+
+   * - File
+     - Description
+     - Location in Grove
+   * - Example file
+     - Code readers see in the docs.
+     - ``examples/{topic}/``
+   * - Expected output file
+     - File that the example produces when it runs.
+     - ``examples/{topic}/`` (next to the example)
+   * - Test file
+     - File that runs the example and verifies the output.
+     - ``tests/{topic}/``
+
+You provide the example file and optional output file.
+The test file validates them. The ``snip.js`` script
+extracts doc-ready snippets from the source files into
+``content/code-examples/tested/{language}/{driver}/``.
+
+Supported MongoDB Products
+--------------------------
+
+Grove's code example testing infrastructure currently
+supports the following MongoDB products:
+
+- Drivers
+
+  - C#/.NET
+  - Go
+  - Java Sync
+  - JavaScript
+  - PyMongo
+
+- MongoDB Shell
+
+Each language has its own directory in
+``code-example-tests/``. The Expect API has the same
+semantics in every language; only the casing and syntax
+change:
+
+.. list-table::
+   :widths: 15 15 30 20 20
+   :header-rows: 1
+
+   * - Suite
+     - Framework
+     - Expect API Style
+     - Module Style
+     - Run Tests
+   * - JavaScript
+     - Jest
+     - ``Expect.that(result).shouldMatch(file)``
+     - ES modules (``import``)
+     - ``npm test``
+   * - Python
+     - unittest
+     - ``Expect.that(result).should_match(file)``
+     - Python imports
+     - ``python3 -m unittest discover``
+   * - Go
+     - go test
+     - ``compare.ExpectThat(t, result).ShouldMatch(file)``
+     - Go packages
+     - ``go test -v``
+   * - Java
+     - JUnit 5
+     - ``Expect.that(result).shouldMatch(file)``
+     - Maven/Java imports
+     - ``mvn clean install``
+   * - C#
+     - NUnit 3
+     - ``Expect.That(result).ShouldMatch(file)``
+     - .NET/NuGet
+     - ``dotnet test``
+   * - mongosh
+     - Jest
+     - ``Expect.outputFromExampleFiles([...]).shouldMatch(file)``
+     - CommonJS (``require``)
+     - ``npm test``
+
+What a Test File Looks Like
+---------------------------
+
+The test structure varies by framework, but the following
+pattern usually applies:
+
+1. **Set up:** Connect and prepare any needed state.
+#. **Run:** Call the example and capture its return value.
+#. **Assert:** Compare the result to expected output.
+#. **Clean up:** Revert any database changes.
+
+Select your interface and language for an example test
+file:
+
+.. composable-tutorial::
+   :options: interface, language
+   :defaults: driver, nodejs
+
+   .. selected-content::
+      :selections: driver, csharp
+
+      .. include:: /includes/grove/test-file-structure-csharp.rst
+
+   .. selected-content::
+      :selections: driver, go
+
+      .. include:: /includes/grove/test-file-structure-go.rst
+
+   .. selected-content::
+      :selections: driver, java-sync
+
+      .. include:: /includes/grove/test-file-structure-java.rst
+
+   .. selected-content::
+      :selections: mongosh, none
+
+      .. include:: /includes/grove/test-file-structure-mongosh.rst
+
+   .. selected-content::
+      :selections: driver, nodejs
+
+      .. include:: /includes/grove/test-file-structure-javascript.rst
+
+   .. selected-content::
+      :selections: driver, python
+
+      .. include:: /includes/grove/test-file-structure-python.rst
+
+For detailed instructions on adding tests in each
+language, see :ref:`grove-add-tests`. For guidance on
+writing tests that prove something, see
+:ref:`grove-writing-good-tests`.

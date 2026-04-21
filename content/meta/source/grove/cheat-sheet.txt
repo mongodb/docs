@@ -1,0 +1,265 @@
+.. meta::
+   :robots: noindex, nosnippet
+   :description: Quick reference for Grove code example testing: Expect API syntax, wildcard patterns, cleanup hooks, Bluehawk tags, common mistakes, and a glossary of terms.
+
+.. _grove-cheat-sheet:
+
+=========================
+Grove Testing Cheat Sheet
+=========================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This is a scannable reference for Grove code example
+testing. For conceptual guidance on writing tests that
+prove something, see :ref:`grove-writing-good-tests`.
+
+Expect API at a Glance
+----------------------
+
+The Expect API has the same semantics in every language;
+only the casing and syntax change. For the exact syntax
+per language, see the language suites table on
+:ref:`grove-test-code-examples`.
+
+Use ``shouldMatch`` for exact output comparison:
+
+.. code-block:: javascript
+
+   Expect.that(result)
+     .shouldMatch("path/to/output.json");
+
+Chain options to handle dynamic values or enforce
+ordering. Array comparison is **unordered by default**,
+so you only need ``withOrderedSort()`` when the order
+of results matters:
+
+.. code-block:: javascript
+
+   Expect.that(result)
+     .withIgnoredFields("_id", "updatedAt")
+     .withOrderedSort()
+     .shouldMatch("path/to/output.json");
+
+Use ``shouldResemble`` when the *shape* of the output
+matters but exact values do not. ``shouldResemble`` must
+be followed by ``withSchema``, and the only **required**
+schema property is ``count``:
+
+.. code-block:: javascript
+
+   Expect.that(result)
+     .shouldResemble("path/to/output.json")
+     .withSchema({
+       count: 5,
+       requiredFields: ["_id", "title", "year"],
+       fieldValues: { year: 2012 }
+     });
+
+Rules
+~~~~~
+
+- ``shouldMatch`` and ``shouldResemble`` are mutually
+  exclusive.
+- ``withIgnoredFields`` and ``withOrderedSort`` only work
+  with ``shouldMatch``.
+- ``shouldResemble`` *must* be followed by ``withSchema``.
+- Use ``requiredFields`` in the schema instead of
+  ``withIgnoredFields`` to enforce field existence with
+  ``shouldResemble``.
+
+Wildcard Patterns
+-----------------
+
+Real output often contains values that change every run,
+such as ``_id`` (when inserting data) or timestamps. Use ellipsis patterns in
+the expected output file instead of hard-coding those
+values:
+
+.. list-table::
+   :widths: 25 35 40
+   :header-rows: 1
+
+   * - Pattern
+     - Description
+     - Example
+   * - ``"..."``
+     - Any value
+     - ``{ _id: "..." }`` matches any ``_id``
+   * - ``"prefix..."``
+     - String starting with prefix
+     - ``{ plot: "A young man..." }``
+   * - ``[...]``
+     - Any array
+     - ``{ tags: [...] }``
+   * - ``{ ... }``
+     - Any object
+     - ``{ nested: { ... } }``
+   * - ``"...": "..."``
+     - Any key-value pair (object wildcard)
+     - ``{ metadata: { "...": "..." } }``
+   * - ``...`` (standalone line)
+     - Allow extra fields in the actual output
+     - ``{ title: "...", ... }``
+
+These patterns work the same way in every language
+suite.
+
+Cleanup Hooks by Framework
+--------------------------
+
+Each framework has a "runs after each test" hook. Put
+cleanup code here:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Framework
+     - Hook
+   * - Jest (JS, mongosh)
+     - ``afterEach(() => { ... })``
+   * - unittest (Python)
+     - ``def tearDown(self):``
+   * - go test (Go)
+     - ``defer cleanup()``
+   * - JUnit (Java)
+     - ``@AfterEach void tearDown()``
+   * - NUnit (C#)
+     - ``[TearDown] public void TearDown()``
+
+For cleanup patterns and idempotency guidance, see
+:ref:`grove-cleanup` and :ref:`grove-idempotency`.
+
+Bluehawk Tags
+-------------
+
+Bluehawk tags use the language's native comment syntax
+and do not affect how the code runs. The most common
+tags:
+
+- ``:snippet-start: <name>`` / ``:snippet-end:`` — mark a
+  named section to extract. The name must be unique
+  within the file.
+- ``:remove-start:`` / ``:remove-end:`` — exclude lines
+  from the extracted snippet (for example, test-only
+  setup or imports).
+
+For the full tag reference, see
+:ref:`grove-mark-up-examples`.
+
+Common Mistakes
+---------------
+
+.. list-table::
+   :widths: 30 30 40
+   :header-rows: 1
+
+   * - Mistake
+     - Fix
+     - Reason
+   * - Dropping ``sample_mflix`` in cleanup.
+     - Revert specific changes only.
+     - Sample datasets are shared across all tests
+       and take a long time to reload.
+   * - Hard-coding variable ``_id`` values in expected
+       output.
+     - Use ``"..."`` or ``withIgnoredFields("_id")``.
+     - ObjectIds change every run. Hard-coded values
+       cause flaky tests.
+   * - No cleanup for writes to sample data.
+     - Every mutation needs a matching undo.
+     - Leftover data breaks idempotency. The next
+       run starts from a different state.
+   * - Using ``shouldMatch`` and ``shouldResemble``
+       together.
+     - Use one or the other.
+     - They are mutually exclusive. The comparison
+       engine cannot apply both strategies.
+   * - Using ``withIgnoredFields`` with
+       ``shouldResemble``.
+     - Remove ``withIgnoredFields``. If you need to
+       ignore fields, use ``requiredFields`` with
+       only the fields you care about.
+     - Schema validation does not compare exact
+       values, so ignoring fields has no effect.
+   * - Hand-writing expected output from scratch.
+     - Run the example first and capture real output.
+     - Hand-written output often has subtle format
+       mismatches that cause hard-to-debug failures.
+   * - Editing files in
+       ``content/code-examples/tested/``.
+     - Edit the source in Grove and re-snip.
+     - These files are generated. Manual edits are
+       overwritten the next time you run
+       ``node snip.js``.
+
+MongoDB Shell-Specific Mistakes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 30 30 40
+   :header-rows: 1
+
+   * - Mistake
+     - Fix
+     - Reason
+   * - Using ``import`` / ES modules.
+     - Use ``require`` (CommonJS).
+     - The ``mongosh`` Jest configuration does not
+       support ES module syntax.
+   * - Putting connection code in example files.
+     - Remove the connection code.
+     - The harness injects connection setup
+       automatically through ``mongosh --file``.
+   * - Forgetting ``.withDbName()``.
+     - Add ``.withDbName("db_name")``.
+     - ``outputFromExampleFiles()`` requires a
+       database name to connect to the right
+       namespace.
+   * - Forgetting ``await`` before ``Expect``.
+     - Add ``await``.
+     - ``outputFromExampleFiles()`` is async. Without
+       ``await``, the test passes before the
+       assertion runs.
+
+Glossary
+--------
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Term
+     - Description
+   * - Grove
+     - The code example testing platform.
+   * - Bluehawk
+     - The tool that extracts tagged snippets from
+       source files.
+   * - Snip
+     - Process of running ``node snip.js`` to extract
+       snippets.
+   * - Expect API
+     - The fluent interface for writing test assertions
+       (all languages).
+   * - Sample data
+     - Pre-loaded Atlas datasets (``sample_mflix``,
+       ``sample_restaurants``, and so on).
+   * - ``shouldMatch``
+     - Exact output comparison (with optional
+       wildcards).
+   * - ``shouldResemble``
+     - Schema-based validation (count, fields, values).
+   * - Ellipsis pattern
+     - ``"..."`` in expected output; matches any value.
+   * - Cleanup
+     - Restoration of database state so the next test
+       run starts clean.
+   * - Idempotent
+     - A test that produces the same result no matter
+       how many times you run it.
