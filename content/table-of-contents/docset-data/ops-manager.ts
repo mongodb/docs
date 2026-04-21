@@ -2521,12 +2521,6 @@ const tocData: TocItem[] = [
                     ],
                   },
                   {
-                    label: 'Checkpoints',
-                    contentSite: 'ops-manager',
-                    url: '/docs/ops-manager/:version/reference/api/checkpoints',
-                    versions: { includes: ['v7.0'] },
-                  },
-                  {
                     label: 'Restore Jobs',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/reference/api/restore-jobs',
@@ -2677,37 +2671,31 @@ const tocData: TocItem[] = [
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/reference/api/import-deployments',
                 collapsible: true,
-                versions: { excludes: ['v7.0'] },
                 items: [
                   {
                     label: 'Create Import Deployment Request',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/reference/api/import-deployments/create',
-                    versions: { excludes: ['v7.0'] },
                   },
                   {
                     label: 'Get Import Deployment Requests',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/reference/api/import-deployments/get-all',
-                    versions: { excludes: ['v7.0'] },
                   },
                   {
                     label: 'Get Import Deployment Request Status',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/reference/api/import-deployments/get-status',
-                    versions: { excludes: ['v7.0'] },
                   },
                   {
                     label: 'Cancel Import Deployment Request',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/reference/api/import-deployments/cancel',
-                    versions: { excludes: ['v7.0'] },
                   },
                   {
                     label: 'Delete Import Deployment Request',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/reference/api/import-deployments/delete',
-                    versions: { excludes: ['v7.0'] },
                   },
                 ],
               },
