@@ -43,20 +43,24 @@
          <azure-kms-enable-pvt-endpoint>` to your |akv|. 
 
    .. step:: Enter the :guilabel:`Encryption Key`.
-      
+
       .. list-table::
          :widths: 20 80
          :stub-columns: 1
-      
+
          * - Key Identifier
            - Enter the full |url| for the key created in the Key Vault.
-      
+
              :gold:`IMPORTANT:` The key identifier must be provided in the full
              :azure:`Azure general format </key-vault/general/about-keys-secrets-certificates>`:
-      
+
              .. code-block:: text
-      
-                https://{keyvault-name}.vault.azure.net/{object-type}/{object-name}/{object-version}
+
+                https://{keyvault-name}.vault.azure.net/{object-type}/{object-name}
+
+             You may append ``/{object-version}``. However, we
+             recommend you omit the version to enable automatic
+             resolution to the latest version.
 
    .. step:: (Optional) Configure private endpoint connections to your |akv|.
 
