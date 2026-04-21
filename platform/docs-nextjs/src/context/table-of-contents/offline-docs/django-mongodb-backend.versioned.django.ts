@@ -97,10 +97,15 @@ export const toc: L1TocItem[] = [
             },
           },
           {
-            label: 'Third-Party Integrations',
+            label: 'Integrations',
             contentSite: 'django',
             collapsible: true,
             items: [
+              {
+                label: 'Django MongoDB Extensions',
+                contentSite: 'django',
+                url: '/docs/languages/python/django-mongodb/:version/integrations/django-mongodb-extensions',
+              },
               {
                 label: 'Migrate Djongo ODM Applications',
                 contentSite: 'django',

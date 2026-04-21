@@ -1,0 +1,243 @@
+.. _django-extensions-get-started:
+
+==========================================
+Get Started with {+django-ext+}
+==========================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to install and configure the MQL panel in Django MongoDB Extensions to use with Django Debug Toolbar to view and analyze MongoDB queries in your application.
+   :keywords: debug toolbar, MQL panel, query debugging, extensions
+
+Overview
+--------
+
+In this tutorial, you can learn how to use the **{+django-ext+}**
+package in your {+framework+} project.
+
+{+django-ext+} is a package that extends {+django-odm+} with
+developer tooling. This tutorial shows you how to configure
+the MongoDB Query Language (MQL) panel in {+django-ext+} to use
+with the {+ddt+}. This panel shows the MQL queries that
+your application runs during a request, along with
+execution times and query plans.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Before you begin this tutorial, complete the following prerequisite
+tasks:
+
+- Create a {+framework+} project that uses {+django-odm+}. To create a
+  project, see the :ref:`django-get-started` tutorial.
+- Install and configure the {+ddt+} in your project.
+  To view instructions, see `Installation <https://django-debug-toolbar.readthedocs.io/en/latest/installation.html>`__
+  in the {+ddt+} documentation.
+
+Tutorial
+--------
+
+The following steps show you how to install {+django-ext+}, configure
+the MQL panel, and view MongoDB queries in the {+ddt+}.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Install {+django-ext+}.
+
+      Run the following command to install {+django-ext+}:
+
+      .. code-block:: bash
+
+         pip install django-mongodb-extensions
+
+   .. step:: Add {+django-ext+} to your installed apps.
+
+      Navigate to your project's ``settings.py`` file and add
+      ``"django_mongodb_extensions"`` to the ``INSTALLED_APPS``
+      setting, as shown in the following example:
+
+      .. code-block:: python
+         :emphasize-lines: 2
+
+         INSTALLED_APPS = [
+             'django_mongodb_extensions',
+             # ... your other apps
+         ]
+
+   .. step:: Register the MQL panel.
+
+      By default, the {+ddt+} works without requiring a
+      ``DEBUG_TOOLBAR_PANELS`` setting. However, because MongoDB
+      doesn't use SQL, the most common configuration for MongoDB
+      applications is to replace the SQL panel with the MQL panel.
+      Add the following setting to your ``settings.py`` file, which
+      sets ``DEBUG_TOOLBAR_PANELS`` to the default values but replaces ``SQLPanel`` with
+      ``MQLPanel``:
+
+      .. code-block:: python
+         :emphasize-lines: 8
+
+         DEBUG_TOOLBAR_PANELS = [
+             'debug_toolbar.panels.history.HistoryPanel',
+             'debug_toolbar.panels.versions.VersionsPanel',
+             'debug_toolbar.panels.timer.TimerPanel',
+             'debug_toolbar.panels.settings.SettingsPanel',
+             'debug_toolbar.panels.headers.HeadersPanel',
+             'debug_toolbar.panels.request.RequestPanel',
+             'django_mongodb_extensions.mql_panel.MQLPanel',
+             'debug_toolbar.panels.staticfiles.StaticFilesPanel',
+             'debug_toolbar.panels.templates.TemplatesPanel',
+             'debug_toolbar.panels.alerts.AlertsPanel',
+             'debug_toolbar.panels.cache.CachePanel',
+             'debug_toolbar.panels.signals.SignalsPanel',
+             'debug_toolbar.panels.community.CommunityPanel',
+             'debug_toolbar.panels.redirects.RedirectsPanel',
+             'debug_toolbar.panels.profiling.ProfilingPanel',
+         ]
+
+      .. tip:: Optional Settings
+
+         To learn how to set optional settings that customize the MQL panel behavior, see the
+         :github:`README <mongodb-labs/django-mongodb-extensions/blob/main/README.md>` in the
+         {+django-ext+} repository on GitHub.
+
+   .. step:: Verify the MQL panel.
+
+      Start your development server by running the following
+      command:
+
+      .. code-block:: bash
+
+         python manage.py runserver
+
+      Navigate to any page in your application that queries
+      MongoDB. Open the {+ddt+} and select the
+      :guilabel:`MQL` panel to view the MongoDB queries executed
+      during the request, including their execution times and
+      explain plans.
+   
+   .. step:: View ``sample_mflix.movies`` query information.
+
+      If you configure {+django-ext+} for the application
+      created in the :ref:`django-get-started` tutorial, you can
+      navigate to http://127.0.0.1:8000/recent_movies/ to view
+      MongoDB queries executed during the request.
+      
+      The {+ddt+} appears at the right side of the page.
+      Select the :guilabel:`MQL` label to view the MongoDB query
+      used to display the recent movies, which resembles the following code:
+
+      .. code-block:: python
+         
+         db.movies.aggregate([{'$addFields': {'released': '$released'}}, {'$sort': SON([('released', -1)])}, {'$limit': 5}])
+
+      Then, you can explore the query information by clicking on the
+      following buttons:
+
+      a. Select the :guilabel:`+` button to the left of the query
+         to view the traceback, which resembles the following code:
+
+         .. code-block:: python
+            :copyable: false
+
+            /path/to/site-packages/django/contrib/staticfiles/handlers.py in __call__(80)
+               return self.application(environ, start_response)
+
+            /path/to/djangoquickstart/sample_mflix/views.py in recent_movies(11)
+               return render(request, "recent_movies.html", {"movies": movies})
+
+            /path/to/site-packages/django/shortcuts.py in render(25)
+               content = loader.render_to_string(template_name, context, request, using=using)
+
+            ...
+      
+      b. Select the :guilabel:`Query` button to the right of the query, in the
+         :guilabel:`ACTION` column, to view the pretty-printed MQL. This MQL
+         resembles the following code:
+
+         .. code-block:: python
+            :copyable: false
+
+            db.movies.aggregate(
+            [
+               {
+                  "$addFields": {
+                        "released": "$released"
+                  }
+               },
+               {
+                  "$sort": {
+                        "released": -1
+                  }
+               },
+               {
+                  "$limit": 5
+               }
+            ]
+            )
+      
+      c. Select the :guilabel:`Explain` button to the right of the query, in the
+         :guilabel:`ACTION` column, to view the explain plan for the query. This
+         plan resembles the following code:
+
+         .. code-block:: python
+            :copyable: false
+
+            {
+               "explainVersion": "1",
+               "stages": [
+                  {
+                        "$cursor": {
+                           "queryPlanner": {
+                              ...
+                           },
+                           "executionStats": {
+                              ...
+                           }
+                        },
+                        "nReturned": 21351,
+                        "executionTimeMillisEstimate": 59
+                  },
+                  {
+                        "$addFields": {
+                           "released": "$released"
+                        },
+                        "nReturned": 21351,
+                        "executionTimeMillisEstimate": 70
+                  },
+                  {
+                        "$sort": {
+                           "sortKey": {
+                              "released": -1
+                           },
+                           "limit": 5
+                        },
+                        ...
+                  }
+               ],
+               ...
+            }
+
+Next Steps
+----------
+
+Congratulations on completing the {+django-ext+} tutorial! You now have a
+{+framework+} application that uses {+django-ext+} to view and analyze
+MongoDB queries in the {+ddt+}.
+
+To learn more about the {+django-ext+} package, see `django-mongodb-extensions
+<https://pypi.org/project/django-mongodb-extensions/>`__ on PyPI and the
+:github:`django-mongodb-extensions <mongodb-labs/django-mongodb-extensions>`
+repository on GitHub.
+
+To learn how to query your data, see the :ref:`django-specify-query` guide.
