@@ -89,7 +89,7 @@ const SidenavContainer = ({ topLarge, topMedium, topSmall }: SidenavContainerPro
     background-color: var(--sidenav-bg-color);
   }
 
-   a[class*='lg-ui-side-nav-item'] {
+   [class*='lg-ui-side-nav-item'] {
       color: var(--sidenav-item-color);
       :not([aria-current='page']):hover {
         background-color: var(--sidenav-hover-bg-color);
