@@ -98,6 +98,7 @@ const tocData: TocItem[] = [
             label: 'Django MongoDB Extensions',
             contentSite: 'django',
             url: '/docs/languages/python/django-mongodb/:version/integrations/django-mongodb-extensions',
+            versions: { excludes: ['v5.2'] },
           },
           {
             label: 'Migrate Djongo ODM Applications',
