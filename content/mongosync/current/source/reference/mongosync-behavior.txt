@@ -88,6 +88,10 @@ preserve the source cluster's sharding configuration.
 
 .. include:: /includes/fact-mongosync-balancer.rst
 
+.. note::
+
+   .. include:: /includes/fact-mongosync-migration.rst
+
 Automatic Balancer Disabling
 ''''''''''''''''''''''''''''
 
@@ -211,10 +215,53 @@ Reads and Writes
 Write Blocking
 ~~~~~~~~~~~~~~
 
-.. include:: /includes/fact-write-blocking-enable.rst
+``mongosync`` manages write blocking on the source and destination
+clusters internally based on your migration configuration:
 
-If you want to use :ref:`reverse synchronization <c2c-api-reverse>` later,
-you must enable dual write-blocking when you start ``mongosync``.
+.. list-table::
+   :header-rows: 1
+   :widths: 50 25 25
+
+   * - Configuration
+     - Source writes blocked
+     - Destination writes blocked
+
+   * - Default
+     - Yes
+     - Yes
+
+   * - Source cluster runs MongoDB earlier than 6.0
+     - No
+     - Yes
+
+   * - Namespace filtering enabled (``includeNamespaces`` or
+       ``excludeNamespaces`` specified in the ``/start`` request)
+     - No
+     - Yes
+
+   * - Pre-existing destination data enabled
+       (``preExistingDestinationData`` set to ``true`` in
+       the ``/start`` request)
+     - No
+     - No
+
+``mongosync`` blocks source writes after you call :ref:`/commit
+<c2c-api-commit>`. Source writes remain blocked
+unless the migration fails with a managed error. If
+``mongosync`` terminates unexpectedly during commit, you can
+unblock writes on the source cluster manually by running the
+following command:
+
+.. literalinclude:: /code-examples/reference/cutover-process/2.js
+   :language: javascript
+   :category: snippet
+
+For more information, see :dbcommand:`setUserWriteBlockMode`.
+
+``mongosync`` blocks destination writes after you call :ref:`/start
+<c2c-api-start>`. Destination writes remain blocked
+until ``canWrite`` is ``true`` in the :ref:`/progress
+<c2c-api-progress>` response.
 
 User Permissions
 ''''''''''''''''
@@ -312,13 +359,8 @@ synchronization. The original values are restored during the commit process.
      - Synchronization replicates hidden indexes as non-hidden.
 
    * - Write Blocking
-     - If you enable dual write-blocking, ``mongosync`` blocks writes: 
-
-       - On the destination cluster during sync.
-       - On the source cluster when ``commit`` is received.
-
-       ``mongosync`` enables destination-only write-blocking
-       by default.
+     - ``mongosync`` manages write blocking internally based
+       on your migration configuration.
 
        To learn more, see :ref:`c2c-write-blocking`.
 

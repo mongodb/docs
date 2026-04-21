@@ -382,4 +382,8 @@
 
        For more details, see :ref:`c2c-oplog-sizing`.
 
+       If ``mongosync`` blocks user writes on the source cluster,
+       ``mongosync`` adds a warning to the ``warnings`` field.
+       To learn more, see :ref:`c2c-write-blocking`.
+
        .. versionadded:: 1.19

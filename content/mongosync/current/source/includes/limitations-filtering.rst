@@ -4,7 +4,7 @@
   unless you set the :ref:`preExistingDestinationData <c2c-pre-existing-dest-data>`
   parameter to ``true`` when you call ``/start``.
 - The destination cluster must not contain the
-  ``mongosync_reserved_for_internal_use`` system database prior to
+  ``__mdb_internal_mongosync`` system database prior to
   starting.
 - You cannot modify a filter that is in use. To create a new filter,
   see: :ref:`c2c-change-filter`.

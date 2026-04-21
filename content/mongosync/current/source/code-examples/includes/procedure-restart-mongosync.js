@@ -6,7 +6,7 @@ db.adminCommand( {
 // end setUserWriteBlockMode example
 
 // start drop db example
-use mongosync_reserved_for_internal_use
+use __mdb_internal_mongosync
 db.dropDatabase()
 // end drop db example
 

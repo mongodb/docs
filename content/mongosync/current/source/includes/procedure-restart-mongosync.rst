@@ -3,7 +3,7 @@
 
 To restart a migration, you must first stop the ongoing ``mongosync`` process.
 During the migration process, ``mongosync`` creates databases with 
-your data ("user databases") and the ``mongosync_reserved_for_internal_use``
+your data ("user databases") and the ``__mdb_internal_mongosync``
 system database on the destination cluster. You must remove those databases 
 before restarting ``mongosync``.
 
@@ -43,9 +43,9 @@ Follow these steps to restart your ``mongosync`` migration.
          :start-after: start setUserWriteBlockMode example
          :end-before: end setUserWriteBlockMode example
 
-   .. step:: Remove the ``mongosync_reserved_for_internal_use`` database on the destination cluster
+   .. step:: Remove the ``__mdb_internal_mongosync`` database on the destination cluster
 
-      In ``mongosh``, drop the ``mongosync_reserved_for_internal_use`` system
+      In ``mongosh``, drop the ``__mdb_internal_mongosync`` system
       database:
 
       .. literalinclude:: /code-examples/includes/procedure-restart-mongosync.js
