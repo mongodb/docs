@@ -534,6 +534,8 @@ the ``$emit`` pipeline stage with the following prototype form:
        "bucket": "<target-bucket>" | <expression>,
        "region": "<target-region>",
        "path": "<key-prefix>" | <expression>,
+       "parallelism": <number>,
+       "partitionBy": <expression>,
        "config": {
          "writeOptions": {
            "count": <doc-count>,
@@ -586,15 +588,35 @@ The ``$emit`` stage takes a document with the following fields:
 
    * - ``path``
      - string | expression
-     - Required 
+     - Required
      - Prefix of the key of objects written to the |s3| bucket. Must
        either be a literal :aws:`prefix
        </AmazonS3/latest/userguide/using-prefixes.html>` string or an
        expression that evaluates to a string.
 
+   * - ``parallelism``
+     - integer
+     - Optional
+     - Number of internal write threads that the S3 sink operator uses
+       to write data to S3. This improves throughput for high-volume
+       workloads by distributing write operations across multiple threads.
+
+       Defaults to ``1``. Maximum value is ``16``.
+
+   * - ``partitionBy``
+     - expression
+     - Optional
+     - Expression that determines how documents are partitioned across
+       write threads when ``parallelism`` is greater than ``1``. The hash
+       of the evaluated expression determines which thread processes each
+       document.
+
+       If ``parallelism`` is greater than ``1`` but ``partitionBy`` is not
+       specified, an unspecified partitioning strategy is used.
+
    * - ``config``
      - document
-     - Optional 
+     - Optional
      - Document containing additional parameters that override various
        default values.
 
