@@ -359,6 +359,8 @@ use the ``$emit`` pipeline stage with the following prototype form:
        "connectionName": "<registered-connection>",
        "db": "<target-db>" | <expression>,
        "coll": "<target-coll>" | <expression>,
+       "parallelism": <number>,
+       "partitionBy": <expression>,
        "timeseries": {
          <options>
        }
@@ -391,21 +393,65 @@ The ``$emit`` stage takes a document with the following fields:
 
    * - ``coll``
      - string | expression
-     - Required 
-     - Name of, or expression that resolves to the {+service+} time series collection 
+     - Required
+     - Name of, or expression that resolves to the {+service+} time series collection
        to write to.
+
+   * - ``parallelism``
+     - integer
+     - Optional
+     - Number of internal write threads that the timeseries sink operator uses
+       to write data to the time series collection. This improves throughput for
+       high-volume workloads by distributing write operations across multiple threads.
+
+       Defaults to ``1``. Maximum value is ``16``.
+
+   * - ``partitionBy``
+     - expression
+     - Optional
+     - Expression that determines how documents are partitioned across
+       write threads when ``parallelism`` is greater than ``1``. The hash
+       of the evaluated expression determines which thread processes each
+       document.
+
+       If ``parallelism`` is greater than ``1`` but ``partitionBy`` is not
+       specified, an unspecified partitioning strategy is used.
 
    * - ``timeseries``
      - document
-     - Required 
+     - Required
      - Document defining the :manual:`time series fields
        </core/timeseries/timeseries-procedures/#time-series-field-reference>`
        for the collection.
 
 .. note::
 
-   The maximum size for documents within a time series collection is 4 MB. 
+   The maximum size for documents within a time series collection is 4 MB.
    To learn more, see :ref:`manual-timeseries-collection-limitations`.
+
+.. important::
+
+   **Dynamic Expression Requirements**
+
+   When using expressions for the ``db`` or ``coll`` fields, you must specify
+   the ``timeField`` option in the ``timeseries`` configuration. This ensures
+   that {+atlas-sp+} can properly create time series collections when the
+   target collection does not exist.
+
+   For example:
+
+   .. code-block:: json
+
+      {
+        "$emit": {
+          "connectionName": "atlas1",
+          "db": "$targetDatabase",
+          "coll": "$targetCollection",
+          "timeseries": {
+            "timeField": "timestamp"
+          }
+        }
+      }
 
 .. _sp-emit-kinesis:
 
