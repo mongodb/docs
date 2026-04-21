@@ -105,9 +105,12 @@ export const runPrebuildModules = async ({
 			return `${contentPath}: Failed \n${e} \n \n ${breakMessage} \n `;
 		}
 	});
+	const currentMax = process.stdout.getMaxListeners();
+	process.stdout.setMaxListeners(contentPathsToBuild.length + currentMax);
 	const parserLogs = constructParserLogs(
 		await Promise.allSettled(buildPromises),
 	);
+	process.stdout.setMaxListeners(currentMax);
 	await displayParserLogs({
 		parserLogs,
 		...netlifyPluginUtils,

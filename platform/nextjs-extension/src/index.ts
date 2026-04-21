@@ -39,7 +39,7 @@ import {
 const ENVS_TO_RUN = ["dotcomprd", "dotcomstg"];
 
 const extension = new Extension({
-	isEnabled: envVarToBool(process.env.NEXTJS_EXTENSION_ENABLED),
+	isEnabled: envVarToBool(process.env.NEXTJS_EXTENSION_ENABLED_STAGING_2),
 });
 
 const RELATIVE_PATH_TO_CONTENT = path.resolve(process.cwd(), "..", "..");
@@ -161,7 +161,7 @@ extension.addBuildEventHandler(
 			});
 
 			const isMain = process.env.HEAD === MAIN_BRANCH;
-			const { mdxContentStore, productionStore } = getMdxContentBlobStores({
+			const { branchStore, productionStore } = getMdxContentBlobStores({
 				branchName: configEnvironment.BRANCH as string,
 				siteId: process.env.NETLIFY_SITE_ID,
 				token: process.env.NETLIFY_ACCESS_TOKEN,
@@ -181,8 +181,7 @@ extension.addBuildEventHandler(
 				mdxOutputPath,
 				relativeFilePaths,
 				allContentData,
-				isMain,
-				mdxContentStore,
+				branchStore,
 				productionStore,
 			});
 		}

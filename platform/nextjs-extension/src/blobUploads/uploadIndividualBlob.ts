@@ -25,7 +25,7 @@ export const uploadWithRetry = async (
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
     try {
       await mdxContentStore.set(key, content, {
-        metadata: { hash: localHash },
+        metadata: { hash: localHash, uploadedAt: new Date().toISOString() },
       });
       return null;
     } catch (err) {

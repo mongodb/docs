@@ -8,15 +8,15 @@ const buildPrefixList = (allContentData: AllContentData): string[] => {
   const projectPrefixes: Set<string> = new Set<string>();
   for (const entry of Object.values(allContentData.docsPaths)) {
     const projectDocs = allContentData.atlasProjectDocuments[entry.projectName];
+    // Landing project is the fallback, has no prefix beyond the general docs/ prefix— skip it
+    if (entry.projectDirName === 'landing') continue;
+
     const prefix = projectDocs?.docsetsEntry?.prefix;
     if (!prefix) continue;
     const stripped = stripDocsPrefix(prefix);
-    // Landing project (stripped is empty, no version) is the fallback — skip it
-    if (!stripped && !entry.versionName) continue;
+
     const projectPath = entry.versionName
-      ? stripped
-        ? `${stripped}/${entry.versionName}`
-        : entry.versionName
+      ? `${stripped}/${entry.versionName}`
       : stripped;
     if (projectPath) projectPrefixes.add(projectPath);
   }
