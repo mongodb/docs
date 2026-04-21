@@ -1,5 +1,5 @@
 Set Up Your Cluster
-------------------
+-------------------
 
 .. procedure::
    :style: normal

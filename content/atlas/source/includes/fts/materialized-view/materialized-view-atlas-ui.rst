@@ -37,8 +37,8 @@ the following sections to view the steps for each trigger:
 
    .. include:: /includes/fts/cross-collection/steps-cross-collection-define-po-function.rst
 
-Create a {+fts} Index on the Materialized View
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Create a |fts| Index on the Materialized View
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In this section, you can learn how to create a |fts| index on the ``monthlyPhoneTransactions``
 collection.
