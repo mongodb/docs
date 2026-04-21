@@ -9,6 +9,7 @@ import { theme } from '@/styles/theme';
 import { STRUCTURED_DATA_CLASSNAME } from '@/utils/structured-data/structured-data';
 import { VideoObjectSd } from '@/utils/structured-data/video-object-sd';
 import VideoPlayButton from './VideoPlayButton';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 // Imported both players to keep bundle size low and rendering the one associated to the URL being passed in
 const REACT_PLAYERS = {
@@ -97,6 +98,8 @@ export const Video = ({ url }: VideoProps) => {
   useEffect(() => {
     void checkUrlValidity(url);
   }, [url]);
+
+  if (isOfflineBuild) return null;
 
   const ReactSupportedMedia = getSupportedMedia(url);
 

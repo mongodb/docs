@@ -13,7 +13,7 @@ const allVersions: string[] = [
   'v1.17',
   'v1.18',
   'v1.19',
-  'v1.20'
+  'v1.20',
 ];
 const deprecatedVersions: string[] = ['v1.9'];
 
