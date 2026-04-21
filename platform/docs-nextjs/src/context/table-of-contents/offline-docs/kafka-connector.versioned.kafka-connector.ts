@@ -361,6 +361,11 @@ export const toc: L1TocItem[] = [
                 contentSite: 'kafka-connector',
                 url: '/docs/kafka-connector/:version/troubleshooting/recover-from-invalid-resume-token',
               },
+              {
+                label: 'Reset Connector Offsets',
+                contentSite: 'kafka-connector',
+                url: '/docs/kafka-connector/:version/troubleshooting/reset-connector-offset',
+              },
             ],
           },
           {
