@@ -18,24 +18,6 @@ const tocData: TocItem[] = [
     ],
   },
   {
-    label: 'Connection Strings',
-    contentSite: 'docs',
-    url: '/docs/:version/reference/connection-string',
-    collapsible: true,
-    items: [
-      {
-        label: 'Options',
-        contentSite: 'docs',
-        url: '/docs/:version/reference/connection-string-options',
-      },
-      {
-        label: 'Examples',
-        contentSite: 'docs',
-        url: '/docs/:version/reference/connection-string-examples',
-      },
-    ],
-  },
-  {
     label: 'Database Commands',
     contentSite: 'docs',
     url: '/docs/:version/reference/command',
