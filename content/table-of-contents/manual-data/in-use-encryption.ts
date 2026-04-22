@@ -276,11 +276,6 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
-            label: 'CSFLE Limitations',
-            contentSite: 'docs',
-            url: '/docs/:version/core/csfle/reference/limitations',
-          },
-          {
             label: 'CSFLE Encryption Schemas',
             contentSite: 'docs',
             url: '/docs/:version/core/csfle/reference/encryption-schemas',
