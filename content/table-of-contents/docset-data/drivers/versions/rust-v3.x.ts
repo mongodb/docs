@@ -344,7 +344,7 @@ const tocData: TocItem[] = inheritContentSite('rust', [
       {
         label: 'MongoDB Rust Driver',
         isExternal: true,
-        url: 'https://docs.rs/mongodb/3.5.0/mongodb/index.html',
+        url: 'https://docs.rs/mongodb/3.6.0/mongodb/index.html',
       },
       {
         label: 'BSON Crate',
