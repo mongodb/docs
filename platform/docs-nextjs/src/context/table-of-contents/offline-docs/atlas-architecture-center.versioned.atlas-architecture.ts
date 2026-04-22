@@ -57,8 +57,18 @@ export const toc: L1TocItem[] = [
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/deployment-paradigms/hybrid',
                   },
-                ],
-              },
+                  {
+                    label: 'Reference Architectures',
+                    contentSite: 'atlas-architecture',
+                    collapsible: true,
+                    items: [
+                       {
+                         label: 'Operational Data Layer',
+                         contentSite: 'atlas-architecture',
+                         url: '/docs/atlas/architecture/:version/deployment-paradigms/reference-architectures/operational-data-layer',
+                       },
+                    ],
+                 },
               {
                 label: 'Orgs, Projects, and Clusters',
                 contentSite: 'atlas-architecture',

@@ -1,0 +1,289 @@
+.. _arch-center-operational-data-layer:
+
+=======================
+Operational Data Layer
+=======================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: onecol
+
+This reference architecture describes how to implement an **Operational
+Data Layer (ODL)** on MongoDB Atlas to consolidate siloed operational data
+and serve downstream operational, analytics, and AI workloads.
+
+An ODL is an architectural pattern that integrates and organizes data
+from existing systems of record into a centralized, queryable layer. It
+decouples modern applications and data products from legacy platforms,
+enabling initiatives such as single view, Data‑as‑a‑Service, and
+AI/agentic AI use cases without the need to fully replace those systems.
+MongoDB Atlas provides the core data platform for the ODL, and combines
+a flexible document model with transactional, search, analytical, and
+vector capabilities in a single service.
+
+ODL implementation levels
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- **Read-only**: Serves as a high-performance read replica to offload queries
+  from source systems and expose stable APIs over operational data.
+
+- **Enriched**: Combines source data with metadata and external datasets to
+  provide contextual views for analytics and AI, without modifying
+  upstream systems. 
+
+- **Read-write**: Accepts writes as part of business
+  workflows to modernize operations and gradually reduce dependence on
+  legacy systems of record.
+
+.. figure:: /includes/images/reference-architectures/RA-ODL-Implementation-Levels.svg
+   :figwidth: 1200px
+   :alt: Implementation levels of an Operational Data Layer with MongoDB
+
+   Figure 1. Implementation levels of an Operational Data Layer with MongoDB.
+
+.. note::
+
+   The following diagram illustrates the different levels at which
+   you can implement an Open Data Layer (ODL). It is for conceptual
+   clarity only and is not intended as the reference architecture for
+   this solution.
+
+Diagram
+-------
+
+.. figure:: /includes/images/reference-architectures/RA-ODL-Architecture.svg
+   :figwidth: 1200px
+   :alt: Operational Data Layer Reference Architecture 
+
+   Figure 2. Operational Data Layer Reference Architecture 
+
+Data / Request Flow
+-------------------
+
+1. Source systems
+
+   Enterprise applications, operational databases, third‑party APIs, and
+   legacy platforms act as systems of record. They capture business
+   transactions and events that you synchronize into the ODL for real-time
+   and contextualized access. 
+   
+   - Common source systems include: Mainframe,
+     CRM, ERP, Order Management, Supply Chain Management, Human Resources,
+     Billing, Marketing Automation, Websites, Social Media, Reference data,
+     Third-Party APIS, Logs, Time-series data, and many more. 
+
+#. Ingestion Layer
+
+   Data moves from source systems into MongoDB Atlas through batch
+   Extract-Transform-Load (ETL)/Extract-Load-Transform (ELT) jobs and
+   real-time streaming or change data capture (CDC). Use tools such as
+   `mongoimport
+   <https://www.mongodb.com/docs/atlas/import/mongoimport/>`__, Bulk Write
+   APIs, ETL platforms, the MongoDB Kafka Connector, and Atlas Stream
+   Processing to load, transform, and route events according to latency and
+   throughput requirements.
+
+#. Operational Data Layer (MongoDB Atlas)
+
+   MongoDB Atlas clusters consolidate structured, semi‑structured, and
+   unstructured data into a document data model that supports hybrid
+   workloads: transactional processing, real-time analytics, full‑text
+   search, and vector search through a unified query API. The ODL runs in
+   the cloud and scales horizontally through sharding and replica sets. 
+
+#. Processing/Serving Layer
+
+   An API gateway sits at the edge, managing authentication, rate limiting,
+   and external access. A service mesh governs service‑to‑service
+   communication, and a data proxy layer routes queries based on workload
+   type while applying connection pooling, caching, and policy enforcement.
+   `MongoDB Change Streams
+   <https://www.mongodb.com/docs/manual/changeStreams/>`__ and Atlas Stream
+   Processing can publish data changes to downstream consumers without
+   polling.
+
+#. Consumer applications
+
+   Operational applications, Gen AI and agentic AI systems, and `BI tools
+   <https://www.mongodb.com/docs/sql-interface/>`__ connect to the ODL
+   using MongoDB native drivers, Atlas SQL, and `connectors
+   <https://www.mongodb.com/docs/tools-and-connectors/>`__. They benefit
+   from a consolidated, governed, and near real‑time view of enterprise
+   data, without direct dependency on legacy systems.
+
+Exceptions, Caveats, and Tradeoffs
+----------------------------------
+
+To maintain a high‑performance ODL on MongoDB Atlas, you must balance
+complexity against architectural goals:
+
+- **Dual‑write coordination (read‑write ODL)**: A read‑write
+  (“Y‑loading”) ODL introduces the risk of data drift between the ODL and
+  legacy systems. Use messaging platforms or API gateways together with
+  patterns such as the `transactional outbox <https://microservices.io/patterns/data/transactional-outbox.html>`__
+  and `saga <https://microservices.io/patterns/data/saga.html>`__ model to
+  coordinate writes and define clear consistency guarantees instead of
+  relying on distributed locks or 2PC (Two‑Phase Commit).
+
+- **Workload Isolation — OLTP, Online Analytical Processing (OLAP), and
+  AI**: Running analytical or AI workloads directly on primary nodes
+  degrades transactional performance. To avoid this, use replica sets with
+  ``secondaryPreferred`` reads, sharded clusters, and dedicated search and
+  vector indexes to isolate each workload type, ensuring that Online
+  Transactional Processing (OLTP), analytics, and Retrieval-Augmented
+  Generation (RAG)/AI queries do not compete for the same resources.
+
+- **Latency vs. ingestion cost**: The ODL can serve low‑latency queries,
+  but data freshness depends on how you ingest data. Batch ETL/ELT, CDC,
+  and real‑time streaming (for example through the MongoDB Kafka Connector
+  and Atlas Stream Processing) have different operational and cost
+  profiles. Reserve always‑on streaming for use cases that truly require
+  near–real‑time updates  .
+
+- **Schema evolution and document growth**: MongoDB’s flexible document
+  model supports rapid schema evolution, but you still need disciplined
+  design. Apply established schema design patterns and
+  embedding‑vs‑referencing guidance to avoid document bloat, deeply nested
+  structures, and incompatible schema drift across teams, especially in
+  highly enriched ODLs.
+
+- **Where ODLs Fit**: ODLs are best suited for unifying fragmented
+  operational data; they are not intended to replace pure analytics
+  platforms. While an ODL is not designed to be a direct replacement for
+  core systems of record, it can serve as a first step in a multi-step
+  migration strategy that ultimately replaces a legacy system of record
+  over time.
+
+Implementation Guide
+--------------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Define your approach
+
+      - Identify your primary use cases and business domains (for
+        example, payments hub, customer 360, unified commerce, network
+        assurance, and so on). 
+        
+      - Choose an architectural style such as
+        event‑driven, microservices, or API‑centric, and align it with
+        your existing landscape. 
+        
+      - Decide whether to start with a
+        read‑only, enriched, or read‑write ODL based on risk tolerance,
+        dependency on legacy systems, and modernization objectives.
+
+   .. step:: Design data ingestion and `modeling <https://www.mongodb.com/docs/manual/data-modeling/best-practices/>`__
+
+      - **Design collections**: Using MongoDB `schema design patterns
+        <https://www.mongodb.com/docs/manual/data-modeling/schema-design-process/>`__.
+        Embed data you read together frequently; reference large or independent
+        entities to reduce duplication and keep documents manageable.
+      
+      - **Batch ingestion**: Use `mongoimport
+        <https://www.mongodb.com/developer/products/mongodb/mongoimport-guide/>`__,
+        `Bulk Write APIs
+        <https://www.mongodb.com/docs/manual/core/bulk-write-operations/>`__,
+        Atlas Data Federation materialization, or ETL tools to load scheduled
+        exports from source systems.
+      
+      - **ETL/ELT**: Use the `MongoDB Spark Connector
+        <https://www.mongodb.com/docs/spark-connector/current/batch-mode/>`__
+        and orchestration tools to extract data, then either transform before
+        loading (ETL) or load raw data into Atlas and transform with the
+        Aggregation Pipeline (ELT).
+      
+      - **Real‑time ingestion**: Use the `MongoDB Kafka Connector
+        <https://www.mongodb.com/docs/kafka-connector/current/>`__ and `Atlas
+        Stream Processing
+        <https://www.mongodb.com/docs/atlas/atlas-stream-processing/overview/>`__
+        for event‑driven pipelines that capture CDC streams or topic events and
+        write them into Atlas with minimal latency.
+      
+   .. step:: Design the access layer
+
+      - Implement a three‑tier access layer around the ODL:
+      
+        - **API gateway**: Terminate external clients, handle authentication
+          and rate limiting, and provide protocol translation (REST, GraphQL,
+          gRPC, WebSockets) using platforms such as `Kong <https://konghq.com>`__ 
+          or `Traefik <https://doc.traefik.io/traefik/>`__.
+      
+        - **Service mesh**: Secure and observe service‑to‑service traffic with
+          mutual TLS, retries, and tracing using tools like `Istio <https://istio.io>`__ 
+          or `Linkerd <https://linkerd.io>`__.
+      
+        - **Data proxy layer**: Centralize connection management and route
+          queries to MongoDB Atlas based on workload type, applying connection
+          pooling, caching, and policy enforcement close to the data.
+
+   .. step:: Configure query routing
+
+      - **OLTP**: Route transactional reads and writes to primary nodes to
+        guarantee consistency and low‑latency operations for core business
+        flows.
+      
+      - **OLAP/BI**: Route analytical and reporting workloads to secondary
+        nodes using secondaryPreferred, and consider Atlas Data Federation or
+        materialized views for historical or cold data to avoid impacting
+        operational workloads.
+      
+      - **AI/RAG**: Use `MongoDB Vector Search
+        <https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/?interface=driver&language=python&deployment-type=local&embedding=byo>`__
+        for semantic and hybrid search over embeddings stored alongside
+        operational data, and combine results with metadata through `aggregation
+        pipelines
+        <https://www.mongodb.com/docs/manual/core/aggregation-pipeline/>`__ to
+        serve agentic and LLM‑driven applications.
+
+   .. step:: Establish security and data trust
+
+      - **Encrypt in transit and at rest**: Enforce TLS for all external
+        access points and use built‑in encryption features in Atlas to meet data
+        protection requirements.
+      
+      - **Manage identities and access**: Implement industry-standard
+        protocols such as OpenID Connect (OIDC) and OAuth 2.0 to handle
+        authentication and issue standardized tokens (such as JSON Web Tokens)
+        containing role-based claims. Leverage a decoupled authorization pattern
+        to enforce fine-grained, policy-based access control at both the API and
+        service layers, ensuring security logic is separated from application
+        code.
+      
+      - **Centralize secrets**:  While OIDC and OAuth 2.0 handle user and
+        service identity, an ODL still relies on credentials and keys that exist
+        outside the token lifecycle. These include databa. se connection
+        credentials, OAuth client secrets, TLS certificat. es, and encryption
+        keys. Store and rotate these using a dedicated se. crets management
+        solution—such as a vault service, an HSM-backed k. ey manager, or a
+        cloud-provider-native secrets store—then inject t. hem into runtimes
+        rather than embedding them in configuration files. .
+      
+      - **Audit and governance**: Use the ODL as the enforcement point for
+        data masking, aggregation, and access policies so that producers and
+        consumers remain decoupled while governance is applied consistently
+        across domains.
+
+Learn More
+----------
+
+Explore how different industries implement an ODL:
+
+- **Financial Services**: `Agentic AI-Powered Investment Portfolio
+  Management
+  <https://www.mongodb.com/docs/atlas/architecture/current/solutions-library/fin-services-agentic-portfolio/>`__
+
+- **Manufacturing**: `Unified Namespace Data Integrity
+  <https://www.mongodb.com/docs/atlas/architecture/current/solutions-library/manufacturing-asset-unified-namespace/>`__ 
+
+- **Retail**: `Unified Commerce Solutions
+  <https://www.mongodb.com/docs/atlas/architecture/current/solutions-library/unified-commerce/>`__
+
+- Learn all about the operational data layer in our white paper: `The
+  Operational Data Layer
+  <https://www.mongodb.com/resources/solutions/use-cases/implementing-an-operational-data-layer>`__.

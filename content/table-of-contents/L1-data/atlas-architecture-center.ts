@@ -1,6 +1,7 @@
 import partnerShowcase from '../L2-data/partner-showcase';
 import solutionsLibrary from '../L2-data/solutions-library';
 import type { TocItem } from '../types';
+import referenceArchitectures from '../L2-data/reference-architectures';
 
 const tocData: TocItem[] = [
   {
@@ -53,6 +54,12 @@ const tocData: TocItem[] = [
                 label: 'Hybrid',
                 contentSite: 'atlas-architecture',
                 url: '/docs/atlas/architecture/:version/deployment-paradigms/hybrid',
+              },
+              {
+                label: 'Reference Architectures',
+                contentSite: 'atlas-architecture',
+                collapsible: true,
+                items: referenceArchitectures,
               },
             ],
           },
