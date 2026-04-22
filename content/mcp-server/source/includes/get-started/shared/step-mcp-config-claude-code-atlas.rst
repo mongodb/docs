@@ -18,7 +18,6 @@
 
       .. include:: /includes/get-started/shared/atlas-service-account-credentials-table.rst
 
-      .. literalinclude:: /includes/get-started/shared/example-configs/common-mcp-config-atlas.json
+      .. literalinclude:: /includes/get-started/shared/example-configs/mcp-config-claude-code-atlas.json
          :language: json
-         :emphasize-lines: 3-15
 

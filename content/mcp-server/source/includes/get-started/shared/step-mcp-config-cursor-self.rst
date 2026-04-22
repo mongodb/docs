@@ -11,7 +11,8 @@
    For Cursor users, add the following configuration to your ``.cursor/mcp.json`` file in
    your project or home directory to set up the MongoDB MCP Server.
    For detailed configuration steps, see
-   `Cursor documentation <https://docs.cursor.com/context/model-context-protocol#installing-mcp-servers>`__.
+   `Installing MCP servers <https://cursor.com/docs/mcp#installing-mcp-servers>`__
+   in the Cursor documentation.
 
    .. literalinclude:: /includes/get-started/shared/example-configs/common-mcp-config-self.json
       :language: json

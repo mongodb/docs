@@ -10,9 +10,9 @@
 
    a. Copy the following JSON configuration into a code or text editor:
 
-      .. literalinclude:: /includes/get-started/shared/example-configs/common-mcp-config-self.json
+      .. literalinclude:: /includes/get-started/shared/example-configs/mcp-config-claude-code-self.json
          :language: json
-         :emphasize-lines: 3-14
+         :emphasize-lines: 10
 
    #. Replace ``<connection-string>`` with your MongoDB connection string.
 

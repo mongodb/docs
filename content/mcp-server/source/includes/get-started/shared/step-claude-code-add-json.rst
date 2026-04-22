@@ -6,7 +6,7 @@
 
    .. code-block:: bash
 
-      claude mcp add-json mongodb <json>
+      claude mcp add-json mongodb '<json>'
 
    Run the following command to verify that the MongoDB MCP Server was 
    successfully added:

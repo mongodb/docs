@@ -6,7 +6,7 @@
    For all connection methods and detailed configuration steps, see
    `MCP Configuration <https://docs.augmentcode.com/setup-augment/mcp>`__.
 
-   .. literalinclude:: /includes/get-started/shared/create-atlas-service-account.rst
+   .. include:: /includes/get-started/shared/create-atlas-service-account.rst
    
    This tutorial uses the JSON configuration method to add 
    a custom configuration. The following configuration uses your Atlas service account
@@ -18,7 +18,7 @@
    #. Paste the following configuration and replace ``<client-id>`` and
       ``<client-secret>`` with your Atlas service account credentials:
 
-      .. literalinclude:: /includes/get-started/shared/atlas-service-account-credentials-table.rst
+      .. include:: /includes/get-started/shared/atlas-service-account-credentials-table.rst
 
       .. literalinclude:: /includes/get-started/shared/example-configs/common-mcp-config-atlas.json
          :language: json
