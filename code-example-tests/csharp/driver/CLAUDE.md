@@ -4,7 +4,7 @@
 
 - .NET 10.0 (`global.json` pins the SDK version)
 - Solution file: `driver.sln` (six projects: Examples, Tests, Utilities, and their test projects)
-- Key deps: `MongoDB.Driver` 3.7.0, `NUnit` 4.4.0, `DotNetEnv` 3.1.1
+- Key deps: `MongoDB.Driver` 3.8.0, `NUnit` 4.4.0, `DotNetEnv` 3.1.1
 - EF Core deps (in Examples project): `MongoDB.EntityFrameworkCore` 10.0.1
 - Formatter: `dotnet format` (rules in `.editorconfig`)
 - `.env` file required at this directory root: `CONNECTION_STRING="..."`
