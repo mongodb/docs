@@ -26,6 +26,33 @@ Apply the relevant section below based on where you're working.
 node snip.js    # Extract and update code snippets
 ```
 
+# SESSION SETUP
+
+If your session context contains `DOCS_TEAM_SETUP` at startup, ask the
+user the following question verbatim before taking any other action.
+Do not skip any of the following text: 
+
+"Are you a docs writer on this repo?
+
+If yes, run the following command in your terminal. This will enable git
+workflow enforcement (correct branch naming, remote verification, and
+merge process) on all of your future Claude sessions.
+
+``! git config --global docs.team true``
+
+If you are not a docs writer, run the following command to disable git
+workflow enforcement on all of your future Claude sessions:
+
+``! git config --global docs.team false``
+
+Once you have run the command, type **continue** to proceed."
+
+When the user types "continue", run ``git config --global docs.team``
+to verify the flag is set. If the output is ``true`` or ``false``,
+confirm the setting and continue with the user's original request. If
+the tool call is blocked or the output is empty, tell the user the
+config is not set and ask them to run the command again.
+
 # AUDIENCE
 
 MongoDB documentation serves a wide range of readers: beginner developers, experienced engineers, DBAs, and system administrators. Write to be clear at all levels. Do not assume deep familiarity with MongoDB internals, but do not over-explain standard database or programming concepts. When in doubt, prefer clarity over brevity.
