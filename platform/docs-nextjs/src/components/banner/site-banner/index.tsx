@@ -13,6 +13,10 @@ const bannerContainerStyle = css`
   z-index: ${theme.zIndexes.header};
   color: white;
   text-decoration: none;
+
+  &:focus:not(:focus-visible) {
+    outline: none;
+  }
 `;
 
 const bannerContentStyle = (bannerContent: Partial<SiteBannerContent>) => css`
