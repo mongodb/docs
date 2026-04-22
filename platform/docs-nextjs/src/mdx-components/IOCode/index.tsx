@@ -6,7 +6,7 @@ import { Icon } from '@leafygreen-ui/icon';
 import { Button } from '@leafygreen-ui/button';
 import { palette } from '@leafygreen-ui/palette';
 import type { OutputProps } from './Output';
-import { baseCodeStyle, borderCodeStyle } from './style';
+import { baseCodeStyle } from './style';
 
 const outputButtonStyling = css`
   padding: 0px;
@@ -15,13 +15,7 @@ const outputButtonStyling = css`
 `;
 
 const ioToggleStyling = css`
-  ${borderCodeStyle}
-  border-top: none;
-  border-color: ${palette.gray.light2};
-
-  .dark-theme & {
-    border-color: ${palette.gray.dark2};
-  }
+  border: none;
 `;
 
 // Flatten the bottom border-radius of the input code block so it sits
