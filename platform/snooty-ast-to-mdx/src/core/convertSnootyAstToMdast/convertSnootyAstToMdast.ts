@@ -3,6 +3,7 @@ import { pascalCase } from 'change-case';
 import { isValueNode, isTextNode } from './types';
 import type {
   ConversionContext,
+  ConvertChildrenFn,
   SnootyNode,
   MdastNode,
   MdastRoot,
@@ -200,6 +201,38 @@ const hoistFlowElementsFromParagraph = (children: MdastNode[]): MdastNode | Mdas
   return outputNodes.length === 1 ? outputNodes[0] : outputNodes;
 };
 
+/**
+ * Emit a JSX `<ol enumtype="...">` with `<li>` children for non-Arabic ordered lists
+ * (loweralpha, upperalpha, lowerroman, upperroman). The MDX component mapping
+ * `ol → <List>` and `li → <ListItem>` applies the correct list-style-type at render time.
+ */
+const buildEnumeratedListJsx = (
+  node: SnootyNode,
+  enumtype: string,
+  start: number,
+  depth: number,
+  ctx: ConversionContext,
+  convertChildren: ConvertChildrenFn,
+): MdastNode => {
+  const attributes: MdastNode[] = [{ type: 'mdxJsxAttribute', name: 'enumtype', value: enumtype }];
+  if (start !== 1) {
+    attributes.push({
+      type: 'mdxJsxAttribute',
+      name: 'startat',
+      value: { type: 'mdxJsxAttributeValueExpression', value: String(start) },
+    });
+  }
+  const liChildren: MdastNode[] = (node.children ?? [])
+    .filter((c): c is SnootyNode => !!c && (c.type === 'list_item' || c.type === 'listItem'))
+    .map((c) => ({
+      type: 'mdxJsxFlowElement',
+      name: 'li',
+      attributes: [] as MdastNode[],
+      children: convertChildren({ nodes: c.children, depth, ctx }),
+    }));
+  return { type: 'mdxJsxFlowElement', name: 'ol', attributes, children: liChildren };
+};
+
 /** Convert a single Snooty node to mdast. Certain nodes (e.g. `section`) expand
     into multiple mdast siblings, so the return type can be an array. */
 /** Parent node types whose child paragraphs should be unwrapped (no <p> wrapper emitted). */
@@ -281,13 +314,19 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       };
 
     case 'enumerated_list':
-    case 'ordered_list':
+    case 'ordered_list': {
+      const start = node.start ?? 1;
+      const enumtype = typeof node.enumtype === 'string' ? node.enumtype : undefined;
+      if (enumtype && !['arabic', 'ordered'].includes(enumtype)) {
+        return buildEnumeratedListJsx(node, enumtype, start, depth, ctx, convertChildren);
+      }
       return {
         type: 'list',
         ordered: true,
-        start: node.start ?? 1,
+        start,
         children: convertChildren({ nodes: node.children, depth, ctx }),
       };
+    }
 
     case 'list_item':
     case 'listItem':
@@ -297,8 +336,12 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       };
 
     case 'list': {
-      const ordered = typeof node.enumtype === 'string' ? node.enumtype === 'ordered' : !!node.ordered;
+      const UNORDERED_ENUM_TYPES = new Set(['bullet', 'unordered']);
+      const ordered = typeof node.enumtype === 'string' ? !UNORDERED_ENUM_TYPES.has(node.enumtype) : !!node.ordered;
       const start = ordered ? node.startat ?? node.start ?? 1 : undefined;
+      if (ordered && node.enumtype && !['arabic', 'ordered'].includes(node.enumtype)) {
+        return buildEnumeratedListJsx(node, node.enumtype, start ?? 1, depth, ctx, convertChildren);
+      }
       const mdastList: MdastNode = {
         type: 'list',
         ordered,
@@ -368,6 +411,15 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       const result: MdastNode[] = [];
 
       if (titleNode) {
+        const sectionId = typeof node.html_id === 'string' ? node.html_id : undefined;
+        if (sectionId) {
+          result.push({
+            type: 'mdxJsxFlowElement',
+            name: 'RefTarget',
+            attributes: [{ type: 'mdxJsxAttribute', name: 'id', value: sectionId }],
+            children: [],
+          } as MdastNode);
+        }
         result.push({
           type: 'heading',
           depth: Math.min(depth, 6),
@@ -787,6 +839,17 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         };
       }
 
+      if (directiveName === 'expression') {
+        const term = parseSnootyArgument(node);
+        const attributes: MdastNode[] = term ? [{ type: 'mdxJsxAttribute', name: 'term', value: term }] : [];
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'Expression',
+          attributes,
+          children: convertChildren({ nodes: node.children, depth, ctx }),
+        };
+      }
+
       // Generic fallback for any Snooty directive (ex: ...tab -> <Tab>) where pascalCase doesn't produce the desired result
       const DIRECTIVE_TO_COMPONENT: Record<string, string> = {
         see: 'See',
@@ -862,7 +925,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 
       // Typed ref roles (e.g. :authrole:, :binary:, :term:) preserve children so that
       // formatting encoded in the AST (e.g. literal → code font) is retained.
-      if (node.type === 'ref_role' && roleName && roleName !== 'ref') {
+      if (node.type === 'ref_role' && roleName && roleName !== 'ref' && roleName !== 'doc') {
         const children = convertChildren({ nodes: node.children, depth, ctx });
         const attributes: MdastNode[] = [
           { type: 'mdxJsxAttribute', name: 'type', value: roleName },
@@ -1051,8 +1114,14 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       return { type: 'paragraph', children: lines };
     }
 
-    case 'line':
-      return { type: 'text', value: node.value ?? '' };
+    case 'line': {
+      if (node.value != null && node.value !== '') {
+        return { type: 'text', value: node.value };
+      }
+      // Line nodes from line_block with inline markup store content in children, not value
+      const lineChildren = convertChildren({ nodes: node.children, depth, ctx });
+      return lineChildren.length > 0 ? lineChildren : null;
+    }
 
     case 'title_reference':
       return {

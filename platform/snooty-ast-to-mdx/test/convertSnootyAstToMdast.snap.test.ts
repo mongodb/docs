@@ -401,6 +401,93 @@ const cases: Array<[string, SnootyNode]> = [
     },
   ],
   [
+    'section with html_id emits RefTarget anchor',
+    {
+      type: 'section',
+      html_id: 'my-section',
+      children: [
+        { type: 'title', children: [{ type: 'text', value: 'My Section' }] },
+        { type: 'paragraph', children: [{ type: 'text', value: 'Body text.' }] },
+      ],
+    },
+  ],
+  [
+    'enumerated_list loweralpha emits JSX ol',
+    {
+      type: 'enumerated_list',
+      enumtype: 'loweralpha',
+      start: 1,
+      children: [
+        { type: 'list_item', children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Alpha' }] }] },
+        { type: 'list_item', children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Beta' }] }] },
+      ],
+    },
+  ],
+  [
+    'enumerated_list loweralpha with non-1 start emits startat prop',
+    {
+      type: 'enumerated_list',
+      enumtype: 'loweralpha',
+      start: 3,
+      children: [
+        { type: 'list_item', children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Gamma' }] }] },
+      ],
+    },
+  ],
+  [
+    'list with loweralpha enumtype emits JSX ol',
+    {
+      type: 'list',
+      enumtype: 'loweralpha',
+      startat: 1,
+      children: [{ type: 'list_item', children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Item' }] }] }],
+    },
+  ],
+  [
+    'list with bullet enumtype stays unordered',
+    {
+      type: 'list',
+      enumtype: 'bullet',
+      children: [
+        { type: 'list_item', children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Bullet' }] }] },
+      ],
+    },
+  ],
+  [
+    'ref_role with doc name renders as Reference not RefRole',
+    {
+      type: 'ref_role',
+      domain: 'std',
+      name: 'doc',
+      target: '/reference/some-page',
+      children: [{ type: 'text', value: 'Some Page' }],
+    },
+  ],
+  [
+    'expression directive emits Expression component',
+    {
+      type: 'directive',
+      name: 'expression',
+      argument: [{ type: 'text', value: 'db.collection.find()' }],
+      children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Finds documents.' }] }],
+    },
+  ],
+  [
+    'line node with children fallback',
+    {
+      type: 'line_block',
+      children: [
+        {
+          type: 'line',
+          children: [
+            { type: 'text', value: 'Hello ' },
+            { type: 'role', name: 'guilabel', children: [{ type: 'text', value: 'Save' }] },
+          ],
+        },
+      ],
+    },
+  ],
+  [
     'doc link',
     {
       type: 'doc',
