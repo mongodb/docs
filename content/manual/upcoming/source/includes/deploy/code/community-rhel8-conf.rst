@@ -7,4 +7,3 @@
    gpgcheck=1
    enabled=1
    gpgkey=https://pgp.mongodb.com/server-{+pgp-version+}.asc
-
