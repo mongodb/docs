@@ -1551,11 +1551,6 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/reference/faq/applications',
                   },
                   {
-                    label: 'FAQ: Atlas Search',
-                    contentSite: 'cloud-docs',
-                    url: '/docs/atlas/atlas-search/faq',
-                  },
-                  {
                     label: 'FAQ: Backup',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/reference/faq/backup',
@@ -3534,6 +3529,21 @@ export const toc: L1TocItem[] = [
                 label: 'Replication',
                 contentSite: 'docs',
                 url: '/docs/:version/faq/replica-sets',
+              },
+              {
+                label: 'FAQ: MongoDB Storage for Self-Managed Deployments',
+                contentSite: 'docs',
+                url: '/docs/:version/faq/storage',
+              },
+              {
+                label: 'FAQ: Self-Managed MongoDB Diagnostics',
+                contentSite: 'docs',
+                url: '/docs/:version/faq/diagnostics',
+              },
+              {
+                label: 'FAQ: MongoDB Search',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/atlas-search/faq',
               },
             ],
           },

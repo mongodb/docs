@@ -1716,6 +1716,21 @@ const tocData: TocItem[] = [
         contentSite: 'docs',
         url: '/docs/:version/faq/replica-sets',
       },
+      {
+        label: 'FAQ: MongoDB Storage for Self-Managed Deployments',
+        contentSite: 'docs',
+        url: '/docs/:version/faq/storage',
+      },
+      {
+        label: 'FAQ: Self-Managed MongoDB Diagnostics',
+        contentSite: 'docs',
+        url: '/docs/:version/faq/diagnostics',
+      },
+      {
+        label: 'FAQ: MongoDB Search',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/atlas-search/faq',
+      },
     ],
   },
 ];

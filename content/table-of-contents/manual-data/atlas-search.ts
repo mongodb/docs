@@ -543,6 +543,11 @@ const tocData: TocItem[] = [
     url: '/docs/atlas/atlas-search/about/feature-compatibility',
   },
   {
+    label: 'FAQ',
+    isExternal: true,
+    url: 'https://www.mongodb.com/docs/atlas/atlas-search/faq',
+  },
+  {
     label: 'Changelog',
     isExternal: true,
     url: 'https://www.mongodb.com/docs/atlas/atlas-search/changelog/',

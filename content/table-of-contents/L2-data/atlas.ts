@@ -1543,11 +1543,6 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/reference/faq/applications',
           },
           {
-            label: 'FAQ: Atlas Search',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/atlas-search/faq',
-          },
-          {
             label: 'FAQ: Backup',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/reference/faq/backup',
