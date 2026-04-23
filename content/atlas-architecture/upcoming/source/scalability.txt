@@ -15,18 +15,29 @@ Guidance for Atlas Scalability
 Features for Atlas Scalability
 ------------------------------------
 
-Auto-scaling enables clusters to automatically adjust their tier, storage capacity, or both, in 
-response to real-time use. Atlas analyzes the CPU and memory utilization to determine when 
-and whether to scale the cluster tier up and down. See :ref:`Cluster tier scaling <cluster-autoscaling>` 
-to learn more about the conditions under which Atlas scales up or down your cluster nodes. You can 
-also specify a range of maximum and minimum cluster sizes that your cluster can automatically scale 
-to in order to guarantee minimum performance or control costs. Atlas won't scale a cluster if the 
-new tier falls outside of your specified size range or if your memory usage would exceed the capacity of 
-the new tier. Auto-scaling is throttled with a delay to scale a cluster tier up or down to ensure that 
-auto-scaling doesn't cause any application impact. Therefore, it is best suited for a steadily growing or 
-declining application load, not sudden spikes in which the database is being inundated with usage. If your 
-workload experiences frequent spikes or if you are expecting a large increase in traffic because of an event 
-or a launch, MongoDB recommends that you pre-scale programmatically. 
+Auto-scaling enables clusters to automatically adjust their tier, storage capacity, or both, in
+response to real-time use. {+service+} uses complementary auto-scaling mechanisms:
+
+- **Reactive auto-scaling** analyzes current CPU and memory utilization to trigger scaling events
+  based on sustained high or low resource usage. Reactive auto-scaling occurs after workload changes
+  and handles both upscaling and downscaling.
+
+- **Predictive auto-scaling** uses machine learning to anticipate future scaling needs based on
+  historical usage patterns and attempts to scale up before cyclical workload spikes that it forecasts will arrive.
+  Predictive auto-scaling is available for :ref:`eligible clusters <eligible-clusters-predictive-autoscaling>`
+  and supports only upscaling. Downscaling remains reactive.
+
+See :ref:`Cluster tier scaling <cluster-autoscaling>`
+to learn more about the conditions under which {+service+} scales your cluster nodes up or down. You can
+also specify a range of maximum and minimum cluster sizes that your cluster can automatically scale
+to in order to guarantee minimum performance or control costs. {+service+} won't scale a cluster if the
+new tier falls outside of your specified size range or if your memory usage would exceed the capacity of
+the new tier.
+
+Auto-scaling is best suited for steadily growing or declining application loads and cyclical workload patterns.
+For unexpected, one-time traffic spikes such as product launches or unprecedented events, pre-scale
+programmatically. Reactive auto-scaling introduces a throttled delay to prevent application
+impact, and predictive auto-scaling handles only recurring patterns.
 
 Atlas deployment templates, as referenced in the :ref:`Recommended Deployment Topologies <arch-center-deployment-topologies>`, 
 provide you with horizontal and vertical scaling options. Specifically, sharding distributes data across 
@@ -91,10 +102,12 @@ Recommendations for Atlas Scalability
      do not require high processing power.
    - Implement data tiering and archival for historical data to reduce storage 
      costs while maintaining query capabilities.
-   - Monitor query performance with the Performance Advisor and implement 
+   - Monitor query performance with the Performance Advisor and implement
      recommended indexes to optimize resource utilization.
-   - Pre-scale clusters before expected traffic spikes rather than relying 
-     solely on auto-scaling for sudden load increases.
+   - For one-time events such as product launches or unprecedented traffic spikes,
+     pre-scale clusters programmatically before the event. Predictive auto-scaling
+     handles recurring cyclical patterns. Reactive auto-scaling responds after workload
+     changes occur, which can be too late for sudden, unexpected spikes.
 
 .. collapsible::
    :heading: Multi-Region and Multi-Cloud Deployment Recommendations
@@ -130,8 +143,12 @@ non-production environments.
 
 For staging and production environments, we recommend that you:
 
-- Enable auto-scaling for compute and storage for instances where your 
-  application grows organically from small to medium.
+- Enable auto-scaling for compute and storage for instances where your
+  application grows organically from small to medium. When you enable auto-scaling,
+  {+service+} automatically uses :ref:`predictive auto-scaling <predictive-autoscaling-overview>`
+  for eligible clusters. Predictive auto-scaling proactively scales up
+  your cluster before cyclical demand spikes that it forecasts. Note that predictive
+  auto-scaling upscales only; downscaling remains reactive.
   
 - If you use {+iac+} tools, leverage settings to ignore resource drift caused by auto-scaling.
   For example, in Terraform, if ``disk_gb_enabled`` is true, |service| will 
