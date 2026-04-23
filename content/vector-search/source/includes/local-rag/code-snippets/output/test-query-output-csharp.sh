@@ -1,0 +1,10 @@
+Summary: "Lani Beach House" Aloha - Please do not reserve until reading about the State Tax in "Other Things to Note" section. Please do not reserve unless you agree to pay taxes to Hawaii Beach Homes directly. If you have questions, please inquire before booking.   The home has been completely redecorated in a luxurious island style: vaulted ceilings, skylights, granite counter tops, stainless steel appliances and a gourmet kitchen are just some of the the features. All bedrooms have ocean views
+Listing URL: https://www.airbnb.com/rooms/11553333
+Summary: This peaceful house in North Bondi is 300m to the beach and a minute's walk to cafes and bars. With 3 bedrooms, (can sleep up to 8) it is perfect for families, friends and pets. The kitchen was recently renovated and a new lounge and chairs installed. The house has a peaceful, airy, laidback vibe  - a perfect beach retreat. Longer-term bookings encouraged. Parking for one car. A parking permit for a second car can also be obtained on request.
+Listing URL: https://www.airbnb.com/rooms/10423504
+Summary: There are 2 bedrooms and a living room in the house. 1 Bathroom. 1 Kitchen. Friendly neighbourhood. Close to sea side and Historical places.
+Listing URL: https://www.airbnb.com/rooms/10488837
+Summary: 4 Bedroom Country Beach House w/ option to add a separate studio unit- total of 5 bedrooms/2.5 baths at an additional cost.  27 girl steps to white sand beach & infamous Alligator Pond. Private road, NO highway to cross! Safe beach for children & seniors. Convenient! For pricing to add on additional Studio unit, click on our profile pic and input your dates for quote and details!
+Listing URL: https://www.airbnb.com/rooms/12906000
+Summary: Ocean Living! Secluded Secret Beach! Less than 20 steps to the Ocean! This spacious 4 Bedroom and 4 Bath house has all you need for your family or group. Perfect for Family Vacations and executive retreats. We are in a gated beachfront estate, with lots of space for your activities.
+Listing URL: https://www.airbnb.com/rooms/10317142

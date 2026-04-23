@@ -124,7 +124,7 @@ const tocData: TocItem[] = [
   {
     label: 'Vector Search',
     contentSite: 'cloud-docs',
-    url: '/docs/atlas/atlas-vector-search/vector-search-overview',
+    url: '/docs/vector-search/',
     collapsible: true,
     items: VectorSearchData,
   },

@@ -1,0 +1,1 @@
+A |voyage| |api| key. To create an |api| key, see :ref:`voyage-api-keys`. 

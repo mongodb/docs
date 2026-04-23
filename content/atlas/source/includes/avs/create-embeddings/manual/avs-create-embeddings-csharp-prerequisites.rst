@@ -1,3 +1,0 @@
-- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
-- A terminal and code editor to run your C# project.
-- `.NET 8.0 or higher <https://dotnet.microsoft.com/en-us/>`__ installed.

@@ -1,0 +1,119 @@
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Create a ``.json`` file and define the index in the file. 
+
+      Your index definition should resemble the following format:
+
+      .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/create-index-acli.json
+         :language: json
+         :copyable: true 
+         :linenos:
+
+      .. example:: 
+
+         Create a file named ``vector-index.json``.
+
+   .. step:: Replace the following placeholder values and save the file.
+
+      .. list-table:: 
+         :stub-columns: 1 
+
+         * - ``<name-of-database>``
+           - Database that contains the collection for which you want to create the index.
+
+         * - ``<name-of-collection>``
+           - Collection for which you want to create the index.
+
+         * - ``<index-name>``
+           - Name of your index. If you omit the index name, {+avs+} names the index ``vector_index``.
+
+         * - ``<number-of-dimensions>``
+           - Number of vector dimensions that {+avs+} enforces at index-time and query-time.
+
+         * - ``<field-to-index>``
+           - Vector and filter fields to index.
+
+      .. example:: 
+
+         Copy and paste the following index definition into the
+         ``vector-index.json`` file. The following index definition
+         indexes the ``plot_embedding_voyage_3_large`` field as the
+         ``vector`` type and the ``genres`` and ``year`` fields as the
+         ``filter`` type in a {+avs+} index. The
+         ``plot_embedding_voyage_3_large`` field contains ``2048``
+         vector dimension embeddings created using |voyage|'s
+         ``voyage-3-large`` embedding model. The index specifies
+         similarity measurement using ``dotProduct`` function.
+
+         .. tabs:: 
+
+            .. tab:: Basic Example
+               :tabid: basic
+
+               The following index definition indexes only the vector
+               embeddings field using the default indexing method, |hnsw|,
+               for performing vector search.
+                  
+               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/basic-example-acli.json
+                  :language: json
+                  :copyable:
+                  :linenos:
+
+            .. tab:: Filter Example 
+               :tabid: advanced
+
+               This index definition indexes the following fields: 
+         
+               - A string field (``genres``) and a numeric field (``year``)
+                 for pre-filtering the data. 
+               - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+                 using the |hnsw| indexing method for performing vector search 
+                 against pre-filtered data.
+
+               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/filter-example-acli.json
+                  :language: json
+                  :copyable:
+                  :linenos:
+
+            .. tab:: Flat Example 
+               :tabid: flat
+
+               This index definition indexes the following fields: 
+         
+               - A string field (``genres``) and a numeric field (``year``)
+                 for pre-filtering the data. 
+               - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+                 using the ``flat`` indexing method for performing vector search 
+                 against pre-filtered data.
+
+               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/flat-example-acli.json 
+                  :language: json
+                  :copyable:
+                  :linenos:
+
+   .. step:: Run the following command to create the index.
+
+      .. code-block:: shell 
+         :copyable: true
+      
+         atlas clusters search indexes create --clusterName [cluster_name] --file [vector_index].json
+
+      In the command, replace the following placeholder values:
+      
+      - ``cluster_name`` is the name of the cluster that
+        contains the collection for which you want to create the index.
+      - ``vector_index`` is the name of the |json| file that contains the
+        index definition for the {+avs+} index.
+
+      .. example:: 
+
+         .. code-block:: shell 
+            :copyable: true
+      
+            atlas clusters search indexes create --clusterName [cluster_name] --file vector-index.json
+
+      To learn more about the command syntax and parameters, see the
+      {+atlas-cli+} documentation for the :atlascli:`atlas clusters search
+      indexes create </command/atlas-clusters-search-indexes-create/>`
+      command.

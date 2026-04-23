@@ -1,0 +1,1494 @@
+.. facet::
+   :name: programming_language
+   :values: csharp, java, javascript/typescript, python, shell, go
+
+.. _return-vector-search-results:
+
+=========================
+Run Vector Search Queries 
+=========================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: code example, sample dataset, motor, java sync, node.js, .NET, go
+   :description: Perform vector search queries using the MongoDB $vectorSearch aggregation pipeline stage, with support for approximate nearest neighbor (ANN) and exact nearest neighbor (ENN) searches.
+
+.. dismissible-skills-card::
+   :skill: Vector Search Fundamentals
+   :url: https://learn.mongodb.com/skills?openTab=gen%20ai
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. composable-tutorial::
+   :options: deployment-type, embedding, interface, language
+   :defaults: atlas, byo, driver, nodejs
+
+   A {+avs+} query takes the form of an :manual:`aggregation pipeline
+   </aggregation>` that uses :pipeline:`$vectorSearch` as the first
+   stage. This page explains the syntax, options, and behavior of the
+   :pipeline:`$vectorSearch` stage. 
+
+   .. pipeline:: $vectorSearch
+
+      .. selected-content::
+         :selections: atlas, byo, none, none
+
+         .. include:: /includes/pipeline-stage/vectorSearch/facts/about-vector-search-with-vector.rst
+
+         .. note:: 
+
+            .. include:: /includes/shared/facts/avs-requirements-cluster-version-ann-enn.rst
+
+      .. selected-content::
+         :selections: self, byo, none, none
+
+         .. include:: /includes/pipeline-stage/vectorSearch/facts/about-vector-search-with-vector.rst
+
+      .. selected-content::
+         :selections: self, auto, none, none
+
+         .. include:: /includes/pipeline-stage/vectorSearch/facts/about-vector-search-with-auto-embed.rst
+
+   .. selected-content::
+      :selections: self, auto, none, none
+
+      .. important:: 
+
+         Automated Embedding is available as a Preview feature. The
+         feature and the corresponding documentation might change at any
+         time during the Preview period. To learn more, see `Preview
+         Features <https://www.mongodb.com/docs/preview-features/>`__. 
+
+   .. _vectorSearch-agg-pipeline-clients:
+
+   Supported Clients
+   -----------------
+
+   .. selected-content::
+      :selections: atlas, byo, none, none
+
+      You can run :pipeline:`$vectorSearch` queries by using the 
+      {+atlas-ui+}, |compass|, {+mongosh+}, and any :driver:`MongoDB
+      driver </>`. 
+
+      You can also use {+avs+} with local |service| deployments that you
+      create with the {+atlas-cli+}. To learn more, see :atlascli:`Create a
+      Local Atlas Deployment </atlas-cli-deploy-local>`. 
+
+      :pipeline:`$vectorSearch` is supported only on |service| clusters
+      running the following MongoDB versions: 
+
+      - v6.0.11
+      - v7.0.2 and later (including :abbr:`RCs (Release Candidates)`). 
+
+   .. selected-content::
+      :selections: self, byo, none, none
+
+      You can run :pipeline:`$vectorSearch` queries by using |compass|,
+      {+mongosh+}, and any :driver:`MongoDB driver </>`. 
+
+   .. selected-content::
+      :selections: self, auto, none, none
+
+      You can run :pipeline:`$vectorSearch` queries by using |compass|,
+      {+mongosh+}, and the following :driver:`MongoDB drivers </>`:
+
+      .. include:: /includes/index/autoembed-type/list-tables/list-table-drivers-auto-embed.rst
+
+   .. _vectorSearch-agg-pipeline-syntax:
+
+   Syntax 
+   ------
+
+   .. selected-content::
+      :selections: atlas, byo, none, none
+
+      The field that you want to search must be indexed as {+avs+}
+      :ref:`vector <avs-types-vector>` type inside a :ref:`vectorSearch 
+      <avs-types-vector-search>` index type. 
+ 
+      A ``$vectorSearch`` pipeline has the following prototype form: 
+
+      .. literalinclude:: /includes/pipeline-stage/vectorSearch/code-snippets/json/syntax.json
+         :language: javascript 
+         :linenos: 
+         :copyable: true
+
+   .. selected-content::
+      :selections: self, byo, none, none
+
+      The field that you want to search must be indexed as {+avs+}
+      :ref:`vector <avs-types-vector>` type inside a :ref:`vectorSearch 
+      <avs-types-vector-search>` index type. 
+
+      A ``$vectorSearch`` pipeline has the following prototype form: 
+
+      .. literalinclude:: /includes/pipeline-stage/vectorSearch/code-snippets/json/syntax-self-managed.json
+         :language: javascript 
+         :linenos: 
+         :copyable: true
+
+   .. selected-content::
+      :selections: self, auto, none, none
+
+      The field that you want to search must be indexed as {+avs+}
+      :ref:`autoEmbed <avs-types-auto-embed>` type inside a
+      :ref:`vectorSearch <avs-types-vector-search>` index type. 
+
+      A ``$vectorSearch`` pipeline has the following prototype form: 
+
+      .. literalinclude:: /includes/pipeline-stage/vectorSearch/code-snippets/json/syntax-auto-embed.json
+         :language: javascript 
+         :linenos: 
+         :copyable: true
+
+   .. _vectorSearch-agg-pipeline-options:
+
+   Fields 
+   ------
+
+   The ``$vectorSearch`` stage takes a document with the following fields:
+
+   .. selected-content::
+      :selections: atlas, byo, none, none
+
+      .. include:: /includes/pipeline-stage/vectorSearch/list-tables/list-table-fields.rst
+
+   .. selected-content::
+      :selections: self, byo, none, none
+
+      .. include:: /includes/pipeline-stage/vectorSearch/list-tables/list-table-fields-self-managed.rst
+
+   .. selected-content::
+      :selections: self, auto, none, none
+
+      .. include:: /includes/pipeline-stage/vectorSearch/list-tables/list-table-auto-embed-fields.rst
+
+   .. _vectorSearch-agg-pipeline:
+
+   Vector Search Types
+   -------------------
+
+   When you define a :pipeline:`$vectorSearch` stage, you can use the
+   ``exact`` field to specify whether to run an |ann| or |enn| search. 
+
+   .. _vectorSearch-ann:
+
+   .. collapsible:: 
+      :heading: ANN Search
+      :sub_heading: Approximate Nearest Neighbors (ANN) search
+      :expanded: false
+
+      For Approximate Nearest Neighbors (ANN) search, {+avs+} finds vector
+      embeddings in your data that are closest to the vector embedding in
+      your query based on their proximity in multi-dimensional space and
+      based on the number of neighbors that it considers. It uses the
+      |hnsw| algorithm and finds the vector embeddings most similar to the
+      vector embedding in your query without scanning every vector.
+      Therefore, |ann| search is ideal for querying large datasets without
+      significant filtering.
+
+      .. note:: 
+
+         .. include:: /includes/pipeline-stage/vectorSearch/facts/fact-avs-recall.rst
+
+      .. _avs-num-candidates:
+
+      ``numCandidates`` Selection
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      You must specify the ``numCandidates`` field to run |ann| search.
+      This field determines how many nearest neighbors {+avs+} considers
+      during the search.
+
+      We recommend that you specify a ``numCandidates`` number at least 20
+      times higher than the number of documents to return (``limit``) to
+      increase accuracy and reduce discrepancies between your |enn| and
+      |ann| query results. For example, if you set ``limit`` to return
+      ``5`` results, consider setting ``numCandidates`` to ``100`` as a
+      starting point. To learn more, see :ref:`avs-improve-results`. 
+
+      This overrequest pattern is the recommended way to trade off latency
+      and :term:`recall` in your |ann| searches. However, we recommend
+      tuning the ``numCandidates`` parameter based on your specific dataset
+      size and query requirements. To ensure that you get accurate results,
+      consider the following variables:
+
+      .. selected-content::
+         :selections: atlas, byo, none, none
+
+         - **Index Size**: Larger collections typically require higher
+           ``numCandidates`` values to maintain recall. A collection with
+           millions of vectors might need significantly more candidates than
+           one with thousands of vectors.
+
+         - **Limit Value**: Because ``numCandidates`` is highly correlated
+           with the index size, low ``limit`` values require proportionally
+           higher ``numCandidates`` values to maintain recall.
+
+         - **Vector Quantization**: :ref:`Quantized vectors
+           <avs-quantization>` reduce storage at the cost of accuracy. Using
+           quantized vectors (``int8`` or ``int1`` subtypes) might require
+           higher ``numCandidates`` values compared to full precision
+           ``float32`` vectors to maintain similar recall.
+
+      .. selected-content::
+         :selections: self, byo, none, none
+
+         - **Index Size**: Larger collections typically require higher
+           ``numCandidates`` values to maintain recall. A collection with
+           millions of vectors might need significantly more candidates than
+           one with thousands of vectors.
+
+         - **Limit Value**: Because ``numCandidates`` is highly correlated
+           with the index size, low ``limit`` values require proportionally
+           higher ``numCandidates`` values to maintain recall.
+
+         - **Vector Quantization**: :ref:`Quantized vectors
+           <avs-quantization>` reduce storage at the cost of accuracy. Using
+           quantized vectors (``int8`` or ``int1`` subtypes) might require
+           higher ``numCandidates`` values compared to full precision
+           ``float32`` vectors to maintain similar recall.
+
+      .. selected-content::
+         :selections: self, auto, none, none
+
+         - **Index Size**: Larger collections typically require higher
+           ``numCandidates`` values to maintain recall. A collection with
+           millions of vectors might need significantly more candidates than
+           one with thousands of vectors.
+
+         - **Limit Value**: Because ``numCandidates`` is highly correlated
+           with the index size, low ``limit`` values require proportionally
+           higher ``numCandidates`` values to maintain recall.
+
+   .. _vectorSearch-enn:
+
+   .. collapsible:: 
+      :heading: ENN Search
+      :sub_heading: Exact Nearest Neighbors (ENN) search
+      :expanded: false
+
+      For an Exact Nearest Neighbors (ENN) search, {+avs+} exhaustively
+      searches all the indexed vector embeddings by calculating the
+      distance between all the embeddings and finds the exact nearest
+      neighbor for the vector embedding in your query. This is
+      computationally intensive and might negatively impact query latency.
+      Therefore, we recommend |enn| searches for the following use-cases:
+
+      .. selected-content::
+         :selections: atlas, byo, none, none
+
+         - You want to determine the :term:`recall` and accuracy of your |ann| query
+           using the ideal, exact results for the |enn| query.
+         - You want to query less than 10000 documents without having to tune the 
+           number of nearest neighbors to consider.
+         - Your want to include selective pre-filters in your query against
+           collections where less than 5% of your data meets the given pre-filter.
+
+         If you enable automatic quantization, {+avs+} uses only the full-fidelity 
+         vectors for |enn| queries.
+
+      .. selected-content::
+         :selections: self, byo, none, none
+
+         - You want to determine the :term:`recall` and accuracy of your |ann| query
+           using the ideal, exact results for the |enn| query.
+         - You want to query less than 10000 documents without having to tune the 
+           number of nearest neighbors to consider.
+         - Your want to include selective pre-filters in your query against
+           collections where less than 5% of your data meets the given pre-filter.
+
+         If you enable automatic quantization, {+avs+} uses only the full-fidelity 
+         vectors for |enn| queries.
+
+      .. selected-content::
+         :selections: self, auto, none, none
+
+         - You want to determine the :term:`recall` and accuracy of your |ann| query
+           using the ideal, exact results for the |enn| query.
+         - You want to query less than 10000 documents without having to tune the 
+           number of nearest neighbors to consider.
+         - Your want to include selective pre-filters in your query against
+           collections where less than 5% of your data meets the given pre-filter.
+
+   .. _vectorSearch-agg-pipeline-behavior:
+
+   Behavior 
+   --------
+
+   :pipeline:`$vectorSearch` must be the first stage of any pipeline where it 
+   appears. 
+
+   .. selected-content::
+      :selections: self, auto, none, none
+
+      Best Practices 
+      ~~~~~~~~~~~~~~
+
+      |voyage| imposes rate limits on the number of requests you can make within 
+      a specific time frame, often measured in tokens per minute (TPM) or requests 
+      per minute (RPM) to ensure fair usage, prevent abuse, and maintain the 
+      stability and performance of the endpoint service for all users. Rate limits 
+      follow a tiered system. To learn more about the different tiers for keys 
+      you created from: 
+
+      - {+atlas-ui+}, see :ref:`Usage Tiers <voyage-rate-limits>`
+      - |voyage|, see :voyage-docs:`Rate Limits </rate-limits>`
+
+      If you exceed the number of requests or tokens in the most recent minute, the 
+      endpoint service denies any subsequent additional request and returns a ``429`` 
+      (Rate Limit Exceeded) |http| status code. We recommend the following if you 
+      hit the rate limit: 
+
+      - Insert a wait period between each request.
+      - Backoff and wait for an exponentially increased time before trying again. Wait 
+        until the request is successful or until you reach a maximum number of retries.
+
+   .. _vectorSearch-agg-pipeline-limitations:
+
+   Limitations
+   ~~~~~~~~~~~
+
+   :pipeline:`$vectorSearch` can't be used in 
+   :manual:`view definition </core/views/>` and the following pipeline
+   stages:  
+
+   - :pipeline:`$lookup` sub-pipeline [*]_
+   - :pipeline:`$facet` pipeline stage
+
+   .. [*] You can pass the results of :pipeline:`$vectorSearch`
+          to this stage.
+
+   .. _vectorSearch-agg-pipeline-index:
+
+   {+avs+} Indexing
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. selected-content::
+      :selections: atlas, byo, none, none
+
+      You must index the fields to search using the :pipeline:`$vectorSearch`
+      stage inside a :ref:`vectorSearch <avs-types-vector-search>` type index
+      definition. You can index the following types of fields in a {+avs+}
+      :ref:`vectorSearch <avs-types-vector-search>` type index definition: 
+
+      - Fields that contain vector embeddings as :ref:`vector
+        <avs-types-vector-search>` type.  
+      - Additional fields as the :ref:`filter <avs-types-vector-search>` 
+        type to enable vector search on pre-filtered data.
+
+   .. selected-content::
+      :selections: self, byo, none, none
+
+      You must index the fields to search using the :pipeline:`$vectorSearch`
+      stage inside a :ref:`vectorSearch <avs-types-vector-search>` type index
+      definition. You can index the following types of fields in a {+avs+}
+      :ref:`vectorSearch <avs-types-vector-search>` type index definition: 
+
+      - Fields that contain vector embeddings as :ref:`vector
+        <avs-types-vector-search>` type.  
+      - Additional fields as the :ref:`filter <avs-types-vector-search>` 
+        type to enable vector search on pre-filtered data.
+
+   .. selected-content::
+      :selections: self, auto, none, none
+
+      You must index the fields to search using the :pipeline:`$vectorSearch`
+      stage inside a :ref:`vectorSearch <avs-types-vector-search>` type index
+      definition. You can index the following types of fields in a {+avs+}
+      :ref:`vectorSearch <avs-types-vector-search>` type index definition: 
+
+      - Fields that contain text as :ref:`autoEmbed <avs-types-auto-embed>` type.   
+      - Additional fields as the :ref:`filter <avs-types-vector-search>`  
+        type to enable vector search on pre-filtered data.
+
+   To learn more about these {+avs+} field types, see
+   :ref:`avs-types-vector-search`. 
+
+   .. _vectorSearch-agg-pipeline-score:
+
+   {+avs+} Scoring
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   {+avs+} assigns a score, in a fixed range from ``0`` to ``1`` 
+   (where ``0`` indicates low similarity and ``1`` indicates high
+   similarity), to every document that it returns. 
+
+   .. selected-content::
+      :selections: atlas, byo, none, none
+
+      The score is calculated according to the ``similarity`` function that
+      you specify in the {+avs+} :ref:`index definition
+      <avs-types-vector-search-options>`. To learn more about the
+      ``similarity`` options you can choose from, see
+      :ref:`avs-similarity-functions`.
+
+   .. selected-content::
+      :selections: self, byo, none, none
+
+      The score is calculated according to the ``similarity`` function that
+      you specify in the {+avs+} :ref:`index definition
+      <avs-types-vector-search-options>`. To learn more about the
+      ``similarity`` options you can choose from, see
+      :ref:`avs-similarity-functions`.
+
+   Each returned document includes the score as metadata. To return each
+   document's score along with the result set, use a
+   :pipeline:`$project` stage in your aggregation pipeline and configure
+   the ``score`` as a field to project. In the ``score`` field, specify a
+   :manual:`$meta </reference/mql/expressions/#text-operators>` expression
+   with the value ``vectorSearchScore``. The syntax is as follows:
+
+   .. code-block:: javascript
+      :copyable: false
+      :linenos:
+      :emphasize-lines: 11
+
+      db.<collection>.aggregate([
+        {
+          "$vectorSearch": {
+            <query-syntax>
+          }
+        },
+        {
+          "$project": {
+            "<field-to-include>": 1,
+            "<field-to-exclude>": 0,
+            "score": { "$meta": "vectorSearchScore" }
+          }
+        }
+      ]) 
+
+   .. note:: 
+
+      You can use ``vectorSearchScore`` as a ``score`` :manual:`$meta
+      </reference/operator/aggregation/meta/>` expression only after the
+      :pipeline:`$vectorSearch` pipeline stage. If you use
+      ``vectorSearchScore`` after any other query, MongoDB logs a warning
+      starting in MongoDB v8.2.
+
+   .. include:: /includes/pipeline-stage/vectorSearch/facts/fact-avs-pre-filtering-score-impact.rst
+
+   .. _vectorSearch-agg-pipeline-filter:
+
+   {+avs+} Pre-Filtering
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   The :pipeline:`$vectorSearch` ``filter`` option matches |bson|
+   {+avs-filter-types+}.
+
+   You **must** index the fields that you want to filter your data by as the
+   :ref:`filter <avs-types-vector-search>` type in a :ref:`vectorSearch
+   <avs-types-vector-search>` type index definition. Filtering your data is
+   useful to narrow the scope of your semantic search.
+
+   .. include:: /includes/shared/facts/fact-avs-filter-performance.rst
+
+   {+avs+} supports the :pipeline:`$vectorSearch` ``filter`` option for
+   the following {+mql+} :manual:`operators
+   </reference/mql/query-operators/>`:
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 30 70
+
+      * - Type
+        - {+mql+} operator
+
+      * - Equality
+        - :query:`$eq`, :query:`$ne`
+
+      * - Range
+        - :query:`$gt`, :query:`$lt`, :query:`$gte`, :query:`$lte`
+
+      * - In set
+        - :query:`$in`, :query:`$nin`
+
+      * - Existence
+        - :query:`$exists`
+
+      * - Logical
+        - :query:`$not`, :query:`$nor`, :expression:`$and`, :expression:`$or`
+
+   .. note::
+
+      The :pipeline:`$vectorSearch` ``filter`` option doesn't support
+      other :ref:`query operators <query-predicates-ref>`,
+      :ref:`aggregation pipeline operators
+      <aggregation-expressions>`, or :ref:`{+fts+} operators
+      <operators-ref>`.
+
+   Filtering Considerations
+   ````````````````````````
+
+   - {+avs+} supports the short form of :query:`$eq`. In the short
+     form, you don't need to specify ``$eq`` in the query. 
+     
+     For example, consider the following filter with ``$eq``: 
+
+     .. code-block:: json
+        :copyable: false 
+
+        "filter": { "_id": { "$eq": ObjectId("5a9427648b0beebeb69537a5") }
+
+     This is equivalent to the following filter, which uses the short
+     form of ``$eq``:
+
+     .. code-block:: json
+        :copyable: false 
+
+        "filter": { "_id": ObjectId("5a9427648b0beebeb69537a5") }
+
+   - You can use the :expression:`$and` {+mql+} operator to specify an
+     array of filters in a single query.
+
+     For example, consider the following pre-filter for documents with a
+     ``genres`` field equal to ``Action`` and a ``year`` field with the
+     value ``1999``, ``2000``, or ``2001``:
+
+     .. code-block:: json
+        :copyable: false 
+
+        "filter": {
+          "$and": [
+            { "genres": "Action" },
+            { "year": { "$in": [ 1999, 2000, 2001 ] } }
+          ]
+        }
+
+   - For advanced filtering capabilities such as fuzzy search, phrase
+     matching, location filtering, and other analyzed text, use the
+     :ref:`vectorSearch <fts-vectorSearch-ref>` operator in a
+     :pipeline:`$search` stage.
+
+
+   .. selected-content::
+      :selections: atlas, byo, none, none
+
+      .. include:: /includes/pipeline-stage/vectorSearch/facts/about-parallel-execution.rst
+
+   .. _vectorSearch-agg-pipeline-egs:
+
+   Examples 
+   --------
+
+   .. selected-content::
+      :selections: atlas, byo, none, none
+
+      .. include:: /includes/pipeline-stage/vectorSearch/facts/examples-introduction.rst
+
+   .. selected-content::
+      :selections: self, byo, none, none
+
+      .. include:: /includes/pipeline-stage/vectorSearch/facts/examples-introduction.rst
+
+   .. selected-content::
+      :selections: self, auto, none, none
+
+      .. include:: /includes/pipeline-stage/vectorSearch/facts/examples-auto-embed-intro.rst
+
+   Prerequisites
+   ~~~~~~~~~~~~~
+
+   Before you run these examples, perform the following actions:
+
+   - Add the :ref:`dataset <sample-mflix>` to your cluster.
+
+   - Create {+avs+} indexes for the collection. For instructions, see
+     the :ref:`avs-create-index` procedure and copy the configurations
+     for the basic or filter examples in your desired language.
+     
+   .. note:: 
+
+      If you use {+mongosh+}, pasting the ``queryVector`` from the sample code 
+      into your terminal might take a while depending on your machine.  
+
+   .. _avs-ann-examples:
+
+   ANN Examples
+   ~~~~~~~~~~~~
+
+   .. tabs:: Basic 
+
+      .. tab:: ANN Basic Example
+         :tabid: basic
+
+         .. selected-content::
+            :selections: atlas, byo, none, none
+
+            .. include:: /includes/pipeline-stage/vectorSearch/facts/avs-basic-query-desc.rst
+
+         .. selected-content::
+            :selections: self, byo, none, none
+
+            .. include:: /includes/pipeline-stage/vectorSearch/facts/avs-basic-query-desc.rst
+
+         .. selected-content::
+            :selections: self, auto, none, none
+
+            .. include:: /includes/pipeline-stage/vectorSearch/facts/auto-embed-basic-query-desc.rst
+
+         .. selected-content::
+            :selections: atlas, byo, mongosh, none
+
+            .. include:: /includes/pipeline-stage/vectorSearch/procedures/steps-basic-query-mongosh.rst
+
+         .. selected-content::
+            :selections: atlas, byo, driver, csharp
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/csharp/basic-query.cs
+                  :language: csharp
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/basic-query-csharp-output.js
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: atlas, byo, driver, go
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/go/ann-basic-query.go
+                  :language: go
+                  :linenos:
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/ann-basic-query-go-output.sh
+                  :language: shell
+                  :linenos:
+                  :visible: false
+
+         .. selected-content::
+            :selections: atlas, byo, driver, java-sync
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/java/basic-query.java
+                  :language: java
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/basic-query-java-output.js 
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: atlas, byo, driver, nodejs
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/nodejs/basic-query.js
+                  :language: js
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/basic-query-nodejs-output.js 
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: atlas, byo, driver, python
+
+            .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/run-queries/ann-basic.ipynb
+
+            .. cta-banner::
+               :url: https://github.com/mongodb/docs-notebooks/blob/main/run-queries/ann-basic.ipynb
+               :icon: Code
+
+               Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/run-queries/ann-basic.ipynb>`.
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/python/basic-query.py 
+                  :language: python
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/basic-query-python-output.js
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, byo, mongosh, none
+
+            .. include:: /includes/pipeline-stage/vectorSearch/procedures/steps-basic-query-mongosh.rst
+
+         .. selected-content::
+            :selections: self, byo, driver, csharp
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/csharp/basic-query.cs
+                  :language: csharp
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/basic-query-csharp-output.js
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, byo, driver, go
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/go/ann-basic-query.go
+                  :language: go
+                  :linenos:
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/ann-basic-query-go-output.sh
+                  :language: shell
+                  :linenos:
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, byo, driver, java-sync
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/java/basic-query.java
+                  :language: java
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/basic-query-java-output.js 
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, byo, driver, nodejs
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/nodejs/basic-query.js
+                  :language: js
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/basic-query-nodejs-output.js 
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, byo, driver, python
+
+            .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/run-queries/ann-basic.ipynb
+
+            .. cta-banner::
+               :url: https://github.com/mongodb/docs-notebooks/blob/main/run-queries/ann-basic.ipynb
+               :icon: Code
+
+               Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/run-queries/ann-basic.ipynb>`.
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/python/basic-query.py 
+                  :language: python
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/basic-query-python-output.js
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, auto, mongosh, none
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/shell/ann-basic-auto-embed-query.sh
+                  :language: json
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/basic-auto-embed-query-shell-output.js
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, auto, driver, csharp
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/csharp/ann-basic-auto-embed-query.cs
+                  :language: csharp
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/basic-auto-embed-query-csharp-output.js
+                  :language: js
+                  :linenos: 
+
+         .. selected-content::
+            :selections: self, auto, driver, go
+
+            .. io-code-block::
+               :copyable: true
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/go/ann-basic-auto-embed-query.go
+                  :language: go
+                  :linenos:
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/basic-auto-embed-query-go-output.js
+                  :language: shell
+                  :linenos:
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, auto, driver, nodejs
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/nodejs/ann-basic-auto-embed-query.js
+                  :language: json
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/basic-auto-embed-query-nodejs-output.js
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, auto, driver, python
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/python/ann-basic-auto-embed-query.py 
+                  :language: python
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/basic-auto-embed-query-python-output.js
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, auto, driver, java-sync
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/java/ann-basic-auto-embed-query.java
+                  :language: java
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/ann-basic-auto-embed-query-java-output.js 
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+      .. tab:: ANN Filter Example
+         :tabid: filter
+
+         .. selected-content::
+            :selections: atlas, byo, none, none
+
+            .. include:: /includes/pipeline-stage/vectorSearch/facts/avs-filter-query-desc.rst
+
+         .. selected-content::
+            :selections: self, byo, none, none
+
+            .. include:: /includes/pipeline-stage/vectorSearch/facts/avs-filter-query-desc.rst
+
+         .. selected-content::
+            :selections: self, auto, none, none
+
+            .. include:: /includes/pipeline-stage/vectorSearch/facts/auto-embed-filter-query-desc.rst
+
+         .. selected-content::
+            :selections: atlas, byo, mongosh, none
+
+            .. include:: /includes/pipeline-stage/vectorSearch/procedures/steps-ann-filter-query-mongosh.rst
+
+         .. selected-content::
+            :selections: atlas, byo, driver, csharp
+
+            .. include:: /includes/pipeline-stage/vectorSearch/facts/avs-filter-query-desc.rst
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/csharp/filter-query.cs 
+                  :language: csharp
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-csharp-output.js  
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: atlas, byo, driver, go
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/go/filter-query.go
+                  :language: go
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-go-output.sh
+                  :language: shell
+                  :linenos:
+                  :visible: false
+
+         .. selected-content::
+            :selections: atlas, byo, driver, java-sync
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/java/filter-query.java 
+                  :language: java
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-java-output.js  
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: atlas, byo, driver, nodejs
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/nodejs/filter-query.js 
+                  :language: js
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-nodejs-output.js  
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: atlas, byo, driver, python
+
+            .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/run-queries/ann-filter.ipynb
+
+            .. cta-banner::
+               :url: https://github.com/mongodb/docs-notebooks/blob/main/run-queries/ann-filter.ipynb
+               :icon: Code
+
+               Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/run-queries/ann-filter.ipynb>`.
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/python/filter-query.py 
+                  :language: python
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-python-output.js  
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, byo, mongosh, none
+
+            .. include:: /includes/pipeline-stage/vectorSearch/procedures/steps-ann-filter-query-mongosh.rst
+
+         .. selected-content::
+            :selections: self, byo, driver, csharp
+
+            .. include:: /includes/pipeline-stage/vectorSearch/facts/avs-filter-query-desc.rst
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/csharp/filter-query.cs 
+                  :language: csharp
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-csharp-output.js  
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, byo, driver, go
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/go/filter-query.go
+                  :language: go
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-go-output.sh
+                  :language: shell
+                  :linenos:
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, byo, driver, java-sync
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/java/filter-query.java 
+                  :language: java
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-java-output.js  
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, byo, driver, nodejs
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/nodejs/filter-query.js 
+                  :language: js
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-nodejs-output.js  
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, byo, driver, python
+
+            .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/run-queries/ann-filter.ipynb
+
+            .. cta-banner::
+               :url: https://github.com/mongodb/docs-notebooks/blob/main/run-queries/ann-filter.ipynb
+               :icon: Code
+
+               Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/run-queries/ann-filter.ipynb>`.
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/python/filter-query.py 
+                  :language: python
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-python-output.js  
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, auto, mongosh, none
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/shell/auto-embed-filter-query.sh
+                  :language: json
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-filter-query-shell-output.js 
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, auto, driver, csharp
+
+            .. io-code-block::
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/csharp/auto-embed-filter-query.cs
+                  :language: csharp
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-filter-query-csharp-output.js
+                  :language: js
+                  :linenos: 
+
+         .. selected-content::
+            :selections: self, auto, driver, go
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/go/auto-embed-filter-query.go
+                  :language: go
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-filter-query-go-output.js
+                  :language: shell
+                  :linenos:
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, auto, driver, java-sync
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/java/auto-embed-filter-query.java 
+                  :language: java
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-filter-java-output.js  
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, auto, driver, nodejs
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/nodejs/auto-embed-filter-query.js 
+                  :language: js
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-filter-query-nodejs-output.js  
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: self, auto, driver, python
+
+            .. io-code-block:: 
+               :copyable: true 
+
+               .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/python/auto-embed-filter-query.py 
+                  :language: python
+                  :linenos: 
+
+               .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-filter-query-python-output.js  
+                  :language: js
+                  :linenos: 
+                  :visible: false
+
+         .. selected-content::
+            :selections: atlas, byo, none, none
+
+            .. include:: /includes/pipeline-stage/vectorSearch/facts/avs-filter-query-results.rst
+
+         .. selected-content::
+            :selections: self, byo, none, none
+
+            .. include:: /includes/pipeline-stage/vectorSearch/facts/avs-filter-query-results.rst
+
+         .. selected-content::
+            :selections: self, auto, none, none
+
+            .. include:: /includes/pipeline-stage/vectorSearch/facts/auto-embed-filter-query-results.rst
+
+   .. _avs-enn-examples: 
+
+   |enn| Example 
+   ~~~~~~~~~~~~~~
+
+   .. selected-content::
+      :selections: atlas, byo, none, none
+
+      .. include:: /includes/pipeline-stage/vectorSearch/facts/avs-enn-query-description.rst
+
+   .. selected-content::
+      :selections: self, byo, none, none
+
+      .. include:: /includes/pipeline-stage/vectorSearch/facts/avs-enn-query-description.rst
+
+   .. selected-content::
+      :selections: self, auto, none, none
+
+      .. include:: /includes/pipeline-stage/vectorSearch/facts/auto-embed-enn-query-description.rst
+
+   .. selected-content::
+      :selections: atlas, byo, mongosh, none
+
+      .. include:: /includes/pipeline-stage/vectorSearch/procedures/steps-enn-query-mongosh.rst
+
+   .. selected-content::
+      :selections: atlas, byo, driver, csharp
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/csharp/enn-basic-query.cs
+            :language: go
+            :linenos: 
+
+         .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/enn-basic-query-csharpt-output.js
+            :language: sh
+            :linenos: 
+            :visible: false
+
+   .. selected-content::
+      :selections: atlas, byo, driver, go
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/go/enn-basic-query.go
+            :language: go
+            :linenos: 
+
+         .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/enn-basic-query-go-output.sh
+            :language: sh
+            :linenos: 
+            :visible: false
+
+   .. selected-content::
+      :selections: atlas, byo, driver, java-sync
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/java/enn-basic-query.java
+            :language: js
+            :linenos: 
+
+         .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/enn-basic-query-java-output.js 
+            :language: js
+            :linenos: 
+            :visible: false
+
+   .. selected-content::
+      :selections: atlas, byo, driver, nodejs
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/nodejs/enn-basic-query.js
+            :language: js
+            :linenos: 
+
+         .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/enn-basic-query-nodejs-output.js 
+            :language: js
+            :linenos: 
+            :visible: false
+
+   .. selected-content::
+      :selections: atlas, byo, driver, python
+
+      .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/run-queries/enn.ipynb
+
+      .. cta-banner::
+         :url: https://github.com/mongodb/docs-notebooks/blob/main/run-queries/enn.ipynb
+         :icon: Code
+
+         Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/run-queries/enn.ipynb>`.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/python/enn-basic-query.py
+            :language: python
+            :linenos: 
+
+         .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/enn-basic-query-py-output.js 
+            :language: js
+            :linenos:
+            :visible: false
+
+   .. selected-content::
+      :selections: self, byo, mongosh, none
+
+      .. include:: /includes/pipeline-stage/vectorSearch/procedures/steps-enn-query-mongosh.rst
+
+   .. selected-content::
+      :selections: self, byo, driver, csharp
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/csharp/enn-basic-query.cs
+            :language: go
+            :linenos: 
+
+         .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/enn-basic-query-csharpt-output.js
+            :language: sh
+            :linenos: 
+            :visible: false
+
+   .. selected-content::
+      :selections: self, byo, driver, go
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/go/enn-basic-query.go
+            :language: go
+            :linenos: 
+
+         .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/enn-basic-query-go-output.sh
+            :language: sh
+            :linenos: 
+            :visible: false
+
+   .. selected-content::
+      :selections: self, byo, driver, java-sync
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/java/enn-basic-query.java
+            :language: js
+            :linenos: 
+
+         .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/enn-basic-query-java-output.js 
+            :language: js
+            :linenos: 
+            :visible: false
+
+   .. selected-content::
+      :selections: self, byo, driver, nodejs
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/nodejs/enn-basic-query.js
+            :language: js
+            :linenos: 
+
+         .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/enn-basic-query-nodejs-output.js 
+            :language: js
+            :linenos: 
+            :visible: false
+
+   .. selected-content::
+      :selections: self, byo, driver, python
+
+      .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/run-queries/enn.ipynb
+
+      .. cta-banner::
+         :url: https://github.com/mongodb/docs-notebooks/blob/main/run-queries/enn.ipynb
+         :icon: Code
+
+         Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/run-queries/enn.ipynb>`.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/python/enn-basic-query.py
+            :language: python
+            :linenos: 
+
+         .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/enn-basic-query-py-output.js 
+            :language: js
+            :linenos:
+            :visible: false
+
+   .. selected-content::
+      :selections: self, auto, mongosh, none
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/shell/auto-embed-enn-query.sh
+            :language: js
+            :linenos: 
+
+         .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-enn-query-mongosh-output.js 
+            :language: js
+            :linenos: 
+            :visible: false
+
+   .. selected-content::
+      :selections: self, auto, driver, csharp
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/csharp/auto-embed-enn-query.cs
+            :language: go
+            :linenos: 
+
+         .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-enn-query-csharp-output.js
+
+   .. selected-content::
+      :selections: self, auto, driver, go
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/go/auto-embed-enn-query.go
+            :language: go
+            :linenos: 
+
+         .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-enn-query-go-output.js
+            :language: sh
+            :linenos: 
+            :visible: false
+
+   .. selected-content::
+      :selections: self, auto, driver, java-sync
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/java/auto-embed-enn-query.java
+            :language: java
+            :linenos: 
+
+         .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-enn-query-java-output.js 
+            :language: js
+            :linenos: 
+            :visible: false
+
+   .. selected-content::
+      :selections: self, auto, driver, nodejs
+
+      .. io-code-block::
+         :copyable: true 
+
+         .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/nodejs/auto-embed-enn-query.js
+            :language: js
+            :linenos: 
+
+         .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-enn-query-nodejs-output.js 
+            :language: js
+            :linenos: 
+            :visible: false
+
+   .. selected-content::
+      :selections: self, auto, driver, python
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/python/auto-embed-enn-query.py
+            :language: python
+            :linenos: 
+
+         .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-enn-query-py-output.js 
+            :language: js
+            :linenos:
+            :visible: false
+
+.. toctree::
+   :titlesonly:
+
+   Explain Query Results </query/explain>

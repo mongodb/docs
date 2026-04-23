@@ -1,0 +1,35 @@
+.. procedure:: 
+   :style: normal 
+   
+   .. step:: Connect to the cluster using {+mongosh+}.
+
+      In a terminal window, run ``atlas deployments connect`` and follow the prompts
+      to connect to your local |service| deployment via {+mongosh+}. 
+      For detailed instructions on connecting, see
+      :atlascli:`Manage a Local Atlas Deployment </atlas-cli-deploy-local/#manage-a-local-atlas-deployment>`.
+
+   .. step:: Switch to the database that contains the collection for which you want to create the index. 
+
+      .. example:: 
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: 
+               :language: shell
+               
+               use sample_mflix 
+
+            .. output:: 
+               :language: shell 
+
+               switched to db sample_mflix
+
+   .. step:: Run the :method:`db.collection.createSearchIndex()` method.
+
+      .. literalinclude:: /includes/quick-start/code-snippets/shell/basic-example-mongosh.sh
+         :language: shell
+         :copyable: true 
+         :linenos:
+
+      .. include:: /includes/quick-start/facts/avs-quick-start-basic-index-description.rst

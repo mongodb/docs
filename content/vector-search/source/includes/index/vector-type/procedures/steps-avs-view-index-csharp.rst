@@ -1,0 +1,42 @@
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Create a ``.cs`` file and use the ``.List()`` method to retrieve the indexes for the collection.
+
+      .. literalinclude:: /includes/index/vector-type/code-snippets/return-index/get-index.cs
+         :language: csharp
+         :copyable: true 
+         :linenos: 
+
+   .. step:: Replace the following values and save the file.
+
+      .. list-table:: 
+         :stub-columns: 1 
+
+         * - ``<connectionString>``
+           - Cluster connection string. To learn more, see :ref:`connect-via-driver`.
+
+         * - ``<databaseName>``
+           - The name of the database that contains the collection.
+
+         * - ``<collectionName>``
+           - The name of the collection.
+
+         * - ``<indexName>``
+           - The name of the index to retrieve. To return all indexes on 
+             the collection, omit this value.
+
+   .. step:: Initialize the class and call the method in ``Program.cs``.
+
+      .. code-block:: csharp
+
+         using query_quick_start;
+
+         var indexService = new IndexService();
+         indexService.ViewSearchIndexes();
+
+   .. step:: Compile and run your project.
+
+      .. code-block:: shell
+
+         dotnet run

@@ -1,0 +1,66 @@
+.. procedure:: 
+   :style: normal
+
+   .. step:: Create a new directory called ``query-quick-start`` and initialize your .NET/C# project.
+
+      In your terminal, run the following commands:
+  
+      .. code-block:: bash
+
+         mkdir query-quick-start
+         cd query-quick-start
+         dotnet new console
+
+   .. step:: Run the following command to add the .NET/C# Driver to your project as a dependency.
+
+      .. code-block:: bash
+
+         dotnet add package MongoDB.Driver
+
+      For more detailed installation instructions, see the 
+      :driver:`MongoDB C# Driver documentation </csharp/current/get-started>`.
+
+   .. step:: Define the index.
+
+      Create a file named ``IndexService.cs``. Copy and paste the following
+      code into the file.
+
+      .. literalinclude:: /includes/quick-start/code-snippets/csharp/basic-example.cs
+         :language: csharp
+         :copyable: true
+         :caption: IndexService.cs
+         :emphasize-lines: 11
+         :linenos:
+
+      .. include:: /includes/quick-start/facts/avs-quick-start-basic-index-description.rst
+
+      This code also includes a polling mechanism to check if the index is ready to use.
+
+   .. step:: Specify the ``<connectionString>``.
+
+      .. include:: /includes/quick-start/procedures/steps-connection-string-drivers-hidden.rst
+
+   .. step:: Initialize the class and call the method to create the index in your ``Program.cs`` file:
+
+      .. code-block:: csharp
+         :copyable: true
+         :caption: Program.cs
+
+         using query_quick_start;
+
+         var indexService = new IndexService();
+         indexService.CreateVectorIndex();
+
+   .. step:: Compile and run your project to create the index.
+   
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: bash
+
+            dotnet run query-quick-start.csproj
+
+         .. output:: /includes/quick-start/code-snippets/shell/create-index-output.sh
+            :language: sh
+            :linenos:

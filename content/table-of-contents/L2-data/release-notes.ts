@@ -261,7 +261,7 @@ const tocData: TocItem[] = [
   {
     label: 'Vector Search Release Notes',
     contentSite: 'cloud-docs',
-    url: '/docs/atlas/atlas-vector-search/changelog',
+    url: '/docs/vector-search/changelog',
   },
 ];
 

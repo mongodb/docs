@@ -1,0 +1,55 @@
+namespace query_quick_start;
+
+using MongoDB.Bson;
+using MongoDB.Driver;
+
+public class IndexService
+{
+    private const string MongoConnectionString = "<connectionString>";
+    // Other class methods here...
+    public void EditVectorIndex()
+    {
+        try
+        {
+            // connect to your deployment
+            var client = new MongoClient(MongoConnectionString);
+
+            // Access your database and collection
+            var database = client.GetDatabase("<databaseName>");
+            var collection = database.GetCollection<BsonDocument>("<collectionName>");
+            
+            var definition = new BsonDocument
+            {
+                { "fields", new BsonArray
+                    {
+                        new BsonDocument
+                        {
+                            { "type", "autoEmbed" },
+                            { "modality", "text" },
+                            { "path", "<indexedField>" },
+                            { "model", "<embeddingModel>" }
+                        },
+                        new BsonDocument
+                        {
+                            { "type", "filter" },
+                            { "path", "<fieldToIndex>" }
+                        },
+                        new BsonDocument
+                        {
+                            { "type", "filter" },
+                            { "path", "<fieldToIndex>" }
+                        }
+                    }
+                }
+            };
+            
+            // Update your search index
+            var searchIndexView = collection.SearchIndexes;
+            searchIndexView.Update(<indexName>, definition);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Exception: {e.Message}");
+        }
+    }
+}
