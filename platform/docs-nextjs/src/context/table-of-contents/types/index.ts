@@ -243,6 +243,7 @@ export type DocSite =
   | 'sql-interface'
   | 'atlas-charts'
   | 'docs-relational-migrator'
+  | 'vector-search'
   | 'visual-studio-extension';
 
 export default TocItem;

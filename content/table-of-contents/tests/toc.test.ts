@@ -53,6 +53,7 @@ const DocSitesTesting = [
   'spark-connector',
   'visual-studio-extension',
   'voyageai',
+  'vector-search',
   'sql-interface',
   'landing',
 ];

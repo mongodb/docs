@@ -1340,9 +1340,9 @@ export const toc: L1TocItem[] = [
                 url: '/docs/ops-manager/:version/tutorial/start-and-stop-application',
               },
               {
-                label: 'Start & Stop Backup Daemon',
+                label: 'Manage Backup Daemon',
                 contentSite: 'ops-manager',
-                url: '/docs/ops-manager/:version/tutorial/start-and-stop-backup-daemon',
+                url: '/docs/ops-manager/:version/tutorial/manage-backup-daemon',
               },
               {
                 label: 'Manage Snapshot Storage',

@@ -123,7 +123,7 @@ const tocData: TocItem[] = [
   },
   {
     label: 'Vector Search',
-    contentSite: 'cloud-docs',
+    contentSite: 'vector-search',
     url: '/docs/vector-search/',
     collapsible: true,
     items: VectorSearchData,
