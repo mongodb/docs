@@ -381,59 +381,138 @@ documents that are structured as follows:
 
 Suppose you run the following query:
 
-.. code-block:: javascript 
+.. code-block:: javascript
 
-   SELECT v.year AS visit_year, v.score AS visit_score, p.transaction AS transaction_id, t.amount AS purchase_amount  
-   FROM UNWIND(  
-     customerInfo WITH PATHS => (  
-       visits[INDEX => visit_idx],  
-       purchases[OUTER => TRUE, INDEX => purchase_idx].transactions[]  
-     ),  
-     INDEX => idx,  
-     OUTER => FALSE  
-   )  
+   SELECT
+     visits.year AS visit_year, visits.score AS visit_score,
+     purchases.transaction AS transaction_id,
+     purchases.transactions.amount AS purchase_amount,
+     visit_idx, purchase_idx,
+     purchases_transactions_idx AS transaction_idx
+   FROM UNWIND(
+     customerInfo WITH PATHS => (
+       visits[OUTER => FALSE, INDEX => visit_idx],
+       purchases[INDEX => purchase_idx].transactions[OUTER => FALSE]
+     ),
+     INDEX => idx,
+     OUTER => TRUE
+   )
 
 The preceding query does the following:
 
-- Unwinds the ``visits`` array and assigns an index name ``visit_idx`` to
-  track the index position inside the unwound array. 
-- Unwinds the ``purchases`` array and unwinds the ``transactions`` array inside each ``purchases`` object. It
-  also preserves any purchase with a missing or empty ``transactions``
-  array by using ``OUTER => TRUE``.
+- Unwinds the ``visits`` array and assigns an index name ``visit_idx``
+  to track the index position inside the unwound array. It does not
+  include missing or empty ``visits`` by setting ``OUTER => FALSE``.
+- Unwinds the ``purchases`` array and unwinds the ``transactions``
+  array inside each ``purchases`` object. It preserves any missing or
+  empty ``purchases`` array by using ``OUTER => TRUE``. It also assigns
+  an index name ``purchase_idx`` to track the index position inside the
+  unwound ``purchases`` array, and an index name
+  ``purchases_transactions_idx`` to track the position inside the
+  unwound ``transactions`` array inside each ``purchases`` object.
+- Selects the ``year`` and ``score`` subfields from the ``visits``
+  objects, the ``transaction`` subfield from the ``purchases`` objects,
+  and the ``amount`` subfield from the ``transactions`` objects within
+  each ``purchases`` object, as well as all the index fields.
+
+In the preceding query: 
+
+- ``OUTER => TRUE`` is set as a top-level parameter to the
+  ``UNWIND`` datasource making it the default value used for all
+  ``PATHS`` unless the path-level ``OUTER`` value is different.
+- ``INDEX => idx`` is set as a top-level parameter to
+  the ``UNWIND`` datasource making it the default value used for all
+  ``PATHS`` unless the path-level ``INDEX`` value is different.
+
+  For example, ``transactions`` did not specify a specific ``INDEX``
+  value. Therefore, it uses this top-level value to create the index name by
+  appending ``_idx`` to the full path.
 
 {+asql+} returns documents with the following fields:
 
 .. list-table::
-   :widths: 22 26 26 26
+   :widths: 14 14 14 14 14 15 15
    :header-rows: 1
 
    * - ``visit_year``
      - ``visit_score``
      - ``transaction_id``
      - ``purchase_amount``
+     - ``visit_idx``
+     - ``purchase_idx``
+     - ``transaction_idx``
 
    * - 2020
      - 10
      - 1A
      - 100
+     - 0
+     - 0
+     - 0
+
+   * - 2020
+     - 10
+     - 1A
+     - 150
+     - 0
+     - 0
+     - 1
 
    * - 2020
      - 10
      - 2B
-     - 150
+     - 200
+     - 0
+     - 1
+     - 0
 
    * - 2021
      - 8
      - 1A
      - 100
+     - 1
+     - 0
+     - 0
+
+   * - 2021
+     - 8
+     - 1A
+     - 150
+     - 1
+     - 0
+     - 1
 
    * - 2021
      - 8
      - 2B
-     - 150
+     - 200
+     - 1
+     - 1
+     - 0
 
-In the results, each row contains data from a single ``visits`` entry
-and a single ``transactions`` entry.
+   * - 2022
+     - 7
+     - 1A
+     - 100
+     - 2
+     - 0
+     - 0
+
+   * - 2022
+     - 7
+     - 1A
+     - 150
+     - 2
+     - 0
+     - 1
+
+   * - 2022
+     - 7
+     - 2B
+     - 200
+     - 2
+     - 1
+     - 0
 
 Combined FLATTEN and UNWIND Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
