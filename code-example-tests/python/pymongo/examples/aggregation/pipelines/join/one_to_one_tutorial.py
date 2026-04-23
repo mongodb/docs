@@ -120,8 +120,12 @@ def example(CONNECTION_STRING):
         aggregation_result = orders_coll.aggregate(pipeline)
         # :snippet-end:
 
+        document_list = []  # :remove:
         for document in aggregation_result:
             print(document)
+            document_list.append(document)  # :remove:
+
+        return document_list  # :remove:
 
     finally:
         client.close()

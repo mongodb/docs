@@ -7,8 +7,6 @@ import examples.aggregation.pipelines.unwind.unwind_tutorial as unwind_tutorial
 import examples.aggregation.pipelines.join.one_to_one_tutorial as one_to_one_tutorial
 import examples.aggregation.pipelines.join.multi_field_tutorial as multi_field_tutorial
 import os
-import io
-from contextlib import redirect_stdout
 from dotenv import load_dotenv
 from pymongo import MongoClient
 
@@ -48,58 +46,48 @@ class TestTutorialApp(unittest.TestCase):
 
     def test_filter_tutorial(self):
         """Filter tutorial: should insert sample data and return 3 specified documents by filter."""
-        with redirect_stdout(io.StringIO()) as stdout:
-            filter_tutorial.example(TestTutorialApp.CONNECTION_STRING)
-        actual_output = stdout.getvalue()
+        result = filter_tutorial.example(TestTutorialApp.CONNECTION_STRING)
 
         output_filepath = (
             "examples/aggregation/pipelines/filter/filter-tutorial-output.txt"
         )
-        Expect.that(actual_output).should_match(output_filepath)
+        Expect.that(result).should_match(output_filepath)
 
     def test_group_tutorial(self):
         """Group tutorial: should insert sample data and return 3 docs grouped by 'first_purchase_date'."""
-        with redirect_stdout(io.StringIO()) as stdout:
-            group_tutorial.example(TestTutorialApp.CONNECTION_STRING)
-        actual_output = stdout.getvalue()
+        result = group_tutorial.example(TestTutorialApp.CONNECTION_STRING)
 
         output_filepath = (
             "examples/aggregation/pipelines/group/group-tutorial-output.txt"
         )
-        Expect.that(actual_output).should_match(output_filepath)
+        Expect.that(result).should_match(output_filepath)
 
     def test_unwind_tutorial(self):
         """Unwind tutorial: should insert sample data and unwind product data to return 4 documents grouped by ID."""
-        with redirect_stdout(io.StringIO()) as stdout:
-            unwind_tutorial.example(TestTutorialApp.CONNECTION_STRING)
-        actual_output = stdout.getvalue()
+        result = unwind_tutorial.example(TestTutorialApp.CONNECTION_STRING)
 
         output_filepath = (
             "examples/aggregation/pipelines/unwind/unwind-tutorial-output.txt"
         )
-        Expect.that(actual_output).should_match(output_filepath)
+        Expect.that(result).should_match(output_filepath)
 
     def test_one_to_one_tutorial(self):
         """One-to-one join tutorial: should insert sample data and return 3 docs w/product and order data joined."""
-        with redirect_stdout(io.StringIO()) as stdout:
-            one_to_one_tutorial.example(TestTutorialApp.CONNECTION_STRING)
-        actual_output = stdout.getvalue()
+        result = one_to_one_tutorial.example(TestTutorialApp.CONNECTION_STRING)
 
         output_filepath = (
             "examples/aggregation/pipelines/join/one-to-one-tutorial-output.txt"
         )
-        Expect.that(actual_output).should_match(output_filepath)
+        Expect.that(result).should_match(output_filepath)
 
     def test_multi_field_tutorial(self):
         """Multi-field join tutorial: should insert sample data and return 2 docs w/product and order data joined by multiple fields."""
-        with redirect_stdout(io.StringIO()) as stdout:
-            multi_field_tutorial.example(TestTutorialApp.CONNECTION_STRING)
-        actual_output = stdout.getvalue()
+        result = multi_field_tutorial.example(TestTutorialApp.CONNECTION_STRING)
 
         output_filepath = (
             "examples/aggregation/pipelines/join/multi-field-tutorial-output.txt"
         )
-        Expect.that(actual_output).should_match(output_filepath)
+        Expect.that(result).should_match(output_filepath)
 
     @classmethod
     def tearDownClass(cls):
