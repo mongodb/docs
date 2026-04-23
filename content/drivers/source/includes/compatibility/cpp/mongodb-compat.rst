@@ -13,7 +13,7 @@ The following table shows compatibility between the C++ driver and {+mdb-server+
      - MongoDB 4.4
      - MongoDB 4.2
 
-   * - 4.2
+   * - 4.2 to 4.3
      - ✓
      - ✓
      - ✓

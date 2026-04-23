@@ -382,7 +382,7 @@ export const toc: L1TocItem[] = [
           {
             label: 'API Documentation',
             isExternal: true,
-            url: 'https://mongocxx.org/api/mongocxx-4.1.4',
+            url: 'https://mongocxx.org/api/mongocxx-4.3.0',
           },
           {
             label: 'Issues & Help',

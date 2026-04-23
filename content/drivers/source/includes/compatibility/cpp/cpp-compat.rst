@@ -12,7 +12,7 @@ The following table shows compatibility between the C++ and {+mdb-server+}:
      - C++14
      - C++11
 
-   * - 3.8 to 4.2
+   * - 3.8 to 4.3
      - ✓
      - ✓
      - ✓
