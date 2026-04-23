@@ -939,7 +939,7 @@ const tocData: TocItem[] = [
             label: 'OpenTelemetry',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/tutorial/otel-integration',
-          },	  
+          },
         ],
       },
       {

@@ -5,13 +5,11 @@ description: Use this skill for any Jira operation in the DOCSP project — crea
 
 # Jira Tool for Docs Writers
 
-Unified Jira skill for the DOCSP project. Supports both the `jira` CLI and
-`mcp-atlassian` MCP tools with automatic fallback.
+Unified Jira skill for the DOCSP project. Supports both the `jira` CLI and `mcp-atlassian` MCP tools with automatic fallback.
 
 ## Critical Rules
 
-- Never modify or comment on a Jira ticket unless explicitly authorized by the
-  user.
+- Never modify or comment on a Jira ticket unless explicitly authorized by the user.
 - Always present a plan and get confirmation before making changes.
 - Field values are case-sensitive.
 - Always use Jira wiki markup in descriptions and comments, never Markdown.
@@ -24,20 +22,13 @@ Unified Jira skill for the DOCSP project. Supports both the `jira` CLI and
 
 1. Run `which jira && jira me` (use a 5-second Bash timeout).
 2. If both succeed → **session-preferred = CLI**.
-3. If either fails (command not found, auth error, timeout) →
-   **session-preferred = MCP**.
+3. If either fails (command not found, auth error, timeout) → **session-preferred = MCP**.
 
-**Session memory**: Once a tool is marked as session-preferred, use it for all
-subsequent operations without re-testing.
+**Session memory**: Once a tool is marked as session-preferred, use it for all subsequent operations without re-testing.
 
-**Quick-fail rule**: If the session-preferred tool fails on a specific
-operation, immediately try the other. Do not retry the failed tool more than
-once. If the fallback succeeds, switch session-preferred to the fallback. If
-both fail, report the error.
+**Quick-fail rule**: If the session-preferred tool fails on a specific operation, immediately try the other. Do not retry the failed tool more than once. If the fallback succeeds, switch session-preferred to the fallback. If both fail, report the error.
 
-**MCP tool names** are environment-specific (e.g., `jira_create_issue`,
-`jira_search`). Use whatever Jira MCP tools are available in the current
-session.
+**MCP tool names** are environment-specific (e.g., `jira_create_issue`, `jira_search`). Use whatever Jira MCP tools are available in the current session.
 
 ---
 
@@ -54,16 +45,14 @@ session.
 
 ### Custom Field Names
 
-The `--custom` flag requires **lowercase-hyphenated** display names — not the
-raw field key or the Jira display name.
+The `--custom` flag requires **lowercase-hyphenated** display names — not the raw field key or the Jira display name.
 
 | Display Name | `--custom` Name | Field Key |
 |---|---|---|
 | Story Points | `story-points` | customfield_10555 |
 | Did you use AI? | `did-you-use-ai` | customfield_27257 |
 
-Pattern: `"Display Name"` → `display-name` (strip punctuation, lowercase,
-hyphenate).
+Pattern: `"Display Name"` → `display-name` (strip punctuation, lowercase, hyphenate).
 
 ### JQL ORDER BY
 
@@ -79,8 +68,7 @@ jira issue list -q "assignee = currentUser()" --order-by updated
 
 ### Transition Names vs Status Names
 
-`jira issue move` uses **transition names**, not status names. The CLI shows
-valid transitions on error:
+`jira issue move` uses **transition names**, not status names. The CLI shows valid transitions on error:
 
 ```bash
 # WRONG — "Closed" is a status name
@@ -94,9 +82,7 @@ When uncertain, attempt the move and read the error for valid transition names.
 
 ### Description via Stdin
 
-For multi-line descriptions, **always pipe via stdin** — not
-`-b "$(cat <<'EOF'...)"`. The `-b` flag with `$()` heredocs causes the CLI to
-hang silently.
+For multi-line descriptions, **always pipe via stdin** — not `-b "$(cat <<'EOF'...)"`. The `-b` flag with `$()` heredocs causes the CLI to hang silently.
 
 ```bash
 # WRONG — hangs silently
@@ -116,8 +102,7 @@ The `-b` flag works fine for short single-line descriptions.
 
 ### Non-Interactive Mode
 
-Always pass `--no-input` for create/edit operations. Always pass `--plain` for
-list operations.
+Always pass `--no-input` for create/edit operations. Always pass `--plain` for list operations.
 
 ---
 
@@ -125,11 +110,9 @@ list operations.
 
 Standard progression for a writing ticket:
 
-**Needs Triage → Ready for Work → In Progress → Internal Review →
-External Review → Closed**
+**Needs Triage → Ready for Work → In Progress → Internal Review → External Review → Closed**
 
-Use `jira_get_transitions` (MCP) or attempt `jira issue move` and read the
-error (CLI) to get valid transition names/IDs before transitioning.
+Use `jira_get_transitions` (MCP) or attempt `jira issue move` and read the error (CLI) to get valid transition names/IDs before transitioning.
 
 | Status | When to use |
 |---|---|
@@ -141,11 +124,9 @@ error (CLI) to get valid transition names/IDs before transitioning.
 | Blocked | Work is blocked on an external dependency |
 | Closed | PR merged and work complete — see Closing Issues below |
 
-Tickets typically close directly from Internal Review or External Review. Needs
-Merge is available but not a standard step for any team.
+Tickets typically close directly from Internal Review or External Review. Needs Merge is available but not a standard step for any team.
 
-The Close transition requires Story Points and "Did you use AI?" — see Closing
-Issues.
+The Close transition requires Story Points and "Did you use AI?" — see Closing Issues.
 
 ---
 
@@ -153,8 +134,7 @@ Issues.
 
 Apply labels when creating or updating a ticket. Labels are case-sensitive.
 
-Apply exactly one primary label; add zero or more additional labels alongside
-it.
+Apply exactly one primary label; add zero or more additional labels alongside it.
 
 | Label | Type | When to use |
 |---|---|---|
@@ -188,17 +168,9 @@ jira_update_issue(
 
 ## Component Field
 
-Components are optional but should be set when the work's ownership is clear.
-Infer from the product, team, or content area the ticket is about. Use
-`all-docs` when the work applies to or affects all teams equally and cannot be
-attributed to a single team's ownership.
+Components are optional but should be set when the work's ownership is clear. If the component isn't obvious from context, ask the user which team owns the work. Use `all-docs` when the work applies to or affects all teams equally and cannot be attributed to a single team's ownership.
 
-For the authoritative component-to-team mapping, see the triage skill
-(`skills/triage/SKILL.md`, Component-to-Team Map).
-
-If the component is ambiguous, omit it rather than guessing. Do not use these
-archived components: `snooty`, `snooty autobuilder`, `snooty-autobuilder`,
-`snooty-frontend`, `snooty-parser`.
+If the component is ambiguous and the user is unsure, omit it rather than guessing. Do not use these archived components: `snooty`, `snooty autobuilder`, `snooty-autobuilder`, `snooty-frontend`, `snooty-parser`.
 
 ---
 
@@ -223,8 +195,7 @@ archived components: `snooty`, `snooty autobuilder`, `snooty-autobuilder`,
 - `Task` — general docs work (default)
 - `Bug` — error, inaccuracy, or broken content
 - `Story` — larger feature or initiative
-- `Epic` — large initiative spanning multiple tickets; must include Epic Name
-  (`customfield_10858`)
+- `Epic` — large initiative spanning multiple tickets; must include Epic Name (`customfield_10858`)
 
 **Priority:**
 - `Critical - P2` — urgent, blocking, or high-visibility
@@ -262,15 +233,11 @@ jira_create_issue(
 
 ## Closing Issues
 
-Before closing, confirm the PR has been merged. Tickets typically close from
-Internal Review or External Review — Needs Merge is not a required step.
+Before closing, confirm the PR has been merged. Tickets typically close from Internal Review or External Review — Needs Merge is not a required step.
 
 **Story Points, "Did you use AI?", and Resolution are required at close time.**
 
-The `resolution` field is screen-controlled — it can only be set during the
-Close transition, not via a separate edit. Omitting it leaves the ticket in an
-unresolved state even after it reaches Closed status, so it will continue to
-appear in `resolution = Unresolved` filters.
+The `resolution` field is screen-controlled — it can only be set during the Close transition, not via a separate edit. Omitting it leaves the ticket in an unresolved state even after it reaches Closed status, so it will continue to appear in `resolution = Unresolved` filters.
 
 **CLI approach** — set the fields first, then transition:
 
@@ -282,8 +249,7 @@ jira issue edit DOCSP-12345 \
 jira issue move DOCSP-12345 "Close Issue"
 ```
 
-**MCP approach** — get the Close transition ID, then transition with required
-fields:
+**MCP approach** — get the Close transition ID, then transition with required fields:
 
 ```python
 jira_get_transitions(issue_key="DOCSP-12345")
@@ -299,8 +265,7 @@ jira_transition_issue(
 )
 ```
 
-If the MCP transition fails with "This field is required", use
-`jira_search_fields` to identify the missing field.
+If the MCP transition fails with "This field is required", use `jira_search_fields` to identify the missing field.
 
 ### Resolution Values
 
@@ -313,9 +278,7 @@ If the MCP transition fails with "This field is required", use
 
 ### Story Point Estimation
 
-Estimate based on writing effort, product knowledge required, and testing
-effort. Use the ticket description and any work done in the session to judge
-the scale.
+Estimate based on writing effort, product knowledge required, and testing effort. Use the ticket description and any work done in the session to judge the scale.
 
 | Points | Scope |
 |---|---|
@@ -327,9 +290,7 @@ the scale.
 | 8 | Expert: multiple pages and subpages, several complex procedures, large feature |
 | 13 | Maximum: major feature with site-wide impact |
 
-**If the estimate is 8 or 13:** Flag this to the user. An 8-point ticket should
-be broken into subtasks; a 13-point ticket should be an epic with child tickets.
-Do not silently close without surfacing this.
+**If the estimate is 8 or 13:** Flag this to the user. An 8-point ticket should be broken into subtasks; a 13-point ticket should be an epic with child tickets. Do not silently close without surfacing this.
 
 Ask the user for their estimate if the ticket scope is unclear.
 
@@ -348,29 +309,6 @@ jira issue view DOCSP-12345 --raw     # full JSON for parsing fields
 ```python
 # MCP
 jira_get_issue(issue_key="DOCSP-12345")
-```
-
-### Check PR / branch status
-
-Use Jira development info to find the PR number linked to a ticket when you
-don't already have it:
-
-```bash
-# CLI
-jira issue view DOCSP-12345 --raw
-```
-
-```python
-# MCP
-jira_get_issue_development_info(issue_key="DOCSP-12345")
-```
-
-Once you have the PR number, use the `gh` CLI or GitHub MCP for detailed
-status — reviewers, check runs, merge details:
-
-```bash
-gh pr view 12345
-gh pr checks 12345
 ```
 
 ### Search tickets
@@ -418,9 +356,7 @@ jira_get_transitions(issue_key="DOCSP-12345")   # get transition IDs first
 jira_transition_issue(issue_key="DOCSP-12345", transition_id="<id>")
 ```
 
-**Story Points Estimate required on In Progress:** The In Progress transition
-screen requires `customfield_27258` (Story Points Estimate). Set it before or
-during the transition:
+**Story Points Estimate required on In Progress:** The In Progress transition screen requires `customfield_27258` (Story Points Estimate). Set it before or during the transition:
 
 ```bash
 # CLI — set before transitioning
@@ -452,14 +388,11 @@ jira issue comment add DOCSP-12345 $'Line one\n\nLine two'
 jira_add_comment(issue_key="DOCSP-12345", comment="Comment body here.")
 ```
 
-To mention a user, use `[~username]` where username is their MongoDB email
-prefix (e.g. `[~jane.smith]`). Use this when requesting SME or stakeholder
-review.
+To mention a user, use `[~username]` where username is their MongoDB email prefix (e.g. `[~jane.smith]`). Use this when requesting SME or stakeholder review.
 
 ### Post a PR link comment
 
-When moving a ticket to Internal Review or Needs Merge, post the PR URL as a
-comment:
+When moving a ticket to Internal Review or Needs Merge, post the PR URL as a comment:
 
 ```bash
 # CLI
@@ -511,21 +444,15 @@ jira issue watch DOCSP-12345 $(jira me)    # watch an issue
 
 ---
 
-Use `--plain` for list output, `--raw` for full JSON (pipe through `jq` for
-parsing), `--csv`, `--no-truncate`, `--no-headers`, and `--columns X,Y,Z` as
-needed.
+Use `--plain` for list output, `--raw` for full JSON (pipe through `jq` for parsing), `--csv`, `--no-truncate`, `--no-headers`, and `--columns X,Y,Z` as needed.
 
 ---
 
 ## Scope Creep: Follow-up Ticket Creation
 
-When work during a session expands beyond the current ticket's original scope,
-create a follow-up ticket rather than expanding the current one. This keeps
-tickets focused and the backlog accurate.
+When work during a session expands beyond the current ticket's original scope, create a follow-up ticket rather than expanding the current one. This keeps tickets focused and the backlog accurate.
 
-**When to suggest this:** The user discovers additional work while implementing
-the current ticket — new pages to update, related gaps, or adjacent issues that
-weren't in the original scope.
+**When to suggest this:** The user discovers additional work while implementing the current ticket — new pages to update, related gaps, or adjacent issues that weren't in the original scope.
 
 **Workflow:**
 
@@ -533,10 +460,8 @@ weren't in the original scope.
 2. Ask the user to confirm it should be a separate ticket.
 3. Create a new DOCSP ticket with:
    - A summary scoped to the new work only
-   - A description referencing the originating ticket (e.g., "Discovered during
-     DOCSP-XXXXX")
-   - The same component and labels as the parent ticket (unless the work clearly
-     belongs elsewhere)
+   - A description referencing the originating ticket (e.g., "Discovered during DOCSP-XXXXX")
+   - The same component and labels as the parent ticket (unless the work clearly belongs elsewhere)
 4. Link the new ticket to the original with link type `"Related"`.
 5. Present the new ticket key to the user.
 
@@ -552,5 +477,4 @@ h2. Scope
 
 ---
 
-Use Jira wiki markup in all descriptions and comments (e.g. `h2.`, `*bold*`,
-`{{code}}`, `[label|url]`, `[~username]`) — not Markdown.
+Use Jira wiki markup in all descriptions and comments (e.g. `h2.`, `*bold*`, `{{code}}`, `[label|url]`, `[~username]`) — not Markdown.

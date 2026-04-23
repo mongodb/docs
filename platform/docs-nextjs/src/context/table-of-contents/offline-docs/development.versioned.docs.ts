@@ -3401,11 +3401,6 @@ export const toc: L1TocItem[] = [
                     url: '/docs/:version/core/csfle/reference',
                     items: [
                       {
-                        label: 'CSFLE Limitations',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/csfle/reference/limitations',
-                      },
-                      {
                         label: 'CSFLE Encryption Schemas',
                         contentSite: 'docs',
                         url: '/docs/:version/core/csfle/reference/encryption-schemas',
@@ -4149,24 +4144,6 @@ export const toc: L1TocItem[] = [
                     label: 'Locales & Default Parameters',
                     contentSite: 'docs',
                     url: '/docs/:version/reference/collation-locales-defaults',
-                  },
-                ],
-              },
-              {
-                label: 'Connection Strings',
-                contentSite: 'docs',
-                collapsible: true,
-                url: '/docs/:version/reference/connection-string',
-                items: [
-                  {
-                    label: 'Options',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/connection-string-options',
-                  },
-                  {
-                    label: 'Examples',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/connection-string-examples',
                   },
                 ],
               },

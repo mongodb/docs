@@ -943,6 +943,11 @@ export const toc: L1TocItem[] = [
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/tutorial/prometheus-integration',
                   },
+                  {
+                    label: 'OpenTelemetry',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/tutorial/otel-integration',
+                  },
                 ],
               },
               {

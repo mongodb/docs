@@ -1,7 +1,7 @@
 import partnerShowcase from '../L2-data/partner-showcase';
+import referenceArchitectures from '../L2-data/reference-architectures';
 import solutionsLibrary from '../L2-data/solutions-library';
 import type { TocItem } from '../types';
-import referenceArchitectures from '../L2-data/reference-architectures';
 
 const tocData: TocItem[] = [
   {
