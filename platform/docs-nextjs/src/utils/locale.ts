@@ -32,18 +32,14 @@ const AVAILABLE_LANGUAGES: AvailableLanguageData[] = [
   { language: '한국어', localeCode: 'ko-kr', fontFamily: 'Noto Sans KR' },
   { language: 'Português', localeCode: 'pt-br' },
   { language: '日本語', localeCode: 'ja-jp', fontFamily: 'Noto Sans JP' },
+  { language: 'Español', localeCode: 'es' },
 ];
 
 // GTM locale
-export const BETA_LOCALE: { [key: string]: AvailableLanguageData } = {
-  es: {
-    language: 'Español',
-    localeCode: 'es',
-  },
-};
+export const BETA_LOCALE: { [key: string]: AvailableLanguageData } = {};
 
 // Languages in current development that we do not want displayed publicly yet
-const HIDDEN_LANGUAGES: AvailableLanguageData[] = [BETA_LOCALE['es']];
+const HIDDEN_LANGUAGES: AvailableLanguageData[] = [];
 
 /**
  * @param {boolean} forceAll - Bypasses feature flag requirements if necessary
