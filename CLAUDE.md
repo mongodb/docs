@@ -156,6 +156,8 @@ Before creating the PR, ask the user which PR template to use. The user may choo
 - Drivers changes: `.github/PULL_REQUEST_TEMPLATE/drivers.md`
 - Code Example Tests: `.github/PULL_REQUEST_TEMPLATE/code.md`
 - Platform changes: `.github/PULL_REQUEST_TEMPLATE/platform.md`
+- Cloud Docs changes: `.github/PULL_REQUEST_TEMPLATE/cloud.md`
+- Agent Skill changes: `.github/PULL_REQUEST_TEMPLATE/agent-skill.md`
 
 Pass the chosen template to `gh pr create` using the `--template` flag.
 

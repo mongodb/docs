@@ -11,6 +11,7 @@ provide the following templates:
 - Content changes: Use `?template=content.md`
 - Drivers changes: Use `?template=drivers.md`
 - Cloud Docs changes: Use `?template=cloud.md`
+- Agent Skill changes: Use `?template=agent-skill.md`
 
 For example:
 
