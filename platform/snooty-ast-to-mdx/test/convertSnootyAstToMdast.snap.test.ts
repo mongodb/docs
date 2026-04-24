@@ -488,6 +488,40 @@ const cases: Array<[string, SnootyNode]> = [
     },
   ],
   [
+    'line node with RST margin value and ref_role children',
+    {
+      type: 'line_block',
+      children: [
+        {
+          type: 'line',
+          value: '| ',
+          children: [
+            {
+              type: 'ref_role',
+              name: 'ref',
+              target: 'voyage-models',
+              fileid: ['voyage/models', 'section-id'],
+              children: [{ type: 'text', value: 'See all available models' }],
+            },
+          ],
+        },
+        {
+          type: 'line',
+          value: '| ',
+          children: [
+            {
+              type: 'ref_role',
+              name: 'ref',
+              target: 'voyage-api-client',
+              fileid: ['voyage/api'],
+              children: [{ type: 'text', value: 'Learn about the API' }],
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  [
     'doc link',
     {
       type: 'doc',

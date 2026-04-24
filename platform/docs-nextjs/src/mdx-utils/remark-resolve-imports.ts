@@ -208,7 +208,11 @@ const resolveRefLinks = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
       if (!key) return;
 
       const href = refs.refs[key];
-      if (!href) return;
+      if (!href) {
+        const fallback: PhrasingContent = { type: 'text', value: `Reference could not be replaced: ${key}` };
+        replacements.push({ index, parent, replacement: fallback });
+        return;
+      }
 
       const title = getAttr(node, 'title') ?? key;
       const resolvedHref = href.startsWith('http') ? href : `/docs/${projectPath}/${href}`;
@@ -224,10 +228,21 @@ const resolveRefLinks = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
 
     if (node.name === 'RefRole') {
       const name = getAttr(node, 'name');
-      if (!name) return;
+      if (!name) {
+        const fallback: PhrasingContent = {
+          type: 'text',
+          value: 'RefRole could not be replaced: (missing name)',
+        };
+        replacements.push({ index, parent, replacement: fallback });
+        return;
+      }
 
       const href = refs.refs[name];
-      if (!href) return;
+      if (!href) {
+        const fallback: PhrasingContent = { type: 'text', value: `RefRole could not be replaced: ${name}` };
+        replacements.push({ index, parent, replacement: fallback });
+        return;
+      }
 
       const resolvedHref = href.startsWith('http') ? href : `/docs/${projectPath}/${href}`;
       const children: Link['children'] = node.children?.length

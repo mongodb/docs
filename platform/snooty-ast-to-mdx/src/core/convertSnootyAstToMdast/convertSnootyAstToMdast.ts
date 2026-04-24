@@ -1115,12 +1115,23 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
     }
 
     case 'line': {
-      if (node.value != null && node.value !== '') {
-        return { type: 'text', value: node.value };
-      }
-      // Line nodes from line_block with inline markup store content in children, not value
+      // Line nodes can carry RST line-block margin in `value` (often "| ") while inline
+      // markup (e.g. :ref:) lives in `children`. Returning only `value` drops references.
       const lineChildren = convertChildren({ nodes: node.children, depth, ctx });
-      return lineChildren.length > 0 ? lineChildren : null;
+      const rawValue = node.value != null && String(node.value).length > 0 ? String(node.value) : '';
+
+      if (lineChildren.length > 0) {
+        const afterMargin = rawValue.replace(/^\|\s*/, '');
+        if (afterMargin) {
+          return [{ type: 'text', value: afterMargin }, ...lineChildren];
+        }
+        return lineChildren.length === 1 ? lineChildren[0]! : lineChildren;
+      }
+
+      if (rawValue) {
+        return { type: 'text', value: rawValue };
+      }
+      return null;
     }
 
     case 'title_reference':
