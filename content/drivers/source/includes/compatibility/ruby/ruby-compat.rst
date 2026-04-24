@@ -16,7 +16,7 @@ The following table shows compatibility between the Ruby driver and Ruby:
      - JRuby 9.3
      - JRuby 9.2
 
-   * - 2.23.0
+   * - 2.23.0 to 2.24.0
      - ✓
      - ✓
      - ✓
