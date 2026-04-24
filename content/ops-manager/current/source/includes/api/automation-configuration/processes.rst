@@ -67,9 +67,23 @@ instances. Using this array, you can:
      - Required
      - MongoDB configuration object for MongoDB versions 2.6 and later.
 
-       The ``processes.args2_6`` object accepts most MongoDB 
-       settings and parameters for MongoDB versions 2.6 and later. 
+       The ``processes.args2_6`` object accepts most MongoDB
+       settings and parameters for MongoDB versions 2.6 and later.
        To learn more, see :ref:`om-unsupported-mdb-settings`.
+
+   * - processes[n].args2_6.sharding.clusterRole
+     - string
+     - Conditional
+     - Role of this |mongod| process in a sharded cluster.
+
+       Required for configuration server and shard member processes. 
+       If you omit this fiel, the deployment might get stuck in goal state because
+       MongoDB cannot start without the corresponding startup flag.
+
+       Accepted values:
+
+       - ``configsvr`` — For configuration server processes.
+       - ``shardsvr`` — For shard member processes.
 
    * - processes[n].alias
      - string
