@@ -96,11 +96,16 @@
 
       .. note::
 
-         When you first launch |charts| in a project, |charts-short| 
-         automatically creates a new 
-         :atlas:`user </access/manage-project-access/>` named 
-         :guilabel:`Charts User` with the ``Project Charts Admin`` role 
+         When you first launch |charts| in a project, |charts-short|
+         automatically creates a new
+         :atlas:`user </access/manage-project-access/>` named
+         :guilabel:`Charts User` with the ``Project Charts Admin`` role
          in your |service| project to access your cluster data.
+         The names of these users are in the format:
+         ``charts+<PROJECT-ID>@mongodb.com``. If you see a different
+         chart user that appears suspicious and has a different format,
+         contact `MongoDB Support
+         <https://support.mongodb.com/welcome>`__.
 
       .. tabs::
 
