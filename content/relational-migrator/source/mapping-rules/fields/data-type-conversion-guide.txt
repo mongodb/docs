@@ -5,7 +5,7 @@ Data Type Conversion Reference
 ==============================
 
 .. meta::
-   :description: Explore examples of converting various data types to BSON using customized fields, including handling errors and null values during migration.
+   :description: Explore examples of converting various data types to BSON using customized fields in Relational Migrator, including error handling and BsonNull values during migration.
 
 .. contents:: On this page
    :local:
@@ -230,3 +230,187 @@ customization for the value ``"true"`` with a ``String`` data type.
    * - ``String``
      - ``"true"``
 
+Oracle TIMESTAMP
+~~~~~~~~~~~~~~~~
+
+Oracle ``TIMESTAMP(0-9)`` columns support the following BSON type
+options. The example uses the source value
+``2025-01-01 12:34:56.123456789`` with a ``TIMESTAMP(9)`` data type.
+
+.. list-table::
+   :widths: 30 40 30
+   :header-rows: 1
+
+   * - BSON Type
+     - Behavior
+     - Example Output
+
+   * - ``Date`` (default)
+     - Truncates to millisecond precision. For
+       ``TIMESTAMP(0-3)``, no precision loss occurs.
+     - ``2025-01-01T12:34:56.123Z``
+
+   * - ``String``
+     - Preserves full sub-millisecond precision as a string.
+     - ``"2025-01-01 12:34:56.123456789Z"``
+
+   * - ``Long (milliseconds)``
+     - Stores milliseconds since Unix epoch as Int64.
+     - ``1735734896123``
+
+   * - ``Long (microseconds)``
+     - Stores microseconds since Unix epoch as Int64.
+     - ``1735734896123456``
+
+   * - ``Long (nanoseconds)``
+     - Stores nanoseconds since Unix epoch as Int64.
+     - ``1735734896123456789``
+
+Oracle TIMESTAMP WITH TIME ZONE
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Oracle ``TIMESTAMP WITH TIME ZONE`` columns support the following
+BSON type options. The example uses the source value
+``2025-01-01 12:34:00.000 -05:00``.
+
+.. note::
+
+   In releases prior to 1.15.4, selecting ``Date`` for
+   ``TIMESTAMP WITH TIME ZONE`` columns stored the local time
+   without shifting to UTC. The updated ``Date (UTC)`` option
+   shifts the timestamp to UTC using the original time zone offset.
+
+.. list-table::
+   :widths: 35 35 30
+   :header-rows: 1
+
+   * - BSON Type
+     - Behavior
+     - Example Output
+
+   * - ``String`` (default)
+     - Stores the full timestamp including the time zone offset
+       as a string.
+     - ``"2025-01-01 12:34:00.000 -05:00"``
+
+   * - ``Date (UTC)``
+     - Shifts the timestamp to UTC using the original time zone
+       offset.
+     - ``2025-01-01T17:34:00.000Z``
+
+   * - ``Date (Strip Time Zone)``
+     - Stores local wall-clock time as-is in UTC, ignoring the
+       time zone offset.
+     - ``2025-01-01T12:34:00.000Z``
+
+   * - ``Date and String (Separate fields)``
+     - Creates two sub-fields: ``timestamp`` (BSON Date) and
+       ``timeZone`` (BSON String).
+     - ``{ timestamp: 2025-01-01T12:34:00Z, timeZone: "-05:00" }``
+
+   * - ``Long (milliseconds)``
+     - Stores milliseconds since UTC-equivalent time as Int64.
+     - ``1735752840000``
+
+   * - ``Long (microseconds)``
+     - Stores microseconds since UTC-equivalent time as Int64.
+     - ``1735752840000000``
+
+   * - ``Long (nanoseconds)``
+     - Stores nanoseconds since UTC-equivalent time as Int64.
+     - ``1735752840000000000``
+
+Oracle NUMBER
+~~~~~~~~~~~~~
+
+Oracle ``NUMBER`` columns support the following BSON type options.
+The default BSON type depends on the column's scale (``s``) and
+integer precision (``p - s``):
+
+- ``s > 0``: ``Decimal`` (Decimal128)
+- ``s <= 0`` and ``(p - s) < 10``: ``Integer`` (BsonInt32)
+- ``s <= 0`` and ``10 <= (p - s) < 19``: ``Long`` (BsonInt64)
+- ``s <= 0`` and ``(p - s) >= 19``: ``Decimal`` (Decimal128)
+
+The example uses the source value ``123456789``.
+
+.. list-table::
+   :widths: 30 40 30
+   :header-rows: 1
+
+   * - BSON Type
+     - Behavior
+     - Example Output
+
+   * - ``Bool``
+     - Treats 0 as false and any non-zero numeric value as true.
+     - ``true``
+
+   * - ``Date``
+     - Interprets the NUMBER as milliseconds since the Unix
+       epoch (1970-01-01T00:00:00Z). Large values can overflow
+       and produce an invalid date.
+     - ``1970-01-02T10:17:36.789+00:00``
+
+   * - ``Decimal``
+     - Maps to BSON Decimal128. Values with more than 34
+       significant digits may lose precision.
+     - ``123456789``
+
+   * - ``Double``
+     - Converts to BSON Double (64-bit floating point). Large
+       or high-precision values may lose precision due to
+       IEEE 754 rounding.
+     - ``123456789``
+
+   * - ``Integer``
+     - Maps to BSON Int32. Values that exceed the Int32 range
+       result in an error.
+     - ``123456789``
+
+   * - ``Long``
+     - Maps to BSON Int64. Values that exceed the Int64 range
+       result in an error.
+     - ``123456789``
+
+   * - ``String``
+     - Preserves all digits as a string. Use when full numeric
+       fidelity is required.
+     - ``"123456789"``
+
+Decimal128 Precision
+--------------------
+
+When the source value exceeds 34 significant digits, the ``Decimal``
+mapping may lose precision. The following example uses the source
+value ``12345678901234567890123456789012345678`` (38 significant
+digits).
+
+.. list-table::
+   :widths: 30 40 30
+   :header-rows: 1
+
+   * - BSON Type
+     - Behavior
+     - Example Output
+
+   * - ``Decimal``
+     - Values with more than 34 significant digits may lose
+       precision.
+     - ``1.234567890123456789012345678901234E+37``
+
+   * - ``String``
+     - Preserves all digits as a string. Use when full numeric
+       fidelity is required.
+     - ``"12345678901234567890123456789012345678"``
+
+Oracle XMLTYPE
+~~~~~~~~~~~~~~
+
+{+rel-mig+} maps Oracle ``XMLTYPE`` columns to BSON ``String``,
+storing the XML document as a string value.
+
+.. note::
+
+   To migrate ``XMLTYPE`` columns, ensure that the ``xdb.jar``
+   Oracle JDBC driver file is available.
