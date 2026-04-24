@@ -105,7 +105,7 @@ The following {+fts+} features are not available with on-prem deployments:
 
    You can manually implement Backup and Restore or BYOK Encryption. 
 
-.. _mongot-tls-limitations:
+.. _mongot-vs-tls-limitations:
 
 ``mongot`` TLS Configuration Limitations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
