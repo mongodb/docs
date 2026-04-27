@@ -141,8 +141,11 @@ const fetchAndParseInclude = async ({
   }
 };
 
+type AbbrSubstitution = { text: string; tooltip: string };
+type SubstitutionValue = string | AbbrSubstitution;
+
 interface ReferencesData {
-  substitutions: Record<string, string>;
+  substitutions: Record<string, SubstitutionValue>;
   refs: Record<string, string>;
 }
 
@@ -186,8 +189,18 @@ const resolveSubstitutions = ({ tree, refs }: ResolveRefsArgs) => {
     const value = refs.substitutions[key];
     if (!value) return;
 
-    const textNode: PhrasingContent = { type: 'text', value };
-    replacements.push({ index, parent, replacement: textNode });
+    if (typeof value === 'object') {
+      const abbrNode: MdxJsxTextElement = {
+        type: 'mdxJsxTextElement',
+        name: 'Abbr',
+        attributes: [{ type: 'mdxJsxAttribute', name: 'tooltip', value: value.tooltip }],
+        children: [{ type: 'text', value: value.text }],
+      };
+      replacements.push({ index, parent, replacement: abbrNode as unknown as PhrasingContent });
+      return;
+    }
+
+    replacements.push({ index, parent, replacement: { type: 'text', value } as PhrasingContent });
   });
 
   applyReplacements(replacements);

@@ -1,6 +1,11 @@
 import fs from 'node:fs/promises';
 
-type Substitutions = Record<string, string>;
+export interface AbbrSubstitution {
+  text: string;
+  tooltip: string;
+}
+export type SubstitutionValue = string | AbbrSubstitution;
+type Substitutions = Record<string, SubstitutionValue>;
 type Refs = Record<string, string>;
 
 export interface ReferencesArtifact {
@@ -8,14 +13,34 @@ export interface ReferencesArtifact {
   refs: Refs;
 }
 
+const ABBR_PATTERN = /^(.+?)\s*\((.+)\)$/;
+
+/** Detect the "TERM (expansion)" abbreviation pattern in a plain string substitution value. */
+const parseSubstitutionValue = (value: string): SubstitutionValue => {
+  const match = value.match(ABBR_PATTERN);
+  if (match) return { text: match[1], tooltip: match[2] };
+  return value;
+};
+
+const serializeSubstitutionValue = (value: SubstitutionValue): string => {
+  if (typeof value === 'string') return esc(value);
+  return `{ text: ${esc(value.text)}, tooltip: ${esc(value.tooltip)} }`;
+};
+
 /** Build references artifacts (TS and JSON) for a given set of substitutions and refs */
 export const buildReferencesArtifacts = ({
   substitutions = {},
   refs = {},
 }: ReferencesArtifact): { ts: string; json: string } => {
-  const subsLines = Object.entries(substitutions)
+  // Normalize incoming string values: detect the abbreviation pattern and convert to structured form.
+  const normalizedSubs: Substitutions = {};
+  for (const [k, v] of Object.entries(substitutions)) {
+    normalizedSubs[k] = typeof v === 'string' ? parseSubstitutionValue(v) : v;
+  }
+
+  const subsLines = Object.entries(normalizedSubs)
     .sort(([a], [b]) => a.localeCompare(b))
-    .map(([k, v]) => `    ${JSON.stringify(k)}: ${esc(v)},`)
+    .map(([k, v]) => `    ${JSON.stringify(k)}: ${serializeSubstitutionValue(v)},`)
     .join('\n');
 
   const refsLines = Object.entries(refs)
@@ -29,7 +54,7 @@ export const buildReferencesArtifacts = ({
     `const references = { substitutions, refs } as const;\n\n` +
     `export default references;\n`;
 
-  const json = JSON.stringify({ substitutions, refs }, null, 2) + '\n';
+  const json = JSON.stringify({ substitutions: normalizedSubs, refs }, null, 2) + '\n';
 
   return { ts, json };
 };

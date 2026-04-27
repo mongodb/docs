@@ -117,6 +117,20 @@ const cases: Array<[string, SnootyNode]> = [
     },
   ],
   [
+    'link reference with abbr role child',
+    {
+      type: 'reference',
+      refuri: 'https://example.com/docs',
+      children: [
+        {
+          type: 'role',
+          name: 'abbr',
+          children: [{ type: 'text', value: 'MQL (MongoDB Query Language)' }],
+        },
+      ],
+    },
+  ],
+  [
     'heading',
     {
       type: 'heading',
