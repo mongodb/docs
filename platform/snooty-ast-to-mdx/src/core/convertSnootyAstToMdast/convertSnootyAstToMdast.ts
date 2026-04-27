@@ -45,9 +45,51 @@ const extractArgText = (n: SnootyNode): string => {
   return (n.children ?? []).map(extractArgText).join('');
 };
 
-/** Extract the tab title from node.argument */
-const parseTabName = (node: SnootyNode): string =>
-  Array.isArray(node.argument) ? node.argument.map(extractArgText).join('').trim() : String(node.argument || '').trim();
+const escapeJsxText = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\{/g, '&#123;');
+
+/** Serialize a single Snooty inline node to a JSX string fragment. */
+const snootyInlineToJsx = (node: SnootyNode): string => {
+  switch (node.type) {
+    case 'text':
+      return escapeJsxText(node.value ?? '');
+    case 'literal': {
+      let value = node.value ?? '';
+      if (!value && Array.isArray(node.children)) {
+        value = node.children
+          .filter(isValueNode)
+          .map((c) => c.value)
+          .join('');
+      }
+      return `<code>${escapeJsxText(value)}</code>`;
+    }
+    case 'emphasis':
+      return `<em>${(node.children ?? []).map(snootyInlineToJsx).join('')}</em>`;
+    case 'strong':
+      return `<strong>${(node.children ?? []).map(snootyInlineToJsx).join('')}</strong>`;
+    default:
+      return escapeJsxText(extractArgText(node));
+  }
+};
+
+/**
+ * Build the `name` JSX attribute for a `<Tab>` component from Snooty argument nodes.
+ * Returns a plain string attribute when the title is plain text, and a JSX expression
+ * attribute when the title contains rich inline content (e.g. inline code).
+ */
+const buildTabNameAttribute = (argumentNodes: SnootyNode[]): MdastNode | null => {
+  if (argumentNodes.length === 0) return null;
+  const hasRichContent = argumentNodes.some((n) => n.type !== 'text');
+  if (hasRichContent) {
+    const jsxBody = argumentNodes.map(snootyInlineToJsx).join('');
+    return {
+      type: 'mdxJsxAttribute',
+      name: 'name',
+      value: { type: 'mdxJsxAttributeValueExpression', value: `<>${jsxBody}</>` },
+    };
+  }
+  const name = argumentNodes.map(extractArgText).join('').trim();
+  return name ? { type: 'mdxJsxAttribute', name: 'name', value: name } : null;
+};
 
 /** Append dangling punctuation to preceding reference/link nodes (mirrors appendTrailingPunctuation from docs-nextjs) */
 const appendTrailingPunctuation = (nodes: SnootyNode[]): SnootyNode[] => {
@@ -730,11 +772,10 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 
       if (directiveName === 'tab') {
         const tabid = typeof node.options?.tabid === 'string' ? node.options.tabid : '';
-        const name = parseTabName(node);
+        const argumentNodes = Array.isArray(node.argument) ? node.argument : [];
         const attributes: MdastNode[] = [{ type: 'mdxJsxAttribute', name: 'tabid', value: tabid }];
-        if (name) {
-          attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: name });
-        }
+        const nameAttr = buildTabNameAttribute(argumentNodes);
+        if (nameAttr) attributes.push(nameAttr);
         return {
           type: 'mdxJsxFlowElement',
           name: 'Tab',
@@ -1280,11 +1321,10 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 
     case 'tab': {
       const tabid = typeof node.options?.tabid === 'string' ? node.options.tabid : '';
-      const name = parseTabName(node);
+      const argumentNodes = Array.isArray(node.argument) ? node.argument : [];
       const attributes: MdastNode[] = [{ type: 'mdxJsxAttribute', name: 'tabid', value: tabid }];
-      if (name) {
-        attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: name });
-      }
+      const nameAttr = buildTabNameAttribute(argumentNodes);
+      if (nameAttr) attributes.push(nameAttr);
       return {
         type: 'mdxJsxFlowElement',
         name: 'Tab',

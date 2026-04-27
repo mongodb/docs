@@ -105,7 +105,7 @@ export type TabProps = {
   children: React.ReactNode;
   tabid: string;
   /** Optional explicit tab title. If omitted, the first child is used as the title. */
-  name?: string;
+  name?: React.ReactNode;
 };
 
 /**

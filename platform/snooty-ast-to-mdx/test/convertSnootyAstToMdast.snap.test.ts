@@ -316,6 +316,29 @@ const cases: Array<[string, SnootyNode]> = [
     },
   ],
   [
+    'tab with inline code in title (DOP-6843: preserves code formatting in tab name)',
+    {
+      type: 'tabs',
+      children: [
+        {
+          type: 'tab',
+          options: { tabid: 'mongosh' },
+          argument: [{ type: 'literal', value: 'mongosh' }],
+          children: [{ type: 'paragraph', children: [{ type: 'text', value: 'mongosh content' }] }],
+        },
+        {
+          type: 'tab',
+          options: { tabid: 'compass' },
+          argument: [
+            { type: 'text', value: 'Use ' },
+            { type: 'literal', value: 'Compass' },
+          ],
+          children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Compass content' }] }],
+        },
+      ],
+    },
+  ],
+  [
     'target node',
     {
       type: 'target',
