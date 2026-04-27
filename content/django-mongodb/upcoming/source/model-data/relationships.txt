@@ -1,0 +1,280 @@
+.. _django-model-relationships:
+
+=======================================
+Model Relationships and Denormalization
+=======================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: foreign key, one to one, many to many, embed, denormalization, reference, relationship
+   :description: Learn how to choose between embedding and referencing in the Django MongoDB Backend and how to use ForeignKey, OneToOneField, and ManyToManyField fields.
+
+Overview
+--------
+
+In this guide, you can learn how to model relationships between
+collections in {+django-odm+}. Because MongoDB is a document-oriented database,
+{+django-odm+} provides embedded model fields that store related data
+in a single document instead of across multiple collections. {+django-odm+} also provides
+an array field, which allows you to store a list of related scalar
+values in the parent document.
+
+This guide explains when to use each approach and provides examples
+to demonstrate the strategies.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide define models that represent the following collections
+in the ``sample_mflix`` database:
+
+- ``movies``: Stores information about movies
+- ``embedded_movies``: Extends ``movies`` with vector plot embeddings
+- ``users``: Stores information about movie viewers
+- ``comments``: Stores information about movie comments
+
+To learn more about the ``sample_mflix`` database, see :ref:`Sample Mflix Dataset
+<sample-mflix>` in the MongoDB Atlas documentation.
+
+.. _django-model-relationships-strategies:
+
+Denormalization Strategies
+--------------------------
+
+Relational databases normalize data into separate tables and use joins
+to combine related data at query time. MongoDB's document model allows
+you to embed related data directly inside a parent document instead,
+which is called **denormalization**. {+django-odm+} supports both
+approaches, but we recommend that you denormalize your data for
+better performance.
+
+To denormalize, choose one of the following strategies:
+
+- :ref:`django-relationships-embed`: Store related data inside the parent document by using an
+  ``EmbeddedModelField`` or ``EmbeddedModelArrayField``. Embedded data
+  is stored in the same MongoDB document as the parent and retrieved
+  in a single read operation.
+- :ref:`django-relationships-array`: Store a list of related scalar values directly
+  in the parent document by using an ``ArrayField``. Array data is
+  retrieved in a single read operation without :pipeline:`$lookup` operations.
+
+.. _django-relationships-embed: 
+
+Embed Related Models
+~~~~~~~~~~~~~~~~~~~~
+
+Use an embedded model when all of the following conditions apply:
+
+- The related data is always read together with the parent document.
+- The related data belongs to a single parent and is not shared across
+  multiple documents.
+- The number of related items is bounded and predictable.
+
+To embed related data, define an embedded model class as a subclass of
+``EmbeddedModel``, then use an `EmbeddedModelField <{+api+}/ref/models/fields/#embeddedmodelfield>`__
+to store it in the parent model.
+
+The following example defines a ``Director`` embedded model, and then
+defines a ``Movie`` model that stores an instance of the ``Director``
+model:
+
+.. literalinclude:: /includes/model-data/relationships.py
+   :start-after: start-embed
+   :end-before: end-embed
+   :language: python
+   :copyable:
+
+To learn more about embedded models, see
+:ref:`django-models-embedded` in the Create Models guide.
+
+.. _django-relationships-array:
+
+Store Array Data
+~~~~~~~~~~~~~~~~
+
+Use an `ArrayField <{+api+}/ref/models/fields/#arrayfield>`__
+to store a list of related scalar values directly on the parent document.
+Array data is stored in the same MongoDB document and retrieved in a
+single read operation without performing ``$lookup`` operations. Use
+this strategy when the following conditions apply:
+
+- The related values are simple scalars, such as strings or integers.
+- The array size is bounded and predictable.
+
+The following example defines a ``Movie`` model that stores a list of
+strings in the ``cast`` field:
+
+.. literalinclude:: /includes/model-data/relationships.py
+   :start-after: start-arrayfield
+   :end-before: end-arrayfield
+   :language: python
+   :copyable:
+
+To store arrays of structured documents instead of scalar values, use
+an `EmbeddedModelArrayField <{+api+}/ref/models/fields/#embeddedmodelarrayfield>`__
+instead. To learn more, see :ref:`django-models-embedded-array` in the
+Create Models guide.
+
+.. _django-model-relationships-fields:
+
+Relational Fields
+-----------------
+
+.. important::
+
+   Queries across relational fields use MongoDB's ``$lookup``
+   operator, which can be slow for large collections. When possible,
+   use embedded models instead. To learn more about performance
+   considerations, see :ref:`django-performance-limits`.
+
+If your data is structured similarly to a relational database
+and you need to model large hierarchical datasets, you can use
+the following relational {+framework+} fields that link documents
+across separate collections:
+
+- :ref:`django-model-relationships-foreignkey`
+- :ref:`django-model-relationships-onetoone`
+- :ref:`django-model-relationships-manytomany`
+
+.. important::
+
+   You cannot use relational fields inside embedded model classes or as
+   the ``base_field`` of an ``ArrayField``.
+
+.. _django-model-relationships-foreignkey:
+
+ForeignKey
+~~~~~~~~~~
+
+Use a :py:class:`~django.db.models.ForeignKey` field to create a
+many-to-one relationship between two models. Each document in the referencing model links to
+one document in the referenced model. Pass the following arguments
+to the ``ForeignKey()`` constructor:
+
+- ``to``: The model class to link to
+- ``on_delete``: The deletion behavior when you delete the referenced document
+
+The following example links a ``Comment`` model to a ``Movie`` model
+by using a ``ForeignKey`` field. When you delete a
+``sample_mflix.movies`` document, all related
+``sample_mflix.comments`` documents are also deleted:
+
+.. literalinclude:: /includes/model-data/relationships.py
+   :start-after: start-foreignkey
+   :end-before: end-foreignkey
+   :language: python
+   :copyable:
+
+.. tip::
+
+   To learn more about ``on_delete`` options, see
+   `ForeignKey.on_delete
+   <{+django-docs+}/ref/models/fields/#django.db.models.ForeignKey.on_delete>`__
+   in the {+framework+} documentation.
+
+.. _django-model-relationships-onetoone:
+
+OneToOneField
+~~~~~~~~~~~~~
+
+Use a :py:class:`~django.db.models.OneToOneField` field to create a
+one-to-one relationship between two models. Each document in the referencing model links to
+exactly one document in the referenced model. Pass the following
+arguments to the ``OneToOneField()`` constructor:
+
+- ``to``: The model class to link to
+- ``on_delete``: The deletion behavior when the referenced document
+  is deleted
+
+The following example defines an ``EmbeddedMovie`` model that links to
+a ``Movie`` model by using a ``OneToOneField`` field. When you delete
+a ``sample_mflix.movies`` document, its linked
+``sample_mflix.embedded_movies`` document is also deleted:
+
+.. literalinclude:: /includes/model-data/relationships.py
+   :start-after: start-onetoone
+   :end-before: end-onetoone
+   :language: python
+   :copyable:
+
+.. _django-model-relationships-manytomany:
+
+ManyToManyField
+~~~~~~~~~~~~~~~
+
+Use a :py:class:`~django.db.models.ManyToManyField` field to create
+a many-to-many relationship between two models. Each document in either model can link to multiple
+documents in the other model. Pass the model class to link to as the
+first argument to the ``ManyToManyField()`` constructor.
+
+The following example links a ``Viewer`` model to a ``Movie`` model.
+Each viewer can watch multiple movies, and each movie can be
+watched by multiple viewers:
+
+.. literalinclude:: /includes/model-data/relationships.py
+   :start-after: start-manytomany
+   :end-before: end-manytomany
+   :language: python
+   :copyable:
+
+.. _django-relationships-convert:
+
+Convert Relational to Embedded Data
+-----------------------------------
+
+If you have existing models that use relational fields and want to
+improve read performance, you can convert them to use embedded models
+instead. This eliminates ``$lookup`` operations and stores all related
+data in a single MongoDB document.
+
+This example defines a ``Movie`` model that has
+the following relational fields:
+
+- :py:class:`~django.db.models.ForeignKey`, which links to ``Director``
+- :py:class:`~django.db.models.OneToOneField`, which links to ``Award``
+- :py:class:`~django.db.models.ManyToManyField`, which links to ``Writer``
+
+.. literalinclude:: /includes/model-data/relationships.py
+   :start-after: start-relational-before
+   :end-before: end-relational-before
+   :language: python
+   :copyable:
+
+To convert these relational fields to embedded fields, change each
+related model to extend ``EmbeddedModel`` instead of
+``models.Model``, then replace the ``Movie`` model's relational fields with
+the corresponding embedded fields:
+
+- Replace the ``ForeignKey`` with an ``EmbeddedModelField``
+- Replace the ``OneToOneField`` with an ``EmbeddedModelField``
+- Replace the ``ManyToManyField`` with an ``EmbeddedModelArrayField``
+
+The following example shows the converted ``Movie`` model:
+
+.. literalinclude:: /includes/model-data/relationships.py
+   :start-after: start-relational-after
+   :end-before: end-relational-after
+   :language: python
+   :copyable:
+
+Additional Information
+----------------------
+
+To learn how to query data across related models, see
+:ref:`django-query-advanced` in the Specify a Query guide.
+
+To learn more about {+framework+} relational fields, see the
+`Model field reference <{+django-docs+}/ref/models/fields/#module-django.db.models.fields.related>`__
+in the {+framework+} documentation.
+
+To learn more about embedded models, see :ref:`django-models-embedded`
+in the Create Models guide.

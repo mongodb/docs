@@ -48,6 +48,11 @@ export const toc: L1TocItem[] = [
                 contentSite: 'django',
                 url: '/docs/languages/python/django-mongodb/:version/model-data/geodjango',
               },
+              {
+                label: 'Relationships and Denormalization',
+                contentSite: 'django',
+                url: '/docs/languages/python/django-mongodb/:version/model-data/relationships',
+              },
             ],
           },
           {
