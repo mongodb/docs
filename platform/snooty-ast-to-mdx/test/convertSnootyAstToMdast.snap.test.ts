@@ -228,12 +228,28 @@ const cases: Array<[string, SnootyNode]> = [
     },
   ],
   [
-    'directive literalinclude',
+    'directive literalinclude — no inlined content (falls back to include file)',
     {
       type: 'directive',
       name: 'literalinclude',
       options: { language: 'js' },
       argument: 'src/code.js',
+    },
+  ],
+  [
+    'directive literalinclude — with inlined code content (DOP-6823: inline directly, no path collision)',
+    {
+      type: 'directive',
+      name: 'literalinclude',
+      options: { language: 'terraform', 'start-after': '# start-restrict', 'end-before': '# end-restrict' },
+      argument: '/includes/example.tf',
+      children: [
+        {
+          type: 'code',
+          lang: 'terraform',
+          value: 'resource "mongodbatlas_project" "example" {\n  name = "example"\n}',
+        },
+      ],
     },
   ],
   [

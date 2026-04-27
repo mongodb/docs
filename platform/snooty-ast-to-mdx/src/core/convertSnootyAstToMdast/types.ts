@@ -50,7 +50,7 @@ export interface SnootyNode {
   name?: string;
   argument?: SnootyNode[] | string;
   options?: Record<string, unknown>;
-  enumtype?: 'ordered' | 'unordered';
+  enumtype?: 'ordered' | 'unordered' | 'arabic' | 'bullet' | 'loweralpha' | 'upperalpha' | 'lowerroman' | 'upperroman';
   ordered?: boolean;
   label?: string;
   term?: SnootyNode[];

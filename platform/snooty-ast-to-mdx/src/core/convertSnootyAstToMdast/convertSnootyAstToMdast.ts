@@ -547,7 +547,22 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (directiveName === 'figure' || directiveName === 'image') {
         return convertDirectiveImage({ node, ctx });
       }
-      if (directiveName === 'include' || directiveName === 'sharedinclude' || directiveName === 'literalinclude') {
+      if (directiveName === 'literalinclude') {
+        // When Snooty resolves a literalinclude it inlines the extracted code content
+        // into node.children (as code/literal_block nodes). Multiple literalinclude
+        // directives referencing the same source file with different start-after/end-before
+        // options would all generate the same output path via convertDirectiveInclude,
+        // causing last-write-wins collisions. Instead, inline the code directly.
+        const literalChildren = (Array.isArray(node.children) ? node.children : []).filter(
+          (c): c is SnootyNode => !!c && c.type !== 'directive',
+        );
+        if (literalChildren.length > 0) {
+          const converted = convertChildren({ nodes: literalChildren, depth, ctx });
+          return converted.length === 1 ? converted[0] : converted;
+        }
+        return convertDirectiveInclude({ node, ctx, depth: depth });
+      }
+      if (directiveName === 'include' || directiveName === 'sharedinclude') {
         return convertDirectiveInclude({ node, ctx, depth: depth });
       }
       if (directiveName === 'list-table') {
