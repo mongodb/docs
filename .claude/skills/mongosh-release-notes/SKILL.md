@@ -2,7 +2,7 @@
 name: mongosh-release-notes
 description: Draft MongoDB Shell (mongosh) release notes for a new version by fetching the corresponding release from mongodb-js/mongosh and formatting them for the docs. Use when asked to draft or create mongosh release notes.
 allowed-tools: Read, Grep, Glob, Agent, Edit
-argument-hint: [version] e.g. 2.8.3
+argument-hint: "[version] e.g. 2.8.3"
 ---
 
 # Draft mongosh Release Notes for $ARGUMENTS

@@ -2,7 +2,7 @@
 name: mcp-release-notes
 description: Draft MongoDB MCP Server release notes for a new version by fetching the corresponding release from mongodb-js/mongodb-mcp-server and formatting them for the docs. Use when asked to draft or create MCP Server release notes.
 allowed-tools: Read, Grep, Glob, Agent, Edit
-argument-hint: [version] e.g. 1.9.0
+argument-hint: "[version] e.g. 1.9.0"
 ---
 
 # Draft MCP Server Release Notes for $ARGUMENTS

@@ -2,7 +2,7 @@
 name: compass-release-notes
 description: Draft Compass release notes for a new version by fetching the corresponding release from mongodb-js/compass and formatting them for the docs. Use when asked to draft or create Compass release notes.
 allowed-tools: Read, Grep, Glob, Agent, Edit
-argument-hint: [version] e.g. 1.49.5
+argument-hint: "[version] e.g. 1.49.5"
 ---
 
 # Draft Compass Release Notes for $ARGUMENTS

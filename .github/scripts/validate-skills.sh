@@ -37,7 +37,7 @@ diff_output="$(git diff --name-only "origin/${BASE_REF}...HEAD" -- .claude/skill
 
 changed_skills=()
 mapfile -t changed_skills < <(echo "$diff_output" \
-  | cut -d'/' -f2 \
+  | cut -d'/' -f3 \
   | sort -u \
   | grep -v '^$')
 
@@ -49,7 +49,7 @@ fi
 FAILED=0
 for skill in "${changed_skills[@]}"; do
   # Skip skills whose directories were deleted in this PR.
-  if [ ! -d "skills/$skill" ]; then
+  if [ ! -d ".claude/skills/$skill" ]; then
     echo "Skipping deleted skill: $skill"
     continue
   fi
@@ -60,7 +60,7 @@ for skill in "${changed_skills[@]}"; do
   # We use process substitution to:
   # 1. Send all output (including ::error commands) to stdout for GitHub Actions
   # 2. Filter out ::error/::warning/::notice lines before writing to the summary
-  skill-validator check --allow-extra-frontmatter --strict --emit-annotations -o markdown "./claude/skills/$skill/" \
+  skill-validator check --allow-extra-frontmatter --strict --emit-annotations -o markdown "./.claude/skills/$skill/" \
     > >(tee >(grep -v '^::' >> "${GITHUB_STEP_SUMMARY:-/dev/null}")) 2>&1 || FAILED=1
 done
 
