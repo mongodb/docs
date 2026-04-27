@@ -1,6 +1,6 @@
 ---
 name: open-pr
-description: "Opens a GitHub Pull Request with the standard PR template: Description, Staging Links, and JIRA ticket. Infers the ticket from the branch name and generates staging preview URLs from changed files after the PR is created."
+description: "Opens a GitHub Pull Request with the standard PR template: Description, Staging Links, and JIRA ticket. Infers the ticket from the branch name and generates staging preview URLs from changed files after the PR is created. TRIGGER when: user asks to open, create, submit, make, update, or edit a PR or pull request, or wants to refresh staging links on an existing PR."
 argument-hint: "[--base <branch>] [optional notes or extra context]"
 ---
 
@@ -43,6 +43,20 @@ Use the format: `DOCSP-NNNNN <short description of the change>` — same pattern
 ## Step 4 — Write the Description section
 
 Based on the commit messages, changed files, and any extra context provided in `$ARGUMENTS`, write a clear prose summary of what the PR does. Focus on *what changed and why*, not just listing files. Follow the tone and style of the example summary in the reference PR: concise bullet points under a short introductory sentence work well for multi-page changes.
+
+## Step 4b — Choose a PR template
+
+Present the following options and ask the user which template to use. Wait for their reply before continuing to Step 5.
+
+- **Content changes**: `.github/PULL_REQUEST_TEMPLATE/content.md`
+- **Drivers changes**: `.github/PULL_REQUEST_TEMPLATE/drivers.md`
+- **Code Example Tests**: `.github/PULL_REQUEST_TEMPLATE/code.md`
+- **Platform changes**: `.github/PULL_REQUEST_TEMPLATE/platform.md`
+- **Cloud Docs changes**: `.github/PULL_REQUEST_TEMPLATE/cloud.md`
+- **Agent Skill changes**: `.github/PULL_REQUEST_TEMPLATE/agent-skill.md`
+- **No template**
+
+If the user chooses a template, read the file at the listed path and store its content. If the user chooses no template, proceed to Step 5 with no template content.
 
 ## Step 5 — Create or identify the PR
 
@@ -91,7 +105,7 @@ done
 echo "BOT_COMMENT_TIMEOUT"
 ```
 
-Then use the Monitor tool to wait for either `BOT_COMMENT_FOUND` or `BOT_COMMENT_TIMEOUT` to appear in the output.
+Watch the background process output and wait for either `BOT_COMMENT_FOUND` or `BOT_COMMENT_TIMEOUT` to appear.
 
 - If `BOT_COMMENT_FOUND`: fetch the full comments with `gh pr view <PR_NUMBER> --comments --json comments` and parse the builder-bot entry.
 - If `BOT_COMMENT_TIMEOUT`: note in the PR body that staging links were not available and continue to Step 7.
@@ -193,6 +207,8 @@ If you did not already, add the constructed staging URL to the list of staging l
 
 ## Step 7 — Assemble the final PR body
 
+**If no template was chosen**, use this structure:
+
 ```markdown
 ## Description
 
@@ -200,12 +216,14 @@ If you did not already, add the constructed staging URL to the list of staging l
 
 ## Staging links
 
-<list of staging links from Step 6>
+<staging links from Step 6, or "N/A" if none>
 
 ## JIRA ticket
 
 [DOCSP-NNNNN](https://jira.mongodb.org/browse/DOCSP-NNNNN)
 ```
+
+**If a template was chosen**, use the template content (already read in Step 4b) as the base. Fill in the sections that correspond to description, staging links, and JIRA ticket based on the template's own structure and comment placeholders. Leave checklists and all other sections untouched for the user to complete.
 
 ## Step 8 — Update the PR body
 
