@@ -2,13 +2,13 @@ from pymongo.mongo_client import MongoClient
 from pymongo.operations import SearchIndexModel
 import time
 
-# Connect to your deployment
+# Connect to your Atlas deployment
 uri = "<connectionString>"
 client = MongoClient(uri)
 
 # Access your database and collection
-database = client["<databaseName>"]
-collection = database["<collectionName>"]
+database = client["sample_mflix"]
+collection = database["embedded_movies"]
 
 # Create your index model, then create the search index
 search_index_model = SearchIndexModel(
@@ -16,27 +16,25 @@ search_index_model = SearchIndexModel(
     "fields": [
       {
         "type": "vector",
-        "numDimensions": <numberofDimensions>,
-        "path": "<fieldToIndex>",
-        "similarity": "euclidean | cosine | dotProduct",
-        "quantization": "none | scalar | binary",
-        "indexingMethod": "flat | hnsw",
-        "hnswOptions": {
-          "maxEdges": <number-of-connected-neighbors>,
-          "numEdgeCandidates": <number-of-nearest-neighbors>
-        }
+        "path": "plot_embedding_voyage_3_large",
+        "numDimensions": 2048,
+        "similarity": "dotProduct",
+        "quantization": "scalar"
       },
       {
         "type": "filter",
-        "path": "<fieldToIndex>"
+        "path": "genres"
       },
-      ...
+      {
+        "type": "filter",
+        "path": "year"
+      }
     ],
     "storedSource": {
-      "include|exclude": ["<field-name>",...]
-    }"
+      "include": [ "genres", "plot", "title", "year" ]
+    }
   },
-  name="<indexName>",
+  name="vector_index",
   type="vectorSearch"
 )
 

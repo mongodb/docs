@@ -87,7 +87,17 @@
                  using the ``flat`` indexing method for performing vector search 
                  against pre-filtered data.
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/flat-example-acli.json 
+               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/flat-example-acli.json
+                  :language: json
+                  :copyable:
+                  :linenos:
+
+            .. tab:: Stored Source Example
+               :tabid: storedSource
+
+               .. include:: /includes/index/vector-type/facts/stored-source-example.rst
+
+               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/stored-source-example-acli.json
                   :language: json
                   :copyable:
                   :linenos:

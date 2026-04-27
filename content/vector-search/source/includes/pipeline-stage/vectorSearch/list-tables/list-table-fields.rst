@@ -111,8 +111,16 @@
    * - | ``explainOptions.``
        | ``traceDocumentIds``
      - Array of objectIDs
-     - Required 
+     - Required
      - List of document ``_id``\s.
+
+   * - ``returnStoredSource``
+     - Boolean
+     - Optional
+     - Flag that specifies whether to perform a full document lookup on
+       the backend database (``false``) or return only stored source
+       fields directly from {+avs+} (``true``). If omitted, defaults to
+       ``false``. To learn more, see :ref:`Return Stored Source Fields <avs-return-stored-source>`.
 
    * - ``searchNodePreference``
      - Object 

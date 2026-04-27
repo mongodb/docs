@@ -79,6 +79,16 @@
                :copyable: true
                :linenos:
 
+         .. tab:: Stored Source Example
+            :tabid: storedSource
+
+            .. include:: /includes/index/vector-type/facts/stored-source-example.rst
+
+            .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/java/stored-source-example.java
+               :language: java
+               :copyable: true
+               :linenos:
+
    .. step:: Execute the code to create the index.
 
       From your IDE, run the file to create the index.

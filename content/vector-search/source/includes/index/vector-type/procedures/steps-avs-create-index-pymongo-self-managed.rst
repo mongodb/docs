@@ -8,7 +8,7 @@
          .. tab:: 
             :tabid: Single Index
 
-            .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/python/create_index.py
+            .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/python/create_index.py  
                :language: python
                :copyable: true 
                :linenos: 
@@ -19,7 +19,7 @@
          .. tab:: 
             :tabid: Multiple Indexes
 
-            .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/python/create-indexes.py
+            .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/python/create-indexes.py  
                :language: python
                :copyable: true 
                :linenos: 
@@ -85,7 +85,7 @@
 
                .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-basic.ipynb
 
-               .. literalinclude:: /includes/quick-start/code-snippets/python/basic-example.py
+               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/python/basic-example.py
                   :language: python
                   :copyable: true 
                   :linenos:
@@ -131,21 +131,9 @@
                  using the ``flat`` indexing method for
                  performing vector search against pre-filtered data.
 
-               .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb
-
                .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/python/flat-example.py
                   :language: python
-                  :copyable: true
-                  :linenos:
-
-            .. tab:: Stored Source Example
-               :tabid: storedSource
-
-               .. include:: /includes/index/vector-type/facts/stored-source-example.rst
-
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/python/stored-source-example.py
-                  :language: python
-                  :copyable: true
+                  :copyable: true 
                   :linenos:
 
    .. step:: Run the following command to create the index.

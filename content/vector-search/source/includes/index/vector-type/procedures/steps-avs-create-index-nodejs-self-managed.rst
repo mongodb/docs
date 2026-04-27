@@ -3,7 +3,7 @@
 
    .. step:: Create a ``.js`` file and define the index in the file. 
 
-      .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/nodejs/create-index.js
+      .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/nodejs/create-index.js  
          :language: javascript
          :copyable: true 
          :linenos: 
@@ -58,7 +58,7 @@
                using the default indexing method, |hnsw|, for
                performing vector search.  
 
-               .. literalinclude:: /includes/quick-start/code-snippets/nodejs/basic-example.js
+               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/nodejs/basic-example.js
                   :language: js
                   :copyable: true 
                   :linenos:
@@ -92,17 +92,7 @@
 
                .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/nodejs/flat-example.js
                   :language: js
-                  :copyable: true
-                  :linenos:
-
-            .. tab:: Stored Source Example
-               :tabid: storedSource
-
-               .. include:: /includes/index/vector-type/facts/stored-source-example.rst
-
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/nodejs/stored-source-example.js
-                  :language: js
-                  :copyable: true
+                  :copyable: true 
                   :linenos:
 
    .. step:: Run the following command to create the index.

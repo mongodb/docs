@@ -106,3 +106,13 @@
                :language: shell
                :copyable: true
                :linenos:
+
+         .. tab:: Stored Source Example
+            :tabid: storedSource
+
+            .. include:: /includes/index/vector-type/facts/stored-source-example.rst
+
+            .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/shell/stored-source-example-mongosh.sh
+               :language: shell
+               :copyable: true
+               :linenos:

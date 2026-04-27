@@ -54,11 +54,18 @@
                      - The vector embeddings field (``plot_embedding_voyage_3_large``) for
                        performing vector search against pre-filtered data.       
                      
-                     It also enables automatic quantization (``scalar``) for efficient 
-                     processing of the embeddings. By default, {+avs+} uses the |hnsw| 
+                     It also enables automatic quantization (``scalar``) for efficient
+                     processing of the embeddings. By default, {+avs+} uses the |hnsw|
                      ``indexingMethod`` for indexing the field.
 
-         .. tab:: JSON Editor 
+                  .. tab:: Stored Source Example
+                     :tabid: storedSource
+
+                     The ``storedSource`` option is not supported by the
+                     :guilabel:`Visual Editor`. Use the |json| Editor to
+                     configure ``fields`` for storage on ``mongot``.
+
+         .. tab:: JSON Editor
             :tabid: jsoneditor 
 
             {+avs+} index resembles the following example: 
@@ -175,6 +182,7 @@
                             "quantization": "scalar",
                             "indexingMethod": "flat"
 
+
                           },
                           {
                             "type": "filter",
@@ -186,6 +194,37 @@
                           }]
                         }
 
-   .. step:: Click :guilabel:`Next` to review the index. 
+                  .. tab:: Stored Source Example
+                     :tabid: storedSource
+
+                     .. include:: /includes/index/vector-type/facts/stored-source-example.rst
+
+                     .. code-block:: json
+                        :linenos:
+
+                        {
+                          "fields": [{
+                            "type": "vector",
+                            "path": "plot_embedding_voyage_3_large",
+                            "numDimensions": 2048,
+                            "similarity": "dotProduct",
+                            "quantization": "scalar"
+                          },
+                          {
+                            "type": "filter",
+                            "path": "genres"
+                          },
+                          {
+                            "type": "filter",
+                            "path": "year"
+                          }],
+                          "storedSource": {
+                            "include": [
+                              "genres", "plot", "title", "year"
+                            ]
+                          }
+                        }
+
+   .. step:: Click :guilabel:`Next` to review the index.
 
    .. include:: /includes/shared/procedures/steps-avs-finish-index-creation.rst

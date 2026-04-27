@@ -17,8 +17,5 @@
       "path": "<field-to-index>"
     },
     ...
-  ],
-  "storedSource": {
-    "include|exclude": ["<field-name>",...]
-  }
+  ]
 }
