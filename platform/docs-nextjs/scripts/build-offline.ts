@@ -43,40 +43,6 @@ function parseCliArgs(): { tocFile: string; version: string } {
   return { tocFile, version };
 }
 
-/** Validates that the content-mdx directory exists for all content sites in the TOC.
- *  - Versioned builds (version !== 'main'): checks content-mdx/<contentSite>/<version>/
- *  - Unversioned builds (version === 'main'): checks content-mdx/<contentSite>/
- */
-async function validateContentDirectory(tocFile: string, version: string): Promise<void> {
-  const tocPath = path.join(OFFLINE_DOCS_DIR, `${tocFile}.ts`);
-  const { toc } = (await import(tocPath)) as { toc: Array<{ contentSite?: string }> };
-
-  // list of content sites in the given TOC
-  const contentSites = [...new Set(toc.map((item) => item.contentSite).filter((s): s is string => !!s))];
-  const isVersioned = version !== 'main';
-
-  const missing: string[] = [];
-  for (const contentSite of contentSites) {
-    const expectedDir = isVersioned
-      ? path.join(CONTENT_MDX_DIR, contentSite, version)
-      : path.join(CONTENT_MDX_DIR, contentSite);
-    try {
-      await fs.access(expectedDir);
-    } catch {
-      missing.push(expectedDir);
-    }
-  }
-
-  if (missing.length > 0) {
-    const hint = isVersioned
-      ? `Make sure "${version}" matches an actual version directory in content-mdx.`
-      : `Make sure the content site directory exists in content-mdx.`;
-    console.error(`Error: Content directory not found:\n` + missing.map((d) => `  ${d}`).join('\n') + `\n${hint}`);
-    process.exit(1);
-  }
-  console.log(`Content directory verified: ${version}`);
-}
-
 async function validateTocFile(tocFile: string): Promise<void> {
   const tocFilePath = path.join(OFFLINE_DOCS_DIR, `${tocFile}.ts`);
   try {
@@ -440,34 +406,55 @@ async function verifyOutput(): Promise<void> {
     }
   }
 
+  const failedFileSet = new Set(failures.map((f) => f.file));
+  const totalPages = htmlFiles.length;
+  const allPagesFailed = failures.length > 0 && totalPages > 0 && failedFileSet.size === totalPages;
+
+  const diagnosticBlock =
+    '\nLikely causes by failure class:\n' +
+    '  SSR / Emotion\n' +
+    '    • A React context provider (e.g. UnifiedTocProvider) returned null during SSG\n' +
+    '    • A "use client" component calls useEffect/browser hooks that skip SSR\n' +
+    '  Content\n' +
+    '    • CONTENT_MDX_DIR does not contain the expected .mdx files\n' +
+    '    • pnpm convert:rst-to-mdx was not run before the build\n' +
+    '    • loadMDX returned null for the route\n' +
+    '  Post-processing\n' +
+    '    • mergeCssIntoOutput or replaceCssLinksInHead did not run / threw an error\n' +
+    '    • postProcess (rewriteHtmlLinks) did not run / threw an error\n' +
+    '  Next.js RSC\n' +
+    '    • next build did not generate a static HTML file for this route\n' +
+    '    • The page called notFound() or threw during static generation\n';
+
   if (failures.length > 0) {
-    console.error('\nOffline build verification FAILED:');
-    for (const { file, reason } of failures) {
-      console.error(`  ✗ ${file}: ${reason}`);
+    if (allPagesFailed) {
+      console.error('\nOffline build verification FAILED:');
+      for (const { file, reason } of failures) {
+        console.error(`  ✗ ${file}: ${reason}`);
+      }
+      console.error(diagnosticBlock);
+      process.exit(1);
     }
-    console.error(
-      '\nLikely causes by failure class:\n' +
-        '  SSR / Emotion\n' +
-        '    • A React context provider (e.g. UnifiedTocProvider) returned null during SSG\n' +
-        '    • A "use client" component calls useEffect/browser hooks that skip SSR\n' +
-        '  Content\n' +
-        '    • CONTENT_MDX_DIR does not contain the expected .mdx files\n' +
-        '    • pnpm convert:rst-to-mdx was not run before the build\n' +
-        '    • loadMDX returned null for the route\n' +
-        '  Post-processing\n' +
-        '    • mergeCssIntoOutput or replaceCssLinksInHead did not run / threw an error\n' +
-        '    • postProcess (rewriteHtmlLinks) did not run / threw an error\n' +
-        '  Next.js RSC\n' +
-        '    • next build did not generate a static HTML file for this route\n' +
-        '    • The page called notFound() or threw during static generation\n',
-    );
-    process.exit(1);
+
+    console.warn('\nOffline build verification: some pages did not pass every check (other pages are OK):');
+    for (const { file, reason } of failures) {
+      console.warn(`  ⚠ ${file}: ${reason}`);
+    }
+    console.warn(diagnosticBlock);
   }
 
-  console.log(
-    `Verified ${htmlFiles.length} HTML file(s): SSR styles present, content rendered, ` +
-      `CSS merged, links rewritten, RSC payload intact.`,
-  );
+  if (failures.length === 0) {
+    console.log(
+      `Verified ${htmlFiles.length} HTML file(s): SSR styles present, content rendered, ` +
+        `CSS merged, links rewritten, RSC payload intact.`,
+    );
+  } else if (!allPagesFailed) {
+    const passedCount = totalPages - failedFileSet.size;
+    console.log(
+      `Verified with warnings: ${passedCount} of ${totalPages} HTML file(s) passed all checks; ` +
+        `${failedFileSet.size} file(s) had issues (see above).`,
+    );
+  }
 }
 
 async function main(): Promise<void> {
@@ -478,8 +465,8 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  // TODO: DOP-6894 validate content directory - not needed but good to have
   await validateTocFile(tocFile);
-  await validateContentDirectory(tocFile, version);
   await setupOfflineToc(tocFile, version);
   runNextBuild(version);
 

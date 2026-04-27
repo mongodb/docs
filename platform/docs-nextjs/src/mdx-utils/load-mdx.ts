@@ -90,18 +90,15 @@ const loadOfflineMDX = async (urlPath: string[], replacements?: Record<string, R
   const cached = mdxCache.get(cacheKey);
   if (cached) return cached;
 
-  const version = getStaticVersion();
-  const resolvedPath = urlPath.map((seg) => (isVersionPlaceholder(seg) ? version : seg));
-  const isVersionAt1 = resolvedPath.length >= 2 && resolvedPath[1] === version;
-  const projectPath = isVersionAt1 ? resolvedPath.slice(0, 2).join('/') : resolvedPath[0] ?? '';
+  const { projectPath } = await getSiteMetadata(urlPath);
+  const filePath = urlPath.join('/');
+  const mdxString = await fetchMdxString(filePath);
   const componentMapping = components({
     projectPath,
     includeRoot: projectPath,
     replacements,
   });
 
-  const filePath = resolvedPath.join('/');
-  const mdxString = await fetchMdxString(filePath);
   if (!mdxString) return null;
 
   try {
