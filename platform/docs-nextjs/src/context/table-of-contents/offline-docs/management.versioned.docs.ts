@@ -370,6 +370,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/cluster-config/multi-cloud-distribution',
                   },
                   {
+                    label: 'Move a Cluster',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/tutorial/move-cluster',
+                  },
+                  {
                     label: 'Pre-Defined Tags',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/reference/replica-set-tags',
@@ -422,11 +427,6 @@ export const toc: L1TocItem[] = [
                     label: 'Shard a Global Collection',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/shard-global-collection',
-                  },
-                  {
-                    label: 'Move a Cluster',
-                    contentSite: 'cloud-docs',
-                    url: '/docs/atlas/tutorial/move-cluster',
                   },
                 ],
               },

@@ -760,6 +760,63 @@ describe('DefinitionTerm inline content rendering', () => {
     expect(mdx).toMatch(/^<See/m);
   });
 
+  it('banner: merges mixed inline/paragraph siblings into a single inline paragraph', () => {
+    // Simulates the snooty.toml [[banners]] case where inline elements (text, ref_role)
+    // appear as direct siblings of paragraph nodes in the directive body.
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'banner',
+          options: { variant: 'warning' },
+          children: [
+            { type: 'paragraph', children: [{ type: 'text', value: 'dateFacet is outdated. Use ' }] },
+            {
+              type: 'ref_role',
+              name: 'label',
+              fileid: ['atlas-search/field-types/date-type', 'bson-data-types-date'],
+              children: [{ type: 'text', value: 'date' }],
+            },
+            { type: 'paragraph', children: [{ type: 'text', value: ' instead.' }] },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    // Must not have blank lines between the text segments inside Banner
+    expect(mdx).not.toMatch(/<Banner[\s\S]*?\n[ \t]*\n[\s\S]*?<\/Banner>/);
+    // All content must be on a single logical line inside the Banner
+    expect(mdx).toMatch(/dateFacet is outdated\. Use <RefRole[^>]*>date<\/RefRole> instead\./);
+  });
+
+  it('banner: preserves separate paragraphs when all children are block paragraphs', () => {
+    // Simulates a banner with multiple real prose paragraphs (e.g. the python.txt pattern).
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'banner',
+          options: { variant: 'warning' },
+          children: [
+            { type: 'paragraph', children: [{ type: 'text', value: 'Motor is deprecated.' }] },
+            {
+              type: 'paragraph',
+              children: [{ type: 'text', value: 'For more information, see the migration guide.' }],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    // Both paragraphs must appear in the output
+    expect(mdx).toMatch(/Motor is deprecated\./);
+    expect(mdx).toMatch(/For more information/);
+    // The two paragraphs should be separated by a blank line
+    expect(mdx).toMatch(/Motor is deprecated\.\n\n[\s\S]*?For more information/);
+  });
+
   it('hoists <DefinitionList> out of paragraph when nested in a paragraph', () => {
     const ast: SnootyNode = {
       type: 'root',

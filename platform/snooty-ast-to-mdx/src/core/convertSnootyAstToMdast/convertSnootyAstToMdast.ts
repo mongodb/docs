@@ -895,6 +895,49 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         };
       }
 
+      // Banner directive: when the Snooty AST mixes inline nodes (text, RefRole, etc.)
+      // with paragraph nodes at the same level — which happens when an RST banner value
+      // splits its content across lines without blank-line paragraph breaks — merge
+      // everything into a single inline paragraph so there are no blank lines between
+      // the segments. When ALL children are proper block-level paragraphs (e.g. a banner
+      // with two distinct paragraphs of prose), keep them as separate paragraphs.
+      if (directiveName === 'banner') {
+        const attributes: MdastNode[] = toJsxAttributes(node.options);
+        const bodyChildren = convertChildren({ nodes: node.children, depth, ctx, parentType: 'banner' });
+
+        const hasNonParagraphChild = bodyChildren.some((child) => child.type !== 'paragraph');
+
+        let bannerChildren: MdastNode[];
+        if (hasNonParagraphChild) {
+          // Flatten paragraphs + bare inline nodes into a single inline paragraph.
+          const inlineNodes: MdastNode[] = [];
+          for (const child of bodyChildren) {
+            if (child.type === 'paragraph' && Array.isArray(child.children)) {
+              inlineNodes.push(...child.children);
+            } else {
+              inlineNodes.push(child);
+            }
+          }
+          // Collapse any residual newline+whitespace in text nodes.
+          for (const n of inlineNodes) {
+            if (n.type === 'text' && typeof n.value === 'string') {
+              n.value = n.value.replace(/\n\s*/g, ' ');
+            }
+          }
+          bannerChildren = inlineNodes.length > 0 ? [{ type: 'paragraph', children: inlineNodes }] : [];
+        } else {
+          // All children are paragraphs — preserve them as separate blocks.
+          bannerChildren = bodyChildren;
+        }
+
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'Banner',
+          attributes,
+          children: bannerChildren,
+        };
+      }
+
       if (directiveName === 'expression') {
         const term = parseSnootyArgument(node);
         const attributes: MdastNode[] = term ? [{ type: 'mdxJsxAttribute', name: 'term', value: term }] : [];
