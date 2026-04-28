@@ -578,11 +578,6 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/command/autoCompact',
           },
           {
-            label: 'bulkWrite',
-            contentSite: 'docs',
-            url: '/docs/:version/reference/command/bulkWrite',
-          },
-          {
             label: 'cloneCollectionAsCapped',
             contentSite: 'docs',
             url: '/docs/:version/reference/command/cloneCollectionAsCapped',
