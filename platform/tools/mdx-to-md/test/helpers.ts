@@ -26,8 +26,8 @@ export function getContentMdxDir(): string {
 export interface TestMdxOptions {
   contentMdxDir?: string;
   sourceFilePath?: string;
-  /** Override how include warnings are reported (e.g. no-op in tests) */
-  onWarning?: (message: string, err?: unknown) => void;
+  /** Passed to resolve-references (e.g. absolute doc URLs for relative ref paths) */
+  baseUrl?: string;
 }
 
 /**
@@ -42,7 +42,7 @@ export async function testConversion(
     mdx,
     options?.contentMdxDir,
     options?.sourceFilePath,
-    { onWarning: options?.onWarning }
+    options?.baseUrl !== undefined ? { baseUrl: options.baseUrl } : {}
   );
 
   if (typeof expected === 'string') {
@@ -64,7 +64,7 @@ export async function testContains(
     mdx,
     options?.contentMdxDir,
     options?.sourceFilePath,
-    { onWarning: options?.onWarning }
+    options?.baseUrl !== undefined ? { baseUrl: options.baseUrl } : {}
   );
 
   const texts = Array.isArray(expectedText) ? expectedText : [expectedText];
@@ -85,7 +85,7 @@ export async function testNotContains(
     mdx,
     options?.contentMdxDir,
     options?.sourceFilePath,
-    { onWarning: options?.onWarning }
+    options?.baseUrl !== undefined ? { baseUrl: options.baseUrl } : {}
   );
 
   const texts = Array.isArray(unexpectedText) ? unexpectedText : [unexpectedText];

@@ -9,31 +9,19 @@ import type { Root } from "mdast";
 import type { VFile } from "vfile";
 import { fileExists } from "../utils/file-exists.js";
 
-export interface ResolveIncludesOptions {
-  /**
-   * Called when an include fails (missing file) or is skipped (circular).
-   * If not provided, defaults to console.warn.
-   */
-  onWarning?: (message: string, err?: unknown) => void;
-}
-
 /**
  * Resolve Includes in the MDX file
  * @param contentMdxDir - The directory containing the MDX files
  * @param sourceFilePath - The path to the source file
  * @param includeStack - The stack of includes that have been processed
- * @param options - Options (e.g. onWarning for tests)
  * @returns
  */
 export function resolveIncludes(
   contentMdxDir: string,
   sourceFilePath?: string,
-  includeStack = new Set<string>(),
-  options: ResolveIncludesOptions = {}
+  includeStack = new Set<string>()
 ): Plugin<[], Root> {
-  const warn =
-    options.onWarning ??
-    ((msg: string, err?: unknown) => console.warn(msg, err));
+  const warn = (msg: string, err?: unknown) => console.warn(msg, err);
   // Return a function (the transformer) — this matches the Plugin signature
   return function transformer(): (tree: Root, file: VFile) => Promise<void> {
     return async (tree: Root, _file: VFile) => {
@@ -42,6 +30,7 @@ export function resolveIncludes(
         index: number;
         parent: any;
         src: string;
+        replacements: Map<string, any[]>;
       }> = [];
 
       // Collect all <Include src="..."/> nodes
@@ -57,13 +46,39 @@ export function resolveIncludes(
             (attr: any) => attr.name === "src"
           );
           if (srcAttr?.value) {
-            nodesToReplace.push({ node, index, parent, src: srcAttr.value });
+            // Extract <Replacement name="..."> children so substitution
+            // markers in the included file can be resolved
+            const replacements = new Map<string, any[]>();
+            for (const child of node.children ?? []) {
+              if (
+                (child.type === "mdxJsxFlowElement" ||
+                  child.type === "mdxJsxTextElement") &&
+                child.name === "Replacement"
+              ) {
+                const nameAttr = child.attributes?.find(
+                  (a: any) => a.name === "name"
+                );
+                if (nameAttr?.value) {
+                  replacements.set(nameAttr.value, child.children ?? []);
+                }
+              }
+            }
+            nodesToReplace.push({
+              node,
+              index,
+              parent,
+              src: srcAttr.value,
+              replacements,
+            });
           }
         }
       });
 
       // Helper: read and process included file
-      const processInclude = async (src: string): Promise<Root | null> => {
+      const processInclude = async (
+        src: string,
+        replacements: Map<string, any[]>
+      ): Promise<Root | null> => {
         let normalizedPath =
           src.replace(/^\/+/, "").replace(/\.mdx$/, "") + ".mdx";
 
@@ -124,11 +139,11 @@ export function resolveIncludes(
 
         // Circular detection
         if (includeStack.has(filePath)) {
-          warn(
-            `Circular include detected: ${[...includeStack, filePath].join(
-              " → "
-            )}`
-          );
+          const msg = `Circular include detected: ${[
+            ...includeStack,
+            filePath,
+          ].join(" → ")}`;
+          warn(msg);
           return null;
         }
 
@@ -142,18 +157,61 @@ export function resolveIncludes(
           const parsed = remark()
             .use(remarkFrontmatter, ["yaml"])
             .use(remarkMdx)
-            .use(
-              resolveIncludes(contentMdxDir, normalizedPath, nextStack, options)
-            )
+            .use(resolveIncludes(contentMdxDir, normalizedPath, nextStack))
             .parse(content);
 
           const processed = await remark()
             .use(remarkFrontmatter, ["yaml"])
             .use(remarkMdx)
-            .use(
-              resolveIncludes(contentMdxDir, normalizedPath, nextStack, options)
-            )
+            .use(resolveIncludes(contentMdxDir, normalizedPath, nextStack))
             .run(parsed);
+
+          // Apply caller-provided <Replacement> values to any
+          // <Reference type="substitution" refKey="..."> nodes in the
+          // included file's resolved tree.
+          if (replacements.size > 0) {
+            const substitutionNodes: Array<{
+              index: number;
+              parent: any;
+              nodes: any[];
+            }> = [];
+
+            visit(
+              processed as Root,
+              (node: any, idx: number | undefined, parent: any) => {
+                if (!parent || idx === undefined) return;
+                if (
+                  (node.type === "mdxJsxFlowElement" ||
+                    node.type === "mdxJsxTextElement") &&
+                  node.name === "Reference"
+                ) {
+                  const typeAttr = node.attributes?.find(
+                    (a: any) => a.name === "type"
+                  );
+                  const refKeyAttr = node.attributes?.find(
+                    (a: any) => a.name === "refKey"
+                  );
+                  if (
+                    typeAttr?.value === "substitution" &&
+                    refKeyAttr?.value &&
+                    replacements.has(refKeyAttr.value)
+                  ) {
+                    substitutionNodes.push({
+                      index: idx,
+                      parent,
+                      nodes: replacements.get(refKeyAttr.value) ?? [],
+                    });
+                  }
+                }
+              }
+            );
+
+            // Apply in reverse order to preserve correct indices
+            for (let i = substitutionNodes.length - 1; i >= 0; i--) {
+              const { index: idx, parent, nodes } = substitutionNodes[i];
+              parent.children.splice(idx, 1, ...nodes);
+            }
+          }
 
           return processed as Root;
         } catch (err) {
@@ -165,7 +223,7 @@ export function resolveIncludes(
       // Phase 1: resolve all <Include> nodes (NO mutation here)
       const resolved = await Promise.all(
         nodesToReplace.map(async (item) => {
-          const replacement = await processInclude(item.src);
+          const replacement = await processInclude(item.src, item.replacements);
           return { ...item, replacement };
         })
       );

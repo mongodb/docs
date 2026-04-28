@@ -7,7 +7,9 @@ describe('Reference Component', () => {
   const sourceFilePath = 'django-mongodb/upcoming/page.mdx';
 
   it('should replace Reference with title from _references.json', async () => {
-    const mdx = `See the <Reference name="django-get-started-write" /> guide.`;
+    // The snooty converter emits <Reference name="key" title="Display Text" />
+    // title is the human-readable label; name is the lookup key for the URL
+    const mdx = `See the <Reference name="django-get-started-write" title="Write Data to MongoDB" /> guide.`;
     await testContains(mdx, 'Write Data to MongoDB', {
       contentMdxDir,
       sourceFilePath,
@@ -21,8 +23,8 @@ describe('Reference Component', () => {
   it('should replace multiple Reference components with their titles', async () => {
     const mdx = `Steps:
 
-* <Reference name="django-get-started-write" />
-* <Reference name="django-get-started-query" />`;
+* <Reference name="django-get-started-write" title="Write Data to MongoDB" />
+* <Reference name="django-get-started-query" title="Query MongoDB Data" />`;
 
     await testContains(mdx, 'Write Data to MongoDB', {
       contentMdxDir,
@@ -39,7 +41,7 @@ describe('Reference Component', () => {
   });
 
   it('should replace flow Reference in a sentence', async () => {
-    const mdx = `To learn more, see the <Reference name="django-get-started" /> tutorial.`;
+    const mdx = `To learn more, see the <Reference name="django-get-started" title="Get Started" /> tutorial.`;
     await testContains(mdx, 'Get Started', {
       contentMdxDir,
       sourceFilePath,

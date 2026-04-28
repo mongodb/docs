@@ -73,12 +73,45 @@ describe('Include Component', () => {
     const mdx = `<Include src="fixtures/includes/nonexistent" />`;
 
     // Should not throw, and should remove the Include tag when file is missing.
-    // onWarning: no-op so expected "missing file" doesn't clutter test output.
     await testNotContains(mdx, '<Include', {
       contentMdxDir,
       sourceFilePath: 'test.mdx',
-      onWarning: () => {},
     });
+  });
+
+  it('should apply <Replacement> children as substitutions in the included file', async () => {
+    // The fixture file has <Reference refKey="..." type="substitution" /> markers.
+    // The <Include> caller provides <Replacement> children that should fill them in.
+    const mdx = `
+<Include src="fixtures/includes/with-substitution">
+  <Replacement name="subject">
+    **sample text**
+  </Replacement>
+
+  <Replacement name="greeting">
+    Hello, world!
+  </Replacement>
+</Include>
+`;
+
+    await testContains(
+      mdx,
+      ['sample text', 'Hello, world!'],
+      {
+        contentMdxDir,
+        sourceFilePath: 'test.mdx',
+      }
+    );
+
+    // The raw Reference and Replacement tags should be gone
+    await testNotContains(
+      mdx,
+      ['<Reference', '<Replacement', '<Include'],
+      {
+        contentMdxDir,
+        sourceFilePath: 'test.mdx',
+      }
+    );
   });
 
   it('should detect circular includes', async () => {

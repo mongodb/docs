@@ -20,10 +20,13 @@ export const isVersionPlaceholder = (seg: string) => decodeURIComponent(seg) ===
 const fetchMdxString = async (filePath: string) => {
   const pageKey = getBlobKey(`${filePath}.mdx`);
   const mdxString = await getBlobString(pageKey);
-  if (mdxString) {
-    return mdxString;
+  if (mdxString) return mdxString;
+
+  const blobString = await getBlobString(getBlobKey(`${filePath}/index.mdx`));
+  if (!blobString) {
+    console.warn('[fetchMdxString] NOT FOUND in blob store:', { pageKey });
   }
-  return await getBlobString(getBlobKey(`${filePath}/index.mdx`));
+  return blobString;
 };
 
 interface CompileMdxWithPluginsOptions {

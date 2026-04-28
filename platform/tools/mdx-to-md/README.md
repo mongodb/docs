@@ -17,7 +17,8 @@ The package uses [Remark](https://remark.js.org/) and its plugin ecosystem to pr
 mdxToMarkdown(
   source: string,
   contentMdxDir?: string,
-  sourceFilePath?: string
+  sourceFilePath?: string,
+  options?: { baseUrl?: string }
 ): Promise<string>
 ```
 
@@ -26,6 +27,7 @@ mdxToMarkdown(
 - `source` (required): The MDX content as a string
 - `contentMdxDir` (optional): Directory path where MDX files are stored. Required for resolving `<Include>` components
 - `sourceFilePath` (optional): Path to the source file relative to `contentMdxDir`. Used for version context when resolving includes
+- `options.baseUrl` (optional): Docs site base URL so relative paths in `_references.json` become absolute links
 
 **Returns:** A Promise that resolves to the converted Markdown string
 
@@ -47,21 +49,24 @@ pnpm lint
 # Type check
 pnpm typecheck
 
-# Convert a single MDX file (for local testing)
-pnpm dev
+# Convert a single MDX file (for local testing; path is relative to content-mdx)
+pnpm dev -- atlas/access/orgs-create-view-edit-delete.mdx
 ```
 
 ### Dev command
 
-`pnpm dev` builds the package and runs a one-off conversion of a single MDX file. It reads from the repo’s `content-mdx` directory and writes Markdown to `output/` in this package.
+`pnpm dev` builds the package and runs a one-off conversion of a single MDX file. It reads from the repo’s `content-mdx` directory (override with `CONTENT_MDX_DIR`) and writes Markdown under `output/` in this package.
 
-To choose which file is converted, edit `MDX_FILE_PATH` in `src/dev.ts` (e.g. `"django-mongodb/upcoming/interact-data/crud.mdx"` or `"manual/upcoming/core/transactions.mdx"`). Then run:
+Pass the file path relative to `content-mdx` (include the `.mdx` extension):
 
 ```bash
-pnpm dev
+pnpm dev -- manual/upcoming/core/transactions.mdx
+pnpm dev -- django-mongodb/upcoming/interact-data/crud.mdx
 ```
 
-Output is written to `output/<path>.md` (e.g. `output/django-mongodb/upcoming/interact-data/crud.md`).
+If you omit the argument, `MDX_TO_MD_FILE` or a small default in `src/dev.ts` is used. Optional: `MDX_TO_MD_BASE_URL` for resolving relative entries in `_references.json` when the built-in atlas/manual map does not fit.
+
+Output is written to `output/<same-relative-path>.md`.
 
 ## Extending
 

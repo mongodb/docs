@@ -8,14 +8,24 @@ import { resolveIncludes } from "./plugins/resolve-includes.js";
 import { resolveReferences } from "./plugins/resolve-references.js";
 import { transformImage } from "./plugins/transform-image.js";
 import { transformHeading } from "./plugins/transform-heading.js";
+import { transformTabs } from "./plugins/transform-tabs.js";
+import { transformProcedure } from "./plugins/transform-procedure.js";
+import { transformAbbr } from "./plugins/transform-abbr.js";
+import { transformAdmonitions } from "./plugins/transform-admonitions.js";
+import { transformVersionDirectives } from "./plugins/transform-version-directives.js";
+import { transformDescribe } from "./plugins/transform-describe.js";
+import { transformCollapsible } from "./plugins/transform-collapsible.js";
+import { transformIoCodeBlock } from "./plugins/transform-io-code-block.js";
+import { transformTable } from "./plugins/transform-table.js";
+import { cleanCodeInfo } from "./plugins/clean-code-info.js";
 import { normalizeTableCells } from "./plugins/normalize-table-cells.js";
 import { stripCustomMdx } from "./plugins/strip-custom-mdx.js";
 import { stripFrontmatter } from "./plugins/strip-frontmatter.js";
 import { ensureBlockChildren } from "./plugins/ensure-block-children.js";
 import { preprocessTableRows } from "./plugins/preprocess-table-rows.js";
-import type { ResolveIncludesOptions } from "./plugins/resolve-includes.js";
+import type { ResolveReferencesOptions } from "./plugins/resolve-references.js";
 
-export interface RunParseOptions extends ResolveIncludesOptions {}
+export interface RunParseOptions extends ResolveReferencesOptions {}
 
 export async function mdxToMarkdown(
   source: string,
@@ -34,7 +44,7 @@ export async function mdxToMarkdown(
   // Only use resolveIncludes and resolveReferences if contentMdxDir is provided
   if (contentMdxDir) {
     processor.use(
-      resolveIncludes(contentMdxDir, sourceFilePath, undefined, options) as any
+      resolveIncludes(contentMdxDir, sourceFilePath, undefined) as any
     );
     processor.use(
       resolveReferences(contentMdxDir, sourceFilePath, options) as any
@@ -44,6 +54,16 @@ export async function mdxToMarkdown(
   processor
     .use(transformImage)
     .use(transformHeading)
+    .use(transformTabs)
+    .use(transformProcedure)
+    .use(transformAbbr)
+    .use(transformAdmonitions)
+    .use(transformVersionDirectives)
+    .use(transformDescribe)
+    .use(transformCollapsible)
+    .use(transformIoCodeBlock)
+    .use(transformTable)
+    .use(cleanCodeInfo)
     .use(normalizeTableCells)
     .use(stripCustomMdx)
     .use(stripFrontmatter)

@@ -1,9 +1,10 @@
 import type { NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 import { fetchMdxString } from '@/mdx-utils/fetch-mdx-string';
-import { CONTENT_MDX_DIR } from '@/mdx-utils/blob-constants';
 import { mdxToMarkdown } from 'mdx-to-md';
 import { withCORS } from '@/app/lib/with-cors';
+import { getSiteMetadata } from '@/mdx-utils/load-metadata';
+import { preResolveImportsForMarkdownExport } from '@/mdx-utils/remark-pre-resolve-imports-for-markdown';
 
 interface RouteContext {
   params: {
@@ -37,10 +38,12 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       return withCORS(new NextResponse('MDX file not found', { status: 404 }));
     }
 
-    // Convert MDX to Markdown
-    // The sourceFilePath is the full path for version context (e.g., "manual/upcoming/core/transactions")
-    const sourceFilePath = filePath;
-    const markdown = await mdxToMarkdown(mdxString, CONTENT_MDX_DIR, sourceFilePath);
+    // Match the docs page: projectPath drives blob keys for includes and _references.json
+    const { projectPath } = await getSiteMetadata(path);
+    const resolvedMdx = await preResolveImportsForMarkdownExport(mdxString, projectPath);
+
+    // Omit contentMdxDir: includes/refs are already resolved from the blob store above.
+    const markdown = await mdxToMarkdown(resolvedMdx);
 
     // Return markdown with proper content type
     return withCORS(

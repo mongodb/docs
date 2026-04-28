@@ -1426,12 +1426,23 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       // section heading that follows already renders the text.
       if (node.name !== 'label') {
         const identifierNodes = (node.children ?? []).filter((c) => c.type === 'target_identifier');
+        const directiveArgNodes = (node.children ?? []).filter((c) => c.type === 'directive_argument');
         const otherNodes = (node.children ?? []).filter(
           (c) => c.type !== 'target_identifier' && c.type !== 'directive_argument',
         );
+
+        // Prefer directive_argument for the display text: it holds the full method
+        // signature as a literal (e.g. `db.collection.validate(<documents>)`).
+        // The RST parser turns angle-bracket params like <documents> into anonymous
+        // reference nodes, which strips them from target_identifier children.
+        const argContent = convertChildren({ nodes: directiveArgNodes, depth, ctx });
+        const argTextValue = argContent.map((n) => (n as { value?: string }).value ?? '').join('');
+
         const childContent = convertChildren({ nodes: identifierNodes, depth, ctx });
-        if (childContent.length > 0) {
-          const textValue = childContent.map((n) => (n as { value?: string }).value ?? '').join('');
+        const identifierTextValue = childContent.map((n) => (n as { value?: string }).value ?? '').join('');
+
+        const textValue = argTextValue || identifierTextValue;
+        if (textValue) {
           refTargets.push({
             type: 'paragraph',
             children: [{ type: 'strong', children: [{ type: 'inlineCode', value: textValue }] }],

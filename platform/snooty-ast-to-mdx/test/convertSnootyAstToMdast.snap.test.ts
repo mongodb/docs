@@ -360,6 +360,31 @@ const cases: Array<[string, SnootyNode]> = [
     },
   ],
   [
+    'target node — method directive with angle-bracket param in directive_argument',
+    {
+      type: 'target',
+      domain: 'mongodb',
+      name: 'method',
+      html_id: 'mongodb-method-db.collection.validate',
+      children: [
+        {
+          type: 'directive_argument',
+          children: [
+            {
+              type: 'literal',
+              value: 'db.collection.validate(<documents>)',
+            },
+          ],
+        },
+        {
+          type: 'target_identifier',
+          ids: ['mongodb-method-db.collection.validate'],
+          children: [{ type: 'text', value: 'db.collection.validate' }],
+        },
+      ],
+    },
+  ],
+  [
     'thematic break',
     {
       type: 'transition',
