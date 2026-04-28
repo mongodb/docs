@@ -17,6 +17,7 @@ import { readFileSync } from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import { blobRelativeToDiskCandidates, loadDirNameToPrefixMap } from '@/mdx-utils/blob-path-remap';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -158,18 +159,26 @@ async function copyReferencedContentImages(htmlFiles: string[], contentMdxDir: s
     const content = await fs.readFile(filePath, 'utf-8');
     for (const rel of getReferencedContentImagePaths(content)) referenced.add(rel);
   }
+  const dirNameToPrefix = await loadDirNameToPrefixMap();
   let copied = 0;
   for (const rel of referenced) {
-    const src = path.join(contentMdxDir, rel);
-    try {
-      await fs.access(src);
-    } catch {
-      continue;
+    // The URL path (rel) may include a docs-site prefix like "drivers/csharp/current" that
+    // doesn't exist verbatim in content-mdx (e.g. "csharp/current"). Use the same
+    // blob-to-disk mapping that blob-read.ts uses to find the actual file on disk.
+    const candidates = blobRelativeToDiskCandidates(rel, dirNameToPrefix);
+    for (const candidate of candidates) {
+      const src = path.join(contentMdxDir, candidate);
+      try {
+        await fs.access(src);
+        const dest = path.join(docsDir, rel);
+        await fs.mkdir(path.dirname(dest), { recursive: true });
+        await fs.cp(src, dest);
+        copied++;
+        break;
+      } catch {
+        continue;
+      }
     }
-    const dest = path.join(docsDir, rel);
-    await fs.mkdir(path.dirname(dest), { recursive: true });
-    await fs.cp(src, dest);
-    copied++;
   }
   console.log(`Content images (referenced in HTML): ${copied}`);
 }
