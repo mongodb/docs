@@ -1,0 +1,318 @@
+.. _node-azure-functions-tutorial:
+
+==========================================
+Tutorial: Use MongoDB with Azure Functions
+==========================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: Azure Functions, serverless, connection management
+   :description: Learn how to build an HTTP-triggered Azure Function that queries MongoDB Atlas by using the Node.js driver, and deploy your application to the Azure cloud.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this tutorial, you create an HTTP-triggered Azure Function that
+queries data from MongoDB Atlas by using the {+driver-long+}. You
+also learn how to manage database connections in a serverless
+context and deploy your function to the Azure cloud.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Before you begin, complete the following steps:
+
+- Deploy a MongoDB Atlas cluster, configure network access and
+  database users, and load the sample datasets. To learn how,
+  see the `MongoDB Get Started <https://www.mongodb.com/docs/get-started/?language=nodejs>`__ guide.
+- Install and configure the `Azure CLI
+  <https://learn.microsoft.com/en-us/cli/azure/install-azure-cli>`__.
+- Install and configure `Azure Functions Core Tools
+  <https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local>`__.
+- Install `Node.js <https://nodejs.org/en/download>`__ version 18
+  or later.
+
+Tutorial
+--------
+
+This tutorial guides you through the following steps:
+
+- Create Azure cloud resources.
+- Initialize the local project.
+- Install the {+driver-long+}.
+- Configure the database connection to the ``sample_mflix`` database.
+- Write a function to query the ``sample_mflix.movies`` collection and retrieve
+  documents representing movies.
+- Test the function locally.
+- Deploy to Azure.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create Azure cloud resources.
+
+      Run the following command to create a resource group,
+      replacing ``<GROUP_NAME>`` with a name for your group and
+      ``<AZURE_REGION>`` with a supported `Azure region
+      <https://azure.microsoft.com/en-us/explore/global-infrastructure/geographies/>`__:
+
+      .. code-block:: bash
+
+         az group create \
+           --name <GROUP_NAME> \
+           --location <AZURE_REGION>
+
+      Optionally, if you are using Azure for the first time, you may need to
+      run the following commands to register the Functions resource provider:
+
+      .. code-block:: bash
+
+         az provider register --namespace Microsoft.Storage
+         az provider register --namespace Microsoft.Web
+
+      Then, run the following command to create a storage account. Use
+      the same region and group name from the preceding code and
+      provide a unique name for the storage account, replacing the
+      ``<STORAGE_NAME>`` placeholder with this unique name:
+
+      .. code-block:: bash
+
+         az storage account create \
+           --name <STORAGE_NAME> \
+           --location <AZURE_REGION> \
+           --resource-group <GROUP_NAME> \
+           --sku Standard_LRS
+
+      Finally, run the following command to create the Function app:
+
+      .. code-block:: bash
+
+         az functionapp create \
+           --resource-group <GROUP_NAME> \
+           --consumption-plan-location <AZURE_REGION> \
+           --runtime node \
+           --functions-version 4 \
+           --name <APP_NAME> \
+           --storage-account <STORAGE_NAME>
+
+   .. step:: Initialize the local project.
+
+      Run the following command to initialize a local Function
+      project:
+
+      .. code-block:: bash
+
+         func init MongoExample
+
+      When prompted, select ``node`` as the worker runtime and
+      ``javascript`` as the language.
+
+      Run the following commands to navigate into the project
+      directory and create a new HTTP-triggered function:
+
+      .. code-block:: bash
+
+         cd MongoExample
+         func new --name GetMovies --template "HTTP trigger"
+
+      The command creates the ``src/functions/GetMovies.js`` file,
+      which you edit in later steps.
+
+      To link your local project to the Azure Function app, run
+      the following command from the project directory:
+
+      .. code-block:: bash
+
+         func azure functionapp fetch-app-settings <APP_NAME>
+
+      This command downloads all application settings from Azure,
+      including the storage account configuration, and populates
+      your project's ``local.settings.json`` file.
+
+   .. step:: Install the MongoDB Node.js Driver.
+
+      From the root of your project, run the following command
+      to install the {+driver-long+}:
+
+      .. code-block:: bash
+
+         npm install mongodb
+
+      This command adds the driver to your project and records it in
+      ``package.json`` so that the driver is available when you deploy.
+
+   .. step:: Configure the database connection.
+
+      Open ``src/functions/GetMovies.js`` and replace its
+      contents with the following code:
+
+      .. literalinclude:: /includes/azure-functions/get-movies-connection.js
+         :language: javascript
+         :category: snippet
+         :copyable: true
+         :caption: GetMovies.js
+
+      .. tip::
+
+         Define ``mongoClient`` outside the handler function to
+         reuse existing connections across invocations. If you
+         create a new connection inside the handler, each invocation
+         opens a new connection and risks exhausting the maximum
+         number of concurrent connections your database supports.
+         Defining the client at the module level keeps connection
+         counts proportional to traffic.
+
+      Depending on your version of Node.js, you may encounter an error related
+      to DNS resolution when you attempt to connect to MongoDB. If this occurs,
+      add the following code to your ``src/functions/GetMovies.js`` file before
+      creating the MongoClient instance:
+
+      .. literalinclude:: /includes/azure-functions/get-movies-dns.js
+         :language: javascript
+         :category: snippet
+         :emphasize-lines: 5
+         :copyable: true
+         :caption: GetMovies.js
+
+      Open ``local.settings.json`` and add the following fields
+      to the ``Values`` object, replacing each placeholder with
+      your actual values:
+
+      .. code-block:: json
+
+         {
+           "IsEncrypted": false,
+           "Values": {
+             "AzureWebJobsStorage": "<storage-connection-string>",
+             "FUNCTIONS_WORKER_RUNTIME": "node",
+             "MONGODB_ATLAS_URI": "<atlas-connection-string>",
+             "MONGODB_ATLAS_DATABASE": "sample_mflix",
+             "MONGODB_ATLAS_COLLECTION": "movies"
+           },
+           "ConnectionStrings": {}
+         }
+
+      To retrieve your MongoDB Atlas connection string, navigate to the Atlas
+      dashboard, select your cluster, and click :guilabel:`Connect`. To learn how to
+      retrieve your Azure storage connection string, see
+      `Configure a connection string
+      <https://learn.microsoft.com/en-us/azure/storage/common/storage-configure-connection-string>`__
+      in the Azure documentation.
+
+   .. step:: Write a function to query MongoDB.
+
+      In ``src/functions/GetMovies.js``, replace the
+      ``// Query logic added in the next step`` comment inside
+      the handler with the following code:
+
+      .. literalinclude:: /includes/azure-functions/get-movies.js
+         :language: javascript
+         :category: usage example
+         :copyable:
+         :start-after: // begin-handler
+         :end-before: // end-handler
+
+      When the function receives a request, it connects to the
+      database and collection specified by your environment
+      variables and returns up to 10 documents. If an error
+      occurs, the function returns a 500 response that contains
+      the error message.
+
+   .. step:: Test the function locally.
+
+      From the root of your project, run the following command to start your
+      function:
+
+      .. code-block:: bash
+
+         func start
+
+      When the server starts, the CLI displays the local URL
+      for your function. Navigate to
+      ``http://localhost:7071/api/GetMovies`` in your browser
+      or send a request by using a tool such as cURL or Postman.
+
+      .. note::
+
+         If the server starts but you cannot retrieve data,
+         verify that your local IP address is included in the
+         Atlas network access list. The Azure data center IP
+         rules you configured for production do not apply when
+         testing locally. For more information, see :ref:`Configure IP Access
+         List Entries <add-to-access-list>`.
+
+   .. step:: Deploy to Azure.
+
+      Set your environment variables in Azure by running the
+      following commands, replacing each placeholder with your
+      actual values:
+
+      .. code-block:: bash
+
+         az functionapp config appsettings set \
+           --name <APP_NAME> \
+           --resource-group <GROUP_NAME> \
+           --settings MONGODB_ATLAS_URI=<atlas-connection-string>
+
+         az functionapp config appsettings set \
+           --name <APP_NAME> \
+           --resource-group <GROUP_NAME> \
+           --settings MONGODB_ATLAS_DATABASE=sample_mflix
+
+         az functionapp config appsettings set \
+           --name <APP_NAME> \
+           --resource-group <GROUP_NAME> \
+           --settings MONGODB_ATLAS_COLLECTION=movies
+
+      Deploy your function by running the following command:
+
+      .. io-code-block::
+         :copyable: false
+
+         .. input::
+            :language: bash
+
+            func azure functionapp publish <APP_NAME>
+
+         .. output::
+            :language: bash
+            :visible: false
+
+            Deployment successful.
+            Remote build succeeded!
+            Syncing triggers...
+            Functions in <APP_NAME>:
+                GetMovies - [httpTrigger]
+                    Invoke url: https://<APP_NAME>.azurewebsites.net/api/getmovies
+
+      When the deployment completes, the CLI displays a public
+      URL for your function. Because the function uses
+      ``authLevel: "anonymous"``, it is accessible without a key.
+
+      .. note::
+
+         For production deployments, consider changing
+         ``authLevel`` to ``"function"`` or ``"admin"`` and
+         distributing the appropriate key to authorized clients.
+         To learn more, see the `Work with access keys in Azure Functions
+         <https://learn.microsoft.com/en-us/azure/azure-functions/function-keys-how-to?tabs=azure-portal>`__
+         documentation.
+
+Learn More
+----------
+
+To learn more about the concepts covered in this tutorial, see the following resources:
+
+- See :ref:`Manage Connections with Azure Functions <atlas-azure-connections>`
+  in the Atlas documentation to learn about connection best practices
+- See the `Azure Functions documentation
+  <https://learn.microsoft.com/en-us/azure/azure-functions/>`__ to learn more about Functions
