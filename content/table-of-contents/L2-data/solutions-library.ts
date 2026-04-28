@@ -153,6 +153,11 @@ const tocData: TocItem[] = [
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/fhir-data-layer',
           },
+          {
+            label: 'openEHR Persistance Layer',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/openEHR-persistance-layer',
+          },
         ],
       },
     ],

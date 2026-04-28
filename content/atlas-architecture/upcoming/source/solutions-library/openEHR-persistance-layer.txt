@@ -1,0 +1,944 @@
+.. _arch-center-is-openehr-persistance:
+
+========================================
+Document-First openEHR Persistence Layer
+========================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: openEHR, Reference Model, Archetypes, Templates, Clinical Modeling, Model-Driven Architecture, AQL (Archetype Query Language), Hierarchical Clinical Records, Governance, Audit Trails
+   :description: Master the storage of semi-flattened openEHR compositions in MongoDB Atlas. Learn to compile AQL to MQL and optimize your database for high-performance patient and cross-patient clinical data queries.
+   
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+**Use cases:** `App-Driven Analytics <https://www.mongodb.com/solutions/use-cases/analytics>`__,
+`Interoperability <https://www.mongodb.com/solutions/industries/healthcare/interoperability>`__,
+`Modernization <https://www.mongodb.com/solutions/use-cases/legacy-modernization>`__
+
+**Industries:** `Healthcare <https://www.mongodb.com/solutions/industries/healthcare>`__,
+`Government Health Services <https://www.mongodb.com/solutions/industries/public-sector/healthcare>`__,
+`Life Sciences <https://www.mongodb.com/solutions/industries/healthcare>`__
+
+**Products:** `MongoDB Atlas <http://mongodb.com/atlas>`__,
+:ref:`MongoDB Atlas Search <fts-tutorial-ref>`
+
+**Partners:** `openEHR <https://openehr.org/industry-partners/>`__
+
+Solution Overview
+-----------------
+
+openEHR is a way to structure clinical records so their medical meaning
+remains consistent, even when applications and databases evolve. It
+separates the stable technical structure of the record from the clinical
+definitions used to model real-world concepts such as observations,
+medications, or diagnoses.
+
+Technically, openEHR is a model-driven :abbr:`EHR (Electronic Health
+Record)` architecture. Its Reference Model defines the stable structure
+of clinical records, while archetypes and templates add the clinical
+meaning and implementation constraints. Its primary record unit is the
+``COMPOSITION``, a hierarchical clinical document whose content is
+queried through :abbr:`AQL (Archetype Query Language)`. AQL is
+independent of the storage model. It combines SQL-like clauses with
+hierarchical paths and ``CONTAINS`` predicates over nested clinical
+structures. Efficiently scaling these queries can be a challenge.
+
+In practice, an openEHR repository often needs to support the following
+query families. The first corresponds to single-patient retrieval, for
+example opening the chart of a known patient or retrieving a specific
+clinical document within one EHR. The second involves cross-patient
+operational retrieval, for example building a cohort, finding patients
+that satisfy a safety rule, generating worklists, or identifying similar
+cases during care delivery. These operational queries must run close to
+the application workflow, with low and predictable latency.
+
+Many implementations struggle to support both query patterns
+efficiently. Relational approaches can work well for patient-scoped
+retrieval, but large-scale cross-patient queries often introduce
+pressure through joins, schema churn, and template variation. Offloading
+those workloads to a separate analytical platform can help with
+retrospective analytics, but it creates duplication, adds latency,
+fragments governance and audit trails, and weakens the goal of a unified
+AQL query interface. It can also remove relevant clinical context when
+documents are flattened too aggressively.
+
+Reconcile Clinical Query Families
+`````````````````````````````````
+
+This solution addresses that problem with a document-first,
+semi-flattened persistence model on MongoDB. Semi-flattened means that
+we flatten each element as a node in an array, but each preserves the
+full JSON payload in the original structure. Document-first means that
+each openEHR composition is preserved as one MongoDB document, rather
+than being decomposed into one table per archetype or one row per path.
+At the same time, the composition is materialized as a reconstructable
+node array, enabling efficient path-based querying without abandoning
+the composition as the operational unit.
+
+Each stored node retains the following key elements:
+
+- Local clinical subtree, so the original meaning and context remain
+  available.
+
+- Positional metadata, so structure and ordering can be
+  reconstructed.
+
+- Reversed AQL path, which enables efficient matching of
+  variable-depth path constraints.
+
+The reversed path is a general query key used to evaluate structural
+predicates efficiently across both the patient-scoped and cross-patient
+execution routes. It supports path-constrained matching across different
+execution strategies, including regex-based matching and wildcard-style
+path resolution in search indexes. The same query patterns can be
+applied when predicates use other textual path components or textual
+conditions.
+
+With this model, AQL clauses can be compiled deterministically into
+MongoDB query stages. ``FROM``, ``CONTAINS``, and ``WHERE`` constraints
+become targeted predicates over node paths and values. This approach
+keeps the composition intact as the primary clinical container while
+still making operational retrieval practical at scale.
+
+.. figure:: /includes/images/industry-solutions/openehr-compositions.svg
+   :figwidth: 1200px
+   :alt: Representation of a semi-flattened compositions
+   
+   Figure 1. Representation of semi-flattened compositions where each
+   node carries its own context and values plus the reversed AQL path
+
+.. note::
+
+   For a concise published summary of the architecture and evaluation, read
+   the `peer-reviewed conference abstract
+   <https://link.springer.com/article/10.1186/s12919-026-00367-3#Sec35>`__.
+   For the full design, including the semi-flattened persistence model,
+   deterministic AQL-to-MQL compilation, and benchmark details, read the
+   `full technical paper
+   <https://github.com/mongodb-industry-solutions/kehrnel/blob/main/src/kehrnel/engine/strategies/openehr/rps_dual/assets/rps-paper.pdf>`__.
+
+Routing by Workload
+```````````````````
+
+For many repositories, a single semi-flattened collection and wilcard
+indexes are sufficient. For larger deployments, the model can use a slim
+search projection that contains only the data needed for wide
+cross-patient filtering. Query execution is then routed by scope. A slim
+search projection is a smaller derived collection that stores only the
+node fields needed for broad cross-patient filtering. It does not
+replace the main composition document. It reduces index breadth and
+search cost for wide operational queries.
+
+Therefore, it provides the following modalities:
+
+- Patient-scoped queries run on the main composition collection, using
+  targeted indexes such as a compound index on fields like ``ehr_id``
+  and ``reversed_path``.
+
+- Cross-patient queries run against the slimmer projection, compiling
+  path constraints into wildcards or matches on the reversed path, and
+  value predicates into equality, range, or search operators.
+
+This execution model provides a single query interface, allowing
+different physical access paths based on workload size and selectivity.
+
+Why Supporting Operation Cohort Queries Matter
+``````````````````````````````````````````````
+
+Modern clinical applications increasingly need both query families on
+the same platform. A clinician might need to open one patient record
+immediately and ask questions such as: 
+
+- Which patients received a certain medication in a given time window?
+
+- Which patients match a protocol or safety rule? 
+
+- Which prior cases are clinically similar to this one? 
+
+These operational questions require answers without pushing data through
+repeated ETL cycles into separate systems.
+
+A document-first, semi-flattened model preserves the strengths of
+openEHR and makes those workloads practical. It keeps the composition as
+the authoritative operational unit, preserves clinical fidelity through
+reconstructable structure, and avoids forcing application teams to
+choose between a patient-centric store and a separate cross-patient
+platform. Smaller repositories can remain simple, with one
+semi-flattened collection. Larger repositories can add a smaller
+projection to reduce the cost of broad operational filtering.
+
+In our evaluation, this approach maintained low end-to-end latency
+across both workload types, with low response times for patient-scoped
+and cross-patient queries, even at large scale. This efficiency
+validates it as a practical foundation for openEHR repositories that
+must support operational retrieval, provenance-aware processing,
+semantic enrichment, and AI-driven workflows from one platform.
+
+.. note::
+
+   **Production proof point:** This architecture is validated in production
+   on a repository with more than 1.2 billion persisted documents.
+
+You can explore this pattern with kehrnel, an experimental reference
+runtime and toolkit for document-first clinical data strategies.
+
+Following this approach gives you the following practical benefits: 
+
+- A reconstructable semi-flattened model that preserves composition
+  fidelity. 
+
+- Efficient patient-scoped querying without forcing a relational shred
+  of the clinical document. 
+
+- Support for cross-patient operational retrieval without defaulting to
+  a warehouse-first architecture. 
+  
+- One operational query surface for application teams, instead of
+  duplicated stores and fragmented logic. 
+  
+- A path to lower ETL overhead, lower governance drift, and lower total
+  cost of ownership.
+
+What Is Kehrnel and Why Use It?
+```````````````````````````````
+
+Kehrnel is a strategy runtime that turns healthcare data models into
+operational capabilities. Kehrnel exists because defining a healthcare
+data model is not enough. Teams also need a repeatable way to validate
+data, transform it into an operational representation, ingest it, query
+it, maintain it, and evolve it as requirements change. Without that
+execution layer, models often remain documentation, storage schemas, or
+isolated specifications.
+
+The goal is broader than building an openEHR engine. Kehrnel provides a
+repeatable document-first approach for making healthcare data models
+executable, inspectable, and reusable across APIs, tooling, and AI
+workflows. Over time, the same runtime pattern can support other model
+families and operational strategies, including FHIR, synthetic data
+workflows, semantic catalogs, natural language retrieval, and other
+domain-specific tools.
+
+Kehrnel is designed around exposed workflows that can be customized for
+the needs of each persistence strategy. Each strategy can define its own
+activation, validation, ingestion, transformation, query,
+synthetic-data, and maintenance operations, while still using a
+consistent runtime model.
+
+Kehrnel starts with openEHR because openEHR is a demanding,
+semantic-rich model. It includes archetypes, templates, paths,
+terminology, and complex query behavior. That makes it a strong
+foundation for proving a model-driven runtime approach.
+
+For this solution, Kehrnel serves as the reference runtime and toolkit
+for the document-first persistence pattern.
+
+.. figure:: /includes/images/industry-solutions/openehr-kehrnel.svg
+   :figwidth: 1200px
+   :alt: Kehrnel CLI screenshot
+   
+   Figure 2. Kehrnel CLI screenshot
+
+Reference Architectures
+-----------------------
+
+Figure 3 shows the end-to-end flow of this strategy in kehrnel, from
+canonical openEHR input to routed query execution.
+
+.. figure:: /includes/images/industry-solutions/openehr-architecture.svg
+   :figwidth: 1200px
+   :alt: Representation of the architecture for the AQL compiler and routing runtime
+   
+   Figure 3. AQL compiler and routing runtime (kehrnel)
+
+**Layer 1:** Data sources starts with canonical openEHR compositions,
+the model catalog of operational templates, and optional synthetic data
+used for testing at scale. The :abbr:`OPT (Operational Template)` is the
+compiled runtime artefact derived from archetypes and templates.
+Operational systems use the OPT for validation and path-aware
+processing.
+
+**Layer 2:** The transformation pipeline converts each incoming
+composition into the persisted representation used by this strategy. The
+semi-flattening step scans the composition hierarchy, applies path and
+code encoding, and uses mapping rules to materialize queryable nodes.
+The result produces one semi-flattened MongoDB document per composition,
+with stored nodes that keep a local clinical subtree, positional
+metadata, and a reversed path key.
+
+**Layer 3:** Dictionaries and mapping store the helper artefacts
+required for this strategy. ``_codes`` and ``_shortcuts`` support
+compact path resolution and encoding. Mappings store the
+strategy-specific rules that drive transformation and query compilation.
+
+**Layer 4:** MongoDB collections show the persistence options. The
+primary compositions collection stores the semi-flattened composition
+documents and serves patient-scoped execution through a compound index
+on ``ehr_id`` and ``cn.p``. For large repositories, the optional search
+collection stores a slim projection of the node data points needed for
+cross-patient filtering. This collection is indexed with MongoDB Atlas
+Search. The dual-collection pattern keeps search mappings narrower and
+search cost lower.
+
+**Layer 5:** Query engine is where kehrnel parses and routes AQL. The
+runtime accepts an AQL statement, validates the AST, resolves aliases
+and safe projections, detects whether the query is patient-scoped or
+cross-patient, and emits the appropriate :ref:`MQL <mql-reference>`
+route. When the query includes ``ehr_id``, the runtime emits a
+patient-scoped aggregation pipeline over the compositions collection,
+typically using stages such as ``$match``, ``$project``, ``$sort``, and
+``$limit``. When the query is cross-patient, the runtime emits a
+search-first pipeline over the slim projection, using operators such as
+``embeddedDocument``, ``wildcard``, ``range``, and ``equals`` inside a
+compound filter. While it can keep some cross-patient queries on the
+base collection when ``template/time/order`` predicates are
+match-friendly.
+
+**Layer 6:** Runtime interfaces, exposes this strategy through both the
+kehrnel CLI and the HTTP API. The CLI supports operator workflows such
+as environment setup, strategy activation, compilation, and query
+execution. The API exposes the same runtime capabilities for
+integration, automation, and interactive documentation.
+
+This layered design provides application teams  one logical operational
+query surface  and enables  different access paths based on repository
+size, query scope, and workload selectivity.
+
+Data Model Approach
+-------------------
+
+Store each composition as one MongoDB document, persisted in a
+semi-flattened form. Each stored node contains:
+
+- Local clinical subtree
+
+- Reversed path key
+
+- Positional metadata for reconstruction 
+
+This structure makes the model document-first and queryable at scale.
+You avoid creating a table-per-archetype layout, and forcing every query
+to use only the original nested JSON shape.
+
+In this model, openEHR paths remain first-class. The persisted document
+keeps the composition as the operational unit, and the node array gives
+the compiler a deterministic structure to query.
+
+The following simplified document shows a readable persisted composition
+example. It is formatted for explanation, so field names and path values
+are easier to follow than in a compact production encoding.
+
+.. code-block:: javascript
+
+   {
+      "_id": "...",
+      "ehr_id": "patient-001",
+      "composition_id": "c-001",
+      "template_id": "openEHR-EHR-COMPOSITION.vaccination_list.v0",
+      "version": 1,
+      "cn": [
+         {
+            "p": "ACTION.medication.v1.SECTION.immunisation_list.v0.COMPOSITION.vaccination_list.v0",
+            "kp": "content[0]/items[0]",
+            "pi": [0,0],
+            "bk": "b1",
+            "data": {
+               "time": {
+                  "value": "2026-01-15T10:30:00Z"
+               },
+               "other_participations": {
+                  "performer": {
+                     "identifiers": {
+                        "id": "038321545"
+                     }
+                  }
+               },
+               "code": {
+                  "value": "J07BX03"
+               }
+            }
+         }
+      ]
+   }
+
+How to Read This Document
+`````````````````````````
+
+One MongoDB document represents one openEHR composition. The ``cn``
+array stores the queryable nodes extracted from that composition. Each
+node keeps a local clinical subtree in ``data``, a reversed path key in
+``p``, and positional metadata such as ``kp``, ``pi``, and ``bk`` so the
+original structure can be reconstructed.
+
+The public example shows the path key in a readable form to make the
+translation easier to follow. In production, you can store the same path
+as compact dictionary-encoded tokens to reduce path size and index
+footprint
+
+Reversed Path Encoding
+``````````````````````
+
+The stored path field represents the key optimization. Reference-model
+attributes and archetype node identifiers build openEHR paths. This
+solution uses a reversed stored path, allowing containment constraints
+to be evaluated with prefix-friendly matching instead of
+leading-wildcard scans. This setup works with standard regex-based
+matching in the patient-scoped route and with wildcard-style matching in
+the search route.
+
+Deterministic AQL to MQL Translation
+````````````````````````````````````
+
+AQL is independent of the storage-model, making deterministic
+compilation effective. SQL clauses translate to MQL as follows:
+
+- ``FROM`` and ``CONTAINS`` become structural path predicates. 
+
+- ``WHERE`` becomes value predicates on the matched node payloads. 
+
+- ``SELECT`` becomes projection. 
+
+- ``ORDER BY`` becomes sorting.
+
+The following example illustrates an AQL query.
+
+.. code-block:: sql
+
+   SELECT
+     e/ehr_id/value AS ehrId,
+     c/uid/value AS compositionId,
+     med_ac/description[at0017]/items[at0140]/items[at0141]/value/defining_code/code_string AS locationCode
+   FROM
+     EHR e
+     CONTAINS COMPOSITION c[openEHR-EHR-COMPOSITION.vaccination_list.v0]
+     CONTAINS (
+       CLUSTER adminInfo[openEHR-EHR-CLUSTER.admin_salut.v0]
+       AND SECTION[openEHR-EHR-SECTION.immunisation_list.v0]
+       AND ACTION med_ac[openEHR-EHR-ACTION.medication.v1]
+     )
+   WHERE
+     med_ac/time/value >= '2000-04-13T07:54:16.345Z'
+     AND med_ac/time/value <= '2026-02-13T07:54:16.345Z'
+     AND adminInfo/items[at0007]/items[at0014]/value/defining_code/code_string = 'E08019820'
+     AND med_ac/other_participations/performer/identifiers/id = '038321545'
+   ORDER BY
+     med_ac/time/value DESC
+
+What This AQL Asks For
+``````````````````````
+
+This query combines structural and value-based constraints. The
+``CONTAINS`` clause defines the required openEHR structures, in this
+case a vaccination composition that contains an administrative cluster
+and a medication action. The ``WHERE`` clause then adds predicates on
+the action time, the performer identifier, and an administrative code.
+
+This query type benefits from deterministic compilation. It expresses
+conditions over hierarchical clinical structures and node-local values.
+
+How the Compiler Maps AQL to MQL
+````````````````````````````````
+
+The compiled MQL follows the same logic as the AQL: 
+
+- The top-level ``ehr_id`` filter makes the query patient-scoped. 
+
+- The ``$all`` clause requires all structural branches described by the
+  AQL to be present in the same composition. 
+
+- Each ``$elemMatch`` binds a path predicate and its value predicates to
+  the same stored node. 
+
+- The predicate on ``p`` is the compiled form of the structural
+  ``CONTAINS`` logic. 
+
+- The predicates under data are the compiled form of the ``WHERE``
+  conditions. 
+
+- In a full pipeline, the compiler then adds the projection and sorting
+  stages that correspond to ``SELECT`` and ``ORDER BY``.
+
+The next example shows a simplified patient-scoped MQL pattern generated
+from the AQL query above. It illustrates the compiler logic, not a
+byte-for-byte runtime payload.
+
+.. code-block:: javascript
+
+   // Simplified compiler output for a single-EHR query.
+   // Projection and sorting stages are omitted here for clarity.
+   db.compositions.aggregate([
+      {
+         "$match": {
+            "ehr_id": "b416bc97-de39-43f5-9d47-712af6688947~r1",
+            "cn": {
+               "$all": [
+                  {
+                     "$elemMatch": {
+                        "p": {
+                           "$regex": /^ACTION\.medication\.v1(?:\.[^.]+)*\.SECTION\.immunisation_list\.v0(?:\.[^.]+)*\.COMPOSITION\.vaccination_list\.v0$/
+                        },
+                        "data.time.value": {
+                           "$gte": ISODate("2000-04-13T07:54:16.345Z"),
+                           "$lte": ISODate("2026-02-13T07:54:16.345Z")
+                        },
+                        "data.other_participations.performer.identifiers.id": "038321545"
+                     }
+                  },
+                  {
+                     "$elemMatch": {
+                        "p": {
+                           "$regex": /^at0014\.at0007\.CLUSTER\.admin_salut\.v0(?:\.[^.]+)*\.COMPOSITION\.vaccination_list\.v0$/
+                        },
+                        "data.value.defining_code.code_string": "E08019820"
+                     }
+                  }
+               ]
+            }
+         }
+      }
+   ]);
+
+How the Same Logic Moves to the Search Route
+````````````````````````````````````````````
+
+The logical translation stays the same in the cross-patient route. The
+difference is physical execution. Instead of matching on the main
+compositions collection, the compiler targets the slim search
+projection. Structural constraints on the reversed path become wildcard
+filters, and value predicates become range and equality filters.
+
+The next example shows a MQL pattern generated from an AQL not bound to
+one patient. As before, it illustrates the compiler logic, not a
+byte-for-byte runtime payload.
+
+.. code-block:: javascript
+
+   {
+      "$search": {
+         "index": "search_nodes_index",
+         "compound": {
+            "filter": [
+               {
+                  "embeddedDocument": {
+                     "path": "sn",
+                     "operator": {
+                        "compound": {
+                           "filter": [
+                              {
+                                 "wildcard": {
+                                    "path": "sn.p",
+                                    "query": "ACTION.medication.v1*SECTION.immunisation_list.v0*COMPOSITION.vaccination_list.v0"
+                                 }
+                              },
+                              {
+                                 "range": {
+                                    "path": "sn.data.time.value",
+                                    "gte": ISODate("2000-04-13T07:54:16.345Z"),
+                                    "lte": ISODate("2025-04-13T07:54:16.345Z")
+                                 }
+                              },
+                              {
+                                 "equals": {
+                                    "path": "sn.data.other_participations.performer.identifiers.id",
+                                    "value": "038321545"
+                                 }
+                              }
+                           ]
+                        }
+                     }
+                  }
+               }
+            ]
+         }
+      }
+   }
+
+Repeated Structures and Same-Path Siblings
+``````````````````````````````````````````
+
+Some openEHR structures can contain repeated sibling nodes with the same
+effective path, for example repeated ``EVENTs``. These cases require the
+compiler to push the predicates deeper so the conditions are satisfied
+by the same repeated item. In standard aggregation, that means deeper
+nested ``$elemMatch``. In the search route, the equivalent is
+``embeddedDocument``, which binds multiple conditions to the same
+embedded array element.
+
+Build the Solution
+------------------
+
+Use the kehrnel, available in this `repository
+<https://github.com/mongodb-industry-solutions/kehrnel>`__, as the
+reference runtime and toolkit for this pattern. Kehrnel provides the
+strategy lifecycle, validation flow, semi-flattening pipeline, and AQL
+compilation path used to ingest canonical openEHR compositions and route
+operational queries through the correct execution path. 
+
+At activation time, kehrnel exposes the strategy through
+``manifest.json``, uses ``defaults.json`` as the activation baseline,
+validates overrides with ``schema.json``, and applies the storage and
+index plan described by the strategy implementation and ``spec.json``.
+The recommended path is to let kehrnel create collections and B-tree
+indexes from the active config rather than creating them manually in
+MongoDB first.
+
+The repository positions kehrnel as an experimental runtime for
+demonstration, teaching, rapid prototyping, and proof-of-concepts. To
+reproduce this solution in your own environment, follow these steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set up MongoDB on Atlas
+
+      Create an Atlas cluster and decide which database will hold the
+      strategy data. 
+      
+      At this stage, you only need the target database name and the
+      connection string.
+
+      **For MacOS and Linux:**
+
+      .. code-block:: sh
+
+         export MONGODB_URI="<your-atlas-connection-string>"
+         export MONGODB_DB="openEHR_demo"
+
+      **For Windows Powershell:**
+
+      .. code-block:: sh
+      
+         set MONGODB_URI=<your-atlas-connection-string>
+         set MONGODB_DB="openEHR_demo"
+         exit
+
+   .. step:: Clone the GitHub repository and start the kehrnel
+
+      Clone the `repository
+      <https://github.com/mongodb-industry-solutions/kehrnel>`__, and
+      start the runtime with ``./startKehrnel``. This entrypoint
+      prepares the local environment automatically and keeps the first
+      run simple. 
+
+      .. code-block:: sh
+
+         git clone https://github.com/mongodb-industry-solutions/kehrnel
+         cd kehrnel
+         ./startKehrnel
+         export RUNTIME_URL="${RUNTIME_URL:-http://localhost:8080}"
+         # Alternative direct API entrypoint:
+         # uvicorn kehrnel.api.app:app --reload --port 8080
+
+         
+      After startup, confirm the runtime is reachable and use kehrnel as
+      the control plane for the rest of the workflow. 
+      
+      Once started, kehrnel exposes a Docusaurus site at the route
+      http://localhost:8080/guide. Figure 4 shows the site. 
+
+      .. figure:: /includes/images/industry-solutions/openehr-documentation.svg
+         :figwidth: 1200px
+         :alt: kehrnel documentation
+   
+         Figure 4. Kehrnel documentation
+
+   .. step:: Configure the CLI context and create an environment
+
+      Point the CLI to the running runtime, create the target
+      environment, and inspect it. The environment is the unit of
+      activation in kehrnel. It isolates strategy configuration,
+      bindings, generated artifacts, and operational state without
+      forcing changes in strategy code.
+
+      .. code-block:: sh
+
+         # Point the CLI at the running kehrnel runtime
+         kehrnel context set --runtime-url "$RUNTIME_URL"
+         kehrnel core health
+         kehrnel core env create --env dev --name "Development"
+         kehrnel core env list
+         kehrnel core env show --env dev
+         
+   .. step:: Discover and activate the strategy
+
+      Kehrnel supports multiple environments, domains, and strategies.
+      In this walkthrough, explicitly select the openehr domain and the
+      ``openehr.rps_dual`` strategy. 
+
+      Use
+      ``src/kehrnel/engine/strategies/openehr/rps_dual/defaults.json``
+      as the baseline config, and add a small override file only when
+      you want to change collection names, field labels, search
+      enablement, dictionaries, separators, coding policies, or
+      mappings. 
+
+      Activation is the step where kehrnel materializes the configured
+      collections and B-tree indexes from the active strategy config.
+      For the packaged reference example, the activation override file
+      points the ``strategy`` to the packaged projection mappings.
+      Dictionary bootstrap is then applied according to the strategy’s
+      activation settings.
+
+      .. note::
+
+         To understand the full ``openehr.rps_dual`` configuration
+         surface and the supported changes you can apply, see the
+         `strategy configuration guide
+         <http://localhost:8080/guide/docs/strategies/openehr/rps-dual/configuration>`__.
+         This guide explains what each setting in the strategy baseline
+         controls, including collection names, field labels, search-side
+         enablement, dictionary seeds, path separator, and coding
+         policies
+
+      .. code-block:: sh
+
+         mkdir -p .kehrnel
+         # Local plaintext MongoDB bindings for the walkthrough
+         cat > .kehrnel/bindings.mongo.yaml <<EOF
+         db:
+           provider: mongodb
+           uri: ${MONGODB_URI}
+           database: ${MONGODB_DB}
+         EOF
+         # Packaged activation override for the reference dual-collection example
+         kehrnel core env activate \
+           --env dev \
+           --domain openehr \
+           --strategy openehr.rps_dual \
+           --config src/kehrnel/engine/strategies/openehr/rps_dual/samples/reference/activation.config.json \
+           --allow-plaintext-bindings \
+           --bindings .kehrnel/bindings.mongo.yaml \
+           --force
+         # Ensure bundled dictionaries are present
+         kehrnel run ensure_dictionaries --env dev --domain openehr
+         # Generate the Atlas Search definition derived from the active mappings
+         kehrnel strategy build-search-index \
+           --env dev \
+           --domain openehr \
+           --strategy openehr.rps_dual \
+           --out .kehrnel/search-index.json
+        
+   .. step:: Prepare templates, mappings, and canonical compositions
+
+      Work with strategy-owned sample assets under
+      ``src/kehrnel/engine/strategies/openehr/rps_dual/samples`` or with
+      your own canonical openEHR inputs. 
+      
+      Use OPT templates to validate or generate compositions. 
+      
+      Use the packaged projection mappings when you want the search-side
+      collection to be built from the same configuration that drives
+      ingest and search-index generation.
+
+      .. code-block:: sh
+
+         SAMPLES_ROOT="src/kehrnel/engine/strategies/openehr/rps_dual/samples/reference"
+         # Inspect the packaged reference assets
+         ls "$SAMPLES_ROOT/templates"
+         ls "$SAMPLES_ROOT/queries"
+         ls "$SAMPLES_ROOT/envelopes"
+         ls "$SAMPLES_ROOT/projection_mappings.json" \
+            "$SAMPLES_ROOT/search_index.definition.json" \
+            "$SAMPLES_ROOT/manifest.json"
+         # Optional: generate and validate a sample composition from a packaged OPT
+         kehrnel common generate -- \
+           -t "$SAMPLES_ROOT/templates/sample_laboratory_v0_4.opt" \
+           -o .kehrnel/composition.json \
+           --random
+         kehrnel common validate -- \
+           -c .kehrnel/composition.json \
+           -t "$SAMPLES_ROOT/templates/sample_laboratory_v0_4.opt" \
+           --stats
+         # Optional: generate a starter source-to-canonical mapping skeleton
+         kehrnel common map-skeleton -- \
+           "$SAMPLES_ROOT/templates/sample_laboratory_v0_4.opt" \
+           -o .kehrnel/mapping.skeleton.yaml \
+           --macros
+         
+   .. step:: Ingest compositions
+
+      Ingest compositions through the strategy. The packaged NDJSON
+      envelopes are canonical openEHR composition wrappers that include
+      the masked composition plus metadata such as ``ehr_id``,
+      ``template_id``, ``composition_version``, and ``time_committed``.
+
+      Use kehrnel run ingest here, while this walkthrough starts from
+      canonical openEHR envelopes and needs the strategy to produce the
+      semi-flattened base document and, when mappings exist for the
+      template, the optional search-side projection document.
+
+      The local-file flags below are only a guardrail that allows the
+      runtime to read the packaged sample NDJSON from your working tree.
+
+      When mappings exist for a template, kehrnel also creates the
+      optional search-side document in ``compositions_search``. If no
+      mappings exist for a template, it skips that sidecar instead of
+      emitting empty arrays.
+
+      .. code-block:: sh
+
+         # The CLI expands the local NDJSON into documents before sending the request.
+         kehrnel run ingest \
+           --env dev \
+           --domain openehr \
+           --strategy openehr.rps_dual \
+           --set file_path="$SAMPLES_ROOT/envelopes/all.ndjson"
+         
+   .. step:: Compile and inspect AQL
+
+      Compile representative AQL before executing it. 
+      
+      Confirm the resolved scope, the emitted MQL, and the selected
+      execution path.
+
+      This compilation step is the key operational contract of the
+      pattern. Applications stay on AQL, while kehrnel handles
+      deterministic translation and execution planning against the
+      storage model.
+
+      .. code-block:: sh
+
+         # Compile only: inspect the execution plan without running the query
+         kehrnel core env compile-query \
+           --env dev \
+           --domain openehr \
+           --aql "$SAMPLES_ROOT/queries/patient_laboratory_by_ehr.aql"
+         kehrnel core env compile-query \
+           --env dev \
+           --domain openehr \
+           --aql "$SAMPLES_ROOT/queries/cross_patient_laboratory_by_performing_centre.aql"
+
+   .. step:: Run operational queries
+
+      Run both a patient-scoped query and a cross-patient query
+      against the same environment. This execution demonstrates the core
+      value of the pattern: one operational query surface, with the
+      runtime choosing the right physical execution path for the
+      workload.
+
+      For patient-scoped queries, the runtime can target the main
+      semi-flattened collection with indexed ``$match``, ``$project``,
+      ``$sort``, and ``$limit`` stages. For broader operational
+      retrieval, the runtime can route through the search-oriented path
+      when the query shape benefits from it.
+
+      .. code-block:: sh
+
+         # Execute both representative queries
+         kehrnel core env query \
+           --env dev \
+           --domain openehr \
+           --aql "$SAMPLES_ROOT/queries/patient_laboratory_by_ehr.aql"
+         kehrnel core env query \
+           --env dev \
+           --domain openehr \
+           --aql "$SAMPLES_ROOT/queries/cross_patient_laboratory_by_performing_centre.aql"
+
+   .. step:: Explore the generated artifacts
+
+      Inspect the generated MongoDB documents, the optional search-side
+      projection, and the Atlas Search index definition to verify the
+      document-first design.
+
+      You can see how canonical compositions remain the source input,
+      how the semi-flattened form supports deterministic querying, and
+      how mappings drive the search-side projection rather than
+      duplicating the whole document blindly.
+
+      .. code-block:: sh
+
+         # Inspect the generated base and search-side documents
+         mongosh "$MONGODB_URI/$MONGODB_DB" <<'MONGOSH'
+         db.compositions_rps.findOne({}, { ehr_id: 1, tid: 1, time_c: 1, cn: { $slice: 3 } })
+         db.compositions_search.findOne({}, { ehr_id: 1, comp_id: 1, tid: 1, sort_time: 1, sn: 1 })
+         MONGOSH        
+         # Inspect the generated Atlas Search definition
+         cat .kehrnel/search-index.json
+
+   .. step:: Extend the pattern through the CLI
+
+      Once the base flow works, continue with the CLI rather than
+      dropping straight into custom API wiring. The CLI already exposes
+      the main operational building blocks: 
+       
+      - Environment lifecycle
+      
+      - Strategy activation
+      
+      - Dictionary setup
+      
+      - Search-index generation
+      
+      - Query compilation
+      
+      - Query execution
+
+      This toolkit makes kehrnel the natural control plane for strategy
+      work. A separate application or UI can sit on top of it, but the
+      strategy itself remains portable, inspectable, and operable
+      directly through the runtime and CLI.
+
+      .. code-block:: sh
+
+         # Continue through the CLI for strategy operations and discovery
+         kehrnel op capabilities --env dev
+         kehrnel op schema synthetic_generate_batch --strategy openehr.rps_dual
+         kehrnel run rebuild_codes --env dev --domain openehr
+         kehrnel run rebuild_shortcuts --env dev --domain openehr
+         kehrnel run build_search_index_definition \
+           --env dev \
+           --domain openehr \
+           --strategy openehr.rps_dual
+
+.. note::
+
+   Do you want to experiment with this pattern in a guided sandbox? The
+   `Healthcare Data Lab
+   <https://data-lab.mongodb-industry-solutions.com/>`__ builds on
+   kehrnel to help teams model, query, and test document-first
+   healthcare data strategies, including this openEHR persistence
+   approach. It is currently available in private preview. Contact your
+   MongoDB account representative to request access.
+
+Key Learnings 
+-------------
+
+- **Persist compositions as semi-flattened documents:** Keep one MongoDB
+  document per composition, but store it in a reconstructable
+  semi-flattened form rather than as a raw nested payload.
+
+- **Encode and reverse paths for efficient matching:** Turn AQL
+  structural paths into compact reversed tokens so ``CONTAINS`` can map
+  to prefix-friendly predicates.
+
+- **Route AQL by scope:** Use ``ehr_id`` to keep patient-scoped queries
+  local and send cross-patient queries to Atlas Search when appropriate.
+
+- **Choose one collection or two based on scale:** A single
+  semi-flattened collection can work well, but very large repositories
+  benefit from a slim search projection.
+
+- **Keep one operational query surface:** Let application teams stay on AQL
+  while the runtime handles deterministic compilation and execution
+  planning.
+
+Authors
+-------
+
+- Francesc Mateu Amengual, MongoDB                                                              
+- Giovanni Rodriguez, MongoDB                                                                   
+- Greg Cox, MongoDB
+- Juan Crossley, MongoDB
+
+Learn More
+----------
+
+- :ref:`arch-center-is-fhir-data-layer`
+- Check the `openEHR standards <https://openehr.org/>`__
+- Check the `openEHR AQL specifications <https://specifications.openehr.org/releases/QUERY/Release-1.1.0>`__
