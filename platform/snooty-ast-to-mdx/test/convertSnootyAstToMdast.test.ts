@@ -34,6 +34,26 @@ describe('convertSnootyAstToMdast', () => {
     expect(mdx).toBe('**Hey Rubric**');
   });
 
+  it('converts instruqt directive to Instruqt with embedValue prop (not children)', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'instruqt',
+          argument: [{ type: 'text', value: '/mongodb-docs/tracks/getting-started-with-mongodb-v2?token=em_abc' }],
+          options: { title: 'Getting Started Lab', drawer: true },
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    expect(mdx).toContain('embedValue="/mongodb-docs/tracks/getting-started-with-mongodb-v2?token=em_abc"');
+    expect(mdx).toContain('title="Getting Started Lab"');
+    expect(mdx).toMatch(/drawer=\{true\}/);
+    // Embed path must not be emitted as a paragraph / loose text
+    expect(mdx).not.toMatch(/<p>\s*\/mongodb-docs\/tracks/);
+  });
+
   it('collects meta directives into frontmatter', () => {
     const ast: SnootyNode = {
       type: 'root',

@@ -51,7 +51,7 @@ import { Output } from '@/mdx-components/IOCode/Output';
 import { OpenAPI } from '@/mdx-components/OpenAPI';
 import { Field } from '@/mdx-components/Field';
 import { FieldList } from '@/mdx-components/FieldList';
-import Instruqt from '@/components/instruqt';
+import { Instruqt } from '@/mdx-components/Instruqt';
 
 type InjectedProps = Record<string, unknown>;
 
@@ -144,7 +144,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Icon: ({ children, ...props }) => <Icon {...props}>{children}</Icon>,
     Introduction: ({ children }) => <Introduction>{children}</Introduction>,
     Input: ({ children }) => <>{children}</>,
-    Instruqt: ({ children, ...props }) => <Instruqt {...props}>{children}</Instruqt>,
+    Instruqt: (props) => <Instruqt {...props} />,
     IoCodeBlock: ({ children, ...props }) => <IoCodeBlock {...props}>{children}</IoCodeBlock>,
     Kbd: ({ children }) => <Kbd>{children}</Kbd>,
     Kicker: ({ children }) => <Kicker>{children}</Kicker>,

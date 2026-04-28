@@ -963,6 +963,22 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         };
       }
 
+      // Instruqt embed path must be a JSX prop (`embedValue`); the generic path puts it in paragraph
+      // children, which MDX does not pass through as plain text to our component.
+      if (directiveName === 'instruqt') {
+        const embedValue = parseSnootyArgument(node).trim();
+        const attributes: MdastNode[] = toJsxAttributes(node.options);
+        if (embedValue) {
+          attributes.push({ type: 'mdxJsxAttribute', name: 'embedValue', value: embedValue });
+        }
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'Instruqt',
+          attributes,
+          children: convertChildren({ nodes: node.children, depth, ctx, parentType: directiveName }),
+        };
+      }
+
       // Generic fallback for any Snooty directive (ex: ...tab -> <Tab>) where pascalCase doesn't produce the desired result
       const DIRECTIVE_TO_COMPONENT: Record<string, string> = {
         see: 'See',
