@@ -39,6 +39,20 @@ const DIRECTIVES_TO_REMOVE = [
 const DIRECTIVES_TO_REMOVE_IF_EMPTY = ['index'];
 const DIRECTIVES_TO_SKIP_CONTAINER = ['extract', 'glossary'];
 
+/**
+ * RST `line_block` separates logical lines with a break between them.
+ * Mdast `{ type: 'break' }` serializes via remark-mdx as `\\\n` (CommonMark hard break).
+ * After self-closing inline JSX (e.g. `<Reference />`), that backslash parses as **literal
+ * text** instead of a line break, dropping following siblings — seen in list-table headers
+ * with substitutions on consecutive lines. An explicit `<br />` stays unambiguous in MDX.
+ */
+const LINE_BLOCK_BREAK: MdastNode = {
+  type: 'mdxJsxTextElement',
+  name: 'br',
+  attributes: [],
+  children: [],
+};
+
 /** Recursively extract plain text from a snooty argument node tree */
 const extractArgText = (n: SnootyNode): string => {
   if (isValueNode(n)) return n.value;
@@ -1205,8 +1219,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       const lines = (node.children ?? []).flatMap((ln, idx, arr) => {
         const converted = convertChildren({ nodes: [ln], depth, ctx });
         if (idx < arr.length - 1) {
-          // add a hard line break between lines
-          converted.push({ type: 'break' });
+          converted.push(LINE_BLOCK_BREAK);
         }
         return converted;
       });
