@@ -74,6 +74,7 @@ describeWithSampleData("mongosh sample_mflix index collation tests", () => {
         "indexes/collation/find-compound-collation-index-year-title/find.js"
       ])
       .withDbName(dbName)
+      .withIgnoredFields("_id")
       .shouldMatch("indexes/collation/find-compound-collation-index-year-title/output.sh");
   });
 

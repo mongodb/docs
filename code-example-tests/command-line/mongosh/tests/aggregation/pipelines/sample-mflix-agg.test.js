@@ -62,17 +62,18 @@ describeWithSampleData("mongosh sample_mflix example tests", () => {
         "aggregation/pipelines/explain-field/run-pipeline.js"
       ])
       .withDbName(dbName)
-      .withIgnoredFields("stages", "queryHashShape", "serverInfo", "serverParameters")
+      .withIgnoredFields("stages", "queryShapeHash", "serverInfo", "serverParameters")
       .shouldMatch("aggregation/pipelines/explain-field/output.sh");
   });
 
   test("Should return explain results", async () => {
     await Expect
       .outputFromExampleFiles([
+        "aggregation/pipelines/hint/apply-index-one.js",
         "aggregation/pipelines/explain/run-pipeline.js"
       ])
       .withDbName(dbName)
-      .withIgnoredFields("stages", "queryHashShape", "serverInfo", "serverParameters")
+      .withIgnoredFields("stages", "queryShapeHash", "serverInfo", "serverParameters")
       .shouldMatch("aggregation/pipelines/explain/output.sh");
   });
 

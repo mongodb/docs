@@ -71,6 +71,19 @@ describeWithSampleData("db.collection.findOne examples", () => {
          .shouldMatch(outputFile);
    });
 
+   /*
+      This test is skipped because result-document.js is a multi-statement
+      example (var declarations + an if block with print()) and the test
+      harness wraps the whole file in printjson(...), producing invalid
+      JavaScript:
+          printjson(var myDocument = db.movies.findOne(); ...)
+
+      To re-enable this test, either rewrite the example as a single
+      expression (e.g., db.movies.findOne().title) and update the expected
+      output to the JSON-stringified form, or extend the harness to skip
+      the printjson() wrap when the example already has its own print()
+      calls.
+   */
    test.skip("Should access fields from findOne result document", async () => {
       const exampleFiles = [
          "mongosh-commands/db.collection.findOne/result-document.js"
