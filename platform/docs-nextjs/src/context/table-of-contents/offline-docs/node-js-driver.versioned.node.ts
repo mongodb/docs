@@ -416,6 +416,11 @@ export const toc: L1TocItem[] = [
                 contentSite: 'node',
                 url: '/docs/drivers/node/:version/integrations/next-vercel',
               },
+              {
+                label: 'Use MongoDB with Azure Functions',
+                contentSite: 'node',
+                url: '/docs/drivers/node/:version/integrations/azure-functions',
+              },
             ],
           },
           {
