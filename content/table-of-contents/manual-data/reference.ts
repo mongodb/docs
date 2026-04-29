@@ -3497,6 +3497,16 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/operator/aggregation/gte',
           },
           {
+            label: '$hash',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/operator/aggregation/hash',
+          },
+          {
+            label: '$hexHash',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/operator/aggregation/hexHash',
+          },
+          {
             label: '$hour',
             contentSite: 'docs',
             url: '/docs/:version/reference/operator/aggregation/hour',
