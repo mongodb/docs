@@ -4,7 +4,7 @@ go 1.24.5
 
 require (
 	github.com/joho/godotenv v1.5.1
-	go.mongodb.org/mongo-driver/v2 v2.5.0
+	go.mongodb.org/mongo-driver/v2 v2.6.0
 )
 
 require (
