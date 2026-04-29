@@ -136,8 +136,10 @@ the ``subject.fr`` field using the ``french`` analyzer:
      }
    }
 
-The following query searches for the string ``pour`` in the
-``subject.fr`` field:
+The following {+fts+} query searches for the string ``pour`` in the
+``subject.fr`` field. To run this query, connect to your cluster using
+{+mongosh+} and switch to the database that contains the ``cars``
+collection.
 
 .. io-code-block::
    :copyable: true
@@ -170,8 +172,10 @@ The previous query returns no results when using the ``french`` analyzer,
 because ``pour`` is a built-in stop word. Using the ``standard``
 analyzer, the same query would return both documents.
 
-The following query searches for the string ``carburant`` in the
-``subject.fr`` field:
+The following {+fts+} query searches for the string ``carburant`` in the
+``subject.fr`` field. To run this query, connect to your cluster using
+{+mongosh+} and switch to the database that contains the ``cars``
+collection.
 
 .. io-code-block::
    :copyable: true
@@ -281,8 +285,10 @@ tokens for Hebrew text:
      ]
    }
 
-The following query searches for the string ``המכוניות`` in the
-``subject.he`` field:
+The following {+fts+} query searches for the string ``המכוניות`` in the
+``subject.he`` field. To run this query, connect to your cluster using
+{+mongosh+} and switch to the database that contains the ``cars``
+collection.
 
 .. io-code-block::
    :copyable: true
@@ -341,12 +347,13 @@ Multilingual Search Example
 You can also create an index that uses multiple language analyzers
 to perform a multilingual search. 
 
-The following example index definition specifies an index with dynamic mapping 
-on the ``sample_mflix.movies`` collection. The definition applies the ``lucene.italian`` 
-language analyzer to index the ``fullplot`` field, and uses the :ref:`multi <ref-multi-analyzers>`
-option to specify ``lucene.english`` as an alternate language analyzer. |fts| uses the default 
-``lucene.english`` language analyzer for all other fields that it dynamically indexes in the 
-``movies`` collection.
+The following example index definition specifies an index with dynamic
+mapping on the ``sample_mflix.movies`` collection. The definition
+applies the ``lucene.italian`` language analyzer to index the
+``fullplot`` field, and uses the :ref:`multi <ref-multi-analyzers>`
+option to specify ``lucene.english`` as an alternate language analyzer.
+|fts| uses the default ``lucene.english`` language analyzer for all
+other fields that it dynamically indexes in the ``movies`` collection.
 
 .. code-block:: json
    :copyable: true
@@ -370,7 +377,13 @@ option to specify ``lucene.english`` as an alternate language analyzer. |fts| us
      }
    }
 
-The following |fts| query uses the following :ref:`compound <compound-ref>` operator clauses to query the collection: 
+The following {+fts+} query uses the :ref:`compound <compound-ref>`
+operator to query the collection in multiple languages. To run this
+query, connect to your cluster using {+mongosh+} and switch to the
+``sample_mflix`` database.
+
+The :ref:`compound <compound-ref>` operator contains the following
+clauses:
 
 - ``must`` clause searches for movie plots in English and Italian that contain the term ``Bella`` using the :ref:`text <text-ref>` operator 
 - ``mustNot`` clause excludes movies released between the years 1984 to 2016 using the :ref:`range <range-ref>` operator
@@ -382,7 +395,7 @@ The following |fts| query uses the following :ref:`compound <compound-ref>` oper
    .. input:: 
       :language: json 
 
-      [
+      db.movies.aggregate([
         {
           $search: {
             "index": "multilingual-tutorial",
@@ -408,39 +421,61 @@ The following |fts| query uses the following :ref:`compound <compound-ref>` oper
               }]
             }
           }
+        },
+        {
+          $project: {
+            "_id": 0,
+            "title": 1,
+            "plot": 1,
+            "genres": 1,
+            "runtime": 1,
+            "fullplot": 1,
+            "released": 1,
+            "score": { "$meta": "searchScore" }
+          }
         }
-      ]
+      ])
 
    .. output:: 
       :language: json
       :visible: false
 
-      SCORE: 3.909510850906372  _id: "573a1397f29313caabce8bad"
-        plot: "He is a revenge-obssessed stevedore whose sister was brutally raped an…"
-        genres:
-          0: "Drama"
-        runtime: 137
-        fullplot: "In Marseilles, a woman commits suicide after she is raped in an alley.…"
-        released: 1983-05-18T00:00:00.000+00:00
-      SCORE: 3.4253346920013428  _id: "573a1396f29313caabce5735"
-        plot: "Giovanna e' una bella ragazza, ma ha qualche problema con gli uomini: …"
-        genres:
-          0: "Comedy"
-        runtime: 100
-        fullplot: "Giovanna e' una bella ragazza, ma ha qualche problema con gli uomini: …"
-        released: 1974-11-15T00:00:00.000+00:00
-      SCORE: 3.363344430923462  _id: "573a1395f29313caabce13cf"
-        plot: "Gerardo è un attore o almeno cerca di esserlo, ma il pubblico non è de…"
-        genres:
-          0: "Comedy"
-        runtime: 95
-        fullplot: "Gerardo è un attore o almeno cerca di esserlo, ma il pubblico non è de…"
-        released: 1960-02-10T00:00:00.000+00:00
-      SCORE: 1.9502882957458496  _id: "573a1396f29313caabce5299"
-        plot: "Dr Tremayne is an enigmatic Psychiatrist running a
-        Futuristic asylum h…"
-        genres:
-          0: "Horror"
-        runtime: 90
-        fullplot: "Dr Tremayne is an enigmatic Psychiatrist running a Futuristic asylum h…"
-        released: 1973-10-31T00:00:00.000+00:00
+      [
+        {
+          plot: "Giovanna e' una bella ragazza, ma ha qualche problema con gli uomini: tutti la vogliono solo usare, anche il suo fidanzata Claudio. Trovera' una via d'uscita diventando vigile urbano. Come ...",
+          genres: [ 'Comedy' ],
+          runtime: 100,
+          title: 'Policewoman',
+          fullplot: "Giovanna e' una bella ragazza, ma ha qualche problema con gli uomini: tutti la vogliono solo usare, anche il suo fidanzata Claudio. Trovera' una via d'uscita diventando vigile urbano. Come Giovanna d'Arco, il suo idolo, non guardera' in faccia a nessuno e con l'aiuto del pretore Patane', innamorato di lei, smascherera' una serie di intrallazzi e corruzione denunciando perfino il suo capo, Marcellini. I due paladini della giustizia coroneranno il loro sogno d'amore, trasferiti in una lontana isoletta a sud della Sicilia, ma i corrotti resteranno al loro posto.",
+          released: ISODate('1974-11-15T00:00:00.000Z'),
+          score: 3.4109344482421875
+        },
+        {
+          plot: `Gerardo è un attore o almeno cerca di esserlo, ma il pubblico non è del suo parere. Cosè, per arrotondare gli introiti, aiuta l'amico Lallo in un suo "lavoretto". Questo gli costa perè la ...`,
+          genres: [ 'Comedy' ],
+          runtime: 95,
+          title: 'Love and Larceny',
+          fullplot: `Gerardo è un attore o almeno cerca di esserlo, ma il pubblico non è del suo parere. Cosè, per arrotondare gli introiti, aiuta l'amico Lallo in un suo "lavoretto". Questo gli costa perè la prigione, dove incontra Chinotto e Gloria Patri. Uscito inizia, con l'opposizione di Annalisa che lo vuole sposare, una carriera come truffatore, dapprima in societè con Chinotto e quindi con la bella Elena. Tutto sembra filare a gonfie vele, e le truffe divengono sempre piè grosse e di successo. Ma a volte è destino che il ragno resti preso dalla stessa tela che tesse.`,
+          released: ISODate('1960-02-10T00:00:00.000Z'),
+          score: 3.3489856719970703
+        },
+        {
+          plot: 'He is a revenge-obssessed stevedore... She is a wealthy, elusive woman. They try hard to get together... or do they?',
+          genres: [ 'Drama' ],
+          runtime: 137,
+          title: 'The Moon in the Gutter',
+          fullplot: "Nightly, Gerard broods in an alley hoping to catch his sister's attacker. He lives with his lover Bella whom he neglects, an alcoholic brother who lurks about, and his father who's stayed drunk since the daughter's death, ignoring work and his own companion. At a seedy bar, Gerard meets a wealthy, nihilistic hedonist and his beautiful sister. Gerard flips for her and thinks she's his ticket out of the slum...",
+          released: ISODate('1983-05-18T00:00:00.000Z'),
+          score: 3.2985665798187256
+        },
+        {
+          plot: 'Dr Tremayne is an enigmatic Psychiatrist running a Futuristic asylum housing four very special cases. Visited by colleague Nicholas, Tremayne explains his amazing and controversial theories...',
+          genres: [ 'Horror' ],
+          runtime: 90,
+          title: 'Tales That Witness Madness',
+          fullplot: "Dr Tremayne is an enigmatic Psychiatrist running a Futuristic asylum housing four very special cases. Visited by colleague Nicholas, Tremayne explains his amazing and controversial theories as to why each of the four patients went mad... cue four distinct tales each with a different set of characters: 'Mr Tiger' tells of Paul, the sensitive and troubled young son of prosperous but constantly bickering and unlovely parents, and the boy's 'imaginary' friend, a tiger. 'Penny Farthing' tells of Timothy, an antique store owner propelled backwards in time by a penny-farthing bicycle in his shop, all the while being watched over by the constantly changing photograph of Uncle Albert, which endangers the lives of both Timothy and his beautiful wife, Ann. 'Mel' tells of Brian, a man who brings home an old dead tree and prominently displays it in his living room as a work of art. His fiery wife Bella soon becomes jealous of the tree, which the husband has lovingly named Mel, and it seems to be developing a will of its own. 'Luau' tells of Auriol, a flamboyant and ambitious literary agent who will do anything to impress her sinister new client, though he seems more interested in Auriol's beautiful and precocious young daughter Ginny. Ginny sneaks off on holiday while Auriol plans a sumptuous feast for her client.",
+          released: ISODate('1973-10-31T00:00:00.000Z'),
+          score: 1.9504895210266113
+        }
+      ]
+
