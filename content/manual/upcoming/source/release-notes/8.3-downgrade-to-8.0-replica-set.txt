@@ -1,7 +1,7 @@
 .. meta::
-   :robots: noindex, nosnippet 
+   :robots: noindex, nosnippet
 
-.. _8.3-downgrade-replica-set:
+.. _8.3-downgrade-to-8.0-replica-set:
 
 ==================================================
 Downgrade |newversion| Replica Set to |oldversion|
@@ -15,11 +15,11 @@ Downgrade |newversion| Replica Set to |oldversion|
    :depth: 1
    :class: singlecol
 
-.. include:: /includes/8.3-upgrade-replacements.rst
+.. include:: /includes/8.3-downgrade-to-8.0-replacements.rst
 
 .. include:: /includes/rc-available.rst
 
-.. remove rc include and replace with the following includes upon 8.3 release:
+.. remove in dev include and replace with the following includes upon 8.3 release:
    .. include:: /includes/minor-release.rst
 
 Before you attempt a downgrade, familiarize yourself with the content
@@ -32,7 +32,7 @@ Downgrade Path
 
 .. include:: /includes/downgrade-path.rst
 
-.. include:: includes/downgrade/single-version-support-adjacent-versions.rst
+.. include:: /includes/downgrade/single-version-support-adjacent-versions.rst
 
 Access Control
 --------------
@@ -54,7 +54,7 @@ prerequisite steps.
    .. step:: Create Backup
 
       *Optional but recommended.*  Create a backup of your database.
-      
+
       To learn how to create a backup, see :ref:`backup-methods`.
 
    .. step:: Remove Backward-Incompatible Features
@@ -70,51 +70,51 @@ prerequisite steps.
 
       To downgrade the :abbr:`FCV (feature compatibility version)` of your
       replica set:
-      
+
       a. Ensure that no initial sync is in progress. Running the
          :dbcommand:`setFeatureCompatibilityVersion` command while an initial
          sync is in progress causes the initial sync to restart.
-      
+
       #. Ensure that no nodes have a ``newlyAdded`` field in their
          :doc:`replica set configuration </reference/replica-configuration>`.
          Run the following command on each node in your replica set to
          verify this:
-      
+
          .. code-block:: javascript
-      
+
             use local
             db.system.replset.find( { "members.newlyAdded" : { $exists : true } } );
-         
+
          The ``newlyAdded`` field only appears in a node's replica set
          configuration document during and shortly after an initial sync.
-      
+
       #. Ensure that no replica set member is in the :replstate:`ROLLBACK` or
          :replstate:`RECOVERING` state.
-      
+
       #. Use :binary:`mongosh` to connect to your |target|.
-      
-      #. .. include:: /includes/8.3-downgrade-fcv.rst
-      
+
+      #. .. include:: /includes/8.3-downgrade-to-8.0-fcv.rst
+
       #. To ensure that all members of the replica set have the updated
          ``featureCompatibilityVersion``, connect to each replica set member
          and check the ``featureCompatibilityVersion``:
-      
+
          .. io-code-block::
 
             .. input::
                :language: javascript
-   
+
                db.adminCommand( { getParameter: 1, featureCompatibilityVersion: 1 } )
-      
+
             .. output::
                :language: json
                :visible: true
 
-               "featureCompatibilityVersion" : { "version" : "8.2" }
-      
+               "featureCompatibilityVersion" : { "version" : "8.0" }
+
          If any member returns a ``featureCompatibilityVersion`` of |newfcv|,
          wait for the member to return version |oldfcv| before proceeding.
-      
+
       For more information on the returned ``featureCompatibilityVersion``
       value, see :ref:`view-fcv`.
 
@@ -158,11 +158,11 @@ Downgrade Procedure
       time:
 
       a. Shut down the member.
-      
+
          To shut down the :binary:`~bin.mongod` process, use
          :binary:`~bin.mongosh` to connect to the secondary and run
          the following command:
-          
+
          .. code-block:: javascript
 
             db.adminCommand( { shutdown: 1 } )
@@ -179,7 +179,7 @@ Downgrade Procedure
          :ref:`start-mongod-processes`.
 
       #. Wait for the member to enter the ``SECONDARY`` state.
-      
+
          Before downgrading the next secondary, wait for the member
          to recover to the ``SECONDARY`` state. To check the member's
          state, use the :method:`rs.status()` method in
@@ -190,12 +190,12 @@ Downgrade Procedure
    .. step:: Downgrade the arbiter replica set member
 
       Skip this step if the replica set does not include an arbiter.
-  
+
       Downgrade the :ref:`arbiter <replica-set-arbiter-configuration>`
       member of the replica set:
 
       a. Shut down the member.
-          
+
          To shutdown the arbiter, use :binary:`~bin.mongosh` to
          connect to the arbiter and run the following command:
 
@@ -204,7 +204,7 @@ Downgrade Procedure
             db.adminCommand( { shutdown: 1 } )
 
       #. Delete the contents of the arbiter data directory.
-      
+
          To find the data directory of the arbiter
          :binary:`~bin.mongod`, check either the
          :setting:`storage.dbPath` configuration setting or
@@ -228,7 +228,7 @@ Downgrade Procedure
          :ref:`start-mongod-processes`.
 
       #. Wait for the member to enter the ``ARBITER`` state.
-          
+
          Before downgrading the primary, wait for the member
          to recover to the ``ARBITER`` state. To check the member's state,
          use the :method:`rs.status()` method in :binary:`~bin.mongosh`.
@@ -259,7 +259,7 @@ Downgrade Procedure
       #. Replace and restart the former primary ``mongod``.
 
          i. Shut down the member.
-               
+
             To perform a shutdown of the primary, use
             :binary:`~bin.mongosh` to connect to the primary and
             run the following command:

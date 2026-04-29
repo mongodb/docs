@@ -67,6 +67,29 @@ const tocData: TocItem[] = [
             ],
           },
           {
+            label: 'Downgrade 8.3 to 8.0',
+            contentSite: 'docs',
+            url: '/docs/:version/release-notes/8.3-downgrade-to-8.0',
+            collapsible: true,
+            items: [
+              {
+                label: 'Standalone',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/8.3-downgrade-to-8.0-standalone',
+              },
+              {
+                label: 'Replica Set',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/8.3-downgrade-to-8.0-replica-set',
+              },
+              {
+                label: 'Sharded Cluster',
+                contentSite: 'docs',
+                url: '/docs/:version/release-notes/8.3-downgrade-to-8.0-sharded-cluster',
+              },
+            ],
+          },
+          {
             label: 'Changelog',
             contentSite: 'docs',
             url: '/docs/:version/release-notes/8.3-changelog',

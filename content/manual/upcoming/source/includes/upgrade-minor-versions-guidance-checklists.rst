@@ -45,6 +45,6 @@ environment.
 Downgrade Consideration
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/downgrade/previous-minor-version.rst
+.. include:: /includes/downgrade/previous-version.rst
 
 .. include:: includes/downgrade/single-version-support.rst
