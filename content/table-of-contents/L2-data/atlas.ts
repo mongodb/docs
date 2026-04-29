@@ -1761,8 +1761,8 @@ const tocData: TocItem[] = [
       },
       {
         label: 'Embedding and Reranking API',
-        contentSite: 'voyageai',
-        url: '/docs/voyageai/api-reference/overview/',
+        isExternal: true,
+        url: 'https://www.mongodb.com/docs/voyageai/api-reference/overview/',
       },
       {
         label: 'MongoDB Cloud Status API',
