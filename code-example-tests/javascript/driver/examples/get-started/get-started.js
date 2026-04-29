@@ -5,12 +5,8 @@
 //    "export ": ""
 //	  }
 //	}
-import { MongoClient } from 'mongodb';
-
 // :snippet-start: example
-// :uncomment-start:
-//const { MongoClient } = require("mongodb");
-// :uncomment-end:
+import { MongoClient } from 'mongodb';
 
 export async function runGetStarted() {
   // Replace the uri string with your connection string

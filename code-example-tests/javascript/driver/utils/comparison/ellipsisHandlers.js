@@ -1,4 +1,4 @@
-const { isTruncatedValue } = require('./ellipsis');
+import { isTruncatedValue } from './ellipsis.js';
 
 /**
  * Handles property-level ellipsis and truncation patterns in value comparisons.
@@ -125,7 +125,7 @@ function handleObjectLevelEllipsis(expectedObj, actualObj) {
   return { isHandled: false };
 }
 
-module.exports = {
+export {
   handlePropertyLevelEllipsis,
   handleArrayLevelEllipsis,
   handleObjectLevelEllipsis,

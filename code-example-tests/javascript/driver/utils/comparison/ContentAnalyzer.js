@@ -1,5 +1,5 @@
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
 
 /**
  * Content types that can be automatically detected
@@ -313,7 +313,7 @@ class ContentAnalyzer {
   }
 }
 
-module.exports = {
+export {
   ContentAnalyzer,
   ContentType,
   ComparisonStrategy,

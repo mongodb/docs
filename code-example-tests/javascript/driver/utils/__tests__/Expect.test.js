@@ -1,6 +1,7 @@
-const Expect = require('../Expect');
-const fs = require('fs');
-const path = require('path');
+import Expect from '../Expect.js';
+import fs from 'fs';
+import path from 'path';
+import { ObjectId, Decimal128 } from 'mongodb';
 
 describe('Expect API', () => {
   describe('Basic fluent API', () => {
@@ -197,8 +198,6 @@ describe('Expect API', () => {
   });
 
   describe('shouldMatch - MongoDB types', () => {
-    const { ObjectId, Decimal128 } = require('mongodb');
-
     it('should normalize ObjectId types', () => {
       const id = new ObjectId();
       const actual = { _id: id };
@@ -305,14 +304,14 @@ describe('Expect API', () => {
     it('should handle movie query results', () => {
       const actual = [
         {
-          _id: new (require('mongodb').ObjectId)(),
+          _id: new ObjectId(),
           title: 'The Shawshank Redemption',
           year: 1994,
           runtime: 142,
           rated: 'R',
         },
         {
-          _id: new (require('mongodb').ObjectId)(),
+          _id: new ObjectId(),
           title: 'The Godfather',
           year: 1972,
           runtime: 175,
@@ -881,8 +880,6 @@ describe('Expect API', () => {
     });
 
     describe('MongoDB types handling', () => {
-      const { ObjectId, Decimal128 } = require('mongodb');
-
       it('should handle ObjectId comparison in fieldValues', () => {
         const id = new ObjectId();
         const actual = [{ _id: id, type: 'movie' }];

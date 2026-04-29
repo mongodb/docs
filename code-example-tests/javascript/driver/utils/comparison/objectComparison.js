@@ -138,7 +138,7 @@ function compareObjectProperties(
   return true;
 }
 
-module.exports = {
+export {
   compareObjectKeys,
   compareObjectProperties,
 };

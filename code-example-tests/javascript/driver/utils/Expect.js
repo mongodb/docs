@@ -1,10 +1,7 @@
-const { ComparisonEngine } = require('./comparison/comparisonEngine');
-const { readAndParseFile } = require('./comparison/fileParser');
-const {
-  ContentAnalyzer,
-  ContentType,
-} = require('./comparison/ContentAnalyzer');
-const path = require('path');
+import { ComparisonEngine } from './comparison/comparisonEngine.js';
+import { readAndParseFile } from './comparison/fileParser.js';
+import { ContentAnalyzer, ContentType } from './comparison/ContentAnalyzer.js';
+import path from 'path';
 
 /**
  * Expect provides a fluent API for comparing MongoDB documentation example outputs.
@@ -685,5 +682,5 @@ class Expect {
   }
 }
 
-module.exports = Expect;
-module.exports.Expect = Expect;
+export default Expect;
+export { Expect };

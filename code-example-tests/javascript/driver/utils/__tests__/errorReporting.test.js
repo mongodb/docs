@@ -1,9 +1,4 @@
-const {
-  ComparisonError,
-  ComparisonResult,
-  PathTracker,
-  ErrorMessageBuilder,
-} = require('../comparison/errorReporting');
+import { ComparisonError, ComparisonResult, PathTracker, ErrorMessageBuilder } from '../comparison/errorReporting.js';
 
 describe('Error Reporting for Technical Writers', () => {
   describe('ComparisonError', () => {

@@ -1,22 +1,10 @@
-const { areObjectsEqual } = require('./areObjectsEqual');
-const { ComparisonResult, ErrorMessageBuilder } = require('./errorReporting');
-const {
-  readAndParseFile,
-  parseExpectedOutput,
-  normalizeForComparison,
-  ensureComparableFormat,
-} = require('./fileParser');
-const {
-  ContentAnalyzer,
-  ContentType,
-  ComparisonStrategy,
-} = require('./ContentAnalyzer');
-const {
-  analyzeUnorderedMismatch,
-  buildUnorderedArrayErrors,
-} = require('./unorderedArrayAnalysis');
-const { compareWithDetails } = require('./detailedComparison');
-const path = require('path');
+import { areObjectsEqual } from './areObjectsEqual.js';
+import { ComparisonResult, ErrorMessageBuilder } from './errorReporting.js';
+import { readAndParseFile, parseExpectedOutput, normalizeForComparison, ensureComparableFormat } from './fileParser.js';
+import { ContentAnalyzer, ContentType, ComparisonStrategy } from './ContentAnalyzer.js';
+import { analyzeUnorderedMismatch, buildUnorderedArrayErrors } from './unorderedArrayAnalysis.js';
+import { compareWithDetails } from './detailedComparison.js';
+import path from 'path';
 
 /**
  * ComparisonEngine orchestrates the comparison of expected and actual values
@@ -409,6 +397,4 @@ class ComparisonEngine {
   }
 }
 
-module.exports = {
-  ComparisonEngine,
-};
+export { ComparisonEngine, };

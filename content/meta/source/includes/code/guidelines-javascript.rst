@@ -21,15 +21,6 @@ Assumptions and Compatibility
 
 - Target a modern Node.js LTS (long-term support) version (currently Node.js 24 or later) unless a
   procedure or compatibility note requires an older version.
-- Use ES modules (``import``/``export``) rather than CommonJS (``require``/``module.exports``)
-  in new examples.
-
-  .. note:: ES Modules Supported in ``mongosh`` >= v1.6.0
-
-     The ``mongosh`` shell v1.6.0 and later support ECMAScript (ES) modules.
-     In previous versions, ``mongosh`` requires the
-     CommonJS ``require`` syntax.
-
 - Avoid deprecated patterns and experimental features.
 - Avoid framework-specific patterns unless the page is explicitly about
   that framework (for example, an Express.js tutorial).
@@ -281,14 +272,33 @@ File and Function Structure
 - Keep example functions focused. If a function grows beyond roughly 25-30
   lines, consider splitting the workflow into multiple sections.
 
+.. _imports-js:
+
 Imports
 ~~~~~~~
 
-- Use ES module syntax (``import``/``export``):
+- Use ES module syntax (``import``/``export``) rather than CommonJS (``require``/``module.exports``) in new examples:
 
   .. code-block:: javascript
+     :caption: Node.js Driver Example
 
+     // Preferred
      import { MongoClient } from "mongodb";
+
+     // Avoid
+     const { MongoClient } = require("mongodb");
+
+
+  .. note:: MongoDB Shell Requires CommonJS Syntax
+
+     The MongoDB Shell does not support loading ECMAScript (ES) modules.
+     Use CommonJS ``require()`` syntax in mongosh examples.
+
+     .. code-block:: javascript
+        :caption: MongoDB Shell Example
+
+        // CommonJS syntax 
+        const { MongoClient } = require("mongodb");
 
 - Group imports in this order:
 

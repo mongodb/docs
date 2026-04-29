@@ -1,10 +1,6 @@
-const {
-  ContentAnalyzer,
-  ContentType,
-  ComparisonStrategy,
-} = require('../comparison/ContentAnalyzer');
-const fs = require('fs');
-const path = require('path');
+import { ContentAnalyzer, ContentType, ComparisonStrategy } from '../comparison/ContentAnalyzer.js';
+import fs from 'fs';
+import path from 'path';
 
 describe('ContentAnalyzer', () => {
   describe('detectType', () => {

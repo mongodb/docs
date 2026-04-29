@@ -73,7 +73,7 @@ function isPrimitive(value) {
   );
 }
 
-module.exports = {
+export {
   comparePrimitives,
   isPrimitive,
 };

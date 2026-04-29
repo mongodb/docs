@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion } = require('mongodb');
+import { MongoClient, ServerApiVersion } from 'mongodb';
 
 // Replace the placeholder with your Atlas connection string
 const uri = '<connection-string>';

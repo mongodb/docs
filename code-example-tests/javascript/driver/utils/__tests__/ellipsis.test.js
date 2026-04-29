@@ -1,7 +1,4 @@
-const {
-  matchWithEllipsis,
-  isTruncatedValue,
-} = require('../comparison/ellipsis');
+import { matchWithEllipsis, isTruncatedValue } from '../comparison/ellipsis.js';
 
 describe('ellipsis.js - Extended Coverage', () => {
   describe('isTruncatedValue', () => {

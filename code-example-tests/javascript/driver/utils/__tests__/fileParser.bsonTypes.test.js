@@ -4,7 +4,7 @@
  * can be parsed correctly for comparison.
  */
 
-const { parseExpectedOutput } = require('../comparison/fileParser');
+import { parseExpectedOutput } from '../comparison/fileParser.js';
 
 describe('fileParser BSON Type Support', () => {
   describe('Binary type and static methods', () => {

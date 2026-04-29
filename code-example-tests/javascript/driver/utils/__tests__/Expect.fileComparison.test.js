@@ -1,8 +1,8 @@
-const Expect = require('../Expect');
-const { areObjectsEqual } = require('../comparison/areObjectsEqual');
-const fs = require('fs');
-const path = require('path');
-const { Decimal128, ObjectId } = require('mongodb');
+import Expect from '../Expect.js';
+import { areObjectsEqual } from '../comparison/areObjectsEqual.js';
+import fs from 'fs';
+import path from 'path';
+import { Decimal128, ObjectId } from 'mongodb';
 
 describe('Expect API (file-based comparison tests)', () => {
   const tempExamplesDir = path.join(__dirname, '../../examples');

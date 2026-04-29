@@ -1,4 +1,4 @@
-const { areObjectsEqual } = require('../comparison/areObjectsEqual');
+import { areObjectsEqual } from '../comparison/areObjectsEqual.js';
 
 // Tests for ellipsis, truncation, and omission logic in areObjectsEqual
 

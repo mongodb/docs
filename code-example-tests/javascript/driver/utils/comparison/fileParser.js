@@ -1,21 +1,8 @@
-const fs = require('fs');
-const path = require('path');
-const vm = require('vm');
-const {
-  Decimal128,
-  ObjectId,
-  Long,
-  Int32,
-  Double,
-  Timestamp,
-  Binary,
-  BSONRegExp,
-  Code,
-  DBRef,
-  MaxKey,
-  MinKey,
-} = require('mongodb');
-const { normalizeItem, preprocessFileContents } = require('./normalize');
+import fs from 'fs';
+import path from 'path';
+import vm from 'vm';
+import { Decimal128, ObjectId, Long, Int32, Double, Timestamp, Binary, BSONRegExp, Code, DBRef, MaxKey, MinKey } from 'mongodb';
+import { normalizeItem, preprocessFileContents } from './normalize.js';
 
 /**
  * Creates a context object for safely evaluating expected output files.
@@ -313,7 +300,7 @@ function ensureComparableFormat(expected, actual) {
   return { expected, actual };
 }
 
-module.exports = {
+export {
   parseExpectedOutput,
   readAndParseFile,
   normalizeForComparison,

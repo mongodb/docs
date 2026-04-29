@@ -1,4 +1,6 @@
-// NOTE: Do not require areObjectsEqual at the top to avoid circular dependency
+// areObjectsEqual ↔ ellipsis is a circular dependency; ESM live bindings
+// resolve it lazily at call time.
+import { areObjectsEqual } from './areObjectsEqual.js';
 
 /**
  * Determines if a value represents a truncated string or ellipsis pattern.
@@ -66,9 +68,6 @@ function isObjectEllipsis(val) {
  * matchWithEllipsis([{user: {name: '...', id: 123}}], [{user: {name: 'Alice', id: 123}}]) // true
  */
 function matchWithEllipsis(eArr, aArr, options = {}, depth = 0) {
-  // Require here to avoid circular dependency
-  const { areObjectsEqual } = require('./areObjectsEqual');
-
   // Base case: both empty
   if (eArr.length === 0 && aArr.length === 0) {
     return true;
@@ -122,4 +121,4 @@ function matchWithEllipsis(eArr, aArr, options = {}, depth = 0) {
   return matchWithEllipsis(eArr.slice(1), aArr.slice(1), options, depth + 1);
 }
 
-module.exports = { isTruncatedValue, matchWithEllipsis };
+export { isTruncatedValue, matchWithEllipsis };

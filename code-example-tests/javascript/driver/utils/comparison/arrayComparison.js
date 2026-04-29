@@ -1,4 +1,4 @@
-const { isPrimitive } = require('./primitiveComparison');
+import { isPrimitive } from './primitiveComparison.js';
 
 /**
  * Compares arrays using frequency counting for efficient duplicate handling.
@@ -164,7 +164,7 @@ function compareArraysOrdered(arrayA, arrayB, compareElementsFn) {
   return true;
 }
 
-module.exports = {
+export {
   compareArraysByBacktracking,
   compareArraysHybrid,
   compareArraysOrdered,

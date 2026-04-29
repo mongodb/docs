@@ -1,19 +1,8 @@
-const { comparePrimitives } = require('./primitiveComparison');
-const {
-  compareArraysByBacktracking,
-  compareArraysHybrid,
-  compareArraysOrdered,
-} = require('./arrayComparison');
-const {
-  compareObjectKeys,
-  compareObjectProperties,
-} = require('./objectComparison');
-const {
-  handlePropertyLevelEllipsis,
-  handleArrayLevelEllipsis,
-  handleObjectLevelEllipsis,
-} = require('./ellipsisHandlers');
-const { matchWithEllipsis } = require('./ellipsis');
+import { comparePrimitives } from './primitiveComparison.js';
+import { compareArraysByBacktracking, compareArraysHybrid, compareArraysOrdered } from './arrayComparison.js';
+import { compareObjectKeys, compareObjectProperties } from './objectComparison.js';
+import { handlePropertyLevelEllipsis, handleArrayLevelEllipsis, handleObjectLevelEllipsis } from './ellipsisHandlers.js';
+import { matchWithEllipsis } from './ellipsis.js';
 
 /**
  * Compares two values for deep equality with support for MongoDB types, ellipsis patterns,
@@ -178,4 +167,4 @@ function compareObjects(objA, objB, options) {
   );
 }
 
-module.exports = { areObjectsEqual };
+export { areObjectsEqual };

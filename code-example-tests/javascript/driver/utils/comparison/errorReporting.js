@@ -224,7 +224,7 @@ class ErrorMessageBuilder {
   }
 }
 
-module.exports = {
+export {
   ComparisonError,
   ComparisonResult,
   PathTracker,

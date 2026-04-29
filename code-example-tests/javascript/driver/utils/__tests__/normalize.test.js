@@ -1,9 +1,5 @@
-const {
-  isObjectIdLike,
-  normalizeItem,
-  preprocessFileContents,
-} = require('../comparison/normalize');
-const { Decimal128, ObjectId } = require('mongodb');
+import { isObjectIdLike, normalizeItem, preprocessFileContents } from '../comparison/normalize.js';
+import { Decimal128, ObjectId } from 'mongodb';
 
 describe('normalize.js', () => {
   describe('isObjectIdLike', () => {

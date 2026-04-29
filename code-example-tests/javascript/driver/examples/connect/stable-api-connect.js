@@ -3,12 +3,8 @@
 //	    "process.env.CONNECTION_STRING": "\"<connection-string>\""
 //	  }
 //	}
-import { MongoClient, ServerApiVersion } from 'mongodb';
-
 // :snippet-start: stable-api-connect
-// :uncomment-start:
-//const { MongoClient, ServerApiVersion } = require("mongodb");
-// :uncomment-end:
+import { MongoClient, ServerApiVersion } from 'mongodb';
 
 // Replace the placeholder with your Atlas connection string
 const uri = process.env.CONNECTION_STRING;

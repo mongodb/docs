@@ -3,7 +3,7 @@
  * We provide element-by-element analysis with field-level error details.
  */
 
-const Expect = require('../Expect');
+import Expect from '../Expect.js';
 
 describe('Unordered Array Error Messages', () => {
   describe('Detailed error reporting for single mismatches', () => {

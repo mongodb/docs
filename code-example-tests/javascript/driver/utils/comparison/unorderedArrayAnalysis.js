@@ -1,4 +1,4 @@
-const { ComparisonError } = require('./errorReporting');
+import { ComparisonError } from './errorReporting.js';
 
 /**
  * Analyzes unordered array comparison failures to provide detailed error reporting.
@@ -155,7 +155,7 @@ function buildUnorderedArrayErrors(analysis, expected, actual, path) {
   return errors;
 }
 
-module.exports = {
+export {
   analyzeUnorderedMismatch,
   buildUnorderedArrayErrors,
 };

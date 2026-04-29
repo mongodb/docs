@@ -7,8 +7,8 @@
  * double quotes BEFORE processing ellipsis transformations.
  */
 
-const { parseExpectedOutput } = require('../comparison/fileParser');
-const Expect = require('../Expect');
+import { parseExpectedOutput } from '../comparison/fileParser.js';
+import Expect from '../Expect.js';
 
 describe('Ellipsis String Boundary Tests', () => {
   describe('Ellipsis inside quoted strings should be preserved', () => {

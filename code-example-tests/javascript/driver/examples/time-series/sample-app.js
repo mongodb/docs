@@ -3,12 +3,8 @@
 //	    "process.env.CONNECTION_STRING": "\"<connection-string>\""
 //	  }
 //	}
-import { MongoClient } from 'mongodb';
-
 // :snippet-start: example
-// :uncomment-start:
-//const { MongoClient } = require("mongodb");
-// :uncomment-end:
+import { MongoClient } from 'mongodb';
 
 // Replace the placeholder with your connection string.
 const uri = process.env.CONNECTION_STRING;

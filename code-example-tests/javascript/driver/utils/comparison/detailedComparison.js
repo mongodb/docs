@@ -1,11 +1,7 @@
-const { ComparisonError } = require('./errorReporting');
-const { comparePrimitives } = require('./primitiveComparison');
-const {
-  handlePropertyLevelEllipsis,
-  handleArrayLevelEllipsis,
-  handleObjectLevelEllipsis,
-} = require('./ellipsisHandlers');
-const { compareObjectKeys } = require('./objectComparison');
+import { ComparisonError } from './errorReporting.js';
+import { comparePrimitives } from './primitiveComparison.js';
+import { handlePropertyLevelEllipsis, handleArrayLevelEllipsis, handleObjectLevelEllipsis } from './ellipsisHandlers.js';
+import { compareObjectKeys } from './objectComparison.js';
 
 /**
  * Performs detailed comparison of two values, returning structured error information
@@ -260,6 +256,4 @@ function compareObjectsWithDetails(expectedObj, actualObj, path, options) {
   return { isMatch: allMatch && errors.length === 0, errors };
 }
 
-module.exports = {
-  compareWithDetails,
-};
+export { compareWithDetails, };

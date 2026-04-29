@@ -1,4 +1,4 @@
-const { Decimal128, ObjectId } = require('mongodb');
+import { Decimal128, ObjectId } from 'mongodb';
 
 const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.?[0-9]*Z?$/;
 // Match unquoted keys - must be preceded by {, [, comma, or newline (with optional whitespace)
@@ -450,7 +450,7 @@ function preprocessFileContents(contents) {
   return docBlocks.map(normalizeDocumentSyntax);
 }
 
-module.exports = {
+export {
   isObjectIdLike,
   normalizeItem,
   preprocessFileContents,

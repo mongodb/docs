@@ -1,4 +1,4 @@
-const { areObjectsEqual } = require('../comparison/areObjectsEqual');
+import { areObjectsEqual } from '../comparison/areObjectsEqual.js';
 
 describe('areObjectsEqual - Core Functionality', () => {
   describe('Basic object comparison', () => {
