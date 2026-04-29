@@ -481,7 +481,11 @@ Testing Examples
 
      @Test
      void insertsDocumentSuccessfully() {
-        assertEquals(1, collection.countDocuments());
+        var output = AggTutorial.runExample(new String[]{"example arg"});
+        var outputString = output.get(0).get("stringValue");
+        var expectedOutput = "sample2";
+        Expect.that(outputString)
+            .shouldMatch(expectedOutput);
      }
 
 - When possible, use the Grove Comparison API to verify output. See

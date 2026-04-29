@@ -605,10 +605,16 @@ Testing Examples
 
   .. code-block:: python
 
-     def test_inserts_document_successfully():
-         result = collection.insert_one(doc)
-         assert result.inserted_id is not None
+     def test_multi_field_tutorial(self):
+        """Multi-field join tutorial: should insert sample data and return 2 docs w/product and order data joined by multiple fields."""
+        result = multi_field_tutorial.example(TestTutorialApp.CONNECTION_STRING)
 
+        output_filepath = (
+            "examples/aggregation/pipelines/join/multi-field-tutorial-output.txt"
+        )
+        
+        Expect.that(result).should_match(output_filepath)
+  
 - When possible, use the Grove Comparison API to verify output. See
   :ref:`grove-add-tests` for more information.
 - Keep test setup minimal and focused on the behavior being demonstrated.

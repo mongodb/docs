@@ -566,16 +566,19 @@ Testing Examples
 
 - Use the Grove platform to write and test your Go code examples.
   See :ref:`grove-platform` for more information.
-- Use table-driven tests when demonstrating multiple cases:
 
   .. code-block:: go
 
-     func TestInsert(t *testing.T) {
-         // ... setup ...
-         if insertResult == nil {
-             t.Fatal("expected insert result, got nil")
-         }
-     }
+     func testJoinMultiFieldTutorial(t *testing.T) {
+	      t.Helper() // Mark this as a helper function for better error reporting
+
+        // ... Run your test logic
+        result := join_multi_field.RunPipeline()
+        expectedOutputFilepath := "examples/aggregation/pipelines/join_multi_field/output.txt"
+        
+        // Compare the actual results with expected output
+        compare.ExpectThat(t, result).ShouldMatch(expectedOutputFilepath)
+    }
 
 - When possible, use the Grove Comparison API to verify output. See
   :ref:`grove-add-tests` for more information.
