@@ -1205,29 +1205,41 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         attributes.push({ type: 'mdxJsxAttribute', name: 'targetId', value: inlineTarget.html_id });
       }
 
-      return {
-        type: 'mdxJsxFlowElement',
-        name: 'DefinitionListItem',
-        attributes,
-        children: [
-          {
-            type: 'mdxJsxFlowElement',
-            name: 'DefinitionTerm',
+      // Use mdxJsxTextElement for DefinitionTerm so its content serializes inline
+      // (one line) rather than as a block with a paragraph wrapper. Text elements
+      // never get blank lines between sibling inline children.
+      const termElement: MdastNode = {
+        type: 'mdxJsxTextElement',
+        name: 'DefinitionTerm',
+        attributes: [],
+        children: termChildren,
+      };
+
+      // Use mdxJsxTextElement for DefinitionDescription when the entire description
+      // is a single inline paragraph — the paragraph wrapper is unnecessary and
+      // causes `<p>` tags to appear inside `<dd>`. For complex descriptions that
+      // contain block-level children (multiple paragraphs, includes, etc.) keep the
+      // flow element so those blocks serialize correctly.
+      const isSimpleInlineDesc = descChildren.length === 1 && descChildren[0].type === 'paragraph';
+      const descElement: MdastNode = isSimpleInlineDesc
+        ? {
+            type: 'mdxJsxTextElement',
+            name: 'DefinitionDescription',
             attributes: [],
-            // Wrap inline term nodes in a paragraph so that sibling inline nodes
-            // (e.g. inline_target anchors, inline code, bold runs) do not become
-            // direct JSX flow siblings. remark-mdx inserts blank lines between
-            // every direct sibling inside a JSX flow element, so keeping all term
-            // content inside a single paragraph block avoids that problem.
-            children: [{ type: 'paragraph', children: termChildren }],
-          },
-          {
+            children: (descChildren[0].children as MdastNode[]) ?? [],
+          }
+        : {
             type: 'mdxJsxFlowElement',
             name: 'DefinitionDescription',
             attributes: [],
             children: descChildren,
-          },
-        ],
+          };
+
+      return {
+        type: 'mdxJsxFlowElement',
+        name: 'DefinitionListItem',
+        attributes,
+        children: [termElement, descElement],
       };
     }
 
