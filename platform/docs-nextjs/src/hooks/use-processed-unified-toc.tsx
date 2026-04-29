@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import type { TocItem } from '@/components/unified-sidenav/types';
 import type { ActiveVersions, AvailableVersions } from '@/context/version-context';
 import { useVersionContext } from '@/context/version-context';
 import { useUnifiedToc } from '@/context/unified-toc-context';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
+import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
 
 interface UpdateURLsParams {
   tree?: TocItem[];
@@ -30,7 +31,7 @@ const updateURLs = ({ tree, contentSite, activeVersions, versionsData, project }
             version?.urlAliases?.includes(activeVersions[currentProject]),
         );
         // If no version found in local storage use 'current'
-        const currentVersion = version?.urlSlug ?? 'current';
+        const currentVersion = isOfflineBuild ? getStaticVersion() : version?.urlSlug ?? 'current';
         newUrl = item.url!.replace(/:version/g, currentVersion);
       }
 

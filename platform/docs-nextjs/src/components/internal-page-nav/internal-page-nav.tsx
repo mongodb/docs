@@ -20,6 +20,8 @@ import { usePageContext } from '@/context/page-context';
 import { assertLeadingSlash } from '@/utils/assert-leading-slash';
 import { getFullSlug } from '@/utils/get-full-slug';
 import { removeLeadingSlash } from '@/utils/remove-leading-slash';
+import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 interface FlatItem {
   label: string;
@@ -169,7 +171,7 @@ function getTargetSlug(
     );
 
     // If no version found in local storage use 'current'
-    const currentVersion = version?.urlSlug ?? 'current';
+    const currentVersion = isOfflineBuild ? getStaticVersion() : version?.urlSlug ?? 'current';
     return fullUrl.replace(/:version/g, currentVersion);
   }
 }
@@ -193,16 +195,19 @@ function isTocItemValidForVersion(
       version?.urlAliases?.includes(activeVersions[contentSite]),
   );
 
+  const currentVersion = isOfflineBuild ? getStaticVersion() : activeVersion?.urlSlug ?? null;
+  if (!currentVersion) return true; // no constraints, so valid
+
   // Check excludes first - if active version is excluded, tocItem is invalid
-  if (tocItem.versions.excludes && activeVersion) {
-    if (tocItem.versions.excludes.includes(activeVersion.urlSlug)) {
+  if (tocItem.versions.excludes) {
+    if (tocItem.versions.excludes.includes(currentVersion)) {
       return false;
     }
   }
 
   // Check includes - if includes array exists, active version must be in it
-  if (tocItem.versions.includes && activeVersion) {
-    return tocItem.versions.includes.includes(activeVersion.urlSlug);
+  if (tocItem.versions.includes) {
+    return tocItem.versions.includes.includes(currentVersion);
   }
 
   // If only excludes exist and we passed that check, or no constraints

@@ -9,6 +9,7 @@ import type { ActiveVersions, AvailableVersions } from './version-context';
 import { useVersionContext } from './version-context';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
+import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
 
 export const legacyTocProjects = ['realm', 'atlas-app-services', 'meta'];
 
@@ -62,7 +63,7 @@ const updateURLs = ({ tree, contentSite, activeVersions, versionsData }: UpdateU
             version?.urlAliases?.includes(activeVersions[currentProject]),
         );
         // If no version found in local storage use 'current'
-        const currentVersion = version?.urlSlug ?? 'current';
+        const currentVersion = isOfflineBuild ? getStaticVersion() : version?.urlSlug ?? 'current';
         newUrl = item.url.replace(/:version/g, currentVersion);
       }
 

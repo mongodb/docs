@@ -16,7 +16,7 @@ import { isCurrentPage } from '@/utils/is-current-page';
 import { isSelectedTocNode } from '@/utils/is-selected-toc-node';
 import { isUnifiedTOCInDevMode } from '@/utils/is-unified-toc-dev';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
-
+import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
 import { l1ItemStyling, groupHeaderStyling, l2ItemStyling } from './styles/SideNavItem';
 import VersionDropdown from './VersionDropdown';
 import type { TocItem } from './types';
@@ -191,9 +191,9 @@ export const UnifiedTocNavItem = ({
     );
   }
 
-  const isVersionIncluded = contentSite && versions?.includes?.includes(activeVersions[contentSite]);
-  const isVersionExcluded =
-    contentSite && versions?.excludes && versions.excludes?.includes(activeVersions[contentSite]);
+  const currentVersion = isOfflineBuild ? getStaticVersion() : contentSite ? activeVersions[contentSite] : null;
+  const isVersionIncluded = currentVersion && versions?.includes?.includes(currentVersion);
+  const isVersionExcluded = currentVersion && versions?.excludes && versions.excludes?.includes(currentVersion);
   const isVersionAllowed = !versions || isVersionIncluded || (isVersionExcluded !== undefined && !isVersionExcluded);
 
   // groups are for adding a static header, these can also be collapsible
