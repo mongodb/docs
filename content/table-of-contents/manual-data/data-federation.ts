@@ -61,16 +61,6 @@ const tocData: TocItem[] = [
             contentSite: 'cloud-docs',
             url: '/docs/atlas/data-federation/tutorial/create-mongodb-user',
           },
-          {
-            label: 'X.509 Authentication',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/security-self-managed-x509',
-          },
-          {
-            label: 'AWS IAM',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/security/aws-iam-authentication',
-          },
         ],
       },
       {
@@ -91,11 +81,6 @@ const tocData: TocItem[] = [
     url: '/docs/atlas/data-federation/advanced-security-options',
     collapsible: true,
     items: [
-      {
-        label: 'Private Endpoints',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/data-federation/tutorial/config-private-endpoint',
-      },
       {
         label: 'Authentication Methods',
         contentSite: 'cloud-docs',
