@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 
-if [[ "$(git config docs.team 2>/dev/null)" != "true" ]]; then
-  exit 0
-fi
+current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+[[ "$current_branch" != DOCSP* && "$current_branch" != feature/DOCSP* ]] && exit 0
 
 input=$(cat)
 cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // ""')
