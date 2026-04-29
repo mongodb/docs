@@ -1,5 +1,10 @@
 <?php
 
+// start-builder-imports
+use MongoDB\Builder\Query;
+use MongoDB\Builder\Update;
+// end-builder-imports
+
 require 'vendor/autoload.php';
 
 $uri = getenv('MONGODB_URI') ?: throw new RuntimeException('Set the MONGODB_URI variable to your Atlas URI that connects to the sample dataset');
@@ -42,3 +47,22 @@ $result = $collection->updateMany(
 );
 echo 'Modified documents: ', $result->getModifiedCount();
 // end-update-result
+
+// Uses the builder to update the "name" field of the first matching document
+// start-update-builder-one
+$result = $collection->updateOne(
+    Query::query(name: Query::eq('Bagels N Buns')),
+    Update::set(name: '2 Bagels 2 Buns'),
+);
+// end-update-builder-one
+
+// Uses the builder to apply multiple update operators to all matching documents
+// start-update-builder-many
+$result = $collection->updateMany(
+    Query::query(cuisine: Query::eq('Pizza')),
+    new Update(
+        Update::set(cuisine: 'Pasta'),
+        Update::unset('grades'),
+    ),
+);
+// end-update-builder-many
