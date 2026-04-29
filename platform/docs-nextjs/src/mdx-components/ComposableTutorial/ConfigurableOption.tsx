@@ -39,7 +39,7 @@ const mainStyling = css`
 `;
 
 const selectStyling = css`
-  > label {
+  label {
     margin-bottom: ${theme.size.tiny};
     text-transform: uppercase;
     color: var(--gray-dark1);
