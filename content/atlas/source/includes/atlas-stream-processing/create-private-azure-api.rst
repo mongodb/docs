@@ -1,3 +1,9 @@
+Add an |azure| EventHub Private Link Connection through the {+atlas-admin-api+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To add an |azure| EventHub Private Link connection to your {+spw+}
+through the {+atlas-admin-api+}, perform these steps:
+
 .. procedure::
    :style: normal
  

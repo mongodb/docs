@@ -1,3 +1,9 @@
+Add an {+aws-kinesis+} Private Link Connection through the {+atlas-ui+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To add an {+aws-kinesis+} Private Link connection to your {+spw+}
+through the {+atlas-ui+}, perform these steps:
+
 .. procedure::
    :style: normal
 

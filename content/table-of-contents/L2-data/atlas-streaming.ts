@@ -61,25 +61,25 @@ const tocData: TocItem[] = [
                 collapsible: true,
                 items: [
                   {
-                    label: 'Kafka Private Link Connections',
+                    label: 'Kafka Private Link',
                     contentSite: 'cloud-docs',
-                    url: '/docs/atlas/atlas-stream-processing/kafka-private-link-connection',
+                    url: '/docs/atlas/atlas-stream-processing/kafka-private-connection',
                   },
                   {
-                    label: 'S3 Private Link Connections',
+                    label: 'S3 Private Link',
                     contentSite: 'cloud-docs',
-                    url: '/docs/atlas/atlas-stream-processing/s3-private-link-connection',
+                    url: '/docs/atlas/atlas-stream-processing/s3-private-connection',
                   },
                   {
-                    label: 'Kinesis Private Link Connections',
+                    label: 'Kinesis Private Link',
                     contentSite: 'cloud-docs',
-                    url: '/docs/atlas/atlas-stream-processing/kinesis-private-link-connection',
+                    url: '/docs/atlas/atlas-stream-processing/kinesis-private-connection',
                   },
                   {
-                    label: 'Google Cloud Private Link Connections',
+                    label: 'Google Pub/Sub Private Service Connect',
                     contentSite: 'cloud-docs',
-                    url: '/docs/atlas/atlas-stream-processing/gcp-private-link-connection',
-                  },
+                    url: '/docs/atlas/atlas-stream-processing/gcp-pubsub-private-connection',
+                  },		  
                   {
                     label: 'Manage VPC Connections',
                     contentSite: 'cloud-docs',

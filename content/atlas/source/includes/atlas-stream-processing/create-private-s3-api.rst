@@ -1,3 +1,9 @@
+Add an {+aws+} S3 Private Link Connection through the {+atlas-admin-api+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To add an {+aws+} S3 Private Link connection to your {+spw+} through
+the {+atlas-admin-api+}, follow these steps:
+
 .. procedure::
    :style: normal
 
@@ -21,24 +27,9 @@
 
    .. include:: /includes/nav/steps-project-access-manager
 
-   .. step:: Create an API key.
+   .. step:: Configure a Service Account.
 
-      The :oas-bump-atlas-op:`Create One Connection
-      <creategroupstreamconnection>` API endpoint
-      requires digest authorization when creating an S3 Connection. To
-      support this, you must create an API Key.
-
-      a. In the :guilabel:`Project Access Manager`, select the
-	 :guilabel:`Applications` tab, then click :guilabel:`API Keys`.
-
-      b. Click :guilabel:`Create API Key`. Provide a short description
-	 for the key.
-
-      c. In the :guilabel:`Project Permissions` dropdown menu,
-	 select both the :guilabel:`Project Stream Processing Owner` and
-	 :guilabel:`Project Owner` roles. Click :guilabel:`Next`.
-
-      d. Save both the public and private keys for later in this procedure.
+      .. include:: /includes/atlas-stream-processing/create-service-account.rst
 
    .. step:: Create the Private Link Connection.
 
@@ -80,13 +71,7 @@
 
       The {+atlas-admin-api+} provides an endpoint to
       :oas-bump-atlas-op:`Create One Connection
-      <creategroupstreamconnection>`. You must send this
-      request using digest authorization.
-
-      In your HTTP request interface, enable digest authorization. For
-      the ``username``, provide the public key you generated
-      previously. For the ``password``, provide the private key you
-      generated previously.
+      <creategroupstreamconnection>`.
 
       For an {+aws+} |s3| Private Link connection, set the
       following key-value pairs:

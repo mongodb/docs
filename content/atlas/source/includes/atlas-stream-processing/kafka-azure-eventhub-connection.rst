@@ -11,9 +11,9 @@ To create a {+azure+} EventHub Private Link connection to use in your
    .. tab:: {+atlas-ui+}
       :tabid: ui
 
-      .. include:: /includes/atlas-stream-processing/create-private-link-azure-ui.rst
+      .. include:: /includes/atlas-stream-processing/create-private-azure-ui.rst
 
    .. tab:: {+atlas-admin-api+}
       :tabid: api
 
-      .. include:: /includes/atlas-stream-processing/create-private-link-azure-api.rst
+      .. include:: /includes/atlas-stream-processing/create-private-azure-api.rst

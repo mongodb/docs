@@ -1,3 +1,9 @@
+Add an {+aws+} S3 Private Link Connection through the {+atlas-cli+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To add an {+aws+} S3 Private Link connection to your {+spw+} through
+the {+atlas-cli+}, follow these steps:
+
 .. procedure::
    :style: normal
 

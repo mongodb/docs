@@ -1,3 +1,9 @@
+Add an {+aws-msk+} Private Link Connection through the {+atlas-admin-api+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To add an {+aws-msk+} Private Link connection to your {+spw+} through
+the {+atlas-admin-api+}, follow these steps:
+
 .. procedure::
    :style: normal
 

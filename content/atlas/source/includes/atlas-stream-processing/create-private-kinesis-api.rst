@@ -1,3 +1,9 @@
+Add an {+aws-kinesis+} Private Link Connection through the {+atlas-admin-api+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To add an {+aws-kinesis+} Private Link connection to your {+spw+}
+through the {+atlas-admin-api+}, perform these steps:
+
 .. procedure::
    :style: normal
 
@@ -7,9 +13,9 @@
 
    .. include:: /includes/nav/steps-project-access-manager
 
-   .. step:: Create an API key.
+   .. step:: Configure a Service Account.
 
-      .. include:: /includes/atlas-stream-processing/create-api-key.rst
+      .. include:: /includes/atlas-stream-processing/create-service-account.rst
 
    .. step:: Create the Private Link Connection.
 
@@ -46,14 +52,7 @@
 
       The {+atlas-admin-api+} provides an endpoint to
       :oas-bump-atlas-op:`Create One Stream Connection
-      <creategroupstreamconnection>`. You must send this
-      request using digest authorization, as detailed in the next step.
-
-   .. step:: In your HTTP request interface, enable digest authorization. 
-    
-      For the ``username``, provide the public key you generated
-      previously. For the ``password``, provide the private key you
-      generated previously.
+      <creategroupstreamconnection>`.
 
       For an {+aws-kinesis+} Private Link connection, set the
       following key-value pairs:
