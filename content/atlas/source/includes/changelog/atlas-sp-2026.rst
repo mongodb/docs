@@ -1,10 +1,21 @@
+.. _atlas-sp-20260428:
+
+28 April 2026 Release
+---------------------
+
+- Integrates fixes for latency stats for ``$lookup`` when not using 
+  parallelism.
+- Adds the :oas-bump-atlas-op:`metricThreshold <creategroupalertconfig>`
+  object and deprecates the legacy ``threshold`` object to fix Terraform
+  resource creation issues without breaking backward compatibility.
+
 .. _atlas-sp-20260415:
 
 15 April 2026 Release
 ---------------------
 
-- Adds support for {+gcp+} Pub/Sub as a sink. To learn more, see :ref:`{+gcp+} Pub/Sub Connections
-  <atlas-sp-add-connection>`.
+- Adds support for {+gcp+} Pub/Sub as a sink. To learn more, see 
+  :ref:`{+gcp+} Pub/Sub Connections <atlas-sp-add-connection>`.
 - Adds support for uploading processor definitions directly from
   local ``.json`` files using a new :guilabel:`Upload file` button
   on the JSON Editor UI page.
