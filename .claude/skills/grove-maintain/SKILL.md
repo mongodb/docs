@@ -151,6 +151,52 @@ Check for outdated dependencies, assess risk, and apply updates. Test
 failures after an upgrade usually mean **examples need updating** to
 reflect the new API — not that the upgrade should be reverted.
 
+### Step 0: Preflight
+
+Before installing or running anything, verify the environment is in a state
+where a green baseline is possible. Skipping this step is the single biggest
+time-sink in practice — a hung test run caused by a stopped database or a
+missing venv looks identical to a real regression.
+
+1. **Local workspace**: Does the language's install target exist?
+   - Python: `test -d ./venv` → if missing, create with `python3 -m venv ./venv`
+     and `./venv/bin/pip install -r requirements.txt` before proceeding. Tell
+     the user you're creating it.
+   - JavaScript: `test -d node_modules` → if missing, run `npm install`.
+   - Java: the driver modules depend on a locally-installed
+     `comparison-library`. From `code-example-tests/java/`, run
+     `mvn install -DskipTests` once before any per-module test command —
+     skipping this produces "cannot resolve symbol" errors that look like
+     upgrade breakage but are really a missing local artifact.
+   - Go/C#: package manager handles this, but note if the first command
+     triggers a large download.
+2. **Database reachability**: Nearly all Grove test suites require a running
+   MongoDB. Confirm with a driver-level ping rather than a port check —
+   `nc -zv` only proves something is listening on the port, not that MongoDB
+   is healthy or that the connection string and credentials resolve. A
+   driver ping works identically for `mongodb://localhost` and Atlas SRV
+   strings, so use one universal command per language. Examples (substitute
+   the suite's actual URI env var):
+   - Python: `./venv/bin/python -c "import os; from pymongo import MongoClient; MongoClient(os.environ['MONGODB_URI']).admin.command('ping')"`
+   - JavaScript: `node -e "const {MongoClient}=require('mongodb');new MongoClient(process.env.MONGODB_URI).db().admin().ping().then(r=>console.log(r))"`
+   - Other languages: any one-liner that opens a client and runs
+     `db.adminCommand({ping: 1})`.
+
+   A successful ping returns in ~1 second; failure beats a 20-minute hang.
+   If unreachable, stop and ask the user to start their DB or fix the
+   connection string. Do not proceed.
+3. **Baseline smoke test**: Pick a single test file that exercises **one
+   minimal driver operation** against a stable fixture — e.g., a basic
+   `find` or `countDocuments` against an Atlas sample collection like
+   `sample_mflix.movies`, or the suite's connection-test file if one
+   exists. Avoid files with heavy per-test seeding, network mocks, or
+   multi-collection setup; you want wall-clock time dominated by driver/IO,
+   not fixture work. Run it on the *current* (pre-upgrade) pins and record
+   the elapsed time — this is your reference for Step 4's regression
+   heuristic. If the baseline already fails, stop: an upgrade can't fix a
+   pre-existing break, and a failing baseline will make post-upgrade
+   triage ambiguous.
+
 ### Step 1: Check for Outdated Dependencies
 
 Run the language's dependency check command:
@@ -162,6 +208,14 @@ Run the language's dependency check command:
 | Go | `cd code-example-tests/go/driver && go list -m -u all` |
 | Java | `cd code-example-tests/java/driver-sync && mvn versions:display-dependency-updates` |
 | C# | `cd code-example-tests/csharp/driver && dotnet list package --outdated` |
+
+**Capture the full list, not just the package the user mentioned.** Even if
+the request is "upgrade pymongo," review every outdated direct dependency
+(ignore transitives — they move with their parent). Related tooling bumps
+(linters, test frameworks, dotenv libraries) are often cheap to bundle into
+the same PR and avoid a second round of environment churn. Present the full
+set to the user in Step 3 so they can decide the scope, rather than
+narrowing silently.
 
 ### Step 2: Assess Risk
 
@@ -195,7 +249,9 @@ find the repo URL, then check its releases page.
 
 ### Step 3: Propose Update Plan
 
-Present a table and wait for user approval before applying:
+Present a table of **all** outdated direct dependencies (from Step 1) with
+their risk assessments (from Step 2), and ask the user to pick the scope.
+Wait for approval before applying:
 
 ```markdown
 | Package | Current | Latest | Risk | Notes |
@@ -205,16 +261,29 @@ Present a table and wait for user approval before applying:
 | bluehawk | 1.6.0 | 1.7.0 | Tooling | New tag support |
 ```
 
+If the user's original request named only one package, still surface the
+full table. Explicitly ask whether to (a) bundle everything into one PR,
+(b) do only the named package, or (c) split tooling bumps into a separate
+follow-up. Do not silently expand the scope — but do not silently narrow it
+either.
+
 ### Step 4: Apply Updates and Fix Examples
 
 For each approved update:
 
 1. Update the dependency version in the config file
 2. Run the install command (`npm install`, `pip install`, etc.)
-3. Run the full test suite
+3. Run the full test suite. **Compare wall-clock runtime against the Step 0
+   baseline.** If the suite takes >5× the baseline (or >5 min when baseline
+   was seconds), stop and investigate — this almost always means tests are
+   hitting a connection timeout (DB down, network, wrong URI) rather than
+   a real regression. Run a single test file in the foreground to surface
+   the traceback instead of waiting out the full suite.
 4. **If all tests pass**: Regenerate snippets by running the `snip` command
    for the target language (see the CLAUDE.md in the language's driver
-   directory for the exact command). Then move to the next package.
+   directory for the exact command). Note: for pure dependency bumps with
+   no example source changes, `snip` is expected to produce zero content
+   diffs — that is success, not a failure.
 5. **If 1-3 tests fail**: Investigate each. These are usually localized API
    changes (renamed method, changed default, new required option). Update
    the example code and expected output to match the new API, then re-run
@@ -240,6 +309,15 @@ version numbers in the suite's documentation files:
 
 Only update version strings that refer to the package that was actually
 upgraded — do not blindly replace all occurrences of a version number.
+
+### Step 6: Workspace Cleanup
+
+After the commit or PR, ask the user whether to remove any local workspace
+artifacts created during the upgrade (e.g., a venv you created in Step 0, a
+scratch log file, a freshly pulled `node_modules`). Do not remove them
+unilaterally — writers often keep local environments for subsequent work,
+and the ignore file typically excludes them from git anyway. A one-line
+prompt like "keep the venv, or remove it?" is enough.
 
 ---
 
