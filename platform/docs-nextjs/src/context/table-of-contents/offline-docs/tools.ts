@@ -22,6 +22,11 @@ export const toc: L1TocItem[] = [
             url: '/docs/claude',
           },
           {
+            label: 'Codex Plugin',
+            contentSite: 'landing',
+            url: '/docs/codex',
+          },
+          {
             label: 'Cursor Plugin',
             contentSite: 'landing',
             url: '/docs/cursor',

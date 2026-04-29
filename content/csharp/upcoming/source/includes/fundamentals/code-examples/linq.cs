@@ -151,3 +151,8 @@ var query = queryableCollection
 var query = queryableCollection
     .Select(x => Mql.SimilarityEuclidean(x.Vector1, x.Vector2, true));
 // end-similarityEuclidean-example
+
+// start-createObjectId-example
+var query = queryableCollection
+    .Select(d => new { NewId = Mql.CreateObjectId() });
+// end-createObjectId-example

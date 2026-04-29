@@ -2790,16 +2790,6 @@ export const toc: L1TocItem[] = [
                         contentSite: 'cloud-docs',
                         url: '/docs/atlas/data-federation/tutorial/create-mongodb-user',
                       },
-                      {
-                        label: 'X.509 Authentication',
-                        contentSite: 'cloud-docs',
-                        url: '/docs/atlas/security-self-managed-x509',
-                      },
-                      {
-                        label: 'AWS IAM',
-                        contentSite: 'cloud-docs',
-                        url: '/docs/atlas/security/aws-iam-authentication',
-                      },
                     ],
                   },
                   {
@@ -2820,11 +2810,6 @@ export const toc: L1TocItem[] = [
                 collapsible: true,
                 url: '/docs/atlas/data-federation/advanced-security-options',
                 items: [
-                  {
-                    label: 'Private Endpoints',
-                    contentSite: 'cloud-docs',
-                    url: '/docs/atlas/data-federation/tutorial/config-private-endpoint',
-                  },
                   {
                     label: 'Authentication Methods',
                     contentSite: 'cloud-docs',
@@ -4735,11 +4720,6 @@ export const toc: L1TocItem[] = [
                         label: 'autoCompact',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/command/autoCompact',
-                      },
-                      {
-                        label: 'bulkWrite',
-                        contentSite: 'docs',
-                        url: '/docs/:version/reference/command/bulkWrite',
                       },
                       {
                         label: 'cloneCollectionAsCapped',
@@ -9320,6 +9300,29 @@ export const toc: L1TocItem[] = [
                         label: 'Sharded Cluster',
                         contentSite: 'docs',
                         url: '/docs/:version/release-notes/8.3-downgrade-sharded-cluster',
+                      },
+                    ],
+                  },
+                  {
+                    label: 'Downgrade 8.3 to 8.0',
+                    contentSite: 'docs',
+                    collapsible: true,
+                    url: '/docs/:version/release-notes/8.3-downgrade-to-8.0',
+                    items: [
+                      {
+                        label: 'Standalone',
+                        contentSite: 'docs',
+                        url: '/docs/:version/release-notes/8.3-downgrade-to-8.0-standalone',
+                      },
+                      {
+                        label: 'Replica Set',
+                        contentSite: 'docs',
+                        url: '/docs/:version/release-notes/8.3-downgrade-to-8.0-replica-set',
+                      },
+                      {
+                        label: 'Sharded Cluster',
+                        contentSite: 'docs',
+                        url: '/docs/:version/release-notes/8.3-downgrade-to-8.0-sharded-cluster',
                       },
                     ],
                   },
