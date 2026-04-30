@@ -3500,11 +3500,13 @@ const tocData: TocItem[] = [
             label: '$hash',
             contentSite: 'docs',
             url: '/docs/:version/reference/operator/aggregation/hash',
+            versions: { excludes: manualVersions.before('v8.3') },
           },
           {
             label: '$hexHash',
             contentSite: 'docs',
             url: '/docs/:version/reference/operator/aggregation/hexHash',
+            versions: { excludes: manualVersions.before('v8.3') },
           },
           {
             label: '$hour',
