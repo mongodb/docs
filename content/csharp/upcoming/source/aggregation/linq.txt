@@ -1066,6 +1066,123 @@ The following code performs the following actions by using LINQ methods:
 The driver stores the converted values under the original field name in
 the output documents.
 
+.. _csharp-linq-string-operators:
+
+String Operators
+~~~~~~~~~~~~~~~~
+
+The {+driver-short+} supports string replacement and splitting
+operations in LINQ expressions. The following sections describe how to
+perform these operations. 
+
+$replaceAll
+```````````
+
+.. note::
+
+   Regex-based forms of this method require {+mdb-server+}
+   version 8.3.0 or later.
+
+The ``$replaceAll`` operator replaces all occurrences of a search
+string or pattern within the input string. The {+driver-short+} provides
+multiple methods that translate to the ``$replaceAll`` operator.
+
+To replace all occurrences of one string literal with another,
+use the ``string.Replace()`` method. The following example replaces
+all occurrences of ``"Cafe"`` with ``"Coffee Shop"`` in the ``Name``
+field of all documents in the collection:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Linq/StringOperators.snippet.string-replace.cs
+   :language: csharp
+   :category: usage example
+
+To replace all occurrences of a regular expression match with a
+string literal, use the static ``Regex.Replace()`` method. The
+following example is equivalent to the preceding one, but uses a
+case-insensitive regular expression instead of a string literal:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Linq/StringOperators.snippet.regex-replace-static.cs
+   :language: csharp
+   :category: usage example
+
+.. important:: Avoid Back-References in Replacement Strings
+
+   The ``$replaceAll`` operator doesn't support back-references in
+   replacement strings. Avoid replacement values such as ``"$1"`` that
+   reference a capturing group in the search pattern.
+
+You can also call the ``Replace()`` method on a ``Regex`` instance.
+The following example creates a ``Regex`` object and calls its
+``Replace()`` method in the LINQ expression:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Linq/StringOperators.snippet.regex-replace-instance.cs
+   :language: csharp
+   :category: usage example
+
+.. note:: ``Regex`` Document Fields
+
+   If the ``Regex`` object is a document field rather than a local
+   variable, you must mark it for serialization as
+   ``BsonType.RegularExpression``.
+
+.. important:: Unsupported Overloads
+
+   The following ``Replace()`` overloads throw an
+   ``ExpressionNotSupportedException`` at runtime:
+
+   - ``string.Replace(string, string, StringComparison)``.
+   - ``string.Replace(string, string, bool, CultureInfo)``.
+   - Overloads of ``Regex.Replace()`` that take a ``MatchEvaluator``
+     delegate.
+   - Any overload where the search string is empty (``""``). The
+     ``$replaceAll`` operator throws a server-side error if the
+     ``find`` value is an empty string.
+
+$split
+``````
+
+.. note::
+
+   Regex-based forms of this method require {+mdb-server+}
+   version 8.3.0 or later.
+
+The ``$split`` operator splits a string into an array of substrings
+on a specified delimiter. The {+driver-short+} provides multiple
+methods that translate to the ``$split`` operator.
+
+To split on a literal character or string, use the ``string.Split()``
+method. The following example splits the ``Cuisine`` field on the
+comma character:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Linq/StringOperators.snippet.string-split.cs
+   :language: csharp
+   :category: usage example
+
+If the target string contains consecutive delimiters, the results
+will include empty strings. To filter empty strings from the result,
+pass ``StringSplitOptions.RemoveEmptyEntries`` to the ``Split()``
+method. The following example performs the same split as the
+preceding example but omits empty strings:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Linq/StringOperators.snippet.string-split-remove-empty.cs
+   :language: csharp
+   :category: usage example
+
+To split on a regular expression, use the static ``Regex.Split()``
+method. The following example splits the ``Cuisine`` field on a
+comma followed by zero or more whitespace characters:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/Aggregation/Linq/StringOperators.snippet.regex-split.cs
+   :language: csharp
+   :category: usage example
+
+.. important:: Unsupported Cases
+
+   The following cases cause errors at runtime:
+
+   - Calling a ``Split()`` overload that specifies multiple separators
+   - Passing an empty string as the delimiter
+
 .. _csharp-linq-create-object-id:
 
 $createObjectId
@@ -1265,8 +1382,9 @@ The following table describes some methods supported by the
    * - ``OrderBy``, ``OrderByDescending``
      - Returns results in a specified sort order
 
-   * - ``ThenBy``, ``ThenByDescending``
-     - Allows a secondary sort to be specified
+   * - ``Replace``
+     - Replaces all occurrences of a search string or regex pattern in
+       a string field (translates to ``$replaceAll``)
 
    * - ``Select``
      - Selects documents based on specified criteria. Supports an
@@ -1289,19 +1407,26 @@ The following table describes some methods supported by the
      - Computes the Euclidean distance between two vectors
 
    * - ``Single``
-     - Returns the only matching document, and throws an exception if there is not exactly one document
+     - Returns the only matching document, and throws an exception if
+       there is not exactly one document
    
    * - ``SingleOrDefault``
-     - Returns a single matching document or ``null`` if no documents match
+     - Returns a single matching document or ``null`` if no documents
+       match
 
    * - ``Skip``
-     - Skips over a specified number of documents and returns the rest of the results
+     - Skips over a specified number of documents and returns the rest
+       of the results
 
    * - ``SkipWhile`` (only in ``Select`` projections)
      - Skips over array elements while a condition is true and returns
        the remaining elements. Supports both the standard and index
        overloads (``SkipWhile((item, index) => ...)``) within
        ``Select`` projections. Top-level use is unsupported.
+
+   * - ``Split``
+     - Splits a string field on a delimiter and returns an array of
+       substrings (translates to ``$split``)
 
    * - ``Sum``
      - Returns the sum of the values in a specified field
@@ -1314,6 +1439,9 @@ The following table describes some methods supported by the
        remaining elements. Supports both the standard and index
        overloads (``TakeWhile((item, index) => ...)``) within
        ``Select`` projections. Top-level use is unsupported.
+
+   * - ``ThenBy``, ``ThenByDescending``
+     - Allows a secondary sort to be specified
 
    * - ``Where``
      - Returns all documents that match your specified criteria.

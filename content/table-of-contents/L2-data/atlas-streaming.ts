@@ -79,7 +79,7 @@ const tocData: TocItem[] = [
                     label: 'Google Pub/Sub Private Service Connect',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/atlas-stream-processing/gcp-pubsub-private-connection',
-                  },		  
+                  },
                   {
                     label: 'Manage VPC Connections',
                     contentSite: 'cloud-docs',
