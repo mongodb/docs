@@ -16,9 +16,10 @@ Apply the relevant section below based on where you're working.
 
 **Documentation linting (run from repo root):**
 ```
-./lint-docs.sh seo <files>    # SEO linter (titles, descriptions, headings)
-./lint-docs.sh 404 <files>    # Broken link checker
-./lint-docs.sh all <files>    # Both linters
+./lint-docs.sh seo <files>          # SEO linter (titles, descriptions, headings)
+./lint-docs.sh 404 <files>           # Broken link checker
+./lint-docs.sh findability <files>   # Facets, keyword hints, docs URL trailing slashes
+./lint-docs.sh all <files>           # SEO + 404 + findability
 ```
 
 **Code example tests (run from code-example-tests/<language>/):**

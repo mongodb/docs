@@ -73,6 +73,23 @@ jobs:
           FILES=$(cat /tmp/changed-files.txt)
           npx tsx .github/lint-docs/404-lint-cli.ts $FILES
       
+      - name: Fetch synonyms file
+        run: |
+          curl -fsSL "https://raw.githubusercontent.com/mongodb/docs-search-transport/main/resources/synonyms.csv" \
+            -o /tmp/synonyms.csv || echo "⚠️ Could not fetch synonyms file — keyword-in-synonyms check will be skipped"
+
+      - name: Run Findability Linter
+        if: steps.changed-files.outputs.has_files == 'true'
+        continue-on-error: true  # Warn only (facet errors are advisory in CI for now)
+        run: |
+          echo "📎 Running findability linter..."
+          FILES=$(cat /tmp/changed-files.txt)
+          SYNONYMS_FLAG=""
+          if [ -f /tmp/synonyms.csv ]; then
+            SYNONYMS_FLAG="--synonyms /tmp/synonyms.csv"
+          fi
+          npx tsx .github/lint-docs/findability-lint-cli.ts $SYNONYMS_FLAG $FILES
+      
       - name: Summary
         if: always()
         run: |
@@ -82,5 +99,6 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **SEO Linter**: Checks titles, meta descriptions, headings, images" >> $GITHUB_STEP_SUMMARY
           echo "- **404 Linter**: Checks for broken external links" >> $GITHUB_STEP_SUMMARY
+          echo "- **Findability Linter**: Facet names/values, keyword-in-synonyms hints, MongoDB URL trailing slashes" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "⚠️ These are warnings only and do not block the PR." >> $GITHUB_STEP_SUMMARY

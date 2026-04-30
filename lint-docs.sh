@@ -45,12 +45,18 @@ case "$CMD" in
   redirects|redirect)
     npx tsx "$LINT_DIR/redirect-lint-cli.ts" "$@"
     ;;
+  findability|find)
+    npx tsx "$LINT_DIR/findability-lint-cli.ts" "$@"
+    ;;
   all|both)
     echo "=== SEO Linter ==="
     npx tsx "$LINT_DIR/seo-lint-cli.ts" "$@"
     echo ""
     echo "=== 404 Linter ==="
     npx tsx "$LINT_DIR/404-lint-cli.ts" "$@"
+    echo ""
+    echo "=== Findability Linter ==="
+    npx tsx "$LINT_DIR/findability-lint-cli.ts" "$@"
     ;;
   help|--help|-h)
     echo "Documentation Linters"
@@ -58,10 +64,11 @@ case "$CMD" in
     echo "Usage: ./lint-docs.sh <command> <files...>"
     echo ""
     echo "Commands:"
-    echo "  seo        Run SEO linter (titles, descriptions, headings)"
-    echo "  404        Run broken link checker"
-    echo "  redirects  Run circular redirect checker"
-    echo "  all        Run SEO + 404 linters"
+    echo "  seo          Run SEO linter (titles, descriptions, headings)"
+    echo "  404          Run broken link checker"
+    echo "  redirects    Run circular redirect checker"
+    echo "  findability  Run findability linter (facets, keywords, docs URLs)"
+    echo "  all          Run SEO + 404 + findability linters"
     echo ""
     echo "Examples:"
     echo "  ./lint-docs.sh seo content/manual/source/intro.txt"

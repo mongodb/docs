@@ -1,6 +1,6 @@
 # Documentation Linters
 
-Automated linters for MongoDB documentation that check SEO compliance, broken links, and redirect issues.
+Automated linters for MongoDB documentation that check SEO compliance, broken links, redirect issues, and findability (taxonomy facets, keyword hints, docs URL shape).
 
 ## First-Time Setup
 
@@ -27,9 +27,10 @@ This installs Node.js, pnpm, lychee, and all linter dependencies. Re-run anytime
 |--------|---------|-----------|
 | **SEO Linter** | Pre-push hook + PR | No (advisory) |
 | **404 Linter** | Pre-push hook + PR | No (advisory) |
+| **Findability Linter** | Pre-push hook + PR | No (advisory; exits 1 only on facet **errors**) |
 | **Redirect Linter** | PR (when redirect files change) | **Yes** |
 
-SEO and 404 linters run on every push and PR as warnings. The redirect linter runs only when redirect files change and **will block the PR** if circular redirects are found.
+SEO, 404, and findability linters run on every push and PR as warnings. The redirect linter runs only when redirect files change and **will block the PR** if circular redirects are found.
 
 You can also run all linters manually on any files.
 
@@ -79,6 +80,19 @@ npx tsx .github/lint-docs/redirect-lint-cli.ts content/atlas/netlify.toml
 npx tsx .github/lint-docs/redirect-lint-cli.ts content/*/netlify.toml
 ```
 
+### Findability Linter
+
+Checks taxonomy `.. facet::` names and values (against `facet-allowlist.json`), optional `synonyms.csv` overlap for `.. meta::` keywords, redundant keywords vs title, `mongodb.com` URLs missing a trailing slash, and missing `code example` in keywords when language-tagged code blocks exist.
+
+```bash
+npx tsx .github/lint-docs/findability-lint-cli.ts content/path/to/file.txt
+
+# Optional: path to docs-search-transport resources/synonyms.csv
+npx tsx .github/lint-docs/findability-lint-cli.ts --synonyms /path/to/synonyms.csv content/path/to/file.txt
+
+pnpm --dir .github/lint-docs run findability-selftest
+```
+
 ### Wrapper Script
 
 For convenience, use the wrapper script from anywhere:
@@ -86,10 +100,35 @@ For convenience, use the wrapper script from anywhere:
 ```bash
 ./lint-docs.sh seo content/path/to/file.txt
 ./lint-docs.sh 404 content/path/to/file.txt
+./lint-docs.sh findability content/path/to/file.txt
 ./lint-docs.sh redirects content/atlas/netlify.toml
-./lint-docs.sh all content/path/to/file.txt   # Run SEO + 404
+./lint-docs.sh all content/path/to/file.txt   # Run SEO + 404 + findability
 ./lint-docs.sh help                           # Show all commands
 ```
+
+---
+
+## Findability Linter Rules
+
+| Rule | Severity | Description |
+|------|----------|-------------|
+| `facet-unknown-name` | Warning | `:name:` is not one of the known facet keys in `facet-allowlist.json` |
+| `facet-invalid-genre` | Error | `genre` value not `reference` or `tutorial` |
+| `facet-invalid-programming-language` | Error | `programming_language` value not in allowlist |
+| `facet-invalid-target-product` | Error | `target_product` value not in allowlist (synced from `snooty-parser/taxonomy.toml`) |
+| `facet-invalid-sub-product` | Error | `sub_product` value not in allowlist (synced from `snooty-parser/taxonomy.toml`) |
+| `keyword-in-synonyms-file` | Warning | A keyword phrase matches the synonyms list (`--synonyms` only) |
+| `keyword-echoes-title` | Warning | Keyword duplicates a significant title/H1 token |
+| `docs-url-missing-trailing-slash` | Warning | `mongodb.com` URL path should end with `/` before `?` or `#` |
+| `code-example-keyword-missing` | Warning | Language-tagged code blocks but no `code example` in `:keywords:` |
+
+Allowlists for facets live in `facet-allowlist.json`. To update when taxonomy changes:
+
+- **`target_product` and `sub_product`**: copy values from `snooty/taxonomy.toml` in `mongodb/snooty-parser`.
+- **`programming_language`**: update from `rstspec.toml` in the same repo when new languages are added to the `programming_language` field.
+- **`genre`**: fixed values (`reference`, `tutorial`); only change if Snooty adds new genres.
+
+Open a PR to `docs-mongodb-internal` with the updated `facet-allowlist.json` after any taxonomy change.
 
 ---
 
@@ -174,6 +213,27 @@ Found 2 error(s), 0 warning(s)
 Found 1 broken link(s)
 ```
 
+### Findability Linter
+
+```
+🔴 content/my-page.txt:4
+   [facet-invalid-genre] Invalid genre value "novel"
+   Current: novel
+   Fix: Use one of: reference, tutorial
+
+🟡 content/my-page.txt:10
+   [keyword-echoes-title] Keyword "install" already appears as a significant token in the title — may be redundant for search weighting
+   Current: install
+   Fix: Drop the keyword if it duplicates the title/H1 (per taxonomy guidance)
+
+🟡 content/my-page.txt:15
+   [docs-url-missing-trailing-slash] MongoDB URL should use a trailing slash before query or fragment (canonical SEO): https://docs.mongodb.com/manual/operators
+   Current: https://docs.mongodb.com/manual/operators
+   Fix: Add / before ? or #, or at end of path (e.g. .../manual/operators/)
+
+Found 1 error(s), 2 warning(s)
+```
+
 ### Redirect Linter
 
 ```
@@ -240,17 +300,21 @@ Some sites block automated checkers or are slow. We've excluded common culprits 
 
 ```
 docs-mongodb-internal/
-├── lint-docs.sh                # Wrapper script (seo/404/redirects)
+├── lint-docs.sh                # Wrapper script (seo/404/findability/redirects)
 ├── setup-docs.sh               # One-time setup script
 └── .github/lint-docs/
-    ├── README.md               # This file
-    ├── seo-lint-cli.ts         # SEO linter CLI
-    ├── seo-lint-rules.ts       # SEO linter rules (pure functions)
-    ├── 404-lint-cli.ts         # 404 linter CLI (wraps lychee)
-    ├── redirect-lint-cli.ts    # Redirect linter CLI
-    ├── redirect-lint-rules.ts  # Redirect linter rules (cycle detection)
-    ├── package.json            # Dependencies
-    └── tsconfig.json           # TypeScript config
+    ├── README.md                       # This file
+    ├── seo-lint-cli.ts                 # SEO linter CLI
+    ├── seo-lint-rules.ts               # SEO linter rules (pure functions)
+    ├── 404-lint-cli.ts                 # 404 linter CLI (wraps lychee)
+    ├── redirect-lint-cli.ts            # Redirect linter CLI
+    ├── redirect-lint-rules.ts          # Redirect linter rules (cycle detection)
+    ├── findability-lint-cli.ts         # Findability linter CLI
+    ├── findability-lint-rules.ts       # Findability linter rules (pure functions)
+    ├── findability-lint-selftest.ts    # Findability linter regression tests
+    ├── facet-allowlist.json            # Approved facet names and values
+    ├── package.json                    # Dependencies
+    └── tsconfig.json                   # TypeScript config
 ```
 
 ---

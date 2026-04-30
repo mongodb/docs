@@ -20,8 +20,8 @@ while read local_ref local_sha remote_ref remote_sha; do
     range="$remote_sha..$local_sha"
   fi
 
-  # Changed doc-like files in this push (exclude TOC + .github/agents/ tooling)
-  CHANGED_DOC_FILES=$(git diff --name-only "$range" 2>/dev/null | grep -E '\.(rst|txt|md|mdx)$' | grep -v "^content/table-of-contents/" | grep -v "^\.github/agents/" || true)
+  # Changed doc-like files in this push (exclude TOC + .github/agents/ + .claude/ tooling)
+  CHANGED_DOC_FILES=$(git diff --name-only "$range" 2>/dev/null | grep -E '\.(rst|txt|md|mdx)$' | grep -v "^content/table-of-contents/" | grep -v "^\.github/agents/" | grep -v "^\.claude/" || true)
 
   if [ -z "$CHANGED_DOC_FILES" ]; then
     echo "✅ No doc files in this push, skipping linters."
@@ -46,6 +46,7 @@ while read local_ref local_sha remote_ref remote_sha; do
     echo "   Run manually if needed:"
     echo "     npx tsx .github/lint-docs/seo-lint-cli.ts <files>"
     echo "     npx tsx .github/lint-docs/404-lint-cli.ts <files>"
+    echo "     npx tsx .github/lint-docs/findability-lint-cli.ts <files>"
     echo ""
     exit 0
   fi
@@ -64,7 +65,13 @@ while read local_ref local_sha remote_ref remote_sha; do
 
   echo ""
 
-  if [ $seo_exit -ne 0 ] || [ $link_exit -ne 0 ]; then
+  echo "📎 Running Findability linter on pushed docs..."
+  npx tsx .github/lint-docs/findability-lint-cli.ts $CHANGED_DOC_FILES
+  find_exit=$?
+
+  echo ""
+
+  if [ $seo_exit -ne 0 ] || [ $link_exit -ne 0 ] || [ $find_exit -ne 0 ]; then
     echo "⚠️  Issues found (see above). Consider fixing before PR review."
     echo "   Push proceeding anyway..."
   else

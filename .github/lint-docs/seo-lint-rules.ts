@@ -948,9 +948,9 @@ export function lintContent(content: string, filename: string): LintIssue[] {
 /**
  * Format issues for terminal output
  */
-export function formatIssuesForTerminal(issues: LintIssue[]): string {
+export function formatIssuesForTerminal(issues: LintIssue[], label = 'SEO linter'): string {
   if (issues.length === 0) {
-    return '✅ SEO linter passed - no issues found';
+    return `✅ ${label} passed - no issues found`;
   }
   
   const lines: string[] = [];
