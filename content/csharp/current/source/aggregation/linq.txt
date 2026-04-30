@@ -1209,6 +1209,126 @@ field named ``NewId`` for each output document:
    :start-after: start-createObjectId-example
    :end-before: end-createObjectId-example
 
+.. _csharp-linq-ejson-serialization:
+
+EJSON Serialization Operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Extended JSON (EJSON) serialization operators convert between BSON values
+and their :ref:`Extended JSON v2 <mongodb-extended-json-v2>`
+representations in an aggregation pipeline. The following sections
+explain how to use these operators in LINQ expressions.
+
+.. important::
+
+   EJSON serialization operators require {+mdb-server+}
+   version 8.3 or later.
+
+$serializeEJSON
+```````````````
+
+The ``$serializeEJSON`` expression operator converts native BSON
+values to their EJSON v2 representation. The output is a BSON
+document that contains EJSON-type wrappers. For example, an
+``ObjectId`` value serializes to the following document:
+
+.. code-block:: json
+   :copyable: false
+
+   { "$oid" : "507f1f77bcf86cd799439011" }
+
+To use the ``$serializeEJSON`` expression operator in a LINQ
+expression, call the ``Mql.SerializeEJson<TInput, TOutput>()`` method.
+This method accepts the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Parameter
+     - Description
+
+   * - ``value``
+     - BSON value to serialize.
+
+   * - ``options``
+     - *(Optional)* A ``SerializeEJsonOptions<TOutput>``
+       instance that specifies serialization options.
+
+You can set the following options on a
+``SerializeEJsonOptions<TOutput>`` instance:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 20 50
+
+   * - Option
+     - Data Type
+     - Description
+
+   * - ``Relaxed``
+     - ``bool?``
+     - Specifies whether the output uses relaxed EJSON format.
+       When ``true``, the output uses
+       standard JSON types where possible. When ``false``,
+       the output uses canonical EJSON format, which
+       preserves exact BSON type information.
+
+       *Default:* ``true``
+
+   * - ``OnError``
+     - ``TOutput``
+     - Fallback value returned if serialization fails.
+
+The following code serializes the ``Id`` field of each restaurant
+document to its EJSON v2 representation:
+
+.. literalinclude:: /includes/fundamentals/code-examples/linq.cs
+   :language: csharp
+   :dedent:
+   :start-after: start-serializeEJson-example
+   :end-before: end-serializeEJson-example
+
+$deserializeEJSON
+`````````````````
+
+The ``$deserializeEJSON`` expression operator converts an EJSON v2
+document back into native BSON values.
+
+To use the ``$deserializeEJSON`` expression operator in a LINQ
+expression, call the ``Mql.DeserializeEJson<TInput, TOutput>()`` method.
+This method accepts the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Parameter
+     - Description
+
+   * - ``value``
+     - EJSON value to deserialize.
+
+   * - ``options``
+     - *(Optional)* A ``DeserializeEJsonOptions<TOutput>``
+       instance that specifies deserialization options.
+
+The ``DeserializeEJsonOptions<TOutput>`` class contains the
+``OnError`` property. You can set this property to the fallback value
+that the method returns if deserialization fails.
+
+The following code deserializes an EJSON-formatted ``ObjectId`` value
+back to its native type. This example uses a
+``BsonDocument``-typed collection in which each document contains
+an ``ejsonId`` field that stores a BSON document with EJSON-type
+wrappers.
+
+.. literalinclude:: /includes/fundamentals/code-examples/linq.cs
+   :language: csharp
+   :dedent:
+   :start-after: start-deserializeEJson-example
+   :end-before: end-deserializeEJson-example
+
 .. _csharp-linq-vector-similarity:
 
 Vector Similarity Operators
@@ -1346,6 +1466,10 @@ The following table describes some methods supported by the
    * - ``DateFromString``
      - Converts a ``string`` to a ``DateTime`` object
 
+   * - ``DeserializeEJson``
+     - Converts an EJSON document with type wrappers to a
+       native BSON type
+
    * - ``Distinct``
      - Returns distinct documents that match the specified criteria
 
@@ -1390,7 +1514,24 @@ The following table describes some methods supported by the
      - Selects documents based on specified criteria
 
    * - ``SelectMany``
-     - Projects each element of a sequence and combines the resulting sequences into one document
+     - Projects each element of a sequence and combines the
+       resulting
+       sequences into one document. Supports an index overload
+       (``SelectMany((item, index) => ...)``) when running against
+       {+mdb-server+} 8.3 or later.
+
+   * - ``SerializeEJson``
+     - Converts a native BSON value to its EJSON v2
+       representation as a BSON document with EJSON type wrappers
+
+   * - ``SimilarityCosine``
+     - Computes the cosine similarity between two vectors
+
+   * - ``SimilarityDotProduct``
+     - Computes the dot product between two vectors
+
+   * - ``SimilarityEuclidean``
+     - Computes the Euclidean distance between two vectors
 
    * - ``Single``
      - Returns the only matching document, and throws an exception if
