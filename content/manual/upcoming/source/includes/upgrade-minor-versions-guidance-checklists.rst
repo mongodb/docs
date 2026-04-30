@@ -1,7 +1,7 @@
 If you need guidance on upgrading to |newversion|, `MongoDB
 professional services
 <https://www.mongodb.com/products/consulting>`_
-offer major version upgrade support to help ensure a smooth transition
+offer upgrade support to help ensure a smooth transition
 without interruption to your MongoDB application.
 
 Upgrade Recommendations and Checklists
@@ -13,11 +13,17 @@ Upgrade Version Path
 ~~~~~~~~~~~~~~~~~~~~
 
 To upgrade an existing MongoDB deployment to |newversion|, you must be
-running a |oldversion| release.
+running a |newseries|-series release.
 
-To upgrade from a minor version earlier than the |oldversion|, you must
+When upgrading from a minor version, you must
 successively upgrade minor releases until you have upgraded to
 |newversion|.
+
+.. start-upgrade-path-xref
+
+To learn more, see :ref:`Upgrade 8.2 to 8.3 <8.3-upgrade-from-8.2>`.
+
+.. end-upgrade-path-xref
 
 Check Driver Compatibility
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
