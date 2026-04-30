@@ -113,6 +113,7 @@ public class MovieSearch
 public class AtlasSearchExamples
 {
     private readonly IMongoCollection<Movie> _moviesCollection;
+    private readonly IMongoCollection<BsonDocument> _moviesCollectionBson;
     private readonly IMongoCollection<Theater> _theatersCollection;
     private readonly IMongoCollection<Restaurant> _restaurantsCollection;
 
@@ -131,6 +132,7 @@ public class AtlasSearchExamples
         var mongoClient = new MongoClient(uri);
         var mflixDatabase = mongoClient.GetDatabase("sample_mflix");
         _moviesCollection = mflixDatabase.GetCollection<Movie>("movies");
+        _moviesCollectionBson = mflixDatabase.GetCollection<BsonDocument>("movies");
         _theatersCollection = mflixDatabase.GetCollection<Theater>("theaters");
 
         var restaurantsDatabase = mongoClient.GetDatabase("sample_restaurants");
@@ -419,6 +421,63 @@ public class AtlasSearchExamples
             .Include(m => m.Title)
             .Include(m => m.Plot)
             .MetaSearchScore(m => m.Score))
+            .ToList();
+        // :snippet-end:
+        return result;
+    }
+
+    public List<Movie> SingleFieldSearchLambda()
+    {
+        // :snippet-start: single-field-search-lambda
+        var result = _moviesCollection.Aggregate()
+            .Search(Builders<Movie>.Search.Text(
+                Builders<Movie>.SearchPath.Single(m => m.Plot), "secret agent"))
+            .ToList();
+        // :snippet-end:
+        return result;
+    }
+
+    public List<Movie> SingleFieldSearchString(string fieldName)
+    {
+        // :snippet-start: single-field-search-string
+        FieldDefinition<Movie> runtimeField = fieldName;
+        var result = _moviesCollection.Aggregate()
+            .Search(Builders<Movie>.Search.Text(
+                Builders<Movie>.SearchPath.Single(runtimeField), "secret agent"))
+            .ToList();
+        // :snippet-end:
+        return result;
+    }
+
+    public List<BsonDocument> SingleFieldSearchBsonDocument()
+    {
+        // :snippet-start: single-field-search-bsondocument
+        var result = _moviesCollectionBson.Aggregate()
+            .Search(Builders<BsonDocument>.Search.Text(
+                Builders<BsonDocument>.SearchPath.Single("plot"), "secret agent"))
+            .ToList();
+        // :snippet-end:
+        return result;
+    }
+
+    public List<Movie> AnalyzerPathSearch()
+    {
+        // :snippet-start: analyzer-path-search
+        var result = _moviesCollection.Aggregate()
+            .Search(Builders<Movie>.Search.Text(
+                Builders<Movie>.SearchPath.Analyzer(m => m.Title, "lucene"),
+                "gravity"), indexName: "moviesanalyzer")
+            .ToList();
+        // :snippet-end:
+        return result;
+    }
+
+    public List<Movie> WildcardPathSearch()
+    {
+        // :snippet-start: wildcard-path-search
+        var result = _moviesCollection.Aggregate()
+            .Search(Builders<Movie>.Search.Text(
+                Builders<Movie>.SearchPath.Wildcard("p*"), "secret agent"))
             .ToList();
         // :snippet-end:
         return result;

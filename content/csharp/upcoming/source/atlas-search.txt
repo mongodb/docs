@@ -809,22 +809,117 @@ field contains the string ``"Amer"`` followed by any other characters:
 To learn more about the ``wildcard`` operator, see the :atlas:`wildcard </atlas-search/wildcard>`
 Atlas guide.
 
-Search Multiple Fields
-----------------------
+.. _csharp-search-path:
 
-The ``path`` parameter is used by the {+search+}
-:atlas:`operators </atlas-search/query-syntax>` to specify the field or fields
-to be searched. To learn more about what the ``path`` parameter may contain, see the :atlas:`Construct a Query Path </atlas-search/path-construction>` guide.
+Specify a Search Path
+---------------------
 
-.. note:: Operator Path Support Varies
+You can specify the path to the field or fields to search by using the
+``SearchPathDefinitionBuilder`` class.
+Use ``Builders<TDocument>.SearchPath`` to access a
+``SearchPathDefinitionBuilder`` instance and call one of its methods
+to specify the search path. The following sections describe the available
+methods.
 
-   Not all operators can use all the different types of paths. See the
-   documentation for each individual operator for details on what types
-   of path it supports.
+.. tip:: Search Paths
 
-To search multiple indexed fields, use the ``Multi()`` method and pass in your fields. Documents which match on any of the specified fields are included in the result set.
+   To learn more about search paths, see
+   :atlas:`Construct a Query Path </atlas-search/path-construction>`
+   in the Atlas documentation.
 
-The following example searches for the phrase ``"time travel"`` in either the ``plot`` or the ``title`` field:
+Single Field
+~~~~~~~~~~~~
+
+Use the ``Single()`` method to specify one field as the search path.
+The following examples show three ways to specify the field: by using
+a lambda expression with a typed model, by passing a string field name
+such as a ``fieldName`` variable or method parameter whose value is
+known at runtime, or by using an untyped document.
+
+.. note::
+
+   The field that you pass to the ``Single()`` method must be included
+   in the :atlas:`search index definition </atlas-search/create-index>`.
+   If the field isn't included, {+mdb-server+} returns an empty result
+   set without returning an error.
+
+Lambda Expression
+^^^^^^^^^^^^^^^^^
+
+Use a lambda expression when you're working with a typed model and you know
+the field name at compile time. This form provides compile-time type checking.
+
+The following example searches the ``plot`` field for documents that
+contain the text ``"secret agent"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.single-field-search-lambda.cs
+      :language: csharp
+      :category: usage example
+
+   .. output:: /code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/SingleFieldSearchOutput.txt
+      :language: json
+      :visible: false
+
+String Field Name
+^^^^^^^^^^^^^^^^^
+
+Use a ``FieldDefinition<TDocument>`` when you're working with a typed model
+but you don't know the field name at compile time. Consider using this form
+if you're retrieving the field name from user input or a configuration file.
+
+The following example assigns the field name to a
+``FieldDefinition<Movie>`` variable and passes it to ``Single()``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.single-field-search-string.cs
+      :language: csharp
+      :category: usage example
+
+   .. output:: /code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/SingleFieldSearchOutput.txt
+      :language: json
+      :visible: false
+
+BsonDocument
+^^^^^^^^^^^^
+
+You must also specify the field name as a string when you're working with
+``BsonDocument`` objects instead of a typed model.
+
+The following example searches an untyped collection for documents in
+the ``plot`` field that contain the text ``"secret agent"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.single-field-search-bsondocument.cs
+      :language: csharp
+      :category: usage example
+
+   .. output:: /code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/SingleFieldSearchBsonDocumentOutput.txt
+      :language: json
+      :visible: false
+
+Multiple Fields
+~~~~~~~~~~~~~~~
+
+Use the ``Multi()`` method to specify the search path for
+multiple fields. The result set includes documents that match
+on any of the specified fields.
+
+.. note::
+
+   You must include all fields that you pass to the ``Multi()`` method in the :atlas:`search index definition </atlas-search/create-index>`.
+   If you pass a field that isn't included, {+mdb-server+} silently
+   excludes it from the search.
+
+The following example searches for the phrase
+``"time travel"`` in either the ``plot`` or the ``title``
+field:
 
 .. io-code-block::
    :copyable: true
@@ -833,14 +928,84 @@ The following example searches for the phrase ``"time travel"`` in either the ``
       :language: csharp
       :category: usage example
 
-   .. output::
+   .. output:: /code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/MultipleFieldSearchOutput.txt
       :language: json
       :visible: false
 
-      ...
-      { "_id" : ObjectId("..."), "title" : "The Time Traveler's Wife", "plot" : "...", "genres" : ["Drama", "Fantasy", "Romance"], "year" : 2009, "rated" : "PG-13", "imdb" : { "rating" : 7.1, "votes" : "...", "id" : "..." } }
-      { "_id" : ObjectId("..."), "title" : "Safety Not Guaranteed", "plot" : "...", "genres" : ["Comedy", "Drama", "Romance"], "year" : 2012, "rated" : "R", "imdb" : { "rating" : 7, "votes" : "...", "id" : "..." } }
-      ...
+Analyzer
+~~~~~~~~
+
+Analyzers process text into searchable tokens by applying
+operations such as lowercasing. {+mdb-server+}
+applies an analyzer when indexing a field and again when
+running a query against that field. If you specify the :atlas:`multi </atlas-search/analyzers/multi/>`
+option when you create a search index, {+mdb-server+} also
+stores a second set of tokens produced by an alternate analyzer.
+
+You can use the ``Analyzer()`` method to run a query against
+the tokens produced by a ``multi`` analyzer instead of the
+tokens produced by the field's default analyzer.
+The name you pass to ``Analyzer()`` must be the key name of
+the ``multi`` block in your index definition, not the name of
+the underlying analyzer.
+
+The following example uses a ``multi`` analyzer named
+``"lucene"`` to search the ``title`` field for documents
+that contain the text ``"gravity"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.analyzer-path-search.cs
+      :language: csharp
+      :category: usage example
+
+   .. output:: /code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/AnalyzerPathSearchOutput.txt
+      :language: json
+      :visible: false
+
+.. tip:: Analyzers
+
+   To learn more about analyzers, see :atlas:`Analyzers </atlas-search/analyzers/>`
+   in the Atlas documentation.
+
+Wildcard Path
+~~~~~~~~~~~~~
+
+Use the ``Wildcard()`` method to specify a search path that
+uses wildcard characters to match field names. You can use
+the ``*`` character in the field name to match any sequence of characters.
+
+{+mdb-server+} searches only fields that meet the following conditions:
+
+- The field must be indexed.
+- The field name must match the specified pattern.
+- The field's data type must match the search operator. For example, a ``Text()``
+  query searches only string fields.
+
+The following example searches all fields whose names start
+with ``"p"`` for documents that contain the text
+``"secret agent"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.wildcard-path-search.cs
+      :language: csharp
+      :category: usage example
+
+   .. output:: /code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/WildcardPathSearchOutput.txt
+      :language: json
+      :visible: false
+
+.. note:: Wildcard Performance
+
+   Broad patterns, such as ``"*"``, match all indexed fields and might affect
+   query performance on large indexes.
+
+To learn more about wildcard paths, see
+:atlas:`Construct a Query Path </atlas-search/path-construction>`
+in the Atlas documentation.
 
 Score Documents
 ---------------

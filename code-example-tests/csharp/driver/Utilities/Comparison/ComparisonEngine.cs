@@ -60,6 +60,10 @@ public static class ComparisonEngine
         // Step 1: Handle ellipsis patterns first - these take precedence over all other logic
         if (EllipsisPatternMatcher.TryMatch(expected, actual)) return new ComparisonSuccess();
 
+        // Step 1b: Normalize BsonNull to C# null so it compares equal to null
+        if (expected is MongoDB.Bson.BsonNull) expected = null;
+        if (actual is MongoDB.Bson.BsonNull) actual = null;
+
         // Step 2: Handle null cases - must come after ellipsis to allow "..." to match null
         if (expected is null || actual is null)
         {
@@ -80,9 +84,12 @@ public static class ComparisonEngine
         if (IsPrimitive(normalizedExpected) || IsPrimitive(normalizedActual))
             return ComparePrimitives(normalizedExpected, normalizedActual, path);
 
-        // Step 5: Handle arrays
-        if (normalizedExpected is object[] expectedArray && normalizedActual is object[] actualArray)
-            return await CompareArraysAsync(expectedArray, actualArray, options, path, cancellationToken);
+        // Step 5: Handle arrays — widen typed arrays (e.g. int[], string[]) to object[] so
+        // that cross-type comparisons (e.g. int[] vs object[]) still work correctly.
+        var expectedAsArray = normalizedExpected is Array ea ? ea.Cast<object>().ToArray() : null;
+        var actualAsArray = normalizedActual is Array aa ? aa.Cast<object>().ToArray() : null;
+        if (expectedAsArray != null && actualAsArray != null)
+            return await CompareArraysAsync(expectedAsArray, actualAsArray, options, path, cancellationToken);
 
         // Step 6: Handle objects
         if (normalizedExpected is IDictionary<string, object> expectedDict &&

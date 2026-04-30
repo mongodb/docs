@@ -15,6 +15,10 @@ public static class PathUtilities
             return false;
 
 
+        // If string contains ellipsis pattern, it's an ellipsis wildcard, not a file path
+        if (input.Contains("..."))
+            return false;
+
         // Check for drive letters (Windows)
         if (Regex.IsMatch(input, @"^[A-Za-z]:"))
             return true;

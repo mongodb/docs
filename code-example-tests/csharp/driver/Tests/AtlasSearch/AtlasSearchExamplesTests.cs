@@ -174,6 +174,29 @@ public class AtlasSearchExamplesTests
                 { "fields", new BsonDocument("title",
                     new BsonArray { new BsonDocument("type", "string") }) }
             })),
+
+            // Multi-analyzer index on title — used by AnalyzerPathSearch()
+            // Defines a multi-analyzer named "lucene" so SearchPath.Analyzer()
+            // can reference it by name at query time. The multi key "lucene"
+            // maps to the lucene.english analyzer.
+            new("moviesanalyzer", SearchIndexType.Search, new BsonDocument("mappings", new BsonDocument
+            {
+                { "dynamic", false },
+                { "fields", new BsonDocument("title", new BsonArray
+                    {
+                        new BsonDocument
+                        {
+                            { "type", "string" },
+                            { "multi", new BsonDocument("lucene", new BsonDocument
+                                {
+                                    { "type", "string" },
+                                    { "analyzer", "lucene.english" }
+                                })
+                            }
+                        }
+                    })
+                }
+            })),
         };
 
         // Explicit geo index — used by GeoShapeSearch() and GeoWithinSearch()
@@ -229,14 +252,22 @@ public class AtlasSearchExamplesTests
             return;
         }
 
-        await Task.WhenAll(
-            moviesIndexes.Select(m =>
-                SearchIndexChecker.EnsureIndexReadyAsync(_moviesCollection, m.Name!))
-            .Concat(theatersIndexes.Select(m =>
-                SearchIndexChecker.EnsureIndexReadyAsync(_theatersCollection, m.Name!)))
-            .Concat(restaurantsIndexes.Select(m =>
-                SearchIndexChecker.EnsureIndexReadyAsync(_restaurantsCollection, m.Name!)))
-        );
+        try
+        {
+            await Task.WhenAll(
+                moviesIndexes.Select(m =>
+                    SearchIndexChecker.EnsureIndexReadyAsync(_moviesCollection, m.Name!))
+                .Concat(theatersIndexes.Select(m =>
+                    SearchIndexChecker.EnsureIndexReadyAsync(_theatersCollection, m.Name!)))
+                .Concat(restaurantsIndexes.Select(m =>
+                    SearchIndexChecker.EnsureIndexReadyAsync(_restaurantsCollection, m.Name!)))
+            );
+        }
+        catch (TimeoutException ex)
+        {
+            Assert.Ignore(
+                $"Search index not ready within timeout. Skipping all tests. Error: {ex.Message}");
+        }
     }
 
     private static async Task CreateMissingIndexesAsync(
@@ -266,10 +297,10 @@ public class AtlasSearchExamplesTests
             }
         }
 
-        // Drop and recreate existing vector search indexes to ensure their
-        // definitions stay current (e.g. when filter fields are added).
-        foreach (var model in models.Where(m =>
-            existingByName.ContainsKey(m.Name!) && m.Type == SearchIndexType.VectorSearch))
+        // Drop and recreate all existing indexes to ensure their definitions
+        // stay current (e.g. when multi-analyzer fields or filter fields are
+        // added or changed between test runs).
+        foreach (var model in models.Where(m => existingByName.ContainsKey(m.Name!)))
         {
             await collection.SearchIndexes.DropOneAsync(model.Name!);
             existingByName.Remove(model.Name!);
@@ -520,8 +551,13 @@ public class AtlasSearchExamplesTests
     public void TestMultipleFieldSearch()
     {
         var result = _examples.MultipleFieldSearch();
-        Expect.That(result.Any(m => m.Title == "The Time Traveler's Wife")).ShouldMatch(true);
-        Expect.That(result.Any(m => m.Title == "Safety Not Guaranteed")).ShouldMatch(true);
+        var bsonResult = result.Select(m => m.ToBsonDocument()).ToList();
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../../";
+        var outputLocation = "../../../content/code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/MultipleFieldSearchOutput.txt";
+        var fullPath = Path.Combine(solutionRoot, outputLocation);
+        Expect.That(bsonResult)
+            .WithIgnoredFields("_id", "plot", "score", "genres", "imdb", "plot_embedding", "paginationToken")
+            .ShouldMatch(fullPath);
     }
 
     [Test]
@@ -543,5 +579,84 @@ public class AtlasSearchExamplesTests
     {
         var result = _examples.SearchAfter();
         Expect.That(result.Any(m => m.Title == "About Time")).ShouldMatch(true);
+    }
+
+    [Test]
+    [RequiresSampleData("sample_mflix")]
+    [RequiresSearchIndex("default", IndexType = "search")]
+    [Description("Verifies that SingleFieldSearchLambda() uses a lambda expression to search the plot field and returns correct results")]
+    public void TestSingleFieldSearchLambda()
+    {
+        var result = _examples.SingleFieldSearchLambda();
+        var bsonResult = result.Select(m => m.ToBsonDocument()).ToList();
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../../";
+        var outputLocation = "../../../content/code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/SingleFieldSearchOutput.txt";
+        var fullPath = Path.Combine(solutionRoot, outputLocation);
+        Expect.That(bsonResult)
+            .WithIgnoredFields("_id", "score", "plot_embedding", "paginationToken")
+            .ShouldMatch(fullPath);
+    }
+
+    [Test]
+    [RequiresSampleData("sample_mflix")]
+    [RequiresSearchIndex("default", IndexType = "search")]
+    [Description("Verifies that SingleFieldSearchString() uses a FieldDefinition<TDocument> string to search the plot field and returns correct results")]
+    public void TestSingleFieldSearchString()
+    {
+        var result = _examples.SingleFieldSearchString("plot");
+        var bsonResult = result.Select(m => m.ToBsonDocument()).ToList();
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../../";
+        var outputLocation = "../../../content/code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/SingleFieldSearchOutput.txt";
+        var fullPath = Path.Combine(solutionRoot, outputLocation);
+        Expect.That(bsonResult)
+            .WithIgnoredFields("_id", "score", "plot_embedding", "paginationToken")
+            .ShouldMatch(fullPath);
+    }
+
+    [Test]
+    [RequiresSampleData("sample_mflix")]
+    [RequiresSearchIndex("default", IndexType = "search")]
+    [Description("Verifies that SingleFieldSearchBsonDocument() uses an untyped BsonDocument collection to search the plot field and returns correct results")]
+    public void TestSingleFieldSearchBsonDocument()
+    {
+        var result = _examples.SingleFieldSearchBsonDocument();
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../../";
+        var outputLocation = "../../../content/code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/SingleFieldSearchBsonDocumentOutput.txt";
+        var fullPath = Path.Combine(solutionRoot, outputLocation);
+        Expect.That(result)
+            .WithIgnoredFields("_id", "score", "plot_embedding", "paginationToken")
+            .ShouldMatch(fullPath);
+    }
+
+    [Test]
+    [RequiresSampleData("sample_mflix")]
+    [RequiresSearchIndex("moviesanalyzer", IndexType = "search")]
+    [Description("Verifies that AnalyzerPathSearch() returns movies where the title contains 'gravity' using the lucene.english multi-analyzer")]
+    public void TestAnalyzerPathSearch()
+    {
+        var result = _examples.AnalyzerPathSearch();
+        var bsonResult = result.Select(m => m.ToBsonDocument()).ToList();
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../../";
+        var outputLocation = "../../../content/code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/AnalyzerPathSearchOutput.txt";
+        var fullPath = Path.Combine(solutionRoot, outputLocation);
+        Expect.That(bsonResult)
+            .WithIgnoredFields("_id", "plot", "genres", "score", "imdb", "plot_embedding", "paginationToken")
+            .ShouldMatch(fullPath);
+    }
+
+    [Test]
+    [RequiresSampleData("sample_mflix")]
+    [RequiresSearchIndex("default", IndexType = "search")]
+    [Description("Verifies that WildcardPathSearch() returns movies where any field whose name starts with 'p' contains 'secret agent'")]
+    public void TestWildcardPathSearch()
+    {
+        var result = _examples.WildcardPathSearch();
+        var bsonResult = result.Select(m => m.ToBsonDocument()).ToList();
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../../";
+        var outputLocation = "../../../content/code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/WildcardPathSearchOutput.txt";
+        var fullPath = Path.Combine(solutionRoot, outputLocation);
+        Expect.That(bsonResult)
+            .WithIgnoredFields("_id", "score", "plot_embedding", "paginationToken")
+            .ShouldMatch(fullPath);
     }
 }

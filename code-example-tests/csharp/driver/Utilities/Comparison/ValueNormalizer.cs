@@ -39,7 +39,7 @@ public static class ValueNormalizer
 
             // Collections - normalize each element (preserve specific array types for primitives)
             int[] intArray => intArray, // Preserve int[] type
-            string[] stringArray => stringArray, // Preserve string[] type  
+            string[] stringArray => stringArray, // Preserve string[] type
             Array array => array.Cast<object?>().Select(Normalize).ToArray(),
             IEnumerable<object> enumerable => enumerable.Select(Normalize).ToArray(),
 
@@ -105,18 +105,18 @@ public static class ValueNormalizer
         if (TryParseIsoDate(value, out var dateTime))
             return dateTime.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
 
-        // For non-date strings, normalize whitespace by trimming each line
-        // This handles multi-line strings like the BoroughList test case
-        if (value.Contains('\n') || value.Contains('\r'))
+        // For multi-line strings (containing LF), normalize CRLF pairs and trim trailing whitespace
+        // per line. Standalone \r is intentionally preserved to allow CR vs LF comparisons.
+        if (value.Contains('\n'))
         {
-            // Multi-line string - trim each line but preserve line breaks
-            var lines = value.Split(new[] { '\r', '\n' }, StringSplitOptions.None);
+            var normalized = value.Replace("\r\n", "\n");
+            var lines = normalized.Split('\n');
             var trimmedLines = lines.Select(line => line.TrimEnd());
-            return string.Join("\n", trimmedLines).TrimEnd('\n', '\r');
+            return string.Join("\n", trimmedLines).TrimEnd('\n');
         }
 
-        // Single-line string - just trim trailing whitespace
-        return value.TrimEnd();
+        // Single-line string (including strings with only \r) - return as-is
+        return value;
     }
 
     /// <summary>

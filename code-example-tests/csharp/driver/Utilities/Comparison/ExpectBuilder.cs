@@ -147,6 +147,11 @@ public class ExpectBuilder : IBuilder
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        // Yield so the caller can cancel the token before comparison work begins.
+        // This ensures cancellation requested between task creation and awaiting is observed.
+        await Task.Yield();
+        cancellationToken.ThrowIfCancellationRequested();
+
         if (_shouldResembleCalled)
         {
             throw new ComparisonException(
@@ -179,6 +184,21 @@ public class ExpectBuilder : IBuilder
                 return await ComparisonEngine.CompareAsync(parsedExpected, _actual, _options);
             }
             return await ComparisonEngine.CompareAsync(strExpected, _actual, _options);
+        }
+
+        // If actual is a JSON string and expected is not a string, parse actual first
+        if (_actual is string actualJsonStr && JsonUtilities.LooksLikeJson(actualJsonStr))
+        {
+            var parsedActual = FileContentsParser.ParseText(actualJsonStr);
+            // Unwrap single-element list when expected is not a collection
+            object? resolvedActual = parsedActual.Count == 1
+                ? parsedActual[0]
+                : (object)parsedActual.ToArray();
+            var jsonResult = await ComparisonEngine.CompareAsync(expected, resolvedActual, _options);
+            if (jsonResult.IsSuccess) return new ComparisonSuccess();
+            var jsonError = jsonResult as ComparisonError;
+            throw new ComparisonException($"Expected to match, but did not: {expected} != {_actual}",
+                jsonError);
         }
 
         var result = await ComparisonEngine.CompareAsync(expected, _actual, _options);
@@ -236,7 +256,8 @@ public class ExpectBuilder : IBuilder
             return new ComparisonSuccess();
         }
 
-        throw new ComparisonException($"Expected to not match, but did match: {expected} != {_actual}");
+        // Values matched — return a failure result instead of throwing so callers can assert on it
+        return new ComparisonError($"Expected to not match, but did match: {expected} != {_actual}");
     }
 
     /// <summary>
