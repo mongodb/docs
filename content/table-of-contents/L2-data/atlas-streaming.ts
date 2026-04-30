@@ -81,6 +81,11 @@ const tocData: TocItem[] = [
                     url: '/docs/atlas/atlas-stream-processing/gcp-pubsub-private-connection',
                   },
                   {
+                    label: 'Azure Blob Storage Private Link',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/atlas-stream-processing/azure-blob-private-connection',
+                  },		  
+                  {
                     label: 'Manage VPC Connections',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/atlas-stream-processing/manage-vpc-peering-connections',

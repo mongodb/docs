@@ -12,7 +12,7 @@ To add an |azure| Blob Storage connection to your {+spw+} through the
       Follow the procedure described in :ref:`Set Up and Manage Azure
       Service Principal Access <manage-azure-access>`.
 
-      Ensure that you grant the following permissions:
+      Grant your Service Principal the following permissions:
 
       - ``Storage Blob Data Contributor`` for your storage account
       - ``Storage Blob Data Contributor`` for your blob storage

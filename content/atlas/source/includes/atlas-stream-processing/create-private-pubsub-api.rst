@@ -89,4 +89,4 @@ To add a {+gcp+} Pub/Sub connection to your {+spw+} through the
 
 	       * - ``networking.access.connectionId``
 	         - Value of ``_id`` in the response when you create
-	           the Private Link connection.
+	           the Private Service Connect connection.
