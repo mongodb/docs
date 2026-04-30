@@ -26,6 +26,84 @@ side only and runs a single test pass (no subagent).
   `MongoServerSelectionError`, `timeout`, or `Missing: sample_`, it's a
   runtime issue)
 
+## Step 0: Check for Extension Handoff
+
+Before Step 1, check whether the Grove VS Code extension has dropped a
+handoff file at `.claude/grove-handoff.json` in the workspace root. If the
+file exists and `skill` equals `grove-test`:
+
+1. **Delete** the handoff file immediately after reading it. Single-use.
+
+2. Check the payload before using it. If a check fails, surface what's
+   wrong to the writer, recommend they update the Grove VS Code
+   extension (or file an issue if it's already current), and ask
+   whether to proceed without the handoff. If they confirm, fall
+   through to Step 1.
+
+   - **Version check**: `version` must equal `1`. A higher number means
+     the extension is ahead of this skill. Example message:
+     > Found a Grove extension handoff with `version: {n}`, but this
+     > skill only understands version 1. The extension is likely newer
+     > than the skill. Proceed without the handoff?
+   - **Shape check**: the file must be valid JSON and contain the
+     top-level fields `version`, `skill`, `trigger`, `context`. The
+     `context` object must contain the fields listed in the schema for
+     the matching trigger below. Example message:
+     > The Grove extension handoff at `.claude/grove-handoff.json` is
+     > malformed: {brief reason, e.g. "missing context.sourceFile"}.
+     > This is likely an extension bug — please file an issue. Proceed
+     > without the handoff?
+
+3. Branch on `trigger`. The JSON block under each branch is the
+   **expected payload schema**, not just an illustrative sample — use
+   it as the reference for what fields must be present:
+
+### `trigger: "untested-source"` — snipped source file has no test
+
+Full envelope:
+
+```json
+{
+  "version": 1,
+  "skill": "grove-test",
+  "trigger": "untested-source",
+  "timestamp": "ISO-8601",
+  "workspaceRoot": "/absolute/path",
+  "context": {
+    "sourceFile": "code-example-tests/python/pymongo/examples/crud/insert_one.py",
+    "projectPath": "code-example-tests/python/pymongo",
+    "language": "python",
+    "snippetNames": ["example", "setup"]
+  }
+}
+```
+
+This is **Create mode** with the source file identified. Skip Step 1
+(task determination — it's a create, not a fix) and use:
+- `sourceFile` → the example file to read in Step 3 (Analyze the Example).
+- `language` → the target suite for conventions lookup in Step 2.
+- `projectPath` → the Grove project root for locating the `tests/`
+  directory.
+- `snippetNames` → the snippets already marked in the source (may be
+  empty for suites like mongosh that don't require Bluehawk tags). When
+  non-empty, the test's Bluehawk markup should reference the same names
+  where appropriate so input/output snippets align.
+
+Propose the test file location based on the source path and the
+language's convention (e.g., `examples/crud/insert_one.py` →
+`tests/crud/test_insert_one.py`). Confirm the location with the writer
+before proceeding to Step 2.
+
+Echo one line confirming the captured context, e.g.:
+`Got handoff from extension: adding a test for {sourceFile} ({language}).`
+
+Proceed from Step 2 (Load Conventions) with the target file identified.
+
+---
+
+If the handoff file is absent or `skill` doesn't match, proceed
+normally from Step 1.
+
 ## Step 1: Determine the Task
 
 Parse the user's request to identify the mode:

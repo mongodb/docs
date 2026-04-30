@@ -22,6 +22,89 @@ maintain Grove code example tests for a given language suite.
 - The user's environment is already set up and they want to create/run/test → use the appropriate grove skill
 - The user is asking about Grove architecture or conventions, not setup → answer directly using CLAUDE.md context
 
+## Step 0: Check for Extension Handoff
+
+Before Step 1, check whether the Grove VS Code extension has dropped a
+handoff file at `.claude/grove-handoff.json` in the workspace root. If the
+file exists and `skill` equals `grove-setup`:
+
+1. **Delete** the handoff file immediately after reading it. Single-use.
+
+2. Check the payload before using it. If a check fails, surface what's
+   wrong to the writer, recommend they update the Grove VS Code
+   extension (or file an issue if it's already current), and ask
+   whether to proceed without the handoff. If they confirm, fall
+   through to Step 1.
+
+   - **Version check**: `version` must equal `1`. A higher number means
+     the extension is ahead of this skill. Example message:
+     > Found a Grove extension handoff with `version: {n}`, but this
+     > skill only understands version 1. The extension is likely newer
+     > than the skill. Proceed without the handoff?
+   - **Shape check**: the file must be valid JSON and contain the
+     top-level fields `version`, `skill`, `trigger`, `context`. The
+     `context` object must contain the fields listed in the schema for
+     the matching trigger below. Example message:
+     > The Grove extension handoff at `.claude/grove-handoff.json` is
+     > malformed: {brief reason, e.g. "missing context.language"}.
+     > This is likely an extension bug — please file an issue. Proceed
+     > without the handoff?
+
+3. Branch on `trigger`. The JSON block under each branch is the
+   **expected payload schema**, not just an illustrative sample — use
+   it as the reference for what fields must be present:
+
+### `trigger: "missing-env"` — project has no `.env` file
+
+Full envelope:
+
+```json
+{
+  "version": 1,
+  "skill": "grove-setup",
+  "trigger": "missing-env",
+  "timestamp": "ISO-8601",
+  "workspaceRoot": "/absolute/path",
+  "context": {
+    "projectPath": "code-example-tests/javascript/driver",
+    "language": "nodejs",
+    "testFile": "code-example-tests/javascript/driver/tests/some-file.test.js",
+    "supportsEnvInjection": false
+  }
+}
+```
+
+Treat the handoff as targeted at Step 4 only — the writer was running
+(or about to run) a test and hit the missing-`.env` cliff. Skip Step 1
+(language is in `context.language`) and skip Steps 2/3 (they're about
+deps/tools which are a separate concern). Jump directly to **Step 4:
+Set Up Environment File** for the given language.
+
+`supportsEnvInjection` tells you which connection paths are valid:
+- `false` → nodejs or mongosh. The `.env` file is the **only** way to
+  provide `CONNECTION_STRING` because `npm test` re-exports env vars
+  from `.env` at the shell level, overwriting anything Grove injects.
+  Do not suggest the Grove UI Connect button for these suites.
+- `true` → python, go, java, or csharp. The writer can either create
+  `.env` OR click "Connect to MongoDB" in the Grove activity-bar panel
+  (which injects `CONNECTION_STRING` at test launch). Offer both and
+  let them pick; `.env` is better for teams that share config, Grove
+  UI is better for per-developer flexibility.
+
+Echo one line confirming the captured context, e.g.:
+`Got handoff from extension: setting up .env for {language} suite at
+{projectPath}.`
+
+After the `.env` is created and the writer confirms the test runs,
+stop. Do not fall through to Steps 5–8 (MongoDB connectivity, sample
+data, smoke test) unless the writer explicitly asks to continue with
+the full setup flow.
+
+---
+
+If the handoff file is absent or `skill` doesn't match, proceed
+normally from Step 1.
+
 ## Step 1: Determine Language
 
 Parse the user's request for the target language. If not specified, ask which

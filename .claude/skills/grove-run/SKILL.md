@@ -20,6 +20,79 @@ Run code example tests and provide actionable diagnosis of any failures.
 - The user needs to set up their environment first (no `.env` file, deps not installed) → use `/grove-setup`
 - The user wants to audit test coverage or upgrade dependencies → use `/grove-maintain`
 
+## Step 0: Check for Extension Handoff
+
+Before Step 1, check whether the Grove VS Code extension has dropped a
+handoff file at `.claude/grove-handoff.json` in the workspace root. If the
+file exists and `skill` equals `grove-run`:
+
+1. **Delete** the handoff file immediately after reading it. The file is
+   single-use; leaving it in place causes the next invocation to
+   re-trigger on stale context.
+
+2. Check the payload before using it. If a check fails, surface what's
+   wrong to the writer, recommend they file an issue for the Grove VS Code
+   extension, and ask whether to proceed without the handoff. If they 
+   confirm, fall through to Step 1.
+
+   - **Version check**: `version` must equal `1`. A higher number means
+     the extension is ahead of this skill. Example message:
+     > Found a Grove extension handoff with `version: {n}`, but this
+     > skill only understands version 1. The extension is likely newer
+     > than the skill. Proceed without the handoff?
+   - **Shape check**: the file must be valid JSON and contain the
+     top-level fields `version`, `skill`, `trigger`, `context`. The
+     `context` object must contain the fields listed in the schema
+     for the matching trigger below. Example message:
+     > The Grove extension handoff at `.claude/grove-handoff.json` is
+     > malformed: {brief reason, e.g. "missing context.testFile"}.
+     > This is likely an extension bug — please file an issue. Proceed
+     > without the handoff?
+
+   The JSON block below is the **expected payload schema**, not just an
+   illustrative sample. Use it as the reference for what fields must be
+   present:
+
+   ```json
+   {
+     "version": 1,
+     "skill": "grove-run",
+     "trigger": "test-failure",
+     "timestamp": "ISO-8601",
+     "workspaceRoot": "/absolute/path",
+     "context": {
+       "testFile": "relative/path/to/file.test.ts",
+       "testName": "describe > it text",
+       "testNamePattern": "describe it text",
+       "line": 42,
+       "errorMessage": "captured failure output (may be truncated)",
+       "duration": 1234,
+       "projectPath": "code-example-tests/javascript/driver"
+     }
+   }
+   ```
+
+3. Treat the `context` fields as pre-filled answers — skip Step 1
+   (scope/language) and Step 2 (suite lookup). `projectPath` is the
+   driver directory; `testFile` and `testNamePattern` are the inputs
+   for Step 3.
+
+4. **Guard against stale handoffs**: verify `context.testFile` still
+   exists on disk (the writer may have renamed it or switched branches
+   between the CodeLens click and skill invocation). If it doesn't
+   exist, report what was expected, fall through to Step 1, and let
+   the writer disambiguate.
+
+5. Echo one line confirming what was received, e.g.:
+   `Got handoff from extension: re-running "{testName}" in {projectPath}.`
+
+6. Proceed to Step 3 to re-run the single failing test (fresh output is
+   more reliable than the captured `errorMessage`), then Step 4 to
+   diagnose. If the re-run now passes, report that and stop.
+
+If the handoff file is absent or `skill` doesn't match, proceed normally
+from Step 1.
+
 ## Step 1: Determine Scope and Language
 
 Parse the user's request to identify:

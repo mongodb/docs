@@ -26,6 +26,39 @@ code's semantics while adapting it to Grove conventions.
 - The user wants to run tests or debug failures → use `/grove-run`
 - The user wants to audit or upgrade the test suite → use `/grove-maintain`
 
+## Step 0: Check for Extension Handoff
+
+Before Step 1, check whether the Grove VS Code extension has dropped a
+handoff file at `.claude/grove-handoff.json` in the workspace root. If the
+file exists and `skill` equals `grove-migrate`:
+
+1. **Delete** the handoff file immediately after reading it. The file is
+   single-use; leaving it in place causes the next invocation to
+   re-trigger on stale context.
+
+2. Check the payload. If a check fails, tell the writer what's wrong
+   (e.g. "version 2 isn't recognized" or "missing
+   context.absolutePath"), recommend they file an issue for the Grove
+   VS Code extension, and ask whether to proceed without the handoff.
+   If they confirm, fall through to Step 1.
+
+   - **Version**: `version` must equal `1`. Higher means the extension
+     is ahead of the skill.
+   - **Shape**: valid JSON with top-level fields `version`, `skill`,
+     `trigger`, `context`. The `context` object must contain the
+     trigger-specific fields shown in the schemas in
+     `references/extension-handoff.md`.
+
+3. Branch on `trigger`. See `references/extension-handoff.md` for both
+   trigger schemas (`rst-literalinclude` and `rst-code-block`) and
+   their per-trigger handling instructions, including the JSON
+   code-block ambiguity (JavaScript vs. mongosh). Both branches skip
+   Step 1 and Step 2, then proceed from Step 3 with the language
+   already known.
+
+If the handoff file is absent or `skill` doesn't match,
+proceed normally from Step 1.
+
 ## Step 1: Determine Entry Point
 
 Examine what the user provided to determine the migration mode:
@@ -48,8 +81,6 @@ The user provided one of:
 
 → Skip to **Step 3: Determine Language and Topic** (one item to migrate).
 
----
-
 ## Step 2: Scan Page for Code (Page-Level Only)
 
 Read the reference file `references/page-scanning.md` for the full directive
@@ -62,8 +93,6 @@ let the user select which items to migrate.
 
 After the user selects items, process each one through Steps 3-11 below.
 For multiple items, process them sequentially and run the reviewer after each.
-
----
 
 ## Step 3: Determine Language and Topic
 
