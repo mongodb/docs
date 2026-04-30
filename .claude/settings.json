@@ -1,5 +1,26 @@
 {
   "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/check-redirects-needed.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path | select(test(\"\\\\.claude/hooks/\"))' | { read -r f; [ -n \"$f\" ] && chmod +x \"$f\"; } 2>/dev/null || true"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash",
@@ -43,6 +64,10 @@
             "type": "command",
             "if": "Bash(git fetch origin && git branch*)",
             "command": "bash .claude/hooks/docs-git-process-hooks/check-branch-creation.sh"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-push-missing-redirects.sh"
           }
         ]
       }
