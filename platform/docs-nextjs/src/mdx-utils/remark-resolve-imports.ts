@@ -251,16 +251,21 @@ const resolveRefLinks = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
       }
 
       const href = refs.refs[name];
+      const children: Link['children'] = node.children?.length
+        ? ([...node.children] as Link['children'])
+        : [{ type: 'text', value: name }];
+
       if (!href) {
-        const fallback: PhrasingContent = { type: 'text', value: `RefRole could not be replaced: ${name}` };
+        console.warn(`[remarkResolveImports] RefRole could not be replaced: ${name}`);
+        const fallback: PhrasingContent = {
+          type: 'text',
+          value: children.map((c) => (c.type === 'text' ? c.value : '')).join(''),
+        };
         replacements.push({ index, parent, replacement: fallback });
         return;
       }
 
       const resolvedHref = href.startsWith('http') ? href : `/docs/${projectPath}/${href}`;
-      const children: Link['children'] = node.children?.length
-        ? ([...node.children] as Link['children'])
-        : [{ type: 'text', value: name }];
 
       const linkNode: Link = {
         type: 'link',
