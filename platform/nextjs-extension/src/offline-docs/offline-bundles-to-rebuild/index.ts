@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import type { AtlasProjectDocuments } from '../../contentMetadata/fetchAndStoreAtlasData';
 import type { AllContentData } from '../../contentMetadata/processContentMetadata';
+import { getRepoPaths } from '../../paths';
 import { filterActiveVersions } from '../../util/filter-active-versions';
 import { getChangedProjectAndVersions } from '../../util/changed-projects-and-versions';
 import { findAllActiveVersionsForProject } from '../../util/active-versions-for-project';
@@ -9,9 +10,8 @@ import { findAllActiveVersionsForProject } from '../../util/active-versions-for-
 /** Maps a filename (e.g. `"development.versioned.docs.ts"`) to the list of bundle version names that need to be rebuilt (e.g. `["manual", "upcoming"]`). */
 export type OfflineBundlesToBuild = Record<string, string[]>;
 
-// Path relative to docs-nextjs root (where the extension runs from)
-// This is where the table of contents for the offline docs is stored
-const OFFLINE_DOCS_DIR = 'src/context/table-of-contents/offline-docs';
+// Path relative to repo root where the table of contents for the offline docs is stored
+// Used to filter git changed files (paths reported by git are always relative to repo root)
 const FULL_PATH_TO_OFFLINE_DOCS_DIR =
   'platform/docs-nextjs/src/context/table-of-contents/offline-docs/';
 
@@ -133,7 +133,7 @@ export const getOfflineBundlesToRebuild = (
   gitChangedFiles: readonly string[],
 ): OfflineBundlesToBuild => {
   const { atlasProjectDocuments, pathsToBuild, docsPaths } = allContentData;
-  const offlineDocsPath = path.resolve(process.cwd(), OFFLINE_DOCS_DIR);
+  const { offlineDocsDir: offlineDocsPath } = getRepoPaths();
 
   const changedOfflineDocTocFiles = gitChangedFiles
     .filter((file) => file.startsWith(FULL_PATH_TO_OFFLINE_DOCS_DIR))

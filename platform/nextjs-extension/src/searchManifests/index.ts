@@ -18,7 +18,8 @@ import { uploadManifest } from './uploadToAtlas/uploadManifest';
 import { deleteStaleProperties } from './uploadToAtlas/deleteStale';
 import { closeSearchDb } from '../util/databaseConnection/searchClusterConnector';
 import { upload } from '../s3Connection/s3connector';
-import type { AllContentData } from '../parse/runModules';
+import type { AllContentData } from '../contentMetadata/processContentMetadata';
+import { getRepoPaths } from '../paths';
 
 const EXTENSION_NAME = 'search-manifest';
 export const ENVS_TO_RUN = ['dotcomstg', 'dotcomprd'];
@@ -162,11 +163,8 @@ export const handleSearchManifests = async ({
       }
 
       console.log('handling handleSearchManifests for branch: ', branch);
-      const pathToBundle = path.resolve(
-        allContentData.relativePathToContent,
-        contentPath,
-        'bundle.zip',
-      );
+      const { contentDir } = getRepoPaths();
+      const pathToBundle = path.join(contentDir, contentPath, 'bundle.zip');
       console.log(`pathToBundle: ${pathToBundle}`);
       try {
         await generateAndUploadManifests({

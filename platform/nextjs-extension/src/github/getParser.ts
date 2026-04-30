@@ -5,19 +5,18 @@ import {
   PARSER_SITE_NAME,
 } from '../util/databaseConnection/types';
 import fsExists from 'fs.promises.exists';
-import path from 'node:path';
 import {
   handlePoetryDeps,
   getPoetryPaths,
   restorePoetry,
 } from './handlePoetryDeps';
 import { repoVersionMatchesExpected } from './checkRepoVersion';
+import { getRepoPaths } from '../paths';
 
 /** Find the parser and updates or clones as needed
  * @param run - the run object from the Netlify plugin utils
  * @param cache - the cache object from the Netlify plugin utils
  * @param expectedParserVersion - the expected parser version
- * @param downloadDir - the directory to download the parser to
  * @param environment - the environment the build is running in
  * @returns true if the current parser version is valid for given env, false otherwise
  */
@@ -25,16 +24,14 @@ export const getParser = async ({
   run,
   cache,
   expectedParserVersion,
-  downloadDir,
   environment,
 }: {
   run: NetlifyPluginUtils['run'];
   cache: NetlifyPluginUtils['cache'];
   expectedParserVersion: string;
-  downloadDir: string;
   environment: Environments;
 }): Promise<boolean> => {
-  const parserPath = path.resolve(downloadDir, PARSER_SITE_NAME);
+  const { parserDir: parserPath } = getRepoPaths();
   const parserExists = await fsExists(parserPath);
 
   const { localBinDir, localLibDir, poetryPath } = getPoetryPaths();
@@ -88,7 +85,7 @@ export const getParser = async ({
     console.log(
       `No snooty-parser directory found in ${parserPath}, will re-clone parser`,
     );
-    await cloneParser({ run, expectedParserVersion, downloadDir, parserPath });
+    await cloneParser({ run, expectedParserVersion });
   }
 
   // Install poetry and parser dependencies if parser didn't exist or did not match the expected version
@@ -118,18 +115,15 @@ export const getParser = async ({
 export const cloneParser = async ({
   run,
   expectedParserVersion,
-  downloadDir,
-  parserPath,
 }: {
   run: NetlifyPluginUtils['run'];
   expectedParserVersion: string;
-  downloadDir: string;
-  parserPath: string;
 }) => {
+  const { parserDir: parserPath, repoRoot } = getRepoPaths();
   const parserRepoUrl = `https://github.com/${MONGODB_ORG}/snooty-parser.git`;
   console.log(`Downloading parser from ${parserRepoUrl} ...`);
 
-  await run.command(`git clone ${parserRepoUrl}`, { cwd: downloadDir });
+  await run.command(`git clone ${parserRepoUrl}`, { cwd: repoRoot });
 
   await run.command(
     `git -c advice.detachedHead=false fetch --depth 1 --tags origin ${expectedParserVersion}`,

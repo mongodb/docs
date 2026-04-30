@@ -14,10 +14,8 @@ export function getMdxContentBlobStores({
 	token: string | undefined;
 	isMain: boolean;
 }): { branchStore: Store | false; productionStore: Store } {
-	// this is either `false` or `string`
 	const branchStoreName = isMain ? false : `${branchName}-${PROD_STORE_NAME}`;
 
-	// either `false` or a store
 	const branchStore =
 		branchStoreName &&
 		getStore({

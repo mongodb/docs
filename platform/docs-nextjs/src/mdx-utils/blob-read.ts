@@ -1,7 +1,8 @@
 import path from 'path';
 import fs from 'fs/promises';
 import type { Store } from '@netlify/blobs';
-import { productionStore, branchSpecificStore } from './blob-store';
+import { productionStore, branchSpecificStore, branchSpecificStoreName } from './blob-store';
+import { BLOB_STORE_NAME } from './blob-constants';
 import { blobRelativeToDiskCandidates, loadDirNameToPrefixMap } from './blob-path-remap';
 
 const BUILD_STATIC_PAGES = process.env.BUILD_STATIC_PAGES === 'true';
@@ -14,9 +15,15 @@ function keyToLocalPath(key: string): string {
 
 /** Try branchSpecificStore first, fall back to productionStore. */
 async function getFromStores(key: string, type: 'string' | 'blob'): Promise<string | Blob | null> {
-  const stores: Store[] = branchSpecificStore !== null ? [branchSpecificStore, productionStore] : [productionStore];
+  const storeEntries: Array<{ store: Store; name: string }> =
+    branchSpecificStore !== null
+      ? [
+          { store: branchSpecificStore, name: branchSpecificStoreName! },
+          { store: productionStore, name: BLOB_STORE_NAME },
+        ]
+      : [{ store: productionStore, name: BLOB_STORE_NAME }];
 
-  for (const store of stores) {
+  for (const { store, name } of storeEntries) {
     try {
       if (type === 'blob') {
         const result = await store.get(key, { type: 'blob' });
@@ -30,6 +37,8 @@ async function getFromStores(key: string, type: 'string' | 'blob'): Promise<stri
       if (msg.toLowerCase().includes('not found') || msg.includes('404') || msg.includes('no such key')) {
         continue;
       }
+      const attempted = storeEntries.map((e) => `"${e.name}"`).join(', ');
+      console.error(`Blob store error for key "${key}" in store "${name}" — attempted: ${attempted}`);
       throw error;
     }
   }

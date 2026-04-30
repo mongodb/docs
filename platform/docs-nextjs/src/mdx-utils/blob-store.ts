@@ -11,21 +11,24 @@ export const productionStore = isDev
       token: process.env.NETLIFY_ACCESS_TOKEN,
     });
 
-function initBranchSpecificStore(): Store | null {
+function initBranchSpecificStore(): { store: Store; name: string } | null {
   try {
     const branch = process.env.NEXT_PUBLIC_GIT_BRANCH || null;
     if (!branch || branch === 'main') return null;
     const storeName = `${branch}-mdx-content`;
-    return isDev
+    const store = isDev
       ? getStore(storeName)
       : getStore({
           name: storeName,
           siteID: process.env.NETLIFY_SITE_ID,
           token: process.env.NETLIFY_ACCESS_TOKEN,
         });
+    return { store, name: storeName };
   } catch {
     return null;
   }
 }
 
-export const branchSpecificStore = initBranchSpecificStore();
+const branchStoreResult = initBranchSpecificStore();
+export const branchSpecificStore: Store | null = branchStoreResult?.store ?? null;
+export const branchSpecificStoreName: string | null = branchStoreResult?.name ?? null;

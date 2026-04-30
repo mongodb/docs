@@ -8,6 +8,7 @@ import path from 'node:path';
  ** @param pathsRelativeTo - absolute monorepo root; returned paths are
  **   `path.relative(pathsRelativeTo, dir)` for each directory that contains a snooty.toml
  */
+// TODO: remove basedir, just use content dir
 export const findAllContentPaths = async (
   baseDir: string,
   maxDepth: number,

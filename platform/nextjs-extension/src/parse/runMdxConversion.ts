@@ -4,10 +4,8 @@ import {
 	convertZipFileToMdx,
 	convertZipImageFiles,
 } from "../../../snooty-ast-to-mdx/src/index.js";
-import {
-	getBundlePathForContent,
-	type AllContentData,
-} from "../contentMetadata/processContentMetadata.js";
+import type { AllContentData } from "../contentMetadata/processContentMetadata.js";
+import { getRepoPaths } from "../paths.js";
 
 /** Run AST→MDX conversion for each content path using pre-built bundle zips, then list output files. */
 export async function runMdxConversionForContentPaths({
@@ -17,24 +15,11 @@ export async function runMdxConversionForContentPaths({
 	allContentData: AllContentData;
 	mdxOutputPath: string;
 }): Promise<string[]> {
+	const { absoluteBundlePath } = getRepoPaths();
 	const results = await Promise.allSettled(
 		allContentData.pathsToBuild.map(async (contentPath) => {
-			const { projectDirName, versionName, relativePathToContent } =
-				// relativePathToContent lives on allContentData, not on the bundle entry
-				{
-					...allContentData.docsPaths[contentPath],
-					relativePathToContent: allContentData.relativePathToContent,
-				};
-
-			const bundleZipPath = `${getBundlePathForContent({
-				relativePathToContent,
-				projectDirName,
-				versionName,
-			})}.zip`;
-
-			const outputDirectory = versionName
-				? path.join(mdxOutputPath, projectDirName, versionName)
-				: path.join(mdxOutputPath, projectDirName);
+			const bundleZipPath = `${absoluteBundlePath(contentPath)}.zip`;
+			const outputDirectory = path.join(mdxOutputPath, contentPath);
 
 			console.log(
 				`running mdx conversion for ${contentPath} → ${outputDirectory}`,
@@ -54,7 +39,7 @@ export async function runMdxConversionForContentPaths({
 	);
 
 	for (const [i, result] of results.entries()) {
-		if (result.status === 'rejected') {
+		if (result.status === "rejected") {
 			console.warn(
 				`[runMdxConversion] conversion failed for ${allContentData.pathsToBuild[i]}: ${result.reason instanceof Error ? result.reason.message : result.reason}`,
 			);

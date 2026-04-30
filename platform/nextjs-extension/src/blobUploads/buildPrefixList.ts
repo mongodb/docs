@@ -2,6 +2,7 @@ import path from 'node:path';
 import fs from 'node:fs/promises';
 import type { AllContentData } from '../contentMetadata/processContentMetadata.js';
 import { stripDocsPrefix } from './utils.js';
+import { getRepoPaths } from '../paths.js';
 
 /** Build prefix-map.json: list of all valid project paths, sorted longest-first for use in site.json lookup in next */
 export const buildPrefixList = (allContentData: AllContentData): string[] => {
@@ -15,9 +16,7 @@ export const buildPrefixList = (allContentData: AllContentData): string[] => {
     if (!prefix) continue;
     const stripped = stripDocsPrefix(prefix);
 
-    const projectPath = entry.versionName
-      ? `${stripped}/${entry.versionName}`
-      : stripped;
+    const projectPath = [stripped, entry.versionName].filter(Boolean).join('/');
     if (projectPath) projectPrefixes.add(projectPath);
   }
   const sortedProjectPrefixes = [...projectPrefixes].sort(
@@ -35,7 +34,7 @@ export const writePathPrefixListToFile = async (
   allContentData: AllContentData,
 ) => {
   const sortedProjectPrefixes = buildPrefixList(allContentData);
-  const generatedDir = path.resolve(process.cwd(), 'src', 'generated');
+  const { generatedDir } = getRepoPaths();
   await fs.mkdir(generatedDir, { recursive: true });
   await fs.writeFile(
     path.join(generatedDir, 'prefix-map.json'),

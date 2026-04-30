@@ -1,22 +1,10 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
+import { getRepoPaths } from '../paths';
 
-/**
- * Repo root used to resolve paths like `content/foo/snooty.toml`.
- * Prefer `DOCS_MONOREPO_ROOT` when set; otherwise use `fallbackRoot` (for example
- * `path.resolve(process.cwd(), "..", "..")` from the extension package).
- */
-export const getDocsMonorepoRoot = (fallbackRoot: string): string =>
-  process.env.DOCS_MONOREPO_ROOT
-    ? path.resolve(process.env.DOCS_MONOREPO_ROOT)
-    : path.resolve(fallbackRoot);
-
-async function readProjectNameFromToml(
-  contentPath: string,
-  monorepoRoot: string,
-): Promise<string> {
-  const root = path.resolve(monorepoRoot);
-  const tomlPath = path.join(root, contentPath, 'snooty.toml');
+async function readProjectNameFromToml(contentPath: string): Promise<string> {
+  const { contentDir } = getRepoPaths();
+  const tomlPath = path.join(contentDir, contentPath, 'snooty.toml');
 
   try {
     const tomlContents = await fs.readFile(tomlPath, 'utf-8');
@@ -33,20 +21,16 @@ async function readProjectNameFromToml(
   }
 }
 
-/** key by content path ex: /atlas-cli/main , value is project name in snooty.toml */
+/** key by content path relative to contentDir, e.g. `atlas` or `c-driver/current`; value is project name in snooty.toml */
 export type ProjectNames = Record<string, string>;
 
 export const getAllProjectNames = async (
   contentPaths: string[],
-  monorepoRoot: string,
 ): Promise<ProjectNames> => {
   const projectNames: Record<string, string> = {};
   await Promise.all(
     contentPaths.map(async (contentPath) => {
-      projectNames[contentPath] = await readProjectNameFromToml(
-        contentPath,
-        monorepoRoot,
-      );
+      projectNames[contentPath] = await readProjectNameFromToml(contentPath);
     }),
   );
   return projectNames;

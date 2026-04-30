@@ -81,7 +81,7 @@ async function buildDirNameToPrefixMap(
 
   let paths: string[] = [];
   try {
-    paths = await findAllContentPaths(contentDir, 5, monorepoRoot);
+    paths = await findAllContentPaths(contentDir, 5, contentDir);
   } catch (err) {
     console.warn('[build-prefix-map] findAllContentPaths failed:', err);
     return {};
@@ -92,7 +92,7 @@ async function buildDirNameToPrefixMap(
     return {};
   }
 
-  const projectNames = await getAllProjectNames(paths, monorepoRoot);
+  const projectNames = await getAllProjectNames(paths);
   const docsetByProject = new Map<string, DocsetsDocument>();
   for (const d of docsetRows) {
     if (d.project) docsetByProject.set(d.project, d);

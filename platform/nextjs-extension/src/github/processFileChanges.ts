@@ -1,6 +1,5 @@
 import type { NetlifyPluginUtils } from '@netlify/build';
-import path from 'node:path';
-import fs from 'node:fs/promises';
+import { CONTENT_DIR_NAME } from '../paths';
 
 export const getFileChanges = async ({
   run,
@@ -57,8 +56,9 @@ export const findContentPathsWithChanges = async ({
   // need /content/<projectName>/versionName
   for (const contentPath of allFullContentPaths) {
     const contentPathHasChanged = !!fileChanges.find((filePath) => {
-      // Check if the file path starts with our relative prefix
-      const matches = filePath.startsWith(contentPath);
+      // Git paths are repo-root-relative (e.g. content/c-driver/current/source/foo.rst)
+      // while contentPath is relative to contentDir (e.g. c-driver/current).
+      const matches = filePath.startsWith(`${CONTENT_DIR_NAME}/${contentPath}`);
       return matches;
     });
     if (contentPathHasChanged) {

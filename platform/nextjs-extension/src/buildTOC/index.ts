@@ -4,9 +4,10 @@ import fs from 'node:fs/promises';
 
 import type { AllContentData } from '../contentMetadata/processContentMetadata';
 import { buildUnifiedTOC } from '../util/buildTOC/generateJSON';
+import { getRepoPaths } from '../paths';
 
 export const buildToc = async ({
-  allContentData: { relativePathToContent },
+  allContentData: _allContentData,
   utils,
 }: {
   allContentData: AllContentData;
@@ -14,12 +15,8 @@ export const buildToc = async ({
     run: NetlifyPluginUtils['run'];
   };
 }) => {
-  const tableOfContentsCWD = path.resolve(
-    // opt/build/repo/content/<subdirName>
-    relativePathToContent,
-    'content',
-    'table-of-contents',
-  ); // opt/build/repo/content/table-of-contents
+  const { absoluteContentPath, tocDataDir } = getRepoPaths();
+  const tableOfContentsCWD = absoluteContentPath('table-of-contents');
   await buildUnifiedTOC({
     run: utils.run,
     tableOfContentsCWD,
@@ -30,7 +27,6 @@ export const buildToc = async ({
     const tocJsonPath = path.join(tableOfContentsCWD, 'output', 'toc.json');
 
     // Create toc-data directory if it doesn't exist and read the JSON content
-    const tocDataDir = path.join(process.cwd(), 'src', 'context', 'toc-data');
     await fs.mkdir(tocDataDir, { recursive: true });
     const tocJsonContent = await fs.readFile(tocJsonPath, 'utf-8');
 

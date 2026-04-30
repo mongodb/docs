@@ -3,15 +3,11 @@ import { parse, type ParserCommandArgs } from "../parse/parse";
 import { runPersistenceModule } from "../persistence/index";
 import type { DocsetsDocument } from "../util/databaseConnection/types";
 import { closeConnections } from "../persistence/index";
-import path from "node:path";
 import { constructParserLogs, displayParserLogs } from "./handleParseLogs";
 import type { StaticEnvVars } from "../util/assertDbEnvVars";
-import {
-	getBundlePathForContent,
-	type AllContentData,
-	constructFullPath,
-} from "../contentMetadata/processContentMetadata";
+import type { AllContentData } from "../contentMetadata/processContentMetadata";
 import type { AtlasProjectDocuments } from "../contentMetadata/fetchAndStoreAtlasData";
+import { getRepoPaths } from "../paths";
 
 /** Get the desired parser version for the build environment
  * @param buildEnvironment - the build environment
@@ -34,7 +30,6 @@ export const getParserVersion = async ({
 export type prepAndRunModulesParams = {
 	netlifyPluginUtils: NetlifyPluginUtils;
 	allContentData: AllContentData;
-	parserPath: string;
 	branchName: string;
 	atlasProjectDocuments: AtlasProjectDocuments;
 	prId?: number;
@@ -43,7 +38,6 @@ export type prepAndRunModulesParams = {
 
 /** Runs the parser and persistence module for each content path
  * @param netlifyPluginUtils - the Netlify plugin utils
- * @param parserPath - the path to the parser
  * @param branchName - the name of the branch
  * @param allContentData - allContentData object containing all content data for the build
  * @param atlasProjectDocuments - Atlas document entries for each project
@@ -52,7 +46,6 @@ export type prepAndRunModulesParams = {
  */
 export const runPrebuildModules = async ({
 	netlifyPluginUtils,
-	parserPath,
 	branchName,
 	allContentData,
 	atlasProjectDocuments,
@@ -63,30 +56,20 @@ export const runPrebuildModules = async ({
 	const startMs = Date.now();
 	// iterate over each project and then iterate over each version to build
 	const contentPathsToBuild = allContentData.pathsToBuild;
+	const { parserDir, absoluteContentPath, absoluteBundlePath } = getRepoPaths();
 	const buildPromises = contentPathsToBuild.map(async (contentPath: string) => {
 		const contentBundleData = allContentData.docsPaths[contentPath];
 		try {
 			const projectName = contentBundleData.projectName;
-			// opt/build/repo/content/<dirName>/<versionName>/bundle.zip
-			// TODO: fix this
-			// TODO 6459: should be able to just use the content path + relative path to content here??
-			const bundlePath = getBundlePathForContent({
-				relativePathToContent: allContentData.relativePathToContent,
-				projectDirName: contentBundleData.projectDirName,
-				versionName: contentBundleData.versionName,
-			});
-			const parserArgs = {
-				parserPath,
+			const bundlePath = absoluteBundlePath(contentPath);
+			const parserArgs: ParserCommandArgs = {
+				parserPath: parserDir,
 				parsedOutputPath: bundlePath,
 				// TODO 6508: do we want it to be main if non-versioned?? that is what it was before
 				// For docs-frontend-stg, version will be the repo name because that is where the content lives
 				// We set main as a version for non-versioned sites to prevent the "Not Feature Available" for rendering for non-versioned sites
 				version: contentBundleData.versionName || "main",
-				contentPath: constructFullPath({
-					relativePathToContent: allContentData.relativePathToContent,
-					projectDirName: contentBundleData.projectDirName,
-					versionName: contentBundleData.versionName,
-				}),
+				contentPath: absoluteContentPath(contentPath),
 			};
 
 			const parserLogs = await runPrebuildModulesPerPath({

@@ -3,6 +3,7 @@
 import path from 'node:path';
 import fs from 'node:fs/promises';
 import type { StaticEnvVars } from '../util/assertDbEnvVars';
+import { getRepoPaths } from '../paths';
 import { getDocsetsCollection } from '../util/databaseConnection/fetchDocsetsData';
 import { getReposBranchesCollection } from '../util/databaseConnection/fetchReposBranchesData';
 import type { ConfigEnvironmentVariables } from '../util/extension';
@@ -49,21 +50,20 @@ const flattenForEnvironment = (
 export const fetchAtlasData = async ({
   configEnvironment,
   dbEnvVars,
-  baseDir,
   projectNames,
 }: {
   configEnvironment: ConfigEnvironmentVariables;
   dbEnvVars: StaticEnvVars;
-  baseDir: string;
   projectNames: ProjectNames;
 }): Promise<AtlasProjectDocuments> => {
+  const { repoRoot } = getRepoPaths();
   const poolDbName = configEnvironment.POOL_DB_NAME;
   const repoBranchesConnectionInfo = {
     clusterZeroURI: dbEnvVars.ATLAS_CLUSTER0_URI,
     databaseName: poolDbName as string,
     collectionName: dbEnvVars.REPOS_BRANCHES_COLLECTION,
   };
-  const reposBranchesOutput = path.join(baseDir, 'reposBranches.json');
+  const reposBranchesOutput = path.join(repoRoot, 'reposBranches.json');
   const { count: reposBranchesCount, docs: reposBranchesDocs } =
     await fetchAndPersistReposBranches({
       connectionInfo: repoBranchesConnectionInfo,
@@ -78,7 +78,7 @@ export const fetchAtlasData = async ({
     databaseName: poolDbName as string,
     collectionName: dbEnvVars.DOCSETS_COLLECTION,
   };
-  const docsetsOutput = path.join(baseDir, 'docsets.json');
+  const docsetsOutput = path.join(repoRoot, 'docsets.json');
   const { count: docsetsCount, docs: docsetsDocs } =
     await fetchAndPersistDocsets({
       connectionInfo: docsetsConnectionInfo,

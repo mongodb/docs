@@ -1,5 +1,4 @@
-// Documentation: https://sdk.netlify.com/docs
-import path from "node:path";
+// Documentation: https://sdk.netlify.com/docs/
 import {
 	Extension,
 	envVarToBool,
@@ -17,7 +16,6 @@ import { getParser } from "./github/getParser";
 import { runPrebuildModules } from "./parse/runModules";
 import {
 	getAllProjectNames,
-	getDocsMonorepoRoot,
 	type ProjectNames,
 } from "./contentMetadata/readSnootyToml";
 import { fetchAtlasData } from "./contentMetadata/fetchAndStoreAtlasData";
@@ -27,6 +25,7 @@ import {
 } from "./contentMetadata/processContentMetadata";
 import { getParserVersion } from "./parse/runModules";
 import { runMdxConversionForContentPaths } from "./parse/runMdxConversion";
+import { getRepoPaths } from "./paths";
 import { buildToc } from "./buildTOC/index";
 import { handleOfflineDownloads } from "./offline-docs/index";
 import { writePathPrefixListToFile } from "./blobUploads/buildPrefixList";
@@ -39,19 +38,15 @@ import {
 const ENVS_TO_RUN = ["dotcomprd", "dotcomstg"];
 
 const extension = new Extension({
-	isEnabled: envVarToBool(process.env.NEXTJS_EXTENSION_ENABLED),
+	isEnabled: envVarToBool(process.env.NEXTJS_EXTENSION_ENABLED_STAGING_2),
 });
 
-const RELATIVE_PATH_TO_CONTENT = path.resolve(process.cwd(), "..", "..");
-const CONTENT_DIR = path.resolve(RELATIVE_PATH_TO_CONTENT, "content");
 /** Limit how deep to search below baseDir for snooty.toml (baseDir is depth 0) */
 const TOML_SEARCH_MAX_DEPTH = 5;
 
 const allContentData: AllContentData = {
 	atlasProjectDocuments: {},
 	pathsToBuild: [],
-	baseDir: process.cwd(),
-	relativePathToContent: RELATIVE_PATH_TO_CONTENT,
 	docsPaths: {},
 };
 
@@ -65,7 +60,6 @@ extension.addBuildEventHandler(
 		}
 		const configEnvironment: ConfigEnvironmentVariables =
 			netlifyConfig.build.environment;
-
 		// add env vars to config environment
 		await updateConfig({
 			configEnvironment: netlifyConfig.build.environment,
@@ -88,11 +82,11 @@ extension.addBuildEventHandler(
 			dbEnvVars,
 		});
 
-		const monorepoRoot = getDocsMonorepoRoot(RELATIVE_PATH_TO_CONTENT);
+		const { contentDir } = getRepoPaths();
 		const contentDirectories = await findAllContentPaths(
-			CONTENT_DIR,
+			contentDir,
 			TOML_SEARCH_MAX_DEPTH,
-			monorepoRoot,
+			contentDir,
 		);
 		if (!contentDirectories.length) {
 			console.warn("No snooty.toml files found");
@@ -104,7 +98,6 @@ extension.addBuildEventHandler(
 			run: utils.run,
 			cache: utils.cache,
 			expectedParserVersion: parserVersion,
-			downloadDir: allContentData.baseDir,
 			environment: configEnvironment.ENV as Environments,
 		});
 
@@ -125,17 +118,15 @@ extension.addBuildEventHandler(
 		}
 
 		const projectNames: ProjectNames =
-			await getAllProjectNames(contentDirectories, monorepoRoot);
+			await getAllProjectNames(contentDirectories);
 		console.log("Retrieved all project names for changed content paths");
 
 		const atlasProjectDocuments = await fetchAtlasData({
 			configEnvironment,
 			dbEnvVars,
-			baseDir: allContentData.baseDir,
 			projectNames,
 		});
 
-		// todo maybe remove "content" from all paths
 		allContentData.atlasProjectDocuments = atlasProjectDocuments;
 
 		// updates allContentData with docsPaths and pathsToBuild
@@ -153,7 +144,6 @@ extension.addBuildEventHandler(
 			await runPrebuildModules({
 				netlifyPluginUtils: utils,
 				allContentData,
-				parserPath: path.resolve(allContentData.baseDir, "snooty-parser"),
 				atlasProjectDocuments: allContentData.atlasProjectDocuments,
 				branchName: configEnvironment.BRANCH as string,
 				prId: configEnvironment.REVIEW_ID
@@ -171,7 +161,7 @@ extension.addBuildEventHandler(
 			});
 
 			// run mdx conversion for each changed content path (or all if conversion script or parser has changed)
-			const mdxOutputPath = path.resolve("/opt/build/repo/content-mdx/");
+			const { mdxOutputDir: mdxOutputPath } = getRepoPaths();
 			const relativeFilePaths = await runMdxConversionForContentPaths({
 				allContentData,
 				mdxOutputPath,
