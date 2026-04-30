@@ -156,3 +156,21 @@ var query = queryableCollection
 var query = queryableCollection
     .Select(d => new { NewId = Mql.CreateObjectId() });
 // end-createObjectId-example
+
+// start-serializeEJson-example
+var query = queryableCollection
+    .Select(r => Mql.SerializeEJson<ObjectId, BsonDocument>(
+        r.Id,
+        new SerializeEJsonOptions<BsonDocument>()));
+// end-serializeEJson-example
+
+// start-deserializeEJson-example
+var rawCollection = myDatabase
+    .GetCollection<BsonDocument>("myCollection")
+    .AsQueryable();
+
+var query = rawCollection
+    .Select(doc => Mql.DeserializeEJson<BsonDocument, BsonDocument>(
+        doc["ejsonId"].AsBsonDocument,
+        new DeserializeEJsonOptions<BsonDocument>()));
+// end-deserializeEJson-example

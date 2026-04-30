@@ -34,11 +34,6 @@ export const toc: L1TocItem[] = [
                 url: '/docs/drivers/node/:version/connect/mongoclient',
               },
               {
-                label: 'Connection Guide',
-                contentSite: 'node',
-                url: '/docs/drivers/node/:version/connect/connect',
-              },
-              {
                 label: 'Connection Options',
                 contentSite: 'node',
                 collapsible: true,
