@@ -148,6 +148,11 @@ const tocData: TocItem[] = [
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/ai-integrations/langgraph-js/build-agents',
               },
+              {
+                label: 'Add Long Term Memory',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/ai-integrations/langgraph-js/long-term-memory-store',
+              },
             ],
           },
           {

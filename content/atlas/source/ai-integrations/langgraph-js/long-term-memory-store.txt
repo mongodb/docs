@@ -1,0 +1,537 @@
+.. _langgraph-js-long-term-memory:
+
+==============================================================
+Add Long-Term Memory to LangGraph.js Agents with MongoDB Atlas
+==============================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: javascript/typescript
+
+.. meta::
+   :description: Add long-term memory to LangGraph.js agents with MongoDB Atlas, including semantic search with Voyage AI embeddings.
+   :keywords: long-term memory, langgraph, AI agent, vector search, embeddings, voyage ai, feature store, chatbot
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can integrate MongoDB with LangGraph.js to add long-term memory
+to your agents in addition to the short-term memory you get from the
+:ref:`MongoDB LangGraph Checkpointer <langgraph-js>`.
+
+This page builds on the concepts from the following tutorials:
+
+- :ref:`Integrate MongoDB with LangGraph.js <langgraph-js>`
+- :ref:`Build an AI Agent with LangGraph.js and MongoDB Atlas <langgraph-js-build-agents>`
+
+Use this page to learn how to:
+
+- Understand short-term in contrast to long-term memory in LangGraph.
+- Configure a MongoDB-backed long-term memory store for LangGraph.js.
+- Persist and retrieve user-specific data across threads and sessions.
+- Combine long-term memory with {+avs+} and |voyage| embeddings with
+  AutoEmbeddings for semantic recall.
+
+.. note::
+
+   The examples on this page use TypeScript-style syntax. You can adapt
+   them for plain JavaScript by removing type annotations.
+
+Overview of MongoDB Memory Mechanisms in LangGraph
+--------------------------------------------------
+
+LangGraph provides two complementary memory mechanisms:
+
+Short-Term Memory (Checkpoints)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Uses a `checkpointer
+<https://langchain-ai.github.io/langgraphjs/concepts/persistence/>`__
+to persist state for a single thread (conversation) across requests.
+In the MongoDB integration, this is handled by the MongoDB LangGraph
+Checkpointer (``MongoDBSaver``). This enables features like time travel,
+human-in-the-loop review, and fault tolerance for a given conversation.
+
+Long-Term Memory (Stores)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Uses a `Store
+<https://langchain-ai.github.io/langgraphjs/concepts/memory/#long-term-memory>`__
+abstraction to persist data across threads, not just within a single
+conversation. Ideal for storing data that should survive both between sessions *and*
+across agents.
+
+With the MongoDB Store for LangGraph.js, you can:
+
+- Implement the ``BaseStore`` interface in JavaScript/TypeScript with
+  MongoDB as the backend.
+- Use the standard Store API (``get``, ``put``, ``delete``, ``search``)
+  from LangGraph.
+- Store |json| documents under hierarchical namespaces (for example,
+  ``[userId, "memories"]``).
+- Perform semantic search and metadata filtering over your stored data,
+  backed by {+avs+} and |voyage| embeddings with AutoEmbeddings.
+
+Prerequisites
+-------------
+
+Before you begin, ensure that you have the following:
+
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+- `npm and Node.js
+  <https://docs.npmjs.com/downloading-and-installing-node-js-and-npm>`__
+  installed.
+- .. include:: /includes/avs/shared/avs-requirements-voyageai-api-key.rst
+- .. include:: /includes/avs/shared/avs-requirements-openai-api-key.rst
+- A MongoDB database and collection configured for {+avs+} if you plan
+  to use semantic search. To learn more, see
+  :ref:`Create an Atlas Vector Search Index <avs-create-index>`.
+
+You should be familiar with and ideally have completed:
+
+- :ref:`Integrate MongoDB with LangGraph.js <langgraph-js>` (overview,
+  checkpointer, and retrieval tools).
+- :ref:`Build an AI Agent with LangGraph.js and MongoDB Atlas
+  <langgraph-js-build-agents>` (end-to-end agent, vector search, and
+  short-term memory).
+
+Install Dependencies
+--------------------
+
+Install the core dependencies used in the
+:ref:`Build an AI Agent <langgraph-js-build-agents>` tutorial, plus
+the MongoDB Store module for LangGraph.js.
+
+.. code-block:: bash
+
+   npm init -y
+
+   # Core LangChain / LangGraph / MongoDB dependencies
+   npm i --legacy-peer-deps \
+     langchain \
+     @langchain/langgraph \
+     @langchain/mongodb \
+     @langchain/community \
+     @langchain/langgraph-checkpoint-mongodb \
+     dotenv \
+     express \
+     mongodb \
+     zod
+
+The ``@langchain/langgraph-checkpoint-mongodb`` package includes both
+the checkpointer and the MongoDB Store for long-term memory.
+
+Configure the MongoDB Store
+----------------------------
+
+LangGraph Stores implement the ``BaseStore`` interface with operations
+such as ``get``, ``put``, ``delete``, and ``search`` for |json|
+documents under hierarchical namespaces.
+
+Initialize the MongoDB Client
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Reuse the MongoDB client configuration from your existing LangGraph.js
+agent server.
+
+.. code-block:: typescript
+
+   // mongodb-client.ts
+   import { MongoClient } from "mongodb";
+   import "dotenv/config";
+
+   export const client = new MongoClient(process.env.MONGODB_URI as string);
+
+   export async function connectClient() {
+     await client.connect();
+     await client.db("admin").command({ ping: 1 });
+     console.log("Pinged your deployment. You successfully connected to MongoDB!");
+   }
+
+Create a MongoDBStore Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a module that exports a configured ``MongoDBStore`` for
+long-term memory.
+
+.. code-block:: typescript
+
+   // long-term-store.ts
+   import type { MongoClient } from "mongodb";
+   import { MongoDBStore } from "@langchain/langgraph-checkpoint-mongodb";
+
+   const DB_NAME = "hr_database";
+   const COLLECTION_NAME = "long_term_memory";
+
+   export function createMongoDBStore(client: MongoClient) {
+     const store = new MongoDBStore({
+       client,
+       dbName: DB_NAME,
+       collectionName: COLLECTION_NAME,
+     });
+
+     return store;
+   }
+
+This store persists data across threads and sessions, keyed by
+hierarchical namespaces such as ``[userId, "memories"]`` or
+``[userId, "preferences"]``.
+
+Design Your Long-Term Memory Schema
+-------------------------------------
+
+Long-term memory works best when you model stable facts about your
+users or domain.
+
+Common patterns include:
+
+- **User profiles** - Role, seniority, team, location. Persistent
+  preferences (for example, tone, language, product tier).
+- **Constraints and policies** - Allergies, compliance restrictions,
+  budget caps.
+- **Interaction history summaries** - High-level summaries of past
+  sessions. Decisions that should carry forward (for example, "user
+  prefers MongoDB Atlas over self-managed").
+
+You can store these either as simple |json| documents or as documents
+with embeddings for semantic search.
+
+Persist User Memories
+-----------------------
+
+The MongoDB Store API supports the following operations:
+
+- ``put`` - store or update a value.
+- ``get`` - retrieve a value by namespace and key.
+- ``delete`` - remove a value.
+- ``search`` - retrieve values by vector similarity and/or metadata
+  filters.
+
+The exact TypeScript types might differ, but the following code
+demonstrates a typical usage pattern in LangGraph.js:
+
+.. code-block:: typescript
+
+   // memory-api.ts
+   import type { MongoDBStore } from "@langchain/langgraph-checkpoint-mongodb";
+
+   type MemoryValue = {
+     type: "profile" | "preference" | "fact";
+     data: Record<string, unknown>;
+     updatedAt: string;
+   };
+
+   export async function putUserMemory(
+     store: MongoDBStore,
+     userId: string,
+     key: string,
+     value: MemoryValue
+   ) {
+     await store.put(
+       [userId, "memories"],
+       key,
+       value
+     );
+   }
+
+   export async function getUserMemories(
+     store: MongoDBStore,
+     userId: string,
+     key: string
+   ) {
+     const result = await store.get(
+       [userId, "memories"],
+       key
+     );
+
+     return result;
+   }
+
+Add Long-Term Memory to Your Agent Workflow
+--------------------------------------------
+
+This section assumes you already have an agent workflow similar to the
+one described in :ref:`Build an AI Agent with LangGraph.js and MongoDB
+Atlas <langgraph-js-build-agents>`, including:
+
+- A ``GraphState`` annotation with a ``messages`` field.
+- A tool node that calls {+avs+} using embeddings from Voyage AI.
+- A chat model node that decides whether to call tools or respond
+  directly.
+- A ``MongoDBSaver`` checkpointer for short-term memory.
+
+Inject the Store into Your Agent Function
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Update your ``callAgent`` function to accept a ``store`` alongside the
+MongoDB client:
+
+.. code-block:: typescript
+
+   // agent-with-long-term-memory.ts
+   import { ChatOpenAI } from "@langchain/openai";
+   import {
+     AIMessage,
+     BaseMessage,
+     HumanMessage,
+   } from "@langchain/core/messages";
+   import {
+     ChatPromptTemplate,
+     MessagesPlaceholder,
+   } from "@langchain/core/prompts";
+   import { StateGraph, Annotation } from "@langchain/langgraph";
+   import { tool } from "@langchain/core/tools";
+   import { ToolNode } from "@langchain/langgraph/prebuilt";
+   import { MongoDBSaver } from "@langchain/langgraph-checkpoint-mongodb";
+   import type { MongoClient } from "mongodb";
+   import type { MongoDBStore } from "@langchain/langgraph-checkpoint-mongodb";
+   import { putUserMemory, getUserMemories } from "./memory-api";
+
+   export async function callAgent(
+     client: MongoClient,
+     store: MongoDBStore,
+     query: string,
+     threadId: string,
+     userId: string,
+   ) {
+     const dbName = "hr_database";
+     const db = client.db(dbName);
+     const collection = db.collection("employees");
+
+     // 1. Retrieve long-term memories for the user
+     const existingMemories = await getUserMemories(store, userId, "last_response");
+
+     // 2. Define graph state
+     const GraphState = Annotation.Root({
+       messages: Annotation<BaseMessage[]>({
+         reducer: (x, y) => x.concat(y),
+       }),
+       userId: Annotation<string>(),
+       memories: Annotation<unknown | null>(),
+     });
+
+     // 3. Define tools (for example, MongoDB Vector Search retriever)
+     const employeeLookupTool = tool(/* ...reuse from Build an AI Agent tutorial... */);
+     const tools = [employeeLookupTool];
+     const toolNode = new ToolNode<typeof GraphState.State>(tools);
+
+     // 4. Configure the chat model
+     const model = new ChatOpenAI({
+       model: "gpt-5.4-mini",
+     }).bindTools(tools);
+
+     // 5. Define the model node
+     async function callModel(state: typeof GraphState.State) {
+       const prompt = ChatPromptTemplate.fromMessages([
+         "system",
+         `You are a helpful HR chatbot agent.
+   Use the provided tools and long-term memories to answer questions.
+   Long-term memories (if any) are in the "memories" field.`,
+         new MessagesPlaceholder("messages"),
+       ]);
+
+       const formatted = await prompt.formatMessages({
+         messages: state.messages,
+       });
+
+       const result = await model.invoke(formatted);
+       return { messages: [result] };
+     }
+
+     // 6. Define routing logic
+     function shouldContinue(state: typeof GraphState.State) {
+       const messages = state.messages;
+       const lastMessage = messages[messages.length - 1] as AIMessage;
+
+       if (lastMessage.tool_calls?.length) {
+         return "tools";
+       }
+
+       return "__end__";
+     }
+
+     // 7. Build the workflow
+     const workflow = new StateGraph(GraphState)
+       .addNode("agent", callModel)
+       .addNode("tools", toolNode)
+       .addEdge("__start__", "agent")
+       .addConditionalEdges("agent", shouldContinue)
+       .addEdge("tools", "agent");
+
+     // 8. Configure short-term memory (checkpointer)
+     const checkpointer = new MongoDBSaver({ client, dbName });
+
+     const app = workflow.compile({
+       checkpointer,
+       store,
+     });
+
+     // 9. Invoke the graph with both short-term and long-term memory
+     const finalState = await app.invoke(
+       {
+         messages: [new HumanMessage(query)],
+         userId,
+         memories: existingMemories,
+       },
+       {
+         recursionLimit: 15,
+         configurable: { thread_id: threadId },
+       },
+     );
+
+     const last = finalState.messages[finalState.messages.length - 1];
+     const content = last.content;
+
+     // 10. Optionally, update long-term memory with new facts
+     await putUserMemory(store, userId, "last_response", {
+       type: "fact",
+       data: { content },
+       updatedAt: new Date().toISOString(),
+     });
+
+     return content;
+   }
+
+This pattern lets you:
+
+- Read long-term memory at the start of each interaction.
+- Inject those memories into the state (for example, as ``memories`` or
+  into the system prompt).
+- Update long-term memory after each interaction based on what the
+  agent learned.
+
+Use Semantic Search and AutoEmbeddings for Long-Term Memory
+-------------------------------------------------------------
+
+To make long-term memory searchable by meaning, you can:
+
+#. Store each memory as a document that includes:
+
+   - A text summary or description.
+   - Structured metadata (for example, ``userId``, ``type``, ``tags``).
+   - An embedding vector for semantic search.
+
+#. Configure a {+avs+} index on the ``embedding`` field for your
+   memory collection.
+
+#. Use Voyage AI embeddings or Voyage AutoEmbeddings (through the Atlas
+   Embedding and Reranking API) to generate embeddings for each memory
+   document before inserting it.
+
+#. Use the built-in ``search`` method on ``MongoDBStore``, which calls
+   ``$vectorSearch`` on your memory collection, optionally combined
+   with metadata filters such as ``userId`` and ``type``.
+
+The following code demonstrates how to use the built-in ``search``
+method on ``MongoDBStore`` to find memories by semantic similarity
+and metadata filters:
+
+.. code-block:: typescript
+
+   // semantic-memory.ts
+   import type { MongoDBStore } from "@langchain/langgraph-checkpoint-mongodb";
+
+   export async function searchUserMemories(
+     store: MongoDBStore,
+     userId: string,
+     queryText: string,
+     limit = 5,
+   ) {
+     const results = await store.search(
+       [userId, "memories"],
+       {
+         query: queryText,
+         filter: { type: "fact" },
+         limit,
+       },
+     );
+
+     return results;
+   }
+
+The ``search`` method accepts a namespace prefix and an options object
+with the following fields:
+
+- ``query`` - A text string for semantic search. The store uses {+avs+}
+  to find memories that are semantically similar to the query.
+- ``filter`` - A metadata filter object to narrow results (for example,
+  ``{ type: "fact" }``).
+- ``limit`` - The maximum number of results to return (default: ``10``).
+- ``offset`` - The number of results to skip for pagination
+  (default: ``0``).
+
+.. note::
+
+   With `Voyage AutoEmbeddings <https://docs.voyageai.com/>`__, you can
+   offload embedding generation to the :ref:`Atlas Embedding and Reranking
+   API <voyage-api-client>` and use {+avs+} as your storage backend. 
+   The LangGraph.js Long-Term Memory Store is designed to work with this 
+   experience so that you can combine automatic embedding generation 
+   with LangGraph Stores and Vector Search for a unified long-term memory layer.
+
+When to Use Short-Term vs Long-Term Memory
+-------------------------------------------
+
+Use the following guidelines to choose the right memory mechanism for
+each part of your application:
+
+.. list-table::
+   :widths: 20 40 40
+   :header-rows: 1
+
+   * - Mechanism
+     - When to Use
+     - Details
+
+   * - Short-Term Memory (Checkpointer)
+     - Use for per-thread context that only matters within a
+       conversation.
+     - Ideal for step-by-step reasoning, tool call results, and
+       intermediate state. Backed by ``MongoDBSaver`` in both Python
+       and JavaScript integrations.
+
+   * - Long-Term Memory (Store)
+     - Use for cross-thread information that should persist over time.
+     - Ideal for user profiles, policies and constraints, long-lived
+       facts, and semantic recall. Backed by the MongoDB Store
+       implementation of ``BaseStore`` in LangGraph.js.
+
+In many real-world applications, you will:
+
+- Use short-term memory to keep the current conversation coherent.
+- Use long-term memory to remember the user and important facts from
+  past conversations.
+- Use {+avs+} and |voyage| embeddings with AutoEmbeddings to search
+  memories semantically when generating responses.
+
+Next Steps
+----------
+
+- Follow the end-to-end tutorial in
+  :ref:`Build an AI Agent with LangGraph.js and MongoDB Atlas
+  <langgraph-js-build-agents>`.
+- Use this page as a reference to layer long-term memory and semantic
+  search on top of your existing agent.
+- Explore the `Voyage AI docs <https://docs.voyageai.com/>`__ and the
+  Atlas Embedding and Reranking API for more details on embeddings and
+  auto-embedding workflows.
+
+MongoDB also provides the following developer resources:
+
+- :github:`MongoDB Developer GitHub Repository </mongodb-developer>`
+
+.. seealso::
+
+   - `LangGraph.js Documentation <https://langchain-ai.github.io/langgraphjs/>`__
+   - `LangGraph.js Memory Concepts <https://langchain-ai.github.io/langgraphjs/concepts/memory/>`__
+   - :ref:`LangGraph.js Integration Overview <langgraph-js>`
+ 
