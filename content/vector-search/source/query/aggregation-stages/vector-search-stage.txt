@@ -58,15 +58,12 @@ Run Vector Search Queries
 
          .. include:: /includes/pipeline-stage/vectorSearch/facts/about-vector-search-with-auto-embed.rst
 
-   .. selected-content::
-      :selections: self, auto, none, none
+         .. important:: 
 
-      .. important:: 
-
-         Automated Embedding is available as a Preview feature. The
-         feature and the corresponding documentation might change at any
-         time during the Preview period. To learn more, see `Preview
-         Features <https://www.mongodb.com/docs/preview-features/>`__. 
+            Automated Embedding is available as a Preview feature. The
+            feature and the corresponding documentation might change at any
+            time during the Preview period. To learn more, see `Preview
+            Features <https://www.mongodb.com/docs/preview-features/>`__. 
 
    .. _vectorSearch-agg-pipeline-clients:
 
@@ -110,7 +107,7 @@ Run Vector Search Queries
    ------
 
    .. selected-content::
-      :selections: atlas, byo, none, none
+      :selections: none, byo, none, none
 
       The field that you want to search must be indexed as {+avs+}
       :ref:`vector <avs-types-vector>` type inside a :ref:`vectorSearch 
@@ -159,7 +156,7 @@ Run Vector Search Queries
    The ``$vectorSearch`` stage takes a document with the following fields:
 
    .. selected-content::
-      :selections: atlas, byo, none, none
+      :selections: none, byo, none, none
 
       .. include:: /includes/pipeline-stage/vectorSearch/list-tables/list-table-fields.rst
 
@@ -425,57 +422,114 @@ Run Vector Search Queries
    similarity), to every document that it returns. 
 
    .. selected-content::
-      :selections: atlas, byo, none, none
+      :selections: none, byo, none, none
 
       The score is calculated according to the ``similarity`` function that
       you specify in the {+avs+} :ref:`index definition
       <avs-types-vector-search-options>`. To learn more about the
       ``similarity`` options you can choose from, see
       :ref:`avs-similarity-functions`.
+
+      ``vectorSearchScore``
+      ````````````````````` 
+      
+      Each returned document includes the score as metadata. To return each
+      document's score along with the result set, use a
+      :pipeline:`$project` stage in your aggregation pipeline and configure
+      the ``score`` as a field to project. In the ``score`` field, specify a
+      :manual:`$meta </reference/mql/expressions/#text-operators>` expression
+      with the value ``vectorSearchScore``. The syntax is as follows:
+
+      .. code-block:: javascript
+         :copyable: false
+         :linenos:
+         :emphasize-lines: 11
+
+         db.<collection>.aggregate([
+         {
+            "$vectorSearch": {
+               <query-syntax>
+            }
+         },
+         {
+            "$project": {
+               "<field-to-include>": 1,
+               "<field-to-exclude>": 0,
+               "score": { "$meta": "vectorSearchScore" }
+            }
+         }
+         ]) 
+
+      .. note:: 
+
+         You can use ``vectorSearchScore`` as a ``score`` :manual:`$meta
+         </reference/operator/aggregation/meta/>` expression only after the
+         :pipeline:`$vectorSearch` pipeline stage. If you use
+         ``vectorSearchScore`` after any other query, MongoDB logs a warning
+         starting in MongoDB v8.2.
+
+      ``nestedOptions``
+      `````````````````
+
+      Use ``nestedOptions`` if you are querying a {+avs+} index that has 
+      ``nestedRoot`` specified in the index definition.
+
+      The ``nestedOptions`` field controls how the individual scores from 
+      multiple matching vector embeddings from child documents are combined 
+      to calculate a single relevance score for the overall parent document 
+      that is returned in the results. 
+      
+      If you omit this field, the ``scoreMode`` defaults to ``max``.
+
+      ``max`` 
+         When ``scoreMode`` is set to ``max``, {+avs+} uses the maximum score from 
+         the matching child documents as the overall score for the parent document.
+         Use this if you want the parent document to be ranked based on its single 
+         most relevant nested item. 
+
+      ``avg``
+         When ``scoreMode`` is set to ``avg``, {+avs+} calculates the average score 
+         of all the matching child documents as the overall score for the parent 
+         document. Use this if you want the parent document to be ranked based on 
+         the relevance of all of its nested items.
 
    .. selected-content::
-      :selections: self, byo, none, none
+      :selections: self, auto, none, none
+      
+      Each returned document includes the score as metadata. To return each
+      document's score along with the result set, use a
+      :pipeline:`$project` stage in your aggregation pipeline and configure
+      the ``score`` as a field to project. In the ``score`` field, specify a
+      :manual:`$meta </reference/mql/expressions/#text-operators>` expression
+      with the value ``vectorSearchScore``. The syntax is as follows:
 
-      The score is calculated according to the ``similarity`` function that
-      you specify in the {+avs+} :ref:`index definition
-      <avs-types-vector-search-options>`. To learn more about the
-      ``similarity`` options you can choose from, see
-      :ref:`avs-similarity-functions`.
+      .. code-block:: javascript
+         :copyable: false
+         :linenos:
+         :emphasize-lines: 11
 
-   Each returned document includes the score as metadata. To return each
-   document's score along with the result set, use a
-   :pipeline:`$project` stage in your aggregation pipeline and configure
-   the ``score`` as a field to project. In the ``score`` field, specify a
-   :manual:`$meta </reference/mql/expressions/#text-operators>` expression
-   with the value ``vectorSearchScore``. The syntax is as follows:
+         db.<collection>.aggregate([
+         {
+            "$vectorSearch": {
+               <query-syntax>
+            }
+         },
+         {
+            "$project": {
+               "<field-to-include>": 1,
+               "<field-to-exclude>": 0,
+               "score": { "$meta": "vectorSearchScore" }
+            }
+         }
+         ]) 
 
-   .. code-block:: javascript
-      :copyable: false
-      :linenos:
-      :emphasize-lines: 11
+      .. note:: 
 
-      db.<collection>.aggregate([
-        {
-          "$vectorSearch": {
-            <query-syntax>
-          }
-        },
-        {
-          "$project": {
-            "<field-to-include>": 1,
-            "<field-to-exclude>": 0,
-            "score": { "$meta": "vectorSearchScore" }
-          }
-        }
-      ]) 
-
-   .. note:: 
-
-      You can use ``vectorSearchScore`` as a ``score`` :manual:`$meta
-      </reference/operator/aggregation/meta/>` expression only after the
-      :pipeline:`$vectorSearch` pipeline stage. If you use
-      ``vectorSearchScore`` after any other query, MongoDB logs a warning
-      starting in MongoDB v8.2.
+         You can use ``vectorSearchScore`` as a ``score`` :manual:`$meta
+         </reference/operator/aggregation/meta/>` expression only after the
+         :pipeline:`$vectorSearch` pipeline stage. If you use
+         ``vectorSearchScore`` after any other query, MongoDB logs a warning
+         starting in MongoDB v8.2.
 
    .. include:: /includes/pipeline-stage/vectorSearch/facts/fact-avs-pre-filtering-score-impact.rst
 
@@ -484,49 +538,33 @@ Run Vector Search Queries
    {+avs+} Pre-Filtering
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   The :pipeline:`$vectorSearch` ``filter`` option matches |bson|
-   {+avs-filter-types+}.
-
-   You **must** index the fields that you want to filter your data by as the
-   :ref:`filter <avs-types-vector-search>` type in a :ref:`vectorSearch
-   <avs-types-vector-search>` type index definition. Filtering your data is
-   useful to narrow the scope of your semantic search.
-
    .. include:: /includes/shared/facts/fact-avs-filter-performance.rst
 
-   {+avs+} supports the :pipeline:`$vectorSearch` ``filter`` option for
-   the following {+mql+} :manual:`operators
-   </reference/mql/query-operators/>`:
+   .. selected-content::
+      :selections: none, byo, none, none
 
-   .. list-table::
-      :header-rows: 1
-      :widths: 30 70
+      Pre-Filter for Top-Level Embeddings
+      ```````````````````````````````````
+      .. include:: /includes/pipeline-stage/vectorSearch/facts/about-filters.rst
 
-      * - Type
-        - {+mql+} operator
+      Pre-Filter for Nested Embeddings
+      ````````````````````````````````
 
-      * - Equality
-        - :query:`$eq`, :query:`$ne`
+      For nested embeddings, the :pipeline:`$vectorSearch` supports the ``filter`` 
+      and ``parentFilter`` options to pre-filter the data. Use the: 
+      
+      - ``filter`` option to filter by child or nested embedded document fields 
+        of the field specified as the ``nestedRoot`` in the index definition. 
+      - ``parentFilter`` to filter by root-level fields.
 
-      * - Range
-        - :query:`$gt`, :query:`$lt`, :query:`$gte`, :query:`$lte`
+      You can't combine the ``filter`` and ``parentFilter`` options using
+      ``OR``. When you specify both, {+avs+} implicitly combines both 
+      using ``AND`` and both *must* match.
 
-      * - In set
-        - :query:`$in`, :query:`$nin`
+   .. selected-content::
+      :selections: self, auto, none, none
 
-      * - Existence
-        - :query:`$exists`
-
-      * - Logical
-        - :query:`$not`, :query:`$nor`, :expression:`$and`, :expression:`$or`
-
-   .. note::
-
-      The :pipeline:`$vectorSearch` ``filter`` option doesn't support
-      other :ref:`query operators <query-predicates-ref>`,
-      :ref:`aggregation pipeline operators
-      <aggregation-expressions>`, or :ref:`{+fts+} operators
-      <operators-ref>`.
+      .. include:: /includes/pipeline-stage/vectorSearch/facts/about-filters.rst
 
    Filtering Considerations
    ````````````````````````
@@ -571,7 +609,6 @@ Run Vector Search Queries
      :ref:`vectorSearch <fts-vectorSearch-ref>` operator in a
      :pipeline:`$search` stage.
 
-
    .. selected-content::
       :selections: atlas, byo, none, none
 
@@ -585,12 +622,7 @@ Run Vector Search Queries
    --------
 
    .. selected-content::
-      :selections: atlas, byo, none, none
-
-      .. include:: /includes/pipeline-stage/vectorSearch/facts/examples-introduction.rst
-
-   .. selected-content::
-      :selections: self, byo, none, none
+      :selections: None, byo, none, none
 
       .. include:: /includes/pipeline-stage/vectorSearch/facts/examples-introduction.rst
 
@@ -604,21 +636,29 @@ Run Vector Search Queries
 
    Before you run these examples, perform the following actions:
 
-   - Add the :ref:`dataset <sample-mflix>` to your cluster.
+   - Add the :ref:`sample dataset <load-sample-data>` used in the 
+     query to your cluster.
 
    - Create {+avs+} indexes for the collection. For instructions, see
      the :ref:`avs-create-index` procedure and copy the configurations
-     for the basic, filter, or stored source examples in your desired 
-     language.
+     for the |ann| and |enn| examples in your desired language.
      
    .. note:: 
 
-      If you use {+mongosh+}, pasting the ``queryVector`` from the sample code 
-      into your terminal might take a while depending on your machine.  
+      If you use {+mongosh+}, pasting the ``queryVector`` directly  
+      into your terminal might take a while depending on your machine. We 
+      recommend saving the vector embeddings in a file and loading it into 
+      {+mongosh+} using the :manual:`load() </reference/mongosh/load>` 
+      command.
+
+   Queries 
+   ~~~~~~~
 
    .. collapsible:: 
       :heading: Simple Example
       :expanded: false
+
+      .. Introduction
 
       .. selected-content::
          :selections: atlas, byo, none, none
@@ -634,6 +674,8 @@ Run Vector Search Queries
          :selections: self, auto, none, none
 
          .. include:: /includes/pipeline-stage/vectorSearch/facts/auto-embed-basic-query-desc.rst
+
+      .. Atlas, BYO Embeddings
 
       .. selected-content::
          :selections: atlas, byo, mongosh, none
@@ -723,6 +765,8 @@ Run Vector Search Queries
                :linenos: 
                :visible: false
 
+      .. Self-Managed, BYO Embeddings
+
       .. selected-content::
          :selections: self, byo, mongosh, none
 
@@ -810,6 +854,8 @@ Run Vector Search Queries
                :language: js
                :linenos: 
                :visible: false
+
+   .. Self-Managed, Automated Embeddings
 
       .. selected-content::
          :selections: self, auto, mongosh, none
@@ -856,6 +902,21 @@ Run Vector Search Queries
                :visible: false
 
       .. selected-content::
+         :selections: self, auto, driver, java-sync
+
+         .. io-code-block::
+            :copyable: true 
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/java/ann-basic-auto-embed-query.java
+               :language: java
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/ann-basic-auto-embed-query-java-output.js 
+               :language: js
+               :linenos: 
+               :visible: false
+
+      .. selected-content::
          :selections: self, auto, driver, nodejs
 
          .. io-code-block::
@@ -885,24 +946,11 @@ Run Vector Search Queries
                :linenos: 
                :visible: false
 
-      .. selected-content::
-         :selections: self, auto, driver, java-sync
-
-         .. io-code-block::
-            :copyable: true 
-
-            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/java/ann-basic-auto-embed-query.java
-               :language: java
-               :linenos: 
-
-            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/ann-basic-auto-embed-query-java-output.js 
-               :language: js
-               :linenos: 
-               :visible: false
-
    .. collapsible:: 
       :heading: Filter Example
       :expanded: false
+
+      .. Introduction
 
       .. selected-content::
          :selections: atlas, byo, none, none
@@ -918,6 +966,8 @@ Run Vector Search Queries
          :selections: self, auto, none, none
 
          .. include:: /includes/pipeline-stage/vectorSearch/facts/auto-embed-filter-query-desc.rst
+
+      .. Atlas, BYO Embeddings
 
       .. selected-content::
          :selections: atlas, byo, mongosh, none
@@ -1009,6 +1059,8 @@ Run Vector Search Queries
                :linenos: 
                :visible: false
 
+      .. Self-Managed, BYO Embeddings
+
       .. selected-content::
          :selections: self, byo, mongosh, none
 
@@ -1098,6 +1150,8 @@ Run Vector Search Queries
                :language: js
                :linenos: 
                :visible: false
+
+      .. Self-Managed, Automated Embeddings
 
       .. selected-content::
          :selections: self, auto, mongosh, none
@@ -1188,6 +1242,8 @@ Run Vector Search Queries
                :linenos: 
                :visible: false
 
+      .. Results
+
       .. selected-content::
          :selections: atlas, byo, none, none
 
@@ -1209,6 +1265,8 @@ Run Vector Search Queries
       :heading: ENN Example 
       :expanded: false
 
+      .. Introduction
+
       .. selected-content::
          :selections: atlas, byo, none, none
 
@@ -1223,6 +1281,8 @@ Run Vector Search Queries
          :selections: self, auto, none, none
 
          .. include:: /includes/pipeline-stage/vectorSearch/facts/auto-embed-enn-query-description.rst
+
+      .. Atlas, BYO Embeddings
 
       .. selected-content::
          :selections: atlas, byo, mongosh, none
@@ -1239,7 +1299,7 @@ Run Vector Search Queries
                :language: go
                :linenos: 
 
-            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/enn-basic-query-csharpt-output.js
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/enn-basic-query-csharp-output.js
                :language: sh
                :linenos: 
                :visible: false
@@ -1312,6 +1372,8 @@ Run Vector Search Queries
                :linenos:
                :visible: false
 
+      .. Self-Managed, BYO Embeddings
+
       .. selected-content::
          :selections: self, byo, mongosh, none
 
@@ -1327,7 +1389,7 @@ Run Vector Search Queries
                :language: go
                :linenos: 
 
-            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/enn-basic-query-csharpt-output.js
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/enn-basic-query-csharp-output.js
                :language: sh
                :linenos: 
                :visible: false
@@ -1400,6 +1462,8 @@ Run Vector Search Queries
                :linenos:
                :visible: false
 
+      .. Self-Managed, Automated Embeddings
+
       .. selected-content::
          :selections: self, auto, mongosh, none
 
@@ -1461,15 +1525,15 @@ Run Vector Search Queries
          :selections: self, auto, driver, nodejs
 
          .. io-code-block::
-            :copyable: true 
+            :copyable: true
 
             .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/nodejs/auto-embed-enn-query.js
                :language: js
-               :linenos: 
+               :linenos:
 
-            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-enn-query-nodejs-output.js 
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-enn-query-nodejs-output.js
                :language: js
-               :linenos: 
+               :linenos:
                :visible: false
 
       .. selected-content::
@@ -1482,18 +1546,331 @@ Run Vector Search Queries
                :language: python
                :linenos: 
 
-            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-enn-query-py-output.js
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-enn-query-py-output.js 
                :language: js
                :linenos:
                :visible: false
 
+   .. _avs-ann-filter-examples:
+
+   .. collapsible::
+      :heading: ANN Filter Query
+      :expanded: false
+
+      .. Introduction
+
+      .. selected-content::
+         :selections: none, byo, none, none
+         
+         .. include:: /includes/pipeline-stage/vectorSearch/facts/avs-filter-query-desc.rst
+
+      .. selected-content::
+         :selections: self, auto, none, none
+
+         .. include:: /includes/pipeline-stage/vectorSearch/facts/auto-embed-filter-query-desc.rst
+
+      .. selected-content::
+         :selections: atlas, byo, mongosh, none
+
+         .. include:: /includes/pipeline-stage/vectorSearch/procedures/steps-ann-filter-query-mongosh.rst
+
+      .. Atlas, BYO Embeddings
+
+      .. selected-content::
+         :selections: atlas, byo, driver, csharp
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/csharp/filter-query.cs 
+               :language: csharp
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-csharp-output.js  
+               :language: js
+               :linenos: 
+               :visible: false
+
+      .. selected-content::
+         :selections: atlas, byo, driver, go
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/go/filter-query.go
+               :language: go
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-go-output.sh
+               :language: shell
+               :linenos:
+               :visible: false
+
+      .. selected-content::
+         :selections: atlas, byo, driver, java-sync
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/java/filter-query.java 
+               :language: java
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-java-output.js  
+               :language: js
+               :linenos: 
+               :visible: false
+
+      .. selected-content::
+         :selections: atlas, byo, driver, nodejs
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/nodejs/filter-query.js 
+               :language: js
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-nodejs-output.js  
+               :language: js
+               :linenos: 
+               :visible: false
+
+      .. selected-content::
+         :selections: atlas, byo, driver, python
+
+         .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/run-queries/ann-filter.ipynb
+
+         .. cta-banner::
+            :url: https://github.com/mongodb/docs-notebooks/blob/main/run-queries/ann-filter.ipynb
+            :icon: Code
+
+            Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/run-queries/ann-filter.ipynb>`.
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/python/filter-query.py 
+               :language: python
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-python-output.js  
+               :language: js
+               :linenos: 
+               :visible: false
+
+      .. Self-Managed, BYO Embeddings
+
+      .. selected-content::
+         :selections: self, byo, mongosh, none
+
+         .. include:: /includes/pipeline-stage/vectorSearch/procedures/steps-ann-filter-query-mongosh.rst
+
+      .. selected-content::
+         :selections: self, byo, driver, csharp
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/csharp/filter-query.cs 
+               :language: csharp
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-csharp-output.js  
+               :language: js
+               :linenos: 
+               :visible: false
+
+      .. selected-content::
+         :selections: self, byo, driver, go
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/go/filter-query.go
+               :language: go
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-go-output.sh
+               :language: shell
+               :linenos:
+               :visible: false
+
+      .. selected-content::
+         :selections: self, byo, driver, java-sync
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/java/filter-query.java 
+               :language: java
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-java-output.js  
+               :language: js
+               :linenos: 
+               :visible: false
+
+      .. selected-content::
+         :selections: self, byo, driver, nodejs
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/nodejs/filter-query.js 
+               :language: js
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-nodejs-output.js  
+               :language: js
+               :linenos: 
+               :visible: false
+
+      .. selected-content::
+         :selections: self, byo, driver, python
+
+         .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/run-queries/ann-filter.ipynb
+
+         .. cta-banner::
+            :url: https://github.com/mongodb/docs-notebooks/blob/main/run-queries/ann-filter.ipynb
+            :icon: Code
+
+            Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/run-queries/ann-filter.ipynb>`.
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/python/filter-query.py 
+               :language: python
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/filter-query-python-output.js  
+               :language: js
+               :linenos: 
+               :visible: false
+
+      .. Self-Managed, Automated Embeddings
+
+      .. selected-content::
+         :selections: self, auto, mongosh, none
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/shell/auto-embed-filter-query.sh
+               :language: json
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-filter-query-shell-output.js 
+               :language: js
+               :linenos: 
+               :visible: false
+
+      .. selected-content::
+         :selections: self, auto, driver, csharp
+
+         .. io-code-block::
+            :copyable: true 
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/csharp/auto-embed-filter-query.cs
+               :language: csharp
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-filter-query-csharp-output.js
+               :language: js
+               :linenos: 
+
+      .. selected-content::
+         :selections: self, auto, driver, go
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/go/auto-embed-filter-query.go
+               :language: go
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-filter-query-go-output.js
+               :language: shell
+               :linenos:
+               :visible: false
+
+      .. selected-content::
+         :selections: self, auto, driver, java-sync
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/java/auto-embed-filter-query.java 
+               :language: java
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-filter-java-output.js  
+               :language: js
+               :linenos: 
+               :visible: false
+
+      .. selected-content::
+         :selections: self, auto, driver, nodejs
+
+         .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/nodejs/auto-embed-filter-query.js 
+            :language: js
+            :linenos: 
+
+         .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-filter-query-nodejs-output.js  
+            :language: js
+            :linenos: 
+            :visible: false
+
+      .. selected-content::
+         :selections: self, auto, driver, python
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/python/auto-embed-filter-query.py 
+               :language: python
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/auto-embed-filter-query-python-output.js  
+               :language: js
+               :linenos: 
+               :visible: false
+
+      .. Results
+
+      .. selected-content::
+         :selections: none, byo, none, none
+
+         .. include:: /includes/pipeline-stage/vectorSearch/facts/avs-filter-query-results.rst      
+
+      .. selected-content::
+         :selections: self, auto, none, none
+
+         .. include:: /includes/pipeline-stage/vectorSearch/facts/auto-embed-filter-query-results.rst
+
    .. _avs-stored-source-example:
+
+   .. Atlas, BYO Embeddings
 
    .. selected-content::
       :selections: atlas, byo, mongosh, none
 
+      .. collapsible::
+         :heading: ANN Nested Field Query
+         :sub_heading: Query against a nested field that contains vector embeddings.
+         :expanded: false
+
+         .. include:: /includes/pipeline-stage/vectorSearch/facts/nested-embeddings-query-desc.rst
+
+         Create the embeddings for the nested field and index the collection by following the
+         instructions in :ref:`avs-create-index-procedure`.
+
+         .. include:: /includes/pipeline-stage/vectorSearch/procedures/steps-nested-embeddings-query-mongosh.rst
+      
       .. collapsible:: 
          :heading: Stored Source Example
+         :sub_heading: Query against a field that contains vector embeddings and return only the stored source fields.
          :expanded: false
 
          .. include:: /includes/pipeline-stage/vectorSearch/facts/avs-stored-source-query-desc.rst
@@ -1503,8 +1880,30 @@ Run Vector Search Queries
    .. selected-content::
       :selections: atlas, byo, driver, nodejs
 
+      .. collapsible::
+         :heading: ANN Nested Field Query
+         :sub_heading: Query against a nested field that contains vector embeddings.
+         :expanded: false
+
+         .. include:: /includes/pipeline-stage/vectorSearch/facts/nested-embeddings-query-desc.rst
+
+         Create the embeddings for the nested field and index the collection by following the
+         instructions in :ref:`avs-create-index-procedure`.
+
+         .. io-code-block::
+            :copyable: true 
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/nodejs/nested-embedding-query.js
+               :language: js
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/nested-embedding-query-nodejs-output.js 
+               :language: js
+               :linenos: 
+      
       .. collapsible:: 
          :heading: Stored Source Example
+         :sub_heading: Query against a field that contains vector embeddings and return only the stored source fields.
          :expanded: false
 
          .. include:: /includes/pipeline-stage/vectorSearch/facts/avs-stored-source-query-desc.rst
@@ -1524,8 +1923,29 @@ Run Vector Search Queries
    .. selected-content::
       :selections: atlas, byo, driver, python
 
+      .. collapsible::
+         :heading: ANN Nested Field Query
+         :sub_heading: Query against a nested field that contains vector embeddings.
+         :expanded: false
+
+         .. include:: /includes/pipeline-stage/vectorSearch/facts/nested-embeddings-query-desc.rst
+
+         Create the embeddings for the nested field and index the collection by following the
+         instructions in :ref:`avs-create-index-procedure`.
+
+         .. io-code-block::
+            :copyable: true
+
+            .. input:: /includes/pipeline-stage/vectorSearch/code-snippets/python/nested-embedding-query.py
+               :language: python
+               :linenos: 
+
+            .. output:: /includes/pipeline-stage/vectorSearch/code-snippets/output/nested-embedding-query-py-output.js 
+               :language: js
+
       .. collapsible:: 
          :heading: Stored Source Example
+         :sub_heading: Query against a field that contains vector embeddings and return only the stored source fields.
          :expanded: false
 
          .. include:: /includes/pipeline-stage/vectorSearch/facts/avs-stored-source-query-desc.rst

@@ -102,6 +102,55 @@
                   :copyable:
                   :linenos:
 
+            .. tab:: Nested Field 
+               :tabid: nested
+               
+               Run the following Python script to create nested embeddings for the 
+               ``reviews.comments`` field in the ``sample_airbnb.listingsAndReviews`` 
+               collection after replacing the following placeholder values:
+
+               .. list-table:: 
+                  :widths: 30 70 
+                  :header-rows: 1
+
+                  * - Placeholder 
+                    - Valid Value 
+
+                  * - ``<CONNECTION-STRING>``
+                    - Cluster connection string. To learn more, see
+                      :ref:`connect-via-driver`.
+
+                  * - ``<API-KEY>``
+                    - Voyage AI API key. To learn more, see
+                      :ref:`Voyage AI API Keys <voyage-api-keys>`.
+
+               The script creates 1024-dimension embeddings using the 
+               ``voyage-4-large`` model for the ``reviews.comments`` field in the 
+               ``reviews`` array. It adds the embeddings to the ``reviews`` array 
+               as a new field named ``comments_embedding``.
+
+               .. literalinclude:: /includes/pipeline-stage/vectorSearch/code-snippets/python/add-nested-embeddings.py
+                  :language: python
+                  :linenos:
+                  :copyable: true
+
+               The following index definition on the ``sample_airbnb.listingsAndReviews`` 
+               collection indexes the following fields: 
+
+               - The string fields (``address.country`` and ``property_type``), a 
+                 numeric field (``bedrooms``), and a date field (``reviews.date``)
+                 for pre-filtering the data. 
+               - The vector embeddings field (``reviews.comments_embedding``) for
+                 performing vector search against pre-filtered data.
+               - The ``reviews`` array field as the ``nestedRoot`` field for indexing 
+                 nested vector fields.
+
+               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/nested-embedding-example-acli.json
+                  :language: json
+                  :copyable:
+                  :linenos:
+
+
    .. step:: Run the following command to create the index.
 
       .. code-block:: shell 

@@ -7,8 +7,8 @@ uri = "<connectionString>"
 client = MongoClient(uri)
 
 # Access your database and collection
-database = client["<databaseName>"]
-collection = database["<collectionName>"]
+database = client["sample_airbnb"]
+collection = database["listingsAndReviews"]
 
 # Create your index model, then create the search index
 search_index_model = SearchIndexModel(
@@ -16,28 +16,30 @@ search_index_model = SearchIndexModel(
     "fields": [
       {
         "type": "vector",
-        "numDimensions": <numberofDimensions>,
-        "path": "<fieldToIndex>",
-        "similarity": "euclidean | cosine | dotProduct",
-        "quantization": "none | scalar | binary",
-        "indexingMethod": "flat | hnsw",
-        "hnswOptions": {
-          "maxEdges": <number-of-connected-neighbors>,
-          "numEdgeCandidates": <number-of-nearest-neighbors>
-        }
+        "path": "reviews.comments_embedding",
+        "numDimensions": 1024,
+        "similarity": "cosine"
       },
       {
         "type": "filter",
-        "path": "<fieldToIndex>"
+        "path": "address.country"
       },
-      ...
+      {
+        "type": "filter",
+        "path": "bedrooms"
+      },
+      {
+        "type": "filter",
+        "path": "property_type"
+      },
+      {
+        "type": "filter",
+        "path": "reviews.date"
+      }
     ],
-    "nestedRoot": "<arrayFieldToIndex>",
-    "storedSource": {
-      "include|exclude": ["<field-name>",...]
-    }"
+    "nestedRoot": "reviews"
   },
-  name="<indexName>",
+  name="vector_index",
   type="vectorSearch"
 )
 

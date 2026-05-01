@@ -25,6 +25,20 @@
        To learn more about these search types, see
        :ref:`vectorSearch-agg-pipeline`.
 
+   * - ``explainOptions``
+     - Object
+     - Optional 
+     - Trace a list of vectors (identified by theirs ``_id``) in an
+       :ref:`explain <avs-explain-ref>` ``executionStats`` query. You
+       can't use this option without ``explain``. To learn more, see
+       :ref:`avs-explain-ref`. 
+
+   * - | ``explainOptions.``
+       | ``traceDocumentIds``
+     - Array of objectIDs
+     - Required 
+     - List of document ``_id``\s.
+
    * - ``filter``
      - Object
      - Optional
@@ -50,6 +64,22 @@
        results. This value can't exceed the value of ``numCandidates`` if
        you specify ``numCandidates``.
 
+   * - ``nestedOptions``
+     - Object
+     - Optional
+     - Configure how {+avs+} scores documents that contain nested 
+       arrays. 
+
+   * - | ``nestedOptions.``
+       | ``scoreMode``
+     - String
+     - Optional
+     - Specifies how to score documents that contain nested arrays. 
+       Value can be one of the following:
+
+       - ``avg`` - average the scores of the nested array elements.
+       - ``max`` - use the maximum score of the nested array elements.
+
    * - ``numCandidates``
      - Int 
      - Conditional 
@@ -69,6 +99,21 @@
 
        To learn more about other variables that might impact this
        parameter, see :ref:`avs-num-candidates`. 
+
+   * - ``parentFilter``
+     - Object
+     - Optional
+     - :abbr:`MQL (MongoDB Query Language)` expression that uses an 
+       indexed top-level field for pre-filtering the documents. 
+       You can filter on {+avs-filter-types+}.
+
+       To learn which MQL operators {+avs+} supports
+       in your filter, see :ref:`vectorSearch-agg-pipeline-filter`.
+
+       The ``parentFilter`` option is only valid if you specify a nested 
+       field (``nestedRoot``) in the index definition. If you specify 
+       the ``parentFilter``, {+avs+} filters the top-level documents 
+       before filtering the nested documents.
 
    * - ``path``
      - String 
@@ -99,22 +144,3 @@
        as long as the vector subtype is the same. This is only possible with
        ``binData`` vectors with subtype ``float32``. If you use any other
        subtype (``int8`` or ``int1``), {+avs+} doesn't return any results or errors.
-
-   * - ``explainOptions``
-     - Object
-     - Optional 
-     - Trace a list of vectors (identified by theirs ``_id``) in an
-       :ref:`explain <avs-explain-ref>` ``executionStats`` query. You
-       can't use this option without ``explain``. To learn more, see
-       :ref:`avs-explain-ref`. 
-
-   * - | ``explainOptions.``
-       | ``traceDocumentIds``
-     - Array of objectIDs
-     - Required 
-     - List of document ``_id``\s.
-
-   * - ``searchNodePreference``
-     - Object 
-     - Optional 
-     - .. include:: /includes/shared/facts/search-node-preference.rst

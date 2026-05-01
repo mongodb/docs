@@ -11,7 +11,7 @@ How to Index Fields for Vector Search
 .. default-domain:: mongodb
 
 .. meta::
-   :description: Define a MongoDB Vector Search index on your vector embedding fields using the vectorSearch type to enable approximate and exact nearest neighbor queries.
+   :description: Use the MongoDB Vector Search type to index vector embeddings for vector search using the vectorSearch type.
    :keywords: atlas ui, node.js, code example, atlas api, atlas cli, java sync, go, python, mongodb shell, sample dataset
 
 .. dismissible-skills-card::
@@ -65,6 +65,8 @@ How to Index Fields for Vector Search
       :selections: self, auto, None, None
 
       .. include:: /includes/index/autoembed-type/facts/considerations-auto-embed.rst
+
+   .. include:: /includes/shared/facts/fact-search-index-limit.rst
 
    .. _avs-index-definition:
 
@@ -268,7 +270,7 @@ How to Index Fields for Vector Search
       .. |compatibility-table| replace:: :ref:`avs-index-supported-drivers`
       .. |search-type| replace:: {+avs+}
 
-      .. include:: /includes/index/vector-type/facts/fact-search-commands-cluster-tier.rst
+      .. include:: /includes/index/vector-type/facts/fact-search-commands-cluster-tier.rst 
    
    .. selected-content::
       :selections: self, byo, None, None   
@@ -311,10 +313,25 @@ How to Index Fields for Vector Search
    Procedure 
    ~~~~~~~~~
 
+   .. include:: /includes/index/vector-type/facts/note-create-avs-index-procedure.rst
+
    .. selected-content::
       :selections: atlas, byo, atlas-ui, None   
 
-      .. include:: /includes/index/vector-type/facts/note-create-avs-index-procedure.rst
+      .. |search-type| replace:: :guilabel:`Vector Search`
+      .. |index-name| replace:: ``vector_index`` is the default index name. 
+                  Index names must be unique within the namespace, regardless of the index type. 
+                  If you already have an index named ``vector_index`` on
+                  this collection, enter a different name.
+            
+      .. |database-name| replace:: Select the database for which to create the index. For example, ``sample_mflix``.
+      .. |collection-name| replace:: Select the collection for which to create the index. For example, ``embedded_movies``.
+      .. |avs-namespace| replace:: ``sample_mflix.embedded_movies``
+      .. |embedding-field-name| replace:: ``plot_embedding_voyage_3_large``
+         
+      .. |similarity-method| replace:: :guilabel:`Dot Product`
+      .. |quantization-method| replace:: :guilabel:`Scalar`
+      .. |filter-fields| replace:: ``genres`` and  ``year`` fields
 
       .. include:: /includes/index/vector-type/procedures/steps-avs-create-index-atlas-ui.rst
 
@@ -324,43 +341,117 @@ How to Index Fields for Vector Search
       To create a {+avs+} index for a collection using the
       {+atlas-admin-api+}, send a ``POST`` request to the {+fts+}
       ``indexes`` endpoint with the required parameters. 
-          
-      .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/shell/create-index-api.sh
+
+      .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/shell/create-index-api.sh 
          :language: shell
          :copyable:
          :linenos:
-          
+
       To learn more about the syntax and parameters for the endpoint, see
       :oas-bump-atlas-op:`Create One {+fts+} Index <creategroupclustersearchindex>`. 
       .. include:: /includes/index/vector-type/facts/avs-voyageai-index-description.rst
 
-      .. tabs::
+      .. collapsible::
+         :heading: Basic Example
+         :sub_heading: Index only the vector embeddings field.
+         :expanded: false
 
-         .. tab:: Basic Example
-            :tabid: basic
+         The following index definition on the ``sample_mflix.embedded_movies`` 
+         collection indexes only the ``plot_embedding_voyage_3_large`` field 
+         using the default |hnsw| indexing method for performing vector search.
 
-            The following index definition indexes only the vector
-            embeddings field for performing vector search.
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/shell/basic-example-api.sh 
+            :language: shell
+            :copyable:
+            :linenos:
 
-            .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/shell/basic-example-api.sh
-               :language: shell
-               :copyable:
-               :linenos:
+      .. collapsible:: 
+         :heading: Filter Example
+         :sub_heading: Index the vector embeddings field with filter fields.
+         :expanded: false
 
-         .. tab:: Filter Example
-            :tabid: advanced
+         The following index definition on the ``sample_mflix.embedded_movies`` 
+         collection indexes the following fields: 
+      
+         - A string field (``genres``) and a numeric field (``year``)
+           for pre-filtering the data. 
+         - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+           using the |hnsw| indexing method for performing vector search 
+           against pre-filtered data.
 
-            This index definition indexes the following fields:
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/shell/filter-example-api.sh 
+            :language: shell
+            :copyable:
+            :linenos:
 
-            - A string field (``genres``) and a numeric field (``year``)
-              for pre-filtering the data.
-            - The vector embeddings field (``plot_embedding_voyage_3_large``) for
-              performing vector search against pre-filtered data.
+      .. collapsible:: 
+         :heading: Flat Example
+         :sub_heading: Index the vector embeddings field with the ``flat`` indexing method.
+         :expanded: false
 
-            .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/shell/filter-example-api.sh
-               :language: shell
-               :copyable:
-               :linenos:
+         The following index definition on the ``sample_mflix.embedded_movies`` 
+         collection indexes the following fields: 
+      
+         - A string field (``genres``) and a numeric field (``year``)
+           for pre-filtering the data. 
+         - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+           using the ``flat`` indexing method for performing vector search 
+           against pre-filtered data.
+
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/shell/flat-example-api.sh 
+            :language: shell
+            :copyable:
+            :linenos:
+
+      .. collapsible:: 
+         :heading: Nested Field Example
+         :sub_heading: Index the nested field as the vector embeddings field.
+         :expanded: false
+
+         Run the following Python script to create nested embeddings for the 
+         ``reviews.comments`` field in the ``sample_airbnb.listingsAndReviews`` 
+         collection after replacing following placeholder values:
+
+         .. list-table:: 
+            :widths: 30 70 
+            :header-rows: 1
+
+            * - Placeholder 
+              - Valid Value 
+
+            * - ``<CONNECTION-STRING>``
+              - Cluster connection string. To learn more, see
+                :ref:`connect-via-driver`.
+
+            * - ``<API-KEY>``
+              - Voyage AI API key. To learn more, see
+                :ref:`Voyage AI API Keys <voyage-api-keys>`.
+
+         The script creates 1024-dimension embeddings using the 
+         ``voyage-4-large`` model for the ``reviews.comments`` field in the 
+         ``reviews`` array. It adds the embeddings to the ``reviews`` array 
+         as a new field named ``comments_embedding``.
+
+         .. literalinclude:: /includes/pipeline-stage/vectorSearch/code-snippets/python/add-nested-embeddings.py
+            :language: python
+            :linenos:
+            :copyable: true
+
+         The following index definition on the ``sample_airbnb.listingsAndReviews`` 
+         collection indexes the following fields: 
+      
+         - The string fields (``address.country`` and ``property_type``), a 
+           numeric field (``bedrooms``), and a date field (``reviews.date``)
+           for pre-filtering the data. 
+         - The vector embeddings field (``reviews.comments_embedding``) for 
+           performing vector search against pre-filtered data.
+         - The ``reviews`` array field as the ``nestedRoot`` field for indexing 
+           nested vector fields.
+
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/shell/nested-embedding-example-api.sh 
+            :language: shell
+            :copyable:
+            :linenos:
 
          .. tab:: Stored Source Example
             :tabid: storedSource
@@ -386,12 +477,7 @@ How to Index Fields for Vector Search
       To create a {+avs+} index for a collection using {+mongosh+}
       v2.1.2 or later, perform the following steps:
 
-      .. include:: /includes/index/vector-type/procedures/steps-avs-create-index-mongosh.rst
-
-      To create a {+avs+} index for a collection using {+mongosh+}
-      v2.1.2 or later, perform the following steps:
-
-      .. include:: /includes/index/vector-type/procedures/steps-avs-create-index-mongosh.rst
+      .. include:: /includes/index/vector-type/procedures/steps-avs-create-index-mongosh.rst          
 
    .. selected-content::
       :selections: atlas, byo, driver, csharp
@@ -451,7 +537,7 @@ How to Index Fields for Vector Search
 
       To create a {+avs+} index for a collection using the
       :driver:`C# </csharp/current/fundamentals/indexes/#atlas-search-indexes>`
-      driver v3.1 or later, perform the following steps: 
+      driver v3.6.0 or later, perform the following steps: 
 
       .. include:: /includes/index/vector-type/procedures/steps-avs-create-index-csharp.rst
 
@@ -587,8 +673,8 @@ How to Index Fields for Vector Search
 
       The page displays the following details for the indexes on the page: 
 
-      .. list-table::
-         :stub-columns: 1
+      .. list-table:: 
+         :stub-columns: 1 
          :widths: 20 80
 
          * - Name 
@@ -617,7 +703,7 @@ How to Index Fields for Vector Search
              documents in the collection.
 
          * - Required Memory
-           - Approximate amount of memory required to run 
+           - Approximate amount of memory required to run
              vector search queries.
 
          * - Actions 
@@ -677,7 +763,7 @@ How to Index Fields for Vector Search
       To view a {+avs+} index for a collection using {+mongosh+},
       perform the following steps:
 
-      .. include:: /includes/index/vector-type/procedures/steps-avs-view-index-mongosh.rst
+      .. include:: /includes/index/vector-type/procedures/steps-avs-view-index-mongosh.rst         
 
    .. selected-content::
       :selections: atlas, byo, driver, csharp
@@ -719,11 +805,11 @@ How to Index Fields for Vector Search
       :selections: atlas, byo, driver, python
 
       .. cta-banner::
-         :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/view-indexes.ipynb
-         :icon: Code
+        :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/view-indexes.ipynb
+        :icon: Code
 
-         Work with a runnable version of this example as a :github:`Python notebook
-         <mongodb/docs-notebooks/blob/main/manage-indexes/view-indexes.ipynb>`. 
+        Work with a runnable version of this example as a :github:`Python notebook
+        <mongodb/docs-notebooks/blob/main/manage-indexes/view-indexes.ipynb>`. 
 
       To view {+avs+} indexes for a collection using `PyMongo 
       <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/atlas-search-index/>`__ 
@@ -737,7 +823,7 @@ How to Index Fields for Vector Search
       To view a {+avs+} index for a collection using {+mongosh+},
       perform the following steps:
 
-      .. include:: /includes/index/vector-type/procedures/steps-avs-view-index-mongosh.rst
+      .. include:: /includes/index/vector-type/procedures/steps-avs-view-index-mongosh.rst         
 
    .. selected-content::
       :selections: self, byo, driver, csharp
@@ -779,13 +865,13 @@ How to Index Fields for Vector Search
       :selections: self, byo, driver, python
 
       .. cta-banner::
-         :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/view-indexes.ipynb
-         :icon: Code
+        :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/view-indexes.ipynb
+        :icon: Code
 
-         Work with a runnable version of this example as a :github:`Python notebook
-         <mongodb/docs-notebooks/blob/main/manage-indexes/view-indexes.ipynb>`. 
+        Work with a runnable version of this example as a :github:`Python notebook
+        <mongodb/docs-notebooks/blob/main/manage-indexes/view-indexes.ipynb>`. 
 
-      To view {+avs+} indexes for a collection using `PyMongo
+      To view {+avs+} indexes for a collection using `PyMongo 
       <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/atlas-search-index/>`__ 
       driver v4.7 or later, perform the following steps:
 
@@ -904,7 +990,7 @@ How to Index Fields for Vector Search
       ``indexes`` endpoint with either the unique ID or name of the
       index (line 4) to edit. 
 
-      .. literalinclude:: /includes/index/vector-type/code-snippets/update-index/edit-index-api.sh
+      .. literalinclude:: /includes/index/vector-type/code-snippets/update-index/edit-index-api.sh 
         :language: shell
         :copyable:
         :linenos:
@@ -919,7 +1005,7 @@ How to Index Fields for Vector Search
       To edit a {+avs+} index for a collection using {+atlas-cli+},
       perform the following steps:
 
-      .. include:: /includes/index/vector-type/procedures/steps-avs-edit-index-acli.rst
+      .. include:: /includes/index/vector-type/procedures/steps-avs-edit-index-acli.rst 
 
    .. selected-content::
       :selections: atlas, byo, mongosh, None
@@ -927,7 +1013,7 @@ How to Index Fields for Vector Search
       To edit a {+avs+} index for a collection using {+mongosh+},
       perform the following steps: 
 
-      .. include:: /includes/index/vector-type/procedures/steps-avs-edit-index-mongosh.rst
+      .. include:: /includes/index/vector-type/procedures/steps-avs-edit-index-mongosh.rst 
 
    .. selected-content::
       :selections: atlas, byo, driver, csharp
@@ -969,11 +1055,11 @@ How to Index Fields for Vector Search
       :selections: atlas, byo, driver, python
 
       .. cta-banner::
-         :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/edit-indexes.ipynb
-         :icon: Code
+        :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/edit-indexes.ipynb
+        :icon: Code
 
-         Work with a runnable version of this example as a :github:`Python notebook 
-         <mongodb/docs-notebooks/blob/main/manage-indexes/edit-indexes.ipynb>`.
+        Work with a runnable version of this example as a :github:`Python notebook 
+        <mongodb/docs-notebooks/blob/main/manage-indexes/edit-indexes.ipynb>`.
 
       To update a {+avs+} index for a collection using the `PyMongo
       <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/atlas-search-index/>`__ 
@@ -987,7 +1073,7 @@ How to Index Fields for Vector Search
       To edit a {+avs+} index for a collection using {+mongosh+},
       perform the following steps: 
 
-      .. include:: /includes/index/vector-type/procedures/steps-avs-edit-index-mongosh.rst
+      .. include:: /includes/index/vector-type/procedures/steps-avs-edit-index-mongosh.rst 
 
    .. selected-content::
       :selections: self, byo, driver, csharp
@@ -1029,17 +1115,26 @@ How to Index Fields for Vector Search
       :selections: self, byo, driver, python
 
       .. cta-banner::
-         :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/edit-indexes.ipynb
-         :icon: Code
+        :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/edit-indexes.ipynb
+        :icon: Code
 
-         Work with a runnable version of this example as a :github:`Python notebook
-         <mongodb/docs-notebooks/blob/main/manage-indexes/edit-indexes.ipynb>`. 
+        Work with a runnable version of this example as a :github:`Python notebook 
+        <mongodb/docs-notebooks/blob/main/manage-indexes/edit-indexes.ipynb>`.
 
       To update a {+avs+} index for a collection using the `PyMongo
       <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/atlas-search-index/>`__ 
       driver v4.7 or later, perform the following steps:
 
       .. include:: /includes/index/vector-type/procedures/steps-avs-edit-index-pymongo.rst
+
+   .. selected-content::
+      :selections: self, byo, driver, csharp
+
+      To update a {+avs+} index for a collection using the
+      :driver:`C# </csharp/current/fundamentals/indexes/#update-a-search-index>`
+      driver 3.1 or later, perform the following steps:
+
+      .. include:: /includes/index/vector-type/procedures/steps-avs-edit-index-csharp.rst
 
    .. selected-content::
       :selections: self, auto, mongosh, None
@@ -1192,11 +1287,11 @@ How to Index Fields for Vector Search
       :selections: atlas, byo, driver, python
 
       .. cta-banner::
-         :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/delete-indexes.ipynb
-         :icon: Code
+        :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/delete-indexes.ipynb
+        :icon: Code
 
-         Work with a runnable version of this example as a :github:`Python notebook
-         <mongodb/docs-notebooks/blob/main/manage-indexes/delete-indexes.ipynb>`. 
+        Work with a runnable version of this example as a :github:`Python notebook
+        <mongodb/docs-notebooks/blob/main/manage-indexes/delete-indexes.ipynb>`. 
 
       To delete a {+avs+} index for a collection using `PyMongo
       <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/atlas-search-index/>`__ 
@@ -1252,11 +1347,11 @@ How to Index Fields for Vector Search
       :selections: self, byo, driver, python
 
       .. cta-banner::
-         :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/delete-indexes.ipynb
-         :icon: Code
+        :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/delete-indexes.ipynb
+        :icon: Code
 
-         Work with a runnable version of this example as a :github:`Python notebook
-         <mongodb/docs-notebooks/blob/main/manage-indexes/delete-indexes.ipynb>`. 
+        Work with a runnable version of this example as a :github:`Python notebook
+        <mongodb/docs-notebooks/blob/main/manage-indexes/delete-indexes.ipynb>`. 
 
       To delete a {+avs+} index for a collection using `PyMongo
       <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/indexes/atlas-search-index/>`__ 

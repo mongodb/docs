@@ -111,7 +111,10 @@
        - ``flat`` - for flat, non-graph, index
 
        If omitted, defaults to ``hnsw``. To learn more, see 
-       :ref:`avs-vector-index-method`.
+       :ref:`avs-vector-index-method`. 
+
+       This setting is not yet available in the {+atlas-ui+} 
+       :guilabel:`Visual Editor`. Use the :guilabel:`JSON Editor` instead.
 
    * - | ``fields.``
        | ``hnswOptions`` 
@@ -124,6 +127,9 @@
        
        To learn more, see :ref:`About the Indexing Methods 
        <avs-vector-index-method>`.
+
+       This setting is not yet available in the {+atlas-ui+} 
+       :guilabel:`Visual Editor`. Use the :guilabel:`JSON Editor` instead.
 
        .. include:: /includes/index/vector-type/facts/fact-hnsw-options-preview.rst
 
@@ -165,12 +171,14 @@
    * - ``nestedRoot``
      - String
      - Optional
-     - Name of a single top-level embedded document field that 
-       contains an array of objects, including a field with vector 
-       embeddings to index. If you specify a value, the value of  
+     - Path to the array field for vector fields that are nested 
+       in an array of documents. If you specify a value, the value of  
        ``fields.path`` must be a child of the field specified 
        here.
-       negatively affect query latency.
+
+       This setting is not yet available in the {+atlas-ui+} 
+       :guilabel:`Visual Editor`. Use the :guilabel:`JSON Editor` 
+       instead.
 
    * - ``storedSource``
      - Object

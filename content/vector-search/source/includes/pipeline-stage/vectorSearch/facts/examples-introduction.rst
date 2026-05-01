@@ -1,6 +1,4 @@
-The following queries search the sample
-:ref:`sample_mflix.embedded_movies <mflix-embedded_movies>`
-collection using the :pipeline:`$vectorSearch` stage. The queries
-search the ``plot_embedding_voyage_3_large`` field, which contains
-embeddings created using the ``voyage-3-large`` embedding model from
-|voyage|.
+The following queries search the :ref:`sample dataset <load-sample-data>`
+using the :pipeline:`$vectorSearch` stage. If you load the sample data 
+and create the {+avs+} indexes for the collections, you can run the 
+sample :pipeline:`$vectorSearch` queries against these collections.
