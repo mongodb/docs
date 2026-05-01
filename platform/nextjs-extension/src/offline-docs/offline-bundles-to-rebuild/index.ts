@@ -13,7 +13,7 @@ export type OfflineBundlesToBuild = Record<string, string[]>;
 // Path relative to repo root where the table of contents for the offline docs is stored
 // Used to filter git changed files (paths reported by git are always relative to repo root)
 const FULL_PATH_TO_OFFLINE_DOCS_DIR =
-  'platform/docs-nextjs/src/context/table-of-contents/offline-docs/';
+  getRepoPaths().offlineDocsDir;
 
 // filename format: <label>.versioned.<projectName>.ts (e.g., "development.versioned.docs.ts" → "docs")
 const getProjectNameFromFilename = (filename: string): string | undefined => {

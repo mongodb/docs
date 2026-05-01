@@ -9,5 +9,5 @@ export const findAllActiveVersionsForProject = (
 
   return projectEntry.reposBranchesEntry.branches
     .filter((branch) => branch.active && branch.gitBranchName !== undefined)
-    .map((branch) => branch.gitBranchName as string);
+    .map((branch) => branch.urlSlug as string);
 };

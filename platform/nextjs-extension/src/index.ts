@@ -189,7 +189,7 @@ extension.addBuildEventHandler(
 
 extension.addBuildEventHandler(
 	"onSuccess",
-	({ netlifyConfig, utils: { git } }) => {
+	async ({ netlifyConfig, utils: { git, run } }) => {
 		const configEnvironment = netlifyConfig.build
 			.environment as ConfigEnvironmentVariables;
 		// Update GitHub comment with success status
@@ -200,11 +200,12 @@ extension.addBuildEventHandler(
 		//       dbEnvVars,
 		//     });
 
+
 		const gitChangedFiles = git.modifiedFiles;
 
 		if (ENVS_TO_RUN.includes(configEnvironment.ENV ?? "")) {
 			// this should only run on prod build
-			handleOfflineDownloads(allContentData, gitChangedFiles);
+			await handleOfflineDownloads(allContentData, gitChangedFiles, run);
 
 			//     console.log(
 			//       `Generating search manifest for version ${JSON.stringify(
