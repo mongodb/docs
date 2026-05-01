@@ -7656,11 +7656,17 @@ export const toc: L1TocItem[] = [
                         label: '$hash',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/hash',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0', 'manual'],
+                        },
                       },
                       {
                         label: '$hexHash',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/hexHash',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0', 'manual'],
+                        },
                       },
                       {
                         label: '$hour',
@@ -8723,6 +8729,11 @@ export const toc: L1TocItem[] = [
                         contentSite: 'cloud-docs',
                         url: '/docs/atlas/ai-integrations/langgraph-js/build-agents',
                       },
+                      {
+                        label: 'Add Long Term Memory',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/ai-integrations/langgraph-js/long-term-memory-store',
+                      },
                     ],
                   },
                   {
@@ -8969,6 +8980,11 @@ export const toc: L1TocItem[] = [
                             label: 'Google Pub/Sub Private Service Connect',
                             contentSite: 'cloud-docs',
                             url: '/docs/atlas/atlas-stream-processing/gcp-pubsub-private-connection',
+                          },
+                          {
+                            label: 'Azure Blob Storage Private Link',
+                            contentSite: 'cloud-docs',
+                            url: '/docs/atlas/atlas-stream-processing/azure-blob-private-connection',
                           },
                           {
                             label: 'Manage VPC Connections',
@@ -9287,6 +9303,29 @@ export const toc: L1TocItem[] = [
                         label: 'Sharded Cluster',
                         contentSite: 'docs',
                         url: '/docs/:version/release-notes/8.3-upgrade-sharded-cluster',
+                      },
+                    ],
+                  },
+                  {
+                    label: 'Upgrade 8.0 to 8.3',
+                    contentSite: 'docs',
+                    collapsible: true,
+                    url: '/docs/:version/release-notes/8.3-upgrade-from-8.0',
+                    items: [
+                      {
+                        label: 'Standalone',
+                        contentSite: 'docs',
+                        url: '/docs/:version/release-notes/8.3-upgrade-from-8.0-standalone',
+                      },
+                      {
+                        label: 'Replica Set',
+                        contentSite: 'docs',
+                        url: '/docs/:version/release-notes/8.3-upgrade-from-8.0-replica-set',
+                      },
+                      {
+                        label: 'Sharded Cluster',
+                        contentSite: 'docs',
+                        url: '/docs/:version/release-notes/8.3-upgrade-from-8.0-sharded-cluster',
                       },
                     ],
                   },

@@ -92,7 +92,7 @@ async function buildDirNameToPrefixMap(
     return {};
   }
 
-  const projectNames = await getAllProjectNames(paths);
+  const projectNames = await getAllProjectNames(paths, contentDir);
   const docsetByProject = new Map<string, DocsetsDocument>();
   for (const d of docsetRows) {
     if (d.project) docsetByProject.set(d.project, d);

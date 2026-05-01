@@ -35,7 +35,10 @@ export const remarkResolveImports = ({ projectPath }: { projectPath: string }) =
     await resolveIncludes({ tree, projectPath });
 
     const refs = await loadReferences(projectPath);
-    if (!refs) return;
+    if (!refs) {
+      console.warn(`[remarkResolveImports] Failed to load references for ${projectPath}`);
+      return;
+    }
 
     resolveSubstitutions({ tree, refs });
     resolveRefLinks({ tree, refs, projectPath });
