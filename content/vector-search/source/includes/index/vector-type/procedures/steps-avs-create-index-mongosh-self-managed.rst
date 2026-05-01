@@ -59,7 +59,7 @@
          
       .. example:: 
 
-         .. include:: /includes/quick-start/facts/avs-voyageai-index-description.rst
+         .. include:: /includes/index/vector-type/facts/avs-voyageai-index-description.rst
 
          .. tabs:: 
 

@@ -34,7 +34,8 @@
      - String 
      - Required 
      - Name of the field to index. For nested fields, use dot notation
-       to specify path to embedded fields.
+       to specify path to embedded fields. The field must be a top-level field 
+       or a child of the field specified in the ``nestedRoot`` option.
 
    * - | ``fields.``
        | ``numDimensions``
@@ -159,6 +160,16 @@
 
        A higher number provides a graph with high-quality connections,
        which can improve search quality (recall), but it can also
+       negatively affect query latency. 
+
+   * - ``nestedRoot``
+     - String
+     - Optional
+     - Name of a single top-level embedded document field that 
+       contains an array of objects, including a field with vector 
+       embeddings to index. If you specify a value, the value of  
+       ``fields.path`` must be a child of the field specified 
+       here.
        negatively affect query latency.
 
    * - ``storedSource``

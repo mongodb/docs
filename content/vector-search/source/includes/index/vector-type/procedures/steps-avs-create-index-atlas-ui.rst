@@ -7,223 +7,217 @@
 
    .. step:: Specify the index definition.
 
-      .. tabs:: 
+      .. collapsible:: 
+         :heading: Visual Editor
+         :sub_heading: Use the Visual Editor for a guided experience.
+         :expanded: false
 
-         .. tab:: Visual Editor 
-            :tabid: vib 
+         |service| automatically detects fields that contain vector 
+         embeddings, as well as their corresponding dimensions, 
+         and pre-populates up to three vector fields. 
+         To configure the index, do the following:
 
-            |service| automatically detects fields that contain vector 
-            embeddings, as well as their corresponding dimensions, 
-            and pre-populates up to three vector fields. 
-            To configure the index, do the following:
 
-            .. include:: /includes/index/vector-type/facts/steps-avs-index-general.rst
+         .. include:: /includes/index/vector-type/facts/steps-avs-index-general.rst
 
-            To learn more about the {+avs+} index settings, see
-            :ref:`avs-types-vector-search`. 
+         To learn more about the {+avs+} index settings, see
+         :ref:`avs-types-vector-search`. 
 
-            .. example::
+         .. include:: /includes/index/vector-type/facts/avs-voyageai-index-description.rst
 
-               .. tabs:: 
+         .. tabs:: 
 
-                  .. tab:: Basic Example
-                     :tabid: basic
+            .. tab:: Basic Example
+               :tabid: basic
 
-                     For the ``embedded_movies`` collection, |service| displays the 
-                     ``plot_embedding_voyage_3_large`` and ``plot_embedding`` fields. 
+               For the ``embedded_movies`` collection, the ``plot_embedding_voyage_3_large`` field displays. 
+               
+               .. include:: /includes/index/vector-type/facts/steps-avs-index-basic.rst
 
-                     .. include:: /includes/index/vector-type/facts/steps-avs-index-basic.rst
+               This index definition indexes only the vector
+               embeddings field (``plot_embedding_voyage_3_large``) for
+               performing vector search. By default, {+avs+} uses the |hnsw|
+               ``indexingMethod`` for indexing the field.
 
-                     This index definition indexes only the vector
-                     embeddings field (``plot_embedding_voyage_3_large``) for 
-                     performing vector search. By default, {+avs+} uses the |hnsw| 
-                     ``indexingMethod`` for indexing the field.
+            .. tab:: Filter Example 
+               :tabid: advanced
 
-                  .. tab:: Filter Example 
-                     :tabid: advanced
+               For the ``embedded_movies`` collection, |service| displays the
+               ``plot_embedding_voyage_3_large`` and ``plot_embedding`` fields.
 
-                     For the ``embedded_movies`` collection, |service| displays the 
-                     ``plot_embedding_voyage_3_large`` and ``plot_embedding`` fields. 
+               .. include:: /includes/shared/procedures/steps-avs-index-quantization-filters.rst
 
-                     .. include:: /includes/shared/procedures/steps-avs-index-quantization-filters.rst
+               This index definition indexes the following fields: 
+    
+               - A string field (``genres``) and a numeric field (``year``)
+                 for pre-filtering the data. 
+               - The vector embeddings field (``plot_embedding_voyage_3_large``) for
+                 performing vector search against pre-filtered data.       
+              
+               It also enables automatic quantization (``scalar``) for efficient
+               processing of the embeddings. By default, {+avs+} uses the |hnsw|
+               ``indexingMethod`` for indexing the field.
 
-                     This index definition indexes the following fields: 
+      .. collapsible:: 
+         :heading: JSON Editor 
+         :sub_heading: Use JSON Editor to edit the raw JSON. 
+         :expanded: false
+
+         .. include:: /includes/shared/procedures/steps-avs-index-quantization-filters.rst
+
+         A {+avs+} index resembles the following example: 
+
+         .. code-block:: json
+            :copyable: true 
+            :linenos:
+
+            {
+              "fields":[ 
+                {
+                  "type": "vector",
+                  "path": "<field-to-index>",
+                  "numDimensions": <number-of-dimensions>,
+                  "similarity": "euclidean | cosine | dotProduct",
+                  "quantization": "none | scalar | binary"
+                },
+                {
+                  "type": "filter",
+                  "path": "<field-to-index>"
+                },
+                ...
+              ],
+              "nestedRoot": "<embedded-document-field-name>"
+            }
+
+         To learn more about the fields in the index, see
+         :ref:`avs-types-vector-search`. 
+
+         .. include:: /includes/index/vector-type/facts/avs-voyageai-index-description.rst
+
+         .. tabs:: 
+
+            .. tab:: Basic Example
+               :tabid: basic
+
+               The following index definition indexes only the vector
+               embeddings field for performing vector search.  
+
+               .. code-block:: json 
+                  :linenos:
+
+                  {
+                    "fields": [{
+                      "type": "vector",
+                      "path": "plot_embedding_voyage_3_large",
+                      "numDimensions": 2048,
+                      "similarity": "dotProduct"
+                    }]
+                  }
+
+            .. tab:: Filter Example 
+               :tabid: advanced
+
+               This index definition indexes the following fields: 
             
-                     - A string field (``genres``) and a numeric field (``year``)
-                       for pre-filtering the data. 
-                     - The vector embeddings field (``plot_embedding_voyage_3_large``) for
-                       performing vector search against pre-filtered data.       
+               - A string field (``genres``) and a numeric field (``year``)
+                 for pre-filtering the data. 
+               - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+                 using the |hnsw| ``indexingMethod`` for performing vector 
+                 search against pre-filtered data.
                      
-                     It also enables automatic quantization (``scalar``) for efficient
-                     processing of the embeddings. By default, {+avs+} uses the |hnsw|
-                     ``indexingMethod`` for indexing the field.
+               It also enables automatic quantization (``scalar``) for efficient 
+               processing of the embeddings and uses the |hnsw| ``indexingMethod``.
 
-                  .. tab:: Stored Source Example
-                     :tabid: storedSource
+               .. code-block:: json 
+                  :linenos:
 
-                     The ``storedSource`` option is not supported by the
-                     :guilabel:`Visual Editor`. Use the |json| Editor to
-                     configure ``fields`` for storage on ``mongot``.
+                  {
+                    "fields": [{
+                      "type": "vector",
+                      "path": "plot_embedding_voyage_3_large",
+                      "numDimensions": 2048,
+                      "similarity": "dotProduct",
+                      "quantization": "scalar",
+                      "indexingMethod": "hnsw"
+                    },
+                    {
+                      "type": "filter",
+                      "path": "genres"
+                    },
+                    {
+                      "type": "filter",
+                      "path": "year"
+                    }]
+                  }
 
-         .. tab:: JSON Editor
-            :tabid: jsoneditor 
+            .. tab:: Flat Example 
+                :tabid: flat 
 
-            {+avs+} index resembles the following example: 
+                This index definition indexes the following fields: 
+      
+                - A string field (``genres``) and a numeric field (``year``)
+                  for pre-filtering the data. 
+                - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+                  using the ``flat`` indexing method for performing vector 
+                  search against pre-filtered data.
+                
+                It also enables automatic quantization (``scalar``) for efficient 
+                processing of the embeddings.
 
-            .. code-block:: json
-               :copyable: true 
-               :linenos:
+                .. code-block:: json 
+                  :linenos:
 
-               {
-                 "fields":[ 
-                   {
-                     "type": "vector",
-                     "path": <field-to-index>,
-                     "numDimensions": <number-of-dimensions>,
-                     "similarity": "euclidean | cosine | dotProduct",
-                     "quantization": "none | scalar | binary"
-                   },
-                   {
-                     "type": "filter",
-                     "path": "<field-to-index>"
-                   },
-                   ...
-                 ]
-               }
-
-            To learn more about the fields in the index, see
-            :ref:`avs-types-vector-search`. 
-
-            .. example:: 
-
-               .. include:: /includes/quick-start/facts/avs-voyageai-index-description.rst
-
-               .. tabs:: 
-
-                  .. tab:: Basic Example
-                     :tabid: basic
-
-                     The following index definition indexes only the vector
-                     embeddings field using the ``dotProduct`` similarity function 
-                     for performing vector search. It uses the default |hnsw| 
-                     ``indexingMethod``.
-
-                     .. code-block:: json 
-                        :linenos:
-
-                        {
-                          "fields": [{
-                            "type": "vector",
-                            "path": "plot_embedding_voyage_3_large",
-                            "numDimensions": 2048,
-                            "similarity": "dotProduct"
-                          }]
-                        }
-
-                  .. tab:: Filter Example 
-                     :tabid: advanced
-
-                     This index definition indexes the following fields: 
-            
-                     - A string field (``genres``) and a numeric field (``year``)
-                       for pre-filtering the data. 
-                     - The vector embeddings field (``plot_embedding_voyage_3_large``) 
-                       using the |hnsw| ``indexingMethod`` for performing vector 
-                       search against pre-filtered data.
-                     
-                     It also enables automatic quantization (``scalar``) for efficient 
-                     processing of the embeddings and uses the |hnsw| ``indexingMethod``.
-
-                     .. code-block:: json 
-                        :linenos:
-
-                        {
-                          "fields": [{
-                            "type": "vector",
-                            "path": "plot_embedding_voyage_3_large",
-                            "numDimensions": 2048,
-                            "similarity": "dotProduct",
-                            "quantization": "scalar",
-                            "indexingMethod": "hnsw"
-                          },
-                          {
-                            "type": "filter",
-                            "path": "genres"
-                          },
-                          {
-                            "type": "filter",
-                            "path": "year"
-                          }]
-                        }
-
-                  .. tab:: Flat Example 
-                     :tabid: flat 
-
-                     This index definition indexes the following fields: 
-            
-                     - A string field (``genres``) and a numeric field (``year``)
-                       for pre-filtering the data. 
-                     - The vector embeddings field (``plot_embedding_voyage_3_large``) 
-                       using the ``flat`` indexing method for performing vector 
-                       search against pre-filtered data.
-                     
-                     It also enables automatic quantization (``scalar``) for efficient 
-                     processing of the embeddings.
-
-                     .. code-block:: json 
-                        :linenos:
-
-                        {
-                          "fields": [{
-                            "type": "vector",
-                            "path": "plot_embedding_voyage_3_large",
-                            "numDimensions": 2048,
-                            "similarity": "dotProduct",
-                            "quantization": "scalar",
-                            "indexingMethod": "flat"
+                  {
+                    "fields": [{
+                      "type": "vector",
+                      "path": "plot_embedding_voyage_3_large",
+                      "numDimensions": 2048,
+                      "similarity": "dotProduct",
+                      "quantization": "scalar",
+                      "indexingMethod": "flat"
 
 
-                          },
-                          {
-                            "type": "filter",
-                            "path": "genres"
-                          },
-                          {
-                            "type": "filter",
-                            "path": "year"
-                          }]
-                        }
+                    },
+                    {
+                      "type": "filter",
+                      "path": "genres"
+                    },
+                    {
+                      "type": "filter",
+                      "path": "year"
+                    }]
+                  }
 
-                  .. tab:: Stored Source Example
-                     :tabid: storedSource
+            .. tab:: Stored Source Example
+                :tabid: storedSource
 
-                     .. include:: /includes/index/vector-type/facts/stored-source-example.rst
+                .. include:: /includes/index/vector-type/facts/stored-source-example.rst
 
-                     .. code-block:: json
-                        :linenos:
+                .. code-block:: json
+                  :linenos:
 
-                        {
-                          "fields": [{
-                            "type": "vector",
-                            "path": "plot_embedding_voyage_3_large",
-                            "numDimensions": 2048,
-                            "similarity": "dotProduct",
-                            "quantization": "scalar"
-                          },
-                          {
-                            "type": "filter",
-                            "path": "genres"
-                          },
-                          {
-                            "type": "filter",
-                            "path": "year"
-                          }],
-                          "storedSource": {
-                            "include": [
-                              "genres", "plot", "title", "year"
-                            ]
-                          }
-                        }
+                  {
+                    "fields": [{
+                      "type": "vector",
+                      "path": "plot_embedding_voyage_3_large",
+                      "numDimensions": 2048,
+                      "similarity": "dotProduct",
+                      "quantization": "scalar"
+                    },
+                    {
+                      "type": "filter",
+                      "path": "genres"
+                    },
+                    {
+                      "type": "filter",
+                      "path": "year"
+                    }],
+                    "storedSource": {
+                      "include": [
+                        "genres", "plot", "title", "year"
+                      ]
+                    }
+                  }
 
    .. step:: Click :guilabel:`Next` to review the index.
 
