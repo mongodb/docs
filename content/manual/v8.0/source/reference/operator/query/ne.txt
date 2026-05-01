@@ -9,7 +9,7 @@ $ne (query predicate operator)
    :values: shell
 
 .. meta::
-   :description: Use the $ne operator to select documents where the field value is not equal to (≠) the specified value, including those that lack the field.
+   :description: Use the $ne query predicate operator to select documents where the field value is not equal to (≠) the specified value, including those that lack the field.
 
 .. contents:: On this page
    :local:
@@ -51,245 +51,113 @@ The ``$ne`` operator has the following form:
 Examples
 --------
 
-The following examples use the ``inventory`` collection. To create the
-collection, run the following
-:method:`insertMany() <db.collection.insertMany()>` command in
-:binary:`~bin.mongosh`:
-
-.. include:: /includes/examples-create-inventory.rst
+.. include:: /includes/sample-data-usage.rst
 
 Match Document Fields That Are Not Equal
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example selects documents in the ``inventory`` collection
-where ``quantity`` is not equal to ``20``, and includes documents that
-don't contain the ``quantity`` field:
+The following example returns movies where ``runtime`` is greater
+than ``1000`` minutes and ``rated`` is not equal to ``"G"``.
+Because ``$ne`` also matches documents that don't contain the
+``rated`` field, the query returns movies even when the rating data
+is unavailable:
 
 .. io-code-block::
    :copyable: true
 
-   .. input::
+   .. input:: /code-examples/tested/command-line/mongosh/query/operators/ne/ne-find.snippet.ne-find.js
       :language: javascript
+      :category: usage example
 
-      db.inventory.find( { quantity: { $ne: 20 } } )
-
-   .. output::
+   .. output:: /code-examples/tested/command-line/mongosh/query/operators/ne/ne-find-output.sh
       :language: javascript
       :visible: false
-
-      {
-       _id: ObjectId("61ba667dfe687fce2f042420"),
-       item: 'nuts',
-       quantity: 30,
-       carrier: { name: 'Shipit', fee: 3 }
-      },
-      {
-       _id: ObjectId("61ba667dfe687fce2f042421"),
-       item: 'bolts',
-       quantity: 50,
-       carrier: { name: 'Shipit', fee: 4 }
-      },
-      {
-       _id: ObjectId("61ba667dfe687fce2f042422"),
-       item: 'washers',
-       quantity: 10,
-       carrier: { name: 'Shipit', fee: 1 }
-      }
-
-The SQL equivalent to this query is:
-
-.. code-block:: sql
-   :copyable: false
-
-   SELECT * FROM INVENTORY WHERE QUANTITIY != 20
 
 Update Based on Not Equal Embedded Document Fields
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example sets the ``price`` field based on a ``$ne``
-comparison on a field in an embedded document. The
-:method:`~db.collection.updateMany()` operation searches for an embedded
-document, ``carrier``, with a subfield named ``fee``. It uses
-:update:`$set` to update the ``price`` field to ``9.99`` in each
-document where the value of ``fee`` is not equal to ``1`` or where the
-``fee`` subfield does not exist:
+The following example sets the ``highestRated`` field based on a
+``$ne`` comparison on a field in an embedded document. The
+:method:`~db.collection.updateMany()` operation searches for an
+embedded document, ``imdb``, with a subfield named ``rating``. It
+uses :update:`$set` to update the ``highestRated`` field to ``false``
+in each document where the value of ``rating`` is not equal to ``9.3``
+or where the ``rating`` subfield does not exist:
 
 .. io-code-block::
    :copyable: true
 
-   .. input::
+   .. input:: /code-examples/tested/command-line/mongosh/query/operators/ne/ne-update.snippet.ne-update.js
       :language: javascript
+      :category: usage example
 
-      db.inventory.updateMany( 
-         { "carrier.fee" : { $ne: 1 } }, 
-         { $set: { "price": 9.99 } } 
-      )
-
-   .. output::
+   .. output:: /code-examples/tested/command-line/mongosh/query/operators/ne/ne-update-output.sh
       :language: javascript
       :visible: false
-
-      {
-       _id: ObjectId("61ba66e2fe687fce2f042423"),
-       item: 'nuts',
-       quantity: 30,
-       carrier: { name: 'Shipit', fee: 3 },
-       price: 9.99
-      },
-      {
-       _id: ObjectId("61ba66e2fe687fce2f042424"),
-       item: 'bolts',
-       quantity: 50,
-       carrier: { name: 'Shipit', fee: 4 },
-       price: 9.99
-      },
-      {
-       _id: ObjectId("61ba66e2fe687fce2f042425"),
-       item: 'washers',
-       quantity: 10,
-       carrier: { name: 'Shipit', fee: 1 }
-      }
 
 The SQL equivalent to this query is:
 
 .. code-block:: sql
    :copyable: false
 
-   UPDATE INVENTORY SET PRICE = '9.99' WHERE carrierfee != 1
+   UPDATE movies SET highestRated = false WHERE imdb_rating != 9.3
 
 .. include:: /includes/extracts/ne_operators_selectivity.rst
 
 Arrays
 ~~~~~~
 
-When comparing arrays, ``$ne`` matches documents where the document
-array differs from the specified array in ``$ne``. Specifically, ``$ne``
-matches any documents where the arrays:
+When comparing arrays, ``$ne`` behaves differently depending on
+whether you pass a scalar or an array as the comparison value.
 
-- Have different element values or strings.
-- Have elements in a different order.
-- Have a different number of elements.
-- Are missing from a document.
+- **Scalar comparison**: ``$ne`` matches documents where the
+  scalar value is not present as an element in the array,
+  including documents that don't have the field.
+- **Exact array comparison**: ``$ne`` matches documents where the
+  field array is not identical to the specified array, including
+  documents with a different element order, a different number of
+  elements, or a missing field.
 
-For example, the following query returns  ``inventory`` documents where
-the ``type`` array differs from ``[ "hardware", "fasteners" ]``:
+The following examples return movies with a runtime over 1000
+minutes to demonstrate each behavior.
 
-.. code-block:: javascript
+Use a Scalar Comparison
+```````````````````````
 
-   db.inventory.find( { type: { $ne: [ "hardware", "fasteners" ] } } )
+The following example returns movies where ``runtime`` is greater
+than ``1000`` minutes and ``"Drama"`` is not an element of the
+``genres`` array:
 
-The following complete example adds a ``type`` array to two
-``inventory`` documents and runs a query with ``$ne``:
+.. io-code-block::
+   :copyable: true
 
-.. code-block:: javascript
+   .. input:: /code-examples/tested/command-line/mongosh/query/operators/ne/ne-find-array-scalar.snippet.ne-find-array-scalar.js
+      :language: javascript
+      :category: usage example
 
-   // Update the nuts document to include a type array
-   db.inventory.updateOne(
-      { item: "nuts" },
-      { $set: { type: [ "hardware" ] } }
-   )
+   .. output:: /code-examples/tested/command-line/mongosh/query/operators/ne/ne-find-array-scalar-output.sh
+      :language: javascript
+      :visible: false
 
-   // Update the bolts document to include a type array
-   db.inventory.updateOne(
-      { item: "bolts" },
-      { $set: { type: [ "hardware", "fasteners" ] } }
-   )
+Use an Exact Array Comparison
+`````````````````````````````
 
-   // Find documents where the type array differs from [ "hardware", "fasteners" ]
-   db.inventory.find( { type: { $ne: [ "hardware", "fasteners" ] } } )
+The following example returns movies where ``runtime`` is greater
+than ``1000`` minutes and the ``genres`` array is not exactly equal
+to ``[ "Drama" ]``. Unlike the scalar comparison, ``Centennial``
+(with ``genres: [ "Action", "Adventure", "Drama" ]``) matches
+because that array is not identical to ``[ "Drama" ]``:
 
-Output shows the ``nuts`` document because the array differs from ``[
-"hardware", "fasteners" ]``, and the ``washers`` document because it
-doesn't have a ``type`` array:
+.. io-code-block::
+   :copyable: true
 
-.. code-block:: javascript
-   :copyable: false
+   .. input:: /code-examples/tested/command-line/mongosh/query/operators/ne/ne-find-array-exact.snippet.ne-find-array-exact.js
+      :language: javascript
+      :category: usage example
 
-   [
-     {
-       _id: ObjectId('679d26907c5a58595234305c'),
-       item: 'nuts',
-       quantity: 30,
-       carrier: { name: 'Shipit', fee: 3 },
-       type: [ 'hardware' ]
-     },
-     {
-       _id: ObjectId('679d26907c5a58595234305e'),
-       item: 'washers',
-       quantity: 10,
-       carrier: { name: 'Shipit', fee: 1 }
-     }
-   ]
-
-This query reverses the elements in the array:
-
-.. code-block:: javascript
-
-   db.inventory.find( { type: { $ne: [ "fasteners", "hardware" ] } } )
-
-Because the ``type`` array in the ``bolts`` document is ``[ "hardware",
-"fasteners" ]``, which differs from ``[ "fasteners", "hardware" ]``, the
-query returns the ``bolts`` document in addition to the ``nuts`` and
-``washers`` documents:
-
-.. code-block:: javascript
-   :copyable: false
-
-   [
-      {
-         _id: ObjectId('679d26907c5a58595234305c'),
-         item: 'nuts',
-         quantity: 30,
-         carrier: { name: 'Shipit', fee: 3 },
-         type: [ 'hardware' ]
-      },
-      {
-         _id: ObjectId('679d26907c5a58595234305d'),
-         item: 'bolts',
-         quantity: 50,
-         carrier: { name: 'Shipit', fee: 4 },
-         type: [ 'hardware', 'fasteners' ]
-      },
-      {
-         _id: ObjectId('679d26907c5a58595234305e'),
-         item: 'washers',
-         quantity: 10,
-         carrier: { name: 'Shipit', fee: 1 }
-      }
-   ]
-
-``$ne`` matches documents where the array doesn't contain the specified
-value and documents that don't have the array. For example:
-
-.. code-block:: javascript
-
-   db.inventory.find( { type: { $ne: "fasteners" } } )
-
-The query returns the ``nuts`` document because the array
-``[ "hardware" ]`` differs from ``"fasteners"``. The query also
-returns the ``washers`` document because the document doesn't contain
-a ``type`` array.
-
-Query output:
-
-.. code-block:: javascript
-   :copyable: false
-
-   [
-      {
-         _id: ObjectId('679d26907c5a58595234305c'),
-         item: 'nuts',
-         quantity: 30,
-         carrier: { name: 'Shipit', fee: 3 },
-         type: [ 'hardware' ]
-      },
-      {
-         _id: ObjectId('679d26907c5a58595234305e'),
-         item: 'washers',
-         quantity: 10,
-         carrier: { name: 'Shipit', fee: 1 }
-      }
-   ]
+   .. output:: /code-examples/tested/command-line/mongosh/query/operators/ne/ne-find-array-exact-output.sh
+      :language: javascript
+      :visible: false
 
 Learn More
 ----------

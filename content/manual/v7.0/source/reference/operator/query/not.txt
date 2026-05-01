@@ -9,7 +9,7 @@ $not (query predicate operator)
    :values: shell, python
 
 .. meta::
-   :description: Use the $not operator to select documents that do not match the operator expression.
+   :description: Use the $not operator to invert an operator expression and select documents that do not match the expression, including documents that lack the specified field.
 
 .. contents:: On this page
    :local:
@@ -48,39 +48,39 @@ Consider the following example:
 
 .. code-block:: javascript
 
-   db.inventory.find( { price: { $not: { $gt: 1.99 } } } )
+   db.movies.find( { runtime: { $not: { $gt: 180 } } } )
 
-This query will select all documents in the ``inventory`` collection where:
+The example selects all documents in the ``movies`` collection where:
 
-- the ``price`` field value is less than or equal to ``1.99`` **or**
-- the ``price`` field does not exist
+- the ``runtime`` field value is less than or equal to ``180`` **or**
+- the ``runtime`` field does not exist
 
-``{ $not: { $gt: 1.99 } }`` is different from the :query:`$lte`
-operator. ``{ $lte: 1.99 }`` returns *only* the documents where
-``price`` field exists and its value is less than or equal to
-``1.99``.
+``{ $not: { $gt: 180 } }`` differs from the :query:`$lte`
+operator. ``{ $lte: 180 }`` returns *only* the documents where the
+``runtime`` field exists and its value is less than or equal to
+``180``.
 
 You must use the ``$not`` operator with another operator expression. For
 example, to use ``$not`` to perform an inequality check, use this
 syntax:
 
 .. code-block:: javascript
-   
-   { price: { $not: { $eq: 1.99 } } }
-   
+
+   { runtime: { $not: { $eq: 120 } } }
+
 The preceding query is equivalent to:
 
 .. code-block:: javascript
-   
-   { price: { $ne: 1.99 } }
-   
-The following ``$not`` query is **invalid** because it attempts to
-compare a field without an operator:
+
+   { runtime: { $ne: 120 } }
+
+The following query is invalid because it compares a field without an
+operator:
 
 .. code-block:: javascript
    :copyable: false
-   
-   { price: { $not: 1.99 } }
+
+   { runtime: { $not: 120 } }
 
 Behavior
 --------
@@ -95,28 +95,58 @@ conditions, use :query:`$nor`.
 Regular Expressions
 ~~~~~~~~~~~~~~~~~~~
 
+.. include:: /includes/sample-data-usage.rst
+
 :query:`$not` operator can perform logical ``NOT`` operation on:
 
 - Regular expression objects (i.e. ``/pattern/``)
 
-  For example, the following query selects all documents in the
-  ``inventory`` collection where the ``item`` field value does *not*
-  start with the letter ``p``.
+  The following example returns movies where ``runtime`` is greater
+  than ``1000`` minutes and ``title`` does not start with the letter
+  ``T``. Because ``$not`` also matches documents that don't contain
+  the ``title`` field, the query returns movies even when title data
+  is unavailable:
 
-  .. code-block:: javascript
+  .. io-code-block::
+     :copyable: true
 
-     db.inventory.find( { item: { $not: /^p.*/ } } )
+     .. input:: /code-examples/tested/command-line/mongosh/query/operators/not/not-regex.snippet.not-regex.js
+        :language: javascript
+        :category: usage example
+
+     .. output:: /code-examples/tested/command-line/mongosh/query/operators/not/not-regex-output.sh
+        :language: javascript
+        :visible: false
 
 - :query:`$regex` operator expression 
 
-  For example, the following query selects all documents in the
-  ``inventory`` collection where the ``item`` field value does *not*
-  start with the letter ``p``.
+  The following two queries return movies where ``runtime`` is
+  greater than ``1000`` minutes and ``title`` does not start with
+  the letter ``T``. The first query passes a string to ``$regex``:
 
-  .. code-block:: javascript
+  .. io-code-block::
+     :copyable: true
 
-     db.inventory.find( { item: { $not: { $regex: "^p.*" } } } )
-     db.inventory.find( { item: { $not: { $regex: /^p.*/ } } } )
+     .. input:: /code-examples/tested/command-line/mongosh/query/operators/not/not-regex-string.snippet.not-regex-string.js
+        :language: javascript
+        :category: usage example
+
+     .. output:: /code-examples/tested/command-line/mongosh/query/operators/not/not-regex-string-output.sh
+        :language: javascript
+        :visible: false
+
+  The second query passes a regex literal to ``$regex``:
+
+  .. io-code-block::
+     :copyable: true
+
+     .. input:: /code-examples/tested/command-line/mongosh/query/operators/not/not-regex-literal.snippet.not-regex-literal.js
+        :language: javascript
+        :category: usage example
+
+     .. output:: /code-examples/tested/command-line/mongosh/query/operators/not/not-regex-literal-output.sh
+        :language: javascript
+        :visible: false
 
 - driver language's regular expression objects
 
