@@ -327,8 +327,8 @@ const tocData: TocItem[] = [
       },
       {
         label: 'Compatibility',
-        contentSite: 'drivers',
-        url: '/docs/drivers/compatibility/?driver-language=php&php-driver-framework=laravel',
+        isExternal: true,
+        url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=php&php-driver-framework=laravel',
       },
       {
         label: 'Upgrade',

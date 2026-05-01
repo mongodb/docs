@@ -539,8 +539,8 @@ const tocData: TocItem[] = [
       },
       {
         label: 'Compatibility',
-        contentSite: 'drivers',
-        url: '/docs/drivers/compatibility/?driver-language=csharp&csharp-driver-framework=csharp-driver',
+        url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=csharp&csharp-driver-framework=csharp-driver',
+        isExternal: true,
         versions: { excludes: outdatedVersions },
       },
       {
@@ -970,8 +970,8 @@ const tocData: TocItem[] = [
       },
       {
         label: 'Compatibility',
-        contentSite: 'drivers',
-        url: '/docs/drivers/compatibility/?driver-language=csharp',
+        url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=csharp',
+        isExternal: true,
         versions: { includes: outdatedVersions },
       },
       {

@@ -376,8 +376,8 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'Compatibility',
-            contentSite: 'drivers',
-            url: '/docs/drivers/compatibility/?driver-language=cpp',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=cpp',
           },
           {
             label: 'API Documentation',
@@ -685,8 +685,8 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'Compatibility',
-            contentSite: 'drivers',
-            url: '/docs/drivers/compatibility/?driver-language=cpp',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=cpp',
           },
           {
             label: 'Issues & Help',

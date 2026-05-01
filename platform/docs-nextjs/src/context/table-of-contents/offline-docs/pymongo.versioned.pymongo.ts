@@ -389,8 +389,8 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'Compatibility',
-            contentSite: 'drivers',
-            url: '/docs/drivers/compatibility/?driver-language=python&python-driver-framework=pymongo',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=python&python-driver-framework=pymongo',
           },
           {
             label: 'API Documentation',

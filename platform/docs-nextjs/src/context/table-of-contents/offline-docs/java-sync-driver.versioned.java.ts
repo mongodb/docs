@@ -541,8 +541,8 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'Compatibility',
-            contentSite: 'drivers',
-            url: '/docs/drivers/compatibility/?driver-language=java&java-driver-framework=java-sync',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=java&java-driver-framework=java-sync',
           },
           {
             label: 'API Documentation',

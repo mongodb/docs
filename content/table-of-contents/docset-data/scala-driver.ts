@@ -253,8 +253,8 @@ const tocData: TocItem[] = [
       },
       {
         label: 'Compatibility',
-        contentSite: 'drivers',
-        url: '/docs/drivers/compatibility/?driver-language=scala',
+        isExternal: true,
+        url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=scala',
       },
       {
         label: 'View the Source',

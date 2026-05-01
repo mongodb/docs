@@ -442,8 +442,8 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'Compatibility',
-            contentSite: 'drivers',
-            url: '/docs/drivers/compatibility/?driver-language=javascript&javascript-driver-framework=nodejs',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=javascript&javascript-driver-framework=nodejs',
           },
           {
             label: 'TypeScript',

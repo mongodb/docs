@@ -141,8 +141,8 @@ const tocData: TocItem[] = [
       },
       {
         label: 'Version Compatibility',
-        contentSite: 'drivers',
-        url: '/docs/drivers/compatibility/?driver-language=python&python-driver-framework=django',
+        isExternal: true,
+        url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=python&python-driver-framework=django',
       },
       {
         label: 'API Documentation',

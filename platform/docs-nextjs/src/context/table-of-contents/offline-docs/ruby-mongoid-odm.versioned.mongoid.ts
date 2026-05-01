@@ -235,8 +235,8 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'Version Compatibility',
-            contentSite: 'drivers',
-            url: '/docs/drivers/compatibility/?driver-language=ruby&ruby-driver-framework=mongoid',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=ruby&ruby-driver-framework=mongoid',
           },
           {
             label: 'API Documentation',

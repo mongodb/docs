@@ -320,8 +320,8 @@ const tocData: TocItem[] = inheritContentSite('rust', [
   },
   {
     label: 'Compatibility',
-    contentSite: 'drivers',
-    url: '/docs/drivers/compatibility/?driver-language=rust',
+    isExternal: true,
+    url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=rust',
   },
   {
     label: 'View the Source',

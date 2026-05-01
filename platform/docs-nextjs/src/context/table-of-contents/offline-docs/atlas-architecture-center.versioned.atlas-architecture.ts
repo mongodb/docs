@@ -151,11 +151,6 @@ export const toc: L1TocItem[] = [
                 url: '/docs/atlas/architecture/:version/data-encryption',
               },
               {
-                label: 'Compliance',
-                contentSite: 'atlas-architecture',
-                url: '/docs/atlas/architecture/:version/compliance',
-              },
-              {
                 label: 'Compliance ',
                 contentSite: 'atlas-architecture',
                 collapsible: true,

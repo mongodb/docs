@@ -585,8 +585,8 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'Compatibility',
-            contentSite: 'drivers',
-            url: '/docs/drivers/compatibility/?driver-language=go',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=go',
             versions: {
               excludes: ['v1.x'],
             },
@@ -1031,8 +1031,8 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'Compatibility',
-            contentSite: 'drivers',
-            url: '/docs/drivers/compatibility/?driver-language=go',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=go',
             versions: {
               includes: ['v1.x'],
             },

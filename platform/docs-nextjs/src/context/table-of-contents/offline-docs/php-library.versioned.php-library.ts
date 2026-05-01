@@ -354,8 +354,8 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'Compatibility',
-            contentSite: 'drivers',
-            url: '/docs/drivers/compatibility/?driver-language=php&php-driver-framework=php-driver',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=php&php-driver-framework=php-driver',
           },
           {
             label: 'API Documentation',

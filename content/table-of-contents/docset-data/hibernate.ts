@@ -68,8 +68,8 @@ const tocData: TocItem[] = [
       },
       {
         label: 'Version Compatibility',
-        contentSite: 'drivers',
-        url: '/docs/drivers/compatibility/?language=java&java-driver-framework=hibernate',
+        isExternal: true,
+        url: 'https://www.mongodb.com/docs/drivers/compatibility/?language=java&java-driver-framework=hibernate',
       },
       {
         label: 'API Documentation',

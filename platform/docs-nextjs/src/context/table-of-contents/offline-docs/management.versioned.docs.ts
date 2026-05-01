@@ -2129,23 +2129,6 @@ export const toc: L1TocItem[] = [
                     ],
                   },
                   {
-                    label: 'High Availability',
-                    contentSite: 'docs',
-                    collapsible: true,
-                    items: [
-                      {
-                        label: 'Elections',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/replica-set-elections',
-                      },
-                      {
-                        label: 'Failover Rollbacks',
-                        contentSite: 'docs',
-                        url: '/docs/:version/core/replica-set-rollbacks',
-                      },
-                    ],
-                  },
-                  {
                     label: 'Replica Set Deployment Tutorials',
                     contentSite: 'docs',
                     collapsible: true,
@@ -2948,8 +2931,8 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'FAQ: MongoDB Storage',
-                contentSite: 'docs',
-                url: '/docs/:version/faq/storage',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/manual/faq/storage/',
               },
             ],
           },
@@ -3017,8 +3000,8 @@ export const toc: L1TocItem[] = [
             items: [
               {
                 label: 'FAQ: MongoDB Diagnostics',
-                contentSite: 'docs',
-                url: '/docs/:version/faq/diagnostics',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/manual/faq/diagnostics/',
               },
               {
                 label: 'Management',

@@ -226,8 +226,8 @@ const tocData: TocItem[] = [
       },
       {
         label: 'Changelog',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/atlas-stream-processing/changelog',
+        isExternal: true,
+        url: 'https://www.mongodb.com/docs/atlas/atlas-stream-processing/changelog/',
       },
     ],
   },

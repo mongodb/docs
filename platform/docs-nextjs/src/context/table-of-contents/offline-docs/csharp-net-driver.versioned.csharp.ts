@@ -692,8 +692,8 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'Compatibility',
-            contentSite: 'drivers',
-            url: '/docs/drivers/compatibility/?driver-language=csharp&csharp-driver-framework=csharp-driver',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=csharp&csharp-driver-framework=csharp-driver',
             versions: {
               excludes: ['v2.x'],
             },
@@ -1145,8 +1145,8 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'Compatibility',
-            contentSite: 'drivers',
-            url: '/docs/drivers/compatibility/?driver-language=csharp',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=csharp',
             versions: {
               includes: ['v2.x'],
             },

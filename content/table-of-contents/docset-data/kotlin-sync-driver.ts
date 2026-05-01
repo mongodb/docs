@@ -372,8 +372,8 @@ const tocData: TocItem[] = [
       },
       {
         label: 'Compatibility',
-        contentSite: 'drivers',
-        url: '/docs/drivers/compatibility/?driver-language=kotlin&kotlin-driver-framework=kotlin-sync',
+        isExternal: true,
+        url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=kotlin&kotlin-driver-framework=kotlin-sync',
       },
       {
         label: 'API Documentation',
