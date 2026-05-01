@@ -2,14 +2,43 @@ name: CI (platform)
 
 on:
   pull_request:
-    paths:
-      - '.github/workflows/platform-ci.yml'
-      - 'platform/**'
   workflow_dispatch:
 
 jobs:
+  changes:
+    name: Detect changed paths
+    runs-on: ubuntu-latest
+    outputs:
+      platform: ${{ steps.filter.outputs.platform }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for platform changes
+        id: filter
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "platform=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          MERGE_BASE=$(git merge-base \
+            "${{ github.event.pull_request.base.sha }}" \
+            "${{ github.event.pull_request.head.sha }}") || exit 1
+          CHANGED_FILES=$(git diff --name-only \
+            "$MERGE_BASE" \
+            "${{ github.event.pull_request.head.sha }}") || exit 1
+          if echo "$CHANGED_FILES" | grep -qE '^platform/|^\.github/workflows/platform-ci\.yml$'; then
+            echo "platform=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "platform=false" >> "$GITHUB_OUTPUT"
+          fi
+
   test:
     name: Run Tests in platform
+    needs: changes
+    if: needs.changes.outputs.platform == 'true'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -17,7 +46,6 @@ jobs:
     env:
       NPM_BASE_64_AUTH: ${{ secrets.NPM_BASE_64_AUTH }}
       NPM_EMAIL: ${{ secrets.NPM_EMAIL }}
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -32,12 +60,26 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: platform/pnpm-lock.yaml
 
-      - name: Install dependencies
-        # Remove --no-frozen-lockfile as soon as possible
-        run: pnpm install --no-frozen-lockfile
+      - name: Install, lint, and test
+        run: |
+          # Remove --no-frozen-lockfile as soon as possible
+          pnpm install --no-frozen-lockfile
+          pnpm run lint
+          pnpm run test
 
-      - name: Lint
-        run: pnpm run lint
-
-      - name: Unit tests
-        run: pnpm run test
+  platform-ci-status:
+    name: Platform CI
+    needs: [changes, test]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report status
+        run: |
+          if [[ "${{ needs.changes.result }}" == "failure" || \
+                "${{ needs.changes.result }}" == "cancelled" || \
+                "${{ needs.test.result }}" == "failure" || \
+                "${{ needs.test.result }}" == "cancelled" ]]; then
+            echo "Platform CI failed (changes: ${{ needs.changes.result }}, test: ${{ needs.test.result }})."
+            exit 1
+          fi
+          echo "Platform CI passed (test result: ${{ needs.test.result }})"
