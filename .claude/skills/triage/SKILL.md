@@ -102,7 +102,7 @@ Team-specific rules, JQL queries, and knowledge sources live in separate referen
 ### Step 0: Verify Prerequisites
 
 Confirm the following tools are available before proceeding:
-- `mcp-atlassian` — required for all Jira reads and writes (Steps 2, 5, 7)
+- Jira access — required for all ticket reads and writes (Steps 2, 5, 7). Use the `jira` skill for all Jira operations; it will select the correct tool (CLI or MCP) automatically.
 - `glean_mcp` — required for knowledge retrieval (Step 4)
 
 If either tool is unavailable, stop and notify the user before proceeding.
@@ -157,10 +157,10 @@ Once approved, apply the recommended components to each ticket, then proceed to 
 Use the `glean_mcp` tool to fetch and read each URL listed in the selected team module's Knowledge Sources section. From each source, extract only the routing rules, component-to-owner mappings, and label criteria. Do not retain full page content.
 
 ### Step 5: Team-Specific Ticket Retrieval
-Use the `mcp-atlassian` tool to run the JQL query from the selected team module. List the **Ticket ID**, **Summary**, and **Creation Date** for all matching tickets.
+Use the `jira` skill to run the JQL query from the selected team module. List the **Ticket ID**, **Summary**, and **Creation Date** for all matching tickets.
 
 ### Step 6: Triage Analysis
-Before triaging, fetch the full details of each ticket (description, comments, and any directly linked tickets — one level only) using the `mcp-atlassian` tool. Then, for each ticket:
+Before triaging, fetch the full details of each ticket (description, comments, and any directly linked tickets — one level only) using the `jira` skill. Then, for each ticket:
 
 **If triaging Server tickets:** Before applying any labels or routing for this ticket, check whether it meets the Close Criteria in the Server module (knowledge sources were loaded in Step 4, so priority and impact context is available). If it does, recommend closure and skip all other routing steps for that ticket.
 
@@ -185,7 +185,7 @@ If any ticket in the plan is **P1 or P2**, surface the following after the plan 
 
 **STOP HERE.** Ask the user to confirm the plan is accurate. Do not proceed or make any Jira changes until the user explicitly approves. If the user requests adjustments, revise the plan and present it again before proceeding.
 
-Once approved, use the `mcp-atlassian` tool to apply all approved changes:
-1. Apply components, labels, priority, and status changes. Always **add** — never remove or replace existing labels or components. For status changes, use the Jira transition that moves the ticket to the target status. When using the Close or Won't Do transitions, always include `{"story_points": 0}` in the `fields` parameter — Story Points is a required field for these transition.          
+Once approved, use the `jira` skill to apply all approved changes:
+1. Apply components, labels, priority, and status changes. Always **add** — never remove existing labels or components. Because both the CLI and MCP replace these fields on write, read the ticket's current values first and include them alongside any new ones when writing. For status changes, use the Jira transition that moves the ticket to the target status. When closing as Won't Do, follow the `jira` skill's closing procedure with story points set to 0.
 2. For CET/Cloud only: assign individual writers.
 3. Add a comment to **every triaged ticket** using the appropriate template from `assets/comment-templates.md` (Assigned to Backlog, Moved to Ready for Work, or Closed).
