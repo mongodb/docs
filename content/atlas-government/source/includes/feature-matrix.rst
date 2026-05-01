@@ -54,6 +54,10 @@
      -
      - :icon-fa5:`check` [#govcloud-backup]_
 
+   * - Backup Compliance Policy
+     - :icon-fa5:`check`
+     - :icon-fa5:`check`
+
    * - Backup for FedRAMP Moderate regions
      - :icon-fa5:`check` [#fr-moderate-backup]_
      - :icon-fa5:`check` [#fr-moderate-backup]_
