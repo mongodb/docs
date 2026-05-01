@@ -17,7 +17,7 @@ To generate an access token for a service account:
 
       .. code:: sh
 
-         echo -n {clientId}:{clientSecret} | base64
+         echo -n {clientId}:{clientSecret} | base64 -w0
 
    .. step:: Request an access token.
 

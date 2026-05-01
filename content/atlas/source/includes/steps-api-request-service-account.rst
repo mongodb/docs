@@ -17,7 +17,7 @@ an access token, then use the access token in your request:
 
       .. code:: sh
 
-         echo -n {clientId}:{clientSecret} | base64
+         echo -n {clientId}:{clientSecret} | base64 -w0
 
    .. step:: Request an access token.
 
