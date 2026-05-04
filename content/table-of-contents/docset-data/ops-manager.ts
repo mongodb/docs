@@ -956,6 +956,11 @@ const tocData: TocItem[] = [
             url: '/docs/ops-manager/:version/tutorial/encrypt-snapshots',
           },
           {
+            label: 'Automation Config Encryption',
+            contentSite: 'ops-manager',
+            url: '/docs/ops-manager/:version/tutorial/automation-config-encryption',
+          },
+          {
             label: 'Rotate Master KMIP Keys',
             contentSite: 'ops-manager',
             url: '/docs/ops-manager/:version/tutorial/rotate-master-kmip-keys',

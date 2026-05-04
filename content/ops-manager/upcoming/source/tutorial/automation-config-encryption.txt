@@ -1,0 +1,833 @@
+.. _automation-config-encryption:
+
+.. meta::
+   :keywords: automation config encryption, Ops Manager, KMIP, encryption at rest, AES-256-GCM
+   :description: Learn how to enable and configure automation configuration encryption in Ops Manager to protect sensitive credentials in the Automation Agent's local backup file using AES-256-GCM.
+
+.. default-domain:: mongodb
+
+=====================================
+Automation Configuration Encryption
+=====================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Automation config encryption protects sensitive credentials
+in the Automation Agent's local backup configuration file.
+When the agent stores a backup of the cluster configuration
+on disk, it encrypts sensitive fields—including passwords
+and authentication keys—using AES-256-GCM rather than
+writing them in plaintext.
+
+This feature helps organizations meet compliance requirements
+for frameworks such as PCI-DSS, HIPAA, and SOC 2.
+
+Encryption is disabled by default. Existing deployments remain
+unencrypted until you explicitly enable this feature.
+
+Encryption Methods
+------------------
+
+|onprem| supports three encryption methods for the automation
+config:
+
+.. list-table::
+   :widths: 20 45 35
+   :header-rows: 1
+
+   * - Method
+     - Best for
+     - Key encryption key (KEK) source
+   * - Online (KMIP)
+     - Environments with KMIP infrastructure
+     - Customer-managed KMIP server
+   * - Offline
+     - Air-gapped or standalone environments
+     - Machine-derived key
+   * - Default
+     - Automatic compliance alignment
+     - Follows Encryption at Rest settings
+
+.. _automation-config-online-kmip:
+
+Online (KMIP)
+~~~~~~~~~~~~~
+
+.. tip::
+
+   Use Online (|kmip|) mode when |kmip| infrastructure is
+   available. It provides the strongest security because
+   the master key never leaves your |hsm|.
+
+Online mode is best for environments with KMIP
+infrastructure. The master key resides in an external
+KMIP-compatible HSM and never touches disk. A separate
+bootstrap key secures the KMIP certificate credentials
+locally, enabling unattended restarts.
+
+.. note::
+
+   This method requires an existing KMIP-compatible server.
+   You must configure client certificate (mTLS)
+   authentication, matching MongoDB Enterprise Advanced's
+   ``security.kmip.*`` configuration.
+
+To use online mode, set ``encryptionMethod`` to ``ONLINE_KMS``
+and provide your KMIP server details.
+
+.. list-table::
+   :widths: 38 47 15
+   :header-rows: 1
+
+   * - Parameter
+     - Description
+     - Required
+   * - ``kmip.serverName``
+     - KMIP server hostname or IP
+     - Yes
+   * - ``kmip.port``
+     - KMIP server port. Default: ``5696``.
+     - No
+   * - ``kmip.serverCAFile``
+     - CA certificate path (Unix)
+     - Yes
+   * - ``kmip.serverCAFileWindows``
+     - CA certificate path (Windows)
+     - Conditional
+   * - ``kmip.clientCertificateFile``
+     - Client certificate path (Unix)
+     - Yes
+   * - ``kmip.clientCertificateFileWindows``
+     - Client certificate path (Windows)
+     - Conditional
+   * - ``kmip.clientCertificatePassword``
+     - Client certificate password (if PEM is encrypted)
+     - No
+   * - ``kmip.keyIdentifier``
+     - UUID of an existing key on the KMIP server. If
+       empty, the agent creates a new key automatically.
+     - No
+   * - ``kmip.useLegacyProtocol``
+     - Use KMIP 1.0/1.1 (Create+Get) instead of KMIP 1.2
+       (Encrypt/Decrypt). Use when the KMIP server does
+       not support KMIP 1.2.
+     - No
+
+Configuration Schema
+````````````````````
+
+.. code-block:: json
+
+   {
+     "configEncryption": {
+       "encryptionMethod": "ONLINE_KMS",
+       "kmip": {
+         "serverName": "<hostname>",
+         "port": 5696,
+         "serverCAFile": "<path-unix>",
+         "serverCAFileWindows": "<path-windows>",
+         "clientCertificateFile": "<path-unix>",
+         "clientCertificateFileWindows": "<path-windows>",
+         "clientCertificatePassword": "<password>",
+         "keyIdentifier": "<optional-uuid>",
+         "useLegacyProtocol": false
+       }
+     }
+   }
+
+Before You Begin
+````````````````
+
+Verify the following before you enable online KMIP
+encryption:
+
+- **TLS handshake**: Run the following command and confirm
+  the handshake succeeds and the certificate is accepted:
+
+  .. code-block:: sh
+
+     openssl s_client -connect <serverName>:<port> \
+       -CAfile <serverCAFile> -cert <clientCertificateFile>
+
+- **Certificate permissions**: Confirm the client certificate
+  is authorized for the required KMIP operations. Check
+  your KMIP server's admin console or logs.
+
+- **Network reachability**: Confirm the agent host can reach
+  the KMIP server on the configured port. Verify firewall
+  rules, security groups, and DNS resolution.
+
+- **Certificate expiry**: Ensure both the server CA and
+  client certificates are not expired. To check, run:
+
+  .. code-block:: sh
+
+     openssl x509 -enddate -noout -in <certFile>
+
+KMIP Server Permissions
+```````````````````````
+
+The client certificate must be authorized for the following
+operations on the KMIP server:
+
+.. list-table::
+   :widths: 42 58
+   :header-rows: 1
+
+   * - KMIP mode
+     - Required operations
+   * - Default (KMIP 1.2)
+     - Create, Encrypt, Decrypt on symmetric keys
+   * - Legacy (``useLegacyProtocol: true``)
+     - Create, Get on symmetric keys
+
+If you provide ``keyIdentifier``, the Create permission is
+not required. Consult your KMIP server documentation to
+configure the appropriate permissions for the client
+certificate.
+
+.. _automation-config-offline:
+
+Offline
+~~~~~~~
+
+Offline mode is best for air-gapped or standalone
+environments. The agent derives an encryption key from a
+customer-provided UUID combined with physical machine
+parameters. This method requires no external dependencies.
+
+To use offline mode, set ``encryptionMethod`` to
+``OFFLINE_SOFTWARE`` and provide the following parameter:
+
+.. list-table::
+   :widths: 20 65 15
+   :header-rows: 1
+
+   * - Parameter
+     - Description
+     - Required
+   * - ``dynamicSalt``
+     - UUID used for key derivation. Acts as the rotation
+       trigger.
+     - Yes
+
+Dynamic Salt UUID
+`````````````````
+
+The ``dynamicSalt`` is a cryptographically random UUID that
+serves as an additional input to the key derivation process.
+
+- **Ops Manager UI**: Click :guilabel:`Generate` to produce a
+  new UUID automatically.
+- **Public API**: Provide a cryptographically random UUID
+  (Version 4). Use a secure random generator. Avoid
+  predictable, sequential, or hardcoded UUIDs.
+
+Changing the dynamic salt to a new UUID triggers key
+re-derivation, which is the primary rotation mechanism for
+offline mode.
+
+Configuration Schema
+````````````````````
+
+.. code-block:: json
+
+   {
+     "configEncryption": {
+       "encryptionMethod": "OFFLINE_SOFTWARE",
+       "dynamicSalt": "<UUID>"
+     }
+   }
+
+Default
+~~~~~~~
+
+If Encryption at Rest (``security.enableEncryption``) is
+enabled for any process in the deployment, offline encryption
+activates automatically without requiring explicit
+configuration. Otherwise, the configuration remains
+unencrypted.
+
+.. note::
+
+   Default mode does not support manual key rotation.
+
+Configure Encryption
+--------------------
+
+You can configure automation config encryption using the
+|onprem| UI or the Public API.
+
+Via the Ops Manager UI
+~~~~~~~~~~~~~~~~~~~~~~
+
+Configure encryption at the project level in |onprem|.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Navigate to the Automation Config Encryption settings.
+
+      Click :guilabel:`Settings`, :guilabel:`Admin Project
+      Settings`, :guilabel:`Automation Config Encryption`.
+
+   .. step:: Select an encryption method.
+
+      Select :guilabel:`Online (KMIP)`, :guilabel:`Offline`,
+      or :guilabel:`Default`.
+
+   .. step:: Fill in the required fields for your chosen method.
+
+      For field descriptions, see
+      :ref:`Online (KMIP) <automation-config-online-kmip>`
+      or :ref:`Offline <automation-config-offline>`.
+
+   .. step:: Save and deploy the changes.
+
+      Click :guilabel:`Save`, then review and deploy the
+      changes.
+
+Via the Public API
+~~~~~~~~~~~~~~~~~~
+
+You can manage automation config encryption through the
+|onprem| automation config endpoint.
+
+**Endpoint**: ``PUT /groups/{PROJECT-ID}/automationConfig``
+
+Include the ``configEncryption`` object in the automation
+config request body. To learn more about the full request
+and response, see :ref:`update-automation-configuration`.
+
+You must have the :authrole:`Project Automation Admin` role
+to use this endpoint.
+
+Request Body
+````````````
+
+Include a ``configEncryption`` object in the automation
+config request body. See
+:ref:`Online (KMIP) <automation-config-online-kmip>` or
+:ref:`Offline <automation-config-offline>` for complete
+field references.
+
+**Online (KMIP)**:
+
+.. code-block:: json
+
+   {
+     "configEncryption": {
+       "encryptionMethod": "ONLINE_KMS",
+       "kmip": {
+         "serverName": "kmip.example.com",
+         "serverCAFile": "/path/to/ca.pem",
+         "clientCertificateFile": "/path/to/client.pem"
+       }
+     }
+   }
+
+**Offline**:
+
+.. code-block:: json
+
+   {
+     "configEncryption": {
+       "encryptionMethod": "OFFLINE_SOFTWARE",
+       "dynamicSalt": "<UUID>"
+     }
+   }
+
+Response Codes
+``````````````
+
+For the full response specification, see
+:ref:`update-automation-configuration`. The following error
+codes are specific to ``configEncryption`` validation:
+
+.. list-table::
+   :widths: 20 35 45
+   :header-rows: 1
+
+   * - HTTP code
+     - Description
+     - Notes
+   * - ``200 OK``
+     - Configuration saved as a draft.
+     - Returns an empty JSON object: ``{}``
+   * - ``400 Bad Request``
+     - ``INVALID_CONFIG_ENCRYPTION_SETTINGS``
+     - Returned if the ``configEncryption`` object fails
+       internal validation.
+   * - ``403 Forbidden``
+     - ``CHANGE_NOT_ALLOWED_EXTERNAL_SYSTEM``
+     - Returned if the project is restricted by an
+       externally managed lock.
+
+.. _disable-automation-config-encryption:
+
+Disable Encryption
+~~~~~~~~~~~~~~~~~~
+
+To disable automation config encryption, set the encryption
+method to Default.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Navigate to the Automation Config Encryption settings.
+
+      Click :guilabel:`Settings`, :guilabel:`Admin Project
+      Settings`, :guilabel:`Automation Config Encryption`.
+
+   .. step:: Select Default.
+
+      Set the encryption method to :guilabel:`Default`.
+
+   .. step:: Save and deploy the changes.
+
+      Click :guilabel:`Save`, then review and deploy the
+      changes.
+
+.. note::
+
+   If no deployments in the project use Encryption at Rest,
+   encryption is disabled after you deploy this change.
+
+Encrypted Fields
+----------------
+
+Only sensitive fields are encrypted. Non-sensitive
+operational data such as ports, log paths, and topology
+remains in plaintext.
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Category
+     - Fields
+   * - Authentication
+     - | ``auth.key``
+       | ``auth.newKey``
+       | ``auth.autoPwd``
+       | ``auth.newAutoPwd``
+       | ``auth.autoKerberosWindowsPassword``
+   * - User credentials
+     - | ``auth.usersWanted.[].initPwd``
+       | ``auth.usersWanted.[].scramSha1Creds.salt``
+       | ``auth.usersWanted.[].scramSha1Creds.storedKey``
+       | ``auth.usersWanted.[].scramSha1Creds.serverKey``
+       | ``auth.usersWanted.[].scramSha256Creds.salt``
+       | ``auth.usersWanted.[].scramSha256Creds.storedKey``
+       | ``auth.usersWanted.[].scramSha256Creds.serverKey``
+   * - TLS
+     - ``tls.autoPEMKeyFilePwd``
+   * - LDAP
+     - | ``ldap.bindQueryPassword``
+       | ``ldap.newBindQueryPassword``
+   * - Prometheus
+     - | ``prometheus.password``
+       | ``prometheus.passwordHash``
+       | ``prometheus.passwordSalt``
+       | ``prometheus.tlsPemPassword``
+   * - BI Connector
+     - ``mongosqlds.[].tlsPEMKeyPassword``
+   * - Encryption providers
+     - | ``encryptionProviders.awsKms.accessKeyId``
+       | ``encryptionProviders.awsKms.secretAccessKey``
+       | ``encryptionProviders.awsKms.sessionToken``
+       | ``encryptionProviders.azureKeyVault.clientId``
+       | ``encryptionProviders.azureKeyVault.tenantId``
+       | ``encryptionProviders.azureKeyVault.secret``
+       | ``encryptionProviders.googleCloudKMS.serviceAccountKey``
+   * - Config encryption
+     - ``configEncryption.kmip.clientCertificatePassword``
+
+File Artifacts
+--------------
+
+The agent stores two files in its configured backup
+directory. The agent user must have read/write access to
+this directory.
+
+.. list-table::
+   :widths: 32 43 25
+   :header-rows: 1
+
+   * - File
+     - Description
+     - Permissions (Unix / Windows)
+   * - ``mms-cluster-config-backup.json``
+     - Cluster config with sensitive fields encrypted
+       inline
+     - ``0600`` / ``0600``
+   * - ``master.key``
+     - Wrapped encryption key(s) (JSON)
+     - ``0400`` / ``0600``
+
+The agent writes files using an atomic pattern (write to a
+temp file, then rename). The agent persists the config file
+before the key file to ensure consistent rollback if a crash
+occurs during writes.
+
+.. warning::
+
+   Do not modify these files. The agent uses them to recover
+   from a restart when |onprem| is unreachable.
+
+Key Rotation
+------------
+
+The agent supports both manual and automatic key rotation.
+
+Manual Rotation
+~~~~~~~~~~~~~~~
+
+To manually rotate encryption keys, use the following
+triggers:
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Mode
+     - Trigger
+   * - Online (KMIP)
+     - Update any KMIP configuration property in |onprem|
+   * - Offline
+     - Generate a new dynamic salt UUID in |onprem|
+   * - Default
+     - Switch to Online or Offline mode first
+
+Automatic Rotation
+~~~~~~~~~~~~~~~~~~
+
+The agent automatically rotates encryption keys when:
+
+- The agent process restarts.
+- The agent version changes (upgrade or downgrade).
+
+When to Rotate
+~~~~~~~~~~~~~~
+
+Rotate keys in the following situations:
+
+- Suspected key compromise
+- Scheduled rotation per your organization's security policy
+- Personnel changes involving infrastructure access
+
+Considerations
+--------------
+
+The following conditions may affect automation config
+encryption in your deployment.
+
+- **Hardware changes**: Replacing hardware or migrating VMs
+  may leave the local backup inaccessible to the agent. The
+  agent automatically recovers by fetching fresh
+  configuration from |onprem|.
+
+- **VM cloning**: Cloned VMs retain the same machine
+  identity and may decrypt Offline-encrypted data. Use
+  Online (KMIP) mode for clone-isolated security.
+
+- **Agent upgrades and downgrades**: Changing the agent
+  version invalidates encryption artifacts. The agent
+  fetches fresh configuration from |onprem| automatically
+  to re-encrypt.
+
+- **Ops Manager connectivity**: If the agent cannot decrypt
+  local files and |onprem| is unreachable, it enters an
+  error state and retries until connectivity is restored.
+
+- **KMIP server availability**: The KMIP server must be
+  reachable during agent operations for key wrapping and
+  unwrapping.
+
+- **Kubernetes Operator**: Operator mode disables
+  encryption. The Kubernetes Operator manages secrets
+  separately.
+
+- **Lazy migration**: Existing deployments move to default
+  mode on upgrade. If Encryption at Rest is enabled for any
+  process, offline encryption activates automatically.
+
+Security Architecture
+---------------------
+
+The encryption system uses envelope encryption with a Data
+Encryption Key (DEK) that encrypts fields and a Key
+Encryption Key (KEK) that protects the DEK. In Online mode,
+the KEK resides in your KMIP-compatible HSM and never touches
+disk. In Offline mode, the agent derives the KEK from
+machine-specific attributes, binding the encrypted data to
+the physical host.
+
+Cryptographic Algorithms
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table lists the cryptographic algorithms used
+at each stage of the encryption process.
+
+.. list-table::
+   :widths: 22 28 50
+   :header-rows: 1
+
+   * - Purpose
+     - Algorithm
+     - Details
+   * - Field encryption
+     - AES-256-GCM
+     - 256-bit key, 96-bit nonce, 128-bit authentication
+       tag. Each field uses a unique nonce and is bound to
+       its configuration path via authenticated data
+       (AAD), preventing tampering or field relocation.
+   * - KEK derivation (Offline)
+     - PBKDF2-HMAC-SHA256
+     - Derives the KEK using a high iteration count for
+       computational hardening against brute-force attacks.
+   * - DEK wrapping
+     - AES Key Wrap (RFC 3394)
+     - NIST-approved algorithm for protecting the DEK
+       under the KEK. Produces a wrapped key with an
+       8-byte integrity check value.
+   * - DEK wrapping (Online KMIP 1.2)
+     - KMIP server-side Encrypt/Decrypt
+     - The master key never leaves the KMIP server. The
+       server wraps and unwraps the DEK directly.
+   * - DEK wrapping (Online KMIP legacy)
+     - AES Key Wrap (RFC 3394)
+     - The agent retrieves the key from the KMIP server
+       and uses it locally for AES Key Wrap, then zeros
+       it from memory.
+
+Security Properties
+~~~~~~~~~~~~~~~~~~~
+
+The automation config encryption system provides the
+following security guarantees.
+
+- **Online mode bootstrap**: A separate locally wrapped
+  key protects the KMIP certificate credentials stored
+  in the config. This enables the agent to authenticate
+  to your KMIP server during unattended restarts without
+  storing plaintext secrets on disk.
+
+- **Atomic writes**: The agent writes configuration and
+  key files using a crash-safe atomic pattern. The agent
+  can fully recover from a failure at any point during
+  the write.
+
+- **No plaintext secrets on disk**: When you enable
+  encryption, the agent replaces all credential fields
+  in the backup file with encrypted values. The
+  ``master.key`` file contains only wrapped (encrypted)
+  keys.
+
+Security Best Practices
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Follow these recommendations to strengthen your automation
+config encryption deployment.
+
+- Prefer Online (KMIP) when KMIP infrastructure is
+  available. It provides the strongest security.
+- Use KMIP 1.2 (default) over the legacy protocol. The
+  master key never leaves the HSM.
+- Rotate keys regularly per your organization's policy.
+- Restrict filesystem access to the agent's config
+  directory.
+- Ensure |onprem| connectivity before hardware changes
+  or VM migrations in Offline mode. The agent recovers
+  automatically by fetching fresh configuration on the
+  next successful poll.
+
+Troubleshooting
+---------------
+
+The following sections cover common issues, forced recovery
+steps, and agent log tags.
+
+Common Issues
+~~~~~~~~~~~~~
+
+The following table lists common symptoms, their likely
+causes, and resolution steps.
+
+.. list-table::
+   :widths: 28 32 40
+   :header-rows: 1
+
+   * - Symptom
+     - Likely cause
+     - Resolution
+   * - Agent enters error state on startup
+     - Hardware or machine identity changed (Offline mode)
+     - Restore |onprem| connectivity. The agent
+       recovers automatically.
+   * - Agent enters error state on startup
+     - KMIP server unreachable or certificate expired
+       (Online mode)
+     - Verify KMIP connectivity and certificate validity.
+       Update credentials in |onprem| if needed. Run
+       ``openssl s_client`` to verify the TLS handshake,
+       check certificate expiry, and verify firewall and
+       DNS settings.
+   * - Log shows "Could not locate object: KEY_ID"
+     - Encryption key unavailable in KMIP
+     - Use one of the following options:
+
+       - Restore the key with the specified key ID in KMIP.
+       - Rotate the key through |onprem|.
+       - Delete ``master.key``, restart the agent, and
+         allow it to fetch a fresh config from |onprem|
+         and create a new KMIP key ID.
+   * - ``agent_kmip_connect_failed`` in logs
+     - TLS handshake rejected
+     - Verify ``serverCAFile`` matches the KMIP server CA.
+       Verify ``clientCertificateFile`` is accepted by the
+       server. Check KMIP server logs for auth failures.
+   * - ``agent_kmip_operation_failed`` in logs
+     - KMIP server rejected the operation
+     - Verify the client certificate has the required
+       permissions (Create/Encrypt/Decrypt or Create/Get).
+       Verify the key UUID in ``keyIdentifier`` exists and
+       is in Active state on the server.
+   * - Backup files not updating
+     - Insufficient file permissions or disk space
+     - Verify the agent user has write access to the
+       config directory.
+   * - Decryption failure after upgrade or downgrade
+     - Encryption artifacts are version-bound
+     - The agent fetches fresh config from |onprem|
+       automatically.
+
+Forced Recovery
+~~~~~~~~~~~~~~~
+
+If the agent cannot decrypt its local backup and |onprem|
+is reachable, you can reset the encryption state.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Stop the Automation Agent
+
+      Stop the Automation Agent on the affected host.
+
+   .. step:: Delete the master key file
+
+      Delete ``master.key`` from the agent's backup
+      directory. This directory is the same one that
+      contains ``mms-cluster-config-backup.json``,
+      typically configured by the ``mmsConfigBackup``
+      setting in the agent configuration file.
+
+   .. step:: Restart the agent
+
+      Start the agent. It fetches a fresh configuration
+      from |onprem| and re-encrypts.
+
+.. warning::
+
+   |onprem| must be reachable before you start the agent.
+   Without connectivity, the agent has no configuration to
+   fall back to and enters an error state.
+
+To disable encryption as part of recovery, see
+:ref:`disable-automation-config-encryption`.
+
+Log Tags
+~~~~~~~~
+
+The following log tags identify encryption-related events
+in the agent logs.
+
+.. list-table::
+   :widths: 42 10 48
+   :header-rows: 1
+
+   * - Tag
+     - Level
+     - Description
+   * - ``agent_encryption_write_start``
+     - INFO
+     - Write operation initiated
+   * - ``agent_encryption_write_complete``
+     - DEBUG
+     - Write completed
+   * - ``agent_decryption_read_start``
+     - INFO
+     - Read/decrypt operation initiated
+   * - ``agent_decryption_read_complete``
+     - DEBUG
+     - Read/decrypt completed
+   * - ``agent_dek_cache_hit``
+     - DEBUG
+     - Encryption key served from cache
+   * - ``agent_dek_cache_miss``
+     - INFO
+     - Key not cached; regenerating
+   * - ``agent_encryption_key_rotation``
+     - INFO
+     - Key rotation triggered
+   * - ``agent_encryption_key_rotation_failure``
+     - ERROR
+     - Key rotation failed
+   * - ``agent_encryption_method_transition``
+     - INFO
+     - Encryption method changed
+   * - ``agent_encryption_dek_wrapped``
+     - DEBUG
+     - Encryption key wrapped (includes method)
+   * - ``agent_encryption_dek_unwrapped``
+     - DEBUG
+     - Encryption key unwrapped (includes method)
+   * - ``agent_encryption_field_encrypted``
+     - DEBUG
+     - Field path encrypted (path only, no values)
+   * - ``agent_decryption_field_decrypted``
+     - DEBUG
+     - Field path decrypted (path only, no values)
+   * - ``agent_encryption_failure``
+     - ERROR
+     - Encryption operation failed
+   * - ``agent_decryption_failure``
+     - ERROR
+     - Decryption operation failed
+   * - ``agent_encryption_unexpected_error``
+     - ERROR
+     - Unexpected error in encryption subsystem
+   * - ``agent_kmip_connect``
+     - DEBUG
+     - KMIP TLS connection established
+   * - ``agent_kmip_connect_failed``
+     - ERROR
+     - KMIP TLS connection failed (includes server, port,
+       retry count)
+   * - ``agent_kmip_operation``
+     - DEBUG
+     - KMIP operation completed (operation type, key ID,
+       duration)
+   * - ``agent_kmip_operation_failed``
+     - ERROR
+     - KMIP operation failed (operation type, key ID,
+       error)
+   * - ``agent_kmip_key_created``
+     - INFO
+     - New key created on KMIP server (key ID)
+   * - ``agent_kmip_key_reused``
+     - DEBUG
+     - Existing KMIP key reused (key ID, source)
+   * - ``agent_kmip_tls``
+     - DEBUG
+     - KMIP TLS config built (cert paths,
+       password-protected flag)
+
+.. note::
+
+   |onprem| never logs sensitive values.
