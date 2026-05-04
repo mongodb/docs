@@ -25,6 +25,7 @@ import stableStringify from 'fast-json-stable-stringify';
 // Meta, Twitter, Facet, and Contents are page metadata collected into frontmatter
 // Dismissible-skills-card data is collected into frontmatter
 // Default-domain is unnecessary
+// Tabs-selector is already handled in frontmatter
 // IA is legacy toc
 const DIRECTIVES_TO_REMOVE = [
   'default-domain',
@@ -33,6 +34,7 @@ const DIRECTIVES_TO_REMOVE = [
   'contents',
   'meta',
   'facet',
+  'tabs-selector',
   'toctree',
   'twitter',
 ];

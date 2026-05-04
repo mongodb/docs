@@ -10,6 +10,7 @@ import { DRIVER_ICON_MAP } from '@/components/icons/DriverIconMap';
 import { theme } from '@/styles/theme';
 import type { ActiveTabs, Selectors } from '@/context/tabs-context';
 import { TabContext, makeChoices } from '@/context/tabs-context';
+import { usePageContext } from '@/context/page-context';
 
 const selectStyle = css`
   width: 100%;
@@ -27,20 +28,6 @@ const selectStyle = css`
   @media ${theme.screenSize.upToLarge} {
     /* Supports the alignment when on tablet or mobile */
     max-width: 300px;
-  }
-`;
-
-const mainColumnStyles = css`
-  margin: ${theme.size.large} 0px;
-  div > button {
-    display: flex;
-    width: 458px;
-    @media ${theme.screenSize.upToMedium} {
-      width: 385px;
-    }
-    @media ${theme.screenSize.upToSmall} {
-      width: 100%;
-    }
   }
 `;
 
@@ -63,16 +50,15 @@ type TabSelectorProps = {
   iconMapping: DriverMap;
   name: string;
   options: Selectors[string];
-  mainColumn: boolean;
 };
 
-const TabSelector = ({ activeTab, handleClick, iconMapping, name, options, mainColumn }: TabSelectorProps) => {
+const TabSelector = ({ activeTab, handleClick, iconMapping, name, options }: TabSelectorProps) => {
   const choices = useMemo(() => makeChoices({ name, iconMapping, options }), [name, iconMapping, options]);
   // usePortal set to true when Select is in main column to
   // prevent z-index issues with content overlapping dropdown
   return (
     <Select
-      className={cx(selectStyle, mainColumn ? mainColumnStyles : '')}
+      className={cx(selectStyle)}
       choices={choices}
       label={getLabel(name)}
       onChange={({ value }) => {
@@ -89,6 +75,7 @@ const TabSelector = ({ activeTab, handleClick, iconMapping, name, options, mainC
 };
 
 export const TabsSelector = () => {
+  const { tabsMainColumn } = usePageContext();
   const { activeTabs, selectors, setActiveTab } = useContext(TabContext);
 
   if (!selectors || Object.keys(selectors).length === 0) {
@@ -111,7 +98,6 @@ export const TabsSelector = () => {
             iconMapping={iconMapping}
             name={name}
             options={options}
-            mainColumn={true}
           />
         );
       })}

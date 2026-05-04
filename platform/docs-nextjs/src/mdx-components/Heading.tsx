@@ -21,7 +21,7 @@ import { Contents } from '@/mdx-components/Contents';
 import CopyPageMarkdownButton from '@/components/widgets/markdown-widget';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { reportAnalytics } from '@/utils/report-analytics';
-import TabSelectors from '@/components/tabs/tab-selectors';
+import { TabsSelector } from '@/mdx-components/TabsSelector';
 
 /** This is initialized outside the component so it can keep track of duplicate heading ids */
 const slugger = new Slugger();
@@ -167,7 +167,7 @@ export const Heading = forwardRef<HTMLDivElement, HeadingProps>(
           wrapper={(children) => (
             <HeadingContainer>
               {children}
-              <ChildContainer>{hasSelectors && !tabsMainColumn && <TabSelectors rightColumn={true} />}</ChildContainer>
+              <ChildContainer>{hasSelectors && !tabsMainColumn && <TabsSelector />}</ChildContainer>
             </HeadingContainer>
           )}
         >

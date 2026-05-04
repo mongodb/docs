@@ -32,20 +32,6 @@ const selectStyle = css`
   }
 `;
 
-const mainColumnStyles = css`
-  margin: ${theme.size.large} 0px;
-  div > button {
-    display: flex;
-    width: 458px;
-    @media ${theme.screenSize.upToMedium} {
-      width: 385px;
-    }
-    @media ${theme.screenSize.upToSmall} {
-      width: 100%;
-    }
-  }
-`;
-
 const getLabel = (name: string) => {
   switch (name) {
     case 'drivers':
@@ -65,25 +51,16 @@ export type TabSelectorProps = {
   iconMapping: DriverMap;
   name: string;
   options: Record<string, ASTNode[]>;
-  mainColumn: boolean;
   className?: string;
 };
 
-const TabSelector = ({
-  className,
-  activeTab,
-  handleClick,
-  iconMapping,
-  name,
-  options,
-  mainColumn,
-}: TabSelectorProps) => {
+const TabSelector = ({ className, activeTab, handleClick, iconMapping, name, options }: TabSelectorProps) => {
   const choices = useMemo(() => makeChoices({ name, iconMapping, options }), [name, iconMapping, options]);
   // usePortal set to true when Select is in main column to
   // prevent z-index issues with content overlapping dropdown
   return (
     <Select
-      className={cx(selectStyle, mainColumn ? mainColumnStyles : '', className)}
+      className={cx(selectStyle, className)}
       choices={choices}
       label={getLabel(name)}
       onChange={({ value }) => {
@@ -129,7 +106,6 @@ const TabSelectors = ({ className, rightColumn = false }: TabSelectorsProps) => 
             iconMapping={iconMapping}
             name={name}
             options={options}
-            mainColumn={!!tabsMainColumn}
           />
         );
       })}
