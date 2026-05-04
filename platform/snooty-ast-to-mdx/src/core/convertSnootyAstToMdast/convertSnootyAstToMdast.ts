@@ -1359,6 +1359,13 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           name: 'type',
           value: slotBody ? 'replacement' : 'substitution',
         });
+        // Bake the Snooty-resolved value directly into the element so context-dependent
+        // substitutions (e.g. |idp-provider| defined differently per page) render with
+        // the correct value rather than whatever _references.json last stored.
+        // Suppressed for plain include bodies — those use <Replacement> slots instead.
+        if (!slotBody && !ctx.suppressSubstitutionInlineValues && text) {
+          attributes.push({ type: 'mdxJsxAttribute', name: 'value', value: text });
+        }
       }
       return {
         type: 'mdxJsxTextElement',
@@ -1544,6 +1551,8 @@ interface ConvertSnootyAstToMdastOptions {
    * `<Replacement>` slots (see `convertDirectiveInclude` when `.. replacement::` is present).
    */
   emitSubstitutionReferencesAsReplacement?: boolean;
+  /** Plain include bodies only: suppress the `value` attribute so `<Replacement>` slots win. */
+  suppressSubstitutionInlineValues?: boolean;
 }
 
 export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnootyAstToMdastOptions): MdastRoot => {
@@ -1557,6 +1566,7 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
     emitMdxFile: options?.onEmitMdxFile,
     currentOutfilePath: options?.currentOutfilePath,
     emitSubstitutionReferencesAsReplacement: options?.emitSubstitutionReferencesAsReplacement,
+    suppressSubstitutionInlineValues: options?.suppressSubstitutionInlineValues,
     collectedSubstitutions,
     collectedRefs,
   };

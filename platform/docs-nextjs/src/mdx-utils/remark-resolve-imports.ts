@@ -189,6 +189,16 @@ const resolveSubstitutions = ({ tree, refs }: ResolveRefsArgs) => {
     const key = getAttr(node, 'refKey') ?? getAttr(node, 'name');
     if (!key) return;
 
+    // Prefer the value baked in at conversion time (mirrors RST inline substitution
+    // resolution and preserves per-page context for keys like |idp-provider|).
+    const inlineValue = getAttr(node, 'value');
+    if (inlineValue) {
+      replacements.push({ index, parent, replacement: { type: 'text', value: inlineValue } as PhrasingContent });
+      return;
+    }
+
+    // Fall back to the shared _references.json for substitutions without an inline value
+    // (e.g. references in standalone include files processed without page context).
     const value = refs.substitutions[key];
     if (!value) return;
 
@@ -315,14 +325,21 @@ const resolveReplacementReferences = (tree: Root, slots: Record<string, Node[]>)
   visit(tree, (node, index, parent) => {
     if (index === undefined || !parent) return;
     if (!isJsxElement(node) || node.name !== 'Reference') return;
-    if (getAttr(node, 'type') !== 'replacement') return;
+
+    const refType = getAttr(node, 'type');
+    // Apply slots to explicit replacement refs AND substitution refs that have a matching
+    // slot (page-specific values emitted by convertDirectiveInclude for plain includes).
+    if (refType !== 'replacement' && refType !== 'substitution') return;
 
     const key = getAttr(node, 'refKey') ?? getAttr(node, 'name');
     if (!key) return;
 
     const fragment = slots[key];
     if (!fragment?.length) {
-      console.warn(`[remarkResolveImports] Missing <Replacement name="${key}"> for include`);
+      if (refType === 'replacement') {
+        console.warn(`[remarkResolveImports] Missing <Replacement name="${key}"> for include`);
+      }
+      // substitution refs without a slot fall through to resolveSubstitutions (_references.json)
       return;
     }
 

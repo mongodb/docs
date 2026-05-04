@@ -10,6 +10,30 @@ interface ConvertDirectiveIncludeArgs {
   depth: number;
 }
 
+/**
+ * Recursively collect every substitution_reference in `nodes`, skipping nested include
+ * directives (those emit their own <Replacement> slots when converted).
+ * Returns a map of refname → resolved children (the Snooty-resolved content).
+ */
+const collectSubstitutionRefs = (nodes: SnootyNode[]): Map<string, SnootyNode[]> => {
+  const refs = new Map<string, SnootyNode[]>();
+  const walk = (node: SnootyNode) => {
+    const name = String(node.name ?? '').toLowerCase();
+    if (node.type === 'directive' && (name === 'include' || name === 'sharedinclude')) return;
+    if (node.type === 'substitution_reference' || node.type === 'substitution') {
+      // Snooty BSON uses `name`; synthetic test data may use `refname` — mirror convertNode's fallback
+      const key =
+        (typeof node.refname === 'string' && node.refname) || (typeof node.name === 'string' && node.name) || '';
+      if (key && !refs.has(key)) {
+        refs.set(key, Array.isArray(node.children) ? (node.children as SnootyNode[]) : []);
+      }
+    }
+    (node.children ?? []).forEach(walk);
+  };
+  nodes.forEach(walk);
+  return refs;
+};
+
 export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIncludeArgs): MdastNode => {
   const pathText = parseSnootyArgument(node);
 
@@ -39,14 +63,18 @@ export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIn
       : [];
   }
 
+  const isSlotBased = replacementNodes.length > 0;
+
   const nestedRoot: SnootyNode = { type: 'root', children: contentChildren };
   // Only slot-based includes (`.. replacement::` siblings) emit `type="replacement"` for
-  // substitution refs. Plain includes resolve from `_references.json` like normal pages.
+  // substitution refs. Plain includes resolve from `_references.json` like normal pages,
+  // but suppress the baked-in value so <Replacement> slots from the caller take precedence.
   const emittedMdast = convertSnootyAstToMdast(nestedRoot, {
     onEmitMdxFile: ctx.emitMdxFile,
     currentOutfilePath: path.normalize(emittedPathNormalized),
     initialDepth: depth,
-    emitSubstitutionReferencesAsReplacement: replacementNodes.length > 0,
+    emitSubstitutionReferencesAsReplacement: isSlotBased,
+    suppressSubstitutionInlineValues: !isSlotBased,
   });
   ctx.emitMdxFile?.({ outfilePath: emittedPathNormalized, mdastRoot: emittedMdast });
 
@@ -55,7 +83,7 @@ export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIn
   let includePath = `/${targetPosix}`;
   includePath = includePath.replace(/\.mdx$/i, '');
 
-  // Convert each replacement directive into a <Replacement name="..."> child element.
+  // Convert each explicit replacement directive into a <Replacement name="..."> child element.
   // Content is converted through the normal mdast pipeline so markdown syntax works.
   const replacementChildren: MdastNode[] = replacementNodes.map((replacementNode) => {
     const key = parseSnootyArgument(replacementNode);
@@ -71,6 +99,29 @@ export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIn
       children: valueRoot.children ?? [],
     } as MdastNode;
   });
+
+  // For plain includes (no explicit .. replacement:: directives), scan the include content for
+  // substitution_reference nodes and emit a <Replacement> slot for each one. This lets
+  // page-specific values (e.g. |idp-provider| = "Okta" on one page, "Google Workspace" on
+  // another) override the global _references.json fallback at runtime in remark-resolve-imports.
+  if (!isSlotBased) {
+    const substRefs = collectSubstitutionRefs(contentChildren);
+    for (const [refname, subChildren] of substRefs) {
+      if (!subChildren.length) continue;
+      const slotRoot = convertSnootyAstToMdast(
+        { type: 'root', children: subChildren },
+        { onEmitMdxFile: ctx.emitMdxFile, currentOutfilePath: path.normalize(emittedPathNormalized) },
+      );
+      const slotNodes = slotRoot.children.filter((c) => (c as { type: string }).type !== 'yaml');
+      if (!slotNodes.length) continue;
+      replacementChildren.push({
+        type: 'mdxJsxFlowElement',
+        name: 'Replacement',
+        attributes: [{ type: 'mdxJsxAttribute', name: 'name', value: refname }],
+        children: slotNodes,
+      } as MdastNode);
+    }
+  }
 
   return {
     type: 'mdxJsxFlowElement',

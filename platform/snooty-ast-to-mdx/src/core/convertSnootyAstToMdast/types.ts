@@ -19,6 +19,12 @@ export interface ConversionContext {
    * `substitution` and are not merged into `_references.json`. Plain includes omit this flag.
    */
   emitSubstitutionReferencesAsReplacement?: boolean;
+  /**
+   * When true (plain include content), substitution references do NOT get a `value` attribute
+   * baked in. The calling page's `<Include>` element provides per-page values via `<Replacement>`
+   * slots; unmatched refs fall back to `_references.json`.
+   */
+  suppressSubstitutionInlineValues?: boolean;
   /** Collected references to emit into a _references.ts artifact */
   collectedSubstitutions: Map<string, string>;
   collectedRefs: Map<string, string>;

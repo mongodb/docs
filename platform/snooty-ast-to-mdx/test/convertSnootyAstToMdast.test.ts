@@ -301,15 +301,22 @@ describe('convertSnootyAstToMdast', () => {
       ],
     };
     const onEmitMdxFile = jest.fn();
-    convertSnootyAst({ ast, onEmitMdxFile });
+    const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
 
+    // Include file: type="substitution", no baked-in value (suppressed so slots take precedence)
     expect(onEmitMdxFile).toHaveBeenCalledTimes(1);
     const [{ mdastRoot }] = onEmitMdxFile.mock.calls[0];
     const emittedMdx = convertMdastToMdx(mdastRoot);
     expect(emittedMdx).toContain('type="substitution"');
     expect(emittedMdx).not.toContain('type="replacement"');
+    expect(emittedMdx).not.toContain('value="Atlas"');
     const refs = (mdastRoot as { __references?: ReferencesArtifact }).__references;
     expect(refs?.substitutions).toHaveProperty('service', 'Atlas');
+
+    // Calling page: <Include> carries a <Replacement> slot with the page-specific value
+    expect(mdx).toContain('<Include src="/nav/steps"');
+    expect(mdx).toContain('<Replacement name="service">');
+    expect(mdx).toContain('Atlas');
   });
 
   it('emits substitution_reference in include body as Reference type replacement (not _references)', () => {
@@ -354,6 +361,112 @@ describe('convertSnootyAstToMdast', () => {
 
     expect(mdx).toContain('<Replacement name="field">');
     expect(mdx).toContain('<Include src="/chunk"');
+  });
+
+  it('bakes resolved substitution text into value attribute so per-page values are preserved', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'substitution_reference',
+              refname: 'idp-provider',
+              children: [{ type: 'text', value: 'Google Workspace' }],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+
+    expect(mdx).toContain('refKey="idp-provider"');
+    expect(mdx).toContain('type="substitution"');
+    expect(mdx).toContain('value="Google Workspace"');
+  });
+
+  it('does not emit value attribute on replacement-type references (slot bodies)', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'include',
+          argument: 'chunk.rst',
+          children: [
+            {
+              type: 'directive',
+              name: 'replacement',
+              argument: 'field',
+              children: [{ type: 'paragraph', children: [{ type: 'text', value: 'MyType' }] }],
+            },
+            {
+              type: 'paragraph',
+              children: [
+                {
+                  type: 'substitution_reference',
+                  refname: 'field',
+                  children: [{ type: 'text', value: 'PLACEHOLDER' }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const onEmitMdxFile = jest.fn();
+    convertSnootyAst({ ast, onEmitMdxFile });
+
+    const [{ mdastRoot }] = onEmitMdxFile.mock.calls[0];
+    const emittedMdx = convertMdastToMdx(mdastRoot);
+    expect(emittedMdx).toContain('type="replacement"');
+    expect(emittedMdx).not.toContain('value="PLACEHOLDER"');
+  });
+
+  it('emits Replacement slots for link-valued substitutions in plain include content', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'include',
+          argument: 'shared/provider.rst',
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                { type: 'text', value: 'See ' },
+                {
+                  type: 'substitution_reference',
+                  refname: 'ldap-provider-link',
+                  children: [
+                    {
+                      type: 'reference',
+                      refuri: 'https://okta.com',
+                      children: [{ type: 'text', value: 'Okta' }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const onEmitMdxFile = jest.fn();
+    const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
+
+    // Include file: type="substitution", no baked-in value
+    const [{ mdastRoot }] = onEmitMdxFile.mock.calls[0];
+    const emittedMdx = convertMdastToMdx(mdastRoot);
+    expect(emittedMdx).toContain('type="substitution"');
+    expect(emittedMdx).not.toContain('value=');
+
+    // Calling page: <Replacement> slot carries the link, not stripped text
+    expect(mdx).toContain('<Replacement name="ldap-provider-link">');
+    expect(mdx).toContain('Okta');
+    expect(mdx).toContain('https://okta.com');
   });
 
   it('collects substitutions and refs into root.__references', () => {
