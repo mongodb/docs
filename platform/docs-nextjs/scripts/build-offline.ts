@@ -16,7 +16,7 @@ import fs from 'fs/promises';
 import { readFileSync } from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
-import { fileURLToPath } from 'url';
+import { fileURLToPath, pathToFileURL } from 'url';
 import { blobRelativeToDiskCandidates, loadDirNameToPrefixMap } from '@/mdx-utils/blob-path-remap';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -466,6 +466,58 @@ async function verifyOutput(): Promise<void> {
   }
 }
 
+/** Depth-first search for the first item that has a navigable url. */
+function findFirstTocUrl(items: { url?: string; isExternal?: boolean; items?: unknown[] }[]): string | null {
+  for (const item of items) {
+    if (item.url && !item.isExternal) return item.url;
+    if (item.items) {
+      const found = findFirstTocUrl(item.items as { url?: string; isExternal?: boolean; items?: unknown[] }[]);
+      if (found) return found;
+    }
+  }
+  return null;
+}
+
+/**
+ * Write an index.html at the OUT_DIR root that immediately redirects to the first
+ * page of the offline TOC. This lets users open the zip/folder and land on real content.
+ */
+async function writeRootRedirect(tocFile: string, version: string): Promise<void> {
+  const tocFilePath = path.join(OFFLINE_DOCS_DIR, `${tocFile}.ts`);
+  const mod = (await import(pathToFileURL(tocFilePath).href)) as {
+    toc: { url?: string; isExternal?: boolean; items?: unknown[] }[];
+  };
+  const firstUrl = findFirstTocUrl(mod.toc);
+  if (!firstUrl) {
+    console.warn('Could not determine first TOC URL; skipping root index.html creation.');
+    return;
+  }
+  // Replace :version placeholder with the build version (e.g. /docs/:version/… → /docs/:version/…).
+  const resolvedUrl = firstUrl.replace(/:version/g, version);
+
+  // Strip the /docs/ prefix and point directly to index.html so browsers open
+  // the file correctly over file:// (bare directory URLs don't auto-serve index.html).
+  // e.g. /docs/management → management/index.html
+  const relativePath = resolvedUrl.replace(/^\/docs\/?/, '').replace(/\/?$/, '/') + 'index.html';
+  const html = [
+    '<!DOCTYPE html>',
+    '<html>',
+    '  <head>',
+    '    <meta charset="utf-8">',
+    `    <meta http-equiv="refresh" content="0; url=${relativePath}">`,
+    `    <link rel="canonical" href="${relativePath}">`,
+    '    <title>Redirecting\u2026</title>',
+    `    <script>window.location.replace(${JSON.stringify(relativePath)});</script>`,
+    '  </head>',
+    '  <body>',
+    `    <p>Redirecting to <a href="${relativePath}">${relativePath}</a>\u2026</p>`,
+    '  </body>',
+    '</html>',
+  ].join('\n');
+  await fs.writeFile(path.join(OUT_DIR, 'index.html'), html, 'utf-8');
+  console.log(`Root redirect: index.html → ${relativePath}`);
+}
+
 async function main(): Promise<void> {
   const { tocFile, version } = parseCliArgs();
 
@@ -499,6 +551,7 @@ async function main(): Promise<void> {
   await removeAllTxtFiles(OUT_DIR);
   await postProcess();
   await verifyOutput();
+  await writeRootRedirect(tocFile, version);
 }
 
 main().catch((err) => {
