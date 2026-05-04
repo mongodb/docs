@@ -1,0 +1,780 @@
+.. _feast:
+
+==============================
+Integrate MongoDB with Feast
+==============================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :description: Integrate MongoDB with Feast to use MongoDB as both an online and offline feature store.
+   :keywords: feature store, feast, machine learning, online store, offline store, materialization, AI, integration
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Feast provides a high-level FeatureStore API that allows you to define
+features and groups of features (`feature views <https://docs.feast.dev/getting-started/concepts/feature-view>`__), online and offline storage, 
+and the ability to dynamically move data from offline to online storage (`materialization <https://docs.feast.dev/how-to-guides/feast-snowflake-gcp-aws/load-data-into-the-online-store>`__).
+The MongoDB integration allows you to use MongoDB as both an
+:ref:`online <online_store>` and :ref:`offline store <offline_store>`
+for Feast, so you can define features once and serve them consistently
+across model training and online inference without maintaining
+separate storage systems. 
+
+MongoDB's flexible document model and MQL allow it to handle the
+complex query patterns required for the offline store. For the online
+store, MongoDB is optimized for web-scale access patterns—fast
+reads/writes, horizontal scaling, and flexible schemas that minimize
+joins and round trips.
+
+**In this integration overview, you can find:**
+
+- An introduction to MongoDB as Feast's online and offline store.
+- How Feast concepts map to MongoDB.
+- Detailed explanations of the MongoDB offline and online store designs.
+- Configuration examples for setting up the MongoDB stores in Feast.
+
+
+Key Concepts
+------------
+
+Online and Offline Stores
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- The :ref:`online store <online_store>` is a key-value store backed by a single
+  MongoDB collection, optimized for low-latency retrieval of the
+  latest features per entity during online inference.
+
+- The :ref:`offline store <offline_store>` is a compute and translation layer that queries
+  rows of historical feature data stored in a MongoDB collection (typically
+  named ``feature_history``) for training datasets, scoring and materialization
+  (promoting data to the online store).
+
+Common Workflow Patterns
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+A typical end-to-end workflow looks like this:
+
+#. Define entities, feature views, and data sources that point to
+   MongoDB-backed collections.
+
+#. Ingest feature data into the offline store via
+   ``offline_write_batch``, which accepts a PyArrow table as input
+   and inserts the data into the ``feature_history`` MongoDB
+   collection following the offline store schema.
+
+#. Generate training data using ``get_historical_features``, which
+   runs an efficient point-in-time join over historical feature rows
+   stored in MongoDB.
+
+#. Materialize the latest feature values from the offline store into
+   the online store using ``pull_latest_from_table_or_query`` and
+   ``online_write_batch``.
+
+#. Serve features online via Feast's online APIs, which read from a
+   single MongoDB collection keyed by a serialized entity key.
+
+How Feast Concepts Map to MongoDB
+---------------------------------
+
+The MongoDB integration follows Feast's standard conceptual model but
+maps those abstractions to a MongoDB schema designed for
+entity-centric online documents and append-only historical
+events.
+
+Concept Mapping
+~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 30 50
+   :header-rows: 1
+
+   * - Feast Concept
+     - Role in Feast
+     - MongoDB Representation
+
+   * - Entity
+     - Domain object that features describe (e.g. driver, user).
+     - Encoded into a serialized entity key; stored as ``_id`` in the
+       online store and ``entity_id`` in the offline store.
+
+   * - Join key
+     - Column(s) used to identify an entity row in a dataframe.
+     - Fed into ``serialize_entity_key``; the resulting bytes are used as
+       the entity identifier in MongoDB.
+
+   * - Serialized EntityKey
+     - Deterministic binary encoding of join key names and values.
+     - Online: ``_id: serialized_entity_key`` (primary key).
+       Offline: ``entity_id: Binary(...)`` field in
+       ``feature_history`` documents.
+
+   * - Feature
+     - Named, typed measurement at a point in time.
+     - A field inside the ``features`` subdocument (offline) or
+       ``features.<feature_view>.<feature_name>`` (online).
+
+   * - FeatureView
+     - Binds features to entities, data source, and TTL; unit of
+       organization.
+     - Offline: ``feature_view`` discriminator string on each
+       historical document. Online: groups nested under
+       ``features.<feature_view>`` and per-FV timestamps in
+       ``event_timestamps``.
+
+   * - DataSource
+     - Metadata pointer to where historical features live.
+     - ``MongoDBSource`` pointing at a MongoDB collection
+       (``database``, ``collection``, ``connection_string``) plus
+       timestamps.
+
+   * - OfflineStore
+     - Read/write interface for historical features and PIT joins.
+     - ``MongoDBOfflineStore`` implementation running MQL aggregations
+       over a shared ``feature_history`` collection with a compound index.
+
+   * - OnlineStore
+     - Low-latency store of latest feature values per entity.
+     - Single MongoDB collection of entity documents keyed by
+       ``_id = serialized_entity_key``, with nested ``features`` and
+       ``event_timestamps`` subdocuments.
+
+   * - TTL
+     - FeatureView-level freshness window.
+     - Enforced in offline queries and Python post-filtering when
+       computing historical features; may also be combined with
+       ``created_timestamp`` or ``updated_at`` in indexes.
+
+   * - FeatureService
+     - Named list of feature references for a model.
+     - No direct MongoDB representation; used by Feast to decide which
+       ``features.<feature_view>.<feature_name>`` paths to read from the
+       online store.
+
+   * - Registry
+     - Metadata store for entities, feature views, and services.
+     - Unchanged; MongoDB integration does not replace the Feast registry.
+
+   * - RetrievalJob
+     - Deferred execution wrapper returning feature tables.
+     - For MongoDB offline store, encapsulates an MQL aggregation and
+       exposes Arrow exports backed by cursor-to-Arrow
+       conversion.
+
+   * - Materialization
+     - Scheduled propagation of latest offline features into the online
+       store.
+     - Implemented via ``pull_latest_from_table_or_query`` over
+       ``feature_history`` then ``online_write_batch`` into the online
+       MongoDB collection.
+
+.. _offline_store:
+
+MongoDB Offline Store
+---------------------
+
+Data Model
+~~~~~~~~~~
+
+The MongoDB offline store uses a single shared collection (by
+default ``feature_history``) that stores append-only historical
+feature rows for all feature views.
+
+Each document represents one observation of one entity for one
+FeatureView at a specific event timestamp:
+
+.. code-block:: json
+
+   {
+     "entity_id": "Binary(...)",
+     "feature_view": "driver_stats",
+     "event_timestamp": "ISODate(2024-01-15T12:00:00Z)",
+     "created_at": "ISODate(2024-01-15T12:01:00Z)",
+     "features": {
+       "conv_rate": 0.72,
+       "acc_rate": 0.91,
+       "avg_daily_trips": 14
+     }
+   }
+
+Key properties:
+
+- Append-only: historical data is treated as immutable; corrections
+  are written as new rows with newer ``created_at`` timestamps rather
+  than in-place updates.
+
+- Time-series friendly: ``event_timestamp`` represents when the
+  feature value was observed; ``created_at`` is used as a tie-breaker
+  when multiple observations share the same event timestamp.
+
+- Feature grouping by FeatureView: ``feature_view`` identifies which
+  FeatureView the row belongs to, so a single collection can host
+  multiple FVs.
+
+A single compound index supports all major query patterns:
+
+.. code-block:: none
+
+   (entity_id ASC, feature_view ASC, event_timestamp DESC, created_at DESC)
+
+This index enables efficient range scans over entities and feature
+views, while ensuring that the most recent observation per
+``(entity_id, feature_view)`` is seen first during aggregation.
+
+.. collapsible::
+   :heading: Index query pattern details
+   :sub_heading: How the compound index serves each query issued by the offline store.
+   :expanded: false
+
+   .. list-table::
+      :widths: 50 50
+      :header-rows: 1
+
+      * - Query pattern
+        - Index behaviour
+
+      * - ``$match { entity_id: {$in: [...]}, feature_view: {$in: [...]} }``
+        - Index range scan on ``(entity_id, feature_view)`` prefix.
+
+      * - ``$sort { entity_id, feature_view, event_timestamp DESC, created_at DESC }``
+        - Sort is a no-op — index order matches sort order.
+
+      * - ``$group $first``
+        - Cursor visits the latest document per
+          ``(entity_id, feature_view)`` first; ``$group $first`` picks
+          it immediately.
+
+      * - ``pull_latest_from_table_or_query``
+        - ``$match { feature_view }`` + ``$group $first`` by
+          ``entity_id`` — partial prefix scan on
+          ``(entity_id, feature_view)``.
+
+   Without this index, all four query patterns degrade to ``COLLSCAN``.
+   The index is created lazily on first use via ``_ensure_indexes``,
+   cached per connection string in a process-level ``_indexes_ensured``
+   set so it is only created once per process lifetime.
+
+Core Offline Operations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The MongoDB offline store implements the standard Feast offline store
+interface:
+
+- ``offline_write_batch`` - Writes a ``pyarrow.Table`` of feature
+  data into the underlying MongoDB collection, using the configured
+  ``MongoDBSource`` metadata to determine ``connection_string``,
+  ``database``, and ``collection``.
+
+- ``get_historical_features`` - Given an ``entity_df`` of entities
+  and event timestamps plus a set of FeatureViews, returns a widened
+  table where each row includes point-in-time correct feature values:
+  for each ``(entity_id, event_timestamp)`` pair, the most recent
+  feature value whose ``event_timestamp <= entity_event_timestamp`` and
+  within TTL is selected.
+
+- ``pull_latest_from_table_or_query`` - Returns one row per entity
+  containing the latest feature values in a time window, used by
+  Feast's materialization engine to seed the online store.
+
+- ``pull_all_from_table_or_query`` - Retrieves all rows from a data
+  source in a specified date range for export or inspection, backed by
+  the same ``feature_history`` schema and index.
+
+- ``persist`` (via ``RetrievalJob.persist``) - Writes the result of
+  a historical feature query to a separate collection or external sink
+  via ``SavedDatasetStorage``, distinct from ``feature_history``.
+
+.. collapsible::
+   :heading: offline_write_batch internals
+   :sub_heading: Append-only write semantics, batching, and conflict resolution.
+   :expanded: false
+
+   **Call path:**
+
+   .. code-block:: none
+
+      FeatureStore.write_to_offline_store(feature_view_name, df)
+        → provider.ingest_df_to_offline_store(feature_view, arrow_table)
+          → OfflineStore.offline_write_batch(config, feature_view, table, progress)
+
+   **Append-only semantics:** Documents are inserted with
+   ``insert_many(ordered=False)`` in 10,000-document batches. There is no
+   upsert or deduplication at write time — multiple documents for the same
+   ``(entity_id, feature_view, event_timestamp)`` tuple are allowed and
+   retained.
+
+   **Conflict resolution** is deferred to read time:
+
+   - ``pull_latest_from_table_or_query`` picks the document with the
+     highest ``created_at`` within the winning ``event_timestamp`` group.
+   - ``get_historical_features`` (scoring path) uses
+     ``$sort … created_at DESC`` so ``$group $first`` also selects the
+     highest ``created_at`` when timestamps tie.
+
+   A correction written with a later ``created_at`` therefore wins
+   without any delete or update operation.
+
+.. collapsible::
+   :heading: pull_latest_from_table_or_query pipeline
+   :sub_heading: Full aggregation stages used for latest feature retrieval.
+   :expanded: false
+
+   ``pull_latest_from_table_or_query`` returns one row per entity with
+   the most recent feature values in a ``[start_date, end_date]`` window.
+   No ``entity_df`` is supplied.
+
+   **Pipeline stages:**
+
+   .. code-block:: none
+
+      $match { feature_view, event_timestamp: {$gte, $lte} }
+      → $sort { entity_id, event_timestamp DESC, created_at DESC }
+      → $group $first by entity_id
+      → $project { entity_id, event_timestamp, features.* }
+
+   The compound index serves the ``$match`` + ``$sort`` efficiently;
+   ``$group $first`` picks one document per entity without materialising
+   the rest.
+
+Aggregation Implementation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The recommended offline implementation is the aggregation-based
+MongoDB offline store, named ``MongoDBOfflineStore``.
+
+Key characteristics:
+
+- Uses a single ``feature_history`` collection shared by all
+  FeatureViews, distinguished by ``feature_view``.
+
+- Relies on the compound index
+  ``(entity_id, feature_view, event_timestamp, created_at)`` for all
+  queries, avoiding full collection scans.
+
+- Uses server-side ``$group $first`` for "scoring" workloads (one row
+  per entity), and ``pd.merge_asof`` for "training" workloads with
+  repeated entity IDs, balancing correctness and performance.
+
+- Bounded memory usage via chunking, so large ``entity_df`` values
+  can be processed without exhausting RAM.
+
+Benchmarks show this implementation provides the best combination of
+throughput and memory efficiency compared to alternative MongoDB
+offline approaches.
+
+.. collapsible::
+   :heading: Historical feature retrieval algorithm
+   :sub_heading: Point-in-time join, scoring vs. training paths, and correctness trade-offs.
+   :expanded: false
+
+   ``get_historical_features`` is the core Feast API. It accepts an
+   ``entity_df`` (N rows of entity key columns + ``event_timestamps``)
+   and K ``FeatureView`` objects and returns a DataFrame with the same
+   N rows plus M feature columns, with values correct at each
+   row's ``event_timestamp`` (point-in-time correctness).
+
+   **Notation:**
+
+   - N → number of entities
+   - M → number of features
+   - P → number of observations
+   - F → number of feature views
+   - K → number of feature views requested in a single
+     ``get_historical_features`` call
+
+   **Scoring path**
+
+   The scoring path is activated when ``entity_df`` has no repeated
+   entity IDs — the common inference scenario where each row asks for
+   the features for a distinct entity at a distinct timepoint.
+
+   Detection:
+
+   .. code-block:: python
+
+      scoring_path = (
+          entity_df[all_entity_id_cols].drop_duplicates().shape[0]
+          == len(entity_df)
+      )
+
+   When scoring, the server-side ``$group $first`` stage is added:
+
+   .. code-block:: none
+
+      $match  →  $sort  →  $group $first  →  $project
+
+   The ``$group`` groups by ``(entity_id, feature_view)`` and picks the
+   document with the highest ``(event_timestamp, created_at)`` — i.e., the
+   first document in index order after the preceding ``$sort``. MongoDB
+   never materialises the other P-1 documents for each entity per feature
+   view; the cursor simply advances to the next group key after picking one
+   document. Per-entity cost is O(log P) (index seek) rather than O(P).
+
+   The ``$match`` uses ``event_timestamp: {$lte: max_ts}`` where
+   ``max_ts`` is the maximum entity request timestamp in the current
+   chunk. This is a conservative approximation (the "Overshoot"): the
+   server may return documents slightly in the future for some entities.
+   The Python post-filter below corrects this by nulling out invalid
+   rows:
+
+   .. code-block:: python
+
+      # Merge on entity_id (left = entity_df rows, right = server results)
+      merged = result[["_fv_entity_id", event_timestamp_col]].merge(
+          fv_join, on="_fv_entity_id", how="left"
+      )
+
+      # Null out rows where the server doc is in the future or outside TTL
+      future_mask = merged["_fv_ts"] > merged[event_timestamp_col]
+      if fv.ttl:
+          ttl_mask = merged["_fv_ts"] < (
+              merged[event_timestamp_col] - fv.ttl
+          )
+          bad_mask = future_mask | ttl_mask
+      else:
+          bad_mask = future_mask
+
+      for feat in features:
+          vals = merged[feat].copy()
+          vals[bad_mask | merged["_fv_ts"].isna()] = None
+          result[col] = vals.values
+
+   This is a single ``pd.merge`` call followed by vectorized boolean
+   indexing — O(N) work in Pandas C code, independent of P and M.
+
+   **Training path**
+
+   When ``entity_df`` has repeated entity IDs (a training dataset with
+   many timestamp snapshots per entity), the ``$group`` stage is omitted.
+   The aggregation returns all documents in the timestamp window for
+   each entity, and Python uses ``pd.merge_asof`` to find the most
+   recent document at or before each row's ``event_timestamp``:
+
+   .. code-block:: none
+
+      $match  →  (no $group)
+
+   .. code-block:: python
+
+      result = pd.merge_asof(
+          result.sort_values(event_timestamp_col),
+          fv_df_subset.sort_values("_fv_ts"),
+          left_on=event_timestamp_col,
+          right_on="_fv_ts",
+          by="_fv_entity_id",
+          direction="backward",
+      )
+
+.. collapsible::
+   :heading: Chunking and memory management
+   :sub_heading: Two-level chunking to control memory usage for large datasets.
+   :expanded: false
+
+   Two levels of chunking control memory usage:
+
+   .. list-table::
+      :widths: 25 25 50
+      :header-rows: 1
+
+      * - Level
+        - Constant
+        - Purpose
+
+      * - Outer ``CHUNK_SIZE``
+        - 50,000 rows
+        - Limits ``entity_df`` slice passed to ``_run_single``; caps
+          peak result DataFrame in Python.
+
+      * - Inner ``MONGO_BATCH_SIZE``
+        - 10,000 entity IDs
+        - Limits ``{$in: [...]}`` array size per aggregation call;
+          avoids oversized BSON messages.
+
+   For ``entity_df`` larger than ``CHUNK_SIZE``, the outer loop runs
+   multiple ``_run_single`` calls and concatenates the results:
+
+   .. code-block:: python
+
+      if len(working_df) <= CHUNK_SIZE:
+          result_df = _run_single(working_df, coll)
+      else:
+          chunks = [
+              _run_single(chunk, coll)
+              for chunk in _chunk_dataframe(working_df, CHUNK_SIZE)
+          ]
+          result_df = pd.concat(chunks, ignore_index=True)
+
+   Peak Python-side memory is therefore
+   O(``CHUNK_SIZE`` x M x K) regardless of total N.
+
+.. collapsible::
+   :heading: Feature expansion with pd.apply
+   :sub_heading: Extracting features from MongoDB subdocuments into DataFrame columns.
+   :expanded: false
+
+   The MongoDB ``features`` subdocument is expanded into individual
+   columns using ``pd.apply`` rather than ``pd.json_normalize``.
+   This preserves complex types (dicts for Map and Struct, lists for
+   Array) that ``json_normalize`` would flatten or lose. Reverse
+   field mapping is also applied so that projected column names
+   match the FeatureView definition:
+
+   .. code-block:: python
+
+      if "features" in fv_df.columns:
+          for feat in features:
+              src_col = reverse_fm.get(feat, feat)
+              fv_df[feat] = fv_df["features"].apply(
+                  lambda d, _s=src_col: (
+                      d.get(_s) if isinstance(d, dict) else None
+                  )
+              )
+          fv_df = fv_df.drop(columns=["features"])
+
+Offline Store Capabilities
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 40 15 45
+   :header-rows: 1
+
+   * - Capability
+     - Supported?
+     - Notes
+
+   * - ``get_historical_features`` (PIT join)
+     - Yes
+     - Implemented via ``MongoDBOfflineStore`` using indexed
+       aggregations and Pandas merge-asof.
+
+   * - ``pull_latest_from_table_or_query``
+     - Yes
+     - Uses ``$match`` + ``$sort`` + ``$group $first`` over
+       ``(entity_id, feature_view, event_timestamp, created_at)``.
+
+   * - ``pull_all_from_table_or_query``
+     - Yes
+     - Full historical scan with time filters over ``feature_history``.
+
+   * - ``offline_write_batch``
+     - Yes
+     - Writes Arrow tables into MongoDB via the configured
+       ``MongoDBSource``.
+
+   * - ``persist``
+     - Yes
+     - Exports historical query results to a separate collection
+       using ``SavedDatasetStorage``.
+
+Additional conveniences like exporting directly to data lakes or
+warehouses depend on the specific ``RetrievalJob`` implementation and
+are expected to follow Feast's standard patterns for offline stores.
+
+
+.. _online_store:
+
+MongoDB Online Store
+--------------------
+
+Data Model
+~~~~~~~~~~
+
+The MongoDB online store uses a single collection for all
+FeatureViews, keyed by the serialized entity key.
+
+- ``_id``: ``serialized_entity_key(entity_key)``, produced by Feast's
+  stable encoding function that sorts entity names and values and
+  encodes them into bytes.
+
+- ``features``: nested subdocument where each FeatureView maintains its
+  own feature namespace.
+
+- ``event_timestamps``: per-FeatureView timestamps indicating when the
+  latest value for that FeatureView was written.
+
+- ``created_timestamp`` or ``updated_at``: bookkeeping fields useful for
+  TTL indexing and diagnostics.
+
+Example (simplified):
+
+.. code-block:: json
+
+   {
+     "_id": "b\"<serialized_entity_key>\"",
+     "features": {
+       "driver_stats": {
+         "rating": 4.91,
+         "trips_last_7d": 132
+       },
+       "pricing": {
+         "surge_multiplier": 1.2
+       }
+     },
+     "event_timestamps": {
+       "driver_stats": "ISODate(2026-01-01T12:00:00Z)",
+       "pricing": "ISODate(2026-01-21T12:00:00Z)"
+     },
+     "created_timestamp": "ISODate(2026-01-21T12:00:00Z)"
+   }
+
+Design rationale:
+
+- A single collection keeps each entity's state in one document,
+  which matches Feast's expectation of key-based lookups and avoids
+  fragmenting state across per-FeatureView collections.
+
+- Using the serialized entity key as ``_id`` reuses Feast's
+  deterministic encoding, avoids duplicate primary keys across
+  collections, and keeps retrieval to a single key lookup per entity.
+
+.. collapsible::
+   :heading: Why a single collection instead of one per FeatureView?
+   :sub_heading: Detailed design rationale for both the online and offline store schemas.
+   :expanded: false
+
+   Like the offline store (which uses a single ``feature_history``
+   collection with a ``feature_view`` discriminator field), the online
+   store also uses a single collection for all FeatureViews.
+
+   The Online Store is fundamentally entity-key oriented, not
+   feature-view oriented. Even though the high-level ``FeatureStore``
+   API invokes ``online_read`` and ``online_write_batch`` with a single
+   FeatureView, the underlying storage model in Feast is designed
+   around a single logical row per entity key. That row may accumulate
+   features from multiple FeatureViews over time.
+
+   Using one collection allows us to maintain a unified document per
+   entity and update only the relevant subdocument
+   (e.g., ``features.<feature_view_name>``) atomically without
+   duplicating entity keys across collections.
+
+   A single collection design was the standard for Feast from the
+   beginning (it was originally designed for Redis) and plays to
+   MongoDB's strengths. Benefits include:
+
+   - Reduced write amplification
+   - Simplified index management (only one primary ``_id`` index)
+   - No cross-collection coordination when multiple FeatureViews share
+     the same entities
+   - Consistent retrieval semantics with Feast's key-based fetch model
+
+   A per-FeatureView collection design would fragment entity state,
+   require additional coordination or multi-collection queries if
+   features are ever composed, and increase operational overhead
+   without a performance advantage for Feast's access pattern.
+
+   **Serialized entity key as** ``_id``: Feast provides
+   ``serialize_entity_key``, a stable encoding function that explicitly
+   sorts entity names and values before concatenation to ensure a
+   predictable byte sequence (typed with ``struct.pack`` producing
+   bytes). This means we can use it directly as the ``_id``.
+
+   .. note::
+
+      While ``serialize_entity_key`` provides a stable ``_id``, its
+      output is not uniformly distributed and is therefore not ideal
+      for sharding. If your deployment requires sharding the online
+      store collection, consider a hashed shard key or an additional
+      field.
+
+Core Online Operations
+~~~~~~~~~~~~~~~~~~~~~~
+
+The MongoDB online store implements Feast's standard online store API:
+
+- ``online_write_batch`` - During materialization, Feast writes the
+  latest feature values for each entity into MongoDB documents. Each
+  batch upsert updates only the relevant nested
+  ``features.<feature_view>`` subdocument and its corresponding entry in
+  ``event_timestamps``, keeping entity documents atomic and consistent.
+
+- ``online_read`` and ``get_online_features`` - Online serving
+  resolves entity keys into ``_id`` values using the same serialization
+  logic as offline, then performs key lookups. Each lookup returns all
+  requested features for the entity in a single round trip, leveraging
+  the nested ``features`` structure.
+
+- TTL and freshness - Feature TTL is configured on the FeatureView
+  and used primarily in offline PIT joins; online TTL can be implemented
+  with an index on ``updated_at`` or similar timestamp, consistent with
+  Feast's notion that offline stores are append-only while online
+  stores hold the latest state.
+
+Configuration
+-------------
+
+Offline Store Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The offline store is configured using
+``MongoDBOfflineStoreConfig``:
+
+.. code-block:: python
+
+   class MongoDBOfflineStoreConfig(FeastConfigBaseModel):
+       type: str = "...MongoDBOfflineStore"
+       connection_string: str = "mongodb://localhost:27017"
+       database: str = "feast"
+       collection: str = "feature_history"
+
+Example ``feature_store.yaml``:
+
+.. code-block:: yaml
+
+   offline_store:
+     type: feast.infra.offline_stores.contrib.mongodb_offline_store.mongodb.MongoDBOfflineStore
+     connection_string: "mongodb+srv://user:pass@cluster.mongodb.net"
+     database: feast
+     collection: feature_history
+
+``MongoDBSource`` is the corresponding ``DataSource``. Its ``name``
+field becomes the ``feature_view`` discriminator stored in every
+document. For full configuration options, see the `MongoDB Data Source
+<https://docs.feast.dev/reference/data-sources/mongodb>`__ reference
+in the Feast docs.
+
+.. code-block:: python
+
+   source = MongoDBSource(
+       name="driver_stats",
+       timestamp_field="event_timestamp",
+       created_timestamp_column="created_at",
+   )
+
+
+Next Steps
+----------
+
+- Follow the `Feast Quickstart
+  <https://docs.feast.dev/getting-started/quickstart>`__ to set up a
+  local feature store, then swap in MongoDB as an online and offline
+  store using the configuration examples on this page.
+
+- Review the `MongoDB Online Store
+  <https://docs.feast.dev/reference/online-stores/mongodb>`__ reference
+  in the Feast docs for configuration options, async support, and the
+  full functionality matrix.
+
+- Review the `MongoDB Offline Store
+  <https://docs.feast.dev/reference/offline-stores/mongodb>`__ reference
+  for offline store configuration and supported functionality.
+
+- Review the `MongoDB Data Source
+  <https://docs.feast.dev/reference/data-sources/mongodb>`__ reference
+  for ``MongoDBSource`` options and schema details.
+
+- Learn core Feast concepts such as entities, feature views, and
+  materialization in the `Feast Concepts
+  <https://docs.feast.dev/getting-started/concepts>`__ guide.
