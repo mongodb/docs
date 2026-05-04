@@ -1053,6 +1053,11 @@ const tocData: TocItem[] = [
             url: '/docs/ops-manager/:version/tutorial/configure-mongodb-agent-for-tls',
           },
           {
+            label: 'Configure OIDC for Agent',
+            contentSite: 'ops-manager',
+            url: '/docs/ops-manager/:version/tutorial/configure-mongodb-agent-for-oidc',
+          },
+          {
             label: 'Manage Config Files & Passwords',
             contentSite: 'ops-manager',
             url: '/docs/ops-manager/:version/reference/mongodb-agent-external-configuration',

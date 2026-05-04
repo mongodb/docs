@@ -15,6 +15,7 @@ Improvements
   replacing long-lived database usernames and passwords with
   short-lived tokens from your IdP (Okta, Azure AD, GCP, and
   others) for stronger, centralized security.
+  To learn more, see :ref:`configure-agent-oidc`.
 - Makes the {+mdbagent+} available as a supported binary for
   IBM Z (s390x) on RHEL 8.
 - Improves log output for full snapshot enforcement reasons.
