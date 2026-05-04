@@ -90,6 +90,8 @@ Authentication Parameters
 
    .. include:: /includes/list-table-auth-mechanisms.rst
 
+   .. include:: /includes/fact-tlsFIPSMode_SCRAM-SHA-1.rst
+
    .. include:: /includes/fact-startup-parameter
 
    For example, to specify both ``PLAIN`` and ``SCRAM-SHA-256`` as the
@@ -172,7 +174,7 @@ Authentication Parameters
 
 .. parameter:: enableLocalhostAuthBypass
 
-   |both|
+   |mongod-only|
 
    *Default*: ``true``
 
@@ -207,7 +209,7 @@ Authentication Parameters
    *Default*: 60 seconds (1 minute)
 
    Specifies the minimum time period that must pass between subsequent fetches of
-   a given IdP's ``JWKSetURI`` endpoint. If an RSA public key is changed multiple 
+   a given |idp-poss| ``JWKSetURI`` endpoint. If an RSA public key is changed multiple 
    times within the quiesce period, that key may not work as expected 
    for up to a minute unless the quiesce period is manually reduced. If this parameter
    is set to zero, there is no quiesce period and the key can be refreshed repeatedly.
@@ -617,20 +619,20 @@ Authentication Parameters
 
 .. parameter:: oidcIdentityProviders
 
-   |mongod-only|
+   |both|
 
    .. versionchanged:: 8.0 (*Also available in 7.3 and 7.0*)
 
-   Use this parameter to specify identity provider (IDP) configurations when 
+   Use this parameter to specify |idp-abbr| configurations when 
    using :ref:`OpenID Connect Authentication <authentication-oidc>`. 
 
-   ``oidcIdentityProviders`` accepts an array of zero or more identity provider 
-   (IDP) configurations. An empty array (default) indicates no OpenID Connect 
+   ``oidcIdentityProviders`` accepts an array of zero or more |idp|
+   configurations. An empty array (default) indicates no OpenID Connect 
    support is enabled. 
    
-   When more than one IDP is defined, ``oidcIdentityProviders`` uses the 
-   ``matchPattern`` field to select an IDP. Array order determines the priority 
-   and the first IDP is always selected.
+   When more than one |idp| is defined, ``oidcIdentityProviders`` uses the 
+   ``matchPattern`` field to select an |idp|. Array order determines the priority 
+   and the first |idp| is always selected.
    
    .. include:: /includes/fact-oidc-multiple-config-for-same-issuer.rst
     
@@ -1190,7 +1192,7 @@ General Parameters
 
 .. parameter:: capMemoryConsumptionForPreAuthBuffers
 
-   .. versionadded:: 8.2.4 *(also available starting in 8.0.18 and 7.0.29)*
+   .. versionadded:: 8.3 *(also available starting in 8.2.4, 8.0.18, and 7.0.29)*
 
    |both|
 
@@ -1301,7 +1303,53 @@ General Parameters
       the ``cursorTimeoutMillis`` value. To handle long idle periods,
       use :method:`Mongo.startSession()` and refresh the session using the
       :dbcommand:`refreshSessions` command. For details, see
-      :ref:`<refresh-session-cursor-example>`.
+      :ref:`refresh-session-cursor-example`.
+
+.. parameter:: defaultClientBaseBackoffMillis
+
+   |both|
+
+   Default: 100
+
+   Base delay in milliseconds for the default retry strategy
+   used in internal server-side connections, such as
+   :program:`mongos` and :program:`mongod`. The server uses this
+   value as the initial delay for exponential backoff between
+   retries on operations that fail due to overload.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   .. versionadded:: 8.3
+
+.. parameter:: defaultClientMaxBackoffMillis
+
+   |both|
+
+   Default: 10,000
+
+   Maximum delay in milliseconds for the default retry strategy
+   used by internal server-side client connections, such as
+   :program:`mongos` and :program:`mongod`.  The server uses
+   this value as the maximum wait time between retries of
+   operations that fail due to overload.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   .. versionadded:: 8.3
+
+.. parameter:: defaultClientRetryAttempts
+
+   |both|
+
+   Default: 3
+
+   Maximum number of times the server retries an operation for
+   internal server-side client connections, such as
+   :program:`mongos` and :program:`mongod`.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   .. versionadded:: 8.3
 
 .. parameter:: fassertOnLockTimeoutForStepUpDown
 
@@ -1528,7 +1576,7 @@ General Parameters
 
 .. parameter:: ingressRequestRateLimiterApplicationExemptions
 
-   .. versionadded:: 8.2.2
+   .. versionadded:: 8.3
 
    |both|
 
@@ -1564,6 +1612,46 @@ General Parameters
 
       mongod \
         --setParameter "ingressRequestRateLimiterApplicationExemptions={\"appNames\":[\"MongoDB Internal Client\"]}"
+
+.. parameter:: overloadAwareServerSelectionEnabled
+
+   .. versionadded:: 8.3
+
+   |both|
+
+   *Type*: boolean
+
+   *Default*: ``false``
+
+   This parameter controls whether overload-induced retries against
+   other servers in the cluster avoid servers that recently returned an
+   error labeled ``SystemOverloadedError``. It affects operations that
+   perform remote targeting, for example when ``mongos`` retries
+   requests against shard members or when ``mongod`` performs remote
+   reads during aggregation.
+
+   When you set this parameter to ``true``, retry logic for remote
+   targeting prefers non-overloaded members for operations that fail
+   with ``SystemOverloadedError``. For example, when ``mongos`` retries
+   reads:
+
+   - With the ``primaryPreferred`` read preference, ``mongos`` can
+     route a retried read to a secondary if the primary indicates
+     overload, even if the primary remains reachable.
+
+   - With the ``secondaryPreferred`` read preference, ``mongos`` can
+     route a retried read to the primary if secondaries indicate
+     overload.
+
+   When you set this parameter to ``false``, retries do not avoid
+   members that signal overload. If a member continues to return
+   ``SystemOverloadedError``, retries may continue targeting that member.
+
+   This parameter affects only operations retried after
+   ``SystemOverloadedError`` errors that can occur when you enable ingress
+   request rate limiting or other overload mechanisms on shard nodes.
+
+   .. include:: /includes/fact-runtime-startup-parameter
 
 .. parameter:: maxIndexBuildMemoryUsageMegabytes
    
@@ -1648,7 +1736,7 @@ General Parameters
 
 .. parameter:: messageSizeErrorRateSec
 
-   .. versionadded:: 8.2.4 *(also available starting in 8.0.18 and 7.0.29)*
+   .. versionadded:: 8.3 *(also available starting in 8.2.4, 8.0.18, and 7.0.29)*
 
    |both|
 
@@ -1708,7 +1796,7 @@ General Parameters
 
 .. parameter:: preAuthMaximumMessageSizeBytes
 
-   .. versionadded:: 8.2.4 *(also available starting in 8.0.18 and 7.0.29)*
+   .. versionadded:: 8.3 *(also available starting in 8.2.4, 8.0.18, and 7.0.29)*
 
    |both|
 
@@ -2590,35 +2678,33 @@ The following parameters support diagnostic data capture (FTDC):
 
    *Type*: integer
 
-   *Default*: ``250`` (``500`` in sharded clusters)
+   *Default*: ``500``
 
    Specifies the maximum size, in megabytes, of the ``diagnostic.data``
    directory. If directory size exceeds this number, the oldest
    diagnostic files in the directory are automatically deleted based on
    the timestamp in the file name.
 
-   .. versionchanged:: 8.0
-
-      ``diagnosticDataCollectionDirectorySizeMB`` has a default
-      value of 400 MB for :program:`mongos` and :program:`mongod`
-      instances used in sharded clusters. ``mongod`` instances used
-      in replica set or as standalone servers have a default value
-      of 200 MB.
+   The minimum value for ``diagnosticDataCollectionDirectorySizeMB`` is 
+   ``10`` megabytes. ``diagnosticDataCollectionDirectorySizeMB`` must
+   be greater than maximum diagnostic file size
+   :parameter:`diagnosticDataCollectionFileSizeMB`.
 
    .. include:: /includes/fact-runtime-startup-parameter
 
    For example, the following sets the maximum size of the directory to
-   ``250`` megabytes:
+   ``650`` megabytes:
 
    .. code-block:: bash
 
-      mongod --setParameter diagnosticDataCollectionDirectorySizeMB=250
+      mongod --setParameter diagnosticDataCollectionDirectorySizeMB=650
 
-   The minimum value for
-   :parameter:`diagnosticDataCollectionDirectorySizeMB` is ``10``
-   megabytes. :parameter:`diagnosticDataCollectionDirectorySizeMB` must
-   be greater than maximum diagnostic file size
-   :parameter:`diagnosticDataCollectionFileSizeMB`.
+   During run time, you can also set the parameter with the
+   :dbcommand:`setParameter` command:
+
+   .. code-block:: bash
+
+      db.adminCommand( { setParameter: 1, diagnosticDataCollectionDirectorySizeMB: 650 } )
 
 .. parameter:: diagnosticDataCollectionEnabled
 
@@ -2843,7 +2929,7 @@ Replication and Consistency
 
 .. parameter:: flowControlTargetLagSeconds
 
-   |both|
+   |mongod-only|
 
    *Type*: integer
 
@@ -3243,22 +3329,19 @@ Replication and Consistency
 
           Valid values are:
 
-          .. list-table::
-             :widths: 40 60
+          ``0.0``
+             Turns off mirroring.
 
-             * - ``0.0``
-               - Turns off mirroring.
+          ``1.0``
+             The primary mirrors all :ref:`operations that
+             support mirroring
+             <mirrored-reads-supported-operations>` to each
+             electable secondary.
 
-             * - ``1.0``
-
-               - The primary mirrors all :ref:`operations that supports
-                 mirroring <mirrored-reads-supported-operations>` to
-                 each electable secondary.
-
-             * - Number between ``0.0`` and ``1.0`` (exclusive)
-
-               - The primary randomly samples each electable secondary
-                 at the specified rate to be sent mirrored reads.
+          Number between ``0.0`` and ``1.0`` (exclusive)
+             The primary randomly samples each electable
+             secondary at the specified rate to be sent mirrored
+             reads.
 
           For example, given a replica set with a primary and two
           electable secondaries and a sampling rate of ``0.10``, the
@@ -3289,39 +3372,39 @@ Replication and Consistency
            
           Includes the following fields: 
 
-          .. list-table::
-             :widths: 40 60
+          ``tag``
+             Defaults to an empty ``BSONObj``. The :ref:`replica
+             set tag <replica-set-configuration-tag-sets>` that
+             you can use to target nodes for mirroring. You can
+             configure a node for targeted mirroring using the
+             following syntax: 
 
-             * - ``tag``
+             .. code-block:: javascript
 
-               - Defaults to an empty ``BSONObj``. The 
-                 :ref:`replica set tag <replica-set-configuration-tag-sets>` 
-                 that you can use to target nodes for mirroring. You can 
-                 configure a node for targeted mirroring using the following syntax: 
+                tag: { "<tag1>": "<string1>" }
 
-                 ``tag: { "<tag1>": "<string1>" }``
+             You can only supply one tag. All nodes within the same 
+             replica set that have these tags are targeted. 
 
-                 You can only supply one tag. All nodes within the same 
-                 replica set that have these tags are targeted. 
+          ``samplingRate``
+             *Type*: Float 
 
-             * - ``samplingRate``
+             *Range*: ``0.0`` to ``1.0`` (inclusive)
 
-               - *Type*: Float 
+             The rate at which targeted reads are mirrored to
+             the host or hosts. A rate of ``0.0`` means no reads
+             are mirrored, and a rate of ``1.0`` means all reads
+             are mirrored. Although ``samplingRate`` defaults to
+             ``0.01``, the ``targetedMirroring`` feature is off
+             by default, since the ``tag`` field defaults to
+             empty.
 
-                 *Range*: ``0.0`` to ``1.0`` (inclusive)
+          ``maxTimeMS``
+             *Type*: int
 
-                 The rate at which targeted reads are mirrored to the host or hosts. 
-                 A rate of ``0.0`` means no reads are mirrored, and a rate of 
-                 ``1.0`` means all reads are mirrored. Although ``samplingRate`` defaults 
-                 to ``0.01``, the ``targetedMirroring`` feature is off by default, 
-                 since the ``tag`` field defaults to empty.
-
-             * - ``maxTimeMS``
-
-               - *Type*: int
-               
-                 The maximum time in milliseconds before the mirrored read times out. 
-                 The minumum value for ``maxTimeMS`` is ``0``. Defaults to ``1000``.
+             The maximum time in milliseconds before the
+             mirrored read times out. The minimum value for
+             ``maxTimeMS`` is ``0``. Defaults to ``1000``.
 
    .. include:: /includes/fact-runtime-startup-parameter
 
@@ -3517,9 +3600,7 @@ Replication and Consistency
    *Default*: 0
 
    Minimum number of threads to use to apply replicated operations in
-   parallel. Values can range from 0 to 256 inclusive. You can only set
-   :parameter:`replWriterMinThreadCount` at startup and cannot change
-   this setting with the :dbcommand:`setParameter` command.
+   parallel. Values can range from 0 to 256 inclusive. 
 
    Parallel application of replication operations uses up to
    :parameter:`replWriterThreadCount` threads. If
@@ -3528,10 +3609,12 @@ Replication and Consistency
    timeout idle threads until the total count of threads in the thread
    pool is equal to :parameter:`replWriterMinThreadCount`.
 
-   :parameter:`replWriterMinThreadCount` must be configured with a value
-   that is less than or equal to :parameter:`replWriterThreadCount`.
+   :parameter:`replWriterMinThreadCount` must be less than or equal to
+   :parameter:`replWriterThreadCount`. MongoDB rejects the update if
+   you set :parameter:`replWriterMinThreadCount` to a value greater
+   than :parameter:`replWriterThreadCount`.
 
-   .. include:: /includes/fact-startup-parameter
+   .. include:: /includes/fact-runtime-startup-parameter
 
 .. parameter:: replWriterThreadCount
 
@@ -3546,7 +3629,12 @@ Replication and Consistency
    maximum number of threads used is capped at twice the number of
    available cores.
 
-   .. include:: /includes/fact-startup-parameter
+   :parameter:`replWriterThreadCount` must be greater than or equal
+   to :parameter:`replWriterMinThreadCount`. MongoDB rejects the
+   update if you set :parameter:`replWriterThreadCount` to a value
+   less than :parameter:`replWriterMinThreadCount`.
+
+   .. include:: /includes/fact-runtime-startup-parameter
 
    .. seealso::
 
@@ -4112,6 +4200,35 @@ Sharding Parameters
 
    .. include:: /includes/fact-runtime-startup-parameter
 
+.. parameter:: findShardsOnConfigTimeoutMS
+
+   |both|
+
+   .. versionadded:: 8.3
+
+   Type: Non-negative integer
+
+   *Default*: 20000 milliseconds
+
+   The timeout in milliseconds for ``find`` operations against the 
+   ``config.shards`` namespace.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following example sets ``findShardsOnConfigTimeoutMS`` to 
+   ``30000`` milliseconds during runtime:
+
+   .. code-block:: bash
+     
+      db.adminCommand( { setParameter: 1, findShardsOnConfigTimeoutMS: 30000 } )
+   
+   The following example sets ``findShardsOnConfigTimeoutMS`` to 
+   ``30000`` milliseconds at startup:
+
+   .. code-block:: bash
+      
+      mongos --setParameter findShardsOnConfigTimeoutMS=30000
+
 .. parameter:: loadRoutingTableOnStartup
 
    |mongos-only|
@@ -4179,10 +4296,6 @@ Sharding Parameters
    .. code-block:: bash
 
       db.adminCommand( { setParameter: 1, maxCatchUpPercentageBeforeBlockingWrites: 20} )
-
-   .. seealso::
-
-      `Live Migration Protocol <https://github.com/mongodb/mongo/blob/master/src/mongo/db/s/README.md#the-live-migration-protocol>`__
 
 .. parameter:: maxTimeMSForHedgedReads
 
@@ -5253,6 +5366,74 @@ Sharding Parameters
 
       db.adminCommand( { setParameter: 1,  ShardingTaskExecutorPoolReplicaSetMatching: "automatic" } )
 
+.. parameter:: shardRetryTokenBucketCapacity
+
+   |both|
+
+   .. versionadded:: 8.3
+
+   *Type*: Integer
+
+   *Default*: 1000
+
+   Maximum number of overload retry tokens allocated for each
+   shard. Each retry attempt in response to an overload error
+   uses a token and each attempt that succeeds frees a token. If
+   there are no tokens available, the operation fails. 
+
+   For example, if ``mongos`` retries an operation that was
+   previously load shed by the shard, it uses a token in the
+   retry. If the attempt succeeds, it returns the token to the
+   shard plus the :parameter:`shardRetryTokenReturnRate`. If the
+   attempt fails, it tries again with a new token. If it finds
+   the bucket empty, it doesn't retry the operation.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following example sets the
+   ``shardRetryTokenBucketCapacity`` to 5000 during startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter shardRetryTokenBucketCapacity=5000
+
+   During run time, you can also set the parameter with the
+   :dbcommand:`setParameter` command:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, shardRetryTokenBucketCapacity: 5000 } )
+
+.. parameter:: shardRetryTokenReturnRate
+
+   |both|
+
+   .. versionadded:: 8.3
+
+   *Type*: Double
+
+   *Default*: 0.1
+
+   Return rate for shard retry tokens on successful requests.
+   MongoDB allows the number of available retry tokens to
+   increase over time as it processes requests. 
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following example sets the
+   ``shardRetryTokenBucketReturnRate`` to 0.25 during startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter shardRetryTokenReturnRate=0.25
+
+   During run time, you can also set the parameter with the
+   :dbcommand:`setParameter` command:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, shardRetryTokenReturnRate: 0.25 } )
+
 .. parameter:: shutdownTimeoutMillisForSignaledShutdown
 
    .. versionadded:: 5.0
@@ -5691,6 +5872,22 @@ Storage Parameters
    .. note::
 
       :parameter:`processUmask` is not available on Windows systems.
+
+.. parameter:: spillPath
+
+   .. versionadded:: 8.3
+
+   |mongod-only|
+
+   *Default*: The value of the :setting:`~storage.dbPath` setting.
+
+   *Type*: string
+
+   Path used by the spill engine when it writes to disk. You may
+   find this useful when there is a risk of disk spill operations
+   reducing the IOPS for concurrent queries.
+
+   .. include:: /includes/fact-startup-parameter
 
 .. parameter:: storageEngineConcurrentReadTransactions
 
@@ -6140,6 +6337,34 @@ Transaction Parameters
 
       mongod --setParameter AbortExpiredTransactionsSessionCheckoutTimeout=120
 
+.. parameter:: cachePressureQueryPeriodMilliseconds
+
+   .. versionadded:: 8.3
+
+   |mongod-only|
+
+   *Type*: integer
+
+   *Default*: 1000 milliseconds
+
+   The time interval MongoDB waits between checks for storage engine cache pressure. 
+   If the storage engine is under cache pressure, MongoDB aborts the oldest transaction.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following example sets
+   ``cachePressureQueryPeriodMilliseconds`` to ``3000`` milliseconds at runtime:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, cachePressureQueryPeriodMilliseconds: 3000 } )
+
+   You can also set this parameter at startup. For example:
+   
+   .. code-block:: bash
+
+      mongod --setParameter cachePressureQueryPeriodMilliseconds=3000
+
 .. parameter:: coordinateCommitReturnImmediatelyAfterPersistingDecision
 
    .. versionadded:: 5.0 
@@ -6411,8 +6636,6 @@ Database Profiler Parameters
 
    |mongod-only|
 
-   .. versionadded:: 8.2.6
-
    *Type*: Integer 
 
    *Default*: 1
@@ -6439,8 +6662,6 @@ Database Profiler Parameters
 .. parameter:: internalProfilingMaxAbandonedWritesPerSecondPerDb
 
    |mongod-only|
-
-   .. versionadded:: 8.2.6
 
    *Type*: Integer 
 

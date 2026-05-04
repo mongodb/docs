@@ -1,0 +1,281 @@
+.. _index-type-unique:
+
+==============
+Unique Indexes
+==============
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell 
+
+.. facet::
+   :name: genre 
+   :values: reference
+
+.. meta:: 
+   :description: Use a unique index to ensure indexed fields do not store duplicate values.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. dismissible-skills-card::
+   :skill: Indexing Design Fundamentals
+   :url: https://learn.mongodb.com/skills?openTab=indexes
+
+A unique index ensures that the indexed fields do not store duplicate values,
+and that a value appears at most once for a given field. A unique compound index
+ensures that any given *combination* of the index key values only appears at
+most once. By default, MongoDB creates a unique index on the :ref:`_id
+<document-id-field>` field during the creation of a collection.
+
+.. |page-topic| replace:: :atlas:`create and manage unique indexes in the UI </atlas-ui/indexes>`
+
+.. cta-banner::
+   :url: https://www.mongodb.com/docs/atlas/atlas-ui/indexes/
+   :icon: Cloud
+   
+   .. include:: /includes/fact-atlas-compatible.rst
+
+Create a Unique Index
+---------------------
+
+To create a unique index, use the :method:`db.collection.createIndex()`
+method with the ``unique`` option set to ``true``. 
+
+.. code-block:: javascript
+
+   db.collection.createIndex( <key and index type specification>, { unique: true } )
+
+
+.. _index-unique-index:
+
+Unique Index on a Single Field
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For example, to create a unique index on the ``email`` field of the
+``users`` collection, use the following operation in
+:binary:`~bin.mongosh`:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/unique/create-1.js
+   :language: javascript
+   :category: usage example
+
+Unique Compound Index
+~~~~~~~~~~~~~~~~~~~~~
+
+You can also enforce a unique constraint on :ref:`compound indexes
+<index-type-compound>`. A unique :ref:`compound index 
+<index-type-compound>` enforces uniqueness on the *combination* of the 
+index key values.
+
+For example, to create a unique index on ``name``, ``email``,
+and ``password`` fields of the ``users`` collection, use the
+following operation in :binary:`~bin.mongosh`:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/unique/create-2.js
+   :language: javascript
+   :category: usage example
+
+The created index enforces uniqueness for the *combination* of
+``name``, ``email``, and ``password`` values.
+
+Create a unique compound :ref:`multikey <index-type-multikey>` index
+on ``email`` and ``name``:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/unique/create-3.js
+   :language: javascript
+   :category: usage example
+
+The unique index permits the insertion of the following documents into
+the collection since the index enforces uniqueness for the
+*combination* of ``email`` and ``name`` values:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/unique/insert-1.js
+   :language: javascript
+   :category: usage example
+
+Even though both documents have ``"catelyn@gameofthron.es"`` in their ``email`` arrays,
+the operation succeeds because the *combination* of each email value with the ``name``
+field is unique.
+
+.. seealso::
+
+   - :ref:`unique-separate-documents`
+   - :ref:`unique-index-and-missing-field`
+
+Behavior
+--------
+
+.. _unique-index-restrictions:
+
+Restrictions
+~~~~~~~~~~~~~
+
+MongoDB cannot create a :ref:`unique index <index-type-unique>` on the
+specified index field(s) if the collection already contains data that
+would violate the unique constraint for the index.
+
+You may not specify a unique constraint on a :ref:`hashed
+index <index-type-hashed>`.
+
+Building Unique Index on Replica Sets and Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For replica sets and sharded clusters, using a :ref:`rolling procedure
+<index-build-on-replica-sets>` to create a unique index
+requires that you stop all writes to the collection during the
+procedure. If you cannot stop all writes to the collection during the
+procedure, do not use the rolling procedure. Instead, to build your 
+unique index on the collection you must either:
+
+- Run ``db.collection.createIndex()`` on the primary for a
+  replica set
+- Run ``db.collection.createIndex()`` on the :binary:`~bin.mongos` 
+  for a sharded cluster
+ 
+.. _unique-separate-documents:
+
+Unique Constraint Across Separate Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The unique constraint applies to separate documents in the collection.
+That is, the unique index prevents *separate* documents from having the
+same value for the indexed key.
+
+Because the constraint applies to separate documents, for a unique
+:ref:`multikey <index-type-multikey>` index, a document may have array
+elements that result in repeating index key values as long as the index
+key values for that document do not duplicate those of another
+document. In this case, the repeated index entry is inserted into the
+index only once.
+
+For example, create a unique compound multikey index on ``email`` and ``name``:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/unique/create-3.js
+   :language: javascript
+   :category: usage example
+
+The unique index permits the insertion of the following document into
+the collection if no other document in the collection has an index key
+value of ``{ "email": "arya@winterfell.com", "name": null }``.
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/unique/insert-2.js
+   :language: javascript
+   :category: usage example
+
+.. _unique-index-and-missing-field:
+
+Missing Document Field in a Unique Single-Field Index
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If a document has a ``null`` or missing value for the indexed field in a unique
+single-field index, the index stores a ``null`` value for that document.
+Because of the unique constraint, a single-field unique index can only
+contain one document that contains a ``null`` value in its index entry. If there is
+more than one document with a ``null`` value in its index entry, the index
+build fails with a duplicate key error.
+
+For example, a collection has a unique single-field index on ``email``:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/unique/create-4.js
+   :language: javascript
+   :category: usage example
+
+The unique index allows the insertion of a document without the field
+``email`` if the collection does not already contain a document missing the
+field ``email``:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/unique/insert-3.js
+   :language: javascript
+   :category: usage example
+
+However, you cannot insert a second document without the field ``email`` if the
+collection already contains a document missing the field ``password``. A second
+operation that attempts to insert another document without the ``email`` field
+fails to insert the document because of the violation of the unique constraint
+on ``email`` field. 
+
+.. _unique-partial-indexes:
+
+Unique Partial Indexes
+~~~~~~~~~~~~~~~~~~~~~~
+
+Partial indexes only index the documents in a collection that meet a
+specified filter expression. If you specify both the
+``partialFilterExpression`` and a :ref:`unique constraint
+<index-type-unique>`, the unique constraint only applies to the
+documents that meet the filter expression.
+
+A partial index with a unique constraint does not prevent the insertion
+of documents that do not meet the unique constraint if the documents do
+not meet the filter criteria. For an example, see
+:ref:`partial-index-with-unique-constraints`.
+
+.. _sharded-clusters-unique-indexes:
+
+Sharded Clusters and Unique Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You cannot specify a unique constraint on a :ref:`hashed index
+<index-type-hashed>`.
+
+For a ranged sharded collection, only the following indexes can be
+:ref:`unique <index-type-unique>`:
+
+- the index on the shard key
+
+- a :term:`compound index` where the shard key is a :ref:`prefix
+  <compound-index-prefix>`
+
+- The default ``_id`` index; however, the ``_id`` index only
+  enforces the uniqueness constraint **per shard** if the ``_id`` field
+  is not the shard key. 
+
+Additionally, if there is a collation on the index key, you can only
+ensure uniqueness if the collation is simple.
+
+.. include:: /includes/sharding/shard-collection-uniqueness-enforcement-note.rst
+
+.. include:: /includes/sharding/sharding-unique-index-constraints.rst
+
+To maintain uniqueness on a field that is not your shard key, 
+see :ref:`shard-key-arbitrary-uniqueness`. 
+
+Sparse and Non-Sparse Unique Indexes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-5.0-sparse-unique-index-updates.rst
+
+Basic and Unique Indexes With Duplicate Key Patterns
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 5.0, basic and unique indexes can exist with the
+same :ref:`key pattern <key_patterns>`. 
+
+This duplication in key patterns allows for adding a unique index to 
+already indexed fields. 
+
+For example, you can create both of the following indexes that use the same key
+pattern:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/unique/create-5.js
+   :language: javascript
+   :category: usage example
+
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/unique/create-6.js
+   :language: javascript
+   :category: usage example
+
+.. toctree::
+   :titlesonly: 
+
+   Create Single-Field </core/index-unique/create>
+   Create Compound </core/index-unique/create-compound>
+   Convert to Unique </core/index-unique/convert-to-unique>
+   Shard Collection </tutorial/shard-collection-with-unique-index>

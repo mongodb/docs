@@ -1,0 +1,576 @@
+.. _release-notes-8.3:
+
+=============================
+Release Notes for MongoDB 8.3
+=============================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+.. meta::
+   :description: Discover new features and changes in MongoDB 8.3, including CVE security fixes, aggregation and conversion enhancements, and new shard management commands.
+
+.. include:: /includes/minor-release.rst
+
+.. important::
+
+   MongoDB 8.3 includes fixes for `CVE-2025-12893 <https://www.cve.org/CVERecord?id=CVE-2025-12893>`_,
+   `CVE-2025-13507 <https://www.cve.org/CVERecord?id=CVE-2025-13507>`_,
+   and `CVE-2025-14345 <https://www.cve.org/CVERecord?id=CVE-2025-14345>`_.
+
+   For the latest information about MongoDB security updates, see
+   `MongoDB Security Bulletins <https://www.mongodb.com/resources/products/alerts?tck=docs>`_.  
+
+
+General Changes
+---------------
+
+Accessing Array Element Indexes in $map, $filter, and $reduce
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/array-element-index.rst
+
+FTDC Statistics 
+~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, :ref:`self-managed-ftdc` (FTDC) collects 
+:dbcommand:`connPoolStats` metrics for :binary:`mongod` processes. 
+
+serverStatus Output
+~~~~~~~~~~~~~~~~~~~
+
+:dbcommand:`serverStatus` includes the following new fields in its output:
+
+- ``aggregate.withExtension`` sub-field in ``metrics.commands.aggregate``, tracking success and failure counts
+- :serverstatus:`shardingStatistics.databaseCriticalSectionStatistics`
+- :serverstatus:`shardingStatistics.collectionCriticalSectionStatistics`
+- :serverstatus:`shardingStatistics.databaseVersionUpdateCounters`
+- :serverstatus:`metrics.ttl.deletedKeys`
+- :serverstatus:`metrics.ttl.durationMicros`
+- :serverstatus:`metrics.ttl.examinedDocuments`
+- :serverstatus:`metrics.ttl.examinedKeys`
+- :serverstatus:`metrics.extension`
+- :serverstatus:`metrics.extension.totalAggStageExecMicros`
+- :serverstatus:`metrics.extension.apiCallSuccesses`
+- :serverstatus:`metrics.extension.apiCallFailures`
+- :serverstatus:`metrics.extension.vectorSearch`
+- :serverstatus:`metrics.extension.vectorSearch.legacyVectorSearchUsed`
+- :serverstatus:`metrics.extension.vectorSearch.extensionVectorSearchUsed`
+- :serverstatus:`metrics.extension.vectorSearch.onViewKickbackRetries`
+- :serverstatus:`metrics.extension.vectorSearch.inSubpipelineKickbackRetries`
+- :serverstatus:`metrics.repl.network.oplogFetcherLagSeconds`
+- :serverstatus:`metrics.repl.network.oplogGetMoresProcessed`
+- :serverstatus:`queues.execution.admissions`
+- :serverstatus:`queues.execution.backgroundTasksDeprioritization`
+- :serverstatus:`queues.execution.deprioritizationGate`
+- :serverstatus:`queues.execution.heuristicDeprioritization`
+- :serverstatus:`queues.execution.heuristicDeprioritizationThreshold`
+- :serverstatus:`queues.execution.totalDeprioritizations`
+- :serverstatus:`queues.execution.usesPrioritization`
+- :serverstatus:`queues.execution.usesThroughputProbing`
+- :serverstatus:`queues.execution.nonDeprioritizable`
+- :serverstatus:`queues.execution.deprioritizable`
+- :serverstatus:`queues.execution.read.normalPriority.totalDelinquentAcquisitions <normalPriority.totalDelinquentAcquisitions>`
+- :serverstatus:`queues.execution.read.normalPriority.totalAcquisitionDelinquencyMillis <normalPriority.totalAcquisitionDelinquencyMillis>`
+- :serverstatus:`queues.execution.read.normalPriority.maxAcquisitionDelinquencyMillis <normalPriority.maxAcquisitionDelinquencyMillis>`
+- :serverstatus:`queues.execution.read.lowPriority <lowPriority>`
+
+
+MongoDB 8.3 removes the ``service`` field in the :dbcommand:`serverStatus` output.
+
+.. |serverstatus| replace:: :dbcommand:`serverStatus`
+.. include:: /includes/fact-serverstatus-excl-fields-w-none.rst
+
+For details, see :ref:`serverstatus-excl-fields`.
+
+You can also optionally specify ``lockContentionMetrics: 1`` in the 
+:dbcommand:`serverStatus` command to include :ref:`server-status-lockContentionMetrics`
+in the output.
+
+String Conversion Enhancements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, :expression:`$toString` can convert additional
+BSON types to strings, including objects, arrays, regular expressions,
+MaxKeys, MinKeys, and timestamps. For details, see
+:expression:`$toString`.
+
+MongoDB 8.3 introduces the optional ``base`` argument for
+:expression:`$convert` to convert between string and numeric values
+using bases ``2``, ``8``, ``10``, and ``16``. For details, see
+:expression:`$convert`.
+
+Array Conversion Enhancements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, you can convert strings that represent arrays
+using :expression:`$convert` or the shorthand expression
+:expression:`$toArray`.
+
+You can also convert between ``binData`` and arrays of numeric values.
+For details, see :ref:`convert-bindata-to-array` and :ref:`Convert an
+Array of Numeric Values to binData
+<convert-array-of-numeric-values-to-bindata>`.
+
+Object Conversion Enhancements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, you can convert strings that represent objects
+using :expression:`$convert` or the shorthand expression
+:expression:`$toObject`.
+
+Geospatial Index Generation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, if a document contains both GeoJSON and
+legacy numeric coordinate fields, geospatial index generation prioritizes
+GeoJSON coordinates.
+
+If your documents contain legacy numeric coordinate values that 
+precede GeoJSON coordinates and existing indexes rely on that behavior, 
+you might need to rebuild your geospatial indexes.
+
+This change may require you to rebuild geospatial indexes if your
+documents contain legacy numeric coordinate values that precede
+GeoJSON coordinates and existing indexes rely on that behavior.
+Review geospatial queries to confirm they return expected results.
+
+Remove Shard Changes
+~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, the :dbcommand:`removeShard` command is
+deprecated. This release introduces four new commands to replace
+``removeShard`` and provide granular control over the shard
+draining and removal process.
+
+- :dbcommand:`startShardDraining`
+- :dbcommand:`stopShardDraining`
+- :dbcommand:`shardDrainingStatus`
+- :dbcommand:`commitShardRemoval`
+
+MongoDB provides four additional commands to transition from an embedded 
+config server to a dedicated config server.
+
+- :dbcommand:`startTransitionToDedicatedConfigServer`
+- :dbcommand:`stopTransitionToDedicatedConfigServer`
+- :dbcommand:`getTransitionToDedicatedConfigServerStatus`
+- :dbcommand:`commitTransitionToDedicatedConfigServer`
+
+PreAuth Connection Limit Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 8.3 adds three new server parameters that limit the resource 
+consumption of pre-auth connections:
+
+- :parameter:`capMemoryConsumptionForPreAuthBuffers`
+- :parameter:`messageSizeErrorRateSec`
+- :parameter:`preAuthMaximumMessageSizeBytes`
+
+cachePressureQueryPeriodMilliseconds Parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 8.3 adds the ``cachePressureQueryPeriodMilliseconds`` parameter 
+which sets the time interval MongoDB waits between checks for storage engine cache 
+pressure. If the storage engine is under cache pressure, MongoDB aborts the oldest
+transaction. For details, see :parameter:`cachePressureQueryPeriodMilliseconds`.
+
+diagnosticDataCollectionDirectorySizeMB Parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 8.3 increases the default value of 
+:parameter:`diagnosticDataCollectionDirectorySizeMB` from ``200`` to ``500``
+MiB. 
+
+overloadAwareServerSelectionEnabled Parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 8.3 adds the :parameter:`overloadAwareServerSelectionEnabled`
+parameter, which controls whether retries that target other servers in
+the cluster avoid members that recently returned an error labeled
+``SystemOverloadedError``. You can enable this parameter to opt in to
+overload-aware retargeting.
+
+ingressRequestRateLimiterApplicationExemptions Parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, the 
+``ingressRequestRateLimiterApplicationExemptions`` parameter lets you
+specify applications to exempt from ingress request rate limiting. For details,
+see :parameter:`ingressRequestRateLimiterApplicationExemptions`.
+
+Database Profiler Parameters and Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 8.3 adds two parameters that let you control the impact that the 
+:ref:`database-profiler` has on query performance:
+
+- :parameter:`internalQueryGlobalProfilingLockDeadlineMs`
+- :parameter:`internalProfilingMaxAbandonedWritesPerSecondPerDb`
+
+MongoDB 8.3 also adds two related ``serverStatus`` metrics:
+
+- :serverstatus:`profiler.totalAbandonedWrites`
+- :serverstatus:`profiler.dbsPastThreshold`
+
+Retry Parameters
+~~~~~~~~~~~~~~~~
+
+MongoDB 8.3 adds parameters to configure how internal
+server-side clients (between :program:`mongos` and
+:program:`mongod`) back off when retrying operations that fail
+due to overload.
+
+- :parameter:`defaultClientBaseBackoffMillis`
+
+- :parameter:`defaultClientMaxBackoffMillis`
+
+- :parameter:`defaultClientRetryAttempts`
+
+- :parameter:`shardRetryTokenBucketCapacity`
+
+- :parameter:`shardRetryTokenReturnRate`
+
+BSONObjectTooLarge Code for Upsert Errors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in 8.3, upsert operations that produce a :ref:`BSON object <bson-types>`
+that is too large return the :error:`10334` ``BSONObjectTooLarge`` error code. 
+In earlier versions, upsert operations that produce a BSON object that is too 
+large return the ``17419`` or ``17420`` error codes.
+
+validate Command Updates
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in 8.3, MongoDB no longer automatically enables the 
+``checkBSONConformance`` field in the :method:`db.collection.validate()` method
+when ``full`` is ``true``. Additionally, the ``db.collection.validate()``
+method now checks to ensure a collection doesn't have any documents that exceed
+16 MB. 
+
+New Expression $subtype
+~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 8.3 introduces a new :expression:`$subtype` expression to extract the
+subtype of binary data objects.
+
+New Expressions for Extended JSON Conversion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 8.3 introduces new aggregation expressions for converting between BSON
+and Extended JSON (EJSON) format:
+
+- :expression:`$serializeEJSON` - Converts BSON values to Extended JSON format
+  with type wrappers. Supports both Canonical and Relaxed Extended JSON formats.
+
+- :expression:`$deserializeEJSON` - Converts Extended JSON format back
+  to native BSON values.
+
+These expressions can be combined with :expression:`$convert` to parse
+JSON strings, transform Extended JSON values into native BSON values,
+and convert back to JSON format.
+
+New Expression $createObjectId
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, you can use :expression:`$createObjectId` to
+generate new random :method:`ObjectId` values in pipelines and
+expression-based updates.
+
+New Hashing Expressions
+~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 8.3 introduces two new aggregation expressions for
+generating hashes from UTF-8 strings or binary data:
+
+- :expression:`$hash` - Generates a :bsontype:`BinData <Binary>`
+  hash value from a UTF-8 string or binary data using MD5,
+  SHA-256, or XXH64.
+
+- :expression:`$hexHash` - Generates an uppercase hexadecimal
+  string hash from a UTF-8 string or binary data using MD5,
+  SHA-256, or XXH64.
+
+Pre-Epoch Dates
+~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, if ``unit`` is not ``"millisecond"`` in 
+:expression:`$dateAdd` or :expression:`$dateSubtract` and the 
+input date is before ``ISODate("1970-01-01T00:00:00Z")``, the 
+result will be one second greater than in previous versions of MongoDB. This
+also affects the results of aggregations that perform time-based calculations
+like :pipeline:`$setWindowFields` and :pipeline:`$densify`.
+
+Geospatial Index Generation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 8.3, continues the behavior introduced in MongoDB 8.2. If a 
+document contains both GeoJSON and legacy numeric coordinate fields, 
+geospatial index generation prioritizes GeoJSON coordinates.
+
+If your documents contain legacy numeric coordinate values that 
+precede GeoJSON coordinates and existing indexes rely on that behavior, 
+you might need to rebuild your geospatial indexes.
+
+This change might require you to rebuild geospatial indexes if your
+documents contain legacy numeric coordinate values that precede
+GeoJSON coordinates and existing indexes rely on that behavior.
+Review geospatial queries to confirm they return expected results.
+
+Subnormal Numbers in $convert Pipelines
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, the server is able to parse the full range of all 
+representable double precision floating point numbers. This includes *subnormal
+numbers* where the most significant digit has leading zeroes and the exponent 
+has the least possible value. 
+
+For details, see :ref:`subnormal-numbers-parse-behavior-convert`.
+
+chars Length Limit for $trim, $ltrim, and $rtrim
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, the length of the string you provide to ``chars`` is 
+limited to 4096 characters. For details, see :ref:`$trim Limitations
+<trim-limitations>`.
+
+Window Functions
+~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, you can use :expression:`$mergeObjects` in
+:pipeline:`$setWindowFields` operations.
+
+sp.process() limit Option
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, :method:`sp.process()` supports the 
+``options.limit`` input parameter. After ``sp.process()`` returns 
+``limit`` documents to your terminal, the session ends.
+
+Text Search Spilling in Query Engine
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-text-search-spilling.rst
+
+Sharding
+--------
+
+DDL Operations for Sharded Clusters Can Only Run on mongos
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-direct-shard-ddls-ops.rst
+
+findShardsOnConfigTimeoutMS Parameter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 8.3 adds the ``findShardsOnConfigTimeoutMS`` parameter 
+which sets the timeout in milliseconds for ``find`` operations 
+against the ``config.shards`` namespace. For details, see 
+:parameter:`findShardsOnConfigTimeoutMS`.
+
+config.csrs.indexes Removed
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 8.3 removes the ``config.csrs.indexes`` namespace.
+
+2dsphereIndexVersion 
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-2dsphereIndexVersion-4.rst
+
+Shard Query Stats for mongos-Originated Queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, shard servers include queries that originate
+from ``mongos`` in their query statistics when
+:serverstatus:`queryStats` is enabled. Previously, most queries
+forwarded from ``mongos`` to shards did not appear in shard-level query
+stats, which reduced the completeness of shard-level diagnostics.
+
+Conversion to Embedded Config Shard
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 8.3 introduces the :option:`mongod
+--replicaSetConfigShardMaintenanceMode` option.
+
+In previous releases, converting a replica set to a sharded
+cluster with an embedded config shard required you to first
+migrate to a sharded cluster with a dedicated config server
+replica set.
+
+If you restart a replica set with the
+``--replicaSetConfigShardMaintenanceMode`` and ``--configsvr``
+options, you can convert the primary node directly into an
+embedded config shard. 
+
+For more information, see
+:ref:`convert-replica-set-to-embedded-config-server`.
+
+Time Series
+-----------
+
+refineCollectionShardKey Formatting
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, :dbcommand:`refineCollectionShardKey` for time-series 
+collections only accepts shard keys specified using the collection's
+logical meta and time fields. MongoDB no longer supports specifying keys using 
+the underlying buckets format.
+
+Index Naming Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, creating an index with the name of ``"_id_"`` or
+specifying a hint of ``"_id_"`` on time series collections returns an error. 
+
+timeField Naming Restrictions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, you cannot create a ``timeField`` that starts with
+a ``$`` character.
+
+Logging
+-------
+
+Fields to Track Use of Memory by Queries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, you can use the following new fields to track
+query memory use:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Field
+     - Description
+
+   * - ``inUseTrackedMemBytes``
+     - Number of bytes of tracked memory in use by the current query
+       operation.
+
+   * - ``peakTrackedMemBytes``
+     - Maximum number of bytes of tracked memory in use by the current
+       query operation.
+
+Both fields appear in the following places:
+
+- :ref:`current-op-agg` output
+- :method:`db.currentOp()` output
+- :ref:`Database profiler <profiler>` output
+- :ref:`Log messages <log-messages-ref>`
+- :ref:`Slow query log messages <log-message-json-examples-slow-op>`
+
+The ``peakTrackedMemBytes`` field also appears in the following places:
+
+- :ref:`Explain results <explain-results>`
+- :method:`PlanCache.list()` output
+- :pipeline:`$planCacheStats` output
+
+Starting in 8.3, use the following new metrics in :pipeline:`$queryStats` to 
+measure the behavior of ``checkForInterrupt``:
+
+- ``metrics.numInterruptChecksPerSec``
+- ``metrics.overdueInterruptApproxMaxMillis``
+
+Mongos Query Shape Field
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, slow query log entries have an optional
+``originalQueryShapeHash`` field that contains that query shape of the following
+operations that originate on the :program:`mongos` :
+
+- :dbcommand:`find`
+- :dbcommand:`aggregate`
+- :dbcommand:`count`
+- :dbcommand:`distinct`
+
+Slow In-Progress Query Logs
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 8.3 introduces slow in-progress query log entries. Log messages on slow
+in-progress queries contain less information than standard slow query logs.
+MongoDB logs queries at most once if the query's duration surpasses the
+``slowOpInProgressThreshold``. You can set the threshold with
+:method:`db.setProfilingLevel()` or the new :option:`mongod
+--defaultSlowInProgMS` command line option. 
+
+Explain Output
+--------------
+
+Sharded Clusters
+~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, if you run ``explain()`` against a database that does
+not exist on a sharded cluster, the execution stage reaches the end-of-stream
+and the operation does not create the database. For more information on
+end-of-stream execution stats, see
+:data:`explain.executionStats.executionStages.isEOF`. 
+
+Security
+--------
+
+SCRAM-SHA-1 and FIPS Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-tlsFIPSMode_SCRAM-SHA-1.rst
+
+.. _8.3-upgrade:
+
+Upgrade Procedures
+------------------
+
+To upgrade to MongoDB 8.3, refer to the upgrade instructions specific to
+your MongoDB deployment:
+
+- :ref:`8.3-upgrade-from-8.0`
+
+- :ref:`8.3-upgrade-from-8.2`
+
+If you need guidance on upgrading to 8.3, MongoDB professional services
+offer support to help ensure a smooth transition without interruption
+to your MongoDB application. To learn more, see
+:products:`MongoDB Consulting </consulting>`.
+
+.. _8.3-download:
+
+Download
+--------
+
+To download MongoDB 8.3, go to the `MongoDB Download Center
+<https://www.mongodb.com/try/download/community>`__.
+
+.. _8.3-downgrade-considerations:
+
+Downgrade Considerations
+------------------------
+
+.. include:: /includes/downgrade/previous-version.rst
+
+Only Single-Version Downgrades are Supported 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ 
+
+.. include:: /includes/8.3-upgrade-replacements.rst
+
+.. include:: includes/downgrade/single-version-support-adjacent-versions.rst
+
+Backward-Incompatible Features
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 8.3 includes features that are not compatible with earlier releases.
+Downgrading from 8.3 to an earlier release requires that you remove data 
+that uses these features.
+
+For more information, see :ref:`8.3-downgrade-incompatible`.
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+   
+   Compatibility Changes </release-notes/8.3-compatibility>
+   Upgrade 8.2 to 8.3 </release-notes/8.3-upgrade>
+   Upgrade 8.0 to 8.3 </release-notes/8.3-upgrade-from-8.0>
+   Downgrade 8.3 to 8.2 </release-notes/8.3-downgrade>
+   Downgrade 8.3 to 8.0 </release-notes/8.3-downgrade-to-8.0>
+   Changelog </release-notes/8.3-changelog>

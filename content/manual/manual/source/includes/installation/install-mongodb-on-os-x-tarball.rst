@@ -25,7 +25,8 @@ Installation Method
 
 .. include:: /includes/fact-use-package-manager.rst
 
-Select **Homebrew** from the :guilabel:`Installation Method` dropdown for instructions.
+|arrow| See :ref:`Install MongoDB using the brew Package Manager<install-mdb-community-macos>`
+for instructions.
 
 Considerations
 --------------
@@ -131,7 +132,7 @@ Procedure
 Follow these steps to run MongoDB |edition| Edition. These instructions
 assume that you are using the default settings.
 
-.. include:: /includes/deploy/install-tar.rst
+.. include:: /includes/steps/run-mongodb-on-osx.rst
 
 Additional Information
 ----------------------

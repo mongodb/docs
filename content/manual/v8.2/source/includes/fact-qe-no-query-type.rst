@@ -1,0 +1,1 @@
+If query type isn't explicitly specified, it defaults to ``none`` and the data isn't queryable.

@@ -1,0 +1,238 @@
+title: "Download the latest |oldversion| binaries."
+level: 4
+ref: 4.2-downgrade-binaries-sharded-cluster
+content: |
+  Using either a package manager or a manual download, get the latest
+  release in the |oldversion| series. If using a package manager, add a new
+  repository for the |oldversion| binaries, then perform the actual downgrade
+  process.
+
+  .. include:: /includes/downgrade-path.rst
+---
+title: Disable the Balancer.
+level: 4
+ref: disable-balancer
+content: |
+  Connect a ``mongo`` shell to a :binary:`~bin.mongos` instance in
+  the sharded cluster, and run :method:`sh.stopBalancer()` to
+  disable the balancer:
+
+  .. code-block:: javascript
+
+     sh.stopBalancer()
+
+  .. note::
+
+     If a migration is in progress, the system will complete the
+     in-progress migration before stopping the balancer. You can run
+     :method:`sh.isBalancerRunning()` to check the balancer's current
+     state.
+
+  To verify that the balancer is disabled, run
+  :method:`sh.getBalancerState()`, which returns false if the balancer
+  is disabled:
+
+  .. code-block:: javascript
+
+     sh.getBalancerState()
+
+  .. include:: /includes/extracts/4.2-changes-stop-balancer-autosplit.rst
+ 
+  For more information on disabling the balancer, see
+  :ref:`sharding-balancing-disable-temporarily`.
+  
+---
+title: "Downgrade the ``mongos`` instances."
+level: 4
+ref: downgrade-mongos
+content: |
+   Downgrade the binaries and restart.
+   
+   .. note::
+   
+      .. include:: /includes/extracts/4.2-changes-downgrade-command-line-options-mongos.rst
+---
+title: Downgrade each shard, one at a time.
+level: 4
+ref: 4.2-downgrade-shard
+content: |
+
+   Downgrade the shards one at a time.
+
+   A. Downgrade the shard's :ref:`secondary <replica-set-secondary-members>`
+      members one at a time:
+
+      a. Shut down the :binary:`~bin.mongod` instance.
+
+         .. code-block:: javascript
+
+            db.adminCommand( { shutdown: 1 } )
+
+      #. Replace the |newversion|
+         binary with the |oldversion| binary and restart.
+
+         .. note::
+
+            .. include:: /includes/extracts/4.2-changes-downgrade-command-line-options.rst
+
+      #. Wait for the member to recover to ``SECONDARY`` state before
+         downgrading the next secondary member. To check
+         the member's state, connect a ``mongo`` shell to the shard
+         and run :method:`rs.status()` method.
+
+         Repeat to downgrade for each secondary member.
+
+   #. Downgrade the shard :ref:`arbiter <replica-set-arbiter-configuration>`, if any.
+
+      Skip this step if the replica set does not include an arbiter.
+
+      a. Shut down the :binary:`~bin.mongod`. See
+         :ref:`terminate-mongod-processes` for additional ways to safely
+         terminate :binary:`~bin.mongod` processes.
+
+         .. code-block:: javascript
+
+            db.adminCommand( { shutdown: 1 } )
+
+      #. Delete the arbiter data directory contents. The 
+         :setting:`storage.dbPath` configuration setting or 
+         :option:`--dbpath <mongod --dbpath>` command line option specify the
+         data directory of the arbiter :binary:`~bin.mongod`.
+
+         .. code-block:: bash
+
+            rm -rf /path/to/mongodb/datafiles/*
+
+      #. Replace the |newversion| binary with the |oldversion| binary and restart.
+
+         .. note::
+
+            .. include:: /includes/extracts/4.2-changes-downgrade-command-line-options.rst
+
+      #. Wait for the member to recover to ``ARBITER`` state. To check
+         the member's state, connect a ``mongo`` shell to the
+         member and run :method:`rs.status()` method.
+
+   #. Downgrade the shard's primary.
+
+      a. Step down the shard's primary. Connect a
+         ``mongo`` shell to the primary and use
+         :method:`rs.stepDown()` to step down the primary and force an
+         election of a new primary:
+
+         .. code-block:: javascript
+
+            rs.stepDown()
+
+      #. When :method:`rs.status()`
+         shows that the primary has stepped down and another member
+         has assumed ``PRIMARY`` state, downgrade the stepped-down primary:
+
+      #. Shut down the stepped-down primary.
+
+         .. code-block:: javascript
+
+            db.adminCommand( { shutdown: 1 } )
+
+      #. Replace the |newversion|
+         binary with the |oldversion| binary and restart.
+
+         .. note::
+
+            .. include:: /includes/extracts/4.2-changes-downgrade-command-line-options.rst
+
+   Repeat for the remaining shards.
+---
+title: "Downgrade the config servers."
+level: 4
+ref: 4.2-downgrade-config-servers
+content: |-
+
+   A. Downgrade the :ref:`secondary <replica-set-secondary-members>`
+      members of the config servers replica set (CSRS) one at a time:
+
+      a. Shut down the :binary:`~bin.mongod` instance.
+
+         .. code-block:: javascript
+
+            db.adminCommand( { shutdown: 1 } )
+
+      #. Replace the |newversion|
+         binary with the |oldversion| binary and restart.
+
+         .. note::
+
+            .. include:: /includes/extracts/4.2-changes-downgrade-command-line-options.rst
+
+      #. Wait for the member to recover to ``SECONDARY`` state before
+         downgrading the next secondary member. To check
+         the member's state, connect a ``mongo`` shell to the shard
+         and run :method:`rs.status()` method.
+
+         Repeat to downgrade for each secondary member.
+
+   #. Step down the config server primary.
+
+      a. Connect a ``mongo`` shell to the primary and use
+         :method:`rs.stepDown()` to step down the primary and force an
+         election of a new primary:
+
+         .. code-block:: javascript
+
+            rs.stepDown()
+
+      #. When :method:`rs.status()`
+         shows that the primary has stepped down and another member
+         has assumed ``PRIMARY`` state, downgrade the stepped-down primary:
+
+      #. Shut down the stepped-down primary.
+
+         .. code-block:: javascript
+
+            db.adminCommand( { shutdown: 1 } )
+
+      #. Replace the |newversion|
+         binary with the |oldversion| binary and restart.
+
+         .. note::
+
+            .. include:: /includes/extracts/4.2-changes-downgrade-command-line-options.rst
+---
+title: "Re-enable the balancer."
+level: 4
+ref: reenable-balancer
+content: |
+  Once the downgrade of sharded cluster components is
+  complete, connect to the :binary:`~bin.mongos` and restart the balancer.
+  
+  .. code-block:: javascript
+  
+     sh.startBalancer();
+
+  To verify that the balancer is enabled, run
+  :method:`sh.getBalancerState()`:
+
+  .. code-block:: javascript
+
+     sh.getBalancerState()
+  
+  If the balancer is enabled, the method returns true.
+  
+---
+title: "Re-enable autosplit."
+level: 4
+ref: reenable-autosplit
+content: |
+
+   When stopping the balancer as part of the downgrade process, the
+   :method:`sh.stopBalancer()` method also disabled auto-splitting.
+   
+   Once downgraded to MongoDB 4.0, :method:`sh.startBalancer()` does
+   not re-enable auto-splitting. If you wish to re-enable
+   auto-splitting, run :method:`sh.enableAutoSplit()`:
+
+   .. code-block:: bash
+
+      sh.enableAutoSplit()
+
+...

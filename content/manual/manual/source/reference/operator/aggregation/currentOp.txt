@@ -1,11 +1,11 @@
 .. _current-op-agg:
 
 ==============================
-$currentOp (aggregation stage)
+$currentOp (Aggregation Stage)
 ==============================
 
 .. meta::
-   :description: Use `$currentOp` to stream documents with information on active operations, dormant operations, and inactive sessions holding locks in MongoDB.
+   :description: Use the `$currentOp` aggregation stage to stream documents with information on active operations, dormant operations, and inactive sessions that hold locks in MongoDB.
 
 .. default-domain:: mongodb
 
@@ -26,21 +26,13 @@ Definition
    for each operation or session. To run ``$currentOp``, use
    the :method:`db.aggregate()` helper on the ``admin`` database.
 
-   The ``$currentOp`` aggregation stage is preferred over the
-   :dbcommand:`currentOp` command and its :binary:`~bin.mongosh`
-   helper method :method:`db.currentOp()`. Because the
-   :dbcommand:`currentOp` command and :method:`db.currentOp()` helper
-   method return the results in a single document, the total size of the
-   :dbcommand:`currentOp` result set is subject to the maximum 16MB BSON
-   size limit for documents. The ``$currentOp`` stage returns a
-   cursor over a stream of documents, each of which reports a single
-   operation. Each operation document is subject to the 16MB BSON limit,
-   but unlike the :dbcommand:`currentOp` command, there is no limit on
-   the overall size of the result set.
-
-   ``$currentOp`` also enables you to perform arbitrary
+   :pipeline:`$currentOp` also enables you to perform arbitrary
    transformations of the results as the documents pass through the
    pipeline.
+
+.. note::
+
+   .. include:: /includes/fact-currentOp-aggregation-stage.rst
 
 Syntax
 ~~~~~~
@@ -228,7 +220,7 @@ Examples
 
 .. tabs-drivers::
 
-   .. tab:: 
+   .. tab:: Shell
       :tabid: shell
 
       Inactive Sessions 
@@ -574,7 +566,66 @@ Examples
 
       .. include:: /includes/currentOp-query-analyzer-output.rst
 
-   .. tab::
+      .. _collection-connections-currentOp-stage:
+
+      Count Collection Connections
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      
+      You can use :pipeline:`$currentOp` to determine which collections are utilizing more
+      connections in a {+cluster+}, enabling you to identify active client connections
+      and their associated operations.
+
+      Consider the following example:
+      
+      This pipeline groups per client, user, and namespace,
+      counting active and inactive connections, then sorts by total.
+      
+      .. code-block:: javascript
+
+         // Groups per client, user, and namespace; counts active/inactive
+         // connections; then sorts by total connections per group.
+         db.getSiblingDB("admin").aggregate( [
+            { $currentOp: { allUsers: true, idleConnections: true, idleSessions: true } },
+            { $project: {
+               "_id": 0,
+               client: { $arrayElemAt: [ { $split: ["$client", ":"] }, 0 ] },
+               curr_active: { $cond: [ { $eq: ["$active", true] }, 1, 0 ] },
+               curr_inactive: { $cond: [ { $eq: ["$active", false] }, 1, 0 ] },
+               db_user: "$effectiveUsers.user",
+               ns: "$ns"
+            } },
+            { $match: { client: { $ne: null }, db_user: { $ne: null } } },
+            { $group: {
+               _id: { client: "$client", user: "$db_user", ns: "$ns" },
+               curr_active: { $sum: "$curr_active" },
+               curr_inactive: { $sum: "$curr_inactive" },
+               total: { $sum: 1 }
+            } },
+            { $sort: { total: -1 } }
+         ] )
+
+      This code provides a list of active and inactive connections grouped by client
+      IP address and namespace (which includes the database and collection name) like the
+      following example:
+
+      .. code-block:: javascript
+
+         [
+         {
+            "_id": { "client": "192.168.1.10", "user": ["appUser"], "ns": "db1.collA" },
+            "curr_active": 3,
+            "curr_inactive": 1,
+            "total": 4
+         },
+         {
+            "_id": { "client": "192.168.1.11", "user": ["reportUser"], "ns": "db2.collB" },
+            "curr_active": 0,
+            "curr_inactive": 2,
+            "total": 2
+         }
+         ]
+
+   .. tab:: Node.js
       :tabid: nodejs
 
       To use the {+node-driver-full+} to add a ``$currentOp`` stage to an
@@ -1278,9 +1329,7 @@ relevant for the operation:
 
       - If false, the cursor times out when idle.
 
-      .. seealso::
-
-         :method:`cursor.addOption()`
+      For more information, see :method:`cursor.addOption()`
 
    .. data:: $currentOp.cursor.tailable
 
@@ -1289,11 +1338,11 @@ relevant for the operation:
       remain open after the client exhausts the results in the initial
       cursor.
 
-      .. seealso::
+      For more information, see:
 
-         - :dbcommand:`find`
-         - :method:`cursor.tailable()`
-         - :method:`cursor.addOption()`
+      - :dbcommand:`find`
+      - :method:`cursor.tailable()`
+      - :method:`cursor.addOption()`
 
    .. data:: $currentOp.cursor.awaitData
 
@@ -1348,6 +1397,14 @@ relevant for the operation:
    Not available when running with ``localOps: true`` on
    :binary:`~bin.mongos`.
 
+.. data:: $currentOp.inUseTrackedMemBytes
+
+   .. include:: /includes/in-use-memory.rst
+
+.. data:: $currentOp.peakTrackedMemBytes
+
+   .. include:: /includes/peak-memory.rst
+
 .. data:: $currentOp.prepareReadConflicts
 
    The number of times the current operation had to wait for a
@@ -1370,6 +1427,16 @@ relevant for the operation:
    MongoDB has not yet fully read into memory. This allows
    other operations that have data in memory to complete quickly
    while MongoDB reads in data for the yielding operation.
+
+.. data:: $currentOp.numInterruptChecks
+
+   Number of times the server has checked the operation for
+   interrupts since it started. Short running operations return
+   small numbers, preferably 0 or 1. Long running operations
+   show large numbers, as the server has checked several times
+   to determine whether the operation was stopped or timed out.
+   
+   .. versionadded:: 8.3 Also available in 8.2.2 and 8.0.20.
 
 .. data:: $currentOp.queryShapeHash
 
@@ -1864,7 +1931,7 @@ relevant for the operation:
    The UUID of the :ref:`sampled collection <configureQueryAnalyzer>`.
 
    This field only appears on documents related to query sampling.
-   For details, see :ref:`<sampled-queries-currentOp-stage>`.
+   For details, see :ref:`sampled-queries-currentOp-stage`.
    
    .. versionadded:: 7.0
 
@@ -1884,7 +1951,7 @@ relevant for the operation:
    The time at which query sampling began.
 
    This field only appears on documents related to query sampling.
-   For details, see :ref:`<sampled-queries-currentOp-stage>`.
+   For details, see :ref:`sampled-queries-currentOp-stage`.
 
    .. versionadded:: 7.0
 
@@ -1895,7 +1962,7 @@ relevant for the operation:
    Only reported when running ``$currentOp`` on ``mongos``.
    
    This field only appears on documents related to query sampling.
-   For details, see :ref:`<sampled-queries-currentOp-stage>`.
+   For details, see :ref:`sampled-queries-currentOp-stage`.
    
    .. versionadded:: 7.0
    
@@ -1904,7 +1971,7 @@ relevant for the operation:
    The number of sampled read queries.
    
    This field only appears on documents related to query sampling.
-   For details, see :ref:`<sampled-queries-currentOp-stage>`.
+   For details, see :ref:`sampled-queries-currentOp-stage`.
 
    .. versionadded:: 7.0
 
@@ -1913,7 +1980,7 @@ relevant for the operation:
    The number of sampled write queries.
    
    This field only appears on documents related to query sampling.
-   For details, see :ref:`<sampled-queries-currentOp-stage>`.
+   For details, see :ref:`sampled-queries-currentOp-stage`.
    
    .. versionadded:: 7.0
 
@@ -1927,7 +1994,7 @@ relevant for the operation:
    ``--shardsvr``.
    
    This field only appears on documents related to query sampling.
-   For details, see :ref:`<sampled-queries-currentOp-stage>`.
+   For details, see :ref:`sampled-queries-currentOp-stage`.
    
    .. versionadded:: 7.0
 
@@ -1941,6 +2008,6 @@ relevant for the operation:
    ``--shardsvr``.
 
    This field only appears on documents related to query sampling.
-   For details, see :ref:`<sampled-queries-currentOp-stage>`.
+   For details, see :ref:`sampled-queries-currentOp-stage`.
    
    .. versionadded:: 7.0

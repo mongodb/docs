@@ -13,8 +13,6 @@ Install MongoDB Community Edition on macOS
 .. |package-manager| replace:: ``brew``
 .. |executable-name| replace:: ``mongod``
 
-.. include:: /includes/minor-release.rst
-
 Overview
 --------
 

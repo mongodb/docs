@@ -41,7 +41,7 @@
       :id: kotlin-sync
 
    .. wayfinding-option:: https://www.mongodb.com/docs/ruby-driver/current/aggregation/#explain-an-aggregation
-      :id: ruby
+      :id: mongoid
 
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/rust/current/fundamentals/run-command/#command-example
       :id: rust

@@ -10,8 +10,6 @@ Install MongoDB Community on SUSE using .tgz Tarball
 .. |executable-name| replace:: ``mongod``
 .. |mdb-download-link| replace:: `MongoDB Download Center <https://www.mongodb.com/try/download/community>`__
 
-.. include:: /includes/minor-release.rst
-
 Overview
 --------
 
@@ -29,7 +27,8 @@ Installation Method
 
 .. include:: /includes/fact-use-package-manager.rst
 
-Select **Package Manager** from the :guilabel:`Package` dropdown for instructions.
+|arrow| See :ref:`Install MongoDB using the zypper Package Manager <install-mdb-community-suse>`
+for instructions.
 
 Considerations
 --------------
@@ -57,7 +56,7 @@ Prerequisites
 
 .. include:: /includes/fact-tarball-dependencies.rst
 
-.. include:: /includes/deploy/community-prereq-suse.rst
+.. include:: /includes/extracts/install-mongodb-community-manually-suse-15.rst
 
 Procedure
 ~~~~~~~~~
@@ -65,7 +64,7 @@ Procedure
 Follow these steps to manually install MongoDB |edition| Edition from
 the ``.tgz``.
 
-.. include:: /includes/deploy/install-tar.rst
+.. include:: /includes/steps/install-mongodb-on-linux.rst
 
 Run MongoDB Community Edition
 -----------------------------

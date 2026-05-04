@@ -1,0 +1,360 @@
+.. _bson-document-format:
+
+=========
+Documents
+=========
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre 
+   :values: reference
+
+.. meta:: 
+   :description: Definition, structure, and limitations of documents in MongoDB.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. dismissible-skills-card::
+   :skill: MongoDB Architecture Essentials
+   :url: https://learn.mongodb.com/skills?openTab=architecture
+
+MongoDB stores data records as BSON documents. 
+BSON is a binary representation of :term:`JSON` documents with additional data types. 
+For the BSON spec, see `bsonspec.org <http://bsonspec.org/>`_. See also :ref:`bson-types`.
+
+.. include:: /images/crud-annotated-document.rst
+
+.. _document-structure:
+
+Document Structure
+------------------
+
+Documents are composed of field-value pairs and have the following structure:
+
+.. code-block:: javascript
+
+   {
+      field1: value1,
+      field2: value2,
+      field3: value3,
+      ...
+      fieldN: valueN
+   }
+
+The value of a field can be any of the BSON :ref:`data types
+<bson-types>`, including other documents, arrays, and arrays
+of documents. For example, the following document contains values of varying types:
+
+.. code-block:: javascript
+
+   var mydoc = {
+                  _id: ObjectId("5099803df3f4948bd2f98391"),
+                  name: { first: "Alan", last: "Turing" },
+                  birth: new Date('Jun 23, 1912'),
+                  death: new Date('Jun 07, 1954'),
+                  contribs: [ "Turing machine", "Turing test", "Turingery" ],
+                  views : Long(1250000)
+               }
+
+The above fields have the following data types:
+
+- ``_id`` holds an :ref:`objectid`.
+
+- ``name`` holds an *embedded document* that contains the fields
+  ``first`` and ``last``.
+
+- ``birth`` and ``death`` hold values of the *Date* type.
+
+- ``contribs`` holds an *array of strings*.
+
+- ``views`` holds a value of the *NumberLong* type.
+
+.. _document-field-names:
+
+Field Names
+~~~~~~~~~~~
+
+Field names are strings with specific restrictions and requirements.
+
+General Restrictions
+````````````````````
+
+The general restrictions for field names are: 
+
+- Field names **cannot** contain the ``null`` character.
+
+- The server permits storage of field names that contain dots (``.``)
+  and dollar signs (``$``).
+
+- MongodB 5.0 adds improved support for the use of (``$``) and (``.``)
+  in field names. There are some restrictions. See
+  :ref:`Field Name Considerations <crud-concepts-dot-dollar-considerations>` for more details.
+
+Uniqueness Requirements
+```````````````````````
+
+Field names must meet the following uniqueness criteria:
+
+- Each field name must be unique within the document. You must not store
+  documents with duplicate fields because MongoDB :ref:`CRUD <crud>`
+  operations might behave unexpectedly if a document has duplicate
+  fields.
+
+- MongoDB doesn't support inserting documents with duplicate field names. While
+  some BSON builders may support creating such documents, MongoDB doesn't
+  support them, even if the insert succeeds, or appears to succeed.
+
+- Updating documents with duplicate field names isn't
+  supported, even if the update succeeds or appears to succeed.
+
+For example, inserting a BSON document with duplicate field names
+through a MongoDB driver may result in the driver silently dropping
+the duplicate values prior to insertion, or may result in an invalid
+document being inserted that contains duplicate fields. Querying those
+documents leads to inconsistent results. 
+
+Starting in MongoDB 6.1, to see if a document has duplicate field names,
+use the :dbcommand:`validate` command with the ``full`` field set to
+``true``. In any MongoDB version, use the :expression:`$objectToArray`
+aggregation operator to see if a document has duplicate field names.
+
+.. note::
+   
+   For restrictions specific to the ``_id`` field, see :ref:`document-id-field`.
+.. _document-dot-notation:
+
+Dot Notation
+------------
+
+MongoDB uses the *dot notation* to access array elements and embedded document fields.
+
+Arrays
+~~~~~~
+
+To specify or access an array element by its zero-based index position, concatenate the array name 
+and the zero-based index position using dot notation, and enclose the result in quotes:
+
+.. code-block:: javascript
+
+   "<array>.<index>"
+
+For example, given the following field in a document:
+
+.. code-block:: javascript
+
+   {
+      ...
+      contribs: [ "Turing machine", "Turing test", "Turingery" ],
+      ...
+   }
+
+To specify the third element in the ``contribs`` array, use ``"contribs.2"``.
+
+For examples querying arrays, see:
+
+- :doc:`/tutorial/query-arrays`
+
+- :doc:`/tutorial/query-array-of-documents/`
+
+.. seealso::
+
+   - :update:`$[]` all positional operator for update operations,
+
+   - :update:`$[\<identifier\>]` filtered positional operator for update operations,
+
+   - :update:`$` positional operator for update operations,
+
+   - :projection:`$` projection operator when array index position is
+     unknown
+
+   - :ref:`read-operations-arrays` for dot notation examples with arrays.
+
+.. _document-dot-notation-embedded-fields:
+
+Embedded Documents
+~~~~~~~~~~~~~~~~~~
+
+To specify or access a field of an embedded document, concatenate the embedded document name 
+and the field name using dot notation, and enclose the result in quotes:
+
+.. code-block:: javascript
+
+   "<embeddedDocument>.<field>"
+
+For example, given the following field in a document:
+
+.. code-block:: javascript
+
+   {
+      ...
+      name: { first: "Alan", last: "Turing" },
+      contact: { phone: { type: "cell", number: "111-222-3333" } },
+      ...
+   }
+
+- To specify the ``last`` field in ``name``, use: ``"name.last"``.
+- To specify the ``number`` field in the nested ``phone`` document, use: ``"contact.phone.number"``.
+
+.. warning::
+
+   Partition fields cannot use field names that contain a dot (``.``). 
+
+For examples querying embedded documents, see:
+
+- :doc:`/tutorial/query-embedded-documents`
+
+- :doc:`/tutorial/query-array-of-documents/`
+
+
+Document Limitations
+--------------------
+
+MongoDB documents have certain attributes, such as document size and field ordering,
+that can affect query behavior and application performance.
+
+Document Size Limit
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-document-max-size.rst
+
+Document Field Order
+~~~~~~~~~~~~~~~~~~~~
+
+Fields in BSON documents are ordered (unlike JavaScript objects).
+
+Field Order in Queries
+``````````````````````
+
+For queries, the field order behavior is as follows:
+
+- Field order is significant when comparing documents. For example:
+   
+  - ``{a: 1, b: 1}`` is equal to ``{a: 1, b: 1}``
+  - ``{a: 1, b: 1}`` is not equal to ``{b: 1, a: 1}``
+
+- The query engine may reorder fields for efficient execution.
+  Field reordering may occur in intermediate and final query results, and may occur with
+  the following projection operators:
+
+  - :pipeline:`$project`
+  - :pipeline:`$addFields`
+  - :pipeline:`$set`
+  - :pipeline:`$unset`
+
+.. important::
+   
+   Because some operations may reorder fields, do not rely on specific field ordering in results from queries 
+   using the projection operators above.
+
+Field Order in Write Operations
+```````````````````````````````
+
+.. include:: /includes/fact-update-field-order.rst
+   :start-after: order-of-document-fields
+
+.. _document-id-field:
+
+The ``_id`` Field
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-id-field.rst
+
+.. note::
+
+   .. include:: /includes/time-series-unique-id
+
+**Behavior and Constraints:**
+
+- When creating a collection, MongoDB creates a unique index on ``_id`` by default.
+- The ``_id`` field is always the first field in a document. If the server receives a document
+  that does not have the ``_id`` field first, then it moves the field to the beginning of the document.
+- ``_id`` subfield names cannot begin with a (``$``) symbol.
+- The ``_id`` field can contain any :ref:`BSON data type <bson-types>` except array, regex, or undefined.
+
+  .. See :issue:`SERVER-9562` for more information.
+
+**Common _id Value Options:**
+
+The following are common options for storing values for the ``_id`` field:
+
+- Use an :ref:`ObjectId <objectid>`.
+- Use a natural unique identifier, if available. This saves space and avoids additional indexes.
+- Generate an auto-incrementing number.
+- Generate a UUID as a BSON ``BinData`` type for efficient UUID storage in the collection and ``_id`` index.
+
+  .. include:: /includes/fact-bindata-storage-optimization.rst
+
+- Use your driver's BSON UUID facility to generate UUIDs. Be aware
+  that driver implementations may implement UUID serialization and
+  deserialization logic differently, which may not be fully compatible
+  with other drivers. See your :driver:`driver documentation <>` for
+  information concerning UUID interoperability.
+
+.. include:: /includes/note-insert-id-field.rst
+
+Other Uses of the Document Structure
+------------------------------------
+
+In addition to defining data records, MongoDB uses the document structure 
+in several other contexts, including query and data-manipulation operations.
+
+.. _document-query-filter:
+
+Query Filter Documents
+~~~~~~~~~~~~~~~~~~~~~~
+
+Query filter documents specify conditions for read, update, and delete operations.
+
+You can use ``<field>:<value>`` expressions to specify the equality condition
+and :ref:`query operator <query-projection-operators-top>` expressions.
+
+.. code-block:: javascript
+
+   {
+     <field1>: <value1>,
+     <field2>: { <operator>: <value> },
+     ...
+   }
+
+For examples, see:
+
+- :doc:`/tutorial/query-documents`
+
+- :doc:`/tutorial/query-embedded-documents`
+
+- :doc:`/tutorial/query-arrays`
+
+- :doc:`/tutorial/query-array-of-documents/`
+
+.. _document-update-specification:
+
+Update Specification Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use :ref:`update operators <update-operators>` to specify field modifications:
+
+.. code-block:: javascript
+
+   {
+     <operator1>: { <field1>: <value1>, ... },
+     <operator2>: { <field2>: <value2>, ... },
+     ...
+   }
+
+For examples, see :ref:`update-documents-modifiers`.
+
+.. _document-index-specification:
+
+Index Specification Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Index specification documents define fields to index and their types:
+
+.. code-block:: javascript
+
+   { <field1>: <type1>, <field2>: <type2>, ...  }

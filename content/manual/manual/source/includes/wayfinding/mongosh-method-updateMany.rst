@@ -4,7 +4,7 @@
 
       .. include:: /includes/wayfinding-description.rst
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/drivers/java/sync/current/fundamentals/crud/write-operations/modify/#update
+   .. wayfinding-option:: https://www.mongodb.com/docs/drivers/java/sync/v5.2/fundamentals/crud/write-operations/modify/#update
       :id: java-sync
 
    .. wayfinding-option:: https://www.mongodb.com/docs/languages/java/reactive-streams-driver/current/write/write-update-documents/

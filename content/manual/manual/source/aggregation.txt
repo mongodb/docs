@@ -68,97 +68,59 @@ Aggregation Pipelines
 Aggregation Pipeline Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example pipeline uses documents from the :ref:`sample data 
-<sample-data>` available in MongoDB Atlas, specifically the 
-``sample_training.routes`` collection. In this pipeline, we'll find the top 
-three airlines that offer the most direct flights out of the airport in 
-Portland, Oregon, USA (PDX). 
+.. include:: /includes/sample-data-usage.rst
 
-First, add a :pipeline:`$match` stage to filter the documents to flights 
-that have a ``src_airport`` value of ``PDX`` and zero ``stops``:
+This pipeline finds the top three directors who have directed 
+the most movies in the database. 
 
-.. code-block:: javascript 
+First, add a :pipeline:`$match` stage to filter the documents to movies 
+that have directors listed (excluding documents where directors field is null or empty):
 
-   {
-      $match : { 
-         "src_airport" : "PDX", 
-         "stops" : 0
-      }
-   }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/full-pipeline/run-pipeline.snippet.match-stage.js
+   :language: javascript
+   :category: usage example
 
-The ``$match`` stage reduces the number of documents in our pipeline from 66,985 
-to 113. Next, :pipeline:`$group` the documents by airline name and count 
-the number of flights: 
+The ``$match`` stage reduces the number of documents in our pipeline by 
+filtering out movies without director information. Next, use :pipeline:`$unwind` 
+to deconstruct the directors array so we can count movies per individual director:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/full-pipeline/run-pipeline.snippet.unwind-stage.js
+   :language: javascript
+   :category: usage example
 
-   {
-      $group : { 
-         _id : { 
-            "airline name": "$airline.name", 
-         }
-         count : { 
-            $sum : 1
-         }
-      }
-   }
+Then, :pipeline:`$group` the documents by director name and count 
+the number of movies each director has made: 
 
-The ``$group`` stage reduces the number of documents in the pipeline to 16 
-airlines. To find the airlines with the most flights, use the :pipeline:`$sort` 
-stage to sort the remaining documents in descending order:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/full-pipeline/run-pipeline.snippet.group-stage.js
+   :language: javascript
+   :category: usage example
 
-   {
-      $sort : { 
-         count : -1
-      }
-   }
+To find the directors with the most movies, use the :pipeline:`$sort` 
+stage to sort the remaining documents in descending order by movie count:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/full-pipeline/run-pipeline.snippet.sort-stage.js
+   :language: javascript
+   :category: usage example
 
 After you sort your documents, use the :pipeline:`$limit` stage to return the 
-top three airlines that offer the most direct flights out of PDX:
+top three directors who have directed the most movies:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/full-pipeline/run-pipeline.snippet.limit-stage.js
+   :language: javascript
+   :category: usage example
 
-   {
-      $limit : 3
-   }
+The full pipeline is given in this example: 
 
-After putting the documents in the ``sample_training.routes`` collection through 
-this aggregation pipeline, the top three airlines offering non-stop flights from 
-PDX are Alaska, American, and United Airlines with 39, 17, and 13 flights, 
-respectively.
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/full-pipeline/run-pipeline.snippet.full-pipeline.js
+   :language: javascript
+   :category: usage example
 
-The full pipeline resembles the following: 
+This pipeline returns these results:
 
-.. code-block:: javascript 
-
-   db.routes.aggregate( [
-      {
-         $match : { 
-            "src_airport" : "PDX", 
-            "stops" : 0
-         }
-      },
-      {
-         $group : { 
-            _id : { 
-               "airline name": "$airline.name", 
-            }
-            count : { 
-               $sum: 1
-            }
-         }
-      },
-      {
-         $sort : { 
-            count : -1
-         }
-      },
-      {
-         $limit : 3
-      }
-   ] )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/full-pipeline/output.sh
+   :language: javascript
+   :category: example return object
 
 For runnable examples containing sample input documents, see
 :ref:`Complete Aggregation Pipeline Examples

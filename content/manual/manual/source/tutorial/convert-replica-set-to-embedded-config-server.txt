@@ -1,8 +1,11 @@
 .. _convert-replica-set-to-embedded-config-server:
 
-=========================================================================
-Convert a Replica Set to a Sharded Cluster with an Embedded Config Server
-=========================================================================
+===============================================
+Convert Replica Set to an Embedded Config Shard
+===============================================
+
+.. meta::
+   :description: Convert an existing MongoDB replica set into a sharded cluster with an embedded config shard, for when you want to scale horizontally but don't want a dedicated config server replica set.
 
 .. contents:: On this page
    :local:
@@ -10,104 +13,205 @@ Convert a Replica Set to a Sharded Cluster with an Embedded Config Server
    :depth: 1
    :class: singlecol
 
-Starting in MongoDB 8.0, you can configure a config server to store your 
-application data in addition to the usual :term:`sharded cluster` metadata. 
-A config server that stores application data is called a :ref:`config shard 
+Starting in MongoDB 8.0, you can configure a config server to
+store your application data in addition to the usual
+:term:`sharded cluster` metadata. A config server that stores
+application data is called a :ref:`config shard
 <config-shard-concept>` or embedded config server. 
 
-Converting your replica set into a sharded cluster with an embedded config 
-server can reduce:
+Converting your replica set into a sharded cluster with an
+embedded config shard can reduce:
 
 - The number of nodes required in your deployment.
+
 - Complexity for maintaining one-shard clusters. 
 
 About this Task 
 ---------------
 
-You can't directly convert a replica set to a config shard. To convert a 
-replica set to an embedded config server, you must:
+Starting in MongoDB 8.3, you can convert a replica set directly
+into a sharded cluster with an embedded config shard.
 
-- Convert your replica set to a sharded cluster with a 
-  :term:`dedicated config server`.
-
-- Configure the dedicated config server to run as a :ref:`config shard 
-  <config-shard-concept>` using the 
-  :dbcommand:`transitionFromDedicatedConfigServer` command. 
-
-  - The ``transitionFromDedicatedConfigServer`` command adds the config server 
-    as a shard in the cluster. 
-    
-- Reduce the number of shards in your cluster after adding the config shard.
+Previous releases require you to first convert the replica set
+into a sharded cluster with a dedicated config server replica
+set, then convert that into one with an embedded config shard.
 
 Access Control
 ~~~~~~~~~~~~~~
 
-If access control is enabled, the ``transitionFromDedicatedConfigServer`` 
-command requires the :authaction:`transitionFromDedicatedConfigServer`
+If access control is enabled, the
+:dbcommand:`transitionFromDedicatedConfigServer` command
+requires the :authaction:`transitionFromDedicatedConfigServer`
 authorization action for the :ref:`cluster <resource-document>`.
 
-The :authrole:`clusterManager` role has the 
-``transitionFromDedicatedConfigServer`` authorization action and can be 
-assigned to a user.
+The :authrole:`clusterManager` role has the
+``transitionFromDedicatedConfigServer`` authorization action and
+can be assigned to a user.
 
 Steps
 -----
 
-The following example converts a self-managed replica set to a config shard that 
-contain pre-existing user data from the replica set.
+The following example converts a self-managed replica set to a
+config shard that contains a pre-existing user data from the
+replica set.
 
 .. procedure::
    :style: normal
 
-   .. step:: Convert your replica set to a sharded cluster with a dedicated config server
-      
-      This tutorial assumes that you know how to convert your self-managed 
-      replica set to a sharded cluster. For full instructions, see 
-      :ref:`manual-convert-replica-set-to-sharded-cluster`.
+   .. step:: Put the replica set in maintenance mode.
 
-   .. step:: Connect to ``mongos``
+      Perform a rolling restart on the replica set. Start each
+      node as a config server in maintenance mode:
 
-      For example, to connect to your ``mongos`` instance running on host 
-      ``mongodb6.example.net`` as an admin user named ``admin01``: 
+      a. Stop each node, beginning with the secondaries.
+         To shut down a server, use the
+         :method:`db.shutdownServer` method.
 
-      .. code-block:: bash
+         .. code-block:: javascript
 
-         mongosh "mongodb://admin01@mongodb6.example.net:27017"
-      
-   .. step:: Run the ``transitionFromDedicatedConfigServer`` command 
+            db.shutdownServer()
 
-      To configure your dedicated config server to run as a config shard, run 
-      the ``transitionFromDedicatedConfigServer`` command from the admin 
-      database:
+      #. Restart the node as a config shard in maintenance mode.
+
+         .. code-block:: sh
+
+            mongod --config /etc/mongodb.conf --configsvr \
+               --replicaSetConfigShardMaintenanceMode \
+
+         :option:`--configsvr`
+            Starts the :program:`mongod` instance as a config
+            server.
+
+         :option:`--replicaSetConfigShardMaintenanceMode`
+            Enables the config shard maintenance mode, which
+            disables some startup checks and allows you to
+            convert a server into an embedded config shard.
+
+      #. Wait for the node to rejoin the replica set before
+         restarting the next.
+
+   .. step:: Find the primary node.
+
+      Use the :method:`rs.status` method to identify the new
+      primary node. If you have a large replica set, use the
+      :method:`db.aggregate` method to narrow your search.
+
+      .. io-code-block::
+
+         .. input::
+            :language: javascript
+
+            db.aggregate( [
+               { $documents: rs.status().members },
+               { $match: { stateStr: "PRIMARY" } },
+               { $project: { _id: 1, name: 1 }
+            ] )
+
+         .. output::
+            :language: javascript
+
+            [ { _id: 3, name: "192.0.2.3:27017" } ]
+
+   .. step:: Convert the primary into a config shard.
+
+      Connect to the primary node and reconfigure it to operate
+      as an embedded config shard:
+
+      a. Use the :method:`rs.conf` method to get the current
+         configuration and store it in a variable:
+
+         .. code-block:: javascript
+
+            var conf = rs.conf()
+
+      #. Set the ``configsvr`` field:
+
+         .. code-block:: javascript
+
+            conf.configsvr = true
+
+      #. Increment the ``version`` field:
+
+         .. code-block:: javascript
+
+            conf.version += 1
+
+      #. Reconfigure the node:
+
+         .. code-block:: javascript
+
+            rs.reconfig(conf)
+
+      #. Wait for secondaries to replicate the change. You can
+         check the status by running an aggregation pipeline on
+         the member documents:
+
+         .. io-code-block::
+
+            .. input:: 
+               :language: javascript
+
+               db.aggregate( [
+                  { $documents: rs.status().members },
+                  { $group: {
+                     _id: null,
+                     allConfigSvr: {
+                        $min: { $eq: ["$configsvr", true] } 
+                     }
+                  } }
+               ] )
+
+            .. output::
+               :language: javascript
+
+               { _id: null, allConfigSvr: true }
+
+         When ``allConfigSvr`` shows ``true``, it indicates that
+         the reconfiguation has propagated to all nodes in the
+         cluster.
+
+   .. step:: Restart the cluster.
+
+      Perform a rolling upgrade to restart the replica set as a
+      config server:
+
+      a. Stop each node, beginning with the secondaries.
+         To shut down a server, use the
+         :method:`db.shutdownServer` method.
+
+         .. code-block:: javascript
+
+            db.shutdownServer()
+
+      #. Restart the node as a config server, no longer in
+         maintenance mode:
+
+         .. code-block:: console
+   
+            mongod --config /etc/mongodb.conf --configsvr
+
+   .. step:: Start the router.
+
+      Start the :program:`mongos` router:
+
+      .. code-block:: console
+
+         mongos --config /etc/mongodb.conf
+
+   .. step:: Transition the config server to an embedded config shard.
+
+      Connect to :program:`mongos` and run the
+      :dbcommand:`transitionFromDedicatedConfigServer` command
+      to add the config shard to the cluster.
 
       .. code-block:: javascript
 
-         db.adminCommand( { 
-            transitionFromDedicatedConfigServer: 1
-         } )
+         db.adminCommand( { transitionFromDedidcatedConfigServer: 1 } )
 
-   .. step:: Verify that the config server is now a config shard
+   .. step:: Point application at router.
 
-      .. include:: /includes/confirm-use-config-shard.rst
-
-      .. note:: 
-         
-         If the :ref:`balancer <sharding-balancing>` is running, it 
-         automatically migrates data across the shards. Otherwise, use the 
-         :dbcommand:`moveCollection` or :dbcommand:`moveChunk` commands to 
-         manually distribute your data.
-
-   .. step:: Reduce the number of shards in your cluster to one
-      
-      
-      To reduce the cluster to a single shard after adding the config shard, 
-      move all unsharded collections to the config shard using the 
-      :dbcommand:`moveCollection` command and remove the first shard in the 
-      cluster with the :dbcommand:`removeShard` command. This step reduces your 
-      cluster to a single config shard.
-      
-      For full instructions on removing shards in your cluster, see 
-      :ref:`remove-shards-from-cluster-tutorial`.
+      Update your application to connect to the :program:`mongos`
+      router instead of the replica set members.
 
 Learn More
 ----------

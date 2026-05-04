@@ -18,8 +18,8 @@ Definition
 
 .. expression:: $replaceAll
 
-   Replaces all instances of a search string in an input string with a
-   replacement string.
+   Replaces all instances of a search string or regex pattern in an
+   input string with a replacement string.
 
    :expression:`$replaceAll` is both case-sensitive and
    diacritic-sensitive, and ignores any collation present on a
@@ -62,8 +62,8 @@ Operator Fields
        The string to search for within the given
        :ref:`input <replaceAll-input>`. Can be any valid
        :ref:`expression<aggregation-expressions>` that resolves to a
-       string or a ``null``. If ``find`` refers to a field that is
-       missing, ``$replaceAll`` returns ``null``.
+       string, a regex, or a ``null``. If ``find`` refers to a field
+       that is missing, ``$replaceAll`` returns ``null``.
 
    * - :ref:`replacement <replaceAll-replacement>`
 
@@ -79,8 +79,8 @@ Behavior
 
 The :ref:`input <replaceAll-input>`, :ref:`find <replaceAll-find>`, and
 :ref:`replacement <replaceAll-replacement>` expressions must evaluate to
-a string or a ``null``, or :expression:`$replaceAll` fails with an
-error.
+a string or a ``null`` (or regex for :ref:`find <replaceAll-find>`), or
+:expression:`$replaceAll` fails with an error.
 
 .. _replaceall-and-null-values:
 
@@ -228,8 +228,8 @@ normalization, only the first string comparison matches, where both the
 :ref:`find <replaceAll-find>` and :ref:`input <replaceAll-input>`
 strings use one code point to represent ``é``.
 
-Example
--------
+Examples
+--------
 
 Create an ``inventory`` collection with the following documents:
 
@@ -241,6 +241,9 @@ Create an ``inventory`` collection with the following documents:
       { _id: 3, item: "blue paint with blue paintbrush" },
       { _id: 4, item: "blue paint with green paintbrush" },
    ] )
+
+Replace Using a String
+~~~~~~~~~~~~~~~~~~~~~~
 
 The following example replaces each instance of "blue paint" in the
 ``item`` field with "red paint":
@@ -265,3 +268,35 @@ The operation returns the following results:
    { _id: 2, item: "blue and green paint" }
    { _id: 3, item: "red paint with red paintbrush" }
    { _id: 4, item: "red paint with green paintbrush" }
+
+Replace Using Regex
+~~~~~~~~~~~~~~~~~~~
+
+The following example uses a regex pattern ``\\bblue paint\\b`` to
+replace each instance matching "blue paint" as a whole phrase in the
+``item`` field with "red paint":
+
+.. code-block:: javascript
+
+   db.inventory.aggregate([  
+      {  
+        $project:
+         {  
+            item: { $replaceAll: { input: "$item", find: \\bblue paint\\b, replacement: "red paint" } }  
+         }  
+      }  
+   ])
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { _id: 1, item: "red paint" }
+   { _id: 2, item: "blue and green paint" }
+   { _id: 3, item: "red paint with blue paintbrush" }
+   { _id: 4, item: "red paint with green paintbrush" }
+
+In this case, "blue paint" is replaced only when it appears as a whole
+phrase, due to the use of regex word boundaries (``\b``), and not when
+it is a substring within a larger word.

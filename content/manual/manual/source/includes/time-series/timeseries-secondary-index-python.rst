@@ -107,7 +107,7 @@ compound secondary index created above:
 .. literalinclude:: /code-examples/tested/python/pymongo/timeseries/secondary_indexes.snippet.sort-and-group.py
     :language: python
     :category: syntax example
-    :emphasize-lines: 2
+    :emphasize-lines: 5
 
 To confirm that the last point query used the secondary index, run the operation
 again using ``explain``:

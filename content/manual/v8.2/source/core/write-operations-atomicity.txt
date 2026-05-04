@@ -1,0 +1,138 @@
+.. _transactions-write-atomicity:
+
+==========================
+Atomicity and Transactions
+==========================
+
+.. meta::
+   :description: Understand atomicity in MongoDB write operations. Manage
+      concurrent updates with transactions and unique indexes.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+In MongoDB, write operations are :term:`atomic <atomic operation>` on
+the single-document level, even if modifying multiple values. For
+parallel updates, each command ensures the query condition still
+matches.
+
+To prevent conflicts during concurrent updates, include the expected
+current value in the update filter.
+
+Use Cases
+---------
+
+Consider a collection with this document:
+
+.. code-block:: javascript
+
+   db.games.insertOne( { _id: 1, score: 80 } )
+
+These update operations occur concurrently:
+
+.. code-block:: javascript
+   
+   // Update A
+   db.games.updateOne(
+      { score: 80 },
+      {
+         $set: { score: 90 }
+      }
+   )
+   
+   // Update B
+   db.games.updateOne(
+      { score: 80 },
+      {
+         $set: { score: 100 }
+      }
+   )
+
+One update sets ``score`` to ``90`` or ``100``. The second update then
+fails to match ``{ score: 80 }`` and does not run.
+
+.. warning::
+
+   Filtering on a field you do not update can cause unexpected results
+   during concurrent updates. Consider these operations:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      // Update A
+      db.games.updateOne(
+         { _id: 1 },
+         {
+            $set: { score: 90 }
+         }
+      )
+      
+      // Update B
+      db.games.updateOne(
+         { _id: 1 },
+         {
+            $set: { score: 100 }
+         }
+      )
+
+   Both updates match ``{ _id: 1 }``, so both run. The second update
+   overwrites the first. The first client receives no warning that its
+   update was lost.
+
+To avoid conflicts when filtering on non-updated fields, use
+:update:`$inc`.
+
+For example, consider the following concurrent update operations:
+
+.. code-block:: javascript
+
+   // Update A
+   db.games.updateOne(
+      { _id: 1 },
+      {
+         $inc: { score: 10 }
+      }
+   )
+   
+   // Update B
+   db.games.updateOne(
+      { _id: 1 },
+      {
+         $inc: { score: 20 }
+      }
+   )
+
+Both updates match ``{ _id: 1 }``. Because they increment rather than
+set the value, they do not overwrite each other. The final ``score`` is
+``110``.
+
+.. tip:: Store Unique Values
+
+   To enforce uniqueness, create a :ref:`unique index
+   <index-type-unique>`. This prevents duplicate data in inserts and
+   updates. You can also create unique indexes on multiple fields. See
+   :ref:`index-unique-create`.
+
+Details
+-------
+
+This section describes additional details for multi-document
+transactions.
+
+.. include:: /includes/extracts/concurrent-operations-multi-document-writes.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+Learn More
+----------
+
+:doc:`/core/read-isolation-consistency-recency`

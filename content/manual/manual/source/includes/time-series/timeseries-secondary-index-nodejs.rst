@@ -64,7 +64,7 @@ Secondary Index to improve performance:
 .. literalinclude:: /code-examples/tested/javascript/driver/time-series/secondary-indexes/secondary-indexes.snippet.sort-with-secondary-index.js
     :language: javascript
     :category: syntax example
-    :emphasize-lines: 4
+    :emphasize-lines: 1-3
 
 To confirm that the sort operation used the Secondary Index, run the 
 operation again with the ``explain`` option:

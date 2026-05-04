@@ -1,0 +1,1 @@
+db.products.insertOne( { _id: 4, product: "Sprocket", inventory: [ { warehouse: "LA" }, { warehouse: "LA" } ] } )

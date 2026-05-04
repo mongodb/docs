@@ -1,0 +1,188 @@
+==========================================================
+commitTransitionToDedicatedConfigServer (database command)
+==========================================================
+.. meta::
+   :description: Tells the balancer to move chunks from a shard to other shards in the cluster and commits the transition from an embedded config server to a dedicated config server.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Definition
+----------
+
+.. dbcommand:: commitTransitionToDedicatedConfigServer
+
+.. include:: /includes/command/commitTransitionToDedicatedConfigServer.rst
+
+In order to run this command, you must transition to a dedicated
+config server with the :dbcommand:`startTransitionToDedicatedConfigServer` 
+command. This command tells the balancer to move chunks from the shard to
+other shards in the cluster. You must also manually move 
+databases that use the shard as the :term:`primary shard` and
+unsharded collections stored on the shard before running the
+``commitTransitionToDedicatedConfigServer`` command. 
+
+The command returns ``ok: 0`` with an error if the transition to the dedicated 
+config server does not complete or if it contains a database or unsharded 
+collection. If the transition occurs and all databases and unsharded collections
+migrated off of the shard, the command returns ``ok: 1``.
+
+To start transitioning to a dedicated config server see the
+:dbcommand:`startTransitionToDedicatedConfigServer` command.
+
+To show the status of the transition from an embedded config server to a 
+dedicated config server, see the 
+:dbcommand:`getTransitionToDedicatedConfigServerStatus` command.
+
+To stop the in-progress transition from an embedded config server to a 
+dedicated config server :dbcommand:`stopTransitionToDedicatedConfigServer` 
+command.
+
+.. versionadded:: 8.3
+
+Compatibility
+-------------
+
+This command is available in deployments hosted in the following environments: 
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+.. note::
+
+   .. include:: /includes/fact-transaction-sharded.rst
+
+Syntax
+------
+
+The command has the following syntax:
+
+.. code-block:: javascript
+
+   db.adminCommand( { 
+        commitTransitionToDedicatedConfigServer: 1
+   } )
+
+Behavior
+--------
+
+Access Requirements
+~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/removeShard-access-requirements.rst
+
+Database Migration Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each database in a sharded cluster has a primary shard. If the
+transitioning shard is also the primary of one of the
+cluster's databases, then you must manually move the databases
+from its primary shard to a new shard after migrating all data
+from the shard. 
+
+If there is a database that uses the shard you want to use as a
+primary, the ``commitTransitionToDedicatedConfigServer`` command
+returns an error.
+
+For details, see the :dbcommand:`movePrimary` command and the
+:ref:`remove-shards-from-cluster-tutorial` for more information.
+
+Collection Migration Requirements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Unsharded collections are stored on individual shards. If one of
+these collections is on the shard you want to transition from embedded to 
+dedicated config server, you must first migrate the collection to a different 
+shard.
+
+If there is an unsharded collection stored on the shard you want
+to transition from embedded to dedicated config server, the 
+``commitTransitionToDedicatedConfigServer`` command returns an error.
+
+To migrate an unsharded collection, see the
+:dbcommand:`moveCollection` command.
+
+Examples
+--------
+
+To start draining a shard, use the :method:`db.adminCommand`
+method to run the :dbcommand:`startTransitionToDedicatedConfigServer` command:
+
+.. code-block:: javascript
+
+   db.adminCommand( { startTransitionToDedicatedConfigServer: "1" } )
+
+To check the status of the draining operation, use the
+:dbcommand:`getTransitionToDedicatedConfigServerStatus` command:
+
+.. io-code-block:: 
+
+   .. input::
+      :language: javascript
+
+      db.adminCommand( { getTransitionToDedicatedConfigServerStatus: "1" } )
+
+   .. output::
+      :language: javascript
+
+      {
+         "state" : "drainingComplete",
+         "msg" : "draining completed successfully",
+         "ok" : 1,
+         "$clusterTime" : {
+            "clusterTime" : Timestamp(1772142838, 176),
+            "signature" : {
+               "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+               "keyId" : NumberLong(0)
+            }
+         },
+         "operationTime" : Timestamp(1772142838, 174)
+      }
+
+If the output shows any databases in the ``dbsToMove`` field,
+use the :dbcommand:`movePrimary` command to move them onto a
+different shard.
+
+If the output shows any unsharded collections in the
+``collectionsToMove`` field, use the :dbcommand:`moveCollection`
+command to move them onto a different shard.
+
+When :dbcommand:`getTransitionToDedicatedConfigServerStatus` shows ``{ state:
+"completed" }``, the balancer has finished moving chunks off the
+shard. You can now remove the shard:
+
+.. io-code-block:: 
+
+   .. input::
+      :language: javascript
+
+      db.adminCommand( { commitTransitionToDedicatedConfigServer: "1" } )
+
+   .. output::
+      :language: javascript
+
+      {
+         "ok" : 1,
+         "$clusterTime" : {
+            "clusterTime" : Timestamp(1772142839, 19),
+            "signature" : {
+               "hash" : BinData(0,"AAAAAAAAAAAAAAAAAAAAAAAAAAA="),
+               "keyId" : NumberLong(0)
+            }
+         },
+         "operationTime" : Timestamp(1772142839, 19)
+      }
+
+
+Learn More
+----------
+
+- :dbcommand:`getTransitionToDedicatedConfigServerStatus`
+
+- :dbcommand:`startTransitionToDedicatedConfigServer`
+
+- :dbcommand:`stopTransitionToDedicatedConfigServer`

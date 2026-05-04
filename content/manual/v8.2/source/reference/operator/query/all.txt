@@ -1,0 +1,166 @@
+===============================
+$all (query predicate operator)
+===============================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. meta::
+   :description: Use the $all operator to efficiently query documents that contain arrays with specific elements.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. query:: $all
+
+   The :query:`$all` operator selects the documents where the value of
+   a field matches all specified values. The matched documents can either 
+   contain a field with a value that is an array containing all the specified
+   elements, or a field with a single value matching the specified element.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$all``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+To specify an :query:`$all` expression, use the following prototype:
+
+.. code-block:: javascript
+
+   { <field>: { $all: [ <value1> , <value2> ... ] } }
+
+.. _all-operator-behavior:
+
+Behavior
+--------
+
+Equivalent to ``$and`` Operation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+:query:`$all` is equivalent to an :query:`$and` operation of the
+specified values. For example, the following two queries are equivalent:
+
+.. code-block:: javascript
+
+   { tags: { $all: [ "ssl" , "security" ] } }
+   { $and: [ { tags: "ssl" }, { tags: "security" } ] }
+
+Nested Array
+~~~~~~~~~~~~
+
+When passed an array of a nested array (e.g. ``[ [ "A" ] ]`` ),
+:query:`$all` matches documents where the field contains the
+nested array as an element (e.g. ``field: [ [ "A" ], ... ]``), *or* the
+field equals the nested array (e.g. ``field: [ "A" ]``).
+
+For example, consider the following query:
+
+.. code-block:: javascript
+
+   db.articles.find( { tags: { $all: [ [ "ssl", "security" ] ] } } )
+
+The query is equivalent to:
+
+.. code-block:: javascript
+
+   db.articles.find( { $and: [ { tags: [ "ssl", "security" ] } ] } )
+
+which is equivalent to:
+
+.. code-block:: javascript
+
+   db.articles.find( { tags: [ "ssl", "security" ] } )
+
+As such, the :query:`$all` expression matches documents where the
+``tags`` field is an array that contains the nested array ``[ "ssl",
+"security" ]`` or is an array that equals the nested array:
+
+.. code-block:: javascript
+
+   tags: [ [ "ssl", "security" ], ... ]
+   tags: [ "ssl", "security" ]
+
+Empty Array
+~~~~~~~~~~~
+
+When passed an empty array, :query:`$all` matches no documents. 
+
+Examples
+--------
+
+.. include:: /includes/sample-data-usage.rst
+
+.. _match-values-with-all:
+
+Use ``$all`` to Match Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation uses the :query:`$all` operator to query the
+``movies`` collection for documents where the value of the ``directors``
+field is an array whose elements include ``John Murray Anderson`` and ``Pèl Fejès``:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/all.snippet.all-example.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
+
+The above query returns the following document:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/all-output.sh
+   :language: shell
+   :copyable: false
+   :category: example return object
+
+.. _all-with-elemMatch:
+
+Use ``$all`` with ``$elemMatch``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To match multiple conditions on a single array element, or against an array of 
+documents, you can use :query:`$all` with the :query:`$elemMatch` operator.
+
+The following operation queries the
+``embedded_movies`` collection for documents where:
+
+- At least one writer has a ``story`` credit but not a ``screenplay`` credit
+- At least one writer has a ``titles`` credit but not an ``adaptation`` credit
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/all-elemMatch.snippet.all-elemMatch-example.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
+
+The query returns the following documents:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/all-elemMatch-output.sh
+   :language: shell
+   :copyable: false
+   :category: example return object
+
+.. note::
+
+   .. Comment -- do we need this note?
+
+   In most cases, MongoDB does not treat arrays as sets. This operator
+   provides a notable exception to this approach.
+
+Additional Examples
+-------------------
+
+.. include:: /includes/arrays-additional-examples.rst
+
+.. seealso::
+
+   :method:`db.collection.find()`
+

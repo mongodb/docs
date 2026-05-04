@@ -73,6 +73,14 @@ No load balancing is required in the opposite direction.
 with for data replication and the index catalog data based on its
 configuration.
 
+.. note::
+
+   **Search Index Storage**
+   
+   Each ``mongot`` maintains indexes that are built from the data
+   continuously sourced from the database. The index definitions
+   (metadata) are stored in the database itself.
+
 .. figure:: /images/mongot-sizing/dedicated.png
    :alt: Diagram showing a dedicated infrastructure mongot deployment
    :figwidth: 700px
@@ -98,18 +106,30 @@ If you add shards to a collection with an existing MongoDB Search
 index, an initial sync occurs on the newly added shards for that
 MongoDB Search index. Each shard's MongoDB Search index contains
 only the documents from the collection that exist on that shard.
+
+.. important::
+
+   **Search Index Storage in Sharded Clusters**
+   
+   In a sharded cluster, search indexes are distributed across the
+   ``mongot`` processes associated with each shard. Consider this when
+   planning your backup and recovery policies, as you will need to
+   account for both the database data and the search index data stored 
+   on each shard's ``mongot`` nodes.
+
 To learn more, see :ref:`shard-global-collection`.
 
 .. warning::
 
 	If you shard a collection that already has a MongoDB Search index,
-	you might experience a period of search query downtime while the
-	index builds on the new shards.
+	you might experience a brief period of incomplete search results
+	while the index is building on a shard. 
 	
 	Also, if you add a shard for an already sharded collection that
 	contains a MongoDB Search index, your search queries against that
-	collection will fail until the initial sync process completes on the
-	added shards. To learn more, see :ref:`troubleshoot-initial-sync`.
+	collection might return incomplete results until the initial sync
+	process  completes on the added shards. To learn more, see
+	:ref:`troubleshoot-initial-sync`. 
 
 .. figure:: /images/mongot-sizing/sharded.png
    :alt: Diagram showing a sharded mongot deployment

@@ -3751,6 +3751,7 @@ Key Management Configuration Options
    operationProfiling:
       mode: <string>
       slowOpThresholdMs: <int>
+      slowOpInProgressThresholdMs: <int>
       slowOpSampleRate: <double>
       filter: <string>
 
@@ -3788,7 +3789,14 @@ Key Management Configuration Options
    
    .. include:: /includes/warning-profiler-performance.rst
    
+.. _configuration-profiling-slowOpInProgressThresholdMs:
+.. setting:: operationProfiling.slowOpInProgressThresholdMs
 
+   *Type*: integer
+
+   *Default*: 5000
+
+   .. include:: /includes/slowOpInProgressThreshold-defintion.rst
 
 .. _configuration-profiling-slowOpThresholdMs:
 .. setting:: operationProfiling.slowOpThresholdMs
@@ -4222,11 +4230,6 @@ Use the following options to configure ``mongot`` with ``mongod`` in Public Prev
    metrics:
       enabled: <boolean>
       address: <boolean>
-   ftdc: 
-      enabled: <boolean>
-      directorySizeMb: <integer>
-      fileSizeMb: <integer>
-      collectionPeriodMillis: <integer>
    healthCheck:
       address: <string>
    logging:
@@ -4484,10 +4487,10 @@ Use the following options to configure ``mongot`` with ``mongod`` in Public Prev
 
    TLS configuration options for the gRPC listen server.
 
-   .. note:: 
+   .. note::
 
       For more information on ``tls`` configuration limitations, see
-      :ref:`mongot-tls-limitations`. 
+      :ref:`mongot TLS limitations <mongot-tls-limitations>`.
 
 .. setting:: server.grpc.tls.mode
 
@@ -4540,70 +4543,6 @@ Use the following options to configure ``mongot`` with ``mongod`` in Public Prev
    Path that ``mongot`` must use as a base path for storing 
    index data, and the local index catalog.   
 
-.. setting:: embedding 
-
-   *Type*: Object
-
-   *Necessity*: Optional 
-
-   Settings for automatically generating embeddings using the Voyage AI  
-   models. 
-
-.. setting:: embedding.queryKeyFile
-
-   *Type*: String
-
-   *Necessity*: Required
-
-   Path to file that contains the Voyage AI |api| key. {+avs+} uses the
-   |api| key in the specified file to generate embeddings for the query
-   text.
-
-.. setting:: embedding.indexingKeyFile
-
-   *Type*: String
-
-   *Necessity*: Required
-
-   Path to file that contains the Voyage AI |api| key. {+avs+} uses the
-   |api| key in the specified file to generate embeddings during
-   indexing.
-
-.. setting:: embedding.providerEndpoint
-
-   *Type*: String
-
-   *Necessity*: Optional
-
-   *Default*: ``https://ai.mongodb.com/v1/embeddings``
-
-   Endpoint URL to use for generating embeddings. The value depends
-   on whether you create the |api| keys from the :dochub:`{+atlas-ui+}
-   </voyage-api-keys>` or directly from `Voyage AI
-   <https://docs.voyageai.com/docs/api-key-and-installation>`__. 
-
-   For |api| keys created from the: 
-   
-   - {+atlas-ui+}, value is ``https://ai.mongodb.com/v1/embeddings``
-   - Voyage AI, value is ``https://api.voyageai.com/v1/embeddings``
-
-.. setting:: embedding.isAutoEmbeddingViewWriter
-
-   *Type*: Boolean
-
-   *Necessity*: Required
-
-   Flag to designate the leader ``mongot`` instance responsible for writing 
-   the automated embedding View. If you have multiple ``mongot`` instances for  
-   replica sets or sharded clusters, ensure that only one instance writes the 
-   automated embeddings View to prevent duplication or conflicts. Set the 
-   value to: 
-
-   - ``true`` to designate a ``mongot`` instance as the leader responsible for 
-     writing the auto-embeddings View.
-   - ``false`` to designate a ``mongot`` instance as follower that doesn't 
-     write auto-embeddings View.
-
 .. setting:: metrics
 
    *Type*: Object
@@ -4643,77 +4582,6 @@ Use the following options to configure ``mongot`` with ``mongod`` in Public Prev
 
       localhost:9946
       
-.. setting:: ftdc 
-
-   *Type*: Object
-
-   *Necessity*: Optional 
-
-   Configuration for capturing :abbr:`FTDC (Full-Time Diagnostic Data
-   Capture)` metrics for ``mongot``.  
-
-.. setting:: ftdc.enabled 
-
-   *Type*: Boolean
-
-   *Necessity*: Optional 
-
-   *Default*: true
-
-   Flag to enable collection and logging of :abbr:`FTDC (Full-Time
-   Diagnostic Data Capture)` data. If omitted, defaults to ``true``. If
-   ``false``, ``mongot`` parses :abbr:`FTDC (Full-Time Diagnostic Data
-   Capture)` data, but doesn't log it.
-
-.. setting:: ftdc.directorySizeMb 
-
-   *Type*: Integer
-
-   *Necessity*: Optional 
-
-   *Default*: 100 MiB
-
-   *Minimum*: 10 MiB
-
-   Maximum size in mebibytes of the ``diagnostic.data`` directory. When
-   the directory size exceeds this value, ``mongot`` automatically
-   deletes the oldest diagnostic file. 
-
-   The minimum value for ``directorySizeMb`` is ten mebibytes and it
-   must be greater than the maximum file size defined in the
-   :setting:`ftdc.fileSizeMb` setting. 
-
-.. setting:: ftdc.fileSizeMb 
-
-   *Type*: Integer
-
-   *Necessity*: Optional 
-
-   *Default*: 10 MiB 
-   
-   *Minimum*: 1 MiB
-
-   Maximum size in mebibytes of each diagnostic file. When the file
-   reaches the maximum size, ``mongot`` creates a new file.  
-
-   The minimum value for ``fileSizeMb`` is one mebibyte.
-
-.. setting:: ftdc.collectionPeriodMillis 
-
-   *Type*: Integer
-
-   *Necessity*: Optional 
-
-   *Default*: 1000 ms
-
-   *Minimum*: 100 ms
-
-   Interval of time, in milliseconds, at which mongot collects
-   diagnostic data. If omitted, defaults to one thousand milliseconds.  
-
-   The minimum value for ``collectionPeriodMillis`` is one hundred
-   milliseconds. 
-
 .. setting:: healthCheck
 
    *Type*: Object

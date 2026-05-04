@@ -33,3 +33,10 @@
   </atlas-search>`, the search index becomes unavailable when the
   resharding operation completes. You need to manually rebuild the
   search index once the resharding operation completes.
+
+- If the collection you're resharding is archived in :ref:`Atlas Online 
+  Archives <manage-online-archive>`, the online archive files are marked as 
+  ``Orphaned`` once the resharding operation completes. You can :ref:`create 
+  <config-online-archive-atlas-cli>` another online archive for the same 
+  database, collection, and fields as the orphaned archive as long as 
+  there is no other archive for that same combination in the ``Active`` state.

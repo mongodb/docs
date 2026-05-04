@@ -11,8 +11,6 @@ Install MongoDB Community Edition on SUSE
 .. |package-manager| replace:: ``zypper``
 .. |executable-name| replace:: ``mongod``
 
-.. include:: /includes/minor-release.rst
-
 Overview
 --------
 
@@ -85,6 +83,13 @@ assume that you are using the default settings.
       :tabid: systemvinit-service
 
       .. include:: /includes/steps/run-mongodb-on-a-linux-distribution.rst
+
+Uninstall MongoDB Community Edition
+-----------------------------------
+
+.. include:: /includes/fact-uninstall.rst
+
+.. include:: /includes/steps/uninstall-mongodb-on-suse.rst
 
 Additional Information
 ----------------------

@@ -1,0 +1,727 @@
+===========================================
+db.collection.updateMany() (mongosh method)
+===========================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Update multiple documents that match a specified filter.
+
+.. facet::
+   :name: programming_language 
+   :values: shell
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: includes/wayfinding/mongosh-method-updateMany.rst
+
+Definition
+----------
+
+.. method:: db.collection.updateMany(filter, update, options)
+
+   .. |dbcommand| replace:: :dbcommand:`update` command
+   
+   Updates all documents that match the specified filter for a
+   collection.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``db.collection.updateMany()``
+
+This method is available in deployments hosted in the following environments:
+
+.. include:: /includes/fact-environments-atlas-only.rst
+
+.. include:: /includes/fact-environments-atlas-support-all.rst
+
+.. include:: /includes/fact-environments-onprem-only.rst
+
+Syntax
+------
+
+The :method:`~db.collection.updateMany()` method has the following form:
+
+.. code-block:: javascript
+
+   db.collection.updateMany(
+      <filter>,
+      <update>,
+      {
+        upsert: <boolean>,
+        writeConcern: <document>,
+        collation: <document>,
+        arrayFilters: [ <filterdocument1>, ... ],
+        hint:  <document|string>,
+        let: <document>,
+        maxTimeMS: <int>,
+        bypassDocumentValidation: <boolean>
+      }
+   )
+
+Parameters
+~~~~~~~~~~
+
+The :method:`~db.collection.updateMany()` method takes the following
+parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 80
+
+   * - Parameter
+
+     - Type
+
+     - Description
+
+   * - :ref:`filter <update-many-filter>`
+
+     - document
+
+     - .. _update-many-filter:
+     
+       The selection criteria for the update. The same :ref:`query
+       selectors <query-selectors>` as in the :method:`find()
+       <db.collection.find()>` method are available.
+       
+       Specify an empty document ``{ }`` to update all documents in 
+       the collection.
+
+   * - :ref:`update <update-many-update>`
+
+     - document or pipeline
+
+     - .. _update-many-update:
+     
+       The modifications to apply. Can be one of the following:
+
+       .. list-table::
+          :widths: 40 80
+          :class: border-table
+
+          * - :ref:`Update document <update-many-method-update-document>`
+
+            - .. _update-many-method-update-document:
+
+              Contains only :ref:`update operator expressions
+              <update-operators>`.
+              
+              For more information, see
+              :ref:`updateMany-behavior-update-expressions`
+
+          * - :ref:`Aggregation pipeline <update-many-method-agg-pipeline>`
+
+            - .. _update-many-method-agg-pipeline:
+
+              Contains only the following aggregation stages:
+
+              .. include:: /includes/list-update-agg-stages.rst
+       
+              For more information, see
+              :ref:`updateMany-behavior-aggregation-pipeline`.
+
+       To update with a replacement document, see
+       :method:`db.collection.replaceOne()`.
+
+   * - ``upsert``
+
+     - boolean
+
+     - .. include:: /includes/extracts/updateMany-behavior-method.rst
+
+   * - ``writeConcern``
+
+     - document
+
+     - Optional. A document expressing the :doc:`write concern
+       </reference/write-concern>`. Omit to use the default write concern.
+       
+       .. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+   * - ``collation``
+
+     - document
+
+     - Optional. 
+       
+       .. include:: /includes/extracts/collation-option.rst
+
+   * - ``arrayFilters``
+
+     - array
+
+     - .. _update-many-arrayFilters:
+     
+       Optional. An array of filter documents that determine which array elements to
+       modify for an update operation on an array field.
+       
+       .. include::  /includes/extracts/arrayFilters-details.rst
+
+       For examples, see :ref:`updateMany-arrayFilters`.
+
+   * - :ref:`hint <update-many-hint>` 
+
+     - Document or string
+
+     - .. _update-many-hint:
+
+       Optional. A document or string that specifies the :ref:`index
+       <indexes>` to use to support the :ref:`query predicate
+       <update-many-filter>`.
+
+       The option can take an index specification document or the index
+       name string.
+
+       If you specify an index that does not exist, the operation
+       errors.
+
+       For an example, see :ref:`ex-update-many-hint`.
+
+   * - :ref:`let <updateMany-let>`
+     - Document
+     - .. _updateMany-let:
+     
+       Optional.
+
+       .. include:: /includes/let-variables-syntax.rst
+ 
+       .. include:: /includes/let-variables-syntax-note.rst
+
+       For a complete example using ``let`` and variables,
+       see :ref:`updateMany-let-example`.
+
+   * - :ref:`maxTimeMS <updateMany-maxTimeMS>`
+     - integer
+     - .. _updateMany-maxTimeMS:
+        
+       Optional. Specifies the time limit in milliseconds for the
+       update operation to run before timing out.
+
+   * - :ref:`bypassDocumentValidation <updateMany-bypassDocumentValidation>`
+     - boolean
+     - .. _updateMany-bypassDocumentValidation:
+       
+       Optional. Enables :dbcommand:`insert` to bypass schema validation
+       during the operation. This lets you insert documents that do not
+       meet the validation requirements.
+
+.. _updateMany-returns:
+
+Returns
+~~~~~~~
+
+The method returns a document that contains:
+      
+- A boolean ``acknowledged`` as ``true`` if the operation ran with 
+  :term:`write concern` or ``false`` if write concern was disabled
+ 
+- ``matchedCount`` containing the number of matched documents
+
+- ``modifiedCount`` containing the number of modified documents
+
+- ``upsertedId`` containing the ``_id`` for the upserted document
+
+- ``upsertedCount`` containing the number of upserted documents
+
+Access Control
+--------------
+
+On deployments running with :setting:`~security.authorization`, the
+user must have access that includes the following privileges:
+
+- :authaction:`update` action on the specified collection(s).
+
+- :authaction:`find` action on the specified collection(s).
+
+- :authaction:`insert` action on the specified collection(s) if the
+  operation results in an upsert.
+
+The built-in role :authrole:`readWrite` provides the required
+privileges.
+
+Behavior
+--------
+
+``updateMany()`` finds all documents in the collection that match the 
+``filter`` and applies modifications specified by the ``update`` 
+parameter.
+
+``updateMany()`` modifies each document individually. Each 
+document write is an :term:`atomic operation`, but ``updateMany()`` 
+as a whole is *not* atomic. If your use case requires atomicity of 
+writes to multiple documents, use :ref:`<transactions>`.
+
+If a single document update fails, all document updates written before 
+the failure are retained, but any remaining matching documents are *not* 
+updated. For details on this behavior, see :ref:`<multi-update-failures>`.
+
+.. seealso::
+
+   :ref:`<updateMany-sharded-collection>` for more information about 
+   ``updateMany()`` behavior in sharded collections.
+
+Limitations
+~~~~~~~~~~~
+
+- ``updateMany()`` should only be used for :term:`idempotent` 
+  operations.
+
+Upsert
+~~~~~~
+
+If ``upsert: true`` and no documents match the ``filter``, 
+:method:`db.collection.updateMany()` creates a new 
+document based on the ``filter`` and ``update`` parameters.
+
+If you specify ``upsert: true`` on a sharded collection, you must
+include the full shard key in the ``filter``. For additional
+:method:`db.collection.updateMany()` behavior, see
+:ref:`updateMany-sharded-collection`.
+
+See 
+:ref:`updateMany-example-update-multiple-documents-with-upsert`.
+
+.. _updateMany-behavior-update-expressions:
+
+Update with an Update Operator Expressions Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For the modification specification, the
+:method:`db.collection.updateMany()` method can accept a document that
+only contains :ref:`update operator <update-operators>` expressions to
+perform.
+
+For example:
+
+.. code-block:: javascript
+   :emphasize-lines: 3
+   :copyable: false
+
+   db.collection.updateMany( 
+      <query>,
+      { $set: { status: "D" }, $inc: { quantity: 2 } },
+      ...
+   )
+
+.. _updateMany-behavior-aggregation-pipeline:
+
+Update with an Aggregation Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`db.collection.updateMany()` method can accept an 
+:ref:`aggregation pipeline <aggregation-pipeline>` 
+``[ <stage1>, <stage2>, ... ]`` that specifies the modifications to 
+perform. The pipeline can consist of the following stages:
+
+.. include:: /includes/list-update-agg-stages.rst
+
+Using the aggregation pipeline allows for a more expressive update
+statement, such as expressing conditional updates based on current
+field values or updating one field using the value of another field(s).
+
+For example:
+
+.. code-block:: javascript
+   :emphasize-lines: 3-6
+   :copyable: false
+
+   db.collection.updateMany( 
+      <query>,
+      [ 
+         { $set: { status: "Modified", comments: [ "$misc1", "$misc2" ] } }, 
+         { $unset: [ "misc1", "misc2" ] } 
+      ]
+      ...
+   )
+
+.. note::
+
+   .. include:: /includes/set-aggregation-versus-update.rst
+
+For examples, see :ref:`updateMany-example-agg`.
+
+
+.. _updateMany-capped-collections:
+
+Capped Collections
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/capped-collection-immutable-document-size-update.rst
+
+.. _updateMany-timeseries-collection:
+
+Time Series Collections
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`~db.collection.updateMany()` method is available for
+:term:`time series collections <time series collection>` starting in
+MongoDB 5.1. 
+
+Update commands must meet the following requirements:
+
+.. include:: /includes/time-series/fact-update-limitations.rst
+
+.. _updateMany-sharded-collection:
+
+Sharded Collections
+~~~~~~~~~~~~~~~~~~~
+
+``updateMany()`` exhibits the following behaviors when used with 
+sharded collections:
+
+- ``updateMany()`` operations that include ``upsert: true`` must 
+  include the full shard key in the ``filter``.
+
+- If you attempt to run ``updateMany()`` during a 
+  :ref:`<sharding-chunk-migration>` or a 
+  :ref:`shard key value update <update-shard-key>`, the operation can 
+  miss documents in some scenarios. To ensure all documents are updated, 
+  use idempotent updates and rerun the command until no further updates 
+  are applied. For more information on idempotent updates with 
+  ``updateMany()``, see :ref:`<updateMany-example-idempotent>`.
+
+.. |method| replace:: ``updateMany()``
+
+.. include:: /includes/method-targets-all-shards-if-no-txn.rst
+
+Explainability
+~~~~~~~~~~~~~~
+
+:method:`~db.collection.updateMany()` is not compatible with
+:method:`db.collection.explain()`.
+
+Transactions
+~~~~~~~~~~~~
+
+.. include:: /includes/extracts/transactions-supported-operation.rst
+
+.. include:: /includes/extracts/transactions-usage.rst
+
+Upsert within Transactions
+``````````````````````````
+
+.. include:: /includes/extracts/transactions-upsert-availability.rst
+
+Write Concerns and Transactions
+````````````````````````````````
+
+.. include:: /includes/extracts/transactions-operations-write-concern.rst
+
+
+.. |operation| replace:: :method:`db.collection.updateMany()`
+
+Oplog Entries
+~~~~~~~~~~~~~
+
+``updateMany()`` adds an entry to the :term:`oplog` (operations log) 
+for each successfully updated document. If no documents are updated,
+``updateMany()`` does not add entries to the oplog.
+
+.. _updateMany-method-examples:
+
+Examples
+--------
+
+.. include:: /includes/sample-data-usage.rst
+
+.. _updateMany-example-idempotent:
+
+Idempotent Updates
+~~~~~~~~~~~~~~~~~~
+
+The ``sample_mflix.movies`` collection contains movies with IMDB ratings. 
+This :term:`idempotent` update does the following operations:
+
+- matches all movies with IMDB ratings less than 3.0
+- increments those ratings by 0.5
+- sets a ``ratingBoosted`` field to ``true``
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/idempotent.js
+   :language: javascript
+   :category: usage example
+
+``updateMany()`` modifies the matching movie documents individually. The 
+individual document updates are atomic operations, but the ``updateMany()`` 
+operation as a whole is not atomic.
+
+If the operation fails to update all matched documents, you can safely rerun 
+an idempotent command until no additional documents match the specified filter. 
+In this case, each document's ``imdb.rating`` field is only updated one time 
+regardless of how many times it is retried because the command is idempotent.
+
+.. _updateMany-example-update-multiple-documents:
+
+Update Multiple Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``sample_mflix.movies`` collection contains movies with a
+``num_mflix_comments`` field.
+
+The following operation finds all movies with more than 100 comments and adds a
+``popular`` flag to those movies:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/update-multiple.js
+   :language: javascript
+   :category: usage example
+
+.. _updateMany-example-agg:
+
+Update with Aggregation Pipeline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :method:`db.collection.updateMany()` can use an aggregation pipeline for the 
+update. The pipeline can consist of the following stages:
+
+.. include:: /includes/list-update-agg-stages.rst
+
+Using the aggregation pipeline allows for a more expressive update
+statement, such as expressing conditional updates based on current
+field values or updating one field using the value of another field(s).
+
+Example 1: Update with Aggregation Pipeline Using Existing Fields
+`````````````````````````````````````````````````````````````````
+
+The following example uses the aggregation pipeline to modify a field
+using the values of the other fields in the document.
+
+This pipeline: 
+   
+- combines the IMDB and Tomatoes viewer ratings into a new ``combinedRatings`` array field
+- sets the ``ratingsUpdated`` field
+- removes the original ``imdb.rating`` and ``tomatoes.viewer.rating`` fields for all 
+  matching documents
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/aggregation-pipeline-1.js
+   :language: javascript
+   :category: usage example
+
+.. note::
+
+   .. include:: /includes/set-aggregation-versus-update.rst
+
+First Stage
+   The :pipeline:`$set` stage:
+
+   - creates a new array field ``combinedRatings`` whose elements are the current
+     content of the ``imdb.rating`` and ``tomatoes.viewer.rating`` fields 
+
+   - sets the field ``ratingsUpdated`` to the value of the aggregation
+     variable :variable:`NOW`.
+
+Second Stage
+   The :pipeline:`$unset` stage removes the ``imdb.rating`` and 
+   ``tomatoes.viewer.rating`` fields.
+
+After the command, matching movies from the 2010s have a ``combinedRatings``
+array with both rating values and a timestamp.
+   
+Example 2: Update with Aggregation Pipeline Using Existing Fields Conditionally
+```````````````````````````````````````````````````````````````````````````````
+
+Using an aggregation pipeline, you can update movies from the 2010s with a
+calculated combined rating score (averaging IMDB and Tomatoes viewer ratings)
+and assign a letter grade based on that score.
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/aggregation-pipeline-2.js
+   :language: javascript
+   :category: usage example
+
+.. note::
+
+   .. include:: /includes/set-aggregation-versus-update.rst
+
+First Stage
+   The :pipeline:`$set` stage:
+
+   - calculates a new field ``combinedScore`` based on the average of the
+     ``imdb.rating`` and ``tomatoes.viewer.rating`` fields. See :group:`$avg` 
+     for more information on the ``$avg`` aggregation operator and 
+     :expression:`$trunc` for more information on the ``$trunc`` truncate 
+     aggregation operator.
+     
+   - sets the field ``scoreUpdated`` to the value of the aggregation
+     variable :variable:`NOW`.
+   
+
+Second Stage
+   The :pipeline:`$set` stage calculates a new field ``ratingGrade`` based on
+   the ``combinedScore`` field calculated in the previous stage. See
+   :expression:`$switch` for more information on the ``$switch``
+   aggregation operator.
+
+After the command, matching movies have a combined score and letter grade.
+      
+.. seealso::
+
+   :doc:`/tutorial/update-documents-with-aggregation-pipeline`
+
+.. _updateMany-example-update-multiple-documents-with-upsert:
+
+Update Multiple Documents with Upsert
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following operation updates all movies released after 2020 and
+directed by Christopher Nolan:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/upsert.js
+   :language: javascript
+   :category: usage example
+
+In this example, since no documents match the filter, and ``upsert`` is
+``true``, :method:`~db.collection.updateMany` inserts a new document with a
+generated ``_id`` as well as the equality conditions from the ``filter``, and
+the ``update`` modifiers.
+
+.. _updateMany-example-update-with-write-concern:
+
+Update with Write Concern
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a three member replica set, the following operation specifies a 
+``w`` of ``majority`` and ``wtimeout`` of ``100``:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/write-concern.js
+   :language: javascript
+   :category: usage example
+
+If the acknowledgment takes longer than the ``wtimeout`` limit, MongoDB throws
+an exception. 
+
+The following table explains the possible values of
+``errInfo.writeConcern.provenance``:
+
+.. include:: /includes/fact-wc-provenance-table.rst
+
+
+Specify Collation
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/collation-description.rst
+
+The following operation uses a case-insensitive collation to match
+movies with the genre "drama" with any combination of lowercase and uppercase. 
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/collation.js
+   :language: javascript
+   :category: usage example
+
+.. _updateMany-arrayFilters:
+
+Specify ``arrayFilters`` for an Array Update Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/arrayFilters-blurb.rst
+
+Update Elements Match ``arrayFilters`` Criteria
+```````````````````````````````````````````````
+
+Add a ``ratings`` array to some movies by combining their various
+rating scores:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/array-filters-setup.js
+   :language: javascript
+   :category: usage example
+
+To update all ratings that are greater than or equal to ``100`` in the
+``ratings`` array, use the filtered positional operator
+:update:`$[\<identifier\>]` with the ``arrayFilters`` option:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/array-filters-1.js
+   :language: javascript
+   :category: usage example
+
+After the operation, all rating values greater than or equal to 100
+in the ``ratings`` arrays are set to 100.
+
+Update Specific Elements of an Array of Documents
+`````````````````````````````````````````````````
+
+Add a ``ratingDetails`` array to movies with individual rating sources:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/array-filters-2-setup.js
+   :language: javascript
+   :category: usage example
+
+To modify the value of the ``weight`` field to 10 for all elements in the
+``ratingDetails`` array where the score is greater than or equal to ``8``,
+use the filtered positional operator :update:`$[\<identifier\>]` with
+``arrayFilters``:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/array-filters-2.js
+   :language: javascript
+   :category: usage example
+
+After the operation, all rating sources with scores less than or equal to 8 have their weight set to 10.
+
+.. _ex-update-many-hint:
+
+Specify ``hint`` for Update Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Create the following index on the collection:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/hint-setup.js
+   :language: javascript
+   :category: usage example
+
+The following update operation explicitly hints to use the index ``{
+rated: 1 }``:
+
+.. note::
+
+   If you specify an index that does not exist, the operation errors.
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/hint.js
+   :language: javascript
+   :category: usage example
+
+To see if the hinted index is used, run the :pipeline:`$indexStats` pipeline:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.updateMany/hint-indexstats.js
+   :language: javascript
+   :category: usage example
+
+Write Concern Errors in Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. |cmd| replace:: :method:`db.collection.updateMany()`
+.. include:: /includes/fact-update-writeConcernError-mongos.rst
+
+.. _updateMany-example-user-roles-system-variable:
+
+User Roles and Document Updates
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/user-roles-system-variable-update-example-introduction.rst
+
+.. procedure::
+   :style: normal
+
+   .. step:: Log in as ``Michelle``
+
+      .. include:: /includes/user-roles-system-variable-example-login-michelle.rst
+
+   .. step:: Perform update
+
+      .. include:: /includes/user-roles-system-variable-update-many-example.rst
+
+.. include:: /includes/user-roles-system-variable-update-example-middle.rst
+
+.. procedure::
+   :style: normal
+
+   .. step:: Log in as ``James``
+
+      .. include:: /includes/user-roles-system-variable-example-login-james.rst
+
+   .. step:: Attempt to perform update
+
+      .. include:: /includes/user-roles-system-variable-update-many-example.rst
+
+.. include:: /includes/user-roles-system-variable-update-example-end.rst

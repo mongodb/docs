@@ -18,8 +18,8 @@ Definition
 
 .. expression:: $replaceOne
 
-   Replaces the first instance of a search string in an input string
-   with a replacement string.
+   Replaces the first instance of a search string or regex pattern in
+   an input string with a replacement string.
 
    If no occurrences are found, :expression:`$replaceOne` evaluates to
    the input string.
@@ -65,8 +65,8 @@ Operator Fields
        The string to search for within the given
        :ref:`input <replaceOne-input>`. Can be any valid
        :ref:`expression<aggregation-expressions>` that resolves to a
-       string or a ``null``. If ``find`` refers to a field that is
-       missing, ``$replaceOne`` returns ``null``.
+       string, a regex, or a ``null``. If ``find`` refers to a missing field, 
+       ``$replaceOne`` returns ``null``.
 
    * - :ref:`replacement <replaceOne-replacement>`
 
@@ -86,8 +86,13 @@ the input string.
 
 The :ref:`input <replaceOne-input>`, :ref:`find <replaceOne-find>`, and
 :ref:`replacement <replaceOne-replacement>` expressions must evaluate to
-a string or a ``null``, or :expression:`$replaceOne` fails with an
-error.
+one of the following output types:
+
+- A string 
+- ``null``
+- A regex for :ref:`find <replaceOne-find>` operations
+
+Otherwise, :expression:`$replaceOne` fails with an error.
 
 .. _replaceone-and-null-values:
 
@@ -227,8 +232,8 @@ normalization, only the first string comparison matches, where both the
 :ref:`find <replaceOne-find>` and :ref:`input <replaceOne-input>`
 strings use one code point to represent ``é``.
 
-Example
--------
+Examples
+--------
 
 Create an ``inventory`` collection with the following documents:
 
@@ -240,6 +245,9 @@ Create an ``inventory`` collection with the following documents:
       { _id: 3, item: "blue paint with blue paintbrush" },
       { _id: 4, item: "blue paint with green paintbrush" },
    ] )
+
+Replace Using a String
+~~~~~~~~~~~~~~~~~~~~~~
 
 The following example replaces the first instance of "blue paint" in the
 ``item`` field with "red paint":
@@ -267,3 +275,33 @@ The operation returns the following results:
 
 Note that with document ``3``, only the first matched instance of 
 "blue paint" is replaced.
+
+Replace Using Regex
+~~~~~~~~~~~~~~~~~~~
+
+The following example replaces the first instance of "blue" as a whole
+word in the ``item`` field with "navy":
+
+.. code-block:: javascript
+
+   db.inventory.aggregate([
+      {
+        $project:
+         {
+            item: { $replaceOne: { input: "$item", find: \\bblue\\b, replacement: "navy" } }
+         }
+      }
+   ]);
+
+The operation returns the following results:
+
+.. code-block:: javascript
+   :copyable: false
+
+   { _id: 1, item: "navy paint" }
+   { _id: 2, item: "navy and green paint" }
+   { _id: 3, item: "navy paint with blue paintbrush" }
+   { _id: 4, item: "navy paint with green paintbrush" }
+
+Note that with document ``3``, only the first matched instance of 
+"blue" is replaced.

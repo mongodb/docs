@@ -1,0 +1,221 @@
+title: Disable the Balancer.
+level: 4
+ref: 3.4-upgrade-disable-balancer
+content: |
+  Disable the balancer as described in
+  :ref:`sharding-balancing-disable-temporarily`.
+---
+title: "Upgrade the config servers."
+level: 4
+ref: 3.4-upgrade-config-servers
+content: |-
+   If the config servers are replica sets:
+      
+   1. Upgrade the :ref:`secondary <replica-set-secondary-members>`
+      members of the replica set one at a time:
+
+      a. Shut down the secondary :binary:`~bin.mongod` instance and replace
+         the |oldversion| binary with the |newversion| binary.
+
+      #. Start the |newversion| binary with both the ``--configsvr`` and
+         ``--port`` options:
+
+         .. code-block:: bash
+
+            mongod --configsvr --port <port> --dbpath <path> 
+
+         If using a :doc:`configuration file
+         </reference/configuration-options>`, update the file to
+         specify :setting:`sharding.clusterRole: configsvr
+         <sharding.clusterRole>` and :setting:`net.port` and start the
+         |newversion| binary:
+
+         .. code-block:: yaml
+
+            sharding:
+               clusterRole: configsvr
+            net:
+               port: <port>
+            storage:
+               dbpath: <path>
+
+         Include any other configuration as appropriate for your deployment.
+
+      #. Wait for the member to recover to ``SECONDARY`` state before
+         upgrading the next secondary member. To check the member's state,
+         issue :method:`rs.status()` in the ``mongo`` shell.
+
+         Repeat for each secondary member.
+
+   #. Step down the replica set primary.
+
+      a. Connect a ``mongo`` shell to the primary and use
+         :method:`rs.stepDown()` to step down the primary and force an
+         election of a new primary:
+
+         .. code-block:: javascript
+
+            rs.stepDown()
+
+      #. When :method:`rs.status()` shows that the primary has stepped
+         down and another member has assumed ``PRIMARY`` state, shut down
+         the stepped-down primary and replace the :binary:`~bin.mongod` binary
+         with the |newversion| binary.
+
+      #. Start the |newversion| binary with both the ``--configsvr`` and
+         ``--port`` options:
+
+         .. code-block:: bash
+
+            mongod --configsvr --port <port> --dbpath <path> 
+
+         If using a :doc:`configuration file
+         </reference/configuration-options>`, update the file to
+         specify :setting:`sharding.clusterRole: configsvr
+         <sharding.clusterRole>` and :setting:`net.port` and start the
+         |newversion| binary:
+
+         .. code-block:: yaml
+
+            sharding:
+               clusterRole: configsvr
+            net:
+               port: <port>
+            storage:
+               dbpath: <path>
+
+         Include any other configuration as appropriate for your deployment.
+---
+title: Upgrade the shards.
+level: 4
+ref: 3.4-upgrade-shards
+content: |-
+   Upgrade the shards one at a time. If the shards are replica sets, for each shard:
+
+   1. Upgrade the :ref:`secondary <replica-set-secondary-members>`
+      members of the replica set one at a time:
+
+      a. Shut down the :binary:`~bin.mongod` instance and replace the |oldversion|
+         binary with the |newversion| binary.
+
+      #. Start the |newversion| binary with the ``--shardsvr`` and
+         ``--port`` command line options.
+ 
+         .. code-block:: bash
+
+            mongod --shardsvr --port <port> --dbpath <path> 
+
+         Of if using a :doc:`configuration file
+         </reference/configuration-options>`, update the file to
+         include :setting:`sharding.clusterRole: shardsvr
+         <sharding.clusterRole>` and :setting:`net.port` and start:
+
+         .. code-block:: yaml
+
+            sharding:
+               clusterRole: shardsvr
+            net:
+               port: <port>
+            storage:
+               dbpath: <path>
+
+         Include any other configuration as appropriate for your deployment.
+
+      #. Wait for the member to recover to ``SECONDARY`` state before
+         upgrading the next secondary member. To check the member's
+         state, you can issue :method:`rs.status()` in the
+         ``mongo`` shell.
+
+         Repeat for each secondary member.
+
+   #. Step down the replica set primary.
+
+      Connect a ``mongo`` shell to the primary and use
+      :method:`rs.stepDown()` to step down the primary and force an
+      election of a new primary:
+
+      .. code-block:: javascript
+
+         rs.stepDown()
+
+   #. When :method:`rs.status()`
+      shows that the primary has stepped down and another member
+      has assumed ``PRIMARY`` state, upgrade the stepped-down primary: 
+
+      1. Shut down the stepped-down primary and replace the
+         :binary:`~bin.mongod` binary with the |newversion| binary.
+
+      #. Start the |newversion| binary with the ``--shardsvr`` and
+         ``--port`` command line options.
+ 
+         .. code-block:: bash
+
+            mongod --shardsvr --port <port> --dbpath <path> 
+
+         Of if using a :doc:`configuration file
+         </reference/configuration-options>`, update the file to
+         specify :setting:`sharding.clusterRole: shardsvr
+         <sharding.clusterRole>` and :setting:`net.port` and start the
+         |newversion| binary:
+
+         .. code-block:: yaml
+
+            sharding:
+               clusterRole: shardsvr
+            net:
+               port: <port>
+            storage:
+               dbpath: <path>
+
+         Include any other configuration as appropriate for your deployment.
+---
+title: "Upgrade the ``mongos`` instances."
+level: 4
+ref: 3.4-upgrade-mongos-instances
+content: |-
+  Replace each :binary:`~bin.mongos` instance with the |newversion| binary and
+  restart. Include any other configuration as appropriate for your deployment.
+
+
+  .. note::
+
+     In 3.4, :binary:`~bin.mongos` no longer supports  ``--chunkSize`` and
+     ``--noAutoSplit`` runtime options (or the corresponding ``sharding.chunkSize``
+     and ``sharding.autoSplit`` settings).  If your 3.2 :binary:`~bin.mongos`
+     configuration includes these settings, remove the settings when running the 3.4
+     :binary:`~bin.mongos`.
+
+  .. code-block:: bash
+
+     mongos --configdb csReplSet/<rsconfigsver1:port1>,<rsconfigsver2:port2>,<rsconfigsver3:port3>
+---
+title: "Re-enable the balancer."
+level: 4
+ref: 3.4-upgrade-reenable-balancer
+content: |-
+  Using a 3.4 ``mongo`` shell, re-enable the balancer as
+  described in :ref:`sharding-balancing-enable`.
+
+  The 3.2 and earlier ``mongo`` shell is not compatible with 3.4
+  clusters.
+
+---
+title: "Enable backwards-incompatible |newversion| features."
+level: 5
+ref: 3.4-upgrade-enable-features-mongos
+pre: |
+   .. include:: /includes/3.4-upgrade-enable-features.rst
+action:
+   pre: |
+      On a :binary:`~bin.mongos` instance, run the
+      ``setFeatureCompatibilityVersion`` command in the ``admin``
+      database:
+   language: javascript
+   code: |
+      db.adminCommand( { setFeatureCompatibilityVersion: "3.4" } )
+   post: |
+      This command must perform writes to an internal system
+      collection. If for any reason the command does not complete
+      successfully, you can safely retry the command on the
+      :binary:`~bin.mongos` as the operation is idempotent.
+...

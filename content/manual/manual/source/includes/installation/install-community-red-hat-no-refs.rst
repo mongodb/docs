@@ -13,8 +13,6 @@ Install MongoDB Community Edition on Red Hat or CentOS
 .. |package-manager| replace:: ``yum``
 .. |executable-name| replace:: ``mongod``
 
-.. include:: /includes/minor-release.rst
-
 Overview
 --------
 
@@ -131,6 +129,13 @@ These instructions assume that you are using the default settings.
       :tabid: systemvinit-service
 
       .. include:: /includes/steps/run-mongodb-on-a-linux-distribution.rst
+
+Uninstall MongoDB Community Edition
+-----------------------------------
+
+.. include:: /includes/fact-uninstall.rst
+
+.. include:: /includes/steps/uninstall-mongodb-on-redhat.rst
 
 Additional Information
 ----------------------

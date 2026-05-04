@@ -15,14 +15,16 @@ Explain Results
    :depth: 2
    :class: singlecol
 
-MongoDB provides these methods to return :ref:`query plan
-<query-plans-query-optimization>` information and execution statistics:
+To return information on :ref:`query plans
+<query-plans-query-optimization>` and execution statistics of the query
+plans, MongoDB provides the following methods:
 
 - :method:`db.collection.explain()`
 
 - :method:`cursor.explain()`
 
-To learn how to interpret the results, see :ref:`interpret-explain-plan`.
+To learn about important explain result fields and how to interpret
+them, see :ref:`interpret-explain-plan`.
 
 .. important::
 
@@ -33,17 +35,22 @@ To learn how to interpret the results, see :ref:`interpret-explain-plan`.
 
 .. note::
 
-   This page documents the most important output fields. Fields for
-   internal use are not documented. Fields are subject to change.
+   Only the most important output fields are shown on this page, and fields for 
+   internal use are not documented. The fields listed in the output are subject 
+   to change.
 
 .. _explain-output-structure:
 
 Explain Output Structure
 ------------------------
 
-The ``explain`` results present query plans as a tree of stages. The structure
-differs depending on whether the operation uses the classic query engine
-or the :ref:`slot-based execution query engine <sbe-landing>`:
+The ``explain`` results present the query plans as a tree of stages. 
+The output structure can differ based on which query engine the 
+operation uses. Operations can use the classic query engine or the 
+:ref:`slot-based execution query engine <sbe-landing>`.
+
+To see how the output structure can differ between the two execution 
+engines, see the following examples:
 
 .. tabs::
 
@@ -94,12 +101,13 @@ or the :ref:`slot-based execution query engine <sbe-landing>`:
                   }
                },
 
-Each stage passes its documents or index keys to the parent node. Leaf
-nodes access the collection or indexes. Internal nodes consume output
-from child nodes. The root node indicates the stage that MongoDB
-ultimately derives the result set from.
+Each stage passes its resulting documents or index keys to the
+parent node. The leaf nodes access the collection or the indices. The
+internal nodes use the documents or the index keys that result from the 
+child nodes. The root node indicates the stage that MongoDB ultimately 
+derives the result set from.
 
-Stage names describe the operation:
+Stages are descriptive of the operation. For example:
 
 - ``COLLSCAN`` for a collection scan
 
@@ -153,12 +161,12 @@ documentation for that version.
 ``queryPlanner``
 ~~~~~~~~~~~~~~~~
 
-:data:`explain.queryPlanner` details the plan selected by the
-:ref:`query optimizer <read-operations-query-optimization>`.
+:data:`explain.queryPlanner` information details the plan selected by
+the :ref:`query optimizer <read-operations-query-optimization>`.
 
-The following examples may combine output from the classic and
-slot-based execution engines and are not representative. Your output
-may differ.
+These examples may combine the output structures of MongoDB's classic
+and slot-based execution engines. They are not meant to be 
+representative. Your output may differ significantly.
 
 .. tabs::
 
@@ -257,13 +265,14 @@ may differ.
 
 .. data:: explain.queryPlanner
 
-   Contains information about the query plan selected by the
+   Contains information on the selection of the query plan by the
    :ref:`query optimizer <read-operations-query-optimization>`.
 
    .. data:: explain.queryPlanner.namespace
 
-      String that specified the :term:`namespace` of the database and collection
-      accessed by the query, in the format ``<database>.<collection>``.
+      A string that specifies the :term:`namespace` with the names of
+      the database and the collection accessed by the query. The
+      namespace has the format ``<database>.<collection>``.
 
    .. data:: explain.queryPlanner.indexFilterSet
 
@@ -285,32 +294,39 @@ may differ.
 
       .. include:: /includes/plan-cache-rename.rst
 
-      Hexadecimal string. Hash of the :term:`plan cache query shape`,
-      dependent only on the plan cache query shape. Use it to find slow queries
-      with the same plan cache query shape.
+      A hexadecimal string that represents the hash of the
+      :term:`plan cache query shape` and is dependent only on the plan cache query shapes.
+      ``planCacheShapeHash`` can help identify slow queries (including the
+      query filter of write operations) with the same plan cache query shape.
 
       .. note::
 
-         Hash collisions between different plan cache query shapes are
-         possible but unlikely.
+         As with any hash function, two different plan cache query shapes may result
+         in the same hash value. However, the occurrence of hash
+         collisions between different plan cache query shapes is unlikely.
 
       For more information on ``planCacheShapeHash`` and ``planCacheKey``,
       see :ref:`query-hash-plan-cache-key`.
 
    .. data:: explain.queryPlanner.planCacheKey
 
-      Hash of the plan cache entry key. Unlike
-      :data:`explain.queryPlanner.planCacheShapeHash`, this value is a
-      function of both the query shape and the currently available
-      indexes. Adding or dropping supporting indexes may change the
-      ``planCacheKey`` but not ``planCacheShapeHash``.
+      A hash of the key for the plan cache entry associated with the
+      query.
+
+      Unlike the :data:`explain.queryPlanner.planCacheShapeHash`, the
+      :data:`explain.queryPlanner.planCacheKey` is a function of both
+      the plan cache query shape and the currently available indexes for
+      that shape. Specifically, if indexes that can support the query
+      shape are added or dropped, the ``planCacheKey`` value may change
+      but the ``planCacheShapeHash`` value wouldn't change.
 
       For more information on ``planCacheShapeHash`` and ``planCacheKey``,
       see :ref:`query-hash-plan-cache-key`.
 
    .. data:: explain.queryPlanner.optimizationTimeMillis
 
-      Milliseconds spent on query optimization. Does not include time
+      Time in milliseconds the query planner spent on query
+      optimization. This result doesn't include time spent
       optimizing inner :pipeline:`$lookup` queries.
 
    .. data:: explain.queryPlanner.optimizedPipeline
@@ -333,68 +349,78 @@ may differ.
 
    .. data:: explain.queryPlanner.winningPlan
 
-      Document with the plan selected by the :doc:`query optimizer
-      </core/query-plans>`.
+      A document that details the plan selected by the :doc:`query
+      optimizer </core/query-plans>`. 
 
    .. data:: explain.queryPlanner.winningPlan.stage
 
-      String that indicates the name of the stage. Each stage contains 
-      information specific to its type (for example, ``IXSCAN`` includes 
-      index bounds). Stages with child stages have an ``inputStage`` or
-      ``inputStages`` field.
+      A string that denotes the name of the stage.
 
-      Present when the operation used the classic query execution
-      engine.
+      Each stage consists of information specific to the stage. For
+      example, an ``IXSCAN`` stage includes the index bounds along with
+      other data specific to the index scan. If a stage has a child
+      stage or multiple child stages, the stage will have an
+      ``inputStage`` or ``inputStages``.
+
+      This field appears if the operation used the classic query
+      execution engine. 
 
    .. data:: explain.queryPlanner.winningPlan.type
 
       If ``stage`` is set to ``"EOF"``, ``type`` is a string
       that denotes the reason for the EOF stage:
 
-      - ``"nonExistentNamespace"``: the query namespace does not exist.
-      - ``"predicateEvalsToFalse"``: expression simplification
-        determined the query matches no documents.
+      - ``"nonExistentNamespace"``: indicates the query namespace 
+        does not exist.
+      - ``"predicateEvalsToFalse"``: indicates that 
+        expression simplification determines that
+        the query will not match any documents.
 
    .. data:: explain.queryPlanner.winningPlan.inputStage
 
-      Document describing the child stage that provides documents or
-      index keys to its parent. Present when the parent has exactly one
-      child.
+      A document that describes the child stage, which provides the 
+      documents or index keys to its parent. The field is present *if* 
+      the parent stage has only one child.
 
    .. data:: explain.queryPlanner.winningPlan.inputStages
 
-      Array of documents describing child stages. Child stages 
-      provide the documents or index keys to the parent stage. 
-      Present when the parent has multiple child nodes, like in an 
-      :ref:`$or expression <explain-output-or-expression>`.
+      An array of documents describing the child stages. Child stages 
+      provide the documents or index keys to the parent stage. The field 
+      is present *if* the parent stage has multiple child nodes. 
+      For example, stages for :ref:`$or expressions
+      <explain-output-or-expression>` might consume input from multiple 
+      sources.
 
-      Present when the operation used the classic query execution
-      engine.
+      This field appears if the operation used the classic query
+      execution engine. 
    
    .. data:: explain.queryPlanner.winningPlan.isCached
 
-      A boolean that indicates if the winningPlan is in the plan cache. 
+      A boolean that indicates if the winningPlan is in the plan cache.  
       
-      At most one plan (winning or rejected) has this field set to ``true``. If
-      no cached plan exists, the field is ``false`` for all plans.
+      This field is ``true`` for a maximum of one plan between the winning plan 
+      and the rejected plans. If the query has no cached plan, the field is
+      ``false`` for the winning plan and the rejected plans.
 
 
    .. data:: explain.queryPlanner.winningPlan.queryPlan
 
-      Document with the plan selected by the :doc:`query optimizer
-      </core/query-plans>`, presented as a tree of stages.
-
-      Present when the query used the :ref:`slot-based execution query
-      engine <sbe-landing>`.
-
+      A document that details the plan selected by the :doc:`query
+      optimizer </core/query-plans>`. MongoDB presents the plan as a tree
+      of stages.
+      
+      This document appears if the query used the :ref:`slot-based 
+      execution query engine <sbe-landing>`.
+      
       .. versionadded:: 5.1
 
       .. data:: explain.queryPlanner.winningPlan.queryPlan.stage
 
-         A string that indicates the name of the stage. 
-         
-         Each stage contains information specific to its type. For example, ``IXSCAN``
-         includes index bounds.
+         A string that denotes the name of the stage.
+
+         Each stage consists of information specific to the stage. For
+         example, an ``IXSCAN`` stage includes the index bounds along
+         with other data specific to the index scan.
 
       .. data:: explain.queryPlanner.winningPlan.queryPlan.type
 
@@ -514,6 +540,7 @@ representative. Your output may differ significantly.
                         spilledBytes: <long long>,
                         spilledRecords: <long long>,
                         spilledDataStorageSize: <long long>,
+                        peakTrackedMemBytes: <long>, // Starting in 8.3
                         ...
                         inputStage: {
                            ...
@@ -559,7 +586,10 @@ representative. Your output may differ significantly.
                      keysSorted: <int>,
                      sorterSpills: <int>
                   }
-               }
+               },
+               ...
+               peakTrackedMemBytes: <long>, // Starting in 8.3
+               ...
 
       - id: sharded
         name: "Sharded Collections"
@@ -604,6 +634,7 @@ representative. Your output may differ significantly.
                                  spilledBytes: <long long>,
                                  spilledRecords: <long long>,
                                  spilledDataStorageSize: <long long>,
+                                 peakTrackedMemBytes: <long>, // Starting in 8.3
                                  ...
                                  inputStage: {
                                     ...
@@ -621,6 +652,7 @@ representative. Your output may differ significantly.
                            {
                               nReturned: <int>,
                               executionTimeMillisEstimate: <int>,
+                              peakTrackedMemBytes: <long>, // Starting in 8.3
                               totalKeysExamined: <int>,
                               totalDocsExamined:<int>,
                               executionStages: {
@@ -647,7 +679,9 @@ representative. Your output may differ significantly.
                         ]
                      },
                      ...
-                  ]
+                  ],
+                  peakTrackedMemBytes: <long>, // Starting in 8.3
+                  ...
                }
 
 .. data:: explain.executionStats
@@ -677,6 +711,14 @@ representative. Your output may differ significantly.
       plan selection process, resulting in a faster actual time, leading to 
       a lower ``explain.executionStats.executionTimeMillis`` value.
 
+   .. data:: explain.executionStats.peakTrackedMemBytes
+
+      .. include:: /includes/peak-memory.rst
+
+      The explain execution statistics provide the peak memory for the
+      entire query and also for each blocking stage. If there is only
+      one blocking stage, the query and stage ``peakTrackedMemBytes``
+      values are the same.
 
    .. data:: explain.executionStats.totalKeysExamined
 
@@ -903,6 +945,13 @@ representative. Your output may differ significantly.
                 The total disk space, in bytes, used by the spilled data.
 
                 .. versionadded:: 8.2
+                  
+              - ``GROUP``, ``SORT``
+
+            * - ``peakTrackedMemBytes``
+
+              - .. include:: /includes/peak-memory.rst
+
               - ``GROUP``, ``SORT``
 
    .. data:: explain.executionStats.allPlansExecution
@@ -1122,9 +1171,7 @@ examine documents from the collection to perform any part of the
 query.
 
 When an index covers a query, the explain result has an ``IXSCAN``
-stage that is **not** a descendant of a ``FETCH`` stage, and in the
-:ref:`executionStats`, the :data:`explain.executionStats.totalDocsExamined` 
-is ``0``.
+stage that is **not** a descendant of a ``FETCH`` stage.
 
 .. _explain-output-or-expression:
 
@@ -1159,14 +1206,17 @@ In previous versions of MongoDB, ``cursor.explain()`` returned the
 
 .. _sort-and-group-executionStats-and-above:
 
-``$sort`` and ``$group`` Stages
--------------------------------
+Aggregation Stages with Spill Metrics
+--------------------------------------
 
-When ``explain`` is run in either  
-:ref:`executionStats <explain-method-executionStats>` or 
-:ref:`allPlansExecution <explain-method-allPlansExecution>` verbosity 
-mode, the :pipeline:`$sort` and :pipeline:`$group` stages have 
-additional output.
+When ``explain`` is run in either :ref:`executionStats
+<explain-method-executionStats>` or :ref:`allPlansExecution
+<explain-method-allPlansExecution>` verbosity mode, certain aggregation
+stages that may spill to disk have additional output. These stages
+include :pipeline:`$sort`, :pipeline:`$group`,
+:pipeline:`$setWindowFields`, :pipeline:`$bucketAuto`,
+:pipeline:`$graphLookup`, and :pipeline:`$lookup` (when using the
+slot-based execution engine).
 
 .. list-table::
    :header-rows: 1
@@ -1180,96 +1230,75 @@ additional output.
 
      - Description
 
-   * - :pipeline:`$sort` 
+   * - :pipeline:`$sort`
 
-     - ``totalDataSizeSortedBytesEstimate``
+     - ``totalDataSizeSorted``
 
      - long
 
-     - An estimated number of bytes processed in the :pipeline:`$sort` 
+     - An estimated number of bytes processed in the :pipeline:`$sort`
        stage.
-      
-   * - :pipeline:`$sort`
- 
+
+   * - :pipeline:`$sort`, :pipeline:`$group`, :pipeline:`$setWindowFields`,
+       :pipeline:`$bucketAuto`, :pipeline:`$graphLookup`,
+       :pipeline:`$lookup` (SBE only)
+
      - ``usedDisk``
 
      - boolean
 
-     - Whether the :pipeline:`$sort` stage wrote to disk. 
+     - Whether the stage wrote to disk.
 
-   * - :pipeline:`$sort` 
+   * - :pipeline:`$sort`, :pipeline:`$group`, :pipeline:`$setWindowFields`,
+       :pipeline:`$bucketAuto`, :pipeline:`$graphLookup`,
+       :pipeline:`$lookup` (SBE only)
 
      - ``spills``
 
      - long long
 
-     - The number of times the :pipeline:`$sort` stage spilled to disk.
+     - The number of times the stage spilled to disk.
 
-   * - :pipeline:`$sort` 
-   
+   * - :pipeline:`$sort`, :pipeline:`$group`, :pipeline:`$setWindowFields`,
+       :pipeline:`$bucketAuto`, :pipeline:`$graphLookup`,
+       :pipeline:`$lookup` (SBE only)
+
      - ``spilledBytes``
 
      - long long
-     
-     - An estimate of the number of bytes written to disk in the 
-       :pipeline:`$sort` stage before compression.
 
-   * - :pipeline:`$sort` 
-   
+     - An estimate of the number of bytes written to disk before
+       compression.
+
+   * - :pipeline:`$sort`, :pipeline:`$group`, :pipeline:`$setWindowFields`,
+       :pipeline:`$bucketAuto`, :pipeline:`$graphLookup`,
+       :pipeline:`$lookup` (SBE only)
+
      - ``spilledRecords``
 
      - long long
-     
+
      - The total number of individual records spilled to disk.
-      
-   * - :pipeline:`$sort`
- 
+
+   * - :pipeline:`$sort`, :pipeline:`$group`, :pipeline:`$setWindowFields`,
+       :pipeline:`$bucketAuto`, :pipeline:`$graphLookup`,
+       :pipeline:`$lookup` (SBE only)
+
      - ``spilledDataStorageSize``
 
      - long long
 
      - The total disk space, in bytes, used by the spilled data.
 
-   * - :pipeline:`$group`
- 
-     - ``usedDisk``
+   * - :pipeline:`$sort`, :pipeline:`$group`, :pipeline:`$setWindowFields`,
+       :pipeline:`$bucketAuto`, :pipeline:`$graphLookup`,
+       :pipeline:`$lookup` (SBE only)
 
-     - boolean
-
-     - Whether the :pipeline:`$group` stage wrote to disk. 
-
-   * - :pipeline:`$group`
-   
-     - ``spills``
+     - ``peakTrackedMemBytes``
 
      - long long
 
-     - The number of times the :pipeline:`$group` stage spilled to disk.
-
-   * - :pipeline:`$group` 
-   
-     - ``spilledBytes``
-
-     - long long
-     
-     - An estimate of the number of bytes written to disk in the 
-       :pipeline:`$group` stage before compression.
-
-   * - :pipeline:`$group` 
-   
-     - ``spilledRecords``
-
-     - long long
-     
-     - The total number of individual records spilled to disk.
-
-   * - :pipeline:`$group` 
-   
-     - ``spilledDataStorageSize``
-
-     - long long
-
-     - The total disk space, in bytes, used by the spilled data.
+     - The peak memory usage, in bytes, tracked during stage execution.
 
 .. _explain-output-sort:
 

@@ -10,7 +10,7 @@
 
          extrepo search libmongocrypt
          sudo extrepo enable libmongocrypt
-
+   
    To configure the repository manually:
    
    a. Import the public key used to sign the package repositories:
@@ -23,8 +23,7 @@
 
       .. important::
 
-         Change ``<release>`` in the following shell command to your platform
-         release (for example "xenial" or "buster").
+         Change ``<release>`` in the following shell command to your platform release (for example "xenial" or "buster").
 
       .. code-block:: sh
 

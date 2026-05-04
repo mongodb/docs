@@ -1,0 +1,143 @@
+.. tabs-drivers::
+
+   tabs:
+     - id: shell
+       content: |
+
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/crud-tutorials/update/update-many-popular-movies.js
+            :language: javascript
+            :category: usage example
+
+     - id: compass
+       content: |
+
+         To update multiple documents, connect to your 
+         MongoDB deployment from :binary:`~bin.mongosh` or a MongoDB driver
+         and follow the examples in this section for your preferred method.
+
+     - id: c
+       content: |
+
+         .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
+            :language: c
+            :dedent: 3
+            :start-after: Start Example 53
+            :end-before: End Example 53
+         
+            
+     - id: python
+       content: |
+
+         .. literalinclude:: /driver-examples/test_examples.py
+            :language: python
+            :dedent: 8
+            :start-after: Start Example 53
+            :end-before: End Example 53
+
+     - id: motor
+       content: |
+
+         .. literalinclude:: /driver-examples/test_examples_motor.py
+            :language: python
+            :dedent: 8
+            :start-after: Start Example 53
+            :end-before: End Example 53
+
+         .. include:: /includes/fact-update-many-operation-uses.rst
+
+     - id: java-sync
+       content: |
+
+         .. literalinclude:: /driver-examples/DocumentationSamples.java
+            :language: java
+            :dedent: 8
+            :start-after: Start Example 53
+            :end-before: End Example 53
+
+         .. include:: /includes/fact-update-many-operation-uses.rst
+
+     - id: java-async
+       content: |
+
+         .. literalinclude:: /driver-examples/AsyncDocumentationSamples.java
+            :language: java
+            :dedent: 8
+            :start-after: Start Example 53
+            :end-before: End Example 53
+
+         .. include:: /includes/fact-update-many-operation-uses.rst
+
+     - id: kotlin-coroutine
+       content: |
+
+         .. literalinclude:: /driver-examples/kotlin_examples.kt
+            :language: kotlin
+            :dedent:
+            :start-after: Start Example 53
+            :end-before: End Example 53
+
+         .. include:: /includes/fact-update-many-operation-uses.rst
+
+     - id: nodejs
+       content: |
+         .. literalinclude:: /driver-examples/node_update.js
+            :language: javascript
+            :dedent: 6
+            :start-after: Start Example 53
+            :end-before: End Example 53
+
+         .. include:: /includes/fact-update-many-operation-uses.rst
+
+     - id: php
+       content: |
+
+         .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
+            :language: php
+            :dedent: 8
+            :start-after: Start Example 53
+            :end-before: End Example 53
+
+         .. include:: /includes/fact-update-many-operation-uses.rst
+
+     - id: ruby
+       content: |
+
+         .. literalinclude:: /driver-examples/shell_examples_spec.rb
+            :language: ruby
+            :dedent: 8
+            :start-after: Start Example 53
+            :end-before: End Example 53
+
+         .. include:: /includes/fact-update-many-operation-uses.rst
+
+     - id: scala
+       content: |
+
+         .. literalinclude:: /driver-examples/DocumentationExampleSpec.scala
+            :language: scala
+            :dedent: 4
+            :start-after: Start Example 53
+            :end-before: End Example 53
+
+         .. include:: /includes/fact-update-many-operation-uses.rst
+
+     - id: csharp
+       content: |
+
+         .. literalinclude:: /driver-examples/DocumentationExamples.cs
+            :language: csharp
+            :dedent: 12
+            :start-after: Start Example 53
+            :end-before: End Example 53
+
+         .. include:: /includes/fact-update-many-operation-uses.rst
+
+     - id: go
+       content: |
+         .. literalinclude:: /driver-examples/go_examples.go
+            :language: go
+            :dedent: 2
+            :start-after: Start Example 53
+            :end-before: End Example 53
+
+         .. include:: /includes/fact-update-many-operation-uses.rst

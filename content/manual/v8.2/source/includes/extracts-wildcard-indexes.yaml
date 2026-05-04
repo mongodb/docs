@@ -1,0 +1,116 @@
+ref: wildcard-index-example-pre
+content: |
+  
+  Consider a collection ``products_catalog`` where documents may contain a
+  ``product_attributes`` field. The ``product_attributes`` field can
+  contain arbitrary nested fields, including embedded 
+  documents and arrays: 
+
+  .. code-block:: javascript
+
+    db.products_catalog.insertMany( [
+      {
+        _id : ObjectId("5c1d358bf383fbee028aea0b"),
+        product_name: "Blaster Gauntlet",
+        product_attributes: {
+          price: {
+            cost: 299.99,
+            currency: "USD"
+          }
+        }
+      },
+      {
+        _id: ObjectId("5c1d358bf383fbee028aea0c"),
+        product_name: "Super Suit",
+        product_attributes: {
+          superFlight: true,
+          resistance: [ "Bludgeoning", "Piercing", "Slashing" ]
+        }
+      }
+    ] )
+---
+ref: wildcard-index-summary
+content: |
+
+  Consider an application that captures user-defined data under the
+  ``userMetadata`` field and supports querying against that data:
+
+  .. code-block:: javascript
+     :copyable: false
+
+     { "userMetadata" : { "likes" : [ "dogs", "cats" ] } }
+     { "userMetadata" : { "dislikes" : "pickles" } }
+     { "userMetadata" : { "age" : 45 } }
+     { "userMetadata" : "inactive" }
+
+  Administrators want to create indexes to support queries on any
+  subfield of ``userMetadata``.
+
+  A wildcard index on the ``userMetadata`` field
+  can support single-field queries on:
+  
+  - ``userMetadata``
+  - ``userMetadata.likes``
+  - ``userMetadata.dislikes``
+  - ``userMetadata.age``
+
+  .. code-block:: bash
+
+     db.userData.createIndex( { "userMetadata.$**" : 1 } )
+
+  The index can support the following queries:
+
+  .. code-block:: bash
+     :copyable: false
+
+     db.userData.find({ "userMetadata.likes" : "dogs" })
+     db.userData.find({ "userMetadata.dislikes" : "pickles" })
+     db.userData.find({ "userMetadata.age" : { $gt : 30 } })
+     db.userData.find({ "userMetadata" : "inactive" })
+
+  A non-wildcard index on ``userMetadata`` can only support queries on
+  values of ``userMetadata``.
+
+---
+
+ref: wildcard-index-id
+content: |
+
+  Wildcard indexes omit the ``_id`` field by default. To include the
+  ``_id`` field in the wildcard index, you must explicitly include it
+  in the ``wildcardProjection`` document:
+  
+  .. code-block:: json
+
+     {
+       "wildcardProjection" : {
+         "_id" : 1,
+         "<field>" : 0|1
+       }
+     }
+
+  All of the statements in the ``wildcardProjection`` document must be
+  either inclusion or exclusion statements. You can also include the
+  ``_id`` field with exclusion statements. This is the only exception to
+  the rule. 
+---
+ref: wildcard-index-inclusion-exclusion
+content: |
+
+  Wildcard indexes do not support mixing inclusion and exclusion
+  statements in the ``wildcardProjection`` document *except* when
+  explicitly including the ``_id`` field. For more information on
+  ``wildcardProjection``, see the |projection-ref|.
+
+---
+ref: wildcard-index-planning
+content: |
+  
+  .. important::
+
+     Wildcard indexes are not designed to replace workload-based index
+     planning. For more information on creating indexes to support
+     queries, see :ref:`create-indexes-to-support-queries`. For 
+     complete documentation on wildcard index limitations, see 
+     :ref:`wildcard-index-restrictions`.
+...

@@ -35,7 +35,7 @@ Compatibility
 Syntax
 ------
 
-.. versionchanged:: 8.0
+.. versionchanged:: 8.3
 
 .. code-block:: javascript
 
@@ -47,13 +47,14 @@ Syntax
                type: <type expression>,
                subtype: <int>
             },
+            base: <expression>,       // new in 8.3
             format: <string>,
             onError: <expression>,
             onNull: <expression>
          }
    }
 
-The :expression:`$convert` takes a document with the following fields:
+``$convert`` takes a document with the following fields:
 
 .. list-table::
    :widths: 20 20 80
@@ -70,6 +71,11 @@ The :expression:`$convert` takes a document with the following fields:
        expressions, see :ref:`aggregation-expressions`.
 
        .. include:: /includes/binData-numeric-input.rst
+
+       Starting in MongoDB 8.3, you can also set the ``to`` field to ``binData``
+       if the ``input`` field is an ``array`` of numeric values. For examples,
+       see :ref:`Convert an Array of Numeric Values to binData 
+       <convert-array-of-numeric-values-to-bindata>`.
        
        MongoDB also supports these numeric types as input when converting a value
        to ``binData``.
@@ -108,6 +114,16 @@ The :expression:`$convert` takes a document with the following fields:
             - 2
             - For more information on the conversion to string, see
               :ref:`convert-to-string`.
+
+          * - "object"
+            - 3
+            - For more information on the conversion to an object, see
+              :ref:`convert-to-object`.
+
+          * - "array"
+            - 4
+            - For more information on the conversion to an array, see
+              :ref:`convert-to-array`.
 
           * - "binData"
             - 5
@@ -160,7 +176,25 @@ The :expression:`$convert` takes a document with the following fields:
    * - ``byteOrder``
      - Optional
      - Specifies big or little endian byte ordering for conversions between ``binData``
-       and numeric types. If unspecified, the default is little endian byte ordering. 
+       and numeric types. If unspecified, the default is little endian byte
+       ordering. 
+       
+   * - ``base``
+     - Optional 
+     - Integer base for conversions between string and numeric types.
+       
+       - If ``null``, :expression:`$convert` behaves as if you omitted
+         base.
+         
+       - If specified, MongoDB interprets the value in the chosen base
+         when converting between strings and the numeric types
+         ``int``, ``long``, ``double``, and ``decimal``. For other
+         conversions, MongoDB validates the value of ``base`` but
+         otherwise ignores it.
+
+       - Base must be ``2``, ``8``, ``10``, or ``16``.
+
+       .. versionadded:: 8.3
 
    * - ``format``
      - Required when converting to or from ``binData`` and string
@@ -196,12 +230,14 @@ In addition to :expression:`$convert`, MongoDB provides the
 following aggregation operators as shorthand when the default
 "onError" and "onNull" behavior is acceptable:
 
+- :expression:`$toArray`
 - :expression:`$toBool`
 - :expression:`$toDate`
 - :expression:`$toDecimal`
 - :expression:`$toDouble`
 - :expression:`$toInt`
 - :expression:`$toLong`
+- :expression:`$toObject`
 - :expression:`$toObjectId`
 - :expression:`$toString`
 - :expression:`$toUUID`
@@ -236,129 +272,103 @@ byte first.
 
 Convert ``long`` to ``binData``:
 
-.. io-code-block::
-    :copyable: true
+**Input:**
 
-    .. input::
-        :language: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/long/load-data.snippet.insert-long.js
+   :language: javascript
+   :category: usage example
 
-        db.t.insertOne({a: Long(42)})
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/long/convert-long-to-bindata.snippet.convert-long-to-bindata.js
+   :language: javascript
+   :category: usage example
 
-        db.t.aggregate([
-            {
-              $project: {
-                convertedBD: {
-                  $convert: {
-                     input: Long(42),
-                     to: "binData", 
-                }
-              },
-            }
-          }
-        ])
+**Output**:
 
-    .. output::
-        :language: javascript
-
-        { 
-          _id: ObjectId('67dda0195a99e592590143e8'), 
-          convertedBD: Binary.createFromBase64('KgAAAAAAAAA=', 0)
-        }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/long/output.sh
+   :language: javascript
+   :category: usage example
+   :copyable: false
 
 Convert ``long`` to ``binData`` with big-endian byte ordering:
 
-.. io-code-block::
-    :copyable: true
+**Input:**
 
-    .. input::
-        :language: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/long-big-endian/load-data.snippet.insert-long-big-endian.js
+   :language: javascript
+   :category: usage example
 
-        db.t.insertOne({a: Long(42)})
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/long-big-endian/convert-long-big-endian-to-bindata.snippet.convert-long-big-endian-to-bindata.js
+   :language: javascript
+   :category: usage example
 
-        db.t.aggregate([
-            {
-              $project: {
-                convertedBD: {
-                  $convert: {
-                     input: Long(42),
-                     to: "binData", 
-                     byteOrder: "big",
-                }
-              },
-            }
-          }
-        ])
+**Output**:
 
-    .. output::
-        :language: javascript
-
-        { 
-          _id: ObjectId('67ddb27c5a99e592590143ec'), 
-          convertedBD: Binary.createFromBase64('AAAAAAAAACo=', 0),
-        }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/long-big-endian/output.sh
+   :language: javascript
+   :category: usage example
+   :copyable: false
 
 Convert ``double`` to ``binData``:
 
-.. io-code-block::
-    :copyable: true
+**Input:**
 
-    .. input::
-        :language: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/double/load-data.snippet.insert-double.js
+   :language: javascript
+   :category: usage example
 
-        db.t.insertOne({a: Double(42.0)})
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/double/convert-double-to-bindata.snippet.convert-double-to-bindata.js
+   :language: javascript
+   :category: usage example
 
-        db.t.aggregate([
-            {
-              $project: {
-                convertedBD: {
-                  $convert: {
-                     input: Double(42),
-                     to: "binData", 
-                }
-              },
-            }
-          }
-        ])
+**Output**:
 
-    .. output::
-        :language: javascript
-
-        { 
-          _id: ObjectId('67ddb3cf5a99e592590143ee'), 
-          convertedBD: Binary.createFromBase64('AAAAAAAARUA=', 0)
-        }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/double/output.sh
+   :language: javascript
+   :category: usage example
+   :copyable: false
 
 Convert ``int`` to ``binData``:
 
-.. io-code-block::
-    :copyable: true
+**Input:**
 
-    .. input::
-        :language: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/int/load-data.snippet.insert-int.js
+   :language: javascript
+   :category: usage example
 
-        db.t.insertOne({a: 42})
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/int/convert-int-to-bindata.snippet.convert-int-to-bindata.js
+   :language: javascript
+   :category: usage example
 
-        db.t.aggregate([
-            {
-              $project: {
-                convertedBD: {
-                  $convert: {
-                     input: 42,
-                     to: "binData", 
-                }
-              },
-            }
-          }
-        ])
+**Output**:
 
-    .. output::
-        :language: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/int/output.sh
+   :language: javascript
+   :category: usage example
+   :copyable: false
 
-        { 
-          _id: ObjectId('67ddb43a5a99e592590143ef'), 
-          convertedBD: Binary.createFromBase64('KgAAAA==', 0)
-        }
+.. _convert-array-of-numeric-values-to-bindata:
 
+Convert an array of numeric values to ``binData``:
+
+This example shows how ``$convert`` converts arrays containing different types 
+of numeric values into ``binData``.
+
+**Input:**
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/array/load-data.snippet.insert-variants-array.js
+   :language: javascript
+   :category: usage example
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/array/convert-array-to-bindata.snippet.convert-array-to-bindata.js
+   :language: javascript
+   :category: usage example
+
+**Output**:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/array/output.sh
+   :language: javascript
+   :category: usage example
+   :copyable: false
 
 Convert from string to BinData
 ``````````````````````````````
@@ -498,6 +508,300 @@ The following examples demonstrate how to convert strings to binData.
 
    .. include:: /includes/convert-subtype.rst
 
+.. _convert-to-array:
+
+Convert to Array
+~~~~~~~~~~~~~~~~
+
+.. versionadded:: 8.3
+
+The following table lists the input types that can be converted to an
+array:
+
+.. include:: /includes/table-toArray-input-types.rst
+
+The following table lists some conversion of string to array examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 65 35
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "[1, 2, 3]", to: "array" }
+
+     - [ 1, 2, 3 ]
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: '["a", "b", "c"]', to: "array" }
+
+     - [ 'a', 'b', 'c' ]
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "[]", to: "array" }
+
+     - [ ]
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{}", to: "array" }
+
+     - Error: Input doesn't match expected type 'array'
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: 123, to: "array" }
+
+     - Error: Unsupported conversion from int to array in $convert with
+       no onError value
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "123", to: "array" }
+
+     - Error: Input doesn't represent valid JSON: Unexpected standalone
+       value
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "[{\"$oid\": \"507f1f77bcf86cd799439011\"}]", to:
+          "array" }
+
+     - [ { '$oid': '507f1f77bcf86cd799439011' } ]
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "[1, 2, 3]", to: "array", format: "base64url" }
+
+     - [ 1, 2, 3 ]
+
+       .. note::
+
+          The ``format`` option is ignored.
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "asdf", to: "array", onError: "on error!" }
+
+     - 'on error!'
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: null, to: "array", onNull: "on null!" }
+
+     - 'on null!'
+
+.. _convert-bindata-to-array:
+
+Convert binData to Array
+`````````````````````````
+
+This example shows how ``$convert`` converts ``binData`` of different formats
+into arrays containing values of their respective types:
+
+**Input**:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/bindata-to-array/variants/load-data.snippet.insert-bindata-variants.js
+   :language: javascript
+   :category: usage example
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/bindata-to-array/variants/convert-bindata-to-array-variants.snippet.convert-bindata-to-array-variants.js
+   :language: javascript
+   :category: usage example
+
+**Output**:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/convert/bindata-to-array/variants/output.sh
+   :language: javascript
+   :category: usage example
+   :copyable: false
+
+.. _convert-to-object:
+
+Convert to Object
+~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 8.3
+
+The following table lists the input types that can be converted to an
+object:
+
+.. include:: /includes/table-toObject-input-types.rst
+
+The following table lists some conversion to object examples:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 65 35
+   :class: border-table
+
+   * - Example
+     - Results
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"a\": 1, \"b\": 2}", to: "object" }
+
+     - { a: 1, b: 2 }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{}", to: "object" }
+
+     - { }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "[]", to: "object" }
+
+     - Error: Input doesn't match expected type 'object'
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "123", to: "object" }
+
+     - Error: Input doesn't represent valid JSON: Unexpected standalone value
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"nam\\u0000e\": \"foo\"}", to: "object" }
+
+     - Error: Input doesn't represent valid JSON: Illegal embedded null byte
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"name\": \"fo\\u0000o\"}", to: "object" }
+
+     - { name: 'fo\x00o' }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"a\": 1, \"b\": 2, \"a\": 3}", to: "object" }
+
+     - { a: 3, b: 2 }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"foo\": null}", to: "object" }
+
+     - { foo: null }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"foo\": false}", to: "object" }
+
+     - { foo: false }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"__proto__\": {\"foo\": null}}", to: "object" }
+
+     - { ['__proto__']: { foo: null } }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"foo\": \"NaN\"}", to: "object" }
+
+     - { foo: 'NaN' }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"foo\": 123}", to: "object" }
+
+     - { foo: 123 }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"foo\": 4294967296}", to: "object" }
+
+     - { foo: Long('4294967296') }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"foo\": 1.123123}", to: "object" }
+
+     - { foo: 1.123123 }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"foo\": 1.2e+3}", to: "object" }
+
+     - { foo: 1200 }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"largePos\": 18446744073709551615}", to: "object" }
+
+     - { largePos: 18446744073709552000 }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: "{\"largeNeg\": -18446744073709551615}", to: "object" }
+
+     - { largeNeg: -18446744073709552000 }
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          { input: null, to: "object" }
+
+     - null
+
+   * - .. code-block:: javascript
+          :copyable: false
+
+          {
+             input: "{\"objectId\": \"507f1f77bcf86cd799439011\",
+             \"uuid\": \"3b241101-e2bb-4255-8caf-4136c566a962\",
+             \"date\": \"2018-03-27T16:58:51.538Z\", \"regex\":
+             \"/^ABC/i\", \"js\": \"function (s) {return s +
+             \\\"foo\\\";}\", \"timestamp\": \"Timestamp(1565545664,
+             1)\", \"arr\": [1, 2, 3]}", to: "object"
+          }
+
+     - | {
+       |    objectId: '507f1f77bcf86cd799439011',
+       |    uuid: '3b241101-e2bb-4255-8caf-4136c566a962',
+       |    date: '2018-03-27T16:58:51.538Z',
+       |    regex: '/^ABC/i',
+       |    js: 'function (s) {return s + "foo";}',
+       |    timestamp: 'Timestamp(1565545664, 1)',
+       |    arr: [ 1, 2, 3 ]
+       | }
+
 .. _convert-to-bool:
 
 Convert to Boolean
@@ -590,10 +894,6 @@ The following table lists some conversion to boolean examples:
           { input: null, to: "bool" }
      - null
 
-.. seealso::
-
-   :expression:`$toBool`
-
 .. _convert-to-int:
 
 Convert to Integer
@@ -659,14 +959,14 @@ integer:
    * - String
      - Returns the numerical value of the string as an integer.
 
-       The string value must be a base\ :sub:`10` integer (e.g.
-       ``"-5"``, ``"123456"``) and fall within the minimum and maximum
-       value for an integer.
+       If you omit ``base`` or set to ``null``, the string value must
+       be a valid base\ :sub:`10` integer and fall within the minimum
+       and maximum value for an integer.
 
-       You cannot convert a string value of a float or decimal or
-       non-base\ :sub:`10` number (e.g. ``"-5.0"``, ``"0x6400"``) or a
-       value that falls outside the minimum and maximum value for an
-       integer.
+       If you specify ``base``, the string must only contain digits
+       valid in that base. Prefixes, such as ``"0x"``, are not allowed.
+       The resulting integer must be within the minimum and maximum
+       value for an integer.
 
 The following table lists some conversion to integer examples:
 
@@ -780,12 +1080,8 @@ The following table lists some conversion to integer examples:
              byteOrder: "big",
           }
 
-     - Error: Failed to convert BinData because of invalid 
+     - Error: Failed to convert BinData because of invalid
        length: 7
-
-.. seealso::
-
-   :expression:`$toInt` operator.
 
 .. _convert-to-decimal:
 
@@ -824,11 +1120,14 @@ decimal:
    * - String
      - Returns the numerical value of the string as a decimal.
 
-       The string value must be of a base\ :sub:`10` numeric value (e.g.
-       ``"-5.5"``, ``"123456"``).
+       If you omit ``base`` or set to ``null``, the string value must
+       be a valid base\ :sub:`10` decimal and fall within the
+       minimum and maximum value for a decimal.
 
-       You cannot convert a string value of a non-base\ :sub:`10`
-       number (e.g. ``"0x6400"``)
+       If you specify ``base``, the string must only contain digits
+       valid in that base. Prefixes, such as ``"0x"``, are not allowed.
+       The resulting decimal must be within the minimum and maximum
+       value for a decimal.
 
    * - Date
 
@@ -897,10 +1196,6 @@ The following table lists some conversion to decimal examples:
 
      -  Decimal128("1522039108044")
 
-.. seealso::
-
-   :expression:`$toDecimal`
-
 .. _convert-to-double:
 
 Convert to Double
@@ -955,13 +1250,14 @@ double:
    * - String
      - Returns the numerical value of the string as a double.
 
-       The string value must be of a base\ :sub:`10` numeric value (e.g.
-       ``"-5.5"``, ``"123456"``) and fall within the minimum and
-       maximum value for a double.
+       If you omit ``base`` or set to ``null``, the string value must
+       be a valid base\ :sub:`10` double and fall within the
+       minimum and maximum value for a double.
 
-       You cannot convert a string value of a non-base\ :sub:`10`
-       number (e.g. ``"0x6400"``) or a value that falls
-       outside the minimum and maximum value for a double.
+       If you specify ``base``, the string must only contain digits
+       valid in that base. Prefixes, such as ``"0x"``, are not allowed.
+       The resulting double must be within the minimum and maximum
+       value for a double.
 
    * - Date
      - Returns the number of milliseconds since the epoch that
@@ -1059,9 +1355,12 @@ The following table lists some conversion to double examples:
      - Error: Failed to convert binData because of invalid
        length: 2
 
-.. seealso::
+.. _subnormal-numbers-parse-behavior-convert:
 
-   :expression:`$toDouble`
+Subnormal Numbers
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-float-parse-behavior-8.3.rst
 
 .. _convert-to-long:
 
@@ -1123,14 +1422,14 @@ long:
    * - String
      - Returns the numerical value of the string.
 
-       The string value must be of a base\ :sub:`10` long (e.g.
-       ``"-5"``, ``"123456"``) and fall within the minimum and maximum
-       value for a long.
+       If you omit ``base`` or set to ``null``, the string value must
+       be a valid base\ :sub:`10` long and fall within the
+       minimum and maximum value for a long.
 
-       You cannot convert a string value of a float or decimal or
-       non-base\ :sub:`10` number (e.g. ``"-5.0"``, ``"0x6400"``) or a
-       value that falls outside the minimum and maximum value
-       for a long.
+       If you specify ``base``, the string must only contain digits
+       valid in that base. Prefixes, such as ``"0x"``, are not allowed.
+       The resulting long must be within the minimum and maximum
+       value for a long.
 
    * - Date
      - Converts the Date into the number of milliseconds since the
@@ -1233,10 +1532,6 @@ The following table lists some conversion to long examples:
           }
 
      - Long("1048576")
-
-.. seealso::
-
-   :expression:`$toLong`
 
 .. _convert-to-date:
 
@@ -1393,12 +1688,6 @@ The following table lists some conversion to date examples:
 
      - ISODate("2021-11-23T17:21:58.000Z")
 
-
-.. seealso::
-
-   - :expression:`$toDate` operator
-   - :expression:`$dateFromString`
-
 .. _convert-to-objectId:
 
 Convert to ObjectId
@@ -1451,52 +1740,21 @@ The following table lists some conversion to date examples:
 
      - Error
 
-.. seealso::
-
-   :expression:`$toObjectId` operator.
-
 .. _convert-to-string:
 
 Convert to String
 ~~~~~~~~~~~~~~~~~
 
-The following table lists the input types that can be converted to a
-string:
+.. include:: /includes/convert-string-types.rst
 
-.. list-table::
-   :header-rows: 1
-   :widths: 55 50
+.. note::
 
-   * - Input Type
-     - Behavior
-
-   * - BinData
-     - Returns the binary data value as a string.
-   
-   * - Boolean
-     - Returns the boolean value as a string.
-
-   * - Double
-     - Returns the double value as a string.
-
-   * - Decimal
-     - Returns the decimal value as a string.
-
-   * - Integer
-     - Returns the integer value as a string.
-
-   * - Long
-     - Returns the long value as a string.
-
-   * - ObjectId
-     - Returns the ObjectId value as a hexadecimal string..
-
-   * - String
-     - No-op. Returns the string value.
-
-   * - Date
-     - Returns the date as a string.
-
+   When you specify ``base`` and the ``input`` is a numeric type,
+   :expression:`$convert` returns the string representation of the
+   integer value in that base. Base conversion for strings is only
+   supported for integer values, otherwise :expression:`$convert`
+   returns a conversion error unless you specify ``onError``.
+        
 The following table lists some conversion to string examples:
 
 .. list-table::
@@ -1573,13 +1831,61 @@ The following table lists some conversion to string examples:
 
      - 'hn3f'
 
-.. seealso::
+   * - .. code-block:: javascript
+          :copyable: false
 
-   - :expression:`$toString` operator
-   - :expression:`$dateToString`
+          {
+             input: 10.5,
+             to: "string",
+             base: 2,
+             onError: "invalid"
+          }
 
-Example
--------
+     - "invalid"
+
+Examples
+--------
+
+Base Conversion Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Create a collection ``examples`` with a placeholder document:
+
+.. code-block:: javascript
+
+   db.examples.insertOne({ _id: 1 })
+
+The following example converts between numbers and strings using
+different bases:
+
+.. code-block:: javascript
+
+   db.examples.aggregate([
+     {
+       $project: {
+         _id: 0,
+         bin:        { $convert: { input: 10,    to: "string", base: 2  } },
+         hex:        { $convert: { input: 10,    to: "string", base: 16 } },
+         intFromBin: { $convert: { input: "1010", to: "int",   base: 2  } },
+         intFromHex: { $convert: { input: "A",    to: "int",   base: 16 } }
+       }
+     }
+   ])
+
+This operation returns the following document:
+
+.. code-block:: javascript
+   :copyable: false
+
+   {
+     bin: "1010",
+     hex: "A",
+     intFromBin: 10,
+     intFromHex: 10
+   }
+
+Type Conversion Example
+~~~~~~~~~~~~~~~~~~~~~~~
 
 Create a collection ``orders`` with the following documents:
 
@@ -1667,3 +1973,19 @@ The operation returns the following documents:
 
    These examples use :binary:`mongosh`. The default types are
    different in the legacy :binary:`mongo` shell.
+
+Learn More
+----------
+
+- Convert a value to an array with :expression:`$toArray`
+- Convert a string to an object with :expression:`$toObject`
+- Convert a value to a boolean with :expression:`$toBool`
+- Convert a value to an integer with :expression:`$toInt`
+- Convert a value to a decimal with :expression:`$toDecimal`
+- Convert a value to a double with :expression:`$toDouble`
+- Convert a value to a long with :expression:`$toLong`
+- Convert a value to a date with :expression:`$toDate`
+- Convert a value to an ObjectId with :expression:`$toObjectId`
+- Convert a value to a string with :expression:`$toString`
+- Convert a date string to a date object with :expression:`$dateFromString`
+- Convert a date object to a string with :expression:`$dateToString`

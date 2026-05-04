@@ -11,8 +11,6 @@ Install MongoDB Community Edition on Amazon Linux
 .. |package-manager| replace:: ``yum``
 .. |executable-name| replace:: ``mongod``
 
-.. include:: /includes/minor-release.rst
-
 Overview
 --------
 

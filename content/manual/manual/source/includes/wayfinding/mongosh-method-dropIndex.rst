@@ -40,10 +40,7 @@
    .. wayfinding-option:: https://www.mongodb.com/docs/languages/kotlin/kotlin-sync-driver/current/work-with-indexes/#delete-a-single-index
       :id: kotlin-sync
 
-   .. wayfinding-option:: https://www.mongodb.com/docs/ruby-driver/current/indexes/#drop-index
-      :id: ruby
-
-   .. wayfinding-option:: https://www.mongodb.com/docs/mongoid/current/api/Mongoid/Indexable/ClassMethods.html#remove_indexes-instance_method
+   .. wayfinding-option:: https://www.rubydoc.info/gems/mongoid/3.1.6/Rails%2FMongoid:remove_indexes
       :id: mongoid
 
    .. wayfinding-option:: https://www.mongodb.com/docs/drivers/rust/current/fundamentals/indexes/#remove-an-index

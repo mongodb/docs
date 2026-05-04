@@ -1,0 +1,160 @@
+===============================
+$and (query predicate operator)
+===============================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. meta::
+   :description: Use the $and operator to perform a logical AND operation on expressions, selecting documents satisfying all conditions. 
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. query:: $and
+
+   :query:`$and` performs a logical ``AND`` operation on an array of
+   one or more expressions and selects the documents that satisfy all
+   the expressions.
+
+   .. note::
+
+      MongoDB provides an implicit ``AND`` operation when you specify a
+      comma separated list of expressions.
+
+Compatibility
+-------------
+
+.. |operator-method| replace:: ``$and``
+
+.. include:: /includes/fact-compatibility.rst
+
+Syntax
+------
+
+The :query:`$and` has the following syntax:
+
+.. code-block:: javascript
+   
+   { $and: [ { <expression1> }, { <expression2> } , ... , { <expressionN> } ] }
+
+Behavior
+--------
+
+.. |and-or| replace:: ``$and``
+.. |true-false| replace:: ``false``
+
+When evaluating the clauses in the :query:`$and` expression, MongoDB's
+query optimizer considers which indexes are available that could
+help satisfy clauses of the :query:`$and` expression when
+:ref:`selecting the best plan to execute <read-operations-query-optimization>`.
+ 
+.. include:: /includes/and-or-behavior.rst
+
+.. code-block:: javascript
+
+   db.example.find( {
+      $and: [
+         { x: { $ne: 0 } },
+         { $expr: { $eq: [ { $divide: [ 1, "$x" ] }, 3 ] } }
+      ]
+   } )
+
+Most programming languages and drivers, including the
+:ref:`MongoDB Shell <mdb-shell-overview>` (``mongosh``),
+do not allow the construction of objects with duplicate keys at the
+same object level. For example, if you specify conditions like  ``{ $ne: "R",
+$ne: "PG" }``,  the second value overrides the first.
+
+To confirm multiple conditions, use an explicit ``AND``:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/in.snippet.in-example.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
+
+The previous query explicitly checks that both conditions are satisfied:
+the ``genres`` array must include at least one value from each
+:query:`$in` set.
+
+.. _query-and-examples:
+
+Examples
+--------
+
+.. include:: /includes/sample-data-usage.rst
+
+``$and`` matches multiple expressions on the same field.
+
+Consider this query:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/and.snippet.and-example.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
+
+The query selects all documents in the ``movies`` collection where:
+
+- the ``year`` is 1960 or later **and**
+- the ``year`` is 1970 or earlier **and**
+- the ``directors`` include Martin Scorsese
+
+It also projects the results to only include the ``title``, ``directors``, and ``year`` fields. The query returns the following documents:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/and-output.sh
+   :language: shell
+   :copyable: false
+   :category: example return object
+
+You can simplify this query by combining the operators for
+the ``year`` field into a single query object, and using implicit ``AND`` operators:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/and-simple.snippet.and-simple-example.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
+
+Always review your query to confirm it matches intended behavior. Using the
+earlier ``genres`` example:
+
+.. code-block:: javascript
+
+   db.movies.find( { genres: { $in: [ "News", "Talk-Show" ], $in: [ "History", "Western" ] } } )
+
+To find documents where the ``genres`` array contains either ``News`` or
+``Talk-Show`` and either ``History`` or ``Western``, use :query:`$in`:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/in.snippet.in-example.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
+
+If a field is an array, such as ``directors: [ "Jack Conway", "Howard Hawks",
+"William A. Wellman" ]``, and you want to check if the document contains
+multiple values instead of one, use :query:`$all`:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/all.snippet.all-example.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
+
+The previous query is semantically equivalent to ``AND``, but
+:query:`$all` is clearer when querying array fields.
+
+Similar to duplicate field names, the same considerations apply for
+duplicate operators used in the query.
+
+Learn More
+----------
+
+- :method:`~db.collection.find()`
+- :query:`$ne`
+- :query:`$exists`
+- :query:`$in`
+- :query:`$all`

@@ -1,0 +1,164 @@
+:orphan:
+
+.. _8.2-compatibility:
+
+====================================
+Compatibility Changes in MongoDB 8.2
+====================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/minor-release.rst
+
+General Changes
+---------------
+
+$$CLUSTER_TIME Errors on Standalone Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.2, if you try to use the :variable:`CLUSTER_TIME`
+variable in a standalone deployment, the server returns an error.
+
+$rankFusion on Views
+~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.2, ``$rankFusion`` can now run on :ref:`views <views-landing-page>`.
+For more information, see :pipeline:`$rankFusion`.
+
+orphanCleanupDelaySecs Change
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.2, the default value of :parameter:`orphanCleanupDelaySecs` 
+is ``3600`` (previously ``900``).
+
+Remaining Resharding Time Threshold Change 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.2 (also available in 8.1.2 and 8.0.13), resharding enters 
+the critical section when the estimated time to complete the remaining work is 
+**500 ms** or less.
+
+$cpuNanos Change
+~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.2, ``cpuNanos`` is located in the :pipeline:`$queryStats`
+aggregation stage metrics and includes additional metrics related to CPU usage for query operations. 
+The ``cpuNanos`` metric is only available on Linux systems.
+
+In earlier versions, ``cpuNanos`` was located in :ref:`operationMetrics <executionStats>`.
+
+Change Streams
+~~~~~~~~~~~~~~
+
+.. |collectionUUID-link| replace:: :ref:`collectionUUID <ce-update-collectionUUID>`
+.. |disambiguatedPaths-link| replace:: :ref:`updateDescription.disambiguatedPaths <ce-update-ud-disambiguatedPaths>`
+
+.. include:: /includes/change-stream/change-events-behavior.rst
+
+If you upgrade from MongoDB 8.2.0 to MongoDB 8.2.1 or later,
+``collectionUUID`` and ``updateDescription.disambiguatedPaths`` no
+longer appear in change events unless you set ``showExpandedEvents``
+when opening the stream.
+
+Applications should not rely on ``commitTimestamp``. It is exposed in
+MongoDB 8.2.0, but is not present by default in MongoDB 8.2.1 and later.
+
+Removed Parameters
+~~~~~~~~~~~~~~~~~~
+
+MongoDB 8.2 removes the ``catalogCacheIndexMaxEntries`` parameter.
+
+.. _8.1-compatibility:
+
+Compatibility Changes Introduced in MongoDB 8.1 
+------------------------------------------------
+
+MongoDB 8.2 also includes changes introduced in MongoDB 8.1. This section 
+describes compatibility changes that were introduced in MongoDB 8.1.
+
+$densify Validation Changes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1, the :pipeline:`$densify` stage errors if
+``field`` shares its prefix with any field in the ``partitionByFields``
+array. For example, the following combinations of ``field`` and
+``partitionByFields`` result in an error:
+
+.. include:: /includes/densify-validation-examples.rst
+
+Driver Incompatibility
+~~~~~~~~~~~~~~~~~~~~~~
+
+Any application that runs the :dbcommand:`buildInfo` command before
+authenticating is incompatible with MongoDB 8.1. The following
+driver versions are incompatible with MongoDB 8.1 because of this
+change:
+
+- JVM drivers v3.x and earlier (includes Java Sync, Java Reactive
+  Streams, Kotlin Coroutine, Kotlin Sync, and Scala drivers)
+- .NET/C# driver v2.14.1 and earlier
+
+Hedged Reads Removed
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/hedged-reads-removed.rst
+
+The following :ref:`server parameters <server-parameters>` related to
+hedged reads no longer have an effect:
+
+- ``maxTimeMSForHedgedReads``
+- ``opportunisticSecondaryTargeting``
+- ``readHedgingMode``
+
+The :dbcommand:`serverStatus` command no longer returns the
+``hedgingMetrics`` object.
+
+Interpolating Identical Values in Different Partitions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fill-linear-method.rst
+
+Earlier MongoDB versions return an error stating the sort field cannot
+have repeated values.
+
+For details, see :ref:`fill-example-interpolating-new-values`.
+
+Maximum Incoming Connections 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.1 (and 8.0.16, 7.0.27), the maximum number of incoming 
+connections that you can set with the :setting:`net.maxIncomingConnections` 
+configuration file option on Linux systems is the value of 
+(`RLIMIT_NOFILE <https://man7.org/linux/man-pages/man2/getrlimit.2.html>`__ / 2) 
+* 0.8. If you specify a larger value, MongoDB uses the default value. 
+
+Subtype Conversion
+~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/convert-subtype.rst
+
+Validation Action for Handling Invalid Documents
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-error-and-log-validation-action-backwards-incompatible.rst
+
+Deprecations
+~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 58 42
+   :header-rows: 1
+
+   * - Deprecated
+     - Description
+
+   * - ``metadataRefreshInTransactionMaxWaitBehindCritSecMS``
+     - .. include:: /includes/transaction-wait-time-parameter-deprecated.rst
+
+       For details, see
+       :parameter:`metadataRefreshInTransactionMaxWaitMS`.
+

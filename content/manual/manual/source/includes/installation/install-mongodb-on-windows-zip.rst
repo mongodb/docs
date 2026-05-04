@@ -74,7 +74,7 @@ Procedure
 
 Follow these steps to install MongoDB |edition| Edition from the zip file.
 
-.. include:: /includes/deploy/windows-zip.rst
+.. include:: /includes/steps/install-mongodb-on-windows-zip.rst
 
 Start MongoDB Community Edition from the Command Interpreter
 ------------------------------------------------------------

@@ -1,0 +1,228 @@
+.. _mongot-sizing-resource-allocation:
+
+=========================================================
+Resource Allocation Considerations for mongot Deployments
+=========================================================
+
+.. meta::
+   :description: Learn about the key resource allocation considerations for deploying mongot.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+
+This section answers critical planning questions about your ``mongot``
+deployment and provides actionable steps to design your search
+architecture. For a comprehensive overview, read this section linearly.
+Alternatively, you can use this section as a reference, skipping to
+relevant sections as needed. The goal of this section is to help
+accurately estimate resource requirements and build a robust deployment.
+
+.. _mongot-indexes-data-characteristics:
+
+Data Characteristics and Indexes
+--------------------------------
+
+Your data's structure and index definition are the primary drivers of
+**disk usage** and **RAM requirements**. Use this section to estimate
+the final index size and the memory needed to manage indexes
+efficiently.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Calculate a baseline index size
+
+      Use the following formula as a starting point for your disk space
+      estimation:
+
+      .. code-block:: none
+
+			Estimated Index Size = (Number of Documents) x (Avg. Size of Indexed Text per Doc) x (Expansion Factor)
+         
+      The **Expansion Factor** is critical and depends heavily on your
+      tokenization strategy. Use these multipliers as a guide:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 20 10
+
+         * - Use Case
+           - Multiplier
+           
+         * - Standard/Language Tokenization
+           - ``1.5x - 3x``
+
+         * - Keyword/Simple Tokenization
+           - ``1.1x - 1.5x``
+
+         * - edgeGram (Autocomplete)
+           - ``5x - 8x``
+
+         * - nGram (Partial Match)
+           - ``8x - 15x+`` (This can be extremely large, especially with
+             a low ``minGram`` value.)
+
+      .. note::
+         
+         The preceding expansion factor multipliers represent a
+         generalized example and may not apply to all text based
+         content. Make sure to test with your own data to determine
+         the index calculation for your deployment.
+
+   .. step:: Add vector index size
+
+		For vector search, calculate the index size separately and add it
+		to the total. The raw vector data size is a reasonable baseline
+		for this value.
+
+		.. code-block:: none
+
+			Vector Index Size = (Total Number of Vectors) x (Vector Dimensions) x 4 bytes / dimension
+			
+		.. note::
+
+			This formula is for ``float32`` vectors. The final
+			:abbr:`HNSW ( Hierarchical Navigable Small World)` index on
+			disk will have additional overhead.
+
+   .. step:: Manage memory consumption to prevent instability
+
+      Use Static Mappings
+        If your document structure is unpredictable, disable dynamic
+        mappings. Dynamic mapping can lead to a "mapping explosion"
+        where thousands of unintended fields are created, consuming
+        excessive RAM and causing instability. Explicitly define your
+        index with ``dynamic: false``. To learn more, see
+        :ref:`static-dynamic-mappings`.
+
+      Limit Stored Source Fields
+        Only store the minimum set of fields required for your search
+        results within the ``mongot`` index itself. Fetching fields from
+        the primary MongoDB collection is often more efficient and
+        reduces the disk space used by the index. To learn more, see
+        :ref:`fts-stored-source-definition`.
+        
+      Account for High-Memory Features
+        Be aware that :ref:`synonym collections <synonyms-ref>` and
+        deeply nested :ref:`embeddedDocuments
+        <bson-data-types-embedded-documents>` create significant memory
+        artifacts. If you use these features heavily, you must allocate
+        more Java heap space to the ``mongot`` process.
+
+.. _mongot-resources-indexing-workload:
+
+Indexing Workload
+-----------------
+
+The rate and type of your writes (inserts, updates, deletes) determine
+the **CPU** and **Disk IOPS** needed to keep your search index
+synchronized with your database.
+
+To provision for write throughput and maintenance:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Match resources to your write rate
+
+      High Write Rate (>1,000 operation per second)
+        This workload is CPU-bound and I/O-bound. Provision servers with
+        a high CPU count and fast storage. Monitor the ``mongot``
+        process's CPU utilization and disk I/O queue length. If these
+        metrics are consistently high and replication lag is growing,
+        you need to scale up your hardware.
+
+      Low Write Rate (<100 operations per second)
+        Standard hardware configurations are usually sufficient.
+
+   .. step:: Minimize replication lag
+
+      Consolidate Indexes
+        Avoid defining multiple, separate search indexes on a single
+        collection. Each index adds overhead. Instead, create a single,
+        comprehensive index definition.
+
+      Materialize Complex Views
+        If you are indexing a complex view, the change stream
+        performance can be a constraint. Consider creating a
+        :ref:`materialized view <manual-materialized-views>` to provide
+        a simple, pre-aggregated data source for ``mongot`` to index.
+
+   .. step:: Plan for index rebuilds
+
+      Changing an index definition triggers a full, resource-intensive
+      rebuild.
+      
+      A rebuild creates a new index in addition to the old one before
+      switching query requests over to the new index. Always ensure you
+      have **at least 125% of your current index size available as free
+      disk space** to accommodate this process without running out of
+      storage.
+
+   .. step:: Scale horizontally with sharding
+
+      For extremely demanding write workloads, scaling a single
+      ``mongot`` node vertically might not be sufficient.
+      
+      If you anticipate sustained write loads exceeding 10,000
+      operations per second, sharding is the most effective scaling
+      strategy. You need a minimum of 1 ``mongot`` per shard. ``mongot``
+      only indexes collections within the shard it is connected to,
+      which helps to distribute the indexing load horizontally.
+
+Query Workload
+--------------
+
+Query performance is primarily a function of CPU for processing and RAM
+for caching. The complexity and volume of your queries determine the
+resources needed to meet your latency targets.
+
+To estimate required deployment sizes for query performance:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Estimate required CPU cores
+
+      To establish a CPU baseline, use your Queries per Second (QPS)
+      target. A general starting point is **1 CPU core for every 10
+      QPS**.
+
+      This baseline assumes simple queries. For workloads heavy with
+      complex aggregations, fuzzy matching, or regex queries, you may
+      only achieve 2-5 QPS per core. Conversely, simple term matching
+      might yield 20+ QPS per core. Always test performance with a
+      realistic query mix.
+
+   .. step:: Allocate RAM for low latency
+
+      RAM is the most important factor for fast queries.
+
+      Full-Text Search
+        The goal is to fit as much of the index as possible into the
+        operating system's file system cache. For optimal performance,
+        provision enough RAM on the ``mongot`` node to match the total
+        size of the index on disk. This minimizes slow disk reads.
+      
+      Vector Search
+        For low-latency vector search, the HNSW graph index must exist
+        in memory. To calculate the minimum required RAM, use the steps
+        in the :ref:`index size estimation procedure
+        <mongot-sizing-intro-index-size>` and add a buffer of 20-25% for
+        overhead. If the vector index doesn't fit in RAM, query latency
+        increases.
+
+      .. note::
+
+         To reduce RAM requirements, consider using :ref:`vector quantization <avs-quantization>`.
+         Vector quantization can compress vector embeddings, which
+         lowers their memory footprint (and thus the RAM required to
+         hold them) often with minimal impact on recall or precision.

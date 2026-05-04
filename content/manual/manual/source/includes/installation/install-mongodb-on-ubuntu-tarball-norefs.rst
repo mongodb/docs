@@ -10,8 +10,6 @@ Install MongoDB Community on Ubuntu using .tgz Tarball
 .. |executable-name| replace:: ``mongod``
 .. |mdb-download-link| replace:: `MongoDB Download Center <https://www.mongodb.com/try/download/community>`__
 
-.. include:: /includes/minor-release.rst
-
 Overview
 --------
 
@@ -29,7 +27,8 @@ Installation Method
 
 .. include:: /includes/fact-use-package-manager.rst
 
-Select **Package Manager** from the :guilabel:`Package` dropdown for instructions.
+|arrow| See :ref:`Install MongoDB using the apt Package Manager<install-mdb-community-ubuntu>`
+for instructions.
 
 Considerations
 --------------
@@ -57,7 +56,22 @@ Prerequisites
 
 .. include:: /includes/fact-tarball-dependencies.rst
 
-.. include:: /includes/deploy/community-prereq-ubuntu.rst
+.. tabs::
+
+   .. tab:: Ubuntu 24.04 (Noble)
+      :tabid: noble
+
+      .. include:: /includes/extracts/install-mongodb-community-manually-ubuntu-24.rst
+
+   .. tab:: Ubuntu 22.04 (Jammy)
+      :tabid: ubuntu-22-jammy
+
+      .. include:: /includes/extracts/install-mongodb-community-manually-ubuntu-22.rst
+
+   .. tab:: Ubuntu 20.04 (Focal)
+      :tabid: ubuntu-20-focal
+
+      .. include:: /includes/extracts/install-mongodb-community-manually-ubuntu-20.rst
 
 Procedure
 ~~~~~~~~~
@@ -65,7 +79,7 @@ Procedure
 Follow these steps to manually install MongoDB |edition| Edition from
 the ``.tgz``.
 
-.. include:: /includes/deploy/install-tar.rst
+.. include:: /includes/steps/install-mongodb-on-ubuntu-tarball.rst
 
 Run MongoDB Community Edition
 -----------------------------

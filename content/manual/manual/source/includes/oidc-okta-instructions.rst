@@ -35,7 +35,7 @@
            
            Enabling refresh tokens provides a better user experience. When 
            refresh tokens are not enabled, users must re-authenticate with 
-           the identity provider once their access token expires.
+           the |idp| once their access token expires.
 
       #. In the :guilabel:`Sign-in redirect URIs` section, enter a URL.
           

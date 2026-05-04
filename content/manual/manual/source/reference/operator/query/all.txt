@@ -48,12 +48,17 @@ Behavior
 Equivalent to ``$and`` Operation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-:query:`$all` is equivalent to an :query:`$and` operation of the
-specified values. For example, the following two queries are equivalent:
+The :query:`$all` is equivalent to an :query:`$and` operation of the
+specified values; i.e. the following statement:
 
 .. code-block:: javascript
 
    { tags: { $all: [ "ssl" , "security" ] } }
+
+is equivalent to:
+
+.. code-block:: javascript
+
    { $and: [ { tags: "ssl" }, { tags: "security" } ] }
 
 Nested Array
@@ -99,7 +104,54 @@ When passed an empty array, :query:`$all` matches no documents.
 Examples
 --------
 
-.. include:: /includes/sample-data-usage.rst
+The exampless in this section use the ``inventory`` collection that contains
+the following documents:
+
+.. code-block:: javascript
+
+   db.inventory.insertMany ( [
+      {
+         _id: ObjectId("5234cc89687ea597eabee675"),
+         code: "xyz",
+         tags: [ "school", "book", "bag", "headphone", "appliance" ],
+         qty: [
+               { size: "S", num: 10, color: "blue" },
+               { size: "M", num: 45, color: "blue" },
+               { size: "L", num: 100, color: "green" }
+            ]
+      }
+
+      {
+         _id: ObjectId("5234cc8a687ea597eabee676"),
+         code: "abc",
+         tags: [ "appliance", "school", "book" ],
+         qty: [
+               { size: "6", num: 100, color: "green" },
+               { size: "6", num: 50, color: "blue" },
+               { size: "8", num: 100, color: "brown" }
+            ]
+      }
+
+      {
+         _id: ObjectId("5234ccb7687ea597eabee677"),
+         code: "efg",
+         tags: [ "school", "book" ],
+         qty: [
+               { size: "S", num: 10, color: "blue" },
+               { size: "M", num: 100, color: "blue" },
+               { size: "L", num: 100, color: "green" }
+            ]
+      }
+
+      {
+         _id: ObjectId("52350353b2eff1353b349de9"),
+         code: "ijk",
+         tags: [ "electronics", "school" ],
+         qty: [
+               { size: "M", num: 100, color: "green" }
+            ]
+      }
+   ] )
 
 .. _match-values-with-all:
 
@@ -107,46 +159,101 @@ Use ``$all`` to Match Values
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following operation uses the :query:`$all` operator to query the
-``movies`` collection for documents where the value of the ``directors``
-field is an array whose elements include ``John Murray Anderson`` and ``Pèl Fejès``:
+``inventory`` collection for documents where the value of the ``tags``
+field is an array whose elements include ``appliance``, ``school``, and
+``book``:
 
-.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/all.snippet.all-example.js
-   :language: javascript
-   :copyable: true
-   :category: usage example
+.. code-block:: javascript
 
-The above query returns the following document:
+   db.inventory.find( { tags: { $all: [ "appliance", "school", "book" ] } } )
 
-.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/all-output.sh
-   :language: shell
-   :copyable: false
-   :category: example return object
+The above query returns the following documents:
+
+.. code-block:: javascript
+
+   {
+      _id: ObjectId("5234cc89687ea597eabee675"),
+      code: "xyz",
+      tags: [ "school", "book", "bag", "headphone", "appliance" ],
+      qty: [
+             { size: "S", num: 10, color: "blue" },
+             { size: "M", num: 45, color: "blue" },
+             { size: "L", num: 100, color: "green" }
+           ]
+   }
+
+   {
+      _id: ObjectId("5234cc8a687ea597eabee676"),
+      code: "abc",
+      tags: [ "appliance", "school", "book" ],
+      qty: [
+             { size: "6", num: 100, color: "green" },
+             { size: "6", num: 50, color: "blue" },
+             { size: "8", num: 100, color: "brown" }
+           ]
+   }
 
 .. _all-with-elemMatch:
 
 Use ``$all`` with ``$elemMatch``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To match multiple conditions on a single array element, or against an array of 
-documents, you can use :query:`$all` with the :query:`$elemMatch` operator.
+If the field contains an array of documents, you can use the
+:query:`$all` with the :query:`$elemMatch` operator.
 
-The following operation queries the
-``embedded_movies`` collection for documents where:
+The following operation queries the ``inventory`` collection for
+documents where the value of the ``qty`` field is an array whose
+elements match the :query:`$elemMatch` criteria:
 
-- At least one writer has a ``story`` credit but not a ``screenplay`` credit
-- At least one writer has a ``titles`` credit but not an ``adaptation`` credit
+.. code-block:: javascript
 
-.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/all-elemMatch.snippet.all-elemMatch-example.js
-   :language: javascript
-   :copyable: true
-   :category: usage example
+   db.inventory.find( {
+                        qty: { $all: [
+                                       { "$elemMatch" : { size: "M", num: { $gt: 50} } },
+                                       { "$elemMatch" : { num : 100, color: "green" } }
+                                     ] }
+                      } )
 
 The query returns the following documents:
 
-.. literalinclude:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.find/all-elemMatch-output.sh
-   :language: shell
-   :copyable: false
-   :category: example return object
+.. code-block:: javascript
+
+   {
+      _id: ObjectId("5234ccb7687ea597eabee677"),
+      code: "efg",
+      tags: [ "school", "book"],
+      qty: [
+         { size: "S", num: 10, color: "blue" },
+         { "size: "M", num: 100, color: "blue" },
+         { size: "L", num: 100, color: "green" }
+      ]
+   }
+
+   {
+      _id: ObjectId("52350353b2eff1353b349de9"),
+      code: "ijk",
+      tags: [ "electronics", "school" ],
+      qty: [
+         { size: "M", num: 100, color: "green" }
+      ]
+   }
+
+The :query:`$all` operator exists to support queries on arrays. But
+you may use the :query:`$all` operator to select against a non-array
+``field``, as in the following example:
+
+.. code-block:: javascript
+
+   db.inventory.find( { "qty.num": { $all: [ 50 ] } } )
+
+**However**, use the following form to express the same query:
+
+.. code-block:: javascript
+
+   db.inventory.find( { "qty.num" : 50 } )
+
+Both queries will select all documents in the ``inventory``
+collection where the value of the ``num`` field equals ``50``.
 
 .. note::
 

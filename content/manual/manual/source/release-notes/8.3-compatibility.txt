@@ -1,0 +1,127 @@
+.. _8.3-compatibility:
+
+====================================
+Compatibility Changes in MongoDB 8.3
+====================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. include:: /includes/minor-release.rst
+
+This page describes changes introduced in MongoDB 8.3 that can affect
+compatibility with older versions of MongoDB.
+
+Indexes
+-------
+
+Stricter Wildcard Index Validation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3 (and 8.2.4, 8.0.18, 7.0.29), stricter validation
+rules apply to ``wildcardProjection`` specifications in compound
+wildcard indexes. Existing indexes that do not meet the new validation
+requirements continue to function, but you cannot create new indexes
+that don't meet these requirements.
+
+For complete details on the validation rules, see
+:ref:`wildcard-index-restrictions`.
+
+General Changes
+---------------
+
+Accessing Array Element Indexes in $map, $filter, and $reduce
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/array-element-index.rst
+
+If you create a :ref:`view <views-landing-page>` or :ref:`collection
+validation rule <schema-validation-overview>` that use the new array
+element index feature, you must update or remove the view or rule before
+downgrading from MongoDB 8.3 to an earlier version.
+
+2dsphereIndexVersion 
+~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/fact-2dsphereIndexVersion-4.rst
+
+.. _8.3-downgrade-incompatible:
+
+Backward-Incompatible Features
+------------------------------
+
+.. |version| replace:: 8.3
+
+.. include:: /includes/downgrade-introduction.rst
+
+Expressions in Views
+~~~~~~~~~~~~~~~~~~~~
+
+If you created views that use expressions introduced in MongoDB 8.3,
+those views may stop working after you downgrade to a version that does
+not support those expressions.
+
+If you need to downgrade from 8.3, you must first update or drop
+any views that depend on expressions not supported in the target
+version.
+
+Parameters and Variables in Views and Validators
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you created views or collection validators that use parameters or
+variables introduced in MongoDB 8.3, those objects may fail validation
+or evaluation after you downgrade.
+
+If you need to downgrade from 8.3, you must first update or
+remove any views or validators that reference parameters or variables
+not supported in the target version.
+
+Validated Collections
+~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB 8.3 can mark collections as validated using new validation
+semantics that are not compatible with versions earlier than 8.3. If
+you attempt to downgrade while validated collections exist, the
+downgrade fails.
+
+If you need to downgrade from 8.3, you must first change validated
+collections to a validation level supported in the target version or
+drop those collections.
+
+$facet Memory-Limit Error Code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, when a :pipeline:`$facet` stage constructs a
+document larger than the 100 megabyte limit, MongoDB returns the
+:error:`ExceededMemoryLimit <146>` error.
+
+In earlier versions, stages that exceed the memory limit return the
+error code ``4031700``. If you have applications, drivers, or tools
+that explicitly check for ``4031700``, you can adjust your code to
+recognize :error:`ExceededMemoryLimit <146>` instead.
+
+Subnormal Numbers in $convert Pipelines
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.3, the server is able to parse the full range of all 
+representable double precision floating point numbers. This includes *subnormal 
+numbers* where the most significant digit has leading zeroes and the exponent 
+has the least possible value. In earlier versions of MongoDB, the server returns
+an error when you try to parse these numbers.
+
+For details, see :ref:`<subnormal-numbers-parse-behavior-convert>`.
+
+Balancer Window Settings
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you downgrade from MongoDB 8.3 to an earlier version, the
+``activeBalancerWindowDOW`` configuration is not available. On
+downgrade, the balancer defaults to using the ``activeWindow``
+setting.
+
+No manual downgrade steps are required, but any custom
+day-of-week (DOW) configurations made in 8.3 do not apply after
+downgrading.

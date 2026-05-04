@@ -1,3 +1,5 @@
+.. _install-mdb-community-amazon:
+
 =================================================
 Install MongoDB Community Edition on Amazon Linux
 =================================================
@@ -86,6 +88,14 @@ assume that you are using the default settings.
       :tabid: systemvinit-service
 
       .. include:: /includes/steps/run-mongodb-on-a-linux-distribution.rst
+
+
+Uninstall MongoDB Community Edition
+-----------------------------------
+
+.. include:: /includes/fact-uninstall.rst
+
+.. include:: /includes/steps/uninstall-mongodb-on-amazon.rst
 
 Additional Information
 ----------------------

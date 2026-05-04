@@ -90,7 +90,7 @@ following restrictions:
 wildcardProjection Validation Rules
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 8.2.4 (and 8.0.18, 7.0.29), stricter validation
+Starting in MongoDB 8.3 (and 8.2.4, 8.0.18, 7.0.29), stricter validation
 rules apply to ``wildcardProjection`` in compound wildcard indexes to
 prevent invalid configurations.
 

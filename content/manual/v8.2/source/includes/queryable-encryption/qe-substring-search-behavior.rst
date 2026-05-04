@@ -1,0 +1,3 @@
+- Searches match whitespace characters.
+- Line breaks aren't considered when matching.
+- Tokenization delimiters aren't supported.

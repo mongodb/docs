@@ -46,14 +46,29 @@ and :ref:`query-plans-query-optimization`.
 Equality
 --------
 
+.. include:: /includes/sample-data-usage.rst
+
 "Equality" refers to an exact match on a single value. The following
-exact match queries scan the ``cars`` collection for documents whose
-``model`` field exactly matches ``Cordoba``.
+exact match queries scan the ``movies`` collection for documents whose
+``title`` field exactly matches ``Equilibrium``.
 
-.. code-block:: javascript
+.. io-code-block::
+   .. input:: /code-examples/tested/command-line/mongosh/tutorial/equality-sort-range-guideline/find/run.snippet.find-esr.js
+      :language: javascript
+      :category: usage example
+      :emphasize-lines: 2
 
-   db.cars.find( { model: "Cordoba" } )
-   db.cars.find( { model: { $eq: "Cordoba" } } )
+   .. output:: /code-examples/tested/command-line/mongosh/tutorial/equality-sort-range-guideline/find/output.sh
+      :language: javascript
+
+.. io-code-block::
+   .. input:: /code-examples/tested/command-line/mongosh/tutorial/equality-sort-range-guideline/find-eq/run.snippet.find-esr-eq.js
+      :language: javascript
+      :category: usage example
+      :emphasize-lines: 2
+
+   .. output:: /code-examples/tested/command-line/mongosh/tutorial/equality-sort-range-guideline/find-eq/output.sh
+      :language: javascript
 
 Index searches make efficient use of exact matches to reduce the number
 of index keys examined. Equality fields must come first.
@@ -78,22 +93,28 @@ the sort keys. For more information, see
 :ref:`Sort and Non-prefix Subset of an Index
 <sort-index-nonprefix-subset>`.
 
-The following example queries the ``cars`` collection. The output is
-sorted by ``model``:
+The following example queries the ``movies`` collection for movies where the
+``directors`` field contains ``"David Lynch"``. The output is sorted by 
+``year``:
 
-.. code-block:: javascript
+.. io-code-block::
+   .. input:: /code-examples/tested/command-line/mongosh/tutorial/equality-sort-range-guideline/find-sort/run.snippet.find-sort-esr.js
+      :language: javascript
+      :category: usage example
+      :emphasize-lines: 2, 4
 
-   db.cars.find( { manufacturer: "GM" } ).sort( { model: 1 } )
+   .. output:: /code-examples/tested/command-line/mongosh/tutorial/equality-sort-range-guideline/find-sort/output.sh
+      :language: javascript
 
-To improve query performance, create an index on the ``manufacturer``
-and ``model`` fields:
+To improve query performance, create an index on the ``directors``
+and ``year`` fields:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/tutorial/equality-sort-range-guideline/createIndex/run.snippet.createIndex-esr.js
+   :language: javascript
+   :category: usage example
 
-   db.cars.createIndex( { manufacturer: 1, model: 1 } )
-
-- ``manufacturer`` is the first key because it is an equality match.
-- ``model`` is indexed in the same order ( ``1`` ) as the query. 
+- ``directors`` is the first key because it is an equality match.
+- ``year`` is indexed in the same order ( ``1`` ) as the query. 
 
 .. _esr-rule-range:
 
@@ -107,11 +128,32 @@ equality matches to reduce the number of documents to scan.
 
 Range filters resemble the following:
 
-.. code-block:: javascript
+.. io-code-block::
+   .. input:: /code-examples/tested/command-line/mongosh/tutorial/equality-sort-range-guideline/find-range-gte/run.snippet.find-esr-range-gte.js
+      :language: javascript
+      :category: usage example
+      :emphasize-lines: 2
 
-   db.cars.find( { price: { $gte: 15000} } )
-   db.cars.find( { age: { $lt: 10 } } )
-   db.cars.find( { priorAccidents: { $ne: null } } )
+   .. output:: /code-examples/tested/command-line/mongosh/tutorial/equality-sort-range-guideline/find-range-gte/output.sh
+      :language: javascript
+
+.. io-code-block::
+   .. input:: /code-examples/tested/command-line/mongosh/tutorial/equality-sort-range-guideline/find-range-lt/run.snippet.find-range-lt-esr.js
+      :language: javascript
+      :category: usage example
+      :emphasize-lines: 2
+
+   .. output:: /code-examples/tested/command-line/mongosh/tutorial/equality-sort-range-guideline/find-range-lt/output.sh
+      :language: javascript
+
+.. io-code-block::
+   .. input:: /code-examples/tested/command-line/mongosh/tutorial/equality-sort-range-guideline/find-range-ne/run.snippet.find-range-ne-esr.js
+      :language: javascript
+      :category: usage example
+      :emphasize-lines: 2
+
+   .. output:: /code-examples/tested/command-line/mongosh/tutorial/equality-sort-range-guideline/find-range-ne/output.sh
+      :language: javascript
 
 If the range predicate in your query is very selective, place it before the sort
 fields to reduce the number of sorted documents and allow an in-memory sort.
@@ -158,30 +200,32 @@ Additional Considerations
 Example
 -------
 
-The following query searches the ``cars`` collection for vehicles
-manufactured by Ford that cost more than $15,000 dollars. The results
-are sorted by model:
+The following query searches the ``movies`` collection for movies where the 
+``directors`` field is ``"David Lynch"`` and the ``runtime`` field is less than 
+``130`` minutes. The results are sorted by ``year``:
 
-.. code-block:: javascript
+.. io-code-block::
+   .. input:: /code-examples/tested/command-line/mongosh/tutorial/equality-sort-range-guideline/find-all-esr-elements/run.snippet.find-all-esr-elements.js
+      :language: javascript
+      :category: usage example
+      :emphasize-lines: 2-5, 7
 
-   db.cars.find(
-      {
-          manufacturer: 'Ford',
-          cost: { $gt: 15000 }
-      } ).sort( { model: 1 } )
+   .. output:: /code-examples/tested/command-line/mongosh/tutorial/equality-sort-range-guideline/find-all-esr-elements/output.sh
+      :language: javascript
 
 The query contains all the elements of the ESR Guideline:
 
-- ``manufacturer: 'Ford'`` is an equality-based match
-- ``cost: { $gt: 15000 }`` is a range-based match
-- ``model`` is used for sorting
+- ``directors: "David Lynch"`` is an equality-based match
+- ``runtime: { $lt: 130 }`` is a range-based match
+- ``year`` is used for sorting
 
 Following the ESR guideline, the optimal index for the example query is:
 
 .. code-block:: javascript
    :copyable: false
+   :category: syntax example
 
-   { manufacturer: 1, model: 1, cost: 1 }
+   { directors: 1, year: 1, runtime: 1 }
 
 Learn More
 ----------

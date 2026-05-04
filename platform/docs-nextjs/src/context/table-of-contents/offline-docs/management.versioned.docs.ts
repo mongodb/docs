@@ -1810,7 +1810,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/:version/administration/install-on-linux',
                     versions: {
-                      excludes: ['manual', 'upcoming'],
+                      excludes: ['v8.2', 'manual', 'upcoming'],
                     },
                     items: [
                       {
@@ -1853,7 +1853,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'docs',
                     url: '/docs/:version/tutorial/install-mongodb-on-os-x',
                     versions: {
-                      excludes: ['manual', 'upcoming'],
+                      excludes: ['v8.2', 'manual', 'upcoming'],
                     },
                   },
                   {
@@ -1861,7 +1861,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'docs',
                     url: '/docs/:version/tutorial/install-mongodb-on-windows',
                     versions: {
-                      excludes: ['manual', 'upcoming'],
+                      excludes: ['v8.2', 'manual', 'upcoming'],
                     },
                   },
                   {
@@ -1869,7 +1869,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'docs',
                     url: '/docs/:version/tutorial/install-mongodb-community-with-docker',
                     versions: {
-                      excludes: ['manual', 'upcoming'],
+                      excludes: ['v8.2', 'manual', 'upcoming'],
                     },
                   },
                   {
@@ -1877,7 +1877,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'docs',
                     url: '/docs/:version/reference/installation-ubuntu-community-troubleshooting',
                     versions: {
-                      includes: ['manual', 'upcoming'],
+                      includes: ['v8.2', 'manual', 'upcoming'],
                     },
                   },
                   {
@@ -2560,7 +2560,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/tutorial/embedded-to-dedicated',
                         versions: {
-                          excludes: ['v7.0', 'v8.0', 'manual'],
+                          excludes: ['v7.0', 'v8.0', 'v8.2'],
                         },
                       },
                       {

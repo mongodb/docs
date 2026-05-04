@@ -12,8 +12,6 @@ Install MongoDB Community Edition on Ubuntu
 .. |package-manager| replace:: ``apt``
 .. |executable-name| replace:: ``mongod``
 
-.. include:: /includes/minor-release.rst
-
 Overview
 --------
 
@@ -119,6 +117,13 @@ package -- not the unofficial ``mongodb`` package provided by
       :tabid: systemvinit-service
 
       .. include:: /includes/steps/run-mongodb-on-debian.rst
+
+Uninstall MongoDB Community Edition
+-----------------------------------
+
+.. include:: /includes/fact-uninstall.rst
+
+.. include:: /includes/steps/uninstall-mongodb-on-debian.rst
 
 Additional Information
 ----------------------
