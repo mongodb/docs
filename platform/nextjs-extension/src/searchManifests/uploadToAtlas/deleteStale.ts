@@ -2,25 +2,6 @@ import { getDocumentsCollection } from '../../util/databaseConnection/fetchSearc
 import type { SearchClusterConnectionInfo } from '../../util/databaseConnection/types';
 import type { DeleteResult } from 'mongodb';
 
-export const deleteStaleDocuments = async ({
-  searchProperty,
-  manifestRevisionId,
-}: {
-  searchProperty: string;
-  manifestRevisionId: string;
-}) => {
-  console.log(
-    `Removing stale documents with search property ${searchProperty} `,
-  );
-  return {
-    deleteMany: {
-      filter: {
-        searchProperty: searchProperty,
-        manifestRevisionId: { $ne: manifestRevisionId },
-      },
-    },
-  };
-};
 
 export const deleteStaleProperties = async (
   searchProperty: string,

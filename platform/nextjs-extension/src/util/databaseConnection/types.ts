@@ -19,14 +19,6 @@ export function isBuildEnvironment(obj: unknown): obj is Environments {
   return environments.indexOf(obj) !== -1;
 }
 
-export interface VersionedBuildObj {
-  /** List of subdirectories that have a snooty.toml at their root.
-  Should be named according to their urlSlug*/
-  allContentPaths: Array<string>;
-  /**  Content paths that have changed since last build */
-  contentPathsToBuild: Array<string>;
-}
-
 /** Docsets document entry for a project */
 export type DocsetsDocument = {
   project: string;
@@ -49,13 +41,6 @@ export type SearchClusterConnectionInfo = {
   databaseName: SearchDBName;
   collectionName: string;
   extensionName: string;
-};
-
-/** Entitlement document for a user */
-// TODO: investigate whether this can be removed
-export type EntitledDocument = {
-  slackUsername: string;
-  slackId: string;
 };
 
 // TODO: rename this to version entry
@@ -105,75 +90,6 @@ export type ProjectsDocument = {
   jira: {
     component: string;
   };
-};
-
-export type OASFilesDocument = {
-  api: string;
-  fileContent: string;
-  gitHash: string;
-  versions: Record<string, Array<string>>;
-  lastUpdated: Date;
-};
-
-export type OASFilePartial = Pick<OASFilesDocument, 'gitHash' | 'versions'>;
-
-export type DocumentsDocument = {
-  page_id: string;
-  filename: string;
-  ast: Ast;
-  source: string;
-  static_assets: Array<StaticAsset>;
-  github_username: string;
-  facets?: Array<Facet>;
-  build_id: ObjectId;
-  created_at: Date;
-};
-
-export type BuildTelemetryDocument = {
-  created_at: Date;
-  versionsObj: VersionedBuildObj;
-  environment: Environments;
-  project_name: string;
-  branch_name: string;
-  deploy_id: string;
-  commit_ref: string;
-  parse_and_persist_duration_ms: number | undefined;
-  frontend_build_duration_ms: number | undefined;
-  total_duration_ms: number;
-  start_ms: number;
-  end_ms: number;
-  status: 'Success' | 'Error';
-};
-
-export type Facet = {
-  category: string;
-  value: string;
-  sub_facets: Array<Facet>;
-  display_name: string;
-};
-
-type StaticAsset = {
-  checksum: string;
-  key: string;
-  updated_at?: Date;
-};
-
-type Ast = {
-  type: string;
-  position: Record<string, Record<string, number>>;
-  children: Array<Ast>;
-  fileid: string;
-  options: {
-    headings?: Array<AstHeadings>;
-  };
-};
-
-type AstHeadings = {
-  depth: number;
-  id: string;
-  title: Array<Record<string, string>>;
-  // biome-ignore: <Most selector_id fields appear to be nullish>
-  selector_ids: unknown;
 };
 
 export type OrganizationName = 'mongodb' | '10gen';
