@@ -15,6 +15,8 @@ import type { Environments } from '@/utils/env-config';
 
 type Template = NonNullable<MDXFrontmatter['template']>;
 import { FootnoteProvider } from '@/context/footnote-context';
+import type { ServerSideChangelogData } from '@/types/openapi';
+import { ChangelogDataProvider } from '@/context/changelog-context';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -24,9 +26,19 @@ interface ProvidersProps {
   template: Template | null;
   docsets: Docset[];
   env: Environments;
+  changelogData?: ServerSideChangelogData;
 }
 
-export const Providers = ({ children, metadata, frontmatter, slug, template, docsets, env }: ProvidersProps) => {
+export const Providers = ({
+  children,
+  metadata,
+  frontmatter,
+  changelogData,
+  slug,
+  template,
+  docsets,
+  env,
+}: ProvidersProps) => {
   const headingNodes = frontmatter.options?.headings || [];
 
   return (
@@ -45,7 +57,9 @@ export const Providers = ({ children, metadata, frontmatter, slug, template, doc
                 <TabProvider selectors={frontmatter.options?.selectors} defaultTabs={frontmatter.options?.default_tabs}>
                   <InstruqtProvider hasLabDrawer={!!frontmatter.options?.instruqt}>
                     <FootnoteProvider>
-                      <ChatbotProvider>{children}</ChatbotProvider>
+                      <ChatbotProvider>
+                        <ChangelogDataProvider changelogData={changelogData}>{children}</ChangelogDataProvider>
+                      </ChatbotProvider>
                     </FootnoteProvider>
                   </InstruqtProvider>
                 </TabProvider>

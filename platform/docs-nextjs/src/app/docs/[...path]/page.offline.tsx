@@ -5,6 +5,8 @@ import { getPathArraysFromTocItems, getStaticVersion } from '@/utils/extract-mdx
 import { toc } from '@/context/toc-data/offline-toc-processed';
 import envConfig from '@/utils/env-config';
 import { CustomTemplate } from './custom-template';
+import type { ServerSideChangelogData } from '@/types/openapi';
+import { getChangelogData } from '@/services/db/openapi';
 
 export const dynamic = 'force-static';
 
@@ -37,6 +39,12 @@ export default async function MDXOfflinePage({ params: { path } }: PageProps) {
   const result = await loadMDX(path);
   if (!result) return notFound();
 
+  const template = result.frontmatter.template;
+  let changelogData: ServerSideChangelogData | undefined;
+  if (template === 'changelog') {
+    changelogData = await getChangelogData();
+  }
+
   const metadata = getMinimalMetadataForStatic(path);
   return (
     <>
@@ -45,6 +53,7 @@ export default async function MDXOfflinePage({ params: { path } }: PageProps) {
         frontmatter={result.frontmatter}
         path={path}
         metadata={metadata}
+        changelogData={changelogData}
         docsets={[]}
         env={envConfig.DB_ENV}
       />

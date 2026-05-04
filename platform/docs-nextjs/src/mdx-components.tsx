@@ -49,6 +49,7 @@ import { FootnoteReference } from '@/mdx-components/footnote/FootnoteReference';
 import { IoCodeBlock } from '@/mdx-components/IOCode';
 import { Output } from '@/mdx-components/IOCode/Output';
 import { OpenAPI } from '@/mdx-components/OpenAPI';
+import { OpenAPIChangelog } from '@/mdx-components/OpenAPIChangelog';
 import { Field } from '@/mdx-components/Field';
 import { FieldList } from '@/mdx-components/FieldList';
 import { Instruqt } from '@/mdx-components/Instruqt';
@@ -158,11 +159,12 @@ export const components = (injectedProps?: InjectedProps) =>
     code: ({ children }) => <Literal>{children}</Literal>,
     Output: ({ children, ...props }) => <Output {...props}>{children}</Output>,
     OpenAPI: () => <OpenAPI />,
-    OpenAPIChangelog: ({ children }) => <span>{children}</span>,
+    OpenapiChangelog: ({ children }) => <OpenAPIChangelog />,
     Procedure: ({ children, ...props }) => <Procedure {...props}>{children}</Procedure>,
     Step: ({ children, ...props }) => <Step {...props}>{children}</Step>,
     StepHeading: ({ children }) => <StepHeading>{children}</StepHeading>,
     Red: ({ children }) => <Red>{children}</Red>,
+    ReleaseSpecification: ({ children }) => <>{children}</>,
     Root: ({ children }) => <span>{children}</span>,
     Replacement: ({ children, ...props }) => <Replacement {...props}>{children}</Replacement>,
     SearchResults: ({ children }) => <span>{children}</span>,

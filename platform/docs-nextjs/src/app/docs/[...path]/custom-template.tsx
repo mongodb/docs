@@ -18,6 +18,7 @@ import layoutStyles from '@/app/layout.module.scss';
 import ProductLandingTemplate from '@/components/templates/product-landing';
 import type { MDXFrontmatter, PageTemplateType } from '@/types/ast';
 import Header from '@/components/header';
+import type { ServerSideChangelogData } from '@/types/openapi';
 
 type TemplateComponent = React.ComponentType<BaseTemplateProps>;
 
@@ -81,10 +82,19 @@ interface CustomTemplateProps {
   path: string[];
   metadata: RemoteMetadata;
   docsets: Docset[];
+  changelogData?: ServerSideChangelogData;
   env: Environments;
 }
 
-export const CustomTemplate = ({ content, frontmatter, path, metadata, docsets, env }: CustomTemplateProps) => {
+export const CustomTemplate = ({
+  content,
+  frontmatter,
+  path,
+  changelogData,
+  metadata,
+  docsets,
+  env,
+}: CustomTemplateProps) => {
   const template = (frontmatter.template || 'document') as PageTemplateType;
   const { Template, renderSidenav } = getTemplate(template);
   // TODO: Temporary fix — prepend 'docs/' so the slug matches TOC node URLs (which use the
@@ -103,6 +113,7 @@ export const CustomTemplate = ({ content, frontmatter, path, metadata, docsets, 
       slug={slug}
       template={template}
       docsets={docsets}
+      changelogData={changelogData}
       env={env}
     >
       <Header eol={metadata?.eol ?? false} />

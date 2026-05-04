@@ -6,6 +6,8 @@ import envConfig from '@/utils/env-config';
 import type { Docset, RemoteMetadata } from '@/types/data';
 import { CustomTemplate } from './custom-template';
 import { getPageMetadata } from '@/utils/seo';
+import type { ServerSideChangelogData } from '@/types/openapi';
+import { getChangelogData } from '@/services/db/openapi';
 
 // ISR (Incremental Static Regeneration) behavior
 export const revalidate = 24 * 60 * 60; // 1 day in seconds
@@ -23,6 +25,12 @@ export default async function MDXPage({ params: { path } }: PageProps) {
 
   if (!result || !result.frontmatter) {
     return notFound();
+  }
+
+  const template = result.frontmatter.template;
+  let changelogData: ServerSideChangelogData | undefined;
+  if (template === 'changelog') {
+    changelogData = await getChangelogData();
   }
 
   let siteMetadata: RemoteMetadata;
@@ -43,6 +51,7 @@ export default async function MDXPage({ params: { path } }: PageProps) {
       path={path}
       metadata={siteMetadata}
       docsets={docsets}
+      changelogData={changelogData}
       env={env}
     />
   );
