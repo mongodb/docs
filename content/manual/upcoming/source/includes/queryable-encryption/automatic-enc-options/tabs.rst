@@ -122,7 +122,7 @@
 
       .. list-table::
          :header-rows: 1
-         :widths: 20 10 10 60
+         :widths: 25 10 10 55
 
          * - Property
 
@@ -179,26 +179,24 @@
 
            - No
 
-           - A schema that specifies which fields to automatically encrypt and the types 
+           - A schema that specifies which fields to automatically encrypt and the types
              of queries allowed on those fields.
-            
+
              To learn how to construct an encryption schema, see
-             :ref:`qe-fundamentals-encrypt-query`.       
-        
-         * - ``extraOptions``
+             :ref:`qe-fundamentals-encrypt-query`.
 
-           - ``Object``
+         * - ``explicitEncryptionOnly``
 
-           - No 
+           - ``Boolean``
 
-           - Configuration options for the encryption library.
+           - No
 
-             To use the {+shared-library+} instead of ``mongocryptd``, specify the 
-             full absolute or relative file path to the library file in the
-             ``cryptSharedLibPath`` property of this object.
-            
-             If the driver can't load the {+shared-library+} from this path,
-             creating the ``MongoClient`` will fail.
+           - If you set ``explicitEncryptionOnly`` to ``true``, the driver uses
+             only explicit (manual) per-field encryption and removes automatic
+             encryption settings from the connection. You must encrypt and
+             decrypt field values manually using the ``ClientEncryption`` API.
+
+             This option only works with {+csfle-abbrev+}.
 
          * - ``keyVaultClient``
 
