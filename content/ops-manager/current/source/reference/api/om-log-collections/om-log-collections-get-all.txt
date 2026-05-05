@@ -1,0 +1,250 @@
+.. _api-om-log-collections-get-all:
+
+========================================
+Get All |mms| Server Log Collection Jobs
+========================================
+
+.. meta::
+   :description: Retrieve every Ops Manager server log collection job, including status, requested servers, log types, expiration, total size, and optional child details.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Use this endpoint to retrieve every |mms| server log collection
+job.
+
+.. include:: /includes/api/base-api-uri.rst
+
+Resource
+--------
+
+.. code-block:: http
+
+   GET /admin/omLogCollectionJobs
+
+Required Roles
+--------------
+
+.. include:: /includes/api/roles/global-roles.rst
+   :start-after: START_GLOBAL_READ_ONLY
+   :end-before: END_GLOBAL_READ_ONLY
+
+Request Parameters
+------------------
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-path-parameters.rst
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 15 10 11 49 15
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Necessity
+     - Description
+     - Default
+
+   * - ``pageNum``
+     - number
+     - Optional
+     - One-based integer that returns a subsection of results.
+     - ``1``
+
+   * - ``itemsPerPage``
+     - number
+     - Optional
+     - Number of items to return per page, up to a maximum of 500.
+     - ``100``
+
+   * - ``verbose``
+     - boolean
+     - Optional
+     - Flag that indicates whether to include all child jobs in
+       the response. Each |mms| server log collection job has a
+       child job for each combination of server and log type
+       included in the request.
+     - ``false``
+
+   * - ``pretty``
+     - boolean
+     - Optional
+     - Flag indicating whether the response body should be in a
+       :wikipedia:`prettyprint <Prettyprint?oldid=791126873>` format.
+     - ``false``
+
+   * - ``envelope``
+     - boolean
+     - Optional
+     - Flag that indicates whether to wrap the response in an
+       envelope. Some |api| clients cannot access the |http|
+       response headers or status code. To remediate this, set
+       ``envelope=true`` in the query.
+     - ``false``
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-body-parameters.rst
+
+Response
+--------
+
+The response includes an array of result objects, an array of link
+objects, and the total number of result objects retrieved.
+
+.. list-table::
+   :widths: 20 14 66
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``results``
+     - array
+     - Array of |mms| server log collection jobs. See
+       :ref:`api-om-log-collections-get-all-results`.
+
+   * - ``links``
+     - array
+     - Array of one or more links to sub-resources or related
+       resources. The relations between URLs follow `Web Linking
+       Specification (RFC 5988)
+       <https://www.rfc-editor.org/rfc/rfc5988>`__.
+
+   * - ``totalCount``
+     - number
+     - Total number of items in the result set. May exceed the
+       size of ``results`` when paginated.
+
+.. _api-om-log-collections-get-all-results:
+
+results Embedded Document
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each ``results`` element represents one |mms| server log
+collection job.
+
+.. include:: /includes/api/list-tables/om-log-collection-job-response-document.rst
+
+.. _api-om-log-collections-get-all-child-jobs:
+
+childJobs Embedded Document
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each child job represents the log collection task for one server
+and one log type.
+
+.. include:: /includes/api/list-tables/om-log-collection-job-child-jobs-response-document.rst
+
+Example Request
+---------------
+
+.. code-block:: sh
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+        --header "Accept: application/json" \
+        --include \
+        --request GET \
+        "https://{+opsmgr-url+}/api/public/v1.0/admin/omLogCollectionJobs?verbose=true&pretty=true"
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "links": [
+       {
+         "href": "https://{+opsmgr-url+}/api/public/v1.0/admin/omLogCollectionJobs?verbose=true&pageNum=1&itemsPerPage=100",
+         "rel": "self"
+       }
+     ],
+     "results": [
+       {
+         "id": "675a1234567890abcdef1234",
+         "status": "SUCCESS",
+         "creationDate": "2026-04-13T10:00:00Z",
+         "expirationDate": "2026-04-20T10:00:00Z",
+         "finishDate": "2026-04-13T10:02:30Z",
+         "servers": [
+           "om-server-1.example.com",
+           "om-server-2.example.com"
+         ],
+         "logTypes": ["APPLICATION", "HTTP_ACCESS"],
+         "sizeRequestedPerFileBytes": 5242880,
+         "logCollectionFromDate": null,
+         "logCollectionToDate": null,
+         "uncompressedSizeTotalBytes": 8388608,
+         "sizeLimitHit": true,
+         "downloadUrl": "https://{+opsmgr-url+}/api/public/v1.0/admin/omLogCollectionJobs/675a1234567890abcdef1234:download",
+         "childJobs": [
+           {
+             "serverId": "om-server-1.example.com",
+             "logCollectionType": "APPLICATION",
+             "status": "SUCCESS",
+             "startDate": "2026-04-13T10:00:05Z",
+             "finishDate": "2026-04-13T10:01:30Z",
+             "errorMessage": null,
+             "sizeLimitHit": true,
+             "uncompressedDiskspaceBytes": 5242880
+           },
+           {
+             "serverId": "om-server-1.example.com",
+             "logCollectionType": "HTTP_ACCESS",
+             "status": "SUCCESS",
+             "startDate": "2026-04-13T10:00:05Z",
+             "finishDate": "2026-04-13T10:01:45Z",
+             "errorMessage": null,
+             "sizeLimitHit": false,
+             "uncompressedDiskspaceBytes": 2097152
+           },
+           {
+             "serverId": "om-server-2.example.com",
+             "logCollectionType": "APPLICATION",
+             "status": "FAILURE",
+             "startDate": "2026-04-13T10:00:10Z",
+             "finishDate": "2026-04-13T10:00:45Z",
+             "errorMessage": "Failed to read log file: permission denied",
+             "sizeLimitHit": false,
+             "uncompressedDiskspaceBytes": 0
+           },
+           {
+             "serverId": "om-server-2.example.com",
+             "logCollectionType": "HTTP_ACCESS",
+             "status": "SUCCESS",
+             "startDate": "2026-04-13T10:00:10Z",
+             "finishDate": "2026-04-13T10:02:00Z",
+             "errorMessage": null,
+             "sizeLimitHit": false,
+             "uncompressedDiskspaceBytes": 1048576
+           }
+         ]
+       }
+     ],
+     "totalCount": 1
+   }

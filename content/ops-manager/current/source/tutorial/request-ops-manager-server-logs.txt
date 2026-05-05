@@ -1,0 +1,302 @@
+.. _request-om-server-logs:
+
+=========================
+Request |mms| Server Logs
+=========================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :description: Request, monitor, download, extend, retry, and delete Ops Manager log collection jobs for Application, Migration, and HTTP Access logs in the Admin UI.
+   :keywords: ops manager logs, application logs, http access logs, migration logs, log collection
+
+You can collect |mms| application server logs from one or more
+|mms| servers through the |mms| Admin UI or the
+:ref:`Public API <api-om-log-collection>`. |mms| collects the logs in
+a background job, compresses and encrypts them, and stores the
+resulting archive in the Application Database. You can then download
+the archive as a single ``.tar.gz`` file.
+
+Each request can collect any combination of the following log types:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Log Type
+     - Description
+
+   * - :guilabel:`Application`
+     - |mms| application operations logs (``mms0.log`` and rotated
+       files).
+
+   * - :guilabel:`Migration`
+     - |mms| database migration logs (``mms-migration.log``).
+
+   * - :guilabel:`HTTP Access`
+     - |mms| HTTP access logs (``mms0-access.log`` and rotated
+       files).
+
+To request, monitor, and manage |mms| server log collection jobs
+through the Admin UI, you must have the :authrole:`Global Owner`
+role.
+
+Considerations
+--------------
+
+Before you request |mms| server logs, review the following limits.
+
+- |mms| considers a server *active* if it sent a heartbeat to the
+  Application Database within the last 20 seconds. The server
+  selection dropdown lists only active servers.
+- |mms| sets the default expiration of a job to 7 days from the
+  job creation date. You can extend the expiration up to 28 days
+  from that creation date. You cannot extend a job that has
+  already expired.
+- You cannot delete a job that is still in progress.
+- You cannot download logs from a job in the ``EXPIRED`` or
+  ``IN_PROGRESS`` state. You can download logs from a job whose
+  status is ``SUCCESS`` or ``FAILURE``. If a job partially
+  failed, the archive includes only the log files that |mms|
+  collected successfully.
+
+.. _request-om-server-logs-procedure:
+
+Request Server Logs
+-------------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the Logs page.
+
+      Click :guilabel:`Admin`, :guilabel:`General`, then the
+      :guilabel:`Logs` tab.
+
+   .. step:: Open the request form.
+
+      Click :guilabel:`Request Ops Manager Logs`. The
+      :guilabel:`Request Ops Manager Logs` modal opens.
+
+   .. step:: Choose which servers to include.
+
+      Use the multi-select dropdown to choose one or more |mms|
+      servers. The dropdown lists only active servers. To collect
+      logs from every active server, click the
+      :guilabel:`Select all` link at the top of the dropdown list.
+
+   .. step:: Choose which log types to collect.
+
+      By default, no log types are selected. Select the
+      checkboxes for the log types you want to collect:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 25 75
+
+         * - Checkbox
+           - Collected logs
+
+         * - :guilabel:`Application`
+           - Application operations logs (``mms0.log`` and rotated
+             files).
+
+         * - :guilabel:`Migration`
+           - Database migration logs (``mms-migration.log`` and
+             related files).
+
+         * - :guilabel:`HTTP Access`
+           - HTTP access logs (``mms0-access.log`` and rotated
+             files).
+
+   .. step:: Apply a filter.
+
+      You can choose one of the following filter modes to limit
+      the volume of logs collected:
+
+      .. list-table::
+         :header-rows: 1
+         :widths: 25 75
+
+         * - Mode
+           - Behavior
+
+         * - :guilabel:`Filter by Size`
+           - Set the maximum uncompressed size, in bytes, per log
+             type per server. |mms| reads from the most recent log
+             file until it reaches the size limit.
+
+         * - :guilabel:`Filter by Date Range`
+           - Set a time range. |mms| collects only the log lines
+             whose timestamps fall in this range, with the size
+             limit as a safety cap. The size limit defaults to the
+             remaining configured size unless you set a specific
+             value in :guilabel:`Filter by Size`. If the logs in
+             your selected time range exceed the size limit,
+             |mms| returns only the most recent logs up to that
+             limit.
+
+   .. step:: Submit the request.
+
+      Click :guilabel:`Request Logs`.
+
+      |mms| creates a background job, distributes one task per
+      server and log type, and stores the resulting archive in the
+      Application Database when the tasks complete. The page
+      redirects to the :guilabel:`Log Request History` page.
+
+.. _request-om-server-logs-monitor:
+
+Monitor and Download
+--------------------
+
+The :guilabel:`Log Request History` page lists each request with
+these columns:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Column
+     - Contents
+
+   * - :guilabel:`Status`
+     - Current state of the job: ``IN_PROGRESS``, ``SUCCESS``,
+       ``FAILURE``, or ``EXPIRED``.
+
+   * - :guilabel:`Servers`
+     - |mms| servers included in the request.
+
+   * - :guilabel:`Log Types`
+     - Log types included in the request.
+
+   * - :guilabel:`Size`
+     - Total *uncompressed* size of the archive. You need this much
+       free disk space to extract it.
+
+   * - :guilabel:`Expiration`
+     - Date when |mms| automatically deletes the collected logs.
+
+   * - :guilabel:`Actions`
+     - Available actions: :guilabel:`Download`, :guilabel:`Extend`,
+       :guilabel:`Delete`, :guilabel:`Retry`, or :guilabel:`Copy URL`.
+
+To download the archive of a successful or partially successful
+job, click the :guilabel:`Download` icon for that row. The archive
+uses the file name format ``om-logs_{timestamp}.tar.gz``.
+
+You cannot resume a download. If a download fails, restart it from
+the beginning.
+
+The extracted archive uses the following layout:
+
+.. code-block:: text
+
+   <hostname>/
+      application/
+         mms0.log
+         mms0.20260412.log
+      http_access/
+         mms0-access.log
+         mms0-access.20260412.log
+      migration/
+         mms-migration.log
+
+To download the archive programmatically, click :guilabel:`Copy URL`
+and pass the URL to the
+:ref:`download endpoint <api-om-log-collections-download-job>`.
+
+.. note::
+
+   If you applied a date range and a size filter, and the logs in
+   the range exceed the size limit, the row shows an info icon.
+   Click the icon to see the specific server IDs and log types
+   affected by truncation.
+
+.. _extend-om-server-log-expiration:
+
+Extend Log Expiration
+---------------------
+
+|mms| deletes collected logs 7 days after the job creation date.
+To keep the archive longer, extend the expiration. You can extend
+up to a total of 28 days from the original creation date. You
+cannot extend a job that has already expired.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the Log Request History page.
+
+      Click :guilabel:`Admin`, :guilabel:`General`, then the
+      :guilabel:`Logs` tab. Click :guilabel:`Log History`.
+
+   .. step:: Extend the job.
+
+      For the row you want to keep, click :guilabel:`Extend`. |mms|
+      adds 7 days to the current expiration, up to the 28-day cap.
+
+.. _retry-om-server-log-jobs:
+
+Retry a Failed Job
+------------------
+
+A job can fail in part or in full. When a job partially fails,
+|mms| keeps the archives that succeeded. You can still download
+the partial archive. To collect the missing log files, retry the
+job.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the Log Request History page.
+
+      Click :guilabel:`Admin`, :guilabel:`General`, then the
+      :guilabel:`Logs` tab. Click :guilabel:`Log History`.
+
+   .. step:: Inspect the failure.
+
+      For a failed row, click the info icon. The icon shows which
+      server and log type combinations failed and the error
+      message for each.
+
+   .. step:: Retry the failed tasks.
+
+      Click :guilabel:`Retry`. |mms| reruns only the tasks that
+      failed and preserves the tasks that succeeded.
+
+.. _delete-om-server-log-jobs:
+
+Delete a Job
+------------
+
+.. warning::
+
+   Deletion is immediate. |mms| removes the job, all task
+   summaries, and every collected log file from the Application
+   Database. You cannot delete a job that is still in progress.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the Log Request History page.
+
+      Click :guilabel:`Admin`, :guilabel:`General`, then the
+      :guilabel:`Logs` tab. Click :guilabel:`Log History`.
+
+   .. step:: Delete the job.
+
+      For the row you want to remove, click :guilabel:`Delete`.
+      |mms| deletes the job and its archive immediately.
+
+Use the API
+-----------
+
+To request, monitor, and manage |mms| server log collection jobs
+programmatically, see :ref:`api-om-log-collection`.
