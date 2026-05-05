@@ -139,7 +139,7 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: '8.2 (Stable Release)',
+        label: '8.2',
         contentSite: 'docs',
         url: '/docs/:version/release-notes/8.2',
         collapsible: true,

@@ -9404,7 +9404,7 @@ export const toc: L1TocItem[] = [
                 ],
               },
               {
-                label: '8.2 (Stable Release)',
+                label: '8.2',
                 contentSite: 'docs',
                 collapsible: true,
                 url: '/docs/:version/release-notes/8.2',
