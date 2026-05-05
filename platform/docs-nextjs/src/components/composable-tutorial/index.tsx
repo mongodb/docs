@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useContext, useEffect, useMemo, useRef } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { isEmpty } from 'lodash';
 import queryString, { type ParsedQuery } from 'query-string';
 import { palette } from '@leafygreen-ui/palette';
@@ -170,7 +170,6 @@ const ComposableTutorialInternal = ({ nodeChildren, composableOptions, ...rest }
   const { currentSelections, setCurrentSelections } = useContext(ComposableContext);
   const hash = useHash();
   const search = useSearchParams();
-  const router = useRouter();
   // flag to either preserve the hash or not when navigating
   // ie. if providing default selections, preserve the hash in url
   //    vs. if changing selections, do not preserve the hash
@@ -230,13 +229,16 @@ const ComposableTutorialInternal = ({ nodeChildren, composableOptions, ...rest }
       if (preserveHash.current) {
         newHash = hash;
       }
-      router.push(
-        `${queryString.startsWith('?') ? '' : '?'}${queryString}${
-          queryString.length > 0 && externalQueryParamsString.length > 0 ? '&' : ''
-        }${externalQueryParamsString}${newHash ? newHash : ''}`,
-      );
+      const url = `${queryString.startsWith('?') ? '' : '?'}${queryString}${
+        queryString.length > 0 && externalQueryParamsString.length > 0 ? '&' : ''
+      }${externalQueryParamsString}${newHash ? newHash : ''}`;
+      // Use history.pushState instead of router.push to update the URL without
+      // triggering a Next.js navigation (which causes a visible page reload and
+      // scroll-to-top). useSearchParams() still updates from history.pushState
+      // in App Router, so the rest of the component stays in sync.
+      window.history.pushState(null, '', url);
     },
-    [externalQueryParamsString, router],
+    [externalQueryParamsString],
   );
 
   // takes care of query param reading and rerouting on initial load

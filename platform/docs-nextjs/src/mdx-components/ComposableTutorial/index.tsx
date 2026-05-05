@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useContext, useEffect, useMemo, useRef } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { isEmpty } from 'lodash';
 import queryString, { type ParsedQuery } from 'query-string';
 import { palette } from '@leafygreen-ui/palette';
@@ -157,7 +157,6 @@ const ComposableTutorialInternal = ({ children, composableOptions, ...rest }: Co
   const { options: pageOptions } = usePageContext();
   const hash = useHash();
   const search = useSearchParams();
-  const router = useRouter();
   // flag to either preserve the hash or not when navigating
   // ie. if providing default selections, preserve the hash in url
   //    vs. if changing selections, do not preserve the hash
@@ -195,13 +194,12 @@ const ComposableTutorialInternal = ({ children, composableOptions, ...rest }: Co
       if (preserveHash.current) {
         newHash = hash;
       }
-      router.push(
-        `${queryString.startsWith('?') ? '' : '?'}${queryString}${
-          queryString.length > 0 && externalQueryParamsString.length > 0 ? '&' : ''
-        }${externalQueryParamsString}${newHash ? newHash : ''}`,
-      );
+      const url = `${queryString.startsWith('?') ? '' : '?'}${queryString}${
+        queryString.length > 0 && externalQueryParamsString.length > 0 ? '&' : ''
+      }${externalQueryParamsString}${newHash ? newHash : ''}`;
+      window.history.pushState(null, '', url);
     },
-    [externalQueryParamsString, router],
+    [externalQueryParamsString],
   );
 
   // takes care of query param reading and rerouting on initial load
