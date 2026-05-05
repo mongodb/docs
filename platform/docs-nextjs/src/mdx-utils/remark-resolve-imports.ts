@@ -34,10 +34,11 @@ export const remarkResolveImports = ({ projectPath }: { projectPath: string }) =
   return async (tree: Root) => {
     await resolveIncludes({ tree, projectPath });
 
-    const refs = await loadReferences(projectPath);
-    if (!refs) {
-      console.warn(`[remarkResolveImports] Failed to load references for ${projectPath}`);
-      return;
+    const loadedRefs = await loadReferences(projectPath);
+    const refs: ReferencesData = loadedRefs ?? { substitutions: {}, refs: {} };
+
+    if (!loadedRefs) {
+      console.warn(`[remarkResolveImports] Failed to load references for ${projectPath}; using empty refs`);
     }
 
     resolveSubstitutions({ tree, refs });
