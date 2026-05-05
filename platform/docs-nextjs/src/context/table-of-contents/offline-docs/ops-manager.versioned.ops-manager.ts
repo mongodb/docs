@@ -965,6 +965,11 @@ export const toc: L1TocItem[] = [
                 url: '/docs/ops-manager/:version/tutorial/encrypt-snapshots',
               },
               {
+                label: 'Automation Config Encryption',
+                contentSite: 'ops-manager',
+                url: '/docs/ops-manager/:version/tutorial/automation-config-encryption',
+              },
+              {
                 label: 'Rotate Master KMIP Keys',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/tutorial/rotate-master-kmip-keys',
@@ -1060,6 +1065,11 @@ export const toc: L1TocItem[] = [
                 label: 'Configure TLS',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/tutorial/configure-mongodb-agent-for-tls',
+              },
+              {
+                label: 'Configure OIDC for Agent',
+                contentSite: 'ops-manager',
+                url: '/docs/ops-manager/:version/tutorial/configure-mongodb-agent-for-oidc',
               },
               {
                 label: 'Manage Config Files & Passwords',

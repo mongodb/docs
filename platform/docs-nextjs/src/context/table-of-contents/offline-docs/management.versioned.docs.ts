@@ -1675,11 +1675,6 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/api/migrate-to-new-version',
                   },
                   {
-                    label: 'API Upgrades',
-                    contentSite: 'cloud-docs',
-                    url: '/docs/atlas/api/api-upgrades',
-                  },
-                  {
                     label: 'v2.0 API Specification',
                     isExternal: true,
                     url: 'https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/',
