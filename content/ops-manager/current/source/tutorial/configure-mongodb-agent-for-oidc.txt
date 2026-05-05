@@ -1,0 +1,230 @@
+.. _configure-agent-oidc:
+
+===============================================
+Configure MongoDB Agent for OIDC Authentication
+===============================================
+
+.. meta::
+   :description: Configure MongoDB Agents, Automation, Monitoring, and Backup, to authenticate to MongoDB deployments using OIDC Workload Identity Federation in Ops Manager.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+You can configure the {+mdbagent+}, including Automation,
+Monitoring, and Backup, to authenticate to MongoDB deployments
+using |oidc| Workload Identity Federation. With |oidc|,
+the agent uses short-lived tokens from an |idp-full| (|idp|)
+instead of long-lived database credentials. The agent automatically
+refreshes these tokens before they expire.
+
+This tutorial describes how to:
+
+- Enable |oidc| authentication for your MongoDB deployment in |mms|.
+- Register an |oidc| |idp| configuration.
+- Configure the {+mdbagent+} to use the |oidc| connection.
+
+Considerations
+--------------
+
+Irreversible authentication method
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After you configure the {+mdbagent+} for Workload Federation, you
+can't revert to Local Authentication.
+
+Token refresh
+~~~~~~~~~~~~~
+
+The {+mdbagent+} automatically refreshes |oidc| tokens before they
+expire. Token lifetimes depend on your |idp| configuration and
+typically range from 5 to 60 minutes.
+
+Shared agent configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The |oidc| configuration applies to all agent functions: Automation,
+Monitoring, and Backup. You don't configure each function
+individually.
+
+Prerequisites
+-------------
+
+Before you configure the {+mdbagent+} for |oidc| authentication,
+enable |oidc| Workload Identity Federation for your MongoDB
+deployment. To learn more, see
+:ref:`om-oidc-authentication-workload`.
+
+Procedure
+---------
+
+To configure |oidc| authentication for the {+mdbagent+}:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Navigate to the Security settings.
+
+      In |mms|, go to your project. In the left navigation, click
+      :guilabel:`Deployment`, click :guilabel:`Security`, then
+      select the :guilabel:`Settings` tab.
+
+      .. note::
+
+         If you have not configured security for your project,
+         a banner prompts you to set up network encryption,
+         authentication, and authorization. Click
+         :guilabel:`Get Started` to access the settings.
+
+   .. step:: Enable |oidc| authentication.
+
+      In the :guilabel:`MongoDB Deployment Authentication Mechanism`
+      section, select :guilabel:`Federated Auth (OIDC)`.
+
+   .. step:: Add an |oidc| |idp-full| configuration.
+
+      a. In the :guilabel:`OIDC Connection and Authorization`
+         section, click :guilabel:`+ OIDC IdP Configuration`.
+
+      #. In the :guilabel:`OIDC Protocol Settings` window, select
+         :guilabel:`Workload Identity Federation`.
+
+      #. Enter the |idp| details:
+
+         .. list-table::
+            :widths: 30 70
+            :header-rows: 1
+
+            * - Field
+              - Description
+
+            * - :guilabel:`Configuration Name`
+              - Prefix that identifies this |idp| configuration
+                in |mms|.
+
+            * - :guilabel:`Issuer URI`
+              - URI of the |idp| that issues access tokens.
+
+            * - :guilabel:`Audience`
+              - Must match the ``aud`` claim in the JWT that your
+                |idp| issues.
+
+            * - :guilabel:`Authorization Method`
+              - Select :guilabel:`User ID` or
+                :guilabel:`Group Membership`, based on your |idp|
+                setup.
+
+            * - :guilabel:`Customize User Claim`
+              - Claim that identifies the user.
+                Defaults to ``sub``.
+
+      #. Click :guilabel:`Save Configuration`.
+
+   .. step:: Configure the agent connection to the deployment.
+
+      a. In the :guilabel:`MongoDB Agent Connections to Deployment`
+         section, select :guilabel:`Workload Federation`.
+
+         .. important::
+
+            After you deploy with Workload Federation, you cannot
+            revert the {+mdbagent+} to Local Authentication.
+
+      #. Enter the agent authentication details:
+
+         .. list-table::
+            :widths: 30 70
+            :header-rows: 1
+
+            * - Field
+              - Description
+
+            * - :guilabel:`OIDC IdP Configuration`
+              - |idp| configuration the {+mdbagent+} uses to
+                authenticate. Select the configuration you
+                created in the previous step.
+
+            * - :guilabel:`User Identifier`
+              - User principal claim value. |mms| creates the
+                MongoDB user as
+                ``[configuration name]/[user identifier]``.
+
+            * - :guilabel:`Authentication Method`
+              - Authentication method for the agent's |idp|
+                connection. Select :guilabel:`Client Credentials`
+                for standard |idp| integrations such as Okta,
+                or :guilabel:`Built-in` for cloud-native workload
+                identities on Azure or GCP.
+
+            * - :guilabel:`Client ID`
+              - OAuth 2.0 client ID assigned to the agent.
+                Required when using
+                :guilabel:`Client Credentials`.
+
+            * - :guilabel:`Client Secret`
+              - OAuth 2.0 client secret assigned to the agent.
+                Required when using
+                :guilabel:`Client Credentials`.
+
+         .. tip::
+
+            If your |idp| uses a cloud-native workload identity
+            such as Azure or GCP, select :guilabel:`Built-in`.
+            You do not need to provide a :guilabel:`Client ID`
+            or :guilabel:`Client Secret`.
+
+      #. Click :guilabel:`Save Settings`.
+
+   .. step:: Review and deploy the changes.
+
+      a. In the :guilabel:`Review Your Changes` modal, review the
+         deployment diff. Confirm that the diff shows
+         ``Auth Mechanisms: MONGODB-OIDC`` and the Workload
+         Federation details under :guilabel:`Auth`.
+
+      #. Confirm the deployment.
+
+      After |mms| applies the changes, the {+mdbagent+}
+      automatically receives the updated configuration and fetches
+      its initial |oidc| tokens from the |idp|. The agent
+      transitions to |oidc| authentication without a restart.
+
+Rotate agent credentials with zero downtime
+-------------------------------------------
+
+To rotate the agent's |oidc| client secret without restarting
+the {+mdbagent+}:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Generate a new client secret in your |idp|.
+
+      In your |idp|, open the OAuth/|oidc| application you use
+      for this deployment and generate a new client secret.
+      Don't revoke the existing secret yet.
+
+   .. step:: Update the secret in |mms|.
+
+      a. In |mms|, go to your project. Click
+         :guilabel:`Deployment`, :guilabel:`Security`, then
+         select the :guilabel:`Settings` tab.
+
+      #. Under :guilabel:`MongoDB Agent Connections to
+         Deployment`, select :guilabel:`Workload Federation`.
+
+      #. Enter the new secret in :guilabel:`Client Secret`,
+         then click :guilabel:`Save Settings`.
+
+      #. Review and confirm the deployment.
+
+   .. step:: Wait for the {+mdbagent+} to refresh its tokens, typically within one hour.
+
+   .. step:: Revoke the old secret in your |idp|.
