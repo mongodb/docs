@@ -701,18 +701,23 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       }
       if (directiveName === 'button') {
         const attributes: MdastNode[] = toJsxAttributes(node.options);
-        const children: MdastNode[] = [];
+        const inlineChildren: MdastNode[] = [];
         if (Array.isArray(node.argument)) {
-          children.push(...convertChildren({ nodes: node.argument, depth, ctx, parentType: 'button' }));
+          inlineChildren.push(...convertChildren({ nodes: node.argument, depth, ctx, parentType: 'button' }));
         } else if (typeof node.argument === 'string') {
-          children.push({ type: 'text', value: node.argument });
+          inlineChildren.push({ type: 'text', value: node.argument });
         }
-        children.push(...convertChildren({ nodes: node.children ?? [], depth, ctx, parentType: 'button' }));
+        inlineChildren.push(...convertChildren({ nodes: node.children ?? [], depth, ctx, parentType: 'button' }));
         return {
-          type: 'mdxJsxTextElement',
-          name: 'Button',
-          attributes,
-          children,
+          type: 'paragraph',
+          children: [
+            {
+              type: 'mdxJsxTextElement',
+              name: 'Button',
+              attributes,
+              children: inlineChildren,
+            },
+          ],
         };
       }
       if (directiveName === 'deprecated') {

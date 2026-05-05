@@ -1656,4 +1656,72 @@ describe('DefinitionTerm inline content rendering', () => {
       expect(mdx).not.toMatch(/^#{1,6}\s/m);
     });
   });
+
+  describe('button directive', () => {
+    it('converts button directive to flow element so it does not collapse page into a single line', () => {
+      // Regression: button was emitted as mdxJsxTextElement (phrasing), which caused
+      // mdast-util-to-markdown to use containerPhrasing for the root node and serialize
+      // the entire page onto one line with no separators.
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'section',
+            html_id: 'overview',
+            children: [
+              { type: 'title', children: [{ type: 'text', value: 'Overview' }] },
+              { type: 'paragraph', children: [{ type: 'text', value: 'Intro text.' }] },
+              {
+                type: 'directive',
+                name: 'button',
+                argument: [{ type: 'text', value: 'Get Started' }],
+                options: { uri: 'https://example.com' },
+                children: [],
+              },
+              { type: 'paragraph', children: [{ type: 'text', value: 'Following paragraph.' }] },
+            ],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      // Button must be emitted as a flow element so content stays on separate lines
+      expect(mdx).toContain('<Button');
+      expect(mdx).toContain('Get Started');
+      // Heading and paragraphs must be on separate lines (not collapsed onto one line)
+      expect(mdx).toMatch(/^# Overview$/m);
+      expect(mdx).toMatch(/^Intro text\.$/m);
+      expect(mdx).toMatch(/^Following paragraph\.$/m);
+    });
+
+    it('serializes button children inline with no blank lines between text and inline JSX', () => {
+      // Regression: loose phrasing children inside a flow element get \n\n separators from
+      // containerFlow, causing MDX to wrap each child in <p> and break Button styling.
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'directive',
+            name: 'button',
+            argument: [
+              { type: 'text', value: 'Get Started with ' },
+              {
+                type: 'substitution_reference',
+                refname: 'fts',
+                children: [{ type: 'text', value: 'MongoDB Search' }],
+              },
+            ],
+            options: { uri: 'https://example.com' },
+            children: [],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      // The text and Reference must appear on the same line inside <Button> with no blank line
+      expect(mdx).toMatch(/Get Started with\s+<Reference[^>]*>/);
+      // No blank line between the text and the Reference inside the button
+      expect(mdx).not.toMatch(/Get Started with\s*\n\s*\n/);
+    });
+  });
 });
