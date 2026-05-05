@@ -112,8 +112,33 @@ export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIn
         { type: 'root', children: subChildren },
         { onEmitMdxFile: ctx.emitMdxFile, currentOutfilePath: path.normalize(emittedPathNormalized) },
       );
-      const slotNodes = slotRoot.children.filter((c) => (c as { type: string }).type !== 'yaml');
+      let slotNodes: MdastNode[] = slotRoot.children.filter(
+        (c) => (c as { type: string }).type !== 'yaml',
+      ) as MdastNode[];
       if (!slotNodes.length) continue;
+
+      // When the slot content is entirely inline nodes (text, mdxJsxTextElement, etc.) with no
+      // block-level wrappers, the MDX serializer emits each node on its own line with blank lines
+      // between them. Those blank lines cause remark to re-parse them as block-level
+      // (mdxJsxFlowElement) elements at render time, which cannot replace an inline <Reference>.
+      // Wrapping in a React fragment (<>...</>) keeps all inline nodes on a single line so they
+      // re-parse as inline content that replacementSlotToNodes can correctly unwrap.
+      const BLOCK_TYPES = new Set([
+        'paragraph',
+        'heading',
+        'blockquote',
+        'list',
+        'listItem',
+        'code',
+        'table',
+        'thematicBreak',
+        'mdxJsxFlowElement',
+        'mdxFlowExpression',
+      ]);
+      if (!slotNodes.some((n) => BLOCK_TYPES.has((n as { type: string }).type))) {
+        slotNodes = [{ type: 'mdxJsxTextElement', name: null, attributes: [], children: slotNodes } as MdastNode];
+      }
+
       replacementChildren.push({
         type: 'mdxJsxFlowElement',
         name: 'Replacement',

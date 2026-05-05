@@ -469,6 +469,68 @@ describe('convertSnootyAstToMdast', () => {
     expect(mdx).toContain('https://okta.com');
   });
 
+  it('wraps inline role nodes (icon, guilabel) in a fragment inside Replacement slot', () => {
+    // |ui-org-menu| = ":icon-mms:`office` :guilabel:`Organizations` menu"
+    // The children of the substitution_reference are inline role nodes (not wrapped in a paragraph).
+    // Without the fragment wrap the MDX serializer emits each inline element on its own line
+    // with blank lines between them, causing remark to re-parse them as mdxJsxFlowElement
+    // (block-level) — which cannot replace an inline <Reference> at render time.
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'include',
+          argument: 'nav/steps.rst',
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                { type: 'text', value: 'From the ' },
+                {
+                  type: 'substitution_reference',
+                  refname: 'ui-org-menu',
+                  children: [
+                    { type: 'role', name: 'icon-mms', children: [{ type: 'text', value: 'office' }] },
+                    { type: 'text', value: ' ' },
+                    {
+                      type: 'role',
+                      name: 'guilabel',
+                      children: [{ type: 'text', value: 'Organizations' }],
+                    },
+                    { type: 'text', value: ' menu' },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const onEmitMdxFile = jest.fn();
+    const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
+
+    // Include file: type="substitution", no baked-in value
+    const [{ mdastRoot }] = onEmitMdxFile.mock.calls[0];
+    const emittedMdx = convertMdastToMdx(mdastRoot);
+    expect(emittedMdx).toContain('type="substitution"');
+
+    // Calling page: <Replacement> slot contains icon and guilabel
+    expect(mdx).toContain('<Replacement name="ui-org-menu">');
+    expect(mdx).toContain('<Icon');
+    expect(mdx).toContain('<Guilabel>Organizations</Guilabel>');
+
+    // The slot content must NOT have blank lines between Icon and Guilabel.
+    // Blank lines would cause remark to re-parse them as block-level (mdxJsxFlowElement),
+    // which cannot replace an inline <Reference> at render time.
+    const replacementBlock = mdx.slice(
+      mdx.indexOf('<Replacement name="ui-org-menu">'),
+      mdx.indexOf('</Replacement>', mdx.indexOf('<Replacement name="ui-org-menu">')) + '</Replacement>'.length,
+    );
+    expect(replacementBlock).not.toMatch(/<Icon[^>]*\/>\s*\n\s*\n/);
+    expect(replacementBlock).not.toMatch(/<\/Guilabel>\s*\n\s*\n/);
+  });
+
   it('collects substitutions and refs into root.__references', () => {
     const ast: SnootyNode = {
       type: 'root',

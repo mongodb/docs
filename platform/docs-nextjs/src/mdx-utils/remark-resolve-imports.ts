@@ -292,11 +292,28 @@ const resolveRefLinks = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
   applyReplacements(replacements);
 };
 
-/** Unwrap a single paragraph so inline `<Reference type="replacement" />` can become phrasing nodes. */
+/** Unwrap a single paragraph so inline `<Reference type="replacement" />` can become phrasing nodes.
+ *
+ * Also handles the legacy case where inline substitution content (e.g. :icon-mms: + :guilabel:)
+ * was serialized with blank lines between elements by the converter, causing remark to re-parse
+ * each element as mdxJsxFlowElement (block). When the fragment contains flow elements but no
+ * truly-block content (code, heading, admonition, etc.), convert flow elements to text elements
+ * and unwrap paragraphs so the nodes can be spliced into an inline context.
+ */
 const replacementSlotToNodes = (fragment: Node[]): Node[] => {
   const [first] = fragment;
   if (fragment.length === 1 && first.type === 'paragraph') {
     return [...(first as Paragraph).children];
+  }
+  // Inline-only content serialized as block: mdxJsxFlowElement nodes with no truly-block
+  // siblings. Convert flow→text and unwrap paragraphs to recover the intended inline nodes.
+  const TRULY_BLOCK = new Set(['code', 'heading', 'blockquote', 'list', 'listItem', 'thematicBreak', 'table']);
+  if (fragment.some((n) => n.type === 'mdxJsxFlowElement') && !fragment.some((n) => TRULY_BLOCK.has(n.type))) {
+    return fragment.flatMap((n) => {
+      if (n.type === 'paragraph') return [...(n as Paragraph).children];
+      if (n.type === 'mdxJsxFlowElement') return [{ ...n, type: 'mdxJsxTextElement' }];
+      return [n];
+    });
   }
   return fragment;
 };
