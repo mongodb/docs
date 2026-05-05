@@ -58,6 +58,11 @@ const tocData: TocItem[] = [
         ],
       },
       {
+        label: 'Authentication',
+        contentSite: 'sql-interface',
+        url: '/docs/sql-interface/authentication',
+      },
+      {
         label: 'Errors',
         contentSite: 'sql-interface',
         url: '/docs/sql-interface/errors',
