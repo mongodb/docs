@@ -1393,6 +1393,11 @@ export const toc: L1TocItem[] = [
                 url: '/docs/ops-manager/:version/tutorial/manage-ops-manager-logs',
               },
               {
+                label: 'Request Server Logs',
+                contentSite: 'ops-manager',
+                url: '/docs/ops-manager/:version/tutorial/request-ops-manager-server-logs',
+              },
+              {
                 label: 'Manually Update Manifest',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/tutorial/update-version-manifest',
@@ -2773,6 +2778,54 @@ export const toc: L1TocItem[] = [
                         label: 'Delete',
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/reference/api/log-collections/log-collections-delete-one',
+                      },
+                    ],
+                  },
+                  {
+                    label: 'Server Log Collection Jobs',
+                    contentSite: 'ops-manager',
+                    collapsible: true,
+                    url: '/docs/ops-manager/:version/reference/api/om-log-collection',
+                    items: [
+                      {
+                        label: 'List Active Servers',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/om-log-collections/om-log-collections-list-servers',
+                      },
+                      {
+                        label: 'Create',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/om-log-collections/om-log-collections-submit',
+                      },
+                      {
+                        label: 'Get All Jobs',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/om-log-collections/om-log-collections-get-all',
+                      },
+                      {
+                        label: 'Get One Job',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/om-log-collections/om-log-collections-get-one',
+                      },
+                      {
+                        label: 'Download Logs',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/om-log-collections/om-log-collections-download-job',
+                      },
+                      {
+                        label: 'Extend Expiration',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/om-log-collections/om-log-collections-update-one',
+                      },
+                      {
+                        label: 'Retry',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/om-log-collections/om-log-collections-retry',
+                      },
+                      {
+                        label: 'Delete',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/om-log-collections/om-log-collections-delete-one',
                       },
                     ],
                   },
