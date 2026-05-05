@@ -167,3 +167,11 @@
      - `npm Registry <https://registry.npmjs.org>`__
      - The npm registry used by the :binary:`~bin.mongosh` npm client
        that installs :ref:`snippet <snip-overview>`.
+
+   * - ``updateURL``
+     - string
+     - ``https://downloads.mongodb.com/compass/mongosh.json``
+     - The URL that |mdb-shell| checks for available updates at startup.
+
+       To disable update notifications and the associated outbound network
+       request, set ``updateURL`` to an empty string.
