@@ -119,14 +119,19 @@
       -
     * - PowerPC/ ppc64le
       - RHEL 7 :sup:`3`
-      - 
+      -
       - :icon:`check-circle`
       - :icon:`check-circle`
-    * - 
+    * -
       - RHEL 8
       - :icon:`check-circle`
       - :icon:`check-circle`
       - :icon:`check-circle`
+    * -
+      - RHEL 9 :sup:`4`
+      - :icon:`check-circle`
+      -
+      -
     * - zSeries/ 390x :sup:`2`
       - RHEL 7 :sup:`3`
       - 
@@ -151,3 +156,6 @@ from the {+mdbagent+}:
 - Debian 10
 - RHEL 7 (all minor versions)
 - Ubuntu 18.04
+
+:sup:`4` |onprem| 8.0.23 adds {+mdbagent+} binary support for
+PowerPC (ppc64le) on RHEL 9.
