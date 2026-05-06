@@ -591,6 +591,86 @@ describe('convertSnootyAstToMdast', () => {
     expect(refs?.refs).toHaveProperty('avs-areas-of-query', 'query/explain#std-label-avs-areas-of-query');
   });
 
+  it('emits RefRole when substitution_reference expands to a typed role (:binary:, :authrole:, etc.)', () => {
+    // Verifies |mongos| / |mongod| style substitutions that expand to :binary:`…`
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'substitution_reference',
+              refname: 'mongos',
+              children: [
+                {
+                  type: 'ref_role',
+                  name: 'binary',
+                  target: 'bin.mongos',
+                  children: [{ type: 'literal', value: 'mongos' }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    expect(mdx).toContain('<RefRole');
+    expect(mdx).toContain('type="binary"');
+    expect(mdx).toContain('name="bin.mongos"');
+    expect(mdx).not.toContain('type="substitution"');
+    expect(mdx).not.toContain('refKey=');
+  });
+
+  it('resolves typed-role substitution_reference via catalog when children are empty (include file)', () => {
+    // Verifies |mongos| in a plain include resolves via the xref catalog built from the page's definitions.
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'substitution_definition',
+          name: 'mongos',
+          children: [
+            {
+              type: 'ref_role',
+              name: 'binary',
+              target: 'bin.mongos',
+              children: [{ type: 'literal', value: 'mongos' }],
+            },
+          ],
+        },
+        {
+          type: 'directive',
+          name: 'include',
+          argument: 'some-include.rst',
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                {
+                  type: 'substitution_reference',
+                  refname: 'mongos',
+                  children: [], // empty in include body — definition lives on parent page
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const onEmitMdxFile = jest.fn();
+    convertSnootyAst({ ast, onEmitMdxFile });
+
+    expect(onEmitMdxFile).toHaveBeenCalledTimes(1);
+    const [{ mdastRoot }] = onEmitMdxFile.mock.calls[0];
+    const emittedMdx = convertMdastToMdx(mdastRoot);
+    expect(emittedMdx).toContain('<RefRole');
+    expect(emittedMdx).toContain('type="binary"');
+    expect(emittedMdx).toContain('name="bin.mongos"');
+    expect(emittedMdx).not.toContain('type="substitution"');
+  });
+
   it('emits refKey + refTarget + replacement when substitution_reference is :ref: inside replacement-slot include body', () => {
     const ast: SnootyNode = {
       type: 'root',

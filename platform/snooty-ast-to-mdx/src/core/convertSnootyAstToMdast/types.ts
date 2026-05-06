@@ -9,7 +9,7 @@ export interface EmitMdxFileArgs {
   mdastRoot: MdastRoot;
 }
 
-/** Resolved `:ref:` / `:doc:` expansion for a substitution alias (`.. |id| replace:: :ref:`…`). */
+/** Resolved `:ref:` / `:doc:` / typed-role expansion for a substitution alias (`.. |id| replace:: :ref:`…`). */
 export interface SubstitutionRefXrefInfo {
   refTargetKey: string;
   title: string;
@@ -18,6 +18,11 @@ export interface SubstitutionRefXrefInfo {
    * Omitted when only the xref label (`target`) is present until publish-time merge.
    */
   href?: string;
+  /**
+   * Role type for typed ref roles (e.g. `'binary'`, `'authrole'`, `'term'`).
+   * When present, emit as `<RefRole type="…">` instead of `<Reference name="…">`.
+   */
+  roleType?: string;
 }
 
 export interface ConversionContext {

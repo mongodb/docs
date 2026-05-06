@@ -348,6 +348,26 @@ const findPipelineRoleInSubstitution = (nodes: SnootyNode[] | undefined): Snooty
   return null;
 };
 
+/**
+ * Find a typed `ref_role` (e.g. `:binary:`, `:authrole:`, `:term:`) in substitution content.
+ * These roles are distinct from `:ref:` / `:doc:` (handled by {@link findRefOrDocRoleInSubstitution})
+ * and `:pipeline:` (handled by {@link findPipelineRoleInSubstitution}).
+ */
+const findTypedRefRoleInSubstitution = (nodes: SnootyNode[] | undefined): SnootyNode | null => {
+  if (!nodes?.length) return null;
+  for (const n of nodes) {
+    if (n.type === 'ref_role') {
+      const roleName = typeof n.name === 'string' ? n.name.toLowerCase() : '';
+      if (roleName && roleName !== 'ref' && roleName !== 'doc' && roleName !== 'label') {
+        return n;
+      }
+    }
+    const nested = findTypedRefRoleInSubstitution(n.children);
+    if (nested) return nested;
+  }
+  return null;
+};
+
 const extractRefTargetKeyFromRefRoleLike = (node: SnootyNode): string | null => {
   if (node.type === 'reference' && typeof node.refuri !== 'string') {
     const ids = Array.isArray(node.ids) ? node.ids.filter((x): x is string => typeof x === 'string') : [];
@@ -408,14 +428,19 @@ export const buildSubstitutionRefXrefMap = (root: SnootyNode): Map<string, Subst
       const refname = String(node.refname || node.name || '');
       const refLink = findRefOrDocRoleInSubstitution(node.children);
       const pipelineLink = refLink ? null : findPipelineRoleInSubstitution(node.children);
-      const roleLike = refLink ?? pipelineLink;
+      const typedRefLink = refLink || pipelineLink ? null : findTypedRefRoleInSubstitution(node.children);
+      const roleLike = refLink ?? pipelineLink ?? typedRefLink;
       if (refname && roleLike) {
         const refTargetKey = extractRefTargetKeyFromRefRoleLike(roleLike);
         const href = computeHrefFromRefRoleLike(roleLike);
         const title = extractInlineDisplayText(roleLike.children ?? []);
         // Snooty often provides only `target` (xref label) on :ref: until fileid is resolved; still emit xref MDX.
         if (refTargetKey && title) {
-          map.set(refname, href ? { refTargetKey, title, href } : { refTargetKey, title });
+          const entry: SubstitutionRefXrefInfo = href ? { refTargetKey, title, href } : { refTargetKey, title };
+          if (typedRefLink && typeof typedRefLink.name === 'string') {
+            entry.roleType = typedRefLink.name;
+          }
+          map.set(refname, entry);
         }
       }
     }
@@ -475,7 +500,12 @@ export const buildSubstitutionDefinitionLiteralMap = (root: SnootyNode): Map<str
         pipelineLink &&
         extractRefTargetKeyFromRefRoleLike(pipelineLink) &&
         extractInlineDisplayText(pipelineLink.children ?? []);
-      if (refname && !refLink && !pipelineAsXref) {
+      const typedRefNode = refLink || pipelineAsXref ? null : findTypedRefRoleInSubstitution(node.children);
+      const typedRefAsXref =
+        typedRefNode &&
+        extractRefTargetKeyFromRefRoleLike(typedRefNode) &&
+        extractInlineDisplayText(typedRefNode.children ?? []);
+      if (refname && !refLink && !pipelineAsXref && !typedRefAsXref) {
         const text = extractInlineDisplayText(node.children ?? []);
         if (text) {
           map.set(refname, text);
@@ -1590,12 +1620,43 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         }
       }
 
+      // Typed ref roles (:binary:, :authrole:, :term:, etc.) — emit as <RefRole> identical to
+      // a standalone typed role, so |mongos| → <RefRole type="binary" name="bin.mongos">.
+      const typedRefNode = findTypedRefRoleInSubstitution(node.children);
+      if (typedRefNode) {
+        const roleName = typeof typedRefNode.name === 'string' ? typedRefNode.name : '';
+        const key = extractRefTargetKeyFromRefRoleLike(typedRefNode) ?? '';
+        if (roleName && key) {
+          return {
+            type: 'mdxJsxTextElement',
+            name: 'RefRole',
+            attributes: [
+              { type: 'mdxJsxAttribute', name: 'type', value: roleName },
+              { type: 'mdxJsxAttribute', name: 'name', value: key },
+            ],
+            children: convertChildren({ nodes: typedRefNode.children, depth, ctx }),
+          };
+        }
+      }
+
       // Included RST often has text-only `substitution_reference` children (definitions live on the parent page).
       const fromCatalog = refname ? ctx.substitutionRefXref?.get(refname) : undefined;
       if (fromCatalog) {
         const slotBody = ctx.emitSubstitutionReferencesAsReplacement;
         if (fromCatalog.href && !ctx.collectedRefs.has(fromCatalog.refTargetKey)) {
           ctx.collectedRefs.set(fromCatalog.refTargetKey, fromCatalog.href);
+        }
+        // Typed ref roles (e.g. :binary:) in catalog — emit as <RefRole> not <Reference>.
+        if (fromCatalog.roleType) {
+          return {
+            type: 'mdxJsxTextElement',
+            name: 'RefRole',
+            attributes: [
+              { type: 'mdxJsxAttribute', name: 'type', value: fromCatalog.roleType },
+              { type: 'mdxJsxAttribute', name: 'name', value: fromCatalog.refTargetKey },
+            ],
+            children: [{ type: 'inlineCode', value: fromCatalog.title }],
+          };
         }
         if (slotBody) {
           return {
