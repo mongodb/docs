@@ -1,5 +1,6 @@
 import type { MDXComponents } from 'mdx/types';
 import { RefTarget } from '@/mdx-components/RefTarget';
+import { Target } from '@/mdx-components/Target';
 import { Admonition } from '@/mdx-components/Admonition';
 import { Banner } from '@/mdx-components/Banner';
 import { Collapsible } from '@/mdx-components/Collapsible';
@@ -177,6 +178,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Tab: ({ children, ...props }) => <Tab {...props}>{children}</Tab>,
     TabsSelector: () => <TabsSelector />,
     RefTarget: (props) => <RefTarget {...props} />,
+    Target: (props) => <Target {...props} />,
     Time: (props) => <Time {...props} />,
     hr: () => <Transition />,
     VersionAdded: ({ children, ...props }) => (

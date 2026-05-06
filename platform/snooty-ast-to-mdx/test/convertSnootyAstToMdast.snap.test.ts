@@ -572,15 +572,6 @@ const cases: Array<[string, SnootyNode]> = [
     },
   ],
   [
-    'expression directive emits Expression component',
-    {
-      type: 'directive',
-      name: 'expression',
-      argument: [{ type: 'text', value: 'db.collection.find()' }],
-      children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Finds documents.' }] }],
-    },
-  ],
-  [
     'line node with children fallback',
     {
       type: 'line_block',

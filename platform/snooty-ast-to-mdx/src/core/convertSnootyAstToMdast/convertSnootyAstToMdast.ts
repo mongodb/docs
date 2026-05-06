@@ -1170,17 +1170,6 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         };
       }
 
-      if (directiveName === 'expression') {
-        const term = parseSnootyArgument(node);
-        const attributes: MdastNode[] = term ? [{ type: 'mdxJsxAttribute', name: 'term', value: term }] : [];
-        return {
-          type: 'mdxJsxFlowElement',
-          name: 'Expression',
-          attributes,
-          children: convertChildren({ nodes: node.children, depth, ctx }),
-        };
-      }
-
       // Instruqt embed path must be a JSX prop (`embedValue`); the generic path puts it in paragraph
       // children, which MDX does not pass through as plain text to our component.
       if (directiveName === 'instruqt') {
@@ -1741,44 +1730,77 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (Array.isArray(node.ids)) ids.push(...node.ids);
       if (ids.length === 0 && typeof node.name === 'string') ids.push(node.name);
       if (ids.length === 0) return null;
-      const refTargets: MdastNode[] = ids.map((id) => ({
+
+      const nameStr = typeof node.name === 'string' ? node.name : 'target';
+      const hidden =
+        !!node.options && typeof node.options === 'object' && Boolean((node.options as { hidden?: boolean }).hidden);
+
+      // `.. _anchor:` label targets — anchor-only, same as legacy Snooty renderer.
+      if (nameStr === 'label') {
+        return ids.map((id) => ({
+          type: 'mdxJsxFlowElement',
+          name: 'Target',
+          attributes: [
+            { type: 'mdxJsxAttribute', name: 'id', value: id },
+            { type: 'mdxJsxAttribute', name: 'name', value: 'label' },
+          ],
+          children: [],
+        }));
+      }
+
+      const primaryId = ids[0];
+      const attributes: MdastNode[] = [
+        { type: 'mdxJsxAttribute', name: 'id', value: primaryId },
+        { type: 'mdxJsxAttribute', name: 'name', value: nameStr },
+      ];
+      if (hidden) {
+        attributes.push({ type: 'mdxJsxAttribute', name: 'hidden', value: 'true' });
+      }
+
+      if (nameStr === 'binary' || nameStr === 'program' || hidden) {
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'Target',
+          attributes,
+          children: [],
+        };
+      }
+
+      const identifierNodes = (node.children ?? []).filter((c) => c.type === 'target_identifier');
+      const directiveArgNodes = (node.children ?? []).filter((c) => c.type === 'directive_argument');
+      const otherNodes = (node.children ?? []).filter(
+        (c) => c.type !== 'target_identifier' && c.type !== 'directive_argument',
+      );
+
+      const argContent = convertChildren({ nodes: directiveArgNodes, depth, ctx });
+      const argTextValue = argContent.map((n) => (n as { value?: string }).value ?? '').join('');
+
+      const childContent = convertChildren({ nodes: identifierNodes, depth, ctx });
+      const identifierTextValue = childContent.map((n) => (n as { value?: string }).value ?? '').join('');
+
+      const textValue = argTextValue || identifierTextValue;
+      if (textValue) {
+        attributes.push({ type: 'mdxJsxAttribute', name: 'term', value: textValue });
+      }
+
+      const bodyChildren = convertChildren({ nodes: otherNodes, depth, ctx });
+
+      const extraRefAnchors: MdastNode[] = ids.slice(1).map((id) => ({
         type: 'mdxJsxFlowElement',
         name: 'RefTarget',
         attributes: [{ type: 'mdxJsxAttribute', name: 'id', value: id }],
         children: [],
       }));
-      // For named directives like `authrole`, the `target_identifier` children
-      // contain the plain-text display name (e.g. "Organization Owner").
-      // For plain label targets (name: 'label'), all children are skipped since the
-      // section heading that follows already renders the text.
-      if (node.name !== 'label') {
-        const identifierNodes = (node.children ?? []).filter((c) => c.type === 'target_identifier');
-        const directiveArgNodes = (node.children ?? []).filter((c) => c.type === 'directive_argument');
-        const otherNodes = (node.children ?? []).filter(
-          (c) => c.type !== 'target_identifier' && c.type !== 'directive_argument',
-        );
 
-        // Prefer directive_argument for the display text: it holds the full method
-        // signature as a literal (e.g. `db.collection.validate(<documents>)`).
-        // The RST parser turns angle-bracket params like <documents> into anonymous
-        // reference nodes, which strips them from target_identifier children.
-        const argContent = convertChildren({ nodes: directiveArgNodes, depth, ctx });
-        const argTextValue = argContent.map((n) => (n as { value?: string }).value ?? '').join('');
-
-        const childContent = convertChildren({ nodes: identifierNodes, depth, ctx });
-        const identifierTextValue = childContent.map((n) => (n as { value?: string }).value ?? '').join('');
-
-        const textValue = argTextValue || identifierTextValue;
-        if (textValue) {
-          refTargets.push({
-            type: 'paragraph',
-            children: [{ type: 'strong', children: [{ type: 'inlineCode', value: textValue }] }],
-          });
-        }
-        const otherChildren = convertChildren({ nodes: otherNodes, depth, ctx });
-        return [...refTargets, ...otherChildren];
-      }
-      return refTargets;
+      return [
+        ...extraRefAnchors,
+        {
+          type: 'mdxJsxFlowElement',
+          name: 'Target',
+          attributes,
+          children: bodyChildren,
+        },
+      ];
     }
 
     case 'inline_target': {
@@ -1798,8 +1820,8 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
     }
 
     case 'target_identifier': {
-      // The parent `target` node already emits the RefTarget anchor(s).
-      // Here we only emit the display text children (e.g., "Organization Owner" from authrole).
+      // The parent `target` node already emits `<Target>` / `<RefTarget>`; this node only
+      // supplies display text when the parent walks children separately.
       return convertChildren({ nodes: node.children, depth, ctx });
     }
     case 'admonition': {
