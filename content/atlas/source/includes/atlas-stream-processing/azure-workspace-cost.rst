@@ -9,13 +9,25 @@ processor of a given tier in a given region.
    :header-rows: 1  
    :widths: 30 14 14 14 14 14  
   
-   * - Region  
-     - SP2  
-     - SP5  
-     - SP10  
-     - SP30  
-     - SP50  
-   * - eastus  
+   * - Region
+     - SP2
+     - SP5
+     - SP10
+     - SP30
+     - SP50
+   * - australiaeast
+     - $0.0722
+     - $0.1444
+     - $0.2620
+     - $0.5378
+     - $2.1510
+   * - brazilsouth
+     - $0.0852
+     - $0.1704
+     - $0.3091
+     - $0.6346
+     - $2.5383
+   * - eastus
      - $0.0550  
      - $0.1100  
      - $0.1900  

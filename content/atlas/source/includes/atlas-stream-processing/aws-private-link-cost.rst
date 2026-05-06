@@ -37,6 +37,10 @@ or monthly rate. These rates vary by region.
      - $0.090
      - $65.98
 
+   * - ``eu-west-3`` Paris, France
+     - $0.0904
+     - $65.98
+
    * - ``eu-central-1`` Frankfurt, Germany
      - $0.093
      - $67.74
