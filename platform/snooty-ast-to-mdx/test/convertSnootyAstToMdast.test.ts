@@ -900,6 +900,29 @@ describe('convertSnootyAstToMdast', () => {
     expect(refs.refs['/docs/page']).toBe('/docs/page');
   });
 
+  it('ref_role doc with fileid stores path in collectedRefs without leading slash', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'ref_role',
+              domain: 'std',
+              name: 'doc',
+              fileid: ['/configure-api-access', ''],
+              children: [{ type: 'text', value: 'Get Started' }],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdast } = convertSnootyAst({ ast });
+    const refs = mdast.__references as ReferencesArtifact;
+    expect(refs?.refs['configure-api-access']).toBe('configure-api-access');
+  });
+
   it('injects tabs-selector-position: main into frontmatter when tabs-selector directive is present', () => {
     const ast: SnootyNode = {
       type: 'root',

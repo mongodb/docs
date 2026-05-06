@@ -542,6 +542,36 @@ const cases: Array<[string, SnootyNode]> = [
     },
   ],
   [
+    'ref_role doc with fileid produces Reference with path key',
+    {
+      type: 'ref_role',
+      domain: 'std',
+      name: 'doc',
+      fileid: ['/configure-api-access', ''],
+      children: [{ type: 'text', value: 'Get Started with the Atlas Administration API' }],
+    },
+  ],
+  [
+    'ref_role doc with null fileid falls back to plain text',
+    {
+      type: 'ref_role',
+      domain: 'std',
+      name: 'doc',
+      fileid: null,
+      children: [{ type: 'text', value: 'Get Started with the Atlas Administration API' }],
+    },
+  ],
+  [
+    'ref_role doc with empty fileid array falls back to plain text',
+    {
+      type: 'ref_role',
+      domain: 'std',
+      name: 'doc',
+      fileid: [],
+      children: [{ type: 'text', value: 'Get Started with the Atlas Administration API' }],
+    },
+  ],
+  [
     'expression directive emits Expression component',
     {
       type: 'directive',

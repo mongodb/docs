@@ -1253,18 +1253,19 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
     case 'doc': {
       const fileid = node.fileid as [string, string?] | undefined;
       const externalUrl = typeof node.url === 'string' ? node.url : undefined;
-      const refTarget = typeof node.target === 'string' ? node.target : undefined;
+      const refTarget = typeof node.target === 'string' && node.target ? node.target : undefined;
       const roleName = typeof node.name === 'string' ? node.name : undefined;
 
-      // The lookup key: prefer the explicit ref target label, fall back to fileid path or external url
-      const key = refTarget ?? (fileid ? fileid[0] : undefined) ?? externalUrl ?? '';
+      // fileid paths have a leading slash; strip it to avoid double-slash URLs at render time.
+      const fileidPath = fileid?.[0]?.replace(/^\/+/, '');
+      const key = refTarget ?? fileidPath ?? externalUrl ?? '';
       if (!key) {
         return convertChildren({ nodes: node.children, depth, ctx });
       }
 
-      // Store combined href so _references.json can resolve it at render time
-      if (fileid?.[0]) {
-        const href = fileid[1] ? `${fileid[0]}#${fileid[1]}` : fileid[0];
+      // Store href so _references.json can resolve it at render time.
+      if (fileidPath) {
+        const href = fileid?.[1] ? `${fileidPath}#${fileid[1]}` : fileidPath;
         ctx.collectedRefs.set(key, href);
       } else if (externalUrl) {
         ctx.collectedRefs.set(key, externalUrl);
