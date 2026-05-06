@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import { cache } from './react-cache';
 import type { MDXComponents } from 'mdx/types';
 import { compileMDX } from 'next-mdx-remote/rsc';
 import remarkGfm from 'remark-gfm';
@@ -60,29 +61,43 @@ const compileMdxWithPlugins = async ({ mdxString, componentMapping, projectPath 
   }
 };
 
+/**
+ * Per-request cache so MDXPage and generateMetadata share one compilation
+ * result for the same path instead of running compileMDX twice.
+ */
+const loadMDXCached = cache(async (pathKey: string) => {
+  const urlPath = pathKey.split('/');
+  const { projectPath } = await getSiteMetadata(urlPath);
+  const componentMapping = components({ projectPath });
+
+  const mdxString = await fetchMdxString(pathKey);
+  if (!mdxString) {
+    return null;
+  }
+
+  const { content, frontmatter } = await compileMdxWithPlugins({ mdxString, componentMapping, projectPath });
+  return { content, frontmatter };
+});
+
 /** Load and compile MDX, including fetching metadata from JSON files */
 export const loadMDX = async (urlPath: string[], replacements?: Record<string, React.ReactNode>) => {
   if (process.env.BUILD_STATIC_PAGES === 'true') {
     return loadOfflineMDX(urlPath, replacements);
   }
 
-  const { projectPath } = await getSiteMetadata(urlPath);
-  const injectedProps = { projectPath, replacements };
-  const componentMapping = components(injectedProps);
-
-  const filePath = urlPath.join('/');
-  const mdxString = await fetchMdxString(filePath);
-  if (!mdxString) {
-    return null;
+  // Per-instance replacements make the output unique per call site, so skip
+  // the request-scoped cache when they are present (e.g. the Include component).
+  if (replacements !== undefined) {
+    const pathKey = urlPath.join('/');
+    const { projectPath } = await getSiteMetadata(urlPath);
+    const componentMapping = components({ projectPath, replacements });
+    const mdxString = await fetchMdxString(pathKey);
+    if (!mdxString) return null;
+    const { content, frontmatter } = await compileMdxWithPlugins({ mdxString, componentMapping, projectPath });
+    return { content, frontmatter };
   }
 
-  const { content, frontmatter } = await compileMdxWithPlugins({
-    mdxString,
-    componentMapping,
-    projectPath,
-  });
-
-  return { content, frontmatter };
+  return loadMDXCached(urlPath.join('/'));
 };
 
 /** Cache compiled MDX during static build **/

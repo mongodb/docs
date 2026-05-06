@@ -1,5 +1,6 @@
 import path from 'path';
 import fs from 'fs/promises';
+import { cache } from './react-cache';
 import type { Store } from '@netlify/blobs';
 import { productionStore, branchSpecificStore, branchSpecificStoreName } from './blob-store';
 import { BLOB_STORE_NAME } from './blob-constants';
@@ -65,7 +66,7 @@ async function readLocalFile(key: string): Promise<Buffer | null> {
   return null;
 }
 
-export const getBlobString = async (key: string): Promise<string | null> => {
+export const getBlobString = cache(async (key: string): Promise<string | null> => {
   if (BUILD_STATIC_PAGES) {
     if (!CONTENT_MDX_DIR) {
       throw new Error('CONTENT_MDX_DIR is required when BUILD_STATIC_PAGES is true.');
@@ -78,7 +79,7 @@ export const getBlobString = async (key: string): Promise<string | null> => {
   // Blobs may omit `reference/.../_references.json` while MDX is present; use local content-mdx when set.
   const buf = await readLocalFile(key);
   return buf ? buf.toString('utf-8') : null;
-};
+});
 
 export const getBlob = async (key: string): Promise<Blob | null> => {
   if (BUILD_STATIC_PAGES) {
