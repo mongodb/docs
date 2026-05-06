@@ -5,10 +5,15 @@ import type { ConversionContext, SnootyNode } from '../src/core/convertSnootyAst
 interface ConvertSnootyAstArgs {
   ast: SnootyNode;
   onEmitMdxFile?: ConversionContext['emitMdxFile'];
+  emitSubstitutionReferencesAsReplacement?: boolean;
 }
 
 /** Converts a Snooty AST to an MDX string and mdast tree for testing */
-export const convertSnootyAst = ({ ast, onEmitMdxFile }: ConvertSnootyAstArgs) => {
+export const convertSnootyAst = ({
+  ast,
+  onEmitMdxFile,
+  emitSubstitutionReferencesAsReplacement,
+}: ConvertSnootyAstArgs) => {
   let rootNode = ast;
   if (ast.type !== 'root') {
     rootNode = { type: 'root', children: [ast] };
@@ -16,7 +21,11 @@ export const convertSnootyAst = ({ ast, onEmitMdxFile }: ConvertSnootyAstArgs) =
   // make the output path relative to the current file
   const currentOutfilePath = './';
 
-  const mdast = convertSnootyAstToMdast(rootNode, { onEmitMdxFile, currentOutfilePath });
+  const mdast = convertSnootyAstToMdast(rootNode, {
+    onEmitMdxFile,
+    currentOutfilePath,
+    emitSubstitutionReferencesAsReplacement,
+  });
   const mdx = convertMdastToMdx(mdast).trim();
 
   return { mdast, mdx };

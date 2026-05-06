@@ -24,7 +24,9 @@ const mdxProcessor = remark().use(remarkFrontmatter, ['yaml']).use(remarkGfm).us
  *
  *  1. Includes  – inlines <Include src="..." /> content; applies <Replacement> slots to
  *     `<Reference type="replacement" />` in the included file
- *  2. Substitutions – replaces <Reference type="substitution" /> with text from _references.json
+ *  2. Substitutions – replaces <Reference type="substitution" /> with text from _references.json,
+ *     or with a link when `refTarget` is set (include replacement-slot MDX; normal pages use
+ *     <Reference name title /> and step 3)
  *  3. Ref links – replaces <Reference> and <RefRole> with mdast links
  *
  * Downstream plugins (e.g. remarkHowToSeoMetadata) then see a complete
@@ -41,7 +43,7 @@ export const remarkResolveImports = ({ projectPath }: { projectPath: string }) =
       console.warn(`[remarkResolveImports] Failed to load references for ${projectPath}; using empty refs`);
     }
 
-    resolveSubstitutions({ tree, refs });
+    resolveSubstitutions({ tree, refs, projectPath });
     resolveRefLinks({ tree, refs, projectPath });
   };
 };
@@ -177,7 +179,7 @@ interface ResolveRefsArgs {
   projectPath?: string;
 }
 
-const resolveSubstitutions = ({ tree, refs }: ResolveRefsArgs) => {
+const resolveSubstitutions = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
   const replacements: JsxReplacement[] = [];
 
   visit(tree, (node, index, parent) => {
@@ -190,6 +192,7 @@ const resolveSubstitutions = ({ tree, refs }: ResolveRefsArgs) => {
     const key = getAttr(node, 'refKey') ?? getAttr(node, 'name');
     if (!key) return;
 
+    const refTarget = getAttr(node, 'refTarget');
     // Prefer the value baked in at conversion time (mirrors RST inline substitution
     // resolution and preserves per-page context for keys like |idp-provider|).
     const inlineValue = getAttr(node, 'value');
@@ -201,6 +204,43 @@ const resolveSubstitutions = ({ tree, refs }: ResolveRefsArgs) => {
     // Fall back to the shared _references.json for substitutions without an inline value
     // (e.g. references in standalone include files processed without page context).
     const value = refs.substitutions[key];
+
+    if (refTarget) {
+      const href = refs.refs[refTarget];
+      const linkLabel =
+        typeof value === 'string'
+          ? value
+          : value && typeof value === 'object' && 'text' in value
+          ? (value as AbbrSubstitution).text
+          : undefined;
+
+      if (href && linkLabel !== undefined) {
+        const resolvedHref = href.startsWith('http') ? href : `/docs/${projectPath}/${href}`;
+        const linkNode: Link = {
+          type: 'link',
+          url: resolvedHref,
+          children: [{ type: 'text', value: linkLabel }],
+        };
+        replacements.push({ index, parent, replacement: linkNode });
+        return;
+      }
+
+      // Missing xref href or label: fall back to plain substitution / Abbr when possible
+      if (!value) return;
+      if (typeof value === 'object') {
+        const abbrNode: MdxJsxTextElement = {
+          type: 'mdxJsxTextElement',
+          name: 'Abbr',
+          attributes: [{ type: 'mdxJsxAttribute', name: 'tooltip', value: value.tooltip }],
+          children: [{ type: 'text', value: value.text }],
+        };
+        replacements.push({ index, parent, replacement: abbrNode as unknown as PhrasingContent });
+        return;
+      }
+      replacements.push({ index, parent, replacement: { type: 'text', value } as PhrasingContent });
+      return;
+    }
+
     if (!value) return;
 
     if (typeof value === 'object') {

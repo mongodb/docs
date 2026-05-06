@@ -45,10 +45,10 @@ async function getFromStores(key: string, type: 'string' | 'blob'): Promise<stri
   return null;
 }
 
-/** Read from local filesystem when building static pages. */
+/** Read from local CONTENT_MDX_DIR using blob-key → disk path mapping. Returns null if unset or missing. */
 async function readLocalFile(key: string): Promise<Buffer | null> {
   if (!CONTENT_MDX_DIR) {
-    throw new Error('CONTENT_MDX_DIR is required when BUILD_STATIC_PAGES is true.');
+    return null;
   }
   const blobRelative = keyToLocalPath(key);
   const map = await loadDirNameToPrefixMap();
@@ -67,16 +67,29 @@ async function readLocalFile(key: string): Promise<Buffer | null> {
 
 export const getBlobString = async (key: string): Promise<string | null> => {
   if (BUILD_STATIC_PAGES) {
+    if (!CONTENT_MDX_DIR) {
+      throw new Error('CONTENT_MDX_DIR is required when BUILD_STATIC_PAGES is true.');
+    }
     const buf = await readLocalFile(key);
     return buf ? buf.toString('utf-8') : null;
   }
-  return getFromStores(key, 'string') as Promise<string | null>;
+  const fromStore = (await getFromStores(key, 'string')) as string | null;
+  if (fromStore) return fromStore;
+  // Blobs may omit `reference/.../_references.json` while MDX is present; use local content-mdx when set.
+  const buf = await readLocalFile(key);
+  return buf ? buf.toString('utf-8') : null;
 };
 
 export const getBlob = async (key: string): Promise<Blob | null> => {
   if (BUILD_STATIC_PAGES) {
+    if (!CONTENT_MDX_DIR) {
+      throw new Error('CONTENT_MDX_DIR is required when BUILD_STATIC_PAGES is true.');
+    }
     const buf = await readLocalFile(key);
     return buf ? new Blob([new Uint8Array(buf)]) : null;
   }
-  return getFromStores(key, 'blob') as Promise<Blob | null>;
+  const fromStore = (await getFromStores(key, 'blob')) as Blob | null;
+  if (fromStore) return fromStore;
+  const buf = await readLocalFile(key);
+  return buf ? new Blob([new Uint8Array(buf)]) : null;
 };

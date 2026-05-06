@@ -73,6 +73,8 @@ export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIn
     onEmitMdxFile: ctx.emitMdxFile,
     currentOutfilePath: path.normalize(emittedPathNormalized),
     initialDepth: depth,
+    substitutionRefXref: ctx.substitutionRefXref,
+    substitutionDefLiterals: ctx.substitutionDefLiterals,
     emitSubstitutionReferencesAsReplacement: isSlotBased,
     suppressSubstitutionInlineValues: !isSlotBased,
   });
@@ -89,7 +91,12 @@ export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIn
     const key = parseSnootyArgument(replacementNode);
     const valueRoot = convertSnootyAstToMdast(
       { type: 'root', children: Array.isArray(replacementNode.children) ? replacementNode.children : [] },
-      { onEmitMdxFile: ctx.emitMdxFile, currentOutfilePath: path.normalize(emittedPathNormalized) },
+      {
+        onEmitMdxFile: ctx.emitMdxFile,
+        currentOutfilePath: path.normalize(emittedPathNormalized),
+        substitutionRefXref: ctx.substitutionRefXref,
+        substitutionDefLiterals: ctx.substitutionDefLiterals,
+      },
     );
 
     return {

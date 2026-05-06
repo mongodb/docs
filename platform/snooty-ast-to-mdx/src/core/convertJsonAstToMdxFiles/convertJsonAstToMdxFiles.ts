@@ -4,12 +4,22 @@ import { convertMdastToMdx } from '../convertMdastToMdx';
 import { convertSnootyAstToMdast } from '../convertSnootyAstToMdast/convertSnootyAstToMdast';
 import { buildReferencesArtifacts, readExistingReferences, mergeReferences } from './buildReferencesArtifacts';
 import type { ReferencesArtifact } from './buildReferencesArtifacts';
-import type { SnootyNode } from '../convertSnootyAstToMdast/types';
+import type { SnootyNode, SubstitutionRefXrefInfo } from '../convertSnootyAstToMdast/types';
 
 interface ConvertJsonAstToMdxFilesOptions {
   ast: SnootyNode;
   outputPath: string;
   outputRootDir?: string;
+  /**
+   * Project-wide xref catalog (e.g. merged across BSON pages in a zip). Per-page definitions from
+   * `ast` are merged on top inside `convertSnootyAstToMdast`.
+   */
+  substitutionRefXref?: Map<string, SubstitutionRefXrefInfo>;
+  /**
+   * Project-wide non-xref substitution literals (`:pipeline:`, plain text). Merged with each page's
+   * local definitions inside `convertSnootyAstToMdast` so includes resolve `|alias|` like zip builds.
+   */
+  substitutionDefLiterals?: Map<string, string>;
 }
 
 type ConvertJsonAstToMdxFiles = (args: ConvertJsonAstToMdxFilesOptions) => Promise<{
@@ -18,7 +28,13 @@ type ConvertJsonAstToMdxFiles = (args: ConvertJsonAstToMdxFilesOptions) => Promi
 }>;
 
 /** Convert a JSON AST to an MDX file and create additional files (refs, includes, etc.) */
-export const convertJsonAstToMdxFiles: ConvertJsonAstToMdxFiles = async ({ ast, outputPath, outputRootDir }) => {
+export const convertJsonAstToMdxFiles: ConvertJsonAstToMdxFiles = async ({
+  ast,
+  outputPath,
+  outputRootDir,
+  substitutionRefXref,
+  substitutionDefLiterals,
+}) => {
   // Track unique output file paths we've written during this process to avoid
   // duplicate writes and over-counting when includes repeat across pages.
   const emittedFilePaths = new Set<string>();
@@ -31,6 +47,8 @@ export const convertJsonAstToMdxFiles: ConvertJsonAstToMdxFiles = async ({ ast, 
   // Make the current output file path relative to the provided output root directory
   const mdast = convertSnootyAstToMdast(ast, {
     currentOutfilePath: path.relative(rootDir, outputPath),
+    substitutionRefXref,
+    substitutionDefLiterals,
     onEmitMdxFile: async ({ outfilePath, mdastRoot }) => {
       try {
         const outPath = path.join(rootDir, outfilePath);

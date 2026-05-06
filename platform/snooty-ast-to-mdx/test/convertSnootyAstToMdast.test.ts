@@ -6,6 +6,7 @@
 import yaml from 'yaml';
 import { convertSnootyAst } from './utils';
 import { convertMdastToMdx } from '../src/core/convertMdastToMdx';
+import { buildSubstitutionRefXrefMap } from '../src/core/convertSnootyAstToMdast/convertSnootyAstToMdast';
 import type { SnootyNode } from '../src/core/convertSnootyAstToMdast/types';
 import type { ReferencesArtifact } from '../src/core/convertJsonAstToMdxFiles/buildReferencesArtifacts';
 
@@ -274,6 +275,352 @@ describe('convertSnootyAstToMdast', () => {
     expect(mdastRoot).toHaveProperty('type', 'root');
 
     expect(mdx).toBe(`<Include src="/included-file" />`);
+  });
+
+  it('buildSubstitutionRefXrefMap records ref_role with name label (Snooty std :ref: for .. |alias| replace:: :ref:)', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'substitution_definition',
+          refname: 'area-of-query-ref',
+          children: [
+            {
+              type: 'ref_role',
+              name: 'label',
+              domain: 'std',
+              target: 'avs-areas-of-query',
+              fileid: ['query/explain', 'std-label-avs-areas-of-query'],
+              children: [{ type: 'text', value: 'areas of query' }],
+            },
+          ],
+        },
+      ],
+    };
+    expect(buildSubstitutionRefXrefMap(ast).get('area-of-query-ref')).toEqual({
+      refTargetKey: 'avs-areas-of-query',
+      title: 'areas of query',
+      href: 'query/explain#std-label-avs-areas-of-query',
+    });
+  });
+
+  it('buildSubstitutionRefXrefMap records substitution_definition whose body is a reference node (ids)', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'substitution_definition',
+          refname: 'area-of-query-ref',
+          children: [
+            {
+              type: 'reference',
+              ids: ['avs-areas-of-query'],
+              children: [{ type: 'text', value: 'areas of query' }],
+            },
+          ],
+        },
+      ],
+    };
+    expect(buildSubstitutionRefXrefMap(ast).get('area-of-query-ref')).toEqual({
+      refTargetKey: 'avs-areas-of-query',
+      title: 'areas of query',
+    });
+  });
+
+  it('substitution_reference with expanded reference node emits Reference name + title (not type substitution)', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'substitution_reference',
+              refname: 'area-of-query-ref',
+              children: [
+                {
+                  type: 'reference',
+                  ids: ['avs-areas-of-query'],
+                  fileid: ['query/explain', 'std-label-avs-areas-of-query'],
+                  children: [{ type: 'text', value: 'areas of query' }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    expect(mdx).toContain('name="avs-areas-of-query"');
+    expect(mdx).toContain('title="areas of query"');
+    expect(mdx).not.toContain('type="substitution"');
+  });
+
+  it('catalog resolves xref when substitution_definition ref_role has target but no fileid (no href yet)', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'substitution_definition',
+          refname: 'area-ref',
+          children: [
+            {
+              type: 'ref_role',
+              name: 'ref',
+              target: 'avs-areas-of-query',
+              children: [{ type: 'text', value: 'area' }],
+            },
+          ],
+        },
+        {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'substitution_reference',
+              refname: 'area-ref',
+              children: [{ type: 'text', value: 'area' }],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdast } = convertSnootyAst({ ast });
+    expect(convertMdastToMdx(mdast)).toContain('name="avs-areas-of-query"');
+    expect(convertMdastToMdx(mdast)).toContain('title="area"');
+  });
+
+  it('passes :pipeline: substitution_definition into Include body as linked Reference (empty substitution_reference)', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'substitution_definition',
+          refname: 'search-stage',
+          children: [
+            {
+              type: 'ref_role',
+              name: 'pipeline',
+              target: 'pipe.$vectorSearch',
+              fileid: ['query/aggregation-stages/vector-search-stage', 'mongodb-pipeline-pipe.-vectorSearch'],
+              children: [{ type: 'literal', value: '$vectorSearch' }],
+            },
+          ],
+        },
+        {
+          type: 'directive',
+          name: 'include',
+          argument: [{ type: 'text', value: '/_includes/quick-start/facts/prereqs.txt' }],
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                {
+                  type: 'substitution_reference',
+                  refname: 'search-stage',
+                  children: [],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const onEmitMdxFile = jest.fn();
+    const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
+    expect(onEmitMdxFile).toHaveBeenCalledTimes(1);
+    const [{ mdastRoot }] = onEmitMdxFile.mock.calls[0];
+    const includedMdx = convertMdastToMdx(mdastRoot as Parameters<typeof convertMdastToMdx>[0]).trim();
+    expect(includedMdx).toContain('name="pipe.$vectorSearch"');
+    expect(includedMdx).toContain('title="$vectorSearch"');
+    expect(includedMdx).not.toContain('type="substitution"');
+    expect(mdx).toBe(`<Include src="/_includes/quick-start/facts/prereqs" />`);
+    const refs = (mdastRoot as { __references?: ReferencesArtifact }).__references;
+    expect(refs?.substitutions?.['search-stage']).toBe('$vectorSearch');
+    expect(refs?.refs?.['pipe.$vectorSearch']).toBe(
+      'query/aggregation-stages/vector-search-stage#mongodb-pipeline-pipe.-vectorSearch',
+    );
+  });
+
+  it('resolves substitution_reference with empty children using :pipeline: substitution_definition (linked catalog)', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'substitution_definition',
+          refname: 'search-stage',
+          children: [
+            {
+              type: 'ref_role',
+              name: 'pipeline',
+              target: 'pipe.$vectorSearch',
+              fileid: ['query/aggregation-stages/vector-search-stage', 'mongodb-pipeline-pipe.-vectorSearch'],
+              children: [{ type: 'literal', value: '$vectorSearch' }],
+            },
+          ],
+        },
+        {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'substitution_reference',
+              refname: 'search-stage',
+              children: [],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdast } = convertSnootyAst({ ast });
+    const mdx = convertMdastToMdx(mdast);
+    expect(mdx).toContain('name="pipe.$vectorSearch"');
+    expect(mdx).toContain('title="$vectorSearch"');
+    expect(mdx).not.toContain('type="substitution"');
+    const refs = mdast.__references as ReferencesArtifact;
+    expect(refs?.substitutions?.['search-stage']).toBe('$vectorSearch');
+    expect(refs?.refs?.['pipe.$vectorSearch']).toBe(
+      'query/aggregation-stages/vector-search-stage#mongodb-pipeline-pipe.-vectorSearch',
+    );
+  });
+
+  it('resolves :pipeline: without target as plain type="substitution" (literal fallback)', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'substitution_definition',
+          refname: 'search-stage',
+          children: [
+            {
+              type: 'role',
+              name: 'pipeline',
+              children: [{ type: 'literal', value: '$vectorSearch' }],
+            },
+          ],
+        },
+        {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'substitution_reference',
+              refname: 'search-stage',
+              children: [],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdast } = convertSnootyAst({ ast });
+    const mdx = convertMdastToMdx(mdast);
+    expect(mdx).toContain('refKey="search-stage"');
+    expect(mdx).toContain('type="substitution"');
+    const refs = mdast.__references as ReferencesArtifact;
+    expect(refs?.substitutions?.['search-stage']).toBe('$vectorSearch');
+  });
+
+  it('resolves text-only substitution_reference using catalog from substitution_definition (include-file shape)', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'substitution_definition',
+          refname: 'area-ref',
+          children: [
+            {
+              type: 'ref_role',
+              name: 'ref',
+              target: 'avs-areas-of-query',
+              fileid: ['query/explain', 'std-label-avs-areas-of-query'],
+              children: [{ type: 'text', value: 'area' }],
+            },
+          ],
+        },
+        {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'substitution_reference',
+              refname: 'area-ref',
+              children: [{ type: 'text', value: 'area' }],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdast } = convertSnootyAst({ ast });
+    const mdx = convertMdastToMdx(mdast);
+    expect(mdx).toContain('name="avs-areas-of-query"');
+    expect(mdx).toContain('title="area"');
+    expect(mdx).not.toContain('type="substitution"');
+    const refs = mdast.__references as ReferencesArtifact;
+    expect(refs?.refs['avs-areas-of-query']).toBe('query/explain#std-label-avs-areas-of-query');
+  });
+
+  it('emits canonical Reference name/title when substitution_reference expands to :ref:', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'substitution_reference',
+              refname: 'area-ref',
+              children: [
+                {
+                  type: 'ref_role',
+                  name: 'ref',
+                  target: 'avs-areas-of-query',
+                  fileid: ['query/explain', 'std-label-avs-areas-of-query'],
+                  children: [{ type: 'text', value: 'area' }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdast } = convertSnootyAst({ ast });
+    const emittedMdx = convertMdastToMdx(mdast);
+    expect(emittedMdx).toContain('name="avs-areas-of-query"');
+    expect(emittedMdx).toContain('title="area"');
+    expect(emittedMdx).not.toContain('refTarget=');
+    expect(emittedMdx).not.toContain('refKey=');
+    expect(emittedMdx).not.toContain('type="substitution"');
+    const refs = mdast.__references as ReferencesArtifact;
+    expect(refs?.substitutions).toHaveProperty('area-ref', 'area');
+    expect(refs?.refs).toHaveProperty('avs-areas-of-query', 'query/explain#std-label-avs-areas-of-query');
+  });
+
+  it('emits refKey + refTarget + replacement when substitution_reference is :ref: inside replacement-slot include body', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'substitution_reference',
+              refname: 'area-ref',
+              children: [
+                {
+                  type: 'ref_role',
+                  name: 'ref',
+                  target: 'areas-of-query',
+                  fileid: ['atlas-search/explain', 'std-label-areas-of-query'],
+                  children: [{ type: 'text', value: 'area' }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdast } = convertSnootyAst({ ast, emitSubstitutionReferencesAsReplacement: true });
+    const emittedMdx = convertMdastToMdx(mdast);
+    expect(emittedMdx).toContain('refTarget="areas-of-query"');
+    expect(emittedMdx).toContain('refKey="area-ref"');
+    expect(emittedMdx).toContain('type="replacement"');
+    expect(emittedMdx).not.toContain('name="areas-of-query"');
   });
 
   it('emits substitution_reference in plain include body as type substitution (for _references.json)', () => {

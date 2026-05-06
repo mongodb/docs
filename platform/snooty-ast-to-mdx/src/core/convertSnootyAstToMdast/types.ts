@@ -9,6 +9,17 @@ export interface EmitMdxFileArgs {
   mdastRoot: MdastRoot;
 }
 
+/** Resolved `:ref:` / `:doc:` expansion for a substitution alias (`.. |id| replace:: :ref:`…`). */
+export interface SubstitutionRefXrefInfo {
+  refTargetKey: string;
+  title: string;
+  /**
+   * Relative path or absolute URL for `_references.refs`, when Snooty has resolved `fileid` / `url`.
+   * Omitted when only the xref label (`target`) is present until publish-time merge.
+   */
+  href?: string;
+}
+
 export interface ConversionContext {
   emitMdxFile?: (args: EmitMdxFileArgs) => void;
   /** Relative path (POSIX) of the file currently being generated, e.g. '_includes/foo.mdx' */
@@ -20,7 +31,18 @@ export interface ConversionContext {
    */
   emitSubstitutionReferencesAsReplacement?: boolean;
   /**
-   * When true (plain include content), substitution references do NOT get a `value` attribute
+   * Built from the **full** page AST: `.. |alias| replace:: :ref:` … definitions found anywhere on the
+   * page. Passed into nested `convertSnootyAstToMdast` for included subtrees so `|alias|` uses there
+   * (often text-only children) still emit canonical xref `<Reference name title />`.
+   */
+  substitutionRefXref?: Map<string, SubstitutionRefXrefInfo>;
+  /**
+   * Non-xref `.. |alias| replace:: …` bodies (`:pipeline:`, plain text, etc.) collected from the
+   * full page AST, merged with parent maps for include conversion so `|alias|` in include bodies
+   * (often empty children) still resolve and merge into `_references.json`.
+   */
+  substitutionDefLiterals?: Map<string, string>;
+  /** When true (plain include content), substitution references do NOT get a `value` attribute
    * baked in. The calling page's `<Include>` element provides per-page values via `<Replacement>`
    * slots; unmatched refs fall back to `_references.json`.
    */

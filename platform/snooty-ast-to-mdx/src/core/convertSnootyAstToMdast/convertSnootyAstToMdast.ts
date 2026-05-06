@@ -10,6 +10,7 @@ import type {
   MDXFrontmatter,
   PageTemplateType,
   PageOptions,
+  SubstitutionRefXrefInfo,
 } from './types';
 import { convertDirectiveImage } from './convertDirectiveImage';
 import { convertDirectiveInclude } from './convertDirectiveInclude';
@@ -295,6 +296,216 @@ const buildEnumeratedListJsx = (
     into multiple mdast siblings, so the return type can be an array. */
 /** Parent node types whose child paragraphs should be unwrapped (no <p> wrapper emitted). */
 const SKIP_P_TAG_PARENTS = new Set(['caption', 'footnote']);
+
+/**
+ * DFS for inline `:ref:` / `:doc:` expansion inside substitution content
+ * (Snooty may use `ref_role`, `doc`, or a `role` with name `ref`/`doc`; nodes may be wrapped in a paragraph).
+ * Snooty often represents resolved `:ref:` as `ref_role` with `name: "label"` (std domain), not `name: "ref"`.
+ */
+const findRefOrDocRoleInSubstitution = (nodes: SnootyNode[] | undefined): SnootyNode | null => {
+  if (!nodes?.length) return null;
+  for (const n of nodes) {
+    if (n.type === 'doc') return n;
+    if (n.type === 'ref_role') {
+      const roleName = typeof n.name === 'string' ? n.name : undefined;
+      // Typed roles (:binary:, :authrole:, etc.) use other names and must not match here.
+      if (!roleName || roleName === 'ref' || roleName === 'doc' || roleName === 'label') {
+        return n;
+      }
+    }
+    if (n.type === 'role') {
+      const rn = typeof n.name === 'string' ? n.name.toLowerCase() : '';
+      if (rn === 'ref' || rn === 'doc') return n;
+    }
+    // Docutils internal xref node (Snooty sometimes emits this instead of `ref_role`)
+    if (n.type === 'reference' && typeof n.refuri !== 'string') {
+      return n;
+    }
+    const nested = findRefOrDocRoleInSubstitution(n.children);
+    if (nested) return nested;
+  }
+  return null;
+};
+
+/**
+ * `:pipeline:\`$vectorSearch\`` and similar — resolved like xref entries in
+ * `buildSubstitutionRefXrefMap` so `|alias|` emits linked {@link Reference} / `refs` (not plain text).
+ */
+const findPipelineRoleInSubstitution = (nodes: SnootyNode[] | undefined): SnootyNode | null => {
+  if (!nodes?.length) return null;
+  for (const n of nodes) {
+    if (n.type === 'ref_role') {
+      const roleName = typeof n.name === 'string' ? n.name.toLowerCase() : '';
+      if (roleName === 'pipeline') return n;
+    }
+    if (n.type === 'role') {
+      const rn = typeof n.name === 'string' ? n.name.toLowerCase() : '';
+      if (rn === 'pipeline') return n;
+    }
+    const nested = findPipelineRoleInSubstitution(n.children);
+    if (nested) return nested;
+  }
+  return null;
+};
+
+const extractRefTargetKeyFromRefRoleLike = (node: SnootyNode): string | null => {
+  if (node.type === 'reference' && typeof node.refuri !== 'string') {
+    const ids = Array.isArray(node.ids) ? node.ids.filter((x): x is string => typeof x === 'string') : [];
+    if (ids.length > 0) return ids[0];
+    if (typeof node.refname === 'string') return node.refname;
+  }
+  const fileid = node.fileid as [string, string?] | undefined;
+  const externalUrl = typeof node.url === 'string' ? node.url : undefined;
+  const refTarget = typeof node.target === 'string' ? node.target : undefined;
+  const ids = Array.isArray(node.ids) ? node.ids.filter((x): x is string => typeof x === 'string') : [];
+  const idFallback = ids.length > 0 ? ids[0] : undefined;
+  const key = refTarget ?? (fileid ? fileid[0] : undefined) ?? externalUrl ?? idFallback ?? '';
+  return key || null;
+};
+
+/** Relative path fragment or external URL for `_references.refs` (mirrors Snooty `fileid` / `url`). */
+const computeHrefFromRefRoleLike = (node: SnootyNode): string | null => {
+  const fileid = node.fileid as [string, string?] | undefined;
+  const externalUrl = typeof node.url === 'string' ? node.url : undefined;
+  if (fileid?.[0]) {
+    return fileid[1] ? `${fileid[0]}#${fileid[1]}` : fileid[0];
+  }
+  if (externalUrl) return externalUrl;
+  return null;
+};
+
+/** Same `collectedRefs` behavior as `case 'ref_role'` / `'doc'` for xref targets. */
+const collectRefTargetFromRefRoleLike = (node: SnootyNode, ctx: ConversionContext): string | null => {
+  const key = extractRefTargetKeyFromRefRoleLike(node);
+  if (!key) return null;
+  const href = computeHrefFromRefRoleLike(node);
+  if (href) ctx.collectedRefs.set(key, href);
+  return key;
+};
+
+const mergeSubstitutionRefXrefMaps = (
+  project: Map<string, SubstitutionRefXrefInfo> | undefined,
+  local: Map<string, SubstitutionRefXrefInfo>,
+): Map<string, SubstitutionRefXrefInfo> => {
+  const out = new Map<string, SubstitutionRefXrefInfo>(project ?? []);
+  for (const [k, v] of local) {
+    out.set(k, v);
+  }
+  return out;
+};
+
+/**
+ * Walk the full document tree for `substitution_definition` nodes whose body is `:ref:` / `:doc:`,
+ * or `:pipeline:` (aggregation stage link), so included files can resolve `|alias|` to linked MDX.
+ */
+export const buildSubstitutionRefXrefMap = (root: SnootyNode): Map<string, SubstitutionRefXrefInfo> => {
+  const map = new Map<string, SubstitutionRefXrefInfo>();
+  const visitedAstSubtrees = new WeakSet<SnootyNode>();
+
+  const visitNode = (node: SnootyNode | undefined) => {
+    if (!node) return;
+    if (node.type === 'substitution_definition') {
+      const refname = String(node.refname || node.name || '');
+      const refLink = findRefOrDocRoleInSubstitution(node.children);
+      const pipelineLink = refLink ? null : findPipelineRoleInSubstitution(node.children);
+      const roleLike = refLink ?? pipelineLink;
+      if (refname && roleLike) {
+        const refTargetKey = extractRefTargetKeyFromRefRoleLike(roleLike);
+        const href = computeHrefFromRefRoleLike(roleLike);
+        const title = extractInlineDisplayText(roleLike.children ?? []);
+        // Snooty often provides only `target` (xref label) on :ref: until fileid is resolved; still emit xref MDX.
+        if (refTargetKey && title) {
+          map.set(refname, href ? { refTargetKey, title, href } : { refTargetKey, title });
+        }
+      }
+    }
+    if (Array.isArray(node.children)) {
+      for (const c of node.children) visitNode(c);
+    }
+    if (Array.isArray(node.argument)) {
+      for (const c of node.argument) {
+        if (c && typeof c === 'object' && 'type' in (c as object)) visitNode(c as SnootyNode);
+      }
+    }
+    const nestedAst = node.ast as SnootyNode | undefined;
+    if (
+      nestedAst &&
+      typeof nestedAst === 'object' &&
+      nestedAst !== node &&
+      'type' in nestedAst &&
+      !visitedAstSubtrees.has(nestedAst)
+    ) {
+      visitedAstSubtrees.add(nestedAst);
+      visitNode(nestedAst);
+    }
+  };
+
+  visitNode(root);
+  return map;
+};
+
+const mergeSubstitutionDefLiteralMaps = (
+  parent: Map<string, string> | undefined,
+  local: Map<string, string>,
+): Map<string, string> => {
+  const out = new Map<string, string>(parent ?? []);
+  for (const [k, v] of local) {
+    out.set(k, v);
+  }
+  return out;
+};
+
+/**
+ * Walk the full document tree for `substitution_definition` nodes whose body is **not** `:ref:` /
+ * `:doc:` (those use {@link buildSubstitutionRefXrefMap}). Collects display text for roles such as
+ * Plain-text replacements so included subtrees can resolve `|alias|` (pipeline/ref defs use
+ * {@link buildSubstitutionRefXrefMap} instead).
+ */
+export const buildSubstitutionDefinitionLiteralMap = (root: SnootyNode): Map<string, string> => {
+  const map = new Map<string, string>();
+  const visitedAstSubtrees = new WeakSet<SnootyNode>();
+
+  const visitNode = (node: SnootyNode | undefined) => {
+    if (!node) return;
+    if (node.type === 'substitution_definition') {
+      const refname = String(node.refname || node.name || '');
+      const refLink = findRefOrDocRoleInSubstitution(node.children);
+      const pipelineLink = refLink ? null : findPipelineRoleInSubstitution(node.children);
+      const pipelineAsXref =
+        pipelineLink &&
+        extractRefTargetKeyFromRefRoleLike(pipelineLink) &&
+        extractInlineDisplayText(pipelineLink.children ?? []);
+      if (refname && !refLink && !pipelineAsXref) {
+        const text = extractInlineDisplayText(node.children ?? []);
+        if (text) {
+          map.set(refname, text);
+        }
+      }
+    }
+    if (Array.isArray(node.children)) {
+      for (const c of node.children) visitNode(c);
+    }
+    if (Array.isArray(node.argument)) {
+      for (const c of node.argument) {
+        if (c && typeof c === 'object' && 'type' in (c as object)) visitNode(c as SnootyNode);
+      }
+    }
+    const nestedAst = node.ast as SnootyNode | undefined;
+    if (
+      nestedAst &&
+      typeof nestedAst === 'object' &&
+      nestedAst !== node &&
+      'type' in nestedAst &&
+      !visitedAstSubtrees.has(nestedAst)
+    ) {
+      visitedAstSubtrees.add(nestedAst);
+      visitNode(nestedAst);
+    }
+  };
+
+  visitNode(root);
+  return map;
+};
 
 const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): MdastNode | MdastNode[] | null => {
   switch (node.type) {
@@ -1350,7 +1561,80 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         }
       }
 
-      const text = extractInlineDisplayText(node.children ?? []);
+      const refLinkNode = findRefOrDocRoleInSubstitution(node.children);
+      if (refLinkNode) {
+        const refTargetKey = collectRefTargetFromRefRoleLike(refLinkNode, ctx);
+        if (refTargetKey && refname) {
+          const title = extractInlineDisplayText(refLinkNode.children ?? []);
+          const slotBody = ctx.emitSubstitutionReferencesAsReplacement;
+
+          // Include bodies with `.. replacement::` still need refKey + type replacement (+ refTarget for remark).
+          if (slotBody) {
+            const attributes: MdastNode[] = [
+              { type: 'mdxJsxAttribute', name: 'refKey', value: refname },
+              { type: 'mdxJsxAttribute', name: 'type', value: 'replacement' },
+              { type: 'mdxJsxAttribute', name: 'refTarget', value: refTargetKey },
+            ];
+            return {
+              type: 'mdxJsxTextElement',
+              name: 'Reference',
+              attributes,
+              children: [],
+            };
+          }
+
+          // Break out `|alias| replace:: :ref:` … as the same output as a standalone `:ref:` / `:doc:`.
+          if (title) {
+            ctx.collectedSubstitutions.set(refname, title);
+          }
+          const attributes: MdastNode[] = [{ type: 'mdxJsxAttribute', name: 'name', value: refTargetKey }];
+          if (title) {
+            attributes.push({ type: 'mdxJsxAttribute', name: 'title', value: title });
+          }
+          return {
+            type: 'mdxJsxTextElement',
+            name: 'Reference',
+            attributes,
+            children: [],
+          };
+        }
+      }
+
+      // Included RST often has text-only `substitution_reference` children (definitions live on the parent page).
+      const fromCatalog = refname ? ctx.substitutionRefXref?.get(refname) : undefined;
+      if (fromCatalog) {
+        const slotBody = ctx.emitSubstitutionReferencesAsReplacement;
+        if (fromCatalog.href && !ctx.collectedRefs.has(fromCatalog.refTargetKey)) {
+          ctx.collectedRefs.set(fromCatalog.refTargetKey, fromCatalog.href);
+        }
+        if (slotBody) {
+          return {
+            type: 'mdxJsxTextElement',
+            name: 'Reference',
+            attributes: [
+              { type: 'mdxJsxAttribute', name: 'refKey', value: refname },
+              { type: 'mdxJsxAttribute', name: 'type', value: 'replacement' },
+              { type: 'mdxJsxAttribute', name: 'refTarget', value: fromCatalog.refTargetKey },
+            ],
+            children: [],
+          };
+        }
+        ctx.collectedSubstitutions.set(refname, fromCatalog.title);
+        return {
+          type: 'mdxJsxTextElement',
+          name: 'Reference',
+          attributes: [
+            { type: 'mdxJsxAttribute', name: 'name', value: fromCatalog.refTargetKey },
+            { type: 'mdxJsxAttribute', name: 'title', value: fromCatalog.title },
+          ],
+          children: [],
+        };
+      }
+
+      let text = extractInlineDisplayText(node.children ?? []);
+      if (!text && refname) {
+        text = ctx.substitutionDefLiterals?.get(refname) ?? '';
+      }
       const slotBody = ctx.emitSubstitutionReferencesAsReplacement;
       if (!slotBody && refname && text) {
         ctx.collectedSubstitutions.set(refname, text);
@@ -1556,6 +1840,13 @@ interface ConvertSnootyAstToMdastOptions {
    * `<Replacement>` slots (see `convertDirectiveInclude` when `.. replacement::` is present).
    */
   emitSubstitutionReferencesAsReplacement?: boolean;
+  /**
+   * Optional pre-built xref catalog (nested include conversion passes the parent page’s map).
+   * When omitted, built from `substitution_definition` nodes in `root`.
+   */
+  substitutionRefXref?: Map<string, SubstitutionRefXrefInfo>;
+  /** Parent page non-xref substitution definitions (`:pipeline:`, plain text); merged with this root's definitions. */
+  substitutionDefLiterals?: Map<string, string>;
   /** Plain include bodies only: suppress the `value` attribute so `<Replacement>` slots win. */
   suppressSubstitutionInlineValues?: boolean;
 }
@@ -1567,10 +1858,22 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
   const collectedSubstitutions = new Map<string, string>();
   const collectedRefs = new Map<string, string>();
 
+  const substitutionRefXref = mergeSubstitutionRefXrefMaps(
+    options?.substitutionRefXref,
+    buildSubstitutionRefXrefMap(root),
+  );
+
+  const substitutionDefLiterals = mergeSubstitutionDefLiteralMaps(
+    options?.substitutionDefLiterals,
+    buildSubstitutionDefinitionLiteralMap(root),
+  );
+
   const ctx: ConversionContext = {
     emitMdxFile: options?.onEmitMdxFile,
     currentOutfilePath: options?.currentOutfilePath,
     emitSubstitutionReferencesAsReplacement: options?.emitSubstitutionReferencesAsReplacement,
+    substitutionRefXref,
+    substitutionDefLiterals,
     suppressSubstitutionInlineValues: options?.suppressSubstitutionInlineValues,
     collectedSubstitutions,
     collectedRefs,

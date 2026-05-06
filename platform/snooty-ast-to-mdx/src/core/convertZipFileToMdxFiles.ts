@@ -3,7 +3,11 @@ import { posix as path } from 'node:path';
 import unzipper from 'unzipper';
 import { BSON } from 'bson';
 import { convertJsonAstToMdxFiles } from './convertJsonAstToMdxFiles/convertJsonAstToMdxFiles';
-import type { SnootyNode } from './convertSnootyAstToMdast/types';
+import {
+  buildSubstitutionDefinitionLiteralMap,
+  buildSubstitutionRefXrefMap,
+} from './convertSnootyAstToMdast/convertSnootyAstToMdast';
+import type { SnootyNode, SubstitutionRefXrefInfo } from './convertSnootyAstToMdast/types';
 import { type RouteCollision, detectRouteCollisions, resolveRouteCollisions } from './detectRouteCollision';
 import stableStringify from 'fast-json-stable-stringify';
 
@@ -31,7 +35,15 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
   // Map asset checksum (compressed filename) -> semantic key (e.g., /images/foo.png)
   const assetChecksumToKey = new Map<string, string>();
 
-  let totalCount = 0;
+  interface ZipPageJob {
+    outputPath: string;
+    astRoot: SnootyNode;
+  }
+
+  const pageJobs: ZipPageJob[] = [];
+  const mergedSubstitutionXref = new Map<string, SubstitutionRefXrefInfo>();
+  const mergedSubstitutionDefLiterals = new Map<string, string>();
+
   for (const file of zipDir.files) {
     // skip files that are not BSON files or have ignored suffixes
     if (
@@ -79,6 +91,13 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
 
     const tree = docs[0] as SnootyNode;
     const astRoot = tree.ast ?? tree;
+    for (const [k, v] of buildSubstitutionRefXrefMap(astRoot)) {
+      mergedSubstitutionXref.set(k, v);
+    }
+    for (const [k, v] of buildSubstitutionDefinitionLiteralMap(astRoot)) {
+      mergedSubstitutionDefLiterals.set(k, v);
+    }
+
     // Collect static asset mappings for this page, if present
     if (tree && Array.isArray(tree.static_assets)) {
       for (const asset of tree.static_assets) {
@@ -93,7 +112,18 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
     // remove the nesting of the "documents" directory from the output path
     const outputPath = path.join(outputDirectory, relativePath).replace('documents/', '');
 
-    const { fileCount } = await convertJsonAstToMdxFiles({ ast: astRoot, outputPath, outputRootDir: outputDirectory });
+    pageJobs.push({ outputPath, astRoot });
+  }
+
+  let totalCount = 0;
+  for (const job of pageJobs) {
+    const { fileCount } = await convertJsonAstToMdxFiles({
+      ast: job.astRoot,
+      outputPath: job.outputPath,
+      outputRootDir: outputDirectory,
+      substitutionRefXref: mergedSubstitutionXref,
+      substitutionDefLiterals: mergedSubstitutionDefLiterals,
+    });
 
     totalCount += fileCount;
     onFileWrite?.(totalCount);
