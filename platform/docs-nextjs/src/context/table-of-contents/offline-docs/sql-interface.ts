@@ -63,6 +63,11 @@ export const toc: L1TocItem[] = [
             ],
           },
           {
+            label: 'Authentication',
+            contentSite: 'sql-interface',
+            url: '/docs/sql-interface/authentication',
+          },
+          {
             label: 'Errors',
             contentSite: 'sql-interface',
             url: '/docs/sql-interface/errors',

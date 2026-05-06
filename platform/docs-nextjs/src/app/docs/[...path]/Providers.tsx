@@ -12,11 +12,11 @@ import { PageContextProvider } from '@/context/page-context';
 import { TabProvider } from '@/context/tabs-context';
 import { VersionContextProvider } from '@/context/version-context';
 import type { Environments } from '@/utils/env-config';
-
-type Template = NonNullable<MDXFrontmatter['template']>;
 import { FootnoteProvider } from '@/context/footnote-context';
 import type { ServerSideChangelogData } from '@/types/openapi';
 import { ChangelogDataProvider } from '@/context/changelog-context';
+
+type Template = NonNullable<MDXFrontmatter['template']>;
 
 interface ProvidersProps {
   children: React.ReactNode;

@@ -44,6 +44,25 @@ const caretStyle = LeafyCSS`
   min-width: 16px;
 `;
 
+/**
+ * Rendered as a hidden child inside the active SideNavItem. On mount, scrolls
+ * the parent element (the rendered <a>) into the sidenav panel's visible area
+ * while preserving the page-level window scroll position.
+ */
+const ActiveScrollAnchor = () => {
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const navItem = ref.current?.parentElement;
+    if (!navItem) return;
+    const savedScrollY = window.scrollY;
+    navItem.scrollIntoView({ block: 'center', behavior: 'instant' });
+    window.scrollTo(0, savedScrollY);
+  }, []);
+
+  return <span ref={ref} aria-hidden="true" style={{ display: 'none' }} />;
+};
+
 const sidenavAnalytics = (label: string, element?: HTMLElement | null) => {
   const translatedLabel = element?.textContent?.trim() || label;
 
@@ -244,9 +263,10 @@ export const UnifiedTocNavItem = ({
   }
 
   if (isVersionAllowed) {
+    const isActive = isSelectedTab(newUrl, slug);
     return (
       <SideNavItem
-        active={isSelectedTab(newUrl, slug)}
+        active={isActive}
         aria-label={label}
         as={LinkComponent}
         contentSite={contentSite}
@@ -257,6 +277,7 @@ export const UnifiedTocNavItem = ({
         className={cx(l2ItemStyling({ level, isAccordion }))}
         data-offline-level={isOfflineBuild ? level : undefined}
       >
+        {isActive && !isOfflineBuild && <ActiveScrollAnchor />}
         {label}
       </SideNavItem>
     );
@@ -334,6 +355,7 @@ export const CollapsibleNavItem = ({
         hideExternalIcon={true}
         data-offline-level={isOfflineBuild ? level : undefined}
       >
+        {isActive && !isOfflineBuild && <ActiveScrollAnchor />}
         <FormatTitle>{label}</FormatTitle>
         <Icon
           className={cx(caretStyle)}
