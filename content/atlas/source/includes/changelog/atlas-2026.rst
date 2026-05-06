@@ -1,7 +1,40 @@
+.. _atlas_2026_05:
+
+May 2026
+--------
+
+- Adds support for {+aws-pl+} cross-region connectivity, enabling you
+  to configure which {+aws+} regions can connect to your private
+  endpoint service. Applications in different {+aws+} regions can now
+  connect to your {+service+} clusters through private endpoints. To
+  learn more, see :ref:`manage-accepted-endpoint-regions`.
+
 .. _atlas_2026_04:
 
 April 2026
 ----------
+
+- Adds support for {+gcp+} Pub/Sub as a sink in :atlas:`Atlas Stream
+  Processing </atlas-sp/overview/>`, allowing you to stream data with
+  {+gcp-psc+} for private network connectivity.
+
+- Public Preview: Adds support for the ``$rerank`` operator in
+  :ref:`Atlas Search <atlas-search>`, enabling semantic re-ranking
+  of search results to improve relevance.
+
+- Adds additional metrics to the :ref:`third-party DataDog
+  integration <datadog-integration>`, including database and
+  namespace-level metrics for enhanced observability.
+
+- Public Preview: Adds support for :ref:`vector field type
+  <bson-data-types-vector>` on arrays of embeddings, enabling
+  semantic search across nested subdocuments containing multiple
+  embedding vectors.
+
+- Adds support for automated Voyage AI embeddings in the LangChainJS
+  framework, enabling seamless integration of MongoDB's
+  :ref:`auto-embedded vector search indexes
+  <bson-data-types-embedded-documents>` with JavaScript applications.
 
 - Enables :ref:`cloud backup <backup-cloud-provider>` support for
   clusters deployed in the {+azure+} government environment.
@@ -191,4 +224,4 @@ January 2026
   with data exfiltration prevention policies enabled.
 
 
-.. last-run: 2026-04-15
+.. last-run: 2026-05-06
