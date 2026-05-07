@@ -10,9 +10,6 @@
      - .. literalinclude:: /code-examples/includes/minimum-destination-privileges/1.js
           :language: javascript
 
-   * - Write Blocking
-     - Everything from the default destination privileges.
-  
    * - Reversing
      - Everything from the default source privileges and the default destination
        privileges with the addition of:

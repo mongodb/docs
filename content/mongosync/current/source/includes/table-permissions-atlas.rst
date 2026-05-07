@@ -16,7 +16,7 @@
      - - atlasAdmin
        - :authaction:`bypassWriteBlockingMode`
        
-   * - Dual write-blocking, reversing, or multiple reversals
+   * - Reversing or multiple reversals
      - - atlasAdmin
        - :authaction:`bypassWriteBlockingMode`
      - - atlasAdmin

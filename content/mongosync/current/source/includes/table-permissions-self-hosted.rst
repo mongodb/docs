@@ -13,16 +13,6 @@
 
    * - Default
      - - :authrole:`backup`
-       - :authrole:`clusterMonitor`
-       - :authrole:`readAnyDatabase`
-
-     - - :authrole:`clusterManager`
-       - :authrole:`clusterMonitor`
-       - :authrole:`readWriteAnyDatabase`
-       - :authrole:`restore`
-
-   * - Dual Write-Blocking
-     - - :authrole:`backup`
        - :authrole:`clusterManager`
        - :authrole:`clusterMonitor`
        - :authrole:`readWriteAnyDatabase`

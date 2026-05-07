@@ -3,6 +3,7 @@
        "resource": { "cluster": true },
        "actions": [
           "appendOplogNote",
+          "bypassWriteBlockingMode",
           "getDefaultRWConcern",
           "getShardMap",
           "hostInfo",
@@ -10,7 +11,8 @@
           "listShards",
           "replSetGetConfig",
           "replSetGetStatus",
-          "serverStatus"
+          "serverStatus",
+          "setUserWriteBlockMode"
        ]
    },
    {

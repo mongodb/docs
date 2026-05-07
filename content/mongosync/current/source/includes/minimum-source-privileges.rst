@@ -10,12 +10,6 @@
      - .. literalinclude:: /code-examples/includes/minimum-source-privileges/1.js
           :language: javascript
 
-   * - Write-blocking
-     - Everything from the default source privileges with the addition of:
-       
-       .. literalinclude:: /code-examples/includes/minimum-source-privileges/2.js
-          :language: javascript
-
    * - Reversing
      - Everything from the default source privileges and the default destination
        privileges. 

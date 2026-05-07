@@ -85,25 +85,8 @@ Steps
 
       - Wait for all transactions on the source cluster to either commit or 
         abort.
-      - ``mongosync`` enables destination-only write-blocking by default. 
-        You can explicitly enable it by starting ``mongosync`` with
-        ``enableUserWriteBlocking`` set to ``"destinationOnly"``.
-        ``mongosync`` only blocks writes on the 
-        destination and unblocks them right before ``canWrite`` is
-        set to ``true``.
-      - If you start ``mongosync`` with ``enableUserWriteBlocking``
-        set to ``"sourceAndDestination"``, ``mongosync`` blocks all write operations
-        on the destination cluster and unblocks them right before ``canWrite``
-        is set to ``true``. ``mongosync`` blocks writes on the source after you call
-        ``/commit``.
-      - If you start ``mongosync`` with ``enableUserWriteBlocking`` set
-        to ``"none"``, ensure that you disable writes.
-        For example, run the :dbcommand:`setUserWriteBlockMode` command on the
-        source cluster:
-
-        .. literalinclude:: /code-examples/reference/cutover-process/1.js
-           :language: javascript
-
+      - ``mongosync`` manages write blocking based on your migration
+        configuration. To learn more, see :ref:`c2c-write-blocking`.
       - If ``mongosync`` uses filtered sync, it's not necessary to
         disable writes to the entire source cluster. However, you must ensure
         that you stop write operations for the collections that the
@@ -137,14 +120,21 @@ Steps
       If your source cluster contains Persistant Query Settings (PQS), you must
       :ref:`manually migrate PQS <c2c-migrate-pqs>` to your destination cluster.
 
-      If you previously set ``enableUserWriteBlocking``
-      to ``sourceAndDestination``, ``mongosync`` blocks writes on the source cluster
-      once you complete this step.
+      In the :ref:`default configuration <c2c-write-blocking>`, 
+      ``mongosync`` blocks writes on the source cluster once you complete this step.
 
-      If you previously set ``enableUserWriteBlocking``
-      to ``sourceAndDestination`` and ``mongosync`` crashes during this step,
-      you must manually unblock writes on the source cluster by using 
-      :dbcommand:`setUserWriteBlockMode`.
+      If ``mongosync`` crashes during this step, you may need to
+      manually unblock writes on the source cluster by running the
+      following command:
+
+      .. code-block:: javascript
+
+         db.adminCommand(
+           {
+             setUserWriteBlockMode: 1,
+             global: false
+           }
+         )
 
    .. step:: Wait until you can perform writes on the destination cluster.
 
@@ -184,11 +174,6 @@ Steps
 
       Then, transfer your application workload to the destination cluster.
 
-      If you started ``mongosync``
-      with write-blocking by using the ``enableUserWriteBlocking`` option on
-      the :ref:`/start <c2c-api-start>` endpoint, you do not need
-      to complete this step.
-
    .. step:: Call the ``progress`` endpoint to determine the status of the ``mongosync`` process.
 
       When the ``mongosync`` progress response indicates that the
@@ -219,10 +204,10 @@ canWrite and COMMITTED
 ``mongosync`` permits writes on the destination cluster at an
 earlier stage than the ``COMMITTED`` state.
 
-If you set ``enableUserWriteBlocking`` to either ``"sourceAndDestination"`` 
-or ``"destinationOnly"``, or the verifier is turned on, you can write
-to the destination after ``/progress`` reports ``canWrite: true``. Otherwise,
-wait until the state is ``COMMITTED``. If you
+You can write to the destination after ``/progress`` reports
+``canWrite: true`` or when the state is
+``COMMITTED``. To learn more about write blocking, see
+:ref:`c2c-write-blocking`. If you
 are running multiple instances of ``mongosync``, only use the ``canWrite``
 status from the first ``mongosync`` process. 
 

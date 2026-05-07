@@ -34,11 +34,8 @@
 - :ref:`/reverse <c2c-api-reverse>` endpoint is not supported. You can't 
   enable the ``reversible`` option in the :ref:`/start <c2c-api-start>` request.
 
-- You can't set the ``enableUserWriteBlocking`` option to
-  ``"sourceAndDestination"`` in the ``/start`` request, so dual write-blocking 
-  is not supported. 
-  Destination-only write-blocking is supported. Ensure that no writes are 
-  made to the source cluster after you call the ``/commit`` endpoint.
+- Ensure that no writes are made to the source cluster after you
+  call the ``/commit`` endpoint.
 
 - You can't enable the ``createSupportingIndexes`` :ref:`sharding parameter 
   <c2c-api-start-sharding>`. Instead, create an index to support your shard key 
