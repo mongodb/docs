@@ -46,7 +46,3 @@ For a full list of |fts| alerts, see :ref:`Alert Conditions for {+fts+} <alert-c
 |service| provides default alerts for projects with clusters that experience
 auto-scaling events. To learn more about all auto-scaling alert events, see
 :ref:`Auto-scaling <alert-conditions-autoscaling>`.
-
-|service| provides default alerts for projects with clusters using
-:ref:`Intelligent Workload Management <intelligent-workload-management>`.
-To learn more, see the :ref:`IWM alert conditions <alert-conditions-iwm>`.
