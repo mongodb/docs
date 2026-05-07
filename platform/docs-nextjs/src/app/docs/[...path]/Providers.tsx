@@ -15,6 +15,7 @@ import type { Environments } from '@/utils/env-config';
 import { FootnoteProvider } from '@/context/footnote-context';
 import type { ServerSideChangelogData } from '@/types/openapi';
 import { ChangelogDataProvider } from '@/context/changelog-context';
+import { SidenavContextProvider } from '@/context/sidenav-context';
 
 type Template = NonNullable<MDXFrontmatter['template']>;
 
@@ -54,15 +55,20 @@ export const Providers = ({
           >
             <HeadingContextProvider sectionDepth={0}>
               <ContentsProvider headingNodes={headingNodes}>
-                <TabProvider selectors={frontmatter.options?.selectors} defaultTabs={frontmatter.options?.default_tabs}>
-                  <InstruqtProvider hasLabDrawer={!!frontmatter.options?.instruqt}>
-                    <FootnoteProvider>
-                      <ChatbotProvider>
-                        <ChangelogDataProvider changelogData={changelogData}>{children}</ChangelogDataProvider>
-                      </ChatbotProvider>
-                    </FootnoteProvider>
-                  </InstruqtProvider>
-                </TabProvider>
+                <SidenavContextProvider>
+                  <TabProvider
+                    selectors={frontmatter.options?.selectors}
+                    defaultTabs={frontmatter.options?.default_tabs}
+                  >
+                    <InstruqtProvider hasLabDrawer={!!frontmatter.options?.instruqt}>
+                      <FootnoteProvider>
+                        <ChatbotProvider>
+                          <ChangelogDataProvider changelogData={changelogData}>{children}</ChangelogDataProvider>
+                        </ChatbotProvider>
+                      </FootnoteProvider>
+                    </InstruqtProvider>
+                  </TabProvider>
+                </SidenavContextProvider>
               </ContentsProvider>
             </HeadingContextProvider>
           </PageContextProvider>
