@@ -16,13 +16,16 @@ Sparse Indexes
    :depth: 1
    :class: singlecol
 
-Sparse indexes only contain entries for documents that have the indexed
-field, even if the index field contains a null value. The index skips
-over any document that is missing the indexed field. The index is
-"sparse" because it does not include all documents of a collection. By
-contrast, non-sparse indexes contain all documents in a collection,
-storing null values for those documents that do not contain the indexed
-field.
+Sparse indexes in MongoDB differ from `block-level
+<http://en.wikipedia.org/wiki/Database_index#Sparse_index>`__
+sparse indexes in other databases. Sparse indexes only contain
+entries for documents that have the indexed field, even if the
+index field contains a null value. The index skips over any
+document that is missing the indexed field. The index is
+"sparse" because it does not include all documents of a
+collection. By contrast, non-sparse indexes contain all
+documents in a collection, storing null values for those
+documents that do not contain the indexed field.
 
 .. important::
 
@@ -47,14 +50,6 @@ sparse index on the ``plot`` field of the ``movies`` collection:
 The index does not index documents that do not include the ``plot``
 field.
 
-.. note::
-
-   Do not confuse sparse indexes in MongoDB with `block-level`_
-   indexes in other databases. Think of them as dense indexes with a
-   specific filter.
-
-   .. _`block-level`: http://en.wikipedia.org/wiki/Database_index#Sparse_index
-
 Behavior
 --------
 
@@ -63,12 +58,8 @@ Sparse Index and Incomplete Results
 
 If a sparse index would result in an incomplete result set for queries
 and sort operations, MongoDB will not use that index unless a
-:method:`~cursor.hint()` explicitly specifies the index.
-
-For example, the query ``{ plot: { $exists: false } }`` will not use a
-sparse index on the ``plot`` field unless explicitly hinted. See
-:ref:`sparse-index-incomplete-results` for an example that details the
-behavior.
+:method:`~cursor.hint()` explicitly specifies the index. See
+:ref:`sparse-index-incomplete-results` for an example.
 
 .. include:: /includes/fact-sparse-index-hint-count.rst
 
@@ -107,7 +98,7 @@ Examples
 Create a Sparse Index On A Collection
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example creates a sparse index on the field ``password``:
+The following example creates a sparse index on the ``password`` field:
 
 .. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/sparse/create-2.js
    :language: javascript
@@ -120,8 +111,8 @@ index to return the documents that have the ``password`` field:
    :language: javascript
    :category: usage example
 
-If a user does not contain the
-``password`` field, the query does not return that user. 
+If a document does not contain the
+``password`` field, the query does not return that document.
 
 .. _sparse-index-incomplete-results:
 
@@ -131,7 +122,7 @@ Sparse Index On A Collection Cannot Return Complete Results
 Consider the ``movies`` collection where some documents do not have a ``plot``
 field.
 
-The following example creates a sparse index on the field ``plot``:
+The following example creates a sparse index on the ``plot`` field:
 
 .. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/sparse/create-1.js
    :language: javascript
@@ -175,9 +166,9 @@ The following operation creates an index with a :ref:`unique constraint
    :language: javascript
    :category: usage example
 
-This index *would permit* the insertion of documents that had unique
-values for the ``password`` field *or* did not include a ``password`` field.
-As such, given the existing documents in the ``users`` collection, the
+This index permits inserting documents that either have unique
+values for the ``password`` field, or don't include a ``password`` field.
+For the example documents in the ``users`` collection, the
 index permits the following :doc:`insert operations
 </tutorial/insert-documents>`:
 
@@ -185,8 +176,8 @@ index permits the following :doc:`insert operations
    :language: javascript
    :category: usage example
 
-However, the index *would not permit* the addition of the 
-documents that contain email addresses that already exist in the collection.
+However, the index doesn't allow inserting documents that
+have email addresses that already exist in the collection.
 
 .. _sparse-and-non-sparse_example:
 

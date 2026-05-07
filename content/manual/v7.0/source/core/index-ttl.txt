@@ -108,10 +108,15 @@ headquarters weather sensor after 1 hour, instead of 24 hours:
 
 .. code-block:: javascript
 
-   db.eventlog.createIndex( 
+   db.weather24h.createIndex(
      { "timestamp": 1 },
-     { partialFilterExpression: { "sensor": { $eq: "40.761873, -73.984287" } } },
-     { expireAfterSeconds: 3600 } )
+     {
+        partialFilterExpression: {
+           "sensor": { $eq: "40.761873, -73.984287" }
+        },
+        expireAfterSeconds: 3600
+     }
+   )
 
 .. _convert-non-ttl-single-field-index-into-ttl:
 
@@ -205,8 +210,7 @@ Expiration of Data
 ~~~~~~~~~~~~~~~~~~
 
 TTL indexes expire documents after the specified number of seconds has
-passed since the indexed field value. The expiration threshold is
-the indexed field value plus the specified number of seconds. 
+passed since the indexed field value.
 
 If the field is an array, and there are multiple date values in the
 index, MongoDB uses *lowest* (earliest) date value in the array to
@@ -232,10 +236,9 @@ Delete Operations
 A background thread in :binary:`~bin.mongod` reads the values in the index
 and removes expired :term:`documents <document>` from the collection.
 
-In progress delete operations performed by the TTL thread appear in
+In-progress delete operations performed by the TTL thread appear in
 :method:`db.currentOp()` output. As the TTL thread deletes documents,
-the :serverstatus:`metrics.ttl.deletedDocuments` server status metric is
-incremented.
+it increments the :serverstatus:`metrics.ttl.deletedDocuments` server status metric.
 
 .. include:: /includes/multi-deletes.rst
 
@@ -292,6 +295,53 @@ Support for Queries
 ~~~~~~~~~~~~~~~~~~~
 
 A TTL index supports queries in the same way non-TTL indexes do.
+
+mongod in Standalone Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The TTL monitor stops when ``mongod`` runs in standalone mode and the
+``system.local.replset`` collection contains data.
+
+TTL and Schema validation
+-------------------------
+
+Even though TTL indexes do not require schema validation, using validation
+can help ensure consistent behavior by standardizing
+the existence and format of the date field used for expiration.
+
+For example, you can use schema validation to enforce the presence of a
+``lastModifiedDate`` field and ensure its value adheres to a valid date
+format:
+
+.. code-block:: javascript
+
+   db.createCollection(
+      "eventlog",
+      {
+         validator: {
+            $jsonSchema: {
+               bsonType: "object",
+               required: [ "lastModifiedDate" ],
+               properties: {
+                  lastModifiedDate: {
+                     bsonType: "date",
+                     description: "Must be a valid date."
+                  }
+               }
+            }
+         }
+      }
+   )
+
+The validation ensures:
+
+- Every document in the ``eventlog`` collection includes the
+  ``lastModifiedDate`` field.
+- The ``lastModifiedDate`` field contains a valid date value.
+
+.. seealso::
+
+   :ref:`Schema Validation <schema-validation-document>`.
 
 Restrictions
 ------------

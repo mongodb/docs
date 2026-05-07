@@ -127,19 +127,14 @@ default 24 hours we set when creating the collection:
 .. code-block:: javascript
 
    db.weather24h.createIndex(
-      { "timestamp": 1 }, 
-      { 
-         expireAfterSeconds: 3600,
-         partialFilterExpression: { "sensor": { $eq: "MDB_NYC" } }
-      }
+     { "timestamp": 1 },
+     {
+        partialFilterExpression: {
+           "sensor": { $eq: "40.761873, -73.984287" }
+        },
+        expireAfterSeconds: 3600
+     }
    )
-
-
-.. important::
-
-   If the ``expireAfterSeconds`` value of the collection is lower than
-   the ``expireAfterSeconds`` of the partial TTL index, the collection
-   deletes documents after the shorter time, so the TTL index has no effect.
 
 .. _convert-non-ttl-single-field-index-into-ttl:
 
@@ -233,8 +228,7 @@ Expiration of Data
 ~~~~~~~~~~~~~~~~~~
 
 TTL indexes expire documents after the specified number of seconds has
-passed since the indexed field value. The expiration threshold is
-the indexed field value plus the specified number of seconds. 
+passed since the indexed field value.
 
 If the field is an array, and there are multiple date values in the
 index, MongoDB uses *lowest* (earliest) date value in the array to
@@ -259,10 +253,9 @@ Delete Operations
 A background thread in :binary:`~bin.mongod` reads the values in the index
 and removes expired :term:`documents <document>` from the collection.
 
-In progress delete operations performed by the TTL thread appear in
+In-progress delete operations performed by the TTL thread appear in
 :method:`db.currentOp()` output. As the TTL thread deletes documents,
-the :serverstatus:`metrics.ttl.deletedDocuments` server status metric is
-incremented.
+it increments the :serverstatus:`metrics.ttl.deletedDocuments` server status metric.
 
 .. include:: /includes/multi-deletes.rst
 
@@ -329,9 +322,7 @@ mongod in Standalone Mode
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The TTL monitor stops when ``mongod`` runs in standalone mode and the
-``system.local.replset`` collection contains data. If you take a replica 
-set node out of the replica set and run it as a standalone, then the 
-TTL monitor is disabled.
+``system.local.replset`` collection contains data.
 
 TTL and Schema validation
 -------------------------
@@ -364,7 +355,7 @@ format:
       }
    )
 
-This schema validation rule ensures that:
+The validation ensures:
 
 - Every document in the ``eventlog`` collection includes the
   ``lastModifiedDate`` field.
