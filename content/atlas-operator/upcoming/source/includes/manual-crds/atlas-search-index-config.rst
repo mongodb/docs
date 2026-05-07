@@ -66,6 +66,7 @@ AtlasSearchIndexConfigSpec defines the target state of AtlasSearchIndexConfig.
        - removing common words
        - reducing words to their root form (stemming)
        - changing words to their base form (lemmatization) ``MongoDB`` Cloud uses the selected process to build the Atlas Search index
+
        *Enum*: lucene.standard, lucene.simple, lucene.whitespace, lucene.keyword, lucene.arabic, lucene.armenian, lucene.basque, lucene.bengali, lucene.brazilian, lucene.bulgarian, lucene.catalan, lucene.chinese, lucene.cjk, lucene.czech, lucene.danish, lucene.dutch, lucene.english, lucene.finnish, lucene.french, lucene.galician, lucene.german, lucene.greek, lucene.hindi, lucene.hungarian, lucene.indonesian, lucene.irish, lucene.italian, lucene.japanese, lucene.korean, lucene.kuromoji, lucene.latvian, lucene.lithuanian, lucene.morfologik, lucene.nori, lucene.norwegian, lucene.persian, lucene.portuguese, lucene.romanian, lucene.russian, lucene.smartcn, lucene.sorani, lucene.spanish, lucene.swedish, lucene.thai, lucene.turkish, lucene.ukrainian
      - false
 
@@ -84,7 +85,7 @@ AtlasSearchIndexConfigSpec defines the target state of AtlasSearchIndexConfig.
      - ``JSON``
      - Flag that indicates whether to store all fields (true) on Atlas Search. By default, Atlas doesn't store (false) the fields on Atlas Search.
        Alternatively, you can specify an object that only contains the list of fields to store (include) or not store (exclude) on Atlas Search.
-       To learn more, see documentation: https://www.mongodb.com/docs/atlas/atlas-search/stored-source-definition/
+       To learn more, see documentation: `https://www.mongodb.com/docs/atlas/atlas-search/stored-source-definition/ <https://www.mongodb.com/docs/atlas/atlas-search/stored-source-definition/>`__
      - false
 
 .. _atlassearchindexconfig-spec-analyzers: 

@@ -32,7 +32,7 @@ AtlasThirdPartyIntegration is the Schema for the atlas 3rd party integrations AP
    * -  ``spec``
      - object
      - ``AtlasThirdPartyIntegrationSpec`` contains the expected configuration for an integration
-       *Validations*:
+       **Validations:**
 
        - (has(self.``externalProjectRef``) && !has(self.``projectRef``)) || (!has(self.``externalProjectRef``) && has(self.``projectRef``)): must define only one project reference through ``externalProjectRef`` or ``projectRef``
 
@@ -167,7 +167,7 @@ Name of the secret containing Atlas API private and public keys.
    * -  ``name``
      - string
      - Name of the resource being referred to
-       More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+       More info: `https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names>`__
      - true
 
 .. _atlasthirdpartyintegration-spec-datadog: 
@@ -230,7 +230,7 @@ APIKeySecretRef holds the name of a secret containing the Datadog API key.
    * -  ``name``
      - string
      - Name of the resource being referred to
-       More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+       More info: `https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names>`__
      - true
 
 .. _atlasthirdpartyintegration-spec-externalprojectref: 
@@ -295,7 +295,7 @@ URLSecretRef holds the name of a secret containing the Microsoft Teams secret UR
    * -  ``name``
      - string
      - Name of the resource being referred to
-       More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+       More info: `https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names>`__
      - true
 
 .. _atlasthirdpartyintegration-spec-newrelic: 
@@ -340,7 +340,7 @@ account id, license key, read and write tokens.
    * -  ``name``
      - string
      - Name of the resource being referred to
-       More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+       More info: `https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names>`__
      - true
 
 .. _atlasthirdpartyintegration-spec-opsgenie: 
@@ -388,7 +388,7 @@ APIKeySecretRef holds the name of a secret containing Ops Genie's API key.
    * -  ``name``
      - string
      - Name of the resource being referred to
-       More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+       More info: `https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names>`__
      - true
 
 .. _atlasthirdpartyintegration-spec-pagerduty: 
@@ -436,7 +436,7 @@ ServiceKeySecretRef holds the name of a secret containing Pager Duty service key
    * -  ``name``
      - string
      - Name of the resource being referred to
-       More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+       More info: `https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names>`__
      - true
 
 .. _atlasthirdpartyintegration-spec-projectref: 
@@ -519,7 +519,7 @@ username & password
    * -  ``name``
      - string
      - Name of the resource being referred to
-       More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+       More info: `https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names>`__
      - true
 
 .. _atlasthirdpartyintegration-spec-slack: 
@@ -572,7 +572,7 @@ APITokenSecretRef holds the name of a secret containing the Slack API token.
    * -  ``name``
      - string
      - Name of the resource being referred to
-       More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+       More info: `https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names>`__
      - true
 
 .. _atlasthirdpartyintegration-spec-victorops: 
@@ -620,7 +620,7 @@ APIKeySecretRef is the name of a secret containing Victor Ops API key.
    * -  ``name``
      - string
      - Name of the resource being referred to
-       More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+       More info: `https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names>`__
      - true
 
 .. _atlasthirdpartyintegration-spec-webhook: 
@@ -663,7 +663,7 @@ URLSecretRef holds the name of a secret containing Webhook URL and secret.
    * -  ``name``
      - string
      - Name of the resource being referred to
-       More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+       More info: `https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names>`__
      - true
 
 .. _atlasthirdpartyintegration-status: 

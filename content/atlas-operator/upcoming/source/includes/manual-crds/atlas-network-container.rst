@@ -32,7 +32,7 @@ AtlasNetworkContainer is the Schema for the AtlasNetworkContainer API
    * -  ``spec``
      - object
      - ``AtlasNetworkContainerSpec`` defines the target state of an ``AtlasNetworkContainer``.
-       *Validations*:
+       **Validations:**
 
        - (has(self.``externalProjectRef``) && !has(self.``projectRef``)) || (!has(self.``externalProjectRef``) && has(self.``projectRef``)): must define only one project reference through ``externalProjectRef`` or ``projectRef``
 
@@ -130,7 +130,7 @@ Name of the secret containing Atlas API private and public keys.
    * -  ``name``
      - string
      - Name of the resource being referred to
-       More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+       More info: `https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names>`__
      - true
 
 .. _atlasnetworkcontainer-spec-externalprojectref: 

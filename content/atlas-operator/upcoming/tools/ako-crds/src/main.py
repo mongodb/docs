@@ -18,6 +18,13 @@ class AKOCRDsTool:
         self.temp_dir_path = None
         self.included_versions = None
         self.rst_output = None
+        self.created_txt_files = []
+
+    def _reset_state(self):
+        """Reset working state for processing a new file."""
+        self.markdown = None
+        self.working_list = []
+        self.rst_output = None
 
     def _create_temp_dir(self):
         """Create a temporary directory."""
@@ -47,11 +54,11 @@ class AKOCRDsTool:
         if checked_out.returncode != 0:
             raise Exception(f"Failed to checkout version {self.version}: {checked_out.stderr.decode()}")
 
-    def get_markdown_output(self):
+    def get_markdown_output(self, relative_path='docs/api-docs.md'):
         """Get markdown output from the cloned repository."""
         print(os.getcwd())
         self._change_directories_to_temp_dir()
-        with open('mongodb-atlas-kubernetes/docs/api-docs.md', 'r') as file:
+        with open(f'mongodb-atlas-kubernetes/{relative_path}', 'r') as file:
             self.markdown = file.read()
 
     # def get_included_versions(self):
@@ -121,14 +128,42 @@ class AKOCRDsTool:
             prev_was_empty = is_empty
         
         self.rst_output = '\n'.join(cleaned_lines)
+        
+        # Insert blank lines after bullet items that are immediately followed
+        # by non-bullet text at the same indentation (prevents RST "Bullet list
+        # ends without a blank line; unexpected unindent" warnings)
+        lines = self.rst_output.splitlines()
+        fixed_lines = []
+        for i, line in enumerate(lines):
+            fixed_lines.append(line)
+            if i + 1 < len(lines):
+                stripped = line.strip()
+                next_line = lines[i + 1]
+                next_stripped = next_line.strip()
+                is_bullet = stripped.startswith('- ') or stripped.startswith('* ')
+                next_is_bullet = next_stripped.startswith('- ') or next_stripped.startswith('* ')
+                next_is_empty = not next_stripped
+                if is_bullet and not next_is_bullet and not next_is_empty and next_stripped:
+                    # Check indentation: only insert if next line is at same or less indent
+                    indent = len(line) - len(line.lstrip())
+                    next_indent = len(next_line) - len(next_line.lstrip())
+                    if next_indent <= indent:
+                        fixed_lines.append('')
+        
+        self.rst_output = '\n'.join(fixed_lines)
 
     def write_processed_output_for_automated_crds(self):
         """Write the processed RST output to a file."""
         with open(self.output_path, 'w', encoding='utf-8') as f:
             f.write(self.rst_output)
 
-    def write_processed_output_for_manual_crds(self):
-        """Write the processed markdown output to a file for manual CRD processing."""
+    def write_processed_output_for_manual_crds(self, output_subdir='manual-crds'):
+        """Write the processed markdown output to sub-files for CRD processing.
+        
+        Args:
+            output_subdir: Name of the subdirectory under source/includes/
+                           to write output files to.
+        """
         crd_types = self._get_crd_types()
         
         # Find the workspace root by looking for the directory containing this script
@@ -136,19 +171,18 @@ class AKOCRDsTool:
         # Navigate up from tools/ako-crds/src/ to the workspace root
         workspace_root = os.path.dirname(os.path.dirname(os.path.dirname(script_dir)))
         includes_dir = os.path.join(workspace_root, 'source', 'includes')
-        manual_crds_dir = os.path.join(includes_dir, 'manual-crds')
+        crds_dir = os.path.join(includes_dir, output_subdir)
         
-        # Create the includes directory if it doesn't exist
+        # Create the directories if they don't exist
         os.makedirs(includes_dir, exist_ok=True)
-        os.makedirs(manual_crds_dir, exist_ok=True)
+        os.makedirs(crds_dir, exist_ok=True)
 
         for crd_type in crd_types:
             filename = re.sub(r'([a-z0-9])([A-Z])', r'\1-\2', crd_type).lower()
-            output_file = os.path.join(manual_crds_dir, f"{filename}.rst")
+            output_file = os.path.join(crds_dir, f"{filename}.rst")
             file_content = self._get_crd_content(self.rst_output, crd_type)
             with open(output_file, 'w', encoding='utf-8') as f:
                 f.write(file_content)
-                # f.write(self.rst_output)
 
     def _get_crd_content(self, rst_output, crd_type):
         """Extract the content for a specific CRD type from the RST output."""
@@ -176,23 +210,96 @@ class AKOCRDsTool:
 
         return crd_types
 
+    def ensure_txt_files_exist(self, output_subdir):
+        """For each .rst file in the given includes subdir, ensure a
+        corresponding top-level .txt file exists in source/.
+
+        If the .txt file does not exist, create a minimal scaffold that
+        includes the generated .rst file via an ``.. include::`` directive.
+
+        Naming convention:
+            includes/<subdir>/atlas-deployment.rst
+            -> source/atlasdeployment-custom-resource.txt
+        """
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        workspace_root = os.path.dirname(os.path.dirname(os.path.dirname(script_dir)))
+        source_dir = os.path.join(workspace_root, 'source')
+        crds_dir = os.path.join(source_dir, 'includes', output_subdir)
+
+        if not os.path.isdir(crds_dir):
+            return
+
+        for rst_file in sorted(os.listdir(crds_dir)):
+            if not rst_file.endswith('.rst'):
+                continue
+
+            stem = rst_file.removesuffix('.rst')          # e.g. "atlas-deployment"
+            txt_name = stem.replace('-', '') + '-custom-resource.txt'
+            txt_path = os.path.join(source_dir, txt_name)
+
+            if os.path.exists(txt_path):
+                continue
+
+            # Build a PascalCase title from the stem, e.g. "AtlasDeployment"
+            pascal_title = ''.join(word.capitalize() for word in stem.split('-'))
+            title_line = f'``{pascal_title}`` Custom Resource'
+            underline = '=' * len(title_line)
+            ref_label = txt_name.removesuffix('.txt')
+
+            content = (
+                f'.. _{ref_label}:\n'
+                f'\n'
+                f'{underline}\n'
+                f'{title_line}\n'
+                f'{underline}\n'
+                f'\n'
+                f'.. default-domain:: mongodb\n'
+                f'\n'
+                f'.. contents:: On this page\n'
+                f'   :local:\n'
+                f'   :backlinks: none\n'
+                f'   :depth: 2\n'
+                f'   :class: singlecol\n'
+                f'\n'
+                f'Parameters\n'
+                f'----------\n'
+                f'\n'
+                f'.. include:: /includes/{output_subdir}/{rst_file}\n'
+            )
+
+            with open(txt_path, 'w', encoding='utf-8') as f:
+                f.write(content)
+            self.created_txt_files.append(txt_name)
+            print(f'Created new top-level file: {txt_name}')
+
     def clean_up(self):
         """Clean up temporary files and directories."""
         if self.temp_dir_path and os.path.exists(self.temp_dir_path):
             shutil.rmtree(self.temp_dir_path)
 
     def add_files_in_git(self):
-        """Add files in git."""
+        """Add generated output files in git."""
         script_dir = os.path.dirname(os.path.abspath(__file__))
-        os.chdir(script_dir)
+        workspace_root = os.path.dirname(os.path.dirname(os.path.dirname(script_dir)))
+        os.chdir(workspace_root)
 
-        git_status = subprocess.run(["git", "status"], capture_output=True)
-        for line in git_status.stdout.decode().splitlines():
-            changed_file = re.match(r'\s*modified:\s*(.*)', line)
-            if changed_file:
-                file_path = changed_file.group(1).strip()
-                print(f"Adding file to git: {file_path}")
-                subprocess.run(["git", "add", file_path], check=True)
+        output_dirs = [
+            os.path.join('source', 'includes', 'manual-crds'),
+            os.path.join('source', 'includes', 'generated-crds'),
+        ]
+
+        for output_dir in output_dirs:
+            full_path = os.path.join(workspace_root, output_dir)
+            if os.path.isdir(full_path):
+                print(f"Adding directory to git: {output_dir}")
+                subprocess.run(["git", "add", output_dir], check=True)
+
+        # Also stage any new top-level .txt custom-resource files
+        source_dir = os.path.join('source')
+        source_full = os.path.join(workspace_root, source_dir)
+        for f in os.listdir(source_full):
+            if f.endswith('-custom-resource.txt'):
+                subprocess.run(["git", "add", os.path.join(source_dir, f)], check=True)
 
 
 def parse_args():
@@ -208,16 +315,40 @@ def main():
     tool = AKOCRDsTool(args)
     tool.clone_repo()
     tool.checkout_version()
-    tool.get_markdown_output()
+
+    # Process first markdown file: api-docs.md -> source/includes/manual-crds/
+    tool.get_markdown_output('docs/api-docs.md')
     tool.process_markdown()
     tool.convert_to_rst()
     if args.manual_crds:
         print("Manual CRD processing selected.")
-        tool.write_processed_output_for_manual_crds()
+        tool.write_processed_output_for_manual_crds('manual-crds')
     else:
         tool.write_processed_output_for_automated_crds()
+
+    # Process second markdown file: api-docs-generated.md -> source/includes/generated-crds/
+    tool._reset_state()
+    tool.get_markdown_output('docs/api-docs-generated.md')
+    tool.process_markdown()
+    tool.convert_to_rst()
+    if args.manual_crds:
+        print("Generated CRD processing selected.")
+        tool.write_processed_output_for_manual_crds('generated-crds')
+        tool.ensure_txt_files_exist('generated-crds')
+    else:
+        tool.write_processed_output_for_automated_crds()
+
     tool.clean_up()
     tool.add_files_in_git()
+
+    if tool.created_txt_files:
+        print('\n' + '=' * 60)
+        print('ACTION REQUIRED: The following new host files were created')
+        print('and must be added to the table of contents (toc):')
+        print('=' * 60)
+        for txt_file in tool.created_txt_files:
+            print(f'  - source/{txt_file}')
+        print('=' * 60 + '\n')
 
 
 if __name__ == "__main__":

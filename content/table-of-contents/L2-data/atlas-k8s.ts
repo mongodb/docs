@@ -307,6 +307,39 @@ const tocData: TocItem[] = [
         ],
       },
       {
+        label: 'OpenAPI Custom Resources',
+        contentSite: 'atlas-operator',
+        url: '/docs/atlas/operator/:version/generated-crds-overview',
+        collapsible: true,
+        items: [
+          {
+            label: 'Group',
+            contentSite: 'atlas-operator',
+            url: '/docs/atlas/operator/:version/group-custom-resource',
+          },
+          {
+            label: 'Cluster',
+            contentSite: 'atlas-operator',
+            url: '/docs/atlas/operator/:version/cluster-custom-resource',
+          },
+          {
+            label: 'IpaccessListEntry',
+            contentSite: 'atlas-operator',
+            url: '/docs/atlas/operator/:version/ipaccesslistentry-custom-resource',
+          },
+          {
+            label: 'FlexCluster',
+            contentSite: 'atlas-operator',
+            url: '/docs/atlas/operator/:version/flexcluster-custom-resource',
+          },
+          {
+            label: 'DatabaseUser',
+            contentSite: 'atlas-operator',
+            url: '/docs/atlas/operator/:version/databaseuser-custom-resource',
+          },
+        ],
+      },
+      {
         label: 'Flex to Dedicated Migration',
         contentSite: 'atlas-operator',
         url: '/docs/atlas/operator/:version/flex-to-dedicated-migration',

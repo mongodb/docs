@@ -76,7 +76,7 @@ AtlasFederatedAuthSpec defines the target state of AtlasFederatedAuth.
      - boolean
      - Prevent users in the federation from accessing organizations outside the federation, and creating new organizations.
        This option applies to the entire federation.
-       See more information at https://www.mongodb.com/docs/atlas/security/federation-advanced-options/#restrict-user-membership-to-the-federation
+       See more information at `https://www.mongodb.com/docs/atlas/security/federation-advanced-options/#restrict-user-membership-to-the-federation <https://www.mongodb.com/docs/atlas/security/federation-advanced-options/#restrict-user-membership-to-the-federation>`__
        *Default*: false
      - false
 

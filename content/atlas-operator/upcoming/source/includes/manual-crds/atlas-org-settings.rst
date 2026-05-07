@@ -82,14 +82,14 @@ AtlasOrgSettingsSpec defines the desired state of AtlasOrgSettings.
    * -  ``multiFactorAuthRequired``
      - boolean
      - ``MultiFactorAuthRequired`` Flag that indicates whether to require users to set up Multi-Factor Authentication (``MFA``) before accessing the specified organization.
-       To learn more, see: https://www.mongodb.com/docs/atlas/security-multi-factor-authentication/.
+       To learn more, see: `https://www.mongodb.com/docs/atlas/security-multi-factor-authentication/. <https://www.mongodb.com/docs/atlas/security-multi-factor-authentication/.>`__
      - false
 
    * -  ``restrictEmployeeAccess``
      - boolean
      - ``RestrictEmployeeAccess`` Flag that indicates whether to block ``MongoDB`` Support from accessing Atlas infrastructure and cluster logs for any deployment in the specified organization without explicit permission.
        Once this setting is turned on, you can grant ``MongoDB`` Support a 24-hour bypass access to the Atlas deployment to resolve support issues.
-       To learn more, see: https://www.mongodb.com/docs/atlas/security-restrict-support-access/.
+       To learn more, see: `https://www.mongodb.com/docs/atlas/security-restrict-support-access/. <https://www.mongodb.com/docs/atlas/security-restrict-support-access/.>`__
      - false
 
    * -  ``securityContact``
@@ -123,7 +123,7 @@ ConnectionSecretRef is the name of the Kubernetes Secret which contains the info
    * -  ``name``
      - string
      - Name of the resource being referred to
-       More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+       More info: `https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names>`__
      - true
 
 .. _atlasorgsettings-status: 

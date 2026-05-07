@@ -6,6 +6,109 @@ class ConvertToRST:
     def __init__(self):
         pass
     
+    def _apply_backtick_wrapping(self, cell):
+        """Apply uppercase/camelCase backtick wrapping while skipping RST link constructs and directives."""
+        # Pattern to identify RST links: `text <url>`__ or :ref:`text <target>`,
+        # inline code ``...``, and .. note:: directives — we skip these spans
+        rst_link_pattern = re.compile(r'(``[^`]+``)|(`[^`]*<[^>]*>`__)|(:ref:`[^`]*`)|(\.\. note::)')
+        
+        backtick_pattern = re.compile(
+            r'(?<!`)(?<!`)\b([A-Z][A-Z0-9_]{1,}|[A-Z][a-z]+(?:[A-Z]+[a-z0-9]*)+|[a-z]+[A-Z][a-zA-Z0-9]*)\b(?!`)(?!`)'
+        )
+        
+        # Split the cell into segments: RST links (skip) and everything else (process)
+        result = []
+        last_end = 0
+        for match in rst_link_pattern.finditer(cell):
+            # Process text before this RST link
+            before = cell[last_end:match.start()]
+            before = backtick_pattern.sub(r'``\1``', before)
+            result.append(before)
+            # Keep the RST link unchanged
+            result.append(match.group(0))
+            last_end = match.end()
+        
+        # Process remaining text after last RST link
+        remaining = cell[last_end:]
+        remaining = backtick_pattern.sub(r'``\1``', remaining)
+        result.append(remaining)
+        
+        return ''.join(result)
+
+    def _convert_pipe_table_in_cell(self, cell_content):
+        """Convert markdown pipe tables within cell content to RST list-table format."""
+        lines = cell_content.split('\n')
+        table_lines = []
+        non_table_before = []
+        non_table_after = []
+        in_table = False
+        table_done = False
+        
+        for line in lines:
+            stripped = line.strip()
+            # Detect pipe table rows (must have | at start and end, or be a separator line)
+            if stripped.startswith('|') and stripped.endswith('|') and not table_done:
+                in_table = True
+                table_lines.append(stripped)
+            else:
+                if in_table:
+                    table_done = True
+                    non_table_after.append(line)
+                else:
+                    non_table_before.append(line)
+        
+        if not table_lines or len(table_lines) < 2:
+            return cell_content
+        
+        # Parse the pipe table
+        # First row is headers, second row is separator (---|---), rest are data
+        header_row = [c.strip() for c in table_lines[0].strip('|').split('|')]
+        data_rows = []
+        for row_line in table_lines[1:]:
+            # Skip separator rows (contain only -, |, and spaces)
+            if re.match(r'^[\|\-\s:]+$', row_line):
+                continue
+            cols = [c.strip() for c in row_line.strip('|').split('|')]
+            data_rows.append(cols)
+        
+        if not data_rows:
+            return cell_content
+        
+        num_cols = len(header_row)
+        
+        # Build RST list-table
+        rst_parts = []
+        rst_parts.append('\n\n.. list-table::')
+        rst_parts.append('   :header-rows: 1')
+        # Distribute widths evenly
+        width = 100 // num_cols
+        widths = [width] * (num_cols - 1) + [100 - width * (num_cols - 1)]
+        rst_parts.append(f'   :widths: {" ".join(str(w) for w in widths)}')
+        rst_parts.append('')
+        
+        # Header row
+        rst_parts.append(f'   * - {header_row[0]}')
+        for h in header_row[1:]:
+            rst_parts.append(f'     - {h}')
+        rst_parts.append('')
+        
+        # Data rows
+        for row in data_rows:
+            padded = row + [''] * (num_cols - len(row))
+            rst_parts.append(f'   * - {padded[0]}')
+            for c in padded[1:]:
+                rst_parts.append(f'     - {c}')
+            rst_parts.append('')
+        
+        result_parts = []
+        if non_table_before:
+            result_parts.append('\n'.join(non_table_before))
+        result_parts.append('\n'.join(rst_parts))
+        if non_table_after:
+            result_parts.append('\n'.join(non_table_after))
+        
+        return '\n'.join(result_parts)
+
     def parse_html_table(self, html_content):
         """Parse HTML table and convert to RST list-table format."""
         # Extract table content between <table> and </table>
@@ -57,13 +160,25 @@ class ConvertToRST:
                         # Convert any remaining single backticks to double backticks for RST inline code
                         cell = re.sub(r'(?<!`)`([^`]+)`(?!`)', r'``\1``', cell)
                         
-                        # Handle <a> tags - extract link text but preserve the text formatting
-                        def extract_link_text(match):
+                        # Handle <a> tags - convert to RST link format using placeholders
+                        # to avoid the HTML tag stripper removing the angle-bracket target
+                        def convert_a_tag_to_rst_link(match):
+                            url = match.group(1)
                             link_text = match.group(2)
-                            # If the link text contains formatting, preserve it
-                            return link_text
+                            # Strip any remaining HTML from link text
+                            link_text = re.sub(r'<[^>]+>', '', link_text).strip()
+                            if url.startswith('#'):
+                                anchor = url[1:]
+                                if '/' in anchor:
+                                    # External API anchors (e.g. #tag/Projects/...)
+                                    # don't exist as RST labels; output as inline code
+                                    return f'``{link_text}``'
+                                else:
+                                    return f':ref:`{link_text} \x00OPEN{anchor}\x00CLOSE`'
+                            else:
+                                return f'`{link_text} \x00OPEN{url}\x00CLOSE`__'
                         
-                        cell = re.sub(r'<a[^>]*href="([^"]*)"[^>]*>(.*?)</a>', extract_link_text, cell, flags=re.IGNORECASE | re.DOTALL)
+                        cell = re.sub(r'<a[^>]*href="([^"]*)"[^>]*>(.*?)</a>', convert_a_tag_to_rst_link, cell, flags=re.IGNORECASE | re.DOTALL)
                         
 
                         # TODO: handle bullteted lists within table cells
@@ -79,15 +194,77 @@ class ConvertToRST:
                         # Remove any remaining HTML tags while preserving content
                         cell = re.sub(r'<[^>]+>', '', cell)
                         
+                        # Restore RST link angle brackets from placeholders
+                        cell = cell.replace('\x00OPEN', '<').replace('\x00CLOSE', '>')
+                        
                         # Decode HTML entities
                         cell = html.unescape(cell)
+                        
+                        # Convert markdown links [text](url) to RST format
+                        def convert_md_link_to_rst(match):
+                            text = match.group(1)
+                            url = match.group(2)
+                            if url.startswith('#'):
+                                anchor = url[1:]
+                                if '/' in anchor:
+                                    # External API anchors (e.g. #tag/Projects/...)
+                                    # don't exist as RST labels; output as inline code
+                                    return f'``{text}``'
+                                else:
+                                    return f':ref:`{text} <{anchor}>`'
+                            else:
+                                return f'`{text} <{url}>`__'
+                        cell = re.sub(r'\[([^\]]+)\]\(([^)]+)\)', convert_md_link_to_rst, cell)
+                        
+                        # Convert bare URLs to RST link format (but not those already inside RST links)
+                        # Negative lookbehind for < (inside angle brackets) and ` (part of RST link)
+                        cell = re.sub(
+                            r'(?<![<`])(https?://[^\s>`,)]+)',
+                            r'`\1 <\1>`__',
+                            cell
+                        )
+                        
+                        # Convert **NOTE**: pattern to .. note:: admonition
+                        # Use \n\n to create paragraph breaks that the cell processing will handle
+                        cell = re.sub(
+                            r'\*\*NOTE\*\*:\s*(.+?)(?=\n\n|\n(?=[A-Z*])|\Z)',
+                            r'\n\n.. note::\n\n   \1',
+                            cell,
+                            flags=re.DOTALL
+                        )
+                        
+                        # Ensure *Validations*: starts a new paragraph and uses bold RST format
+                        cell = re.sub(r'(?<!\n\n)(\n\*Validations\*:)', r'\n\1', cell)
+                        cell = cell.replace('*Validations*:', '**Validations:**')
+                        
+                        # Convert markdown pipe tables to RST list-tables
+                        cell = self._convert_pipe_table_in_cell(cell)
                         
                         # Clean up whitespace while preserving intentional line breaks
                         # Split by double newlines to preserve paragraph breaks
                         paragraphs = cell.split('\n\n')
                         cleaned_paragraphs = []
+                        prev_was_directive = False
                         
                         for paragraph in paragraphs:
+                            stripped_para = paragraph.strip()
+                            # Check if this paragraph is a directive
+                            is_directive = stripped_para.startswith('.. ') and '::' in stripped_para.split('\n')[0]
+                            
+                            # If this paragraph is a directive or is indented content following a directive
+                            # preserve its internal structure entirely
+                            if is_directive:
+                                cleaned_paragraphs.append(stripped_para)
+                                prev_was_directive = True
+                                continue
+                            elif prev_was_directive and stripped_para and (paragraph.startswith('   ') or stripped_para.startswith('* ') or stripped_para.startswith('- ')):
+                                # Directive content paragraph - preserve indentation
+                                cleaned_paragraphs.append(paragraph.lstrip('\n'))
+                                # Keep prev_was_directive True for continued directive content
+                                continue
+                            
+                            prev_was_directive = False
+                            
                             # Clean up each paragraph
                             lines = paragraph.split('\n')
                             cleaned_lines = []
@@ -96,6 +273,9 @@ class ConvertToRST:
                                 # Preserve bullet point lines and their formatting
                                 if line.strip().startswith('* ') or line.strip().startswith('- '):
                                     cleaned_lines.append(' '.join(line.split()))
+                                # Preserve RST directives
+                                elif line.strip().startswith('.. '):
+                                    cleaned_lines.append(line.strip())
                                 else:
                                     # For regular lines, clean up excessive whitespace but preserve structure
                                     cleaned_line = ' '.join(line.split())
@@ -159,42 +339,72 @@ class ConvertToRST:
                     # Multi-line cell content needs proper indentation
                     lines = cell.split('\n')
                     processed_lines = []
+                    in_directive = False
                     
                     for i, line in enumerate(lines):
-                        line = line.strip()
+                        stripped = line.strip()
                         
-                        # Check if next line is a list item - if so, preserve empty lines before it
+                        # Detect RST directive start (.. note::, .. warning::, etc.)
+                        if stripped.startswith('.. ') and stripped.endswith('::'):
+                            in_directive = True
+                        elif stripped and not stripped.startswith(' ') and in_directive and not line.startswith('   '):
+                            # Non-indented non-empty line after directive content ends the directive
+                            in_directive = False
+                        
+                        # Check properties of the next line
                         next_is_list_item = False
+                        next_is_directive = False
+                        next_is_nonempty = False
                         if i + 1 < len(lines):
                             next_line = lines[i + 1].strip()
                             next_is_list_item = next_line.startswith('- ') or next_line.startswith('* ')
+                            next_is_directive = next_line.startswith('.. ') and next_line.endswith('::')
+                            next_is_nonempty = bool(next_line)
                         
-                        # Skip empty lines unless they're before list items
-                        if not line and not next_is_list_item:
+                        # Check if previous line was a bullet item
+                        prev_is_list_item = False
+                        if i > 0:
+                            prev_stripped = lines[i - 1].strip()
+                            prev_is_list_item = prev_stripped.startswith('- ') or prev_stripped.startswith('* ')
+                        
+                        # Current line is a bullet item
+                        is_list_item = stripped.startswith('- ') or stripped.startswith('* ')
+                        
+                        # Skip empty lines unless they're before list items, directives,
+                        # inside directives, or after bullet items (to prevent unindent warnings)
+                        if not stripped and not next_is_list_item and not next_is_directive and not in_directive and not prev_is_list_item:
                             continue
                         
                         if i == 0:
                             # First line doesn't need extra indentation
-                            processed_lines.append(line)
+                            processed_lines.append(stripped)
                         else:
                             # Additional lines need proper indentation for RST list-table
                             # Use 7 spaces to align with content in list-table cells
-                            # Empty lines before lists should just be blank
-                            if not line and next_is_list_item:
+                            if not stripped and (next_is_list_item or next_is_directive or in_directive):
                                 processed_lines.append('\n')
-                            else:
+                            elif line.startswith('   ') and in_directive:
+                                # Preserve relative indentation for directive content
                                 processed_lines.append('\n       ' + line)
+                            else:
+                                processed_lines.append('\n       ' + stripped)
                     
                     processed_cells.append(''.join(processed_lines))
                 else:
                     processed_cells.append(cell)
 
-            # field name
-            field_name = f' {processed_cells[0].strip()} '
+            # field name - strip any RST link formatting, we just want plain text
+            raw_field_name = processed_cells[0].strip()
+            # Remove :ref:`text <target>` → text
+            raw_field_name = re.sub(r':ref:`([^<]+)\s*<[^>]+>`', r'\1', raw_field_name)
+            # Remove `text <url>`__ → text
+            raw_field_name = re.sub(r'`([^<]+)\s*<[^>]+>`__', r'\1', raw_field_name)
+            raw_field_name = raw_field_name.strip()
+            field_name = f' {raw_field_name} '
 
             
             # First column of each row
-            rst_table.append(f'   * -  ``{field_name.strip()}``')
+            rst_table.append(f'   * -  ``{raw_field_name}``')
             
             # Remaining columns
             for cell in processed_cells[1:]:
@@ -208,7 +418,8 @@ class ConvertToRST:
                 # 3. camelCase: apiKey, connectionString
                 # Excludes: single capitalized words like Name, Kubernetes, Resource
                 # Negative lookbehind/lookahead ensures we don't wrap already wrapped text
-                cell = re.sub(r'(?<!`)(?<!`)\b([A-Z][A-Z0-9_]{1,}|[A-Z][a-z]+(?:[A-Z]+[a-z0-9]*)+|[a-z]+[A-Z][a-zA-Z0-9]*)\b(?!`)(?!`)', r'``\1``', cell)
+                # Skip content inside RST link constructs and .. note:: directives
+                cell = self._apply_backtick_wrapping(cell)
                 
                 rst_table.append(f'     - {cell}')
             
@@ -324,13 +535,21 @@ class ConvertToRST:
                     url = match.group(2)
                     # Check if it's an anchor link (starts with #)
                     if url.startswith('#'):
-                        # Convert to RST cross-reference
-                        return f':ref:`{text} <{url[1:]}>`'
+                        anchor = url[1:]
+                        if '/' in anchor:
+                            # External API anchors (e.g. #tag/Projects/...)
+                            # don't exist as RST labels; output as inline code
+                            return f'``{text}``'
+                        else:
+                            # Convert to RST cross-reference
+                            return f':ref:`{text} <{anchor}>`'
                     else:
                         # Convert to RST external link
                         return f'`{text} <{url}>`__'
                 
                 line = re.sub(link_pattern, replace_link, line)
+                # Also convert any remaining bare URLs on this line
+                line = re.sub(r'(?<![<`])(https?://[^\s>`,)]+)', r'`\1 <\1>`__', line)
                 rst_lines.append(line)
             
             # Convert markdown code blocks to RST code blocks
@@ -353,6 +572,8 @@ class ConvertToRST:
                 # But avoid converting if already double backticks
                 inline_code_pattern = r'(?<!`)`([^`]+)`(?!`)'
                 line = re.sub(inline_code_pattern, r'``\1``', line)
+                # Convert bare URLs to RST link format
+                line = re.sub(r'(?<![<`])(https?://[^\s>`,)]+)', r'`\1 <\1>`__', line)
                 rst_lines.append(line)
             
             # Convert markdown tables to RST tables (basic conversion)
@@ -368,6 +589,8 @@ class ConvertToRST:
                     line = re.sub(r'\*\*([^*]+)\*\*', r'**\1**', line)
                     # Convert *italic* to RST *italic*
                     line = re.sub(r'(?<!\*)\*([^*]+)\*(?!\*)', r'*\1*', line)
+                    # Convert bare URLs to RST link format
+                    line = re.sub(r'(?<![<`])(https?://[^\s>`,)]+)', r'`\1 <\1>`__', line)
                 rst_lines.append(line)
             
             i += 1

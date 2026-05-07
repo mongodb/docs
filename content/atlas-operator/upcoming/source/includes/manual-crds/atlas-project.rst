@@ -59,7 +59,7 @@ AtlasProjectSpec defines the target state of Project in Atlas
      - string
      - Name is the ``name`` of the Project that is created in Atlas by the Operator if it doesn't exist yet.
        The ``name`` length must not exceed 64 characters. The ``name`` must contain only letters, numbers, spaces, dashes, and underscores.
-       *Validations*:
+       **Validations:**
 
        - self == ``oldSelf``: Name cannot be modified after project creation
      - true
@@ -112,7 +112,7 @@ AtlasProjectSpec defines the target state of Project in Atlas
      - ``CustomRoles`` lets you create and change custom roles in your cluster.
        Use custom roles to specify custom sets of actions that the Atlas built-in roles can't describe.
        Deprecated: Migrate to the ``AtlasCustomRoles`` custom resource in accordance with the migration guide
-       at https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr
+       at `https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr <https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr>`__
      - false
 
    * -  ``encryptionAtRest``
@@ -124,35 +124,35 @@ AtlasProjectSpec defines the target state of Project in Atlas
      - []object
      - Integrations is a list of ``MongoDB`` Atlas ``integrations`` for the project.
        Deprecated: Migrate to the ``AtlasThirdPartyIntegration`` custom resource in accordance with the migration guide
-       at https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr
+       at `https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr <https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr>`__
      - false
 
    * -  ``maintenanceWindow``
      - object
      - ``MaintenanceWindow`` allows to specify a preferred time in the week to run maintenance operations. See more
-       information at https://www.mongodb.com/docs/atlas/reference/api/maintenance-windows/
+       information at `https://www.mongodb.com/docs/atlas/reference/api/maintenance-windows/ <https://www.mongodb.com/docs/atlas/reference/api/maintenance-windows/>`__
      - false
 
    * -  ``networkPeers``
      - []object
      - ``NetworkPeers`` is a list of Network Peers configured for the current Project.
        Deprecated: Migrate to the ``AtlasNetworkPeering`` and ``AtlasNetworkContainer`` custom resources in accordance with
-       the migration guide at https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr
+       the migration guide at `https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr <https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr>`__
      - false
 
    * -  ``privateEndpoints``
      - []object
      - ``PrivateEndpoints`` is a list of Private Endpoints configured for the current Project.
        Deprecated: Migrate to the ``AtlasPrivateEndpoint`` Custom Resource in accordance with the migration guide
-       at https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr
+       at `https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr <https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr>`__
      - false
 
    * -  ``projectIpAccessList``
      - []object
      - ``ProjectIPAccessList`` allows the use of the ``IP`` Access List for a Project. See more information at
-       https://docs.atlas.mongodb.com/reference/api/ip-access-list/add-entries-to-access-list/
+       `https://docs.atlas.mongodb.com/reference/api/ip-access-list/add-entries-to-access-list/ <https://docs.atlas.mongodb.com/reference/api/ip-access-list/add-entries-to-access-list/>`__
        Deprecated: Migrate to the ``AtlasIPAccessList`` Custom Resource in accordance with the migration guide
-       at https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr
+       at `https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr <https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr>`__
      - false
 
    * -  ``regionUsageRestrictions``
@@ -770,7 +770,7 @@ AtlasProject.spec.customRoles
 CustomRole lets you create and change a custom role in your cluster.
 Use custom roles to specify custom sets of actions that the Atlas built-in roles can't describe.
 Deprecated: Migrate to the AtlasCustomRoles custom resource in accordance with the migration guide
-at https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr
+at `https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr <https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr>`__
 
 .. list-table::
    :header-rows: 1
@@ -1100,7 +1100,7 @@ AtlasProject.spec.integrations
 
 Integration for the project between Atlas and a third party service.
 Deprecated: Migrate to the AtlasThirdPartyIntegration custom resource in accordance with the migration guide
-at https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr
+at `https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr <https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr>`__
 
 .. list-table::
    :header-rows: 1
@@ -1154,6 +1154,7 @@ at https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-reso
 
    * -  ``name``
      - string
+
      -  
      - false
 
@@ -1186,6 +1187,7 @@ at https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-reso
 
    * -  ``scheme``
      - string
+
      -  
      - false
 
@@ -1474,7 +1476,7 @@ AtlasProject.spec.maintenanceWindow
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 MaintenanceWindow allows to specify a preferred time in the week to run maintenance operations. See more
-information at https://www.mongodb.com/docs/atlas/reference/api/maintenance-windows/
+information at `https://www.mongodb.com/docs/atlas/reference/api/maintenance-windows/ <https://www.mongodb.com/docs/atlas/reference/api/maintenance-windows/>`__
 
 .. list-table::
    :header-rows: 1
@@ -1525,7 +1527,7 @@ AtlasProject.spec.networkPeers
 
 NetworkPeer configured for the current Project.
 Deprecated: Migrate to the AtlasNetworkPeering and AtlasNetworkContainer custom resources in accordance with
-the migration guide at https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr
+the migration guide at `https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr <https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr>`__
 
 .. list-table::
    :header-rows: 1
@@ -1613,7 +1615,7 @@ AtlasProject.spec.privateEndpoints
 
 PrivateEndpoint is a list of Private Endpoints configured for the current Project.
 Deprecated: Migrate to the AtlasPrivateEndpoint Custom Resource in accordance with the migration guide
-at https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr
+at `https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr <https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr>`__
 
 .. list-table::
    :header-rows: 1
@@ -1690,9 +1692,9 @@ AtlasProject.spec.projectIpAccessList
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 IPAccessList allows the use of the IP Access List for a Project. See more information at
-https://docs.atlas.mongodb.com/reference/api/ip-access-list/add-entries-to-access-list/
+`https://docs.atlas.mongodb.com/reference/api/ip-access-list/add-entries-to-access-list/ <https://docs.atlas.mongodb.com/reference/api/ip-access-list/add-entries-to-access-list/>`__
 Deprecated: Migrate to the AtlasIPAccessList Custom Resource in accordance with the migration guide
-at https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr
+at `https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr <https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr>`__
 
 .. list-table::
    :header-rows: 1
@@ -2507,9 +2509,9 @@ AtlasProject.status.expiredIpAccessList
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 IPAccessList allows the use of the IP Access List for a Project. See more information at
-https://docs.atlas.mongodb.com/reference/api/ip-access-list/add-entries-to-access-list/
+`https://docs.atlas.mongodb.com/reference/api/ip-access-list/add-entries-to-access-list/ <https://docs.atlas.mongodb.com/reference/api/ip-access-list/add-entries-to-access-list/>`__
 Deprecated: Migrate to the AtlasIPAccessList Custom Resource in accordance with the migration guide
-at https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr
+at `https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr <https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-resource/#std-label-ak8so-migrate-ptr>`__
 
 .. list-table::
    :header-rows: 1
@@ -2761,6 +2763,7 @@ AtlasProject.status.teams
 
    * -  ``id``
      - string
+
      -  
      - false
 
