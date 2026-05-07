@@ -15,22 +15,16 @@ In this quick start, you complete the following steps:
    To create a local |service| deployment using Docker commands, see 
    :ref:`atlas-cli-deploy-docker`.
 
-2. Create an index definition for the 
-   ``sample_mflix.embedded_movies`` collection that indexes the 
-   ``plot_embedding_voyage_3_large`` field as the ``vector`` type. The 
-   ``plot_embedding_voyage_3_large`` field contains embeddings created
-   using |voyage|'s ``voyage-3-large`` embedding model. The index 
-   definition specifies ``2048`` vector dimensions and measures 
-   similarity using ``dotProduct``.
+2. Create an index definition for the ``sample_mflix.movies`` collection 
+   that indexes the ``fullplot`` field as the ``autoEmbed`` type. The 
+   index definition specifies ``voyage-4`` as the model to use 
+   for generating embeddings for the ``fullplot`` field.
 
-#. Run a {+avs+} query that searches the sample 
-   ``sample_mflix.embedded_movies`` collection. The query uses the 
-   :pipeline:`$vectorSearch` stage to search the
-   ``plot_embedding_voyage_3_large`` field, which contains embeddings
-   created using |voyage|'s ``voyage-3-large`` embedding model. The
-   query searches the ``plot_embedding_voyage_3_large`` field using
-   vector embeddings for the string *time travel*. It considers up to
-   ``150`` nearest neighbors, and returns ``10`` documents in the
+#. Run a {+avs+} query that searches the sample ``sample_mflix.movies`` 
+   collection. The query uses the :pipeline:`$vectorSearch` stage to 
+   search the ``fullplot`` field for the movies semantically similar 
+   to the query string *journey through the country side*. It considers 
+   up to ``100`` nearest neighbors and returns ``10`` documents in the
    results.
 
 To learn more, see :ref:`avs-qs-learning-summary`.

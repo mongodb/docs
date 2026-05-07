@@ -78,7 +78,7 @@
                embeddings field (``plot_embedding_voyage_3_large``) for performing
                vector search.   
 
-               .. literalinclude:: /includes/quick-start/code-snippets/csharp/basic-example.cs
+               .. literalinclude:: /includes/quick-start/code-snippets/vector/csharp/basic-example.cs
                   :language: csharp
                   :copyable: true 
                   :linenos:

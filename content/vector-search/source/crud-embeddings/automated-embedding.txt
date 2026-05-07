@@ -1,0 +1,319 @@
+.. _avs-auto-embeddings:
+
+============================
+Automated Embedding Overview         
+============================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Learn how to create vector embeddings automatically for vector search at index- and query-time by using a Voyage AI embedding model.
+   :keywords: vector embeddings, embedding model, vector database, vector search, semantic search, generative search, sample dataset, code example, node.js, python, compass, mongosh
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. dismissible-skills-card::
+   :skill: RAG with MongoDB
+   :url: https://learn.mongodb.com/skills?openTab=gen+ai
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. tabs::
+
+   .. tab:: Atlas
+      :tabid: atlas
+
+      You can configure {+avs+} to automatically generate and manage vector embeddings
+      for the text data in your Atlas cluster. When you enable Automated Embedding,
+      {+avs+} automatically generates embeddings using the specified |voyage|
+      embedding model at index-time for the specified text field in your collection
+      and at query-time for the text string in your query.
+
+      Automated Embedding simplifies the process of building semantic search. You don't
+      need to generate, store, or manage vector embeddings yourself. |service| handles
+      embedding generation, updates, and querying natively.
+
+      .. note:: 
+
+         You must enable auto-scaling with a maximum instance size of ``M30`` or higher 
+         for ``M10`` and ``M20`` clusters to use Automated Embedding. For all other 
+         cluster tiers, Automated Embedding is enabled by default. 
+
+   .. tab:: Self-Managed
+      :tabid: self
+
+      You can deploy {+avs+} and enable intelligent, AI-powered semantic search
+      on your text data through Automated Embedding in {+avs+} indexes. MongoDB's
+      Automated Embedding capabilities transform the traditionally complex process
+      of vector search implementation into a single-step solution. Instead of
+      managing separate embedding infrastructure, model selection, and integration
+      code, you can now implement semantic search through simple field configuration.
+
+      When you configure {+avs+} indexes, it automatically generates vector
+      embeddings for text data in your collection, using your selection of a
+      state-of-the-art |voyage| embedding model, keeps the embeddings in sync
+      as your data changes, and also supports use of natural language text
+      queries. These vector embeddings capture meaningful relationships in
+      your data and allow for searching based on intent rather than keywords.
+
+Enable and Use Automated Embedding
+----------------------------------
+
+.. tabs::
+   :hidden:
+
+   .. tab:: Atlas
+      :tabid: atlas
+
+      To enable Automated Embedding, you create a {+avs+} index using the ``autoEmbed`` 
+      type. The ``autoEmbed`` type specifies the field for which you want to enable 
+      Automated Embedding and the embedding model that you want to use. You can also 
+      include one or more fields to pre-filter your data using the ``filter`` type.
+
+      .. code-block:: json
+         :linenos:
+         :emphasize-lines: 4-7, 10-11
+
+         {
+           "fields": [
+             {
+               "type": "autoEmbed",
+               "modality": "text",
+               "path": "<field-to-index>",
+               "model": "<embedding-model>"
+             },
+             {
+               "type": "filter",
+               "path": "<field-to-index>"
+             },
+             ...
+           ]
+         }
+
+      To learn more about the index syntax and fields, see :ref:`avs-types-vector-search`.
+
+      {+avs+} automatically generates embeddings for existing and new documents 
+      that you insert or update.
+
+      Once you've created the index, you can run your queries. {+avs+} automatically 
+      generates embeddings for your query text using the same embedding model that you 
+      specified in the index. You can optionally specify a different embedding model 
+      using the ``model`` option in the :pipeline:`$vectorSearch` pipeline stage, but 
+      the specified embedding model must be compatible with the embedding model used at 
+      index-time. 
+
+      .. code-block:: json
+         :linenos:
+         :emphasize-lines: 4,7
+
+         [
+           {
+             "$vectorSearch": {
+               "index": "<index-name>",
+               "path": "<field-to-index>",
+               "query": "<query-text>",
+               "model": "<embedding-model>"
+             }
+           },
+           {
+             "$project": {
+               "_id": 0,
+               "<field-to-index>": 1,
+               "score": { "$meta": "vectorSearchScore" }
+             }
+           }
+         ]
+
+      To learn more, see :ref:`return-vector-search-results`.
+
+   .. tab:: Self-Managed
+      :tabid: self
+
+      .. note:: 
+
+         The feature is available for {+fts+} and {+avs+} :ref:`deployments
+         using Docker, tarball, or a package manager <install-mdb-community-edition>` 
+         and for :ref:`deployments <k8s-deploy-search-resources>` using the MongoDB 
+         Controllers for Kubernetes Operator with MongoDB 8.2 or later Community 
+         Edition. Automated Embedding functionality is not yet available for MongoDB 
+         Enterprise Edition.
+
+      With a simple configuration change, you can enable semantic search, :ref:`RAG 
+      <avs-rag>`, and memory for AI Agents, without writing embedding code, 
+      managing model infrastructure, or handling vector pipelines. That is, when 
+      :ref:`deploying the MongoDB Community Edition with the MongoDB Search 
+      and Vector Search process <install-mdb-community-edition>`, ``mongot``, 
+      you can provide the :ref:`Voyage AI API keys <voyage-api-key-for-auto-embed>` 
+      to use for generating embeddings, ideally one for indexing operations and 
+      another for query operations from different :term:`projects <project>`. 
+
+      After deployment:
+
+      a. From your collection, choose the text field for which you want to enable 
+         the semantic search.
+      #. From the list of available embedding models, choose an embedding model.
+      #. In your {+avs+} index definition, configure Automated Embedding using 
+         the ``autoEmbed`` type. 
+
+      To learn more about configuring {+avs+} index for Automated Embedding, see 
+      :ref:`avs-types-vector-search`. 
+
+      {+avs+} automatically generates embeddings for existing and new documents 
+      that you insert or update by using the |api| keys that you specified while 
+      initializing MongoDB Community Edition. 
+
+      For querying, use the ``query.text`` option in the :pipeline:`$vectorSearch` 
+      pipeline stage. {+avs+} generates embeddings for the text query using the 
+      same embedding model in the index definition. You can specify a different 
+      embedding model using the ``model`` option in the :pipeline:`$vectorSearch` 
+      pipeline stage, but the specified embedding model must be compatible with 
+      the embedding model used at index-time. {+avs+} uses the query API key that 
+      you provided during MongoDB Community initialization to generate the 
+      embeddings at query-time. To learn more, see :ref:`return-vector-search-results`.
+
+      You incur charges for generating embeddings using the |api| keys. To
+      learn more, see :ref:`Manage Billing <costs-for-auto-embed>`.
+
+      To automate embeddings and run a sample query, see :ref:`vector-search-quick-start`.
+
+      .. _voyage-api-key-for-auto-embed:
+
+      |voyage| |api| Keys
+      ~~~~~~~~~~~~~~~~~~~
+
+      .. include:: /includes/index/vector-type/facts/about-api-key.rst
+
+Embeddings Storage 
+-------------------
+
+Automated embedding indexes generate vector embeddings asynchronously and 
+persist to your MongoDB cluster on a separate reserve database. Each Automated 
+Embedding index has exactly one corresponding generated embeddings collection. 
+The generated embeddings collection is stored in a dedicated internal database 
+on the same cluster.
+
+To learn more, see :ref:`auto-embed-materialized-views`.
+
+.. _auto-embed-supported-models:
+
+Available Models
+----------------
+
+{+avs+} integrates with |voyage|'s state-of-the-art embedding models, 
+each optimized for specific use-case:
+
+.. include:: /includes/crud-embeddings/automated/facts/supported-models.rst
+
+To learn more, see :ref:`avs-auto-embeddings-model-ecosystem`.
+
+Key Concepts 
+------------
+
+.. Changes to this section must also be applied to: content/voyageai/source/index.txt
+
+embedding model
+  Embedding models are algorithms that convert data into vector embeddings
+  that capture your data's semantic, or underlying, meaning. These vectors enable 
+  vector search.
+
+  To learn more about the embedding models for Automated Embedding, see 
+  :ref:`auto-embed-supported-models`.
+
+vector embeddings
+  A vector embedding is an array of numbers, with each
+  dimension representing a different feature or attribute of your data. Vectors can be
+  used to represent any type of data, from text, images, and video to unstructured data.
+  You create vector embeddings by passing your data through an embedding model, 
+  and you can store these embeddings in a database that supports vector embeddings 
+  like MongoDB.
+
+  To learn more about the embeddings storage for Automated Embedding, see 
+  :ref:`auto-embed-materialized-views`.
+
+tokens
+  In the context of embedding models and LLMs, tokens are the fundamental units of 
+  text, such as words, subwords, or characters, that the model processes to create 
+  embeddings or generate text. Tokens are how you are billed for usage of embedding 
+  models and LLMs. 
+
+  To learn more about tokens for Automated Embedding, see 
+  :ref:`auto-embed-billing`.
+
+rate limits
+  Rate limits are restrictions imposed by API providers on the 
+  number of requests a user can make within a specific time frame, 
+  often measured in tokens per minute (TPM) or requests per minute (RPM). 
+  These limits ensure fair usage, prevent abuse, and maintain the stability and 
+  performance of the service for all users.
+
+  To learn more about rate limits for Automated Embedding, see 
+  :ref:`auto-embed-rate-limits`.
+
+quantization 
+  Quantization reduces the precision of vector embeddings to decrease memory and 
+  storage usage, with trade-offs in search accuracy. For Automated Embedding, 
+  {+avs+} supports the following quantization types:
+
+  .. list-table:: 
+     :widths: 30 70 
+     :header-rows: 1
+     :stub-columns: 1 
+
+     * - Quantization Type 
+       - Description 
+
+     * - ``float`` 
+       - Stores the vector embeddings as 32-bit float values.
+
+     * - ``scalar`` 
+       - Reduces each vector dimension from 32-bit float to 8-bit integer. 
+
+     * - ``binary``
+       - Reduces each vector dimension to a single bit and rescores the top
+         results.
+
+     * - ``binaryNoRescore`` 
+       - Reduces each vector dimension to a single bit without rescoring.
+
+  To learn more about the quantization for Automated Embedding, see 
+  :ref:`mdb-vs-quantization-auto`.
+
+number of dimensions 
+  The number of dimensions specifies the length of the embedding vector for 
+  each document (how many numbers are in the array). Higher dimensions 
+  capture more semantic detail and generally improve retrieval accuracy, 
+  but increase storage and compute costs (index size, RAM usage, and 
+  sometimes latency).
+
+  To learn more, see :ref:`avs-num-candidates`.
+
+similarity 
+  The similarity function is used to measure the similarity between two 
+  vectors or the closeness of a query vector to the vectors in the index. 
+  {+avs+} supports the following similarity functions:
+
+  - ``cosine`` - measures similarity based on the angle between vectors.
+  - ``dotProduct`` - measures similarity like ``cosine``, but takes into 
+    account the magnitude of the vector. We recommend this similarity 
+    function for full-fidelity or ``scalar`` quantization.
+  - ``euclidean`` - measures the distance between ends of vectors. We 
+    recommend this similarity function for ``binary`` or ``binaryNoRescore`` 
+    quantization, where vectors are compressed and distance in Hamming or 
+    Euclidean space is the right signal.
+
+  To learn more about the similarity functions for Automated Embedding, 
+  see :ref:`mdb-vs-similarity-functions-auto`.
+
+.. toctree::
+   :titlesonly:
+
+   Model Pricing and Rate Limits </crud-embeddings/automated-embedding/models>
+   Manage Automated Embedding </crud-embeddings/automated-embedding/management>
+   Manage Billing </crud-embeddings/automated-embedding/billing>
+   Architecture and Sizing </crud-embeddings/automated-embedding/overview>

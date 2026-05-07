@@ -29,5 +29,6 @@ curl --header "Authorization: Bearer {ACCESS-TOKEN}" \
         },
         ...
       }
-    ]
+    ],
+    "nestedRoot": "<embedded-document-field-name>"
   }'

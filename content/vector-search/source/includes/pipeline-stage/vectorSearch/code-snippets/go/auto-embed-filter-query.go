@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	indexName = "vector_index"
+	indexName = "autoembed_index"
 )
 
 func main() {
@@ -61,7 +61,6 @@ func runVectorSearchQuery(ctx context.Context, coll *mongo.Collection) error {
 				{"query", bson.D{
 					{"text", "epic fantasy journey with reluctant heroes"},
 				}},
-				{"model", "voyage-4"},
 				{"numCandidates", 100},
 				{"limit", 10},
 			},

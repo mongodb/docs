@@ -29,7 +29,7 @@
       Create a file named ``vector_index.cpp``. Copy and paste the following
       code into the file.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/cpp/basic-example.cpp
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/cpp/basic-example.cpp
          :language: cpp
          :copyable: true
          :caption: vector_index.cpp
@@ -72,6 +72,6 @@
 
             ./query_quick_start
 
-         .. output:: /includes/quick-start/code-snippets/shell/create-index-output.sh
+         .. output:: /includes/quick-start/code-snippets/output/create-index-output.sh
             :language: sh
             :linenos:

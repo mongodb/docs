@@ -8,7 +8,7 @@
       Create a file named ``VectorQuery.scala``. Copy and paste the following
       code into the file.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/scala/basic-query.scala
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/scala/basic-query.scala
          :language: scala
          :copyable: true
          :caption: VectorQuery.scala

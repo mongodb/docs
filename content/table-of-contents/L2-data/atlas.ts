@@ -1053,6 +1053,11 @@ const tocData: TocItem[] = [
         isExternal: true,
       },
       {
+        label: 'Automated Embedding',
+        url: 'https://www.mongodb.com/docs/vector-search/crud-embeddings/automated-embedding/billing',
+        isExternal: true,
+      },
+      {
         label: 'Stream Processing',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/billing/stream-processing-costs',

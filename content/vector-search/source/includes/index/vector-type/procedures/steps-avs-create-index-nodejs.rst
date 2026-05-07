@@ -50,7 +50,7 @@
                as the ``vector`` type using the default indexing method, |hnsw|, 
                for performing vector search.  
 
-               .. literalinclude:: /includes/quick-start/code-snippets/nodejs/basic-example.js
+               .. literalinclude:: /includes/quick-start/code-snippets/vector/nodejs/basic-example.js
                   :language: js
                   :copyable: true 
                   :linenos:

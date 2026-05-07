@@ -7,10 +7,6 @@
          cluster. For detailed instructions on connecting, see
          :ref:`Connect via mongosh <connect-mongo-shell>`.
 
-         .. code-block:: shell 
-
-            mongosh "mongodb://localhost:27017"
-
    .. step:: Switch to the database that contains the collection to create the index for. 
 
          .. example:: 
@@ -33,7 +29,7 @@
       You can create an index of ``autoEmbed`` type to run natural language 
       queries. 
 
-      .. literalinclude:: /includes/quick-start/code-snippets/shell/auto-embed-example-mongosh.sh
+      .. literalinclude:: /includes/quick-start/code-snippets/auto-embed/shell/create-index-mongosh.sh
          :language: shell
          :copyable: true 
          :linenos:

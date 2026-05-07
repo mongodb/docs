@@ -20,7 +20,7 @@
       #. Update each document with a new ``embeddings`` field
          that contains the embedding value.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/java/CreateEmbeddingsExisting.java
+      .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/java/CreateEmbeddingsExisting.java
          :language: java
          :caption: CreateEmbeddings.java
 
@@ -28,7 +28,7 @@
 
       Save and run the file. The output resembles:
 
-      .. literalinclude:: /includes/quick-start/code-snippets/output/output-create-embeddings-existing-java.sh
+      .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/output/output-create-embeddings-existing-java.sh
          :language: shell
 
       .. include:: /includes/crud-embeddings/manual/facts/fact-view-embeddings-atlas-ui-airbnb.rst

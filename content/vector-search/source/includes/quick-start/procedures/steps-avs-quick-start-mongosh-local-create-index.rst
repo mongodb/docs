@@ -27,7 +27,7 @@
 
    .. step:: Run the :method:`db.collection.createSearchIndex()` method.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/shell/basic-example-mongosh.sh
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/shell/basic-example-mongosh.sh
          :language: shell
          :copyable: true 
          :linenos:

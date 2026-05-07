@@ -8,7 +8,7 @@
          .. tab:: 
             :tabid: Single Index
 
-            .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/python/create_auto_embed_index.py
+            .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/python/create_auto_embed_index.py  
                :language: python
                :copyable: true 
                :linenos: 
@@ -19,7 +19,7 @@
          .. tab:: 
             :tabid: Multiple Indexes
 
-            .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/python/create_auto_embed_indexes.py
+            .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/python/create_auto_embed_indexes.py  
                :language: python
                :copyable: true 
                :linenos: 
@@ -79,6 +79,17 @@
                .. include:: /includes/quick-start/facts/auto-embed-filter-example-description.rst
 
                .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/python/filter-auto-embed-example.py
+                  :language: python
+                  :copyable: true 
+                  :linenos:
+                  :caption: vector-index.py
+
+            .. tab:: Flat Example 
+               :tabid: flat 
+
+               .. include:: /includes/quick-start/facts/auto-embed-flat-example-description.rst
+
+               .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/python/flat-auto-embed-example.py
                   :language: python
                   :copyable: true 
                   :linenos:

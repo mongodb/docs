@@ -47,7 +47,7 @@
 
    .. step:: Create a file named ``VectorIndex.java``. Copy and paste the following code into the file.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/java/basic-example.java
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/java/basic-example.java
          :language: java
          :copyable: true
          :caption: VectorIndex.java
@@ -73,5 +73,5 @@
             javac VectorIndex.java
             java VectorIndex
 
-         .. output:: /includes/quick-start/code-snippets/shell/create-index-output.sh
+         .. output:: /includes/quick-start/code-snippets/output/create-index-output.sh
             :language: console

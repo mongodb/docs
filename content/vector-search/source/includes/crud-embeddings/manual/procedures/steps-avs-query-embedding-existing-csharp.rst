@@ -16,7 +16,7 @@
       a. Paste the following code to add the ``CreateVectorIndex`` function to
          your ``DataService`` class in ``DataService.cs``.
 
-         .. literalinclude:: /includes/quick-start/code-snippets/csharp/DataService-CreateVectorIndexExisting.cs
+         .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/csharp/DataService-CreateVectorIndexExisting.cs
             :language: csharp
             :copyable:
             :caption: DataService.cs
@@ -31,7 +31,7 @@
          Remove the code that added embeddings to the existing documents, and
          replace it with the following code to create the index:
 
-         .. literalinclude:: /includes/quick-start/code-snippets/csharp/Program-CreateVectorIndex.cs
+         .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/csharp/Program-CreateVectorIndex.cs
             :language: csharp
             :copyable:
             :caption: Program.cs
@@ -64,7 +64,7 @@
 
          .. include:: /includes/quick-start/facts/avs-run-query-description.rst
 
-         .. literalinclude:: /includes/quick-start/code-snippets/csharp/DataService-PerformVectorQueryExisting.cs
+         .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/csharp/DataService-PerformVectorQueryExisting.cs
             :language: csharp
             :copyable:
             :caption: DataService.cs
@@ -75,7 +75,7 @@
          Remove the code that created the vector index, and add code to perform
          a query:
 
-         .. literalinclude:: /includes/quick-start/code-snippets/csharp/Program-PerformVectorQueryExisting.cs
+         .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/csharp/Program-PerformVectorQueryExisting.cs
             :language: csharp
             :copyable:
             :caption: Program.cs
@@ -90,5 +90,5 @@
 
                dotnet run MyCompany.Embeddings.csproj
 
-            .. output:: /includes/quick-start/code-snippets/output/output-existing-open-source-csharp.sh
+            .. output:: /includes/crud-embeddings/manual/code-snippets/output/output-existing-open-source-csharp.sh
                :language: shell   

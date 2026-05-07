@@ -16,7 +16,7 @@
       a. Paste the following code to add a ``CreateVectorIndex`` function to
          your ``DataService`` class in ``DataService.cs``.
 
-         .. literalinclude:: /includes/quick-start/code-snippets/csharp/DataService-CreateVectorIndex.cs
+         .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/csharp/DataService-CreateVectorIndex.cs
             :language: csharp
             :copyable:
             :caption: DataService.cs
@@ -30,7 +30,7 @@
          Remove the code that populated the initial documents, and replace it
          with the following code to create the index:
 
-         .. literalinclude:: /includes/quick-start/code-snippets/csharp/Program-CreateVectorIndex.cs
+         .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/csharp/Program-CreateVectorIndex.cs
             :language: csharp
             :copyable:
             :caption: Program.cs
@@ -63,7 +63,7 @@
 
          .. include:: /includes/quick-start/facts/avs-run-query-description.rst
 
-         .. literalinclude:: /includes/quick-start/code-snippets/csharp/DataService-PerformVectorQuery.cs
+         .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/csharp/DataService-PerformVectorQuery.cs
             :language: csharp
             :copyable:
             :caption: DataService.cs
@@ -73,7 +73,7 @@
          Remove the code that created the vector index, and add code to perform
          a query:
 
-         .. literalinclude:: /includes/quick-start/code-snippets/csharp/Program-PerformVectorQuery.cs
+         .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/csharp/Program-PerformVectorQuery.cs
             :language: csharp
             :copyable:
             :caption: Program.cs
@@ -88,5 +88,5 @@
 
                dotnet run MyCompany.Embeddings.csproj
 
-            .. output:: /includes/quick-start/code-snippets/output/output-new-open-source-csharp.sh
+            .. output:: /includes/crud-embeddings/manual/code-snippets/output/output-new-open-source-csharp.sh
                :language: shell

@@ -12,7 +12,7 @@
       Create a file named ``VectorIndex.kt``. Copy and paste the following
       code into the file.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/kotlin/basic-example-coroutine.kt
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/kotlin/basic-example-coroutine.kt
          :language: kotlin
          :copyable: true
          :caption: VectorIndex.kt
@@ -31,4 +31,4 @@
    
       The output should resemble the following:
    
-      .. literalinclude:: /includes/quick-start/code-snippets/shell/create-index-output.sh
+      .. literalinclude:: /includes/quick-start/code-snippets/output/create-index-output.sh

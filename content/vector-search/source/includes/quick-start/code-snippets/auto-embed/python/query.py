@@ -1,0 +1,29 @@
+import pymongo
+
+client = pymongo.MongoClient("<connection-string>")
+collection = client["sample_mflix"]["movies"]
+
+result = collection.aggregate([
+  {
+    "$vectorSearch": {
+      "index": "autoembed_index",
+      "path": "fullplot",
+      "query": {
+        "text": "journey through the country side"
+      },
+      "numCandidates": 100,
+      "limit": 10
+    }
+  },
+  {
+    "$project": {
+      "_id": 0,
+      "title": 1,
+      "fullplot": 1,
+      "score": { "$meta": "vectorSearchScore" }
+    }
+  }
+])
+
+for i in result:
+    print(i)

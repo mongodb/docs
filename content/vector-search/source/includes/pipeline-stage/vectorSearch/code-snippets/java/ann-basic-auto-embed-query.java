@@ -28,7 +28,7 @@ public class AutoEmbedQuery {
                 vectorSearch(
                     fieldPath("fullplot"),
                     textQuery("young heroes caught in epic struggles between light and darkness"),
-                    "vector_index",
+                    "autoembed_index",
                     10L,
                     approximateVectorSearchOptions(100L)
                 ),

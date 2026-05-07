@@ -15,7 +15,7 @@
 
       a. Create a file named named ``create-index.go`` and paste the following code.
 
-         .. literalinclude:: /includes/quick-start/code-snippets/go/create-index-new-data.go
+         .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/go/create-index-new-data.go
             :language: go
             :copyable:
             :caption: create-index.go
@@ -56,7 +56,7 @@
             .. tab:: Open-Source
                :tabid: open-source
        
-               .. literalinclude:: /includes/quick-start/code-snippets/go/vector-query-new-open-source.go
+               .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/go/vector-query-new-open-source.go
                   :language: go
                   :copyable:
                   :caption: vector-query.go
@@ -64,7 +64,7 @@
             .. tab:: OpenAI
                :tabid: openai
 
-               .. literalinclude:: /includes/quick-start/code-snippets/go/vector-query-new-open-ai.go
+               .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/go/vector-query-new-open-ai.go
                   :language: go
                   :copyable:
                   :caption: vector-query.go
@@ -84,7 +84,7 @@
 
                      go run vector-query.go
 
-                  .. output:: /includes/quick-start/code-snippets/output/output-new-open-source-go.sh
+                  .. output:: /includes/crud-embeddings/manual/code-snippets/output/output-new-open-source-go.sh
                      :language: shell
 
             .. tab:: OpenAI
@@ -97,5 +97,5 @@
 
                      go run vector-query.go
 
-                  .. output:: /includes/quick-start/code-snippets/output/output-new-openai-go.sh
+                  .. output:: /includes/crud-embeddings/manual/code-snippets/output/output-new-openai-go.sh
                      :language: shell

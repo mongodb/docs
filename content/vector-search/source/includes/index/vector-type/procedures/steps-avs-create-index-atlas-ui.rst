@@ -2,7 +2,6 @@
    :style: normal 
 
    .. include:: /includes/shared/procedures/steps-atlas-search.rst
-
    .. include:: /includes/shared/procedures/steps-configure-index.rst
 
    .. step:: Specify the index definition.

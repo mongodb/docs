@@ -10,7 +10,7 @@
       #. Copy and paste the following sample query into the
          ``atlasVectorSearchQuery.kt`` file:
 
-         .. literalinclude:: /includes/quick-start/code-snippets/kotlin/basic-query-coroutine.kt
+         .. literalinclude:: /includes/quick-start/code-snippets/vector/kotlin/basic-query-coroutine.kt
             :language: kotlin
             :linenos:
 
@@ -28,6 +28,6 @@
       Run the ``atlasVectorSearchQuery.kt`` file in your IDE.
       The output should resemble the following:
 
-      .. literalinclude:: /includes/quick-start/code-snippets/go/basic-query-kotlin-output.js
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/go/basic-query-kotlin-output.js
          :language: js
          :linenos:

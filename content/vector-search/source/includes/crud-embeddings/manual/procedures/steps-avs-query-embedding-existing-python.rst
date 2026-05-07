@@ -25,7 +25,7 @@
                .. input:: /includes/crud-embeddings/manual/code-snippets/python/query_embeddings_existing.py
                   :language: python
                
-               .. output:: /includes/quick-start/code-snippets/output/output-existing-open-source-python.json
+               .. output:: /includes/crud-embeddings/manual/code-snippets/output/output-existing-open-source-python.json
                   :language: shell
 
          .. tab:: Voyage AI
@@ -51,5 +51,5 @@
                .. input:: /includes/crud-embeddings/manual/code-snippets/python/query_embeddings_existing.py
                   :language: python
 
-               .. output:: /includes/quick-start/code-snippets/output/output-existing-openai.json
+               .. output:: /includes/crud-embeddings/manual/code-snippets/output/output-existing-openai.json
                   :language: shell

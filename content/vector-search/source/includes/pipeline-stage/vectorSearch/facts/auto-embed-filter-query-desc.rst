@@ -1,8 +1,8 @@
 The following query uses the :pipeline:`$vectorSearch` stage to search
 the ``fullplot`` field for movies. The query automatically generates
 vector embeddings for the string *epic fantasy journey with reluctant 
-heroes* using the ``voyage-4`` embedding model, which is the same model 
-that was used to index the ``fullplot`` field, to perform a semantic 
+heroes* using the ``voyage-4`` embedding model, which is the model 
+specified in the index for the ``fullplot`` field, to perform a semantic 
 search. The query specifies the following criteria to pre-filter the 
 documents for the semantic search:
 

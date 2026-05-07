@@ -10,7 +10,7 @@
       #. Copy and paste the following sample query into the 
          ``DatabaseService.cs`` file:
 
-         .. literalinclude:: /includes/quick-start/code-snippets/csharp/basic-query-db-service.cs
+         .. literalinclude:: /includes/quick-start/code-snippets/vector/csharp/basic-query-db-service.cs
             :language: csharp
             :caption: DatabaseService.cs
             :emphasize-lines: 11

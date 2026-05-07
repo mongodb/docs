@@ -19,7 +19,7 @@
         that contains the embedding value by using the MongoDB 
         :driver:`Go Driver </go/>`.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/go/create-embeddings-existing.go
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/go/create-embeddings-existing.go
          :language: go
          :copyable:
          :caption: create-embeddings.go
@@ -44,7 +44,7 @@
             .. tab:: Open-Source
                :tabid: open-source
                      
-               .. literalinclude:: /includes/quick-start/code-snippets/go/airbnb-listings-models-open-source.go
+               .. literalinclude:: /includes/quick-start/code-snippets/vector/go/airbnb-listings-models-open-source.go
                   :language: go
                   :copyable:
                   :caption: models.go
@@ -52,7 +52,7 @@
             .. tab:: OpenAI
                :tabid: openai
 
-               .. literalinclude:: /includes/quick-start/code-snippets/go/airbnb-listings-models-open-ai.go
+               .. literalinclude:: /includes/quick-start/code-snippets/vector/go/airbnb-listings-models-open-ai.go
                   :language: go
                   :copyable:
                   :caption: models.go

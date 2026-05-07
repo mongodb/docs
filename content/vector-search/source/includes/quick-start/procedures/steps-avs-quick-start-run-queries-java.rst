@@ -10,7 +10,7 @@
       #. Copy and paste the following sample query into the 
          ``BasicQuery.java`` file:
 
-         .. literalinclude:: /includes/quick-start/code-snippets/java/basic-query.java
+         .. literalinclude:: /includes/quick-start/code-snippets/vector/java/basic-query.java
             :language: java
             :linenos:
 

@@ -8,9 +8,9 @@
    Make the following selections on the page and then click
    :guilabel:`Next`.
 
-   .. include:: /includes/shared/list-tables/list-table-configure-index.rst
+   .. |database-name| replace:: ``sample_mflix``
+   .. |collection-name| replace:: ``movies``
+   .. |search-type| replace:: {+avs+}
+   .. |embeddings| replace:: :guilabel:`Bring your own embeddings`
 
-   :gold:`IMPORTANT:`  
-   
-   .. include:: /includes/shared/facts/fact-default-index-name.rst
-    
+   .. include:: /includes/shared/list-tables/list-table-configure-index.rst

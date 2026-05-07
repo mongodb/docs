@@ -32,5 +32,5 @@
 
       The output should resemble the following:
 
-      .. literalinclude:: /includes/quick-start/code-snippets/shell/create-index-output.sh
+      .. literalinclude:: /includes/quick-start/code-snippets/output/create-index-output.sh
          :language: console

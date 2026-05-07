@@ -17,7 +17,7 @@ async function run() {
         const agg = [
             {
               '$vectorSearch': {
-                'index': 'vector_index',
+                'index': 'autoembed_index',
                 'path': 'fullplot',
                 'query': {
                   "text": 'young heroes caught in epic struggles between light and darkness'

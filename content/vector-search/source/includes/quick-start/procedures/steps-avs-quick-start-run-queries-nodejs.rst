@@ -10,7 +10,7 @@
       #. Copy and paste the following sample query into the 
          ``atlas-vector-search-quick-start.js`` file:
 
-         .. literalinclude:: /includes/quick-start/code-snippets/nodejs/basic-query.js
+         .. literalinclude:: /includes/quick-start/code-snippets/vector/nodejs/basic-query.js
             :language: js
             :linenos:
 

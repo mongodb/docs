@@ -29,7 +29,7 @@
       Create a file named ``vector_index.c``. Copy and paste the following
       code into the file.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/c/basic-example.c
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/c/basic-example.c
          :language: c
          :copyable: true
          :caption: vector_index.c
@@ -72,6 +72,6 @@
 
             ./atlas-vector-search-quick-start
 
-         .. output:: /includes/quick-start/code-snippets/shell/create-index-output.sh
+         .. output:: /includes/quick-start/code-snippets/output/create-index-output.sh
             :language: sh
             :linenos:

@@ -25,7 +25,7 @@
       Create a file named ``IndexService.cs``. Copy and paste the following
       code into the file.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/csharp/basic-example.cs
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/csharp/basic-example.cs
          :language: csharp
          :copyable: true
          :caption: IndexService.cs
@@ -61,6 +61,6 @@
 
             dotnet run query-quick-start.csproj
 
-         .. output:: /includes/quick-start/code-snippets/shell/create-index-output.sh
+         .. output:: /includes/quick-start/code-snippets/output/create-index-output.sh
             :language: sh
             :linenos:

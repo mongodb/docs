@@ -485,3 +485,23 @@ the start.
       context.cluster has configServerManagementMode &&
       context.cluster.configServerManagementMode != ResourcePolicy::ConfigServerManagementMode::"fixed_to_dedicated"
     };
+
+.. _restrict-auto-embedding-ui:
+
+Restrict Automated Embedding for Vector Search
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example prevents users from creating or modifying search indexes
+that use ``autoEmbed`` type. This allows you to restrict the use of Automated
+Embedding for compliance or cost governance while still permitting creation of
+``vector`` type indexes.
+
+.. code-block::
+   :copyable: true
+
+    forbid (
+      principal,
+      action == ResourcePolicy::Action::"search.index.modify",
+      resource
+    )
+    when { context.search.index.isAutoEmbed == true };

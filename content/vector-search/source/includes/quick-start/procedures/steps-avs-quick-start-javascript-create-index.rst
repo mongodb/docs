@@ -18,7 +18,7 @@
       Create a file named ``vector-index.js``. Copy and paste the following
       code into the file.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/nodejs/basic-example.js
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/nodejs/basic-example.js
          :language: javascript
          :copyable: true
          :caption: vector-index.js
@@ -43,5 +43,5 @@
 
             node vector-index.js
 
-         .. output:: /includes/quick-start/code-snippets/shell/create-index-output.sh
+         .. output:: /includes/quick-start/code-snippets/output/create-index-output.sh
             :language: console

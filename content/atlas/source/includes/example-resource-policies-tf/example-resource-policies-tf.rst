@@ -145,3 +145,19 @@ the start.
    :language: terraform
    :start-after: # start-enforce-config-server-management-mode
    :end-before: # end-enforce-config-server-management-mode
+
+.. _tf-restrict-auto-embedding:
+
+Restrict Automated Embedding for {+avs+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example prevents users from creating or modifying
+search indexes that use ``autoEmbed`` type. This allows you to
+restrict the use of Automated Embedding for compliance or cost
+governance while still permitting creation of ``vector`` type
+indexes.
+
+.. literalinclude:: /includes/example-resource-policies-tf/example-resource-policies-terraform.tf
+   :language: terraform
+   :start-after: # start-restrict-auto-embedding
+   :end-before: # end-restrict-auto-embedding

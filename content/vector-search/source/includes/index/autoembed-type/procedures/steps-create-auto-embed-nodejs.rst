@@ -3,7 +3,7 @@
 
    .. step:: Create a ``.js`` file and define the index in the file. 
 
-      .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/nodejs/create-auto-embed-index.js
+      .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/nodejs/create-auto-embed-index.js  
          :language: javascript
          :copyable: true 
          :linenos: 
@@ -47,7 +47,7 @@
             .. tab:: Basic Example
                :tabid: basic
 
-               .. include:: /includes/quick-start/facts/auto-embed-basic-example-description.rst
+               .. include:: /includes/quick-start/facts/auto-embed-basic-example-description.rst 
 
                .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/nodejs/basic-auto-embed-example.js
                   :language: js
@@ -56,11 +56,22 @@
                   :caption: vector_index.js
 
             .. tab:: Filter Example 
-               :tabid: advanced
+               :tabid: filter
 
                .. include:: /includes/quick-start/facts/auto-embed-filter-example-description.rst
 
                .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/nodejs/filter-auto-embed-example.js
+                  :language: js
+                  :copyable: true 
+                  :linenos:
+                  :caption: vector_index.js
+
+            .. tab:: Flat Example 
+               :tabid: flat
+
+               .. include:: /includes/quick-start/facts/auto-embed-flat-example-description.rst
+
+               .. literalinclude:: /includes/index/autoembed-type/code-snippets/create-index/nodejs/flat-auto-embed-example.js
                   :language: js
                   :copyable: true 
                   :linenos:

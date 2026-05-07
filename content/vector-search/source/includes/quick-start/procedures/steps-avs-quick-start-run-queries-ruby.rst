@@ -39,7 +39,7 @@
       #. Copy and paste the following sample query into the
          ``atlas_vector_search_quick_start.rb`` file:
 
-         .. literalinclude:: /includes/quick-start/code-snippets/ruby/basic-query.rb
+         .. literalinclude:: /includes/quick-start/code-snippets/vector/ruby/basic-query.rb
             :language: ruby
             :linenos:
 

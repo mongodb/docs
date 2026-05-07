@@ -18,7 +18,7 @@
         whose ``_id`` matches one of the documents retrieved in the
         ``GetDocuments`` method.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/csharp/DataService-AddEmbeddingsExisting.cs
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/csharp/DataService-AddEmbeddingsExisting.cs
          :language: csharp
          :copyable:
          :caption: DataService.cs
@@ -33,7 +33,7 @@
       of sample texts and ingest them into the ``sample_db.embeddings`` 
       collection.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/csharp/Program-AddEmbeddingsExisting.cs
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/csharp/Program-AddEmbeddingsExisting.cs
          :language: csharp
          :copyable:
          :caption: Program.cs

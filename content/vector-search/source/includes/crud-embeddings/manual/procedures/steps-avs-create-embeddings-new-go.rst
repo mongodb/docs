@@ -18,7 +18,7 @@
          .. tab:: Open-Source
             :tabid: open-source
                   
-            .. literalinclude:: /includes/quick-start/code-snippets/go/create-embeddings-new-open-source.go
+            .. literalinclude:: /includes/quick-start/code-snippets/vector/go/create-embeddings-new-open-source.go
                :language: go
                :copyable:
                :caption: create-embeddings.go
@@ -26,7 +26,7 @@
          .. tab:: OpenAI
             :tabid: openai
 
-            .. literalinclude:: /includes/quick-start/code-snippets/go/create-embeddings-new-open-ai.go
+            .. literalinclude:: /includes/quick-start/code-snippets/vector/go/create-embeddings-new-open-ai.go
                :language: go
                :copyable:
                :caption: create-embeddings.go

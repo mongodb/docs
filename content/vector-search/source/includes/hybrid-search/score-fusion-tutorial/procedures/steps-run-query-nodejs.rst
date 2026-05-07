@@ -5,7 +5,7 @@
       
    .. step:: Copy and paste the sample code in the file.
 
-      .. literalinclude:: /includes/crud-embeddings/automated/code-snippets/nodejs/query.js
+      .. literalinclude:: /includes/hybrid-search/code-snippets/nodejs/query.js
          :language: javascript
          :linenos:
          :emphasize-lines: 5

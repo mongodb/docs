@@ -33,7 +33,7 @@ class Program
         var database = client.GetDatabase("sample_mflix");          
         var collection = database.GetCollection<Movies>("movies");          
                   
-        RunQuery(client, collection, "vector_index");          
+        RunQuery(client, collection, "autoembed_index");          
     }          
           
     private static void RunQuery(          

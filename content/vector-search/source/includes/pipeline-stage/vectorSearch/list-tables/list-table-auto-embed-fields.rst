@@ -53,7 +53,9 @@
    * - ``model``
      - String 
      - Optional
-     - Name of the embedding model to use for generating embeddings 
+     - .. _mdb-vs-voyage-models:
+     
+       Name of the embedding model to use for generating embeddings 
        for the query string. The embedding model must be compatible with 
        the embedding model specified in the index definition for the field 
        against which you want to run the query. All the models in the 

@@ -1,12 +1,13 @@
 db.movies.aggregate([
   {
     "$vectorSearch": {
-      "index": "vector_index", 
+      "index": "autoembed_index", 
       "path": "fullplot", 
       "query": {
         "text": "journey through the country side"
       }, 
       "numCandidates": 100, 
+      "model": "voyage-4",
       "limit": 10
     }
   },

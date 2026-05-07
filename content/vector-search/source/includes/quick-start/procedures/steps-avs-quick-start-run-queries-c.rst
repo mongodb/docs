@@ -8,7 +8,7 @@
       a. Create a file named ``atlas-vector-search-quick-start.c`` and 
          copy and paste the following sample query into the file:
 
-         .. literalinclude:: /includes/quick-start/code-snippets/c/basic-query.c
+         .. literalinclude:: /includes/quick-start/code-snippets/vector/c/basic-query.c
             :language: c
             :caption: atlas-vector-search-quick-start.c
             :emphasize-lines: 24

@@ -22,7 +22,7 @@
       
       Copy and paste the following code into the file.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/scala/basic-example.scala
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/scala/basic-example.scala
          :language: scala
          :copyable: true
          :caption: VectorIndex.scala
@@ -60,5 +60,5 @@
 
             sbt:quick-start> ~run
 
-         .. output:: /includes/quick-start/code-snippets/shell/create-index-output.sh
+         .. output:: /includes/quick-start/code-snippets/output/create-index-output.sh
             :language: console

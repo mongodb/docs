@@ -7,7 +7,7 @@ client = pymongo.MongoClient("<connection-string>")
 pipeline = [
   {
     '$vectorSearch': {
-      'index': 'vector_index', 
+      'index': 'autoembed_index', 
       'path': 'fullplot', 
       'filter': {
         '$and': [
@@ -31,7 +31,6 @@ pipeline = [
       'query': {
         'text': 'epic fantasy journey with reluctant heroes'
       }, 
-      'model': 'voyage-4',
       'numCandidates': 100, 
       'limit': 10
     }

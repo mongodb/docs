@@ -1,0 +1,24 @@
+db.movies.createSearchIndex(
+  "autoembed_index", 
+  "vectorSearch", 
+  {
+    "fields": [
+      {
+        "type": "autoEmbed",
+        "modality": "text",
+        "path": "fullplot",
+        "model": "voyage-4",
+        "similarity": "dotProduct",
+        "indexingMethod": "flat"
+      },
+      {
+        "type": "filter",
+        "path": "genres"
+      },
+      {
+        "type": "filter",
+        "path": "year"
+      }
+    ]
+  }
+);

@@ -11,7 +11,7 @@
       Create a file named ``vector-index.php``. Copy and paste the following
       code into the file.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/php/basic-example.php
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/php/basic-example.php
          :language: php
          :copyable: true
          :emphasize-lines: 6
@@ -36,5 +36,5 @@
 
             php vector-index.php
 
-         .. output:: /includes/quick-start/code-snippets/shell/create-index-output.sh
+         .. output:: /includes/quick-start/code-snippets/output/create-index-output.sh
             :language: console

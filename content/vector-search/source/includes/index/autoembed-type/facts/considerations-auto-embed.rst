@@ -1,46 +1,34 @@
-If you want to generate embeddings for text data in your collection, you
-can use the ``autoEmbed`` type to index a field with text data. You
-must have a |voyage| |api| key to generate the embeddings.
+If you want to generate embeddings for text data in your collection, 
+you can use the ``autoEmbed`` type to index the field with text data. 
 
-API Keys 
-~~~~~~~~
+Embeddings
+~~~~~~~~~~
 
-To automatically generate embeddings for your data, {+avs+} uses the
-|voyage| |api| key that you provided during deployment of ``mongot``.
+The embeddings are generated on the search process, which might be 
+computationally expensive. You might have to enable auto-scaling to 
+handle the increased load during first-time index build. 
 
-You can generate |api| keys :ref:`using <voyage-api-keys>` your
-|service| account, which allows you to manage your |api| key from the
-{+atlas-ui+}. To learn more about generating and managing |api| keys
-including :ref:`configuring the rate limits <voyage-rate-limits>`
-(which is a combination of :abbr:`TPM (Tokens Per Minute)` and
-:abbr:`RPM (Requests Per Minute)`) and :ref:`monitoring API key usage
-<voyage-monitor-usage>`, see :ref:`Model API Keys <voyage-manage-api-keys>`.
+Embeddings are stored on your MongoDB cluster. The storage size of the 
+embeddings depends on the index settings like quantization and 
+number of dimensions. You must ensure that there is sufficient disk 
+space available on your cluster to store the embeddings. 
 
-Alternatively, you can generate the |api| key directly from `|voyage|
-<https://www.voyageai.com/>`__. If you generate |voyage| |api| key 
-directly from |voyage|, to learn more about managing the |api| keys, see
-:voyage-docs:`API Keys </api-key-and-installation>`.
+The embedding model inference platform runs on MongoDB's infrastructure 
+in |gcp| in a US region. 
 
 Billing
 ~~~~~~~
 
-|voyage| model pricing is usage-based, with charges billed to the
-account linked to the |api| key used for access. Pricing is based on the
-number of tokens in your text field and queries.
-
-If you generated the |api| key using your |service| account, you can
-monitor |api| key usage from the {+atlas-ui+}. To learn more, see
-:ref:`Billing <voyage-billing>`. 
-
-If you generated |voyage| |api| key directly from |voyage|, see
-:voyage-docs:`Pricing </pricing>` to learn more about the
-charge for requests to the |voyage| embedding endpoint.
+The pricing of embedding model used for generating embeddings is 
+based on the number of tokens in your text field and queries. 
+See :ref:`Billing for Automated Embedding <auto-embed-billing>` 
+for more details.
 
 Querying 
 ~~~~~~~~
 
-You must use the :pipeline:`$vectorSearch` stage to query fields indexed
-as the ``autoEmbed`` type. 
+You must use the :pipeline:`$vectorSearch` stage to query fields 
+indexed as the ``autoEmbed`` type. 
 
 .. note:: 
 

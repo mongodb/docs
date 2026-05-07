@@ -5,7 +5,7 @@
 
    .. step:: Copy and paste the following code into the ``run-query.py`` file.
 
-      .. literalinclude:: /includes/crud-embeddings/automated/code-snippets/python/query.py
+      .. literalinclude:: /includes/hybrid-search/code-snippets/python/query.py
          :language: python
          :linenos:
          :emphasize-lines: 4

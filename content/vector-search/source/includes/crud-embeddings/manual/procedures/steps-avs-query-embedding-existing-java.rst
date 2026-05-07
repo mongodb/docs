@@ -15,7 +15,7 @@
 
       a. Create a file named ``CreateIndex.java`` and paste the following code:
 
-         .. literalinclude:: /includes/quick-start/code-snippets/java/CreateIndexExistingData.java
+         .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/java/CreateIndexExistingData.java
             :language: java
             :caption: CreateIndex.java
             :emphasize-lines: 40
@@ -51,7 +51,7 @@
 
          .. include:: /includes/quick-start/facts/avs-run-query-description.rst
 
-         .. literalinclude:: /includes/quick-start/code-snippets/java/VectorQueryExisting.java
+         .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/java/VectorQueryExisting.java
             :language: java
             :caption: VectorQuery.java
 
@@ -64,11 +64,11 @@
             .. tab:: Open-Source
                :tabid: open-source
        
-               .. literalinclude:: /includes/quick-start/code-snippets/output/output-existing-open-source-java.sh
+               .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/output/output-existing-open-source-java.sh
                   :language: shell
 
             .. tab:: OpenAI
                :tabid: openai
 
-               .. literalinclude:: /includes/quick-start/code-snippets/output/output-existing-openai-java.sh
+               .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/output/output-existing-openai-java.sh
                   :language: shell

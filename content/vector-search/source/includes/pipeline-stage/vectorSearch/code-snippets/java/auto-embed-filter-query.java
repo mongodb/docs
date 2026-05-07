@@ -29,7 +29,7 @@ public class AutoEmbedQuery {
                 vectorSearch(
                     fieldPath("fullplot"),
                     textQuery("epic fantasy journey with reluctant heroes"),
-                    "vector_index",
+                    "autoembed_index",
                     10L,
                     approximateVectorSearchOptions(100L)
                         .filter(and(

@@ -78,7 +78,7 @@
 
                .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-basic.ipynb
 
-               .. literalinclude:: /includes/quick-start/code-snippets/python/basic-example.py
+               .. literalinclude:: /includes/quick-start/code-snippets/vector/python/basic-example.py
                   :language: python
                   :copyable: true 
                   :linenos:

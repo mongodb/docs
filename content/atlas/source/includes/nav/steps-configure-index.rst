@@ -7,7 +7,7 @@
 
    .. include:: /includes/search-shared/list-table-configure-index.rst
 
-   :gold:`IMPORTANT:`  
-   
-   .. include:: /includes/fts/facts/fact-default-index-name.rst
-    
+   :gold:`IMPORTANT: Your |fts| index is named ``autoembed_index`` by 
+   default. If you are creating multiple indexes, we recommend that you 
+   maintain a consistent, descriptive naming convention across your 
+   indexes.

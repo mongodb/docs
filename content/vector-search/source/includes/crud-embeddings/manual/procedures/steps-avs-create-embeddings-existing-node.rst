@@ -28,7 +28,7 @@
          uncomment lines ``3`` and ``29``-``30``  to convert your 
          embeddings to |bson| ``binData`` vectors.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/go/create-embeddings-existing.js
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/go/create-embeddings-existing.js
          :language: javascript
          :copyable:
          :linenos:

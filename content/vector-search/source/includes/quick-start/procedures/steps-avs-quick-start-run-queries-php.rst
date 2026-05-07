@@ -10,7 +10,7 @@
       #. Copy and paste the following sample query into the
          ``atlas-vector-search-quick-start.php`` file:
 
-         .. literalinclude:: /includes/quick-start/code-snippets/php/basic-query.php
+         .. literalinclude:: /includes/quick-start/code-snippets/vector/php/basic-query.php
             :language: php
             :copyable: true
             :emphasize-lines: 6

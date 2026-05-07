@@ -199,3 +199,22 @@ resource "mongodbatlas_resource_policy" "enforce_dedicated_config_server" {
   ]
 }
 # end-enforce-config-server-management-mode
+
+# start-restrict-auto-embedding
+resource "mongodbatlas_resource_policy" "restrict_auto_embedding" {
+  org_id = var.org_id
+  name   = "prevent-automated-embedding-indexes"
+  policies = [
+    {
+      body = <<EOF
+        forbid (
+            principal,
+            action == ResourcePolicy::Action::"search.index.modify",
+            resource
+        )
+        when { context.search.index.isAutoEmbed };
+      EOF
+    },
+  ]
+}
+# end-restrict-auto-embedding

@@ -1061,6 +1061,11 @@ export const toc: L1TocItem[] = [
                 url: 'https://www.mongodb.com/docs/voyageai/management/billing',
               },
               {
+                label: 'Automated Embedding',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/vector-search/crud-embeddings/automated-embedding/billing',
+              },
+              {
                 label: 'Stream Processing',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/billing/stream-processing-costs',

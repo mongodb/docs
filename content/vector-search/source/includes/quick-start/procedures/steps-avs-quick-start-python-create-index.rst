@@ -17,7 +17,7 @@
 
       .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/get-started/quick-start.ipynb
 
-      .. literalinclude:: /includes/quick-start/code-snippets/python/basic-example.py
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/python/basic-example.py
          :language: python
          :copyable: true
          :caption: vector-index.py
@@ -42,5 +42,5 @@
 
             python vector-index.py
 
-         .. output:: /includes/quick-start/code-snippets/shell/create-index-output.sh
+         .. output:: /includes/quick-start/code-snippets/output/create-index-output.sh
             :language: console

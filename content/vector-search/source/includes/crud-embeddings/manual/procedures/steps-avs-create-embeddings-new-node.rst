@@ -18,7 +18,7 @@
          uncomment lines ``3`` and ``32``-``33``  to convert your 
          embeddings to |bson| ``binData`` vectors.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/nodejs/create-embeddings-new.js
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/nodejs/create-embeddings-new.js
          :language: javascript
          :copyable:
          :linenos:

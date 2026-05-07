@@ -8,8 +8,8 @@
 
    The newly created index displays on the :guilabel:`Search & Vector Search` 
    page. While the index is building, the :guilabel:`Status` field reads 
-   :guilabel:`Build in Progress`. When the index is finished building,
-   the :guilabel:`Status` field reads :guilabel:`Active`.
+   :guilabel:`Pending`. When the index is finished building, the 
+   :guilabel:`Status` field reads :guilabel:`Ready`.
 
    .. note::
 

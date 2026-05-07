@@ -8,6 +8,7 @@
       .. |database-name| replace:: ``sample_mflix``
       .. |collection-name| replace:: ``embedded_movies``
       .. |search-type| replace:: {+avs+}
+      .. |embeddings| replace:: :guilabel:`Bring your own embeddings`
 
       .. include:: /includes/shared/list-tables/list-table-configure-index.rst
 

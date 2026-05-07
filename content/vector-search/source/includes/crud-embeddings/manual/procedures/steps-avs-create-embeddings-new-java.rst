@@ -17,7 +17,7 @@
 
       #. Ingest the embeddings into the ``sample_db.embeddings`` collection.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/java/CreateEmbeddings.java
+      .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/java/CreateEmbeddings.java
          :language: java
          :caption: CreateEmbeddings.java
 
@@ -25,7 +25,7 @@
 
       Save and run the file. The output resembles:
 
-      .. literalinclude:: /includes/quick-start/code-snippets/output/output-create-embeddings-new-java.sh
+      .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/output/output-create-embeddings-new-java.sh
          :language: shell
 
       .. include:: /includes/crud-embeddings/manual/facts/fact-view-embeddings-atlas-ui-new-data.rst

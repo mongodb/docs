@@ -8,7 +8,7 @@
 
 #. Convert the data to vector embeddings.
 
-   Convert your data into :term:`vector embeddings` by using 
+   Convert your data into vector embeddings by using 
    an :term:`embedding model`. To learn more, 
    see :ref:`create-vector-embeddings`.
 

@@ -97,7 +97,7 @@
          If precision is critical, select ``none`` or ``scalar`` instead
          of ``binary``. 
 
-       To learn more, see :ref:`avs-quantization`.
+       To learn more, see :ref:`mdb-vs-quantization`.
 
    * - | ``fields.``
        | ``indexingMethod``

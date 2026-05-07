@@ -14,7 +14,7 @@
       - An ``embedding`` field that contains the array of floats from generating
         the vector embeddings.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/csharp/DataService-AddDocumentsAsync.cs
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/csharp/DataService-AddDocumentsAsync.cs
          :language: csharp
          :copyable:
          :caption: DataService.cs
@@ -29,7 +29,7 @@
       of sample texts and ingest them into the ``sample_db.embeddings`` 
       collection.
 
-      .. literalinclude:: /includes/quick-start/code-snippets/csharp/Program-AddDocumentsFromNewData.cs
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/csharp/Program-AddDocumentsFromNewData.cs
          :language: csharp
          :copyable:
          :caption: Program.cs

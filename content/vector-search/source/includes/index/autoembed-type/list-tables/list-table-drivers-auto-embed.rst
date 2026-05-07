@@ -5,6 +5,15 @@
    * - MongoDB Driver 
      - Version 
 
+   * - :driver:`C# </csharp/current/>` 
+     - 3.x or higher
+
+   * - :driver:`Go </go/current/>` 
+     - 2.x or higher
+
+   * - :driver:`Java </java/sync/current/>` 
+     - 5.x or higher
+
    * - :driver:`Node </node/current/>` 
      - 6.6.0 or higher
 

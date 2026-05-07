@@ -4,7 +4,7 @@ const tocData: TocItem[] = [
   {
     label: 'Quick Start',
     contentSite: 'vector-search',
-    url: '/docs/vector-search/tutorials/vector-search-quick-start',
+    url: '/docs/vector-search/tutorials/quick-start',
   },
   {
     label: 'Compatibility & Limitations',
@@ -12,19 +12,35 @@ const tocData: TocItem[] = [
     url: '/docs/vector-search/deployment/compatibility-limitations',
   },
   {
-    label: 'Create Embeddings',
+    label: 'Automated Embedding',
     contentSite: 'vector-search',
+    url: '/docs/vector-search/crud-embeddings/automated-embedding',
     collapsible: true,
     items: [
       {
-        label: 'Automated',
+        label: 'Get Started',
         contentSite: 'vector-search',
-        url: '/docs/vector-search/crud-embeddings/create-embeddings-automatic',
+        url: 'https://www.mongodb.com/docs/vector-search/tutorials/quick-start/',
       },
       {
-        label: 'Manual',
+        label: 'Model Pricing and Rate Limits',
         contentSite: 'vector-search',
-        url: '/docs/vector-search/crud-embeddings/create-embeddings-manual',
+        url: '/docs/vector-search/crud-embeddings/automated-embedding/models',
+      },
+      {
+        label: 'Manage Automated Embedding',
+        contentSite: 'vector-search',
+        url: '/docs/vector-search/crud-embeddings/automated-embedding/management',
+      },
+      {
+        label: 'Manage Billing',
+        contentSite: 'vector-search',
+        url: '/docs/vector-search/crud-embeddings/automated-embedding/billing',
+      },
+      {
+        label: 'Architecture',
+        contentSite: 'vector-search',
+        url: '/docs/vector-search/crud-embeddings/automated-embedding/overview',
       },
     ],
   },
@@ -57,6 +73,11 @@ const tocData: TocItem[] = [
         url: '/docs/vector-search/query/view-support',
       },
     ],
+  },
+  {
+    label: 'Create Embeddings Manually',
+    contentSite: 'vector-search',
+    url: '/docs/vector-search/crud-embeddings/create-embeddings-manual',
   },
   {
     label: 'Use Cases & Design Patterns',

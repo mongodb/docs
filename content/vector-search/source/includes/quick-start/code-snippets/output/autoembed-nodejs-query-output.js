@@ -1,0 +1,50 @@
+{
+  title: 'Lad: A Yorkshire Story',
+  fullplot: 'The Yorkshire Dales provides the backdrop for the story of a young lad and his elder brother as they spend a weekend roaming the countryside.',
+  score: 0.504997968673706
+}
+{
+  title: 'The Land Beyond the Sunset',
+  fullplot: "Thanks to the Fresh Air Fund, a slum child escapes his drunken mother for a day's outing in the country. Upon arriving, he and the other children are told a story about a mythical land of no pain. Rather then return to the slum at day's end, the lad seeks to journey to that beautiful land beyond the sunset.",
+  score: 0.5045041441917419
+}
+{
+  title: 'The Land Beyond the Sunset',
+  fullplot: "Thanks to the Fresh Air Fund, a slum child escapes his drunken mother for a day's outing in the country. Upon arriving, he and the other children are told a story about a mythical land of no pain. Rather then return to the slum at day's end, the lad seeks to journey to that beautiful land beyond the sunset.",
+  score: 0.5045022964477539
+}
+{
+  title: 'The Mourning Forest',
+  fullplot: 'A care-giver at a small retirement home takes one of her patients for a drive to the country, but the two wind up stranded in a forest where they embark on an exhausting and enlightening two-day journey.',
+  score: 0.5043178796768188
+}
+{
+  title: 'Sleep Furiously',
+  fullplot: "Set in a small farming community in mid Wales, a place where Koppel's parents - both refugees - found a home. This is a landscape and population that is changing rapidly as small scale agriculture is disappearing and the generation who inhabited a pre-mechanised world is dying out. Much influenced by his conversations with the writer Peter Handke, the film maker leads us on a poetic and profound journey into a world of endings and beginnings; a world of stuffed owls, sheep and fire.",
+  score: 0.5042794346809387
+}
+{
+  title: 'Robinson in Space',
+  fullplot: 'Robinson is commissioned to investigate the unspecified "problem of England." The narrator describes his seven excursions, with the unseen Robinson, around the country. They mainly concentrate on ports, power stations, prisons, and manufacturing plants, but they also bring in various literary connections, as well as a few conventional landscapes.',
+  score: 0.5041840672492981
+}
+{
+  title: 'The Banishment',
+  fullplot: 'A trip to the pastoral countryside reveals a dark, sinister reality for a family from the city.',
+  score: 0.5041588544845581
+}
+{
+  title: 'The Village Had No Walls',
+  fullplot: 'A young man takes a journey on a cart through jungles to reach the small hamlet of Bangarwadi, inhabited by a few shepherds, peasants and some members of a criminal tribe known as the Ramoshis. The young man goes there as a teacher. After the initial trauma, he finds the milieu and the environment very inspiring and educative. But then he is transferred to some other school. What remains with him is the memory of the simple folk and their pure nature.',
+  score: 0.5041133165359497
+}
+{
+  title: 'Travelers and Magicians',
+  fullplot: "The two men embark on parallel, if separate, journeys. Their yearning is a common one--for a better and different life. Dondup, delayed by the timeless pace of his village, is forced to hitchhike through the beautiful wild countryside of Bhutan to reach his goal. He shares the road with a monk, an apple seller, a papermaker and his beautiful young daughter, Sonam. Throughout the journey, the perceptive yet mischievous monk relates the story of Tashi. It is a mystical fable of lust, jealousy and murder, that holds up a mirror to the restless Dondup, and his blossoming attraction to the innocent Sonam. The cataclysmic conclusion of the monk's tale leaves Dondup with a dilemma--is the grass truly greener on the other side?",
+  score: 0.5040709972381592
+}
+{
+  title: 'Sweetgrass',
+  fullplot: 'In the summer of 2003, a group of shepherds took a herd of sheep one final time through the Beartooth Mountains of Montana, in the extreme northwest of the United States. It was a journey of almost 300 kilometers through expansive green valleys, by fields of snow, and across hazardous, narrow ridges - a journey brimming with challenges. The aging shepherds do their very best to keep the hundreds of sheep together; the panoramic high mountains are teeming with hungry wolves and grizzly bears.',
+  score: 0.5040245652198792
+}

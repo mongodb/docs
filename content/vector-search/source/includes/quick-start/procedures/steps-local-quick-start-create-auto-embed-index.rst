@@ -23,7 +23,7 @@
       You can create an index of ``autoEmbed`` type to run natural language 
       queries. 
 
-      .. literalinclude:: /includes/quick-start/code-snippets/shell/auto-embed-example-mongosh.sh
+      .. literalinclude:: /includes/quick-start/code-snippets/auto-embed/shell/create-index-mongosh.sh
          :language: shell
          :copyable: true 
          :linenos:

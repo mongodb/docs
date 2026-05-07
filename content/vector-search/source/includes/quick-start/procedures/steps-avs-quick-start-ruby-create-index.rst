@@ -5,12 +5,12 @@
 
    .. step:: Copy and paste the following sample code into the ``atlas_vector_search_index.rb`` file.
 
-   .. literalinclude:: /includes/quick-start/code-snippets/ruby/basic-example.rb
-      :language: ruby
-      :copyable: true
-      :caption: vector_index.rb
-      :emphasize-lines: 4
-      :linenos:
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/ruby/basic-example.rb
+         :language: ruby
+         :copyable: true
+         :caption: vector_index.rb
+         :emphasize-lines: 4
+         :linenos:
 
    .. step:: Specify the ``<connection-string>.``
 

@@ -1,0 +1,270 @@
+.. _avs-auto-embeddings-model-ecosystem:
+
+==============================
+Models for Automated Embedding
+==============================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Learn how the Voyage AI embedding model ecosystem works with Automated Embedding.
+   :keywords: vector embeddings, embedding model, vector database, vector search, voyage models, automated embedding
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+
+Automated Embedding uses |voyage|'s embedding models, which |service|
+hosts and manages in the Data Plane in a multi-tenant environment.
+
+.. _auto-embed-models:
+
+Supported Models 
+----------------
+
+Automated Embedding supports the following |voyage| embedding models:
+
+.. include:: /includes/crud-embeddings/automated/facts/supported-models.rst
+
+.. _auto-embed-context-window:
+
+Context Window Sizes 
+~~~~~~~~~~~~~~~~~~~~
+
+A context window is the maximum amount of text (measured in tokens, not characters) 
+that an embedding or LLM model can consider in a single request. The maximum context 
+window size for each model is as follows: 
+
+.. list-table:: 
+   :widths: 30 70 
+   :header-rows: 1
+   :stub-columns: 1 
+
+   * - Embedding Model 
+     - Context Window Size
+
+   * - ``voyage-4-large`` 
+     - 32,000 tokens
+
+   * - ``voyage-4`` 
+     - 32,000 tokens
+
+   * - ``voyage-4-lite`` 
+     - 32,000 tokens
+
+   * - ``voyage-code-3`` 
+     - 32,000 tokens
+
+If the indexed text field is longer than the context window, the text is 
+automatically truncated to the context window size for the model. If your 
+query text exceeds this context window for the model, the 
+:pipeline:`$vectorSearch` query fails with a ``context-limit-exceeded`` 
+error. 
+
+.. _auto-embed-model-cost:
+
+Cost of Models 
+~~~~~~~~~~~~~~
+
+Model tokens are consumed during index operations (first time creation, 
+inserts, update) and query operations. For the index operations, only the 
+fields in the MongoDB document that are indexed as the ``autoEmbed`` type 
+are used for embedding generation and incur a token usage. For the query 
+operation, the query text provided is used for embedding generation 
+and incurs a token usage. 
+The cost for tokens for each model is as follows:
+
+.. include:: /includes/index/autoembed-type/list-tables/model-cost.rst
+
+.. _auto-embed-free-tokens:
+
+Free Tokens 
+~~~~~~~~~~~
+
+.. tabs::
+   :hidden:
+
+   .. tab:: Atlas
+      :tabid: atlas
+
+      For each model, |service| includes a one-time allocation of 200 million
+      free tokens at the organization level. The organization shares free tokens
+      across all |service| projects and clusters within the organization.
+
+   .. tab:: Self-Managed
+      :tabid: self
+
+      For each model, {+avs+} includes a one-time allocation of 200 million
+      free tokens. The free tokens are shared across all clusters in the
+      deployment.
+
+Free tokens do not refresh. 
+
+.. _auto-embed-rate-limits:
+
+Rate Limits
+-----------
+
+Rate limits are restrictions on the frequency and number of tokens you can 
+request from Automated Embedding within a specified period of time. MongoDB 
+enforces rate limits on embedding generation to ensure fair usage across all 
+users in the multi-tenant environment. Rate limits are based on the requests 
+per minute (RPM) and tokens per minute (TPM). These rate limits apply at a 
+MongoDB Cluster level and are shared between all the indexes on that cluster 
+using Automated embedding. To request higher rate limits, please reach out to 
+your MongoDB account team or contact MongoDB support.
+
+Rate limits are applied separately to queries, first-time index builds, and 
+index update operations (document inserts and updates), providing traffic 
+isolation. Indexing build operations are strictly isolated from the real-time 
+query traffic.
+
+.. _auto-embed-initial-sync-rate-limits:
+
+First-time Index build Rate Limits
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The first-time index build rate limits restrict the maximum frequency and 
+number of tokens at which embeddings are generated. For large workloads 
+during the first-time index build (initial sync), Automated Embedding uses a 
+separate inference mechanism that is not bound by standard rate limits. This 
+mechanism is optimized for throughput to handle the initial index build, 
+provides the following benefits:
+
+- Faster Initial Synchronization: Scale embedding generation throughput 
+  dynamically to handle massive bursts.
+- Unbounded Throughput: Bursts up to available GPU capacity, and eliminate 
+  manual rate-limit increase requests. 
+- Fair Resource Sharing: Competing index builds converge to similar 
+  token-per-second allocation, avoiding starvation.
+- Safe Ramp-Up: Starts at low concurrency and grows only on explicit internal 
+  success signals dynamically.
+
+.. _auto-embed-index-ops-rate-limits:
+
+Index Insert and Update Rate Limits 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The index rate limits restrict the maximum frequency and number of tokens at 
+which embeddings are generated during certain operations on {+avs+} 
+Automated Embedding indexes. These operations include inserts (new data is 
+added to your index) or updates (existing data changes that require 
+re-embedding).
+
+.. list-table:: 
+   :widths: 20 40 40
+   :header-rows: 1
+
+   * - Model
+     - Requests Per Minute (RPM)
+     - Tokens Per Minute (TPM)
+
+   * - ``voyage-4-large``
+     - 2,000
+     - 3,000,000
+
+   * - ``voyage-4`` 
+     - 2,000
+     - 8,000,000
+
+   * - ``voyage-4-lite`` 
+     - 2,000
+     - 16,000,000
+
+   * - ``voyage-code-3`` 
+     - 2,000
+     - 3,000,000
+
+.. _auto-embed-query-ops-rate-limits:
+
+Query Operations Rate Limits
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The query rate limits control the maximum embedding generation frequency 
+and the number of tokens for all queries that use the 
+:pipeline:`$vectorSearch` operations on your {+avs+} Automated Embedding 
+indexes.
+
+.. collapsible::
+   :heading: Free Cluster 
+   :sub_heading: Rate limits for M0 clusters without a payment method
+   :expanded: false
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40 40
+
+      * - Model
+        - Requests Per Minute (RPM)
+        - Tokens Per Minute (TPM)
+
+      * - ``voyage-4-large``
+        - 3
+        - 2,000
+
+      * - ``voyage-4``
+        - 3
+        - 2,000
+
+      * - ``voyage-4-lite``
+        - 3
+        - 2,000
+
+      * - ``voyage-code-3``
+        - 3
+        - 2,000
+
+.. collapsible::
+   :heading: Paid Cluster 
+   :sub_heading: Rate limits for M0 clusters with payment method, Flex clusters, and Dedicated clusters
+   :expanded: false
+
+   .. list-table::
+      :header-rows: 1
+      :widths: 20 40 40
+
+      * - Model
+        - Requests Per Minute (RPM)
+        - Tokens Per Minute (TPM)
+
+      * - ``voyage-4-large``
+        - 2,000
+        - 3,000,000
+
+      * - ``voyage-4``
+        - 2,000
+        - 8,000,000
+
+      * - ``voyage-4-lite``
+        - 2,000
+        - 16,000,000
+
+      * - ``voyage-code-3``
+        - 2,000
+        - 3,000,000
+
+.. _auto-embed-best-practices:
+
+Best Practices
+--------------
+
+To optimize performance within rate limits:
+
+1. **Use Shorter Text**: Limit indexed text to relevant content to
+   reduce token consumption.
+
+2. **Batch Updates**: If you are performing bulk updates, space them out 
+   to avoid hitting rate limits.
+
+3. **Monitor Usage**: Track your embedding generation usage through the
+   |voyage| dashboard to identify patterns and optimize.
+
+4. **Upgrade When Needed**: If you consistently hit rate limits,
+   consider upgrading to a paid tier for higher quotas.

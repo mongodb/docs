@@ -1,0 +1,10 @@
+Summary: A friendly apartment block where everyone knows each other and there is a strong communal vibe. Property has a huge backyard with vege garden and skate ramp. 7min walk to the beach and 2min to buses.
+Score: 0.4832950830459595
+Summary: Room 2  Private room in charming recently renovated federation guest house at Coogee Beach. Prices are per room for 2 People only. A queen  and a single bed. Not suitable for group booking All rooms have  TV, desk, wardrobe, beds, unlimited wifi 2 mins from the beach, cafes and transport. This is not a party house but a safe and clean place to stay. Share bathrooms and kitchen... All common areas are cleaned daily.
+Score: 0.48092085123062134
+Summary: THIS IS A VERY SPACIOUS 1 BEDROOM FULL CONDO (SLEEPS 4) AT THE BEAUTIFUL VALLEY ISLE RESORT ON THE BEACH IN LAHAINA, MAUI!! YOU WILL LOVE THE PERFECT LOCATION OF THIS VERY NICE HIGH RISE! ALSO THIS SPACIOUS FULL CONDO, FULL KITCHEN, BIG BALCONY!!
+Score: 0.4629460275173187
+Summary: A beautiful and comfortable 1 Bedroom Air Conditioned Condo in Makaha Valley - stunning Ocean & Mountain views All the amenities of home, suited for longer stays. Full kitchen & large bathroom.  Several gas BBQ's for all guests to use & a large heated pool surrounded by reclining chairs to sunbathe.  The Ocean you see in the pictures is not even a mile away, known as the famous Makaha Surfing Beach. Golfing, hiking,snorkeling  paddle boarding, surfing are all just minutes from the front door.
+Score: 0.4581468403339386
+Summary: The Apartment has a living room, toilet, bedroom (suite) and American kitchen. Well located, on the Copacabana beach block a 05 Min. walk from Ipanema beach (Arpoador). Internet wifi, cable tv, air conditioning in the bedroom, ceiling fans in the bedroom and living room, kitchen with microwave, cooker, Blender, dishes, cutlery and service area with fridge, washing machine, clothesline for drying clothes and closet with several utensils for use.  The property boasts 45 m2.
+Score: 0.45398443937301636

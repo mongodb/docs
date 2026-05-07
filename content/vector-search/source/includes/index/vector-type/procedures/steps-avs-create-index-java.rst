@@ -55,7 +55,7 @@
             Copy and paste the following into the file you created, and
             replace the ``<connectionString>`` placeholder value. 
 
-            .. literalinclude:: /includes/quick-start/code-snippets/java/basic-example.java
+            .. literalinclude:: /includes/quick-start/code-snippets/vector/java/basic-example.java
                :language: java
                :copyable: true
                :linenos:

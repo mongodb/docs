@@ -14,7 +14,7 @@
             NOTE: If you edit this Python file, also update the Jupyter Notebook
             at https://github.com/mongodb/docs-notebooks/blob/main/get-started/quick-start.ipynb
 
-         .. literalinclude:: /includes/quick-start/code-snippets/python/basic-query.py
+         .. literalinclude:: /includes/quick-start/code-snippets/vector/python/basic-query.py
             :language: python
             :linenos:
 

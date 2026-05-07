@@ -10,7 +10,7 @@
       #. Copy and paste the following sample query into the
          ``atlas_vector_search_quick_start.cpp`` file:
 
-         .. literalinclude:: /includes/quick-start/code-snippets/cpp/basic-query.cpp
+         .. literalinclude:: /includes/quick-start/code-snippets/vector/cpp/basic-query.cpp
             :language: cpp
             :caption: atlas_vector_search_quick_start.cpp
             :emphasize-lines: 16

@@ -33,7 +33,7 @@
       You can create an index of ``vector`` type to run queries using 
       vector embeddings. 
 
-      .. literalinclude:: /includes/quick-start/code-snippets/shell/basic-example-mongosh.sh
+      .. literalinclude:: /includes/quick-start/code-snippets/vector/shell/basic-example-mongosh.sh
          :language: shell
          :copyable: true 
          :linenos:

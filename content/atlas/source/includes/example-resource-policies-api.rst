@@ -549,3 +549,26 @@ the start.
          }
       ]
    }
+
+.. _restrict-auto-embedding:
+
+Restrict Automated Embedding for {+avs+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example prevents users from creating or modifying search indexes
+that use ``autoEmbed`` type. This allows you to restrict the use of Automated
+Embedding for compliance or cost governance while still permitting creation of 
+``vector`` type indexes.
+
+.. code-block::
+   :copyable: true
+   :emphasize-lines: 5
+
+   {
+      "name": "Prevent Automated Embedding Indexes",
+      "policies": [
+         {
+            "body": "forbid (principal, action == ResourcePolicy::Action::\"search.index.modify\", resource) when { context.search.index.isAutoEmbed };"
+         }
+      ]
+   }

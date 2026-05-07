@@ -15,7 +15,7 @@
 
       a. Create a file named named ``create-index.js`` and paste the following code.
 
-         .. literalinclude:: /includes/quick-start/code-snippets/nodejs/create-index-existing-data.js
+         .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/nodejs/create-index-existing-data.js
             :language: js
             :copyable:
             :caption: create-index.js
@@ -45,7 +45,7 @@
 
          .. include:: /includes/quick-start/facts/avs-run-query-description.rst
 
-         .. literalinclude:: /includes/quick-start/code-snippets/nodejs/vector-query-existing.js
+         .. literalinclude:: /includes/crud-embeddings/manual/code-snippets/nodejs/vector-query-existing.js
             :language: js
             :copyable:
             :caption: vector-query.js
@@ -67,7 +67,7 @@
 
                      node --env-file=.env vector-query.js
 
-                  .. output:: /includes/quick-start/code-snippets/output/output-existing-open-source-node.json
+                  .. output:: /includes/crud-embeddings/manual/code-snippets/output/output-existing-open-source-node.json
                      :language: shell
 
 
@@ -81,5 +81,5 @@
 
                      node --env-file=.env vector-query.js
 
-                  .. output:: /includes/quick-start/code-snippets/output/output-existing-openai.json
+                  .. output:: /includes/crud-embeddings/manual/code-snippets/output/output-existing-openai.json
                      :language: shell
