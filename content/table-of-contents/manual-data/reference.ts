@@ -4329,6 +4329,11 @@ const tocData: TocItem[] = [
     url: '/docs/:version/reference/server-sessions',
   },
   {
+    label: 'Server-side JavaScript',
+    contentSite: 'docs',
+    url: '/docs/:version/core/server-side-javascript',
+  },
+  {
     label: 'Slot-Based Query Execution Engine',
     contentSite: 'docs',
     url: '/docs/:version/reference/sbe',
