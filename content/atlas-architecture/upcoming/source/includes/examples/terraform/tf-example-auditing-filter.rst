@@ -32,7 +32,7 @@
   
    # Create an Atlas Advanced Cluster  
    resource "mongodbatlas_advanced_cluster" "atlas-cluster" {    
-     project_id             = mongodbatlas_project.atlas-project.id    
+     project_id             = mongodbatlas_project.this.id    
      name                   = "ClusterPortalProd"    
      cluster_type           = "REPLICASET"    
      mongo_db_major_version = "8.0"    
@@ -61,7 +61,7 @@
   
    # Create comprehensive auditing configuration to capture all possible audit events  
    resource "mongodbatlas_auditing" "atlas-auditing" {    
-     project_id = mongodbatlas_project.atlas-project.id    
+     project_id = mongodbatlas_project.this.id    
     
      # Comprehensive audit filter to capture all possible audit events  
      audit_filter = jsonencode({    
@@ -329,7 +329,7 @@
   
    output "project_id" {    
      description = "Atlas project ID"    
-     value       = mongodbatlas_project.atlas-project.id    
+     value       = mongodbatlas_project.this.id    
    }  
   
    output "auditing_enabled" {    
