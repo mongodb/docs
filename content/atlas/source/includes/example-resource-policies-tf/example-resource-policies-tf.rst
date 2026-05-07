@@ -149,7 +149,7 @@ the start.
 .. _tf-restrict-auto-embedding:
 
 Restrict Automated Embedding for {+avs+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example prevents users from creating or modifying
 search indexes that use ``autoEmbed`` type. This allows you to
