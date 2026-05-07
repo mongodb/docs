@@ -1,3 +1,83 @@
+.. _opsmgr-server-8.0.23:
+
+|onprem| Server 8.0.23
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-05-04*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to
+  :ref:`108.0.23.8997-1 <mongodb-108.0.23.8997-1>`.
+- Adds {+mdbagent+} support for MongoDB Server 8.3.
+- Adds the following platform support for the {+mdbagent+}:
+
+  - Publishes dedicated Ubuntu 20.04 deb packages.
+  - Publishes dedicated Amazon Linux 2 ``x86_64`` binaries for
+    the {+mdbagent+} and backup tools.
+  - Enables the {+mdbagent+} to support MongoDB on RHEL 9
+    (``ppc64le``).
+
+- Encrypts automation configuration backup files to protect
+  sensitive deployment data, including credentials and topology
+  details, when stored on disk. To learn more, see
+  :ref:`automation-config-encryption`.
+- Adds the ability to fetch and download |onprem| logs from the
+  {+admin-api+} and the |onprem| UI. This release supports
+  application logs, migration logs, and HTTP access logs.
+  Backup Daemon log downloads are not yet available. To learn
+  more, see :ref:`request-om-server-logs`.
+- Persists backup daemon Prometheus metrics, ensuring consistent
+  monitoring and diagnostics.
+- Makes ``--server_env=hosted`` the default server environment
+  for |onprem|.
+- Releases MongoDB Shell
+  `2.8.1 <https://github.com/mongodb-js/mongosh/releases/tag/v2.8.1>`__
+  to |onprem|, including security updates for third-party packages.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes Direct S3 Restore presigned URL generation for
+  S3-compatible endpoints, resolving HTTP 403 errors during
+  block downloads.
+- Fixes Direct S3 Restore presigned URL generation for
+  S3-compatible endpoints, ensuring correct endpoint and
+  path-style addressing.
+- Removes credentials from the imported S3 bucket GET endpoint,
+  ensuring sensitive fields are redacted in API responses.
+- Adds the custom certificate field as an option for imported S3
+  buckets, allowing you to specify a custom certificate for the
+  S3 import blockstore.
+- Fixes {+mdbagent+} custom role creation on standalone
+  deployments.
+- Removes the reference to a non-existent script in the
+  :guilabel:`Unmanage All` dialog, preventing user confusion.
+- Fixes log redaction to prevent corruption of JSON |mongod|
+  log lines, ensuring downloaded logs remain valid and
+  uncorrupted.
+- Fixes a remote code execution vulnerability in webhook
+  Freemarker templates.
+- Fixes the following |cve|\s:
+
+  - `CVE-2026-2332 <https://nvd.nist.gov/vuln/detail/CVE-2026-2332>`__
+  - `CVE-2026-33871 <https://nvd.nist.gov/vuln/detail/CVE-2026-33871>`__
+  - `CVE-2026-33870 <https://nvd.nist.gov/vuln/detail/CVE-2026-33870>`__
+  - `CVE-2026-33891 <https://nvd.nist.gov/vuln/detail/CVE-2026-33891>`__
+  - `CVE-2026-33895 <https://nvd.nist.gov/vuln/detail/CVE-2026-33895>`__
+  - `CVE-2026-33894 <https://nvd.nist.gov/vuln/detail/CVE-2026-33894>`__
+  - `CVE-2026-33896 <https://nvd.nist.gov/vuln/detail/CVE-2026-33896>`__
+  - `CVE-2025-50537 <https://nvd.nist.gov/vuln/detail/CVE-2025-50537>`__
+  - `CVE-2026-33937 <https://nvd.nist.gov/vuln/detail/CVE-2026-33937>`__
+  - `CVE-2026-33941 <https://nvd.nist.gov/vuln/detail/CVE-2026-33941>`__
+  - `CVE-2026-33938 <https://nvd.nist.gov/vuln/detail/CVE-2026-33938>`__
+  - `CVE-2026-33940 <https://nvd.nist.gov/vuln/detail/CVE-2026-33940>`__
+  - `CVE-2026-33939 <https://nvd.nist.gov/vuln/detail/CVE-2026-33939>`__
+  - `CVE-2026-33916 <https://nvd.nist.gov/vuln/detail/CVE-2026-33916>`__
+  - `CVE-2026-4867 <https://nvd.nist.gov/vuln/detail/CVE-2026-4867>`__
+  - `CVE-2026-33186 <https://nvd.nist.gov/vuln/detail/CVE-2026-33186>`__
+
 .. _opsmgr-server-8.0.22:
 
 |onprem| Server 8.0.22

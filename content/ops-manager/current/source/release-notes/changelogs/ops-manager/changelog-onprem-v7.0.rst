@@ -5,6 +5,11 @@
 
 *Released 2026-02-17*
 
+.. important:: |onprem| 7.0 EOL
+
+   This is the final release of |onprem| 7.0. |onprem| 7.0 has reached `end of life (EOL) <https://www.mongodb.com/legal/support-policy/lifecycles>`__.
+   Upgrade to at least |onprem| 8.0 immediately to keep your |onprem| support.
+
 Improvements
 ~~~~~~~~~~~~
 
