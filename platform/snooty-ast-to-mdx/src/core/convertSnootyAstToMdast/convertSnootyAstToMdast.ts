@@ -230,7 +230,10 @@ interface ConvertNodeArgs {
  * If no block-level children exist, returns a single paragraph wrapping all children.
  */
 const hoistFlowElementsFromParagraph = (children: MdastNode[]): MdastNode | MdastNode[] => {
-  const containsBlockElement = children.some((child) => child.type === 'mdxJsxFlowElement');
+  // A nested `paragraph` can appear when convertNode returns a paragraph-wrapped inline
+  // element (e.g. Footnote uses the Kicker pattern: paragraph > mdxJsxTextElement).
+  const isBlockChild = (child: MdastNode) => child.type === 'mdxJsxFlowElement' || child.type === 'paragraph';
+  const containsBlockElement = children.some(isBlockChild);
   if (!containsBlockElement) {
     return { type: 'paragraph', children };
   }
@@ -241,7 +244,7 @@ const hoistFlowElementsFromParagraph = (children: MdastNode[]): MdastNode | Mdas
   let pendingInlineNodes: MdastNode[] = [];
 
   for (const child of children) {
-    if (child.type === 'mdxJsxFlowElement') {
+    if (isBlockChild(child)) {
       // Emit any accumulated inline nodes as a paragraph before the block element
       const nonEmptyInlineNodes = pendingInlineNodes.filter((node) => !isWhitespaceText(node));
       if (nonEmptyInlineNodes.length > 0) outputNodes.push({ type: 'paragraph', children: nonEmptyInlineNodes });
@@ -295,7 +298,7 @@ const buildEnumeratedListJsx = (
 /** Convert a single Snooty node to mdast. Certain nodes (e.g. `section`) expand
     into multiple mdast siblings, so the return type can be an array. */
 /** Parent node types whose child paragraphs should be unwrapped (no <p> wrapper emitted). */
-const SKIP_P_TAG_PARENTS = new Set(['caption', 'footnote']);
+const SKIP_P_TAG_PARENTS = new Set(['caption']);
 
 /**
  * DFS for inline `:ref:` / `:doc:` expansion inside substitution content
@@ -1522,17 +1525,46 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       const identifier = String(node.id ?? node.name ?? '');
       if (!identifier) {
         // Fallback to emitting content inline if id missing
-        return convertChildren({ nodes: node.children, depth, ctx, parentType: 'footnote' });
+        return convertChildren({ nodes: node.children, depth, ctx });
       }
       const attributes: MdastNode[] = [];
       if (node.name) attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: String(node.name) });
+
+      // Flatten any paragraph wrappers so all content is a flat list of inline nodes.
+      // Then emit as mdxJsxTextElement (inline JSX) so the serializer writes everything
+      // on one line: <Footnote name="…">text <Guilabel>…</Guilabel></Footnote>
+      // mdxJsxFlowElement would place children on a new line, which MDX treats as block
+      // content and wraps in <p>. The inline form avoids that entirely.
+      const bodyChildren = convertChildren({ nodes: node.children, depth, ctx });
+      const inlineNodes: MdastNode[] = [];
+      for (const child of bodyChildren) {
+        if (child.type === 'paragraph' && Array.isArray(child.children)) {
+          inlineNodes.push(...child.children);
+        } else {
+          inlineNodes.push(child);
+        }
+      }
+      for (const n of inlineNodes) {
+        if (n.type === 'text' && typeof n.value === 'string') {
+          n.value = n.value.replace(/\n\s*/g, ' ');
+        }
+      }
+      // Wrap in a paragraph so the footnote is a block-level node in the mdast tree.
+      // The paragraph serializes its single inline child on one line:
+      //   <Footnote name="…">text <Guilabel>…</Guilabel></Footnote>
+      // MDX then treats it as flow-level JSX (no <p> wrapping), matching the Kicker pattern.
       return {
-        type: 'mdxJsxFlowElement',
-        name: 'Footnote',
-        attributes,
-        identifier,
-        label: node.name ?? undefined,
-        children: convertChildren({ nodes: node.children, depth, ctx, parentType: 'footnote' }),
+        type: 'paragraph',
+        children: [
+          {
+            type: 'mdxJsxTextElement',
+            name: 'Footnote',
+            attributes,
+            identifier,
+            label: node.name ?? undefined,
+            children: inlineNodes,
+          },
+        ],
       };
     }
 

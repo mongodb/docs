@@ -1537,6 +1537,35 @@ describe('DefinitionTerm inline content rendering', () => {
     expect(mdx).toMatch(/^<Footnote/m);
   });
 
+  it('renders footnote with inline JSX children (e.g. guilabel) without blank lines', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'footnote',
+          id: '1',
+          name: 'user-settings',
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                { type: 'text', value: 'Click ' },
+                { type: 'role', name: 'guilabel', children: [{ type: 'text', value: 'Account' }] },
+                { type: 'text', value: '.' },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    // All inline content must be on one line — no blank lines between text and
+    // the guilabel element, which would cause unwanted <p> wrapping at runtime.
+    expect(mdx).not.toMatch(/<Guilabel[\s\S]*?\n\n/);
+    expect(mdx).toContain('<Guilabel>Account</Guilabel>');
+    expect(mdx).toMatch(/Click <Guilabel>Account<\/Guilabel>\./);
+  });
+
   it('preserves surrounding text when hoisting a flow element out of a paragraph', () => {
     const ast: SnootyNode = {
       type: 'root',
