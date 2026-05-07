@@ -4,7 +4,7 @@ export const toc: L1TocItem[] = [
   {
     label: 'Django MongoDB Backend',
     contentSite: 'django',
-    url: '/docs/languages/python/django-mongodb/current/',
+    url: '/docs/languages/python/django-mongodb/:version/',
     items: [
       {
         label: 'Django MongoDB Backend',

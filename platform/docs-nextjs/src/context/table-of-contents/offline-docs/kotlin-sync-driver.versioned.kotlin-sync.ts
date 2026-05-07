@@ -4,7 +4,7 @@ export const toc: L1TocItem[] = [
   {
     label: 'Kotlin Sync Driver',
     contentSite: 'kotlin-sync',
-    url: '/docs/languages/kotlin/kotlin-sync-driver/current/',
+    url: '/docs/languages/kotlin/kotlin-sync-driver/:version/',
     items: [
       {
         label: 'Kotlin Sync Driver',

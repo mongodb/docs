@@ -4,7 +4,7 @@ export const toc: L1TocItem[] = [
   {
     label: 'Rust Driver',
     contentSite: 'rust',
-    url: '/docs/drivers/rust/current/',
+    url: '/docs/drivers/rust/:version/',
     items: [
       {
         label: 'Rust Driver',

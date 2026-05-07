@@ -4,7 +4,7 @@ export const toc: L1TocItem[] = [
   {
     label: 'Kotlin Coroutine Driver',
     contentSite: 'kotlin',
-    url: '/docs/drivers/kotlin/coroutine/current/',
+    url: '/docs/drivers/kotlin/coroutine/:version/',
     items: [
       {
         label: 'Kotlin Coroutine',

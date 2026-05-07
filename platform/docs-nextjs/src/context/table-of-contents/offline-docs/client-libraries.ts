@@ -33,7 +33,7 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Spring Data MongoDB Integration',
                 contentSite: 'java',
-                url: '/docs/drivers/java/sync/current/integrations/spring-data-integration',
+                url: '/docs/drivers/java/sync/:version/integrations/spring-data-integration',
               },
               {
                 label: 'Quarkus Integration',
@@ -135,12 +135,12 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Ruby on Rails Integration',
                 contentSite: 'mongoid',
-                url: '/docs/mongoid/current/quick-start-rails',
+                url: '/docs/mongoid/:version/quick-start-rails',
               },
               {
                 label: 'Sinatra Integration',
                 contentSite: 'mongoid',
-                url: '/docs/mongoid/current/quick-start-sinatra',
+                url: '/docs/mongoid/:version/quick-start-sinatra',
               },
             ],
           },

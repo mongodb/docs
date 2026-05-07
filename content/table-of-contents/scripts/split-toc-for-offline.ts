@@ -213,14 +213,34 @@ ${itemFormatted},
 }
 
 /**
+ * Replaces a hardcoded version segment in a URL with the ':version' placeholder.
+ * Matches common version strings: 'current', 'upcoming', 'main', and semver-style
+ * tags like 'v1.2' or 'v5.2.0'.
+ *
+ * Examples:
+ *   '/docs/languages/python/django-mongodb/current/'  → '/docs/languages/python/django-mongodb/:version/'
+ *   '/docs/languages/java/reactive-streams-driver/v1.16/' → '/docs/languages/java/reactive-streams-driver/:version/'
+ */
+function normalizeVersionInUrl(url: string): string {
+  return url.replace(/(\/)(current|upcoming|v\d[\w.-]*)(\/|$)/, '$1:version$3');
+}
+
+/**
  * Generates TypeScript content for a showSubNav TOC file.
  * Converts the showSubNav item into an L1 format.
+ * When the item has versioned content, normalizes the URL to use ':version'.
  */
-function generateSubNavFileContent(subNavItem: TocItemLoose): string {
+function generateSubNavFileContent(
+  subNavItem: TocItemLoose,
+  hasVersionedContent: boolean,
+): string {
+  const rawUrl = subNavItem.url || '';
+  const url = hasVersionedContent ? normalizeVersionInUrl(rawUrl) : rawUrl;
+
   const l1Item: TocItemLoose = {
     label: subNavItem.label,
     contentSite: subNavItem.contentSite,
-    url: subNavItem.url || '',
+    url,
     items: subNavItem.items,
   };
 
@@ -309,7 +329,7 @@ function splitTocForOffline() {
     }
 
     const filename = generateFilename(label, versionedSites);
-    const content = generateSubNavFileContent(item);
+    const content = generateSubNavFileContent(item, versionedSites.size > 0);
     const filePath = path.join(outputDir, `${filename}.ts`);
 
     fs.writeFileSync(filePath, content, 'utf-8');

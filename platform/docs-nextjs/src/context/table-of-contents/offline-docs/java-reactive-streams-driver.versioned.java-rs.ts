@@ -4,7 +4,7 @@ export const toc: L1TocItem[] = [
   {
     label: 'Java Reactive Streams Driver',
     contentSite: 'java-rs',
-    url: '/docs/languages/java/reactive-streams-driver/current/',
+    url: '/docs/languages/java/reactive-streams-driver/:version/',
     items: [
       {
         label: 'Java Reactive Streams Driver',

@@ -4,7 +4,7 @@ export const toc: L1TocItem[] = [
   {
     label: 'PyMongo',
     contentSite: 'pymongo',
-    url: '/docs/languages/python/pymongo-driver/current/',
+    url: '/docs/languages/python/pymongo-driver/:version/',
     items: [
       {
         label: 'PyMongo Driver',

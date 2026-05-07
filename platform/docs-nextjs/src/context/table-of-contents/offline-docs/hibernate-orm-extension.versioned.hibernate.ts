@@ -4,7 +4,7 @@ export const toc: L1TocItem[] = [
   {
     label: 'Hibernate ORM Extension',
     contentSite: 'hibernate',
-    url: '/docs/languages/java/mongodb-hibernate/current/',
+    url: '/docs/languages/java/mongodb-hibernate/:version/',
     items: [
       {
         label: 'MongoDB Extension for Hibernate ORM',

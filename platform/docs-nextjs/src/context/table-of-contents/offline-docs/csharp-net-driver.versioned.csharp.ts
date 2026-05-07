@@ -4,7 +4,7 @@ export const toc: L1TocItem[] = [
   {
     label: 'C#/.NET Driver',
     contentSite: 'csharp',
-    url: '/docs/drivers/csharp/current/',
+    url: '/docs/drivers/csharp/:version/',
     items: [
       {
         label: 'C#/.NET Driver',

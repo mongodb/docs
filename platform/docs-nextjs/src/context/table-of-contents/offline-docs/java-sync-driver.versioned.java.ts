@@ -4,7 +4,7 @@ export const toc: L1TocItem[] = [
   {
     label: 'Java Sync Driver',
     contentSite: 'java',
-    url: '/docs/drivers/java/sync/current/',
+    url: '/docs/drivers/java/sync/:version/',
     items: [
       {
         label: 'Java Sync Driver',

@@ -4,7 +4,7 @@ export const toc: L1TocItem[] = [
   {
     label: 'Entity Framework Provider',
     contentSite: 'entity-framework',
-    url: '/docs/entity-framework/current/',
+    url: '/docs/entity-framework/:version/',
     items: [
       {
         label: 'EF Core Provider',

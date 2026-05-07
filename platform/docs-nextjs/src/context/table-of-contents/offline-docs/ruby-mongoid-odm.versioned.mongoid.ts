@@ -4,7 +4,7 @@ export const toc: L1TocItem[] = [
   {
     label: 'Ruby Mongoid ODM',
     contentSite: 'mongoid',
-    url: '/docs/mongoid/current/',
+    url: '/docs/mongoid/:version/',
     items: [
       {
         label: 'Mongoid',

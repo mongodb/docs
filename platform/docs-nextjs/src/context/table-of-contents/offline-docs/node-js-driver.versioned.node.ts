@@ -4,7 +4,7 @@ export const toc: L1TocItem[] = [
   {
     label: 'Node.js Driver',
     contentSite: 'node',
-    url: '/docs/drivers/node/current/',
+    url: '/docs/drivers/node/:version/',
     items: [
       {
         label: 'Node.js Driver',

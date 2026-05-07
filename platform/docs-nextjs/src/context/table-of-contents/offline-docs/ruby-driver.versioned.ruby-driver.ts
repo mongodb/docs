@@ -4,7 +4,7 @@ export const toc: L1TocItem[] = [
   {
     label: 'Ruby Driver',
     contentSite: 'ruby-driver',
-    url: '/docs/ruby-driver/current/',
+    url: '/docs/ruby-driver/:version/',
     items: [
       {
         label: 'Ruby Driver',

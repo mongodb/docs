@@ -4,7 +4,7 @@ export const toc: L1TocItem[] = [
   {
     label: 'PHP Library',
     contentSite: 'php-library',
-    url: '/docs/php-library/current/',
+    url: '/docs/php-library/:version/',
     items: [
       {
         label: 'PHP Library Manual',

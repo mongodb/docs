@@ -4,7 +4,7 @@ export const toc: L1TocItem[] = [
   {
     label: 'Laravel MongoDB',
     contentSite: 'laravel',
-    url: '/docs/drivers/php/laravel-mongodb/current/',
+    url: '/docs/drivers/php/laravel-mongodb/:version/',
     items: [
       {
         label: 'Laravel MongoDB',
