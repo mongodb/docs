@@ -1,6 +1,7 @@
 'use client';
 
 import LeafyGreenProvider from '@leafygreen-ui/leafygreen-provider';
+import { CodeContext } from '@/components/code/code-context';
 
 export type OutputProps = {
   children: React.ReactNode;
@@ -10,6 +11,15 @@ export type OutputProps = {
   visible?: boolean;
 };
 
+// Output code blocks must not participate in the page's driver-tab language
+// switcher. Providing an empty CodeContext prevents the Code component from
+// picking up languageOptions from surrounding tab context, which would:
+// (1) show an unwanted language-switcher dropdown in the header, and
+// (2) override the block's lang with the active tab language, breaking colors.
+const emptyCodeContext = { codeBlockLanguage: undefined, languageOptions: [] };
+
 export const Output = ({ children }: OutputProps) => (
-  <LeafyGreenProvider darkMode={true}>{children}</LeafyGreenProvider>
+  <LeafyGreenProvider darkMode={true}>
+    <CodeContext.Provider value={emptyCodeContext}>{children}</CodeContext.Provider>
+  </LeafyGreenProvider>
 );
