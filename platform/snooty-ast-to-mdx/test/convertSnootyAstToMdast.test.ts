@@ -356,6 +356,38 @@ describe('convertSnootyAstToMdast', () => {
     expect(mdx).not.toContain('type="substitution"');
   });
 
+  it('substitution_reference with expanded external reference (refuri) emits markdown link, not Reference substitution', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'text', value: 'See the ' },
+            {
+              type: 'substitution_reference',
+              refname: 'hnsw',
+              children: [
+                {
+                  type: 'reference',
+                  refuri: 'https://arxiv.org/abs/1603.09320',
+                  children: [{ type: 'text', value: 'Hierarchical Navigable Small Worlds' }],
+                },
+              ],
+            },
+            { type: 'text', value: ' graph.' },
+          ],
+        },
+      ],
+    };
+    const { mdast, mdx } = convertSnootyAst({ ast });
+    expect(mdx).toContain('[Hierarchical Navigable Small Worlds](https://arxiv.org/abs/1603.09320)');
+    expect(mdx).not.toContain('type="substitution"');
+    expect(mdx).not.toContain('refKey="hnsw"');
+    const refs = mdast.__references as ReferencesArtifact;
+    expect(refs?.substitutions?.['hnsw']).toBe('Hierarchical Navigable Small Worlds');
+  });
+
   it('catalog resolves xref when substitution_definition ref_role has target but no fileid (no href yet)', () => {
     const ast: SnootyNode = {
       type: 'root',

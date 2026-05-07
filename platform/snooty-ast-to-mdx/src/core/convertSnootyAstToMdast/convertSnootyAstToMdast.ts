@@ -331,6 +331,23 @@ const findRefOrDocRoleInSubstitution = (nodes: SnootyNode[] | undefined): Snooty
 };
 
 /**
+ * External hyperlink substitutions from Snooty config (e.g. TOML `|hnsw|` → `` `Title <url>`__ ``).
+ * Snooty expands these as a `reference` node with `refuri`; those must **not** match
+ * {@link findRefOrDocRoleInSubstitution} (internal xrefs use `reference` without `refuri`).
+ */
+const findExternalHyperlinkReference = (nodes: SnootyNode[] | undefined): SnootyNode | null => {
+  if (!nodes?.length) return null;
+  for (const n of nodes) {
+    if (n.type === 'reference' && typeof n.refuri === 'string' && n.refuri.length > 0) {
+      return n;
+    }
+    const nested = findExternalHyperlinkReference(n.children);
+    if (nested) return nested;
+  }
+  return null;
+};
+
+/**
  * `:pipeline:\`$vectorSearch\`` and similar — resolved like xref entries in
  * `buildSubstitutionRefXrefMap` so `|alias|` emits linked {@link Reference} / `refs` (not plain text).
  */
@@ -1611,6 +1628,30 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
             children: [{ type: 'text', value: abbr }],
           };
         }
+      }
+
+      const externalHyperlinkRef = findExternalHyperlinkReference(node.children);
+      // Plain includes suppress baked values so callers replace via `<Replacement>`;
+      // keep `<Reference type="substitution" />` there instead of inlining `[text](url)`.
+      if (
+        externalHyperlinkRef &&
+        typeof externalHyperlinkRef.refuri === 'string' &&
+        !ctx.suppressSubstitutionInlineValues
+      ) {
+        const linkLabel = extractInlineDisplayText(externalHyperlinkRef.children ?? []);
+        const slotBody = ctx.emitSubstitutionReferencesAsReplacement;
+        if (!slotBody && refname && linkLabel) {
+          ctx.collectedSubstitutions.set(refname, linkLabel);
+        }
+        return {
+          type: 'link',
+          url: externalHyperlinkRef.refuri,
+          children: convertChildren({
+            nodes: externalHyperlinkRef.children ?? [],
+            depth,
+            ctx,
+          }),
+        };
       }
 
       const refLinkNode = findRefOrDocRoleInSubstitution(node.children);
