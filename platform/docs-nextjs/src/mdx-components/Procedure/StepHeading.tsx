@@ -1,6 +1,6 @@
 'use client';
 
-import { Body } from '@leafygreen-ui/typography';
+import { Heading } from '@/mdx-components/Heading';
 import { SkipPTagContext } from '@/mdx-components/Paragraph';
 
 type StepHeadingProps = {
@@ -9,9 +9,11 @@ type StepHeadingProps = {
 
 export const StepHeading = ({ children }: StepHeadingProps) => {
   return (
-    <Body as="h4" weight="bold">
-      {/* Step titles are a single MDX paragraph; skip inner Body so weight/color inherit from this h4 (matches Snooty). */}
-      <SkipPTagContext.Provider value={true}>{children}</SkipPTagContext.Provider>
-    </Body>
+    <SkipPTagContext.Provider value={true}>
+      <Heading headingLevel={4}>
+        {/* Step titles are a single MDX paragraph; skip inner Body on Paragraph so we do not nest <p> inside <h4>. */}
+        {children}
+      </Heading>
+    </SkipPTagContext.Provider>
   );
 };
