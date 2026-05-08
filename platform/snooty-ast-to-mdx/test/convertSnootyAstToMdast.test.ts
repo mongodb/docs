@@ -1698,6 +1698,28 @@ describe('DefinitionTerm inline content rendering', () => {
       expect(mdx).toMatch(/^```python copyable={true}/m);
     });
 
+    it('preserves meta on no-language code block by falling back to lang "text"', () => {
+      // `.. code-block::` without a language argument has no lang in the AST.
+      // remark drops the meta/info string when lang is null, so we must fall back to 'text'.
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [{ type: 'code', copyable: true, emphasize_lines: [[5, 5]], value: '{\n  "key": "value"\n}' }],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).toMatch(/^```text copyable=\{true\}/m);
+      expect(mdx).toContain('emphasize_lines={[5]}');
+    });
+
+    it('emits plain fenced block (no lang) when no-language code block has no meta', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [{ type: 'code', value: 'some plain text' }],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).toMatch(/^```\n/m);
+      expect(mdx).not.toContain('```text');
+    });
+
     it('omits emphasize_lines from meta when array is empty', () => {
       const ast: SnootyNode = {
         type: 'root',

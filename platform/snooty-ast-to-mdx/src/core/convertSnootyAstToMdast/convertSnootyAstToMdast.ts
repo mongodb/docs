@@ -185,7 +185,14 @@ const convertCodeNode = (node: SnootyNode, fallbackLang?: string | null): MdastN
     metaParts.push(`darkMode={${node.darkMode}}`);
   }
   if (Array.isArray(node.emphasize_lines) && node.emphasize_lines.length > 0) {
-    metaParts.push(`emphasize_lines={${JSON.stringify(node.emphasize_lines)}}`);
+    // Snooty encodes emphasize_lines as [[start, end], ...] range pairs. Expand to a flat
+    // list of line numbers so the Code component's emphasize_lines prop receives number[].
+    const flatLines = (node.emphasize_lines as Array<number | [number, number]>).flatMap((entry) =>
+      Array.isArray(entry) ? Array.from({ length: entry[1] - entry[0] + 1 }, (_, i) => entry[0] + i) : [entry],
+    );
+    if (flatLines.length > 0) {
+      metaParts.push(`emphasize_lines={${JSON.stringify(flatLines)}}`);
+    }
   }
   if (typeof node.linenos === 'boolean') {
     metaParts.push(`linenos={${node.linenos}}`);
@@ -199,9 +206,13 @@ const convertCodeNode = (node: SnootyNode, fallbackLang?: string | null): MdastN
   if (node.lineno_start !== undefined) {
     metaParts.push(`lineno_start={${Number(node.lineno_start)}}`);
   }
+  // remark only emits the info string (meta) when lang is present.
+  // Fall back to 'text' so that props like copyable/emphasize_lines are not silently dropped
+  // for no-language code blocks (e.g. `.. code-block::` without a language argument).
+  const effectiveLang = !lang && metaParts.length > 0 ? 'text' : lang;
   return {
     type: 'code',
-    lang,
+    lang: effectiveLang,
     meta: metaParts.length > 0 ? metaParts.join(' ') : undefined,
     value,
   };

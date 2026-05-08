@@ -65,6 +65,26 @@ const cases: Array<[string, SnootyNode]> = [
     },
   ],
   [
+    'code block — emphasize_lines Snooty range format [[start, end]]',
+    {
+      type: 'code',
+      lang: 'json',
+      copyable: true,
+      emphasize_lines: [[5, 5]],
+      linenos: false,
+      value: 'line1\nline2\nline3\nline4\nline5',
+    },
+  ],
+  [
+    'code block — emphasize_lines Snooty multi-line range [[8, 10]]',
+    {
+      type: 'code',
+      lang: 'json',
+      emphasize_lines: [[8, 10]],
+      value: '1\n2\n3\n4\n5\n6\n7\n8\n9\n10',
+    },
+  ],
+  [
     'code block — multi-line with quotes and backslashes',
     {
       type: 'code',
