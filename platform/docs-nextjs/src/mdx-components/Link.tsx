@@ -92,6 +92,13 @@ const lgLinkStyling = css`
   > span > code, > code {
     ${sharedDarkModeOverwriteStyles}
   }
+
+  /* LG Link only nudges the OpenNewTab glyph ~1px; align like a superscript. */
+  & > svg[role='presentation'] {
+    vertical-align: super;
+    position: relative;
+    top: 0;
+  }
 `;
 
 type LinkProps = {
