@@ -1,22 +1,18 @@
 'use client';
 
 import { useId, useMemo } from 'react';
-import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
 import { palette } from '@leafygreen-ui/palette';
 import { css, cx } from '@leafygreen-ui/emotion';
 import { theme } from '@/styles/theme';
 import { useFootnoteContext } from '@/context/footnote-context';
 
 const refStyles = css`
+  scroll-margin-top: ${theme.header.navbarScrollOffset};
   color: ${palette.blue.light1};
 
   &:visited {
     color: ${palette.purple.base};
   }
-`;
-
-const scrollMarginStyles = css`
-  scroll-margin-top: ${theme.header.navbarScrollOffset};
 `;
 
 export type FootnoteReferenceProps = {
@@ -26,7 +22,6 @@ export type FootnoteReferenceProps = {
 export const FootnoteReference = ({ name }: FootnoteReferenceProps) => {
   const stableId = useId();
   const { getOrCreateRefId, registerReference } = useFootnoteContext();
-  const { darkMode } = useDarkMode();
 
   const { label, refId, footnoteId } = useMemo(() => {
     const footnoteId = getOrCreateRefId(stableId, name);
@@ -35,11 +30,7 @@ export const FootnoteReference = ({ name }: FootnoteReferenceProps) => {
   }, [stableId, name, getOrCreateRefId, registerReference]);
 
   return (
-    <a
-      className={cx('footnote-reference', scrollMarginStyles, darkMode && refStyles)}
-      href={`#footnote-${footnoteId}`}
-      id={refId}
-    >
+    <a className={cx('footnote-reference', refStyles)} href={`#footnote-${footnoteId}`} id={refId}>
       [{label}]
     </a>
   );
