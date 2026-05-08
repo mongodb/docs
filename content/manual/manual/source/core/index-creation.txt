@@ -19,15 +19,15 @@ Index Builds on Populated Collections
    :class: singlecol
 
 
-Index builds use an optimized build process that holds an exclusive lock on the 
-collection at the beginning and end of the index build. The rest of the build 
-process yields to interleaving read and write operations. For a detailed 
-description of index build process and locking behavior, see 
-:ref:`index-build-process`.
+Index builds use an optimized build process that holds an exclusive
+lock on the collection at the beginning and end of the index build.
+The rest of the build process yields to interleaving read and write
+operations. For a detailed description of index build process and
+locking behavior, see :ref:`index-build-process`.
 
 Index builds on a replica set or sharded cluster build simultaneously across 
 all data-bearing replica set members. The primary requires a minimum number of 
-data-bearing voting members (i.e. commit quorum), including itself, that must 
+data-bearing voting members (that is, commit quorum), including itself, that must 
 complete the build before marking the index as ready for use. A "voting" member 
 is any replica set member where :rsconf:`members[n].votes` is greater than
 ``0``. See :ref:`index-operations-replicated-build` for more
@@ -47,12 +47,12 @@ Previous versions of MongoDB supported building indexes either in the
 foreground or background. Foreground index builds were fast and produced
 more efficient index data structures, but required blocking all
 read-write access to the parent database of the collection being indexed
-for the duration of the build. Background index builds were slower and
-had less efficient results, but allowed read-write access to the
-database and its collections during the build process.
+for the duration of the build. Background index builds were slower and produced less efficient
+results, but allowed read-write access to the database and its
+collections during the build.
 
-Index builds now obtain an exclusive lock on only the collection being indexed 
-during the start and end of the build process to protect metadata changes. 
+Index builds now obtain an exclusive lock on the collection being
+indexed only at the start and end of the build.
 The rest of the build process uses the yielding behavior of background index 
 builds to maximize read-write access to the collection during the build. 
 Index builds still produce efficient index data structures despite the more 
@@ -93,10 +93,8 @@ If any violations still exist at the end of the build,
 the ``mongod`` terminates the build and throws an error. 
 
 Similarly, an application can successfully write documents to the
-``inventory`` collection with duplicate values of ``product_sku`` while
-the index build is in progress. If any violations still exist at the end
-of the build,  the ``mongod`` terminates the build and throws
-an error. 
+``inventory`` collection with duplicate values of ``product_sku``
+while the index build is in progress.
 
 To mitigate the risk of index build failure due to constraint
 violations:
@@ -114,8 +112,8 @@ Sharded Collections
 
 For a sharded collection distributed across multiple shards, one or
 more shards may contain a chunk with duplicate documents. As such, the
-create index operation may succeed on some of the shards (i.e. the ones
-without duplicates) but not on others (i.e. the ones with duplicates).
+create index operation may succeed on some of the shards (that is, the ones
+without duplicates) but not on others (that is, the ones with duplicates).
 To avoid leaving inconsistent indexes across shards, you can issue the
 :method:`db.collection.dropIndex()` from a :binary:`~bin.mongos` to
 drop the index from the collection.
@@ -150,14 +148,13 @@ Index Build Impact on Database Performance
 Index Builds During Write-Heavy Workloads
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Building indexes during time periods where the target collection
-is under heavy write load can result in reduced write 
-performance and longer index builds.
+Building indexes when the target collection is under heavy write
+load can result in reduced write performance and longer index
+builds.
 
 Consider designating a maintenance window during which applications
 stop or reduce write operations against the collection. Start the
-index build during this maintenance window to mitigate the
-potential negative impact of the build process.
+index build during this maintenance window.
 
 Insufficient Available System Memory (RAM)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -236,9 +233,9 @@ index build, use the :dbcommand:`setIndexCommitQuorum` command.
    Rolling index builds take at most one replica set member at a time, starting
    with the secondary members, and build the index on that member as a 
    standalone. Rolling index builds require at least one replica set election. 
-   Rolling index builds should only be used if the customers meet the requirements
-   listed on the :ref:`rolling index pages <rolling-index-build>` as the 
-   procedure lowers the resiliency of the cluster. 
+   Use rolling index builds only if you meet the requirements listed
+   on the :ref:`rolling index pages <rolling-index-build>`, as the
+   procedure lowers the resiliency of the cluster.
 
 Commit Quorum Contrasted with Write Concern
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -250,39 +247,25 @@ Commit Quorum Contrasted with Write Concern
 Build Failure and Recovery
 --------------------------
 
-Interrupted Index Builds on a Primary ``mongod``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Interrupted Index Builds on Primary and Secondary ``mongod``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Starting in MongoDB 5.0, if the primary ``mongod`` 
-performs a clean :dbcommand:`shutdown` with ``"force" : true`` or 
-receives a ``SIGTERM`` signal during an index build and the 
-:ref:`commitQuorum <createIndexes-cmd-commitQuorum>` is set to the 
-default ``votingMembers``, then the index build progress is saved to 
-disk. The ``mongod`` automatically recovers the index 
-build when it is restarted and continues from the saved checkpoint. 
-In earlier versions, if the index build is interrupted, it has to 
-be restarted from the beginning.
-
-Interrupted Index Builds on a Secondary ``mongod``
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting in MongoDB 5.0, if a secondary ``mongod`` performs 
-a clean :dbcommand:`shutdown` with ``"force" : true`` or receives a 
-``SIGTERM`` signal during an index build and the 
+If a primary or secondary ``mongod`` performs a clean
+:dbcommand:`shutdown` with ``"force" : true`` or receives a
+``SIGTERM`` signal during an index build and the
 :ref:`commitQuorum <createIndexes-cmd-commitQuorum>` is set to the
-default ``votingMembers``, then the index build progress is saved to
-disk. The ``mongod`` automatically recovers the index build
-when it is restarted and continues from the saved checkpoint. In earlier
-versions, if the index build is interrupted, it has to be restarted from 
-the beginning.
+default ``votingMembers``, the index build progress is saved to
+disk. The ``mongod`` automatically recovers the index build when
+restarted and continues from the saved checkpoint. In earlier
+versions, the index build must restart from the beginning.
 
-The ``mongod`` can perform the startup process while the 
-recovering index builds.
+The ``mongod`` can perform the startup process while recovering
+index builds.
 
-If you restart the ``mongod`` as a standalone (i.e. removing
+If you restart the ``mongod`` as a standalone (that is, removing
 or commenting out :setting:`replication.replSetName` or omitting
 :option:`--replSetName <mongod --replSet>`), the ``mongod``
-cannot restart the index build. The build remains in a paused 
+cannot restart the index build. The build remains in a paused
 state until it is manually :dbcommand:`dropped <dropIndexes>`.
 
 Interrupted Index Builds on Standalone ``mongod``
@@ -320,19 +303,18 @@ Index Consistency Checks for Sharded Collections
 A sharded collection has an inconsistent index if the collection does
 not have the exact same indexes (including the index options) on each
 shard that contains chunks for the collection. Although inconsistent
-indexes should not occur during normal operations, inconsistent indexes
-can occur, such as:
+indexes should not occur during normal operations, they can occur in the following scenarios:
 
-- When a user is creating an index with a ``unique`` key constraint and
-  one shard contains a chunk with duplicate documents. In such cases,
-  the create index operation may succeed on the shards without
-  duplicates but not on the shard with duplicates.
+- When creating an index with a ``unique`` key constraint and one
+  shard contains a chunk with duplicate documents. In such cases, the
+  create index operation may succeed on the shards without duplicates
+  but not on the shard with duplicates.
 
-- When a user is creating an index across the shards in a :doc:`rolling
-  manner (i.e. manually building the index one by one across the
-  shards) </tutorial/build-indexes-on-sharded-clusters>` but either
-  fails to build the index for an associated shard or incorrectly
-  builds an index with different specification.
+- When creating an index across the shards in a
+  :ref:`rolling manner <index-build-on-sharded-clusters>` (that is,
+  manually building the index one by one across the shards) but
+  either fails to build the index for an associated shard or
+  incorrectly builds an index with different specification.
 
 The :ref:`config server <sharding-config-server>` primary periodically checks 
 for index inconsistencies across the shards for sharded collections. To
@@ -578,7 +560,7 @@ process:
 
 .. seealso::
 
-   :doc:`/faq/concurrency`
+   :ref:`faq-concurrency`
 
 .. toctree::
    :titlesonly:
