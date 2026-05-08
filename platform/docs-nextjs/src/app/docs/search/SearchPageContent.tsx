@@ -13,7 +13,7 @@ import { Header } from '@/mdx-components/Header';
 import { UnifiedSidenav } from '@/mdx-components/UnifiedSidenav';
 import { ActionBar } from '@/mdx-components/ActionBar';
 import { SearchResults } from '@/mdx-components/SearchResults';
-import layoutStyles from '@/app/docs/[...path]/layout.module.scss';
+import layoutStyles from '@/app/docs/[[...path]]/layout.module.scss';
 import type { Docset, RemoteMetadata } from '@/types/data';
 import type { TextNode, TocTreeEntry } from '@/types/ast';
 import type { Environments } from '@/utils/env-config';

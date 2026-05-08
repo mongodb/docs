@@ -24,7 +24,7 @@ async function getFromStores(key: string, type: 'string' | 'blob'): Promise<stri
         ]
       : [{ store: productionStore, name: BLOB_STORE_NAME }];
 
-  for (const { store, name } of storeEntries) {
+  for (const { store } of storeEntries) {
     try {
       if (type === 'blob') {
         const result = await store.get(key, { type: 'blob' });
@@ -35,11 +35,16 @@ async function getFromStores(key: string, type: 'string' | 'blob'): Promise<stri
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      if (msg.toLowerCase().includes('not found') || msg.includes('404') || msg.includes('no such key')) {
+      if (
+        msg.toLowerCase().includes('not found') ||
+        msg.includes('404') ||
+        msg.includes('401') ||
+        msg.includes('no such key')
+      ) {
         continue;
       }
       const attempted = storeEntries.map((e) => `"${e.name}"`).join(', ');
-      console.error(`Blob store error for key "${key}" in store "${name}" — attempted: ${attempted}`);
+      console.error(`Blob store error for key "${key}", attempted stores: ${attempted}`);
       throw error;
     }
   }

@@ -9,14 +9,14 @@ import projectPrefixPaths from '@/generated/prefix-map.json';
  * known project paths from prefix-map.json (pre-sorted longest-first).
  *
  *
- * projectPath is the blob key/ docset prefix for the current URL
+ * projectPath is the blob key/ project's docset prefix for the current URL
  * (e.g. atlas, django-mongodb/current, or a longer path like languages/java/.../upcoming
  *
  *
  * usage:
  * - projectPrefixPaths: ["atlas", "upcoming", "languages/java/reactive-streams-driver/upcoming",...]
  *
- * urlPath: ["atlas", "v1", "api", "docs"], return: { prefixPath: "atlas", siteMetadata: RemoteMetadata }
+ * urlPath: ["atlas", "getting-started"], return: { prefixPath: "atlas", siteMetadata: RemoteMetadata }
  * urlPath: ["languages", "java", "reactive-streams-driver", "upcoming", "get-started"], return: { prefixPath: "languages/java/reactive-streams-driver/upcoming", siteMetadata: RemoteMetadata }
  */
 
@@ -24,37 +24,36 @@ const getSiteMetadataCached = cache(
   async (pathKey: string): Promise<{ projectPath: string; siteMetadata: RemoteMetadata }> => {
     const urlPath = pathKey.split('/');
 
-    for (const projectPath of projectPrefixPaths) {
-      const segments = projectPath.split('/');
-      if (urlPath.length < segments.length) continue;
-      if (!segments.every((seg: string, i: number) => seg === urlPath[i])) continue;
+    // pure prefix matching — no I/O, falls back to '' (landing) when no prefix matches.
+    const projectPath =
+      projectPrefixPaths.find((prefix) => {
+        const segments = prefix.split('/');
+        return urlPath.length >= segments.length && segments.every((seg: string, i: number) => seg === urlPath[i]);
+      }) ?? '';
 
-      const key = getBlobKey(`${projectPath}/_site.json`);
-      try {
-        const siteMetadataString = await getBlobString(key);
-        if (siteMetadataString) {
-          const siteMetadata: RemoteMetadata = JSON.parse(siteMetadataString);
-          return { projectPath, siteMetadata };
-        }
-      } catch {
-        // JSON.parse can throw for invalid JSON; try next candidate, don't actually throw or log anything
-      }
-    }
-
-    // No prefix matched — fall back to landing project
-    const landingKey = getBlobKey('_site.json');
+    // Single fetch: picks the best matching prefix and makes one request. If that blob
+    // is missing or contains invalid JSON, an error is thrown — no other prefixes are tried.
+    const key = getBlobKey(projectPath ? `${projectPath}/_site.json` : '_site.json');
     try {
-      const siteMetadataString = await getBlobString(landingKey);
+      const siteMetadataString = await getBlobString(key);
       if (siteMetadataString) {
         const siteMetadata: RemoteMetadata = JSON.parse(siteMetadataString);
-        return { projectPath: 'landing', siteMetadata };
+        return { projectPath, siteMetadata };
       }
-    } catch {
-      // JSON.parse can throw for invalid JSON; try next candidate, don't actually throw or log anything
+    } catch (err) {
+      if (!(err instanceof SyntaxError)) {
+        throw new Error(
+          `[getSiteMetadata] Unexpected error reading blob for "${projectPath || 'landing'}": ${
+            err instanceof Error ? err.message : String(err)
+          }`,
+        );
+      }
+      // SyntaxError = invalid JSON; fall through to the error below
     }
 
     throw new Error(
-      `Could not load site metadata: no project path in prefix-map matched URL path [${pathKey}], and landing fallback failed`,
+      `[getSiteMetadata] Could not load site metadata for [${urlPath.join('/')}]: ` +
+        `blob not found or contains invalid JSON (key: ${key})`,
     );
   },
 );

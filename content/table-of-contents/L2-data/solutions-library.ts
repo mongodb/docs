@@ -274,7 +274,7 @@ const tocData: TocItem[] = [
             label: 'Multimodal Event Explorer',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-event-explorer',
-          },          
+          },
           {
             label: 'Transform the Driver Experience',
             contentSite: 'atlas-architecture',

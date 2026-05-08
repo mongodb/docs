@@ -7,7 +7,7 @@ import { Footer } from '@/mdx-components/Footer';
 import { darkModeScript } from '@/app/lib/dark-mode-script';
 import { CookiesProvider } from '@/context/cookies-context';
 import { cookies as nextCookies } from 'next/headers';
-import mdxLayoutStyles from '../[...path]/layout.module.scss';
+import mdxLayoutStyles from '../[[...path]]/layout.module.scss';
 
 export default async function SearchLayout({ children }: { children: React.ReactNode }) {
   const bannerData = await getBannerData();

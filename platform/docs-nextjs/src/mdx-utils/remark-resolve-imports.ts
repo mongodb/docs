@@ -39,10 +39,6 @@ export const remarkResolveImports = ({ projectPath }: { projectPath: string }) =
     const loadedRefs = await loadReferences(projectPath);
     const refs: ReferencesData = loadedRefs ?? { substitutions: {}, refs: {} };
 
-    if (!loadedRefs) {
-      console.warn(`[remarkResolveImports] Failed to load references for ${projectPath}; using empty refs`);
-    }
-
     resolveSubstitutions({ tree, refs, projectPath });
     resolveRefLinks({ tree, refs, projectPath });
   };
@@ -117,7 +113,8 @@ const fetchAndParseInclude = async ({
   replacementSlots,
 }: FetchAndParseIncludeArgs): Promise<Root | null> => {
   const mdxFilePath = src.replace(/^\/+/, '').replace(/\.mdx$/, '') + '.mdx';
-  const blobKey = getBlobKey(`${projectPath}/${mdxFilePath}`);
+  // projectPath is empty string for the landing page (no project path prefix)
+  const blobKey = getBlobKey(projectPath ? `${projectPath}/${mdxFilePath}` : mdxFilePath);
 
   if (includeStack.has(blobKey)) {
     console.warn(`[remarkResolveImports] Circular include: ${[...includeStack, blobKey].join(' → ')}`);
@@ -157,11 +154,15 @@ interface ReferencesData {
 }
 
 const loadReferences = async (projectPath: string): Promise<ReferencesData | null> => {
-  const blobKey = getBlobKey(`${projectPath}/_references.json`);
+  // projectPath is empty string for the landing page (no project path prefix)
+  const blobKey = getBlobKey(projectPath ? `${projectPath}/_references.json` : '_references.json');
 
   try {
     const raw = await getBlobString(blobKey);
-    if (!raw) return null;
+    if (!raw) {
+      console.warn(`[remarkResolveImports] _references.json not found (key: ${blobKey})`);
+      return null;
+    }
 
     const parsed = JSON.parse(raw);
     return {
@@ -169,7 +170,7 @@ const loadReferences = async (projectPath: string): Promise<ReferencesData | nul
       refs: parsed.refs ?? {},
     };
   } catch (err) {
-    console.warn(`[remarkResolveImports] Failed to load references for ${projectPath}:`, err);
+    console.warn(`[remarkResolveImports] Failed to load references (key: ${blobKey}):`, err);
     return null;
   }
 };
@@ -288,6 +289,7 @@ const resolveRefLinks = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
 
       const href = refs.refs[key];
       if (!href) {
+        console.warn(`[remarkResolveImports] Reference key "${key}" not found in _references.json`);
         const fallback: PhrasingContent = { type: 'text', value: `Reference could not be replaced: ${key}` };
         replacements.push({ index, parent, replacement: fallback });
         return;

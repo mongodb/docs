@@ -11,7 +11,6 @@ import { remarkStepNumbers } from './remark-step-numbers';
 import { components } from '@/mdx-components';
 import { getBlobString } from './blob-read';
 import { getBlobKey } from './get-blob-key';
-import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
 import { getSiteMetadata } from './load-metadata';
 
 export const VERSION_PLACEHOLDER = ':version';
@@ -85,19 +84,23 @@ export const loadMDX = async (urlPath: string[], replacements?: Record<string, R
     return loadOfflineMDX(urlPath, replacements);
   }
 
-  // Per-instance replacements make the output unique per call site, so skip
-  // the request-scoped cache when they are present (e.g. the Include component).
-  if (replacements !== undefined) {
-    const pathKey = urlPath.join('/');
-    const { projectPath } = await getSiteMetadata(urlPath);
-    const componentMapping = components({ projectPath, replacements });
-    const mdxString = await fetchMdxString(pathKey);
-    if (!mdxString) return null;
-    const { content, frontmatter } = await compileMdxWithPlugins({ mdxString, componentMapping, projectPath });
-    return { content, frontmatter };
-  }
+  try {
+    // Per-instance replacements make the output unique per call site, so skip
+    // the request-scoped cache when they are present (e.g. the Include component).
+    if (replacements !== undefined) {
+      const pathKey = urlPath.join('/');
+      const { projectPath } = await getSiteMetadata(urlPath);
+      const componentMapping = components({ projectPath, replacements });
+      const mdxString = await fetchMdxString(pathKey);
+      if (!mdxString) return null;
+      const { content, frontmatter } = await compileMdxWithPlugins({ mdxString, componentMapping, projectPath });
+      return { content, frontmatter };
+    }
 
-  return loadMDXCached(urlPath.join('/'));
+    return await loadMDXCached(urlPath.join('/'));
+  } catch {
+    return null;
+  }
 };
 
 /** Cache compiled MDX during static build **/

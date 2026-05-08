@@ -9,17 +9,22 @@ import { getPageMetadata } from '@/utils/seo';
 import type { ServerSideChangelogData } from '@/types/openapi';
 import { getChangelogData } from '@/services/db/openapi';
 
+/** Normalize the optional catch-all segment to a concrete path array.
+ * params.path is undefined at /docs/ (Next.js [[...path]] root match). */
+const normalizeUrlPath = (path?: string[]): string[] => path ?? ['index'];
+
 // ISR (Incremental Static Regeneration) behavior
 export const revalidate = 24 * 60 * 60; // 1 day in seconds
 export const dynamic = 'force-static'; // Pages should be statically generated
 
 interface PageProps {
   params: {
-    path: string[];
+    path?: string[];
   };
 }
 
-export default async function MDXPage({ params: { path } }: PageProps) {
+export default async function MDXPage({ params }: PageProps) {
+  const path = normalizeUrlPath(params.path);
   const result = await loadMDX(path);
 
   if (!result || !result.frontmatter) {
@@ -57,7 +62,8 @@ export default async function MDXPage({ params: { path } }: PageProps) {
 }
 
 // Generate metadata for the page
-export async function generateMetadata({ params: { path } }: PageProps) {
+export async function generateMetadata({ params }: PageProps) {
+  const path = normalizeUrlPath(params.path);
   const result = await loadMDX(path);
 
   if (!result || !result.frontmatter) {
