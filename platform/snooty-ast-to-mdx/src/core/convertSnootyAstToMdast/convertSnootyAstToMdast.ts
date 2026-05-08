@@ -40,7 +40,7 @@ const DIRECTIVES_TO_REMOVE = [
   'twitter',
 ];
 const DIRECTIVES_TO_REMOVE_IF_EMPTY = ['index'];
-const DIRECTIVES_TO_SKIP_CONTAINER = ['extract', 'glossary'];
+const DIRECTIVES_TO_SKIP_CONTAINER = ['extract', 'glossary', 'release_specification'];
 
 /**
  * RST `line_block` separates logical lines with a break between them.

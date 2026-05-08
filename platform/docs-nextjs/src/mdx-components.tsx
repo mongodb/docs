@@ -165,7 +165,6 @@ export const components = (injectedProps?: InjectedProps) =>
     Step: ({ children, ...props }) => <Step {...props}>{children}</Step>,
     StepHeading: ({ children }) => <StepHeading>{children}</StepHeading>,
     Red: ({ children }) => <Red>{children}</Red>,
-    ReleaseSpecification: ({ children }) => <>{children}</>,
     Root: ({ children }) => <span>{children}</span>,
     Replacement: ({ children, ...props }) => <Replacement {...props}>{children}</Replacement>,
     SearchResults: ({ children }) => <span>{children}</span>,
