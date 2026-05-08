@@ -50,3 +50,8 @@ vectors are stored in their own data structure on disk, and are only
 referenced during rescoring when you configure binary quantization or
 when you perform exact search against either binary or scalar quantized
 vectors.  
+
+.. note:: 
+
+   Binary quantization is currently not supported for nested vector indexes. Use 
+   ``scalar`` quantization instead or don't specify any quantization type.

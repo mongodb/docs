@@ -205,7 +205,6 @@
                       "path": "plot_embedding_voyage_3_large",
                       "numDimensions": 2048,
                       "similarity": "dotProduct",
-                      "quantization": "scalar",
                       "indexingMethod": "hnsw"
                     },
                     {
