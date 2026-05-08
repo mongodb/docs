@@ -25,6 +25,13 @@ export interface SubstitutionRefXrefInfo {
   roleType?: string;
 }
 
+/** A substitution whose resolved value is an external hyperlink (snooty.toml or RST `.. replace::` with URL). */
+export interface LinkSubstitution {
+  text: string;
+  url: string;
+}
+export type CollectedSubstitutionValue = string | LinkSubstitution;
+
 export interface ConversionContext {
   emitMdxFile?: (args: EmitMdxFileArgs) => void;
   /** Relative path (POSIX) of the file currently being generated, e.g. '_includes/foo.mdx' */
@@ -53,7 +60,7 @@ export interface ConversionContext {
    */
   suppressSubstitutionInlineValues?: boolean;
   /** Collected references to emit into a _references.ts artifact */
-  collectedSubstitutions: Map<string, string>;
+  collectedSubstitutions: Map<string, CollectedSubstitutionValue>;
   collectedRefs: Map<string, string>;
 }
 

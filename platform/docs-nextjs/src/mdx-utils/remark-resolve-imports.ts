@@ -148,7 +148,8 @@ const fetchAndParseInclude = async ({
 };
 
 type AbbrSubstitution = { text: string; tooltip: string };
-type SubstitutionValue = string | AbbrSubstitution;
+type LinkSubstitution = { text: string; url: string };
+type SubstitutionValue = string | AbbrSubstitution | LinkSubstitution;
 
 interface ReferencesData {
   substitutions: Record<string, SubstitutionValue>;
@@ -193,17 +194,24 @@ const resolveSubstitutions = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
     if (!key) return;
 
     const refTarget = getAttr(node, 'refTarget');
-    // Prefer the value baked in at conversion time (mirrors RST inline substitution
-    // resolution and preserves per-page context for keys like |idp-provider|).
-    const inlineValue = getAttr(node, 'value');
-    if (inlineValue) {
-      replacements.push({ index, parent, replacement: { type: 'text', value: inlineValue } as PhrasingContent });
-      return;
-    }
-
     // Fall back to the shared _references.json for substitutions without an inline value
     // (e.g. references in standalone include files processed without page context).
     const value = refs.substitutions[key];
+
+    // Prefer the value baked in at conversion time (mirrors RST inline substitution
+    // resolution and preserves per-page context for keys like |idp-provider|).
+    // When _references.json has a URL for this key (LinkSubstitution), emit a link
+    // so external-link substitutions (e.g. snooty.toml `vercel = "`Vercel <url>`__"`)
+    // render as anchors even in content converted before the converter fix.
+    const inlineValue = getAttr(node, 'value');
+    if (inlineValue) {
+      if (value && typeof value === 'object' && 'url' in value) {
+        replacements.push({ index, parent, replacement: createLinkNode(value.url, inlineValue) });
+        return;
+      }
+      replacements.push({ index, parent, replacement: { type: 'text', value: inlineValue } as PhrasingContent });
+      return;
+    }
 
     if (refTarget) {
       const href = refs.refs[refTarget];
@@ -211,22 +219,21 @@ const resolveSubstitutions = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
         typeof value === 'string'
           ? value
           : value && typeof value === 'object' && 'text' in value
-          ? (value as AbbrSubstitution).text
+          ? value.text
           : undefined;
 
       if (href && linkLabel !== undefined) {
         const resolvedHref = href.startsWith('http') ? href : `/docs/${projectPath}/${href}`;
-        const linkNode: Link = {
-          type: 'link',
-          url: resolvedHref,
-          children: [{ type: 'text', value: linkLabel }],
-        };
-        replacements.push({ index, parent, replacement: linkNode });
+        replacements.push({ index, parent, replacement: createLinkNode(resolvedHref, linkLabel) });
         return;
       }
 
       // Missing xref href or label: fall back to plain substitution / Abbr when possible
       if (!value) return;
+      if (typeof value === 'object' && 'url' in value) {
+        replacements.push({ index, parent, replacement: createLinkNode(value.url, value.text) });
+        return;
+      }
       if (typeof value === 'object') {
         const abbrNode: MdxJsxTextElement = {
           type: 'mdxJsxTextElement',
@@ -234,7 +241,7 @@ const resolveSubstitutions = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
           attributes: [{ type: 'mdxJsxAttribute', name: 'tooltip', value: value.tooltip }],
           children: [{ type: 'text', value: value.text }],
         };
-        replacements.push({ index, parent, replacement: abbrNode as unknown as PhrasingContent });
+        replacements.push({ index, parent, replacement: abbrNode });
         return;
       }
       replacements.push({ index, parent, replacement: { type: 'text', value } as PhrasingContent });
@@ -243,6 +250,11 @@ const resolveSubstitutions = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
 
     if (!value) return;
 
+    if (typeof value === 'object' && 'url' in value) {
+      replacements.push({ index, parent, replacement: createLinkNode(value.url, value.text) });
+      return;
+    }
+
     if (typeof value === 'object') {
       const abbrNode: MdxJsxTextElement = {
         type: 'mdxJsxTextElement',
@@ -250,7 +262,7 @@ const resolveSubstitutions = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
         attributes: [{ type: 'mdxJsxAttribute', name: 'tooltip', value: value.tooltip }],
         children: [{ type: 'text', value: value.text }],
       };
-      replacements.push({ index, parent, replacement: abbrNode as unknown as PhrasingContent });
+      replacements.push({ index, parent, replacement: abbrNode });
       return;
     }
 
@@ -283,13 +295,7 @@ const resolveRefLinks = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
 
       const title = getAttr(node, 'title') ?? key;
       const resolvedHref = href.startsWith('http') ? href : `/docs/${projectPath}/${href}`;
-
-      const linkNode: Link = {
-        type: 'link',
-        url: resolvedHref,
-        children: [{ type: 'text', value: title }],
-      };
-      replacements.push({ index, parent, replacement: linkNode });
+      replacements.push({ index, parent, replacement: createLinkNode(resolvedHref, title) });
       return;
     }
 
@@ -408,6 +414,12 @@ const resolveReplacementReferences = (tree: Root, slots: Record<string, Node[]>)
 };
 
 // ─── Shared utilities ────────────────────────────────────────────────
+
+const createLinkNode = (url: string, text: string): Link => ({
+  type: 'link',
+  url,
+  children: [{ type: 'text', value: text }],
+});
 
 const isJsxElement = (node: Node): node is MdxJsxElement => {
   return node.type === 'mdxJsxFlowElement' || node.type === 'mdxJsxTextElement';

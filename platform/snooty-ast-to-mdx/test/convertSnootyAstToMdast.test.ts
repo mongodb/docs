@@ -385,7 +385,44 @@ describe('convertSnootyAstToMdast', () => {
     expect(mdx).not.toContain('type="substitution"');
     expect(mdx).not.toContain('refKey="hnsw"');
     const refs = mdast.__references as ReferencesArtifact;
-    expect(refs?.substitutions?.['hnsw']).toBe('Hierarchical Navigable Small Worlds');
+    expect(refs?.substitutions?.['hnsw']).toEqual({
+      text: 'Hierarchical Navigable Small Worlds',
+      url: 'https://arxiv.org/abs/1603.09320',
+    });
+  });
+
+  it('snooty.toml external link substitution (name field, no refname) emits link and stores { text, url } in refs', () => {
+    // snooty.toml: vercel = "`Vercel <https://www.vercel.com/>`__"
+    // Snooty postprocessor sets substitution_reference.children to the parsed Reference node
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'text', value: 'Deploy using ' },
+            {
+              type: 'substitution_reference',
+              name: 'vercel',
+              children: [
+                {
+                  type: 'reference',
+                  refuri: 'https://www.vercel.com/',
+                  children: [{ type: 'text', value: 'Vercel' }],
+                },
+              ],
+            },
+            { type: 'text', value: '.' },
+          ],
+        },
+      ],
+    };
+    const { mdast, mdx } = convertSnootyAst({ ast });
+    expect(mdx).toContain('[Vercel](https://www.vercel.com/)');
+    expect(mdx).not.toContain('type="substitution"');
+    expect(mdx).not.toContain('refKey="vercel"');
+    const refs = mdast.__references as ReferencesArtifact;
+    expect(refs?.substitutions?.['vercel']).toEqual({ text: 'Vercel', url: 'https://www.vercel.com/' });
   });
 
   it('catalog resolves xref when substitution_definition ref_role has target but no fileid (no href yet)', () => {

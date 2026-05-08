@@ -4,7 +4,11 @@ export interface AbbrSubstitution {
   text: string;
   tooltip: string;
 }
-export type SubstitutionValue = string | AbbrSubstitution;
+export interface LinkSubstitution {
+  text: string;
+  url: string;
+}
+export type SubstitutionValue = string | AbbrSubstitution | LinkSubstitution;
 type Substitutions = Record<string, SubstitutionValue>;
 type Refs = Record<string, string>;
 
@@ -24,6 +28,7 @@ const parseSubstitutionValue = (value: string): SubstitutionValue => {
 
 const serializeSubstitutionValue = (value: SubstitutionValue): string => {
   if (typeof value === 'string') return esc(value);
+  if ('url' in value) return `{ text: ${esc(value.text)}, url: ${esc(value.url)} }`;
   return `{ text: ${esc(value.text)}, tooltip: ${esc(value.tooltip)} }`;
 };
 

@@ -11,6 +11,7 @@ import type {
   PageTemplateType,
   PageOptions,
   SubstitutionRefXrefInfo,
+  CollectedSubstitutionValue,
 } from './types';
 import { convertDirectiveImage } from './convertDirectiveImage';
 import { convertDirectiveInclude } from './convertDirectiveInclude';
@@ -1641,7 +1642,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         const linkLabel = extractInlineDisplayText(externalHyperlinkRef.children ?? []);
         const slotBody = ctx.emitSubstitutionReferencesAsReplacement;
         if (!slotBody && refname && linkLabel) {
-          ctx.collectedSubstitutions.set(refname, linkLabel);
+          ctx.collectedSubstitutions.set(refname, { text: linkLabel, url: externalHyperlinkRef.refuri });
         }
         return {
           type: 'link',
@@ -2012,7 +2013,7 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
   const metaFromDirectives: Record<string, unknown> = {};
   const twitterFromDirectives: Record<string, unknown> = {};
   const contentChildren: MdastNode[] = [];
-  const collectedSubstitutions = new Map<string, string>();
+  const collectedSubstitutions = new Map<string, CollectedSubstitutionValue>();
   const collectedRefs = new Map<string, string>();
 
   const substitutionRefXref = mergeSubstitutionRefXrefMaps(
@@ -2127,7 +2128,7 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
 
   // Attach collected references so the caller can emit a _references.ts artifact
   if (collectedSubstitutions.size > 0 || collectedRefs.size > 0) {
-    const substitutions: Record<string, string> = {};
+    const substitutions: Record<string, CollectedSubstitutionValue> = {};
     for (const [k, v] of collectedSubstitutions.entries()) substitutions[k] = v;
     const refs: Record<string, string> = {};
     for (const [k, v] of collectedRefs.entries()) refs[k] = v;
