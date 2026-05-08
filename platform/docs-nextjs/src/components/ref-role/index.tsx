@@ -76,7 +76,7 @@ const RefRole = ({ nodeChildren, fileid, url, cardRef = false, showLinkArrow = f
       onClick={() => {
         setTimeout(() => {
           scrollActiveSidenavIntoView();
-        }, 1000); // TODO: DOP-6454: set this delay to 100 once loading with mdx
+        }, 1000);
       }}
     >
       {nodeChildren.map((node, i) => (

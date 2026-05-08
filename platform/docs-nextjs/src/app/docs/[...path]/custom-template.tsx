@@ -97,6 +97,7 @@ export const CustomTemplate = ({
 }: CustomTemplateProps) => {
   const template = (frontmatter.template || 'document') as PageTemplateType;
   const { Template, renderSidenav } = getTemplate(template);
+  // TODO-NEXT-ATLAS
   // TODO: Temporary fix — prepend 'docs/' so the slug matches TOC node URLs (which use the
   // 'docs/<project>/...' format). The MDX route's URL params don't include the 'docs/' segment.
   // This does not handle language-prefixed paths (e.g. zh-cn/atlas/...) — track in DOP-6XX.
