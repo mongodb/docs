@@ -245,7 +245,6 @@ async function removeAllTxtFiles(dir: string): Promise<void> {
   const entries = await fs.readdir(dir, { withFileTypes: true });
   for (const e of entries) {
     const fullPath = path.join(dir, e.name);
-    console.log(`Checking if ${fullPath} is a text file`);
     if (e.isDirectory()) {
       await removeAllTxtFiles(fullPath);
     }

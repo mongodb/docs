@@ -7,6 +7,7 @@ const DocSitesTesting = [
   'atlas-cli',
   'atlas-operator',
   'bi-connector',
+  'magenta',
   'c',
   'cloud-docs',
   'cloud-manager',

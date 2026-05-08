@@ -28,7 +28,7 @@ import { runMdxConversionForContentPaths } from "./parse/runMdxConversion";
 import { getRepoPaths } from "./paths";
 import { buildToc } from "./buildTOC/index";
 import { handleOfflineDownloads } from "./offline-docs/index";
-import { writePathPrefixListToFile } from "./blobUploads/buildPrefixList";
+import { writePathPrefixListToFile, writeDirNameToPrefixMapToFile } from "./blobUploads/buildPrefixList";
 import { handleAllBlobUploads } from "./blobUploads/handleAllBlobUploads";
 import {
 	getMdxContentBlobStores,
@@ -168,6 +168,7 @@ extension.addBuildEventHandler(
 			});
 
 			await writePathPrefixListToFile(allContentData);
+			await writeDirNameToPrefixMapToFile(allContentData);
 
 			await handleAllBlobUploads({
 				mdxOutputPath,

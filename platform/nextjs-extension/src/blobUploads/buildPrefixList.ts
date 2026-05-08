@@ -3,6 +3,7 @@ import fs from 'node:fs/promises';
 import type { AllContentData } from '../contentMetadata/processContentMetadata.js';
 import { stripDocsPrefix } from './utils.js';
 import { getRepoPaths } from '../paths.js';
+import { getDirNameToPrefix } from './mapFilesToUrlPaths.js';
 
 /** Build prefix-map.json: list of all valid project paths, sorted longest-first for use in site.json lookup in next */
 export const buildPrefixList = (allContentData: AllContentData): string[] => {
@@ -41,4 +42,24 @@ export const writePathPrefixListToFile = async (
     JSON.stringify(sortedProjectPrefixes, null, 2),
   );
   console.log('[blob upload] prefix-map.json written:', sortedProjectPrefixes);
+};
+
+/**
+ * Write dir-name-to-prefix.json to src/generated/ so that the offline Next.js build
+ * (BUILD_STATIC_PAGES=true) can map blob-relative paths back to local content-mdx
+ * disk paths. Without this file, projects whose URL prefix differs from their
+ * content directory name (e.g. django-mongodb → languages/python/django-mongodb)
+ * cannot resolve _site.json or MDX files from the local filesystem.
+ */
+export const writeDirNameToPrefixMapToFile = async (
+  allContentData: AllContentData,
+) => {
+  const dirNameToPrefix = getDirNameToPrefix(allContentData);
+  const { generatedDir } = getRepoPaths();
+  await fs.mkdir(generatedDir, { recursive: true });
+  await fs.writeFile(
+    path.join(generatedDir, 'dir-name-to-prefix.json'),
+    JSON.stringify(dirNameToPrefix, null, 2),
+  );
+  console.log('[blob upload] dir-name-to-prefix.json written:', Object.keys(dirNameToPrefix).length, 'entries');
 };

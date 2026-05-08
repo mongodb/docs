@@ -244,6 +244,7 @@ export type DocSite =
   | 'atlas-charts'
   | 'docs-relational-migrator'
   | 'vector-search'
+  | 'magenta'
   | 'visual-studio-extension';
 
 export default TocItem;

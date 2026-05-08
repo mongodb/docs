@@ -4,6 +4,10 @@ import type { NetlifyPluginUtils } from '@netlify/build';
 import type { AllContentData } from '../contentMetadata/processContentMetadata';
 import { getOfflineBundlesToRebuild } from './offline-bundles-to-rebuild/index';
 import { getRepoPaths } from '../paths';
+import { createOfflineTarball } from './offline-utils/convertToTar';
+import { upload } from '../s3Connection/s3connector';
+import { createReadStream } from 'node:fs';
+import { join } from 'node:path/posix';
 
 const DOCS_NEXTJS_DIR = getRepoPaths().docsNextjsDir;
 const OFFLINE_BUNDLE_OUTPUT_DIR = path.resolve(DOCS_NEXTJS_DIR, 'offline-bundle-output');
@@ -44,6 +48,32 @@ const runOfflineBuild = async ({
   await fs.cp(srcDir, destDir, { recursive: true, force: true });
 
   console.log(`[offline-docs] Bundle written to ${destDir}`);
+
+  const tarballName = `${bundleStem}-${version}.tar.gz`;
+  const tarballPath = path.join(OFFLINE_BUNDLE_OUTPUT_DIR, tarballName);
+
+  await createOfflineTarball({
+    sourceDir: destDir,
+    outputPath: tarballPath,
+  });
+
+  console.log(`[offline-docs] Tarball written to ${tarballPath}`);
+  
+  const bucketName = process.env.S3_OFFLINE_BUCKET ?? 'docs-mongodb-org-dotcomstg';
+  const s3Prefix = 'docs/offline/';
+  console.log('... uploading to AWS S3 ', bucketName,  process.env.S3_OFFLINE_BUCKET, s3Prefix, tarballName);
+  const fileStream = createReadStream(tarballPath);
+  try {
+    await upload({
+      Bucket: bucketName,
+      Key: join(s3Prefix, tarballName),
+      Body: fileStream,
+    });
+    console.log('... uploaded to AWS S3');
+  } finally {
+    fileStream.destroy();
+  }
+
 };
 
 /**
@@ -62,8 +92,6 @@ export const handleOfflineDownloads = async (
   gitChangedFiles: readonly string[],
   run: NetlifyPluginUtils['run'],
 ): Promise<void> => {
-  console.log("[offline-docs] allContentData", allContentData);
-  console.log("[offline-docs] gitChangedFiles", gitChangedFiles);
   const bundlesToRebuild = getOfflineBundlesToRebuild(
     allContentData,
     gitChangedFiles,
