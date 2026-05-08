@@ -1,0 +1,1 @@
+atlas api rateLimiting listRateLimits --version preview --endpointPath /api/atlas/v2/clusters --groupId 32b6e34b3d91647abb20e7b8 --ipAddress 127.0.0.1 --name Rate Limits Inspection --orgId 32b6e34b3d91647abb20e7b8 --userId mdb_sa_id_1234567890abcdef12345678
