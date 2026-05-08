@@ -20,6 +20,4 @@ hostnames of the :program:`mongos` instances instead of the
 
 .. note::
 
-   ``mongosync`` does not require the :urioption:`replicaSet` option.
-
-.. include:: /includes/read-preference-connection-string.rst
+   ``mongosync`` does not require the :urioption:`replicaSet` option. 
