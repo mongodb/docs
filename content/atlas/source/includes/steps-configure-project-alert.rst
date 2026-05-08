@@ -58,17 +58,19 @@ In addition, see:
          
          - Select from the list of roles.
   
-         - (Optional) To help reduce the false positives that |service| 
+         - (Optional) To help reduce the false positives that |service|
            sends, locate the :guilabel:`Recurrence` section.
-       
-           (Optional) In the :guilabel:`send if condition lasts at least` field,
-           specify the minutes to elapse before the condition sends the alert.
-           The next alert check that runs after the specified time elapses
-           sends the alert.
-     
-           (Optional) In the :guilabel:`resend after` field, specify the 
+
+           (Optional) In the :guilabel:`send if condition lasts at least`
+           field, specify the minutes to elapse before the condition
+           sends the alert. The next alert check that runs after the
+           specified time elapses sends the alert.
+
+           (Optional) In the :guilabel:`resend after` field, specify the
            minutes to elapse before the condition resends the alert. The
            resend interval must be at least 5 minutes.
+
+           .. include:: /includes/fact-host-alert-delay-resend.rst
            
       b. In the :guilabel:`Add Notifier` drop-down menu, select from the options
          described in the following table.
