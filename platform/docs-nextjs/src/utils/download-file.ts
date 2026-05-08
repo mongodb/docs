@@ -1,7 +1,7 @@
 const fetchAndSaveFile = async (url: string, filename: string) => {
   try {
-    // Fetch the resource
-    const response = await fetch(url);
+    const proxyUrl = `/docs/platform/api/offline-download?url=${encodeURIComponent(url)}`;
+    const response = await fetch(proxyUrl);
 
     // Ensure the fetch was successful
     if (!response.ok) {

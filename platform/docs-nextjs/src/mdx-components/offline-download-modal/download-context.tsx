@@ -3,9 +3,10 @@
 import { createContext, useMemo, useContext, useState } from 'react';
 import { DownloadModal } from './download-modal';
 import { useUnifiedToc } from '@/context/unified-toc-context';
-import type { TocItem } from '../unified-sidenav/types';
+import type { TocItem } from '@/mdx-components/unified-sidenav/types';
 import { useVersionContext } from '@/context/version-context';
 import type { AvailableVersions } from '@/context/version-context';
+import type { Environments } from '@/utils/env-config';
 
 export type OfflineVersion = {
   displayName: string;
@@ -30,11 +31,19 @@ const defaultValues: {
   setModalOpen: () => {},
 };
 
-const OFFLINE_BASE_URL = 'https://www.mongodb.com/docs/offline';
+const env = process.env.NEXT_PUBLIC_ENV as Environments;
 
-// Creates the offline download URL for a given contentSite Format: https://www.mongodb.com/docs/offline/<toc-label>-<version>.tar.gz
-function createOfflineUrl(label: string, version: string = 'main'): string {
+const OFFLINE_BASE_URL =
+  env === 'dotcomstg'
+    ? 'https://mongodbcom-cdn.staging.corp.mongodb.com/docs/offline'
+    : 'https://www.mongodb.com/docs/offline';
+
+// Creates the offline download URL for a given contentSite Format: base-url/<toc-filen-name>-<version>.tar.gz
+function createOfflineUrl(label: string, version: string = 'main', isVersionedproject: string | null = null): string {
   const sanitizedLabel = label.replace(/ /g, '-').toLowerCase();
+  if (isVersionedproject) {
+    return `${OFFLINE_BASE_URL}/${sanitizedLabel}.versioned.${isVersionedproject}-${version}.tar.gz`;
+  }
   return `${OFFLINE_BASE_URL}/${sanitizedLabel}-${version}.tar.gz`;
 }
 
@@ -57,7 +66,7 @@ function collectVersionsFromGroups(
         for (const version of availVersions) {
           versions.push({
             displayName: version.versionSelectorLabel,
-            url: createOfflineUrl(parentLabel, version.urlSlug),
+            url: createOfflineUrl(parentLabel, version.urlSlug, item.contentSite),
           });
         }
       }
@@ -89,7 +98,7 @@ function findShowSubNavItems(
           for (const version of availVersions) {
             versionsList.push({
               displayName: version.versionSelectorLabel,
-              url: createOfflineUrl(item.label, version.urlSlug),
+              url: createOfflineUrl(item.label, version.urlSlug, item.contentSite),
             });
           }
         }
@@ -137,7 +146,7 @@ function transformTocToOfflineObjects(tocTree: TocItem[], availableVersions: Ava
         for (const version of availVersions) {
           l1Versions.push({
             displayName: version.versionSelectorLabel,
-            url: createOfflineUrl(l1Item.label, version.urlSlug),
+            url: createOfflineUrl(l1Item.label, version.urlSlug, l1Item.contentSite),
           });
         }
       }

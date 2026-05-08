@@ -16,7 +16,7 @@ import { isCurrentPage } from '@/utils/is-current-page';
 import { isSelectedTocNode } from '@/utils/is-selected-toc-node';
 import { isUnifiedTOCInDevMode } from '@/utils/is-unified-toc-dev';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
-
+import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
 import { l1ItemStyling, groupHeaderStyling, l2ItemStyling } from './styles/SideNavItem';
 import { VersionDropdown } from './VersionDropdown';
 import type { TocItem } from './types';
@@ -43,6 +43,25 @@ const caretStyle = LeafyCSS`
   margin-top: 3px;
   min-width: 16px;
 `;
+
+/**
+ * Rendered as a hidden child inside the active SideNavItem. On mount, scrolls
+ * the parent element (the rendered <a>) into the sidenav panel's visible area
+ * while preserving the page-level window scroll position.
+ */
+const ActiveScrollAnchor = () => {
+  const ref = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    const navItem = ref.current?.parentElement;
+    if (!navItem) return;
+    const savedScrollY = window.scrollY;
+    navItem.scrollIntoView({ block: 'center', behavior: 'instant' });
+    window.scrollTo(0, savedScrollY);
+  }, []);
+
+  return <span ref={ref} aria-hidden="true" style={{ display: 'none' }} />;
+};
 
 const sidenavAnalytics = (label: string, element?: HTMLElement | null) => {
   const translatedLabel = element?.textContent?.trim() || label;
@@ -184,22 +203,28 @@ export const UnifiedTocNavItem = ({
         to={newUrl}
         onClick={handleClick}
         className={cx(l2ItemStyling({ level, isAccordion }))}
+        data-offline-level={isOfflineBuild ? level : undefined}
       >
         {label}
       </SideNavItem>
     );
   }
 
-  const isVersionIncluded = contentSite && versions?.includes?.includes(activeVersions[contentSite]);
-  const isVersionExcluded =
-    contentSite && versions?.excludes && versions.excludes?.includes(activeVersions[contentSite]);
+  const currentVersion = isOfflineBuild ? getStaticVersion() : contentSite ? activeVersions[contentSite] : null;
+  const isVersionIncluded = currentVersion && versions?.includes?.includes(currentVersion);
+  const isVersionExcluded = currentVersion && versions?.excludes && versions.excludes?.includes(currentVersion);
   const isVersionAllowed = !versions || isVersionIncluded || (isVersionExcluded !== undefined && !isVersionExcluded);
 
   // groups are for adding a static header, these can also be collapsible
   if (isVersionAllowed && group) {
     return (
       <>
-        <SideNavGroup header={label} collapsible={collapsible} className={cx(groupHeaderStyling({ isAccordion }))}>
+        <SideNavGroup
+          header={label}
+          collapsible={collapsible}
+          className={cx(groupHeaderStyling({ isAccordion }))}
+          data-offline-level={isOfflineBuild ? level : undefined}
+        >
           {versionDropdown && <VersionDropdown contentSite={contentSite} />}
           {items?.map((tocItem) => (
             <UnifiedTocNavItem
@@ -238,9 +263,10 @@ export const UnifiedTocNavItem = ({
   }
 
   if (isVersionAllowed) {
+    const isActive = isSelectedTab(newUrl, slug);
     return (
       <SideNavItem
-        active={isSelectedTab(newUrl, slug)}
+        active={isActive}
         aria-label={label}
         as={LinkComponent}
         contentSite={contentSite}
@@ -249,7 +275,9 @@ export const UnifiedTocNavItem = ({
           sidenavAnalytics(label, event.currentTarget as HTMLElement);
         }}
         className={cx(l2ItemStyling({ level, isAccordion }))}
+        data-offline-level={isOfflineBuild ? level : undefined}
       >
+        {isActive && !isOfflineBuild && <ActiveScrollAnchor />}
         {label}
       </SideNavItem>
     );
@@ -318,10 +346,16 @@ export const CollapsibleNavItem = ({
         contentSite={contentSite}
         to={newUrl || undefined}
         active={isActive}
-        className={cx(l2ItemStyling({ level, isAccordion }), overwriteLinkStyle)}
+        className={cx(
+          l2ItemStyling({ level, isAccordion }),
+          overwriteLinkStyle,
+          isOfflineBuild ? 'offline-collapsible-nav' : '',
+        )}
         onClick={handleClick}
         hideExternalIcon={true}
+        data-offline-level={isOfflineBuild ? level : undefined}
       >
+        {isActive && !isOfflineBuild && <ActiveScrollAnchor />}
         <FormatTitle>{label}</FormatTitle>
         <Icon
           className={cx(caretStyle)}

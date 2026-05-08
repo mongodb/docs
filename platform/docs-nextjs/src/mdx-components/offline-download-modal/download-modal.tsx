@@ -16,12 +16,12 @@ import {
   getFilteredRowModel,
 } from '@leafygreen-ui/table';
 import type { HeaderGroup, LGColumnDef, LeafyGreenTableRow, CoreRow } from '@leafygreen-ui/table';
-// import { useToast, Variant } from '@leafygreen-ui/toast'; // TODO: Add toast notifications for download progress
+import { useToast, Variant } from '@leafygreen-ui/toast';
 import { Body, Disclaimer, H3, Link } from '@leafygreen-ui/typography';
 import Box from '@leafygreen-ui/box';
 import Button, { Variant as ButtonVariant } from '@leafygreen-ui/button';
 import { theme } from '@/styles/theme';
-// import fetchAndSaveFile from '@/utils/download-file';
+import fetchAndSaveFile from '@/utils/download-file';
 import { Spinner } from '@/mdx-components/Spinner';
 import { VersionSelect } from './version-selector';
 import { useOfflineDownloadContext, type OfflineVersion, type OfflineObject } from './download-context';
@@ -105,15 +105,15 @@ type ModalProps = {
   setOpen: (open: boolean) => void;
 };
 
-const DownloadModal = ({ open, setOpen }: ModalProps) => {
+export const DownloadModal = ({ open, setOpen }: ModalProps) => {
   const [searchText, setSearchText] = useState('');
-  const [resultsLoading, _setResultsLoading] = useState(false);
+  const [resultsLoading, setResultsLoading] = useState(false);
   const tableRef = useRef<HTMLDivElement>(null);
   const [rowSelection, setRowSelection] = useState<{ [key: string]: boolean }>({});
   const { offlineObjects } = useOfflineDownloadContext(); // repos need to be l1 and l3 headers or something
 
   const selectedVersions = useRef<Record<OfflineObject['displayName'], OfflineVersion>>({});
-  //   const { pushToast } = useToast();
+  const { pushToast } = useToast();
 
   useEffect(() => {
     // reset row selection when modal is opened/closed
@@ -138,9 +138,11 @@ const DownloadModal = ({ open, setOpen }: ModalProps) => {
               </Body>
               {repo.subTitle && (
                 <Disclaimer
-                  className={cx(css`
-                    margin-top: ${theme.size.small};
-                  `)}
+                  className={cx(
+                    css`
+                      margin-top: ${theme.size.small};
+                    `,
+                  )}
                 >
                   {repo.subTitle}
                 </Disclaimer>
@@ -209,12 +211,11 @@ const DownloadModal = ({ open, setOpen }: ModalProps) => {
   });
   const { rows } = table.getRowModel();
 
-  //TODO: Add download functionality (also make function async)
-  const onDownload = () => {
+  const onDownload = async () => {
     if (!rowSelection || !Object.keys(rowSelection)?.length) {
       return;
     }
-    // setResultsLoading(true);
+    setResultsLoading(true);
     const selectedDisplayNames = table.getSelectedRowModel().flatRows.map((row) => row.original.displayName);
     const urlsToRequest: { repo: string; version: string; url: string }[] = [];
     for (const displayName of selectedDisplayNames) {
@@ -224,7 +225,34 @@ const DownloadModal = ({ open, setOpen }: ModalProps) => {
         url: selectedVersions.current[displayName].url,
       });
     }
-    // TODO: DOP-6582 Finish up actual download functionality and add toast notifications
+    try {
+      await Promise.all(
+        urlsToRequest.map(async (urlData) => {
+          try {
+            await fetchAndSaveFile(urlData.url, `${urlData.repo}-${urlData.version}.tar.gz`);
+            pushToast({
+              title: 'Download Initiated',
+              description: urlData.repo,
+              variant: Variant.Success,
+              dismissible: true,
+            });
+          } catch (e) {
+            pushToast({
+              title: 'Download Failed',
+              description: urlData.repo,
+              variant: Variant.Warning,
+              dismissible: true,
+            });
+            throw e;
+          }
+        }),
+      );
+      setOpen(false);
+    } catch (e) {
+      console.error(`Error downloading, `, e);
+    } finally {
+      setResultsLoading(false);
+    }
   };
 
   return (
@@ -297,5 +325,3 @@ const DownloadModal = ({ open, setOpen }: ModalProps) => {
     </Modal>
   );
 };
-
-export { DownloadModal };

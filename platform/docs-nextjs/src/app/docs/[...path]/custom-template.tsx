@@ -1,5 +1,5 @@
 import { Providers } from './Providers';
-import { UnifiedSidenav } from '@/components/unified-sidenav/UnifiedSidenav';
+import { UnifiedSidenav } from '@/mdx-components/UnifiedSidenav';
 import type { BaseTemplateProps } from '@/components/templates';
 import type { RemoteMetadata, Docset } from '@/types/data';
 import type { Environments } from '@/utils/env-config';
