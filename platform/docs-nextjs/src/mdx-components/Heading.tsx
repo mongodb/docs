@@ -2,7 +2,6 @@
 
 import { useContext, useRef, forwardRef } from 'react';
 import { onlyText } from 'react-children-utilities';
-import Slugger from 'github-slugger';
 import styled from '@emotion/styled';
 import { cx, css } from '@leafygreen-ui/emotion';
 import { H2, H3, Subtitle, Body } from '@leafygreen-ui/typography';
@@ -10,6 +9,7 @@ import { Button } from '@leafygreen-ui/button';
 import { Icon } from '@leafygreen-ui/icon';
 import { palette } from '@leafygreen-ui/palette';
 import { theme } from '@/styles/theme';
+import { ContentsContext } from '@/context/contents-context';
 import { TabContext } from '@/context/tabs-context';
 import useScreenSize from '@/hooks/use-screen-size';
 import { usePageContext } from '@/context/page-context';
@@ -22,9 +22,6 @@ import CopyPageMarkdownButton from '@/components/widgets/markdown-widget';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { TabsSelector } from '@/mdx-components/TabsSelector';
-
-/** This is initialized outside the component so it can keep track of duplicate heading ids */
-const slugger = new Slugger();
 
 const titleMarginStyle = css`
   margin-top: ${theme.size.default};
@@ -128,6 +125,7 @@ export const Heading = forwardRef<HTMLDivElement, HeadingProps>(
       'search',
     ];
 
+    const { slugger } = useContext(ContentsContext);
     const id = useRef(slugger.slug(onlyText(children)));
 
     const HeadingTag = getHeadingComponent(headingLevel);
