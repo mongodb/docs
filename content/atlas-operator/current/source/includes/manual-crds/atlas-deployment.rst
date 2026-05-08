@@ -33,7 +33,7 @@ AtlasDeployment is the Schema for the atlasdeployments API
      - object
      - ``AtlasDeploymentSpec`` defines the target state of ``AtlasDeployment``.
        Only one of ``DeploymentSpec``, ``AdvancedDeploymentSpec`` and ``ServerlessSpec`` should be defined.
-       *Validations*:
+       **Validations:**
 
        - (has(self.``externalProjectRef``) && !has(self.``projectRef``)) || (!has(self.``externalProjectRef``) && has(self.``projectRef``)): must define only one project reference through ``externalProjectRef`` or ``projectRef``
 
@@ -76,7 +76,7 @@ Only one of DeploymentSpec, AdvancedDeploymentSpec and ServerlessSpec should be 
 
    * -  ``deploymentSpec``
      - object
-     - Configuration for the advanced (v1.5) deployment ``API`` https://www.mongodb.com/docs/atlas/reference/api/clusters/
+     - Configuration for the advanced (v1.5) deployment ``API`` `https://www.mongodb.com/docs/atlas/reference/api/clusters/ <https://www.mongodb.com/docs/atlas/reference/api/clusters/>`__
      - false
 
    * -  ``externalProjectRef``
@@ -87,7 +87,7 @@ Only one of DeploymentSpec, AdvancedDeploymentSpec and ServerlessSpec should be 
 
    * -  ``flexSpec``
      - object
-     - Configuration for the Flex cluster ``API``. https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Clusters
+     - Configuration for the Flex cluster ``API``. `https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Clusters <https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Clusters>`__
      - false
 
    * -  ``processArgs``
@@ -103,8 +103,8 @@ Only one of DeploymentSpec, AdvancedDeploymentSpec and ServerlessSpec should be 
 
    * -  ``serverlessSpec``
      - object
-     - Configuration for the serverless deployment ``API``. https://www.mongodb.com/docs/atlas/reference/api/serverless-instances/
-       ``DEPRECATED``: Serverless instances are deprecated. See https://dochub.mongodb.org/core/atlas-flex-migration for details.
+     - Configuration for the serverless deployment ``API``. `https://www.mongodb.com/docs/atlas/reference/api/serverless-instances/ <https://www.mongodb.com/docs/atlas/reference/api/serverless-instances/>`__
+       ``DEPRECATED``: Serverless instances are deprecated. See `https://dochub.mongodb.org/core/atlas-flex-migration <https://dochub.mongodb.org/core/atlas-flex-migration>`__ for details.
      - false
 
    * -  ``upgradeToDedicated``
@@ -159,7 +159,7 @@ Name of the secret containing Atlas API private and public keys.
    * -  ``name``
      - string
      - Name of the resource being referred to
-       More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names
+       More info: `https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names <https://kubernetes.io/docs/concepts/overview/working-with-objects/names/#names>`__
      - true
 
 .. _atlasdeployment-spec-deploymentspec: 
@@ -167,7 +167,7 @@ Name of the secret containing Atlas API private and public keys.
 AtlasDeployment.spec.deploymentSpec
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Configuration for the advanced (v1.5) deployment API https://www.mongodb.com/docs/atlas/reference/api/clusters/
+Configuration for the advanced (v1.5) deployment API `https://www.mongodb.com/docs/atlas/reference/api/clusters/ <https://www.mongodb.com/docs/atlas/reference/api/clusters/>`__
 
 .. list-table::
    :header-rows: 1
@@ -183,7 +183,7 @@ Configuration for the advanced (v1.5) deployment API https://www.mongodb.com/doc
      - Name of the advanced deployment as it appears in Atlas.
        After Atlas creates the deployment, you can't change its name.
        Can only contain ``ASCII`` letters, numbers, and hyphens.
-       *Validations*:
+       **Validations:**
 
        - self == ``oldSelf``: Name cannot be modified after deployment creation
      - true
@@ -191,7 +191,7 @@ Configuration for the advanced (v1.5) deployment API https://www.mongodb.com/doc
    * -  ``backupEnabled``
      - boolean
      - Flag that indicates if the deployment uses Cloud Backups for backups.
-       Applicable only for ``M10`` + deployments.
+       Applicable only for ``M10``+ deployments.
      - false
 
    * -  ``biConnector``
@@ -844,7 +844,7 @@ Index specifications for the collection's fields.
        Set to **true** to enable ``dynamic`` mapping with default type set or define object to specify the name of the configured type sets for ``dynamic`` mapping.
        If you specify configurable ``dynamic`` mappings, you must define the referred type sets in the **``typeSets``** field.
        Set to **false** to use only static mappings through **mappings.fields**.
-       See https://www.mongodb.com/docs/atlas/atlas-search/define-field-mappings/#configure-a-typeset for more details.
+       See `https://www.mongodb.com/docs/atlas/atlas-search/define-field-mappings/#configure-a-typeset <https://www.mongodb.com/docs/atlas/atlas-search/define-field-mappings/#configure-a-typeset>`__ for more details.
      - false
 
    * -  ``fields``
@@ -949,7 +949,7 @@ Atlas vector search index configuration.
 
    * -  ``fields``
      - ``JSON``
-     - Array of ``JSON`` objects. See examples https://dochub.mongodb.org/core/avs-vector-type
+     - Array of ``JSON`` objects. See examples `https://dochub.mongodb.org/core/avs-vector-type <https://dochub.mongodb.org/core/avs-vector-type>`__
      - true
 
 .. _atlasdeployment-spec-deploymentspec-searchnodes: 
@@ -969,7 +969,7 @@ AtlasDeployment.spec.deploymentSpec.searchNodes
    * -  ``instanceSize``
      - string
      - Hardware specification for the Search Node instance sizes.
-       See `Create Search Nodes <https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupclustersearchdeployment#operation-creategroupclustersearchdeployment-body-application-vnd-atlas-2024-05-30-json-specs-instancesize>`__ for available values
+       See `https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupclustersearchdeployment#operation-creategroupclustersearchdeployment-body-application-vnd-atlas-2024-05-30-json-specs-instancesize <https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupclustersearchdeployment#operation-creategroupclustersearchdeployment-body-application-vnd-atlas-2024-05-30-json-specs-instancesize>`__ for available values
      - false
 
    * -  ``nodeCount``
@@ -1032,7 +1032,7 @@ Mutually exclusive with the "projectRef" field.
 AtlasDeployment.spec.flexSpec
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Configuration for the Flex cluster API. https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Clusters
+Configuration for the Flex cluster API. `https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Clusters <https://www.mongodb.com/docs/atlas/reference/api-resources-spec/v2/#tag/Flex-Clusters>`__
 
 .. list-table::
    :header-rows: 1
@@ -1084,18 +1084,18 @@ Group of cloud provider settings that configure the provisioned MongoDB flex clu
    * -  ``backingProviderName``
      - enum
      - Cloud service provider on which ``MongoDB`` Atlas provisions the flex cluster.
-       *Validations*:
+       **Validations:**
 
        - self == ``oldSelf``: Backing Provider cannot be modified after cluster creation
-         *Enum*: ``AWS``, ``GCP``, ``AZURE``
-     
+
+       *Enum*: ``AWS``, ``GCP``, ``AZURE``
      - true
 
    * -  ``regionName``
      - string
      - Human-readable label that identifies the geographic location of your ``MongoDB`` flex cluster.
        The region you choose can affect network latency for clients accessing your databases.
-       *Validations*:
+       **Validations:**
 
        - self == ``oldSelf``: Region Name cannot be modified after cluster creation
      - true
@@ -1230,8 +1230,8 @@ Mutually exclusive with the "externalProjectRef" field.
 AtlasDeployment.spec.serverlessSpec
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Configuration for the serverless deployment API. https://www.mongodb.com/docs/atlas/reference/api/serverless-instances/
-DEPRECATED: Serverless instances are deprecated. See https://dochub.mongodb.org/core/atlas-flex-migration for details.
+Configuration for the serverless deployment API. `https://www.mongodb.com/docs/atlas/reference/api/serverless-instances/ <https://www.mongodb.com/docs/atlas/reference/api/serverless-instances/>`__
+DEPRECATED: Serverless instances are deprecated. See `https://dochub.mongodb.org/core/atlas-flex-migration <https://dochub.mongodb.org/core/atlas-flex-migration>`__ for details.
 
 .. list-table::
    :header-rows: 1
@@ -1262,7 +1262,7 @@ DEPRECATED: Serverless instances are deprecated. See https://dochub.mongodb.org/
    * -  ``privateEndpoints``
      - []object
      - List that contains the private endpoint configurations for the Serverless instance.
-       ``DEPRECATED``: Serverless private endpoints are deprecated. See https://dochub.mongodb.org/core/atlas-flex-migration for details.
+       ``DEPRECATED``: Serverless private endpoints are deprecated. See `https://dochub.mongodb.org/core/atlas-flex-migration <https://dochub.mongodb.org/core/atlas-flex-migration>`__ for details.
      - false
 
    * -  ``tags``
@@ -1440,7 +1440,7 @@ Serverless Backup Options
    * -  ``serverlessContinuousBackupEnabled``
      - boolean
      - ``ServerlessContinuousBackupEnabled`` indicates whether the cluster uses continuous cloud backups.
-       ``DEPRECATED``: Serverless instances are deprecated, and no longer support continuous backup. See https://dochub.mongodb.org/core/atlas-flex-migration for details.
+       ``DEPRECATED``: Serverless instances are deprecated, and no longer support continuous backup. See `https://dochub.mongodb.org/core/atlas-flex-migration <https://dochub.mongodb.org/core/atlas-flex-migration>`__ for details.
        *Default*: true
      - false
 
@@ -1450,7 +1450,7 @@ AtlasDeployment.spec.serverlessSpec.privateEndpoints
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 ServerlessPrivateEndpoint configures private endpoints for the Serverless instances.
-DEPRECATED: Serverless private endpoints are deprecated. See https://dochub.mongodb.org/core/atlas-flex-migration for details.
+DEPRECATED: Serverless private endpoints are deprecated. See `https://dochub.mongodb.org/core/atlas-flex-migration <https://dochub.mongodb.org/core/atlas-flex-migration>`__ for details.
 
 .. list-table::
    :header-rows: 1

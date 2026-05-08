@@ -1,0 +1,137 @@
+.. _ak8so-configure-custom-database-roles:
+.. _atlascustomrole-custom-resource:
+
+=======================================
+``AtlasCustomRole`` Custom Resource
+=======================================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/subresource-deprecation.rst
+
+The ``AtlasCustomRole`` custom resource defines a :ref:`custom
+database role <mongodb-roles>` to allocate privileges to your
+:ref:`database users <mongodb-users>`.
+
+To create this custom role within a given project, you must either:
+
+- Reference the :ref:`atlasproject-custom-resource` name in the
+  ``AtlasCustomRole`` custom resource, for projects you manage with
+  |ak8so|
+- Reference the :atlas:`project ID </api/atlas-admin-api-ref/#project-id>` of your |service|
+  project in the ``AtlasCustomRole`` custom resource, for projects you
+  don't manage with |ak8so|
+
+.. include:: /includes/fact-ak8so-crds.rst
+
+|ak8so| does one of the following actions using the |service|
+:oas-bump-atlas-tag:`Custom Database Role API Resource
+<custom-database-roles>`:
+   
+- Creates a new custom database role.
+- Updates an existing custom database role.
+
+Examples
+---------
+
+.. _atlascustomrole-example-basic:
+
+Basic Example
+~~~~~~~~~~~~~
+
+The following example shows an ``AtlasCustomRole`` custom resource
+that defines the ``shard-operator`` custom role, with privileges
+for backing up and monitoring sharded {+clusters+} within the
+``my-project`` project.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasCustomRole
+   metadata:
+     name: shard-operator-role
+     namespace: mongodb-atlas-system
+     labels:
+       mongodb.com/atlas-reconciliation-policy: keep
+   spec:
+     projectRef:
+       name: my-project
+       namespace: my-operator-namespace
+     role:
+       name: my-role
+	 actions:
+	 - name: getShardMap
+	   resources:
+	     cluster: true
+	 - name: shardingState
+	   resources:
+	     cluster: true
+	 - name: connPoolStats
+	   resources:
+   	     cluster: true
+	 - name: getLog
+	   resources:
+	     cluster: true
+         inheritedRoles:
+	 - name: operator-role-1
+	   role: backup
+
+.. _atlascustomrole-example-independent:
+
+Independent CRD Example
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an ``AtlasCustomRole`` :ref:`independent
+CRD <ak8so-independent-crd>` that defines the same ``shard-operator``
+custom role defined in the :ref:`Basic Example
+<atlascustomrole-example-basic>`. This custom resource definition
+allows you to create this role in a project you don't manage in the
+same instance of |ak8so| with which you define this resource. To
+enable independent operation, you must use an ``externalProjectRef``
+instead of a ``projectRef``, and you must supply a
+``connectionSecret`` directly since this resource can't inherit API
+credentials from its parent project.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasCustomRole
+   metadata:
+     name: shard-operator-role
+     namespace: mongodb-atlas-system
+     labels:
+       mongodb.com/atlas-reconciliation-policy: keep
+   spec:
+     externalProjectRef:
+       id: 671998971c8520583f24f411
+     connectionSecret:
+       name: my-atlas-key
+     role:
+       name: my-role
+	 actions:
+	 - name: getShardMap
+	   resources:
+	     cluster: true
+	 - name: shardingState
+	   resources:
+	     cluster: true
+	 - name: connPoolStats
+	   resources:
+   	     cluster: true
+	 - name: getLog
+	   resources:
+	     cluster: true
+         inheritedRoles:
+	 - name: operator-role-1
+	   role: backup
+
+Parameters
+----------
+
+.. include:: /includes/manual-crds/atlas-custom-role.rst

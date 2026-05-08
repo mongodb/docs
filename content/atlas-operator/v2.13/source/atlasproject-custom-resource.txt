@@ -1,0 +1,316 @@
+.. _atlasproject-custom-resource:
+
+================================
+``AtlasProject`` Custom Resource
+================================
+
+.. meta::
+   :description: Configure an Atlas project using the AtlasProject custom resource with the Atlas Kubernetes Operator, including IP access lists, teams, and alerts.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``AtlasProject`` custom resource configures the project in 
+|service|. When you create the ``AtlasProject`` custom resource, 
+|ak8so| tries to create a new project in |service|.
+
+.. include:: /includes/fact-ak8so-crds.rst
+   
+|ak8so| does one of the following actions:
+   
+- Creates a new project in the organization that the connection 
+  |k8s-secret| configures.
+- Reuses an existing project. In this case, |ak8so| verifies 
+  whether a project with ``spec.name`` exists. If the project exists, 
+  |ak8so| skips creation. After the reconciliation, |ak8so| updates 
+  the ``status.id`` field with the id of the project.
+
+You can use the :ref:`spec.connectionSecretRef.name <atlasproject-spec-connectionsecretref>` parameter
+to set the connection |k8s-secret| for  the ``AtlasProject`` custom 
+resource. This parameter overrides the default ``global`` connection 
+|k8s-secret|.
+
+.. include:: /includes/fact-ak8so-connection-secret-namespace.rst
+
+To :ref:`connect <ak8so-access-to-atlas-ref>` to the 
+{+atlas-admin-api+}, |ak8so| reads the organization ID and 
+:ref:`API keys <about-org-api-keys>` from |ak8so| |k8s-secrets|.
+   
+You can also edit the ``AtlasProject`` custom resource specification to 
+configure the following options:
+
+- An :ref:`IP access list <add-to-access-list>` with the 
+  :ref:`spec.projectIpAccessList <atlasproject-spec-projectipaccesslist>` parameter. This IP access list 
+  grants network access to |service| clusters in the project.
+
+- :ref:`Teams <ak8so-team>` with the :ref:`spec.teams <atlasproject-spec-teams>` parameter. A team 
+  lets you grant an access role to an entire group of |service| users for a 
+  particular project.
+
+- The :ref:`maintenance window <configure-maintenance-window>` with
+  the :ref:`spec.maintenanceWindow <atlasproject-spec-maintenancewindow>` parameter. The maintenance
+  window sets the hour and day that |service| starts weekly
+  maintenance on your {+database-deployments+}.
+
+.. _spec-network-peers:
+
+- :ref:`Network peering <ak8so-network-peering>` with the
+  :ref:`spec.networkPeers <atlasproject-spec-networkpeers>` parameter. Network peering allows you to
+  connect securely to your |aws|, |azure|, or |gcp| |vpc|.
+
+- :ref:`Encryption at rest using customer-managed keys <ak8so-ear>`
+  with the :ref:`spec.encryptionAtRest <atlasproject-spec-encryptionatrest>` parameter. Encryption at
+  rest using customer-managed keys allows you to add an additional
+  layer of security by using your cloud provider's |kms| together with
+  the MongoDB :manual:`encrypted storage engine 
+  </core/security-encryption-at-rest>`.
+
+- :ref:`Private endpoints <ak8so-private-endpoint>` with the 
+  :ref:`spec.privateEndpoints <atlasproject-spec-privateendpoints>` parameter.
+
+- :ref:`X.509 authentication <ak8so-x509>` with the
+  :ref:`spec.x509CertRef.name <atlasproject-spec-x509certref>` parameter.
+
+- Project settings with the :ref:`spec.settings <atlasproject-spec-settings>` parameter, including settings to enable and disable the following:
+
+  - Collection of database statistics in :ref:`cluster metrics <monitor-cluster-metrics>`
+  - :ref:`Data explorer <atlas-ui>`
+  - :ref:`Performance Advisor <performance-advisor>`
+  - :ref:`Realtime Performance Panel <review-real-time-metrics>`
+  - :ref:`Schema Advisor <schema-suggestions>`
+
+  - :ref:`Project alerts configurations <ak8so-alert-configurations>`
+    with the :ref:`spec.alertConfigurationSyncEnabled <atlasproject-spec>` 
+    and :ref:`spec.alertConfigurations <atlasproject-spec-alertconfigurations>` parameters.
+
+    For information on how these settings interact,
+    see the :ref:`ak8so-ac-considerations`.
+
+If you remove the ``AtlasProject`` resource from your |k8s| cluster, 
+|ak8so| removes the project from |service|. You must remove all the 
+clusters in the project beforehand. Otherwise, |service| rejects the 
+delete request.
+
+Example
+-------
+
+The following example shows an ``AtlasProject`` custom resource 
+specification:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasProject
+   metadata:
+    name: my-project
+   spec:
+    name: Test project
+    connectionSecretRef:
+      name: my-atlas-key
+    projectIpAccessList:
+      - cidrBlock: "203.0.113.0/24"
+        comment: "CIDR block for Application Server B - D" 
+
+.. _prometheus-example:
+
+Prometheus Example
+------------------
+
+The following example shows an ``AtlasProject`` custom resource 
+specification that integrates with Prometheus:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasProject
+   metadata:
+     name: my-project
+   spec:
+     name: TestPrometheusIntegration
+     connectionSecretRef:
+       name: my-atlas-key
+     projectIpAccessList:
+       - cidrBlock: "0.0.0.0/1"
+         comment: "Everyone has access. For test purposes only."
+       - cidrBlock: "128.0.0.0/1"
+         comment: "Everyone has access. For test purposes only."
+     integrations:
+       - type: "PROMETHEUS"
+         enabled: "true"
+         username: "prometheus-user"
+         passwordRef:
+           name: "password-name"
+           namespace: "password-namespace"
+         scheme: "http"
+         serviceDiscovery: "http"
+
+To learn more, see :ref:`ak8so-integrate-third-party`.
+
+.. include:: /includes/fact-ak8so-grafana.rst
+
+.. _teams-example:
+
+Teams Example
+-------------
+
+The following example shows an ``AtlasProject`` custom resource 
+specification that gives the ``green-leaf-team`` the :authrole:`Organization Owner` 
+role for this project. The team members are defined in the 
+:ref:`AtlasTeam custom resource <atlasteam-custom-resource>`.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasProject
+   metadata:
+     name: my-project
+   spec:
+     name: Test project
+     teams:
+       - teamRef:
+           name: green-leaf-team
+         roles:
+         - ORGANIZATION_OWNER
+
+To learn more, see :ref:`ak8so-team`.
+
+.. _maintenance-window-example:
+
+Maintenance Window Example
+--------------------------
+
+The following example shows an ``AtlasProject`` custom resource 
+specification that sets the maintenance window to 5:00 AM every Tuesday with automatic deferral disabled:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasProject
+   metadata:
+    name: my-project
+   spec:
+    name: Test project
+    projectIpAccessList:
+      - ipAddress: "192.0.2.15"
+        comment: "IP address for Application Server A"
+   maintenanceWindow:
+    dayOfWeek: 3
+    hourOfDay: 5
+    autoDefer: false
+
+.. _project-settings-example:
+
+Project Settings Example
+------------------------
+
+The following example shows an ``AtlasProject`` custom resource 
+specification that disables the collection of database statistics in
+:ref:`cluster metrics <monitor-cluster-metrics>`, 
+:ref:`data explorer <atlas-ui>`, :ref:`Performance Advisor
+<performance-advisor>`, :ref:`Realtime Performance Panel
+<review-real-time-metrics>`, and :ref:`Schema Advisor
+<schema-suggestions>`.
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasProject
+   metadata:
+    name: my-project
+   spec:
+    name: Test project
+    projectIpAccessList:
+      - ipAddress: "192.0.2.15"
+        comment: "IP address for Application Server A"
+    settings:
+      isCollectDatabaseSpecificsStatisticsEnabled: false
+      isDataExplorerEnabled: false
+      isExtendedStorageSizesEnabled: false
+      isPerformanceAdvisorEnabled: false
+      isRealtimePerformancePanelEnabled: false
+      isSchemaAdvisorEnabled: false
+
+.. _ak8so-ac-example:
+
+Alert Configuration Example
+---------------------------
+
+The following example shows an ``AtlasProject`` custom resource
+specification that configures an alert that triggers if the oplog
+window reaches less than one hour:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasProject
+   metadata:
+     name: my-project
+   spec:
+     name: Test Atlas Operator Project
+     connectionSecretRef:
+       name: my-atlas-key
+     alertConfigurations:
+       - eventTypeName: "REPLICATION_OPLOG_WINDOW_RUNNING_OUT",
+         enabled: true,
+         notifications:
+         -  delayMin: 0
+            emailEnabled: true
+            intervalMin: 60
+            roles: [ "GROUP_OWNER" ]
+            smsEnabled: false
+            typeName: "GROUP" 
+         threshold: 
+            operator: "LESS_THAN",
+            threshold: "1",
+            units: "HOURS"
+     alertConfigurationSyncEnabled: true
+     withDefaultAlertsSettings: false
+
+.. _ak8so-tp-ac-example:
+
+Third-Party Alert Configuration Example
+---------------------------------------
+
+The following example shows an ``AtlasProject`` custom resource
+specification that configures an alert that sends notifications through 
+Slack:
+
+.. code-block::
+
+   apiVersion: atlas.mongodb.com/v1
+   kind: AtlasProject
+   metadata:
+     name: my-project
+   spec:
+     name: Test Atlas Operator Project
+     connectionSecretRef:
+       name: my-atlas-key
+     alertConfigurations:
+       - eventTypeName: "REPLICATION_OPLOG_WINDOW_RUNNING_OUT"
+         enabled: true
+         notifications:
+         -  delayMin: 0
+            emailEnabled: true
+            intervalMin: 60
+            roles: [ "GROUP_OWNER" ]
+            smsEnabled: false
+            - typeName: "SLACK"
+              apiTokenRef:
+                name: key-name
+                namespace: key-namespace
+         threshold: 
+            operator: "LESS_THAN"
+            threshold: "1"
+            units: "HOURS"
+     alertConfigurationSyncEnabled: true
+     withDefaultAlertsSettings: false
+
+Parameters
+----------
+
+.. include:: /includes/manual-crds/atlas-project.rst
