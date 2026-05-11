@@ -914,3 +914,51 @@ function unwindPreserve() {
   return cursor;
   //end unwindPreserve
 }
+
+function rankFusion(){
+  //start rf index
+  const index = {
+    name: "default",
+    definition: {
+      mappings: { dynamic: true }
+    }
+  }
+
+  const result = collection.createSearchIndex(index);
+  //end rf index
+
+  //start rankFusion
+  const pipeline = [
+    {
+      $rankFusion: {
+        input: {
+          pipelines: {
+            searchPlot: [
+              {
+                $search: {
+                  index: "default",
+                  text: { query: "space", path: "plot"}
+                }
+              }
+            ],
+            searchGenre: [
+              {
+                $search: {
+                  index: "default",
+                  text: { query: "adventure", path: "genres" }
+                }
+              }
+            ]
+          }
+        },
+        combination: { weights: {searchPlot: 0.6, searchGenre: 0.4} },
+        scoreDetails: true
+      }
+    },
+    { $addFields: { scoreDetails: { $meta: "searchScoreDetails" } } }
+  ];
+
+  const cursor = collection.aggregate(pipeline);
+  return cursor;
+  //end rankFusion
+}
