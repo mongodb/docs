@@ -136,23 +136,13 @@ or last document of each group.
 
 .. example::
 
-   If a collection named ``foo`` contains an index ``{ x: 1, y: 1 }``,
-   the following pipeline can use that index to find the first document
-   of each group:
+   If the ``movies`` collection contains an index
+   ``{ year: 1, title: 1 }``, the following pipeline can use that
+   index to find the first document of each group:
 
-   .. code-block:: js
-
-      db.foo.aggregate([
-        {
-          $sort:{ x : 1, y : 1 }
-        },
-        {
-          $group: {
-            _id: { x : "$x" },
-            y: { $first : "$y" }
-          }
-        }
-      ])
+   .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/group/index-optimization.snippet.index-optimization.js
+      :language: javascript
+      :category: usage example
 
 |sbe-title|
 ```````````
@@ -180,34 +170,28 @@ Examples
       Count the Number of Documents in a Collection
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. include:: /includes/fact-group-sales-documents.rst
+      .. include:: /includes/sample-data-usage.rst
 
-      The following aggregation operation uses the :pipeline:`$group` stage
-      to count the number of documents in the ``sales`` collection:
+      The following aggregation operation uses the :pipeline:`$group`
+      stage to count the number of documents in the ``movies``
+      collection:
 
-      .. code-block:: javascript
+      .. io-code-block::
+         :copyable: true
 
-         db.sales.aggregate( [
-           {
-             $group: {
-                _id: null,
-                count: { $count: { } }
-             }
-           }
-         ] )
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/group/count-documents.snippet.count-documents.js
+            :language: javascript
+            :category: usage example
 
-      The operation returns the following result:
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/group/count-documents-output.sh
+            :language: javascript
 
-      .. code-block:: javascript
-         :copyable: false
-
-         { "_id" : null, "count" : 8 }
-
-      This aggregation operation is equivalent to the following SQL statement:
+      This aggregation operation is equivalent to the following SQL
+      statement:
 
       .. code-block:: sql
 
-         SELECT COUNT(*) AS count FROM sales
+         SELECT COUNT(*) AS count FROM movies
 
       .. seealso::
 
@@ -219,22 +203,19 @@ Examples
       Retrieve Distinct Values
       ~~~~~~~~~~~~~~~~~~~~~~~~
 
-      The following aggregation operation uses the :pipeline:`$group` stage
-      to retrieve the distinct item values from the ``sales`` collection:
+      The following aggregation operation uses the :pipeline:`$group`
+      stage to retrieve the distinct ``rated`` values from the
+      ``movies`` collection:
 
-      .. code-block:: javascript
+      .. io-code-block::
+         :copyable: true
 
-         db.sales.aggregate( [ { $group : { _id : "$item" } } ] )
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/group/distinct-values.snippet.distinct-values.js
+            :language: javascript
+            :category: usage example
 
-      The operation returns the following result:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         { "_id" : "abc" }
-         { "_id" : "jkl" }
-         { "_id" : "def" }
-         { "_id" : "xyz" }
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/group/distinct-values-output.sh
+            :language: javascript
 
       .. note::
 
@@ -248,73 +229,60 @@ Examples
          pipeline and the ``$group`` is not preceded by a :pipeline:`$sort`
          stage.
 
-         For example, ``$group`` operations of the following form can result
-         in a ``DISTINCT_SCAN``:
+         For example, ``$group`` operations of the following form can
+         result in a ``DISTINCT_SCAN``:
 
          .. code-block:: javascript
             :copyable: false
 
             { $group : { _id : "$<field>" } }
 
-         For more information on behavior for retrieving distinct values, see
-         the :ref:`distinct command behavior <distinct-command-behavior>`.
+         For more information on behavior for retrieving distinct
+         values, see the
+         :ref:`distinct command behavior <distinct-command-behavior>`.
 
-         To see whether your operation results in a ``DISTINCT_SCAN``, check
-         your operation's :ref:`explain results <explain-results>`.
+         To see whether your operation results in a
+         ``DISTINCT_SCAN``, check your operation's
+         :ref:`explain results <explain-results>`.
 
-      Group by Item Having
-      ~~~~~~~~~~~~~~~~~~~~
+      Group by Rating
+      ~~~~~~~~~~~~~~~
 
-      The following aggregation operation groups documents by the ``item``
-      field, calculating the total sale amount per item and returning only
-      the items with total sale amount greater than or equal to 100:
+      The following aggregation operation groups documents by the
+      ``rated`` field, calculating the total runtime per rating and
+      returning only the ratings with a total runtime greater than or
+      equal to 100000:
 
-      .. code-block:: javascript
+      .. io-code-block::
+         :copyable: true
 
-         db.sales.aggregate(
-           [
-             // First Stage
-             {
-               $group :
-                 {
-                   _id : "$item",
-                   totalSaleAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } }
-                 }
-              },
-              // Second Stage
-              {
-                $match: { "totalSaleAmount": { $gte: 100 } }
-              }
-            ]
-          )
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/group/group-by-rating.snippet.group-by-rating.js
+            :language: javascript
+            :category: usage example
+
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/group/group-by-rating-output.sh
+            :language: javascript
 
       First Stage:
-        The :pipeline:`$group` stage groups the documents by ``item`` to
-        retrieve the distinct item values. This stage returns the
-        ``totalSaleAmount`` for each item.
+        The :pipeline:`$group` stage groups the documents by ``rated``
+        to retrieve the distinct rating values. This stage returns the
+        ``totalRuntime`` for each rating group.
 
       Second Stage:
-        The :pipeline:`$match` stage filters the resulting documents to only
-        return items with a ``totalSaleAmount`` greater than or equal to 100.
+        The :pipeline:`$match` stage filters the resulting documents to
+        return only ratings with a ``totalRuntime`` greater than or
+        equal to 100000.
 
-      The operation returns the following result:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         { "_id" : "abc", "totalSaleAmount" : Decimal128("170") }
-         { "_id" : "xyz", "totalSaleAmount" : Decimal128("150") }
-         { "_id" : "def", "totalSaleAmount" : Decimal128("112.5") }
-
-      This aggregation operation is equivalent to the following SQL statement:
+      This aggregation operation is equivalent to the following SQL
+      statement:
 
       .. code-block:: sql
 
-         SELECT item,
-            Sum(( price * quantity )) AS totalSaleAmount
-         FROM   sales
-         GROUP  BY item
-         HAVING totalSaleAmount >= 100
+         SELECT rated,
+            Sum(runtime) AS totalRuntime
+         FROM   movies
+         GROUP  BY rated
+         HAVING totalRuntime >= 100000
 
       .. seealso::
 
@@ -325,89 +293,56 @@ Examples
       Calculate Count, Sum, and Average
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      .. include:: /includes/fact-group-sales-documents.rst
+      Group by Year
+      `````````````
 
-      Group by Day of the Year
-      ````````````````````````
+      The following pipeline calculates the total runtime, average
+      runtime, and movie count for each year before 1910:
 
-      The following pipeline calculates the total sales amount, average sales
-      quantity, and sale count for each day in the year 2014:
+      .. io-code-block::
+         :copyable: true
 
-      .. code-block:: javascript
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/group/group-by-year.snippet.group-by-year.js
+            :language: javascript
+            :category: usage example
 
-         db.sales.aggregate([
-           // First Stage
-           {
-             $match : { "date": { $gte: new ISODate("2014-01-01"), $lt: new ISODate("2015-01-01") } }
-           },
-           // Second Stage
-           {
-             $group : {
-                _id : { $dateToString: { format: "%Y-%m-%d", date: "$date" } },
-                totalSaleAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } },
-                averageQuantity: { $avg: "$quantity" },
-                count: { $sum: 1 }
-             }
-           },
-           // Third Stage
-           {
-             $sort : { totalSaleAmount: -1 }
-           }
-          ])
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/group/group-by-year-output.sh
+            :language: javascript
 
       First Stage:
-        The :pipeline:`$match` stage filters the documents to only pass
-        documents from the year 2014 to the next stage.
+        The :pipeline:`$match` stage filters the documents to only
+        pass movies released before 1910 to the next stage.
 
       Second Stage:
-        The :pipeline:`$group` stage groups the documents by date and
-        calculates the total sale amount, average quantity, and total count of the
-        documents in each group.
+        The :pipeline:`$group` stage groups the documents by year and
+        calculates the total runtime, average runtime, and total count
+        of the documents in each group.
 
       Third Stage:
         The :pipeline:`$sort` stage sorts the results by the total
-        sale amount for each group in descending order.
+        runtime for each group in descending order.
 
-      The operation returns the following results:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         {
-            "_id" : "2014-04-04",
-            "totalSaleAmount" : Decimal128("200"),
-            "averageQuantity" : 15, "count" : 2
-         }
-         {
-            "_id" : "2014-03-15",
-            "totalSaleAmount" : Decimal128("50"),
-            "averageQuantity" : 10, "count" : 1
-         }
-         {
-            "_id" : "2014-03-01",
-            "totalSaleAmount" : Decimal128("40"),
-            "averageQuantity" : 1.5, "count" : 2
-         }
-
-      This aggregation operation is equivalent to the following SQL statement:
+      This aggregation operation is equivalent to the following SQL
+      statement:
 
       .. code-block:: sql
 
-         SELECT date,
-                Sum(( price * quantity )) AS totalSaleAmount,
-                Avg(quantity)             AS averageQuantity,
-                Count(*)                  AS Count
-         FROM   sales
-         WHERE  date >= '01/01/2014' AND date < '01/01/2015'
-         GROUP  BY date
-         ORDER  BY totalSaleAmount DESC
+         SELECT year,
+                Sum(runtime) AS totalRuntime,
+                Avg(runtime) AS averageRuntime,
+                Count(*)     AS count
+         FROM   movies
+         WHERE  year < 1910
+         GROUP  BY year
+         ORDER  BY totalRuntime DESC
 
       .. seealso::
 
          - :pipeline:`$match`
          - :pipeline:`$sort`
          - :method:`db.collection.countDocuments()` which wraps the
-           :pipeline:`$group` aggregation stage with a :group:`$sum` expression.
+           :pipeline:`$group` aggregation stage with a
+           :group:`$sum` expression.
 
       .. _null-example:
 
@@ -415,166 +350,94 @@ Examples
       `````````````````
 
       The following aggregation operation specifies a group ``_id`` of
-      ``null``, calculating the total sale amount, average quantity, and count of
-      *all* documents in the collection.
+      ``null``, calculating the total runtime, average runtime, and
+      count of all documents in the collection.
 
-      .. code-block:: javascript
+      .. io-code-block::
+         :copyable: true
 
-         db.sales.aggregate([
-           {
-             $group : {
-                _id : null,
-                totalSaleAmount: { $sum: { $multiply: [ "$price", "$quantity" ] } },
-                averageQuantity: { $avg: "$quantity" },
-                count: { $sum: 1 }
-             }
-           }
-          ])
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/group/group-by-null.snippet.group-by-null.js
+            :language: javascript
+            :category: usage example
 
-      The operation returns the following result:
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/group/group-by-null-output.sh
+            :language: javascript
 
-      .. code-block:: javascript
-         :copyable: false
-
-         {
-           "_id" : null,
-           "totalSaleAmount" : Decimal128("452.5"),
-           "averageQuantity" : 7.875,
-           "count" : 8
-         }
-
-      This aggregation operation is equivalent to the following SQL statement:
+      This aggregation operation is equivalent to the following SQL
+      statement:
 
       .. code-block:: sql
 
-         SELECT Sum(price * quantity) AS totalSaleAmount,
-                Avg(quantity)         AS averageQuantity,
-                Count(*)              AS Count
-         FROM   sales
+         SELECT Sum(runtime) AS totalRuntime,
+                Avg(runtime) AS averageRuntime,
+                Count(*)     AS count
+         FROM   movies
 
       .. seealso::
 
          - :pipeline:`$count`
          - :method:`db.collection.countDocuments()` which wraps the
-           :pipeline:`$group` aggregation stage with a :group:`$sum` expression.
+           :pipeline:`$group` aggregation stage with a
+           :group:`$sum` expression.
 
       .. _aggregation-pivot-data:
 
       Pivot Data
       ~~~~~~~~~~
 
-      In :binary:`~bin.mongosh`, create a sample collection named
-      ``books`` with the following documents:
+      Group Titles by Year
+      ````````````````````
 
-      .. code-block:: javascript
+      The following aggregation operation pivots the data in the
+      ``movies`` collection to group titles by year:
 
-         db.books.insertMany([
-           { "_id" : 8751, "title" : "The Banquet", "author" : "Dante", "copies" : 2 },
-           { "_id" : 8752, "title" : "Divine Comedy", "author" : "Dante", "copies" : 1 },
-           { "_id" : 8645, "title" : "Eclogues", "author" : "Dante", "copies" : 2 },
-           { "_id" : 7000, "title" : "The Odyssey", "author" : "Homer", "copies" : 10 },
-           { "_id" : 7020, "title" : "Iliad", "author" : "Homer", "copies" : 10 }
-         ])
+      .. io-code-block::
+         :copyable: true
 
-      Group ``title`` by ``author``
-      `````````````````````````````
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/group/group-titles-by-year.snippet.group-titles-by-year.js
+            :language: javascript
+            :category: usage example
 
-      The following aggregation operation pivots the data in the ``books``
-      collection to have titles grouped by authors.
-
-      .. code-block:: javascript
-
-         db.books.aggregate([
-            { $group : { _id : "$author", books: { $push: "$title" } } }
-          ])
-
-      The operation returns the following documents:
-
-      .. code-block:: javascript
-
-         { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
-         { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/group/group-titles-by-year-output.sh
+            :language: javascript
 
       .. _group-stage-pivot-using-ROOT:
 
-      Group Documents by ``author``
-      `````````````````````````````
+      Group Documents by Year
+      ```````````````````````
 
-      The following aggregation operation groups documents by ``author``:
+      The following aggregation operation groups documents by year:
 
-      .. code-block:: javascript
+      .. io-code-block::
+         :copyable: true
 
-         db.books.aggregate([
-            // First Stage
-            {
-              $group : { _id : "$author", books: { $push: "$$ROOT" } }
-            },
-            // Second Stage
-            {
-              $addFields:
-                {
-                  totalCopies : { $sum: "$books.copies" }
-                }
-            }
-          ])
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/group/group-documents-by-year.snippet.group-documents-by-year.js
+            :language: javascript
+            :category: usage example
+
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/group/group-documents-by-year-output.sh
+            :language: javascript
 
       First Stage:
-        :pipeline:`$group` uses the :variable:`$$ROOT <ROOT>`
-        system variable to group the entire documents by authors. This stage
-        passes the following documents to the next stage:
-
-        .. code-block:: javascript
-           :copyable: false
-
-           { "_id" : "Homer",
-             "books" :
-               [
-                  { "_id" : 7000, "title" : "The Odyssey", "author" : "Homer", "copies" : 10 },
-                  { "_id" : 7020, "title" : "Iliad", "author" : "Homer", "copies" : 10 }
-               ]
-            },
-            { "_id" : "Dante",
-              "books" :
-                [
-                  { "_id" : 8751, "title" : "The Banquet", "author" : "Dante", "copies" : 2 },
-                  { "_id" : 8752, "title" : "Divine Comedy", "author" : "Dante", "copies" : 1 },
-                  { "_id" : 8645, "title" : "Eclogues", "author" : "Dante", "copies" : 2 }
-                ]
-            }
+        :pipeline:`$match` filters the documents to only pass movies
+        released before 1910 to the next stage.
 
       Second Stage:
+        :pipeline:`$group` uses the :variable:`$$ROOT <ROOT>`
+        system variable to group the entire documents by year.
+
+      Third Stage:
         :pipeline:`$addFields` adds a field to the output containing
-        the total copies of books for each author.
+        the total runtime of movies for each year.
 
         .. note::
 
            The resulting documents must not exceed the
            :limit:`BSON Document Size` limit of 16 mebibytes.
 
-        The operation returns the following documents:
-
-        .. code-block:: javascript
-
-           {
-             "_id" : "Homer",
-             "books" :
-                [
-                  { "_id" : 7000, "title" : "The Odyssey", "author" : "Homer", "copies" : 10 },
-                  { "_id" : 7020, "title" : "Iliad", "author" : "Homer", "copies" : 10 }
-                ],
-              "totalCopies" : 20
-           }
-
-           {
-             "_id" : "Dante",
-             "books" :
-                [
-                  { "_id" : 8751, "title" : "The Banquet", "author" : "Dante", "copies" : 2 },
-                  { "_id" : 8752, "title" : "Divine Comedy", "author" : "Dante", "copies" : 1 },
-                  { "_id" : 8645, "title" : "Eclogues", "author" : "Dante", "copies" : 2 }
-                ],
-              "totalCopies" : 5
-           }
+      Fourth Stage:
+        :pipeline:`$sort` sorts the resulting documents by ``_id``
+        in ascending order.
 
    .. tab::
       :tabid: csharp
