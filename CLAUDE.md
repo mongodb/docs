@@ -76,6 +76,7 @@ Never violate these directives. Stop and ask the user for clarification if they 
 - Save documentation source files as .txt. Save includes as .rst. Save as .yml only if modifying existing YAML file. Do not apply this rule to code example files in code-example-tests/.
 - Do not commit or push without explicit confirmation from the user.
 - When a Stop hook message reports pending redirect changes, invoke the add-redirects skill immediately — before committing, pushing, or responding to any other request.
+- When a hook message reports documentation pages added, moved, or deleted in content/, invoke the unified-toc skill immediately — before committing, pushing, or responding to any other request.
 
 # GLOBAL BEHAVIORAL OVERRIDES
 

@@ -1,6 +1,6 @@
 ---
 name: jira
-description: Use this skill for any Jira operation in the DOCSP project — creating, viewing, searching, updating, transitioning, commenting on, or linking tickets. Also handles follow-up ticket creation to manage scope creep.
+description: "Use this skill for any Jira operation in the DOCSP project — creating, viewing, searching, updating, transitioning, commenting on, or linking tickets. Also handles follow-up ticket creation to manage scope creep. TRIGGER when: user mentions a DOCSP-XXXXX ticket number or any Jira ticket URL; user asks to view, open, check, update, transition, close, comment on, link, or search tickets; user references \"the ticket\", \"the Jira\", or \"open a ticket\". SKIP: GitHub issues; non-Jira platforms; questions unrelated to ticket operations."
 ---
 
 # Jira Tool for Docs Writers
