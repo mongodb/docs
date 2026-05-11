@@ -486,6 +486,30 @@ the start.
       context.cluster.configServerManagementMode != ResourcePolicy::ConfigServerManagementMode::"fixed_to_dedicated"
     };
 
+.. _restrict-search-index-modify-ui:
+
+Restrict {+fts+} Index Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   The ``search.index.modify`` action restricts only creation
+   and modification of {+fts+} indexes. |service| always
+   allows deletion of {+fts+} indexes.
+
+The following example prevents users from adding or editing {+fts+}
+indexes unless dedicated {+fts+} nodes exist:
+
+.. code-block::
+   :copyable: true
+
+    forbid (
+      principal,
+      action == ResourcePolicy::Action::"search.index.modify",
+      resource
+    )
+    when { !context.search.hasDedicatedNodes };
+
 .. _restrict-auto-embedding-ui:
 
 Restrict Automated Embedding for Vector Search
@@ -505,3 +529,58 @@ Embedding for compliance or cost governance while still permitting creation of
       resource
     )
     when { context.search.index.isAutoEmbed == true };
+
+The following example prevents users from adding or editing {+fts+}
+indexes unless dedicated {+fts+} nodes exist and are all on |aws|:
+
+.. code-block::
+   :copyable: true
+
+    forbid (
+      principal,
+      action == ResourcePolicy::Action::"search.index.modify",
+      resource
+    )
+    when {
+      !context.search.hasDedicatedNodes
+      || !([ResourcePolicy::CloudProvider::"aws"].containsAll(
+            context.cluster.cloudProviders))
+    };
+
+.. _restrict-search-deployment-modify-ui:
+
+Restrict {+fts+} Deployment Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example prevents users from removing dedicated {+fts+}
+nodes from a {+cluster+} that has {+fts+} indexes:
+
+.. code-block::
+   :copyable: true
+
+    forbid (
+      principal,
+      action == ResourcePolicy::Action::"search.deployment.modify",
+      resource
+    )
+    when { context.search.hasIndexes && !context.search.hasDedicatedNodes };
+
+The following example prevents deploying {+fts+} to non-|aws| providers
+on a {+cluster+} that has {+fts+} indexes:
+
+.. code-block::
+   :copyable: true
+
+    forbid (
+      principal,
+      action in [
+        ResourcePolicy::Action::"cluster.modify",
+        ResourcePolicy::Action::"search.deployment.modify"
+      ],
+      resource
+     )
+     when {
+       context.search.hasIndexes
+       && !([ResourcePolicy::CloudProvider::"aws"].containsAll(
+             context.cluster.cloudProviders))
+     };

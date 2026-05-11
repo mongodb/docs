@@ -190,6 +190,7 @@ Key Cedar Syntax Elements for |service|
        - Restrict cluster attributes: ``ResourcePolicy::Action::"cluster.modify"``
        - Modify maintenance window: ``ResourcePolicy::Action::"project.maintenanceWindow.modify"``
        - Restrict search index modifications: ``ResourcePolicy::Action::"search.index.modify"``
+       - Restrict search deployment operations: ``ResourcePolicy::Action::"search.deployment.modify"``
 
    * - ``ResourcePolicy::Cluster::"<CLUSTER-ID>"``
      - Refers to a specific {+cluster+}
@@ -205,12 +206,21 @@ Key Cedar Syntax Elements for |service|
      -  To find your project ID, see :ref:`atlas-modify-project-settings`.
 
    * - ``context.cluster.cloudProviders``
-     -  Specifies the allowed cloud providers. 
-     -  Available options: 
-  
-        - ``ResourcePolicy::CloudProvider::"aws"`` 
-        - ``ResourcePolicy::CloudProvider::"azure"``
-        - ``ResourcePolicy::CloudProvider::"gcp"``
+     - Specifies the allowed cloud providers.
+     - Available options:
+
+       - ``ResourcePolicy::CloudProvider::"aws"``
+       - ``ResourcePolicy::CloudProvider::"azure"``
+       - ``ResourcePolicy::CloudProvider::"gcp"``
+
+       The value differs by action. For ``cluster.modify``,
+       contains the cloud providers of the {+cluster+}'s
+       mongod nodes. For ``search.index.modify``, contains
+       the cloud providers of mongod and {+fts+} nodes
+       (current state). For ``search.deployment.modify``,
+       contains the cloud providers of {+fts+} nodes after
+       the request completes. For deletion operations,
+       this value is empty.
    
    * - ``context.cluster.clusterType``
      - Specifies the cluster topology: :ref:`replica set <replication>`, 
@@ -245,10 +255,13 @@ Key Cedar Syntax Elements for |service|
      - For example, ``context.cluster.isConvertingToSharded == true``
 
    * - ``context.cluster.regions``
-     - Limits access based on deployment regions. 
-     - For example, ``ResourcePolicy::Region::"aws:us-east-1"``. For a list of available 
-       regions by cloud provider see :ref:`amazon-aws`, :ref:`google-gcp`, 
-       or :ref:`microsoft-azure`.
+     - Limits access based on deployment regions.
+     - For example, ``ResourcePolicy::Region::"aws:us-east-1"``. For a list
+       of available regions by cloud provider see :ref:`amazon-aws`,
+       :ref:`google-gcp`, or :ref:`microsoft-azure`. When used with
+       ``search.deployment.modify``, contains the regions of {+fts+}
+       nodes after the request completes. For deletion operations,
+       this value is empty.
 
    * - ``context.cluster has <PROPERTY>``
      - Checks if a specific property exists within the cluster context.
@@ -319,6 +332,21 @@ Key Cedar Syntax Elements for |service|
        - ``ResourcePolicy::ConfigServerManagementMode::"fixed_to_dedicated"`` for dedicated config servers.
        - ``ResourcePolicy::ConfigServerManagementMode::"atlas_managed"`` for embedded config servers.
 
+   * - ``context.search.hasDedicatedNodes``
+     - Checks if the {+cluster+} has dedicated {+fts+} nodes.
+       For ``search.deployment.modify``, this attribute
+       reflects the state after the request completes, not
+       the current state.
+     - For example, ``context.search.hasDedicatedNodes == true``.
+       Use with the ``search.index.modify`` and
+       ``search.deployment.modify`` actions.
+
+   * - ``context.search.hasIndexes``
+     - Checks if the {+cluster+} has {+fts+} indexes.
+     - For example, ``context.search.hasIndexes == true``.
+       Use with the ``search.deployment.modify`` and
+       ``cluster.modify`` actions.
+
    * - IP Addressing (``ip``)
      - Refers to specific IP addresses or ranges in policies.
      - Available options:
@@ -381,7 +409,9 @@ and add to |service| by using the {+atlas-ui+}, the {+atlas-admin-api+}, or Terr
             * :ref:`restrict-cluster-type`
             * :ref:`restrict-shard-count`
             * :ref:`enforce-config-server-management-mode`
+            * :ref:`restrict-search-index-modify`
             * :ref:`restrict-auto-embedding`
+            * :ref:`restrict-search-deployment-modify`
 
             .. note::
          
@@ -442,7 +472,9 @@ and add to |service| by using the {+atlas-ui+}, the {+atlas-admin-api+}, or Terr
                * :ref:`restrict-cluster-type-ui`
                * :ref:`restrict-shard-count-ui`
                * :ref:`enforce-config-server-management-mode-ui`
+               * :ref:`restrict-search-index-modify-ui`
                * :ref:`restrict-auto-embedding-ui`
+               * :ref:`restrict-search-deployment-modify-ui`
   
                .. note::
          

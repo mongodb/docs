@@ -550,6 +550,33 @@ the start.
       ]
    }
 
+.. _restrict-search-index-modify:
+
+Restrict {+fts+} Index Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. note::
+
+   The ``search.index.modify`` action restricts only creation
+   and modification of {+fts+} indexes. |service| always
+   allows deletion of {+fts+} indexes.
+
+The following example prevents users from adding or editing {+fts+}
+indexes unless dedicated {+fts+} nodes exist:
+
+.. code-block::
+   :copyable: true
+   :emphasize-lines: 5
+
+   {
+      "name": "Require Search Nodes Before Adding Search Indexes",
+      "policies": [
+         {
+            "body": "forbid (principal, action == ResourcePolicy::Action::\"search.index.modify\", resource) when { !context.search.hasDedicatedNodes };"
+         }
+      ]
+   }
+
 .. _restrict-auto-embedding:
 
 Restrict Automated Embedding for {+avs+}
@@ -569,6 +596,59 @@ Embedding for compliance or cost governance while still permitting creation of
       "policies": [
          {
             "body": "forbid (principal, action == ResourcePolicy::Action::\"search.index.modify\", resource) when { context.search.index.isAutoEmbed };"
+         }
+      ]
+   }
+
+The following example prevents users from adding or editing {+fts+}
+indexes unless dedicated {+fts+} nodes exist and are all on |aws|:
+
+.. code-block::
+   :copyable: true
+   :emphasize-lines: 5
+
+   {
+      "name": "Require Search Nodes on AWS Before Adding Search Indexes",
+      "policies": [
+         {
+            "body": "forbid (principal, action == ResourcePolicy::Action::\"search.index.modify\", resource) when { !context.search.hasDedicatedNodes || !([ResourcePolicy::CloudProvider::\"aws\"].containsAll(context.cluster.cloudProviders)) };"
+         }
+      ]
+   }
+
+.. _restrict-search-deployment-modify:
+
+Restrict {+fts+} Deployment Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example prevents users from removing dedicated {+fts+}
+nodes from a {+cluster+} that has {+fts+} indexes:
+
+.. code-block::
+   :copyable: true
+   :emphasize-lines: 5
+
+   {
+      "name": "Prevent Removing Search Nodes When Indexes Exist",
+      "policies": [
+         {
+            "body": "forbid (principal, action == ResourcePolicy::Action::\"search.deployment.modify\", resource) when { context.search.hasIndexes && !context.search.hasDedicatedNodes };"
+         }
+      ]
+   }
+
+The following example prevents deploying {+fts+} to non-|aws| providers
+on a {+cluster+} that has {+fts+} indexes:
+
+.. code-block::
+   :copyable: true
+   :emphasize-lines: 5
+
+   {
+      "name": "Prevent Non-AWS Search Deployment When Indexes Exist",
+      "policies": [
+         {
+            "body": "forbid (principal, action in [ResourcePolicy::Action::\"cluster.modify\", ResourcePolicy::Action::\"search.deployment.modify\"], resource) when { context.search.hasIndexes && !([ResourcePolicy::CloudProvider::\"aws\"].containsAll(context.cluster.cloudProviders)) };"
          }
       ]
    }
