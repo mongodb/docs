@@ -5,7 +5,7 @@ Customize {+Cluster+} Storage
 =============================
 
 .. meta::
-   :description: Customize storage capacity and IOPS for Atlas clusters, including options for auto-scaling and extended storage across cloud providers.
+   :description: Customize storage capacity and IOPS for Atlas clusters, including options for auto-scaling, provisioned IOPS, and extended storage across cloud providers.
 
 .. default-domain:: mongodb
 
@@ -79,7 +79,7 @@ To change the server data volume size, do one of the following tasks:
 - Move the slider until the text box displays your preferred disk size.
 - Specify the exact disk size in the text box.
 
-For |azure|-specific instructions, see :ref:`<change-storage-capacity-azure>`.
+For |azure|-specific instructions, see :ref:`change-storage-capacity-azure`.
 
 Changes to storage capacity affect :ref:`cost <instance-size-costs>`.
 
@@ -203,15 +203,17 @@ Decrease Capacity or Throughput
 
   |service| *can* reduce storage capacity by first provisioning new
   volumes and then syncing data from the old to the new volumes with an
-  in-place rsync process. This works around the |aws| limitation, but
-  there is downtime on each node while this process is in progress.
+  in-place data sync process. This works around the |aws| limitation, but
+  there is downtime on each node during the sync. Unlike capacity increases,
+  |service| always uses this process for capacity decreases, regardless of
+  the volume modification cooldown period.
 
 - |aws| *does* allow you to reduce |iops| without migrating data.
 
-  For disk size decreases, |service| always provisions new volumes and 
-  syncs data from the old to the new volumes. This process requires downtime 
-  on each node during the rsync operation, regardless of the volume 
-  modification cooldown period.
+  If the volume modification cooldown period has passed, |service|
+  reduces |iops| in place without restarting nodes. If the cooldown
+  period has not passed, |service| may provision new volumes and sync
+  data, which causes a rolling restart.
 
 .. _change-storage-capacity-azure:
 
