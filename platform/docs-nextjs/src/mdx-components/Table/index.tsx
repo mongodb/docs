@@ -25,6 +25,13 @@ const styleTable = ({ customAlign, customWidth }: { customAlign?: string; custom
   margin: ${theme.size.medium} 0;
 `;
 
+/** TODO: find a long-term solution for this (!important is bad practice)
+ * This style resolves a cascading issue with line-heights being set,
+ * which in turn will cause table rows to render with extra spacing */
+export const docsTableBodyRowStyle = css`
+  line-height: 16px !important;
+`;
+
 const theadStyle = css`
   // Allows its box shadow to appear above stub cell's background color
   position: relative;
@@ -211,7 +218,7 @@ export const TableRow = ({ children }: { children: React.ReactNode }) => {
     // HeaderCell via React.Children.map, which would override our <th> elements.
     return <tr data-testid="leafygreen-ui-header-row">{children}</tr>;
   }
-  return <Row className={cx(shouldZebra && zebraStripingStyle)}>{children}</Row>;
+  return <Row className={cx(docsTableBodyRowStyle, shouldZebra && zebraStripingStyle)}>{children}</Row>;
 };
 
 export const TableHeaderCell = ({ children }: { children: React.ReactNode }) => {
