@@ -96,242 +96,87 @@ Examples
 Add to Each Element of an Array
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In :binary:`~bin.mongosh`, create a sample collection named
-``grades`` with the following documents:
+.. include:: /includes/sample-data-usage.rst
 
-.. code-block:: javascript
+The following aggregation operation uses :expression:`$map` with
+the :expression:`$add` expression to add ``10`` to each element
+in the ``location.geo.coordinates`` array:
 
-   db.grades.insertMany( [
-     { quizzes: [ 5, 6, 7 ] },
-     { quizzes: [ ] },
-     { quizzes: [ 3, 8, 9 ] }
-   ] )
+.. io-code-block::
+   :copyable: true
 
-The following aggregation operation uses :expression:`$map` with the
-:expression:`$add` expression to increment each element in the
-``quizzes`` array by ``2``.
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/map/add-to-each-element.snippet.add-to-each-element.js
+      :language: javascript
+      :category: usage example
 
-.. code-block:: javascript
-
-   db.grades.aggregate( [
-      {
-         $project: {
-            adjustedGrades: {
-              $map: {
-                input: "$quizzes",
-                as: "grade",
-                in: { $add: [ "$$grade", 2 ] }
-              }
-            }
-         }
-      }
-    ] )
-
-This operation returns the following results:
-
-.. code-block:: javascript
-   :copyable: false
-
-   [
-     {
-       _id: ObjectId("6390b8f7237da390c6869a62"),
-       adjustedGrades: [ 7, 8, 9 ]
-     },
-     { 
-       _id: ObjectId("6390b8f7237da390c6869a63"),
-       adjustedGrades: []
-     },
-     {
-       _id: ObjectId("6390b8f7237da390c6869a64"),
-       adjustedGrades: [ 5, 10, 11 ]
-     }
-   ]
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/map/add-to-each-element-output.sh
+      :language: javascript
 
 Truncate Each Array Element
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-In :binary:`~bin.mongosh`, create a sample collection named
-``deliveries`` with the following documents:
-
-.. code-block:: javascript
-
-   db.deliveries.insertMany( [
-     {
-       "city" : "Bakersfield",
-       "distances" : [ 34.57, 81.96, 44.24 ]
-     },
-     {
-       "city" : "Barstow", 
-       "distances" : [ 73.28, 9.67, 124.36 ]
-     },
-     {
-       "city" : "San Bernadino",
-       "distances" : [ 16.04, 3.25, 6.82 ]
-     }
-   ] )
-
 The following aggregation operation uses :expression:`$map` to
-:expression:`truncate <$trunc>` each element in the ``distances`` array
-to its integer.
+:expression:`truncate <$trunc>` each element in the
+``location.geo.coordinates`` array to its integer:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.deliveries.aggregate( [
-      {
-         $project: {
-            city: "$city",
-            integerValues: {
-               $map: {
-                  input: "$distances",
-                  as: "decimalValue",
-                  in: { $trunc: "$$decimalValue" }
-               }
-            }
-         }
-      }
-    ] )
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/map/truncate-each-element.snippet.truncate-each-element.js
+      :language: javascript
+      :category: usage example
 
-This operation returns the following results:
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/map/truncate-each-element-output.sh
+      :language: javascript
 
-.. code-block:: javascript
-   :copyable: false
-
-   [
-     {
-       _id: ObjectId("6390b9b1237da390c6869a65"),
-       city: 'Bakersfield',
-       integerValues: [ 34, 81, 44 ]
-     },
-     {
-       _id: ObjectId("6390b9b1237da390c6869a66"),
-       city: 'Barstow',
-       integerValues: [ 73, 9, 124 ]
-     },
-     {
-       _id: ObjectId("6390b9b1237da390c6869a67"),
-       city: 'San Bernadino',
-       integerValues: [ 16, 3, 6 ]
-     }
-   ]
-
-Convert Celsius Temperatures to Fahrenheit
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-In :binary:`~bin.mongosh`, create a sample collection named
-``temperatures`` with the following documents:
-
-.. code-block:: javascript
-
-   db.temperatures.insertMany( [
-     { 
-       "date" : ISODate("2019-06-23"),
-       "tempsC" : [ 4, 12, 17 ]
-     },
-     {
-       "date" : ISODate("2019-07-07"),
-       "tempsC" : [ 14, 24, 11 ]
-     },
-     {
-       "date" : ISODate("2019-10-30"),
-       "tempsC" : [ 18, 6, 8 ]
-     }
-   ] )
+Apply Arithmetic Operators to Each Array Element
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following aggregation operation uses the :pipeline:`$addFields`
-stage to add a new field to the documents called ``tempsF`` which
-contains Fahrenheit equivalents of the elements in the ``tempsC``
-array. To convert from Celsius to Fahrenheit, the operation uses
-:expression:`$map` to :expression:`$multiply` the Celsius
-values by ``9/5`` and then :expression:`$add` ``32``.
+stage to add a new ``genreScores`` field. The operation uses
+:expression:`$map` to apply :expression:`$multiply` and
+:expression:`$add` to each element in the ``genres`` array,
+computing a score based on the character count of each genre name:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.temperatures.aggregate( [
-     { 
-        $addFields: {
-           "tempsF": {
-              $map: {
-                 input: "$tempsC",
-                 as: "tempInCelsius",
-                 in: {
-                    $add: [ { $multiply: [ "$$tempInCelsius", 9/5 ] }, 32 ]
-                 }
-              }
-            }
-        }
-      }
-  ] )
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/map/arithmetic-operators.snippet.arithmetic-operators.js
+      :language: javascript
+      :category: usage example
 
-This operation returns the following results:
-
-.. code-block:: javascript
-   :copyable: false
-
-   [
-     {
-       _id: ObjectId("6390ba11237da390c6869a68"),
-       date: ISODate("2019-06-23T00:00:00.000Z"),
-       tempsC: [ 4, 12, 17 ],
-       tempsF: [ 39.2, 53.6, 62.6 ]
-     },
-     {
-       _id: ObjectId("6390ba11237da390c6869a69"),
-       date: ISODate("2019-07-07T00:00:00.000Z"),
-       tempsC: [ 14, 24, 11 ],
-       tempsF: [ 57.2, 75.2, 51.8 ]
-     },
-     {
-       _id: ObjectId("6390ba11237da390c6869a6a"),
-       date: ISODate("2019-10-30T00:00:00.000Z"),
-       tempsC: [ 18, 6, 8 ],
-       tempsF: [ 64.4, 42.8, 46.4 ]
-     }
-   ]
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/map/arithmetic-operators-output.sh
+      :language: javascript
 
 .. _map-index-example:
 
 Access the Index of Each Item in an Array
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/people-collection.rst
+The ``genres`` field in the ``movies`` collection contains an array
+of genre names for each movie.
 
-The following example uses ``arrayIndexAs``. The ``myIndex`` variable
-has the index of each hobby in the ``hobbies`` array. The example
-returns documents with these fields:
+The following example uses ``arrayIndexAs``. The ``myIndex``
+variable has the index of each genre in the ``genres`` array.
+The example returns documents with these fields:
 
-- Person name.
-- Hobby name.
-- Position of the hobby in the list of hobbies in the ``rank`` field.
-- ``isPrimary`` boolean that is ``true`` for the first hobby in the
-  list, and ``false`` for the other hobbies.
+- Movie title.
+- Genre name.
+- Position of the genre in the ``genres`` array in the ``rank``
+  field.
+- ``isPrimary`` boolean that is ``true`` for the first genre in
+  the array, and ``false`` for the other genres.
 
-.. code-block:: javascript
-   :emphasize-lines: 10, 13, 14
+.. io-code-block::
+   :copyable: true
 
-   db.people.aggregate( [
-      {
-         $project: {
-            _id: 0,
-            name: 1,
-            rankedHobbies: {
-               $map: {
-                  input: "$hobbies",
-                  as: "hobby",
-                  arrayIndexAs: "myIndex",
-                  in: {
-                     hobby: "$$hobby",
-                     rank: { $add: [ "$$myIndex", 1 ] },
-                     isPrimary: { $eq: [ "$$myIndex", 0 ] }
-                  }
-               }
-            }
-         }
-      }
-   ] )
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/map/array-index-as.snippet.array-index-as.js
+      :language: javascript
+      :category: usage example
+      :emphasize-lines: 13, 16, 17
 
-Output:
-
-.. include:: /includes/map-index-example-output.rst
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/map/array-index-as-output.sh
+      :language: javascript
 
 .. _map-IDX-example:
 
@@ -340,37 +185,26 @@ Use ``$$IDX`` to Access the Index
 
 .. include:: /includes/IDX-use.rst
 
-The following example returns the same documents as the previous example
-in :ref:`map-index-example`, but uses ``$$IDX`` instead of
+The following example returns the same documents as the previous
+example in :ref:`map-index-example`, but uses ``$$IDX`` instead of
 ``arrayIndexAs``:
 
-.. code-block:: javascript
-   :emphasize-lines: 12, 13
+.. io-code-block::
+   :copyable: true
 
-   db.people.aggregate( [
-      {
-         $project: {
-            _id: 0,
-            name: 1,
-            rankedHobbies: {
-               $map: {
-                  input: "$hobbies",
-                  as: "hobby",
-                  in: {
-                     hobby: "$$hobby",
-                     rank: { $add: [ "$$IDX", 1 ] },
-                     isPrimary: { $eq: [ "$$IDX", 0 ] }
-                  }
-               }
-            }
-         }
-      }
-   ] )
+   .. input:: /code-examples/tested/command-line/mongosh/aggregation/expressions/map/idx-variable.snippet.idx-variable.js
+      :language: javascript
+      :category: usage example
+      :emphasize-lines: 15, 16
+
+   .. output:: /code-examples/tested/command-line/mongosh/aggregation/expressions/map/idx-variable-output.sh
+      :language: javascript
 
 Learn More
 ----------
 To learn more about expressions used in the previous examples, see:
 
 - :expression:`$add`
-- :expression:`$let`
 - :expression:`$multiply`
+- :expression:`$trunc`
+- :expression:`$strLenCP`
