@@ -30,7 +30,7 @@ export async function handleAllBlobUploads({
 }): Promise<void> {
   const dirNameToPrefix = getDirNameToPrefix(allContentData);
   const stats: UploadStats = {
-    counters: { uploaded: 0, skipped: 0, timestamped: 0 },
+    counters: { uploaded: 0, skipped: 0 },
     failedUploads: [],
     uploadedKeys: [],
     failuresByCode: {},
@@ -54,7 +54,7 @@ export async function handleAllBlobUploads({
 
   const { counters, failedUploads, uploadedKeys, failuresByCode } = stats;
   console.log(
-    `[blob upload] ${counters.uploaded} uploaded, ${counters.skipped} skipped (unchanged), ${counters.timestamped} re-uploaded (missing timestamp), ${failedUploads.length} failed`,
+    `[blob upload] ${counters.uploaded} uploaded, ${counters.skipped} skipped (unchanged), ${failedUploads.length} failed`,
   );
   if (uploadedKeys.length > 0) {
     console.log(
@@ -69,7 +69,7 @@ export async function handleAllBlobUploads({
   }
 }
 
-type Counters = { uploaded: number; skipped: number; timestamped: number };
+type Counters = { uploaded: number; skipped: number };
 type UploadStats = {
   counters: Counters;
   failedUploads: string[];
@@ -115,51 +115,19 @@ const processFile = async ({
 
   if (!branchStore) {
     // On main, only the production store exists.
-    const { hash, uploadedAt } = await getStoredMetadata(key, productionStore);
-    if (
-      await checkFileHashEquality({
-        storedHash: hash,
-        uploadedAt,
-        store: productionStore,
-        key,
-        uploadContent,
-        localHash,
-        counters: stats.counters,
-      })
-    )
+    const { hash } = await getStoredMetadata(key, productionStore);
+    if (checkFileHashEquality({ storedHash: hash, localHash, counters: stats.counters }))
       return;
   } else {
     // On a branch, check branch store first, then fall back to production.
-    const { hash: branchHash, uploadedAt: branchUploadedAt } =
-      await getStoredMetadata(key, branchStore);
-    if (
-      await checkFileHashEquality({
-        storedHash: branchHash,
-        uploadedAt: branchUploadedAt,
-        store: branchStore,
-        key,
-        uploadContent,
-        localHash,
-        counters: stats.counters,
-      })
-    )
+    const { hash: branchHash } = await getStoredMetadata(key, branchStore);
+    if (checkFileHashEquality({ storedHash: branchHash, localHash, counters: stats.counters }))
       return;
 
     // If the blob isn't in the branch store yet, check if prod already has it.
     if (branchHash === null) {
-      const { hash: prodHash, uploadedAt: prodUploadedAt } =
-        await getStoredMetadata(key, productionStore);
-      if (
-        await checkFileHashEquality({
-          storedHash: prodHash,
-          uploadedAt: prodUploadedAt,
-          store: productionStore,
-          key,
-          uploadContent,
-          localHash,
-          counters: stats.counters,
-        })
-      )
+      const { hash: prodHash } = await getStoredMetadata(key, productionStore);
+      if (checkFileHashEquality({ storedHash: prodHash, localHash, counters: stats.counters }))
         return;
     }
   }
