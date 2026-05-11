@@ -34,6 +34,11 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: 'AML Network Analysis',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/aml-network-analysis',
+          },
+          {
             label: 'Card Fraud Solution',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/card-fraud-solution',

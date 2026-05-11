@@ -1,0 +1,542 @@
+.. _arch-center-is-aml-network-analysis:
+
+=======================================
+AML Network Analysis with $graphLookup
+=======================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta:: 
+   :keywords: Fincrime, mitigation, AML, anti-money laundering, Atlas
+   :description: Build Anti-Money Laundering network analysis with MongoDB $graphLookup for multi-hop graph traversal, shortest-path detection, centrality scoring, and risk propagation in a single database.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+**Use cases:** `Single View <https://www.mongodb.com/solutions/use-cases/single-view>`__
+
+**Industries:** `Financial Services
+<https://www.mongodb.com/industries/financial-services>`__
+
+**Products:** `MongoDB Atlas <http://mongodb.com/atlas>`__
+
+
+Solution Overview
+------------------
+
+Financial criminals operate in networks. Money laundering, fraud rings,
+and sanctions evasion rely on webs of shell companies, proxy directors,
+and layered transaction paths. Compliance teams need to map and analyze
+the relationship network around a suspect entity.
+
+Traditional approaches run into two bottlenecks:
+
+- **Expensive queries**: Relational databases use recursive Common Table
+  Expressions (CTEs). These queries become expensive beyond two or three
+  hops.
+
+- **Constant network round-trips**: Client-side graph processing pulls
+  data into the application layer. The client runs a new query for each
+  hop.
+
+In this solution, you:
+
+- Build a network analysis engine that uses MongoDB operators to avoid
+  these bottlenecks.
+
+- Run multi-hop graph traversal, shortest-path detection, centrality
+  scoring, community detection, and risk propagation directly inside
+  MongoDB’s aggregation framework.
+
+This solution focuses on the network analysis engine and the MongoDB operators that power it. 
+To implement the overall architecture with MongoDB Atlas, FastAPI, and
+Next.js, also follow the previous Solutions Library, `Financial Crime
+Mitigation
+<https://www.mongodb.com/docs/atlas/architecture/current/solutions-library/fincrime-mitigation/>`__.
+
+
+Why MongoDB Instead of a Dedicated Graph Database?
+``````````````````````````````````````````````````
+
+- Store entities and relationships in MongoDB alongside search indexes,
+  vector embeddings, and change streams.
+
+- Avoid synchronizing data between two systems, managing extra
+  infrastructure, and incurring cross-system latency because you keep
+  graph workloads in MongoDB.
+
+- Use MongoDB’s ``$graphLookup`` operator to run breadth-first search with
+  standard indexed queries at each hop, so performance depends on your
+  indexes instead of a separate graph engine.
+
+- For the 1-to-5-hop traversals common in compliance investigations,
+  this approach matches dedicated graph databases while querying the same
+  data your application already reads and writes.
+
+.. note:: 
+
+    In compliance investigations, you typically trace a few steps out
+    from a subject. Immediate counterparties and first-layer
+    intermediaries sit 1–2 hops away, while shell structures and
+    money-movement paths usually fall within 3–5 hops. Beyond that,
+    links grow less meaningful and harder to explain, so most practical
+    investigations stay in this 1–5-hop range.
+
+
+Reference Architectures
+------------------------
+
+The network analysis engine sits between the FastAPI service layer and
+MongoDB Atlas and processes graph operations through the aggregation
+pipeline.
+
+
+.. figure:: /includes/images/industry-solutions/aml-network-analysis-architecture.svg
+   :figwidth: 1200px
+   :alt: Agentic Investigation Pipeline
+
+   Figure 1. Agentic Investigation Pipeline
+
+
+**Dual** ``$graphLookup`` **Pattern**
+
+Money laundering networks involve bidirectional flows. An entity can
+source funds in one relationship and receive them in another.
+
+A single ``$graphLookup`` traverses edges in one direction only. This
+solution executes two parallel lookups — forward and reverse — and
+merges the results into a unified network graph.
+
+.. code-block:: python
+
+   pipeline = [
+       {"$match": {"entityId": center_entity_id}},
+   
+       # Forward traversal: follow source → target edges
+       {"$graphLookup": {
+           "from": "relationships",
+           "startWith": "$entityId",
+           "connectFromField": "target.entityId",
+           "connectToField": "source.entityId",
+           "as": "forward_relationships",
+           "maxDepth": max_depth - 1,
+           "restrictSearchWithMatch": {
+               "active": True,
+               "confidence": {"$gte": min_confidence}
+           }
+       }},
+   
+       # Reverse traversal: follow target → source edges
+       {"$graphLookup": {
+           "from": "relationships",
+           "startWith": "$entityId",
+           "connectFromField": "source.entityId",
+           "connectToField": "target.entityId",
+           "as": "reverse_relationships",
+           "maxDepth": max_depth - 1,
+           "restrictSearchWithMatch": {
+               "active": True,
+               "confidence": {"$gte": min_confidence}
+           }
+       }},
+   
+       # Merge both directions
+       {"$project": {
+           "entityId": 1,
+           "all_relationships": {
+               "$concatArrays": [
+                   "$forward_relationships",
+                   "$reverse_relationships"
+               ]
+           }
+       }},
+   
+       {"$unwind": "$all_relationships"},
+       {"$replaceRoot": {"newRoot": "$all_relationships"}},
+       {"$limit": max_relationships}
+   ]
+   
+
+.. figure:: /includes/images/industry-solutions/aml-dual-graphlookup.svg
+   :figwidth: 1200px
+   :alt: Dual $graphLookup — Bidirectional Network Discovery
+
+   Figure 2. Dual $graphLookup — Bidirectional Network Discovery
+
+
+The application receives the complete network graph in a single
+round-trip. Both traversals run in one aggregation pipeline, which
+removes the N+1 query problem of issuing a separate follow-up query for
+each document returned in the initial query.
+
+
+**How** ``$graphLookup`` **Traverses the Graph**
+
+``$graphLookup`` performs a breadth-first search (BFS) in discrete
+waves:
+
+- **Seed**: Evaluate ``startWith`` against the input document. Array values seed
+  the frontier simultaneously (multi-root BFS).
+
+- **Query**: Construct ``{ connectToField: { $in: [frontier_values] }}``,
+  merged with any ``restrictSearchWithMatch`` filter. Execute as a standard
+  indexed query against the from collection.
+
+- **Expand**: For each matched document not in the visited set, add it
+  to results, extract ``connectFromField`` values, and push them into the next
+  frontier.
+
+- **Repeat**: Increment depth. Return to step 2 until the frontier
+  empties or ``maxDepth`` is reached.
+
+- **Assemble**: Place all accumulated documents into an array under the
+  as field.
+
+Cycle detection is automatic. An internal visited set prevents infinite
+loops in cyclic graphs (A → B → C → A), which are common in money
+laundering structures. Each document appears in results exactly once.
+
+**The** ``restrictSearchWithMatch`` **Advantage**
+
+``restrictSearchWithMatch`` pushes filter criteria into the traversal
+itself, not as a post-filter. MongoDB prunes dead branches during
+traversal rather than discovering the full graph and filtering
+afterward. For large networks, this can reduce the working set by an
+order of magnitude.
+
+
+.. figure:: /includes/images/industry-solutions/aml-restrict-search.svg
+   :figwidth: 1200px
+   :alt: Filtering During Traversal vs. Post-Filtering
+
+   Figure 3. Filtering During Traversal vs. Post-Filtering
+
+
+Data Model Approach 
+--------------------
+
+The solution uses two collections: ``entities`` and ``relationships``.
+They follow an adjacency list pattern. Edge metadata (confidence,
+evidence, verification status) lives as first-class fields on the
+relationship document.
+
+**Relationship Schema**
+
+.. code-block:: json
+
+   {
+       "relationshipId": "REL_8910",
+       "source": {
+           "entityId": "ENT_123",
+           "entityType": "individual"
+       },
+       "target": {
+           "entityId": "ENT_456",
+           "entityType": "organization"
+       },
+       "type": "beneficial_owner_of",
+       "direction": "directed",
+       "strength": 0.85,
+       "confidence": 0.95,
+       "active": true,
+       "verified": true,
+       "evidence": [
+           {
+               "evidence_type": "corporate_registry",
+               "confidence": 0.95,
+               "source": "Companies House UK"
+           }
+       ],
+       "datasource": "KYC_onboarding"
+   }
+
+Key Design Decisions
+`````````````````````
+
+- **Nested source/target references**: The ``source.entityId`` and
+  ``target.entityId`` structure maps directly to ``$graphLookup``'s
+  ``connectFromField`` and ``connectToField`` parameters. It also
+  preserves entity type metadata at the edge level without requiring a
+  join.
+
+- **Separate** ``strength`` **and** ``confidence`` **fields**: Strength captures how
+  inherently strong the relationship is like a UBO holding 90% ownership
+  versus a distant business associate. Confidence captures trust in the
+  data point verified by two independent sources versus inferred from a
+  shared address. Risk propagation uses both values differently.
+
+- ``active`` **boolean for soft-delete**: AML systems require audit trails.
+  Delete a relationship by setting ``active: false`` rather than removing
+  the document. This flag also serves as a traversal filter in
+  ``restrictSearchWithMatch``.
+
+
+Build the Solution
+-------------------
+
+Clone the repository and follow the setup instructions in the `GitHub
+README
+<https://github.com/mongodb-industry-solutions/fsi-aml-fraud-detection>`__:
+
+
+.. code-block:: bash
+
+   git clone https://github.com/mongodb-industry-solutions/fsi-aml-fraud-detection.git
+   cd fsi-aml-fraud-detection/aml-backend
+   poetry install
+   poetry run uvicorn main:app --host 0.0.0.0 --port 8001 --reload
+
+The following subsections walk through the six core graph operations
+implemented in the ``NetworkRepository``.
+
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create Required Indexes
+
+      - ``$graphLookup`` issues a ``{ connectToField: { $in: [frontier] } }`` query at
+        every BFS wave. Index ``connectToField`` on both traversal directions:
+
+      .. code-block:: javascript
+      
+         db.relationships.createIndex({
+             "source.entityId": 1,
+             "active": 1,
+             "confidence": -1
+         });
+         db.relationships.createIndex({
+             "target.entityId": 1,
+             "active": 1,
+             "confidence": -1
+         });
+
+      Index advantage is strongest at 1–3 hops and diminishes as depth
+      increases. The 1-to-4-hop traversals in AML investigations sit squarely
+      in the sweet spot.
+
+
+   .. step:: Build Entity Networks (Dual ``$graphLookup``)
+
+      - Use the dual ``$graphLookup`` pipeline described in Reference Architectures
+        to build complete bidirectional networks in a single aggregation. 
+        
+      - The ``/network/{entity_id}`` endpoint exposes this operation with configurable
+        depth, confidence threshold, and maximum node count.
+
+
+   .. step:: Find Shortest Paths (``depthField``)
+
+      - Determine whether a low-risk customer connects to a sanctioned entity —
+        and reconstruct the exact chain. 
+        
+      - Use ``depthField`` to annotate each discovered relationship with its hop distance:
+
+      .. code-block:: python
+      
+         pipeline = [
+             {"$match": {"entityId": source_entity_id}},
+             {"$graphLookup": {
+                 "from": "relationships",
+                 "startWith": "$entityId",
+                 "connectFromField": "source.entityId",
+                 "connectToField": "target.entityId",
+                 "as": "forward_paths",
+                 "maxDepth": max_depth - 1,
+                 "depthField": "depth"
+             }},
+             {"$graphLookup": {
+                 "from": "relationships",
+                 "startWith": "$entityId",
+                 "connectFromField": "target.entityId",
+                 "connectToField": "source.entityId",
+                 "as": "reverse_paths",
+                 "maxDepth": max_depth - 1,
+                 "depthField": "depth"
+             }},
+             {"$project": {
+                 "all_paths": {"$concatArrays": ["$forward_paths", "$reverse_paths"]}
+             }},
+             {"$unwind": "$all_paths"},
+             {"$match": {"$or": [
+                 {"all_paths.source.entityId": target_entity_id},
+                 {"all_paths.target.entityId": target_entity_id}
+             ]}},
+             {"$sort": {"all_paths.depth": 1}},
+             {"$limit": 1}
+         ]
+      
+      The result identifies the shortest depth. A second bounded
+      ``$graphLookup`` at that depth reconstructs the full relationship
+      chain:
+
+   .. code-block:: none
+
+      Customer A → [beneficial_owner_of] → Shell Corp B → [director_of] → Sanctioned Entity C
+
+
+   .. step:: Calculate Network Statistics (``$facet``)
+   
+      - Use ``$facet`` to run five parallel analyses on the same entity set in a
+        single pipeline — risk distribution, entity type breakdown, hub
+        detection, prominence scoring, and basic metrics:
+   
+      .. code-block:: python
+   
+         stats_pipeline = [
+             {"$match": {"entityId": {"$in": network_entity_ids}}},
+             {"$addFields": {
+                 "connection_count": {"$size": {"$ifNull": ["$connected_entities", []]}}
+             }},
+             {"$facet": {
+                 "basic_stats": [{"$group": {
+                     "_id": None,
+                     "total_nodes": {"$sum": 1},
+                     "avg_risk_score": {"$avg": "$riskAssessment.overall.score"},
+                     "max_risk_score": {"$max": "$riskAssessment.overall.score"}
+                 }}],
+                 "risk_distribution": [
+                     {"$group": {"_id": "$riskAssessment.overall.level", "count": {"$sum": 1}}},
+                     {"$sort": {"_id": 1}}
+                 ],
+                 "hub_entities": [
+                     {"$match": {"connection_count": {"$gte": 2}}},
+                     {"$sort": {"connection_count": -1}},
+                     {"$limit": 5},
+                     {"$project": {"entityId": 1, "name": 1, "connection_count": 1}}
+                 ]
+             }}
+         ]
+    
+      Without ``$facet``, each analysis requires a separate pipeline.
+      ``$facet`` processes all sub-pipelines in parallel and returns results
+      in a single response. This executes in 2–5 milliseconds.
+
+
+   .. step:: Score Centrality (``$switch`` for Domain-Specific Weighting)
+   
+      - Identify the entities that connect the most suspicious actors. 
+      
+      - The centrality pipeline uses ``$facet`` to aggregate outgoing and incoming
+        connections separately, then merges and scores. 
+        
+      - The ``$switch`` operator assigns risk weights to each relationship type directly inside the aggregation:
+   
+      .. code-block:: python
+      
+         "outgoing_risk_weighted": {
+             "$sum": {"$multiply": [
+                 "$confidence",
+                 {"$switch": {
+                     "branches": [
+                         {"case": {"$in": ["$type", [
+                             "confirmed_same_entity",
+                             "business_associate_suspected"
+                         ]]}, "then": 0.9},
+                         {"case": {"$in": ["$type", [
+                             "director_of", "ubo_of",
+                             "parent_of_subsidiary"
+                         ]]}, "then": 0.7},
+                         {"case": {"$in": ["$type", [
+                             "household_member",
+                             "professional_colleague_public"
+                         ]]}, "then": 0.3}
+                     ],
+                     "default": 0.5
+                 }}
+             ]}
+         }
+   
+      - A ``confirmed_same_entity`` connection contributes far more to risk-weighted
+        centrality than a ``household_member`` link. 
+      
+      - The final composite score blends normalized degree centrality (40%), average confidence weight
+        (30%), and risk-weighted centrality (30%) — all computed server-side.
+
+   .. step:: Detect Communities and Propagate Risk
+   
+      - Community detection builds an adjacency map via aggregation, filtering
+        on ``confidence >= 0.7`` to draw community boundaries around
+        high-confidence relationships only:
+      
+      .. code-block:: python
+      
+         adjacency_pipeline = [
+             {"$match": {
+                 "$or": [
+                     {"source.entityId": {"$in": entity_ids}},
+                     {"target.entityId": {"$in": entity_ids}}
+                 ],
+                 "active": True,
+                 "confidence": {"$gte": 0.7}
+             }},
+             {"$group": {
+                 "_id": "$source.entityId",
+                 "connections": {"$addToSet": "$target.entityId"}
+             }}
+         ]
+      
+      - ``$addToSet`` deduplicates connections automatically — two entities
+        sharing both ``shared_address`` and ``business_associate`` relationships
+        appear as a single connection.
+      
+      **Risk propagation** applies exponential decay through the relationship
+      chain after ``$graphLookup`` discovers the network:
+      
+      .. code-block:: python
+      
+         propagated_risk = (
+             parent_entity_risk
+             * propagation_factor        # decay per hop (default: 0.5)
+             * relationship_confidence   # trust level for this edge
+             * type_risk_weight          # domain-specific weight
+         )
+      
+      
+      A sanctioned entity's shell company (high confidence, high-risk
+      relationship type) receives nearly the full risk score. Their
+      accountant's social media connection receives almost nothing. The
+      traversal is breadth-first, depth-limited to 3 hops, and stops when the
+      propagated score drops below a configurable threshold.
+
+
+Key Learnings
+--------------
+
+- **Use dual** ``$graphLookup`` **for bidirectional network discovery**:
+  Run two parallel lookups, forward and reverse, and merge the results
+  with ``$concatArrays`` to capture the full network in one aggregation. 
+
+- **Push filters into the traversal with** ``restrictSearchWithMatch``:
+  Prune dead branches during BFS instead of filtering the full graph
+  afterward to reduce the working set for large networks. 
+
+- **Create compound indexes on** ``connectToField`` **and your traversal
+  filters**: ``$graphLookup`` issues a ``$match/$in`` query at every BFS
+  wave, so indexing ``connectToField`` together with ``active`` and
+  ``confidence`` prevents collection scans at each hop. 
+
+- **Compute network analytics server‑side with** ``$facet`` **and**
+  ``$switch``: Run risk distribution, hub detection, and centrality
+  scoring in parallel sub‑pipelines, and use ``$switch`` to assign
+  domain‑specific risk weights to relationship types inside the
+  aggregation. 
+
+- **Apply exponential decay for risk propagation**: Combine
+  ``$graphLookup``-based network discovery with a per‑hop decay formula
+  that includes relationship confidence and type so the model
+  automatically distinguishes high‑risk structural connections from
+  low‑risk social links. This matches the guideline to keep key learnings
+  in a consistent imperative style.
+
+Authors 
+-------
+
+- Luis Pazmiño 
+- Mehar Grewal 
+- Andrea Alaman Calderon
