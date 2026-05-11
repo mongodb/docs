@@ -19,7 +19,8 @@ Apply the relevant section below based on where you're working.
 ./lint-docs.sh seo <files>          # SEO linter (titles, descriptions, headings)
 ./lint-docs.sh 404 <files>           # Broken link checker
 ./lint-docs.sh findability <files>   # Facets, keyword hints, docs URL trailing slashes
-./lint-docs.sh all <files>           # SEO + 404 + findability
+./lint-docs.sh vale <files>          # Vale prose linter (requires Vale installed)
+./lint-docs.sh all <files>           # SEO + 404 + findability + Vale prose
 ```
 
 **Code example tests (run from code-example-tests/<language>/):**
@@ -92,6 +93,7 @@ When stopping to ask the user for clarification or confirmation, state the block
 A task is complete when:
 - All requested changes have been made to the specified files only.
 - ``./lint-docs.sh all`` has been run across all edited files and returns no errors. Surface any unresolvable errors to the user and wait for input before proceeding.
+- Vale suggestions and warnings shown in PostToolUse hook output or in ``./lint-docs.sh all`` output have been reviewed and addressed where applicable. Surface any Vale findings that cannot be resolved to the user before proceeding.
 - A summary of every change made, including file path, has been provided to the user.
 - The user has been asked whether they are ready to commit and push.
 

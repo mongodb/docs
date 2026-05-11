@@ -62,17 +62,17 @@ jobs:
         continue-on-error: true  # Warn only, don't fail the PR
         run: |
           echo "🔗 Running 404 linter..."
-          
+
           # Install lychee
           echo "Installing lychee..."
           curl -sLO https://github.com/lycheeverse/lychee/releases/download/v0.18.0/lychee-x86_64-unknown-linux-gnu.tar.gz
           tar -xzf lychee-x86_64-unknown-linux-gnu.tar.gz
           chmod +x lychee
           sudo mv lychee /usr/local/bin/
-          
+
           FILES=$(cat /tmp/changed-files.txt)
           npx tsx .github/lint-docs/404-lint-cli.ts $FILES
-      
+
       - name: Fetch synonyms file
         run: |
           curl -fsSL "https://raw.githubusercontent.com/mongodb/docs-search-transport/main/resources/synonyms.csv" \
@@ -89,7 +89,28 @@ jobs:
             SYNONYMS_FLAG="--synonyms /tmp/synonyms.csv"
           fi
           npx tsx .github/lint-docs/findability-lint-cli.ts $SYNONYMS_FLAG $FILES
-      
+
+      - name: Run Vale Linter
+        if: steps.changed-files.outputs.has_files == 'true'
+        continue-on-error: true  # Warn only, don't fail the PR
+        run: |
+          echo "📝 Running Vale prose linter..."
+
+          # Install Vale and its RST dependency
+          curl -sLO https://github.com/errata-ai/vale/releases/download/v3.4.1/vale_3.4.1_Linux_64-bit.tar.gz
+          tar -xzf vale_3.4.1_Linux_64-bit.tar.gz
+          chmod +x vale
+          sudo mv vale /usr/local/bin/
+          pip install docutils --quiet
+
+          # Vale only runs on RST/TXT files
+          VALE_FILES=$(cat /tmp/changed-files.txt | tr ' ' '\n' | grep -E '\.(txt|rst)$' | tr '\n' ' ' || true)
+          if [ -n "$VALE_FILES" ]; then
+            vale --config vale.ini --output=line $VALE_FILES
+          else
+            echo "No RST/TXT files changed, skipping Vale."
+          fi
+
       - name: Summary
         if: always()
         run: |
@@ -100,5 +121,6 @@ jobs:
           echo "- **SEO Linter**: Checks titles, meta descriptions, headings, images" >> $GITHUB_STEP_SUMMARY
           echo "- **404 Linter**: Checks for broken external links" >> $GITHUB_STEP_SUMMARY
           echo "- **Findability Linter**: Facet names/values, keyword-in-synonyms hints, MongoDB URL trailing slashes" >> $GITHUB_STEP_SUMMARY
+          echo "- **Vale**: Checks prose against the MongoDB style guide" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "⚠️ These are warnings only and do not block the PR." >> $GITHUB_STEP_SUMMARY

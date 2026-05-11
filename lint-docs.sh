@@ -48,6 +48,14 @@ case "$CMD" in
   findability|find)
     npx tsx "$LINT_DIR/findability-lint-cli.ts" "$@"
     ;;
+  vale)
+    if ! command -v vale &> /dev/null; then
+      echo "❌ Vale is required but not installed."
+      echo "   Install: https://vale.sh/docs/vale-cli/installation/"
+      exit 1
+    fi
+    vale --config "$REPO_ROOT/vale.ini" --minAlertLevel suggestion "$@"
+    ;;
   all|both)
     echo "=== SEO Linter ==="
     npx tsx "$LINT_DIR/seo-lint-cli.ts" "$@"
@@ -57,6 +65,13 @@ case "$CMD" in
     echo ""
     echo "=== Findability Linter ==="
     npx tsx "$LINT_DIR/findability-lint-cli.ts" "$@"
+    echo ""
+    echo "=== Vale Prose Linter ==="
+    if command -v vale &> /dev/null; then
+      vale --config "$REPO_ROOT/vale.ini" --minAlertLevel suggestion "$@"
+    else
+      echo "⚠️  Vale is not installed. Skipping prose lint. Install: https://vale.sh/docs/vale-cli/installation/"
+    fi
     ;;
   help|--help|-h)
     echo "Documentation Linters"
@@ -68,12 +83,14 @@ case "$CMD" in
     echo "  404          Run broken link checker"
     echo "  redirects    Run circular redirect checker"
     echo "  findability  Run findability linter (facets, keywords, docs URLs)"
-    echo "  all          Run SEO + 404 + findability linters"
+    echo "  vale         Run Vale prose linter (requires Vale installed)"
+    echo "  all          Run SEO + 404 + findability + Vale prose linters"
     echo ""
     echo "Examples:"
     echo "  ./lint-docs.sh seo content/manual/source/intro.txt"
     echo "  ./lint-docs.sh 404 content/atlas/source/*.txt"
     echo "  ./lint-docs.sh redirects content/atlas/netlify.toml"
+    echo "  ./lint-docs.sh vale content/atlas/source/my-page.txt"
     echo "  ./lint-docs.sh all my-file.rst another-file.md"
     ;;
   *)
