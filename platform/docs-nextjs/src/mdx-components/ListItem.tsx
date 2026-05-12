@@ -1,3 +1,5 @@
+'use client';
+
 import { cx, css } from '@leafygreen-ui/emotion';
 
 const listItemStyles = css`
