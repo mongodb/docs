@@ -1,150 +1,125 @@
-.. tabs-platforms::
+Select your operating system and architecture to view the
+installation procedure.
 
-   .. tab::
-      :tabid: windows
+.. composable-tutorial::
+   :options: operating-system-om, arch-ubuntu, arch-rhel, rhel-version, package-rhel, package-rhel-ppc, package-rhel-arm64
+   :defaults: ubuntu, intel, None, None, rpm, None, None
 
-      Use this procedure to install the {+mdbagent+} on x86_64
-      architecture running Microsoft Windows:
+   .. selected-content::
+      :selections: windows, None, None, None, None, None, None
+
+      Use this procedure to install the {+mdbagent+} on
+      x86_64 architecture running Microsoft Windows:
 
       .. include:: /includes/steps/install-mongodb-agent-manage-on-windows.rst
 
-   .. tab::
-      :tabid: debian
+   .. selected-content::
+      :selections: ubuntu, intel, None, None, None, None, None
 
-      Use this procedure to install the {+mdbagent+}:
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-      .. tabs::
+      On x86_64 architecture running Debian 11/12 or Ubuntu
+      22.04/24.04:
 
-         .. tab:: Intel/AMD
-            :tabid: x86
+      .. include:: /includes/steps/install-mongodb-agent-manage-amd64.ubuntu1604-deb.rst
 
-            .. include:: /includes/agents/binaries-removed-from-path.rst
+   .. selected-content::
+      :selections: ubuntu, intel, None, None, rpm, None, None
 
-            On x86_64 architecture running Debian 11/12 or Ubuntu 22.04/24.04:
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-            .. include:: /includes/steps/install-mongodb-agent-manage-amd64.ubuntu1604-deb.rst
+      On x86_64 architecture running Debian 11/12 or Ubuntu
+      22.04/24.04:
 
-         .. tab:: ARM64
-            :tabid: ARM64
+      .. include:: /includes/steps/install-mongodb-agent-manage-amd64.ubuntu1604-deb.rst
 
-            .. include:: /includes/agents/binaries-removed-from-path.rst
+   .. selected-content::
+      :selections: ubuntu, arm64, None, None, None, None, None
 
-            On ARM64 architecture running Ubuntu 22.04/24.04:
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-            .. include:: /includes/steps/install-mongodb-agent-manage-arm64.ubuntu2004.rst
+      On ARM64 architecture running Ubuntu 22.04/24.04:
 
-   .. tab::
-      :tabid: rhel
+      .. include:: /includes/steps/install-mongodb-agent-manage-arm64.ubuntu2004.rst
 
-      Use this procedure to install the {+mdbagent+}:
+   .. selected-content::
+      :selections: rhel, None, intel, v6, None, None, None
 
-      .. tabs::
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-         .. tab:: Intel/AMD
-            :tabid: x86
+      Running Amazon Linux using an ``rpm`` package:
 
-            On x86_64 architecture:
+      .. include:: /includes/steps/install-mongodb-agent-manage-x86-64-rpm.rst
 
-            .. tabs::
+   .. selected-content::
+      :selections: rhel, None, intel, v7, rpm, None, None
 
-               .. tab:: Amazon Linux
-                  :tabid: v6
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-                  .. include:: /includes/agents/binaries-removed-from-path.rst
+      For RHEL (7.x, 8.x, or 9.x) or CentOS (7.x, 8.x, or
+      9.x), SUSE12, SUSE15, Amazon Linux 2, or Amazon Linux
+      2023, using an ``rpm`` package:
 
-                  Running Amazon Linux using an ``rpm`` package:
+      .. include:: /includes/steps/install-mongodb-agent-manage-x86-64.rhel7-rpm.rst
 
-                  .. include:: /includes/steps/install-mongodb-agent-manage-x86-64-rpm.rst
-                        
-               .. tab:: RHEL/CentOS, SUSE, Amazon Linux 2
-                  :tabid: v7
+   .. selected-content::
+      :selections: rhel, None, intel, v7, tar, None, None
 
-                  Running RHEL (7.x, 8.x, or 9.x) or CentOS (7.x, 
-                  8.x or 9.x), SUSE12, SUSE15, Amazon Linux 2, Amazon Linux 2023:
+      For RHEL (7.x, 8.x, or 9.x) or CentOS (7.x, 8.x, or
+      9.x), SUSE12, SUSE15, Amazon Linux 2, or Amazon Linux
+      2023, using a ``tar`` archive:
 
-                  .. tabs::
+      .. include:: /includes/steps/install-mongodb-agent-manage-rhel7-x86-64-tar.rst
 
-                     .. tab:: RPM package
-                        :tabid: rpm
+   .. selected-content::
+      :selections: rhel, None, powerpc, None, None, rpm, None
 
-                        .. include:: /includes/agents/binaries-removed-from-path.rst
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-                        Using an ``rpm`` package:
+      On RHEL / CentOS (7.x) on PowerPC architecture (managing
+      MongoDB 3.4 or later deployments) using an ``rpm`` package:
 
-                        .. include:: /includes/steps/install-mongodb-agent-manage-x86-64.rhel7-rpm.rst
+      .. include:: /includes/steps/install-mongodb-agent-manage-ppc641e.rhel7-rpm.rst
 
-                     .. tab:: TAR archive
-                        :tabid: tar
+   .. selected-content::
+      :selections: rhel, None, powerpc, None, None, tar, None
 
-                        Using a ``tar`` archive:
+      On RHEL / CentOS (7.x) on PowerPC architecture (managing
+      MongoDB 3.4 or later deployments) using a ``tar`` archive:
 
-                        .. include:: /includes/steps/install-mongodb-agent-manage-rhel7-x86-64-tar.rst
+      .. include:: /includes/steps/install-mongodb-agent-manage-rhel7-ppc64le-tar.rst
 
-         .. tab:: PowerPC
-            :tabid: ppc
+   .. selected-content::
+      :selections: rhel, None, ibm, None, None, None, None
 
-            On RHEL / CentOS (7.x) on PowerPC architecture
-            (managing MongoDB 3.4 or later deployments):
+      On zSeries architecture (managing MongoDB 4.4 or later
+      deployments) running RHEL (7.x, 8.x, or 9.x) or CentOS
+      (7.x or 8.x) using the ``rpm`` package manager:
 
-            .. tabs::
+      .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-rpm.rst
 
-               .. tab:: RPM package
-                  :tabid: rpm
+   .. selected-content::
+      :selections: rhel, None, arm64, None, None, None, rpm
 
-                  .. include:: /includes/agents/binaries-removed-from-path.rst
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-                  Using an ``rpm`` package:
+      Running RHEL (8.x or 9.x) or Amazon Linux 2 on ARM64
+      architecture using the ``rpm`` package manager:
 
-                  .. include:: /includes/steps/install-mongodb-agent-manage-ppc641e.rhel7-rpm.rst
+      .. include:: /includes/steps/install-mongodb-agent-manage-arm64.rhel8-rpm.rst
 
-               .. tab:: TAR archive
-                  :tabid: tar
+   .. selected-content::
+      :selections: rhel, None, arm64, None, None, None, tar
 
-                  Using a ``tar`` archive:
+      On ARM64 architecture running RHEL (8.x or 9.x) or Amazon
+      Linux 2 using a ``tar`` archive:
 
-                  .. include:: /includes/steps/install-mongodb-agent-manage-rhel7-ppc64le-tar.rst
+      .. include:: /includes/steps/install-mongodb-agent-manage-rhel8-arm64-tar.rst
 
-         .. tab:: IBM ZSeries
-            :tabid: s390x
+   .. selected-content::
+      :selections: linux, None, None, None, None, None, None
 
-            On zSeries architecture (managing MongoDB 4.4 or
-            later deployments):
-
-            Running RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x) 
-            using the ``rpm`` package manager:
-
-            .. include:: /includes/steps/install-mongodb-agent-manage-s390x.rhel7-rpm.rst
-
-         .. tab:: ARM64
-            :tabid: arm64
-
-            On ARM64 architecture running RHEL (8.x or 9.x) or Amazon 
-            Linux 2:
-
-            .. tabs::
-
-               .. tab:: RPM package
-                  :tabid: rpm
-
-                  .. include:: /includes/agents/binaries-removed-from-path.rst
-
-                  Running RHEL (8.x or 9.x) or Amazon Linux 2 using the 
-                  rpm package manager:
-
-                  .. include:: /includes/steps/install-mongodb-agent-manage-arm64.rhel8-rpm.rst
-
-               .. tab:: TAR archive
-                  :tabid: tar
-
-                  Using a ``tar`` archive:
-
-                  .. include:: /includes/steps/install-mongodb-agent-manage-rhel8-arm64-tar.rst
-   
-   .. tab::
-      :tabid: linux
-
-      Use this procedure to install Linux systems that do not use
-      ``deb`` or ``rpm`` packages.
+      Use this procedure to install on Linux systems that do not
+      use ``deb`` or ``rpm`` packages.
 
       .. include:: /includes/steps/install-mongodb-agent-manage-linux-x86-64-tar.rst
-

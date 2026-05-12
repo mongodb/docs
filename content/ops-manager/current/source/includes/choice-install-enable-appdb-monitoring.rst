@@ -1,127 +1,109 @@
-.. tabs-platforms::
+Select your Linux platform, architecture, and installation method
+to enable monitoring on an application database.
 
-   .. tab::
-      :tabid: debian
+.. composable-tutorial::
+   :options: operating-system-om, arch-ubuntu, arch-rhel, rhel-version, package-rhel, package-rhel-ppc
+   :defaults: ubuntu, intel, None, None, rpm, None
 
-      Use this procedure to enable monitoring on an application
-      database:
+   .. selected-content::
+      :selections: ubuntu, intel, None, None, None, None
 
-      .. tabs::
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-         .. tab:: Intel/AMD
-            :tabid: x86
+      On x86_64 architecture running Debian 10 or 11, and
+      Ubuntu 18.04, 20.04, 22.04, or 24.04:
 
-            .. include:: /includes/agents/binaries-removed-from-path.rst
+      .. include:: /includes/steps/monitor-appdb-on-amd64.ubuntu1604-deb.rst
 
-            On x86_64 architecture running Debian 10 or 11, and
-            Ubuntu 18.04, 20.04, 22.04, or 24.04:
+   .. selected-content::
+      :selections: ubuntu, intel, None, None, rpm, None
 
-            .. include:: /includes/steps/monitor-appdb-on-amd64.ubuntu1604-deb.rst
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-         .. tab:: IBM zSeries
-            :tabid: s390x
+      On x86_64 architecture running Debian 10 or 11, and
+      Ubuntu 18.04, 20.04, 22.04, or 24.04:
 
-            .. include:: /includes/agents/binaries-removed-from-path.rst
+      .. include:: /includes/steps/monitor-appdb-on-amd64.ubuntu1604-deb.rst
 
-            On zSeries architecture running Ubuntu 18.04 using a ``deb``
-            package:
+   .. selected-content::
+      :selections: ubuntu, ibm, None, None, None, None
 
-            .. include:: /includes/steps/monitor-appdb-on-s390x.ubuntu1804-deb.rst
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-   .. tab::
-      :tabid: rhel
+      On zSeries architecture running Ubuntu 18.04 using a ``deb``
+      package:
 
-      Use this procedure to enable monitoring on an application
-      database:
+      .. include:: /includes/steps/monitor-appdb-on-s390x.ubuntu1804-deb.rst
 
-      .. tabs::
+   .. selected-content::
+      :selections: rhel, None, intel, v6, None, None
 
-         .. tab:: Intel/AMD
-            :tabid: x86
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-            On x86_64 architecture:
+      Running RHEL / CentOS 6.x using an ``rpm`` package:
 
-            .. tabs::
+      .. include:: /includes/steps/monitor-appdb-on-x86-64-rpm.rst
 
-               .. tab:: RHEL/CentOS 6.x, Amazon Linux
-                  :tabid: v6
+   .. selected-content::
+      :selections: rhel, None, intel, v7, rpm, None
 
-                  .. include:: /includes/agents/binaries-removed-from-path.rst
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-                  Running RHEL / CentOS 6.x using an
-                  ``rpm`` package:
+      For RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x),
+      SUSE12, SUSE15, or Amazon Linux 2, using an ``rpm``
+      package:
 
-                  .. include:: /includes/steps/monitor-appdb-on-x86-64-rpm.rst
+      .. include:: /includes/steps/monitor-appdb-on-x86-64.rhel7-rpm.rst
 
-               .. tab:: RHEL/CentOS (7.X+), SUSE, Amazon Linux 2
-                  :tabid: v7
+   .. selected-content::
+      :selections: rhel, None, intel, v7, tar, None
 
-                  RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x), 
-                  SUSE12, SUSE15, or Amazon Linux 2:
+      For RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x),
+      SUSE12, SUSE15, or Amazon Linux 2, using a ``tar``
+      archive:
 
-                  .. tabs::
+      .. include:: /includes/steps/monitor-appdb-on-rhel7-x86-64-tar.rst
 
-                     .. tab:: rpm Package
-                        :tabid: rpm
+   .. selected-content::
+      :selections: rhel, None, powerpc, None, None, rpm
 
-                        .. include:: /includes/agents/binaries-removed-from-path.rst
+      On RHEL / CentOS (7.x) on PowerPC architecture (managing
+      MongoDB 3.4 or later deployments):
 
-                        Using an ``rpm`` package:
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-                        .. include:: /includes/steps/monitor-appdb-on-x86-64.rhel7-rpm.rst
+      Using an ``rpm`` package:
 
-                     .. tab:: TAR Archive
-                        :tabid: tar
+      .. include:: /includes/steps/monitor-appdb-on-ppc641e.rhel7-rpm.rst
 
-                        Using a ``tar`` archive:
+   .. selected-content::
+      :selections: rhel, None, powerpc, None, None, tar
 
-                        .. include:: /includes/steps/monitor-appdb-on-rhel7-x86-64-tar.rst
+      On RHEL / CentOS (7.x) on PowerPC architecture (managing
+      MongoDB 3.4 or later deployments):
 
-         .. tab:: PowerPC
-            :tabid: ppc
+      Using a ``tar`` archive:
 
-            On RHEL / CentOS (7.x) on PowerPC architecture (managing
-            MongoDB 3.4 or later deployments):
+      .. include:: /includes/steps/monitor-appdb-on-rhel7-ppc64le-tar.rst
 
-            .. tabs::
+   .. selected-content::
+      :selections: rhel, None, ibm, None, None, None
 
-               .. tab:: rpm Package
-                  :tabid: rpm
+      On zSeries architecture (managing MongoDB 4.4 or later
+      deployments), use RHEL (7.x, 8.x, or 9.x) or CentOS
+      (7.x or 8.x):
 
-                  .. include:: /includes/agents/binaries-removed-from-path.rst
+      .. include:: /includes/agents/binaries-removed-from-path.rst
 
-                  Using an ``rpm`` package:
+      Running RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x)
+      using the ``rpm`` package manager:
 
-                  .. include:: /includes/steps/monitor-appdb-on-ppc641e.rhel7-rpm.rst
+      .. include:: /includes/steps/monitor-appdb-on-s390x.rhel7-rpm.rst
 
-               .. tab:: TAR Archive
-                  :tabid: tar
+   .. selected-content::
+      :selections: linux, None, None, None, None, None
 
-                  Using a ``tar`` archive:
-
-                  .. include:: /includes/steps/monitor-appdb-on-rhel7-ppc64le-tar.rst
-
-         .. tab:: IBM zSeries
-            :tabid: s390x
-
-            On zSeries architecture (managing MongoDB 4.4 or later
-            deployments), use RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 
-            8.x):
-
-            .. include:: /includes/agents/binaries-removed-from-path.rst
-
-            Running RHEL (7.x, 8.x, or 9.x) or CentOS (7.x or 8.x) 
-            using the ``rpm`` package manager:
-
-            .. include:: /includes/steps/monitor-appdb-on-s390x.rhel7-rpm.rst
-
-
-   .. tab::
-      :tabid: linux
-
-      Use this procedure to install enable monitoring on an application
-      database on Linux systems that do not use ``deb`` or ``rpm``
-      packages.
+      On Linux systems that do not use ``deb`` or ``rpm``
+      packages:
 
       .. include:: /includes/steps/monitor-appdb-on-linux-x86-64-tar.rst
-
