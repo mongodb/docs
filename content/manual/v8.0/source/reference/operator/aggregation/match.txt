@@ -125,38 +125,21 @@ Examples
    .. tab::
       :tabid: shell
 
-      The examples use a collection named ``articles`` with the following
-      documents:
-
-      .. code-block:: javascript
-
-         { "_id" : ObjectId("512bc95fe835e68f199c8686"), "author" : "dave", "score" : 80, "views" : 100 }
-         { "_id" : ObjectId("512bc962e835e68f199c8687"), "author" : "dave", "score" : 85, "views" : 521 }
-         { "_id" : ObjectId("55f5a192d4bede9ac365b257"), "author" : "ahn", "score" : 60, "views" : 1000 }
-         { "_id" : ObjectId("55f5a192d4bede9ac365b258"), "author" : "li", "score" : 55, "views" : 5000 }
-         { "_id" : ObjectId("55f5a1d3d4bede9ac365b259"), "author" : "annT", "score" : 60, "views" : 50 }
-         { "_id" : ObjectId("55f5a1d3d4bede9ac365b25a"), "author" : "li", "score" : 94, "views" : 999 }
-         { "_id" : ObjectId("55f5a1d3d4bede9ac365b25b"), "author" : "ty", "score" : 95, "views" : 1000 }
+      .. include:: /includes/sample-data-usage.rst
 
       Equality Match
       ~~~~~~~~~~~~~~
 
-      The following operation uses :pipeline:`$match` to perform an equality
-      match:
+      The following operation uses :pipeline:`$match` to perform an
+      equality match on the ``rated`` field. The ``runtime`` filter
+      limits the result to a small, representative set:
 
-      .. code-block:: javascript
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/match/equality-match.snippet.equality-match.js
+         :language: javascript
+         :category: usage example
 
-         db.articles.aggregate(
-             [ { $match : { author : "dave" } } ]
-         );
-
-      The :pipeline:`$match` selects the documents where the ``author``
-      field equals ``dave``, and the aggregation returns the following:
-
-      .. code-block:: javascript
-
-         { "_id" : ObjectId("512bc95fe835e68f199c8686"), "author" : "dave", "score" : 80, "views" : 100 }
-         { "_id" : ObjectId("512bc962e835e68f199c8687"), "author" : "dave", "score" : 85, "views" : 521 }
+      The :pipeline:`$match` selects the documents where the ``rated``
+      field equals ``"TV-PG"`` and ``runtime`` is greater than ``1000``.
 
       .. _match-perform-a-count:
 
@@ -168,58 +151,37 @@ Examples
       to the :pipeline:`$group` pipeline operator to compute a count of
       the documents:
 
-      .. code-block:: javascript
+      .. io-code-block::
+         :copyable: true
 
-         db.articles.aggregate( [
-           { $match: { $or: [ { score: { $gt: 70, $lt: 90 } }, { views: { $gte: 1000 } } ] } },
-           { $group: { _id: null, count: { $sum: 1 } } }
-         ] );
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/match/count.snippet.count.js
+            :language: javascript
+            :category: usage example
 
-      In the aggregation pipeline, :pipeline:`$match` selects the documents
-      where either the ``score`` is greater than ``70`` and less than ``90``
-      or the ``views`` is greater than or equal to ``1000``. These documents
-      are then piped to the :pipeline:`$group` to perform a count. The
-      aggregation returns the following:
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/match/count-output.sh
+            :language: javascript
 
-      .. code-block:: javascript
-
-         { "_id" : null, "count" : 5 }
+      In the aggregation pipeline, :pipeline:`$match` selects the
+      documents where either the ``runtime`` is greater than ``1000``
+      or the ``year`` is earlier than ``1910``. These documents are
+      then sent to the :pipeline:`$group` to perform a count.
 
       Match Array Elements
       ~~~~~~~~~~~~~~~~~~~~
 
-      To filter documents from a collection or previous
-      aggregation stage based on elements in an array, use the
-      :query:`$elemMatch` operator in the query predicate of the
-      ``$match`` stage:
+      To filter documents based on elements in an array field,
+      use the :query:`$elemMatch` operator in the query predicate
+      of the ``$match`` stage:
 
       .. io-code-block::
+         :copyable: true
 
-         .. input::
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/match/elem-match.snippet.elem-match.js
             :language: javascript
-            :emphasize-lines: 9-11
+            :category: usage example
 
-            db.aggregate( [ 
-               { 
-                  $documents: [ 
-                     { student_id: 1, scores: [ 0.75, 0.65, 0.73 ] },
-                     { student_id: 2, scores: [ 0.9, 0.88, 0.98 ] },
-                     { student_id: 3, scores: [ 0.9, 0.84, 0.93 ] }
-                  ]
-               }, {
-                  $match: {
-                     scores: { $elemMatch: { $gte: 0.9 } } 
-                  } 
-               } 
-            ] )
-
-         .. output::
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/match/elem-match-output.sh
             :language: javascript
-
-            [
-               { student_id: 2, scores: [ 0.9, 0.88, 0.98 ] },
-               { student_id: 3, scores: [ 0.9, 0.84, 0.93 ] }
-            ]
 
    .. tab::
       :tabid: csharp
