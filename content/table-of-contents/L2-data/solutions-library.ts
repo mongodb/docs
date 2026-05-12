@@ -205,6 +205,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/insurance-image-search',
           },
           {
+            label: 'AI Insurance Underwriter',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/insurance-underwriter',
+          },          
+          {
             label: 'Build a PDF Search Application',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/pdf-search',
