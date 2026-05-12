@@ -65,16 +65,20 @@ const LightboxWrapper = styled('div')<{ figwidth: string }>`
   margin-bottom: ${theme.size.medium};
   display: block;
   max-width: 100%;
+
+  img {
+    max-height: 500px;
+  }
 `;
 
 interface LightboxProps {
   figure: ReactNode;
   caption?: string;
+  figwidth?: string;
 }
 
-export const Lightbox = ({ figure, caption }: LightboxProps) => {
+export const Lightbox = ({ figure, caption, figwidth = 'auto' }: LightboxProps) => {
   const [open, setOpen] = useState(false);
-  const figureWidth = 'auto';
   const openModal = useCallback(() => {
     reportAnalytics('Click', {
       position: 'body',
@@ -88,7 +92,7 @@ export const Lightbox = ({ figure, caption }: LightboxProps) => {
 
   return (
     <>
-      <LightboxWrapper figwidth={figureWidth}>
+      <LightboxWrapper figwidth={figwidth}>
         <div onClick={openModal} role="button" tabIndex={-1}>
           {figure}
           <Caption caption={caption} />

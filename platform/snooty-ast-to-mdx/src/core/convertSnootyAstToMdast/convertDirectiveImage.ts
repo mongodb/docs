@@ -93,12 +93,7 @@ interface GetImportPathArgs {
 }
 
 const getImportPath = ({ assetPosix }: GetImportPathArgs) => {
-  if (assetPosix.startsWith('images/')) {
-    return assetPosix;
-  } else if (assetPosix.includes('/images/')) {
-    const assetPath = assetPosix.split('images/')[1];
-    return `images/${assetPath}`;
-  } else if (!assetPosix.includes('/')) {
+  if (!assetPosix.includes('/')) {
     return `images/${assetPosix}`;
   }
   return assetPosix;

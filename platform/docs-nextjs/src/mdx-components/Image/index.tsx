@@ -13,13 +13,14 @@ const INTERNAL_IMAGE_API_PATH = '/docs/platform/api/images/';
 // Formats the image url to the api path
 const formatImageUrl = (imagePath: string) => `${INTERNAL_IMAGE_API_PATH}${imagePath}`;
 
-const figureStyle = (width?: string, height?: string) => css`
+const figureStyle = (width?: string, maxHeight?: string) => css`
   display: block;
-  max-width: 100%;
+  width: auto;
+  max-width: ${width && width !== 'auto' ? `min(${width}, 100%)` : '100%'};
+  height: auto;
+  ${maxHeight && maxHeight !== 'auto' ? `max-height: ${maxHeight};` : ''}
   margin-top: ${theme.size.medium};
   margin-bottom: ${theme.size.medium};
-  width: ${width};
-  height: ${height};
 `;
 
 const borderStyle = css`
@@ -66,7 +67,7 @@ export const Image = ({
   const imageUrl = isOfflineBuild ? `/docs/${fullPath}` : formatImageUrl(fullPath);
 
   const normalizeWidth = () => (width ?? figwidth ? `${width ?? figwidth}px` : 'auto');
-  const normalizeHeight = () => (height ? `${height}` : 'auto');
+  const normalizeHeight = () => (height ? `${height}px` : 'auto');
 
   if (lightbox) {
     return (
@@ -75,11 +76,11 @@ export const Image = ({
           <img
             src={imageUrl}
             alt={alt}
-            height="500px"
             className={cx(figureStyle(normalizeWidth(), normalizeHeight()), border ? borderStyle : '')}
           />
         }
         caption={caption}
+        figwidth={normalizeWidth()}
       />
     );
   }
