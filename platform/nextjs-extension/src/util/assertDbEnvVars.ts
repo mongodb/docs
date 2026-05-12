@@ -20,8 +20,6 @@ export type StaticEnvVars = {
   DOCUMENTS_COLLECTION: string;
   GATSBY_PARSER_USER: string;
   GIT_HASH_URL: string;
-  GITHUB_BOT_PWD: string;
-  GITHUB_BOT_USERNAME: string;
   METADATA_DB_NAME: string;
   OAS_FILES_COLLECTION: string;
   PROJECTS_COLLECTION: CollectionName;
@@ -98,8 +96,6 @@ export const getDbConfig = (): StaticEnvVars => {
     MARIAN_URL:
       (process.env.MARIAN_URL as string) ??
       'https://docs-search-transport.mongodb.com/',
-    GITHUB_BOT_PWD: process.env.GITHUB_BOT_PWD as string,
-    GITHUB_BOT_USERNAME: process.env.GITHUB_BOT_USERNAME as string,
     GITHUB_REPO_OWNER: '10gen',
     GITHUB_REPO_NAME: 'docs-mongodb-internal',
   }) as StaticEnvVars;

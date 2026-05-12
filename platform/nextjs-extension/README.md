@@ -28,7 +28,6 @@ It hooks into Netlify's build lifecycle with two hooks:
 **`onSuccess`** — post-build work:
 - Generates/uploads search manifests to S3 + Atlas
 - Handles offline documentation bundles
-- Posts GitHub PR comments with build status + preview URLs
 
 ## Architecture
 
@@ -38,7 +37,6 @@ It hooks into Netlify's build lifecycle with two hooks:
 | API | tRPC (type-safe RPC between UI and backend) |
 | UI | React + Vite, rendered as Netlify dashboard surfaces |
 | Storage | MongoDB Atlas (content), Netlify Blobs (MDX), S3 (search) |
-| GitHub | Octokit (PR comments, change detection) |
 
 ## Integration with docs-nextjs
 

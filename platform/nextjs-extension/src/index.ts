@@ -5,7 +5,6 @@ import {
 	type ConfigEnvironmentVariables,
 } from "./util/extension";
 import { updateConfig } from "./contentMetadata/config";
-import { postGitComment } from "./github/createGithubComment";
 import { findAllContentPaths } from "./contentMetadata/findContentPaths";
 import {
 	getFileChanges,
@@ -65,17 +64,6 @@ extension.addBuildEventHandler(
 			configEnvironment: netlifyConfig.build.environment,
 			dbEnvVars,
 		});
-
-		// Post initial git comment
-		if (!configEnvironment.IS_LOCAL_DEVELOPMENT) {
-			await postGitComment({
-				configEnvironment,
-				status: "building",
-				dbEnvVars,
-			});
-		} else {
-			console.log("Skipping GitHub comment for local development");
-		}
 
 		const parserVersion = await getParserVersion({
 			buildEnvironment: configEnvironment.ENV as string,
@@ -193,14 +181,6 @@ extension.addBuildEventHandler(
 	async ({ netlifyConfig, utils: { git, run } }) => {
 		const configEnvironment = netlifyConfig.build
 			.environment as ConfigEnvironmentVariables;
-		// Update GitHub comment with success status
-
-		//     await postGitComment({
-		//       configEnvironment,
-		//       status: 'success',
-		//       dbEnvVars,
-		//     });
-
 
 		const gitChangedFiles = git.modifiedFiles;
 
