@@ -19,6 +19,7 @@ import ProductLandingTemplate from '@/components/templates/product-landing';
 import type { MDXFrontmatter, PageTemplateType } from '@/types/ast';
 import Header from '@/components/header';
 import type { ServerSideChangelogData } from '@/types/openapi';
+import { getAvailableLanguages } from '@/utils/locale';
 
 type TemplateComponent = React.ComponentType<BaseTemplateProps>;
 
@@ -97,11 +98,20 @@ export const CustomTemplate = ({
 }: CustomTemplateProps) => {
   const template = (frontmatter.template || 'document') as PageTemplateType;
   const { Template, renderSidenav } = getTemplate(template);
-  // TODO-NEXT-ATLAS
-  // TODO: Temporary fix — prepend 'docs/' so the slug matches TOC node URLs (which use the
-  // 'docs/<project>/...' format). The MDX route's URL params don't include the 'docs/' segment.
-  // This does not handle language-prefixed paths (e.g. zh-cn/atlas/...) — track in DOP-6XX.
-  const slug = `docs/${path.join('/')}`;
+  // Prepend 'docs/' so the slug matches TOC node URLs (which use the 'docs/<project>/...' format).
+  // The MDX route's URL params don't include the 'docs/' segment.
+  // Strip locale prefix if present (e.g. ['zh-cn', 'atlas', '...']) — Smartling-translated pages
+  // can trigger a client-side RSC re-fetch with the locale code as the first path segment.
+  const localeSet = new Set<string>(getAvailableLanguages(true).map((l) => l.localeCode));
+  let slugPath = path;
+  if (localeSet.has(path[0])) {
+    slugPath = path.slice(1);
+    // CDN rewrites can leave 'docs' as the next segment (e.g. ['ko-kr','docs','atlas','...'])
+    if (slugPath[0] === 'docs') {
+      slugPath = slugPath.slice(1);
+    }
+  }
+  const slug = `docs/${slugPath.join('/')}`;
   const pageOptions = {
     template,
     ...(frontmatter.options || {}),

@@ -5,12 +5,13 @@ import headingStyles from './header.module.scss';
 import SiteBanner from '@/components/banner/site-banner';
 import { cx } from '@leafygreen-ui/emotion';
 import { useSiteBanner } from '@/components/banner/site-banner/banner-context';
+import { useLocale, type NavLocale } from '@/context/locale';
 
 const Header = ({ eol = false }: { eol?: boolean }) => {
   const unifiedNavProperty = 'DOCS';
   const { hasBanner } = useSiteBanner();
+  const { locale, enabledLocales, onSelectLocale } = useLocale();
 
-  // TODO: language selection
   return (
     <>
       {hasBanner && <SiteBanner />}
@@ -24,11 +25,9 @@ const Header = ({ eol = false }: { eol?: boolean }) => {
               position="relative"
               property={{ name: unifiedNavProperty, searchParams: [] }}
               showLanguageSelector={true}
-              // onSelectLocale={onSelectLocale}
-              // locale={locale}
-              locale={'en-us'}
-              // enabledLocales={enabledLocales}
-              enabledLocales={['en-us']}
+              onSelectLocale={onSelectLocale}
+              locale={locale as NavLocale}
+              enabledLocales={enabledLocales}
               darkMode={false}
               // @ts-expect-error - pass className
               className="nav-light"
@@ -39,11 +38,9 @@ const Header = ({ eol = false }: { eol?: boolean }) => {
               position="relative"
               property={{ name: unifiedNavProperty, searchParams: [] }}
               showLanguageSelector={true}
-              // onSelectLocale={onSelectLocale}
-              // locale={locale} // TODO: Locale
-              locale={'en-us'}
-              // enabledLocales={enabledLocales} // TODO: Locale
-              enabledLocales={['en-us']}
+              onSelectLocale={onSelectLocale}
+              locale={locale as NavLocale}
+              enabledLocales={enabledLocales}
               darkMode={true}
               // @ts-expect-error - pass className
               className="nav-dark"

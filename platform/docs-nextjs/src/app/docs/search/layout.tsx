@@ -6,6 +6,7 @@ import { getBannerData } from '@/services/db/banner';
 import { Footer } from '@/mdx-components/Footer';
 import { darkModeScript } from '@/app/lib/dark-mode-script';
 import { CookiesProvider } from '@/context/cookies-context';
+import { LocaleProvider } from '@/context/locale';
 import { cookies as nextCookies } from 'next/headers';
 import mdxLayoutStyles from '../[[...path]]/layout.module.scss';
 
@@ -25,17 +26,19 @@ export default async function SearchLayout({ children }: { children: React.React
         }}
       />
       <div className={mdxLayoutStyles.layout}>
-        <SiteBannerProvider bannerData={bannerData}>
-          <DarkModeContextProvider>
-            <CookiesProvider cookies={cookieValues}>
-              <LeafyGreenProviderWrapper>
-                <Analytics />
-                {children}
-                <Footer />
-              </LeafyGreenProviderWrapper>
-            </CookiesProvider>
-          </DarkModeContextProvider>
-        </SiteBannerProvider>
+        <LocaleProvider>
+          <SiteBannerProvider bannerData={bannerData}>
+            <DarkModeContextProvider>
+              <CookiesProvider cookies={cookieValues}>
+                <LeafyGreenProviderWrapper>
+                  <Analytics />
+                  {children}
+                  <Footer />
+                </LeafyGreenProviderWrapper>
+              </CookiesProvider>
+            </DarkModeContextProvider>
+          </SiteBannerProvider>
+        </LocaleProvider>
       </div>
     </>
   );

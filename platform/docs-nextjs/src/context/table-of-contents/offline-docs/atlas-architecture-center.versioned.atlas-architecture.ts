@@ -549,6 +549,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/architecture/:version/solutions-library/rag-technical-documents',
                   },
                   {
+                    label: 'Multimodal Event Explorer',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-event-explorer',
+                  },
+                  {
                     label: 'Transform the Driver Experience',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-car-assistant',

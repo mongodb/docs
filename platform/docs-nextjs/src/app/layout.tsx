@@ -4,6 +4,7 @@ import '@/styles/mongodb-docs.css';
 import '@/styles/global-dark-mode.css';
 import '@/styles/icons.css';
 import TrackJSProvider from '@/components/trackjs-provider';
+import { getHtmlLangFormat } from '@/utils/locale';
 
 export const metadata: Metadata = {
   title: 'MongoDB Docs',
@@ -15,9 +16,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // TODO: Locale - I believe we need to make sure the lang property is set to the correct locale
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={getHtmlLangFormat('en-us')} suppressHydrationWarning>
       <body suppressHydrationWarning>
         <TrackJSProvider />
         {children}

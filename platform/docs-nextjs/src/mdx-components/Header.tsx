@@ -5,16 +5,18 @@ import headingStyles from '@/components/header/header.module.scss';
 import SiteBanner from '@/components/banner/site-banner';
 import { cx } from '@leafygreen-ui/emotion';
 import { useSiteBanner } from './SiteBannerProvider';
+import { useLocale, type NavLocale } from '@/context/locale';
+import { NOTRANSLATE_CLASS } from '@/utils/locale';
 
 export const Header = ({ eol = false }: { eol?: boolean }) => {
   const unifiedNavProperty = 'DOCS';
   const { hasBanner } = useSiteBanner();
+  const { locale, enabledLocales, onSelectLocale } = useLocale();
 
-  // TODO: language selection
   return (
     <>
       {hasBanner && <SiteBanner />}
-      <header className={cx(headingStyles.header, hasBanner && headingStyles.headerHasBanner)}>
+      <header className={cx(headingStyles.header, hasBanner && headingStyles.headerHasBanner, NOTRANSLATE_CLASS)}>
         {/* Two navs used intentionally: one for light mode, one for dark mode */}
         {!eol && (
           <>
@@ -24,11 +26,9 @@ export const Header = ({ eol = false }: { eol?: boolean }) => {
               position="relative"
               property={{ name: unifiedNavProperty, searchParams: [] }}
               showLanguageSelector={true}
-              // onSelectLocale={onSelectLocale}
-              // locale={locale}
-              locale={'en-us'}
-              // enabledLocales={enabledLocales}
-              enabledLocales={['en-us']}
+              onSelectLocale={onSelectLocale}
+              locale={locale as NavLocale}
+              enabledLocales={enabledLocales}
               darkMode={false}
               // @ts-expect-error - pass className
               className="nav-light"
@@ -39,11 +39,9 @@ export const Header = ({ eol = false }: { eol?: boolean }) => {
               position="relative"
               property={{ name: unifiedNavProperty, searchParams: [] }}
               showLanguageSelector={true}
-              // onSelectLocale={onSelectLocale}
-              // locale={locale} // TODO: Locale
-              locale={'en-us'}
-              // enabledLocales={enabledLocales} // TODO: Locale
-              enabledLocales={['en-us']}
+              onSelectLocale={onSelectLocale}
+              locale={locale as NavLocale}
+              enabledLocales={enabledLocales}
               darkMode={true}
               // @ts-expect-error - pass className
               className="nav-dark"

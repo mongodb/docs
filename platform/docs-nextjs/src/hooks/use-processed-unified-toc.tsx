@@ -6,6 +6,7 @@ import { useUnifiedToc } from '@/context/unified-toc-context';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
 import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
+import { stripLocale } from '@/utils/locale';
 
 interface UpdateURLsParams {
   tree?: TocItem[];
@@ -38,6 +39,13 @@ const updateURLs = ({ tree, contentSite, activeVersions, versionsData, project }
       // Offline build: internal TOC links must end in .html
       if (isOfflineBuild && newUrl && !/^https?:\/\//i.test(newUrl)) {
         newUrl = newUrl.replace(/\/?$/, '') + '/index.html';
+      }
+
+      // Smartling GDN rewrites internal URL values in the compiled JS bundle,
+      // adding the locale prefix (e.g. /docs/atlas/foo → /es/docs/atlas/foo).
+      // Strip it so TOC matching works against the locale-free page slug.
+      if (newUrl && !/^https?:\/\//i.test(newUrl)) {
+        newUrl = stripLocale(newUrl);
       }
 
       const items = updateURLs({

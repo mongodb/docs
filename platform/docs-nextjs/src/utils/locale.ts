@@ -65,7 +65,7 @@ const validateLocaleCode = (potentialCode: string) =>
  * @param {string} slug
  * @returns {string}
  */
-const stripLocale = (slug: string) => {
+export const stripLocale = (slug: string) => {
   // Smartling has extensive replace logic for URLs and slugs that follow the pattern of "https://www.mongodb.com/docs". However,
   // there are instances where we can't rely on them for certain components
   if (!slug) {
