@@ -13,6 +13,7 @@ import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { useVersionContext } from '@/context/version-context';
 import { removeTrailingSlash } from '@/utils/remove-trailing-slash';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
+import { stripLocale } from '@/utils/locale';
 
 import type { TocItem } from '../unified-sidenav/types';
 import NextPrevLink from './next-prev-link';
@@ -89,7 +90,7 @@ function replaceVersionInPath(pathPrefix: string, versions?: BranchData[]): stri
 
 function groupContainsUrl(items: TocItem[], currentUrl: string): boolean {
   for (const item of items) {
-    if (item.url && removeTrailingSlash(item.url) === removeTrailingSlash(currentUrl)) return true;
+    if (item.url && removeTrailingSlash(stripLocale(item.url)) === removeTrailingSlash(currentUrl)) return true;
     if (item.items && groupContainsUrl(item.items, currentUrl)) return true;
   }
   return false;
@@ -317,7 +318,7 @@ const getFlattenedTocData = (
   let index = -1;
   for (let i = 0; i < flat.length; i++) {
     const item = flat[i];
-    if (item.url && removeTrailingSlash(item.url) === removeTrailingSlash(currentUrl)) {
+    if (item.url && removeTrailingSlash(stripLocale(item.url)) === removeTrailingSlash(currentUrl)) {
       // If no versions constraint, this is the correct one
       if (!item.versions) {
         index = i;

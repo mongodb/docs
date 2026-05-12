@@ -7,6 +7,7 @@ import { Footer } from '@/mdx-components/Footer';
 import { darkModeScript } from '@/app/lib/dark-mode-script';
 import { CookiesProvider } from '@/context/cookies-context';
 import { LocaleProvider } from '@/context/locale';
+import { COOKIE_KEY_PREF_LOCALE, getInitialLocaleFromCookie } from '@/utils/locale';
 import { cookies as nextCookies } from 'next/headers';
 import mdxLayoutStyles from '../[[...path]]/layout.module.scss';
 
@@ -17,6 +18,7 @@ export default async function SearchLayout({ children }: { children: React.React
     acc[cookie.name] = cookie.value;
     return acc;
   }, {} as Record<string, string>);
+  const initialLocale = getInitialLocaleFromCookie(cookieValues[COOKIE_KEY_PREF_LOCALE]);
 
   return (
     <>
@@ -26,7 +28,7 @@ export default async function SearchLayout({ children }: { children: React.React
         }}
       />
       <div className={mdxLayoutStyles.layout}>
-        <LocaleProvider>
+        <LocaleProvider initialLocale={initialLocale}>
           <SiteBannerProvider bannerData={bannerData}>
             <DarkModeContextProvider>
               <CookiesProvider cookies={cookieValues}>

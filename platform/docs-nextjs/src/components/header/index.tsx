@@ -6,16 +6,18 @@ import SiteBanner from '@/components/banner/site-banner';
 import { cx } from '@leafygreen-ui/emotion';
 import { useSiteBanner } from '@/components/banner/site-banner/banner-context';
 import { useLocale, type NavLocale } from '@/context/locale';
+import { NOTRANSLATE_CLASS, getCurrLocale, onSelectLocale } from '@/utils/locale';
 
 const Header = ({ eol = false }: { eol?: boolean }) => {
   const unifiedNavProperty = 'DOCS';
   const { hasBanner } = useSiteBanner();
-  const { locale, enabledLocales, onSelectLocale } = useLocale();
+  const { enabledLocales } = useLocale();
+  const locale = getCurrLocale();
 
   return (
     <>
       {hasBanner && <SiteBanner />}
-      <header className={cx(headingStyles.header, hasBanner && headingStyles.headerHasBanner)}>
+      <header className={cx(headingStyles.header, hasBanner && headingStyles.headerHasBanner, NOTRANSLATE_CLASS)}>
         {/* Two navs used intentionally: one for light mode, one for dark mode */}
         {!eol && (
           <>

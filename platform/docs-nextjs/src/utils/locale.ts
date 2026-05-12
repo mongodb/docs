@@ -211,10 +211,15 @@ export const onSelectLocale = (locale: string) => {
 };
 
 /**
- * Ensures that a locale code has an all lowercase language code with an all uppercase region code,
- * as described in https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang#region_subtag.
- * @param {string} localeCode - A valid locale code with either 1 or 2 parts. Example: `zh-cn` or `zh`
+ * Resolves an initial locale from a raw cookie string value.
+ * Safe to call in server components — no browser APIs used.
  */
+export const getInitialLocaleFromCookie = (cookieValue?: string): AvailableLocaleType => {
+  if (!cookieValue) return 'en-us';
+  const isValid = getAvailableLanguages(true).some(({ localeCode }) => localeCode === cookieValue);
+  return isValid ? (cookieValue as AvailableLocaleType) : 'en-us';
+};
+
 export const getHtmlLangFormat = (localeCode: string) => {
   const parts = localeCode.split('-');
   if (parts.length < 2) {

@@ -1,13 +1,12 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { LocalizedLinkProvider } from '@mdb/consistent-nav';
 import {
   type AvailableLocaleType,
+  COOKIE_KEY_PREF_LOCALE,
   getCurrLocale,
   getAvailableLanguages,
   getHtmlLangFormat,
-  localizePath,
   onSelectLocale as selectLocale,
 } from '@/utils/locale';
 
@@ -28,26 +27,32 @@ const defaultLocaleContext: LocaleContextValue = {
 
 const LocaleContext = createContext<LocaleContextValue>(defaultLocaleContext);
 
-export function LocaleProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocale] = useState<AvailableLocaleType>('en-us');
-  const [pageUrl, setPageUrl] = useState('/');
-  const [origin, setOrigin] = useState('https://mongodb.com');
+export function LocaleProvider({
+  children,
+  initialLocale = 'en-us',
+}: {
+  children: ReactNode;
+  initialLocale?: AvailableLocaleType;
+}) {
+  const [locale, setLocale] = useState<AvailableLocaleType>(initialLocale);
   const enabledLocales = getAvailableLanguages().map(({ localeCode }) => localeCode);
 
   useEffect(() => {
-    const currLocale = getCurrLocale();
-    setLocale(currLocale);
-    document.documentElement.lang = getHtmlLangFormat(currLocale);
-    setPageUrl(localizePath(window.location.pathname, 'en-us'));
-    setOrigin(window.location.origin);
-  }, []);
+    const urlLocale = getCurrLocale();
+
+    const cookieMatch = document.cookie.match(new RegExp(`(?:^|; )${COOKIE_KEY_PREF_LOCALE}=([^;]+)`));
+    const cookieLocale = cookieMatch ? decodeURIComponent(cookieMatch[1]) : null;
+    const isExplicitEnglish = cookieLocale === 'en-us';
+
+    const resolvedLocale = urlLocale !== 'en-us' && !isExplicitEnglish ? urlLocale : initialLocale;
+    setLocale(resolvedLocale);
+    document.documentElement.lang = getHtmlLangFormat(resolvedLocale);
+  }, [initialLocale]);
 
   return (
-    <LocalizedLinkProvider pageUrl={pageUrl} origin={origin}>
-      <LocaleContext.Provider value={{ locale, enabledLocales, onSelectLocale: selectLocale }}>
-        {children}
-      </LocaleContext.Provider>
-    </LocalizedLinkProvider>
+    <LocaleContext.Provider value={{ locale, enabledLocales, onSelectLocale: selectLocale }}>
+      {children}
+    </LocaleContext.Provider>
   );
 }
 
