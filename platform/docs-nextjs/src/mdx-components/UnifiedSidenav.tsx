@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useContext } from 'react';
+import { useState, useEffect, useRef, useContext } from 'react';
 import { usePathname } from 'next/navigation';
 import styled from '@emotion/styled';
 import { css as LeafyCSS, cx } from '@leafygreen-ui/emotion';
@@ -164,16 +164,27 @@ export const UnifiedSidenav = () => {
 
   const [currentL2s, setCurrentL2s] = useState<TocItem | null>(currentL2List);
 
+  const prevSlugRef = useRef(slug);
+
   useEffect(() => {
     const [isDriver, updatedL2s] = findPageParent(tree, slug);
     const updatedL1s = tree.find((staticTocItem) => {
       return isActiveTocNode(slug, staticTocItem.newUrl, staticTocItem.items);
     });
 
+    const slugChanged = prevSlugRef.current !== slug;
+    prevSlugRef.current = slug;
+
+    // If nothing matched and the slug itself didn't change, tree just updated ahead
+    // of navigation (version transition). Hold the current state to prevent a flash.
+    if (updatedL2s === null && !slugChanged) {
+      return;
+    }
+
     setShowDriverBackBtn(isDriver);
     setCurrentL1(updatedL1s);
     setCurrentL2s(updatedL2s);
-  }, [slug]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [slug, tree]);
 
   // close navigation panel on mobile screen, but leaves open if they click on a twisty
   useEffect(() => {
