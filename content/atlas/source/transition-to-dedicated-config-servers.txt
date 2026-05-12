@@ -1,0 +1,322 @@
+.. meta::
+   :keywords: atlas ui, atlas api
+   :description: Learn when Atlas transitions your sharded cluster from an embedded to a dedicated config server, what happens during the transition, how to monitor progress, and which features block the transition.
+
+.. _transition-to-dedicated-config-servers:
+
+======================================
+Transition to Dedicated Config Servers
+======================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. note::
+
+   If you are running a self-managed deployment, see :ref:`Transition
+   from Embedded to Dedicated Config Server
+   <embedded-to-dedicated-tutorial>` to learn how to transition your
+   config server type using the
+   :dbcommand:`transitionToDedicatedConfigServer` database command.
+
+When a sharded {+cluster+} uses an embedded config server, called a
+:ref:`config shard <config-shard-concept>`, |service| or a user may
+transition the {+cluster+} to use a :term:`dedicated config server`.
+With an embedded config server, the config shard stores both cluster
+metadata and user data. With a dedicated config server, the config
+node stores only metadata. |service| transitions {+clusters+} from
+embedded to dedicated config servers automatically under certain
+conditions. You can also initiate the transition manually.
+
+Before You Start
+----------------
+
+The transition from an embedded to a dedicated config server is an
+online operation that requires moving all user data off the config
+shard. For {+clusters+} with large amounts of data on the config
+shard, the process can take hours to days. Before initiating the
+transition, confirm the following:
+
+- **Your destination shards have headroom.** During the migration,
+  shards that receive data from the config shard see elevated CPU,
+  memory, and I/O. While the transition runs, |service| cannot scale
+  the {+cluster+} tier or modify storage because only one
+  long-running plan can run at a time. If the receiving shards are
+  near capacity, scale them up before starting the transition.
+
+- **Your {+cluster+} uses only supported features.** :ref:`{+fts+}
+  <atlas-search>`, :ref:`{+avs+} <fts-vector-search>`, unsharded
+  time-series collections, and unsharded queryable encryption
+  collections on the config shard block automatic transitions. For a
+  full list of blocking features, see
+  :ref:`config-server-transition-limitations`.
+
+- **Drop** ``system.profile`` **before transitioning on earlier
+  MongoDB versions.** `The system.profile collection
+  <https://www.mongodb.com/docs/upcoming/tutorial/manage-the-database-profiler/#the-system.profile-collection>`__
+  on the config shard can block the transition. If profiling is
+  enabled, drop ``system.profile`` before initiating the transition, or
+  upgrade to MongoDB 8.2.7 or later.
+
+Start the Transition
+--------------------
+
+|service| automatically manages transitions between embedded and
+dedicated config servers when
+:ref:`{+Managed-Configs+} <config-server-management>` is enabled.
+The following diagram shows when |service| triggers each transition:
+
+.. figure:: /images/when-embedded-to-dedicated-transition.png
+   :alt: "Atlas transitions from an embedded to a dedicated config server when the shard count increases beyond 3 and there are no blocking features."
+   :figwidth: 700px
+   :align: center
+   :lightbox:
+
+Atlas-Managed Transitions
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| enables :ref:`{+Managed-Configs+} <config-server-management>`
+by default for all 8.0 {+clusters+}. When enabled, |service|
+automatically transitions your {+cluster+} between
+:ref:`config server types <config-server-types>` based on shard
+count:
+
+- When the shard count increases beyond 3, |service| transitions
+  from an embedded config server to a dedicated config server.
+- When the shard count decreases to 3 or fewer, |service|
+  transitions from a dedicated config server to an embedded config
+  server.
+
+Manually Transition to Dedicated Config Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To manually trigger the transition to a dedicated config server,
+complete the following steps:
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-db-deployments-page.rst
+
+   .. step:: Open the Cluster Builder.
+
+      Click the :icon-mms:`ellipsis` next to the name of your
+      cluster and select :guilabel:`Edit Configuration`. Expand
+      the :guilabel:`Additional Settings` panel to configure additional
+      settings for your cluster.
+
+   .. step:: Turn off the :guilabel:`Atlas-Managed Configuration
+      Servers` toggle.
+
+      Under :guilabel:`Additional Settings` > :guilabel:`More
+      Configuration Options`, turn off the
+      :guilabel:`Atlas-Managed Configuration Servers` toggle.
+
+   .. step:: Apply the changes.
+
+      Click :guilabel:`Review Changes` and then
+      :guilabel:`Apply Changes`. |service| immediately begins
+      the conversion to a dedicated config server.
+
+During the Transition
+---------------------
+
+MongoDB cannot move config metadata, so |service| must first drain all
+user data off the config shard, ``config-0``, before it can transition
+to a dedicated config server. As part of the transition, |service| adds
+a replacement shard to maintain your target shard count because
+``config-0`` no longer serves user data.
+
+Example Transition Process
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table shows the steps |service| performs when you
+add a fourth shard to a 3-shard {+cluster+} with
+:ref:`{+Managed-Configs+} <config-server-management>` enabled,
+which initiates the transition.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 70 20
+
+   * - Step
+     - Action
+     - Effective Shard Count
+
+   * - Start
+     - 3-shard {+cluster+} with embedded config server
+       (``config-0``, ``shard-0``, ``shard-1``)
+     - 3
+
+   * - 1
+     - |service| adds ``shard-2``, bringing the {+cluster+} to
+       its target shard count. The {+cluster+} now has 4
+       user-facing shards: ``shard-0``, ``shard-1``, ``shard-2``,
+       and ``config-0``, which still stores user data.
+     - 4
+
+   * - 2
+     - |service| runs :dbcommand:`transitionToDedicatedConfigServer`,
+       which internally runs :dbcommand:`removeShard` on ``config-0``.
+       Sharded collections drain to other shards via the :ref:`balancer
+       <sharding-balancing>` using chunk migrations. Unsharded
+       collections move via :dbcommand:`moveCollection`.
+     - 4 (drain in progress)
+
+   * - 3
+     - |service| waits for :parameter:`orphanCleanupDelaySecs` to
+       elapse before confirming ``config-0`` is clear. On clusters
+       running MongoDB versions earlier than 8.2.7, |service| waits for
+       all range deletions to complete instead, which can take
+       significantly longer.
+     - 4 (cleanup in progress)
+
+   * - 4
+     - ``config-0`` converts to a dedicated config server.
+       |service| adds ``shard-3`` to restore the target shard
+       count. The 4 user-facing shards are now ``shard-0``,
+       ``shard-1``, ``shard-2``, and ``shard-3``.
+     - 4
+
+   * - 5
+     - |service| scales down ``config-0`` to the default for dedicated
+       config servers, M30.
+     - 4
+
+Duration
+~~~~~~~~
+
+The transition duration depends on the amount of user data on the
+config shard. Draining the config shard involves chunk migrations
+for sharded collections and ``moveCollection`` operations for
+unsharded collections, both of which move data across the network.
+The duration varies based on dataset size:
+
+- **Small datasets (a few GB):** minutes to a small number of hours
+- **Large datasets (hundreds of GB to multiple TB):** hours to days
+
+.. note::
+
+   If your {+cluster+} has a large volume of data on the config
+   shard, perform the transition during a low-traffic period.
+
+Operational Impact
+~~~~~~~~~~~~~~~~~~
+
+Transitioning from an embedded to a dedicated config server has the
+following operational impacts on your cluster:
+
+- **No downtime.** The transition is online. Your application
+  continues reading and writing throughout.
+
+- **Elevated resource usage on receiving shards.** Shards absorbing
+  data from the config shard may see higher CPU, memory, and I/O
+  during migration. Application latency on affected shards may
+  increase modestly.
+
+- **Atlas plan lock.** While the transition runs, |service| cannot
+  execute other long-running plans on the {+cluster+}, such as
+  scaling the {+cluster+} tier, changing storage, or adding or
+  removing other shards. Only one long-running plan can run at a
+  time.
+
+.. warning::
+   Do not cancel the transition after it has started.
+
+   Do not cancel via the {+atlas-ui+} or by reducing the shard
+   count while the transition is in progress. If cancellation is
+   necessary, contact |mdb-support|.
+
+Monitor Progress
+~~~~~~~~~~~~~~~~
+
+The following diagram shows the methods available to monitor the
+transition progress:
+
+.. figure:: /images/embedded-to-dedicated-monitoring.png
+   :alt: "Monitoring the progress of an embedded to dedicated config server transition."
+   :figwidth: 700px
+   :align: center
+   :lightbox:
+
+While the transition is in progress, |service| displays the
+following banner on the cluster page:
+
+``We are deploying your changes (current action:
+transitioning config server type).``
+
+.. _config-server-transition-limitations:
+
+Limitations and Exceptions
+--------------------------
+
+|service| does not automatically transition config servers for
+{+clusters+} that use the following features. If your {+cluster+}
+uses one of these features and needs a config server type change,
+contact |mdb-support|:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 30 30
+
+   * - Feature
+     - Auto-transition
+     - Resolution
+
+   * - **MongoDB Search / Vector Search**
+
+       |service| pins the config server type to what it was when
+       Search was enabled. The restriction applies on both sharded
+       and unsharded collections.
+     - Blocked (pinned)
+     - Contact |mdb-support| or live migration
+
+   * - **Unsharded time series**
+
+       MongoDB Server lifted the underlying restriction in version
+       8.0.10, but |service| has not yet adopted this change.
+     - Blocked
+     - Contact |mdb-support|
+
+   * - **Unsharded queryable encryption**
+
+       ``moveCollection`` does not support queryable encryption
+       collections.
+     - Blocked
+     - Contact |mdb-support|
+
+   * - **Global Clusters**
+
+       Do not support embedded config servers.
+     - N/A
+     - Always dedicated
+
+   * - **Replica Set to sharded cluster conversion**
+
+       When you convert a replica set to a sharded cluster in
+       |service|, the resulting {+cluster+} always uses a dedicated
+       config server regardless of the :guilabel:`Atlas-Managed
+       Configuration Servers` setting.
+     - N/A
+     - Contact |mdb-support|
+
+   * - **None of the above**
+     - Allowed
+     - Proceeds online
+
+Learn More
+----------
+
+- :ref:`config-server-management`
+- :ref:`sharded-cluster-config-server-config-shards`
+- :dbcommand:`transitionToDedicatedConfigServer`
+- :ref:`convert-replica-set-to-embedded-config-server`
