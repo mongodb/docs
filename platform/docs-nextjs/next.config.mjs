@@ -1,4 +1,8 @@
 import withPWAInit from '@ducanh2912/next-pwa';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+const atlasRedirects = require('./redirects/atlas-redirects.json');
 
 const withPWA = withPWAInit({
   dest: 'public',
@@ -22,6 +26,9 @@ const nextConfig = {
     optimizePackageImports: ['@leafygreen-ui/emotion'],
   },
   assetPrefix: '/docs/docs_static_nextjs',
+  async redirects() {
+    return [...atlasRedirects];
+  },
   async rewrites() {
     return [
       {
