@@ -44,9 +44,12 @@ With resource policies, you can:
   If enabled, this policy prevents users from provisioning, updating, or :ref:`auto-scaling <cluster-autoscaling>` {+clusters+} to a tier above or below a specified threshold.
 * Require that sharded clusters use only :ref:`dedicated config servers <nodes-for-config-server>` instead of embedded config servers.
 * Enforce minimum and maximum disk size for all clusters.
-* Enforce the use of a specific cluster topology *only*  (:ref:`replica set <replication>`, 
+* Enforce the use of a specific cluster topology *only*  (:ref:`replica set <replication>`,
   :ref:`sharded cluster <sharding-background>`, or :ref:`global cluster <global-clusters>`).
 * Enforce a minimum and maximum number of shards for sharded clusters.
+* Require database auditing on all clusters in a project.
+* Require Customer-Managed Keys for encryption at rest on all clusters in a project.
+* Require Customer-Managed Keys for encryption at rest on all dedicated search deployments in a project.
 
 .. _arps-exception-project-level:
 
@@ -278,8 +281,14 @@ Key Cedar Syntax Elements for |service|
 
    * - ``context.cluster.maxGeneralClassInstanceSizeValue``
      - Sets the maximum :ref:`cluster tier <create-cluster-instance>` for scaling the {+cluster+} up to.
-     - For example, ``context.cluster.maxGeneralClassInstanceSizeValue < 60`` matches {+clusters+} 
-       whose current tier or maximum :ref:`auto-scaling <cluster-autoscaling>` size is less than ``M60``. 
+     - For example, ``context.cluster.maxGeneralClassInstanceSizeValue < 60`` matches {+clusters+}
+       whose current tier or maximum :ref:`auto-scaling <cluster-autoscaling>` size is less than ``M60``.
+
+   * - ``context.cluster.encryptionAtRest.customerManagedKey.enabled``
+     - Checks if Customer-Managed Keys for encryption at rest are enabled
+       for the cluster. Use with the ``cluster.modify`` action.
+     - For example, ``context.cluster.encryptionAtRest.customerManagedKey.enabled == false``
+       checks if the cluster does not have CMK enabled.
 
    * - ``context.project.clustersInProject``
      - Specifies the number of {+clusters+} currently in a project.
@@ -288,11 +297,17 @@ Key Cedar Syntax Elements for |service|
 
    * - ``context.project.hasDefinedMaintenanceWindow``
      - Requires that a project has a :ref:`maintenance window <configure-maintenance-window>` configured.
-     - For example, ``context.project.hasDefinedMaintenanceWindow == false`` checks 
+     - For example, ``context.project.hasDefinedMaintenanceWindow == false`` checks
        if the project has no maintenance window configured.
-   
+
+   * - ``context.project.databaseAuditing.enabled``
+     - Checks if database auditing is enabled for the project. Use with the
+       ``cluster.modify`` action.
+     - For example, ``context.project.databaseAuditing.enabled == false`` checks
+       if the project has database auditing disabled.
+
    * - ``context.project.ipAccessList``
-     - Specifies the IP addresses that can access the {+cluster+}. 
+     - Specifies the IP addresses that can access the {+cluster+}.
      - You can block a wildcard IP ``ip("0.0.0.0/0")`` to enhance security.
 
    * - ``context.project.peeringConnections``
@@ -346,6 +361,15 @@ Key Cedar Syntax Elements for |service|
      - For example, ``context.search.hasIndexes == true``.
        Use with the ``search.deployment.modify`` and
        ``cluster.modify`` actions.
+
+   * - ``context.search.encryptionAtRest.customerManagedKey.enabled``
+     - Checks if Customer-Managed Keys for encryption at rest are effectively
+       enabled for dedicated search deployments. This evaluates to ``true`` only
+       when both search-node CMK is enabled AND at least one KMS provider is
+       configured at the project level. Use with the ``search.deployment.modify``
+       action.
+     - For example, ``context.search.encryptionAtRest.customerManagedKey.enabled == false``
+       checks if the search deployment does not have CMK effectively enabled.
 
    * - IP Addressing (``ip``)
      - Refers to specific IP addresses or ranges in policies.
@@ -402,6 +426,10 @@ and add to |service| by using the {+atlas-ui+}, the {+atlas-admin-api+}, or Terr
             * :ref:`restrict-ip-addresses`
             * :ref:`restrict-cluster-tier`
             * :ref:`require-maintenance-window`
+            * :ref:`require-database-auditing`
+            * :ref:`require-cmk-clusters`
+            * :ref:`require-cmk-search`
+            * :ref:`require-cmk-all-org-data`
             * :ref:`prevent-peering-modifications`
             * :ref:`prevent-private-endpoint-modifications`
             * :ref:`restrict-tls-api`
@@ -465,6 +493,10 @@ and add to |service| by using the {+atlas-ui+}, the {+atlas-admin-api+}, or Terr
                * :ref:`restrict-ip-addresses-ui`
                * :ref:`restrict-cluster-tier-ui`
                * :ref:`require-maintenance-window-ui`
+               * :ref:`require-database-auditing-ui`
+               * :ref:`require-cmk-clusters-ui`
+               * :ref:`require-cmk-search-ui`
+               * :ref:`require-cmk-all-org-data-ui`
                * :ref:`prevent-peering-modifications-ui`
                * :ref:`prevent-private-endpoint-modifications-ui`
                * :ref:`restrict-tls-ui`
@@ -558,6 +590,10 @@ and add to |service| by using the {+atlas-ui+}, the {+atlas-admin-api+}, or Terr
             * :ref:`tf-restrict-region`
             * :ref:`tf-restrict-provider-region`
             * :ref:`tf-restrict-ip-addresses`
+            * :ref:`tf-require-database-auditing`
+            * :ref:`tf-require-cmk-clusters`
+            * :ref:`tf-require-cmk-search`
+            * :ref:`tf-require-cmk-all-org-data`
             * :ref:`tf-limit-max-disk-size`
             * :ref:`tf-restrict-cluster-type`
             * :ref:`tf-restrict-shard-count`

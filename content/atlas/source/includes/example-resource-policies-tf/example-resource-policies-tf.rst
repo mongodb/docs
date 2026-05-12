@@ -59,13 +59,73 @@ Restrict IP Addresses
 
 .. include:: /includes/fact-wildcard-ip.rst
 
-The following example prevents users from editing a project 
+The following example prevents users from editing a project
 from a wildcard IP (``0.0.0.0/0``):
 
 .. literalinclude:: /includes/example-resource-policies-tf/example-resource-policies-terraform.tf
    :language: terraform
    :start-after: # start-restrict-ip
    :end-before: # end-restrict-ip
+
+.. _tf-require-database-auditing:
+
+Require Database Auditing
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example requires that database auditing is enabled on a
+project before clusters can be created or modified:
+
+.. literalinclude:: /includes/example-resource-policies-tf/example-resource-policies-terraform.tf
+   :language: terraform
+   :start-after: # start-require-database-auditing
+   :end-before: # end-require-database-auditing
+
+.. _tf-require-cmk-clusters:
+
+Require Customer-Managed Keys on All Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example requires that Customer-Managed Keys for encryption
+at rest are enabled on all clusters in a project:
+
+.. literalinclude:: /includes/example-resource-policies-tf/example-resource-policies-terraform.tf
+   :language: terraform
+   :start-after: # start-require-cmk-clusters
+   :end-before: # end-require-cmk-clusters
+
+.. _tf-require-cmk-search:
+
+Require Customer-Managed Keys on All Dedicated Search Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example requires that Customer-Managed Keys for encryption
+at rest are enabled on all dedicated search deployments in a project:
+
+.. literalinclude:: /includes/example-resource-policies-tf/example-resource-policies-terraform.tf
+   :language: terraform
+   :start-after: # start-require-cmk-search
+   :end-before: # end-require-cmk-search
+
+.. _tf-require-cmk-all-org-data:
+
+Enforce Customer-Managed Keys on All Organization Data (AWS Only)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example enforces Customer-Managed Keys on all organization
+data (clusters and search nodes) and restricts deployments to |aws| only.
+
+.. literalinclude:: /includes/example-resource-policies-tf/example-resource-policies-terraform.tf
+   :language: terraform
+   :start-after: # start-require-cmk-all-org-data
+   :end-before: # end-require-cmk-all-org-data
+
+.. note::
+
+   Search nodes inherit encryption from their cluster, so enforcing CMK on
+   data at rest also requires the cluster itself to use CMK. Both clusters
+   and search deployments can be deployed on different cloud providers. Today,
+   only |aws| supports search-node CMK, which is why all three policies are
+   needed to ensure complete coverage.
 
 .. _tf-limit-max-disk-size:
 

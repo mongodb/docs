@@ -277,7 +277,7 @@ provisioning or scaling  {+clusters+} to less than ``M30`` or greater than ``M60
       ]  
    }
 
-.. _require-maintenance-window: 
+.. _require-maintenance-window:
 
 Require Project Maintenance Windows
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -294,8 +294,133 @@ The following example requires that a project has a :ref:`maintenance window <co
          {
             "body": "forbid (principal, action == ResourcePolicy::Action::\"project.maintenanceWindow.modify\", resource) when {context.project.hasDefinedMaintenanceWindow == false};"
          }
-      ]  
-   } 
+      ]
+   }
+
+.. _require-database-auditing:
+
+Require Database Auditing
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example requires that database auditing is enabled on a
+project before clusters can be created or modified:
+
+.. code-block::
+   :copyable: true
+   :emphasize-lines: 5
+
+   {
+      "name": "Require database auditing",
+      "policies": [
+         {
+            "body": "forbid (principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) when { !context.project.databaseAuditing.enabled };"
+         }
+      ]
+   }
+
+.. _require-cmk-clusters:
+
+Require Customer-Managed Keys on All Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example requires that Customer-Managed Keys for encryption
+at rest are enabled on all clusters in a project:
+
+.. code-block::
+   :copyable: true
+   :emphasize-lines: 5
+
+   {
+      "name": "Require CMK on clusters",
+      "policies": [
+         {
+            "body": "forbid (principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) when { !context.cluster.encryptionAtRest.customerManagedKey.enabled };"
+         }
+      ]
+   }
+
+.. _require-cmk-search:
+
+Require Customer-Managed Keys on All Dedicated Search Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example requires that Customer-Managed Keys for encryption
+at rest are enabled on all dedicated search deployments in a project:
+
+.. code-block::
+   :copyable: true
+   :emphasize-lines: 5
+
+   {
+      "name": "Require CMK on search deployments",
+      "policies": [
+         {
+            "body": "forbid (principal, action == ResourcePolicy::Action::\"search.deployment.modify\", resource) when { !context.search.encryptionAtRest.customerManagedKey.enabled };"
+         }
+      ]
+   }
+
+.. _require-cmk-all-org-data:
+
+Enforce Customer-Managed Keys on All Organization Data (AWS Only)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example enforces Customer-Managed Keys on all organization
+data (clusters and search nodes) and restricts deployments to |aws| only.
+Three policies must be applied together:
+
+**Policy 1:** Require CMK on all clusters in this project
+
+.. code-block::
+   :copyable: true
+   :emphasize-lines: 5
+
+   {
+      "name": "Require CMK on clusters",
+      "policies": [
+         {
+            "body": "forbid (principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) when { !context.cluster.encryptionAtRest.customerManagedKey.enabled };"
+         }
+      ]
+   }
+
+**Policy 2:** Require CMK on all search deployments in this project
+
+.. code-block::
+   :copyable: true
+   :emphasize-lines: 5
+
+   {
+      "name": "Require CMK on search deployments",
+      "policies": [
+         {
+            "body": "forbid (principal, action == ResourcePolicy::Action::\"search.deployment.modify\", resource) when { !context.search.encryptionAtRest.customerManagedKey.enabled };"
+         }
+      ]
+   }
+
+**Policy 3:** Restrict clusters and search deployments to |aws| only
+
+.. code-block::
+   :copyable: true
+   :emphasize-lines: 5
+
+   {
+      "name": "Restrict to AWS only",
+      "policies": [
+         {
+            "body": "forbid (principal, action in [ResourcePolicy::Action::\"cluster.modify\", ResourcePolicy::Action::\"search.deployment.modify\"], resource) when { !([ResourcePolicy::CloudProvider::\"aws\"].containsAll(context.cluster.cloudProviders)) };"
+         }
+      ]
+   }
+
+.. note::
+
+   Search nodes inherit encryption from their cluster, so enforcing CMK on
+   data at rest also requires the cluster itself to use CMK. Both clusters
+   and search deployments can be deployed on different cloud providers. Today,
+   only |aws| supports search-node CMK, which is why all three policies are
+   needed to ensure complete coverage.
 
 .. _prevent-peering-modifications:
 

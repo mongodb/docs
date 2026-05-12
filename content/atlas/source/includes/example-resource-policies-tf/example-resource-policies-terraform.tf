@@ -36,6 +36,119 @@ resource "mongodbatlas_resource_policy" "forbid_project_access_anywhere" {
 }
 # end-restrict-ip
 
+# start-require-database-auditing
+resource "mongodbatlas_resource_policy" "require_database_auditing" {
+  org_id = var.org_id
+  name   = "require-database-auditing"
+  policies = [
+    {
+      body = <<EOF
+        forbid (
+            principal,
+            action == ResourcePolicy::Action::"cluster.modify",
+            resource
+        )
+        when { !context.project.databaseAuditing.enabled };
+      EOF
+    },
+  ]
+}
+# end-require-database-auditing
+
+# start-require-cmk-clusters
+resource "mongodbatlas_resource_policy" "require_cmk_clusters" {
+  org_id = var.org_id
+  name   = "require-cmk-on-clusters"
+  policies = [
+    {
+      body = <<EOF
+        forbid (
+            principal,
+            action == ResourcePolicy::Action::"cluster.modify",
+            resource
+        )
+        when { !context.cluster.encryptionAtRest.customerManagedKey.enabled };
+      EOF
+    },
+  ]
+}
+# end-require-cmk-clusters
+
+# start-require-cmk-search
+resource "mongodbatlas_resource_policy" "require_cmk_search" {
+  org_id = var.org_id
+  name   = "require-cmk-on-search-deployments"
+  policies = [
+    {
+      body = <<EOF
+        forbid (
+            principal,
+            action == ResourcePolicy::Action::"search.deployment.modify",
+            resource
+        )
+        when { !context.search.encryptionAtRest.customerManagedKey.enabled };
+      EOF
+    },
+  ]
+}
+# end-require-cmk-search
+
+# start-require-cmk-all-org-data
+resource "mongodbatlas_resource_policy" "require_cmk_clusters_aws" {
+  org_id = var.org_id
+  name   = "require-cmk-clusters-aws-policy"
+  policies = [
+    {
+      body = <<EOF
+        forbid (
+            principal,
+            action == ResourcePolicy::Action::"cluster.modify",
+            resource
+        )
+        when { !context.cluster.encryptionAtRest.customerManagedKey.enabled };
+      EOF
+    },
+  ]
+}
+
+resource "mongodbatlas_resource_policy" "require_cmk_search_aws" {
+  org_id = var.org_id
+  name   = "require-cmk-search-aws-policy"
+  policies = [
+    {
+      body = <<EOF
+        forbid (
+            principal,
+            action == ResourcePolicy::Action::"search.deployment.modify",
+            resource
+        )
+        when { !context.search.encryptionAtRest.customerManagedKey.enabled };
+      EOF
+    },
+  ]
+}
+
+resource "mongodbatlas_resource_policy" "restrict_to_aws_only" {
+  org_id = var.org_id
+  name   = "restrict-to-aws-only"
+  policies = [
+    {
+      body = <<EOF
+        forbid (
+            principal,
+            action in [
+                ResourcePolicy::Action::"cluster.modify",
+                ResourcePolicy::Action::"search.deployment.modify"
+            ],
+            resource
+        )
+        when { !([ResourcePolicy::CloudProvider::"aws"].containsAll(context.cluster.cloudProviders)) };
+      EOF
+    },
+  ]
+}
+# end-require-cmk-all-org-data
+
 # start-restrict-provider
 resource "mongodbatlas_resource_policy" "allow_only_aws_cloud_provider" {
   org_id = var.org_id
