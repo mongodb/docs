@@ -6,7 +6,7 @@
     },
     "description": "OpenAPI specification for MongoDB Relational Migrator tool",
     "title": "MongoDB Relational Migrator REST API",
-    "version": "1.15.3"
+    "version": "1.16.2"
   },
   "servers": [
     {
@@ -86,6 +86,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/analysis-task"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
                 }
               }
             }
@@ -261,16 +271,6 @@
                 }
               }
             }
-          },
-          "500": {
-            "description": "Internal server error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/error-response"
-                }
-              }
-            }
           }
         },
         "tags": [
@@ -297,16 +297,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/migration-job-status"
-                }
-              }
-            }
-          },
-          "440": {
-            "description": "Invalid as connection string did not contain a database name",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/error-response"
                 }
               }
             }
@@ -415,16 +405,6 @@
               }
             }
           },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/error-response"
-                }
-              }
-            }
-          },
           "404": {
             "description": "Not found",
             "content": {
@@ -463,16 +443,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/migration-job-status"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "Bad request",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/error-response"
                 }
               }
             }
@@ -786,6 +756,16 @@
                 }
               }
             }
+          },
+          "404": {
+            "description": "Not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error-response"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -1071,6 +1051,9 @@
           },
           "relationalTableFilters": {
             "$ref": "#/components/schemas/relational-table-filters"
+          },
+          "collectionFilters": {
+            "$ref": "#/components/schemas/collection-filters"
           }
         },
         "additionalProperties": false,
@@ -1102,6 +1085,9 @@
           },
           "relationalTableFilters": {
             "$ref": "#/components/schemas/relational-table-filters"
+          },
+          "collectionFilters": {
+            "$ref": "#/components/schemas/collection-filters"
           }
         },
         "additionalProperties": false,
@@ -1611,19 +1597,31 @@
           "mode": {
             "$ref": "#/components/schemas/migration-mode"
           },
+          "truncationReportMode": {
+            "default": "WARN",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/error-handling-mode"
+              }
+            ]
+          },
           "errorHandling": {
-            "type": "string",
+            "description": "defines whether Debezium errors will throw an exception or just be logged. https://debezium.io/documentation/reference/stable/connectors/mysql.html#mysql-property-event-processing-failure-handling-mode",
             "default": "FAIL",
-            "enum": [
-              "FAIL",
-              "WARN",
-              "SKIP"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/error-handling-mode"
+              }
             ]
           },
           "errorTolerance": {
             "description": "The number of failures (on the record level) that should be tolerated before terminating the migration.\nThe value is strictly greater than or equal to.\n",
             "type": "integer",
             "minimum": 0
+          },
+          "signalingTable": {
+            "type": "string",
+            "example": "database.schema.table"
           }
         },
         "additionalProperties": false,
@@ -1769,6 +1767,12 @@
             "items": {
               "type": "string"
             }
+          },
+          "samplePercentage": {
+            "type": "integer",
+            "default": 100,
+            "maximum": 100,
+            "minimum": 1
           }
         },
         "additionalProperties": false,
@@ -1925,6 +1929,19 @@
           "NULL"
         ]
       },
+      "migration-field-conversion-strategy": {
+        "type": "string",
+        "default": "DEFAULT",
+        "enum": [
+          "DEFAULT",
+          "LONG_MS",
+          "LONG_US",
+          "LONG_NS",
+          "DATE_UTC",
+          "DATE_STRIP",
+          "DATE_STRING_SEPARATE"
+        ]
+      },
       "relational-path": {
         "type": "object",
         "properties": {
@@ -2077,6 +2094,12 @@
             "additionalProperties": {
               "$ref": "#/components/schemas/column"
             }
+          },
+          "foreignKeys": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/foreign-key-descriptor"
+            }
           }
         },
         "additionalProperties": false,
@@ -2136,6 +2159,14 @@
         "required": [
           "definition",
           "path"
+        ]
+      },
+      "error-handling-mode": {
+        "type": "string",
+        "enum": [
+          "FAIL",
+          "WARN",
+          "SKIP"
         ]
       },
       "migration-job-statistics-details": {
@@ -2354,9 +2385,6 @@
           "primaryKey": {
             "$ref": "#/components/schemas/primary-key"
           },
-          "foreignKey": {
-            "$ref": "#/components/schemas/foreign-key"
-          },
           "nullable": {
             "type": "boolean"
           },
@@ -2386,6 +2414,40 @@
           "ordinalPosition",
           "type",
           "uniqueIndexed"
+        ]
+      },
+      "foreign-key-descriptor": {
+        "description": "Describes a foreign key relationship defined on a child table, pointing to a parent table.",
+        "type": "object",
+        "properties": {
+          "targetTable": {
+            "$ref": "#/components/schemas/relational-path"
+          },
+          "cardinality": {
+            "type": "string",
+            "enum": [
+              "UNKNOWN",
+              "ZERO_TO_ONE",
+              "ONE_TO_ONE",
+              "ZERO_TO_MANY"
+            ]
+          },
+          "synthetic": {
+            "type": "boolean"
+          },
+          "columnMappings": {
+            "description": "The column-level mappings within this foreign key. Each entry maps a source column on the child table to a target column on the parent table. Multiple entries form a composite foreign key.",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/foreign-key-column-reference"
+            },
+            "minItems": 1
+          }
+        },
+        "additionalProperties": false,
+        "required": [
+          "columnMappings",
+          "targetTable"
         ]
       },
       "mapping-settings": {
@@ -2445,6 +2507,9 @@
           },
           "type": {
             "$ref": "#/components/schemas/migration-field-type"
+          },
+          "conversionStrategy": {
+            "$ref": "#/components/schemas/migration-field-conversion-strategy"
           },
           "expression": {
             "type": "string"
@@ -2523,6 +2588,12 @@
           },
           "filter": {
             "$ref": "#/components/schemas/table-filter"
+          },
+          "foreignKeys": {
+            "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/foreign-key-descriptor"
+            }
           }
         },
         "additionalProperties": false,
@@ -2584,37 +2655,23 @@
           "name"
         ]
       },
-      "foreign-key": {
+      "foreign-key-column-reference": {
+        "description": "A single column reference within a foreign key, from the child table to the parent table.",
         "type": "object",
         "properties": {
-          "name": {
+          "source": {
+            "description": "The source column name on the child table.",
             "type": "string"
           },
-          "schema": {
+          "target": {
+            "description": "The referenced column name on the parent (target) table.",
             "type": "string"
-          },
-          "table": {
-            "type": "string"
-          },
-          "column": {
-            "type": "string"
-          },
-          "cardinality": {
-            "type": "string",
-            "enum": [
-              "UNKNOWN",
-              "ZERO_TO_ONE",
-              "ONE_TO_ONE",
-              "ZERO_TO_MANY"
-            ]
-          },
-          "synthetic": {
-            "type": "boolean"
           }
         },
         "additionalProperties": false,
         "required": [
-          "name"
+          "source",
+          "target"
         ]
       },
       "mapping-type": {
@@ -2660,6 +2717,9 @@
           },
           "type": {
             "$ref": "#/components/schemas/migration-field-type"
+          },
+          "conversionStrategy": {
+            "$ref": "#/components/schemas/migration-field-conversion-strategy"
           }
         },
         "additionalProperties": false,
@@ -2761,18 +2821,30 @@
           "DESC"
         ]
       },
+      "migration_job_status_metadata_verification": {
+        "type": "object",
+        "properties": {
+          "samplePercentage": {
+            "type": "integer",
+            "default": 100
+          },
+          "isEmbeddedMode": {
+            "type": "boolean",
+            "default": false
+          },
+          "status": {
+            "$ref": "#/components/schemas/verification-status-enum"
+          }
+        }
+      },
       "migration_job_status_metadata": {
         "type": "object",
         "properties": {
           "telemetryUserId": {
             "type": "string"
           },
-          "verificationRequested": {
-            "type": "boolean",
-            "default": false
-          },
-          "verificationStatus": {
-            "$ref": "#/components/schemas/verification-status-enum"
+          "verification": {
+            "$ref": "#/components/schemas/migration_job_status_metadata_verification"
           }
         },
         "additionalProperties": false
