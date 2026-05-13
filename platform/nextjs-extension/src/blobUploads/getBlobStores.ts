@@ -23,6 +23,10 @@ export function getMdxContentBlobStores({
 			siteID: siteId,
 			token,
 		});
+	if (branchStoreName && !branchStore) {
+		// Throw error if we're on a branch and the branch store couldn't be created/retrieved
+		throw new Error(`Branch store ${branchStoreName} not found`);
+	}
 
 	const productionStore = getStore({
 		name: PROD_STORE_NAME,

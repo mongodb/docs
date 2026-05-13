@@ -187,7 +187,7 @@ extension.addBuildEventHandler(
 
 extension.addBuildEventHandler(
 	"onSuccess",
-	async ({ netlifyConfig, utils: { git, run } }) => {
+	async ({ netlifyConfig, utils: { git, run }, dbEnvVars }) => {
 		const configEnvironment = netlifyConfig.build
 			.environment as ConfigEnvironmentVariables;
 
