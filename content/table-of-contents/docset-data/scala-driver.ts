@@ -264,7 +264,7 @@ const tocData: TocItem[] = [
       {
         label: 'API Documentation',
         isExternal: true,
-        url: 'https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-scala/index.html',
+        url: 'https://mongodb.github.io/mongo-java-driver/5.7/apidocs/driver-scala/index.html',
       },
     ],
   },

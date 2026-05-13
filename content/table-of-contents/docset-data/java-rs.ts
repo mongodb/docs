@@ -318,7 +318,7 @@ const tocData: TocItem[] = [
       {
         label: 'API Documentation',
         isExternal: true,
-        url: 'https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-reactive-streams/',
+        url: 'https://mongodb.github.io/mongo-java-driver/5.7/apidocs/driver-reactive-streams/',
       },
     ],
   },

@@ -8,6 +8,7 @@ import static com.mongodb.client.model.Sorts.*;
 import static com.mongodb.client.model.Accumulators.*;
 import static com.mongodb.client.model.search.SearchPath.fieldPath;
 import static com.mongodb.client.model.search.VectorSearchOptions.exactVectorSearchOptions;
+import static com.mongodb.client.model.search.VectorSearchQuery.textQuery;
 import static java.util.Arrays.asList;
 // end static import
 
@@ -24,6 +25,7 @@ import com.mongodb.client.model.search.FieldSearchPath;
 import org.bson.BsonString;
 import org.bson.Document;
 import org.bson.conversions.Bson;
+import java.util.ArrayList;
 
 public class AggBuilders {
     private MongoCollection<Document> collection;
@@ -351,6 +353,30 @@ public class AggBuilders {
         // end vectorSearch-output
 
         // Example output: "vectorSearch score: 0.887437105178833"
+    }
+
+    private static void autoEmbeddingExample(MongoCollection<Document> collection) {
+        // start-auto-embedding-query
+        List<Bson> pipeline = asList(
+            vectorSearch(
+                fieldPath("plot"),
+                textQuery("time travel"),
+                "auto_embedding_index",
+                10L,
+                approximateVectorSearchOptions(150L)
+            ),
+            project(
+                fields(include("title", "plot"), excludeId())
+            )
+        );
+
+        List<Document> results = collection.aggregate(pipeline).into(new ArrayList<>());
+        for (Document doc : results) {
+            System.out.println("Title: " + doc.getString("title"));
+            System.out.println("Plot: " + doc.getString("plot"));
+            System.out.println("---");
+        }
+        // end-auto-embedding-query
     }
 
     private void documentsStage() {

@@ -6,10 +6,12 @@ import com.mongodb.client.model.SearchIndexType;
 import org.bson.Document;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.concurrent.TimeUnit;
 
 public class SearchIndexMethods {
 
-    private static String URI = "<your connection string>";
+    private static String URI = "<connectionString>";
     private static String DB_NAME = "test_db";
     private static String COLL_NAME = "test_coll";
 
@@ -82,6 +84,22 @@ public class SearchIndexMethods {
             // start drop-search-index
             collection.dropSearchIndex("myIndex");
             // end drop-search-index
+          
+            // start autoembedding-indexes
+            SearchIndexModel indexModel = new SearchIndexModel(
+                    "myIndex",
+                    new Document("fields",
+                            Collections.singletonList(
+                                    new Document("type", "autoEmbed")
+                                            .append("modality", "text")
+                                            .append("model", "voyage-4-large")
+                                            .append("path", "plot")
+                            )
+                    ),
+                    SearchIndexType.vectorSearch()
+            );
+            collection.createSearchIndexes(Collections.singletonList(indexModel));
+            // end autoembedding-indexes
         }
     }
 }
