@@ -1,20 +1,7 @@
-import withPWAInit from '@ducanh2912/next-pwa';
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
 const atlasRedirects = require('./redirects/atlas-redirects.json');
-
-const withPWA = withPWAInit({
-  dest: 'public',
-  cacheOnFrontEndNav: true,
-  aggressiveFrontEndNavCaching: true,
-  reloadOnOnline: true,
-  swcMinify: true,
-  workboxOptions: {
-    disableDevLogs: true,
-  },
-  disable: process.env.NODE_ENV === 'development' || process.env.BUILD_STATIC_PAGES === 'true',
-});
 
 const nextConfig = {
   pageExtensions: ['mdx', 'tsx', 'ts'],
@@ -94,4 +81,4 @@ const staticExportConfig = {
   },
 };
 
-export default process.env.BUILD_STATIC_PAGES === 'true' ? staticExportConfig : withPWA(nextConfig);
+export default process.env.BUILD_STATIC_PAGES === 'true' ? staticExportConfig : nextConfig;
