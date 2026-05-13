@@ -5,9 +5,13 @@ import { stripDocsPrefix } from './utils.js';
 import { getRepoPaths } from '../paths.js';
 import { getDirNameToPrefix } from './mapFilesToUrlPaths.js';
 
-/** Build prefix-map.json: list of all valid project paths, sorted longest-first for use in site.json lookup in next */
-export const buildPrefixList = (allContentData: AllContentData): string[] => {
-  const projectPrefixes: Set<string> = new Set<string>();
+/**
+ * Returns the URL-style path for each project version in allContentData.
+ */
+export const getProjectVersionPaths = (
+  allContentData: AllContentData,
+): string[] => {
+  const paths: Set<string> = new Set<string>();
   for (const entry of Object.values(allContentData.docsPaths)) {
     const projectDocs = allContentData.atlasProjectDocuments[entry.projectName];
     // Landing project is the fallback, has no prefix beyond the general docs/ prefix— skip it
@@ -18,9 +22,15 @@ export const buildPrefixList = (allContentData: AllContentData): string[] => {
     const stripped = stripDocsPrefix(prefix);
 
     const projectPath = [stripped, entry.versionName].filter(Boolean).join('/');
-    if (projectPath) projectPrefixes.add(projectPath);
+    if (projectPath) paths.add(projectPath);
   }
-  const sortedProjectPrefixes = [...projectPrefixes].sort(
+  return [...paths];
+};
+
+/** Build prefix-map.json: list of all valid project paths, sorted longest-first for use in site.json lookup in next */
+export const buildPrefixList = (allContentData: AllContentData): string[] => {
+  const paths = getProjectVersionPaths(allContentData);
+  const sortedProjectPrefixes = [...paths].sort(
     (a, b) => b.split('/').length - a.split('/').length || a.localeCompare(b),
   );
   return sortedProjectPrefixes;

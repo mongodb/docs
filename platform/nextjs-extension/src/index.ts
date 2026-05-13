@@ -30,6 +30,7 @@ import { handleOfflineDownloads } from "./offline-docs/index";
 import { handleSearchManifests } from "./searchManifests/index";
 import { writePathPrefixListToFile, writeDirNameToPrefixMapToFile } from "./blobUploads/buildPrefixList";
 import { handleAllBlobUploads } from "./blobUploads/handleAllBlobUploads";
+import { deleteOrphanedFilesFromBlobStore } from "./blobUploads/deleteOrphanedFilesFromBlobStore";
 import {
 	getMdxContentBlobStores,
 	MAIN_BRANCH,
@@ -165,6 +166,13 @@ extension.addBuildEventHandler(
 				allContentData,
 				branchStore,
 				productionStore,
+			});
+
+			// branchStore always has value on non-main builds; main uses productionStore.
+			await deleteOrphanedFilesFromBlobStore({
+				relativeFilePaths,
+				allContentData,
+				store: branchStore || productionStore,
 			});
 		}
 

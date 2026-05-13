@@ -12,6 +12,10 @@ const config = {
 
   setupFilesAfterEnv: ['<rootDir>/src/persistence/tests/setupAfterEnv.ts'],
 
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
+
   transform: {
     '^.+\\.(ts|js)$': [
       'ts-jest',
