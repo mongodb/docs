@@ -57,10 +57,12 @@ Bug Fixes
 - Fixes log redaction to prevent corruption of JSON |mongod|
   log lines, ensuring downloaded logs remain valid and
   uncorrupted.
-- Fixes a remote code execution vulnerability in webhook
-  Freemarker templates.
+- Fixes a remote code execution vulnerability
+  (`CVE-2026-8431 <https://nvd.nist.gov/vuln/detail/CVE-2026-8431>`__)
+  in webhook Freemarker templates.
 - Fixes the following |cve|\s:
 
+  - `CVE-2026-8431 <https://nvd.nist.gov/vuln/detail/CVE-2026-8431>`__
   - `CVE-2026-2332 <https://nvd.nist.gov/vuln/detail/CVE-2026-2332>`__
   - `CVE-2026-33871 <https://nvd.nist.gov/vuln/detail/CVE-2026-33871>`__
   - `CVE-2026-33870 <https://nvd.nist.gov/vuln/detail/CVE-2026-33870>`__
