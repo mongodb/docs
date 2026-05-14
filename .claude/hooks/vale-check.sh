@@ -16,7 +16,7 @@ fi
 input=$(cat)
 file=$(printf '%s' "$input" | jq -r '.tool_input.file_path // ""')
 
-if [[ "$file" =~ \.(txt|rst)$ ]] && [[ "$file" == content/* || "$file" == ./content/* || "$file" == */content/* ]]; then
+if [[ "$file" =~ \.(txt|rst)$ ]] && [[ "$file" == content/* || "$file" == ./content/* || "$file" == */content/* ]] && [[ "$file" != */content/code-examples/* ]]; then
     output=$(cd "$REPO_ROOT" && vale --config vale.ini --minAlertLevel suggestion "$file" 2>&1)
     if [ -n "$output" ]; then
         echo "Vale lint results:"
