@@ -1,5 +1,10 @@
-Query settings have higher precedence than index hints. MongoDB ignores
-index hints that you pass as command fields when a matching query
-setting contains index hints. Index hints don't affect the :ref:`query
-shape <query-shapes>`. For more information about hints and query
+Cluster query settings take precedence over query settings or 
+index hints passed as a command field. MongoDB ignores
+index hints in command fields if a matching query
+setting already contains index hints. 
+
+Index hints don't affect :ref:`query
+shape <query-shapes>`. 
+
+For more information about hints and query
 settings, see :ref:`Query Settings Syntax <setQuerySettings-syntax>`.

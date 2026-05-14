@@ -2,6 +2,9 @@
 setQuerySettings (database command)
 ===================================
 
+.. meta::
+   :description: Use the `setQuerySettings` command to set persistent query settings for all `find`, `distinct`, and `aggregate` commands on a cluster.
+   
 .. default-domain:: mongodb
 
 .. contents:: On this page
@@ -21,37 +24,39 @@ Definition
 
 .. versionadded:: 8.0
 
-You can use query settings to add index hints, define :ref:`operation
-rejection filters <operation-rejection-filters>`, and set other fields.
-The settings apply to the :ref:`query shape <query-shapes>` on
-the entire cluster. The cluster retains the settings after shutdown.
-
-For example, query settings allow you to use an index for all executions
-of a query shape in a cluster.
-
-The :term:`query optimizer` uses the query settings as an additional
-input during query planning, which affects the plan selected to run the
-query.
-
 ``setQuerySettings`` defines query settings used by the
 :dbcommand:`find`, :dbcommand:`distinct`, and :dbcommand:`aggregate`
 commands.
 
-Starting in MongoDB 8.0, use query settings instead of :ref:`index
-filters <index-filters>`. Index filters are deprecated starting in
-MongoDB 8.0.
+You can use query settings to add index hints, define :ref:`operation
+rejection filters <operation-rejection-filters>`, and set other fields for all
+executions of a given :ref:`query shape <query-shapes>` on
+a cluster. A cluster's query settings persist across restarts.
 
-Query settings have more functionality than index filters. Also, index
-filters aren't persistent and you cannot easily create index filters for
-all cluster nodes.
+The :term:`query optimizer` uses query settings as an additional
+input during query planning. Index hints in query settings
+restrict the set of indexes available to the planner, but don't guarantee that
+the planner will use the index. The planner can still select a 
+collection scan as the winning plan for a given query shape hash.
 
 .. include:: /includes/hints-precedence.rst
 
 .. note::
 
    To remove query settings, use :dbcommand:`removeQuerySettings`. To
-   obtain the query settings, use a :pipeline:`$querySettings` stage in
+   see current query settings, use a :pipeline:`$querySettings` stage in
    an aggregation pipeline.
+
+
+Query Settings and Index Filters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 8.0, :ref:`index filters <index-filters>` are deprecated.
+Use query settings instead.
+
+Query settings have more functionality than index filters. Index
+filters aren't persistent, and you can't easily create index filters for
+all cluster nodes.
 
 .. _setQuerySettings-syntax:
 
@@ -244,8 +249,8 @@ Examples
 --------
 
 The following examples create a collection and add query settings for
-different commands. The examples use one index for all executions of a
-query shape run in the cluster.
+different commands. For all executions of a query shape on the cluster, the
+examples restrict the query planner to either using the hinted index, or a collection scan.
 
 .. procedure::
    :style: normal
