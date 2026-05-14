@@ -16,8 +16,6 @@
          
          Ensure that you add the IP address you will use to
          access MongoDB as the ``admin`` user.
-
-         .. include:: /includes/security/fact-unrestricted-ip-access.rst
       
       Enter the desired IP address or |cidr|-notated range of addresses:
       
