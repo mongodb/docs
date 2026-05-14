@@ -113,6 +113,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/ai-integrations/haystack',
           },
           {
+            label: 'Feast',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/ai-integrations/feast',
+          },
+          {
             label: 'Spring AI',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/ai-integrations/spring-ai',
@@ -247,11 +252,6 @@ const tocData: TocItem[] = [
                 url: '/docs/atlas/ai-integrations/n8n/build-ai-agent',
               },
             ],
-          },
-          {
-            label: 'Feast',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/ai-integrations/feast',
           },
         ],
       },
