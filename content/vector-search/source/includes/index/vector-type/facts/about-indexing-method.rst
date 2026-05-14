@@ -34,11 +34,17 @@ Small Worlds)` settings:
   {+avs+} evaluates to find the closest neighbors to
   connect to a new node.
 
-.. include:: /includes/index/vector-type/facts/fact-hnsw-options-preview.rst
+.. note:: 
 
-  To run an exhaustive search, or |enn| search, on an
-  :abbr:`HNSW (Hierarchical Navigable Small Worlds)` index,
-  set the ``exact`` parameter to ``true``.
+   We recommend using the default values and tuning the 
+   default settings only if you are experiencing suboptimal 
+   recall on large indexes. While higher values provide better 
+   recall, they also increase memory usage and slow down 
+   indexing and search speed.
+
+To run an exhaustive search, or |enn| search, on an
+:abbr:`HNSW (Hierarchical Navigable Small Worlds)` index,
+set the ``exact`` parameter to ``true``.
 
 .. _mdb-vs-flat-index-structure:
 

@@ -137,8 +137,13 @@
        the default values for the ``maxEdges`` and ``numEdgeCandidates``
        parameters. 
 
-       :gold:`IMPORTANT:` This is available as a Preview feature. Modifying 
-       the default values might negatively impact your {+avs+} index and queries.
+       :gold:`NOTE:` We recommend using the default values and tuning the
+       default settings only if you are experiencing suboptimal recall on
+       large indexes. While higher values provide better recall, they
+       also increase memory usage and slow down indexing and search speed.
+
+       To learn more, see 
+       :ref:`About the Indexing Methods <avs-vector-index-method>`.
 
    * - | ``fields.`` 
        | ``hnswOptions.`` 

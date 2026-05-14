@@ -120,11 +120,14 @@
        this field only if ``indexingMethod`` is ``hnsw``. If omitted, uses
        the default values for the ``maxEdges`` and ``numEdgeCandidates``
        parameters. 
+
+       :gold:`NOTE:` We recommend using the default values and tuning the
+       default settings only if you are experiencing suboptimal recall on
+       large indexes. While higher values provide better recall, they
+       also increase memory usage and slow down indexing and search speed.
        
        To learn more, see :ref:`About the Indexing Methods 
        <mdb-vs-vector-index-method>`.
-
-       .. include:: /includes/index/vector-type/facts/fact-hnsw-options-preview.rst
 
    * - | ``fields.`` 
        | ``hnswOptions.`` 
