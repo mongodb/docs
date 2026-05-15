@@ -11,7 +11,7 @@ Guidance for {+service+} Disaster Recovery
    :values: tutorial
 
 .. meta::
-   :description: Learn how to prepare for and respond to disasters with this disaster recovery page for MongoDB Atlas.
+   :description: Learn how to implement disaster recovery for MongoDB Atlas using backups for data corruption, accidental deletion, and complete deployment loss scenarios.
 
 .. contents:: On this page
    :local:
@@ -19,93 +19,153 @@ Guidance for {+service+} Disaster Recovery
    :depth: 2
    :class: onecol
 
-It is critical for enterprises to plan for disaster recovery. We strongly recommend that you prepare a comprehensive disaster recovery (DR) plan 
-that includes elements such as: 
-
-- Your designated recovery point objective (RPO)
-- Your designated recovery time objective (RTO)
-- Automated processes that facilitate alignment with these objectives
+Disaster recovery (DR) is a resilience strategy that uses manual
+procedures to recover your deployment when automatic failover cannot
+help. Unlike :ref:`high availability <arch-center-high-availability>`,
+which provides automatic self-healing for infrastructure failures,
+disaster recovery requires human intervention to restore from backups.
 
 .. note::
 
    .. sharedinclude:: cet/atlas/shared-responsibility-model-intro.rst
 
-Use the recommendations on this page to prepare for and respond to
-disasters.
+When to Use Disaster Recovery
+------------------------------
 
-To learn more about proactive high availability configurations that
-can help with disaster recovery, see :ref:`arch-center-ha-recs`.
+.. important::
 
-Features for {+service+} Disaster Recovery
-------------------------------------------
+   Prefer :ref:`high availability <arch-center-high-availability>` when
+   possible. Use disaster recovery as your primary resilience strategy
+   only when high availability is not feasible.
 
-To learn about {+service+} features that support disaster recovery, see
-the following pages in the {+atlas-arch-center+}:
+Disaster recovery is appropriate as your primary resilience strategy in
+the following situations:
 
-- :ref:`arch-center-high-availability`
-- :ref:`arch-center-backups`
+**Geographic Constraints**
+  You cannot deploy to multiple regions with sufficient availability
+  zones. For example, if you must deploy in Canada, only 2 regions are
+  available, preventing automatic failover quorum requirements.
+
+**Cost Optimization**
+  Your budget requires minimizing infrastructure costs. Multi-region or
+  multi-cloud high availability deployments cost more than single-region
+  deployments with backups.
+
+**Tolerance for Manual Recovery**
+  Your application can tolerate the time required for manual
+  intervention and backup restoration (:abbr:`RTO (Recovery Time
+  Objective)` in minutes to hours rather than seconds).
+
+.. note::
+
+   Even if you use high availability, you might benefit from disaster
+   recovery procedures for scenarios that automatic failover cannot
+   address, such as data corruption or accidental deletion. To learn more
+   about combining both approaches, see :ref:`arch-center-bcp`.
+
+How Backups Support Disaster Recovery
+--------------------------------------
+
+Backups are the primary tool for implementing disaster recovery.
+{+service+} provides fully managed, customizable backups that enable
+manual recovery when automatic failover cannot help.
+
+Cloud Backups
+~~~~~~~~~~~~~
+
+{+service+} uses your cloud provider's native snapshot capabilities to
+create incremental backups with fast restore times and low storage costs.
+
+**How it supports DR:**
+
+- Configure snapshot frequency (hourly, daily, weekly, monthly, yearly)
+  to meet your :abbr:`RPO (Recovery Point Objective)` requirements.
+- Set retention periods to meet compliance and recovery needs.
+- Restore snapshots to recover from data corruption or deletion.
+
+**When to use:** Standard disaster recovery scenarios where you can
+tolerate data loss equal to your snapshot frequency. For example, hourly
+snapshots result in up to 1 hour of data loss.
+
+Continuous Cloud Backups (Point-in-Time Recovery)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+service+} stores snapshots along with your cluster's oplog to enable
+restoration to any specific moment in time.
+
+**How it supports DR:**
+
+- Restore to any moment within the last 72 hours (configurable).
+- Achieve RPOs as low as 1 minute.
+- Precisely target the moment before data corruption or deletion
+  occurred.
+
+**When to use:** When you need minimal data loss (low RPO) or precise
+recovery to a specific timestamp.
+
+Multi-Region Snapshot Distribution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+service+} automatically distributes copies of snapshots and oplogs
+across geographic regions.
+
+**How it supports DR:**
+
+- Ensures backups remain accessible even if the primary region fails
+  completely.
+- Enables recovery when your HA deployment cannot failover, such as
+  during a complete provider outage.
+- Meets compliance requirements for geographically distributed backups.
+
+**When to use:** When you need protection against complete regional
+loss or provider outages that exceed your HA configuration.
+
+Backup Strategy RTO/RPO Trade-offs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Backup strategies protect against data integrity failures that automatic
+failover cannot address, such as data corruption, accidental deletion,
+and complete deployment loss. All backup strategies involve some data
+loss (RPO > 0) and longer recovery times (RTO in minutes to hours). The
+trade-offs are in how much data you might lose and the operational
+complexity of each approach.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 18 22 15 15 15 15
+
+   * - Backup strategy
+     - Primary use cases
+     - Typical RTO
+     - RPO
+     - Operational considerations
+     - Cost considerations
+
+   * - Periodic snapshots
+     - Data corruption, accidental deletion, complete deployment loss.
+     - Minutes to hours.
+     - > 0 (up to snapshot interval).
+     - Define schedule/ retention. Regularly test restore procedures.
+     - Storage grows with frequency and retention. Restore incurs
+       compute/ egress costs.
+
+   * - Continuous backup with point-in-time restore
+     - Data corruption or deletion where "bad" timestamp is known.
+     - Minutes to hours.
+     - > 0 (near-zero, down to seconds).
+     - Configure Point in Time (PIT) restore windows. Monitor for
+       failures.
+     - Higher storage and backup cost than snapshots alone.
+
+   * - Multi-region snapshot distribution
+     - Region or provider loss that also affects local backups.
+     - Minutes to hours (can be slower cross-region).
+     - > 0 (tied to snapshot schedule).
+     - Plan and test cross-region restores. Manage retention policy.
+     - Additional storage in multiple regions. Cross-region egress on
+       restore.
 
 .. _arch-center-dr-recs:
-
-Recommendations for {+service+} Disaster Recovery
--------------------------------------------------
-
-Use the following disaster recovery recommendations to create a {+DR+}
-plan for your organization. These recommendations provide information
-on steps to take in the event of a disaster.
-
-It is imperative that you test the plans in this section regularly (ideally quarterly, but at least semi-annually). Testing often helps prepare the Enterprise Database Management (EDM) team to respond to disasters while also helping to keep the instructions up to date. 
-
-Some disaster recovery testing might require actions that cannot be performed by EDM users. In these cases, open a support case for the purpose of performing artificial outages at least a week in advance of when you plan on running a test exercise.
-
-The following diagram compares different disaster recovery scenarios and deployment 
-configurations. The table shows the relative Recovery Time Objective (RTO) and 
-Recovery Point Objective (RPO) benefits versus the deployment complexity and cost 
-for each configuration. Note that replica set elections (automatic failover) do not 
-result in data loss, while recovery from backups might involve some data loss depending 
-on the backup frequency. "Control plane fault" refers to issues with the {+service+} 
-management infrastructure rather than your data nodes.
-
-.. figure:: /includes/images/rto-rpo-table.png
-  :figwidth: 1929px
-  :alt: An image showing relative complexity and RTO/RPO trade-offs for different disaster recovery configurations.   
-  :align: center
-  :lightbox:
-
-  Figure 1. Disaster recovery configuration complexity and RTO/RPO trade-offs. 
-
-.. collapsible::
-   :heading: Single-Region Deployment Recommendations
-   :sub_heading: Recommendations that apply only to deployments in a single region
-   :expanded: true
-
-   Each cloud provider on which you can deploy {+service+} {+clusters+} provides default data redundancy that helps to mitigate any outages:
-
-   - {+aws+} stores objects on multiple devices across a minimum of three Availability Zones in an {+aws+} Region.
-   - {+azure+} uses locally redundant storage (LRS) that replicates your data three times within a single data center in the selected region.
-   - {+gcp+} spreads your data across multiple zones in the backup region.
-
-   To enhance your disaster recovery, you can configure {+service+} to automatically create copies of your snapshots and oplogs in other regions. 
-   This ensures that, even if the primary region experiences an outage, you can restore your {+cluster+} using snapshot copies stored in other regions. 
-   
-   {+service+} optimizes restore speeds by selecting the most efficient option based on region availability, using copied snapshots if restoring 
-   to a region where those copies exist. Additionally, if the original snapshot is inaccessible due to a regional outage, 
-   {+service+} will restore using the nearest available snapshot copy, minimizing downtime and improving recovery resilience. 
-   To learn more, see :atlas:`Export Cloud Backup Snapshot </backup/cloud-backup/export>`.
-
-.. collapsible::
-   :heading: Multi-Region and Multi-Cloud Deployment Recommendations
-   :sub_heading: Recommendations that apply only to deployments across multiple regions or multiple cloud providers
-   :expanded: true
-
-   Multi-region and multi-cloud deployments provide enhanced disaster recovery capabilities 
-   by distributing your {+cluster+} nodes across different geographic locations or cloud 
-   providers. This distribution helps ensure that if one region or cloud provider experiences 
-   an outage, your application can continue operating using nodes in unaffected locations. 
-   
-   When configuring multi-region or multi-cloud deployments, ensure your backup strategy 
-   accounts for the distributed nature of your deployment, including setting appropriate 
-   backup retention periods based on your specific recovery requirements.
 
 All Deployment Paradigm Recommendations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -128,7 +188,7 @@ This section covers the following disaster recovery procedures:
 .. _arch-center-single-node-outage:
 
 Single Node Outage
-``````````````````
+^^^^^^^^^^^^^^^^^^^
 
 If a single node in your replica set fails due to a partial regional outage, your deployment should still be available, assuming you have followed best practices. If you are reading from secondaries, you might experience degraded performance or potential outages in the event that a secondary node should fail, because of the increased load on the then underprovisioned {+cluster+}.
 
@@ -139,9 +199,17 @@ You can test a primary node outage in {+service+} using the
 .. _arch-center-regional-outage:
 
 Regional Outage
-```````````````
+^^^^^^^^^^^^^^^
 
-Multi-region {+clusters+}, in the event of a regional outage, will automatically hold an election and identify a new primary node if necessary. This topology change will be automatically communicated to the application allowing it to take any necessary corrective action. In order to maintain application uptime in the event of a regional outage, your application itself must also be deployed with a multi-region topology. This requirement extends to include any third-party service your application may be integrated with. To learn more, see :ref:`<arch-center-paradigms-multi-region>`.
+In the event of a regional outage, multi-region {+clusters+}
+automatically hold an election and identify a new primary node if
+necessary. This topology change is automatically communicated to the
+application, allowing it to take any necessary corrective action. In
+order to maintain application uptime in the event of a regional outage,
+your application must also be deployed with a multi-region topology.
+This requirement extends to include any third-party service your
+application may be integrated with. To learn more, see
+:ref:`arch-center-paradigms-multi-region`.
 
 If a single region outage or multi-region outage degrades the state of your 
 {+cluster+}, follow these steps:
@@ -189,7 +257,7 @@ You can test a region outage in {+service+} using the
 .. _arch-center-provider-outage:
 
 Cloud Provider Outage
-`````````````````````
+^^^^^^^^^^^^^^^^^^^^^
 
 With multi-cloud {+clusters+}, you can select electable nodes across cloud providers 
 to maintain high availability. Should the provider in which your primary node is 
@@ -197,12 +265,15 @@ deployed become unavailable, |service| automatically elects new primary nodes
 to ensure continuous operation. For example, you can create electable 
 nodes on {+aws+}, {+gcp+}, and {+azure+} to ensure that if one cloud provider 
 experiences an outage, an electable node on a separate provider can automatically 
-take over as your {+cluster+}'s primary node. To learn more, see :ref:`<arch-center-paradigms-multi-cloud>`.
+take over as your {+cluster+}'s primary node. To learn more, see :ref:`arch-center-paradigms-multi-cloud`.
 
-Most multi-region {+service+} {+clusters+} will recover automatically from a single region outage. 
-To learn more, see the High Availability section and Multi-region Deployment page. 
-In the case that regional outages have knocked out a majority of nodes, you must 
-determine how many more nodes you need to add in order for a majority of nodes to be healthy.
+Most multi-region {+service+} {+clusters+} will recover automatically from a
+single region outage. To learn more, see
+:ref:`arch-center-high-availability` and
+:ref:`arch-center-paradigms-multi-region`. In the case that regional
+outages have taken a majority of nodes offline, you must determine how
+many more nodes you need to add in order for a majority of nodes to be
+healthy.
 
 In the highly unlikely event that an entire cloud provider is
 unavailable, follow these steps to bring your deployment back online:
@@ -243,7 +314,7 @@ unavailable, follow these steps to bring your deployment back online:
 .. _arch-center-atlas-outage:
 
 {+service+} Outage
-``````````````````
+^^^^^^^^^^^^^^^^^^
 
 In the highly unlikely event that the {+service+} Control Plane and
 the {+atlas-ui+} are unavailable, your {+cluster+} is still available and accessible.
@@ -254,7 +325,7 @@ to investigate this further.
 .. _arch-center-resource-capacity:
 
 Resource Capacity Issues
-````````````````````````
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 Computational resource (such as disk space, RAM, or CPU) capacity
 issues can result from poor planning or unexpected database traffic.
@@ -287,7 +358,7 @@ amount and causes a disaster, follow these steps:
 .. _arch-center-resource-failure:
 
 Resource Failure
-````````````````
+^^^^^^^^^^^^^^^^
 
 .. include:: /includes/temporary-cluster-fix.rst
 
@@ -310,7 +381,7 @@ unavailable, follow these steps:
 .. _arch-center-data-deletion:
 
 Deletion of Production Data
-```````````````````````````
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Production data might be accidentally deleted due to human error or a bug
 in the application built on top of the database.
@@ -344,7 +415,7 @@ If the contents of a collection or database have been deleted, follow these step
 .. _arch-center-driver-failure:
 
 Driver Failure
-``````````````
+^^^^^^^^^^^^^^
 
 If a driver fails, follow these steps:
 
@@ -381,7 +452,7 @@ If a driver fails, follow these steps:
 .. _arch-center-data-corruption:
 
 Data Corruption
-```````````````
+^^^^^^^^^^^^^^^^
 
 .. include:: /includes/temporary-cluster-fix.rst
 
@@ -401,12 +472,3 @@ If your underlying data becomes corrupted, follow these steps:
    .. step:: Check the restored data to confirm that the corruption does not exist
 
    .. step:: Point all applications using the failing {+cluster+} to the newly-created {+cluster+}
-
-
-
-
-
-
-
-
-

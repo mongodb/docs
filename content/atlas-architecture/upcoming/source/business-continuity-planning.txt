@@ -1,0 +1,297 @@
+.. _arch-center-bcp:
+
+=========================================================
+Guidance for {+service+} Business Continuity Planning
+=========================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to create a comprehensive business continuity plan for MongoDB Atlas by combining high availability architecture, disaster recovery procedures, testing, and documentation.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: onecol
+
+A business continuity plan ensures your applications remain available
+and recoverable during disruptions. Your plan should combine:
+
+- **High Availability (HA)**: Deploy architectures that automatically
+  self-heal when infrastructure fails.
+- **Disaster Recovery (DR)**: Establish procedures to manually recover
+  when automatic failover cannot help.
+- **Testing**: Regularly validate both HA and DR capabilities.
+- **Documentation**: Maintain clear procedures and recovery objectives.
+
+.. note::
+
+   .. sharedinclude:: cet/atlas/shared-responsibility-model-intro.rst
+
+Choose Your Resilience Strategy
+--------------------------------
+
+Choose between the following primary approaches based on your requirements:
+
+High Availability - Automatic Self-Healing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Choose HA when you need near-zero downtime and can deploy across
+multiple availability zones (AZ), regions, or cloud providers.
+
+**Characteristics:**
+
+- Automatic failover with no manual intervention.
+- :abbr:`RPO (Recovery Point Objective)` = 0 when using ``majority``
+  write concern.
+- :abbr:`RTO (Recovery Time Objective)` = seconds.
+- Higher infrastructure cost.
+
+**When to use:** Most production deployments, especially when:
+
+- You have users across multiple regions.
+- Your application requires continuous availability.
+- You can deploy to regions with 3+ availability zones.
+
+To learn more, see :ref:`arch-center-high-availability` and
+:ref:`arch-center-paradigms`.
+
+Disaster Recovery - Manual Recovery
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Choose DR when HA is not feasible or cost-effective, such as:
+
+- Geographic constraints, such as Canada with only 2 regions.
+- Cost-sensitive applications.
+- Tolerance for manual recovery procedures.
+
+**Characteristics:**
+
+- Manual intervention required.
+- RPO > 0, depending on backup frequency.
+- RTO = minutes to hours.
+- Lower infrastructure cost, backup storage costs apply.
+
+**When to use:**
+
+- Geographic or regulatory constraints prevent multi-region deployment.
+- Budget constraints require cost optimization.
+- Application can tolerate planned downtime for recovery.
+
+To learn more, see :ref:`arch-center-dr`.
+
+Combining HA and DR
+~~~~~~~~~~~~~~~~~~~
+
+Most production environments benefit from combining both approaches to
+provide comprehensive protection:
+
+- **HA for infrastructure failures**: Automatic failover protects
+  against node, zone, region, or provider outages.
+- **DR for data integrity issues**: Backups protect against scenarios
+  that automatic failover cannot address.
+
+Why You Might Benefit from DR Even with HA
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Even with a high availability deployment, you might benefit from
+disaster recovery procedures for:
+
+**Data Corruption or Accidental Deletion**
+  High availability replicates corrupted data across all nodes. You must
+  restore from backups to recover to a state before the corruption or
+  deletion occurred.
+
+**Application-Level Failures**
+  Code errors or malicious attacks that affect data integrity rather
+  than infrastructure. The corrupted state has been replicated across the
+  entire replica set.
+
+**Compliance Requirements**
+  Many regulations require point-in-time recovery capabilities and
+  backup retention policies that go beyond what automatic failover
+  provides.
+
+This layered approach provides comprehensive protection while optimizing
+for both availability and data integrity.
+
+Define Your Recovery Objectives
+--------------------------------
+
+Establish clear recovery objectives to guide your architecture and
+backup decisions:
+
+Recovery Point Objective (RPO)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The maximum acceptable amount of data loss measured in time.
+
+**Examples:**
+
+- **RPO = 0**: Use HA with ``majority`` write concern.
+- **RPO = 1 hour**: Configure hourly snapshots.
+- **RPO = 1 day**: Configure daily snapshots.
+
+Recovery Time Objective (RTO)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The maximum acceptable time to restore service after disruption.
+
+**Examples:**
+
+- **RTO = seconds**: Use HA with automatic failover.
+- **RTO = 1 hour**: Ensure backup restore procedures complete in <1 hour.
+- **RTO = 4 hours**: Document and test manual recovery procedures.
+
+Your deployment paradigm and backup strategy should align with these
+objectives. Use the comparison tables in :ref:`arch-center-high-availability`
+and :ref:`arch-center-dr` to evaluate options.
+
+Test Your Plan Regularly
+-------------------------
+
+Test your business continuity plan at least semi-annually (quarterly is
+recommended). Testing validates your procedures and trains your team.
+
+Test High Availability Failover
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Automated tests:**
+
+- Use {+atlas-ui+}'s :atlas:`Test Primary Failover
+  </tutorial/test-resilience/test-primary-failover/>` feature.
+- Use :oas-bump-atlas-op:`Test Failover
+  <restartgroupclusterprimaries>` {+atlas-admin-api+} endpoint.
+- :ref:`Simulate regional outages <test-outage>` for multi-region
+  deployments.
+
+**Validate:**
+
+- Failover completes within expected RTO.
+- Applications reconnect automatically.
+- No data loss occurs (RPO = 0).
+
+Test Disaster Recovery Procedures
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Manual recovery tests:**
+
+- Practice restoring from backups in non-production environments.
+- Document actual recovery times and compare to RTO.
+- Verify restored data integrity.
+- Test cross-region restores if using multi-region snapshot distribution.
+
+**Validate:**
+
+- Team follows documented procedures correctly.
+- Recovery completes within expected RTO.
+- Data loss aligns with expected RPO.
+- All dependencies (networks, credentials) work correctly.
+
+Some testing might require actions unavailable to standard users. Open a
+support case at least one week in advance to schedule artificial
+outages or other restricted test scenarios.
+
+Document Your Plan
+------------------
+
+Maintain clear documentation for your business continuity plan:
+
+Required Documentation
+~~~~~~~~~~~~~~~~~~~~~~~
+
+**Recovery objectives:**
+
+- Documented RPO and RTO for each application tier.
+- Justification for chosen deployment paradigm.
+- Backup frequency and retention decisions.
+
+**Architecture documentation:**
+
+- Deployment topology (regions, zones, cloud providers).
+- Network architecture and failover behavior.
+- Application deployment topology.
+- Third-party service dependencies.
+
+**Recovery procedures:**
+
+- Step-by-step restoration procedures.
+- Contact information for on-call team.
+- Escalation paths for different scenario types.
+- Links to monitoring dashboards and alerts.
+
+**Test results:**
+
+- Historical test execution dates and results.
+- Issues identified and remediation status.
+- Changes to procedures based on test learnings.
+
+Keep documentation current by reviewing and updating after each test
+exercise or infrastructure change.
+
+Common Scenarios and Response Plans
+------------------------------------
+
+Prepare response plans for common disruption scenarios. For detailed
+procedures, see the scenario-specific sections in
+:ref:`arch-center-dr`.
+
+Infrastructure Failures (HA Scenarios)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Single node outage:**
+
+- HA deployments: Automatic failover, no action required.
+- Monitor for successful failover and node restoration.
+
+**Availability zone outage:**
+
+- Multi-AZ deployments: Automatic failover, no action required.
+- Verify application continues serving traffic.
+
+**Regional outage:**
+
+- Multi-region deployments: Automatic failover to another region.
+- Ensure application is also deployed multi-region.
+- Verify third-party services remain accessible.
+
+**Cloud provider outage:**
+
+- Multi-cloud deployments: Automatic failover to another provider.
+- Single-cloud deployments: Execute DR procedures.
+
+Data Integrity Issues (DR Scenarios)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Data corruption:**
+
+- Identify corruption timestamp.
+- Restore from backup before corruption occurred.
+- For continuous backup: Use point-in-time restore.
+
+**Accidental deletion:**
+
+- Identify deletion timestamp.
+- Restore from backup before deletion.
+- Verify restored data integrity.
+
+**Complete deployment loss:**
+
+- Execute documented DR procedures.
+- Restore from most recent backup.
+- Validate application functionality.
+
+**Control plane faults:**
+
+- Extremely rare. {+service+} maintains high reliability.
+- See `Platform Reliability
+  <https://www.mongodb.com/products/platform/trust#reliability>`__.
+- Contact MongoDB support immediately.
+
+For detailed recovery procedures for each scenario, see
+:ref:`arch-center-dr`.

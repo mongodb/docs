@@ -207,14 +207,14 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/high-availability',
           },
           {
-            label: 'Backups',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/backups',
-          },
-          {
             label: 'Disaster Recovery',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/disaster-recovery',
+          },
+          {
+            label: 'Business Continuity Planning',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/business-continuity-planning',
           },
         ],
       },
