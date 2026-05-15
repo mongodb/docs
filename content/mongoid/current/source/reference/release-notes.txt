@@ -13,12 +13,167 @@ Release Notes
 
 Learn what's new in:
 
+* :ref:`Version 9.1 <mongoid-version-9.1>`
 * :ref:`Version 9.0.11 <mongoid-version-9.0.11>`
 * :ref:`Version 9.0.7 <mongoid-version-9.0.7>`
 * :ref:`Version 9.0 <mongoid-version-9.0>`
 
 To view a list of releases and detailed release notes, see {+odm+}
 :github:`Releases <mongodb/mongoid/releases>` on GitHub.
+
+.. _mongoid-version-9.1:
+
+What's New in 9.1
+-----------------
+
+The 9.1 release includes the following new features, improvements, and
+fixes:
+
+- Adds the ``Criteria#raw`` method that allows you to retrieve results
+  as raw hashes. To learn more, see the :ref:`mongoid-raw-results`
+  section of the Modify Query Results guide.
+
+- Improves caching functionality by modifying the behavior of
+  ``cache_key`` to *not* embed a timestamp when ``cache_version``
+  returns a non-nil value. Instead, the timestamp is used as the version
+  for the entry to reduce key churn.
+
+  This change also adds the ``cache_version`` method to the
+  ``Mongoid::Document`` module. If the cache key format introduced in
+  this version poses an issue in your application, you can revert to
+  the original format by defining the ``cache_version`` method as
+  ``nil``:
+
+  .. code-block:: ruby
+     :emphasize-lines: 3
+
+     module Mongoid
+       module Document
+         def cache_version = nil
+       end
+     end
+
+- Updates the ``serializable_hash`` method to include a new ``Mongoid::Config.serializable_hash_with_legacy_only``
+  option, which defaults to ``true``. When this option is enabled, the {+ruby-driver+} uses
+  the pre-existing legacy ``serializable_hash`` behavior. This behavior returns all keys when
+  you pass an empty array for the ``:only`` option. {+odm+} will deprecate this legacy behavior
+  in v10.0.
+
+- Adds the ``Mongoid.isolation_level`` property, which allows you to configure the
+  default isolation level for concurrent operations. The default isolation level is
+  ``:rails``, which inherits the isolation level from ``ActiveSupport::IsolatedExecutionState``.
+  You can also specify the ``:thread`` option for the pre-existing thread-local isolation level
+  functionality or the ``:fiber`` option to inherit the internal state from any parent fiber.
+
+- Adds the ``any?``, ``one?``, and ``many?`` enumerable methods to the ``Criteria`` class
+  and delegates them to ``scoped`` at the class level. These methods use the MongoDB
+  ``count`` function rather than loading documents into memory, which improves performance
+  when documents have not already been fetched. The following example shows how to use these
+  methods:
+
+  .. code-block:: ruby
+
+     User.any?   # Returns true if any user documents exist
+     User.one?   # Returns true if exactly one user document exists in the criteria
+     User.many?  # Returns true if more than one user document exists in the criteria
+
+- Adds the ``Criteria#to_mql`` method, which returns the MongoDB
+  Query Language (MQL) representation of a query. Use this method
+  to inspect the queries that {+odm+} generates. The following
+  example returns the MQL for a ``Person`` query:
+
+  .. code-block:: ruby
+
+     Person.where(age: { '$gt' => 18 }).to_mql
+
+- Adds the ``Criteria#eager_load`` method for loading associations
+  using an aggregation pipeline. Unlike ``includes``,
+  ``eager_load`` issues a single query to the database. This method
+  performs better on ``has_many`` and ``has_and_belongs_to_many``
+  associations and on queries that join multiple ``belongs_to`` or
+  ``has_one`` associations. If you use ``eager_load`` on an
+  embedded association, {+odm+} falls back to ``includes``. The
+  following example eager-loads the ``employer`` and ``partner``
+  associations for active persons:
+
+  .. code-block:: ruby
+
+     Person.where(active: true).eager_load(:employer, :partner)
+
+- Adds {+vector-search+} support. Define a {+vector-search+} index
+  by using the ``vector_field`` macro or the ``vector_search_index``
+  method, then call ``vector_search`` to query for semantically
+  similar documents. To learn more, see the
+  :ref:`{+vector-search+} overview <fts-vector-search>`.
+  The following example defines a {+vector-search+} index on an
+  ``Article`` model and queries for similar documents:
+
+  .. code-block:: ruby
+
+     class Article
+       include Mongoid::Document
+
+       vector_field :embedding, dimensions: 1536
+     end
+
+     articles = Article.vector_search(query_vector, limit: 5)
+
+- Adds the ``auto_embed_field`` macro, which enables auto-embedding in
+  {+vector-search+} support. {+odm+} uses the configured embedding
+  model to automatically index the field. To learn more, see
+  :ref:`{+vector-search+} Quick Start <vector-search-quick-start>`
+  in the {+vector-search+} documentation. The following example defines an
+  auto-embedding field and queries for similar articles:
+
+  .. code-block:: ruby
+
+     class Article
+       include Mongoid::Document
+
+       auto_embed_field :body
+     end
+
+     articles = Article.auto_embed_search('machine learning', limit: 5)
+
+- Adds support for specifying the associated document type when
+  calling ``build_<association>`` or ``create_<association>`` on
+  ``embeds_one``, ``has_one``, and ``belongs_to`` associations.
+  The following example builds a ``HeadlessRunner`` for a ``Job``
+  association:
+
+  .. code-block:: ruby
+
+     job = Job.create
+     job.build_runner({ name: 'My Runner' }, HeadlessRunner)
+
+- Adds the ``Mongoid.allow_short_circuit_queries`` configuration
+  option. When set to ``true``, a top-level ``$in`` condition with
+  an empty array returns an empty result without querying the
+  database. This option defaults to ``false``. The following
+  example enables the option:
+
+  .. code-block:: ruby
+
+     Mongoid.allow_short_circuit_queries = true
+     Document.in(ids: [])  # Returns [], no database query issued
+
+- Updates duplicate index declaration behavior. {+odm+} now ignores
+  index declarations that differ only in their options, including
+  the index name. To allow near-identical index declarations to be
+  sent to the server, set
+  ``Mongoid.allow_duplicate_index_declarations = true``.
+
+- Deprecates the ``Criteria#max_scan`` method.
+
+- Changes the default of
+  ``Mongoid::Config.allow_reparenting_via_nested_attributes`` to
+  ``false``. Set this option to ``true`` to restore the earlier
+  behavior. This option will be removed in {+odm+} v10.
+
+- Changes the default of
+  ``Mongoid.autosave_saves_unchanged_documents`` to ``false``.
+  Set this option to ``true`` to restore the earlier behavior.
+  This option will be removed in {+odm+} v10.
 
 .. _mongoid-version-9.0.11:
 
@@ -200,15 +355,15 @@ Removal of Deprecated Class ``Mongoid::Errors::InvalidStorageParent``
 The deprecated class ``{+odm+}::Errors::InvalidStorageParent`` has been
 removed.
 
-``around_*`` Callbacks for Embedded Documents are Ignored
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+``around_*`` Callbacks for Embedded Documents are Ignored by Default
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-{+odm+} v8.x and older allow user to define ``around_*`` callbacks for embedded
-documents. Starting in v9.0, these callbacks are ignored and will not be executed.
-A warning will be printed to the console if such callbacks are defined.
+{+odm+} v8.x and older allows users to define ``around_*`` callbacks for embedded
+documents. Starting in v9.0, by default these callbacks are ignored and will
+not be executed. A warning will be printed to the console if such callbacks are defined.
 
 If you want to restore the old behavior, you can set
-``Mongoid.around_embedded_document_callbacks`` to true in your application.
+``Mongoid.around_callbacks_for_embeds`` to ``true`` in your application.
 
 .. note::
 

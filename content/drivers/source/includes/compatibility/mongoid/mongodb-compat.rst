@@ -13,7 +13,7 @@ The following table shows compatibility between Mongoid and {+mdb-server+}:
      - MongoDB 4.4
      - MongoDB 4.2
 
-   * - 9.0
+   * - 9.0 to 9.1
      - ✓
      - ✓
      - ✓
