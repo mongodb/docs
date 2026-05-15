@@ -965,6 +965,7 @@ const tocData: TocItem[] = [
       {
         label: 'Export Logs',
         contentSite: 'cloud-docs',
+        url: '/docs/atlas/export-logs',
         collapsible: true,
         items: [
           {
