@@ -14,7 +14,7 @@ The following table shows compatibility between the Scala driver and {+mdb-serve
      - MongoDB 4.4
      - MongoDB 4.2
 
-   * - 5.2 to 5.6
+   * - 5.2 to 5.7
      - ✓
      - ✓
      - ✓

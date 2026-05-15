@@ -16,7 +16,7 @@ Java versions later than 8 because of the JVM backwards compatibility promise.
      - Java 6
      - Java 5
 
-   * - 4.11 to 5.6
+   * - 4.11 to 5.7
      - ✓
      - ✓
      - ✓
