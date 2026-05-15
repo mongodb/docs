@@ -75,8 +75,8 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'Install a Kubernetes Operator',
-                contentSite: 'docs-k8s-operator',
-                url: '/docs/kubernetes-operator/stable/tutorial/install-k8s-operator',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/kubernetes/current/tutorial/install-k8s-operator',
               },
               {
                 label: 'Deploy with Kubernetes',
@@ -91,18 +91,18 @@ export const toc: L1TocItem[] = [
                   },
                   {
                     label: 'Deploy a Replica Set',
-                    contentSite: 'docs-k8s-operator',
-                    url: '/docs/kubernetes-operator/stable/tutorial/deploy-replica-set/',
+                    isExternal: true,
+                    url: 'https://www.mongodb.com/docs/kubernetes/current/tutorial/deploy-replica-set/',
                   },
                   {
                     label: 'Deploy a Sharded Cluster',
-                    contentSite: 'docs-k8s-operator',
-                    url: '/docs/kubernetes-operator/stable/tutorial/deploy-sharded-cluster/',
+                    isExternal: true,
+                    url: 'https://www.mongodb.com/docs/kubernetes/current/tutorial/deploy-sharded-cluster/',
                   },
                   {
                     label: 'Deploy a Standalone',
-                    contentSite: 'docs-k8s-operator',
-                    url: '/docs/kubernetes-operator/stable/tutorial/deploy-standalone/',
+                    isExternal: true,
+                    url: 'https://www.mongodb.com/docs/kubernetes/current/tutorial/deploy-standalone/',
                   },
                 ],
               },
@@ -2567,8 +2567,8 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'Kubernetes Operator',
-                contentSite: 'docs-k8s-operator',
-                url: '/docs/kubernetes-operator/stable/reference/troubleshooting',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/kubernetes/current/reference/troubleshooting',
               },
             ],
           },
@@ -2716,8 +2716,8 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'Kubernetes Operator',
-                contentSite: 'docs-k8s-operator',
-                url: '/docs/kubernetes-operator/stable/release-notes/',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/kubernetes/current/release-notes/',
               },
             ],
           },

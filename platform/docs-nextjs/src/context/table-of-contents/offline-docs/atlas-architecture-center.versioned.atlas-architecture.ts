@@ -312,6 +312,11 @@ export const toc: L1TocItem[] = [
                 collapsible: true,
                 items: [
                   {
+                    label: 'AML Network Analysis',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/aml-network-analysis',
+                  },
+                  {
                     label: 'Card Fraud Solution',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/card-fraud-solution',
@@ -476,6 +481,11 @@ export const toc: L1TocItem[] = [
                     label: 'AI-Enhanced Claim Adjustment',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/insurance-image-search',
+                  },
+                  {
+                    label: 'AI Insurance Underwriter',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/insurance-underwriter',
                   },
                   {
                     label: 'Build a PDF Search Application',

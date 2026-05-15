@@ -312,6 +312,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/cluster-sharding',
                   },
                   {
+                    label: 'Transition to Dedicated Config Servers',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/transition-to-dedicated-config-servers',
+                  },
+                  {
                     label: 'Auto-Scaling',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/cluster-autoscaling',
