@@ -700,6 +700,16 @@ const mckUpcoming: TocItem[] = [
         contentSite: 'mck',
         url: '/docs/kubernetes/:version/reference/k8s-operator-crd-logging-specification',
       },
+      {
+        label: 'MongoDBSearch',
+        contentSite: 'mck',
+        url: '/docs/kubernetes/:version/reference/k8s-operator-search-specification',
+      },
+      {
+        label: 'MongoDBCommunity',
+        contentSite: 'mck',
+        url: '/docs/kubernetes/:version/reference/k8s-operator-community-specification',
+      },
     ],
   },
   {
