@@ -2,10 +2,10 @@
    <manage-azure-access>` for your |service| project.
 
 #. Assign the *Storage Blob Delegator* and *Storage Blob Data
-   Contributor* roles to your |azure| :azure:`Service Principal
-   </powershell/azure/create-azure-service-principal-azureps>`.
+   Contributor* roles to your |azure| `Service Principal
+   <https://learn.microsoft.com/en-us/powershell/azure/create-azure-service-principal-azureps>`__.
 
-   To assign the roles to your Service Principal, you will need
+   To assign the roles to your Service Principal, you need
    the following information:  
 
    - `Service Principal ID <https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/how-to-view-managed-identity-service-principal?pivots=identity-mi-service-principal-portal>`__
