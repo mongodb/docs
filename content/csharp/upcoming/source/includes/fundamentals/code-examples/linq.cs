@@ -152,6 +152,30 @@ var query = queryableCollection
     .Select(x => Mql.SimilarityEuclidean(x.Vector1, x.Vector2, true));
 // end-similarityEuclidean-example
 
+// start-convert-base-example
+var query = queryableCollection
+    .Select(r => Mql.Convert(r.RestaurantId,
+        new ConvertOptions<int>
+        {
+            Base = ConvertBase.Hexadecimal
+        }));
+// end-convert-base-example
+
+// start-convert-string-example
+var query = queryableCollection
+    .Select(r => Mql.Convert(r.Id, new ConvertOptions<string>()));
+// end-convert-string-example
+
+// start-convert-object-example
+var query = queryableCollection
+    .Select(d => Mql.Convert(d.JsonData, new ConvertOptions<BsonDocument>()));
+// end-convert-object-example
+
+// start-convert-array-example
+var query = queryableCollection
+    .Select(d => Mql.Convert(d.JsonData, new ConvertOptions<BsonArray>()));
+// end-convert-array-example
+
 // start-createObjectId-example
 var query = queryableCollection
     .Select(d => new { NewId = Mql.CreateObjectId() });

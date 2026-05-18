@@ -16,7 +16,7 @@ LINQ Syntax for Aggregation Operations
  
 .. meta::
    :keywords: code example, query, aggregation
-   :description: Learn how to use LINQ with the MongoDB .NET/C# Driver to construct queries and perform aggregation operations, including filtering, projection, and sorting, on MongoDB collections.
+   :description: Learn how to use LINQ with the MongoDB .NET/C# Driver to construct queries and perform aggregation operations on collections, including filtering, grouping, and type conversion.
 
 Overview
 --------
@@ -1044,19 +1044,71 @@ more about conversion behavior and permitted conversions, see the
 :manual:`$convert reference </reference/operator/aggregation/convert/>`
 in the {+mdb-server+} manual.
 
-The ``Convert()`` method takes the following parameters:
+The ``Convert()`` method requires the following parameters:
 
-- Value to convert.
-- ``ConvertOptions`` instance that specifies the type to convert to
-  and options. Some conversions require you to specify certain options, but
-  you can also set options to handle errors or null values.
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
 
-The following code performs the following actions by using LINQ methods:
+   * - Parameter
+     - Description
 
-- Converts the ``RestaurantId`` string values to ``int`` values in a
-  ``Select()`` projection
-- Sets the returned value to ``-1`` if an error occurs during conversion
-- Sets the returned value to ``0`` if the input value is ``null`` or missing
+   * - ``value``
+     - Value to convert. The accepted input types depend on
+       the target type.
+
+   * - ``options``
+     - ``ConvertOptions<TTo>`` instance that specifies the target type
+       and conversion options, such as error handling. The accepted
+       target types depend on the input type.
+
+The ``ConvertOptions<TTo>`` class contains the following properties:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 60
+
+   * - Property
+     - Data Type
+     - Description
+
+   * - ``Base``
+     - ``ConvertBase?``
+     - Numeric base for conversions between string and
+       numeric types. This property requires {+mdb-server+} 8.3 or later. For an example
+       of this property, see :ref:`csharp-linq-convert-base`.
+
+   * - ``ByteOrder``
+     - `ByteOrder <{+api-root+}/MongoDB.Driver/MongoDB.Driver.ByteOrder.html>`__
+     - Byte order of binary data for conversions to and
+       from numeric types.
+
+   * - ``Format``
+     - ``string``
+     - String encoding format for conversions between
+       ``BinData`` and ``string`` values. This property accepts the following values:
+
+       - ``"base64"``
+       - ``"base64url"``
+       - ``"hex"``
+       - ``"uuid"``
+
+   * - ``OnError``
+     - ``TTo``
+     - Value to return if an error occurs during conversion.
+
+   * - ``OnNull``
+     - ``TTo``
+     - Value to return if the input value is ``null`` or missing.
+
+   * - ``SubType``
+     - `BsonBinarySubType
+       <{+api-root+}/MongoDB.Bson/MongoDB.Bson.BsonBinarySubType.html>`__
+     - BSON binary subtype for binary data conversions.
+
+The following code example uses LINQ methods to convert the ``RestaurantId`` ``string`` values
+to ``int`` values in a ``Select()`` projection. The code returns ``-1`` if an error
+occurs during conversion, and it returns ``0`` if the input value is ``null`` or missing.
 
 .. code-block:: csharp
    
@@ -1066,6 +1118,106 @@ The following code performs the following actions by using LINQ methods:
 The driver stores the converted values under the original field name in
 the output documents.
 
+.. _csharp-linq-convert-string:
+
+Convert to String
+`````````````````
+
+.. note::
+
+   This feature requires {+mdb-server+} 8.3 or later.
+
+You can use ``Mql.Convert()`` to convert any BSON type to a
+``string``. The driver maps this operation to the ``$toString``
+aggregation operator.
+
+The following example converts the ``Id`` field of each restaurant
+document from an ``ObjectId`` to a ``string``:
+
+.. literalinclude:: /includes/fundamentals/code-examples/linq.cs
+   :language: csharp
+   :dedent:
+   :start-after: start-convert-string-example
+   :end-before: end-convert-string-example
+   :category: usage example
+
+.. _csharp-linq-convert-object:
+
+Convert to BSON Object or Array
+```````````````````````````````
+
+.. note::
+
+   This feature requires {+mdb-server+} 8.3 or later.
+
+You can use ``Mql.Convert()`` to convert a JSON string to a
+``BsonDocument`` or ``BsonArray`` object. The driver maps these
+operations to the ``$toObject`` and ``$toArray`` aggregation
+operators.
+
+The following example converts a ``string`` field containing JSON
+to a ``BsonDocument``:
+
+.. literalinclude:: /includes/fundamentals/code-examples/linq.cs
+   :language: csharp
+   :dedent:
+   :start-after: start-convert-object-example
+   :end-before: end-convert-object-example
+   :category: usage example
+
+The following example converts a ``string`` field containing JSON
+to a ``BsonArray``:
+
+.. literalinclude:: /includes/fundamentals/code-examples/linq.cs
+   :language: csharp
+   :dedent:
+   :start-after: start-convert-array-example
+   :end-before: end-convert-array-example
+   :category: usage example
+
+.. _csharp-linq-convert-base:
+
+Specify a Numeric Base for String Conversion
+````````````````````````````````````````````
+
+.. note::
+
+   This feature requires {+mdb-server+} 8.3 or later.
+
+To specify the numeric base when converting between numeric types and strings,
+set the ``ConvertOptions.Base`` property to a ``ConvertBase`` value.
+This maps to the ``base`` field of the ``$convert`` aggregation operator.
+The ``ConvertBase`` enum supports the following values:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Value
+     - Description
+
+   * - ``ConvertBase.Binary``
+     - Base 2 (binary)
+
+   * - ``ConvertBase.Octal``
+     - Base 8 (octal)
+
+   * - ``ConvertBase.Decimal``
+     - Base 10 (decimal)
+
+   * - ``ConvertBase.Hexadecimal``
+     - Base 16 (hexadecimal)
+
+The following example interprets the ``RestaurantId`` string as a
+hexadecimal value and converts it to an integer:
+
+.. literalinclude:: /includes/fundamentals/code-examples/linq.cs
+   :language: csharp
+   :dedent:
+   :start-after: start-convert-base-example
+   :end-before: end-convert-base-example
+   :category: usage example
+
 .. _csharp-linq-string-operators:
 
 String Operators
@@ -1073,7 +1225,7 @@ String Operators
 
 The {+driver-short+} supports string replacement and splitting
 operations in LINQ expressions. The following sections describe how to
-perform these operations. 
+perform these operations.
 
 $replaceAll
 ```````````
@@ -1196,8 +1348,9 @@ The ``$createObjectId`` operator generates a new, unique
 ``ObjectId`` value. You can use this operator in stages such as
 ``$project``, ``$addFields``, and ``$set``.
 
-To add this operator to a LINQ expression, use the ``Mql.CreateObjectId()``
-method in a LINQ expression. The method takes no parameters.
+To add this operator to a LINQ expression, use the
+``Mql.CreateObjectId()`` method in a LINQ expression. The method
+takes no parameters.
 
 The following example uses ``Mql.CreateObjectId()`` in a
 ``Select()`` projection to assign a new ``ObjectId`` to a
@@ -1214,8 +1367,8 @@ field named ``NewId`` for each output document:
 EJSON Serialization Operators
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Extended JSON (EJSON) serialization operators convert between BSON values
-and their :ref:`Extended JSON v2 <mongodb-extended-json-v2>`
+Extended JSON (EJSON) serialization operators convert between BSON
+values and their :ref:`Extended JSON v2 <mongodb-extended-json-v2>`
 representations in an aggregation pipeline. The following sections
 explain how to use these operators in LINQ expressions.
 
@@ -1238,8 +1391,8 @@ document that contains EJSON-type wrappers. For example, an
    { "$oid" : "507f1f77bcf86cd799439011" }
 
 To use the ``$serializeEJSON`` expression operator in a LINQ
-expression, call the ``Mql.SerializeEJson<TInput, TOutput>()`` method.
-This method accepts the following parameters:
+expression, call the ``Mql.SerializeEJson<TInput, TOutput>()``
+method. This method accepts the following parameters:
 
 .. list-table::
    :header-rows: 1
@@ -1296,7 +1449,8 @@ The ``$deserializeEJSON`` expression operator converts an EJSON v2
 document back into native BSON values.
 
 To use the ``$deserializeEJSON`` expression operator in a LINQ
-expression, call the ``Mql.DeserializeEJson<TInput, TOutput>()`` method.
+expression, call the
+``Mql.DeserializeEJson<TInput, TOutput>()`` method.
 This method accepts the following parameters:
 
 .. list-table::
