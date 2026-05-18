@@ -222,19 +222,28 @@ public class AtlasSearchExamplesTests
             })),
         };
 
-        // Explicit embeddedDocuments index — used by EmbeddedDocumentSearch().
+        // Explicit embeddedDocuments index — used by EmbeddedDocumentSearch(),
+        // HasRootSearch(), and ReturnScopeSearch().
         // Uses token type for grade so the Equals() operator performs exact string matching.
+        // borough is indexed as token so HasRoot(Equals(borough, ...)) can filter at root level.
         var restaurantsIndexes = new List<CreateSearchIndexModel>
         {
             new("restaurantsembedded", SearchIndexType.Search, new BsonDocument("mappings", new BsonDocument
             {
                 { "dynamic", false },
-                { "fields", new BsonDocument("grades", new BsonDocument
+                { "fields", new BsonDocument
                     {
-                        { "type", "embeddedDocuments" },
-                        { "fields", new BsonDocument("grade",
-                            new BsonArray { new BsonDocument("type", "token") }) }
-                    })
+                        { "borough", new BsonArray { new BsonDocument("type", "token") } },
+                        { "grades", new BsonDocument
+                            {
+                                { "type", "embeddedDocuments" },
+                                { "fields", new BsonDocument("grade",
+                                    new BsonArray { new BsonDocument("type", "token") }) },
+                                { "storedSource", new BsonDocument("include",
+                                    new BsonArray { "grade", "score" }) }
+                            }
+                        }
+                    }
                 }
             })),
         };
@@ -569,6 +578,32 @@ public class AtlasSearchExamplesTests
         var result = _examples.ScoreSearch();
         Expect.That(result.Any(m => m.Title == "Gandhi")).ShouldMatch(true);
         Expect.That(result.Any(m => m.Title == "Batman")).ShouldMatch(true);
+    }
+
+    [Test]
+    [RequiresSampleData("sample_restaurants")]
+    [RequiresSearchIndex("restaurantsembedded", IndexType = "search")]
+    [Description("Verifies that HasRootSearch() returns the expected Manhattan restaurants with an 'A' grade, sorted by name")]
+    public void TestHasRootSearch()
+    {
+        var result = _examples.HasRootSearch();
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../../";
+        var fullPath = Path.Combine(solutionRoot,
+            "Examples/AtlasSearch/OutputFiles/HasRootSearchOutput.txt");
+        Expect.That(result).WithIgnoredFields("_id").ShouldMatch(fullPath);
+    }
+
+    [Test]
+    [RequiresSampleData("sample_restaurants")]
+    [RequiresSearchIndex("restaurantsembedded", IndexType = "search")]
+    [Description("Verifies that ReturnScopeSearch() returns the expected embedded grade entries with grade 'A', sorted by score")]
+    public void TestReturnScopeSearch()
+    {
+        var result = _examples.ReturnScopeSearch();
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../../";
+        var fullPath = Path.Combine(solutionRoot,
+            "Examples/AtlasSearch/OutputFiles/ReturnScopeSearchOutput.txt");
+        Expect.That(result).ShouldMatch(fullPath);
     }
 
     [Test]

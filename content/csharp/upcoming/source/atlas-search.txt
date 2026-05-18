@@ -200,7 +200,7 @@ within a field's array value.
    </atlas-search/field-types/embedded-documents-type/#define-the-index-for-the-fts-field-type-type>`
    in the Atlas documentation.
 
-This example uses the ``restaurants`` collection from the
+The examples in this section use the ``restaurants`` collection from the
 ``sample_restaurants`` database. The following classes model the
 documents in that collection:
 
@@ -233,6 +233,126 @@ The following example searches that collection for any restaurants whose
 
 To learn more about the ``embeddedDocument`` operator, see the
 :atlas:`embeddedDocument </atlas-search/embedded-document/>` Atlas guide.
+
+The following sections describe additional parameters and operators
+that you can use to extend embedded document searches.
+
+.. _csharp-embedded-doc-return-scope:
+
+returnScope Parameter
+^^^^^^^^^^^^^^^^^^^^^
+
+Use the ``returnScope`` parameter of the ``Search()`` or
+``SearchMeta()`` method to return embedded documents from an array
+field as individual results instead of root-level documents. When you
+specify ``returnScope``, {+search+} scores, sorts, and counts each
+embedded document independently.
+
+This parameter accepts a lambda expression that specifies the path to
+the array field that contains the embedded documents.
+
+To use ``returnScope``, you must perform the following steps:
+
+- Index the array field as the ``embeddedDocuments`` type.
+- Set the :ref:`storedSource <fts-stored-source-definition>` option in your
+  index definition to the nested field that you want to retrieve.
+- Set ``ReturnStoredSource`` to ``true`` in your search options.
+
+The following example retrieves documents from the ``restaurants`` collection
+that have a value of ``"A"`` in their ``grades`` array. The code passes the
+``r => r.Grades`` expression to the ``Search()`` method as the ``returnScope``
+parameter, which instructs the driver to return the embedded documents in the
+``grades`` array as individual results.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.return-scope-search.cs
+      :language: csharp
+      :category: usage example
+
+   .. output:: /code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/ReturnScopeSearchOutput.txt
+      :language: json
+      :visible: false
+
+To learn more, see :ref:`fts-return-scope` in the Atlas documentation.
+
+HasAncestor
+^^^^^^^^^^^
+
+Use the ``HasAncestor()`` method inside an ``EmbeddedDocument()`` query
+to filter on a field at an intermediate ancestor level of nesting. An
+ancestor field is an ``embeddedDocuments`` type field that is a parent
+of the embedded field that you specify in the :ref:`returnScope parameter <csharp-embedded-doc-return-scope>`
+but is not the root document.
+
+Pass the following parameters to the ``HasAncestor()`` method:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 70
+
+   * - Parameter
+     - Required
+     - Description
+
+   * - ``path``
+     - Yes
+     - The path to the ancestor field
+
+   * - ``operator``
+     - Yes
+     - The search operator to apply to fields within the
+       ancestor field specified in ``path``
+
+   * - ``score``
+     - No
+     - The score modifier to apply to the search results
+
+To learn more, see :ref:`has-ancestor-ref` in the Atlas documentation.
+
+HasRoot
+^^^^^^^
+
+Use the ``HasRoot()`` method inside an ``EmbeddedDocument()`` query to
+filter on root-level fields when you perform an embedded document
+search.
+
+Pass the following parameters to the ``HasRoot()`` method:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 10 70
+
+   * - Parameter
+     - Required
+     - Description
+
+   * - ``operator``
+     - Yes
+     - The search operator to apply to root-level fields.
+
+   * - ``score``
+     - No
+     - The score modifier to apply to the search results.
+
+The following example retrieves documents from the ``restaurants``
+collection that have at least one ``"A"`` value in the ``grades`` array.
+The query uses the ``HasRoot()`` method to filter on the root-level ``borough`` field
+for ``"Manhattan"`` values.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/csharp/driver/AtlasSearch/AtlasSearchExamples.snippet.hasroot-search.cs
+      :language: csharp
+      :category: usage example
+
+   .. output:: /code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/HasRootSearchOutput.txt
+      :language: json
+      :visible: false
+
+To learn more, see :ref:`has-root-ref` in the Atlas documentation.
 
 Equals
 ~~~~~~

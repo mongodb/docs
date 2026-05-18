@@ -426,12 +426,54 @@ public class AtlasSearchExamples
         return result;
     }
 
+    public List<Restaurant> HasRootSearch()
+    {
+        // :snippet-start: hasroot-search
+        var result = _restaurantsCollection.Aggregate()
+            .Search(
+                Builders<Restaurant>.Search.EmbeddedDocument<Restaurant>(
+                    "grades",
+                    Builders<Restaurant>.Search.Compound()
+                        .Must(
+                            Builders<Restaurant>.Search.HasRoot(
+                                Builders<Restaurant>.Search.Equals(r => r.Borough, "Manhattan")),
+                            Builders<Restaurant>.Search.Equals("grade", "A"))),
+                new SearchOptions<Restaurant>
+                {
+                    IndexName = "restaurantsembedded"
+                })
+            .SortBy(r => r.Name) // :remove:
+            .Limit(3) // :remove:
+            .ToList();
+        // :snippet-end:
+        return result;
+    }
+
     public List<Movie> SingleFieldSearchLambda()
     {
         // :snippet-start: single-field-search-lambda
         var result = _moviesCollection.Aggregate()
             .Search(Builders<Movie>.Search.Text(
                 Builders<Movie>.SearchPath.Single(m => m.Plot), "secret agent"))
+            .ToList();
+        // :snippet-end:
+        return result;
+    }
+
+    public List<GradeEntry> ReturnScopeSearch()
+    {
+        // :snippet-start: return-scope-search
+        var result = _restaurantsCollection.Aggregate()
+            .Search(
+                Builders<Restaurant>.Search.Equals("grades.grade", "A"),
+                r => r.Grades,
+                new SearchOptions<Restaurant>
+                {
+                    ReturnStoredSource = true,
+                    IndexName = "restaurantsembedded"
+                })
+            .SortBy(g => g.Score) // :remove:
+            .Limit(3) // :remove:
             .ToList();
         // :snippet-end:
         return result;
