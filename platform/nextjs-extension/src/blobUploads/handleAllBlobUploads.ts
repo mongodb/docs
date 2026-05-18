@@ -11,6 +11,7 @@ import {
 import { getDirNameToPrefix, remapFilePath } from './mapFilesToUrlPaths.js';
 import {
   IMAGE_EXTENSIONS,
+  INV_EXTENSION,
   constructBlobKey,
   uploadWithRetry,
 } from './uploadIndividualBlob.js';
@@ -105,13 +106,14 @@ const processFile = async ({
   const isImage = IMAGE_EXTENSIONS.some((ext) =>
     relativeFilePath.toLowerCase().endsWith(ext),
   );
-  const uploadContent: string | ArrayBuffer = isImage
+  const isBinary = isImage || relativeFilePath.toLowerCase().endsWith(INV_EXTENSION);
+  const uploadContent: string | ArrayBuffer = isBinary
     ? (raw.buffer.slice(
         raw.byteOffset,
         raw.byteOffset + raw.byteLength,
       ) as ArrayBuffer)
     : raw.toString();
-  const localHash = computeHash(isImage ? raw : raw.toString());
+  const localHash = computeHash(isBinary ? raw : raw.toString());
 
   if (!branchStore) {
     // On main, only the production store exists.

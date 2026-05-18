@@ -1,13 +1,15 @@
 import type { Store } from '@netlify/blobs';
 
 export const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'];
+export const INV_EXTENSION = '.inv';
 
 export const constructBlobKey = (relativePath: string): string => {
   const isImage = IMAGE_EXTENSIONS.some((ext) =>
     relativePath.toLowerCase().endsWith(ext),
   );
   const isJson = relativePath.toLowerCase().endsWith('.json');
-  const prefix = isImage ? 'image' : isJson ? 'reference' : 'mdx';
+  const isInv = relativePath.toLowerCase().endsWith(INV_EXTENSION);
+  const prefix = isImage ? 'image' : isJson ? 'reference' : isInv ? 'inventory' : 'mdx';
   return `${prefix}/${relativePath}`;
 };
 

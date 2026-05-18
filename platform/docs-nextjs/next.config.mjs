@@ -30,6 +30,10 @@ const nextConfig = {
         source: '/docs/:path*.md',
         destination: '/api/markdown/:path*',
       },
+      {
+        source: '/docs/:path*/objects.inv',
+        destination: '/api/inventory/:path*/objects.inv',
+      },
       // Canonical public paths for Next.js API routes under /docs/platform/api/*
       {
         source: '/docs/platform/api/:path*',

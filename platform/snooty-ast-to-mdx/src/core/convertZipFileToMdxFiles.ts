@@ -81,7 +81,12 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
     if (file.path === 'site.bson') {
       // Write site.bson metadata as _site.json in the base directory
       const siteData = docs[0];
-      // Remove static_files property before writing
+      // Extract objects.inv from static_files before removing it
+      const invBinary = siteData.static_files?.['objects.inv'];
+      if (invBinary != null) {
+        const invBuffer = Buffer.from(invBinary.buffer ?? invBinary);
+        await fs.writeFile(path.join(outputDirectory, 'objects.inv'), invBuffer);
+      }
       delete siteData.static_files;
       const siteJsonPath = path.join(outputDirectory, '_site.json');
       const siteJsonContent = `${stableStringify(siteData)}\n`;
