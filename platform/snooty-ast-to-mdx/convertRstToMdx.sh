@@ -93,7 +93,7 @@ trap cleanup EXIT INT TERM
 # Snooty parser version | default can be adjusted below or set in the environment:
 # `SNOOTY_VERSION=v0.20.7 ./convertRstToMdx.sh atlas`.
 # Check for latest version at: https://github.com/mongodb/snooty-parser/releases
-SNOOTY_VERSION="${SNOOTY_VERSION:-v0.20.14}"
+SNOOTY_VERSION="${SNOOTY_VERSION:-v0.20.20}"
 # Whether to show verbose output from the Snooty parser when building the AST
 SNOOTY_VERBOSE="${SNOOTY_VERBOSE:-false}"
 
