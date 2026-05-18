@@ -249,7 +249,13 @@ const resolveSubstitutions = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
       return;
     }
 
-    if (!value) return;
+    if (!value) {
+      console.error(
+        `[remarkResolveImports] Unresolved <Reference type="substitution" refKey="${key}"> — node removed to prevent render error`,
+      );
+      replacements.push({ index, parent, replacement: [] });
+      return;
+    }
 
     if (typeof value === 'object' && 'url' in value) {
       replacements.push({ index, parent, replacement: createLinkNode(value.url, value.text) });
@@ -403,7 +409,10 @@ const resolveReplacementReferences = (tree: Root, slots: Record<string, Node[]>)
     const fragment = slots[key];
     if (!fragment?.length) {
       if (refType === 'replacement') {
-        console.warn(`[remarkResolveImports] Missing <Replacement name="${key}"> for include`);
+        console.error(
+          `[remarkResolveImports] Missing <Replacement name="${key}"> for include — node removed to prevent render error`,
+        );
+        replacements.push({ index, parent, replacement: [] });
       }
       // substitution refs without a slot fall through to resolveSubstitutions (_references.json)
       return;
