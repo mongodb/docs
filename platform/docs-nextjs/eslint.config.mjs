@@ -1,6 +1,7 @@
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { FlatCompat } from '@eslint/eslintrc';
+import { next as nextConfig } from '@platform/eslint-config/next';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -10,7 +11,8 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  ...compat.extends('next/core-web-vitals', 'next/typescript', 'plugin:prettier/recommended'),
+  ...compat.extends('next/core-web-vitals', 'next/typescript'),
+  ...nextConfig,
   {
     ignores: [
       '.next/**/*',
@@ -22,13 +24,6 @@ const eslintConfig = [
       'public/**/*',
       '**/table-of-contents/offline-docs/**/*',
     ],
-  },
-  {
-    files: ['**/*.{js,jsx,ts,tsx}'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': ['error', { prefer: 'type-imports' }],
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
-    },
   },
 ];
 

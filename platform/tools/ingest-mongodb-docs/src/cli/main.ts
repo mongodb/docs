@@ -22,7 +22,7 @@ async function main() {
   const argv = commandDir(yargs.help(), "commands").demandCommand();
 
   // Accessing this property executes CLI
-  argv.argv;
+  void argv.argv;
 }
 
 main().catch(console.error);
