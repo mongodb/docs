@@ -9,7 +9,7 @@
 
             mkdir langgraph-mongodb-ai-agent
             cd langgraph-mongodb-ai-agent
-            pip install --quiet --upgrade python-dotenv langgraph langgraph-checkpoint-mongodb langgraph-store-mongodb langchain langchain-mongodb langchain-voyageai langchain-openai pymongo
+            pip install --quiet --upgrade python-dotenv langgraph "langgraph-checkpoint-mongodb>=0.4.0" "langgraph-store-mongodb>=0.3.0" langchain langchain-mongodb langchain-voyageai langchain-openai pymongo
 
  
       .. note::
