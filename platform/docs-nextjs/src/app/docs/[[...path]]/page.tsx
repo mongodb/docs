@@ -14,7 +14,7 @@ import { getChangelogData } from '@/services/db/openapi';
 const normalizeUrlPath = (path?: string[]): string[] => path ?? ['index'];
 
 // ISR (Incremental Static Regeneration) behavior
-export const revalidate = 24 * 60 * 60; // 1 day in seconds
+export const revalidate = 60 * 60; // 1 hour in seconds
 export const dynamic = 'force-static'; // Pages should be statically generated
 
 interface PageProps {
