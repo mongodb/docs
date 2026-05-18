@@ -303,8 +303,8 @@ const tocData: TocItem[] = [
       },
       {
         label: 'Atlas Kubernetes Operator',
-        contentSite: 'atlas-operator',
-        url: '/docs/atlas/operator/stable/ak8so-changelog/',
+        isExternal: true,
+        url: 'https://www.mongodb.com/docs/atlas/operator/current/ak8so-changelog/',
       },
       {
         label: 'Atlas Stream Processing',
@@ -313,8 +313,8 @@ const tocData: TocItem[] = [
       },
       {
         label: 'MongoDB Charts',
-        contentSite: 'charts',
-        url: '/docs/charts/release-notes/',
+        isExternal: true,
+        url: 'https://www.mongodb.com/docs/charts/release-notes/',
       },
     ],
   },

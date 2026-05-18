@@ -974,6 +974,7 @@ export const toc: L1TocItem[] = [
                 label: 'Export Logs',
                 contentSite: 'cloud-docs',
                 collapsible: true,
+                url: '/docs/atlas/export-logs',
                 items: [
                   {
                     label: 'Export Logs to AWS S3',

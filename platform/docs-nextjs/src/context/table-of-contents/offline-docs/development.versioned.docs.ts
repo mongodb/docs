@@ -8720,6 +8720,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/ai-integrations/haystack',
                   },
                   {
+                    label: 'Feast',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/ai-integrations/feast',
+                  },
+                  {
                     label: 'Spring AI',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/ai-integrations/spring-ai',
@@ -8854,11 +8859,6 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/ai-integrations/n8n/build-ai-agent',
                       },
                     ],
-                  },
-                  {
-                    label: 'Feast',
-                    contentSite: 'cloud-docs',
-                    url: '/docs/atlas/ai-integrations/feast',
                   },
                 ],
               },
@@ -9603,8 +9603,8 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'Atlas Kubernetes Operator',
-                contentSite: 'atlas-operator',
-                url: '/docs/atlas/operator/stable/ak8so-changelog/',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/atlas/operator/current/ak8so-changelog/',
               },
               {
                 label: 'Atlas Stream Processing',
@@ -9613,8 +9613,8 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'MongoDB Charts',
-                contentSite: 'charts',
-                url: '/docs/charts/release-notes/',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/charts/release-notes/',
               },
             ],
           },

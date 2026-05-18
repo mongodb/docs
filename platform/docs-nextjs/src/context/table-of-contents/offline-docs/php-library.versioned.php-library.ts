@@ -58,7 +58,7 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'AWS Lambda',
-                contentSite: 'cloud-docs',
+                isExternal: true,
                 url: 'https://www.mongodb.com/docs/atlas/manage-connections-aws-lambda',
               },
               {
