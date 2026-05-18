@@ -12,24 +12,31 @@ const tocData: TocItem[] = [
     collapsible: true,
     items: [
       {
-        label: 'App-Driven Analytics',
+        label: 'Capital Markets',
         contentSite: 'atlas-architecture',
         collapsible: true,
         items: [
           {
-            label: 'Modern Fintech Services',
+            label: 'Agentic AI-Powered Investment Portfolio',
             contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/hasura-fintech-services',
-          },
-          {
-            label: 'Open Finance Data Store',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/open-finance-data-store',
+            url: '/docs/atlas/architecture/:version/solutions-library/fin-services-agentic-portfolio',
           },
         ],
       },
       {
-        label: 'Fraud Prevention',
+        label: 'Core Banking',
+        contentSite: 'atlas-architecture',
+        collapsible: true,
+        items: [
+          {
+            label: 'AI-Driven Interactive Banking',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/ai-driven-interactive-banking',
+          },
+        ],
+      },
+      {
+        label: 'Financial Crime',
         contentSite: 'atlas-architecture',
         collapsible: true,
         items: [
@@ -39,42 +46,17 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/aml-network-analysis',
           },
           {
-            label: 'Card Fraud Solution',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/card-fraud-solution',
-          },
-          {
             label: 'Financial Crime Mitigation',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/fincrime-mitigation',
-          },
-          {
-            label: 'Fraud Detection Accelerator',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/fraud-detection-accelerator',
-          },
-          {
-            label: 'Vector Search Fraud Prevention',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/vector-search-fraud-prevention',
-          },
+          }
         ],
       },
       {
-        label: 'Gen AI',
+        label: 'Lending',
         contentSite: 'atlas-architecture',
         collapsible: true,
         items: [
-          {
-            label: 'Agentic AI-Powered Investment Portfolio',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/fin-services-agentic-portfolio',
-          },
-          {
-            label: 'AI-Driven Interactive Banking',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/ai-driven-interactive-banking',
-          },
           {
             label: 'Assess Business Loan Risks',
             contentSite: 'atlas-architecture',
@@ -85,30 +67,27 @@ const tocData: TocItem[] = [
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/credit-card-application-with-generative-ai',
           },
+        ],
+      },
+      {
+        label: 'Open Banking',
+        contentSite: 'atlas-architecture',
+        collapsible: true,
+        items: [
           {
-            label: 'Document Intelligence with Agentic AI',
+            label: 'Open Finance Data Store',
             contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/document-intelligence',
+            url: '/docs/atlas/architecture/:version/solutions-library/open-finance-data-store',
           },
           {
             label: 'Open Finance for Credit Portability',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/open-finance',
           },
-          {
-            label: 'Optimize RAG Applications with Fireworks AI',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/fin-services-fireworks-rag',
-          },
-          {
-            label: 'Unified Interface for RAG Applications',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/rag-applications',
-          },
         ],
       },
       {
-        label: 'Modernization',
+        label: 'Payments',
         contentSite: 'atlas-architecture',
         collapsible: true,
         items: [
@@ -116,6 +95,11 @@ const tocData: TocItem[] = [
             label: 'Agentic AI-Powered Payments Orchestration',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/agentic-powered-payments',
+          },
+          {
+            label: 'Document Intelligence with Agentic AI',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/document-intelligence',
           },
           {
             label: 'Payments Modernization Accelerator',
