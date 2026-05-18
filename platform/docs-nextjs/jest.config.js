@@ -1,9 +1,10 @@
 /** @type {import('jest').Config} */
 const config = {
   displayName: 'unit-tests',
-  verbose: true,
+  verbose: false,
   testTimeout: 10000,
   testEnvironment: 'jest-environment-jsdom',
+  maxWorkers: 8,
 
   testMatch: ['<rootDir>/src/**/*.test.(ts|tsx)'],
 
@@ -37,8 +38,6 @@ const config = {
       },
     ],
   },
-
-  extensionsToTreatAsEsm: ['.ts', '.tsx'],
 };
 
 module.exports = config;

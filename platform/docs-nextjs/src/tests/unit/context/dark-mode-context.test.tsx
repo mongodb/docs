@@ -21,8 +21,6 @@ jest.spyOn(window.localStorage.__proto__, 'setItem').mockImplementation(function
   storage[key] = value;
 });
 
-const DARK_MODE_PREFERENCE_VARNAME = 'darkModePref';
-const DARK_MODE_VARNAME = 'darkMode';
 const TestConsumer = () => {
   const { darkModePref, setDarkModePref } = useContext(DarkModeContext);
   const { darkMode } = useDarkMode();
@@ -39,8 +37,8 @@ const TestConsumer = () => {
 
   return (
     <>
-      {DARK_MODE_PREFERENCE_VARNAME}: {darkModePref}
-      {DARK_MODE_VARNAME}: {darkMode}
+      <span data-testid="dark-mode-pref">{darkModePref}</span>
+      <span data-testid="dark-mode">{String(darkMode)}</span>
       <button onClick={() => rotateDarkMode()}>Rotate</button>
     </>
   );
@@ -48,53 +46,51 @@ const TestConsumer = () => {
 
 const renderContext = () =>
   render(
-    <DarkModeContextProvider slug="test">
+    <DarkModeContextProvider>
       <TestConsumer />
     </DarkModeContextProvider>,
   );
 
 describe('Dark Mode Context', () => {
+  afterEach(() => {
+    document.documentElement.classList.remove(SYSTEM_THEME_CLASSNAME, LIGHT_THEME_CLASSNAME, DARK_THEME_CLASSNAME);
+  });
+
   it('reads from window.document class list and sets dark mode on load', () => {
-    // mock document to have 'system light-theme' and check
     document.documentElement.classList.add(SYSTEM_THEME_CLASSNAME, LIGHT_THEME_CLASSNAME);
     let elm = renderContext();
-    expect(elm.findByText(`${DARK_MODE_PREFERENCE_VARNAME}: ${SYSTEM_THEME_CLASSNAME}`)).toBeTruthy();
-    expect(elm.findByText(`${DARK_MODE_VARNAME}: false`)).toBeTruthy();
+    expect(elm.getByTestId('dark-mode-pref').textContent).toBe(SYSTEM_THEME_CLASSNAME);
+    elm.unmount();
 
-    // mock document to have 'system dark-theme' and check
     document.documentElement.classList.remove(SYSTEM_THEME_CLASSNAME, LIGHT_THEME_CLASSNAME, DARK_THEME_CLASSNAME);
     document.documentElement.classList.add(SYSTEM_THEME_CLASSNAME, DARK_THEME_CLASSNAME);
     elm = renderContext();
-    expect(elm.findByText(`${DARK_MODE_PREFERENCE_VARNAME}: ${SYSTEM_THEME_CLASSNAME}`)).toBeTruthy();
-    expect(elm.findByText(`${DARK_MODE_VARNAME}: true`)).toBeTruthy();
+    expect(elm.getByTestId('dark-mode-pref').textContent).toBe(SYSTEM_THEME_CLASSNAME);
+    elm.unmount();
 
-    // mock document to have nothing and check
     document.documentElement.classList.remove(SYSTEM_THEME_CLASSNAME, LIGHT_THEME_CLASSNAME, DARK_THEME_CLASSNAME);
     elm = renderContext();
-    expect(elm.findByText(`${DARK_MODE_PREFERENCE_VARNAME}: ${LIGHT_THEME_CLASSNAME}`)).toBeTruthy();
-    expect(elm.findByText(`${DARK_MODE_VARNAME}: false`)).toBeTruthy();
+    expect(elm.getByTestId('dark-mode-pref').textContent).toBe(LIGHT_THEME_CLASSNAME);
   });
 
   it('updates local value and document class list when darkPref changes', async () => {
-    // setDarkPref and watch for local value
     document.documentElement.classList.add(SYSTEM_THEME_CLASSNAME, LIGHT_THEME_CLASSNAME);
     const elm = renderContext();
-    expect(elm.findByText(`${DARK_MODE_PREFERENCE_VARNAME}: ${SYSTEM_THEME_CLASSNAME}`)).toBeTruthy();
+    expect(elm.getByTestId('dark-mode-pref').textContent).toBe(SYSTEM_THEME_CLASSNAME);
     expect(JSON.parse(storage['mongodb-docs'])['theme']).toBe(SYSTEM_THEME_CLASSNAME);
-    const button = await elm.findByRole('button');
+    const button = elm.getByRole('button');
     await act(async () => button.click());
     expect(JSON.parse(storage['mongodb-docs'])['theme']).toBe(LIGHT_THEME_CLASSNAME);
-    expect(elm.findByText(`${DARK_MODE_PREFERENCE_VARNAME}: ${LIGHT_THEME_CLASSNAME}`)).toBeTruthy();
+    expect(elm.getByTestId('dark-mode-pref').textContent).toBe(LIGHT_THEME_CLASSNAME);
     expect(document.documentElement.classList).toContain(LIGHT_THEME_CLASSNAME);
     expect(document.documentElement.classList).not.toContain(DARK_THEME_CLASSNAME);
   });
 
   it('updates LG dark mode prop when darkPref changes', async () => {
     const elm = renderContext();
-    expect(elm.findAllByText(`${DARK_MODE_PREFERENCE_VARNAME}: ${LIGHT_THEME_CLASSNAME}`)).toBeTruthy();
-    expect(elm.findAllByText(`${DARK_MODE_VARNAME}: ${false}`)).toBeTruthy();
-    const button = await elm.findByRole('button');
+    expect(elm.getByTestId('dark-mode-pref').textContent).toBe(LIGHT_THEME_CLASSNAME);
+    const button = elm.getByRole('button');
     await act(async () => button.click());
-    expect(elm.findAllByText(`${DARK_MODE_VARNAME}: ${true}`)).toBeTruthy();
+    expect(elm.getByTestId('dark-mode-pref').textContent).toBe(DARK_THEME_CLASSNAME);
   });
 });

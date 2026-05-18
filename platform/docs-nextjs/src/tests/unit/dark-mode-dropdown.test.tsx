@@ -31,32 +31,60 @@ const mountDarkModeDropdown = () => {
   );
 };
 
+// Advance LeafyGreen's react-transition-group timers so the popover is
+// always captured in the fully-entered state, not mid-transition.
+// Without this, the snapshot races a 150ms setTimeout on slower CI runners
+// (Node 22 / 2-CPU ubuntu) and flips between entering/entered CSS classes.
+function openMenu(button: HTMLElement) {
+  act(() => {
+    button.click();
+    jest.runAllTimers();
+  });
+}
+
 describe('DarkMode Dropdown component', () => {
-  it('renders dark mode dropdown', async () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('renders dark mode dropdown', () => {
     // first snapshot of closed menu
     const elm = mountDarkModeDropdown();
-    expect(elm.asFragment()).toMatchSnapshot();
-    const button = await elm.findByLabelText('Dark Mode Menu');
-    await act(async () => {
-      button.click();
+    act(() => {
+      jest.runAllTimers();
     });
-    // second snapshot of open menu
+    expect(elm.asFragment()).toMatchSnapshot();
+
+    const button = elm.getByLabelText('Dark Mode Menu');
+    openMenu(button);
+
+    // second snapshot of open menu (fully transitioned)
     expect(elm.asFragment()).toMatchSnapshot();
   });
 
   // test it changes to system and dark mode
-  it('updates dark mode when selecting a different option', async () => {
+  it('updates dark mode when selecting a different option', () => {
     const elm = mountDarkModeDropdown();
-    const button = await elm.findByLabelText('Dark Mode Menu');
-    await act(async () => {
-      button.click();
+    act(() => {
+      jest.runAllTimers();
     });
-    const darkModeSelections = await elm.findAllByRole('menuitem');
-    await act(async () => {
+
+    const button = elm.getByLabelText('Dark Mode Menu');
+    openMenu(button);
+
+    const darkModeSelections = elm.getAllByRole('menuitem');
+    act(() => {
       darkModeSelections[1].click();
     });
     expect(darkModePref).toBe('dark-theme');
     const darkElm = mountDarkModeDropdown();
+    act(() => {
+      jest.runAllTimers();
+    });
     expect(darkElm.asFragment()).toMatchSnapshot();
   });
 });

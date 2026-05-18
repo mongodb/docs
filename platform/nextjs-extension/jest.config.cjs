@@ -1,9 +1,10 @@
 /** @type {import('jest').Config} */
 const config = {
   displayName: 'unit-tests',
-  verbose: true,
+  verbose: false,
   testTimeout: 10000,
   testEnvironment: 'jest-environment-node',
+  maxWorkers: 1,
 
   testMatch: [
     '<rootDir>/src/persistence/tests/**/*.test.(ts|js)',
