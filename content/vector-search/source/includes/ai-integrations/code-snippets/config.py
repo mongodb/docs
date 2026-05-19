@@ -20,6 +20,6 @@ memory_collection = agent_db["chat_history"]
 
 # Model configuration
 voyage_client = voyageai.Client(api_key=VOYAGE_API_KEY)
-client = OpenAI(api_key=OPENAI_API_KEY)
+openai_client = OpenAI(api_key=OPENAI_API_KEY)
 VOYAGE_MODEL = "voyage-3-large"
 OPENAI_MODEL = "gpt-4o"
