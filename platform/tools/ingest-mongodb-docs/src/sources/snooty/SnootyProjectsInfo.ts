@@ -1,13 +1,14 @@
 import fetch from "node-fetch";
 import { logger } from "../../logger";
-import {
+import type {
   SnootyProject,
-  makeSnootyDataSource,
   Branch,
-  LocallySpecifiedSnootyProjectConfig,
+  LocallySpecifiedSnootyProjectConfig} from "./SnootyDataSource";
+import {
+  makeSnootyDataSource
 } from "./SnootyDataSource";
 import { filterFulfilled } from "../../arrayFilters";
-import { RenderLinks } from "./snootyAstToMd";
+import type { RenderLinks } from "./snootyAstToMd";
 
 /** Schema for API response from https://snooty-data-api.mongodb.com/prod/projects */
 export type GetSnootyProjectsResponse = {

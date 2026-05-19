@@ -1,4 +1,4 @@
-import { useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import type { TocItem } from '@/components/unified-sidenav/types';
 import type { ActiveVersions, AvailableVersions } from '@/context/version-context';
 import { useVersionContext } from '@/context/version-context';

@@ -1,4 +1,4 @@
-import { PageStore, PersistedPage } from "../pageStore/Page";
+import type { PageStore, PersistedPage } from "../pageStore/Page";
 
 export const makeMockPageStore = (): PageStore => {
   let pages: PersistedPage[] = [];

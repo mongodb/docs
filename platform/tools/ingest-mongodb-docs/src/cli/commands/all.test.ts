@@ -1,15 +1,17 @@
-import { DataSource } from "../../sources/DataSource";
+import type { DataSource } from "../../sources/DataSource";
 import "dotenv/config";
 import { doAllCommand } from "./all";
-import { IngestMetaStore, makeIngestMetaStore } from "../IngestMetaStore";
+import type { IngestMetaStore} from "../IngestMetaStore";
+import { makeIngestMetaStore } from "../IngestMetaStore";
 import { strict as assert } from "assert";
 import { doUpdatePagesCommand } from "./pages";
 import { MONGO_MEMORY_REPLICA_SET_URI } from "../../test/constants";
+import type {
+  MongoDbPageStore} from "../../pageStore/MongoDbPageStore";
 import {
-  MongoDbPageStore,
   makeMongoDbPageStore,
 } from "../../pageStore/MongoDbPageStore";
-import { PersistedPage } from "../../pageStore/Page";
+import type { PersistedPage } from "../../pageStore/Page";
 import { updatePages } from "../../pageStore/updatePages";
 
 jest.setTimeout(1000000);

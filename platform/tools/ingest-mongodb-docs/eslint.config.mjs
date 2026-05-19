@@ -12,7 +12,6 @@ export default [
       'arrow-body-style': 'off',
       'prefer-arrow-callback': 'off',
       'jsdoc/require-asterisk-prefix': ['error', 'never'],
-      '@typescript-eslint/consistent-type-imports': 'warn',
       '@typescript-eslint/no-unused-expressions': ['error', { allowShortCircuit: true }],
     },
   },

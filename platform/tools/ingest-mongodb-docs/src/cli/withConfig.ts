@@ -1,7 +1,7 @@
-import yargs from "yargs";
+import type yargs from "yargs";
 import Path from "path";
 import { logger } from "../logger";
-import { Config } from "./Config";
+import type { Config } from "./Config";
 
 export type LoadConfigArgs = {
   config?: string;

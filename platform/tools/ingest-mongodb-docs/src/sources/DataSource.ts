@@ -1,4 +1,4 @@
-import { Page } from "../pageStore/Page";
+import type { Page } from "../pageStore/Page";
 
 /**
   Represents a source of page data.

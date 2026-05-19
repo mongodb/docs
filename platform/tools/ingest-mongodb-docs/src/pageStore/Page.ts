@@ -1,4 +1,4 @@
-import { PageFormat } from "./PageFormat";
+import type { PageFormat } from "./PageFormat";
 
 /**
   Represents a page from a data source.

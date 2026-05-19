@@ -10,7 +10,6 @@ import { DRIVER_ICON_MAP } from '@/components/icons/DriverIconMap';
 import { theme } from '@/styles/theme';
 import type { ActiveTabs, Selectors } from '@/context/tabs-context';
 import { TabContext, makeChoices } from '@/context/tabs-context';
-import { usePageContext } from '@/context/page-context';
 
 const selectStyle = css`
   width: 100%;
@@ -75,7 +74,6 @@ const TabSelector = ({ activeTab, handleClick, iconMapping, name, options }: Tab
 };
 
 export const TabsSelector = () => {
-  const { tabsMainColumn } = usePageContext();
   const { activeTabs, selectors, setActiveTab } = useContext(TabContext);
 
   if (!selectors || Object.keys(selectors).length === 0) {

@@ -1,8 +1,8 @@
 import { getChangedPages } from "./getChangedPages";
-import { DataSource } from "../sources/DataSource";
+import type { DataSource } from "../sources/DataSource";
 import { PromisePool } from "@supercharge/promise-pool";
 import { logger } from "../logger";
-import { PageStore, Page } from "./Page";
+import type { PageStore, Page } from "./Page";
 
 export interface PageConcurrencyOptions {
   /**

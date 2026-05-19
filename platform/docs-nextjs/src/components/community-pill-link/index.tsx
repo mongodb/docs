@@ -4,7 +4,7 @@ import { css, cx } from '@leafygreen-ui/emotion';
 import Badge, { type Variant } from '@leafygreen-ui/badge';
 import { getPlaintext } from '@/utils/get-plaintext';
 import { theme } from '@/styles/theme';
-import type { ASTNode, CommunityDriverPill } from '@/types/ast';
+import type { CommunityDriverPill } from '@/types/ast';
 import Link from '../link';
 
 const pillLinkStyle = css`

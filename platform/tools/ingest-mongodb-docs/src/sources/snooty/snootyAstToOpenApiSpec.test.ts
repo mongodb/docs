@@ -9,7 +9,7 @@ import {
 const SRC_ROOT = Path.resolve(__dirname, "../../");
 
 jest.setTimeout(30000);
-import { SnootyPageEntry } from "./SnootyDataSource";
+import type { SnootyPageEntry } from "./SnootyDataSource";
 const textSpecPage: SnootyPageEntry = JSON.parse(
   readFileSync(
     Path.resolve(SRC_ROOT, "../testData/localOpenApiSpecPage.json"),

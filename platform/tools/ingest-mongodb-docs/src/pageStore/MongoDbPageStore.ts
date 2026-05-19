@@ -1,16 +1,17 @@
 import { pageIdentity } from "./pageIdentity";
-import { DatabaseConnection } from "./DatabaseConnection";
+import type { DatabaseConnection } from "./DatabaseConnection";
+import type {
+  MakeMongoDbDatabaseConnectionParams} from "./MongoDbDatabaseConnection";
 import {
-  MakeMongoDbDatabaseConnectionParams,
   makeMongoDbDatabaseConnection,
 } from "./MongoDbDatabaseConnection";
-import {
+import type {
   DeletePagesArgs,
   LoadPagesArgs,
   PageStore,
   PersistedPage,
 } from "./Page";
-import { Filter, Document } from "mongodb";
+import type { Filter, Document } from "mongodb";
 
 export type MongoDbPageStore = DatabaseConnection &
   // We omit loadPages so that the generic override below works

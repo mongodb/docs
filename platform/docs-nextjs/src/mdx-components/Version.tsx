@@ -1,6 +1,5 @@
 'use client';
 
-import text from '@/components/text';
 import { css, cx } from '@leafygreen-ui/emotion';
 import type { ReactNode } from 'react';
 

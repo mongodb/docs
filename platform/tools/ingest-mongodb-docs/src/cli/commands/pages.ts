@@ -1,7 +1,8 @@
-import { CommandModule } from "yargs";
+import type { CommandModule } from "yargs";
 import { logger } from "../../logger";
-import { LoadConfigArgs } from "../withConfig";
-import { withConfig, withConfigOptions, ResolvedConfig } from "../withConfig";
+import type { LoadConfigArgs } from "../withConfig";
+import type { ResolvedConfig } from "../withConfig";
+import { withConfig, withConfigOptions } from "../withConfig";
 import { updatePages } from "../../pageStore/updatePages";
 
 const commandModule: CommandModule<Record<string, unknown>, LoadConfigArgs> = {

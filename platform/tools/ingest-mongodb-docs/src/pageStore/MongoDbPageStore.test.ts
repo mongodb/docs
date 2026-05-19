@@ -1,6 +1,7 @@
 import { strict as assert } from "assert";
-import { MongoDbPageStore, makeMongoDbPageStore } from "./MongoDbPageStore";
-import { PersistedPage } from "./Page";
+import type { MongoDbPageStore} from "./MongoDbPageStore";
+import { makeMongoDbPageStore } from "./MongoDbPageStore";
+import type { PersistedPage } from "./Page";
 import "dotenv/config";
 import { MongoClient } from "mongodb";
 import { MONGO_MEMORY_SERVER_URI } from "../test/constants";

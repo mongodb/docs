@@ -5,7 +5,7 @@ import {
   getTitleFromSnootyAst,
   getMetadataFromSnootyAst,
 } from "./snootyAstToMd";
-import { SnootyNode } from "./SnootyDataSource";
+import type { SnootyNode } from "./SnootyDataSource";
 import { rstToSnootyAst } from "./rstToSnootyAst";
 
 const SRC_ROOT = Path.resolve(__dirname, "../../");

@@ -1,7 +1,7 @@
 import { updatePages, persistPages } from "./updatePages";
 import { makeMockPageStore } from "../test/MockPageStore";
-import { DataSource } from "../sources/DataSource";
-import { Page, PersistedPage } from "./Page";
+import type { DataSource } from "../sources/DataSource";
+import type { Page, PersistedPage } from "./Page";
 
 const examplePage: Page = {
   title: "Example",

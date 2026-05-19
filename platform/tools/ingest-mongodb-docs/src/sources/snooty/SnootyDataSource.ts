@@ -1,12 +1,13 @@
 import { createInterface } from "readline";
 import fetch from "node-fetch";
-import { DataSource } from "../DataSource";
-import { ProjectBase } from "../ProjectBase";
+import type { DataSource } from "../DataSource";
+import type { ProjectBase } from "../ProjectBase";
+import type {
+  RenderLinks} from "./snootyAstToMd";
 import {
   snootyAstToMd,
   getTitleFromSnootyAst,
-  getMetadataFromSnootyAst,
-  RenderLinks,
+  getMetadataFromSnootyAst
 } from "./snootyAstToMd";
 import {
   getTitleFromSnootyOpenApiSpecAst,
@@ -14,8 +15,8 @@ import {
 } from "./snootyAstToOpenApiSpec";
 import { truncateEmbeddings } from "./truncateEmbeddings";
 import { logger } from "../../logger";
-import { Page } from "../../pageStore/Page";
-import { PageFormat } from "../../pageStore/PageFormat";
+import type { Page } from "../../pageStore/Page";
+import type { PageFormat } from "../../pageStore/PageFormat";
 
 // These types are what's in the snooty manifest jsonl file.
 export type SnootyManifestEntry = {

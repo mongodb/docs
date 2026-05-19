@@ -38,10 +38,7 @@ export interface ImageProps {
   width?: number;
   caption?: string;
   className?: string;
-  align?: string;
-  scale?: number;
   height?: number;
-  style?: React.CSSProperties;
 }
 
 export const Image = ({
@@ -54,14 +51,10 @@ export const Image = ({
   figwidth,
   lightbox,
   caption,
-  style,
   className,
-  align,
-  scale,
 }: ImageProps) => {
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [_, setIsModalOpen] = useState(false);
   const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
 
   const fullPath = path.join(projectPath, src);
   const imageUrl = isOfflineBuild ? `/docs/${fullPath}` : formatImageUrl(fullPath);

@@ -1,4 +1,4 @@
-import { Page } from "./Page";
+import type { Page } from "./Page";
 
 /**
   Returns a query filter that represents a unique page in the system.

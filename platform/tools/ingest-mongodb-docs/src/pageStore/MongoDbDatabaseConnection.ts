@@ -1,5 +1,6 @@
-import { DatabaseConnection } from "./DatabaseConnection";
-import { MongoClient, Db } from "mongodb";
+import type { DatabaseConnection } from "./DatabaseConnection";
+import type { Db } from "mongodb";
+import { MongoClient } from "mongodb";
 
 export interface MakeMongoDbDatabaseConnectionParams {
   connectionUri: string;

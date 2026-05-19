@@ -1,5 +1,5 @@
 import { assertEnvVars } from "./assertEnvVars";
-import { Config } from "./cli/Config";
+import type { Config } from "./cli/Config";
 import { makeIngestMetaStore } from "./cli/IngestMetaStore";
 import { makeMongoDbPageStore } from "./pageStore/MongoDbPageStore";
 import {

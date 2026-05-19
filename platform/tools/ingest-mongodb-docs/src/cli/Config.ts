@@ -1,7 +1,7 @@
-import { PageStore } from "../pageStore/Page";
-import { PageConcurrencyOptions } from "../pageStore/updatePages";
-import { DataSource } from "../sources/DataSource";
-import { IngestMetaStore } from "./IngestMetaStore";
+import type { PageStore } from "../pageStore/Page";
+import type { PageConcurrencyOptions } from "../pageStore/updatePages";
+import type { DataSource } from "../sources/DataSource";
+import type { IngestMetaStore } from "./IngestMetaStore";
 
 /**
   The configuration for ingest.

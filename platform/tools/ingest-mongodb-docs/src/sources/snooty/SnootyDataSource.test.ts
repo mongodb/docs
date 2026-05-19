@@ -3,9 +3,10 @@ import { Readable } from "stream";
 import fs from "fs";
 import Path from "path";
 import JSONL from "jsonl-parse-stringify";
-import {
+import type {
   SnootyNode,
-  SnootyProjectConfig,
+  SnootyProjectConfig} from "./SnootyDataSource";
+import {
   handlePage,
   makeSnootyDataSource,
 } from "./SnootyDataSource";

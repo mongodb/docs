@@ -1,5 +1,5 @@
-import { RenderLinks } from "./snooty/snootyAstToMd";
-import { LocallySpecifiedSnootyProjectConfig } from "./snooty/SnootyDataSource";
+import type { RenderLinks } from "./snooty/snootyAstToMd";
+import type { LocallySpecifiedSnootyProjectConfig } from "./snooty/SnootyDataSource";
 import { prepareSnootySources } from "./snooty/SnootyProjectsInfo";
 
 export const snootyProjectConfig: LocallySpecifiedSnootyProjectConfig[] = [

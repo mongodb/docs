@@ -1,4 +1,4 @@
-import { Page, PageAction } from "./Page";
+import type { Page, PageAction } from "./Page";
 import { getChangedPages } from "./getChangedPages";
 
 describe("getChangedPages", () => {

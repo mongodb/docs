@@ -25,13 +25,11 @@ import { ensureBlockChildren } from "./plugins/ensure-block-children.js";
 import { preprocessTableRows } from "./plugins/preprocess-table-rows.js";
 import type { ResolveReferencesOptions } from "./plugins/resolve-references.js";
 
-export interface RunParseOptions extends ResolveReferencesOptions {}
-
 export async function mdxToMarkdown(
   source: string,
   contentMdxDir?: string,
   sourceFilePath?: string,
-  options: RunParseOptions = {}
+  options: ResolveReferencesOptions = {}
 ) {
   // Pre-process table rows before parsing
   source = preprocessTableRows()(source);
@@ -44,10 +42,10 @@ export async function mdxToMarkdown(
   // Only use resolveIncludes and resolveReferences if contentMdxDir is provided
   if (contentMdxDir) {
     processor.use(
-      resolveIncludes(contentMdxDir, sourceFilePath, undefined) as any
+      resolveIncludes(contentMdxDir, sourceFilePath, undefined)
     );
     processor.use(
-      resolveReferences(contentMdxDir, sourceFilePath, options) as any
+      resolveReferences(contentMdxDir, sourceFilePath, options)
     );
   }
 

@@ -152,7 +152,7 @@ export interface ComposableTutorialProps {
 }
 
 // Internal component that consumes the context
-const ComposableTutorialInternal = ({ children, composableOptions, ...rest }: ComposableTutorialProps) => {
+const ComposableTutorialInternal = ({ children, composableOptions }: ComposableTutorialProps) => {
   const { currentSelections, setCurrentSelections } = useContext(ComposableContext);
   const { options: pageOptions } = usePageContext();
   const hash = useHash();

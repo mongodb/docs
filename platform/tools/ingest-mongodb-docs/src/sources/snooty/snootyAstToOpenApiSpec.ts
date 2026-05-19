@@ -1,5 +1,5 @@
 import yaml from "yaml";
-import { SnootyNode } from "./SnootyDataSource";
+import type { SnootyNode } from "./SnootyDataSource";
 
 export const snootyAstToOpenApiSpec = async (
   node: SnootyNode

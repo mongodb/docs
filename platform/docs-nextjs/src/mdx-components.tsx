@@ -160,7 +160,7 @@ export const components = (injectedProps?: InjectedProps) =>
     code: ({ children }) => <Literal>{children}</Literal>,
     Output: ({ children, ...props }) => <Output {...props}>{children}</Output>,
     OpenAPI: () => <OpenAPI />,
-    OpenapiChangelog: ({ children }) => <OpenAPIChangelog />,
+    OpenapiChangelog: () => <OpenAPIChangelog />,
     Procedure: ({ children, ...props }) => <Procedure {...props}>{children}</Procedure>,
     Step: ({ children, ...props }) => <Step {...props}>{children}</Step>,
     StepHeading: ({ children }) => <StepHeading>{children}</StepHeading>,

@@ -1,8 +1,9 @@
 import { strict as assert } from "assert";
 import encodeUrl from "encodeurl";
 import { findAll } from "docdoctor";
-import { SnootyNode } from "./SnootyDataSource";
-import { RenderLinks, snootyAstToMd } from "./snootyAstToMd";
+import type { SnootyNode } from "./SnootyDataSource";
+import type { RenderLinks} from "./snootyAstToMd";
+import { snootyAstToMd } from "./snootyAstToMd";
 
 /**
   Return a string of MD from a Snooty AST node.

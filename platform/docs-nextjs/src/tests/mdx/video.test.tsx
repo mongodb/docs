@@ -3,7 +3,6 @@ import { render } from '@testing-library/react';
 import { Video } from '@/mdx-components/Video/Video';
 
 const REACT_PLAYER_PREVIEW_QUERY = 'div.react-player__preview';
-const SD_SCRIPT_QUERY = 'script[type="application/ld+json"]';
 
 // Mock react-player modules (mirrors existing unit video tests)
 jest.mock('react-player/youtube', () => {

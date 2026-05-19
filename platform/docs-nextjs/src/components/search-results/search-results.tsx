@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback, useContext } from 'react';
 import { cx, css } from '@leafygreen-ui/emotion';
-import { useSearchParams } from 'next/navigation';
 import Button from '@leafygreen-ui/button';
 import Icon from '@leafygreen-ui/icon';
 import Pagination from '@leafygreen-ui/pagination';
@@ -345,8 +344,6 @@ const MobileSearchButtonWrapper = css`
 `;
 
 const SearchResults = () => {
-  const search = useSearchParams();
-
   const {
     searchTerm,
     searchFilter,

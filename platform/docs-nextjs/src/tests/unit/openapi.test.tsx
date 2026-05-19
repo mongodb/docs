@@ -28,14 +28,12 @@ jest.mock('redoc', () => {
 });
 
 const shallowRender = ({
-  nodeValue,
   usesRealm = false,
   usesRst = false,
 }: {
-  nodeValue: string;
   usesRealm?: boolean;
   usesRst?: boolean;
-}) => {
+} = {}) => {
   let mockChildren: TextNode[] = [];
   if (!usesRealm) {
     mockChildren = [
@@ -65,17 +63,15 @@ const shallowRender = ({
 };
 
 describe('OpenAPI', () => {
-  const mockNodeValue = 'includes/cloud-openapi.json';
 
   it('renders with a parsed spec file', () => {
-    const wrapper = shallowRender({ nodeValue: mockNodeValue });
+    const wrapper = shallowRender();
     expect(wrapper.getByText('Redoc Mock')).toBeTruthy();
   });
 
   it('renders loading widget before fetching spec file from Realm', async () => {
     // Used shallow for this test to avoid errors from mounting the Redoc component
     const wrapper = shallowRender({
-      nodeValue: 'cloud',
       usesRealm: true,
     });
     expect(wrapper.getByText('Loading')).toBeTruthy();
@@ -83,7 +79,6 @@ describe('OpenAPI', () => {
 
   it('uses rST to render our custom components', () => {
     const wrapper = shallowRender({
-      nodeValue: mockNodeValue,
       usesRst: true,
     });
     expect(
@@ -94,9 +89,7 @@ describe('OpenAPI', () => {
   it('passes `src` param into the specUrl prop for the Redoc standalone component', () => {
     mockLocation({ search: '?src=https://raw.githubusercontent.com' });
 
-    const wrapper = shallowRender({
-      nodeValue: mockNodeValue,
-    });
+    const wrapper = shallowRender();
 
     expect(wrapper.getByText('https://raw.githubusercontent.com')).toBeTruthy();
   });

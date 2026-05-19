@@ -1,9 +1,10 @@
-import { CommandModule } from "yargs";
+import type { CommandModule } from "yargs";
 import { logger } from "../../logger";
 import { doUpdatePagesCommand as standarddoUpdatePagesCommand } from "./pages";
-import {
+import type {
   ResolvedConfig,
-  LoadConfigArgs,
+  LoadConfigArgs} from "../withConfig";
+import {
   withConfig,
   withConfigOptions,
 } from "../withConfig";

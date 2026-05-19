@@ -1,6 +1,7 @@
 import { stripIndent } from "common-tags";
-import { SnootyNode } from "./SnootyDataSource";
-import { parse, visit, findAll, AnyNode } from "docdoctor";
+import type { SnootyNode } from "./SnootyDataSource";
+import type { AnyNode } from "docdoctor";
+import { parse, visit, findAll } from "docdoctor";
 
 export const rstToSnootyAst = (rst: string): SnootyNode => {
   const node = parse(rst);

@@ -1,11 +1,12 @@
 import { strict as assert } from "assert";
+import type {
+  GetSnootyProjectsResponse} from "./SnootyProjectsInfo";
 import {
-  GetSnootyProjectsResponse,
   makeSnootyProjectsInfo,
   overrideCurrentVersion,
   prepareSnootySources,
 } from "./SnootyProjectsInfo";
-import { Page } from "../../pageStore/Page";
+import type { Page } from "../../pageStore/Page";
 
 const snootyDataApiBaseUrl = "https://snooty-data-api.mongodb.com/prod/";
 
@@ -34,8 +35,6 @@ describe("SnootyProjectsInfo", () => {
         );
       });
 
-    const branch = data[0].branches[0];
-
     // Check implementation of findBadBoolBranches
     expect(
       findBadBoolBranches([
@@ -45,7 +44,7 @@ describe("SnootyProjectsInfo", () => {
           branches: [
             {
               active: "true" as unknown as boolean,
-            } as unknown as typeof branch,
+            } as unknown as typeof data[number]['branches'][number],
           ],
         },
       ])
@@ -58,7 +57,7 @@ describe("SnootyProjectsInfo", () => {
           branches: [
             {
               active: true,
-            } as unknown as typeof branch,
+            } as unknown as typeof data[number]['branches'][number],
           ],
         },
       ])
