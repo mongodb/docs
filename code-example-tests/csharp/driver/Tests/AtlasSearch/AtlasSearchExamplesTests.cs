@@ -609,6 +609,38 @@ public class AtlasSearchExamplesTests
     [Test]
     [RequiresSampleData("sample_mflix")]
     [RequiresSearchIndex("default", IndexType = "search")]
+    [Description("Verifies that MetaScore() returns the top matching document with a numeric score")]
+    public void TestMetaScore()
+    {
+        var result = _examples.MetaScore();
+        var bsonResult = result.Select(m => m.ToBsonDocument()).ToList();
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../../";
+        var outputLocation = "../../../content/code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/MetaScoreOutput.txt";
+        var fullPath = Path.Combine(solutionRoot, outputLocation);
+        Expect.That(bsonResult)
+            .WithIgnoredFields("_id", "genres", "year", "rated", "imdb", "plot_embedding", "score", "scoreDetails", "paginationToken")
+            .ShouldMatch(fullPath);
+    }
+
+    [Test]
+    [RequiresSampleData("sample_mflix")]
+    [RequiresSearchIndex("default", IndexType = "search")]
+    [Description("Verifies that MetaScoreDetails() returns the top matching document with score details populated")]
+    public void TestMetaScoreDetails()
+    {
+        var result = _examples.MetaScoreDetails();
+        var bsonResult = result.Select(m => m.ToBsonDocument()).ToList();
+        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../../";
+        var outputLocation = "../../../content/code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/MetaScoreDetailsOutput.txt";
+        var fullPath = Path.Combine(solutionRoot, outputLocation);
+        Expect.That(bsonResult)
+            .WithIgnoredFields("_id", "genres", "year", "rated", "imdb", "plot_embedding", "score", "paginationToken")
+            .ShouldMatch(fullPath);
+    }
+
+    [Test]
+    [RequiresSampleData("sample_mflix")]
+    [RequiresSearchIndex("default", IndexType = "search")]
     [Description("Verifies that SearchAfter() returns paginated results starting after the first page's token")]
     public void TestSearchAfter()
     {

@@ -30,6 +30,9 @@ public class Movie
     [BsonElement("plot_embedding")]
     public float[] PlotEmbedding { get; set; } = null!;
     public double Score { get; set; }
+    [BsonElement("scoreDetails")]
+    [BsonIgnoreIfNull]
+    public SearchScoreDetails ScoreDetails { get; set; } = null!;
     [BsonElement("paginationToken")]
     public string PaginationToken { get; set; } = null!;
 }
@@ -421,6 +424,42 @@ public class AtlasSearchExamples
             .Include(m => m.Title)
             .Include(m => m.Plot)
             .MetaSearchScore(m => m.Score))
+            .ToList();
+        // :snippet-end:
+        return result;
+    }
+
+    public List<Movie> MetaScore()
+    {
+        // :snippet-start: meta-score
+        var filter = Builders<Movie>.Search.Text(m => m.Title, "future");
+        var projection = Builders<Movie>.Projection
+            .Include(m => m.Title)
+            .Include(m => m.Plot)
+            .MetaScore(m => m.Score);
+
+        var result = _moviesCollection.Aggregate()
+            .Search(filter)
+            .Project<Movie>(projection)
+            .Limit(1)
+            .ToList();
+        // :snippet-end:
+        return result;
+    }
+
+    public List<Movie> MetaScoreDetails()
+    {
+        // :snippet-start: meta-score-details
+        var filter = Builders<Movie>.Search.Text(m => m.Plot, "future");
+        var projection = Builders<Movie>.Projection
+            .Include(m => m.Title)
+            .Include(m => m.Plot)
+            .MetaScoreDetails(m => m.ScoreDetails);
+
+        var result = _moviesCollection.Aggregate()
+            .Search(filter, new SearchOptions<Movie> { ScoreDetails = true })
+            .Project<Movie>(projection)
+            .Limit(1)
             .ToList();
         // :snippet-end:
         return result;

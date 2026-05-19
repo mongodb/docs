@@ -12,6 +12,9 @@ public class Movie
     [BsonElement("plot_embedding")]
     public float[] PlotEmbedding { get; set; } = null!;
     public double Score { get; set; }
+    [BsonElement("scoreDetails")]
+    [BsonIgnoreIfNull]
+    public SearchScoreDetails ScoreDetails { get; set; } = null!;
     [BsonElement("paginationToken")]
     public string PaginationToken { get; set; } = null!;
 }
