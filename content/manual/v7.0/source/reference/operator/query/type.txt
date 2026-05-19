@@ -9,7 +9,7 @@ $type (query predicate operator)
    :values: shell
 
 .. meta::
-   :description: Query MongoDB documents by data type using the $type operator, which can help you query unstructured data with unpredictable types.
+   :description: Query MongoDB documents by data type using the $type operator, which can help you query unstructured data with unpredictable types. Accepts single or multiple BSON type aliases.
 
 .. contents:: On this page
    :local:
@@ -123,24 +123,33 @@ fields that match the special ``MinKey`` or ``MaxKey`` values.
 For example, the following ``data`` collection has these documents
 with ``MinKey`` and ``MaxKey``:
 
-.. code-block:: javascript
-
-   db.data.insertMany( [
-      { _id : 1, x : { "$minKey" : 1 } },
-      { _id : 2, y : { "$maxKey" : 1 } }
-   ] )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/operators/type/type-data-setup.snippet.type-data-setup.js
+   :language: javascript
+   :category: usage example
 
 The following query returns the document with ``_id: 1``:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.data.find( { x: { $type: "minKey" } } )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/type/type-data-find-minkey.snippet.type-data-find-minkey.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/operators/type/type-data-find-minkey-output.sh
+      :language: javascript
 
 The following query returns the document with ``_id: 2``:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.data.find( { y: { $type: "maxKey" } } )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/type/type-data-find-maxkey.snippet.type-data-find-maxkey.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/operators/type/type-data-find-maxkey-output.sh
+      :language: javascript
 
 .. _query-type-examples:
 
@@ -152,287 +161,149 @@ Examples
 Querying by Data Type
 ~~~~~~~~~~~~~~~~~~~~~
 
-The ``addressBook`` contains addresses and ZIP codes, where
-``zipCode`` has ``string``, ``int``, ``double``, and ``long``
-values:
+.. include:: /includes/sample-data-usage.rst
 
-.. code-block:: javascript
+The ``movies`` collection stores IMDb ratings in the
+``imdb.rating`` field. Most documents store ``imdb.rating`` as a
+``double``, but some documents store it as an empty ``string``
+(``""``).
 
-   db.addressBook.insertMany( [
-         { _id : 1, address : "2030 Martian Way", zipCode : "90698345" },
-         { _id : 2, address : "156 Lunar Place", zipCode : 43339374 },
-         { _id : 3, address : "2324 Pluto Place", zipCode : Long(3921412) },
-         { _id : 4, address : "55 Saturn Ring" , zipCode : Int32(88602117) },
-         { _id : 5, address : "104 Venus Drive", zipCode : ["834847278", "1893289032"] }
-   ] )
+The following queries return documents from 2013 where
+``imdb.rating`` is the :term:`BSON` type ``string``.
 
-The following queries return documents where ``zipCode`` is the
-:term:`BSON` type ``string`` *or* is an array with an element of
-the specified type:
+This query specifies the type with the number of the :ref:`BSON type
+<document-type-available-types>`. 
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.addressBook.find( { zipCode : { $type : 2 } } );
-   db.addressBook.find( { zipCode : { $type : "string" } } );
+   .. input:: /code-examples/tested/command-line/mongosh/operators/type/type-query-imdb-string.snippet.type-query-imdb-string-numeric.js
+      :language: javascript
+      :category: usage example
 
-The queries return:
+   .. output:: /code-examples/tested/command-line/mongosh/operators/type/type-query-imdb-string-output.sh
+      :language: javascript
 
-.. code-block:: javascript
-   :copyable: false
+This query specifies the type with the alias of the BSON type:
 
-   { _id : 1, address : "2030 Martian Way", zipCode : "90698345" }
-   { _id : 5, address : "104 Venus Drive", zipCode : [ "834847278", "1893289032" ] }
+.. io-code-block::
+   :copyable: true
 
-The following queries return documents where ``zipCode`` is the
-:term:`BSON` type ``double`` *or* is an array with an element of
-the specified type:
+   .. input:: /code-examples/tested/command-line/mongosh/operators/type/type-query-imdb-string.snippet.type-query-imdb-string-alias.js
+      :language: javascript
+      :category: usage example
 
-.. code-block:: javascript
+   .. output:: /code-examples/tested/command-line/mongosh/operators/type/type-query-imdb-string-output.sh
+      :language: javascript
 
-   db.addressBook.find( { zipCode : { $type : 1 } } );
-   db.addressBook.find( { zipCode : { $type : "double" } } );
 
-These queries return:
+The following query uses the ``number`` alias to return documents
+where ``imdb.rating`` is the :term:`BSON` type ``double``, ``int``,
+or ``long``:
 
-.. code-block:: javascript
-   :copyable: false
+.. io-code-block::
+   :copyable: true
 
-   { _id : 2, address : "156 Lunar Place", zipCode : 43339374 }
+   .. input:: /code-examples/tested/command-line/mongosh/operators/type/type-query-number-alias.snippet.type-query-number-alias.js
+      :language: javascript
+      :category: usage example
 
-The following query uses the ``number`` alias to return documents where
-``zipCode`` is the :term:`BSON` type ``double``, ``int``, or ``long``
-*or* is an array with an element of the specified type:
-
-.. code-block:: javascript
-
-   db.addressBook.find( { zipCode : { $type : "number" } } )
-
-These queries return:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { _id : 2, address : "156 Lunar Place", zipCode : 43339374 }
-   { _id : 3, address : "2324 Pluto Place", zipCode : Long(3921412) }
-   { _id : 4, address : "55 Saturn Ring", zipCode : 88602117 }
+   .. output:: /code-examples/tested/command-line/mongosh/operators/type/type-query-number-alias-output.sh
+      :language: javascript
 
 .. _document-querying-by-multiple-data-types:
 
 Querying by Multiple Data Types
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The ``grades`` collection contains names and averages, where
-``classAverage`` has ``string``, ``int``, and ``double`` values:
+The following queries return documents where ``imdb.rating`` is the :term:`BSON`
+type ``string`` or ``double``. The first query uses numeric aliases and the
+second query uses string aliases.
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.grades.insertMany( [
-         { _id : 1, name : "Alice King" , classAverage : 87.333333333333333 },
-         { _id : 2, name : "Bob Jenkins", classAverage : "83.52" },
-         { _id : 3, name : "Cathy Hart", classAverage: "94.06" },
-         { _id : 4, name : "Drew Williams" , classAverage : Int32("93") }
-   ] )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/type/type-query-multiple-types.snippet.type-query-multiple-types-numeric.js
+      :language: javascript
+      :category: usage example
 
-The following queries return documents where ``classAverage`` is the
-:term:`BSON` type ``string`` or ``double`` *or* is an array with an element of
-the specified type. The first query uses numeric aliases
-and the second query uses string aliases.
+   .. output:: /code-examples/tested/command-line/mongosh/operators/type/type-query-multiple-types-output.sh
+      :language: javascript
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.grades.find( { classAverage : { $type : [ 2 , 1 ] } } );
-   db.grades.find( { classAverage : { $type : [ "string" , "double" ] } } );
+   .. input:: /code-examples/tested/command-line/mongosh/operators/type/type-query-multiple-types.snippet.type-query-multiple-types-alias.js
+      :language: javascript
+      :category: usage example
 
-These queries return:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { _id : 1, name : "Alice King", classAverage : 87.33333333333333 }
-   { _id : 2, name : "Bob Jenkins", classAverage : "83.52" }
-   { _id : 3, name : "Cathy Hart", classAverage : "94.06" } 
-
-.. _document-querying-by-MinKey-And-MaxKey:
-
-Querying by MinKey and MaxKey
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The ``restaurants`` collection uses ``minKey`` for any grade that is a
-failing grade:
-
-.. code-block:: javascript
-
-   db.restaurants.insertOne( [ 
-      {
-         _id: 1,
-         address: {
-            building: "230",
-            coord: [ -73.996089, 40.675018 ],
-            street: "Huntington St",
-            zipcode: "11231"
-         },
-         borough: "Brooklyn",
-         cuisine: "Bakery",
-         grades: [
-            { date : new Date(1393804800000), grade : "C", score : 15 },
-            { date : new Date(1378857600000), grade : "C", score : 16 },
-            { date : new Date(1358985600000), grade : MinKey(), score : 30 },
-            { date : new Date(1322006400000), grade : "C", score : 15 }
-         ],
-         name : "Dirty Dan's Donuts",
-         restaurant_id : "30075445"
-      }
-   ] )
-
-And ``maxKey`` for any grade that is the highest passing grade:
-
-.. code-block:: javascript
-
-   db.restaurants.insertOne( [
-      {
-         _id : 2,
-         address : {
-            building : "1166",
-            coord : [ -73.955184, 40.738589 ],
-            street : "Manhattan Ave",
-            zipcode : "11222"
-         },
-         borough: "Brooklyn",
-         cuisine: "Bakery",
-         grades: [
-            { date : new Date(1393804800000), grade : MaxKey(), score : 2 },
-            { date : new Date(1378857600000), grade : "B", score : 6 },
-            { date : new Date(1358985600000), grade : MaxKey(), score : 3 },
-            { date : new Date(1322006400000), grade : "B", score : 5 }
-         ],
-         name : "Dainty Daisey's Donuts",
-         restaurant_id : "30075449"
-      }
-   ] )
-
-The following query returns any restaurant whose ``grades.grade`` field
-contains ``minKey`` *or* is an array containing an element of
-the specified type:
-
-.. code-block:: javascript
-
-   db.restaurants.find(
-      { "grades.grade" : { $type : "minKey" } }
-   )
-
-This returns the following results: 
-
-.. code-block:: javascript
-   :copyable: false
-
-   {
-      _id : 1,
-      address : {
-         building : "230",
-         coord : [ -73.996089, 40.675018 ],
-         street : "Huntington St",
-         zipcode : "11231"
-      },
-      borough : "Brooklyn",
-      cuisine : "Bakery",
-      grades : [
-         { date : ISODate("2014-03-03T00:00:00Z"), grade : "C", score : 15 },
-         { date : ISODate("2013-09-11T00:00:00Z"), grade : "C", score : 16 },
-         { date : ISODate("2013-01-24T00:00:00Z"), grade : { "$minKey" : 1 }, score : 30 },
-         { date : ISODate("2011-11-23T00:00:00Z"), grade : "C", score : 15 }
-      ],
-      name : "Dirty Dan's Donuts",
-      restaurant_id : "30075445"
-   }
-
-The following query returns any restaurant whose ``grades.grade`` field
-contains ``maxKey`` *or* is an array containing an element of
-the specified type:
-
-.. code-block:: javascript
-
-   db.restaurants.find(
-      { "grades.grade" : { $type : "maxKey" } }
-   )
-
-This returns the following results:
-
-.. code-block:: javascript
-   :copyable: false
-
-   {
-      _id : 2,
-      address : {
-         building : "1166",
-         coord : [ -73.955184, 40.738589 ],
-         street : "Manhattan Ave",
-         zipcode : "11222"
-      },
-      borough : "Brooklyn",
-      cuisine : "Bakery",
-      grades : [
-         { date : ISODate("2014-03-03T00:00:00Z"), grade : { "$maxKey" : 1 }, score : 2 },
-         { date : ISODate("2013-09-11T00:00:00Z"), grade : "B", score : 6 },
-         { date : ISODate("2013-01-24T00:00:00Z"), grade : { "$maxKey" : 1 }, score : 3 },
-         { date : ISODate("2011-11-23T00:00:00Z"), grade : "B", score : 5 }
-      ],
-      name : "Dainty Daisey's Donuts",
-      restaurant_id : "30075449"
-   }
+   .. output:: /code-examples/tested/command-line/mongosh/operators/type/type-query-multiple-types-output.sh
+      :language: javascript
 
 .. _document-querying-by-array-type:
 
 Querying by Array Type
 ~~~~~~~~~~~~~~~~~~~~~~
 
-A collection named ``sensorReading`` contains the following documents:
+The ``movies`` collection stores film genres in the ``genres``
+field as an array. The following query returns documents where
+the ``genres`` field is an array:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.sensorReading.insertMany( [
-      { _id : 1, readings : [ 25, 23, [ "Warn: High Temp!", 55 ], [ "ERROR: SYSTEM SHUTDOWN!", 66 ] ] },
-      { _id : 2, readings : [ 25, 25, 24, 23 ] },
-      { _id : 3, readings : [ 22, 24, [] ] },
-      { _id : 4, readings : [] },
-      { _id : 5, readings : 24 }
-   ] )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/type/type-query-array.snippet.type-query-array.js
+      :language: javascript
+      :category: usage example
 
-The following query returns any document where the ``readings``
-field is an array:
+   .. output:: /code-examples/tested/command-line/mongosh/operators/type/type-query-array-output.sh
+      :language: javascript
 
-.. code-block:: javascript
+.. _document-querying-by-MinKey-And-MaxKey:
 
-   db.sensorReading.find( { readings : { $type: "array" } } )
+Querying by MinKey and MaxKey
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The query returns the following documents:
+The folllowing examples use the ``restaurants`` collection that uses ``minKey``
+for any grade that is a failing grade:
 
-.. code-block:: javascript
-   :copyable: false
+.. literalinclude:: /code-examples/tested/command-line/mongosh/operators/type/type-restaurants-setup.snippet.type-restaurants-insert-minkey.js
+   :language: javascript
+   :category: usage example
 
-   {
-      _id : 1,
-      readings : [
-         25,
-         23,
-         [ "Warn: High Temp!", 55 ],
-         [ "ERROR: SYSTEM SHUTDOWN!", 66 ]
-      ]
-   },
-   {
-      _id : 2,
-      readings : [ 25, 25, 24, 23 ]
-   },
-   {
-      _id : 3,
-      readings : [ 22, 24, [] ]
-   },
-   {
-      _id : 4,
-      readings : []
-   }
+And ``maxKey`` for any grade that is the highest passing grade:
 
-In the documents with ``_id : 1``, ``_id : 2``, ``_id : 3``, and
-``_id : 4``, the ``readings`` field is an array. 
+.. literalinclude:: /code-examples/tested/command-line/mongosh/operators/type/type-restaurants-setup.snippet.type-restaurants-insert-maxkey.js
+   :language: javascript
+   :category: usage example
+
+The following query returns any restaurant whose ``grades.grade`` field
+contains ``minKey`` *or* is an array containing an element of
+the specified type:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/operators/type/type-restaurants-find-minkey.snippet.type-restaurants-find-minkey.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/operators/type/type-restaurants-find-minkey-output.sh
+      :language: javascript
+
+The following query returns any restaurant whose ``grades.grade`` field
+contains ``maxKey`` *or* is an array containing an element of
+the specified type:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/operators/type/type-restaurants-find-maxkey.snippet.type-restaurants-find-maxkey.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/operators/type/type-restaurants-find-maxkey-output.sh
+      :language: javascript
 
 Learn More
 ----------

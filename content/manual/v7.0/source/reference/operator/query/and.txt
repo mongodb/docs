@@ -57,14 +57,34 @@ help satisfy clauses of the :query:`$and` expression when
  
 .. include:: /includes/and-or-behavior.rst
 
+Most programming languages and drivers, including the
+:ref:`MongoDB Shell <mdb-shell-overview>` (``mongosh``),
+do not allow the construction of objects with duplicate keys at the
+same object level. For example:
+
 .. code-block:: javascript
 
-   db.example.find( {
+   db.inventory.find( { price: { $in: [ 7.99, 3.99 ], $in: [ 4.99, 1.99 ] } } )
+
+The previous query is invalid because the field name ``price`` has
+duplicate operators at the same object level. The query sent to the
+server differs from the intent. To make the query work, use an explicit
+``AND``:
+
+.. code-block:: javascript
+
+   db.inventory.find( {
       $and: [
-         { x: { $ne: 0 } },
-         { $expr: { $eq: [ { $divide: [ 1, "$x" ] }, 3 ] } }
+         { price: { $in: [ 7.99, 3.99 ] } },
+         { price: { $in: [ 4.99, 1.99 ] } }
       ]
    } )
+
+The previous query explicitly checks that both conditions are satisfied:
+the ``price`` array must include at least one value from each
+:query:`$in` set. For more information, see :ref:`query-and-examples`.
+
+.. _query-and-examples:
 
 Examples
 --------

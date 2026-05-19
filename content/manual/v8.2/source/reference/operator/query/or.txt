@@ -9,7 +9,7 @@ $or (query predicate operator)
    :values: shell
 
 .. meta::
-   :description: Use the $or operator to perform a logical OR operation on an array of expressions and select documents that satisfy at least one of the expressions.
+   :description: Use the $or operator to perform a logical OR operation on an array of expressions and select all documents that satisfy at least one of the expressions.
    
 .. contents:: On this page
    :local:
@@ -39,15 +39,25 @@ The :query:`$or` operator has the following syntax:
 
    { $or: [ { <expression1> }, { <expression2> }, ... , { <expressionN> } ] }
 
+.. include:: /includes/sample-data-usage.rst
+
 Consider the following example:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.inventory.find( { $or: [ { quantity: { $lt: 20 } }, { price: 10 } ] } )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/or/or-movies.snippet.or-movies.js
+      :language: javascript
+      :category: usage example
 
-This query will select all documents in the ``inventory`` collection
-where either the ``quantity`` field value is less than ``20`` **or** the
-``price`` field value equals ``10``.
+   .. output:: /code-examples/tested/command-line/mongosh/operators/or/or-movies-output.sh
+      :language: javascript
+
+This query selects all documents in the ``movies`` collection
+that meet either of the following conditions:
+
+- The ``runtime`` field value is greater than ``1000``.
+- The ``year`` field value is earlier than ``1910``.
 
 Behaviors
 ---------
@@ -67,17 +77,14 @@ MongoDB performs a collection scan.
 When using indexes with :query:`$or` queries, each clause of an
 :query:`$or` can use its own index. Consider this query:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/operators/or/or-index-query.snippet.or-index-query.js
+   :language: javascript
 
-   db.inventory.find( { $or: [ { quantity: { $lt: 20 } }, { price: 10 } ] } )
+To support this query, create one index on ``runtime`` and
+another index on ``year``, rather than a compound index:
 
-To support this query, rather than a compound index, create
-one index on ``quantity`` and another index on ``price``:
-
-.. code-block:: javascript
-
-   db.inventory.createIndex( { quantity: 1 } )
-   db.inventory.createIndex( { price: 1 } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/operators/or/or-index-create.snippet.or-index-create.js
+   :language: javascript
 
 .. _or-and-text-queries:
 
@@ -102,41 +109,18 @@ However, if you use a near clause (:query:`$near` or
 ``$or`` with a single clause has the same effect as omitting the ``$or``
 operator.
 
-For example, the following query is invalid because the ``$or``
-operator combines ``$near`` with another clause:
-
-.. code-block:: javascript
-   :copyable: false
-
-   db.places.find( {
-      $or: [
-         { location: { $near: [ 40, 5 ] } },
-         { category: "restaurant" }
-      ]
-   } )
-
 The following query is valid because ``$or`` uses a non-near
 geospatial clause (``$geoIntersects``):
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.places.find( {
-      $or: [
-         {
-            location: {
-               $geoIntersects: {
-                  $geometry: {
-                     type: "Polygon",
-                     coordinates: [
-                        [ [ 39, 4 ], [ 41, 4 ], [ 41, 6 ], [ 39, 4 ] ]
-                     ]
-                  }
-               }
-            }
-         },
-         { category: "restaurant" }
-      ]    
-   } )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/or/or-theaters-geointersects.snippet.or-theaters-geointersects.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/operators/or/or-theaters-geointersects-output.sh
+      :language: javascript
 
 
 ``$or`` and Sort Operations
@@ -158,12 +142,18 @@ If you use :query:`$or` with ``<expressions>`` that are equality checks
 for the value of the same field, use :query:`$in` instead of
 :query:`$or`.
 
-This query selects documents in the ``inventory`` collection where
-``quantity`` is ``20`` or ``50``:
+This query selects documents in the ``movies`` collection where
+``year`` is ``1903`` or ``1909``:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.inventory.find ( { quantity: { $in: [20, 50] } } )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/or/or-equivalent-in.snippet.or-equivalent-in.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/operators/or/or-equivalent-in-output.sh
+      :language: javascript
 
 Nested ``$or`` Clauses
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -184,12 +174,3 @@ Error Handling
 .. |true-false| replace:: ``true``
 
 .. include:: /includes/and-or-behavior.rst
-
-.. code-block:: javascript
-
-   db.example.find( {
-      $or: [
-         { x: { $eq: 0 } },
-         { $expr: { $eq: [ { $divide: [ 1, "$x" ] }, 3 ] } }
-      ]
-   } )

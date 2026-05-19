@@ -1,6 +1,6 @@
-=====
-$text
-=====
+================================
+$text (query predicate operator)
+================================
 
 .. default-domain:: mongodb
 
@@ -8,8 +8,8 @@ $text
    :name: programming_language
    :values: shell
 
-.. meta:: 
-   :description: $text supports language-specific rules and scoring.
+.. meta::
+   :description: Use $text to perform full-text search on fields with a text index. Supports multi-term OR, negation, exact phrases, and relevance scoring for self-managed deployments.
    :keywords: on-prem
 
 .. contents:: On this page
@@ -326,51 +326,33 @@ Text Score
 Examples
 --------
 
-The following examples use an ``articles`` collection with a
-:ref:`version 3 text <index-type-text>` index on ``subject``:
+.. include:: /includes/sample-data-usage.rst
 
-.. code-block:: javascript
+The examples assume a :ref:`version 3 text <index-type-text>`
+index on the ``title`` and ``fullplot`` fields:
 
-   db.articles.createIndex( { subject: "text" } )
-
-Populate the collection with the following documents:
-
-.. code-block:: javascript
-
-   db.articles.insertMany( [
-        { _id: 1, subject: "coffee", author: "xyz", views: 50 },
-        { _id: 2, subject: "Coffee Shopping", author: "efg", views: 5 },
-        { _id: 3, subject: "Baking a cake", author: "abc", views: 90  },
-        { _id: 4, subject: "baking", author: "xyz", views: 100 },
-        { _id: 5, subject: "Café Con Leche", author: "abc", views: 200 },
-        { _id: 6, subject: "Сырники", author: "jkl", views: 80 },
-        { _id: 7, subject: "coffee and cream", author: "efg", views: 10 },
-        { _id: 8, subject: "Cafe con Leche", author: "xyz", views: 10 }
-   ] )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/operators/text/text-create-index.snippet.text-create-index.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 
 Search for a Single Word
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-This example specifies ``coffee`` in the ``$search`` string:
+This example specifies ``baseball`` in the ``$search`` string. The
+query returns documents containing the stemmed version of
+``baseball`` in the indexed ``title`` or ``fullplot`` fields:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.articles.find( { $text: { $search: "coffee" } } )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/text/text-search-single-word.snippet.text-search-single-word.js
+      :language: javascript
+      :category: usage example
 
-This returns documents containing the stemmed version of
-``coffee`` in the indexed ``subject`` field:
-
-.. code-block:: javascript
-
-   { _id: 1, subject: 'coffee', author: 'xyz', views: 50 },
-   { _id: 7, subject: 'coffee and cream', author: 'efg', views: 10 },
-   { _id: 2, subject: 'Coffee Shopping', author: 'efg', views: 5 }
-
-.. seealso::
-
-   - :ref:`text-operator-case-sensitivity`
-   - :ref:`match-operation-stemmed-words`
+   .. output:: /code-examples/tested/command-line/mongosh/operators/text/text-search-single-word-output.sh
+      :language: javascript
 
 Match Any Search Term
 ~~~~~~~~~~~~~~~~~~~~~
@@ -378,95 +360,150 @@ Match Any Search Term
 A space-delimited ``$search`` string performs a logical ``OR`` on
 each term. MongoDB returns documents containing any of the terms.
 
-This example specifies three space-delimited terms:
+This example specifies two space-delimited terms. The query returns
+documents containing the stemmed versions of ``baseball`` **or**
+``colorado`` in the indexed ``title`` or ``fullplot`` fields:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.articles.find( { $text: { $search: "bake coffee cake" } } )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/text/text-search-multi-term.snippet.text-search-multi-term.js
+      :language: javascript
+      :category: usage example
 
-This returns documents containing the stemmed versions of ``bake`` **or** 
-``coffee`` **or** ``cake`` in the indexed ``subject`` field:
-
-.. code-block:: javascript
-
-   { "_id" : 2, "subject" : "Coffee Shopping", "author" : "efg", "views" : 5 }
-   { "_id" : 7, "subject" : "coffee and cream", "author" : "efg", "views" : 10 }
-   { "_id" : 1, "subject" : "coffee", "author" : "xyz", "views" : 50 }
-   { "_id" : 3, "subject" : "Baking a cake", "author" : "abc", "views" : 90 }
-   { "_id" : 4, "subject" : "baking", "author" : "xyz", "views" : 100 }
-
-.. seealso::
-
-   - :ref:`text-operator-case-sensitivity`
-   - :ref:`match-operation-stemmed-words`
+   .. output:: /code-examples/tested/command-line/mongosh/operators/text/text-search-multi-term-output.sh
+      :language: javascript
 
 Search for an Exact String
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Escape the quotes to match an exact multi-word string.
 
-This example matches the exact string ``coffee shop``:
+This example matches the exact phrase ``ken burns``:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.articles.find( { $text: { $search: "\"coffee shop\"" } } )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/text/text-search-exact-phrase.snippet.text-search-exact-phrase.js
+      :language: javascript
+      :category: usage example
 
-This operation returns documents that contain the string ``coffee shop``:
-
-.. code-block:: javascript
-
-   { "_id" : 2, "subject" : "Coffee Shopping", "author" : "efg", "views" : 5 }
+   .. output:: /code-examples/tested/command-line/mongosh/operators/text/text-search-exact-phrase-output.sh
+      :language: javascript
 
 This example performs a logical OR of two exact strings:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.articles.find( { $text: { $search: "\'coffee shop\' \'Cafe con Leche\'" } } )
-   
-This returns documents containing either string, including
-documents with terms from both strings: 
+   .. input:: /code-examples/tested/command-line/mongosh/operators/text/text-search-exact-phrase-or.snippet.text-search-exact-phrase-or.js
+      :language: javascript
+      :category: usage example
 
-.. code-block:: javascript
-   :copyable: false 
-
-   [
-     { _id: 8, subject: 'Cafe con Leche', author: 'xyz', views: 10 },
-     { _id: 5, subject: 'Café Con Leche', author: 'abc', views: 200 },
-     { _id: 1, subject: 'coffee', author: 'xyz', views: 50 },
-     { _id: 7, subject: 'coffee and cream', author: 'efg', views: 10 },
-     { _id: 2, subject: 'Coffee Shopping', author: 'efg', views: 5 }
-   ]
-
-.. seealso::
-
-   :ref:`text-operator-exact-string`
+   .. output:: /code-examples/tested/command-line/mongosh/operators/text/text-search-exact-phrase-or-output.sh
+      :language: javascript
 
 Exclude Documents That Contain a Term
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Prefix a term with ``-`` to exclude documents containing that term.
 
-This example matches documents containing ``coffee`` but not
-``shop`` (stemmed versions):
+This example matches documents containing ``baseball`` or
+``colorado`` but not ``sport`` (stemmed versions):
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.articles.find( { $text: { $search: "coffee -shop" } } )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/text/text-search-negation.snippet.text-search-negation.js
+      :language: javascript
+      :category: usage example
 
-The operation returns the following documents:
+   .. output:: /code-examples/tested/command-line/mongosh/operators/text/text-search-negation-output.sh
+      :language: javascript
 
-.. code-block:: javascript
+.. _ex-text-search-score:
 
-   { "_id" : 7, "subject" : "coffee and cream", "author" : "efg", "views" : 10 }
-   { "_id" : 1, "subject" : "coffee", "author" : "xyz", "views" : 50 }
+Relevance Score Examples
+~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. seealso::
+.. _ex-return-text-search-score:
 
-   - :ref:`text-operator-term-negation`
-   - :ref:`match-operation-stemmed-words`
+Return the Relevance Score
+``````````````````````````
+
+This example queries for ``baseball`` and uses
+:expression:`$meta` to append the relevance score to each
+matching document. The returned document includes a ``score``
+field with the relevance score:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/operators/text/text-search-score.snippet.text-search-score.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/operators/text/text-search-score-output.sh
+      :language: javascript
+
+.. _ex-sort-limit-two:
+
+Return Top 2 Matching Documents
+```````````````````````````````
+
+Use :method:`~cursor.limit()` with :method:`~cursor.sort()` to
+return the top matching documents.
+
+This example queries for ``baseball`` **or** ``colorado``, sorts by
+descending score, and limits results to the top two documents:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/operators/text/text-search-top-two.snippet.text-search-top-two.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/operators/text/text-search-top-two-output.sh
+      :language: javascript
+
+.. _text-operator-example-compound-sort:
+
+Combine $text with Other Query and Sort Operations
+``````````````````````````````````````````````````
+
+This example matches documents where ``runtime`` is greater
+than ``1000`` and the indexed fields contain ``baseball`` or
+``colorado``. It sorts by ascending ``year``, then descending
+relevance score:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /code-examples/tested/command-line/mongosh/operators/text/text-search-sort-combined.snippet.text-search-sort-combined.js
+      :language: javascript
+      :category: usage example
+
+   .. output:: /code-examples/tested/command-line/mongosh/operators/text/text-search-sort-combined-output.sh
+      :language: javascript
 
 Query a Different Language
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The rest of the examples on this page use an ``articles`` collection with a
+:ref:`version 3 text <index-type-text>` index on ``subject``:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/operators/text/text-articles-create-index.snippet.text-articles-create-index.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
+
+The collection contains the following documents:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/operators/text/text-articles-insert-data.snippet.text-articles-insert-data.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 Use ``$language`` to specify the language that determines stop
 words, stemmer, and tokenizer rules for the ``$search`` string.
@@ -475,25 +512,25 @@ words, stemmer, and tokenizer rules for the ``$search`` string.
 
 This example specifies ``es`` (Spanish) as the language:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.articles.find(
-      { $text: { $search: "leche", $language: "es" } }
-   )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/text/text-search-language.snippet.text-search-language.js
+      :language: javascript
+      :category: usage example
 
-The example returns the following documents:
-
-.. code-block:: javascript
-
-   { "_id" : 5, "subject" : "Café Con Leche", "author" : "abc", "views" : 200 }
-   { "_id" : 8, "subject" : "Cafe con Leche", "author" : "xyz", "views" : 10 }
+   .. output:: /code-examples/tested/command-line/mongosh/operators/text/text-search-language-output.sh
+      :language: javascript
 
 You can also specify languages by name, such as ``spanish``. See
 :ref:`text-search-languages` for supported languages.
 
-.. seealso::
+.. _ex-sort-text-search-score:
 
-   :ref:`text-operator-case-sensitivity`
+Sort by Relevance Score
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/extracts/4.4-changes-projection-sort-meta-list.rst
 
 Case and Diacritic Insensitivity
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -505,28 +542,21 @@ alphabets like Cyrillic. See :ref:`text Index Case Insensitivity
 <text-index-case-insensitivity>` and :ref:`text Index Diacritic
 Insensitivity <text-index-diacritic-insensitivity>`.
 
-This example performs a case and diacritic insensitive query:
+This example performs a case and diacritic insensitive query.
+Using version 3 text indexes, the query matches documents
+containing the stemmed versions of the search terms:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.articles.find( { $text: { $search: "сы́рники CAFÉS" } } )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/text/text-search-case-diacritic-insensitive.snippet.text-search-case-diacritic-insensitive.js
+      :language: javascript
+      :category: usage example
 
-Using version 3 text indexes, this matches:
-
-.. code-block:: javascript
-
-   { "_id" : 6, "subject" : "Сырники", "author" : "jkl", "views" : 80 }
-   { "_id" : 5, "subject" : "Café Con Leche", "author" : "abc", "views" : 200 }
-   { "_id" : 8, "subject" : "Cafe con Leche", "author" : "xyz", "views" : 10 }
+   .. output:: /code-examples/tested/command-line/mongosh/operators/text/text-search-case-diacritic-insensitive-output.sh
+      :language: javascript
 
 Earlier text index versions would not match any documents.
-
-.. seealso::
-
-   - :ref:`text-operator-case-sensitivity`
-   - :ref:`text-operator-diacritic-sensitivity`
-   - :ref:`match-operation-stemmed-words`
-   - :ref:`<index-type-text>`
 
 .. _text-operator-case-sensitive-search:
 
@@ -541,20 +571,15 @@ Case-Sensitive Term Search
 
 This example performs a case-sensitive query for ``Coffee``:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.articles.find( { $text: { $search: "Coffee", $caseSensitive: true } } )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/text/text-search-case-sensitive-term.snippet.text-search-case-sensitive-term.js
+      :language: javascript
+      :category: usage example
 
-This matches only:
-
-.. code-block:: json
-
-   { "_id" : 2, "subject" : "Coffee Shopping", "author" : "efg", "views" : 5 }
-
-.. seealso::
-
-   - :ref:`text-operator-case-sensitivity`
-   - :ref:`case-sensitivity-and-stemming`
+   .. output:: /code-examples/tested/command-line/mongosh/operators/text/text-search-case-sensitive-term-output.sh
+      :language: javascript
 
 Case-Sensitive Exact String Search
 ``````````````````````````````````
@@ -562,22 +587,15 @@ Case-Sensitive Exact String Search
 This example performs a case-sensitive query for an exact
 multi-word string:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.articles.find( {
-      $text: { $search: "\"Café Con Leche\"", $caseSensitive: true }
-   } )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/text/text-search-case-sensitive-exact.snippet.text-search-case-sensitive-exact.js
+      :language: javascript
+      :category: usage example
 
-This matches only:
-
-.. code-block:: json
-
-   { "_id" : 5, "subject" : "Café Con Leche", "author" : "abc", "views" : 200 }
-
-.. seealso::
-
-   - :ref:`case-sensitivity-and-stemming`
-   - :ref:`text-operator-case-sensitivity`
+   .. output:: /code-examples/tested/command-line/mongosh/operators/text/text-search-case-sensitive-exact-output.sh
+      :language: javascript
 
 Case-Sensitive Negated Term Search
 ``````````````````````````````````
@@ -588,20 +606,15 @@ with ``-``).
 This example performs a case-sensitive query for documents
 containing ``Coffee`` but not ``shop`` (stemmed versions):
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.articles.find( { $text: { $search: "Coffee -shop", $caseSensitive: true } } )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/text/text-search-case-sensitive-negated.snippet.text-search-case-sensitive-negated.js
+      :language: javascript
+      :category: usage example
 
-This matches:
-
-.. code-block:: json
-
-   { "_id" : 2, "subject" : "Coffee Shopping", "author" : "efg" }
-
-.. seealso::
-
-   - :ref:`case-sensitivity-and-stemming`
-   - :ref:`text-operator-term-negation`
+   .. output:: /code-examples/tested/command-line/mongosh/operators/text/text-search-case-sensitive-negated-output.sh
+      :language: javascript
 
 Diacritic Sensitivity
 ~~~~~~~~~~~~~~~~~~~~~
@@ -616,22 +629,15 @@ Diacritic-Sensitive Term Search
 This example performs a diacritic-sensitive query for ``CAFÉ``
 (stemmed version):
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.articles.find( { $text: { $search: "CAFÉ", $diacriticSensitive: true } } )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/text/text-search-diacritic-sensitive-term.snippet.text-search-diacritic-sensitive-term.js
+      :language: javascript
+      :category: usage example
 
-This matches only:
-
-.. code-block:: javascript
-
-   { "_id" : 5, "subject" : "Café Con Leche", "author" : "abc" }
-
-.. seealso::
-
-   - :ref:`diacritic-sensitivity-and-stemming`
-   - :ref:`text-operator-diacritic-sensitivity`
-   - :ref:`text-operator-case-sensitivity`
-
+   .. output:: /code-examples/tested/command-line/mongosh/operators/text/text-search-diacritic-sensitive-term-output.sh
+      :language: javascript
 
 Diacritic-Sensitive Negated Term Search
 ```````````````````````````````````````
@@ -642,105 +648,25 @@ prefixed with ``-``).
 This example performs a diacritic-sensitive query for documents
 containing ``leches`` but not ``cafés`` (stemmed versions):
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.articles.find(
-     { $text: { $search: "leches -cafés", $diacriticSensitive: true } }
-   )
+   .. input:: /code-examples/tested/command-line/mongosh/operators/text/text-search-diacritic-sensitive-negated.snippet.text-search-diacritic-sensitive-negated.js
+      :language: javascript
+      :category: usage example
 
-This matches:
-
-.. code-block:: javascript
-
-   { "_id" : 8, "subject" : "Cafe con Leche", "author" : "xyz" }
+   .. output:: /code-examples/tested/command-line/mongosh/operators/text/text-search-diacritic-sensitive-negated-output.sh
+      :language: javascript
 
 .. seealso::
 
-   - :ref:`diacritic-sensitivity-and-stemming`
-   - :ref:`text-operator-diacritic-sensitivity`
+   - :ref:`index-type-text`
+   - :ref:`match-operation-stemmed-words`
+   - :ref:`text-operator-exact-string`
+   - :ref:`text-operator-term-negation`
    - :ref:`text-operator-case-sensitivity`
-
-.. _ex-text-search-score:
-
-Relevance Score Examples
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. _ex-return-text-search-score:
-
-Return the Relevance Score
-``````````````````````````
-
-This example queries for ``cake`` and uses :expression:`$meta` to
-append the relevance score to each matching document:
-
-.. code-block:: javascript
-
-   db.articles.find(
-      { $text: { $search: "cake" } },
-      { score: { $meta: "textScore" } }
-   )
-
-The returned document includes a ``score`` field with the
-relevance score:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { "_id" : 3, "subject" : "Baking a cake", "author" : "abc", "views" : 90, "score" : 0.75 }
-
-.. seealso::
-
-   :expression:`$meta`
-
-.. _ex-sort-text-search-score:
-
-Sort by Relevance Score
-```````````````````````
-
-.. include:: /includes/extracts/4.4-changes-projection-sort-meta-list.rst
-
-.. seealso::
-
-   :expression:`$meta`
-
-.. _ex-sort-limit-two:
-
-Return Top 2 Matching Documents
-```````````````````````````````
-
-Use :method:`~cursor.limit()` with :method:`~cursor.sort()` to
-return the top matching documents.
-
-This example queries for ``coffee``, sorts by descending score,
-and limits results to the top two documents:
-
-.. code-block:: javascript
-
-   db.articles.find(
-      { $text: { $search: "coffee" } },
-      { score: { $meta: "textScore" } }
-   ).sort( { score: { $meta: "textScore" } } ).limit(2)
-
-.. seealso::
-
-   :expression:`$meta`
-
-.. _text-operator-example-compound-sort:
-
-Combine $text with Other Query and Sort Operations
-``````````````````````````````````````````````````
-
-This example matches documents where ``author`` is ``"xyz"`` and
-``subject`` contains ``coffee`` or ``bake``. It sorts by
-ascending ``date``, then descending relevance score:
-
-.. code-block:: javascript
-
-   db.articles.find(
-      { author: "xyz", $text: { $search: "coffee bake" } },
-      { score: { $meta: "textScore" } } 
-   ).sort( { date: 1, score: { $meta: "textScore" } } )
-
-.. seealso::
-
-   :doc:`/tutorial/text-search-in-aggregation`
+   - :ref:`case-sensitivity-and-stemming`
+   - :ref:`text-operator-diacritic-sensitivity`
+   - :ref:`diacritic-sensitivity-and-stemming`
+   - :expression:`$meta`
+   - :ref:`text-agg`
