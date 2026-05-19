@@ -126,6 +126,66 @@ This will display:
 - All available command options
 - Descriptions for each option
 
+## Generating Legacy TOC Files
+
+When a versioned docs project (e.g. Kafka Connector, Atlas CLI) is archived (set a version to **EOL**), you need to generate a **legacy TOC file** so the docs site can still render a sidenav for that version. The `generate-legacy` script reads the main TOC, filters it down to the entries for a specific `contentSite` and version, and writes the result to a `.ts` file in `platform/docs-nextjs/src/context/table-of-contents/legacy-docs/`.
+
+### Prerequisites
+
+1. **Node.js** (v18 or higher) and **pnpm** installed
+2. Dependencies installed — run this once from `content/table-of-contents/`:
+   ```bash
+   pnpm install
+   ```
+
+### Running the script
+
+From the `content/table-of-contents/` directory:
+
+```bash
+pnpm generate-legacy --contentSite=<contentSite> --version=<version>
+```
+
+**Example:**
+```bash
+pnpm generate-legacy --contentSite=kafka-connector --version=v1.12
+```
+
+### What the script does
+
+1. Searches the main TOC for all `group: true` entries matching the given `contentSite`
+2. Filters items to only those valid for the specified version (respecting `versions.includes` / `versions.excludes`)
+3. Replaces any `:version` placeholders in URLs with the actual version string
+4. Writes a `.ts` file to `platform/docs-nextjs/src/context/table-of-contents/legacy-docs/<contentSite>-<version>.ts`
+
+### Expected output
+
+```
+ Searching for TOC groups with contentSite: kafka-connector
+Found 1 group(s):
+   - "Kafka Connector"
+ Filtering for version: v1.12
+ "Kafka Connector": 14 item(s)
+
+ Total: 14 item(s) across 1 group(s)
+Legacy TOC file created: .../legacy-docs/kafka-connector-v1.12.ts
+```
+
+### After running the script
+
+Commit the generated file under `platform/docs-nextjs/src/context/table-of-contents/legacy-docs/` as part of your PR. The docs site will automatically pick it up for the archived version's sidebar.
+
+**IMPORTANT**: you should manually check over this file that was created, it should do a good job creating the legacy toc but its not guarenteed to be perfect. Just double check the urls look correct. 
+
+### Troubleshooting
+
+- **"No TOC groups found"** — The `contentSite` value you passed doesn't match any entry in the main TOC. Double-check the exact string used in the TOC data files.
+- **"No TOC items remain after filtering"** — The version string doesn't match any included versions. Check `versions.includes` / `versions.excludes` on items in the relevant TOC data file.
+
+Reach out to DOP if still unable to produce a legacy toc file. 
+
+---
+
 ## Development
 
 For development purposes, you can also run the API in watch mode:

@@ -326,10 +326,9 @@ async function generateLegacyToc(options: CommandLineOptions): Promise<void> {
   );
 
   // Write to file
-  // TODO: DOP-6536 when porting over this directory, update the path to the legacy-docs directory
   const outputDir = path.join(
     __dirname,
-    '../../platform/docs-nextjs/src/context/table-of-contents/legacy-docs',
+    '../../../platform/docs-nextjs/src/context/table-of-contents/legacy-docs',
   );
   const outputFile = path.join(outputDir, `${contentSite}-${version}.ts`);
 
