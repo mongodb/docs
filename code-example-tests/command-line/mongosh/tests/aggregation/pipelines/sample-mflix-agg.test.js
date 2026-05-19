@@ -62,7 +62,7 @@ describeWithSampleData("mongosh sample_mflix example tests", () => {
         "aggregation/pipelines/explain-field/run-pipeline.js"
       ])
       .withDbName(dbName)
-      .withIgnoredFields("stages", "queryShapeHash", "serverInfo", "serverParameters")
+      .withIgnoredFields("stages", "queryShapeHash", "serverInfo", "serverParameters", "peakTrackedMemBytes", "$clusterTime", "operationTime")
       .shouldMatch("aggregation/pipelines/explain-field/output.sh");
   });
 

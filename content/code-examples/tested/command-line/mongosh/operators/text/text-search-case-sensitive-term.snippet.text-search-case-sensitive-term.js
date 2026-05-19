@@ -1,0 +1,3 @@
+db.articles.find(
+   { $text: { $search: "Coffee", $caseSensitive: true } }
+)
