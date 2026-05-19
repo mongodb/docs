@@ -1,16 +1,7 @@
 using MongoDB.Bson;
-using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
 namespace Examples.Aggregation.Builders;
-
-[BsonIgnoreExtraElements]
-public class Movie
-{
-    [BsonId]
-    public ObjectId Id { get; set; }
-    public string Title { get; set; } = null!;
-}
 
 public class ChangeStreamExample
 {
