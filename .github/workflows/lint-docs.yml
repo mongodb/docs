@@ -122,5 +122,36 @@ jobs:
           echo "- **404 Linter**: Checks for broken external links" >> $GITHUB_STEP_SUMMARY
           echo "- **Findability Linter**: Facet names/values, keyword-in-synonyms hints, MongoDB URL trailing slashes" >> $GITHUB_STEP_SUMMARY
           echo "- **Vale**: Checks prose against the MongoDB style guide" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
           echo "⚠️ These are warnings only and do not block the PR." >> $GITHUB_STEP_SUMMARY
+
+  ref-anchor-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install Python dependencies
+        run: pip install toml
+
+      - name: Run Ref Anchor Checker
+        run: |
+          python3 content/tools/ref-anchor-impact-detector/detect_ref_impacts.py --ci --base origin/${{ github.base_ref }} | tee /tmp/ref-checker-output.txt
+          EXIT_CODE=${PIPESTATUS[0]}
+          if [ $EXIT_CODE -ne 0 ]; then
+            SUMMARY=$(grep -E '^[0-9]+ removed anchor' /tmp/ref-checker-output.txt | tail -1)
+            echo "::error::${SUMMARY:-Ref anchor check failed. See log for details.}"
+          fi
+          exit $EXIT_CODE
+
+      - name: Summary
+        if: always()
+        run: |
+          if [ -f /tmp/ref-checker-output.txt ]; then
+            echo "## 🔍 Ref Anchor Check" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            cat /tmp/ref-checker-output.txt >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
