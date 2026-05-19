@@ -49,7 +49,7 @@ const tocData: TocItem[] = [
             label: 'Financial Crime Mitigation',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/fincrime-mitigation',
-          }
+          },
         ],
       },
       {

@@ -239,6 +239,11 @@ const tocData: TocItem[] = inheritContentSite('cpp-driver', [
             url: '/docs/languages/cpp/cpp-driver/:version/security/authentication/aws-iam',
           },
           {
+            label: 'OIDC',
+            url: '/docs/languages/cpp/cpp-driver/:version/security/authentication/oidc',
+            versions: { includes: ['upcoming'] },
+          },
+          {
             label: 'Kerberos (GSSAPI)',
             url: '/docs/languages/cpp/cpp-driver/:version/security/authentication/kerberos',
           },

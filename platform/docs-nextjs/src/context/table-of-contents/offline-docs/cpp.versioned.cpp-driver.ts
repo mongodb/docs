@@ -306,6 +306,14 @@ export const toc: L1TocItem[] = [
                     url: '/docs/languages/cpp/cpp-driver/:version/security/authentication/aws-iam',
                   },
                   {
+                    label: 'OIDC',
+                    contentSite: 'cpp-driver',
+                    url: '/docs/languages/cpp/cpp-driver/:version/security/authentication/oidc',
+                    versions: {
+                      includes: ['upcoming'],
+                    },
+                  },
+                  {
                     label: 'Kerberos (GSSAPI)',
                     contentSite: 'cpp-driver',
                     url: '/docs/languages/cpp/cpp-driver/:version/security/authentication/kerberos',
