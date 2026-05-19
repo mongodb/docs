@@ -41,7 +41,7 @@ const DIRECTIVES_TO_REMOVE = [
   'twitter',
 ];
 const DIRECTIVES_TO_REMOVE_IF_EMPTY = ['index'];
-const DIRECTIVES_TO_SKIP_CONTAINER = ['extract', 'glossary', 'release_specification'];
+const DIRECTIVES_TO_SKIP_CONTAINER = ['extract', 'glossary', 'release_specification', 'cond'];
 
 /**
  * RST `line_block` separates logical lines with a break between them.
@@ -786,6 +786,21 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 
       // Pass over container directives: emit only their children, no wrapper.
       if (DIRECTIVES_TO_SKIP_CONTAINER.includes(directiveName)) {
+        return convertChildren({ nodes: node.children, depth, ctx });
+      }
+
+      if (directiveName === 'class') {
+        const classArg = parseSnootyArgument(node).trim();
+        if (classArg === 'hidden') {
+          return {
+            type: 'mdxJsxFlowElement',
+            name: 'div',
+            // The HTML `hidden` boolean attribute suppresses rendering (display:none) without a custom component.
+            attributes: [{ type: 'mdxJsxAttribute', name: 'hidden', value: null }],
+            children: convertChildren({ nodes: node.children, depth, ctx }),
+          };
+        }
+        // Non-hidden class directives: emit children without a wrapper.
         return convertChildren({ nodes: node.children, depth, ctx });
       }
 

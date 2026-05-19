@@ -69,7 +69,16 @@ export const offlineBannerContainerStyle = ({ template }: BannerStyleProps) => {
   `;
 };
 
-export const styleMapLight = {
+export interface BannerVariantStyle {
+  backgroundColor: string;
+  color: string;
+  borderColor: string;
+  linkColor: string;
+  beforeColor: string;
+  iconColor: string;
+}
+
+export const styleMapLight: Record<string, BannerVariantStyle> = {
   info: {
     backgroundColor: palette.blue.light3,
     color: palette.blue.dark2,
@@ -95,7 +104,7 @@ export const styleMapLight = {
     iconColor: palette.red.base,
   },
 };
-export const styleMapDark = {
+export const styleMapDark: Record<string, BannerVariantStyle> = {
   info: {
     backgroundColor: palette.blue.dark3,
     color: palette.blue.light2,

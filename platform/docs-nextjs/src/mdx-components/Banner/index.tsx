@@ -13,7 +13,7 @@ export const alertMap = {
   danger: LeafyVariant.Danger,
 };
 
-const bannerStyle = ({ variant }: { variant: keyof typeof styleMapLight }) => css`
+const bannerStyle = ({ variant }: { variant: string }) => css`
   ${baseBannerStyle}
   background-color: ${styleMapLight[variant].backgroundColor};
   color: ${styleMapLight[variant].color};
@@ -72,7 +72,7 @@ export const Banner = ({ children, variant = 'info', locale: localeProp }: Banne
   if (locales && !locales.includes(locale)) {
     return <div />;
   }
-  const styleVariant = (variant ?? 'info') as keyof typeof styleMapLight;
+  const styleVariant = variant && variant in styleMapLight ? variant : 'info';
 
   return (
     <LeafyBanner
