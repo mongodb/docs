@@ -10,6 +10,8 @@
 .. default-domain:: mongodb
 
 
+Overview
+--------
 
 {+adf+} supports |service| clusters as {+fdi+} stores. You must define 
 mappings in your {+fdi+} to your |service| cluster to run queries 

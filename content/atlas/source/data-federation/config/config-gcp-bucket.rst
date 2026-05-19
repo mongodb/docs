@@ -9,6 +9,9 @@
 
 .. _gcp-configuration-file-overview:
 
+Overview
+--------
+
 {+adf+} supports {+gcs+} buckets as {+fdi+} stores. You must
 define mappings in your {+fdi+} to your Cloud Storage bucket to run
 queries against your data.

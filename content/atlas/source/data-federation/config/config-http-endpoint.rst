@@ -9,6 +9,8 @@ HTTP URL
 
 .. default-domain:: mongodb
 
+Overview
+--------
 
 {+adf+} supports publicly accessible |url|\s as {+fdi+} stores. You 
 must define mappings in your {+fdi+} to your |http| data stores to run 
@@ -21,59 +23,6 @@ queries against your data.
    performance of {+adf+}. So, we recommend that you do not use 
    :abbr:`PII (Personally Identifiable Information)` in your 
    configurations.
-
-Example Configuration for HTTP Data Store 
------------------------------------------
-
-Consider |url|\s ``https://www.datacenter-hardware.com/data.json``, 
-``https://www.datacenter-software.com/data.json``, and
-``https://www.datacenter-metrics.com/data.json`` containing data 
-collected from a datacenter. The following configuration:
-
-- Specifies the publicly accessible URLs that contain data in files as 
-  a {+fdi+} store. 
-- Creates a partition for each |url|.
-
-.. code-block:: json 
-
-   {
-     "stores" : [
-       {
-         "name" : "httpStore",
-         "provider" : "http",
-         "allowInsecure" : false,
-         "urls" : [
-           "https://www.datacenter-hardware.com/data.json",
-           "https://www.datacenter-software.com/data.json"
-         ],
-         "defaultFormat" : ".json"
-       }
-     ],
-     "databases" : [ 
-       {
-         "name" : "dataCenter", 
-         "collections" : [
-           {
-             "name" : "inventory",
-             "dataSources" : [
-               {
-                 "storeName" : "httpStore",
-                 "allowInsecure" : false,
-                 "urls" : [
-                   "https://www.datacenter-metrics.com/data"
-                 ],
-                 "defaultFormat" : ".json"
-               }
-             ]
-           }
-         ]
-       }
-     ]
-   }
-
-.. seealso:: 
-
-   :ref:`query-http`
 
 .. _adf-http-configuration-format:
 

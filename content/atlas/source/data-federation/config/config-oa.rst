@@ -21,6 +21,8 @@
    `New Online Archive with Performance Improvements and Enhanced Metrics <https://www.mongodb.com/blog/post/new-online-archive-performance-improvements-enhanced-metrics>`__
    for more information.
 
+Overview
+--------
 
 {+adf+} supports |service| :ref:`online archives
 <online-archive-overview>` as {+fdi+} stores. You must define mappings 

@@ -12,6 +12,9 @@ Azure Blob Storage
 
 .. _aws-configuration-file-overview:
 
+Overview
+--------
+
 {+adf+} supports |azure| Blob Storage containers as {+fdi+} stores. You
 must define mappings in your {+fdi+} to your {+az-bs+} containers to run queries
 against your data. 
