@@ -2,6 +2,7 @@ import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
 const atlasRedirects = require('./redirects/atlas-redirects.json');
+const nodeRedirects = require('./redirects/node-redirects.json');
 
 const nextConfig = {
   pageExtensions: ['mdx', 'tsx', 'ts'],
@@ -14,7 +15,7 @@ const nextConfig = {
   },
   assetPrefix: '/docs/docs_static_nextjs',
   async redirects() {
-    return [...atlasRedirects];
+    return [...atlasRedirects, ...nodeRedirects];
   },
   async rewrites() {
     return [
