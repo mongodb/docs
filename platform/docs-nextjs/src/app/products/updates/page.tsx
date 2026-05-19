@@ -25,7 +25,11 @@ export default async function ProductsUpdatesPage(props: {
 
     // Initialize the Contentstack stack and fetch data for current page
     const [{ entries, totalCount }, filterOptions, featuredEntries] = await Promise.all([
-      getProductUpdates({ limit: itemsPerPage, skip: skip, search: query }),
+      getProductUpdates({
+        limit: itemsPerPage,
+        skip: skip,
+        search: query,
+      }),
       getFilterOptions(),
       getFeaturedProductUpdates(),
     ]);

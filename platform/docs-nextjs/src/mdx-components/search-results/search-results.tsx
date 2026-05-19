@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useContext } from 'react';
 import { cx, css } from '@leafygreen-ui/emotion';
+import { useSearchParams } from 'next/navigation';
 import Button from '@leafygreen-ui/button';
 import Icon from '@leafygreen-ui/icon';
 import Pagination from '@leafygreen-ui/pagination';
@@ -15,10 +16,10 @@ import { assertTrailingSlash } from '@/utils/assert-trailing-slash';
 import { escapeHtml } from '@/utils/escape-reserved-html-characters';
 import { searchParamsToMetaURL, searchParamsToURL } from '@/utils/search-params-to-url';
 import { requestHeaders } from '@/utils/search-facet-constants';
-import Tag, { searchTagStyle } from '@/components/tag';
+import { Tag, searchTagStyle } from '@/mdx-components/Tag';
 import type { FacetOption } from '@/types/data';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
-import SearchContext from './search-context';
+import SearchContext from '../search-context';
 import SearchFilters from './search-filters';
 import SearchResult from './search-result';
 import EmptyResults, { EMPTY_STATE_HEIGHT } from './empty-results';
@@ -344,6 +345,8 @@ const MobileSearchButtonWrapper = css`
 `;
 
 const SearchResults = () => {
+  const search = useSearchParams();
+
   const {
     searchTerm,
     searchFilter,

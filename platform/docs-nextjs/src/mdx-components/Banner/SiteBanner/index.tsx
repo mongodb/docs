@@ -3,7 +3,7 @@ import { css, cx } from '@leafygreen-ui/emotion';
 import { theme } from '@/styles/theme';
 import type { SiteBannerContent } from './types';
 import { BrandingShape } from './BrandingShape';
-import { useSiteBanner } from './banner-context';
+import { useSiteBanner } from '../../SiteBannerProvider';
 
 const bannerContainerStyle = css`
   display: block;

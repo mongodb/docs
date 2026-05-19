@@ -2,12 +2,12 @@ import { render, screen } from '@testing-library/react';
 import { palette } from '@leafygreen-ui/palette';
 import { SiteBanner } from '@/mdx-components/Banner/SiteBanner';
 import type { SiteBannerContent } from '@/mdx-components/Banner/SiteBanner/types';
-import * as BannerContext from '@/mdx-components/Banner/SiteBanner/banner-context';
+import * as BannerContext from '@/mdx-components/SiteBannerProvider';
 import * as BannerService from '@/services/db/banner';
 import { tick } from '../utils';
 
-jest.mock('@/mdx-components/Banner/SiteBanner/banner-context', () => {
-  const actual = jest.requireActual('@/mdx-components/Banner/SiteBanner/banner-context');
+jest.mock('@/mdx-components/SiteBannerProvider', () => {
+  const actual = jest.requireActual('@/mdx-components/SiteBannerProvider');
   return { ...actual, useSiteBanner: jest.fn() };
 });
 
@@ -15,7 +15,7 @@ jest.mock('@/services/db/banner', () => ({
   getBannerData: jest.fn(),
 }));
 
-const useSiteBanner = BannerContext.useSiteBanner as unknown as jest.Mock;
+const useSiteBanner = BannerContext.useSiteBanner as jest.Mock;
 
 beforeEach(() => {
   jest.resetAllMocks();

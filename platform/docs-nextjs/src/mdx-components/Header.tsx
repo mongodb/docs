@@ -2,7 +2,7 @@
 
 import { UnifiedNav } from '@mdb/consistent-nav';
 import headingStyles from '@/components/header/header.module.scss';
-import SiteBanner from '@/components/banner/site-banner';
+import { SiteBanner } from './Banner/SiteBanner';
 import { cx } from '@leafygreen-ui/emotion';
 import { useSiteBanner } from './SiteBannerProvider';
 import { useLocale, type NavLocale } from '@/context/locale';
