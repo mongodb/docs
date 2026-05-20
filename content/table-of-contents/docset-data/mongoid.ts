@@ -70,7 +70,29 @@ const tocData: TocItem[] = [
           {
             label: 'Data Associations',
             contentSite: 'mongoid',
-            url: '/docs/mongoid/:version/data-modeling/associations',
+            collapsible: true,
+            items: [
+              {
+                label: 'Referenced Associations',
+                contentSite: 'mongoid',
+                url: '/docs/mongoid/:version/data-modeling/associations/referenced-associations',
+              },
+              {
+                label: 'Embedded Associations',
+                contentSite: 'mongoid',
+                url: '/docs/mongoid/:version/data-modeling/associations/embedded-associations',
+              },
+              {
+                label: 'Customize Association Behavior',
+                contentSite: 'mongoid',
+                url: '/docs/mongoid/:version/data-modeling/associations/customize-association',
+              },
+              {
+                label: `Association Metadata`,
+                contentSite: 'mongoid',
+                url: '/docs/mongoid/:version/data-modeling/associations/association-metadata',
+              },
+            ],
           },
           {
             label: 'Documents',

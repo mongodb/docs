@@ -1,0 +1,251 @@
+.. _mongoid-embedded-associations:
+
+=====================
+Embedded Associations
+=====================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ruby framework, odm, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+Associations in {+odm+} allow you to create relationships between
+models. In this guide, you can learn how to use embedded associations
+to store different types of documents in the same collection. {+odm+}
+supports embedded associations with the following macros:
+
+- ``embeds_one``
+- ``embeds_many``
+- ``embedded_in``
+- ``recursively_embeds_one``
+- ``recursively_embeds_many``
+
+The following sections describe how to use these association types.
+
+Embeds One
+----------
+
+To specify that a class model contains an embedded document of a different
+class type, use the ``embeds_one`` macro in the parent class and the ``embedded_in``
+macro in the embedded class. The following example creates a ``Band`` class with
+an embedded ``Label`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embed-one
+   :end-before: # end-embed-one
+
+{+odm+} stores documents embedded with the ``embeds_one`` macro in the
+parent document as a field with the same name as the embedded class. The
+preceding ``Label`` documents are stored in the ``Band`` document, as shown in
+the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embed-one-stored
+   :end-before: # end-embed-one-stored
+
+You can store the embedded document with a different name by using the
+``store_as`` option, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embed-store-as
+   :end-before: # end-embed-store-as
+
+Embeds Many
+-----------
+
+To specify that a class model contains multiple embedded documents of a
+different class type, use the ``embeds_many`` macro in the parent class and the
+``embedded_in`` macro in the embedded class. The following example creates a
+``Band`` class with multiple embedded ``Album`` type documents:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embed-many
+   :end-before: # end-embed-many
+
+{+odm+} stores documents embedded with the ``embeds_many`` macro in the
+parent document as an array field with the same name as the embedded class. The
+preceding ``Album`` documents are stored in the ``Band`` document, as shown in
+the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embed-many-stored
+   :end-before: # end-embed-many-stored
+
+You can store the embedded document with a different name by using the
+``store_as`` option, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embed-many-store-as
+   :end-before: # end-embed-many-store-as
+
+Recursive Embedding
+-------------------
+
+You can embed one or more documents of the same type into a parent
+class by using the ``recursively_embeds_one`` and ``recursively_embeds_many``
+macros. Both macros provide accessors for the parent and child documents through
+a ``parent_*`` method and a ``child_*`` method, where ``*`` represents the name
+of the class. The following example creates a ``Band`` class that recursively
+embeds multiple other ``Band`` documents to represent multiple band names:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-recursive-embed
+   :end-before: # end-recursive-embed
+
+You can access the parent and child documents through the ``parent_band`` and
+``child_band`` methods, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-recursive-embed-access
+   :end-before: # end-recursive-embed-access
+
+Query Embedded Associations
+---------------------------
+
+You can access embedded documents when querying the collection of the parent
+class by using dot notation.
+
+The following example uses dot notation to query ``Tour`` type documents that
+are embedded in a ``Band`` class. The query returns documents that have a
+``tours.year`` value of ``2000`` or greater:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embedded-query
+   :end-before: # end-embedded-query
+
+You can use the ``pluck`` projection method to retrieve embedded documents
+without retrieving their associated parent documents, as shown in the following
+example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embedded-query-pluck
+   :end-before: # end-embedded-query-pluck
+
+You can use {+odm+} query methods to perform **embedded matching**, which allows
+you to query on embedded associations of documents that are already loaded in
+the application. {+odm+} implements embedded matching without sending queries to
+the server.
+
+The following query operators are supported with embedded matching:
+
+- :manual:`Comparison operators </reference/mql/query-predicates/comparison/>`
+- :manual:`Logical operators </reference/mql/query-predicates/logical/>`
+- :manual:`Array query operators </reference/mql/query-predicates/arrays/>`
+- :manual:`$exists </reference/operator/query/exists/>`
+- :manual:`$mod </reference/operator/query/mod/>`
+- :manual:`$type </reference/operator/query/type/>`
+- :manual:`$regex </reference/operator/query/regex/>`
+- :manual:`Bitwise operators </reference/mql/query-predicates/bitwise/>`
+
+The following example queries the embedded ``tours`` field of a loaded ``Band``
+document by using the ``$gte`` comparison operator:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embedded-matching
+   :end-before: # end-embedded-matching
+
+Embedded matching on loaded documents has the following known limitations:
+
+- Embedded matching is not implemented for the following features:
+  
+  - :ref:`Text querying <mongoid-data-text-search>`
+  - :manual:`Geospatial queries </reference/mql/query-predicates/geospatial/>`
+  - Operators that execute JavaScript code, such as :manual:`$where
+    </reference/operator/query/where/>`
+  - Operators that are implemented through other server functionality, such as
+    :manual:`$expr </reference/operator/query/expr/>`
+    and :manual:`$jsonSchema
+    </reference/operator/query/jsonSchema/>`
+
+- {+odm+} expands ``Range`` arguments to hashes with ``$gte`` and ``$lte``
+  conditions. This can lead to invalid queries in some cases and raises a an
+  ``InvalidQuery`` exception.
+
+- With the ``$regex`` operator, you cannot specify a regular expression object
+  as a pattern while also providing options to the ``$options`` field. You can
+  only provide options if the regular expression pattern is a string.
+
+Omit _id Fields
+---------------
+
+By default, {+odm+} adds an ``_id`` field to embedded documents. You can omit
+this field from embedded documents by explicitly specifying the ``_id`` field in
+your model and omitting the default value. The following example instructs {+odm+}
+not to add an ``_id`` field to the ``Albums`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embedded-omit-id
+   :end-before: # end-embedded-omit-id
+   :emphasize-lines: 4
+
+In the preceding ``Albums`` class, the ``_id`` field is not automatically added.
+Without a default value, {+odm+} does not store the value in the database
+unless you provide one in your model.
+
+Delete Embedded Associations
+----------------------------
+
+You can delete child documents from ``embeds_many`` associations by using one of
+the following methods:
+
+- ``clear``
+- ``delete_all``
+- ``destroy_all``
+
+The ``clear`` method uses the :manual:`$unset operator
+</reference/operator/update/unset>` operator to remove an entire embedded
+association from the parent document. The ``clear`` method does not run any
+``destroy`` callbacks. The following example uses the ``clear``
+method to remove all embedded associations from the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embedded-clear
+   :end-before: # end-embedded-clear
+
+The ``delete_all`` method uses the :manual:`$pullAll operator
+</reference/operator/update/pullAll>` operator to remove documents in an
+embedded association. ``delete_all`` loads the association if it has not
+yet been loaded, then only removes the documents that exist in the application.
+The ``delete_all`` method does not run any ``destroy`` callbacks. 
+The following example uses the ``delete_all`` method to remove all embedded
+``Album`` documents from the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embedded-delete-all
+   :end-before: # end-embedded-delete-all
+
+The ``destroy_all`` method also uses the :manual:`$pullAll operator
+</reference/operator/update/pullAll>` operator to remove documents in an
+embedded association. It also runs any ``destroy`` callbacks that are defined on
+the associated documents. The following example uses the ``destroy_all``
+method to remove all embedded ``Album`` documents from the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-embedded-destroy-all
+   :end-before: # end-embedded-destroy-all
