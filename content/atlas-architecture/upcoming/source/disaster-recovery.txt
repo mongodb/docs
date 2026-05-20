@@ -70,53 +70,68 @@ Backups are the primary tool for implementing disaster recovery.
 {+service+} provides fully managed, customizable backups that enable
 manual recovery when automatic failover cannot help.
 
-Cloud Backups
-~~~~~~~~~~~~~
+{+Cloud-Backup+}
+~~~~~~~~~~~~~~~~
 
-{+service+} uses your cloud provider's native snapshot capabilities to
-create incremental backups with fast restore times and low storage costs.
+When you enable {+Cloud-Backup+} for your cluster, {+service+} uses your
+cloud provider's native snapshot capabilities to create incremental
+backups that are immutable by default with fast restore times.
 
 **How it supports DR:**
 
 - Configure snapshot frequency (hourly, daily, weekly, monthly, yearly)
   to meet your :abbr:`RPO (Recovery Point Objective)` requirements.
-- Set retention periods to meet compliance and recovery needs.
+- Set snapshot retention periods to meet compliance and recovery needs.
 - Restore snapshots to recover from data corruption or deletion.
 
 **When to use:** Standard disaster recovery scenarios where you can
 tolerate data loss equal to your snapshot frequency. For example, hourly
 snapshots result in up to 1 hour of data loss.
 
-Continuous Cloud Backups (Point-in-Time Recovery)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Point-in-Time Recovery with Continuous Cloud Backup
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-{+service+} stores snapshots along with your cluster's oplog to enable
-restoration to any specific moment in time.
+When you enable Continuous Cloud Backup in addition to {+Cloud-Backup+},
+{+service+} stores oplog data along with your {+Cloud-Backup+}
+snapshots, allowing {+service+} to restore your cluster to a specific
+moment in time within a configurable Point in Time (PIT) restore window.
 
 **How it supports DR:**
 
-- Restore to any moment within the last 72 hours (configurable).
-- Achieve RPOs as low as 1 minute.
+- Restore to any moment within a configurable PIT restore window.
+  {+service+} retains oplog data for up to the length of the restore
+  window, and replays oplog entries on top of the nearest
+  {+Cloud-Backup+} snapshot to restore to the precise moment you
+  specify.
+- Achieve {+rpo+}s as low as 1 minute.
 - Precisely target the moment before data corruption or deletion
   occurred.
 
-**When to use:** When you need minimal data loss (low RPO) or precise
-recovery to a specific timestamp.
+**When to use:** When you need minimal data loss (low {+rpo+}) or
+precise recovery to a specific timestamp.
 
 Multi-Region Snapshot Distribution
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-{+service+} automatically distributes copies of snapshots and oplogs
-across geographic regions.
+When you enable {+Cloud-Backup+} with a :ref:`snapshot copy policy
+<snapshot-distribution>`, you can configure {+service+} to automatically
+distribute copies of your snapshots and oplogs to additional cloud
+provider regions in other geographies. 
 
 **How it supports DR:**
 
+- Meets compliance requirements for geographically distributed backups.
 - Ensures backups remain accessible even if the primary region fails
   completely.
-- Enables recovery when your HA deployment cannot failover, such as
-  during a complete provider outage.
-- Meets compliance requirements for geographically distributed backups.
-
+- For a multi-region cluster, enabling the :guilabel:`Automatically Sync
+  Copy Regions with Cluster Regions` option in your snapshot copy policy
+  enables {+service+} to automatically distribute snapshots to all
+  regions where your cluster is deployed, and keeps your snapshot copy
+  policy in sync as you add or remove regions. This enables {+service+}
+  to use faster, direct-attach restores to restore cluster regions using
+  local snapshot copies after a regional outage, instead of slower
+  cross-region streaming restores.
+  
 **When to use:** When you need protection against complete regional
 loss or provider outages that exceed your HA configuration.
 

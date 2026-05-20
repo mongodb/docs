@@ -6,139 +6,250 @@ Hybrid Deployment Paradigm
 
 .. default-domain:: mongodb
 
+.. meta::
+   :description: Learn about hybrid deployment patterns for MongoDB Atlas, including hybrid connectivity for applications in different environments and hybrid data topologies for complex use cases.
+
 .. contents:: On this page
    :local:
    :backlinks: none
    :depth: 2
    :class: onecol
 
-The hybrid {+service+} deployments are a combination of cloud and 
-self-managed deployments.
+Hybrid deployments refer to architectures where applications and
+databases span multiple environments. In the context of
+{+service+}, hybrid deployments involve two distinct architectural
+patterns:
 
-The cloud deployments can be the following deployments:
+- **Hybrid Connectivity**: Applications run in one environment, for
+  example on-premises or in a customer-managed VPC, while the database
+  runs in {+service+}. This is the default enterprise reality and the
+  most common hybrid deployment pattern.
 
-- :ref:`Single-region <arch-center-paradigms-single>` is typically used 
-  when cost is a factor and the low risk of regional failure is 
-  acceptable.
+- **Hybrid Data Topology**: MongoDB data exists in multiple
+  environments, such as both {+service+} and on-premises. This is a
+  less common and more complex pattern that is typically used during
+  migrations or for specialized use cases.
 
-- :ref:`Multi-region <arch-center-paradigms-multi-region>` is typically 
-  used to enhance protection in the case of a regional outage and to 
-  improve the performance and availability for some some applications 
-  by locating data closer to users.
+.. _arch-center-hybrid-connectivity:
 
-You can create self-managed deployments using:
-  
-- :manual:`MongoDB Enterprise </administration/install-enterprise/>` is 
-  typically used for production, testing, and development environments 
-  that have additional requirements for advanced security, operations 
-  and integrations.
+Hybrid Connectivity
+-------------------
 
-- :manual:`MongoDB Community </administration/install-community/>` is 
-  typically used for development and testing environments that require 
-  additional or bespoke configuration.
+Hybrid connectivity deployments run applications in one environment
+while the database runs in {+service+}. Data lives entirely in
+{+service+}. Hybrid refers to where the application runs, not where
+the database lives.
 
-- :ref:`MongoDB Atlas Local Deployment <arch-center-local-deployment>` 
-  is driven using the {+atlas-cli+}, deployed using Docker, and 
-  typically used for simple, complete local deployments for development 
-  scenarios.
+Use Cases
+~~~~~~~~~
 
-Hybrid deployments allow you to keep some data on premises for
-development or compliance, while still leveraging
-the following benefits of {+service+} cloud deployments:
+Hybrid connectivity is the default reality for most enterprise
+deployments. Common examples include a combination of the following:
 
-- Scalability and cost savings
-- High availability and low latency on a regional or global scale
-- Features to help meet cloud compliance requirements for 
-  :ref:`data sovereignty <arch-center-compliance-data-sovereignty>` 
+- Application servers on-premises that connect to {+service+} in AWS,
+  Azure, or GCP.
+- Applications or Kubernetes workloads in a customer VPC that connect
+  to {+service+} through Private Endpoints.
+- Legacy applications in a data center that connect to {+service+} over
+  VPN or Direct Connect.
 
-.. note::
+Key Requirements
+~~~~~~~~~~~~~~~~
 
-   {+service+} does not support splitting a single cluster to span the 
-   two deployment types.
+When you implement hybrid connectivity, consider the following
+requirements:
 
-The following diagram shows one example of a hybrid deployment, in 
-which an application has one cluster in an AWS region and an on-prem 
-cluster:
+- **Unified Networking**: Establish secure network connectivity using
+  VPN, AWS Direct Connect, Azure ExpressRoute, or similar technologies
+  from other cloud service providers. Secure network connectivity helps
+  to ensure no public internet exposure.
 
-.. figure:: /includes/images/hybrid.svg
-   :figwidth: 750px
-   :alt: An image showing a single-region, three-node cloud deployment and a three-node on-premise deployment.
+- **Private Connectivity**: Use private IPs and private DNS to connect
+  to {+service+}. Configure :atlas:`Private Endpoints
+  </security-private-endpoint/>` for secure connections that do not
+  traverse the public internet.
 
-Use Case for Hybrid Deployments
--------------------------------
+- **Shared Identity and Access**: Implement SSO and IAM integration to
+  maintain consistent authentication and authorization across
+  environments.
 
-A hybrid deployment may be best for you if you have
-the following requirements:
+- **Consistent Security and Governance**: Apply unified security
+  policies, including IP allowlists, X.509 certificates, and network
+  access controls.
 
-- You want to deploy your production workloads in the cloud, which
-  allows you to scale your resources based on the needs of your
-  application and pay only for the resources you use.
-- You want to develop on local {+clusters+}, which reduces
-  costs when compared to cloud-hosted development.
+- **Latency Predictability**: Design network paths to minimize and
+  stabilize latency between application servers and {+service+}
+  clusters.
 
-If this is your use case, we recommend that you deploy locally 
-by using the :atlascli:`{+atlas-cli+} </atlas-cli-deploy-local>`. You
-can deploy your cloud databases as single-region, multi-region, and 
-multi-cloud.
+- **Operational Ownership Boundaries**: Clearly define which teams
+  manage which components of the infrastructure.
 
-Use the following resources to select your cloud deployment type based
-on your cloud needs:
+The following diagram illustrates a typical hybrid connectivity
+architecture:
 
-- :ref:`arch-center-paradigms-single`
-- :ref:`arch-center-paradigms-multi-region`
-- :ref:`arch-center-paradigms-multi-cloud`
+.. figure:: /includes/images/hybrid-connectivity.svg
+   :figwidth: 100%
+   :alt: Diagram showing hybrid connectivity with on-premises applications connecting to Atlas through VPN/Direct Connect and Private Endpoints
 
-Recommendations for Hybrid Deployments
---------------------------------------
+   Hybrid connectivity architecture showing on-premises applications,
+   customer VPC, and Atlas cluster connected through secure network
+   paths and Private Endpoints.
 
-The {+atlas-arch-center+} does not currently cover recommendations
-specific to hybrid deployments. Contact {+ps+}
-team to create a custom landing zone for your {+service+} hybrid
-deployments.
+Configuration
+~~~~~~~~~~~~~
 
-- :ref:`arch-center-single-region-rec-summary`
-- :ref:`arch-center-multi-region-rec-summary`
+To configure hybrid connectivity:
 
-Create Hybrid Deployments
--------------------------
+1. Set up network connectivity between your on-premises or
+   customer-managed environment and the cloud provider hosting your
+   {+service+} cluster. Use VPN, Direct Connect, ExpressRoute, or
+   similar technologies.
 
-To create a hybrid deployment:
+#. Configure :atlas:`Private Endpoints
+   </security-private-endpoint/>` in {+service+} to enable private
+   connectivity from your environment.
 
-1. :ref:`Configure your cloud deployments 
-   <arch-center-config-cloud-deplorment>`.
+#. Configure authentication and access controls. See
+   :ref:`arch-center-authentication-recs` and
+   :ref:`arch-center-authorization-recs`.
 
-#. Do one of the following steps to configure your self-managed 
+#. Test connectivity and latency from your application environment to
+   {+service+}.
+
+.. _arch-center-hybrid-data-topology:
+
+Hybrid Data Topology
+--------------------
+
+Hybrid data topology deployments involve MongoDB data that exists in
+multiple environments, such as both {+service+} and on-premises.
+Hybrid data topologies are advanced patterns with significant
+operational complexity.
+
+.. important::
+
+   {+service+} does not support splitting a single cluster to span
+   multiple deployment types. Each cluster must exist entirely within
+   {+service+} or entirely on-premises.
+
+Use Cases
+~~~~~~~~~
+
+Hybrid data topologies are less common than hybrid connectivity
+deployments. Organizations typically use them for:
+
+- **Migration**: Transitional hybrid states during cloud adoption where
+  data is gradually moved from on-premises to {+service+}.
+
+- **Specialized Requirements**: Advanced use cases that require you to
+  maintain separate MongoDB deployments in multiple environments.
+
+Examples include:
+
+- An {+service+} cluster and a separate on-premises MongoDB cluster,
+  with applications that connect to one or both depending on
+  requirements.
+
+- Using MongoDB tools to migrate data from on-premises to {+service+}.
+
+Important Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Hybrid data topologies come with significant tradeoffs:
+
+- **Operational Burden**: Separate MongoDB deployments that you manage
+  increase operational complexity and require additional expertise.
+
+- **Data Consistency**: Consistency across separate deployments is
+  challenging to maintain and may require custom solutions.
+
+- **Temporary Nature**: These patterns are often temporary during
+  migration rather than long-term architectures.
+
+Contact the {+ps+} team for guidance on implementing hybrid data
+topology patterns.
+
+Configuration
+~~~~~~~~~~~~~
+
+To configure a hybrid data topology:
+
+1. :ref:`Configure your cloud deployments
+   <arch-center-config-cloud-deployment>`.
+
+#. Do one of the following steps to configure your self-managed
    deployments:
-   
-   - Install MongoDB for :ref:`self-managed deployments 
+
+   - Install MongoDB for :ref:`self-managed deployments
      <arch-center-self-managed-deployment>`.
 
-   - Create a :ref:`local {+service+} deployment 
-     <arch-center-local-deployment>` with the {+atlas-cli+} for 
+   - Create a :ref:`local {+service+} deployment
+     <arch-center-local-deployment>` with the {+atlas-cli+} for
      development and testing.
 
-.. _arch-center-config-cloud-deplorment:
+#. If you migrate data, see :atlas:`Migrate or Import Data
+   </import/>` for guidance on how to use MongoDB tools.
+
+Cloud Deployment Options
+-------------------------
+
+{+service+} supports the following cloud deployment types:
+
+- :ref:`Single-region <arch-center-paradigms-single>` is typically used
+  when cost is a factor and the low risk of regional failure is
+  acceptable.
+
+- :ref:`Multi-region <arch-center-paradigms-multi-region>` is
+  typically used to enhance protection in the case of a regional outage
+  and to improve the performance and availability for applications by
+  locating data closer to users.
+
+- :ref:`Multi-cloud <arch-center-paradigms-multi-cloud>` is typically
+  used to avoid vendor lock-in and enhance availability across
+  multiple cloud providers.
+
+.. _arch-center-config-cloud-deployment:
 
 Configure Cloud Deployments
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 To learn how to configure cloud deployments and learn about the
-different types of nodes you can add, see :atlas:`Create a Cluster 
+different types of nodes you can add, see :atlas:`Create a Cluster
 </tutorial/create-new-cluster/>` in the {+service+} documentation.
+
+Self-Managed Deployment Options
+--------------------------------
+
+You can create self-managed deployments using:
+
+- :manual:`MongoDB Enterprise </administration/install-enterprise/>` is
+  typically used for production, testing, and development environments
+  that have additional requirements for advanced security, operations,
+  and integrations.
+
+- :manual:`MongoDB Community </administration/install-community/>` is
+  typically used for development and testing environments that require
+  additional or bespoke configuration.
+
+- :ref:`MongoDB Atlas Local Deployment <arch-center-local-deployment>`
+  is driven using the {+atlas-cli+}, deployed using Docker, and
+  typically used for simple, complete local deployments for development
+  scenarios.
 
 .. _arch-center-self-managed-deployment:
 
 Install MongoDB for Self-Managed Deployments
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To learn how to configure an on-premise self-managed deployment, see 
-:manual:`Install MongoDB </installation/>` for self-managed deployments 
+To learn how to configure an on-premises self-managed deployment, see
+:manual:`Install MongoDB </installation/>` for self-managed deployments
 in MongoDB Enterprise or MongoDB Community.
 
 .. _arch-center-local-deployment:
 
 Create a Local Deployment
-~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To learn how to configure a local deployment with the {+atlas-cli+} for 
-development and testing, see :atlascli:`Create a Local {+service+} Deployment </atlas-cli-deploy-local>`.
+To learn how to configure a local deployment with the {+atlas-cli+}
+for development and testing, see :atlascli:`Create a Local {+service+}
+Deployment </atlas-cli-deploy-local>`.

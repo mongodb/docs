@@ -11,7 +11,7 @@ Guidance for {+service+} Network Security
    :values: reference
 
 .. meta::
-   :description: Learn about the network security configurations that Atlas supports.
+   :description: Learn how to configure network security for MongoDB Atlas, including IP access lists, VPC and VNet peering, and private endpoints for secure cluster connections.
 
 .. contents:: On this page
    :local:
@@ -611,25 +611,37 @@ These examples also apply other recommended configurations, including:
       ~~~~~~~~~~~~~~~~~~~~~
 
       To create a PrivateLink from your application |vpc| to
-      your {+service+} |vpc|, create the following file and place it in
-      the directory of the project you want to connect to. Change
-      the IDs and names to use your values:
+      your {+service+} |vpc|, use one of the following
+      cloud-provider-specific modules. Create the following file
+      and place it in the directory of the project you want to
+      connect to. Change the IDs and names to use your values:
+
+      For |aws|:
 
       privateLink.tf
       ``````````````
 
       .. code-block:: terraform
 
-         resource "mongodbatlas_privatelink_endpoint" "test" {
-           project_id    = "<project-id>"
-           provider_name = "AWS/AZURE"
-           region        = "US_EAST_1"
+         module "atlas_aws" {
+           source     = "terraform-mongodbatlas-modules/atlas-aws/mongodbatlas"
+           version    = "~> 0.3"
+           project_id = "<project-id>"
 
-           timeouts {
-             create = "30m"
-             delete = "20m"
-           }
+           privatelink_endpoints = [
+             {
+               region     = "<aws-region>"
+               subnet_ids = ["<subnet-id>"]
+             }
+           ]
          }
+
+      For |azure|, use the
+      `atlas-azure module
+      <https://registry.terraform.io/modules/terraform-mongodbatlas-modules/atlas-azure/mongodbatlas/latest>`__
+      with the ``privatelink_endpoints`` attribute. For complete
+      examples, see :github:`atlas-azure privatelink examples
+      <terraform-mongodbatlas-modules/terraform-mongodbatlas-atlas-azure/tree/main/examples/privatelink>`.
 
       After you create the file, navigate to your project directory
       and run the following command to initialize Terraform:

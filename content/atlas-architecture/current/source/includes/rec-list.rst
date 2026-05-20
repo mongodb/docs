@@ -19,7 +19,6 @@ refer to the following resources:
 - Reliability
 
   - :ref:`arch-center-ha-recs`
-  - :ref:`arch-center-backups-recs`
   - :ref:`arch-center-dr-recs`
 
 - Performance

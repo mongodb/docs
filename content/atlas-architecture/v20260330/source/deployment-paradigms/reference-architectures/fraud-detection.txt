@@ -1,0 +1,368 @@
+.. meta::
+   :robots: noindex, nosnippet 
+
+.. _arch-center-fraud-detection:
+
+=============================
+Fraud Detection with MongoDB
+=============================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: onecol
+
+
+This reference architecture describes how to implement real-time fraud
+detection on MongoDB Atlas using operational transaction data, vector
+embeddings, and dynamic risk models.
+
+The architecture ingests transactions, generates embeddings to capture
+behavioral patterns, retrieves similar historical events with MongoDB
+Atlas Vector Search, and combines similarity scores with deterministic
+risk models to reach an approve, step-up challenge, or decline decision.
+Risk models and watchlists are stored in MongoDB collections. MongoDB Change
+Streams propagate updates to screening services in real time so that
+production decisions always use the latest logic.
+
+Diagram
+-------
+
+.. figure:: /includes/images/reference-architectures/RA-fraud-detection.svg
+   :figwidth: 1200px
+   :alt: Fraud Detection Reference Architecture 
+
+   Figure 1. Fraud Detection Reference Architecture
+
+Data Flow
+---------
+
+1. Transaction initiation
+
+   A payment channel (for example, card authorization,
+   account-to-account transfer, or digital wallet) sends a transaction
+   request to the fraud detection API. The request includes customer
+   identifiers, merchant data, channel metadata, device fingerprints, IP
+   information, and basic transaction attributes such as amount,
+   currency, and timestamp.
+
+#. Transaction enrichment and persistence
+
+   The fraud detection service validates the request and writes a
+   transaction document into a transactions collection in MongoDB Atlas.
+   Each document embeds merchant details, GeoJSON location, device
+   information, and a nested ``risk_assessment`` structure that stores
+   scores, flags, and diagnostics.
+
+#. Embedding generation for behavioral patterns
+
+   The service generates a vector embedding that captures categorical
+   and behavioral aspects of the transaction, such as merchant category,
+   channel, device fingerprint, IP range, temporal patterns, and any
+   narrative fields. It stores this embedding alongside the operational
+   fields in the same transaction document.
+
+#. Vector search for similar fraud patterns
+
+   The service issues a ``$vectorSearch`` query against a MongoDB Atlas
+   Vector Search index on the transactions collection. The query uses
+   the newly generated embedding to retrieve behaviourally similar past
+   transactions, including events that did not match explicit rules but
+   share patterns with known fraud.
+
+#. Deterministic risk model evaluation
+
+   In parallel with the vector search in the previous step, the risk
+   engine evaluates rule-based and scorecard-style models over numeric
+   and structured attributes that remain outside the embedding, such as
+   amount, balance changes, velocity counters, and geospatial
+   constraints. This separation keeps numeric limits and regulatory
+   thresholds in deterministic logic while embeddings focus on
+   behavioral similarity.
+
+#. Risk score aggregation and decision-making
+
+   The service combines vector similarity scores with deterministic
+   risk scores into an overall risk assessment for the transaction.
+   Based on configured thresholds and policies, the engine:
+
+   - Approves low-risk transactions and returns them to the payment
+     channel. 
+
+   - Declines high-risk transactions
+
+   - Issues a step-up challenge (for example, 3-D Secure, OTP, or
+     biometric) for borderline cases, and optionally routes declined or
+     failed-challenge cases to a manual review queue for investigator
+     follow-up.
+
+   The final decision and supporting diagnostics are written back into
+   the risk_assessment subdocument of the transaction record.
+
+#. Real-time risk model updates with Change Streams
+
+   Risk models, watchlists, and configuration documents are stored in a
+   dedicated ``risk_models`` collection in MongoDB Atlas. MongoDB Change
+   Streams broadcast change events including inserts, updates,
+   replacements and deletes from these collections to the fraud
+   detection and risk engine services. When analysts activate or adjust
+   a model, all screening engines receive the change within milliseconds
+   and apply updated rules to new transactions, without batch delays or
+   manual cache invalidation. Resume tokens let services restart
+   processing without missing updates after failures or restarts.
+
+#. Audit, monitoring, and downstream processing
+
+   The core payments system processes approved transactions, while
+   declined or challenged transactions remain flagged in the
+   transactions collection with detailed risk diagnostics. Analysts and
+   monitoring jobs query the same collection to track model performance,
+   false positives, and emerging fraud patterns over time.
+
+Components 
+-----------
+
+MongoDB Atlas Cluster and Core Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use `MongoDB Atlas <https://www.mongodb.com/docs/atlas/>`__ as the
+modern data platform for fraud detection, hosting operational,
+analytical, and configuration data in a single managed cluster.
+
+MongoDB Atlas keeps all data needed for a fraud decision close to the
+transaction, with no extract, transform, and load (ETL) to secondary stores for analytics or
+investigations.
+
+**Proposed Approach**
+
+- Store customer, transaction, and risk configuration data used in
+  real-time decision-making.
+
+- Support secondary workloads such as analytics, dashboards, and
+  investigations without ETL.
+
+**Implementation notes**
+
+- Start with an Atlas M10 or higher for production or large-scale demo
+  workloads.
+
+- Use replica sets (Atlas default) so you can enable Change Streams and
+  serve concurrent read workloads.  
+
+Data Model Patterns for Fraud Detection
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Design a document schema that keeps all data needed for a fraud decision
+close to the transaction while still enabling entity-centric and
+configuration-centric views. 
+
+**Proposed approach**
+
+- **Entities / Customers collection** 
+
+  - Store individuals and organizations with a 360-degree profile:
+    identifiers, Know-Your-Customer (KYC) attributes, behavioral analytics, risk assessments,
+    and optional embeddings for entity similarity.
+
+  - Embed or reference device fingerprints, usual locations, and
+    behavioral patterns to support anomaly checks such as “new device” or
+    “unusual location.”
+
+- **Transactions collection**
+
+  - Represent each financial transaction as a standalone document with
+    amount, currency, merchant, GeoJSON location, device information, and
+    an embedded ``risk_assessment`` subdocument (score, level, flags,
+    diagnostics).
+
+    - This pattern lets the fraud engine write decisions and diagnostics
+      directly into the transaction record that downstream tools query.
+
+- **Risk models / configuration collection**
+
+  - Store versioned risk models as documents with factors, weights,
+    thresholds, and performance metrics. Use this collection as the single
+    configuration source for fraud scoring.
+
+For more detailed information, see: `Data Model Approach – Financial
+Crime Mitigation
+<https://www.mongodb.com/docs/atlas/architecture/current/solutions-library/fincrime-mitigation/#data-model-approach>`__.
+
+Mongodb Atlas Vector Search for Behavioral Similarity
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use `MongoDB Atlas Vector Search
+<https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/>`__
+to detect transactions that behave like known fraud patterns or
+historical high-risk events, even when they do not match explicit rules.
+
+**Proposed Approach**
+
+- Store high-dimensional embeddings on transaction documents, capturing
+  behavioral signals such as merchant category, channel, device,
+  temporal pattern, and narrative text.
+
+- Retrieve the most similar historical transactions for each new event
+  using ``$vectorSearch``, then feed similarity scores into the risk
+  engine.
+
+**Implementation Notes**
+
+- Create a `vector index
+  <https://www.mongodb.com/docs/atlas/atlas-vector-search/vector-search-overview/#mongodb-vector-search-indexes>`__
+  (for example, transaction_vector_index) on the
+  ``vector_embedding`` field in the ``transactions`` collection.
+
+- Generate embeddings consistently both for stored transactions and for
+  new, in-flight transactions you need to compare.  
+
+Multi-Factor Fraud Scoring Engine
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Implement a fraud scoring service that consumes MongoDB documents and
+combines entity context, deterministic rules, and vector similarity into
+a single risk score. No single detection strategy catches all fraud.
+Layered scoring reduces both false positives and false negatives.
+
+**Proposed Approach**
+
+- Load the customer or entity profile from MongoDB to derive behavioral
+  baselines and context.
+
+- Run independent checks for:
+
+  - Amount anomaly against typical amounts for this customer.
+
+  - Location anomaly using geospatial distance from usual locations.
+
+  - Device anomaly based on known devices and IP ranges.
+
+  - Velocity anomaly using counts in a sliding time window.
+ 
+  - Behavioral similarity using Vector Search results (optional,
+    depending on scope).
+
+- Combine factor scores and a baseline customer risk score into a 0–100
+  risk score and map to ``low``, ``medium``, or ``high`` levels.
+
+**Implementation Notes**
+
+- Encapsulate these checks in a dedicated service (for example,
+  ``FraudDetectionService``) instead of embedding logic in controllers, so you
+  can reuse it across channels and workloads.
+
+APIs for Real-Time Fraud Decision-Making
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Expose service APIs that wrap the risk engine and MongoDB access
+patterns.
+
+**Proposed Approach**
+
+- Provide a persist-and-score operation that writes transactions and
+  their ``risk_assessment`` documents into MongoDB (for example, a ``POST``
+  ``/transactions`` equivalent).
+
+- Provide a stateless evaluation operation that runs the risk engine
+  without persisting the transaction, which is useful for simulations or
+  pre-authorization checks.
+
+- Offer read endpoints to browse recent high-risk transactions, filter
+  by flags, and retrieve customer-level histories for investigations.
+
+**Implementation Notes**
+
+- Use OpenAPI or similar to describe these endpoints so channel teams
+  (mobile, web, core banking) can integrate consistently.
+
+- Keep MongoDB queries (filters, aggregations, ``$vectorSearch``) in
+  service-layer abstractions, not in controllers.
+
+
+Risk Model Management with Mongodb Change Streams
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use `MongoDB Change Streams
+<https://www.mongodb.com/docs/manual/changeStreams/>`__ and a dedicated
+configuration collection to manage and distribute risk model changes in
+real time.
+
+**Proposed Approach**
+
+- Persist risk models as full documents, including factor definitions,
+  weights, thresholds, and status (for example, ``active``, ``draft``, ``archived``).
+
+- Provide a model admin API and UI so risk teams can activate and
+  version models without code changes.
+
+- Use Change Streams to push model changes to fraud services and UIs
+  over WebSockets or similar, so all components apply the same active
+  model immediately.  
+
+Embedding Provider Integration 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Integrate an embedding provider (for example, AWS Bedrock) to generate
+vector representations for transactions and fraud patterns.
+
+**Proposed Approach**
+
+- Generate embeddings from transaction context (amount, merchant,
+  channel, device, text fields) and store them in MongoDB as part of the
+  document schema.
+
+- Generate embeddings for fraud pattern descriptions or typologies and
+  store them in a ``fraud_patterns`` collection, enabling pattern-based
+  vector search.
+
+**Implementation Notes**
+
+- The pattern supports any provider that returns deterministic,
+  high-dimensional embeddings compatible with Atlas Vector Search.  
+
+Exceptions, Caveats, and Tradeoffs
+----------------------------------
+
+- **Latency versus Model Complexity**: Embedding generation and vector
+  search add latency to the decision path. For channels with strict
+  latency budgets, you might simplify embeddings, reduce dimensionality,
+  or apply semantic matching only to high-value or high-risk segments,
+  while running pure deterministic rules for low-risk traffic.
+
+- **Index Size and Operational Overhead**: High-dimensional vector
+  indexes and rich transaction documents increase storage and compute
+  requirements. Plan Atlas cluster sizing, index configuration, and
+  archival strategies to balance retrieval quality, operational workload
+  performance, and cost. Use standard indexes and 2dsphere indexes for
+  operational queries and geospatial rules, and reserve vector search for
+  scenarios where behavioural similarity adds clear detection value.
+
+- **Configuration Management Complexity**: Streaming risk model updates
+  through Change Streams improves responsiveness but introduces complexity
+  in configuration management and testing. You must design clear promotion
+  workflows, validation steps, and rollback procedures for new models so
+  that real-time updates do not propagate incorrect rules to production
+  screening engines.
+
+- **Scope Limitations**: This architecture focuses on real-time fraud
+  detection for transactional flows. Use separate but related patterns for
+  identity verification, anti-money-laundering (AML) and KYC onboarding, and long-running case
+  management, and connect them through shared collections or integration
+  points rather than overloading the fraud pipeline with all financial
+  crime use cases.
+
+Implementation & Learn More
+----------------------------
+
+To implement this architecture end to end, visit the MongoDB Atlas
+Architecture Center solution `Financial Crime Mitigation with MongoDB
+Atlas
+<https://www.mongodb.com/docs/atlas/architecture/current/solutions-library/fincrime-mitigation/>`__.
+Use this guide to configure your environment, and follow the
+step-by-step instructions to deploy a transaction simulator, web
+interface, and supporting services for fraud detection and risk model
+management. The solution also contains additional features for financial
+crime mitigation. 

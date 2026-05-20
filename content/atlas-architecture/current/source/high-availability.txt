@@ -16,10 +16,21 @@ High availability is the ability of your application to ensure
 continuous operation and minimize downtime during infrastructure
 outages, system maintenance, and other disruptions. MongoDB's default
 deployment architecture is designed for high availability, with built-in
-features for data redundancy and automatic failover. This page describes
-additional configuration options and deployment architecture
-enhancements you can choose from to prevent disruptions and support
-robust failover mechanisms for zone, region, and cloud provider outages.
+features for data redundancy and automatic failover.
+
+High availability differs from disaster recovery. High availability
+protects against infrastructure failures like node, zone, region, or
+cloud provider outages through automatic failover that recovers to the
+exact moment of failure with no data loss (:abbr:`RPO (Recovery Point
+Objective)` = 0) and :abbr:`RTO (Recovery Time Objective)` in seconds.
+Disaster recovery protects against data integrity issues like corruption
+or accidental deletion, which require restoration from backups. To learn
+more about disaster recovery, see :ref:`arch-center-dr`.
+
+This page describes additional configuration options and deployment
+architecture enhancements you can choose from to prevent disruptions and
+support robust failover mechanisms for zone, region, and cloud provider
+outages.
 
 {+service+} Features for High Availability
 ------------------------------------------
@@ -58,9 +69,9 @@ due to an infrastructure outage, scheduled maintenance, or any other
 disruption, {+service+} clusters self-heal by promoting an existing
 secondary node to the role of primary node in a :manual:`replica set
 election </core/replica-set-elections/>`. This failover process is fully
-automatic and completes within seconds without any data loss, including
-operations that were in flight at the time of the failure, which are
-retried after the failure if :manual:`retryable writes
+automatic and recovers to the exact moment of failure with no data loss
+(RPO = 0) in seconds. Operations that were in flight at the time of the
+failure are retried after the failure if :manual:`retryable writes
 </core/retryable-writes/>` are enabled. After a replica set election,
 {+service+} restores or replaces the failing member to ensure that the
 cluster is returned to its target configuration as soon as possible. The
@@ -93,29 +104,31 @@ availability for your deployment.
 Choose a Cluster Tier that Fits your Deployment Goals
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When creating a new cluster, you can choose between a range of cluster
-tiers available under the Dedicated, Flex, or Free deployment types. The
-cluster tier in MongoDB {+service+} specifies the resources (memory,
-storage, vCPUs, and IOPS) available for each node in your cluster.
-Scaling to a higher tier improves your cluster's ability to handle
-spikes in traffic and increases system reliability through faster
-response to high workloads. To determine the recommended cluster tier
+You can choose between a range of cluster tiers available under the
+Dedicated, Flex, or Free deployment types. The cluster tier in MongoDB
+{+service+} specifies the resources (memory, storage, vCPUs, and IOPS)
+available for each node in your cluster. Scaling to a higher tier
+improves your cluster's ability to handle spikes in traffic and
+increases system reliability through faster response to high workloads. To determine the recommended cluster tier
 for your application size, see the :ref:`Atlas Cluster Size Guide
 <arch-center-cluster-size-guide>`.
 
-Atlas also supports :ref:`auto-scaling <cluster-autoscaling>` to allow
-the cluster to automatically adjust to spikes in demand. Automating this
-action reduces the risk of an outage due to resource constraints. To
-learn more, see :ref:`arch-center-automation`. 
+{+service+} also supports :ref:`auto-scaling <cluster-autoscaling>` to allow
+the cluster to automatically adjust to spikes in demand. {+service+} uses both
+reactive auto-scaling, which triggers based on current resource usage, and
+:ref:`predictive auto-scaling <predictive-autoscaling-overview>`, which
+proactively scales up eligible clusters before forecasted cyclical demand spikes occur.
+Automating scaling actions reduces the risk of an outage due to resource constraints. To
+learn more, see :ref:`arch-center-automation`.
 
 .. _arch-center-scale-for-fault-tolerance: 
 
 Scale Your Deployment Paradigm for Fault Tolerance
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Fault tolerance for an {+service+} deployment can be measured as the
-number of :manual:`replica set </core/replication>` members that can
-become unavailable while your deployment still remains operational. In
+An {+service+} deployment's fault tolerance is the number of
+:manual:`replica set </core/replication>` members that can become
+unavailable while your deployment still remains operational. In
 the event of an availability zone, region, or cloud provider outage,
 {+service+} clusters self-heal by promoting an existing secondary node
 to the role of primary node in a :manual:`replica set election
@@ -133,8 +146,19 @@ supported by your selected cloud provider region, so that if one zone
 experiences an outage, the remaining nodes in your cluster still support
 regional services. Most {+service+}-supported cloud provider regions
 have at least three availability zones. These regions are marked with a
-star icon in the {+atlas-ui+}. For more information about recommended
-regions, see :ref:`create-cluster-cloud-provider-region`. 
+star icon in the {+atlas-ui+}.
+
+Each cloud provider provides default data redundancy within availability
+zones:
+
+- {+aws+} stores data on multiple devices across a minimum of three
+  Availability Zones in an {+aws+} Region.
+- {+azure+} uses locally redundant storage (LRS) that replicates data
+  three times within a single data center in the selected region.
+- {+gcp+} spreads data across multiple zones in the region.
+
+For more information about recommended regions, see
+:ref:`create-cluster-cloud-provider-region`.
 
 To further improve fault tolerance for your most critical applications,
 you can scale your deployment by adding nodes, regions, or cloud
@@ -152,6 +176,55 @@ For guidance on how to choose a deployment that balances your needs for
 high availability, low latency, compliance, and cost, see our
 :ref:`arch-center-paradigms` documentation.
 
+.. _arch-center-ha-deployment-tradeoffs:
+
+Deployment Paradigm RTO/RPO Trade-offs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The following table compares the RTO and RPO characteristics of
+different deployment paradigms. With ``majority`` write concern, all of
+these approaches achieve RPO = 0 (no data loss) and RTO in seconds. The
+trade-offs are in deployment complexity and cluster cost.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 15 15 15 15
+
+   * - Deployment paradigm
+     - Failure scenarios covered
+     - Typical RTO
+     - RPO (with majority write concern)
+     - Relative complexity
+     - Relative cluster cost
+
+   * - Single-region deployment (3 nodes in 1 region)
+     - Node or AZ failure within a single region
+     - Seconds (automatic failover)
+     - 0 (no data loss)
+     - Low
+     - $
+
+   * - Multi-region, single cloud
+     - AZ or region outage in one geography
+     - Seconds (automatic failover)
+     - 0 (no data loss)
+     - Medium
+     - $$
+
+   * - Multi-region, multi-geo
+     - Region or geography outage across multiple geographies
+     - Seconds (automatic failover)
+     - 0 (no data loss)
+     - Medium–High
+     - $$–$$$
+
+   * - Multi-cloud (2–3 providers)
+     - Cloud provider or multi-region outage affecting one provider
+     - Seconds (automatic failover)
+     - 0 (no data loss)
+     - High
+     - $$$
+
 Prevent Accidental Cluster Deletion
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -162,19 +235,19 @@ backup. To delete a cluster that has termination protection enabled, you
 must first disable termination protection. By default, Atlas disables
 termination protection for all clusters.
 
-Enabling termination protection is especially important when leveraging
-{+iac+} tools like Terraform to ensure that a redeployment does not
-provision new infrastructure.
+Termination protection is especially important when you use {+iac+}
+tools like Terraform to ensure that a redeployment does not provision
+new infrastructure.
 
 Test Automatic Failovers
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Before you deploy an application to production, we strongly recommend
-that you simulate various scenarios that require automatic node
-failovers to measure your preparedness for such events. With
-{+service+}, you can :ref:`test primary node failover <test-failover>`
-for a replica set and :ref:`simulate regional outages <test-outage>` for
-a multi-region deployment.
+We strongly recommend that you simulate various scenarios that require
+automatic node failovers to measure your preparedness for such events
+before you deploy an application to production. With {+service+}, you
+can :ref:`test primary node failover <test-failover>` for a replica set
+and :ref:`simulate regional outages <test-outage>` for a multi-region
+deployment.
 
 .. _arch-center-majority-write-concern:
 
@@ -358,27 +431,27 @@ These examples also apply other recommended configurations, including:
             :tabid: devtest
 
             For your development and testing environments, create the
-            following files for each application and environment 
+            following files for each application and environment
             pair. Place the files for each application and environment
             pair in their own directory. Change the IDs and names to use your values:
 
             main.tf
-            ```````
+            ^^^^^^^
 
-            .. include:: /includes/examples/terraform/dev-test/tf-example-main-devtest.rst 
+            .. include:: /includes/examples/terraform/dev-test/tf-example-main-devtest.rst
 
             variables.tf
-            ````````````
+            ^^^^^^^^^^^^
 
             .. include:: /includes/examples/terraform/tf-example-variables.rst
 
             terraform.tfvars
-            ````````````````
+            ^^^^^^^^^^^^^^^^
 
             .. include:: /includes/examples/terraform/dev-test/tf-example-tfvars-devtest.rst
 
             provider.tf
-            ```````````
+            ^^^^^^^^^^^
 
             .. include:: /includes/examples/terraform/tf-example-provider.rst
 
@@ -409,27 +482,27 @@ These examples also apply other recommended configurations, including:
             :tabid: stagingprod
 
             For your staging and production environments, create the
-            following files for each application and environment 
+            following files for each application and environment
             pair. Place the files for each application and environment
             pair in their own directory. Change the IDs and names to use your values:
 
             main.tf
-            ```````
+            ^^^^^^^
 
-            .. include:: /includes/examples/terraform/staging-prod/tf-example-main-stagingprod.rst 
+            .. include:: /includes/examples/terraform/staging-prod/tf-example-main-stagingprod.rst
 
             variables.tf
-            ````````````
+            ^^^^^^^^^^^^
 
             .. include:: /includes/examples/terraform/tf-example-variables.rst
 
             terraform.tfvars
-            ````````````````
+            ^^^^^^^^^^^^^^^^
 
             .. include:: /includes/examples/terraform/staging-prod/tf-example-tfvars-stagingprod.rst
 
             provider.tf
-            ```````````
+            ^^^^^^^^^^^
 
             .. include:: /includes/examples/terraform/tf-example-provider.rst
 
@@ -457,4 +530,5 @@ These examples also apply other recommended configurations, including:
             the configuration. 
       
       For more configuration options and info about this example, 
-      see |service-terraform|.
+      see |service-terraform| and the `MongoDB Terraform Blog Post
+      <https://www.mongodb.com/developer/products/atlas/deploy-mongodb-atlas-terraform-aws/>`__.  
