@@ -29,7 +29,7 @@ The preceding validation enforces these rules for documents in the
 ``sales`` collection:
 
 - ``lineItems.discountedPrice`` must be less than ``lineItems.price``.
-  This rule is specified using the :expression:`$lt` operator.
+  This rule uses the :expression:`$lt` operator.
 
-- The ``items`` field must be an array. This rule is specified using
+- The ``items`` field must be an array. This rule uses
   :query:`$jsonSchema`.

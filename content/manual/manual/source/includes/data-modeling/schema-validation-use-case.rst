@@ -1,6 +1,6 @@
-Your schema validation needs depend on how users use your application.
-Schema validation is most useful for an established application where you have a 
-good sense of how to organize your data. 
+Your schema validation needs depend on how your application organizes
+data. Schema validation is most useful for an established application
+with a defined data structure.
 
 .. note:: 
 
@@ -9,15 +9,15 @@ good sense of how to organize your data.
 
 You can use schema validation in the following scenarios:
 
-- For an ``events`` collection, ensure that the ``start_date`` field is only
-  stored as a date and not a string, so connecting applications don't use 
-  unexpected types.
+- For an ``events`` collection, ensure that the ``start_date`` field
+  stores only a date, not a string. Consistent types prevent unexpected
+  values in connecting applications.
 
-- For a ``store`` collection, ensure that the ``accepted_credit_cards`` 
-  field belongs to a list of credit cards that your store accepts, such as 
-  ``["Visa", "MasterCard", "American Express"]``. This validation prevents a 
-  user from entering an unsupported credit card value.
+- For a ``store`` collection, ensure that the ``accepted_credit_cards``
+  field contains only accepted card types, such as
+  ``["Visa", "MasterCard", "American Express"]``. This rule prevents
+  users from entering unsupported values.
 
-- For a students collection, ensure that the ``gpa`` field is always a
-  positive floating point number. This validation prevents errors during data 
-  entry.
+- For a ``students`` collection, ensure that the ``gpa`` field is
+  always a positive floating-point number. This rule prevents data
+  entry errors.
