@@ -1,0 +1,364 @@
+.. _mongoid-customize-associations:
+
+==============================
+Customize Association Behavior
+==============================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ruby framework, odm, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+Associations in {+odm+} allow you to create relationships between
+models. In this guide, you can learn how to use {+odm+} to customize
+how associations behave in your application. The following sections
+describe ways to customize association behaviors.
+
+Extensions
+----------
+
+Extensions allow you to add custom functionality to an association. You can
+define an extension on an association by specifying a block in the association
+definition, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-extensions
+   :end-before: # end-extensions
+   :emphasize-lines: 4-6
+
+Custom Association Names
+------------------------
+
+You can use the ``class_name`` macro to specify a custom class name for an
+association. This is useful when you want to name the association something other
+than the name of the class. The following example uses the
+``class_name`` macro to specify that an embedded association called ``records``
+represents the ``Album`` class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-custom-name
+   :end-before: # end-custom-name
+
+Custom Keys
+-----------
+
+By default, {+odm+} uses the ``_id`` field of the parent class when looking up
+associations. You can specify different fields to use by using the
+``primary_key`` and ``foreign_key`` macros. The following example specifies a new
+primary and foreign key for the ``albums`` association on a ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-custom-keys
+   :end-before: # end-custom-keys
+
+If you are specifying a ``has_and_belongs_to_many`` association, you can also
+use the ``inverse_primary_key`` and ``inverse_foreign_key`` macros. The
+``inverse_primary_key`` macro specifies the field on the local model that the
+remote model uses to look up the documents.
+The ``inverse_foreign_key`` macro specifies the field on the remote model
+that stores the values found in ``inverse_primary_key``.
+
+The following example specifies a new primary and foreign key for the
+``Band`` and ``Members`` classes in a ``has_and_belongs_to_many`` association:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-custom-inverse-keys
+   :end-before: # end-custom-inverse-keys
+   :emphasize-lines: 9, 20
+
+Custom Scopes
+-------------
+
+You can specify the scope of an association by using the ``scope`` parameter.
+The ``scope`` parameter determines the documents that {+odm+} considers part
+of an association. A scoped association returns only documents that match the
+scope conditions when queried. You can set the ``scope`` to either a ``Proc`` with an arity
+of zero or a ``Symbol`` that references a named scope on the associated model.
+The following example sets custom scopes on associations in a ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-custom-scope
+   :end-before: # end-custom-scope
+
+.. note::
+
+   You can add documents that do not match the scope conditions to an
+   association. {+odm+} saves the documents to the database and they will appear
+   in associated memory. However, you won't see the documents when querying the
+   association.
+
+Validations
+-----------
+
+When {+odm+} loads an association into memory, by default, it uses the
+``validates_associated`` macro to validate that any children are also present.
+{+odm+} validates children for the following association types:
+
+- ``embeds_many``
+- ``embeds_one``
+- ``has_many``
+- ``has_one``
+- ``has_and_belongs_to_many``
+
+You can turn off this validation behavior by setting the ``validate`` macro to
+``false`` when defining the association, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-validation-false
+   :end-before: # end-validation-false
+
+Polymorphism
+------------
+
+{+odm+} supports polymorphism on the child classes of one-to-one and one-to-many associations.
+Polymorphic associations allows a single association to contain objects of different class
+types. You can define a polymorphic association by setting the ``polymorphic``
+option to ``true`` in a child association and adding the ``as`` option to the
+parent association. The following example creates a polymorphic association in a
+``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-polymorphic
+   :end-before: # end-polymorphic
+
+In the preceding example, the ``:featured`` association in the ``Band`` class can contain either a
+``Label`` or ``Album`` document.
+
+.. important::
+
+   {+odm+} supports polymorphism only from child to parent. You cannot specify
+   a parent ``has_one`` or ``has_many`` association as polymorphic.
+
+``has_and_belongs_to_many`` associations do not support polymorphism.
+
+Custom Polymorphic Types
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in version 9.0.2, {+odm+} supports custom polymorphic types through
+a global registry. You can specify alternative keys to represent different
+classes, decoupling your code from the data. The following example specifies
+the string ``"artist"`` as an alternate key for the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-custom-polymorphic
+   :end-before: # end-custom-polymorphic
+
+In the preceding example, the ``identify_as`` directive instructs {+odm+}
+to store the ``Band`` class in the database as the string ``"artist"``. 
+
+You can also specify multiple aliases, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-multiple-alias
+   :end-before: # end-multiple-alias
+
+In the preceding example, ``artist`` is the default name and the others are used
+only for looking up records. This allows you to refactor your
+code without breaking the associations in your data. 
+
+Polymorphic type aliases are global. The keys you specify must be unique across your
+entire code base. However, you can register alternative resolvers that
+can be used for different subsets of your models. In this case, the keys must
+be unique only for each resolver. The following example shows how to register
+alternate resolvers:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-polymorphic-resolvers
+   :end-before: # end-polymorphic-resolvers
+
+Both ``Music::Band`` and ``Tools::Band`` are aliased as 
+``"bnd"``, but each model uses its own resolver to avoid conflicts.
+
+Dependent Behavior
+------------------
+
+You can provide ``dependent`` options to referenced associations to specify how
+{+odm+} handles associated documents when a document is deleted. You can specify
+the following options:
+
+- ``delete_all``: Deletes all child documents without running any model
+  callbacks.
+- ``destroy``: Deletes the child documents and runs all model callbacks.
+- ``nullify``: Sets the foreign key of the child documents to ``nil``. The child
+  document might become orphaned if it is referenced by only the parent.
+- ``restrict_with_exception``: Raises an exception if the child document is not
+  empty.
+- ``restrict_with_error``: Cancels the operation and returns ``false`` if the
+  child document is not empty.
+
+If you don't specify any ``dependent`` options, {+odm+} leaves the child
+document unchanged when the parent document is deleted. The child document
+continues to reference the deleted parent document, and if it is
+referenced through only the parent, the child document becomes orphaned.
+
+The following example specifies ``dependent`` options on the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-dependent
+   :end-before: # end-dependent
+
+Autosave Referenced Associations
+--------------------------------
+
+By default, {+odm+} does not automatically save associated documents from
+non-embedded associations when saving the parent document. This can
+result in dangling references to documents that don't exist.
+
+You can use the ``autosave`` option on a referenced association to
+automatically save associated documents when saving the parent document. The
+following example creates a ``Band`` class with an associated ``Album`` class
+and specifies the ``autosave`` option:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-autosave
+   :end-before: # end-autosave
+   :emphasize-lines: 10
+
+.. note::
+
+   {+odm+} automatically adds autosave functionality to an association that uses
+   the ``accepts_nested_attributes_for`` option.
+
+You do not need to specify the ``autosave`` option for embedded associations
+because {+odm+} saves embedded documents in the parent document.
+
+Autobuild
+---------
+
+You can add the ``autobuild`` option to one-to-one associations, such as
+``has_one`` and ``embeds_one``, to automatically instantiate a new document when
+accessing a ``nil`` association. The following example adds the ``autobuild``
+option to an association on the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-autobuild
+   :end-before: # end-autobuild
+
+Touch
+-----
+
+When {+odm+} *touches* a document, it updates the document's
+``updated_at`` field to the current date and time. You can add the ``touch``
+option to any ``belongs_to`` association to ensure that {+odm+} touches the
+parent document whenever the child document is updated. The following example
+adds the ``touch`` option to an association on the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-touch
+   :end-before: # end-touch
+
+You can also use the ``touch`` option to specify another field on the parent
+association, as a string or a symbol. When {+odm+} touches the parent
+association, it sets both the ``updated_at`` field and the specified field
+to the current date and time.
+
+The following example instructs {+odm+} to touch the ``bands_updated_at`` field:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-touch-specific
+   :end-before: # end-touch-specific
+
+.. note::
+
+   In embedded associations, when an embedded document is touched, {+odm+}
+   touches its parents recursively. Because of this, adding a ``touch``
+   attribute to an ``embedded_in`` association is unnecessary. 
+   
+   {+odm+} does not support specifying additional fields to touch in
+   ``embedded_in`` associations.
+
+Counter Cache
+-------------
+
+Use the ``counter_cache`` option to store the number of objects
+that belong to an associated field. When you specify this option,
+{+odm+} stores a counter field on the associated parent model.
+
+The ``counter_cache`` option accepts one of the two following values for the
+counter field name:
+
+- ``true``: {+odm+} uses a default counter field name, based on the name 
+  of the association. For example, if the association is called ``Band``, the 
+  default counter field name is ``bands_count``.
+- A ``string`` or ``symbol``: {+odm+} uses that value directly as the counter field name.
+
+You can provide the container for the counter cache in one of the
+following ways:
+
+- Define an explicit counter field in the parent model.
+- Include the ``Mongoid::Attributes::Dynamic`` module in the
+  parent model, which allows {+odm+} to create the counter field
+  dynamically on first use.
+
+**Explicit Counter Field**
+
+In this approach, declare the counter field directly on the
+parent model. This is useful when you want a fixed schema and
+explicit field types.
+
+The following example declares an explicit ``bands_count`` field
+on the ``Label`` class and uses the default counter field name:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-counter-cache-default
+   :end-before: # end-counter-cache-default
+   :emphasize-lines: 5, 11
+
+You can also specify a custom counter field name by passing a
+string to the ``counter_cache`` option:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-counter-cache-custom
+   :end-before: # end-counter-cache-custom
+   :emphasize-lines: 4, 10
+
+**Dynamic Counter Field**
+
+If you include the ``Mongoid::Attributes::Dynamic`` module in
+the parent model, {+odm+} can create and update the counter
+field dynamically during runtime. This is useful when you want a
+flexible schema and don't want to declare the counter field
+explicitly.
+
+The following example uses ``Mongoid::Attributes::Dynamic`` to
+allow {+odm+} to create the counter field dynamically on the ``Label``
+class:
+
+.. literalinclude:: /includes/data-modeling/association-behaviors.rb
+   :language: ruby
+   :start-after: # start-counter-cache-dynamic
+   :end-before: # end-counter-cache-dynamic
+
+When you use the ``Mongoid::Attributes::Dynamic`` module, {+odm+} uses the
+same naming rules for the counter field as when you declare an explicit 
+counter field: it defaults to a ``*_count`` field name based on the 
+association, unless you specify a custom field name with a string in the
+``counter_cache`` option.

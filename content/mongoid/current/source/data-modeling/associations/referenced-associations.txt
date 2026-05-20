@@ -1,0 +1,277 @@
+.. _mongoid-referenced-associations:
+
+=======================
+Referenced Associations
+=======================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: ruby framework, odm, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+Associations in {+odm+} allow you to create relationships between
+models. In this guide, you can learn how referenced associations allow
+you to create a relationship between two models where one model
+references the other. {+odm+} supports the following referenced
+association types:
+
+- ``has_one``
+- ``has_many``
+- ``belongs_to``
+- ``has_and_belongs_to_many``
+
+The following sections describe how to use each of these association types.
+
+Has One
+-------
+
+You can use the ``has_one`` macro to declare that documents represented by one class also contain a
+document represented by a separate child class. The
+following example creates a ``Band`` class with a ``has_one`` relationship to a
+``Studio`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-one
+   :end-before: # end-has-one
+
+When you declare a ``has_one`` association, the child class must also use the
+``belongs_to`` association that references the parent class. The following
+example shows the ``Studio`` class referenced in the preceding ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-one-child
+   :end-before: # end-has-one-child
+
+To learn more about the ``belongs_to`` macro, see the :ref:`Belongs To
+<mongoid-belongs-to>` section.
+
+You can use validations to ensure that the child
+class is present in your parent class, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-one-validation
+   :end-before: # end-has-one-validation
+   :emphasize-lines: 6
+
+To learn more about validations in {+odm+}, see the :ref:`Validations
+<mongoid-modeling-validation>` guide.
+
+Has Many
+--------
+
+You can use the ``has_many`` macro to declare that documents represented by a class contain
+multiple child documents represented by another class. The following
+example creates a ``Band`` class with a ``has_many`` relationship to a
+``Members`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-many
+   :end-before: # end-has-many
+
+When you declare a ``has_many`` association, the child class must also use the
+``belongs_to`` association that references the parent class. The following
+example shows the ``Member`` class referenced in the preceding ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-many-child
+   :end-before: # end-has-many-child
+
+To learn more about the ``belongs_to`` macro, see the :ref:`Belongs To
+<mongoid-belongs-to>` section.
+
+You can use validations to ensure that the child
+class is present in your parent class, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-many-validation
+   :end-before: # end-has-many-validation
+   :emphasize-lines: 6
+
+To learn more about validations in {+odm+}, see the :ref:`Validations
+<mongoid-modeling-validation>` guide.
+
+Retrieve Association Information
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the ``any?`` method on a ``has_many`` association to determine if the
+association contains any documents without retrieving the entire set of
+documents from the database.
+
+The following example uses the ``any?`` method to determine if documents in the
+``Band`` class contain any ``Members`` documents:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-many-any
+   :end-before: # end-has-many-any
+
+You can also use the ``any?`` method with a filter to find documents that match
+a specified criteria, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-many-any-filter
+   :end-before: # end-has-many-any-filter
+
+You can supply a class name to the ``any?`` method to filter the results by the
+name of the class. This is useful for polymorphic associations:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-many-any-class
+   :end-before: # end-has-many-any-class
+
+.. note::
+
+   After the data of the associated class is loaded to {+odm+}, subsequent calls
+   to the ``any?`` method do not query the database. Instead, {+odm+} uses the
+   data that is already loaded in memory.
+
+You can also call the ``exists?`` method to determine if there are any persisted
+documents in the association. The ``exists?`` method always queries the
+database and checks only for documents that have been saved to the database.
+The ``exists?`` method does not allow for filtering and does not accept any
+arguments.
+
+The following example uses the ``exists?`` method to determine if there are any persisted
+``Members`` documents in the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-many-exists
+   :end-before: # end-has-many-exists
+
+.. _mongoid-belongs-to:
+
+Belongs To
+----------
+
+Use the ``belongs_to`` macro to declare that a document represented by one class
+is a child of a document represented by another
+class. By default, the ``_id`` field of the parent class is stored in the child
+class. The following example creates a ``Members`` class with a ``belongs_to``
+association to a ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-belongs-to
+   :end-before: # end-belongs-to
+
+You can allow {+odm+} to persist documents to the database without storing the
+``_id`` of the associated parent class by setting the ``optional`` option to
+``true``, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-belongs-to-optional
+   :end-before: # end-belongs-to-optional
+
+.. tip::
+
+   You can globally change the default behavior of the ``belongs_to``
+   association to not require their parent class by setting the
+   ``belongs_to_required_by_default`` configuration option to ``false`` in your
+   application's configuration settings.
+
+You can specify a ``belongs_to`` association in a child class without specifying a matching
+``has_one`` or ``has_many`` association in the parent class. When doing so, you
+can't access the fields of the child document from the parent class, but you can
+access the parent fields that are stored in the child class, such as the
+parent's ``_id`` field. In the following example, the ``Band``
+class cannot access the ``Members`` class, but the ``Members`` class can access the
+``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-belongs-to-one-way
+   :end-before: # end-belongs-to-one-way
+
+For clarity, you can optionally set the ``inverse_of`` option to ``nil`` to
+indicate that the parent class does not contain a ``has_one`` or ``has_many``
+association to the child class, as shown in the following example:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-belongs-to-inverse
+   :end-before: # end-belongs-to-inverse
+
+Has and Belongs To Many
+-----------------------
+
+Use the ``has_and_belongs_to_many`` macro to declare that a class model contains
+a many-to-many relationship with another class. In a many-to-many relationship,
+each document in one class can be associated with multiple documents in another
+class. The following example creates a ``Band`` class with a
+``has_and_belongs_to_many`` relationship to a ``Members`` class. A ``Band`` document can
+reference multiple ``Members`` documents, and a ``Members`` document can
+reference multiple ``Band`` documents.
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-and-belongs-to-many
+   :end-before: # end-has-and-belongs-to-many
+
+When you declare a ``has_and_belongs_to_many`` association, both model instances
+store a list of the associated document's ``_id`` values. You can set the
+``inverse_of`` option to ``nil`` to store the associated document's ``_id`` values in
+only one of the model instances. The following example prompts {+odm+} to store
+the associated document's ``_id`` values in only the ``Band`` class:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-has-and-belongs-to-many-inverse
+   :end-before: # end-has-and-belongs-to-many-inverse
+
+.. tip::
+
+   When you update a document that has a ``has_and_belongs_to_many`` association,
+   {+odm+} sets the ``updated_at`` field of updated document but does not set the
+   ``updated_at`` field of the associated documents.
+
+Query Referenced Associations
+-----------------------------
+
+You can use an aggregation pipeline to query for documents across referenced
+associations. The aggregation pipeline allows you to create queries across
+multiple collections and manipulate data into a specified format. To learn more
+about using the aggregation pipeline, see the :ref:`Aggregation
+<mongoid-aggregation>` guide.
+
+For simple queries, you can query the association directly. When you directly
+query on a collection, you can query only on fields and values that are in the
+collection itself. You cannot directly query on collections
+associated to the one you are querying.
+
+For example, consider the following ``Band`` and ``Tour`` classes:
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-query-models
+   :end-before: # end-query-models
+
+The following example queries the ``Tour`` class for documents that have a
+``year`` value of ``2000`` or greater and saves the ``band_id`` of those
+documents. It then queries the ``Band`` class for documents that have those
+``band_id`` values.
+
+.. literalinclude:: /includes/data-modeling/associations.rb
+   :language: ruby
+   :start-after: # start-association-query
+   :end-before: # end-association-query
