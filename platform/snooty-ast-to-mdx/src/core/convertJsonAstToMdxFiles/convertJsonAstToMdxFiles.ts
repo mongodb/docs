@@ -55,11 +55,15 @@ export const convertJsonAstToMdxFiles: ConvertJsonAstToMdxFiles = async ({
         const resolvedOutPath = path.resolve(outPath);
 
         if (!emittedFilePaths.has(resolvedOutPath)) {
+          // Register immediately (before any await) to prevent concurrent writes
+          // when the same include file is referenced multiple times with different
+          // start-after/end-before markers — all calls resolve synchronously past
+          // this check before any async I/O completes.
+          emittedFilePaths.add(resolvedOutPath);
           const mdxContent = convertMdastToMdx(mdastRoot);
 
           await fs.mkdir(path.dirname(outPath), { recursive: true });
           await fs.writeFile(outPath, mdxContent);
-          emittedFilePaths.add(resolvedOutPath);
         }
 
         const references = mdastRoot.__references as ReferencesArtifact;
