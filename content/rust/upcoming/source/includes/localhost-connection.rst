@@ -1,8 +1,8 @@
-If you must run the {+server+} on your local machine for development
+If you must run the {+mdb-server+} on your local machine for development
 purposes, you must complete the following:
 
 1. Follow the :manual:`Install MongoDB </installation/>` tutorial to
-   install the {+server+} on your machine. Select the appropriate
+   install the {+mdb-server+} on your machine. Select the appropriate
    installation tutorial for your machine and operating system.
 
 #. After you complete the installation, start the server.
@@ -13,14 +13,14 @@ purposes, you must complete the following:
    :manual:`Security Checklist </administration/security-checklist/>` for a
    list of security recommendations.
 
-After you successfully start the {+server+}, connect to your local
+After you successfully start the {+mdb-server+}, connect to your local
 instance by performing the following steps:
 
 1. Replace the connection string stored in the ``uri`` variable in the
    :ref:`preceding example <rust-atlas-connection-example>` with the
    connection string for your local MongoDB instance.
 
-   If your {+server+} is running locally, you can use the following
+   If your {+mdb-server+} is running locally, you can use the following
    connection string to connect to MongoDB:
 
    .. code-block:: none
