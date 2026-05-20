@@ -54,14 +54,12 @@
              c. (Optional) To enable sending custom resource tags to Prometheus,
                 toggle :guilabel:`Send Resource Tags` to :guilabel:`On`.
 
-                .. note::
-
-                   You must opt-in to this feature to send custom resource tags
-                   to Prometheus metrics. When you enable this feature, |service|
-                   sends the :ref:`resource tags <configure-resource-tags>` as
-                   labels on Prometheus metrics. This allows you to filter, organize,
-                   and define monitoring logic based on your custom tags. To learn
-                   more about resource tags, see :ref:`configure-resource-tags`.
+                You must opt-in to this feature to send custom resource tags
+                to Prometheus metrics. When you enable this feature, |service|
+                sends the :ref:`resource tags <configure-resource-tags>` as
+                labels on Prometheus metrics. This allows you to filter, organize,
+                and define monitoring logic based on your custom tags. To learn
+                more about resource tags, see :ref:`configure-resource-tags`.
 
              #. Insert the following snippet into the ``scrape_configs`` section
                 of your ``Prometheus.yml`` file and update it with values for
@@ -92,60 +90,60 @@
              providing the targets by making a request to the
              :ref:`Discovery API <prometheus-discovery-endpoint>` and
              storing its results in a ``targets.json`` file.
-      
+
              To make the request, substitute the placeholder text in one of
              the following tabs or create your own script in another language.
-      
-             .. tabs::
-      
-               .. tab:: Shell Command
-                  :tabid: shell-command
-      
-                  .. code-block:: sh
-      
-                     curl --header 'Accept: application/json' 
-                     # Sets the `Authorization` header on every scrape request with the
-                     # username and password from the previous step.
-                     --user <username>:<password> 
-                     # The URL that Prometheus fetches the targets from. 
-                     # Replace the <group-id> with the project ID of your Atlas instance.
-                     --request GET "https://cloud.mongodb.com/prometheus/v1.0/groups/<group_id>/discovery" 
-      
-               .. tab:: Python Script
-                  :tabid: python-script
-      
-                  If you need to install the ``requests`` library, see their
-                  `Installation Guide <https://docs.python-requests.org/en/latest/user/install/>`__.
-      
-                  .. code-block:: python
-      
-                     import time, json, requests
-      
-                     # This script sets the `Authorization` header on every
-                     # scrape request with the configured username and
-                     # password. Then it tells Prometheus to fetch targets
-                     # from the specified URL. 
-                     #
-                     # Note: Replace the <username> and <password> with the
-                     # values in the previous step, and <group-id> with the
-                     # project ID of your Atlas instance.
-                     basic_auth_user="<username>"
-                     basic_auth_password="<password>"
-                     discovery_api_url="https://cloud.mongodb.com/prometheus/v1.0/groups/<group_id>/discovery"
-      
-                     # The script updates your targets.json file every
-                     # minute, if it successfully retrieves targets.
-                     #
-                     # Note: Replace the <path-to-targets.json> with the
-                     # path to your targets.json file.
-                     starttime = time.time()
-                     while True:
-                       r = requests.get(discovery_api_url, auth=(basic_auth_user, basic_auth_password))
-                       if  r.status_code == 200:
-                         with open('<path-to-targets.json>', 'w') as f:
-                           json.dump(r.json(), f)
-                       time.sleep(60.0 - ((time.time() - starttime) % 60.0))
-      
+
+      .. tabs::
+
+        .. tab:: Shell Command
+           :tabid: shell-command
+
+           .. code-block:: sh
+
+              curl --header 'Accept: application/json'
+              # Sets the `Authorization` header on every scrape request with the
+              # username and password from the previous step.
+              --user <username>:<password>
+              # The URL that Prometheus fetches the targets from.
+              # Replace the <group-id> with the project ID of your Atlas instance.
+              --request GET "https://cloud.mongodb.com/prometheus/v1.0/groups/<group_id>/discovery"
+
+        .. tab:: Python Script
+           :tabid: python-script
+
+           If you need to install the ``requests`` library, see their
+           `Installation Guide <https://docs.python-requests.org/en/latest/user/install/>`__.
+
+           .. code-block:: python
+
+              import time, json, requests
+
+              # This script sets the `Authorization` header on every
+              # scrape request with the configured username and
+              # password. Then it tells Prometheus to fetch targets
+              # from the specified URL.
+              #
+              # Note: Replace the <username> and <password> with the
+              # values in the previous step, and <group-id> with the
+              # project ID of your Atlas instance.
+              basic_auth_user="<username>"
+              basic_auth_password="<password>"
+              discovery_api_url="https://cloud.mongodb.com/prometheus/v1.0/groups/<group_id>/discovery"
+
+              # The script updates your targets.json file every
+              # minute, if it successfully retrieves targets.
+              #
+              # Note: Replace the <path-to-targets.json> with the
+              # path to your targets.json file.
+              starttime = time.time()
+              while True:
+                r = requests.get(discovery_api_url, auth=(basic_auth_user, basic_auth_password))
+                if  r.status_code == 200:
+                  with open('<path-to-targets.json>', 'w') as f:
+                    json.dump(r.json(), f)
+                time.sleep(60.0 - ((time.time() - starttime) % 60.0))
+
       To learn more about the Discovery API, see
       :ref:`prometheus-discovery-endpoint`.
 
