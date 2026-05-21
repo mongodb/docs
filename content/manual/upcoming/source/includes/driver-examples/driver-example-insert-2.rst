@@ -6,7 +6,7 @@
 
          .. code-block:: javascript
 
-            db.inventory.find( { item: "canvas" } )
+            db.movies.find( { title: "The Substance" } )
 
      - id: compass
        content: |

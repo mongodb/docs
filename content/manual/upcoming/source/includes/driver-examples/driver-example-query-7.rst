@@ -6,7 +6,7 @@
 
          .. code-block:: javascript
 
-            db.inventory.find( {} )
+            db.movies.find( { year: 2023 } )
 
      - id: compass
        content: |
