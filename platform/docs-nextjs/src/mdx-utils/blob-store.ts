@@ -1,9 +1,13 @@
 import { getStore, type Store } from '@netlify/blobs';
 import { BLOB_STORE_NAME } from './blob-constants';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 const isDev = process.env.NODE_ENV === 'development';
 
-export const productionStore = isDev
+// This cast is to prevent netlify blob store from throwing an error in offline builds as a result of not having a siteID or token.
+export const productionStore: Store = isOfflineBuild
+  ? (null as unknown as Store)
+  : isDev
   ? getStore(BLOB_STORE_NAME)
   : getStore({
       name: BLOB_STORE_NAME,
@@ -12,6 +16,7 @@ export const productionStore = isDev
     });
 
 function initBranchSpecificStore(): { store: Store; name: string } | null {
+  if (isOfflineBuild) return null;
   try {
     const branch = process.env.NEXT_PUBLIC_GIT_BRANCH || null;
     if (!branch || branch === 'main') return null;
