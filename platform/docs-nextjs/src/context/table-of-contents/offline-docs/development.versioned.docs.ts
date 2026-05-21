@@ -754,6 +754,11 @@ export const toc: L1TocItem[] = [
                             contentSite: 'docs',
                             url: '/docs/:version/tutorial/operation-rejection-filters',
                           },
+                          {
+                            label: 'Troubleshoot Slow Queries',
+                            contentSite: 'docs',
+                            url: '/docs/:version/troubleshooting/slow-queries-in-production',
+                          },
                         ],
                       },
                       {
@@ -4137,6 +4142,23 @@ export const toc: L1TocItem[] = [
                 label: 'Performance Tuning',
                 contentSite: 'docs',
                 url: '/docs/:version/administration/performance-tuning',
+              },
+              {
+                label: 'Troubleshoot',
+                contentSite: 'docs',
+                collapsible: true,
+                items: [
+                  {
+                    label: 'Connection Storms',
+                    contentSite: 'docs',
+                    url: '/docs/:version/troubleshooting/connection-storms',
+                  },
+                  {
+                    label: 'Server Selection Timeout',
+                    contentSite: 'docs',
+                    url: '/docs/:version/troubleshooting/server-selection-timeout',
+                  },
+                ],
               },
             ],
           },

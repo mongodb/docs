@@ -1,0 +1,194 @@
+.. _manual-troubleshooting-connection-storms:
+
+==============================
+Troubleshoot Connection Storms
+==============================
+
+.. meta::
+   :description: Learn to diagnose and resolve connection storms and too many connections errors in MongoDB, including pool misconfiguration, sharded cluster router settings, and serverless deployments.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+:term:`Connection storms <connection storm>` often appear as sudden spikes
+in connection count and can frequently be misdiagnosed as database
+performance issues.
+
+This page covers common causes and resolutions for connection storms
+and ``"too many connections"`` errors. If you need additional support after 
+going through the following sections, contact :ref:`technical-support`.
+
+Prerequisite Checks
+-------------------
+
+To confirm whether your deployment is experiencing a connection storm or
+connection limit issue, run the :dbcommand:`serverStatus` command and check for
+the following indicators:
+
+- Sudden increases in :serverstatus:`connections.current`
+- Sudden increases in :serverstatus:`connections.active`
+- Rapidly increasing :serverstatus:`connections.totalCreated`
+- Spikes in :serverstatus:`metrics.network.totalIngressTLSHandshakeTimeMillis`
+- Increases in :serverstatus:`metrics.commands.<command>.failed`
+
+You can also check your deployment's :ref:`log messages <log-messages-ref>` for 
+large numbers of ``"Connection accepted"`` messages with a rapidly increasing 
+``connectionCount`` attribute, or for increases in slow query log entries.
+
+On Atlas deployments, you can navigate to your cluster in the Atlas UI and 
+select :guilabel:`Metrics`, then :guilabel:`Connections` to view connection 
+count graphs over time.
+
+Common Issues and Resolutions
+------------------------------
+
+The following sections describe common causes of connection storms and
+how to resolve them.
+
+Misconfigured Connection Pool Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you set :urioption:`minPoolSize` much lower than :urioption:`maxPoolSize`, 
+the driver maintains only a small number of idle connections. Under heavy 
+workloads or after a restart, the driver must rapidly open many new connections 
+to reach the working pool size, which can cause a spike in new connections.
+
+High Server or Query Latency
+`````````````````````````````
+
+If server or query latency increases, individual connections remain
+active for longer. This forces the driver to open additional connections to 
+handle incoming requests, increasing the total connection count. 
+
+If you notice a high ``connections.active`` value and elevated query latency, 
+set ``minPoolSize`` to a value closer to ``maxPoolSize`` in your driver 
+connection string. This pre-warms the connection pool and reduces the need to 
+open many new connections under load.
+
+Increased Operational Load
+```````````````````````````
+
+A sudden increase in application traffic can exhaust the available
+connection pool, forcing the driver to open new connections rapidly.
+
+If you notice connection spikes that occur with traffic increases, consider 
+setting ``minPoolSize`` to a value closer to ``maxPoolSize`` in your driver 
+connection string. This ensures the driver maintains enough pre-established 
+connections to handle traffic spikes without needing to rapidly open new 
+connections.
+
+Transient Network Events or Application Restarts
+`````````````````````````````````````````````````
+
+Network outages, rolling restarts, or sudden application tier scaling
+events can cause application instances to reconnect simultaneously,
+overwhelming the server with new connection requests. 
+
+If connection spikes occur during deployment events or network disruptions, 
+consider setting ``maxPoolSize`` to limit the total number of connections that 
+each application instance can open. This limits the impact of simultaneous 
+reconnection events.
+
+Per-Request MongoClient Creation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you create a new ``MongoClient`` on every request or function invocation
+instead of reusing a single shared instance, each client can open its own 
+independent connection pool up to the configured :urioption:`maxPoolSize`. 
+Across many concurrent requests or short-lived execution environments, this 
+multiplies the total number of open connections and can trigger connection 
+storms.
+
+If you notice steadily increasing connection counts that correlate with
+request volume, check whether your application instantiates a new
+``MongoClient`` per request and consider implementing ``MongoClient`` as a 
+single shared instance across all operations. This stabilizes connection usage 
+and prevents connection count spikes caused by pool multiplication.
+
+Misconfigured Router Pools on Sharded Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+On sharded clusters, each :binary:`~bin.mongos` router maintains
+connection pools on each shard. If these pools aren't sized
+correctly, a connection storm on the application tier can propagate to
+the shard tier as routers simultaneously open large numbers of
+internal connections.
+
+If you notice connection storms originating from :binary:`~bin.mongos` 
+processes, consider: 
+
+- Limiting the number of ``taskExecutor`` connection pools on each router by
+  setting the :parameter:`taskExecutorPoolSize` parameter.
+
+- Controlling the minimum and maximum number of connections in each router pool 
+  by using the :parameter:`ShardingTaskExecutorPoolMinSize` and 
+  :parameter:`ShardingTaskExecutorPoolMaxSize` parameters.
+
+Underprovisioned |service| Cluster
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Each |service| cluster tier enforces a maximum number of concurrent
+incoming connections per node. When an application opens more
+connections than the tier allows, the cluster might reject new connection
+requests with the following error:
+
+.. code-block:: none
+   :copyable: false
+
+   connection refused because too many open connections
+
+If you notice connection rejections that occur with increased load and don't 
+improve after adjusting pool settings, check whether ``connections.current`` is 
+at or near the limit for your cluster tier. To view connection limits by cluster 
+tier, see :ref:`atlas-limits`.
+
+If the connection count is at or near the cluster tier limit, consider upgrading 
+to a higher cluster tier to increase the per-node connection limit. To scale 
+your cluster, see :ref:`scale-cluster`.
+
+Verify Resolution
+-----------------
+
+To confirm that the connection storm has resolved:
+
+- Re-run :dbcommand:`serverStatus` and verify that ``connections.current`` 
+  returned to expected levels relative to ``connections.available``.
+
+- Confirm that your :binary:`~bin.mongod` or :binary:`~bin.mongos` logs no 
+  longer show connection-related errors.
+
+- On Atlas deployments, confirm that the connection count graph in the Atlas 
+  :guilabel:`Metrics` view has returned to baseline.
+
+Diagnostics to Collect for More Support
+-----------------------------------------
+
+If the issue persists, contact :ref:`technical-support`. Before
+contacting support, gather the following information:
+
+- Output of ``db.serverStatus()``
+- Log excerpts from :binary:`~bin.mongod` or :binary:`~bin.mongos`
+  that show connection-related errors or warnings
+- Your driver connection string, specifically with the values of 
+  ``maxPoolSize``, ``minPoolSize``, and ``waitQueueTimeoutMS``
+- For Atlas deployments, include:
+
+  - The number of application instances and your deployment topology
+  - A screenshot of the Atlas :guilabel:`Connections` graph over the
+    period when the issue occurred
+
+Related Issues
+--------------
+
+- :ref:`manual-troubleshooting-replication-lag`
+- :ref:`manual-troubleshooting-replica-set-no-primary`
+
+Learn More
+----------
+
+- :ref:`connection-pool-performance-tuning`
+- :ref:`serverStatus Connections <server-status-connections>`
+- :ref:`atlas-too-many-open-connections`

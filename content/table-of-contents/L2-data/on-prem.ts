@@ -491,7 +491,24 @@ const tocData: TocItem[] = [
           {
             label: 'Troubleshoot',
             contentSite: 'docs',
-            url: '/docs/:version/tutorial/troubleshoot-replica-sets',
+            collapsible: true,
+            items: [
+              {
+                label: 'Frequent Elections',
+                contentSite: 'docs',
+                url: '/docs/:version/troubleshooting/frequent-elections',
+              },
+              {
+                label: 'No Replica Set Primary',
+                contentSite: 'docs',
+                url: '/docs/:version/troubleshooting/replica-set-no-primary',
+              },
+              {
+                label: 'Replication Lag',
+                contentSite: 'docs',
+                url: '/docs/:version/troubleshooting/replication-lag',
+              },
+            ],
           },
         ],
       },
@@ -788,6 +805,11 @@ const tocData: TocItem[] = [
                 label: 'Resharding for Adding and Removing Shards',
                 contentSite: 'docs',
                 url: '/docs/:version/tutorial/resharding-for-adding-and-removing-shards',
+              },
+              {
+                label: 'Troubleshoot Stuck Chunk Migrations',
+                contentSite: 'docs',
+                url: '/docs/:version/troubleshooting/chunk-migrations-stuck',
               },
             ],
           },
@@ -1169,6 +1191,11 @@ const tocData: TocItem[] = [
         label: 'Recover a Standalone after an Unexpected Shutdown',
         contentSite: 'docs',
         url: '/docs/:version/tutorial/recover-data-following-unexpected-shutdown',
+      },
+      {
+        label: 'Troubleshoot Backup and Restore Failures',
+        contentSite: 'docs',
+        url: '/docs/:version/troubleshooting/backup-restore-failures',
       },
     ],
   },

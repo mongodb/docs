@@ -386,6 +386,11 @@ const tocData: TocItem[] = [
                 contentSite: 'docs',
                 url: '/docs/:version/tutorial/operation-rejection-filters',
               },
+              {
+                label: 'Troubleshoot Slow Queries',
+                contentSite: 'docs',
+                url: '/docs/:version/troubleshooting/slow-queries-in-production',
+              },
             ],
           },
           {

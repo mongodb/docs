@@ -661,6 +661,23 @@ const tocData: TocItem[] = [
         contentSite: 'docs',
         url: '/docs/:version/administration/performance-tuning',
       },
+      {
+        label: 'Troubleshoot',
+        contentSite: 'docs',
+        collapsible: true,
+        items: [
+          {
+            label: 'Connection Storms',
+            contentSite: 'docs',
+            url: '/docs/:version/troubleshooting/connection-storms',
+          },
+          {
+            label: 'Server Selection Timeout',
+            contentSite: 'docs',
+            url: '/docs/:version/troubleshooting/server-selection-timeout',
+          },
+        ],
+      },
     ],
   },
   {
