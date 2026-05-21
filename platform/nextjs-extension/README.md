@@ -38,6 +38,23 @@ It hooks into Netlify's build lifecycle with two hooks:
 | UI | React + Vite, rendered as Netlify dashboard surfaces |
 | Storage | MongoDB Atlas (content), Netlify Blobs (MDX), S3 (search) |
 
+## Environment Variables
+
+### Force Rebuild
+
+By default, `onPreBuild` only parses content paths whose files changed in the last commit (or all paths if the parser version changed). Two env vars override this:
+
+| Variable | Value | Effect |
+|---|---|---|
+| `FORCE_REBUILD_ALL` | `true` | Rebuilds every content path, equivalent to a parser cache miss. |
+| `FORCE_REBUILD_PATHS` | Comma-separated path prefixes | Adds matching paths to the build queue on top of what git-change detection finds. A prefix like `golang` matches all versions (`golang/current`, `golang/v1.12`, etc.); `golang/current` targets only that version. Only applied when the parser cache is valid — ignored when `FORCE_REBUILD_ALL` is set or the cache is already invalid (since all paths rebuild anyway). |
+
+Example: rebuild only the Go and Node drivers on the next deploy:
+
+```
+FORCE_REBUILD_PATHS=golang,node
+```
+
 ## Integration with docs-nextjs
 
 The extension writes MDX to Netlify Blob Storage. `docs-nextjs` reads it at runtime via ISR/SSG. The extension is toggled via the `NEXTJS_EXTENSION_ENABLED` env var in `docs-nextjs/netlify.toml`.

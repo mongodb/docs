@@ -6,10 +6,6 @@ import {
 } from "./util/extension";
 import { updateConfig } from "./contentMetadata/config";
 import { findAllContentPaths } from "./contentMetadata/findContentPaths";
-import {
-	getFileChanges,
-	findContentPathsWithChanges,
-} from "./github/processFileChanges";
 import type { Environments } from "./util/databaseConnection/types";
 import { getParser } from "./github/getParser";
 import { runPrebuildModules } from "./parse/runModules";
@@ -31,6 +27,7 @@ import { handleSearchManifests } from "./searchManifests/index";
 import { writePathPrefixListToFile, writeDirNameToPrefixMapToFile } from "./blobUploads/buildPrefixList";
 import { handleAllBlobUploads } from "./blobUploads/handleAllBlobUploads";
 import { deleteOrphanedFilesFromBlobStore } from "./blobUploads/deleteOrphanedFilesFromBlobStore";
+import { resolvePathsToBuild } from "./util/resolvePathsToBuild";
 import {
 	getMdxContentBlobStores,
 	MAIN_BRANCH,
@@ -91,21 +88,12 @@ extension.addBuildEventHandler(
 			environment: configEnvironment.ENV as Environments,
 		});
 
-		if (validParserCache) {
-			// TODO: improve file changes detection
-			const fileChanges = await getFileChanges({
-				run: utils.run,
-				git: utils.git,
-			});
-
-			const { changedContentPaths } = await findContentPathsWithChanges({
-				fileChanges,
-				allFullContentPaths: contentDirectories,
-			});
-			allContentData.pathsToBuild.push(...changedContentPaths);
-		} else {
-			allContentData.pathsToBuild.push(...contentDirectories);
-		}
+		await resolvePathsToBuild({
+			utils,
+			contentDirectories,
+			allContentData,
+			validParserCache,
+		});
 
 		const projectNames: ProjectNames =
 			await getAllProjectNames(contentDirectories);

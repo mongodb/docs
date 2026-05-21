@@ -24,7 +24,7 @@ export const parse = async ({
   netlifyPluginUtils: Pick<NetlifyPluginUtils, 'run' | 'cache'>;
 }): Promise<string> => {
   console.log(
-    `==================================================================== Running parser for ${version}... =====================================================================`,
+    `=============================== Running parser for content path ${contentPath} with version ${version}... =====================================================================`,
   );
 
   await makeExamples({ contentPath, run });
