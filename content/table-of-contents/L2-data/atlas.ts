@@ -547,6 +547,19 @@ const tocData: TocItem[] = [
             label: 'Configure Online Archive',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/online-archive/configure-online-archive',
+            collapsible: true,
+            items: [
+              {
+                label: 'Standard Collections',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/online-archive/configure-online-archive-standard',
+              },
+              {
+                label: 'Time Series Collections',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/online-archive/configure-online-archive-time-series',
+              },
+            ],
           },
           {
             label: 'Set Up a Private Endpoint',
