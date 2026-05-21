@@ -22,6 +22,7 @@ def generate_bson_vector(array, data_type):
 # Load Datasets
 def load_and_prepare_data(dataset_name, amount):
     """Load and prepare streaming datasets for DataFrame."""
+    print(f"Loading {amount} records from {dataset_name}...")
     data = load_dataset(dataset_name, streaming=True, split="train").take(amount)
     return pd.DataFrame(data)
 

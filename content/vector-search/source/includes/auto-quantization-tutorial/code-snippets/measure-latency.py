@@ -28,6 +28,3 @@ latency_results.append(
         num_candidates_values=num_candidates_values,
     )
 )
-
-# Combine all results into a single DataFrame
-all_latency_results = pd.concat([pd.DataFrame(latency_results)])

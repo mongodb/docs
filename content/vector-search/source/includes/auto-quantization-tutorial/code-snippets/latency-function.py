@@ -34,17 +34,20 @@ def measure_latency_with_varying_topk(
                 use_full_precision=use_full_precision,
             )
 
-                # Extract the execution time (latency)
-                latency_ms = vector_search_results["execution_time_ms"]
+            # Extract the execution time (latency)
+            latency_ms = vector_search_results["execution_time_ms"]
 
-                # Store results
-                results_data.append(
-                    {
-                        "precision": precision_name,
-                        "top_k": top_k,
-                        "num_candidates": num_candidates,
-                        "latency_ms": latency_ms,
-                    }
-                )
+            # Append the results to the list
+            results_data.append(
+                {
+                    "precision": precision_name,
+                    "top_k": top_k,
+                    "num_candidates": num_candidates,
+                    "latency_ms": latency_ms,
+                }
+            )
+
+            print(f"Top-K: {top_k}, NumCandidates: {num_candidates}, "
+                  f"Latency: {format_time(latency_ms)}, Precision: {precision_name}")
 
     return results_data

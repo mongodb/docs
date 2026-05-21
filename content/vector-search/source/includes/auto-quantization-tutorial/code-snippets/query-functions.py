@@ -16,12 +16,16 @@ def custom_vector_search(
     num_candidates=25,
     use_full_precision=False,
 ):
-
+    """Perform vector search on a MongoDB collection using specified index."""
     # Generate embedding for the user query
     query_embedding = get_embedding(user_query, task_prefix="query")
 
-    if query_embedding is None:
-        return "Invalid query or embedding generation failed."
+    if query_embedding is None or not query_embedding:
+        return {
+            "error": "Invalid query or embedding generation failed.",
+            "execution_time_ms": None,
+            "results": [],
+        }
 
     # Define the vector search stage
     vector_search_stage = {
@@ -33,13 +37,15 @@ def custom_vector_search(
         }
     }
 
-    # Add numCandidates only for approximate search
+    # Configure search precision approach
     if not use_full_precision:
+        # For approximate nearest neighbor (ANN) search
         vector_search_stage["$vectorSearch"]["numCandidates"] = num_candidates
     else:
-        # Set exact to true for exact search using full precision float32 vectors and running exact search
+        # For exact nearest neighbor (ENN) search
         vector_search_stage["$vectorSearch"]["exact"] = True
 
+    # Project stage to fetch desired fields and vector search score
     project_stage = {
         "$project": {
             "_id": 0,
@@ -47,29 +53,36 @@ def custom_vector_search(
             "text": 1,
             "wiki_id": 1,
             "url": 1,
-            "score": {
-                "$meta": "vectorSearchScore"
-            },
+            "score": {"$meta": "vectorSearchScore"},
         }
     }
 
-    # Define the aggregate pipeline with the vector search stage and additional stages
+    # Define the aggregate pipeline
     pipeline = [vector_search_stage, project_stage]
 
-    # Execute the explain command
-    explain_result = collection.database.command(
-        "explain",
-        {"aggregate": collection.name, "pipeline": pipeline, "cursor": {}},
-        verbosity="executionStats",
-    )
+    try:
+        # Execute the explain command to measure latency
+        explain_result = collection.database.command(
+            "explain",
+            {"aggregate": collection.name, "pipeline": pipeline, "cursor": {}},
+            verbosity="executionStats",
+        )
 
-    # Extract the execution time
-    vector_search_explain = explain_result["stages"][0]["$vectorSearch"]
-    execution_time_ms = vector_search_explain["explain"]["query"]["stats"]["context"][
-        "millisElapsed"
-    ]
+        # Extract the execution time
+        vector_search_explain = explain_result["stages"][0]["$vectorSearch"]
+        execution_time_ms = vector_search_explain["explain"]["query"]["stats"]["context"]["millisElapsed"]
 
-    # Execute the actual query
-    results = list(collection.aggregate(pipeline))
+        # Execute the actual aggregate query
+        results = list(collection.aggregate(pipeline))
 
-    return {"results": results, "execution_time_ms": execution_time_ms}
+        return {
+            "results": results,
+            "execution_time_ms": execution_time_ms,
+        }
+    except Exception as e:
+        print(f"Error during vector search: {e}")
+        return {
+            "error": str(e),
+            "execution_time_ms": None,
+            "results": [],
+        }
