@@ -20,8 +20,9 @@ stream processor named ``solarDemo``:
       #. In the :guilabel:`Source` field, select ``sample_stream_solar``
          from the :guilabel:`Connection` drop-down list.
 
-         This adds the following :pipeline:`$source` stage to your
-         aggregation pipeline:
+         The :pipeline:`$source` stage specifies a connection in the
+         Connection Registry to stream data from. This adds the
+         following ``$source`` stage to your aggregation pipeline:
 
          .. code-block:: json
             :copyable: true
@@ -33,8 +34,10 @@ stream processor named ``solarDemo``:
             }
 
       #. Configure a :pipeline:`$tumblingWindow` stage.
-         
-         In the :guilabel:`Start building your pipeline` pane, click
+
+         A ``$tumblingWindow`` stage divides a continuous stream into
+         fixed, non-overlapping time intervals. In the
+         :guilabel:`Start building your pipeline` pane, click
          :guilabel:`+ Custom stage` and copy and paste the following
          |json| into the text box that appears. This defines a
          :pipeline:`$tumblingWindow` stage with a nested

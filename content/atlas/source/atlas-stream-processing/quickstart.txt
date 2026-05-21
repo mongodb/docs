@@ -5,7 +5,7 @@ Get Started with {+atlas-sp+}
 ========================================
 
 .. meta::
-   :description: Set up and run your first stream processor using Atlas Stream Processing with step-by-step guidance.
+   :description: Set up your first stream processor with Atlas Stream Processing. Create a workspace, add a sink connection, and build a persistent stream processor to ingest and write streaming data to your cluster.
 
 .. default-domain:: mongodb
 
@@ -19,8 +19,10 @@ Get Started with {+atlas-sp+}
    :depth: 2
    :class: singlecol
 
-This tutorial takes you through the steps of setting up {+atlas-sp+}
-and running your first stream processor.
+This tutorial guides you through creating a {+spw+},
+connecting it to an existing {+service+} cluster, and setting up a
+stream processor to ingest sample data from solar streaming devices and
+write the data to your connected cluster.
 
 .. _atlas-sp-tutorial-prereqs:
 
@@ -42,209 +44,320 @@ To complete this tutorial you need:
   Processing Owner` role to manage a {+SPW+} and Connection Registry
 
   .. note::
-     
-     The :authrole:`Project Owner` role allows you to create database 
-     deployments, manage project access and project settings, manage 
+
+     The :authrole:`Project Owner` role allows you to create database
+     deployments, manage project access and project settings, manage
      IP Access List entries, and more.
 
-     The :authrole:`Project Stream Processing Owner` role enables 
-     {+atlas-sp+} actions such as viewing, creating, deleting, and 
-     editing {+spw+}s, and viewing, adding, modifying, 
-     and deleting connections in the connection registry. 
+     The :authrole:`Project Stream Processing Owner` role enables
+     {+atlas-sp+} actions such as viewing, creating, deleting, and
+     editing {+spw+}s, and viewing, adding, modifying,
+     and deleting connections in the connection registry.
 
-     See :ref:`Project Roles <project-roles>` to learn more about the 
+     See :ref:`Project Roles <project-roles>` to learn more about the
      differences between the two roles.
 
 .. _atlas-sp-tutorial-procedure:
 
+
 Procedure
 ---------
+.. composable-tutorial::
+   :options: interface
+   :defaults: atlas-ui
 
-This tutorial guides you through creating an {+spw+},
-connecting it to an existing {+service+} cluster, and setting up a
-stream processor to ingest sample data from solar streaming devices and
-write the data to your connected cluster.
+   .. selected-content::
+      :selections: atlas-ui
 
-.. procedure::
-   :style: normal
+      .. procedure::
+         :style: normal
 
-   .. step:: Create a {+SPW+}.
+         .. step:: Create a {+SPW+}.
 
-      a. .. include:: /includes/nav/list-stream-processing.rst
+            a. .. include:: /includes/nav/list-stream-processing.rst
 
-      #. Click :guilabel:`Create a workspace`. 
+            #. Click :guilabel:`Create a workspace`.
 
-      #. On the :guilabel:`Create a stream processing workspace` 
-         page, configure your workspace as follows:
+            #. On the :guilabel:`Create a stream processing workspace`
+               page, configure your workspace as follows:
 
-         - :guilabel:`Tier`: ``SP30``
-         - :guilabel:`Provider`: ``AWS``
-         - :guilabel:`Region`: ``us-east-1``
-         - :guilabel:`Workspace Name`: ``tutorialWorkspace``
+               - :guilabel:`Tier`: ``SP30``
+               - :guilabel:`Provider`: ``AWS``
+               - :guilabel:`Region`: ``us-east-1``
+               - :guilabel:`Workspace Name`: ``tutorialWorkspace``
 
-      #. Click :guilabel:`Create`.
+            #. Click :guilabel:`Create`.
 
-   .. step:: Add a sink connection to the connection registry.
+         .. step:: Add a sink connection to the connection registry.
 
-      Add a connection to an existing empty {+service+} cluster to your
-      connection registry. Your stream processor will use this
-      connection as a streaming data sink.
+            .. important::
 
-      a. In the pane for your {+spw+}, click :guilabel:`Manage`.
+               If your connection registry already contains a connection
+               named ``mongodb1``, skip this step to use this existing
+               connection as a sink for solar streaming data.
 
-      #. In the :guilabel:`Connection Registry` tab, click
-         :guilabel:`+ Add Connection` in the upper right.
+            Add a connection to an existing empty {+service+} cluster to
+            your connection registry. Your stream processor uses this
+            connection as a streaming data sink. To learn more, see
+            :ref:`atlas-sp-architecture-basics`.
 
-      #. From the :guilabel:`Connection Type` drop-down list, click
-         :guilabel:`Atlas Database`.
-      
-      #. In the :guilabel:`Connection Name` field, enter ``mongodb1``.
+            a. In the pane for your {+spw+}, click :guilabel:`Manage`.
 
-      #. From the :guilabel:`Atlas Cluster` drop-down list, select an
-         {+service+} cluster without any data stored on it.
+            #. In the :guilabel:`Connection Registry` tab, click
+               :guilabel:`+ Add Connection` in the upper right.
 
-      #. From the :guilabel:`Execute as` drop-down list, select
-         :guilabel:`Read and write to any database`. 
+            #. From the :guilabel:`Connection Type` drop-down list,
+               click :guilabel:`Atlas Database`.
 
-      #. Click :guilabel:`Add connection`.
+            #. In the :guilabel:`Connection Name` field, enter
+               ``mongodb1``.
 
-   .. step:: Verify that your streaming data source emits messages.
+            #. From the :guilabel:`Atlas Cluster` drop-down list, select
+               an {+service+} cluster without any data stored on it.
 
-      Your {+spw+} comes preconfigured with a connection to a sample
-      data source called ``sample_stream_solar``. This source
-      generates a stream of reports from various solar power
-      devices. Each report describes the observed wattage and
-      temperature of a single solar device at a specific point in
-      time, as well as that device's maximum wattage. 
-      
-      The following document represents a report from this data source:
-      
-      .. code-block:: json
-         :copyable: true
+            #. From the :guilabel:`Execute as` drop-down list, select
+               :guilabel:`Read and write to any database`.
 
-         {
-           device_id: 'device_8',
-           group_id: 7,
-           timestamp: '2024-08-12T21:41:01.788+00:00',
-           max_watts: 450,
-           event_type: 0,
-           obs: {
-             watts: 252,
-             temp: 17
-           }
-         }
+            #. Click :guilabel:`Add connection`.
 
-      To verify that this source emits messages, create a stream
-      processor interactively using {+mongosh+}: 
+         .. step:: Verify that your streaming data source emits messages.
 
-      a. Connect to your {+spw+}.
+            Your {+spw+} comes preconfigured with a connection to a
+            sample data source called ``sample_stream_solar``. This
+            source generates a stream of reports from various solar
+            power devices. Each report describes the observed wattage
+            and temperature of a single solar device at a specific
+            point in time, as well as that device's maximum wattage.
 
-         Use the connection string associated with your {+spw+}
-         to connect using {+mongosh+}.
+            The following document represents a report from this data
+            source:
 
-         i. In the pane for your {+spw+}, click :guilabel:`Connect`.
+            .. code-block:: json
+               :copyable: true
 
-         #. In the workspace connection dialog, click
-            :guilabel:`Choose a connection method`, then
-            select the :guilabel:`Shell` tab.
+               {
+                  device_id: 'device_8',
+                  group_id: 7,
+                  timestamp: '2024-08-12T21:41:01.788+00:00',
+                  max_watts: 450,
+                  event_type: 0,
+                  obs: {
+                     watts: 252,
+                     temp: 17
+                  }
+               }
 
-         #. Copy the connection string displayed in the dialog. It has
-            the following format, where
-            ``<atlas-stream-processing-url>`` is the URL of your {+spw+}
-            and ``<username>`` is the username of a database user with
-            the :atlasrole:`atlasAdmin` role:
+            To verify that this source emits messages, create a stream
+            processor interactively using {+mongosh+}:
 
-            .. code-block:: sh
+            a. Connect to your {+spw+}.
 
-               mongosh "mongodb://<atlas-stream-processing-url>/" 
-               --tls --authenticationDatabase admin --username <username>  
-               --password <password>   
+               Use the connection string associated with your {+spw+}
+               to connect using {+mongosh+}.
 
-         #. Paste the connection string into your terminal and replace
-            the ``<password>`` placeholder with the credentials for the
-            user. 
-            
-            Press Enter to run it and connect to your {+spw+}.
+               i. In the pane for your {+spw+}, click
+                  :guilabel:`Connect`.
 
-      #. In the {+mongosh+} prompt, use the :method:`sp.process()`
-         method to create the stream processor interactively. 
+               #. In the workspace connection dialog, click
+                  :guilabel:`Choose a connection method`, then
+                  select the :guilabel:`Shell` tab.
 
-         .. code-block::
-            :copyable: true
+               #. Copy the connection string displayed in the dialog.
+                  It has the following format, where
+                  ``<atlas-stream-processing-url>`` is the URL of your
+                  {+spw+} and ``<username>`` is the username of a
+                  database user with the :atlasrole:`atlasAdmin` role:
 
-            sp.process([{"$source": {
-               "connectionName": "sample_stream_solar"
-            }}])
+                  .. code-block:: sh
 
-         Verify that data from the ``sample_stream_solar`` 
-         connection displays to the console, and terminate 
-         the process.
+                     mongosh "mongodb://<atlas-stream-processing-url>/"
+                     --tls --authenticationDatabase admin
+                     --username <username>
+                     --password <password>
 
-         Stream processors you create with ``sp.process()`` don't
-         persist after you terminate them.
+               #. Paste the connection string into your terminal. The
+                  dialog fills in the {+spw+} URL and username
+                  automatically. Replace the ``<password>`` placeholder
+                  with your database user credentials, then press Enter
+                  to connect to your {+spw+}.
 
-   .. step:: Create a persistent stream processor.
+            #. In the {+mongosh+} prompt, use the :method:`sp.process()`
+               method to create the stream processor interactively.
 
-      A persistent stream processor continuously ingests, processes, and
-      writes streaming data to a specified data sink until you drop the
-      processor. The following stream processor is an :ref:`aggregation
-      pipeline <aggregation-pipeline-intro>` that derives the maximum
-      temperature and the average, maximum, and minimum wattages
-      of each solar device across 10-second intervals, then writes the
-      results to your connected empty cluster.
+               .. code-block:: sh
+                  :copyable: true
 
-      Select one of the following tabs to create a stream processor
-      using the {+atlas-ui+} or {+mongosh+}:
+                  sp.process([{"$source": {
+                     "connectionName": "sample_stream_solar"
+                  }}])
 
-      .. tabs::
+               Verify that data from the ``sample_stream_solar``
+               connection displays to the console, and terminate
+               the process.
 
-         .. tab:: {+atlas-ui+}
-            :tabid: atlas-ui 
+               Stream processors you create with :method:`sp.process()`
+               don't persist after you terminate them.
 
-            .. include:: /atlas-stream-processing/steps-getting-started-create-stream-processor-ui.rst
+         .. step:: Create a persistent stream processor.
 
-         .. tab:: {+mongosh+}
-            :tabid: mongosh
+            A persistent stream processor continuously ingests,
+            processes, and writes streaming data to a specified data
+            sink until you drop the processor. The following stream
+            processor is an :ref:`aggregation pipeline
+            <aggregation-pipeline-intro>` that derives the maximum
+            temperature and the average, maximum, and minimum wattages
+            of each solar device across 10-second intervals, then
+            writes the results to your connected empty cluster.
 
-            .. include:: /atlas-stream-processing/steps-getting-started-create-stream-processor-mongosh.rst
+            .. include:: /includes/atlas-stream-processing/getting-started-create-stream-processor-ui.rst
 
-   .. step:: Start the stream processor. 
+         .. step:: Start the stream processor.
 
-      .. tabs:: 
-         
-         .. tab:: {+atlas-ui+}
-            :tabid: atlas-ui 
+            In the list of stream processors for your {+spw+}, click
+            the :guilabel:`Start` icon for your stream processor.
 
-            In the list of stream processors for your {+spw+}, click the
-            :guilabel:`Start` icon for your stream processor.
-
-         .. tab:: {+mongosh+}
-            :tabid: mongosh
-
-            Use the :method:`sp.processor.start()` method in {+mongosh+}:
-
-            .. code-block:: sh
-
-               sp.solarDemo.start()
-
-   .. step:: Verify the output of the stream processor.
-
-      .. tabs:: 
-         
-         .. tab:: {+atlas-ui+}
-            :tabid: atlas-ui 
+         .. step:: Verify the output of the stream processor.
 
             To verify that the stream processor is writing data to your
             {+service+} cluster:
 
             a. .. include:: /includes/nav/list-db-deployments-page.rst
-            
+
             #. .. include:: /includes/nav/list-data-explorer.rst
 
             #. View the ``MySolar`` collection.
 
-         .. tab:: {+mongosh+}
-            :tabid: mongosh
+         .. step:: Drop the stream processor.
+
+            Dropping a stream processor permanently stops it and removes
+            it from your {+spw+}. Dropped stream processors cannot be
+            recovered.
+
+            In the list of stream processors for your {+spw+}, click
+            the :guilabel:`Delete` (:icon:`trash-alt`) icon for your
+            stream processor.
+
+            In the confirmation dialog that appears, type the name of
+            the stream processor (``solarDemo``) to confirm that you
+            want to delete it, and then click :guilabel:`Delete`.
+
+   .. selected-content::
+      :selections: mongosh
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Create a {+SPW+}.
+
+            .. note::
+
+               {+mongosh+} is limited to data-plane operations inside
+               an existing workspace. To create or configure a {+SPW+},
+               use the {+atlas-ui+}, {+atlas-cli+}
+               (``atlas api streams createStreamWorkspace``), or the
+               {+atlas-admin-api+}, {+terraform+}, or {+k8s-op-short+}.
+
+         .. step:: Verify that your streaming data source emits messages.
+
+            Your {+spw+} comes preconfigured with a connection to a
+            sample data source called ``sample_stream_solar``. This
+            source generates a stream of reports from various solar
+            power devices. Each report describes the observed wattage
+            and temperature of a single solar device at a specific
+            point in time, as well as that device's maximum wattage.
+
+            The following document represents a report from this data
+            source:
+
+            .. code-block:: json
+               :copyable: true
+
+               {
+                  device_id: 'device_8',
+                  group_id: 7,
+                  timestamp: '2024-08-12T21:41:01.788+00:00',
+                  max_watts: 450,
+                  event_type: 0,
+                  obs: {
+                     watts: 252,
+                     temp: 17
+                  }
+               }
+
+            To verify that this source emits messages, create a stream
+            processor interactively using {+mongosh+}:
+
+            a. Connect to your {+spw+}.
+
+               Use the connection string associated with your {+spw+}
+               to connect using {+mongosh+}.
+
+               i. In the pane for your {+spw+}, click
+                  :guilabel:`Connect`.
+
+               #. In the workspace connection dialog, click
+                  :guilabel:`Choose a connection method`, then
+                  select the :guilabel:`Shell` tab.
+
+               #. Copy the connection string displayed in the dialog.
+                  It has the following format, where
+                  ``<atlas-stream-processing-url>`` is the URL of your
+                  {+spw+} and ``<username>`` is the username of a
+                  database user with the :atlasrole:`atlasAdmin` role:
+
+                  .. code-block:: sh
+
+                     mongosh "mongodb://<atlas-stream-processing-url>/"
+                     --tls --authenticationDatabase admin
+                     --username <username>
+                     --password <password>
+
+               #. Paste the connection string into your terminal. The
+                  dialog fills in the {+spw+} URL and username
+                  automatically. Replace the ``<password>`` placeholder
+                  with your database user credentials, then press Enter
+                  to connect to your {+spw+}.
+
+            #. In the {+mongosh+} prompt, use the :method:`sp.process()`
+               method to create the stream processor interactively.
+
+               .. code-block:: sh
+                  :copyable: true
+
+                  sp.process([{"$source": {
+                     "connectionName": "sample_stream_solar"
+                  }}])
+
+               Verify that data from the ``sample_stream_solar``
+               connection displays to the console, and terminate
+               the process.
+
+               Stream processors you create with :method:`sp.process()`
+               don't persist after you terminate them.
+
+         .. step:: Create a persistent stream processor.
+
+            A persistent stream processor continuously ingests,
+            processes, and writes streaming data to a specified data
+            sink until you drop the processor. The following stream
+            processor is an :ref:`aggregation pipeline
+            <aggregation-pipeline-intro>` that derives the maximum
+            temperature and the average, maximum, and minimum wattages
+            of each solar device across 10-second intervals, then
+            writes the results to your connected empty cluster.
+
+            .. include:: /includes/atlas-stream-processing/getting-started-create-stream-processor-mongosh.rst
+
+         .. step:: Start the stream processor.
+
+            Use the :method:`sp.processor.start()` method in
+            {+mongosh+}:
+
+            .. code-block:: sh
+
+               sp.solarDemo.start()
+
+         .. step:: Verify the output of the stream processor.
 
             To verify that the processor is active, use the
             :method:`sp.processor.stats()` method in {+mongosh+}:
@@ -254,59 +367,47 @@ write the data to your connected cluster.
 
                sp.solarDemo.stats()
 
-            This method reports operational statistics of the 
-            ``solarDemo`` stream processor. 
+            This method reports operational statistics of the
+            ``solarDemo`` stream processor.
 
             You can also use the :method:`sp.processor.sample()` method
             in {+mongosh+} to return a sampling of processed documents
             in the terminal.
 
-            .. io-code-block:: 
-                :copyable: 
-               
-                .. input:: 
-                   :language: shell
-                   
-                   sp.solarDemo.sample()
+            .. io-code-block::
+               :copyable:
 
-                .. output:: 
-               	   :language: json
-                   :visible: false
-                   
-                   {
-                     _id: 10,
-                     max_temp: 16,
-                     avg_watts: 232,
-                     max_watts: 414,
-                     min_watts: 73
-                   }
+               .. input::
+                  :language: shell
+
+                  sp.solarDemo.sample()
+
+               .. output::
+                  :language: javascript
+                  :visible: false
+
+                     {
+                        _id: 10,
+                        max_temp: 16,
+                        avg_watts: 232,
+                        max_watts: 414,
+                        min_watts: 73
+                     }
 
             .. note::
 
-               The preceding output is a representative example. Streaming
-               data are not static, and each user sees distinct
-               documents.
+               The preceding output is a representative example.
+               Streaming data are not static, and each user sees
+               distinct documents.
 
-   .. step:: Drop the stream processor.
+         .. step:: Drop the stream processor.
 
-      .. tabs:: 
-         
-         .. tab:: {+atlas-ui+}
-            :tabid: atlas-ui 
+            Dropping a stream processor permanently stops it and removes
+            it from your {+spw+}. Dropped stream processors cannot be
+            recovered.
 
-            In the list of stream processors for your {+spw+}, click the
-            :guilabel:`Delete` (:icon:`trash-alt`) icon for your stream
-            processor. 
-
-            In the confirmation dialog that appears, type the name of the
-            stream processor (``solarDemo``) to confirm that you want to
-            delete it, and then click :guilabel:`Delete`.
-
-         .. tab:: {+mongosh+}
-            :tabid: mongosh
-
-            Use the :method:`sp.processor.drop()` method in {+mongosh+} to
-            drop ``solarDemo``:
+            Use the :method:`sp.processor.drop()` method in {+mongosh+}
+            to drop ``solarDemo``:
 
             .. code-block:: sh
                :copyable: true

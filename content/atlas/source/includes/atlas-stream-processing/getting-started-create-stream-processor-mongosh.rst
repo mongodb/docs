@@ -1,7 +1,10 @@
-Run the following commands in {+mongosh+} to create a persistent stream
-processor named ``solarDemo``:
+Run the following commands at the {+mongosh+} prompt to create a
+persistent stream processor named ``solarDemo``:
 
 a. Connect to your {+spw+}.
+
+   If you are still connected to your {+spw+} from the previous
+   step, skip to substep b.
 
    Use the connection string associated with your {+spw+}
    to connect using {+mongosh+}.
@@ -23,16 +26,16 @@ a. Connect to your {+spw+}.
          --tls --authenticationDatabase admin --username <username>  
          --password <password>   
 
-   #. Paste the connection string into your terminal and replace
-      the ``<password>`` placeholder with the credentials for the
-      user. 
-      
-      Press Enter to run it and connect to your {+spw+}.
+   #. Paste the connection string into your terminal. The dialog
+      fills in the {+spw+} URL and username automatically.
+      Replace the ``<password>`` placeholder with your database
+      user credentials, then press Enter to connect to your {+spw+}.
 
 #. Configure a :pipeline:`$source` stage.
 
-   Define a variable for a ``$source`` stage that ingests data from the
-   ``sample_stream_solar`` source.
+   Define a variable for a ``$source`` stage to specify
+   ``sample_stream_solar`` as the connection in the Connection
+   Registry to stream data from.
 
    .. code-block:: sh
       :copyable: true
@@ -45,9 +48,11 @@ a. Connect to your {+spw+}.
 	   
 #. Configure a :pipeline:`$group` stage.
 
-   Define a variable for a ``$group`` stage that derives the maximum
-   temperature and the average, maximum, and minimum wattages
-   of each solar device according to its ``group_id``.
+   The ``$group`` stage combines multiple documents that share the
+   same group key into a single output document. Define a variable
+   for a ``$group`` stage that groups documents by ``group_id`` and
+   derives the maximum temperature and the average, maximum, and
+   minimum wattages of each group.
 
    .. code-block:: sh
       :copyable: true
@@ -72,15 +77,17 @@ a. Connect to your {+spw+}.
 
 #. Configure a :pipeline:`$tumblingWindow` stage.
 
-   In order to perform accumulations such as ``$group`` on streaming
-   data, {+atlas-sp+} uses :ref:`windows <atlas-sp-windows>` to bound
-   the data set. Define a variable for a ``$tumblingWindow`` stage that
-   separates the stream into consecutive 10-second intervals.
+   A ``$tumblingWindow`` stage divides a continuous stream into
+   fixed, non-overlapping time intervals. To perform accumulations
+   such as ``$group`` on streaming data, {+atlas-sp+} uses
+   :ref:`windows <atlas-sp-windows>` to bound the data set. Define
+   a variable for a ``$tumblingWindow`` stage that separates the
+   stream into consecutive 10-second intervals.
 
-   This means, for example, that when the ``$group`` stage
-   computes a value for ``max_watts``, it extracts the maximum
-   value from the ``obs.watts`` values for all documents with a
-   given ``group_id`` ingested in the previous 10 seconds.
+   For example, when the ``$group`` stage computes a value for
+   ``max_watts``, it extracts the maximum value from the
+   ``obs.watts`` values for all documents with a given
+   ``group_id`` ingested in the previous 10 seconds.
 
    .. code-block:: sh
       :copyable: true
@@ -96,10 +103,11 @@ a. Connect to your {+spw+}.
      }
 
 #. Configure a :ref:`$merge <atlas-sp-agg-merge>` stage.
-   
-   Define a variable for a ``$merge`` stage that writes the processed
-   streaming data to a collection named ``solarColl`` in the ``solarDb``
-   database of your connected {+service+} cluster.
+
+   Use the ``$merge`` stage to write your processed streaming data
+   to an {+service+} database. Define a variable for a ``$merge``
+   stage that writes to a collection named ``solarColl`` in the
+   ``solarDb`` database of your connected {+service+} cluster.
 
    .. code-block:: sh
       :copyable: true
@@ -135,4 +143,4 @@ a. Connect to your {+spw+}.
    of observations from your solar devices.
 
    To learn more about how {+atlas-sp+} writes to at-rest
-   databases, see :ref:`<atlas-sp-agg-merge>`.
+   databases, see :ref:`atlas-sp-agg-merge`.
