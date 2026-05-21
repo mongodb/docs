@@ -37,8 +37,7 @@
    
           Default value is 16Gi.
    
-          For example, if each :manual:`sharded cluster
-          </reference/glossary/#std-term-sharded-cluster>` shard member
+          For example, if each :term:`sharded cluster` shard member
           in requires 60 gigabytes of storage space, set this value to ``60Gi``.
    
       * - ``storageClass``

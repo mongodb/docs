@@ -23,5 +23,5 @@
    
    .. seealso::
    
-      :manual:`LDAP Query Templates </core/security-ldap-external/#ldap-query-template>` in the MongoDB Manual   
+      :ref:`LDAP Query Templates <ldap-query-template>` in the MongoDB Manual   
 

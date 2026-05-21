@@ -10,6 +10,6 @@
    
    For example, a member with a ``memberConfig.priority`` of ``1.5`` is more likely than a member with a ``memberConfig.priority`` of ``0.5`` to become the primary. 
    
-   A member with a ``memberConfig.priority`` of ``0`` is ineligible to become the primary. To learn more, see :manual:`Member Priority </core/replica-set-elections/#voting-members>`.
+   A member with a ``memberConfig.priority`` of ``0`` is ineligible to become the primary. To learn more, see :ref:`Member Priority <replica-set-elections>`.
    
 

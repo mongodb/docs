@@ -14,7 +14,7 @@
      - string
      - Required
      - Use this setting to enable
-       :manual:`X.509 internal cluster authentication </tutorial/configure-x509-member-authentication#x509-internal-authentication>`.
+       :ref:`X.509 internal cluster authentication <x509-internal-authentication>`.
 
        :gold:`IMPORTANT:` Once internal cluster authentication is
        enabled, it can't be disabled.

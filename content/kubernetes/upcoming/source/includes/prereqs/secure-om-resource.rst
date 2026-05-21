@@ -1,7 +1,7 @@
 - Complete the :ref:`Prerequisites <om-rsrc-prereqs>`.
 - Read the :ref:`Considerations <om-rsrc-considerations>`.
 - Create one |tls| certificate for the Application
-  Database's :manual:`replica set </reference/glossary/#std-term-replica-set>`.
+  Database's :term:`replica set`.
 
   This |tls| certificate requires the following attributes:
 

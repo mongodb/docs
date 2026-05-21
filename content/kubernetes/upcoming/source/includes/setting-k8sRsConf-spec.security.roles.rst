@@ -3,8 +3,7 @@
    *Type*: array
 
    
-   Array that defines :manual:`User-defined roles
-   </core/security-user-defined-roles/>` that give you
+   Array that defines :ref:`User-defined roles <user-defined-roles>` that give you
    fine-grained access control over your MongoDB deployment.
    
    To enable user-defined roles, the

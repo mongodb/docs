@@ -4,9 +4,9 @@ contains the following information about the new database user:
 
 - ``username``: Username for the database user
 - ``password``: Password for the database user
-- ``connectionString.standard``: :manual:`Standard connection string </reference/connection-string/#std-label-connections-standard-connection-string-format>`
+- ``connectionString.standard``: :ref:`Standard connection string <connections-standard-connection-string-format>`
   that can connect you to the database as this database user.
-- ``connectionString.standardSrv``: :manual:`DNS seed list connection string </reference/connection-string/#dns-seed-list-connection-format>` that can
+- ``connectionString.standardSrv``: :ref:`DNS seed list connection string <dns-seed-list-connection-format>` that can
   connect you to the database as this database user.
 
 .. note::

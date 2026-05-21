@@ -16,8 +16,7 @@
 - Generate one X.509 certificate for the replica set members to
   authenticate to each other. To learn about the requirements for X.509
   certificates for internal cluster authentication, see the
-  :manual:`MongoDB Manual
-  </core/security-internal-authentication/#x.509>`.
+  :ref:`MongoDB Manual <internal-auth-x509>`.
 
   Ensure that you add |san-dns|\s for each |k8s| pod 
   that hosts a member of your replica set to the certificate. The |san-dns|

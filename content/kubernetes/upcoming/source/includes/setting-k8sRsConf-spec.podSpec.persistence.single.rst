@@ -35,8 +35,7 @@
    
           Default value is 16Gi.
    
-          For example, if :manual:`replica set
-          </reference/glossary/#std-term-replica-set>` in requires 60
+          For example, if :term:`replica set` in requires 60
           gigabytes of storage space, set this value to ``60Gi``.
    
       * - ``storageClass``

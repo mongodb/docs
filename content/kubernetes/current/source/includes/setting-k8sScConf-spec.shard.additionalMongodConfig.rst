@@ -4,7 +4,7 @@
 
    Additional :opsmgr:`configuration options
    </reference/deployment-advanced-options/>` with
-   which you want to start each :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` shard member.
+   which you want to start each :term:`sharded cluster` shard member.
    
    The |k8s-op-short| supports all configuration options that the MongoDB
    version you deploy through the {+mdbagent+} supports, except that the 

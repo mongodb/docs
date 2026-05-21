@@ -8,5 +8,5 @@
    
    .. seealso::
    
-      :manual:`security.ldap.userToDNMapping </reference/configuration-options/#security.ldap.userToDNMapping>` in the MongoDB Manual   
+      :setting:`security.ldap.userToDNMapping` in the MongoDB Manual
 

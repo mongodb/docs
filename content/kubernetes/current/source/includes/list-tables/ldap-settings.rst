@@ -72,10 +72,8 @@
        :binary:`~bin.mongod` or :binary:`~bin.mongos` for authentication
        to an LDAP Distinguished Name (DN).
 
-       To learn more, see :manual:`security.ldap.userToDNMapping
-       </reference/configuration-options/#security.ldap.userToDNMapping>`
-       and :manual:`LDAP Query Templates
-       </core/security-ldap-external/#ldap-query-template>` in the
+       To learn more, see :setting:`security.ldap.userToDNMapping`
+       and :ref:`LDAP Query Templates <ldap-query-template>` in the
        MongoDB Server documentation.
      - ``<match: "(.+)",substitution: "uid={0},ou=groups,dc=example,dc=org">``
 
