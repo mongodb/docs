@@ -1,8 +1,6 @@
 .. procedure::
    :style: normal
-      
-   .. include:: /includes/nav/steps-db-deployments-page.rst
-      
+            
    .. include:: /includes/nav/steps-online-archive.rst
       
    .. step:: Click :icon-mms:`ellipsis` for the online archive for which you want to download query logs and select :guilabel:`Download Online Archive Query Logs` from the dropdown.

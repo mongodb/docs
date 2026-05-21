@@ -1,8 +1,6 @@
 .. procedure::
    :style: normal
-      
-   .. include:: /includes/nav/steps-db-deployments-page.rst
-      
+            
    .. include:: /includes/nav/steps-online-archive.rst
       
    .. step:: Click the ellipsis (``...``) in the :guilabel:`Actions` column for the online archive to display the list of allowed actions.
