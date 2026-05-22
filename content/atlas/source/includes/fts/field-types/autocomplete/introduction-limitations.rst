@@ -20,5 +20,12 @@ You can also use the |fts-field-type| type to index:
    To learn more, see |fts| :ref:`Index Performance Considerations
    <index-size-and-config>`. 
 
-.. include:: /includes/fts/extracts/fts-configure-dynamic-index.rst 
+- The ``autocomplete`` type is not included in the default set of types
+  that |fts| uses for :ref:`dynamic mappings <fts-dynamic-mappings>`. To
+  dynamically index string fields as the ``autocomplete`` type, you can
+  include the ``autocomplete`` type in a custom ``typeSet`` definition.
+  However, ``autocomplete`` has unique performance, storage, and scoring
+  characteristics that might not be suitable for dynamic mappings. We
+  recommend using ``autocomplete`` in static mappings only. To learn
+  more, see :ref:`index-perf`.
     

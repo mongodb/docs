@@ -29,18 +29,26 @@ using the following methods:
 Data Type Limitations
 ---------------------
 
-By default, |fts| stops replicating changes for indexes larger than 2.1 billion
-index objects on a replica set or single shard, where each indexed document 
-or nested ``embeddedDocument`` counts as a single object. This means that your 
-index remains queryable, but you might get stale results.
+- By default, |fts| stops replicating changes for indexes larger than 2.1 billion
+  index objects on a replica set or single shard, where each indexed document 
+  or nested ``embeddedDocument`` counts as a single object. This means that your 
+  index remains queryable, but you might get stale results.
 
-If you plan to index fields that might exceed 2.1 billion objects, 
-where an index object is a top-level document or an embedded document,
-use the :ref:`numPartitions <fts-index-partition>` index option to
-partition your index (supported only on Search Nodes deployment) 
-or :ref:`shard your cluster <create-cluster-sharding>`.
+  If you plan to index fields that might exceed 2.1 billion objects, 
+  where an index object is a top-level document or an embedded document,
+  use the :ref:`numPartitions <fts-index-partition>` index option to
+  partition your index (supported only on Search Nodes deployment) 
+  or :ref:`shard your cluster <create-cluster-sharding>`.
 
-.. include:: /includes/fts/facts/fact-fts-field-name-restriction.rst
+- .. include:: /includes/fts/facts/fact-fts-field-name-restriction.rst
+
+- The :ref:`autocomplete <bson-data-types-autocomplete>` field type can
+  create large indexes and take longer to build than other field types.
+  While you can use the ``autocomplete`` type in dynamic mappings by
+  including it in a custom ``typeSet`` definition, we recommend using
+  the ``autocomplete`` type in static mappings only to avoid unintended
+  performance, storage, and scoring implications. To learn more, see
+  :ref:`bson-data-types-autocomplete` and :ref:`index-perf`.
 
 Syntax
 ------
@@ -426,152 +434,133 @@ that you can use to query the field values.
 Examples
 --------
 
-The following examples use the ``sample_mflix.movies`` collection to
-demonstrate how to configure the fields to index using dynamic and
-static mappings. If you load the sample data, you can create these
-indexes on the collection. To learn how to create |fts| indexes, see
-:ref:`create-fts-index`.
+The following sample index definitions on the :ref:`sample_mflix.movies
+<mflix-movies>` collection demonstrate how to index fields using dynamic
+and static mappings. You can :ref:`load the sample data
+<load-sample-data>` on your cluster to try the examples. To learn more
+about how to create |fts| indexes, see :ref:`create-fts-index`.
 
 .. _fts-dynamic-mapping-examples: 
 
 Dynamic Mapping Examples 
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following index definition examples demonstrate dynamic mappings.
+The following sample index definitions demonstrate how to use dynamic
+mappings.
 
-.. collapsible::
-   :heading: Use a typeSet with Dynamic Mapping 
-   :sub_heading: Configure dynamic mappings to automatically index only specified field types using custom typeSet definition.
+.. collapsible:: 
+   :heading: Simple Index
+   :sub_heading: Enable dynamic mappings to automatically index string field types.
    :expanded: false
 
-   The following index definition configures dynamic mappings for the
-   specified field types. It indexes: 
-
-   - All numeric values in the collection as the ``number`` field type
-     using the default settings for that type.
-   - All string values in the collection as the ``autocomplete`` type
-     using the ``edgeGram`` tokenization strategy with a minimum of four 
-     and maximum of ten characters per token.
+   The following index definition: 
+   
+   - Enables dynamic mappings at the root level to automatically index
+     fields in the collection based on the ``typeSet`` definition named
+     ``only_strings``, which indexes string fields in the collection
+     with the ``positions`` index option and with ``store`` set to
+     ``false``. These configuration options save disk space by not
+     storing the field values or term offsets for query highlighting.
 
    .. code-block:: json 
-        
+
       {
         "mappings": {
           "dynamic": {
-            "typeSet": "movieFieldTypes"
+            "typeSet": "only_strings"
           }
         },
         "typeSets": [
           {
-            "name": "movieFieldTypes",
+            "name": "only_strings",
             "types": [
               {
-                "type": "number"
-              },
-              {
-                "type": "autocomplete",
-                "analyzer": "lucene.standard",
-                "tokenization": "edgeGram",
-                "minGrams": 4,
-                "maxGrams": 10
+                "type": "string",
+                "store": false,
+                "indexOptions": "positions"
               }
             ]
           }
         ]
       }
 
-.. collapsible::
-   :heading: Multiple Dynamic Mapping Configuration
-   :sub_heading: Configure different dynamic mappings at the root level and for nested fields using custom typeSet definition.
+.. collapsible:: 
+   :heading: Dynamically Index a Nested Document
+   :sub_heading: Enable dynamic mappings within a document-type field to automatically index nested fields.
    :expanded: false
 
-   This index definition: 
+   The following index definition:
 
-   - Specifies the default index analyzer as :ref:`lucene.standard
-     <ref-standard-analyzer>`.
-   - Specifies the default search analyzer as :ref:`lucene.standard
-     <ref-standard-analyzer>`. You can change the search analyzer 
-     if you want the query term to be parsed differently than how it 
-     is stored in your |fts| index.
-   - Configures automatic indexing of all ``string`` fields at the root
-     level as the following field types using the ``typeSet`` named
-     ``first``:  
-
-     - ``token`` type using default settings for the type.
-     - ``autocomplete`` type using default settings for the type. 
+   - Enables dynamic mappings at the root level to dynamically index
+     fields in the collection based on the ``typeSet`` named
+     ``only_strings``, which indexes string fields in the collection
+     with the ``positions`` index option and with ``store`` set to
+     ``false``, which saves disk space by not storing the field values
+     or term offsets for query highlighting.
+   - Indexes the ``awards`` field as the ``document`` type and uses the
+     ``dynamic`` option with the ``only_numbers`` ``typeSet`` to
+     dynamically index only the numeric sub-fields in the ``awards``
+     document. This means that the numeric sub-fields ``wins`` and
+     ``nominations`` are indexed, but the string sub-field ``text`` is
+     not indexed.
    
-   - Specifies static mapping for the ``awards`` document, which
-     contains fields with numeric and text values. However, the index
-     definition configures automatic indexing of only fields of type
-     ``number`` in the document using the ``typeSet`` named ``second``.  
-
    .. code-block:: json 
 
       {
         "mappings": {
           "dynamic": {
-            "typeSet": "first"
+            "typeSet": "only_strings"
           },
           "fields": {
             "awards": {
               "type": "document",
               "dynamic": {
-                "typeSet": "second"
+                "typeSet": "only_numbers"
               }
             }
           }
         },
         "typeSets": [
           {
-            "name": "first",
-            "types": [
-              {
-                "type": "token"
-              },
-              {
-                "type": "autocomplete"
-              }
-            ]
-          },
-          {
-            "name": "second",
+            "name": "only_numbers",
             "types": [
               {
                 "type": "number"
               }
             ]
+          },
+          {
+            "name": "only_strings",
+            "types": [
+              {
+                "type": "string",
+                "store": false,
+                "indexOptions": "positions"
+              }
+            ]
           }
         ]
       }
-
+   
 .. collapsible::
-   :heading: Exclude Fields Example
-   :sub_heading: Configure dynamic mappings, but exclude fields from being indexed using static mappings.
+   :heading: Exclude Fields from Index
+   :sub_heading: Dynamically map specific field types except for specified fields.
    :expanded: false
 
-   This index definition: 
+   The following index definition: 
 
-   - Specifies the default index analyzer as :ref:`lucene.standard
-     <ref-standard-analyzer>`.
-   - Specifies the default search analyzer as :ref:`lucene.standard
-     <ref-standard-analyzer>`. You can change the search analyzer 
-     if you want the query term to be parsed differently than how it 
-     is stored in your |fts| index.
    - Configures dynamic mappings for specific field types using the
-     ``typeSet`` named ``indexedTypes``, which specifies the following behavior:
+     ``typeSet`` named ``indexedTypes``, which specifies the following
+     behavior:
 
-     - Automatically index the fields of type ``string`` as the
-       ``token`` type. 
-     - Automatically index the fields of type ``number`` as the 
-       ``number`` type. 
+     - Automatically index string fields as the ``token`` type. 
+     - Automatically index numeric fields as the ``number`` type. 
 
    - Excludes the ``plot`` field from being indexed.
 
    .. code-block:: json 
 
-      {
-        "analyzer": "lucene.standard",
-        "searchAnalyzer": "lucene.standard",       
+      {    
         "mappings": {
           "dynamic": {
             "typeSet": "indexedTypes"
@@ -600,56 +589,58 @@ The following index definition examples demonstrate dynamic mappings.
 Static Mapping Example 
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The following index definition example demonstrates static mappings. 
+The following sample index definitions demonstrate how to use static
+mappings. 
 
 .. collapsible::
-   :heading: Simple Example
-   :sub_heading: Disable dynamic mappings, but define individual fields for indexing.
+   :heading: Simple Index
+   :sub_heading: Disable dynamic mappings and define individual fields for indexing.
    :expanded: false
 
-   - Specifies the default index analyzer as :ref:`lucene.standard
-     <ref-standard-analyzer>`.
-   - Specifies the default search analyzer as :ref:`lucene.standard
-     <ref-standard-analyzer>`. You can change the search analyzer 
-     if you want the query term to be parsed differently than how it 
-     is stored in your |fts| index.
-   - Specifies static field mappings (``dynamic``: ``false``), which
-     means fields that are not explicitly mentioned are not indexed. So,
-     the index definition includes: 
+   The following index definition:
+
+   - Specifies static field mappings at the root level (``dynamic``:
+     ``false``), which means that fields that are not specified in
+     ``mappings.fields`` are not indexed. The index definition
+     explicitly includes the following fields for indexing: 
 
      - The ``awards`` field, which is of type ``document``. It has 
        three embedded sub-fields, ``wins``, ``nominations`` and
        ``text``.
         
-       The ``wins`` and ``nominations`` sub-fields uses the
-       :ref:`lucene.standard <ref-standard-analyzer>` analyzer by default
-       for queries. |fts| indexes ``int64`` values in the ``nominations``
-       field. 
+       The ``wins`` and ``nominations`` sub-fields contain numeric data
+       and are indexed as the type ``number``. ``nominations`` is
+       indexed with the ``int64`` representation, which allows it to
+       support larger integer values than the default ``number`` type.
 
-       The ``text`` sub-field uses the :ref:`lucene.english
-       <ref-language-analyzers>` analyzer by default for queries. It uses 
-       the ``ignoreAbove`` option to ignore any string of more than 255
-       bytes in length. 
+       The ``text`` sub-field contains string data and is indexed as the
+       ``string`` type using the :ref:`lucene.english
+       <ref-language-analyzers>` analyzer, which is optimized for
+       English text. The ``text`` field also uses the ``ignoreAbove``
+       option to ignore any string of more than 255 characters in
+       length.
 
-     - The ``title`` field, which is of type ``string``. It uses 
-       the :ref:`lucene.whitespace <ref-whitespace-analyzer>` 
-       analyzer by default for queries. It has a ``multi`` analyzer 
-       named ``mySecondaryAnalyzer`` which uses the 
-       :ref:`lucene.french <ref-language-analyzers>` analyzer by 
-       default for queries.
+     - The ``title`` field, which contains string data and is indexed as
+       type ``string`` using the :ref:`lucene.whitespace
+       <ref-whitespace-analyzer>` analyzer, which is optimized for text
+       that contains a lot of whitespace, such as product names or
+       titles. The ``title`` field uses the :ref:`multi
+       <ref-multi-analyzers>` option to specify the :ref:`lucene.french
+       <ref-language-analyzers>` analyzer as a secondary analyzer. This
+       allows you to specify ``{ "value": "title", "multi":
+       "frenchAnalyzer" }`` as the ``path`` in your :pipeline:`$search`
+       queries to better target French query terms.
 
-     - The ``genres`` field, which is an array of strings. It 
-       uses the :ref:`lucene.standard <ref-standard-analyzer>` 
-       analyzer by default for queries. For indexing arrays, |fts| 
-       only requires the data type of the array elements. You don't 
-       have to specify that the data is contained in an array in the 
-       index definition.
+     - The ``genres`` field, which contains an array of strings and is
+       indexed as the type ``string``. |fts| indexes the array elements
+       using the :ref:`lucene.standard <ref-standard-analyzer>` analyzer
+       by default. For indexing arrays, |fts| only requires the data
+       type of the array elements. You don't have to specify that the
+       data is contained in an array in the index definition.
 
    .. code-block:: json
 
       {
-        "analyzer": "lucene.standard",
-        "searchAnalyzer": "lucene.standard",
         "mappings": {
           "dynamic": false,
           "fields": {
@@ -674,15 +665,14 @@ The following index definition example demonstrates static mappings.
               "type": "string",
               "analyzer": "lucene.whitespace",
               "multi": {
-                "mySecondaryAnalyzer": {
+                "frenchAnalyzer": {
                   "type": "string",
                   "analyzer": "lucene.french"
                 }
               }
             },
             "genres": {
-              "type": "string", 
-              "analyzer": "lucene.standard"
+              "type": "string"
             }
           }
         }
@@ -697,60 +687,41 @@ The following index definition examples combine dynamic mappings
 with static mappings. 
 
 .. collapsible::
-   :heading: Simple Example
+   :heading: Simple Index
    :sub_heading: Disable dynamic mappings at the root level, but define static mappings and enable dynamic mappings for nested fields.
    :expanded: false
 
    This index definition:
 
-   - Specifies the default index analyzer as :ref:`lucene.standard
-     <ref-standard-analyzer>`.
-   - Specifies the default search analyzer as :ref:`lucene.standard
-     <ref-standard-analyzer>`. You can change the search analyzer 
-     if you want the query term to be parsed differently than how it 
-     is stored in your |fts| index.
    - Specifies static field mappings (``dynamic``: ``false``), which
      means fields and field types that aren't explicitly mentioned
      aren't indexed. So, the index definition includes: 
 
-     - The ``title`` field, which is of type ``string``. It uses 
-       the :ref:`lucene.whitespace <ref-whitespace-analyzer>` 
-       analyzer by default for queries. It has a ``multi`` analyzer 
-       named ``mySecondaryAnalyzer`` which uses the 
-       :ref:`lucene.french <ref-language-analyzers>` analyzer by 
-       default for queries.
-     - The ``genres`` field, which is an array of strings. It 
-       uses the :ref:`lucene.standard <ref-standard-analyzer>` 
-       analyzer by default for queries. 
-     - The ``awards`` field, which is of type ``document``. It has 
-       three embedded sub-fields, ``wins``, ``nominations`` and
-       ``text``. Instead of explicitly mentioning each nested field in
-       the document, the index definition enables dynamic mapping for
-       all the sub-fields in the document. It uses the
-       :ref:`lucene.standard <ref-standard-analyzer>` analyzer by
-       default for queries.   
+     - The ``title`` field, which contains string data and is indexed as
+       the ``string`` type using the :ref:`lucene.whitespace
+       <ref-whitespace-analyzer>` analyzer, which is optimized for text
+       that contains a lot of whitespace, such as product names or
+       titles.
+     - The ``awards`` field, which is of type ``document`` and contains
+       three sub-fields. The ``wins`` and ``nominations`` sub-fields
+       contain numeric data, and the ``text`` sub-field contains string
+       data. Instead of explicitly setting the data type for each nested
+       field in the document, the index definition enables dynamic
+       mapping for all the sub-fields in the document. This indexes
+       ``wins`` and ``nominations`` as the ``number`` type, and ``text``
+       as the ``string`` type. Data in the ``text`` field is indexed
+       using the :ref:`lucene.standard <ref-standard-analyzer>` analyzer
+       by default.
 
      .. code-block:: json
 
         {
-          "analyzer": "lucene.standard",
-          "searchAnalyzer": "lucene.standard",
           "mappings": {
             "dynamic": false,
             "fields": {
               "title": {
                 "type": "string",
-                "analyzer": "lucene.whitespace",
-                "multi": {
-                  "mySecondaryAnalyzer": {
-                    "type": "string",
-                    "analyzer": "lucene.french"
-                  }
-                }
-              },
-              "genres": {
-                "type": "string",
-                "analyzer": "lucene.standard"
+                "analyzer": "lucene.whitespace"
               },
               "awards": {
                 "type": "document",
@@ -761,44 +732,35 @@ with static mappings.
         }
 
 .. collapsible::
-   :heading: Complex Example
-   :sub_heading: Configure dynamic mappings for specific field types and define static mappings for individual fields.
+   :heading: Complex Index
+   :sub_heading: Set static mappings at the root level, and dynamically map a nested field using a custom typeSet definition.
    :expanded: false 
 
-   This index definition: 
+   This index definition:
 
-   - Specifies the default index analyzer as :ref:`lucene.standard
-     <ref-standard-analyzer>`.
-   - Specifies the default search analyzer as :ref:`lucene.standard
-     <ref-standard-analyzer>`. You can change the search analyzer 
-     if you want the query term to be parsed differently than how it 
-     is stored in your |fts| index.
-   - Specifies static field mappings (``dynamic``: ``false``), which
-     means fields and field types that aren't explicitly mentioned
-     aren't indexed. So, the index definition includes only the
-     ``awards`` field, which is of type ``document``. 
-      
-     The ``awards`` field has three embedded sub-fields, ``wins``,
-     ``nominations``, and ``text``. Instead of automatically
-     indexing all the fields in the document by explicitly setting
-     ``dynamic`` to ``true`` or by explicitly indexing each 
-     nested field in the document using static mappings, the index
-     definition configures dynamic mappings for the ``document`` field
-     type using the field types definition named ``movieAwards``: 
+   - Specifies static field mappings at the root level (``dynamic``:
+     ``false``), which means that fields that aren't specified in the
+     ``mappings.fields`` option aren't indexed. 
+   - Defines dynamic mappings for the ``awards`` field, which is of type
+     ``document``, using the custom ``typeSet`` named ``movieAwards``.
+     The ``awards`` field has three embedded sub-fields: ``wins``,
+     ``nominations``, and ``text``. Instead of automatically indexing
+     the sub-fields by setting ``dynamic`` to ``true`` at the root level
+     or by explicitly indexing each nested field using static mappings,
+     the index definition configures dynamic mappings for the
+     ``document`` field type using the ``typeSet`` definition named
+     ``movieAwards``. The ``movieAwards`` ``typeSet`` does the
+     following:
 
-     - Index fields of type ``string`` using both
-       ``lucene.english`` and ``lucene.french`` analyzers. 
-     - Index fields of type ``number`` using the default settings
-       for the ``number`` type. 
-     - Index fields of type ``string`` as also ``autocomplete``
-       type using ``edgeGram`` tokenization strategy to create
-       tokens between three to five characters in length. 
+     - Indexes string fields as the ``string`` type using the
+       :ref:`multi <ref-multi-analyzers>` option to specify multiple
+       analyzers: ``lucene.english`` and ``lucene.french``. 
+     - Indexes numeric fields as type ``number`` using the default
+       settings for the ``number`` type.
 
        .. code-block:: json 
 
-          {
-            "analyzer": "lucene.standard",
-            "searchAnalyzer": "lucene.standard",           
+          {      
             "mappings": {
               "dynamic": false,
               "fields": {
@@ -829,85 +791,11 @@ with static mappings.
                   },
                   {
                     "type": "number"
-                  },
-                  {
-                    "type": "autocomplete",
-                    "analyzer": "lucene.standard",
-                    "tokenization": "edgeGram",
-                    "minGrams": 3,
-                    "maxGrams": 5,
-                    "foldDiacritics": false
                   }
                 ]
               }
             ]
           }
-
-.. collapsible::
-   :heading: Multiple Field Type Definition Example
-   :sub_heading: Configure dynamic mappings at the root level and inside static mappings for nested fields.
-   :expanded: false 
-
-   In this index definition: 
-
-   - The default index analyzer is :ref:`lucene.standard
-     <ref-standard-analyzer>`.
-   - The default search analyzer is :ref:`lucene.standard
-     <ref-standard-analyzer>`. You can change the search analyzer 
-     if you want the query term to be parsed differently than how it 
-     is stored in your |fts| index.
-   - The index specifies dynamic mappings for the field types defined
-     in the ``typeSet`` definition named ``first``. The ``first``
-     ``typeSet`` definition indexes all fields of type ``string``
-     as the ``token`` type and all fields of type ``number`` as the
-     ``number`` type using default settings for the field types. 
-   - The index definition specifies static mappings for the
-     ``awards`` field, but configures dynamic mappings for fields
-     in the ``awards`` document using the ``typeSet`` named
-     ``second``. The ``second`` field type definition indexes all
-     fields of type ``string`` in the ``awards`` document as
-     ``autocomplete`` type using default settings for that type.
-
-   .. code-block:: json 
-
-      {
-        "analyzer": "lucene.standard",
-        "searchAnalyzer": "lucene.standard",    
-        "mappings": {
-          "dynamic": {
-            "typeSet": "first"
-          },
-          "fields": {
-            "awards": {
-              "type": "document",
-              "dynamic": {
-                "typeSet": "second"
-              }
-            }
-          }
-        },
-        "typeSets": [
-          {
-            "name": "first",
-            "types": [
-              {
-                "type": "token"
-              },
-              {
-                "type": "number"
-              }
-            ]
-          },
-          {
-            "name": "second",
-            "types": [
-              {
-                "type": "autocomplete"
-              }
-            ]
-          }
-        ]
-      }
 
 .. toctree::
    :titlesonly:
