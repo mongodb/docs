@@ -19,11 +19,11 @@
          .. io-code-block::
             :copyable: true 
 
-            .. input:: /includes/hybrid-search/score-fusion-tutorial/code-snippets/query-compass.json
+            .. input:: /includes/hybrid-search/score-fusion-tutorial/code-snippets/query/query-compass.json
                :language: javascript
                :linenos:
 
-            .. output:: /includes/hybrid-search/score-fusion-tutorial/code-snippets/compass-query-output.js
+            .. output:: /includes/hybrid-search/score-fusion-tutorial/code-snippets/output/compass-query-output.js
                :language: javascript
                :visible: false 
                :linenos:

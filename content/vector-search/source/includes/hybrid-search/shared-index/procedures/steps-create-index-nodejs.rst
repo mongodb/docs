@@ -3,7 +3,7 @@
 
    .. step:: Initialize your Node.js project.
 
-      .. literalinclude:: /includes/hybrid-search/code-snippets/initialize-project-node.sh
+      .. literalinclude:: /includes/hybrid-search/shared/code-snippets/initialize-project-node.sh
          :language: shell
          :copyable: true
 

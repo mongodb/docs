@@ -5,10 +5,10 @@
 
    .. step:: Copy and paste the following code into the ``run-query.py`` file.
 
-      .. literalinclude:: /includes/hybrid-search/code-snippets/python/query.py
+      .. literalinclude:: /includes/hybrid-search/rrf-tutorial/code-snippets/query/rrf-query.py
          :language: python
          :linenos:
-         :emphasize-lines: 4
+         :emphasize-lines: 3
          :caption: run-query.py
 
    .. step:: Replace the ``<connection-string>``.
@@ -26,7 +26,7 @@
      
             python run-query.py
         
-         .. output:: /includes/hybrid-search/rrf-tutorial/code-snippets/python/python-query-output.js
+         .. output:: /includes/hybrid-search/rrf-tutorial/code-snippets/output/python-query-output.js
             :language: javascript
             :visible: false
             :linenos:

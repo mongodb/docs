@@ -7,7 +7,7 @@
 
       #. Copy and paste the following embeddings in the file.
 
-         .. literalinclude:: /includes/hybrid-search/code-snippets/query-embeddings.js
+         .. literalinclude:: /includes/hybrid-search/shared/code-snippets/query-embeddings.js
             :language: javascript 
             :copyable: true
 
@@ -66,10 +66,10 @@
       .. io-code-block:: 
          :copyable: true 
 
-         .. input:: /includes/hybrid-search/score-fusion-tutorial/code-snippets/query-mongosh.js
+         .. input:: /includes/hybrid-search/score-fusion-tutorial/code-snippets/query/query-mongosh.js
             :language: js 
             :linenos:
 
-         .. output:: /includes/hybrid-search/score-fusion-tutorial/code-snippets/query-mongosh-output.js
+         .. output:: /includes/hybrid-search/score-fusion-tutorial/code-snippets/output/query-mongosh-output.js
             :language: js
             :visible: false

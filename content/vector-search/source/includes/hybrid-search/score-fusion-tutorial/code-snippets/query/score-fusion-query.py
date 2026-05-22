@@ -72,6 +72,3 @@ for doc in result:
     if 'scoreDetails' in doc:
         print(f"Score Details: {doc['scoreDetails']}")
     print("-" * 30)
-
-for i in result:
-    print(i)

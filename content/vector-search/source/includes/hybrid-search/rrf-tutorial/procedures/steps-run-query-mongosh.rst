@@ -7,7 +7,7 @@
 
       #. Copy and paste the following embeddings in the file.
 
-         .. literalinclude:: /includes/hybrid-search/code-snippets/query-embeddings.js 
+         .. literalinclude:: /includes/hybrid-search/shared/code-snippets/query-embeddings.js 
             :language: javascript
             :copyable: true
 
@@ -66,10 +66,10 @@
       .. io-code-block:: 
          :copyable: true 
 
-         .. input:: /includes/hybrid-search/rrf-tutorial/code-snippets/shell/query.sh
+         .. input:: /includes/hybrid-search/rrf-tutorial/code-snippets/query/query.sh
             :language: javascript 
             :linenos:
 
-         .. output:: /includes/hybrid-search/rrf-tutorial/code-snippets/shell/shell-query-output.js
+         .. output:: /includes/hybrid-search/rrf-tutorial/code-snippets/output/shell-query-output.js
             :language: javascript
             :visible: false

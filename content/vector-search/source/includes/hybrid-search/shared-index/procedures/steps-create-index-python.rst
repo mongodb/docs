@@ -3,7 +3,7 @@
    
    .. step:: Set up the Python project.
 
-      .. literalinclude:: /includes/hybrid-search/code-snippets/initialize-project-python.sh
+      .. literalinclude:: /includes/hybrid-search/shared/code-snippets/initialize-project-python.sh
          :language: shell
          :copyable: true
 

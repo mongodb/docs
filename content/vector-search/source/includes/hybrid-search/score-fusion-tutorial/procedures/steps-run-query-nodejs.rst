@@ -5,7 +5,7 @@
       
    .. step:: Copy and paste the sample code in the file.
 
-      .. literalinclude:: /includes/hybrid-search/code-snippets/nodejs/query.js
+      .. literalinclude:: /includes/hybrid-search/score-fusion-tutorial/code-snippets/query/score-fusion-query.js
          :language: javascript
          :linenos:
          :emphasize-lines: 5
@@ -26,7 +26,7 @@
 
             node run-query.js
 
-         .. output:: /includes/hybrid-search/score-fusion-tutorial/code-snippets/nodejs-query-output.js
+         .. output:: /includes/hybrid-search/score-fusion-tutorial/code-snippets/output/nodejs-query-output.js
             :language: javascript
             :visible: false
             :linenos:
