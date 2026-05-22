@@ -202,7 +202,23 @@ For more information, see :expression:`$meta` for details.
 Sort by an Array Field 
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/array-sort-example-setup.rst
+When MongoDB sorts documents by an array-value field, the :term:`sort
+key` depends on whether the sort is ascending or descending:
+
+- In an ascending sort, the sort key is the lowest value in the array.
+- In a descending sort, the sort key is the highest value in the
+  array.
+
+The query filter does not affect sort key selection.
+
+For example, create a ``shoes`` collection with these documents:
+
+.. code-block:: javascript
+
+   db.shoes.insertMany( [
+     { _id: 'A', sizes: [ 7, 11 ] },
+     { _id: 'B', sizes: [ 8, 9, 10 ] }
+   ] )
 
 The following queries sort the documents by the ``sizes`` field in
 ascending and descending order:
@@ -215,18 +231,34 @@ ascending and descending order:
    // Descending sort
    db.shoes.find().sort( { sizes: -1 } )
 
-.. include:: /includes/array-sort-example-explanation.rst
+Both of the preceding queries return the document with ``_id: 'A'`` first 
+because sizes ``7`` and ``11`` are the lowest and highest in the entries in the 
+``sizes`` array, respectively.
 
 Filter and Sort by an Array Field
 `````````````````````````````````
+When you filter and sort by a field that contains an array, the filter
+does not affect the value used as the :term:`sort key`. The sort
+always considers all array values as potential sort keys.
 
-.. include:: /includes/array-filter-and-sort-example-setup.rst
+For example, the following query finds shoes with sizes greater than ``9`` and 
+sorts the results by ``size`` in ascending order:
 
 .. code-block:: javascript
 
    db.shoes.find( { sizes: { $gt: 9 } } ).sort( { sizes: 1 } )
 
-.. include:: /includes/array-filter-and-sort-example-explanation.rst
+The sort is ascending, which means that the sort key is the lowest value in the 
+``sizes`` array:
+
+- In document ``_id: 'A'``, the lowest sizes element is ``7``. This value is 
+  used as the sort key even though it does not match the filter 
+  ``{ sizes: { $gt: 9 }``.
+
+- In document ``_id: 'B'``, the lowest size is ``8``. Similarly, this 
+  value is used as the sort key even though it does not match the filter.
+
+The query returns the document with ``_id: 'A'`` first.
 
 .. tip:: Sort only by Matched Values
 

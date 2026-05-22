@@ -1,12 +1,12 @@
-The sort is ascending, which means that the sort key is the lowest value
-in the ``sizes`` array:
+The sort is ascending. The sort key is the first value in the ``genres`` array
+when sorted alphabetically:
 
-- In document ``_id: 'A'``, the lowest ``sizes`` element is ``7``. This
-  value is used as the sort key even though it does not match the filter
-  ``{ sizes: { $gt: 9 }``.
- 
-- In document ``_id: 'B'``, the lowest ``sizes`` element is ``8``.
-  Similarly, this value is used as the sort key even though it does not
-  match the filter.
+- In ``The Comancheros``, the first ``genres`` element is ``Action``.
+  This value is used as the sort key even though it does not match the
+  filter ``{ genres: { $in: [ "Drama", "Western" ] } }``.
 
-The query returns the document with ``_id: 'A'`` first.
+- In ``The Son of the Sheik``, the first ``genres`` element is ``Adventure``. 
+  Similarly, this operation uses ``Adventure``  as the sort key even though it 
+  does not match the filter.
+
+The query returns ``The Comancheros`` first.

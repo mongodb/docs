@@ -89,68 +89,43 @@ Sort Consistency
 
 .. include:: /includes/fact-sort-consistency.rst
 
-Consider the following ``restaurant`` collection:
+Consider the ``movies`` collection in the ``sample_mflix`` sample
+dataset. The following command uses the :pipeline:`$sort` stage to
+sort movies released in 1925 or 1926 by ``year`` in ascending order:
 
-.. code-block:: js
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/sort/sort-by-year.snippet.sort-by-year.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
-   db.restaurants.insertMany( [
-      { _id: 1, name: "Central Park Cafe", borough: "Manhattan"},
-      { _id: 2, name: "Rock A Feller Bar and Grill", borough: "Queens"},
-      { _id: 3, name: "Empire State Pub", borough: "Brooklyn"},
-      { _id: 4, name: "Stan's Pizzaria", borough: "Manhattan"},
-      { _id: 5, name: "Jane's Deli", borough: "Brooklyn"},
-   ] )
+In this example, sort order may be inconsistent, since the ``year``
+field contains duplicate values for both ``1925`` and ``1926``.
+The operation returns documents in ascending order by ``year``, but the order
+of documents with duplicate values for ``year`` might not be the same
+across multiple executions of the same sort. For example, here are
+the results from two different executions of the above command:
 
-The following command uses the :pipeline:`$sort` stage to sort on
-the ``borough`` field:
-
-.. code-block:: js
-
-   db.restaurants.aggregate(
-      [
-        { $sort : { borough : 1 } }
-      ]
-   )
-
-In this example, sort order may be inconsistent, since the ``borough``
-field contains duplicate values for both ``Manhattan`` and ``Brooklyn``.
-Documents are returned in alphabetical order by ``borough``, but the
-order of those documents with duplicate values for ``borough`` might not
-the be the same across multiple executions of the same sort. For
-example, here are the results from two different executions of the
-above command:
-
-.. code-block:: js
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/sort/sort-by-year-ordering-1-output.sh
+   :language: javascript
    :copyable: false
 
-   { _id: 3, name: "Empire State Pub", borough: "Brooklyn" }
-   { _id: 5, name: "Jane's Deli", borough: "Brooklyn" }
-   { _id: 1, name: "Central Park Cafe", borough: "Manhattan" }
-   { _id: 4, name: "Stan's Pizzaria", borough: "Manhattan" }
-   { _id: 2, name: "Rock A Feller Bar and Grill", borough: "Queens" }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/sort/sort-by-year-ordering-2-output.sh
+   :language: javascript
+   :copyable: false
 
-   { _id: 5, name: "Jane's Deli", borough: "Brooklyn" }
-   { _id: 3, name: "Empire State Pub", borough: "Brooklyn" }
-   { _id: 4, name: "Stan's Pizzaria", borough: "Manhattan" }
-   { _id: 1, name: "Central Park Cafe", borough: "Manhattan" }
-   { _id: 2, name: "Rock A Feller Bar and Grill", borough: "Queens" }
-
-While the values for ``borough`` are still sorted in alphabetical order,
-the order of the documents containing duplicate values for ``borough``
-(i.e. ``Manhattan`` and ``Brooklyn``) is not the same.
+While the  operation sorts values for ``year`` in ascending order,
+the order of the documents containing duplicate values for ``year``
+(i.e. ``1925`` and ``1926``) is not the same.
 
 To achieve a *consistent sort*, add a field which contains exclusively
 unique values to the sort. The following command uses the
-:pipeline:`$sort` stage to sort on both the ``borough`` field and the
+:pipeline:`$sort` stage to sort on both the ``year`` field and the
 ``_id`` field:
 
-.. code-block:: js
-
-   db.restaurants.aggregate(
-      [
-        { $sort : { borough : 1, _id: 1 } }
-      ]
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/sort/sort-by-year-and-id.snippet.sort-by-year-and-id.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 Since the ``_id`` field is always guaranteed to contain exclusively
 unique values, the returned sort order will always be the same across
@@ -161,24 +136,18 @@ Sort by an Array Field
 
 .. include:: /includes/array-sort-example-setup.rst
 
-The following queries sort the documents by the ``sizes`` field in
+The following queries sort the documents by the ``genres`` field in
 ascending and descending order:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/sort/array-sort-asc.snippet.array-sort-asc.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
-   // Ascending sort
-   db.shoes.aggregate( [
-      {
-         $sort: { sizes: 1 }
-      }
-   ] )
-
-   // Descending sort
-   db.shoes.aggregate( [
-      {
-         $sort: { sizes: -1 }
-      }
-   ] )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/sort/array-sort-desc.snippet.array-sort-desc.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 .. include:: /includes/array-sort-example-explanation.rst
 
@@ -187,16 +156,10 @@ Filter and Sort by an Array Field
 
 .. include:: /includes/array-filter-and-sort-example-setup.rst
 
-.. code-block:: javascript
-
-   db.shoes.aggregate( [
-      {
-         $match: { sizes: { $gt: 9 } }
-      },
-      {
-         $sort: { sizes: 1 }
-      }
-   ] )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/sort/array-filter-sort.snippet.array-filter-sort.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 .. include:: /includes/array-filter-and-sort-example-explanation.rst
 
@@ -252,6 +215,8 @@ sort.
 Examples
 --------
 
+.. include:: /includes/sample-data-usage.rst
+
 .. tabs-drivers::
 
    .. tab::
@@ -265,17 +230,14 @@ Examples
       For the field or fields to sort by, set the sort order to ``1`` or ``-1`` to
       specify an ascending or descending sort respectively, as in the following example:
 
-      .. code-block:: javascript
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/sort/sort-multi-field.snippet.sort-multi-field.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
 
-         db.users.aggregate(
-            [
-              { $sort : { age : -1, posts: 1 } }
-            ]
-         )
-
-      This operation sorts the documents in the ``users`` collection,
-      in descending order according by the ``age`` field and then in
-      ascending order according to the value in the ``posts`` field.
+      This operation sorts the documents in the ``movies`` collection in 
+      descending order by the ``year`` field and then in ascending order by the
+      value in the ``title`` field, returning the first five results.
 
       .. _bson_sort_order:
 
@@ -291,34 +253,46 @@ Examples
 
       .. include:: /includes/text-search-legacy-atlas-section.rst
 
+      The following example uses the ``movies`` collection in the
+      ``sample_mflix`` sample dataset. Before running it, create a
+      text index on the ``plot`` field:
+
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/sort/create-text-index.snippet.create-text-index.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
+
       For a pipeline that includes :query:`$text`, you can sort by
       descending relevance score using the :expression:`{ $meta: "textScore"
       } <$meta>` expression. In the ``{ <sort-key> }`` document, set the
       :expression:`{ $meta: "textScore" } <$meta>` expression to an arbitrary
       field name. The field name is ignored by the query system. For example:
 
-      .. code-block:: javascript
-
-         db.users.aggregate(
-            [
-              { $match: { $text: { $search: "operating" } } },
-              { $sort: { score: { $meta: "textScore" }, posts: -1 } }
-            ]
-         )
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/sort/text-score-sort.snippet.text-score-sort.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
 
       This operation uses the ``$text`` operator to match the documents,
       and then sorts first by the ``"textScore"`` metadata in descending
-      order, and then by the ``posts`` field in descending order. The
+      order, and then by the ``year`` field in descending order. The
       ``score`` field name in the sort document is ignored by the query
-      system. In this pipeline, the ``"textScore"`` metadata is not included
-      in the projection and is not returned as part of the matching
-      documents. See :expression:`$meta` for more information.
+      system. The pipeline returns the first five results. In this
+      pipeline, the projection does not include the ``"textScore"`` metadata and
+      does not return the metadata as part of the matching documents. See 
+      :expression:`$meta` for more information.
 
    .. tab::
       :tabid: csharp
 
-      .. include:: /includes/driver-examples/csharp/aggregation/sample-data-movie.rst
+      The following ``Movie`` class models the documents in the ``sample_mflix.movies``
+      collection:
 
+      .. literalinclude:: /includes/driver-examples/csharp/aggregation/Movie.cs
+         :language: csharp
+
+      .. include:: /includes/driver-examples/csharp/convention-pack-note.rst
+      
       .. include:: /includes/driver-examples/csharp/aggregation/method-intro.rst
 
          .. replacement:: stage-name
@@ -346,8 +320,6 @@ Examples
 
    .. tab::
       :tabid: nodejs
-
-      .. include:: /includes/driver-examples/node/aggregation/sample-mflix.rst
 
       .. include:: /includes/driver-examples/node/aggregation/stage-intro.rst
 
