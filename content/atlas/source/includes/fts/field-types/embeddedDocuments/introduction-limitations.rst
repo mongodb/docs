@@ -1,6 +1,3 @@
-.. note:: 
-
-   .. include:: /includes/fts/facts/fact-embedded-document-preview.rst
 
 You can use the |fts| ``embeddedDocuments`` type to index fields in
 documents and objects that are elements of an array. |fts| indexes
