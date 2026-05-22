@@ -44,8 +44,6 @@
                :copyable: true 
                :linenos: 
 
-      .. include:: /includes/quick-start/facts/avs-quick-start-basic-index-description.rst
-
    .. step:: Click :guilabel:`Next`.
 
    .. step:: Click :guilabel:`Create Vector Search Index`. 

@@ -32,3 +32,5 @@
          :copyable: true 
          :caption: autoembed_index
          :linenos:
+
+      .. include:: /includes/quick-start/facts/avs-quick-start-auto-embed-index-description.rst
