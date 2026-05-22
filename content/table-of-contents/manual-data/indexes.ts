@@ -260,6 +260,16 @@ const tocData: TocItem[] = [
           },
         ],
       },
+      {
+        label: 'Text',
+        contentSite: 'docs',
+        url: '/docs/:version/core/indexes/index-types/index-text',
+      },
+      {
+        label: 'Clustered',
+        contentSite: 'docs',
+        url: '/docs/:version/core/clustered-collections',
+      },
     ],
   },
   {
