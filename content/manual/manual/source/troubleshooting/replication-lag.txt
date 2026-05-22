@@ -1,0 +1,286 @@
+.. _manual-troubleshooting-replication-lag:
+
+============================
+Troubleshoot Replication Lag
+============================
+
+.. meta::
+   :description: Learn to diagnose and reduce replication lag in MongoDB replica sets by addressing network latency, secondary resource exhaustion, disk issues, and excessive write load.
+
+.. contents:: On this page
+	:local:
+	:backlinks: none
+	:depth: 1
+	:class: singlecol
+
+:term:`Replication lag <replication lag>` makes "lagged" members ineligible to 
+quickly become primary and increases the possibility that distributed read 
+operations will be inconsistent.
+
+This page contains several tips that can reduce replication lag, however, many 
+cases may require escalation. If you cannot determine the cause of your replication
+lag or need additional support, contact :ref:`technical-support`.
+
+Prerequisite Checks
+-------------------
+
+To check the current length of replication lag on your deployment:
+
+- In a :binary:`~bin.mongosh` session that is connected to the primary,
+  call the :method:`rs.printSecondaryReplicationInfo()` method to display the 
+  current lag on each secondary relative to the primary host.
+
+  Returns the ``syncedTo`` value for each member,
+  which shows the time when the last oplog entry was written to the
+  secondary, as shown in the following example:
+
+  .. code-block:: none
+
+     source: m1.example.net:27017
+         syncedTo: Thu Apr 10 2014 10:27:47 GMT-0400 (EDT)
+         7230 secs (2 hrs) behind the primary 
+     source: m2.example.net:27017
+         syncedTo: Thu Apr 10 2014 10:27:47 GMT-0400 (EDT)
+         0 secs (0 hrs) behind the primary 
+
+  The number of seconds behind the primary tells you how far behind the secondary
+  lags behind the primary.
+
+  A :ref:`delayed member <replica-set-delayed-members>` may show as ``0``
+  seconds behind the primary when the inactivity period on the primary is
+  greater than the :rsconf:`members[n].secondaryDelaySecs`
+  value.
+
+- In Atlas deployments, monitor the rate of replication in Atlas deployments by checking for non-zero
+  or increasing oplog time values in the :guilabel:`Replication Lag` graph 
+  available in `Cloud Manager <https://docs.cloudmanager.mongodb.com/reference/alerts/replication-lag/>`_ 
+  and in `Ops Manager <https://docs.opsmanager.mongodb.com/current/reference/alerts/replication-lag/>`_.
+
+  Additionally, you can monitor replication lag in Atlas by checking the 
+  :guilabel:`Replication Lag`, :guilabel:`Oplog GB/Hour`, and 
+  :guilabel:`Replication Oplog Window` in the metrics tab of your cluster. For
+  more information, see `Review Available Metrics <https://www.mongodb.com/docs/atlas/review-available-metrics/>`_.
+
+.. include:: /includes/replacement-mms.rst
+
+Common Issues and Resolutions
+-----------------------------
+
+There is no error code for replication lag, and no immediate way to determine 
+the cause. However, before you escalate to support, check if the following 
+issues might be causing your lag:
+
+Network Latency
+~~~~~~~~~~~~~~~
+
+Replication lag can build up when cluster nodes cannot reliably communicate with
+each other. 
+
+Check the network routes between the members of your replica set to ensure
+that there is no packet loss or network routing issues.
+
+Use tools including :dbcommand:`ping` to test latency between set
+members and ``traceroute`` to expose the routing of packets between
+network endpoints.
+
+Alternatively, run :dbcommand:`replSetGetStatus` and examine the ``pingMs`` field.
+This returns the current network latency in milliseconds between the primary and
+secondary nodes. 
+
+Secondary Resource Exhaustion
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Secondary nodes can experience resource contention when they
+cannot efficiently handle incoming read operations from the primary.
+This can cause memory issues such as cache contention.
+When the cache reaches critical thresholds, the server uses application
+threads to evict pages, which reduces the number of threads available to
+manage replication.
+
+To see whether the server redirects application threads to eviction
+tasks, run the following command in your ``mongosh`` shell:
+
+.. code-block:: 
+
+  db.serverStatus().wiredTiger.cache['pages evicted by application threads'] 
+
+- If **Result = 0:** No application threads are paused for eviction.
+- If **Result > 0 (and increasing):** The database is under cache pressure.
+  Incoming queries must evict cached data before they execute, which can
+  increase replication lag.
+
+Atlas users can also monitor the :guilabel:`WiredTiger Cache Activity` and 
+:guilabel:`Page Faults` metrics to investigate cache-related issues.
+
+For potential strategies to fix this issue, see :ref:`Scale your resources <sharding-scaling-strategies>` .
+
+Disk-Related Issues
+~~~~~~~~~~~~~~~~~~~
+
+If a secondary node cannot flush dirty data to disk quickly enough, it falls 
+behind the primary. This phenomenon occurs when the volume of writes coming 
+from the primary exceeds the write speed of the secondary's disk.
+
+Disk-related issues are prevalent on multi-tenant systems, including
+virtualized instances, and can be transient if the system accesses
+disk devices over an IP network.
+
+To assess disk status, use system-level tools, such as ``iostat`` or ``vmstat``.
+
+Atlas users can access `Atlas metrics <https://www.mongodb.com/docs/atlas/review-available-metrics/>`_
+such as :guilabel:`Disk IOPS` and :guilabel:`Disk Space Used` to investigate 
+disk issues. 
+
+Some common causes of disk issues include:
+
+- Under provisioning: The secondary has slower disks, or lower IOPS, than the
+  primary.
+- Virtualization Overhead: In shared environments, other virtual machines may
+  saturate the physical disk controller.
+
+Some possible solutions to disk issues include:
+
+- Increasing provisioned :ref:`IOPS <disk-io-util>`
+- Upgrading to :ref:`NVMe Storage <create-cluster-storage>`
+- Upgrading to a higher Atlas cluster tier. For more information, see
+  `Atlas Cluster Sizing and Tier Selection <https://www.mongodb.com/docs/atlas/sizing-tier-selection/>`_.
+
+Long Running Operations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In some cases, long-running operations on the primary can block
+replication on secondaries. For best results, configure :ref:`write
+concern <wc-w>` to require confirmation of replication to
+secondaries. This prevents write operations from
+returning if replication cannot keep up with the write load.
+
+You can also use the :term:`database profiler` to identify slow queries or 
+long-running operations that correlate with the observed lag. 
+
+Excessive Write Load
+~~~~~~~~~~~~~~~~~~~~
+
+Bulk write operations can exceed replica sets' ability to replicate in a timely
+manner, causing replication lag.
+
+The following sub-sections offer possible solutions to this issue:
+
+Use Smaller Batches
+```````````````````
+
+Control the load by batching and filtering CRUD commands.
+
+Run each batch against a date or time range such as a month, week, or
+day. Ensure the query filters use an index to avoid collection scans.
+Collection scans can evict data and index pages from the working set and
+increase replication lag.
+
+Start by deleting small date ranges. If those operations complete in
+seconds, increase the batch size. Monitor replication lag with
+:method:`rs.printSecondaryReplicationInfo()`. Increase the batch size
+until you reach a balance between throughput and replication lag. Continue
+to monitor system load, the impact on other users and applications, and
+how far the secondaries lag.
+
+For example: 
+
+.. code-block:: 
+   
+   db.collName.deleteMany({createdDate: {$gte: new Date("2018-12-01"), $lt: new Date("2019-01-01")}});
+   db.collName.deleteMany({createdDate: {$gte: new Date("2018-11-01"), $lt: new Date("2018-12-01")}});
+   db.collName.deleteMany({createdDate: {$gte: new Date("2018-10-01"), $lt: new Date("2018-11-01")}});
+
+
+Configure Server-Side Settings and Parameters
+`````````````````````````````````````````````
+
+MongoDB provides the following server-side settings and parameters that 
+can control resource usage during write-intensive operations: 
+
+- :parameter:`storageEngineConcurrentWriteTransactions`: Lowering this value can 
+  reduce contention caused by bulk deletes when other write operations occur
+  simultaneously.
+
+  .. note::
+
+     Take caution when modifying :parameter:`storageEngineConcurrentWriteTransactions`,
+     as changing the setting can lead to performance issues or errors. We recommend
+     you consult with MongoDB Support before changing the parameter.
+
+- ``maxTimeMS``: If the bulk write operation is complex, you can limit its 
+  execution time to prevent long-running operations that affect server performance.
+  Some examples of complex operations include matching many documents or 
+  querying by non-indexed fields.
+
+Delete Documents in Indexed Order
+`````````````````````````````````
+
+If the field you run your bulk operations on is not indexed, the bulk operation
+can cause collection or table scans, increasing resource usage. Ensure an index
+exists on the field used in the query filter for faster deletions, reducing 
+locking contention and improving performance.
+
+Create an index before running the operation:
+
+.. code-block::
+
+	db.collection.createIndex({ status: 1 });
+
+Then delete based on the indexed field:
+
+.. code-block::
+
+	db.collection.deleteMany({ status: "inactive" });
+
+oplog Window Size
+~~~~~~~~~~~~~~~~~
+
+If your oplog window is too small for the amount of data you are syncing, you 
+might experience replication lag. A larger :term:`oplog` can give a  
+replica set a greater tolerance for lag.
+
+To check the size of the oplog and the date ranges of its operations 
+for a given replica set member, connect to the member in :binary:`~bin.mongosh` and run the
+:method:`rs.printReplicationInfo()` method.
+The oplog should be long enough to hold all transactions for the
+longest downtime you expect on a secondary. [#oplog]_ At a minimum, an oplog
+should be able to hold minimum 24 hours of operations; however, many
+users prefer to have 72 hours or even a week's work of operations.
+
+.. note:: 
+
+   You normally want the oplog to be the same size on all members. If you resize
+   the oplog, resize it on all members.
+
+To change oplog size, see the :doc:`/tutorial/change-oplog-size`
+tutorial.
+
+.. [#oplog]
+
+   .. include:: /includes/fact-oplog-size.rst
+
+Verify Resolution
+-----------------
+
+To confirm that the issue is resolved, call the 
+:method:`rs.printSecondaryReplicationInfo()` method and check that there are no
+longer any lagging members.
+
+Diagnostics to Collect for More Support
+---------------------------------------
+
+If none of the above solutions reduce your lag, :ref:`contact support <request-support>`.
+Support may ask for diagnostics to further diagnose your problem.
+
+Some helpful diagnostics for Atlas users to collect for support include: 
+
+- Your :method:`rs.printSecondaryReplicationInfo()` output
+- The timeline of when the lag started
+- Any recent changes to your deployment, such as changes to your schema, indexes,
+  application, tier, or hardware. 
+
+Related Issues
+--------------
+
+- `Troubleshoot Replica Sets <https://www.mongodb.com/docs/manual/tutorial/troubleshoot-replica-sets/#replication-lag-causes>`__
+- :ref:`manual-troubleshooting-replica-set-no-primary`
