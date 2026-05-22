@@ -35,8 +35,8 @@
      - List of policies that the external system applies to this
        |onprem| Project.
 
-   * - | ``policies``
-       | ``.policy[n]``
+   * - | ``policies[n]``
+       | ``.policy``
      - object
      - Single policy set for this |onprem| Project. This parameter can
        be set one or more times in the ``policies`` array.
@@ -51,37 +51,30 @@
           * - Value
             - Purpose
 
-          * - ``EXTERNALLY_MANAGED_LOCK``
+          * - ``ExternallyManagedLock``
             - Users can't use |onprem| to manage other settings given
-              in the ``policies.policy[n]`` array. These same users may
+              in the ``policies[n].policy`` array. These same users may
               use a configured external system, like the |k8s-op-short|
               to manage these settings.
-          * - ``DISABLE_USER_MANAGEMENT``
+          * - ``DisableUserManagement``
             - Users can't manage users or roles.
-          * - | ``DISABLE_AUTHENTICATION_``
-              | ``MECHANISMS``
+          * - | ``DisableAuthenticationMechanisms``
             - Users can't change authentication settings.
-          * - | ``DISABLE_SET_MONGOD_``
-              | ``CONFIG``
+          * - | ``DisableSetMongodConfig``
             - Users can't change any |mongod| settings listed in the
               ``policies[n].disabledParams`` array.
-          * - | ``DISABLE_SET_MONGOD_``
-              | ``VERSION``
+          * - | ``DisableSetMongodVersion``
             - Users can't change the version of any |mongod| or
               |mongos|.
-          * - ``DISABLE_BACKUP_AGENT``
+          * - ``DisableBackupAgent``
             - Users can't enable or disable the {+bagent+} agent.
-          * - | ``DISABLE_MONGOD_LOG_``
-              | ``MANAGEMENT``
+          * - | ``DisableMongodLogManagement``
             - Users can't change log management settings.
-          * - | ``DISABLE_IMPORT_TO_``
-              | ``AUTOMATION``
+          * - | ``DisableImportToAutomation``
             - Users can't manage deployments using {+aagent+}.
-          * - | ``DISABLE_AGENT_API_KEY_``
-              | ``MANAGEMENT``
+          * - | ``DisableAgentApiKeyManagement``
             - Users can't create or update Agent API keys.
-          * - | ``DISABLE_MONGOD_HOST_``
-              | ``MANAGEMENT``
+          * - | ``DisableMongodHostManagement``
             - Users can't change the server type of hosts.
 
    * - | ``policies[n]``
