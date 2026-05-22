@@ -118,7 +118,7 @@ const tocData: TocItem[] = [
   {
     label: 'Hybrid Search',
     contentSite: 'vector-search',
-    url: '/docs/vector-search/hybrid-search/hybrid-search',
+    url: '/docs/vector-search/hybrid-search/hybrid-search-overview',
     collapsible: true,
     items: [
       {
