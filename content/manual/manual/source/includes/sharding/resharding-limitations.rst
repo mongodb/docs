@@ -36,7 +36,8 @@
 
 - If the collection you're resharding is archived in :ref:`Atlas Online 
   Archives <manage-online-archive>`, the online archive files are marked as 
-  ``Orphaned`` once the resharding operation completes. You can :ref:`create 
-  <config-online-archive-atlas-cli>` another online archive for the same 
+  ``Orphaned`` once the resharding operation completes. You can
+  :atlas:`create </online-archive/configure-online-archive/>` another
+  online archive for the same
   database, collection, and fields as the orphaned archive as long as 
   there is no other archive for that same combination in the ``Active`` state.
