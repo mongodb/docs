@@ -44,8 +44,14 @@ Learn what's new in:
 What's New in 3.8
 -----------------
 
-The 3.8 driver release includes the following new features:
+The 3.8 driver release includes the following new features,
+improvements, and fixes, which **require {+mdb-server+} 8.3 or later**:
 
+- Adds support for MongoDB's Intelligent Workload Management
+  (IWM). The driver now gracefully handles write-blocking
+  scenarios and optimizes connection establishment during
+  high-load conditions to maintain application availability.
+  
 - Adds the following capabilities to the ``Mql.Convert()`` method, which
   converts between types when performing aggregations:
 
@@ -63,23 +69,19 @@ The 3.8 driver release includes the following new features:
   - The ``ConvertOptions`` class includes a ``Base`` property, which you can use to
     specify a numeric base when converting between numeric types and strings.
 
-  The preceding features require {+mdb-server+} 8.3 or later.
   To learn more, see the :ref:`csharp-linq-convert` section of the LINQ guide.
 
 - Adds the ``Mql.SerializeEJson()`` and ``Mql.DeserializeEJson()``
   LINQ methods for converting between BSON values and their
-  Extended JSON (EJSON) v2 representations. These methods require
-  {+mdb-server+} 8.3 or later. To learn more, see the
+  Extended JSON (EJSON) v2 representations. To learn more, see the
   :ref:`csharp-linq-ejson-serialization` section of the LINQ guide.
 
 - Adds the ``Mql.CreateObjectId()`` method for generating a unique
-  ``ObjectId`` value in an aggregation pipeline. This feature requires
-  {+mdb-server+} version 8.3 or later. To learn more, see
+  ``ObjectId`` value in an aggregation pipeline. To learn more, see
   :ref:`csharp-linq-create-object-id`.
 
 - Adds support for index overloads of the ``Select()``, ``SelectMany()``,
-  and ``Where()`` methods in LINQ queries when running against
-  {+mdb-server+} 8.3 or later. To learn more, see :ref:`csharp-linq-supported`
+  and ``Where()`` methods in LINQ queries. To learn more, see :ref:`csharp-linq-supported`
   in the LINQ guide.
 
 - Adds support for index overloads of the ``SkipWhile()`` and ``TakeWhile()``
@@ -96,6 +98,55 @@ The 3.8 driver release includes the following new features:
   ``string.Split()``, and ``Regex.Split()`` methods.
   To learn more, see the :ref:`csharp-linq-string-operators`
   section of the LINQ guide.
+
+- Adds the ``Mql.Subtype()`` LINQ method for determining the
+  BSON subtype of a ``BinData`` field.
+
+- Adds the ``Mql.Hash()`` and ``Mql.HexHash()`` LINQ methods for
+  generating a hash from a UTF-8 string or binary data.
+
+This release also includes the following features, which all
+{+mdb-server+} versions support:
+
+- Adds support for the ``HasRoot()`` and ``HasAncestor()`` search
+  operators and the ``returnScope`` parameter for the ``Search()`` and
+  ``SearchMeta()`` methods. Use these features to retrieve embedded
+  documents as individual results and to filter on fields outside the
+  embedded document scope. To learn more, see
+  :ref:`csharp-embedded-doc-operator` in the {+search+} guide.
+
+- Adds support for the ``storedSource`` field in {+vector-search+}
+  index models and the ``returnStoredSource`` option in
+  ``$vectorSearch`` aggregation stages.
+
+- Adds the ``Mql.SimilarityDotProduct()``,
+  ``Mql.SimilarityCosine()``, and ``Mql.SimilarityEuclidean()``
+  LINQ methods for computing vector similarity scores in queries.
+
+- Adds the ``Similarity`` property and
+  ``WithIncludedStoredFields()`` and
+  ``WithExcludedStoredFields()`` methods to the
+  ``CreateAutoEmbeddingVectorSearchIndexModel`` class for
+  configuring {+vector-search+} auto-embedding indexes.
+
+- Adds a numeric error code to the default error message
+  generated when creating a native method exception.
+
+- Adds a validation check to verify that a serializer's value
+  type matches the registered type when calling
+  ``RegisterSerializer``.
+
+- Fixes an issue where read operations using
+  ``SingleServerReadBinding`` could time out prematurely.
+
+- Fixes connection string parsing to validate that the maximum
+  connection pool size is not less than the minimum pool size.
+
+- Fixes an issue where command monitoring activities could be
+  skipped when using a pooled connection.
+
+- Fixes a bug where ``SerializerFinder`` resolved the wrong
+  serializer for ``BsonDocument`` members.
 
 For more information about this release, see the
 :github:`v3.8 release notes </mongodb/mongo-csharp-driver/releases/tag/v3.8.0>`
@@ -144,17 +195,17 @@ improvements, and fixes:
 
 - Optimizes the comparison expression translation for nullable boolean constants.
 
-- Avoids byte array allocations when writing ``Int64`` and ``Double`` values by
+- Avoids byte array allocations when writing Int64 and Double values by
   reusing the ``_temp`` array from ``ByteBufferStream``.
 
 - Optimizes the ``CommandEventHelper`` class to avoid redundant message decoding.
 
 - Fixes serialization behavior for enums that have ``ushort`` underlying types.
 
-- Generates an ``ExpressionNotSupportedException`` if you make ``String.IndexOf()``
+- Generates an ``ExpressionNotSupportedException`` if ``String.IndexOf()``
   comparisons to negative values.
 
-- Avoids creating a ``ClusterDescriptionChangedEvent`` when DNS updates do not change
+- Avoids raising a ``ClusterDescriptionChangedEvent`` when DNS updates don't change
   the Server Discovery and Monitoring state.
 
 - Updates untranslatable property references in LINQ expressions to fall back
@@ -164,8 +215,8 @@ improvements, and fixes:
   generating an error.
 
 - Fixes a bug where the ``GroupBy`` optimizer generated incorrect field paths
-  for ``First`` and ``Last`` accumulators if a previous operation wrapped the source
-  data.
+  for ``First`` and ``Last`` accumulators if the source data was wrapped from a previous
+  operation.
 
 - Fixes deadlocks during concurrent ``BsonClassMap`` initialization,
   which occurred after upgrading to {+driver-short+} 3.5.2.

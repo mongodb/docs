@@ -52,44 +52,6 @@ public class MetaExamples
         return results;
     }
     
-    public static List<BsonDocument> MetaScoreExample()
-    {
-        // start metaScore
-        var filter = Builders<Movie>.Search.Text(m => m.Title, "future");
-        var projection = Builders<Movie>.Projection
-            .Include(m => m.Title)
-            .Include(m => m.Plot)
-            .MetaScore(m => m.ScoreDetails);
-
-        var results = movieCollection
-            .Aggregate()
-            .Search(filter)
-            .Project(projection)
-            .Limit(1)
-            .ToList();
-        // end metaScore
-        
-        return results;
-    }
-    
-    public static List<BsonDocument> MetaScoreDetailsExample()
-    {
-        // start metaScoreDetails
-        var filter = Builders<Movie>.Filter.Text("future");
-        var projection = Builders<Movie>.Projection
-            .Include(m => m.Title)
-            .Include(m => m.Plot)
-            .MetaScoreDetails(m => m.ScoreDetails);
-
-        var results = movieCollection.Find(filter)
-            .Project(projection)
-            .Limit(1)
-            .ToList();
-        // end metaScoreDetails
-        
-        return results;
-    }
-    
     public static List<BsonDocument> MetaSearchHighlightsExample()
     {
         // start metaSearchHighlights
