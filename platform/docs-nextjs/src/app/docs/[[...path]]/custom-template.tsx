@@ -128,13 +128,13 @@ export const CustomTemplate = ({
       env={env}
     >
       <Header eol={metadata?.eol ?? false} />
-      {renderSidenav && <UnifiedSidenav />}
       <div className={layoutStyles['content-container']}>
         <ActionBar template={template} sidenav={true} />
         <Template pageOptions={pageOptions} slug={slug}>
           {content}
         </Template>
       </div>
+      {renderSidenav && <UnifiedSidenav />}
     </Providers>
   );
 };
