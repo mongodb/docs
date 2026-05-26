@@ -1,4 +1,5 @@
 // TODO: roll in other related "config" stuff once populate-metadata is deprecated
+import { createHash } from 'crypto';
 import type {
   Environments,
   PoolDBName,
@@ -61,7 +62,15 @@ export const updateConfig = async ({
   configEnvironment.DEPLOY_ID = process.env.DEPLOY_ID;
   configEnvironment.REVIEW_ID = process.env.REVIEW_ID;
   configEnvironment.REPOSITORY_URL = process.env.REPOSITORY_URL;
-  const sanitizedBranch = (process.env.HEAD ?? '').replace(/\//g, '-');
+  const rawBranch = process.env.HEAD ?? '';
+  const sanitized = rawBranch.replace(/[^a-zA-Z0-9-_]/g, '-');
+  // Netlify blob store names must be ≤ 64 bytes; branch stores are named `{branch}-mdx-content` (12 chars)
+  const MAX_BRANCH_LENGTH = 52; // 64 - '-mdx-content'.length
+  const HASH_SUFFIX_LENGTH = 9; // '-' + 8 hex chars
+  const sanitizedBranch =
+    sanitized.length <= MAX_BRANCH_LENGTH
+      ? sanitized
+      : `${sanitized.slice(0, MAX_BRANCH_LENGTH - HASH_SUFFIX_LENGTH)}-${createHash('sha256').update(rawBranch).digest('hex').slice(0, 8)}`;
   configEnvironment.BRANCH = sanitizedBranch;
   // Set branch name as env var so Next.js can access it at build & runtime
   configEnvironment.NEXT_PUBLIC_GIT_BRANCH = sanitizedBranch;
