@@ -249,7 +249,6 @@ async function removeAllTxtFiles(dir: string): Promise<void> {
       await removeAllTxtFiles(fullPath);
     }
     if (e.isFile() && e.name.toLowerCase().endsWith('.txt')) {
-      console.log(`Removing .txt file: ${fullPath}`);
       await fs.rm(fullPath);
     }
   }

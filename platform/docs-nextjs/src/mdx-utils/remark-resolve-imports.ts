@@ -319,8 +319,11 @@ const resolveRefLinks = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
       }
 
       const href = refs.refs[name];
+      // Use the live array reference (not a spread copy) so that when applyReplacements
+      // processes nested RefRole children in reverse DFS order, those mutations are
+      // reflected here before this link node is spliced into the tree.
       const children: Link['children'] = node.children?.length
-        ? ([...node.children] as Link['children'])
+        ? (node.children as Link['children'])
         : [{ type: 'text', value: name }];
 
       if (!href) {

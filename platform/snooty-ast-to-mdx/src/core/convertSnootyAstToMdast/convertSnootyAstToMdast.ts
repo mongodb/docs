@@ -234,8 +234,25 @@ interface ConvertNodeArgs {
 }
 
 /**
- * Splits a paragraph's children at block-level (mdxJsxFlowElement) boundaries,
- * hoisting those elements up as siblings alongside any surrounding text paragraphs.
+ * MDAST node types that are valid at block (flow) level. Anything outside this
+ * set is "phrasing" (inline) and must be wrapped in a `paragraph` before being
+ * placed in a block context (section body, root children). Having an inline node
+ * (e.g. `mdxJsxTextElement`) as a direct root child corrupts remark's entire
+ * serialisation — it switches from block-flow mode to phrasing mode, stripping
+ * all blank-line separators including the one after the YAML frontmatter fence.
+ */
+const MDAST_BLOCK_TYPES = new Set([
+  'blockquote', 'code', 'definition', 'footnoteDefinition', 'heading', 'html',
+  'list', 'mdxJsxFlowElement', 'mdxFlowExpression', 'mdxjsEsm', 'paragraph',
+  'table', 'thematicBreak', 'yaml',
+]);
+
+const wrapInlineBlockNode = (node: MdastNode): MdastNode =>
+  MDAST_BLOCK_TYPES.has(node.type) ? node : { type: 'paragraph', children: [node] };
+
+/**
+ * Splits a paragraph's children at block-level boundaries, hoisting those elements
+ * up as siblings alongside any surrounding text paragraphs.
  *
  * Example: [text, <Note />, text] → [<p>text</p>, <Note />, <p>text</p>]
  *
@@ -244,7 +261,9 @@ interface ConvertNodeArgs {
 const hoistFlowElementsFromParagraph = (children: MdastNode[]): MdastNode | MdastNode[] => {
   // A nested `paragraph` can appear when convertNode returns a paragraph-wrapped inline
   // element (e.g. Footnote uses the Kicker pattern: paragraph > mdxJsxTextElement).
-  const isBlockChild = (child: MdastNode) => child.type === 'mdxJsxFlowElement' || child.type === 'paragraph';
+  // Block-level children must be hoisted out so they don't get serialized as inline text
+  // inside a <p>.
+  const isBlockChild = (child: MdastNode) => MDAST_BLOCK_TYPES.has(child.type);
   const containsBlockElement = children.some(isBlockChild);
   if (!containsBlockElement) {
     return { type: 'paragraph', children };
@@ -760,8 +779,8 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 
       rest.forEach((child) => {
         const converted = convertNode({ node: child, depth: depth + 1, ctx });
-        if (Array.isArray(converted)) result.push(...converted);
-        else if (converted) result.push(converted);
+        if (Array.isArray(converted)) result.push(...converted.map(wrapInlineBlockNode));
+        else if (converted) result.push(wrapInlineBlockNode(converted));
       });
 
       return result;
@@ -920,6 +939,13 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (directiveName === 'step') {
         return convertDirectiveStep({ node, ctx, depth, convertChildren });
       }
+      if (directiveName === 'superscript') {
+        return {
+          type: 'mdxJsxTextElement',
+          name: 'sup',
+          children: convertChildren({ nodes: node.children, depth, ctx }),
+        };
+      }
       if (directiveName === 'hlist') {
         const attributes: MdastNode[] = toJsxAttributes(node.options);
 
@@ -1026,29 +1052,19 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         const version = parseSnootyArgument(node);
 
         return {
-          type: 'paragraph',
-          children: [
-            {
-              type: 'mdxJsxTextElement',
-              name: 'VersionChanged',
-              attributes: [{ type: 'mdxJsxAttribute', name: 'version', value: version }],
-              children: convertChildren({ nodes: node.children, depth, ctx }),
-            },
-          ],
+          type: 'mdxJsxFlowElement',
+          name: 'VersionChanged',
+          attributes: [{ type: 'mdxJsxAttribute', name: 'version', value: version }],
+          children: convertChildren({ nodes: node.children, depth, ctx }),
         };
       }
       if (directiveName === 'versionadded') {
         const version = parseSnootyArgument(node);
         return {
-          type: 'paragraph',
-          children: [
-            {
-              type: 'mdxJsxTextElement',
-              name: 'VersionAdded',
-              attributes: [{ type: 'mdxJsxAttribute', name: 'version', value: version }],
-              children: convertChildren({ nodes: node.children, depth, ctx }),
-            },
-          ],
+          type: 'mdxJsxFlowElement',
+          name: 'VersionAdded',
+          attributes: [{ type: 'mdxJsxAttribute', name: 'version', value: version }],
+          children: convertChildren({ nodes: node.children, depth, ctx }),
         };
       }
       if (directiveName === 'rubric') {
@@ -1382,9 +1398,9 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         children.push({ type: 'text', value: node.value });
       }
 
-      // Inline sub/sup roles (e.g. :sub:`2`, :sup:`64`) should render as native HTML elements
-      // so they don't require custom MDX component mappings.
-      if (componentName === 'Sup') {
+      // Inline sub/sup roles (e.g. :sub:`2`, :sup:`64`, :superscript:`th`) should render as
+      // native HTML elements so they don't require custom MDX component mappings.
+      if (componentName === 'Sup' || componentName === 'Superscript') {
         return {
           type: 'mdxJsxTextElement',
           name: 'sup',
@@ -1574,12 +1590,30 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       const attributes: MdastNode[] = [];
       if (node.name) attributes.push({ type: 'mdxJsxAttribute', name: 'name', value: String(node.name) });
 
-      // Flatten any paragraph wrappers so all content is a flat list of inline nodes.
-      // Then emit as mdxJsxTextElement (inline JSX) so the serializer writes everything
-      // on one line: <Footnote name="…">text <Guilabel>…</Guilabel></Footnote>
-      // mdxJsxFlowElement would place children on a new line, which MDX treats as block
-      // content and wraps in <p>. The inline form avoids that entirely.
       const bodyChildren = convertChildren({ nodes: node.children, depth, ctx });
+
+      // If the footnote body contains block-level content (lists, multiple paragraphs,
+      // flow elements, code blocks) we must use mdxJsxFlowElement — an inline element
+      // cannot legally contain block children and the MDX parser will reject it.
+      const hasBlockContent =
+        bodyChildren.some((child) => MDAST_BLOCK_TYPES.has(child.type) && child.type !== 'paragraph') ||
+        bodyChildren.filter((c) => c.type === 'paragraph').length > 1;
+
+      if (hasBlockContent) {
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'Footnote',
+          attributes,
+          identifier,
+          label: node.name ?? undefined,
+          children: bodyChildren,
+        };
+      }
+
+      // Simple case: footnote body is a single paragraph (or plain inline nodes).
+      // Flatten any paragraph wrapper so everything serialises on one line:
+      //   <Footnote name="…">text <Guilabel>…</Guilabel></Footnote>
+      // Wrap in a paragraph node so the mdast tree treats it as block-level.
       const inlineNodes: MdastNode[] = [];
       for (const child of bodyChildren) {
         if (child.type === 'paragraph' && Array.isArray(child.children)) {
@@ -1593,10 +1627,6 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           n.value = n.value.replace(/\n\s*/g, ' ');
         }
       }
-      // Wrap in a paragraph so the footnote is a block-level node in the mdast tree.
-      // The paragraph serializes its single inline child on one line:
-      //   <Footnote name="…">text <Guilabel>…</Guilabel></Footnote>
-      // MDX then treats it as flow-level JSX (no <p> wrapping), matching the Kicker pattern.
       return {
         type: 'paragraph',
         children: [
@@ -2033,6 +2063,12 @@ interface ConvertSnootyAstToMdastOptions {
   substitutionDefLiterals?: Map<string, string>;
   /** Plain include bodies only: suppress the `value` attribute so `<Replacement>` slots win. */
   suppressSubstitutionInlineValues?: boolean;
+  /**
+   * When true, skip the `wrapInlineBlockNode` pass at the root and section levels.
+   * Use when converting inline-only slot content (e.g. `<Replacement>` values) where
+   * wrapping inline MDX nodes in paragraphs would introduce unwanted blank lines.
+   */
+  skipRootBlockWrapping?: boolean;
 }
 
 export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnootyAstToMdastOptions): MdastRoot => {
@@ -2096,10 +2132,12 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
     collectMetaAndTwitter(firstSection.children);
   }
 
+  const maybeWrap = options?.skipRootBlockWrapping ? (n: MdastNode) => n : wrapInlineBlockNode;
+
   (root.children ?? []).forEach((child: SnootyNode) => {
     const converted = convertNode({ node: child, depth: options?.initialDepth ?? 1, ctx });
-    if (Array.isArray(converted)) contentChildren.push(...converted);
-    else if (converted) contentChildren.push(converted);
+    if (Array.isArray(converted)) contentChildren.push(...converted.map(maybeWrap));
+    else if (converted) contentChildren.push(maybeWrap(converted));
   });
 
   // Merge page-level options that sit on the root node itself.

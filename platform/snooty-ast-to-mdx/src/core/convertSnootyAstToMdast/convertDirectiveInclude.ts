@@ -96,6 +96,7 @@ export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIn
         currentOutfilePath: path.normalize(emittedPathNormalized),
         substitutionRefXref: ctx.substitutionRefXref,
         substitutionDefLiterals: ctx.substitutionDefLiterals,
+        skipRootBlockWrapping: true,
       },
     );
 
@@ -117,7 +118,7 @@ export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIn
       if (!subChildren.length) continue;
       const slotRoot = convertSnootyAstToMdast(
         { type: 'root', children: subChildren },
-        { onEmitMdxFile: ctx.emitMdxFile, currentOutfilePath: path.normalize(emittedPathNormalized) },
+        { onEmitMdxFile: ctx.emitMdxFile, currentOutfilePath: path.normalize(emittedPathNormalized), skipRootBlockWrapping: true },
       );
       let slotNodes: MdastNode[] = slotRoot.children.filter(
         (c) => (c as { type: string }).type !== 'yaml',
