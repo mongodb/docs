@@ -49,6 +49,12 @@ const tocData: TocItem[] = [
             url: '/docs/entity-framework/:version/fundamentals/write-data',
           },
           {
+            label: 'Transactions',
+            contentSite: 'entity-framework',
+            url: '/docs/entity-framework/:version/fundamentals/transactions',
+            versions: { excludes: ['v8.0', 'v8.1', 'v8.2'] },
+          },
+          {
             label: 'Optimistic Concurrency',
             contentSite: 'entity-framework',
             url: '/docs/entity-framework/:version/fundamentals/optimistic-concurrency',
