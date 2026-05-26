@@ -68,6 +68,21 @@ object for GCP KMS:
      - Specifies a hostname and port number for the authentication server.
        Defaults to oauth2.googleapis.com.
 
+To use an access token instead of service account credentials,
+specify the ``accessToken`` field:
+
+.. code-block:: json
+
+   { "gcp": { "accessToken": "<access token>" } }
+
+To use automatic credential fetching, specify an empty object for
+the ``gcp`` credential. The driver then retrieves credentials from
+the GCP metadata service:
+
+.. code-block:: json
+
+   { "gcp": {} }
+
 .. _qe-kms-datakeyopts-gcp:
 
 dataKeyOpts Object

@@ -46,6 +46,21 @@ object for Azure Key Vault:
       Defaults to login.microsoftonline.com and is only needed for
       non-commercial Azure instances such as a government or China account.
 
+To use an access token instead of service principal credentials,
+specify the ``azure.accessToken`` field:
+
+.. code-block:: json
+
+   { "azure": { "accessToken": "<access token>"} }
+
+To use automatic credential fetching, specify an empty object for
+the ``azure`` credential. The driver then retrieves credentials
+from the Azure Instance Metadata Service:
+
+.. code-block:: json
+
+   { "azure": {} }
+
 .. _qe-kms-datakeyopts-azure:
 
 dataKeyOpts Object
@@ -73,6 +88,7 @@ Azure Key Vault:
 
   * - keyVaultEndpoint
     - Yes
-    - URL of the key vault. E.g. myVaultName.vault.azure.net
+    - URL of the key vault. For example:
+      ``myVaultName.vault.azure.net``
 
 .. include:: /includes/queryable-encryption/qe-csfle-warning-azure-keyversion.rst

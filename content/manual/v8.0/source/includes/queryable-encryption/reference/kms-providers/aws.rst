@@ -44,6 +44,14 @@ object for AWS KMS:
      - Yes
      - Contains a token obtained from AWS Security Token Service (STS).
 
+To use automatic credential fetching, specify an empty object for
+the ``aws`` credential. The driver then fetches credentials using
+its standard AWS credential lookup flow:
+
+.. code-block:: json
+
+   { "aws": {} }
+
 .. _qe-kms-datakeyopts-aws:
 
 dataKeyOpts Object
