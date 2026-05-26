@@ -9,7 +9,7 @@ $unwind (aggregation stage)
    :values: shell
 
 .. meta::
-   :description: Learn about the $unwind aggregation stage, which deconstructs array fields to output a document for each element.
+   :description: Learn how to use the $unwind aggregation stage to deconstruct an array field and output one document per element. Explore options for preserving missing arrays and tracking array indexes in MongoDB.
 
 .. contents:: On this page
    :local:
@@ -42,8 +42,8 @@ array field.
 Field Path Operand
 ~~~~~~~~~~~~~~~~~~
 
-You can pass the array field path to :pipeline:`$unwind`. When using
-this syntax, :pipeline:`$unwind` does not output a document if the field
+You can pass the array field path to ``$unwind``. When using
+this syntax, ``$unwind`` does not output a document if the field
 value is null, missing, or an empty array.
 
 .. code-block:: javascript
@@ -56,7 +56,7 @@ field name with a dollar sign ``$`` and enclose in quotes.
 Document Operand with Options
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can pass a document to :pipeline:`$unwind` to specify various
+You can pass a document to ``$unwind`` to specify various
 behavior options.
 
 .. code-block:: javascript
@@ -140,7 +140,7 @@ Missing Field
 ~~~~~~~~~~~~~
 
 If you specify a path for a field that does not exist in an input
-document or the field is an empty array, :pipeline:`$unwind`, by
+document or the field is an empty array, ``$unwind``, by
 default, ignores the input document and will not output documents for
 that input document.
 
@@ -157,374 +157,143 @@ Examples
    .. tab::
       :tabid: shell
 
+      .. include:: /includes/sample-data-usage.rst
+
       Unwind Array
       ~~~~~~~~~~~~
 
-      In :binary:`~bin.mongosh`, create a sample collection named
-      ``inventory`` with the following document:
+      The following aggregation uses the ``$unwind`` stage to
+      output a document for each element in the ``genres`` array of the
+      ``Inception`` movie document:
 
-      .. code-block:: javascript
+      .. io-code-block:: 
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/unwind/unwind-array.snippet.unwind-array.js
+            :language: javascript
+            :category: usage example
+      
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/unwind/unwind-array-output.sh
+            :language: javascript
 
-         db.inventory.insertOne({ _id: 1, item: "ABC1", sizes: [ "S", "M", "L"] })
-
-      The following aggregation uses the :pipeline:`$unwind` stage to output
-      a document for each element in the ``sizes`` array:
-
-      .. code-block:: javascript
-
-         db.inventory.aggregate( [ { $unwind : "$sizes" } ] )
-
-      The operation returns the following results:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         { _id: 1, item: "ABC1", sizes: "S" }
-         { _id: 1, item: "ABC1", sizes: "M" }
-         { _id: 1, item: "ABC1", sizes: "L" }
-
-      Each document is identical to the input document except for the value
-      of the ``sizes`` field which now holds a value from the original
-      ``sizes`` array.
+      Each output document is identical to the input document except for
+      the value of the ``genres`` field, which now holds a single element
+      from the original ``genres`` array.
 
       Missing or Non-array Values
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      Consider the ``clothing`` collection:
+      The following aggregation uses the ``$unwind`` stage with
+      four movie documents. Two of the documents (``"La porta del cielo"``
+      and ``"Neecha Nagar"``) do not have a ``genres`` field:
 
-      .. code-block:: javascript
+      .. io-code-block:: 
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/unwind/missing-values.snippet.missing-values.js
+            :language: javascript
+            :category: usage example
 
-         db.clothing.insertMany([
-           { _id: 1, item: "Shirt", sizes: [ "S", "M", "L"] },
-           { _id: 2, item: "Shorts", sizes: [ ] },
-           { _id: 3, item: "Hat", sizes: "M" },
-           { _id: 4, item: "Gloves" },
-           { _id: 5, item: "Scarf", sizes: null }
-         ])
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/unwind/missing-values-output.sh
+            :language: javascript
 
-      :pipeline:`$unwind` treats the ``sizes`` field as a single element
-      array if:
-
-      - the field is present,
-      - the value is not null, and
-      - the value is not an empty array.
-
-      Expand the ``sizes`` arrays with :pipeline:`$unwind`:
-
-      .. code-block:: javascript
-
-         db.clothing.aggregate( [ { $unwind: { path: "$sizes" } } ] )
-
-      The :pipeline:`$unwind` operation returns:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         { _id: 1, item: 'Shirt', sizes: 'S' },
-         { _id: 1, item: 'Shirt', sizes: 'M' },
-         { _id: 1, item: 'Shirt', sizes: 'L' },
-         { _id: 3, item: 'Hat', sizes: 'M' }
-
-      - In document ``"_id": 1``, ``sizes`` is a populated array.
-        :pipeline:`$unwind` returns a document for each element in the
-        ``sizes`` field.
-      - In document ``"_id": 3``, ``sizes`` resolves to a single element
-        array.
-      - Documents ``"_id": 2, "_id": 4``, and ``"_id": 5`` do not return
-        anything because the ``sizes`` field cannot be reduced to a single
-        element array.
+      - In the ``"Brave"`` document, ``genres`` is a populated array.
+        ``$unwind`` returns a document for each element in the
+        ``genres`` field.
+      - In the ``"Inception"`` document, ``genres`` is also a populated
+        array. ``$unwind`` returns a document for each element.
+      - The ``"La porta del cielo"`` and ``"Neecha Nagar"`` documents
+        do not have a ``genres`` field, so ``$unwind`` does not
+        return any documents for them.
 
       .. note::
 
          The ``{ path: <FIELD> }`` syntax is optional. The following
-         :pipeline:`$unwind` operations are equivalent.
+         ``$unwind`` operations are equivalent.
 
          .. code-block:: javascript
+            :category: syntax example
 
-            db.clothing.aggregate( [ { $unwind: "$sizes" } ] )
-            db.clothing.aggregate( [ { $unwind: { path: "$sizes" } } ] )
+            db.<COLLECTION>.aggregate(
+              [ { $unwind: "<FIELD>" } ]
+            )
+            
+         .. code-block:: javascript
+            :category: syntax example
+
+            db.<COLLECTION>.aggregate(
+              [ { $unwind: { path: "<FIELD>" } } ]
+            )
 
       ``preserveNullAndEmptyArrays`` and ``includeArrayIndex``
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       The :ref:`ex-preservedNull` and :ref:`ex-includeArrayIndex` examples
-      use the following collection:
-
-      .. code-block:: javascript
-
-         db.inventory2.insertMany([
-            { _id: 1, item: "ABC", price: Decimal128("80"), sizes: [ "S", "M", "L"] },
-            { _id: 2, item: "EFG", price: Decimal128("120"), sizes: [ ] },
-            { _id: 3, item: "IJK", price: Decimal128("160"), sizes: "M" },
-            { _id: 4, item: "LMN" , price: Decimal128("10") },
-            { _id: 5, item: "XYZ", price: Decimal128("5.75"), sizes: null }
-         ])
+      use documents from the ``sample_mflix.movies`` collection.
 
       .. _ex-preservedNull:
 
       ``preserveNullAndEmptyArrays``
       ``````````````````````````````
 
-      The following :pipeline:`$unwind` operation uses the
+      The following ``$unwind`` operation uses the
       :ref:`preserveNullAndEmptyArrays <unwind-preserveNullAndEmptyArrays>`
-      option to include documents whose ``sizes`` field is null, missing,
-      or an empty array.
+      option to include documents whose ``genres`` field is missing.
 
-      .. code-block:: javascript
+      .. io-code-block:: 
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/unwind/preserve-null.snippet.preserve-null.js
+            :language: javascript
+            :category: usage example
 
-         db.inventory2.aggregate( [
-            { $unwind: { path: "$sizes", preserveNullAndEmptyArrays: true } }
-         ] )
-
-      The output includes those documents where the ``sizes`` field is
-      null, missing, or an empty array:
-
-      .. code-block:: javascript
-         :emphasize-lines: 4,6-7
-         :copyable: false
-
-         { _id: 1, item: "ABC", price: Decimal128("80"), sizes: "S" }
-         { _id: 1, item: "ABC", price: Decimal128("80"), sizes: "M" }
-         { _id: 1, item: "ABC", price: Decimal128("80"), sizes: "L" }
-         { _id: 2, item: "EFG", price: Decimal128("120") }
-         { _id: 3, item: "IJK", price: Decimal128("160"), sizes: "M" }
-         { _id: 4, item: "LMN", price: Decimal128("10") }
-         { _id: 5, item: "XYZ", price: Decimal128("5.75"), sizes: null }
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/unwind/preserve-null-output.sh
+            :language: javascript
 
       .. _ex-includeArrayIndex:
 
       ``includeArrayIndex``
       `````````````````````
 
-      The following :pipeline:`$unwind` operation uses the
+      The following ``$unwind`` operation uses the
       :ref:`includeArrayIndex <unwind-includeArrayIndex>` option to include
       the array index in the output.
 
-      .. code-block:: javascript
+      .. io-code-block:: 
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/unwind/include-array-index.snippet.include-array-index.js
+            :language: javascript
+            :category: usage example
 
-         db.inventory2.aggregate( [
-           {
-             $unwind:
-               {
-                 path: "$sizes",
-                 includeArrayIndex: "arrayIndex"
-               }
-            }])
-
-      The operation unwinds the ``sizes`` array and includes the array index
-      in the new ``arrayIndex`` field. If the ``sizes`` field does not
-      resolve to a populated array but is not missing, null, or an empty
-      array, the ``arrayIndex`` field is ``null``.
-
-      .. code-block:: javascript
-         :copyable: false
-
-         { _id: 1, item: "ABC", price: Decimal128("80"), sizes: "S", arrayIndex: Long(0) }
-         { _id: 1, item: "ABC", price: Decimal128("80"), sizes: "M", arrayIndex: Long(1) }
-         { _id: 1, item: "ABC", price: Decimal128("80"), sizes: "L", arrayIndex: Long(2) }
-         { _id: 3, item: "IJK", price: Decimal128("160"), sizes: "M", arrayIndex: null }
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/unwind/include-array-index-output.sh
+            :language: javascript
 
       Group by Unwound Values
       ~~~~~~~~~~~~~~~~~~~~~~~
 
-      In :binary:`~bin.mongosh`, create a sample collection named
-      ``inventory2`` with the following documents:
+      The following pipeline unwinds the ``genres`` array and groups the
+      resulting documents by genre to count the number of movies in each
+      genre:
 
-      .. code-block:: javascript
+      .. io-code-block::
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/unwind/group-by-unwound.snippet.group-by-unwound.js
+            :language: javascript
+            :category: usage example
+         
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/unwind/group-by-unwound-output.sh
+            :language: javascript
+   
 
-         db.inventory2.insertMany([
-           { _id: 1, item: "ABC", price: Decimal128("80"), sizes: [ "S", "M", "L"] },
-           { _id: 2, item: "EFG", price: Decimal128("120"), sizes: [ ] },
-           { _id: 3, item: "IJK", price: Decimal128("160"), sizes: "M" },
-           { _id: 4, item: "LMN" , price: Decimal128("10") },
-           { _id: 5, item: "XYZ", price: Decimal128("5.75"), sizes: null }
-         ])
+      Unwind Multiple Array Fields
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      The following pipeline unwinds the ``sizes`` array and groups the
-      resulting documents by the unwound size values:
+      You can apply ``$unwind`` multiple times in a single
+      pipeline to expand documents that contain several array fields.
+      The following operation unwinds the ``genres`` array and then
+      the ``cast`` array to produce a flat document for every
+      genre-actor combination, then groups by genre to count the total
+      cast appearances in each genre:
 
-      .. code-block:: javascript
+      .. io-code-block:: 
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/unwind/unwind-multiple-arrays.snippet.unwind-multiple-arrays.js
+            :language: javascript
+            :category: usage example
 
-         db.inventory2.aggregate( [
-            // First Stage
-            {
-              $unwind: { path: "$sizes", preserveNullAndEmptyArrays: true }
-            },
-            // Second Stage
-            {
-              $group:
-                {
-                  _id: "$sizes",
-                  averagePrice: { $avg: "$price" }
-                }
-            },
-            // Third Stage
-            {
-              $sort: { "averagePrice": -1 }
-            }
-         ] )
-
-      First Stage:
-        The :pipeline:`$unwind` stage outputs a new document for each element
-        in the ``sizes`` array. The stage uses the
-        :ref:`preserveNullAndEmptyArrays <unwind-preserveNullAndEmptyArrays>`
-        option to include in the output those documents where ``sizes`` field
-        is missing, null or an empty array. This stage passes the following
-        documents to the next stage:
-
-        .. code-block:: javascript
-           :copyable: false
-
-           { _id: 1, item: "ABC", price: Decimal128("80"), sizes: "S" }
-           { _id: 1, item: "ABC", price: Decimal128("80"), sizes: "M" }
-           { _id: 1, item: "ABC", price: Decimal128("80"), sizes: "L" }
-           { _id: 2, item: "EFG", price: Decimal128("120") }
-           { _id: 3, item: "IJK", price: Decimal128("160"), sizes: "M" }
-           { _id: 4, item: "LMN", price: Decimal128("10") }
-           { _id: 5, item: "XYZ", price: Decimal128("5.75"), sizes: null }
-
-      Second Stage:
-        The :pipeline:`$group` stage groups the documents by ``sizes``
-        and calculates the average price of each size. This stage
-        passes the following documents to the next stage:
-
-        .. code-block:: javascript
-           :copyable: false
-
-           { _id: "S", averagePrice: Decimal128("80") }
-           { _id: "L", averagePrice: Decimal128("80") }
-           { _id: "M", averagePrice: Decimal128("120") }
-           { _id: null, averagePrice: Decimal128("45.25") }
-
-      Third Stage:
-        The :pipeline:`$sort` stage sorts the documents by ``averagePrice`` in
-        descending order. The operation returns the following result:
-
-        .. code-block:: javascript
-           :copyable: false
-
-           { _id : "M", averagePrice: Decimal128("120") }
-           { _id : "L", averagePrice: Decimal128("80") }
-           { _id : "S", averagePrice: Decimal128("80") }
-           { _id : null, averagePrice: Decimal128("45.25") }
-
-      .. seealso::
-
-         - :pipeline:`$group`
-         - :pipeline:`$sort`
-
-      Unwind Embedded Arrays
-      ~~~~~~~~~~~~~~~~~~~~~~
-
-      In :binary:`~bin.mongosh`, create a sample collection named
-      ``sales`` with the following documents:
-
-      .. code-block:: javascript
-
-         db.sales.insertMany( [
-           {
-            _id: "1",
-            items: [
-              {
-               name: "pens",
-               tags: [ "writing", "office", "school", "stationary" ],
-               price: Decimal128("12.00"),
-               quantity: Int32("5")
-              },
-              {
-               name: "envelopes",
-               tags: [ "stationary", "office" ],
-               price: Decimal128("19.95"),
-               quantity: Int32("8")
-              }
-             ]
-           },
-           {
-            _id: "2",
-            items: [
-              {
-               name: "laptop",
-               tags: [ "office", "electronics" ],
-               price: Decimal128("800.00"),
-               quantity: Int32("1")
-              },
-              {
-               name: "notepad",
-               tags: [ "stationary", "school" ],
-               price: Decimal128("14.95"),
-               quantity: Int32("3")
-              }
-             ]
-           }
-         ])
-
-      The following operation groups the items sold by their tags and
-      calculates the total sales amount per each tag.
-
-      .. code-block:: javascript
-
-         db.sales.aggregate([
-           // First Stage
-           { $unwind: "$items" },
-
-           // Second Stage
-           { $unwind: "$items.tags" },
-
-           // Third Stage
-           {
-             $group:
-               {
-                 _id: "$items.tags",
-                 totalSalesAmount:
-                   {
-                     $sum: { $multiply: [ "$items.price", "$items.quantity" ] }
-                   }
-               }
-           }
-         ])
-
-      First Stage
-        The first :pipeline:`$unwind` stage outputs a new document for
-        each element in the ``items`` array:
-
-        .. code-block:: javascript
-           :copyable: false
-
-           { _id: "1", items: { name: "pens", tags: [ "writing", "office", "school", "stationary" ], price: Decimal128("12.00"), quantity: 5 } }
-           { _id: "1", items: { name: "envelopes", tags: [ "stationary", "office" ], price: Decimal128("19.95"), quantity: 8 } }
-           { _id: "2", items: { name: "laptop", tags: [ "office", "electronics" ], price: Decimal128("800.00"), quantity": 1 } }
-           { _id: "2", items: { name: "notepad", tags: [ "stationary", "school" ], price: Decimal128("14.95"), quantity: 3 } }
-
-      Second Stage
-        The second :pipeline:`$unwind` stage outputs a new document for each
-        element in the ``items.tags`` arrays:
-
-        .. code-block:: javascript
-           :copyable: false
-
-           { _id: "1", items: { name: "pens", tags: "writing", price: Decimal128("12.00"), quantity: 5 } }
-           { _id: "1", items: { name: "pens", tags: "office", price: Decimal128("12.00"), quantity: 5 } }
-           { _id: "1", items: { name: "pens", tags: "school", price: Decimal128("12.00"), quantity: 5 } }
-           { _id: "1", items: { name: "pens", tags: "stationary", price: Decimal128("12.00"), quantity: 5 } }
-           { _id: "1", items: { name: "envelopes", tags: "stationary", price: Decimal128("19.95"), quantity: 8 } }
-           { _id: "1", items: { name: "envelopes", tags: "office", "price" : Decimal128("19.95"), quantity: 8 } }
-           { _id: "2", items: { name: "laptop", tags: "office", price: Decimal128("800.00"), quantity: 1 } }
-           { _id: "2", items: { name: "laptop", tags: "electronics", price: Decimal128("800.00"), quantity: 1 } }
-           { _id: "2", items: { name: "notepad", tags: "stationary", price: Decimal128("14.95"), quantity: 3 } }
-           { _id: "2", items: { name: "notepad", "ags: "school", price: Decimal128("14.95"), quantity: 3 } }
-
-      Third Stage
-        The :pipeline:`$group` stage groups the documents by the tag and
-        calculates the total sales amount of items with each tag:
-
-        .. code-block:: javascript
-           :copyable: false
-
-           { _id: "writing", totalSalesAmount: Decimal128("60.00") }
-           { _id: "stationary", totalSalesAmount: Decimal128("264.45") }
-           { _id: "electronics", totalSalesAmount: Decimal128("800.00") }
-           { _id: "school", totalSalesAmount: Decimal128("104.85") }
-           { _id: "office", totalSalesAmount: Decimal128("1019.60") }
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/unwind/unwind-multiple-arrays-output.sh
+            :language: javascript
 
    .. tab::
       :tabid: csharp
@@ -622,7 +391,7 @@ Learn More
 ----------
 
 To learn more about related methods, see the :pipeline:`$group`, :group:`$sum`,
-and :expression:`$multiply` guides.
+:pipeline:`$sort`, and :expression:`$multiply` guides.
 
-To see how to use :pipeline:`$unwind` in a full example, see the
+To see how to use ``$unwind`` in a full example, see the
 :ref:`agg-example-unpack-arrays` tutorial.
