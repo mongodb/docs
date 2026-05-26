@@ -26,6 +26,8 @@ import { Describe } from '@/mdx-components/Describe';
 import { Highlight } from '@/mdx-components/Highlight';
 import Card from '@/mdx-components/Card';
 import CardGroup from '@/mdx-components/Card/CardGroup';
+import { Column } from '@/mdx-components/Column';
+import { MultiColumn } from '@/mdx-components/MultiColumn';
 import { GUILabel } from '@/mdx-components/GUILabel';
 import { Red } from '@/mdx-components/Red';
 import { Gold } from '@/mdx-components/Gold';
@@ -102,6 +104,7 @@ export const components = (injectedProps?: InjectedProps) =>
     Button: ({ children, ...props }) => <Button {...props}>{children}</Button>,
     Card: ({ children, ...props }) => <Card {...props}>{children}</Card>,
     CardGroup: ({ children, ...props }) => <CardGroup {...props}>{children}</CardGroup>,
+    Column: ({ children, ...props }) => <Column {...props}>{children}</Column>,
     Facet: ({ children }) => children,
     Collapsible: ({ children, ...props }) => <Collapsible {...props}>{children}</Collapsible>,
     CommunityDriver: ({ children, ...props }) => <CommunityPillLink {...props}>{children}</CommunityPillLink>,
@@ -158,6 +161,7 @@ export const components = (injectedProps?: InjectedProps) =>
     ),
     li: ({ children, ...props }) => <ListItem {...props}>{children}</ListItem>,
     code: ({ children }) => <Literal>{children}</Literal>,
+    MultiColumn: ({ children }) => <MultiColumn>{children}</MultiColumn>,
     Output: ({ children, ...props }) => <Output {...props}>{children}</Output>,
     OpenAPI: () => <OpenAPI />,
     OpenapiChangelog: () => <OpenAPIChangelog />,

@@ -11,16 +11,16 @@ import { Caption } from './Caption';
 const INTERNAL_IMAGE_API_PATH = '/docs/platform/api/images/';
 
 // Formats the image url to the api path
-const formatImageUrl = (imagePath: string) => `${INTERNAL_IMAGE_API_PATH}${imagePath}`;
+// Strip any leading slash from imagePath to avoid double-slash when projectPath is empty (landing page)
+const formatImageUrl = (imagePath: string) => `${INTERNAL_IMAGE_API_PATH}${imagePath.replace(/^\//, '')}`;
 
-const figureStyle = (width?: string, maxHeight?: string) => css`
+const figureStyle = (width?: string, maxHeight?: string, hasHeroImageClass?: boolean) => css`
   display: block;
   width: auto;
-  max-width: ${width && width !== 'auto' ? `min(${width}, 100%)` : '100%'};
+  ${!hasHeroImageClass ? `max-width: ${width && width !== 'auto' ? `min(${width}, 100%)` : '100%'};` : ''}
   height: auto;
-  ${maxHeight && maxHeight !== 'auto' ? `max-height: ${maxHeight};` : ''}
-  margin-top: ${theme.size.medium};
-  margin-bottom: ${theme.size.medium};
+  ${!hasHeroImageClass && maxHeight && maxHeight !== 'auto' ? `max-height: ${maxHeight};` : ''}
+  ${!hasHeroImageClass ? `margin-top: ${theme.size.medium}; margin-bottom: ${theme.size.medium};` : ''}
 `;
 
 const borderStyle = css`
@@ -61,6 +61,7 @@ export const Image = ({
 
   const normalizeWidth = () => (width ?? figwidth ? `${width ?? figwidth}px` : 'auto');
   const normalizeHeight = () => (height ? `${height}px` : 'auto');
+  const hasHeroImageClass = className === 'hero-img';
 
   if (lightbox) {
     return (
@@ -69,7 +70,7 @@ export const Image = ({
           <img
             src={imageUrl}
             alt={alt}
-            className={cx(figureStyle(normalizeWidth(), normalizeHeight()), border ? borderStyle : '')}
+            className={cx(figureStyle(normalizeWidth(), normalizeHeight(), hasHeroImageClass), border ? borderStyle : '')}
           />
         }
         caption={caption}
@@ -83,7 +84,7 @@ export const Image = ({
       <img
         src={imageUrl}
         alt={alt}
-        className={cx(figureStyle(normalizeWidth(), normalizeHeight()), border ? borderStyle : '', className)}
+        className={cx(figureStyle(normalizeWidth(), normalizeHeight(), hasHeroImageClass), border ? borderStyle : '', className)}
         onClick={openModal}
       />
       <Caption caption={caption} />

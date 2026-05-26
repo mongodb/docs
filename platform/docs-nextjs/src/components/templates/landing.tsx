@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react';
 import { cx, css } from '@leafygreen-ui/emotion';
-import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
 import { palette } from '@leafygreen-ui/palette';
 import { theme } from '@/styles/theme';
 import type { BaseTemplateProps } from '.';
@@ -60,14 +59,17 @@ const wrapperStyles = css`
 `;
 
 // The Landing template exclusively represents mongodb.com/docs. All other landings use the ProductLanding template
-const getLandingTemplateStyles = (darkMode: boolean) => {
+const getLandingTemplateStyles = () => {
   const { fontSize, screenSize, size } = theme;
   return css`
     & h1,
     & h2,
     & h3,
     & h4 {
-      color: ${darkMode ? palette.gray.light2 : palette.black};
+      color: ${palette.black};
+      .dark-theme & {
+        color: ${palette.gray.light2};
+      }
     }
 
     & h1,
@@ -80,6 +82,9 @@ const getLandingTemplateStyles = (darkMode: boolean) => {
     }
     & p {
       color: ${palette.black};
+      .dark-theme & {
+        color: ${palette.gray.light2};
+      }
       font-size: ${fontSize.default};
       letter-spacing: normal;
       margin-bottom: ${size.default};
@@ -119,7 +124,10 @@ const getLandingTemplateStyles = (darkMode: boolean) => {
       }
     }
     & main > section > section:first-of-type h2 {
-      color: ${darkMode ? palette.gray.light2 : palette.gray.dark4};
+      color: ${palette.gray.dark4};
+      .dark-theme & {
+        color: ${palette.gray.light2};
+      }
       font-size: 32px;
       font-family: 'MongoDB Value Serif';
       font-weight: 400;
@@ -172,13 +180,12 @@ const getLandingTemplateStyles = (darkMode: boolean) => {
 
 // The Landing template exclusively represents mongodb.com/docs. All other landings use the ProductLanding template
 const LandingTemplate = ({ children }: BaseTemplateProps & { children: ReactNode }) => {
-  const { darkMode } = useDarkMode();
   const { slug: pageSlug } = usePageContext();
   const { siteBasePrefixWithVersion } = useVersionContext();
 
   return (
     <>
-      <div className={cx(getLandingTemplateStyles(darkMode))}>
+      <div className={cx(getLandingTemplateStyles())}>
         {isOfflineBuild && (
           <OfflineBanner
             linkUrl={'https://mongodb.com/' + getFullSlug(pageSlug, siteBasePrefixWithVersion)}

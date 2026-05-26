@@ -51,6 +51,9 @@ export const convertDirectiveImage = ({ node }: ConvertDirectiveImageArgs): Mdas
   if (captionText) {
     attrs.push({ type: 'mdxJsxAttribute', name: 'caption', value: captionText } as MdastNode);
   }
+  if (typeof node.options?.class === 'string' && node.options.class) {
+    attrs.push({ type: 'mdxJsxAttribute', name: 'className', value: node.options.class } as MdastNode);
+  }
 
   return { type: 'mdxJsxFlowElement', name: 'Image', attributes: attrs, children: [] } as MdastNode;
 };
