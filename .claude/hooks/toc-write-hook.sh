@@ -11,9 +11,6 @@ except Exception:
 " 2>/dev/null)
 
 if echo "$file_path" | grep -qE 'content/.+\.txt$' && ! echo "$file_path" | grep -q '/includes/'; then
-    python3 -c "
-import json, sys
-msg = 'A documentation page was written at ' + sys.argv[1] + '. Invoke the unified-toc skill now to register this page in the unified table of contents before continuing.'
-print(json.dumps({'systemMessage': msg}))
-" "$file_path"
+    message="A documentation page was written at ${file_path}. Invoke the unified-toc skill now to register this page in the unified table of contents before continuing."
+    printf '%s' "$message" | jq -Rs '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":.}}'
 fi

@@ -48,6 +48,9 @@ case "$CMD" in
   findability|find)
     npx tsx "$LINT_DIR/findability-lint-cli.ts" "$@"
     ;;
+  nested)
+    npx tsx "$LINT_DIR/nested-components-lint-cli.ts" "$@"
+    ;;
   vale)
     if ! command -v vale &> /dev/null; then
       echo "❌ Vale is required but not installed."
@@ -57,21 +60,26 @@ case "$CMD" in
     vale --config "$REPO_ROOT/vale.ini" --minAlertLevel suggestion "$@"
     ;;
   all|both)
+    exit_code=0
     echo "=== SEO Linter ==="
-    npx tsx "$LINT_DIR/seo-lint-cli.ts" "$@"
+    npx tsx "$LINT_DIR/seo-lint-cli.ts" "$@" || exit_code=1
     echo ""
     echo "=== 404 Linter ==="
-    npx tsx "$LINT_DIR/404-lint-cli.ts" "$@"
+    npx tsx "$LINT_DIR/404-lint-cli.ts" "$@" || exit_code=1
     echo ""
     echo "=== Findability Linter ==="
-    npx tsx "$LINT_DIR/findability-lint-cli.ts" "$@"
+    npx tsx "$LINT_DIR/findability-lint-cli.ts" "$@" || exit_code=1
+    echo ""
+    echo "=== Nested Components Linter ==="
+    npx tsx "$LINT_DIR/nested-components-lint-cli.ts" "$@" || exit_code=1
     echo ""
     echo "=== Vale Prose Linter ==="
     if command -v vale &> /dev/null; then
-      vale --config "$REPO_ROOT/vale.ini" --minAlertLevel suggestion "$@"
+      vale --config "$REPO_ROOT/vale.ini" --minAlertLevel suggestion "$@" || exit_code=1
     else
       echo "⚠️  Vale is not installed. Skipping prose lint. Install: https://vale.sh/docs/vale-cli/installation/"
     fi
+    exit $exit_code
     ;;
   help|--help|-h)
     echo "Documentation Linters"
@@ -83,8 +91,9 @@ case "$CMD" in
     echo "  404          Run broken link checker"
     echo "  redirects    Run circular redirect checker"
     echo "  findability  Run findability linter (facets, keywords, docs URLs)"
+    echo "  nested       Run nested components linter (forbidden RST directive nesting)"
     echo "  vale         Run Vale prose linter (requires Vale installed)"
-    echo "  all          Run SEO + 404 + findability + Vale prose linters"
+    echo "  all          Run SEO + 404 + findability + nested + Vale prose linters"
     echo ""
     echo "Examples:"
     echo "  ./lint-docs.sh seo content/manual/source/intro.txt"

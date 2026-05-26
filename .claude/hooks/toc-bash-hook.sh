@@ -22,9 +22,6 @@ affected=$(git -C "${CLAUDE_PROJECT_DIR:-.}" status --short 2>/dev/null \
     || true)
 
 if [ -n "$affected" ]; then
-    python3 -c "
-import json
-msg = 'Documentation pages moved or deleted in content/. Invoke the unified-toc skill now to update the unified table of contents before continuing.'
-print(json.dumps({'systemMessage': msg}))
-"
+    message="Documentation pages moved or deleted in content/. Invoke the unified-toc skill now to update the unified table of contents before continuing."
+    printf '%s' "$message" | jq -Rs '{"hookSpecificOutput":{"hookEventName":"PostToolUse","additionalContext":.}}'
 fi
