@@ -4,13 +4,9 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.insertMany([
-               { item: "journal", qty: 25, tags: ["blank", "red"], size: { h: 14, w: 21, uom: "cm" } },
-               { item: "mat", qty: 85, tags: ["gray"], size: { h: 27.9, w: 35.5, uom: "cm" } },
-               { item: "mousepad", qty: 25, tags: ["gel", "blue"], size: { h: 19, w: 22.85, uom: "cm" } }
-            ])
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/crud-tutorials/insert/insert-many-movies.snippet.insert-many-movies.js
+            :language: javascript
+            :copyable: true
           
      - id: compass
        content: |

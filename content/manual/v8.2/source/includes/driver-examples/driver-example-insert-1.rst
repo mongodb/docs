@@ -4,11 +4,9 @@
      - id: shell
        content: |
 
-         .. code-block:: javascript
-
-            db.inventory.insertOne(
-               { item: "canvas", qty: 100, tags: ["cotton"], size: { h: 28, w: 35.5, uom: "cm" } }
-            )
+         .. literalinclude:: /code-examples/tested/command-line/mongosh/crud-tutorials/insert/insert-one-movie.snippet.insert-one-movie.js
+            :language: javascript
+            :copyable: true
 
      - id: compass
        content: |

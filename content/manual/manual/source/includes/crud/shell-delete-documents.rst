@@ -3,18 +3,7 @@ This page uses the following :binary:`~bin.mongosh` methods:
 - :method:`db.collection.deleteMany()`
 - :method:`db.collection.deleteOne()`
 
-The examples on this page use the ``inventory`` collection. To
-populate the ``inventory`` collection, run the following:
-
-.. code-block:: javascript
-
-   db.inventory.insertMany( [
-      { item: "journal", qty: 25, size: { h: 14, w: 21, uom: "cm" }, status: "A" },
-      { item: "notebook", qty: 50, size: { h: 8.5, w: 11, uom: "in" }, status: "P" },
-      { item: "paper", qty: 100, size: { h: 8.5, w: 11, uom: "in" }, status: "D" },
-      { item: "planner", qty: 75, size: { h: 22.85, w: 30, uom: "cm" }, status: "D" },
-      { item: "postcard", qty: 45, size: { h: 10, w: 15.25, uom: "cm" }, status: "A" },
-   ] );
+.. include:: /includes/sample-data-usage.rst
 
 .. _write-op-deleteMany:
 
@@ -25,11 +14,12 @@ To delete all documents from a collection, pass an empty
 :ref:`filter <document-query-filter>` document ``{}`` to the
 :method:`db.collection.deleteMany()` method.
 
-.. include:: /includes/fact-delete-all-inventory.rst
+The following example deletes all documents from the ``movies``
+collection:
 
 .. code-block:: javascript
 
-   db.inventory.deleteMany({})
+   db.movies.deleteMany({})
 
 The method returns a document with the status of the operation. For
 more information and examples, see
@@ -60,11 +50,12 @@ To delete all documents that match a deletion criteria, pass a
 :ref:`filter <document-query-filter>` parameter to the
 :method:`~db.collection.deleteMany()` method.
 
-.. include:: /includes/fact-remove-condition-inv-example.rst
+The following example removes all documents from the ``movies``
+collection where ``year`` equals ``2023``:
 
-.. code-block:: javascript
-
-   db.inventory.deleteMany({ status : "A" })
+.. literalinclude:: /code-examples/tested/command-line/mongosh/crud-tutorials/delete/delete-many-movies.snippet.delete-many-movies.js
+   :language: javascript
+   :copyable: true
 
 The method returns a document with the status of the operation. For
 more information and examples, see
@@ -77,11 +68,12 @@ To delete at most a single document that matches a specified filter
 (even though multiple documents may match the specified filter) use
 the :method:`db.collection.deleteOne()` method.
 
-.. include:: /includes/fact-remove-one-condition-inv-example.rst
+The following example deletes the first document from the ``movies``
+collection where the ``title`` field equals ``"Dune: Part Two"``:
 
-.. code-block:: javascript
-
-   db.inventory.deleteOne( { status: "D" } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/crud-tutorials/delete/delete-one-movie.snippet.delete-one-movie.js
+   :language: javascript
+   :copyable: true
 
 .. seealso::
 
