@@ -264,6 +264,7 @@ These are not treated as site content:
 | Path | Behavior |
 |------|-----------|
 | `content/table-of-contents/` | Skipped by pre-push hook and CI changed-file step |
+| `code-example-tests/` | Skipped by pre-push hook; never triggers CI (not under `content/`) |
 | `.github/agents/**` | Agent skills and flows (internal tooling). **Pre-push** skips SEO + 404 for these paths. **SEO linter** returns no issues if run manually — avoids meta/H1/nested-component noise |
 
 ---
