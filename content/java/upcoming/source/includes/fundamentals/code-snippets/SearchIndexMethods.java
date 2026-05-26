@@ -1,9 +1,12 @@
 package org.example;
 
 import com.mongodb.client.*;
+import com.mongodb.client.model.SearchIndexDefinition;
 import com.mongodb.client.model.SearchIndexModel;
 import com.mongodb.client.model.SearchIndexType;
 import org.bson.Document;
+
+import static com.mongodb.client.model.VectorSearchIndexFields.autoEmbedField;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -88,15 +91,11 @@ public class SearchIndexMethods {
             // start autoembedding-indexes
             SearchIndexModel indexModel = new SearchIndexModel(
                     "myIndex",
-                    new Document("fields",
-                            Collections.singletonList(
-                                    new Document("type", "autoEmbed")
-                                            .append("modality", "text")
-                                            .append("model", "voyage-4-large")
-                                            .append("path", "plot")
-                            )
-                    ),
-                    SearchIndexType.vectorSearch()
+                    SearchIndexDefinition.vectorSearch(
+                            autoEmbedField("plot")
+                                    .modality("text")
+                                    .model("voyage-4-large")
+                    )
             );
             collection.createSearchIndexes(Collections.singletonList(indexModel));
             // end autoembedding-indexes
