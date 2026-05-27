@@ -231,70 +231,46 @@ If the operation fails, the operation does not add an entry on the oplog.
 Examples
 --------
 
-The following examples insert documents into the ``products``
-collection.
+.. include:: /includes/sample-data-usage.rst
 
 Insert Several Documents without Specifying an ``_id`` Field
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example uses ``insertMany()`` to insert
-documents that do not contain the ``_id`` field:
+The following example inserts three documents without ``_id`` fields
+into the ``movies`` collection:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   try {
-      db.products.insertMany( [
-         { item: "card", qty: 15 },
-         { item: "envelope", qty: 20 },
-         { item: "stamps" , qty: 30 }
-      ] );
-   } catch (e) {
-      print (e);
-   }
+   .. input:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.insertMany/insert-many-without-id.snippet.insert-many-without-id.js
+      :language: javascript
+      :category: usage example
 
-The operation returns the following document:
+   .. output:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.insertMany/insert-many-without-id-output.sh
+      :language: javascript
 
-.. code-block:: javascript
-
-   {
-      "acknowledged" : true,
-      "insertedIds" : [
-         ObjectId("562a94d381cb9f1cd6eb0e1a"),
-         ObjectId("562a94d381cb9f1cd6eb0e1b"),
-         ObjectId("562a94d381cb9f1cd6eb0e1c")
-      ]
-   }
-
-Because the documents did not include ``_id``,
-:binary:`~bin.mongod` creates and adds the ``_id`` field for each document and
-assigns it a unique :method:`ObjectId` value.
+Because the documents do not include ``_id``,
+:binary:`~bin.mongod` creates and adds the ``_id`` field for each
+document and assigns it a unique :method:`ObjectId` value.
 
 .. include:: /includes/fact-object-id-may-differ.rst
 
 Insert Several Document Specifying an ``_id`` Field
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example uses ``insertMany()`` to
-insert documents that include the ``_id`` field. The value of ``_id`` must be
-unique within the collection to avoid a duplicate key error.
+The following example inserts documents that specify the ``_id``
+field into the ``movies`` collection. The value of ``_id`` must be
+unique within the collection to avoid a duplicate key error:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   try {
-      db.products.insertMany( [
-         { _id: 10, item: "large box", qty: 20 },
-         { _id: 11, item: "small box", qty: 55 },
-         { _id: 12, item: "medium box", qty: 30 }
-      ] );
-   } catch (e) {
-      print (e);
-   }
+   .. input:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.insertMany/insert-many-with-id.snippet.insert-many-with-id.js
+      :language: javascript
+      :category: usage example
 
-The operation returns the following document:
-
-.. code-block:: javascript
-
-   { "acknowledged" : true, "insertedIds" : [ 10, 11, 12 ] }
+   .. output:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.insertMany/insert-many-with-id-output.sh
+      :language: javascript
 
 Inserting a duplicate value for any key that is part of a :term:`unique
 index`, such as ``_id``, throws an exception. The following attempts to insert
@@ -303,10 +279,10 @@ a document with a ``_id`` value that already exists:
 .. code-block:: javascript
 
    try {
-      db.products.insertMany( [
-         { _id: 13, item: "envelopes", qty: 60 },
-         { _id: 13, item: "stamps", qty: 110 },
-         { _id: 14, item: "packing tape", qty: 38 }
+      db.movies.insertMany( [
+         { _id: 13, title: "Inception", year: 2010 },
+         { _id: 13, title: "The Dark Knight", year: 2008 },
+         { _id: 14, title: "Interstellar", year: 2014 }
       ] );
    } catch (e) {
       print (e);
@@ -321,11 +297,11 @@ Since ``_id: 13`` already exists, the following exception is thrown:
          {
             "index" : 0,
             "code" : 11000,
-            "errmsg" : "E11000 duplicate key error collection: inventory.products index: _id_ dup key: { : 13.0 }",
+            "errmsg" : "E11000 duplicate key error collection: sample_mflix.movies index: _id_ dup key: { : 13.0 }",
             "op" : {
                "_id" : 13,
-               "item" : "stamps",
-               "qty" : 110
+               "title" : "The Dark Knight",
+               "year" : 2008
             }
          }
       ],
@@ -338,12 +314,12 @@ Since ``_id: 13`` already exists, the following exception is thrown:
       "upserted" : [ ]
    })
 
-Note that one document was inserted: The first document of ``_id: 13`` will
-insert successfully, but the second insert will fail. This will also stop
-additional documents left in the queue from being inserted.
+Note that one document was inserted: the first document of ``_id: 13``
+inserts successfully, but the second insert fails. The operation does not
+insert the remaining documents in the queue.
 
-With ``ordered`` to ``false``, the insert operation would continue with any
-remaining documents.
+With ``ordered`` set to ``false``, the insert operation continues with
+any remaining documents.
 
 Unordered Inserts
 ~~~~~~~~~~~~~~~~~
@@ -352,61 +328,20 @@ The following attempts to insert multiple documents with ``_id`` field and
 ``ordered: false``. The array of documents contains two documents with
 duplicate ``_id`` fields.
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   try {
-      db.products.insertMany( [
-         { _id: 10, item: "large box", qty: 20 },
-         { _id: 11, item: "small box", qty: 55 },
-         { _id: 11, item: "medium box", qty: 30 },
-         { _id: 12, item: "envelope", qty: 100},
-         { _id: 13, item: "stamps", qty: 125 },
-         { _id: 13, item: "tape", qty: 20},
-         { _id: 14, item: "bubble wrap", qty: 30}
-      ], { ordered: false } );
-   } catch (e) {
-      print (e);
-   }
+   .. input:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.insertMany/insert-many-unordered.snippet.insert-many-unordered.js
+      :language: javascript
+      :category: usage example
 
-The operation throws the following exception:
+   .. output:: /code-examples/tested/command-line/mongosh/mongosh-commands/db.collection.insertMany/insert-many-unordered-output.sh
+      :language: javascript
 
-.. code-block:: javascript
-
-   BulkWriteError({
-      "writeErrors" : [
-         {
-            "index" : 2,
-            "code" : 11000,
-            "errmsg" : "E11000 duplicate key error collection: inventory.products index: _id_ dup key: { : 11.0 }",
-            "op" : {
-               "_id" : 11,
-               "item" : "medium box",
-               "qty" : 30
-            }
-         },
-         {
-            "index" : 5,
-            "code" : 11000,
-            "errmsg" : "E11000 duplicate key error collection: inventory.products index: _id_ dup key: { : 13.0 }",
-            "op" : {
-               "_id" : 13,
-               "item" : "tape",
-               "qty" : 20
-            }
-         }
-      ],
-      "writeConcernErrors" : [ ],
-      "nInserted" : 5,
-      "nUpserted" : 0,
-      "nMatched" : 0,
-      "nModified" : 0,
-      "nRemoved" : 0,
-      "upserted" : [ ]
-   })
-
-While the document with ``item: "medium box"`` and ``item: "tape"``
-failed to insert due to duplicate ``_id`` values,
-``nInserted`` shows that the remaining 5 documents were inserted.
+Although the documents with ``title: "Interstellar"`` and
+``title: "Ex Machina"`` fail to insert because of duplicate ``_id``
+values, ``insertedCount`` shows that the remaining 5 documents insert
+successfully.
 
 .. _insertMany-using-write-concern:
 
@@ -419,11 +354,11 @@ Given a three member replica set, the following operation specifies a
 .. code-block:: javascript
 
    try {
-      db.products.insertMany(
+      db.movies.insertMany(
          [
-            { _id: 10, item: "large box", qty: 20 },
-            { _id: 11, item: "small box", qty: 55 },
-            { _id: 12, item: "medium box", qty: 30 }
+            { _id: 15, title: "Forrest Gump", year: 1994 },
+            { _id: 16, title: "Schindler's List", year: 1993 },
+            { _id: 17, title: "Pulp Fiction", year: 1994 }
          ],
          { w: "majority", wtimeout: 100 }
       );
