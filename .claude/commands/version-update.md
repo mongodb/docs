@@ -41,7 +41,11 @@ both values before making changes. For example, Entity Framework can use a value
 
 ## Step 3: Check for Release Notes
 
-Look for a release notes file at `<docset>/upcoming/source/reference/release-notes.txt` or
+If the docset is a driver or provider docset (for example, csharp, go, java, node, python,
+ruby, cpp, php, scala, kotlin, rust, swift, or entity-framework), run the `drivers-release-notes`
+skill to create release notes.
+
+Otherwise, look for a release notes file at `<docset>/upcoming/source/reference/release-notes.txt` or
 similar.
 
 If it exists, ensure that release notes are handled for the new version according to these
@@ -245,8 +249,7 @@ If no file exists for the docset, skip this step and let the user know.
 
 ## Step 10: Driver- and Provider-Specific Steps
 
-If the docset is a driver or provider docset (for example, csharp, go, java, node, python,
-ruby, cpp, php, scala, kotlin, rust, swift, or entity-framework), perform the following
+If the docset is a driver or provider docset, perform the following
 additional checks.
 
 ### Check for Compatibility Tables
