@@ -554,7 +554,20 @@ export const toc: L1TocItem[] = [
                   {
                     label: 'Configure Online Archive',
                     contentSite: 'cloud-docs',
+                    collapsible: true,
                     url: '/docs/atlas/online-archive/configure-online-archive',
+                    items: [
+                      {
+                        label: 'Standard Collections',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/online-archive/configure-online-archive-standard',
+                      },
+                      {
+                        label: 'Time Series Collections',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/online-archive/configure-online-archive-time-series',
+                      },
+                    ],
                   },
                   {
                     label: 'Set Up a Private Endpoint',

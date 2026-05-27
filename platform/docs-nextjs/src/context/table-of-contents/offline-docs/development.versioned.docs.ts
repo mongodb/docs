@@ -1065,6 +1065,16 @@ export const toc: L1TocItem[] = [
                       },
                     ],
                   },
+                  {
+                    label: 'Text',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/indexes/index-types/index-text',
+                  },
+                  {
+                    label: 'Clustered',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/clustered-collections',
+                  },
                 ],
               },
               {
@@ -2424,7 +2434,7 @@ export const toc: L1TocItem[] = [
                 label: 'Hybrid Search',
                 contentSite: 'vector-search',
                 collapsible: true,
-                url: '/docs/vector-search/hybrid-search/hybrid-search',
+                url: '/docs/vector-search/hybrid-search/hybrid-search-overview',
                 items: [
                   {
                     label: 'Combined Vector Search and Full-Text Search',
@@ -2446,20 +2456,20 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Vector Quantization',
                 contentSite: 'vector-search',
-                collapsible: true,
                 url: '/docs/vector-search/about/vector-quantization',
-                items: [
-                  {
-                    label: 'Automatic Quantization with Voyage AI',
-                    contentSite: 'vector-search',
-                    url: '/docs/vector-search/tutorials/auto-quantize-with-voyage-ai',
-                  },
-                ],
               },
               {
                 label: 'Improve Accuracy',
                 contentSite: 'vector-search',
+                collapsible: true,
                 url: '/docs/vector-search/query/improve-accuracy',
+                items: [
+                  {
+                    label: 'Optimize and Measure Performance',
+                    contentSite: 'vector-search',
+                    url: '/docs/vector-search/tutorials/auto-quantize-with-voyage-ai',
+                  },
+                ],
               },
               {
                 label: 'Performance Benchmark',

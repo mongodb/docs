@@ -142,19 +142,19 @@ const tocData: TocItem[] = [
     label: 'Vector Quantization',
     contentSite: 'vector-search',
     url: '/docs/vector-search/about/vector-quantization',
-    collapsible: true,
-    items: [
-      {
-        label: 'Automatic Quantization with Voyage AI',
-        contentSite: 'vector-search',
-        url: '/docs/vector-search/tutorials/auto-quantize-with-voyage-ai',
-      },
-    ],
   },
   {
     label: 'Improve Accuracy',
     contentSite: 'vector-search',
     url: '/docs/vector-search/query/improve-accuracy',
+    collapsible: true,
+    items: [
+      {
+        label: 'Optimize and Measure Performance',
+        contentSite: 'vector-search',
+        url: '/docs/vector-search/tutorials/auto-quantize-with-voyage-ai',
+      },
+    ],
   },
   {
     label: 'Performance Benchmark',
