@@ -9,6 +9,9 @@ version of the Rust driver:
    * - Rust Driver Version
      - Minimum Supported Rust Version
 
+   * - 3.7
+     - 1.88
+
    * - 3.6
      - 1.85
 
