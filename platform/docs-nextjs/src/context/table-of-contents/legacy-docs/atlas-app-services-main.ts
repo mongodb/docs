@@ -1571,6 +1571,11 @@ export const toc: TocItem[] = [
             ],
           },
           {
+            url: '/docs/atlas/app-services/apps/deploy-github/',
+            label: 'Deploy with GitHub',
+            contentSite: 'atlas-app-services',
+          },
+          {
             label: 'Release Notes',
             contentSite: 'atlas-app-services',
             url: '/docs/atlas/app-services/release-notes/backend',
