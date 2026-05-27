@@ -32,8 +32,8 @@ import {
 	getMdxContentBlobStores,
 	MAIN_BRANCH,
 } from "./blobUploads/getBlobStores";
-// TODO: put back dotcomstg
-const ENVS_TO_RUN = ["dotcomprd"];
+
+const ENVS_TO_RUN = ["dotcomprd", "dotcomstg"];
 
 const extension = new Extension({
 	isEnabled: envVarToBool(process.env.NEXTJS_EXTENSION_ENABLED),
