@@ -33,11 +33,11 @@ jest.mock('mongodb-chatbot-ui', () => ({
 }));
 
 // Mock DarkModeDropdown
-jest.mock('@/components/action-bar/dark-mode-dropdown', () => {
-  return function DarkModeDropdown() {
+jest.mock('@/mdx-components/ActionBar/DarkModeDropdown', () => ({
+  DarkModeDropdown: function DarkModeDropdown() {
     return <div data-testid="dark-mode-dropdown">Dark Mode Dropdown</div>;
-  };
-});
+  },
+}));
 
 describe('MongoDBAssistantPage mobile view', () => {
   beforeEach(() => {

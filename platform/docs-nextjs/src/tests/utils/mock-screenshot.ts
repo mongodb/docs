@@ -1,4 +1,4 @@
-import * as handleScreenshot from '@/components/widgets/feedback-widget/handle-screenshot';
+import * as handleScreenshot from '@/mdx-components/FeedbackWidget/handle-screenshot';
 
 export const screenshotFunctionMocks: Record<string, jest.SpyInstance> = {};
 export function mockScreenshotFunctions() {

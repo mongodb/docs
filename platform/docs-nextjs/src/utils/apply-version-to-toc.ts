@@ -1,4 +1,4 @@
-import type { TocItem } from '@/components/unified-sidenav/types';
+import type { TocItem } from '@/mdx-components/UnifiedSidenav/types';
 
 function shouldIncludeByVersion(item: TocItem, version: string): boolean {
   if (!item.versions) return true;

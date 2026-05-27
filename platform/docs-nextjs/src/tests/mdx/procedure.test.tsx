@@ -6,7 +6,7 @@ import { Paragraph } from '@/mdx-components/Paragraph';
 import { Heading } from '@/mdx-components/Heading';
 // TODO-NEXT-ATLAS
 // TODO: update this when we have MDX link
-import Link from '@/components/link';
+import Link from '@/mdx-components/LegacyLink';
 
 jest.mock('@/context/chatbot-context', () => ({
   useChatbotModal: () => ({

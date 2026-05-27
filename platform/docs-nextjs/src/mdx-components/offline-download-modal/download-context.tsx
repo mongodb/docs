@@ -3,7 +3,7 @@
 import { createContext, useMemo, useContext, useState } from 'react';
 import { DownloadModal } from './download-modal';
 import { useUnifiedToc } from '@/context/unified-toc-context';
-import type { TocItem } from '@/mdx-components/unified-sidenav/types';
+import type { TocItem } from '@/mdx-components/UnifiedSidenav/types';
 import { useVersionContext } from '@/context/version-context';
 import type { AvailableVersions } from '@/context/version-context';
 import type { Environments } from '@/utils/env-config';

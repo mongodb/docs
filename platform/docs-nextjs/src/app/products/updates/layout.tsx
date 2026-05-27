@@ -1,7 +1,7 @@
 import { LeafyGreenProviderWrapper } from '@/app/emotion';
-import { SiteBannerProvider } from '@/components/banner/site-banner/banner-context';
-import Footer from '@/components/footer';
-import Header from '@/components/header';
+import { SiteBannerProvider } from '@/mdx-components/SiteBannerProvider';
+import { Footer } from '@/mdx-components/Footer';
+import { Header } from '@/mdx-components/Header';
 import { getBannerData } from '@/services/db/banner';
 import productUpdatesLayoutStyles from './layout.module.scss';
 import type { Metadata } from 'next';

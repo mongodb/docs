@@ -25,7 +25,7 @@ import {
   spanHttpCss,
   themeOption,
 } from './styles';
-import DocsHomeButton from '@/mdx-components/unified-sidenav/DocsHomeButton';
+import DocsHomeButton from '@/mdx-components/UnifiedSidenav/DocsHomeButton';
 
 // Important notes:
 // The contents of this file are (unfortunately) a hacky and brittle way of getting Redoc's React component to

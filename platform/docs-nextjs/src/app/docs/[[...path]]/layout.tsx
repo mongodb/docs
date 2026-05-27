@@ -3,11 +3,11 @@
  * On navigation, layouts preserve state, remain interactive, and do not rerender.
  */
 import { LeafyGreenProviderWrapper } from '@/app/emotion';
-import { SiteBannerProvider } from '@/components/banner/site-banner/banner-context';
-import Analytics from '@/components/head-scripts/anayltics';
+import { SiteBannerProvider } from '@/mdx-components/SiteBannerProvider';
+import { Analytics } from '@/mdx-components/Analytics';
 import { DarkModeContextProvider } from '@/context/dark-mode-context';
 import { getBannerData } from '@/services/db/banner';
-import Footer from '@/components/footer';
+import { Footer } from '@/mdx-components/Footer';
 import { darkModeScript } from '@/app/lib/dark-mode-script';
 import { CookiesProvider } from '@/context/cookies-context';
 import { LocaleProvider } from '@/context/locale';

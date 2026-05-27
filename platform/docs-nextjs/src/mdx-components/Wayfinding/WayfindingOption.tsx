@@ -1,7 +1,7 @@
 'use client';
 import { css, cx } from '@leafygreen-ui/emotion';
 import { palette } from '@leafygreen-ui/palette';
-import { DRIVER_ICON_MAP } from '@/components/icons/DriverIconMap';
+import { DRIVER_ICON_MAP } from '@/mdx-components/Icons/DriverIconMap';
 import { theme } from '@/styles/theme';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';

@@ -1,4 +1,4 @@
-import type { TocItem } from '@/components/unified-sidenav/types';
+import type { TocItem } from '@/mdx-components/UnifiedSidenav/types';
 import { toc as offlineTocRaw } from './offline-toc-selected';
 import { applyVersionToToc } from '@/utils/apply-version-to-toc';
 

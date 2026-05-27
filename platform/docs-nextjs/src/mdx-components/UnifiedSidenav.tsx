@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useContext } from 'react';
 import { usePathname } from 'next/navigation';
 import styled from '@emotion/styled';
 import { css as LeafyCSS, cx } from '@leafygreen-ui/emotion';
-import { isActiveTocNode, removeAnchor } from './unified-sidenav/UnifiedTocNavItems';
+import { isActiveTocNode, removeAnchor } from './UnifiedSidenav/UnifiedTocNavItems';
 import { usePageContext } from '@/context/page-context';
 import { theme } from '@/styles/theme';
 import { assertLeadingSlash } from '@/utils/assert-leading-slash';
@@ -20,10 +20,10 @@ import { useVersionContext } from '@/context/version-context';
 import { getFullSlug } from '@/utils/get-full-slug';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
-import { DoublePannedNav } from './unified-sidenav/DoublePannedNav';
-import { AccordionNavPanel } from './unified-sidenav/AccordionNav';
-import type { TocItem } from './unified-sidenav/types';
-import { useSiteBanner } from '@/mdx-components/Banner/SiteBanner/banner-context';
+import { DoublePannedNav } from './UnifiedSidenav/DoublePannedNav';
+import { AccordionNavPanel } from './UnifiedSidenav/AccordionNav';
+import type { TocItem } from './UnifiedSidenav/types';
+import { useSiteBanner } from '@/mdx-components/SiteBannerProvider';
 import { OfflineDownloadProvider } from '@/mdx-components/offline-download-modal/download-context';
 import { ToastProvider } from '@leafygreen-ui/toast';
 

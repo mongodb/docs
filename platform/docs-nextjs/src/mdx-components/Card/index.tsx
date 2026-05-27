@@ -10,7 +10,7 @@ import { css, cx } from '@leafygreen-ui/emotion';
 import { Body } from '@leafygreen-ui/typography';
 import { palette } from '@leafygreen-ui/palette';
 import { theme } from '@/styles/theme';
-import ConditionalWrapper from '@/components/conditional-wrapper';
+import { ConditionalWrapper } from '@/mdx-components/ConditionalWrapper';
 import { Link } from '@/mdx-components/Link';
 import { usePageContext } from '@/context/page-context';
 import { currentScrollPosition } from '@/utils/current-scroll-position';

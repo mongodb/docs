@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import { Code } from '@/mdx-components/Code';
-import { CodeProvider } from '@/components/code/code-context';
+import { CodeProvider } from '@/context/code-context';
 import { TabProvider } from '@/context/tabs-context';
 import * as browserStorage from '@/utils/browser-storage';
 

@@ -1,8 +1,8 @@
 'use client';
 
 import { useMemo } from 'react';
-import { createParentFromToc, findParentBreadCrumb } from '@/components/breadcrumbs/unified-toc-breadcrumbs';
-import type { TocItem, BreadCrumb } from '@/components/unified-sidenav/types';
+import { createParentFromToc, findParentBreadCrumb } from '@/mdx-components/Breadcrumbs/unified-toc-breadcrumbs';
+import type { TocItem, BreadCrumb } from '@/mdx-components/UnifiedSidenav/types';
 import { getFullSlug } from '@/utils/get-full-slug';
 
 const homeCrumb = {

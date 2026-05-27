@@ -11,7 +11,7 @@ import { ContentsList } from './contents-list';
 import { ContentsListItem } from './contents-list-item';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { usePageContext } from '@/context/page-context';
-import FeedbackRating from '@/components/widgets/feedback-widget';
+import { FeedbackRating } from '@/mdx-components/FeedbackWidget';
 import { theme } from '@/styles/theme';
 import useScreenSize from '@/hooks/use-screen-size';
 
@@ -41,7 +41,7 @@ const styledContentList = css`
   height: 80%;
 `;
 
-const DEPRECATED_PROJECTS = ['atlas-app-services', 'datalake', 'realm'];
+export const DEPRECATED_PROJECTS = ['atlas-app-services', 'datalake', 'realm'];
 
 const isHeadingVisible = (
   headingSelectorIds: HeadingNodeSelectorIds,

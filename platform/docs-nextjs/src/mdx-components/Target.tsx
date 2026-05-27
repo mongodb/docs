@@ -1,6 +1,6 @@
 'use client';
 
-import Permalink from '@/components/permalink';
+import { Permalink } from '@/mdx-components/Permalink';
 import { RefTarget } from '@/mdx-components/RefTarget';
 import { Literal } from '@/mdx-components/Literal';
 

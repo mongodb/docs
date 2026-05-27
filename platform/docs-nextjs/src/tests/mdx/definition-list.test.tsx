@@ -1,7 +1,7 @@
 import { DefinitionListItem } from '@/mdx-components/DefinitionListItem';
 import { DefinitionDescription } from '@/mdx-components/DefinitionDescription';
 import { render } from '@testing-library/react';
-import Literal from '@/components/literal';
+import { Literal } from '@/mdx-components/Literal';
 
 it('DefinitionList renders correctly', () => {
   const tree = render(

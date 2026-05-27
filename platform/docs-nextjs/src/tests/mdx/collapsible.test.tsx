@@ -1,7 +1,7 @@
 import { render, act } from '@testing-library/react';
 import { Collapsible } from '@/mdx-components/Collapsible';
 import { Paragraph } from '@/mdx-components/Paragraph';
-import Code from '@/components/code';
+import { Code } from '@/mdx-components/Code';
 import { mockLocation } from '../utils/mock-location';
 
 jest.mock('github-slugger', () => {
@@ -16,7 +16,6 @@ describe('collapsible component', () => {
       <Collapsible heading="This is a heading" subHeading="This is a subheading">
         <Paragraph>This is collapsible content</Paragraph>
         <Code
-          type="code"
           lang="javascript"
           copyable={true}
           emphasize_lines={[]}

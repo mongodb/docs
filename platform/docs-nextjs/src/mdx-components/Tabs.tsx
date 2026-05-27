@@ -4,7 +4,7 @@ import React, { useCallback, useContext, useEffect, useMemo, useRef } from 'reac
 import { css, cx } from '@leafygreen-ui/emotion';
 import { Tabs as LeafyTabs, Tab as LeafyTab } from '@leafygreen-ui/tabs';
 import { palette } from '@leafygreen-ui/palette';
-import { CodeProvider } from '@/components/code/code-context';
+import { CodeProvider } from '@/context/code-context';
 import { theme } from '@/styles/theme';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { isBrowser } from '@/utils/is-browser';

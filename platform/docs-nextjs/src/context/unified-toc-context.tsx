@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react';
 import { createContext, useContext, useMemo, useState, useEffect } from 'react';
-import type { TocItem } from '@/components/unified-sidenav/types';
+import type { TocItem } from '@/mdx-components/UnifiedSidenav/types';
 import { tocData } from '@/context/toc-data/data.copied';
 import { toc as offlineTocData } from '@/context/toc-data/offline-toc-processed';
 import type { ActiveVersions, AvailableVersions } from './version-context';

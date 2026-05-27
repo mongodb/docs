@@ -30,7 +30,15 @@ const defaultContextValue: ContentsContextValue = {
 const ContentsContext = createContext(defaultContextValue);
 
 function extractPlainText(nodes: TextNode[]): string {
-  return nodes.map((node) => node.value ?? '').join('');
+  return nodes
+    .map((node) => {
+      if ('value' in node) return (node as TextNode).value ?? '';
+      if ('children' in node && Array.isArray((node as unknown as { children: TextNode[] }).children)) {
+        return extractPlainText((node as unknown as { children: TextNode[] }).children);
+      }
+      return '';
+    })
+    .join('');
 }
 
 const ContentsProvider = ({ children, headingNodes }: { children: ReactNode; headingNodes: HeadingOption[] }) => {

@@ -3,7 +3,7 @@ import './globals.css';
 import '@/styles/mongodb-docs.css';
 import '@/styles/global-dark-mode.css';
 import '@/styles/icons.css';
-import TrackJSProvider from '@/components/trackjs-provider';
+import TrackJSProvider from '@/context/trackjs-provider';
 import { getHtmlLangFormat } from '@/utils/locale';
 
 export const metadata: Metadata = {

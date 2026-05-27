@@ -1,8 +1,8 @@
 'use client';
 
 import { UnifiedNav } from '@mdb/consistent-nav';
-import headingStyles from '@/components/header/header.module.scss';
-import { SiteBanner } from './Banner/SiteBanner';
+import headingStyles from '@/styles/header-theme.module.scss';
+import { SiteBanner } from '@/mdx-components/Banner/SiteBanner';
 import { cx } from '@leafygreen-ui/emotion';
 import { useSiteBanner } from './SiteBannerProvider';
 import { useLocale, type NavLocale } from '@/context/locale';

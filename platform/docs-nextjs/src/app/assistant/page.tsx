@@ -5,7 +5,7 @@ import { css } from '@leafygreen-ui/emotion';
 import { palette } from '@leafygreen-ui/palette';
 import { theme } from '@/styles/theme';
 import { ConversationProvider, useConversationContext } from './contexts/ConversationContext';
-import DarkModeDropdown from '@/components/action-bar/dark-mode-dropdown';
+import { DarkModeDropdown } from '@/mdx-components/ActionBar/DarkModeDropdown';
 import dynamic from 'next/dynamic';
 import AssistantSideNav from './components/SideNav';
 const ChatbotComponent = dynamic(() => import('./components/Chatbot/chatbot').then((m) => m), {

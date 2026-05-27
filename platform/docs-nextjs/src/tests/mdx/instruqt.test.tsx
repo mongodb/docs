@@ -1,6 +1,5 @@
 import type { RenderResult } from '@testing-library/react';
 import { render, screen, waitFor } from '@testing-library/react';
-import type { HeadingNode } from '@/types/ast';
 import userEvent from '@testing-library/user-event';
 import { Instruqt, type InstruqtProps } from '@/mdx-components/Instruqt';
 import { InstruqtProvider } from '@/context/instruqt-context';
@@ -18,16 +17,6 @@ jest.mock('@/context/chatbot-context', () => ({
   ChatbotProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
-const mockTitleHeading = {
-  children: [
-    {
-      type: 'text',
-      value: 'Title Heading',
-    },
-  ],
-  id: 'title-heading',
-};
-
 /** How a Snooty `instruqt` directive maps to the MDX component (matches converted MDX / props). */
 const snootyDirectiveToMdxProps = (node: {
   argument?: Array<{ value?: string }>;
@@ -39,10 +28,9 @@ const snootyDirectiveToMdxProps = (node: {
 });
 
 const renderComponent = (node: Parameters<typeof snootyDirectiveToMdxProps>[0], hasLabDrawer = false) => {
-  const { children } = mockTitleHeading as HeadingNode;
   return render(
     <InstruqtProvider hasLabDrawer={hasLabDrawer}>
-      <Heading nodeChildren={children} />
+      <Heading>Title Heading</Heading>
       <Instruqt {...snootyDirectiveToMdxProps(node)} />
     </InstruqtProvider>,
   );
@@ -153,10 +141,9 @@ describe('Instruqt', () => {
     // This would most likely be a content edge case, but testing here to ensure graceful handling
     it('renders both a drawer and embedded content', async () => {
       const { exampleDrawer, example } = mockData;
-      const { children } = mockTitleHeading as HeadingNode;
       const wrapper = render(
         <InstruqtProvider hasLabDrawer={hasLabDrawer}>
-          <Heading nodeChildren={children} />
+          <Heading>Title Heading</Heading>
           <Instruqt {...snootyDirectiveToMdxProps(exampleDrawer)} />
           <Instruqt {...snootyDirectiveToMdxProps(example)} />
         </InstruqtProvider>,

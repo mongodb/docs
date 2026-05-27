@@ -4,7 +4,7 @@ import { LabDrawer } from './LabDrawer';
 import { InstruqtFrame } from './InstruqtFrame';
 import { useInstruqt } from '@/context/instruqt-context';
 
-type InstruqtProps = {
+export type InstruqtProps = {
   embedValue?: string;
   title?: string;
   drawer?: boolean;

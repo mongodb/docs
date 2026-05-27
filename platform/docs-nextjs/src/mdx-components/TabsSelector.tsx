@@ -3,10 +3,10 @@
 import { useContext, useMemo } from 'react';
 import _ from 'lodash';
 import { cx, css } from '@leafygreen-ui/emotion';
-import Select from '@/components/select';
+import { Select } from '@/mdx-components/Select';
 import { reportAnalytics } from '@/utils/report-analytics';
-import type { DriverMap } from '@/components/icons/DriverIconMap';
-import { DRIVER_ICON_MAP } from '@/components/icons/DriverIconMap';
+import type { DriverMap } from '@/mdx-components/Icons/DriverIconMap';
+import { DRIVER_ICON_MAP } from '@/mdx-components/Icons/DriverIconMap';
 import { theme } from '@/styles/theme';
 import type { ActiveTabs, Selectors } from '@/context/tabs-context';
 import { TabContext, makeChoices } from '@/context/tabs-context';

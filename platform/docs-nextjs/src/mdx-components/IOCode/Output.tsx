@@ -1,7 +1,7 @@
 'use client';
 
 import LeafyGreenProvider from '@leafygreen-ui/leafygreen-provider';
-import { CodeContext } from '@/components/code/code-context';
+import { CodeContext } from '@/context/code-context';
 
 export type OutputProps = {
   children: React.ReactNode;

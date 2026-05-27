@@ -1,4 +1,4 @@
-import * as feedbackWidget from '@/components/widgets/feedback-widget/upsert-feedback';
+import * as feedbackWidget from '@/mdx-components/FeedbackWidget/upsert-feedback';
 
 export const stitchFunctionMocks: Record<string, jest.SpyInstance> = {};
 export function mockStitchFunctions() {

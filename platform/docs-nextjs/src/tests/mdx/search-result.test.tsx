@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
-import { SearchResult } from '@/mdx-components/SearchResult';
-import SearchContext from '@/components/search-results/search-context';
+import { SearchResult } from '@/mdx-components/SearchResults/SearchResult';
+import { SearchContext } from '@/mdx-components/SearchResults/search-context';
 
 // Mock Next.js router (required by SearchContextProvider dependencies)
 jest.mock('next/navigation', () => ({

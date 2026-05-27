@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, type ReactNode } from 'react';
-import type { SiteBannerContent } from '@/components/banner/site-banner/types';
+import type { SiteBannerContent } from '@/mdx-components/Banner/SiteBanner/types';
 
 interface SiteBannerContextValue {
   bannerData: SiteBannerContent | null;

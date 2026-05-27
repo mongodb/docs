@@ -2,7 +2,7 @@ import { render } from '@testing-library/react';
 import { ProcedureStyleContext } from '@/mdx-components/Procedure';
 import { Step } from '@/mdx-components/Procedure/Step';
 import { Paragraph } from '@/mdx-components/Paragraph';
-import Link from '@/components/link';
+import Link from '@/mdx-components/LegacyLink';
 
 it('renders with "connected" styling by default', () => {
   const tree = render(

@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react';
 import { Paragraph } from '@/mdx-components/Paragraph';
-import Link from '@/components/link';
+import Link from '@/mdx-components/LegacyLink';
 
 describe('Paragraph unit tests', () => {
   it('renders correctly', () => {

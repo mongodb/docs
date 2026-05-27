@@ -1,4 +1,4 @@
-import type { TocItem } from '@/components/unified-sidenav/types';
+import type { TocItem } from '@/mdx-components/UnifiedSidenav/types';
 
 // Ensures a unique key is created for each toc item
 export const tocItemKey = (tocItem: TocItem): string => {

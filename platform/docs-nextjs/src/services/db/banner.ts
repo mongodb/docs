@@ -1,4 +1,4 @@
-import type { SiteBannerContent } from '@/components/banner/site-banner/types';
+import type { SiteBannerContent } from '@/mdx-components/Banner/SiteBanner/types';
 import type { Environments } from '@/utils/env-config';
 
 const fetchBanner = async () => {

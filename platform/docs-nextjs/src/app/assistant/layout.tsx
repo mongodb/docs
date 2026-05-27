@@ -1,7 +1,7 @@
 import { darkModeScript } from '@/app/lib/dark-mode-script';
-import { SiteBannerProvider } from '@/components/banner/site-banner/banner-context';
-import Footer from '@/components/footer';
-import Header from '@/components/header';
+import { SiteBannerProvider } from '@/mdx-components/SiteBannerProvider';
+import { Footer } from '@/mdx-components/Footer';
+import { Header } from '@/mdx-components/Header';
 import { DarkModeContextProvider } from '@/context/dark-mode-context';
 import type { Metadata } from 'next';
 import { getBannerData } from '@/services/db/banner';

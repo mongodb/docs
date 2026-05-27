@@ -7,7 +7,7 @@ import type { ComposableTutorialOption } from '@/types/ast';
 import { theme } from '@/styles/theme';
 import { joinKeyValuesAsString } from '@/mdx-components/ComposableTutorial';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
-import { OfflineMenu } from '@/components/select';
+import { OfflineMenu } from '@/mdx-components/Select';
 
 const mainStyling = css`
   flex: 1 1 200px;

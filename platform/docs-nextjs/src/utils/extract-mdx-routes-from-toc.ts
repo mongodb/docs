@@ -1,4 +1,4 @@
-import type { TocItem } from '@/components/unified-sidenav/types';
+import type { TocItem } from '@/mdx-components/UnifiedSidenav/types';
 
 export function getStaticVersion(): string {
   return process.env.STATIC_BUILD_VERSION || 'current';

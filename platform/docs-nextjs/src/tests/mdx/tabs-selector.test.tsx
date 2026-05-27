@@ -1,9 +1,10 @@
 import { render } from '@testing-library/react';
 import { TabContext } from '@/context/tabs-context';
 import { TabsSelector } from '@/mdx-components/TabsSelector';
+import type { TextNode } from '@/types/ast';
 
-const windowsTextNode = { type: 'text', value: 'Windows' };
-const linuxTextNode = { type: 'text', value: 'Linux' };
+const windowsTextNode: TextNode = { type: 'text', value: 'Windows' };
+const linuxTextNode: TextNode = { type: 'text', value: 'Linux' };
 
 const mockSelectors = {
   platforms: {

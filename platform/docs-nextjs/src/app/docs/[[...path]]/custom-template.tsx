@@ -1,6 +1,6 @@
 import { Providers } from './Providers';
 import { UnifiedSidenav } from '@/mdx-components/UnifiedSidenav';
-import type { BaseTemplateProps } from '@/components/templates';
+import type { BaseTemplateProps } from '@/templates';
 import type { RemoteMetadata, Docset } from '@/types/data';
 import type { Environments } from '@/utils/env-config';
 import {
@@ -12,12 +12,12 @@ import {
   BlankTemplate,
   DriversIndexTemplate,
   FeatureNotAvailableTemplate,
-} from '@/components/templates';
+} from '@/templates';
 import { ActionBar } from '@/mdx-components/ActionBar';
 import layoutStyles from '@/app/layout.module.scss';
-import ProductLandingTemplate from '@/components/templates/product-landing';
+import ProductLandingTemplate from '@/templates/product-landing';
 import type { MDXFrontmatter, PageTemplateType } from '@/types/ast';
-import Header from '@/components/header';
+import { Header } from '@/mdx-components/Header';
 import type { ServerSideChangelogData } from '@/types/openapi';
 import { getAvailableLanguages } from '@/utils/locale';
 

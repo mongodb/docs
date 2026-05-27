@@ -1,7 +1,7 @@
 import { render } from '@testing-library/react';
 import { ListItem } from '@/mdx-components/ListItem';
 import { Paragraph } from '@/mdx-components/Paragraph';
-import Literal from '@/components/literal';
+import { Literal } from '@/mdx-components/Literal';
 import { List } from '@/mdx-components/List';
 
 it('ListItem renders correctly', () => {
