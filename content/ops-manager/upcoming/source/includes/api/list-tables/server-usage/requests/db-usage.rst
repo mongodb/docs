@@ -9,13 +9,13 @@
      - Description
 
    * - serverType
-     - object
+     - string
      - Required
      - Server Type of the physical host.
 
    * - | serverType
        | .name
-     - object
+     - string
      - Required
      - Server Type value for the physical host.
 

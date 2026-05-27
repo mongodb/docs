@@ -9,7 +9,7 @@
        
    * - ``since``
      - Optional
-     - number
+     - long
      - Point in time, specified as milliseconds since the `Unix Epoch <https://en.wikipedia.org/wiki/Unix_time>`_,
        from which you want to receive results. If you do not also specify
        the ``duration`` parameter, the endpoint returns results from
@@ -17,7 +17,7 @@
    
    * - ``duration``
      - Optional
-     - number
+     - long
      - Length of time from the ``since`` parameter, in milliseconds,
        for which you want to receive results. If you do not also specify
        the ``since`` parameter, the endpoint returns results from the
