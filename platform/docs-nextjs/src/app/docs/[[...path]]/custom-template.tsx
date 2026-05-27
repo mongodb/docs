@@ -20,6 +20,7 @@ import type { MDXFrontmatter, PageTemplateType } from '@/types/ast';
 import { Header } from '@/mdx-components/Header';
 import type { ServerSideChangelogData } from '@/types/openapi';
 import { getAvailableLanguages } from '@/utils/locale';
+import { LocaleHreflangScript } from '@/mdx-utils/locale-hreflang-script';
 
 type TemplateComponent = React.ComponentType<BaseTemplateProps>;
 
@@ -118,23 +119,26 @@ export const CustomTemplate = ({
   };
 
   return (
-    <Providers
-      metadata={metadata}
-      frontmatter={frontmatter}
-      slug={slug}
-      template={template}
-      docsets={docsets}
-      changelogData={changelogData}
-      env={env}
-    >
-      <Header eol={metadata?.eol ?? false} />
-      <div className={layoutStyles['content-container']}>
-        <ActionBar template={template} sidenav={true} />
-        <Template pageOptions={pageOptions} slug={slug}>
-          {content}
-        </Template>
-      </div>
-      {renderSidenav && <UnifiedSidenav />}
-    </Providers>
+    <>
+      <LocaleHreflangScript slug={slug} />
+      <Providers
+        metadata={metadata}
+        frontmatter={frontmatter}
+        slug={slug}
+        template={template}
+        docsets={docsets}
+        changelogData={changelogData}
+        env={env}
+      >
+        <Header eol={metadata?.eol ?? false} />
+        <div className={layoutStyles['content-container']}>
+          <ActionBar template={template} sidenav={true} />
+          <Template pageOptions={pageOptions} slug={slug}>
+            {content}
+          </Template>
+        </div>
+        {renderSidenav && <UnifiedSidenav />}
+      </Providers>
+    </>
   );
 };

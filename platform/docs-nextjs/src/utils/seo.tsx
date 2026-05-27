@@ -88,35 +88,6 @@ export const getPageMetadata = ({
   return metadata;
 };
 
-// Generate locale links with custom className for Smartling
-export const getLocaleLinks = (pageDoc: ASTDocument) => {
-  // Do not remove class. This is used to prevent Smartling from potentially overwriting these links
-  const smartlingNoRewriteClass = 'sl_opaque';
-
-  const localeHrefMap = getLocaleMapping(DOTCOM_BASE_URL, assertLeadingSlash(pageDoc.page_path));
-
-  const hrefLangLinks = Object.entries(localeHrefMap).map(([localeCode, href]) => {
-    return (
-      <link key={localeCode} className={smartlingNoRewriteClass} rel="alternate" hrefLang={localeCode} href={href} />
-    );
-  });
-
-  const englishHref = localeHrefMap['en-us'] as string;
-  if (englishHref) {
-    hrefLangLinks.push(
-      <link
-        key="x-default"
-        className={smartlingNoRewriteClass}
-        rel="alternate"
-        hrefLang="x-default"
-        href={englishHref}
-      />,
-    );
-  }
-
-  return hrefLangLinks;
-};
-
 const getCanonicalUrl = ({
   metadata,
   metaCanonical,
