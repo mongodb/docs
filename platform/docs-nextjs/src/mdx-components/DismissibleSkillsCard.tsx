@@ -11,7 +11,7 @@ import { theme } from '@/styles/theme';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { CloseButton } from '@/mdx-components/FeedbackWidget/components/close-button';
-import { SkillsBadgeIcon } from '@/mdx-components/SVG/SkillsBadgeIcon';
+import { SkillsBadgeIcon } from '@/mdx-components/svg/SkillsBadgeIcon';
 import { useCookiesContext } from '@/context/cookies-context';
 import { usePageContext } from '@/context/page-context';
 

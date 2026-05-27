@@ -1,7 +1,7 @@
 import { css, cx } from '@leafygreen-ui/emotion';
 import { palette } from '@leafygreen-ui/palette';
 import { H3 } from '@leafygreen-ui/typography';
-import NoResults from '@/mdx-components/SVG/NoResults';
+import NoResults from '@/mdx-components/svg/NoResults';
 
 export const EMPTY_STATE_HEIGHT = '166px';
 const MAX_WIDTH = '637px';
