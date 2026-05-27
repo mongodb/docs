@@ -11,7 +11,7 @@ specific version of MongoDB.
 
       .. code-block:: bash
 
-         sudo apt-get install -y {+package-name-org+}
+         sudo apt install -y {+package-name-org+}
 
    .. tab:: Specific Release
       :tabid: specific
@@ -21,7 +21,7 @@ specific version of MongoDB.
       .. include:: /includes/release/pin-version-outro-org.rst
 
       Optional. Although you can specify any available version of MongoDB,
-      ``apt-get`` will upgrade the packages when a newer version becomes
+      ``apt`` will upgrade the packages when a newer version becomes
       available. To prevent unintended upgrades, you can pin the package
       at the currently installed version:
 

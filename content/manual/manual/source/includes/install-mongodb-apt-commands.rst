@@ -8,14 +8,14 @@ MongoDB Shell first. For example:
 
 .. code-block:: sh
 
-   sudo apt-get install -y mongodb-enterprise mongodb-mongosh-shared-openssl11
+   sudo apt install -y mongodb-enterprise mongodb-mongosh-shared-openssl11
 
 The following example removes the MongoDB Shell and then installs the
 MongoDB Shell that uses the system's OpenSSL 1.1:
 
 .. code-block:: sh
 
-   sudo apt-get remove -y mongodb-mongosh && sudo apt-get install -y
+   sudo apt remove -y mongodb-mongosh && sudo apt install -y
    mongodb-mongosh-shared-openssl11
 
 The following example removes the MongoDB Shell and then installs the
@@ -23,7 +23,7 @@ MongoDB Shell that uses the system's OpenSSL 3:
 
 .. code-block:: sh
 
-   sudo apt-get remove -y mongodb-mongosh && sudo apt-get install -y
+   sudo apt remove -y mongodb-mongosh && sudo apt install -y
    mongodb-mongosh-shared-openssl3
 
 You can also choose the MongoDB packages to install.
@@ -33,7 +33,7 @@ MongoDB Shell that uses the system's OpenSSL 1.1:
 
 .. code-block:: sh
 
-   sudo apt-get install -y mongodb-enterprise-database
+   sudo apt install -y mongodb-enterprise-database
    mongodb-enterprise-tools mongodb-mongosh-shared-openssl11
 
 The following example installs MongoDB Enterprise and tools, and the
@@ -41,5 +41,5 @@ MongoDB Shell that uses the system's OpenSSL 3:
 
 .. code-block:: sh
 
-   sudo apt-get install -y mongodb-enterprise-database
+   sudo apt install -y mongodb-enterprise-database
    mongodb-enterprise-tools mongodb-mongosh-shared-openssl3
