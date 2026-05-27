@@ -4368,7 +4368,7 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "label_replace(sum(mongodb_wiredTiger_concurrentTransactions_read_available{group_id=~\"$group_id\", cl_name=~\"$cl_name\", rs_nm=~\"$rs_nm\", instance=~\"$host.*\",  process_port=~\"$process_port\"}) by (instance, process_port) , \"hostname\", \"$1\", \"instance\", \"(.*)\")",
+            "expr": "label_replace(sum(mongodb_queues_execution_read_available{group_id=~\"$group_id\", cl_name=~\"$cl_name\", rs_nm=~\"$rs_nm\", instance=~\"$host.*\",  process_port=~\"$process_port\"}) by (instance, process_port) , \"hostname\", \"$1\", \"instance\", \"(.*)\")",
             "interval": "",
             "legendFormat": "{{hostname}}:{{process_port}}",
             "refId": "A",
@@ -4470,7 +4470,7 @@
         "targets": [
           {
             "exemplar": true,
-            "expr": "label_replace(sum(mongodb_wiredTiger_concurrentTransactions_write_available{group_id=~\"$group_id\", cl_name=~\"$cl_name\", rs_nm=~\"$rs_nm\", instance=~\"$host.*\",  process_port=~\"$process_port\"}) by (instance, process_port) , \"hostname\", \"$1\", \"instance\", \"(.*)\")",
+            "expr": "label_replace(sum(mongodb_queues_execution_write_available{group_id=~\"$group_id\", cl_name=~\"$cl_name\", rs_nm=~\"$rs_nm\", instance=~\"$host.*\",  process_port=~\"$process_port\"}) by (instance, process_port) , \"hostname\", \"$1\", \"instance\", \"(.*)\")",
             "interval": "",
             "legendFormat": "{{hostname}}:{{process_port}}",
             "refId": "A",
