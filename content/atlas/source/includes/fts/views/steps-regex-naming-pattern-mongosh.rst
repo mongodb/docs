@@ -29,8 +29,6 @@
 
    .. step:: Run a query on the ``totalPriceIndex`` index.
 
-      .. include:: /includes/search-shared/fact-partial-indexing-query.rst
-
       The following query searches the View named ``listings_SearchableTypes`` 
       for ``house`` with a ``private room``.
 

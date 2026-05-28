@@ -11,4 +11,9 @@ You can also use the ``boolean`` type to index:
 - Boolean fields inside an array of documents indexed as the
   :ref:`embeddedDocuments <bson-data-types-embedded-documents>` type.
 
+To facet on ``boolean`` values, use :ref:`MongoDB View 
+<fts-transform-documents-collections>` to convert the value to ``string`` 
+type. For a demonstration of transforming an ``boolean`` type to 
+``string`` type for faceting, see :ref:`fts-transform-for-facet`.
+
 .. include:: /includes/fts/extracts/fts-ib-enable-dynamic-mappings.rst

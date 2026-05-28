@@ -1,0 +1,43 @@
+count: Object
+    lowerBound: 510
+facet: Object
+    idFacet: Object
+        buckets: Array (10)
+            0: Object
+                _id: "10082422"
+                count: 1
+            1: Object
+                _id: "10166986"
+                count: 1
+            2: Object
+                _id: "10266175"
+                count: 1
+            3: Object
+                _id: "10267144"
+                count: 1
+            4: Object
+                _id: "10317142"
+                count: 1
+            5: Object
+                _id: "10359729"
+                count: 1
+            6: Object
+                _id: "10392282"
+                count: 1
+            7: Object
+                _id: "10548991"
+                count: 1
+            8: Object
+                _id: "1067052"
+                count: 1
+            9: Object
+                _id: "1069531"
+                count: 1
+    hostFacet: Object
+        buckets: Array (2)
+            0: Object
+                _id: "false"
+                count: 370
+            1: Object
+                _id: "true"
+                count: 140

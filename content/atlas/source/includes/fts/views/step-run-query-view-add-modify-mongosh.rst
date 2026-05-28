@@ -1,7 +1,5 @@
 .. step:: Run a query on the ``totalPriceIndex`` index.
 
-   .. include:: /includes/search-shared/fact-partial-indexing-query.rst
-
    .. io-code-block::
       :copyable: true
 

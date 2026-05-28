@@ -11,4 +11,9 @@ You can also use the ``objectId`` type to index:
 - ``objectId`` fields inside an array of documents indexed as the
   :ref:`embeddedDocuments <bson-data-types-embedded-documents>` type. 
 
+To facet on ``objectId`` values, use :ref:`MongoDB View 
+<fts-transform-documents-collections>` to convert the value to ``string`` 
+type. For a demonstration of transforming an ``objectId`` type to 
+``string`` type for faceting, see :ref:`fts-transform-for-facet`.
+
 .. include:: /includes/fts/extracts/fts-ib-enable-dynamic-mappings.rst 

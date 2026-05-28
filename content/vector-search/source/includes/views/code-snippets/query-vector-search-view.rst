@@ -1,7 +1,5 @@
 .. step:: Run a query on the ``embeddingsIndex`` partial index.
 
-   .. include:: /includes/views/facts/fact-partial-indexing-query.rst
-
    a. Save the following embeddings in a file named ``query-embeddings.js``:
 
       .. literalinclude:: /includes/pipeline-stage/vectorSearch/code-snippets/basic-query-embeddings.js
