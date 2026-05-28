@@ -43,8 +43,7 @@ const getSiteMetadataCached = cache(
     } catch (err) {
       if (!(err instanceof SyntaxError)) {
         throw new Error(
-          `[getSiteMetadata] Unexpected error reading blob for "${projectPath || 'landing'}": ${
-            err instanceof Error ? err.message : String(err)
+          `[getSiteMetadata] Unexpected error reading blob for "${projectPath || 'landing'}": ${err instanceof Error ? err.message : String(err)
           }`,
         );
       }
@@ -53,7 +52,7 @@ const getSiteMetadataCached = cache(
 
     throw new Error(
       `[getSiteMetadata] Could not load site metadata for [${urlPath.join('/')}]: ` +
-        `blob not found or contains invalid JSON (key: ${key})`,
+      `blob not found or contains invalid JSON (key: ${key})`,
     );
   },
 );

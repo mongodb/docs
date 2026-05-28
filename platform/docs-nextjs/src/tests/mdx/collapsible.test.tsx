@@ -35,7 +35,6 @@ describe('collapsible component', () => {
       <Collapsible heading="This is a heading" subHeading="This is a subheading">
         <Paragraph>This is collapsible content</Paragraph>
         <Code
-          type="code"
           lang="javascript"
           copyable={true}
           emphasize_lines={[]}
