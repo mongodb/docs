@@ -1,8 +1,23 @@
 import { createRequire } from 'module';
 
-const require = createRequire(import.meta.url);
-const atlasRedirects = require('./redirects/atlas-redirects.json');
-const nodeRedirects = require('./redirects/node-redirects.json');
+const requireFile = createRequire(import.meta.url);
+const atlasRedirects = requireFile('./src/redirects/atlas-redirects.json');
+const appServicesRedirects = requireFile('./src/redirects/app-services-redirects.json');
+const atlasArchitectureRedirects = requireFile('./src/redirects/atlas-architecture-redirects.json');
+const atlasCliRedirects = requireFile('./src/redirects/atlas-cli-redirects.json');
+const atlasGovernmentRedirects = requireFile('./src/redirects/atlas-government-redirects.json');
+const atlasOperatorRedirects = requireFile('./src/redirects/atlas-operator-redirects.json');
+const realmRedirects = requireFile('./src/redirects/realm-redirects.json');
+const nodeRedirects = requireFile('./src/redirects/node-redirects.json');
+
+// Only redirects with explicit force: true go here. These always fire regardless
+// of whether a page exists at the source path. All other redirects are checked in
+// page.tsx as a fallback when the page would otherwise 404, replicating Netlify's
+// default force=false behavior.
+const allRedirects = [...atlasRedirects, ...appServicesRedirects, ...atlasArchitectureRedirects, ...atlasCliRedirects, ...atlasGovernmentRedirects, ...atlasOperatorRedirects, ...realmRedirects, ...nodeRedirects];
+const forceRedirects = allRedirects
+  .filter((r) => r.force === true)
+  .map(({ force, ...rest }) => rest);
 
 const nextConfig = {
   pageExtensions: ['mdx', 'tsx', 'ts'],
@@ -15,7 +30,7 @@ const nextConfig = {
   },
   assetPrefix: '/docs/docs_static_nextjs',
   async redirects() {
-    return [...atlasRedirects, ...nodeRedirects];
+    return forceRedirects;
   },
   async rewrites() {
     return [

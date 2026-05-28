@@ -40,3 +40,13 @@ pnpm build:offline -- --tocFile=<name> --version=<version>
 ## Deploy on Netlify
 
 This application is deployed on Netlify at [Docs on Next](https://app.netlify.com/projects/docs-on-nextjs/overview). Branch and preview deploys can be managed via the UI, under [Project Configuration -> Build & Deploy](https://app.netlify.com/projects/docs-on-nextjs/configuration/deploys#content).
+
+## Short lived scripts
+
+TODO: delete once redirects are fully converted to Next.js
+
+Run `pnpm migrate:redirects` to convert redirects from `netlify.toml` format into the Next.js redirect JSON files (`src/redirects/*-redirects.json`). The script:
+
+- **Removes** catch-all entries that insert a default version slug (e.g., `/docs/drivers/node/` → `/docs/drivers/node/current/`). These are handled as soft redirects in `page.tsx` on 404 without causing loops.
+- **Preserves `force: true`** on entries that explicitly had `force = true` in the original `netlify.toml`. These are the only redirects placed in `next.config.mjs` (always fire regardless of page existence).
+- **Leaves all other entries unchanged** (no `force` field). These are treated as soft redirects — they only fire when no page exists at the source path, replicating Netlify's default behavior.

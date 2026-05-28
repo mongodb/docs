@@ -1,4 +1,4 @@
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
 import { loadMDX } from '@/mdx-utils/load-mdx';
 import { getSiteMetadata } from '@/mdx-utils/load-metadata';
 import { getAllDocsetsWithVersionsCached } from '@/services/db/docsets';
@@ -8,6 +8,7 @@ import { CustomTemplate } from './custom-template';
 import { getPageMetadata } from '@/utils/seo';
 import type { ServerSideChangelogData } from '@/types/openapi';
 import { getChangelogData } from '@/services/db/openapi';
+import { findSoftRedirect } from '@/redirects/soft-redirects';
 
 /** Normalize the optional catch-all segment to a concrete path array.
  * params.path is undefined at /docs/ (Next.js [[...path]] root match). */
@@ -28,6 +29,14 @@ export default async function MDXPage({ params }: PageProps) {
   const result = await loadMDX(path);
 
   if (!result || !result.frontmatter) {
+    // Page not found, check soft redirects before returning 404.
+    // This replicates Netlify's force=false behavior where
+    // redirects only fire when no page exists at the source path.
+    const urlPath = `/docs/${path.join('/')}/`;
+    const softMatch = findSoftRedirect(urlPath);
+    if (softMatch) {
+      return redirect(softMatch.destination);
+    }
     return notFound();
   }
 

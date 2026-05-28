@@ -48,7 +48,7 @@ export const getPageMetadata = ({
   const canonical = getCanonicalUrl({ metadata: snootyMetadata, metaCanonical, docset, slug });
   const noIndexing = docset.branches.find((br) => br.gitBranchName === snootyMetadata.branch)?.noIndexing ?? false;
   const nosnippet = !!robots?.includes('nosnippet');
-  const noindex = !noIndexing || !!robots?.includes('noindex');
+  const noindex = noIndexing || !!robots?.includes('noindex');
 
   const metadata = {
     metadataBase: new URL(DOTCOM_BASE_URL),
