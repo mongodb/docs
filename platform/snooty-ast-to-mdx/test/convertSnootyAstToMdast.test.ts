@@ -815,6 +815,109 @@ describe('convertSnootyAstToMdast', () => {
     expect(mdx).toContain('Atlas');
   });
 
+  it('plain include <Replacement> slot uses page-level substitution_definition, not Snooty-resolved global default', () => {
+    // Reproduces the Search docs issue: |fts-field-type| is defined per-page (e.g. ``geo``) but
+    // Snooty resolves it inside includes against the global references file (e.g. "dateFacet").
+    // The <Replacement> slot on the <Include> must carry the page-level value, not the global one.
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'substitution_definition',
+          refname: 'fts-field-type',
+          children: [{ type: 'literal', value: 'geo' }],
+        },
+        {
+          type: 'directive',
+          name: 'include',
+          argument: 'search/field-types.rst',
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                { type: 'text', value: 'Field type: ' },
+                {
+                  type: 'substitution_reference',
+                  refname: 'fts-field-type',
+                  // Snooty resolved this against the global default, not the page definition
+                  children: [{ type: 'text', value: 'dateFacet' }],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const onEmitMdxFile = jest.fn();
+    const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
+
+    // The <Replacement> slot should carry the page-level value (geo as inline code)
+    expect(mdx).toContain('<Include src="/search/field-types"');
+    expect(mdx).toContain('<Replacement name="fts-field-type">');
+    expect(mdx).toContain('`geo`');
+    // Must NOT carry the global default
+    expect(mdx).not.toContain('dateFacet');
+  });
+
+  it('plain include <Replacement> slot uses page-level literal even when Snooty resolved a :ref: xref globally', () => {
+    // Same scenario as above, but the global Snooty definition is a :ref: cross-reference
+    // (ref_role node) rather than plain text. The include body must emit
+    // <Reference refKey="fts-field-type" type="substitution" /> so the page's <Replacement>
+    // can override the baked xref target.
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'substitution_definition',
+          refname: 'fts-field-type',
+          children: [{ type: 'literal', value: 'geo' }],
+        },
+        {
+          type: 'directive',
+          name: 'include',
+          argument: 'search/field-types.rst',
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                { type: 'text', value: 'Field type: ' },
+                {
+                  type: 'substitution_reference',
+                  refname: 'fts-field-type',
+                  // Snooty resolved this as a :ref: xref (ref_role), not the page's literal
+                  children: [
+                    {
+                      type: 'ref_role',
+                      target: 'bson-data-types-date-facet',
+                      children: [{ type: 'text', value: 'dateFacet' }],
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const onEmitMdxFile = jest.fn();
+    const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
+
+    // Include file should use substitution placeholder, not the baked xref
+    expect(onEmitMdxFile).toHaveBeenCalledTimes(1);
+    const [{ mdastRoot }] = onEmitMdxFile.mock.calls[0];
+    const includeMdx = convertMdastToMdx(mdastRoot);
+    expect(includeMdx).toContain('refKey="fts-field-type"');
+    expect(includeMdx).toContain('type="substitution"');
+    expect(includeMdx).not.toContain('bson-data-types-date-facet');
+    expect(includeMdx).not.toContain('dateFacet');
+
+    // Calling page: <Replacement> slot carries the page-specific literal value
+    expect(mdx).toContain('<Include src="/search/field-types"');
+    expect(mdx).toContain('<Replacement name="fts-field-type">');
+    expect(mdx).toContain('`geo`');
+    expect(mdx).not.toContain('dateFacet');
+  });
+
   it('emits substitution_reference in include body as Reference type replacement (not _references)', () => {
     const ast: SnootyNode = {
       type: 'root',

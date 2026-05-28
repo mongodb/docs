@@ -588,6 +588,48 @@ export const buildSubstitutionDefinitionLiteralMap = (root: SnootyNode): Map<str
   return map;
 };
 
+/**
+ * Walk the full document tree for `substitution_definition` nodes and store their raw children
+ * by refname. Used by include conversion to build `<Replacement>` slots from the page-level
+ * definition rather than the globally-resolved default that Snooty baked into the include body.
+ */
+export const buildSubstitutionDefinitionNodesMap = (root: SnootyNode): Map<string, SnootyNode[]> => {
+  const map = new Map<string, SnootyNode[]>();
+  const visitedAstSubtrees = new WeakSet<SnootyNode>();
+
+  const visitNode = (node: SnootyNode | undefined) => {
+    if (!node) return;
+    if (node.type === 'substitution_definition') {
+      const refname = String(node.refname || node.name || '');
+      if (refname && Array.isArray(node.children) && node.children.length > 0) {
+        map.set(refname, node.children as SnootyNode[]);
+      }
+    }
+    if (Array.isArray(node.children)) {
+      for (const c of node.children) visitNode(c);
+    }
+    if (Array.isArray(node.argument)) {
+      for (const c of node.argument) {
+        if (c && typeof c === 'object' && 'type' in (c as object)) visitNode(c as SnootyNode);
+      }
+    }
+    const nestedAst = node.ast as SnootyNode | undefined;
+    if (
+      nestedAst &&
+      typeof nestedAst === 'object' &&
+      nestedAst !== node &&
+      'type' in nestedAst &&
+      !visitedAstSubtrees.has(nestedAst)
+    ) {
+      visitedAstSubtrees.add(nestedAst);
+      visitNode(nestedAst);
+    }
+  };
+
+  visitNode(root);
+  return map;
+};
+
 const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): MdastNode | MdastNode[] | null => {
   switch (node.type) {
     case 'text':
@@ -1733,6 +1775,20 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
             };
           }
 
+          // Plain include bodies with a page-level literal override: suppress baked xref so the
+          // per-page <Replacement> slot can provide the literal value instead.
+          if (ctx.suppressSubstitutionInlineValues && ctx.substitutionDefLiterals?.has(refname)) {
+            return {
+              type: 'mdxJsxTextElement',
+              name: 'Reference',
+              attributes: [
+                { type: 'mdxJsxAttribute', name: 'refKey', value: refname },
+                { type: 'mdxJsxAttribute', name: 'type', value: 'substitution' },
+              ],
+              children: [],
+            };
+          }
+
           // Break out `|alias| replace:: :ref:` … as the same output as a standalone `:ref:` / `:doc:`.
           if (title) {
             ctx.collectedSubstitutions.set(refname, title);
@@ -1796,6 +1852,20 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
               { type: 'mdxJsxAttribute', name: 'refKey', value: refname },
               { type: 'mdxJsxAttribute', name: 'type', value: 'replacement' },
               { type: 'mdxJsxAttribute', name: 'refTarget', value: fromCatalog.refTargetKey },
+            ],
+            children: [],
+          };
+        }
+        // Plain include bodies with a page-level literal override: suppress baked xref so the
+        // per-page <Replacement> slot can provide the literal value instead.
+        if (ctx.suppressSubstitutionInlineValues && ctx.substitutionDefLiterals?.has(refname)) {
+          ctx.collectedSubstitutions.set(refname, fromCatalog.title);
+          return {
+            type: 'mdxJsxTextElement',
+            name: 'Reference',
+            attributes: [
+              { type: 'mdxJsxAttribute', name: 'refKey', value: refname },
+              { type: 'mdxJsxAttribute', name: 'type', value: 'substitution' },
             ],
             children: [],
           };
@@ -2088,12 +2158,15 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
     buildSubstitutionDefinitionLiteralMap(root),
   );
 
+  const substitutionDefNodes = buildSubstitutionDefinitionNodesMap(root);
+
   const ctx: ConversionContext = {
     emitMdxFile: options?.onEmitMdxFile,
     currentOutfilePath: options?.currentOutfilePath,
     emitSubstitutionReferencesAsReplacement: options?.emitSubstitutionReferencesAsReplacement,
     substitutionRefXref,
     substitutionDefLiterals,
+    substitutionDefNodes,
     suppressSubstitutionInlineValues: options?.suppressSubstitutionInlineValues,
     collectedSubstitutions,
     collectedRefs,

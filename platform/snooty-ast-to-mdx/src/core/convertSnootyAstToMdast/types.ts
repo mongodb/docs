@@ -54,6 +54,12 @@ export interface ConversionContext {
    * (often empty children) still resolve and merge into `_references.json`.
    */
   substitutionDefLiterals?: Map<string, string>;
+  /**
+   * Raw AST children of every `substitution_definition` on the current page, keyed by refname.
+   * Used by include conversion to build `<Replacement>` slots that reflect the page-level
+   * definition rather than the globally-resolved default that Snooty baked into the include body.
+   */
+  substitutionDefNodes?: Map<string, SnootyNode[]>;
   /** When true (plain include content), substitution references do NOT get a `value` attribute
    * baked in. The calling page's `<Include>` element provides per-page values via `<Replacement>`
    * slots; unmatched refs fall back to `_references.json`.
