@@ -99,7 +99,7 @@ const useValidation = (inputValue: string, validator: (input: string) => boolean
 };
 
 const CommentView = () => {
-  const { submitAllFeedback, screenshotTaken, setSelectedRating, selectedRating = 0 } = useFeedbackContext();
+  const { submitAllFeedback, screenshotTaken, screenshotElement, setSelectedRating, selectedRating = 0 } = useFeedbackContext();
 
   const [comment, setComment] = useState('');
   const [email, setEmail] = useState('');
@@ -117,7 +117,7 @@ const CommentView = () => {
       });
 
       if (screenshotTaken) {
-        const dataUri = await retrieveDataUri();
+        const dataUri = await retrieveDataUri(screenshotElement);
         await submitAllFeedback({ comment: sanitizedComment, email, dataUri, viewport });
       } else {
         await submitAllFeedback({ comment: sanitizedComment, email });

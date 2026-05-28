@@ -62,6 +62,8 @@ export type FeedbackContextType = {
   setIsScreenshotButtonClicked: Dispatch<SetStateAction<boolean>>;
   detachForm: boolean;
   setDetachForm: Dispatch<SetStateAction<boolean>>;
+  screenshotElement: Element | null;
+  setScreenshotElement: Dispatch<SetStateAction<Element | null>>;
 };
 
 export type FeedbackViewType = 'waiting' | 'comment' | 'rating' | 'submitted';
@@ -87,6 +89,8 @@ const initialValue: FeedbackContextType = {
   setIsScreenshotButtonClicked: () => {},
   detachForm: false,
   setDetachForm: () => {},
+  screenshotElement: null,
+  setScreenshotElement: () => {},
 };
 
 const FeedbackContext = createContext<FeedbackContextType>(initialValue);
@@ -111,6 +115,7 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
   const [screenshotTaken, setScreenshotTaken] = useState(test?.screenshotTaken || false);
   const [progress, setProgress] = useState([true, false, false]);
   const [isScreenshotButtonClicked, setIsScreenshotButtonClicked] = useState(false);
+  const [screenshotElement, setScreenshotElement] = useState<Element | null>(null);
   const [, startTransition] = useTransition();
   const { user, reassignCurrentUser } = useBrowserUser();
   const pathname = usePathname();
@@ -245,6 +250,7 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
     setFeedbackId(undefined);
     setIsScreenshotButtonClicked(false);
     setDetachForm(false);
+    setScreenshotElement(null);
   }, []);
 
   const value = {
@@ -264,6 +270,8 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
     setIsScreenshotButtonClicked,
     detachForm,
     setDetachForm,
+    screenshotElement,
+    setScreenshotElement,
   };
 
   // reset feedback when route changes

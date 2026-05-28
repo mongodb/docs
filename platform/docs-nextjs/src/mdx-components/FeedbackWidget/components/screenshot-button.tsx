@@ -104,7 +104,7 @@ const ScreenshotSelect = styled(Button)`
 `;
 
 const ScreenshotButton = ({ ...props }) => {
-  const { setScreenshotTaken, selectedRating, isScreenshotButtonClicked, setIsScreenshotButtonClicked, setDetachForm } =
+  const { setScreenshotTaken, selectedRating, isScreenshotButtonClicked, setIsScreenshotButtonClicked, setDetachForm, setScreenshotElement } =
     useFeedbackContext();
   const [currElemState, setCurrElemState] = useState<Element | null>(null);
 
@@ -223,6 +223,7 @@ const ScreenshotButton = ({ ...props }) => {
     setIsScreenshotButtonClicked(false);
     setCurrElemState(null);
     setScreenshotTaken(false);
+    setScreenshotElement(null);
   };
 
   const handleDOMElementClick = (e: ReactMouseEvent) => {
@@ -231,6 +232,7 @@ const ScreenshotButton = ({ ...props }) => {
     domElementClickedRef.current = 'solid';
     setSelectedElementBorderStyle(domElementClickedRef.current);
     setScreenshotTaken(true);
+    setScreenshotElement(currElem.current);
 
     // Allows for the feedback widget to appear on top of the screenshot overlay
     const fbFormEl = document.getElementById(feedbackId);
