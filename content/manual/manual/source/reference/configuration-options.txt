@@ -4220,6 +4220,9 @@ Use the following options to configure ``mongot`` with ``mongod`` in Public Prev
          x509:
             tlsCertificateKeyFile: <string>
             tlsCertificateKeyFilePasswordFile: <string>
+      replicationReader: <object>
+         readPreference: <string>
+         tagSets: <array>
       caFile: <string>
    storage:
       dataPath: <string>
@@ -4338,9 +4341,18 @@ Use the following options to configure ``mongot`` with ``mongod`` in Public Prev
 
    *Default*: secondaryPreferred
 
+   .. note::
+
+      This option is now deprecated and will be removed in a future release. Use
+      :setting:`syncSource.replicationReader.readPreference` instead.
+      If you do not configure :setting:`syncSource.replicationReader`,
+      ``mongot`` falls back to
+      :setting:`syncSource.replicaSet.readPreference`. ``mongot`` logs
+      a deprecation warning at startup if this option is set.
+
    Direct passthrough to the :ref:`readPreference
    <read-preference>` connection string option. If omitted,
-   defaults to ``secondaryPreferred`` for replica set. 
+   defaults to ``secondaryPreferred`` for replica set.
 
 .. setting:: syncSource.router
 
@@ -4433,8 +4445,68 @@ Use the following options to configure ``mongot`` with ``mongod`` in Public Prev
 
    *Necessity*: Optional
 
-   Direct passthrough to the :ref:`readPreference
-   <read-preference>` connection string option.
+   .. note::
+
+      This option is deprecated and will be removed in a future release. Use
+      :setting:`syncSource.replicationReader.readPreference` instead. ``mongot``
+      ignores this option even if set. ``mongot`` logs a deprecation warning at
+      startup when this option is present.
+
+.. setting:: syncSource.replicationReader
+
+   *Type*: Object
+
+   *Necessity*: Optional
+
+   Controls the read preference that ``mongot`` uses when reading from the
+   replica set for replication. If you configure this option, this setting takes
+   priority over :setting:`syncSource.replicaSet.readPreference`.
+
+   To filter reads by replica set member tags, specify
+   :setting:`syncSource.replicationReader.tagSets` .
+
+.. setting:: syncSource.replicationReader.readPreference
+
+   *Type*: String
+
+   *Necessity*: Conditional
+
+   *Default*: ``secondaryPreferred``
+
+   Read preference ``mongot`` uses for replication operations. You can
+   specify the following values for this setting:
+
+   - ``primary``
+   - ``primaryPreferred``
+   - ``secondary``
+   - ``secondaryPreferred``
+   - ``nearest``
+
+   .. note::
+
+      Index management commands always use ``primary`` read preference,
+      regardless of this setting.
+
+.. setting:: syncSource.replicationReader.tagSets
+
+   *Type*: Array
+
+   *Necessity*: Optional
+
+   Array of tag sets that filter which replica set members receive
+   replication reads. If
+   :setting:`syncSource.replicationReader.readPreference` is
+   ``primary``, you cannot configure this setting.
+
+   Each element of ``tagSets`` is an array of
+   ``{ name: <name>, value: <value> }`` objects that match replica set member tags.
+   ``mongot`` evaluates tag sets in order and uses the first tag set
+   that matches a member. For example:
+
+   .. code-block:: yaml
+
+      tagSets:
+        - [ { name: hostname, value: mongod1 }, { name: region, value: us-east-1 } ]
 
 .. setting:: syncSource.caFile
 

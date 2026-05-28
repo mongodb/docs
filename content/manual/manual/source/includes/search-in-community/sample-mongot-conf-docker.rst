@@ -8,7 +8,8 @@
          passwordFile: "/passwordFile"
          authSource: "admin"
          tls: false
-         readPreference: primaryPreferred
+      replicationReader:
+         readPreference: "secondaryPreferred"
    storage:
       dataPath: "/data/mongot"
    server:
