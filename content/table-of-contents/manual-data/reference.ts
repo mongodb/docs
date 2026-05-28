@@ -3814,6 +3814,24 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/operator/aggregation/sigmoid',
           },
           {
+            label: '$similarityCosine',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/operator/aggregation/similarityCosine',
+            versions: { excludes: manualVersions.before('v8.3') },
+          },
+          {
+            label: '$similarityDotProduct',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/operator/aggregation/similarityDotProduct',
+            versions: { excludes: manualVersions.before('v8.3') },
+          },
+          {
+            label: '$similarityEuclidean',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/operator/aggregation/similarityEuclidean',
+            versions: { excludes: manualVersions.before('v8.3') },
+          },
+          {
             label: '$size',
             contentSite: 'docs',
             url: '/docs/:version/reference/operator/aggregation/size',
