@@ -183,6 +183,7 @@ extension.addBuildEventHandler(
 
 		if (ENVS_TO_RUN.includes(configEnvironment.ENV ?? "")) {
 			// this should only run on prod build
+			console.log("Generating offline docs ...");
 			await handleOfflineDownloads(allContentData, gitChangedFiles, run);
 
 			console.log(

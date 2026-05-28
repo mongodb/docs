@@ -1,19 +1,27 @@
 import { getStore, type Store } from '@netlify/blobs';
 import { BLOB_STORE_NAME } from './blob-constants';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
+import { createLocalFileStore } from './blob-store-local-file';
 
 const isDev = process.env.NODE_ENV === 'development';
 
-// This cast is to prevent netlify blob store from throwing an error in offline builds as a result of not having a siteID or token.
-export const productionStore: Store = isOfflineBuild
-  ? (null as unknown as Store)
+// Netlify sets NETLIFY=true in its build container, so we use it to distinguish
+// "offline build running on Netlify CI" (e.g. the nextjs-extension invoking
+// `pnpm run build:offline`) from "offline build running on a developer machine".
+// On Netlify we want the remote production store; locally we want the seeded
+// `.netlify/blobs-serve/` sandbox on disk.
+const isNetlifyBuild = process.env.NETLIFY === 'true';
+const useLocalFileStore = isOfflineBuild && !isNetlifyBuild;
+
+export const productionStore: Store = useLocalFileStore
+  ? createLocalFileStore()
   : isDev
-  ? getStore(BLOB_STORE_NAME)
-  : getStore({
-      name: BLOB_STORE_NAME,
-      siteID: process.env.NETLIFY_SITE_ID,
-      token: process.env.NETLIFY_ACCESS_TOKEN,
-    });
+    ? getStore(BLOB_STORE_NAME)
+    : getStore({
+        name: BLOB_STORE_NAME,
+        siteID: process.env.NETLIFY_SITE_ID,
+        token: process.env.NETLIFY_ACCESS_TOKEN,
+      });
 
 function initBranchSpecificStore(): { store: Store; name: string } | null {
   if (isOfflineBuild) return null;

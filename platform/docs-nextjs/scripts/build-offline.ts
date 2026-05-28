@@ -17,12 +17,30 @@ import { readFileSync } from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import { fileURLToPath, pathToFileURL } from 'url';
-import { blobRelativeToDiskCandidates, loadDirNameToPrefixMap } from '@/mdx-utils/blob-path-remap';
+import { getStore } from '@netlify/blobs';
+import { BLOB_STORE_NAME } from '@/mdx-utils/blob-constants';
+import { createLocalFileStore } from '@/mdx-utils/blob-store-local-file';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Load .env files for local development — Netlify CI provides these as real env vars.
+for (const envFile of ['.env.local', '.env']) {
+  try { process.loadEnvFile(path.resolve(process.cwd(), envFile)); } catch {}
+}
+
+// On Netlify CI (NETLIFY=true), the offline build reads images from the remote
+// production blob store via siteID/token. Locally, it reads from the seeded
+// `.netlify/blobs-serve/` sandbox on disk so the build does not depend on the
+// Netlify dev server or remote production blob credentials.
+const blobStore = process.env.NETLIFY === 'true'
+  ? getStore({
+      name: BLOB_STORE_NAME,
+      siteID: process.env.NETLIFY_SITE_ID,
+      token: process.env.NETLIFY_ACCESS_TOKEN,
+    })
+  : createLocalFileStore();
+
 const OUT_DIR = path.join(process.cwd(), 'out');
-const CONTENT_MDX_DIR = path.join(process.cwd(), '..', '..', 'content-mdx');
 
 const DOCS_DIR = path.join(OUT_DIR, 'docs');
 const NEXT_STATIC_DIR = path.join(OUT_DIR, '_next', 'static');
@@ -152,32 +170,28 @@ async function copyImageFilesTo(srcDir: string, destDir: string, logLabel: strin
   console.log(`${logLabel}: ${imageFiles.length}`);
 }
 
-/** Copy content images that appear in HTML (keeps output to referenced docsets only). */
-async function copyReferencedContentImages(htmlFiles: string[], contentMdxDir: string, docsDir: string): Promise<void> {
+/** Fetch content images that appear in HTML from the blob store. */
+async function copyReferencedContentImages(htmlFiles: string[], docsDir: string): Promise<void> {
   const referenced = new Set<string>();
   for (const filePath of htmlFiles) {
     const content = await fs.readFile(filePath, 'utf-8');
     for (const rel of getReferencedContentImagePaths(content)) referenced.add(rel);
   }
-  const dirNameToPrefix = await loadDirNameToPrefixMap();
   let copied = 0;
   for (const rel of referenced) {
-    // The URL path (rel) may include a docs-site prefix like "drivers/csharp/current" that
-    // doesn't exist verbatim in content-mdx (e.g. "csharp/current"). Use the same
-    // blob-to-disk mapping that blob-read.ts uses to find the actual file on disk.
-    const candidates = blobRelativeToDiskCandidates(rel, dirNameToPrefix);
-    for (const candidate of candidates) {
-      const src = path.join(contentMdxDir, candidate);
-      try {
-        await fs.access(src);
-        const dest = path.join(docsDir, rel);
-        await fs.mkdir(path.dirname(dest), { recursive: true });
-        await fs.cp(src, dest);
-        copied++;
-        break;
-      } catch {
+    const blobKey = `image/${rel.replace(/\\/g, '/')}`;
+    try {
+      const content = await blobStore.get(blobKey, { type: 'arrayBuffer' });
+      if (!content) {
+        console.warn(`[offline] Image not found in blob store: ${blobKey}`);
         continue;
       }
+      const dest = path.join(docsDir, rel);
+      await fs.mkdir(path.dirname(dest), { recursive: true });
+      await fs.writeFile(dest, Buffer.from(content));
+      copied++;
+    } catch (err) {
+      console.warn(`[offline] Failed to fetch image ${blobKey}:`, err instanceof Error ? err.message : err);
     }
   }
   console.log(`Content images (referenced in HTML): ${copied}`);
@@ -423,8 +437,7 @@ async function verifyOutput(): Promise<void> {
     '    • A React context provider (e.g. UnifiedTocProvider) returned null during SSG\n' +
     '    • A "use client" component calls useEffect/browser hooks that skip SSR\n' +
     '  Content\n' +
-    '    • CONTENT_MDX_DIR does not contain the expected .mdx files\n' +
-    '    • pnpm convert:rst-to-mdx was not run before the build\n' +
+    '    • MDX content not found in blob store for this route\n' +
     '    • loadMDX returned null for the route\n' +
     '  Post-processing\n' +
     '    • mergeCssIntoOutput or replaceCssLinksInHead did not run / threw an error\n' +
@@ -542,7 +555,7 @@ async function main(): Promise<void> {
 
   const htmlFiles = await findHtmlFiles(OUT_DIR);
   await replaceCssLinksInHead(htmlFiles);
-  await copyReferencedContentImages(htmlFiles, CONTENT_MDX_DIR, DOCS_DIR);
+  await copyReferencedContentImages(htmlFiles, DOCS_DIR);
 
   await keepOnlyDocs();
   await moveDocsContentsUp();

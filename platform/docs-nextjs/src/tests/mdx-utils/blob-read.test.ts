@@ -22,13 +22,6 @@ jest.mock('@/mdx-utils/blob-store', () => ({
   },
 }));
 
-// blob-path-remap is only used in the BUILD_STATIC_PAGES path, which is off
-// in tests, but mock it to avoid any fs-related import side effects.
-jest.mock('@/mdx-utils/blob-path-remap', () => ({
-  blobRelativeToDiskCandidates: jest.fn(),
-  loadDirNameToPrefixMap: jest.fn(),
-}));
-
 describe('getFromStores', () => {
   beforeEach(() => {
     jest.clearAllMocks();
