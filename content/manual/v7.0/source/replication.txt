@@ -22,7 +22,7 @@ Replication
 A *replica set* in MongoDB is a group of :binary:`~bin.mongod` processes
 that maintain the same data set. Replica sets provide redundancy and
 :term:`high availability`, and are the basis for all production 
-deployments. This section introduces replication in MongoDB as well as 
+deployments. This section introduces replication in MongoDB and
 the components and architecture of replica sets. The section also 
 provides tutorials for common tasks related to replica sets.
 
@@ -37,11 +37,10 @@ provides tutorials for common tasks related to replica sets.
 Redundancy and Data Availability
 --------------------------------
 
-Replication provides redundancy and increases 
-:term:`data availability <high availability>`. With
-multiple copies of data on different database servers, replication
-provides a level of fault tolerance against the loss of a single
-database server.
+Replication provides redundancy and
+:term:`data availability <high availability>`,
+maintaining multiple copies of data across database servers
+to tolerate the loss of any single server.
 
 In some cases, replication can provide increased read capacity as
 clients can send read operations to different servers. Maintaining
@@ -66,10 +65,10 @@ deemed secondary nodes.
 The :doc:`primary node </core/replica-set-primary>` receives all write
 operations. A replica set can have only one primary capable of
 confirming writes with :writeconcern:`{ w: "majority" } <"majority">`
-write concern; although in some circumstances, another mongod instance
+write concern, although in some circumstances, another mongod instance
 may transiently believe itself to also be primary.
 [#edge-cases-2-primaries]_ The primary records all changes to its data
-sets in its operation log, i.e. :doc:`oplog
+sets in its operation log, that is, the :doc:`oplog
 </core/replica-set-oplog>`. For more information on primary node
 operation, see :doc:`/core/replica-set-primary`.
 
@@ -78,24 +77,23 @@ operation, see :doc:`/core/replica-set-primary`.
 The :ref:`secondaries <replica-set-secondary-members-ref>` replicate the
 primary's oplog and apply the operations to their data sets such that
 the secondaries' data sets reflect the primary's data set. If the
-primary is unavailable, an eligible secondary will hold an election to
-elect itself the new primary. For more information on secondary
+primary is unavailable, an eligible secondary holds an election to
+select a new primary. For more information on secondary
 members, see :doc:`/core/replica-set-secondary`.
 
 .. include:: /images/replica-set-primary-with-two-secondaries.rst
 
-In some circumstances (such as you have a primary and a secondary but
-cost constraints prohibit adding another secondary), you may choose to
-add a :binary:`~bin.mongod` instance to a replica set as an
+If cost constraints prevent adding another secondary, you may add a
+:binary:`~bin.mongod` instance to a replica set as an
 :ref:`arbiter <replica-set-arbiter-configuration>`. An arbiter participates in
-:ref:`elections <replica-set-elections>` but does not hold data (i.e.
+:ref:`elections <replica-set-elections>` but does not hold data (that is,
 does not provide data redundancy). For more information on arbiters,
 see :doc:`/core/replica-set-arbiter`.
 
 .. include:: /images/replica-set-primary-with-secondary-and-arbiter.rst
 
-An :ref:`arbiter <replica-set-arbiter-configuration>` will always be an arbiter
-whereas a :doc:`primary </core/replica-set-primary>` may step down and
+An :ref:`arbiter <replica-set-arbiter-configuration>` is always an arbiter
+whereas a :ref:`primary <replica-set-primary>` may step down and
 become a :ref:`secondary <replica-set-secondary-members-ref>` and a
 secondary may become the primary during an election.
 
@@ -144,16 +142,9 @@ Automatic Failover
 When a primary does not communicate with the other members of the set
 for more than the configured :rsconf:`~settings.electionTimeoutMillis`
 period (10 seconds by default), an eligible secondary calls for an
-election to nominate itself as the new primary. The cluster attempts to
-complete the election of a new primary and resume normal operations.
+election to nominate itself as the new primary.
 
 .. include:: /images/replica-set-trigger-election.rst
-
-The replica set cannot process write operations
-until the election completes successfully.  The replica set can continue
-to serve read queries if such queries are configured to
-:ref:`run on secondaries <replica-set-read-preference>` while the
-primary is offline.
 
 .. include:: /includes/fact-election-latency.rst
 
@@ -213,15 +204,10 @@ MongoDB, see :doc:`/core/read-isolation-consistency-recency`.
 Mirrored Reads
 ~~~~~~~~~~~~~~
 
-Mirrored reads reduce the impact of primary elections following an
-outage or planned maintenance. After a :term:`failover` in a replica
-set, the secondary that takes over as the new primary updates its cache
-as new queries come in. While the cache is warming up performance can be
-impacted.
-
-Mirrored reads pre-warm the caches of :rsconf:`electable <members[n].priority>` 
-secondary replica set members. To pre-warm the caches of electable secondaries, 
-the primary mirrors a sample of the :ref:`supported operations
+Mirrored reads reduce the impact of primary elections by pre-warming
+the caches of :rsconf:`electable <members[n].priority>` secondary
+replica set members before a failover occurs. The primary mirrors a
+sample of the :ref:`supported operations
 <mirrored-reads-supported-operations>` it receives to electable
 secondaries.
 
@@ -279,12 +265,11 @@ of :rsconf:`electable <members[n].priority>` secondaries. With a sampling rate
 of ``0.01``, the primary mirrors one percent of the supported reads it receives 
 to a selection of electable secondaries.
 
-For example, consider a replica set that consists of one primary and two 
-electable secondaries. If the primary receives ``1000`` operations that can be
-mirrored and the sampling rate is ``0.01``, the primary mirrors about ``10`` 
-supported reads to electable secondaries. Each electable secondary receives only 
-a fraction of the 10 reads. The primary sends each mirrored read to a randomly 
-chosen, non-empty selection of electable secondaries.
+For example, consider a replica set that consists of one primary and two
+electable secondaries. If the primary receives ``1000`` operations that
+can be mirrored and the sampling rate is ``0.01``, the primary mirrors
+about ``10`` supported reads to a randomly chosen selection of electable
+secondaries.
 
 Change the Sampling Rate for Mirrored Reads
 ```````````````````````````````````````````
