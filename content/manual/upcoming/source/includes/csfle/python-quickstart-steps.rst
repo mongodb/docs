@@ -1,214 +1,302 @@
+.. _csfle-quick-start-set-up:
+
+Set Up Your Project
+~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in this section to create your project files and
+assign the required configuration variables.
 
 .. procedure::
-   :style: normal
+   :style: connected
 
-   .. step:: Create a {+cmk-long+}
+   .. step:: Create your main project file.
 
-      You must create a {+cmk-long+} ({+cmk-abbr+}) to perform {+csfle-abbrev+}.
+      Create a directory named ``python-csfle`` to store your project files, 
+      and then add a file named ``main.py`` to this directory.
+      Paste the following code into this file:
 
-      Create a 96-byte {+cmk-long+} and save it in your **Local Key Provider**,
-      which is your filesystem,
-      as the file ``master-key.txt``:
-
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/local/reader/make_data_key.py
-         :start-after: start-local-cmk
-         :end-before: end-local-cmk
+      .. literalinclude:: /includes/csfle/python/main.py
          :language: python
          :dedent:
 
-      In addition to byte strings, you can also use a Base64-encoded string as a
-      local key.
-      
+      The ``main.py`` file contains your main function, which imports and runs the code
+      from the other project files.
+
+   .. step:: Create your data key file.
+
+      To generate a {+cmk-long+} and {+dek-long+}, create a file named ``make_data_key.py``
+      in your ``python-csfle`` directory and paste the following code:
+
+      .. code-block:: python
+         
+         from pymongo import MongoClient, ASCENDING
+         from pymongo.encryption_options import AutoEncryptionOpts
+         from pymongo.encryption import ClientEncryption
+         import base64
+         import os
+         from bson.codec_options import CodecOptions
+         from bson.binary import STANDARD, UUID
+         import config
+
+         kms_providers = config.get_kms_providers()
+
+         # Paste CMK generation code below
+
+         # Paste index creation code below
+
+         # Paste Client and DEK generation code below
+
+      In future steps, you will add code to this file under each
+      corresponding comment.
+
+   .. step:: Create your encrypted operations file.
+
+      Next, create a file named ``insert_encrypted_document.py`` in your ``python-csfle`` directory
+      and paste the following code:
+
+      .. code-block:: python
+
+        from pymongo import MongoClient
+        from pymongo.encryption_options import AutoEncryptionOpts
+        from pymongo.encryption import ClientEncryption
+        import base64
+        import os
+        from bson.codec_options import CodecOptions
+        from bson.binary import STANDARD, UUID, Binary, UUID_SUBTYPE
+        import pprint
+        import config
+
+        kms_providers = config.get_kms_providers()
+
+        # Paste JSON schema below
+
+        # Paste encrypted client configuration code below
+
+        # Paste code to insert a document below
+
+        # Paste code to query the document below
+
+      In future steps, you will add code that inserts and queries encrypted documents
+      under each corresponding comment.
+
+   .. step:: Assign your configuration variables.
+
+      Each of your project files import variables from a configuration file.
+      Create a file named ``config.py`` in your ``python-csfle`` directory and paste
+      the following code:
+
+      .. literalinclude:: /includes/csfle/python/config.py
+         :language: python
+         :dedent:
+
+      Then, replace the following placeholder values:
+
+      - ``<connection string>``: Your MongoDB connection string
+      - ``<Automatic Encryption Shared Library path>``: The full path to your {+shared-library+}
+
+      The ``config.py`` file instructs your application to
+      store data encryption keys in the ``encryption.__keyVault`` namespace.
+
+.. _csfle-quick-start-configure:
+
+Configure Encryption
+~~~~~~~~~~~~~~~~~~~~
+
+After setting up your project, follow the steps in this section to create
+an encryption key and configure your application for {+csfle-abbrev+}.
+
+.. procedure::
+   :style: connected
+
+   .. _csfle-quick-start-create-master-key:
+
+   .. step:: Create a {+cmk-long+}.
+
+      Paste the following code into your ``make_data_key.py`` file under the
+      ``# Paste CMK generation code below`` comment to generate
+      a 96-byte {+cmk-long+} ({+cmk-abbr+}) and save it to your filesystem:
+
+      .. literalinclude:: /includes/csfle/python/make_data_key.py
+         :language: python
+         :start-after: start-generate-cmk
+         :end-before: end-generate-cmk
+         :dedent:
+
       .. include:: /includes/queryable-encryption/qe-warning-local-keys.rst
 
-      .. include:: /includes/in-use-encryption/cmk-csfle-bash.rst
+   .. step:: Create a unique index on your {+key-vault-long+}.
 
-      .. see:: Complete Code
-      
-         To view the complete code for making a {+cmk-long+}, see
-         `our Github repository
-         <{+sample-app-url-csfle+}/python/local/reader/make_data_key.py>`__.
-      
-   .. step:: Create a Unique Index on your {+key-vault-long+}
+      {+csfle+} depends on server-enforced uniqueness of key alternate names,
+      so you must create a unique index on the ``keyAltNames`` field in your
+      {+key-vault-long+}.
 
-      Create a partial unique index on the ``keyAltNames`` field in your
-      ``encryption.__keyVault`` namespace. This index should have a 
-      ``partialFilterExpression`` for documents where ``keyAltNames`` exists.
+      Add the following code to your ``make_data_key.py`` file under the
+      ``# Paste index creation code below`` comment to connect to
+      MongoDB and create a partial unique index on the ``keyAltNames`` field:
 
-      {+csfle+} depends on server-enforced uniqueness of key alternate names.
-
-      .. literalinclude::  /includes/generated/in-use-encryption/csfle/python/local/reader/make_data_key.py
+      .. literalinclude:: /includes/csfle/python/make_data_key.py
+         :language: python
          :start-after: start-create-index
          :end-before: end-create-index
-         :language: python
          :dedent:
 
-   .. step:: Create a {+dek-long+}
+   .. _csfle-local-create-dek:
+
+   .. step:: Create a {+dek-long+}.
 
       .. _csfle-quick-start-create-dek:
 
-      a. Read the {+cmk-long+} and Specify KMS Provider Settings
+      Add the following code to your ``make_data_key.py`` file under the
+      ``# Paste Client and DEK generation code below`` comment to configure
+      a ``ClientEncryption`` instance and generate a {+dek-long+}:
 
-         .. _field-level-encryption-data-key-create:
-
-         Retrieve the contents of the {+cmk-long+} file that you generated
-         in the :ref:`Create a {+cmk-long+} <csfle-quick-start-create-master-key>` step of this guide.
-
-         Use the {+cmk-abbr+} value in your KMS provider settings. The
-         client uses these settings to discover the {+cmk-abbr+}. As
-         you are using the Local Key Provider, set the provider name to
-         ``local``.
-
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/local/reader/make_data_key.py
-            :start-after: start-kmsproviders
-            :end-before: end-kmsproviders
-            :language: python
-            :dedent:
-
-      #. Create a Data Encryption Key
-
-         .. _csfle-local-create-dek:
-
-         Construct a client with your MongoDB connection string and {+key-vault-long+}
-         namespace, and create a {+dek-long+}:
-
-         .. note:: {+key-vault-long-title+} Namespace Permissions
-
-            .. include:: /includes/note-key-vault-permissions
-
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/local/reader/make_data_key.py
-            :start-after: start-create-dek
-            :end-before: end-create-dek
-            :language: python
-            :dedent:
-
-         The output from the code above should resemble the following:
-
-         .. code-block:: none
-            :copyable: false
-
-            DataKeyId [base64]: 3k13WkSZSLy7kwAAP4HDyQ==
-
-      .. see:: Complete Code
-
-         To view the complete code for making a {+dek-long+}, see
-         `our Github repository
-         <{+sample-app-url-csfle+}/python/local/reader/make_data_key.py>`__.
-      
-   .. step:: Configure the MongoClient
-
-      .. _field-level-encryption-data-key-retrieve:
-
-      a. Specify the {+key-vault-long-title+} Namespace
-
-         Specify ``encryption.__keyVault`` as the {+key-vault-long+}
-         namespace.
-
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/local/reader/insert_encrypted_document.py
-            :start-after: start-key-vault
-            :end-before: end-key-vault
-            :language: python
-            :dedent:
-
-      #. Specify the Local {+cmk-long+}
-
-         Specify the KMS provider and specify your key inline:
-
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/local/reader/insert_encrypted_document.py
-            :start-after: start-kmsproviders
-            :end-before: end-kmsproviders
-            :language: python
-            :dedent:
-
-      #. Create an Encryption Schema For Your Collection
-
-         .. tip:: Add Your {+dek-long+} Base64 ID
-
-            Make sure to update the following code to include your Base64
-            {+dek-abbr+} ID. You received this value in the
-            :ref:`Generate your {+dek-long+} <csfle-local-create-dek>` step of this
-            guide.
-
-         .. _csfle-quickstart-encryption-schema:
-
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/local/reader/insert_encrypted_document.py
-            :start-after: start-schema
-            :end-before: end-schema
-            :language: python
-            :dedent:
-
-      #. Specify the Location of the {+shared-library+}
-
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/local/reader/insert_encrypted_document.py
-            :start-after: start-extra-options
-            :end-before: end-extra-options
-            :language: python
-            :dedent:
-         
-         .. include:: /includes/tutorials/csfle-shared-lib-learn-more.rst
-
-      #. Create the MongoClient
-
-         Instantiate a MongoDB client object with the following
-         automatic encryption settings:
-
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/local/reader/insert_encrypted_document.py
-            :start-after: start-client
-            :end-before: end-client
-            :language: python
-            :dedent:
-
-   .. step:: Insert a Document with Encrypted Fields
-
-      .. _csfle-quick-start-insert:
-
-      Use your {+csfle-abbrev+}-enabled
-      ``MongoClient`` instance to insert a {+in-use-doc+} into the
-      ``medicalRecords.patients`` namespace using the following code
-      snippet:
-
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/local/reader/insert_encrypted_document.py
-         :start-after: start-insert
-         :end-before: end-insert
+      .. literalinclude:: /includes/csfle/python/make_data_key.py
          :language: python
+         :start-after: start-create-data-key
+         :end-before: end-create-data-key
          :dedent:
 
-      When you insert a document, your {+csfle-abbrev+}-enabled client
-      encrypts the fields of your document such that it resembles the following:
+      The ``ClientEncryption`` instance uses your KMS provider credentials,
+      key vault namespace, and your client to manage encryption keys. Once configured,
+      the code calls the the ``create_data_key()`` method to generate a {+dek-long+}
+      and writes it to a separate file.
+
+   .. _csfle-quickstart-encryption-schema:
+
+   .. step:: Define an encryption schema.
+
+      .. _field-level-encryption-data-key-retrieve: 
+
+      Add the following code to your ``insert_encrypted_document.py`` file under the
+      ``# Paste encryption schema code below`` comment to define
+      an encryption schema:
+
+      .. literalinclude:: /includes/csfle/python/insert_encrypted_document.py
+         :language: python
+         :start-after: start-json-schema
+         :end-before: end-json-schema
+         :dedent:
+
+      The code reads your {+dek-abbr+} ID and uses it to encrypt the following fields in the
+      ``medicalRecords.patients`` collection:
+
+      - ``insurance.policyNumber``: Encrypted with Deterministic encryption
+      - ``ssn``: Encrypted with Deterministic encryption
+      - ``bloodType``: Encrypted with Random encryption
+      - ``medicalRecords``: Encrypted with Random encryption
+
+      Deterministic encryption allows you to perform equality queries on the
+      encrypted fields, and Random encryption provides stronger security for fields that
+      do not require querying.
+      
+   .. step:: Create a {+csfle-abbrev+}-enabled client.
+
+      Paste the following code into your ``insert_encrypted_document.py``
+      file under the ``# Paste client creation code below`` comment to create
+      a MongoDB client configured for automatic encryption:
+
+      .. literalinclude:: /includes/csfle/python/insert_encrypted_document.py
+         :language: python
+         :start-after: start-create-client
+         :end-before: end-create-client
+         :dedent:
+     
+      This code creates a ``MongoClient`` instance with an ``AutoEncryptionOpts`` object
+      that specifies your KMS provider credentials, key vault namespace, encryption schema, and
+      the location of your {+shared-library+}.
+
+      .. include:: /includes/tutorials/csfle-shared-lib-learn-more.rst
+
+.. _csfle-quick-start-operations:
+
+Perform Encrypted Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After configuring your application and database connection, follow the
+steps in this section to insert and query encrypted documents.
+
+.. procedure::
+   :style: connected
+
+   .. _csfle-quick-start-insert:
+
+   .. step:: Insert a document with encrypted fields.
+
+      Add the following code to your ``insert_encrypted_document.py`` file under the
+      ``# Paste document insertion code below`` comment to insert a document into the
+      ``medicalRecords.patients`` collection:
+
+      .. literalinclude:: /includes/csfle/python/insert_encrypted_document.py
+         :language: python
+         :start-after: start-insert-document
+         :end-before: end-insert-document
+         :dedent:
+
+      When you insert the document, your {+csfle-abbrev+}-enabled client
+      automatically encrypts the specified fields. The stored document
+      resembles the following code:
 
       .. literalinclude:: /includes/quick-start/inserted-doc-enc.json
          :language: json
          :copyable: false
 
-      .. see:: Complete Code
+   .. step:: Query encrypted data.
 
-         To view the complete code for inserting a {+in-use-doc+}, see
-         `our Github repository
-         <{+sample-app-url-csfle+}/python/local/reader/insert_encrypted_document.py>`__.
-         
-   .. step:: Retrieve Your {+in-use-doc-title+}
+      Add the following code to your ``insert_encrypted_document.py`` file under the
+      ``# Paste document query code below`` comment to retrieve the document with both a {+csfle-abbrev+}-enabled client
+      and a standard client:
 
-      Retrieve the {+in-use-doc+} you inserted in the
-      :ref:`Insert a Document with Encrypted Fields <csfle-quick-start-insert>`
-      step of this guide.
-
-      To show the functionality of {+csfle-abbrev+}, the following code snippet queries for
-      your document with a client configured for automatic {+csfle-abbrev+} as well as
-      a client that is not configured for automatic {+csfle-abbrev+}.
-
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/python/local/reader/insert_encrypted_document.py
-         :start-after: start-find
-         :end-before: end-find
+      .. literalinclude:: /includes/csfle/python/insert_encrypted_document.py
          :language: python
+         :start-after: start-find-document
+         :end-before: end-find-document
          :dedent:
 
-      The output of the preceding code snippet should look like this:
+      The {+csfle-abbrev+}-enabled client automatically decrypts the
+      encrypted fields when it retrieves the document. The standard client
+      returns the encrypted binary values.
 
-      .. literalinclude:: /includes/quick-start/find-output.out
-         :language: json
+   .. step:: Run the application.
+
+      To start the application, run the following command from your project directory:
+
+      .. code-block:: bash
+
+         python main.py
+
+      If successful, your output resembles the following example:
+
+      .. code-block:: none
          :copyable: false
 
-      .. see:: Complete Code
+         ============================================================
+         Running make_data_key.py...
+         ============================================================
+         DataKeyId [base64]:  ...
 
-         To view the complete code for finding a {+in-use-doc+}, see
-         `our Github repository <{+sample-app-url-csfle+}/python/local/reader/insert_encrypted_document.py>`__.
+         ============================================================
+         Running insert_encrypted_document.py...
+         ============================================================
+         Finding a document with the regular (non-encrypted) client:
+         {'_id': ObjectId('...'),
+         'bloodType': Binary(b'\x02\x87\x83\xa9*\x8a\xa1D\x8b\xba\xe0i\x92\xb4\xa5\xe5\x80\x02\xacb\xbdI\xd5\xa7\xed\xf1\x8d\xda\x84\xd6\x1e\xf0\xa1\xa4\x142\x0b\x05\xd0\xed\x96rW\xc6+1|a"8U\xfa\xcd\xd5\x05>\xbd19\\\x8c\xba\xddUr\x87a\x9f\xb91I\xbdu\x823\x14\xbd\xa0m\xeb+\x9c', 6),
+         'insurance': {'policyNumber': Binary(b'\x01\x87\x83\xa9*\x8a\xa1D\x8b\xba\xe0i\x92\xb4\xa5\xe5\x80\x104\x04\xeb\xbc7\xa7\xaf\x849\xcd\xe0\xa1}ji\x0e`\xd6\x10\x00\x19\xc0\x92\x03\xfe\x9c\x97\xbd1\xf2\xb6I\x99/\xa0\xb5\x07\xfe\xdd\x08\xf5\x11\x101\xb7q\xd0\xadK\x9bH7\x9f\xe8]=2G\x15\x1dCD\n/', 6),
+                    'provider': 'MaestCare'},
+         'medicalRecords': Binary(b'\x02\x87\x83\xa9*\x8a\xa1D\x8b\xba\xe0i\x92\xb4\xa5\xe5\x80\x04`hP\xa3\x84\xe1\xa5\xc9\xba0\x84\xa3i\x1e\x1e;{9"\x90\xab\xc9\xdbS\xcc\x1a/\xfcgT-\x17G\xddg\x02\x8ce\xb8\xe00gX\xc7\xcc\xb9\x1b5\x0c\x00\x7f\xa3\x1d\xda}\xc2\x99\\\x1c0b\xd2\xa1\xd7\xf8%\x86\xc1\xda\xfa\xa2\x8fV\xf9\xc9\xcb\x8a.{\xecC\xc78#\xa6HX\xe9\xc44!\\S\xb9d\xe5\x9c\xf3\xe7\xb1+\xa55AC]\x9e2\xe6\xf5<\xf2', 6),
+         'name': 'Jon Doe',
+         'ssn': Binary(b'\x01\x87\x83\xa9*\x8a\xa1D\x8b\xba\xe0i\x92\xb4\xa5\xe5\x80\x10\xc8\xacE\xcdpT\r\x07\x11\xc3h\x0f\x93<\x92\xcc\xb4\xd3\x97q\x1a\x0eF\x8d8\x1c.\xc9\xe1\xce\x07\x1eGX\x1e\xee\x8a>\xf8\xc7\xf36\xdeF@j\xda\x8b\xde\xc6\x92$X\x8d\xbe\xce\x83\x00E\x08Lp\xbd\xe8', 6)}
+         
+         Finding a document with the encrypted client:
+         {'_id': ObjectId('...'),
+         'bloodType': 'AB+',
+         'insurance': {'policyNumber': 123142, 'provider': 'MaestCare'},
+         'medicalRecords': [{'bloodPressure': '120/80', 'weight': 180}],
+         'name': 'Jon Doe',
+         'ssn': 241014209}
+
+         ============================================================
+         All scripts completed successfully!
+         ============================================================
+
+      The output includes your {+dek-abbr+} ID, the encrypted document as stored in your
+      database, and the decrypted document retrieved with your {+csfle-abbrev+}-enabled client.
