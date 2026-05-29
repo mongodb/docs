@@ -43,6 +43,8 @@ type BranchData = {
   offlineUrl: string;
   noIndexing: boolean;
   eol_type?: EOLType;
+  buildsWithSnooty?: boolean;
+  publishOriginalBranchName?: boolean;
 };
 
 type DocsetDocument = WithId<Document> & {
@@ -121,6 +123,7 @@ type RemoteMetadata = {
   multiPageTutorials?: Record<string, MultiPageTutorial>;
   chapters?: MetadataChapters;
   guides?: MetadataGuides;
+  composablePages?: Record<string, Array<Record<string, string>>>;
 };
 
 type SlugToTitle = RemoteMetadata['slugToTitle'];

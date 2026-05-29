@@ -6,6 +6,7 @@ import { convertJsonAstToMdxFiles } from './convertJsonAstToMdxFiles/convertJson
 import {
   buildSubstitutionDefinitionLiteralMap,
   buildSubstitutionRefXrefMap,
+  findAllDirectivesByName,
 } from './convertSnootyAstToMdast/convertSnootyAstToMdast';
 import type { SnootyNode, SubstitutionRefXrefInfo } from './convertSnootyAstToMdast/types';
 import { type RouteCollision, detectRouteCollisions, resolveRouteCollisions } from './detectRouteCollision';
@@ -48,6 +49,8 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
   const pageJobs: ZipPageJob[] = [];
   const mergedSubstitutionXref = new Map<string, SubstitutionRefXrefInfo>();
   const mergedSubstitutionDefLiterals = new Map<string, string>();
+  let pendingSiteData: BSON.Document | null = null;
+  let pendingSiteJsonPath: string | null = null;
 
   for (const file of zipDir.files) {
     // skip files that are not BSON files or have ignored suffixes
@@ -84,7 +87,6 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
     }
 
     if (file.path === 'site.bson') {
-      // Write site.bson metadata as _site.json in the base directory
       const siteData = docs[0];
       // Extract objects.inv from static_files before removing it
       const invBinary = siteData.static_files?.['objects.inv'];
@@ -97,9 +99,10 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
         }
       }
       delete siteData.static_files;
-      const siteJsonPath = path.join(outputDirectory, '_site.json');
-      const siteJsonContent = `${stableStringify(siteData)}\n`;
-      await fs.writeFile(siteJsonPath, siteJsonContent, 'utf-8');
+      // Defer writing _site.json until after page processing so we can
+      // include composable tutorial data collected from per-page ASTs.
+      pendingSiteData = siteData;
+      pendingSiteJsonPath = path.join(outputDirectory, '_site.json');
       continue;
     }
 
@@ -129,8 +132,40 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
     pageJobs.push({ outputPath, astRoot });
   }
 
+  // Collect composable tutorial selections per page slug, mirroring the
+  // query-string permutations snooty/Gatsby added to the sitemap via resolvePages.
+  const composablePages: Record<string, Array<Record<string, string>>> = {};
+
   let totalCount = 0;
   for (const job of pageJobs) {
+    const selectedContentNodes = findAllDirectivesByName(
+      job.astRoot.children ?? [],
+      'selected-content',
+    );
+    if (selectedContentNodes.length > 0) {
+      const seen = new Set<string>();
+      const selections: Array<Record<string, string>> = [];
+      for (const node of selectedContentNodes) {
+        const sel =
+          node.selections && typeof node.selections === 'object'
+            ? (node.selections as Record<string, string>)
+            : {};
+        if (Object.keys(sel).length === 0) continue;
+        const key = stableStringify(sel);
+        if (!seen.has(key)) {
+          seen.add(key);
+          selections.push(sel);
+        }
+      }
+      if (selections.length > 0) {
+        // Derive slug from output path: strip outputDirectory prefix and .mdx suffix.
+        const slug = job.outputPath
+          .slice(outputDirectory.length + 1)
+          .replace(/\.mdx$/, '');
+        composablePages[slug] = selections;
+      }
+    }
+
     const { fileCount } = await convertJsonAstToMdxFiles({
       ast: job.astRoot,
       outputPath: job.outputPath,
@@ -141,6 +176,14 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
 
     totalCount += fileCount;
     onFileWrite?.(totalCount);
+  }
+
+  // Write _site.json now that composable page data has been collected.
+  if (pendingSiteData && pendingSiteJsonPath) {
+    if (Object.keys(composablePages).length > 0) {
+      pendingSiteData.composablePages = composablePages;
+    }
+    await fs.writeFile(pendingSiteJsonPath, `${stableStringify(pendingSiteData)}\n`, 'utf-8');
   }
 
   // EDIT: this is commented out for now, since we are trying JSON instead of TS, but haven't fully committed to it yet.
