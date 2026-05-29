@@ -2075,9 +2075,6 @@ export const toc: L1TocItem[] = [
                     contentSite: 'atlas-cli',
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-kubernetes/',
-                    versions: {
-                      includes: ['current', 'upcoming', 'v1.38', 'v1.39', 'v1.40', 'v1.41', 'v1.42', 'v1.43', 'v1.44', 'v1.45', 'v1.46', 'v1.47', 'v1.48', 'v1.49', 'v1.50', 'v1.51', 'v1.52'],
-                    },
                     items: [
                       {
                         label: 'config',
@@ -2212,128 +2209,7 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/atlas/cli/:version/command/atlas-local/',
                     versions: {
-                      includes: ['current', 'upcoming', 'v1.52'],
-                    },
-                    items: [
-                      {
-                        label: 'connect',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-local-connect/',
-                        versions: {
-                          includes: ['current', 'upcoming', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'delete',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-local-delete/',
-                        versions: {
-                          includes: ['current', 'upcoming', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'list',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-local-list/',
-                        versions: {
-                          includes: ['current', 'upcoming', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'logs',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-local-logs/',
-                        versions: {
-                          includes: ['current', 'upcoming', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'search',
-                        contentSite: 'atlas-cli',
-                        collapsible: true,
-                        url: '/docs/atlas/cli/:version/command/atlas-local-search/',
-                        versions: {
-                          includes: ['current', 'upcoming', 'v1.52'],
-                        },
-                        items: [
-                          {
-                            label: 'indexes',
-                            contentSite: 'atlas-cli',
-                            collapsible: true,
-                            url: '/docs/atlas/cli/:version/command/atlas-local-search-indexes/',
-                            versions: {
-                              includes: ['current', 'upcoming', 'v1.52'],
-                            },
-                            items: [
-                              {
-                                label: 'create',
-                                contentSite: 'atlas-cli',
-                                url: '/docs/atlas/cli/:version/command/atlas-local-search-indexes-create/',
-                                versions: {
-                                  includes: ['current', 'upcoming', 'v1.52'],
-                                },
-                              },
-                              {
-                                label: 'delete',
-                                contentSite: 'atlas-cli',
-                                url: '/docs/atlas/cli/:version/command/atlas-local-search-indexes-delete/',
-                                versions: {
-                                  includes: ['current', 'upcoming', 'v1.52'],
-                                },
-                              },
-                              {
-                                label: 'describe',
-                                contentSite: 'atlas-cli',
-                                url: '/docs/atlas/cli/:version/command/atlas-local-search-indexes-describe/',
-                                versions: {
-                                  includes: ['current', 'upcoming', 'v1.52'],
-                                },
-                              },
-                              {
-                                label: 'list',
-                                contentSite: 'atlas-cli',
-                                url: '/docs/atlas/cli/:version/command/atlas-local-search-indexes-list/',
-                                versions: {
-                                  includes: ['current', 'upcoming', 'v1.52'],
-                                },
-                              },
-                            ],
-                          },
-                        ],
-                      },
-                      {
-                        label: 'setup',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-local-setup/',
-                        versions: {
-                          includes: ['current', 'upcoming', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'start',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-local-start/',
-                        versions: {
-                          includes: ['current', 'upcoming', 'v1.52'],
-                        },
-                      },
-                      {
-                        label: 'stop',
-                        contentSite: 'atlas-cli',
-                        url: '/docs/atlas/cli/:version/command/atlas-local-stop/',
-                        versions: {
-                          includes: ['current', 'upcoming', 'v1.52'],
-                        },
-                      },
-                    ],
-                  },
-                  {
-                    label: 'local',
-                    contentSite: 'atlas-cli',
-                    collapsible: true,
-                    url: '/docs/atlas/cli/:version/command/atlas-local/',
-                    versions: {
-                      includes: ['current', 'upcoming'],
+                      excludes: ['v1.49', 'v1.50', 'v1.51'],
                     },
                     items: [
                       {
