@@ -5,6 +5,7 @@ import {
 	convertZipImageFiles,
 } from "../../../snooty-ast-to-mdx/src/index.js";
 import type { AllContentData } from "../contentMetadata/processContentMetadata.js";
+import type { BranchEntry } from "../util/databaseConnection/types.js";
 import { getRepoPaths } from "../paths.js";
 
 /** Run AST→MDX conversion for each content path using pre-built bundle zips, then list output files. */
@@ -21,6 +22,31 @@ export async function runMdxConversionForContentPaths({
 			const bundleZipPath = `${absoluteBundlePath(contentPath)}.zip`;
 			const outputDirectory = path.join(mdxOutputPath, contentPath);
 
+			// For versioned projects, objects.inv must be served at two URLs:
+			//   /docs/{project}/{version}/objects.inv  (always — e.g. atlas-architecture references this)
+			//   /docs/{project}/objects.inv            (stable branch only — e.g. atlas and vector-search reference this)
+			// We always write to outputDirectory (version-specific). For the stable
+			// branch we also write to the project root directory one level up.
+			const docsPath = allContentData.docsPaths[contentPath];
+			const isVersioned = !!docsPath?.versionName;
+			let additionalInvOutputDirectory: string | undefined;
+			if (isVersioned) {
+				const branchEntry = allContentData.atlasProjectDocuments[
+					docsPath.projectName
+				]?.reposBranchesEntry?.branches?.find(
+					(b: BranchEntry) =>
+				b.urlSlug === docsPath.versionName ||
+				b.gitBranchName === docsPath.versionName ||
+				b.urlAliases?.includes(docsPath.versionName),
+				);
+				if (branchEntry?.isStableBranch) {
+					additionalInvOutputDirectory = path.join(
+						mdxOutputPath,
+						docsPath.projectDirName,
+					);
+				}
+			}
+
 			console.log(
 				`running mdx conversion for ${contentPath} → ${outputDirectory}`,
 			);
@@ -28,6 +54,7 @@ export async function runMdxConversionForContentPaths({
 			const { assetChecksumToKey } = await convertZipFileToMdx({
 				zipPath: bundleZipPath,
 				outputDirectory,
+				additionalInvOutputDirectory,
 			});
 
 			await convertZipImageFiles({

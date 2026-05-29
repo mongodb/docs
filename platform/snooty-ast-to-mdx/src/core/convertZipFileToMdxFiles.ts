@@ -17,6 +17,11 @@ const IGNORED_FILE_SUFFIXES = ['.txt.bson', '.rst.bson'] as const;
 interface ConvertZipFileToMdxOptions {
   zipPath: string;
   outputDirectory: string;
+  /** Additional directory to also write objects.inv into.
+   *  For the stable branch of versioned projects, pass the project-level directory
+   *  so objects.inv is served at both /docs/{project}/{version}/objects.inv
+   *  and /docs/{project}/objects.inv. */
+  additionalInvOutputDirectory?: string;
   onFileWrite?: (fileCount: number) => void;
 }
 
@@ -27,7 +32,7 @@ type ConvertZipFileToMdx = (args: ConvertZipFileToMdxOptions) => Promise<{
 }>;
 
 /** Convert a zip file to a folder of MDX files, preserving the zip's directory structure */
-export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, outputDirectory, onFileWrite }) => {
+export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, outputDirectory, additionalInvOutputDirectory, onFileWrite }) => {
   const zipDir = await unzipper.Open.file(zipPath);
 
   await fs.mkdir(outputDirectory, { recursive: true });
@@ -86,6 +91,10 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
       if (invBinary != null) {
         const invBuffer = Buffer.from(invBinary.buffer ?? invBinary);
         await fs.writeFile(path.join(outputDirectory, 'objects.inv'), invBuffer);
+        if (additionalInvOutputDirectory) {
+          await fs.mkdir(additionalInvOutputDirectory, { recursive: true });
+          await fs.writeFile(path.join(additionalInvOutputDirectory, 'objects.inv'), invBuffer);
+        }
       }
       delete siteData.static_files;
       const siteJsonPath = path.join(outputDirectory, '_site.json');
