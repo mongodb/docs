@@ -204,7 +204,7 @@ Restrict IP Addresses
 .. include:: /includes/fact-wildcard-ip.rst
 
 The following example prevents users from editing a project 
-from a wildcard IP (``0.0.0.0/0``):
+from a wildcard IP (``0.0.0.0/0``). Atlas treats any IPv4 ``/0`` CIDR as a wildcard equivalent to ``0.0.0.0/0``, so this policy also blocks entries like ``10.0.0.0/0`` or ``1.2.3.4/0``.:
 
 .. code-block::
    :copyable: true 
