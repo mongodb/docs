@@ -8027,6 +8027,30 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/operator/aggregation/sigmoid',
                       },
                       {
+                        label: '$similarityCosine',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/operator/aggregation/similarityCosine',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                        },
+                      },
+                      {
+                        label: '$similarityDotProduct',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/operator/aggregation/similarityDotProduct',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                        },
+                      },
+                      {
+                        label: '$similarityEuclidean',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/operator/aggregation/similarityEuclidean',
+                        versions: {
+                          excludes: ['v7.0', 'v8.0', 'v8.2'],
+                        },
+                      },
+                      {
                         label: '$size',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/operator/aggregation/size',
