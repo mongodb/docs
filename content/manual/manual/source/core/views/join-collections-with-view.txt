@@ -14,7 +14,7 @@ Use a View to Join Two Collections
    :name: genre
    :values: tutorial
 
-.. meta:: 
+.. meta::
    :description: Use $lookup to create a view over two collections and then run queries against the view without having to construct or maintain complex pipelines.
 
 .. contents:: On this page
@@ -30,108 +30,46 @@ maintaining complex pipelines.
 Example
 -------
 
-Create two sample collections, ``inventory`` and ``orders``:
-
-.. code-block:: javascript
-
-   db.inventory.insertMany( [
-      { prodId: 100, price: 20, quantity: 125 },
-      { prodId: 101, price: 10, quantity: 234 },
-      { prodId: 102, price: 15, quantity: 432 },
-      { prodId: 103, price: 17, quantity: 320 }
-   ] )
-
-   db.orders.insertMany( [
-      { orderId: 201, custid: 301, prodId: 100, numPurchased: 20 }, 
-      { orderId: 202, custid: 302, prodId: 101, numPurchased: 10 }, 
-      { orderId: 203, custid: 303, prodId: 102, numPurchased: 5 }, 
-      { orderId: 204, custid: 303, prodId: 103, numPurchased: 15 }, 
-      { orderId: 205, custid: 303, prodId: 103, numPurchased: 20 }, 
-      { orderId: 206, custid: 302, prodId: 102, numPurchased: 1 }, 
-      { orderId: 207, custid: 302, prodId: 101, numPurchased: 5 }, 
-      { orderId: 208, custid: 301, prodId: 100, numPurchased: 10 }, 
-      { orderId: 209, custid: 303, prodId: 103, numPurchased: 30 }
-   ] )
+..include:: /includes/sample-data-usage.rst
 
 Create a Joined View
 ~~~~~~~~~~~~~~~~~~~~
 
-.. code-block:: javascript
-
-   db.createView( "sales", "orders", [ 
-      {
-         $lookup:
-            {
-               from: "inventory",
-               localField: "prodId",
-               foreignField: "prodId",
-               as: "inventoryDocs"
-            }
-      },
-      {
-         $project:
-            {
-              _id: 0, 
-              prodId: 1, 
-              orderId: 1,
-              numPurchased: 1,
-              price: "$inventoryDocs.price"
-            }
-      },
-         { $unwind: "$price" }
-   ] )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/lookup/create-view.snippet.create-view.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 In the example:
 
-- The :pipeline:`$lookup` stage uses the ``prodId`` field in the
-  ``orders`` collection to "join" documents in the ``inventory``
-  collection that have matching ``prodId`` fields.
-- The matching documents are added as an array in the ``inventoryDocs``
-  field.
+- The :pipeline:`$match` stage filters the ``movies`` collection to
+  documents released in 2014 onward.
+- The :pipeline:`$lookup` stage uses the ``_id`` field in the
+  ``movies`` collection to join documents in the ``comments``
+  collection that have a matching ``movie_id`` field.
+- The matching documents are added as an array in the
+  ``movieComments`` field.
 - The :pipeline:`$project` stage selects a subset of the available
-  fields.
-- The :pipeline:`$unwind` stage converts the ``price`` field from an
-  array to a scalar value.
-
-The documents in the ``sales`` view are:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { orderId: 201, prodId: 100, numPurchased: 20, price: 20 },
-   { orderId: 202, prodId: 101, numPurchased: 10, price: 10 },
-   { orderId: 203, prodId: 102, numPurchased: 5, price: 15 },
-   { orderId: 204, prodId: 103, numPurchased: 15, price: 17 },
-   { orderId: 205, prodId: 103, numPurchased: 20, price: 17 },
-   { orderId: 206, prodId: 102, numPurchased: 1, price: 15 },
-   { orderId: 207, prodId: 101, numPurchased: 5, price: 10 },
-   { orderId: 208, prodId: 100, numPurchased: 10, price: 20 },
-   { orderId: 209, prodId: 103, numPurchased: 30, price: 17 }
+  fields, including ``numComments``, which is the count of comments
+  for each movie.
 
 Query the View
 ~~~~~~~~~~~~~~
 
-Query the view for total sales by product:
+Query the view for the five movies with the most comments:
 
-.. code-block:: javascript
-
-   db.sales.aggregate( [ 
-      { 
-         $group: 
-            {
-               _id: "$prodId",
-               amountSold: { $sum: { $multiply: [ "$price", "$numPurchased" ] } }
-            }
-      }
-   ] )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/lookup/query-view.snippet.query-view.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 .. code-block:: javascript
    :copyable: false
 
    [
-     { _id: 102, amountSold: 90 },
-     { _id: 101, amountSold: 150 },
-     { _id: 103, amountSold: 1105 },
-     { _id: 100, amountSold: 600 }
+     { _id: '<title>', totalComments: <num> },
+     { _id: '<title>', totalComments: <num> },
+     { _id: '<title>', totalComments: <num> },
+     { _id: '<title>', totalComments: <num> },
+     { _id: '<title>', totalComments: <num> }
    ]
-

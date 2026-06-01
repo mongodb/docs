@@ -1,3 +1,4 @@
+const { execSync } = require("child_process");
 const Expect = require("../../../../utils/comparison/Expect");
 const { describeWithSampleData } = require("../../../../utils/sampleDataChecker");
 
@@ -68,6 +69,35 @@ describeWithSampleData("$lookup aggregation stage example tests", () => {
       ])
       .withDbName(dbName)
       .shouldMatch("aggregation/stages/lookup/verbose-correlated-subquery-output.sh");
+  });
+
+  describe("Create and query a joined view (join-collections-with-view page)", () => {
+    const mongoUri = process.env.CONNECTION_STRING;
+
+    afterEach(() => {
+      try {
+        execSync(
+          `mongosh "${mongoUri}" --eval "db = db.getSiblingDB('${dbName}'); db.movieComments.drop();"`,
+          { encoding: "utf8" }
+        );
+      } catch (e) {
+        // View may not exist — safe to ignore
+      }
+    });
+
+    test("Should create and query a view that joins movies with comments", async () => {
+      await Expect
+        .outputFromExampleFiles([
+          "aggregation/stages/lookup/create-view.js",
+          "aggregation/stages/lookup/query-view.js"
+        ])
+        .withDbName(dbName)
+        .shouldResemble("aggregation/stages/lookup/query-view-output.sh")
+        .withSchema({
+          count: 5,
+          requiredFields: ["_id", "totalComments"]
+        });
+    }, 60000);
   });
 
 }, dbName);

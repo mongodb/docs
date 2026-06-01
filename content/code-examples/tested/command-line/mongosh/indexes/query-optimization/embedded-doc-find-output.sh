@@ -1,0 +1,3 @@
+[
+  { location: { address: { city: 'Portland' } } }
+]

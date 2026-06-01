@@ -151,4 +151,48 @@ describeWithSampleData("$merge aggregation stage tests", () => {
     });
   });
 
+  describe("On-Demand Materialized View: Initial Creation (materialized-views page)", () => {
+    afterEach(() => {
+      dropCollection(dbName, "movieYearStats");
+    });
+
+    test("Should create movieYearStats from movies from 2015 onward", async () => {
+      await Expect
+        .outputFromExampleFiles([
+          "aggregation/stages/merge/materialized-view-define.js",
+          "aggregation/stages/merge/materialized-view-initial-run.js",
+          "aggregation/stages/merge/materialized-view-find.js"
+        ])
+        .withDbName(dbName)
+        .shouldMatch("aggregation/stages/merge/materialized-view-find-output.sh");
+    });
+  });
+
+  describe("On-Demand Materialized View: Refresh (materialized-views page)", () => {
+    afterEach(() => {
+      dropCollection(dbName, "movieYearStats");
+      try {
+        execSync(
+          `mongosh "${mongoUri}" --eval "db = db.getSiblingDB('${dbName}'); db.movies.deleteOne({ title: 'Grove Test Movie' });"`,
+          { encoding: "utf8" }
+        );
+      } catch (e) {
+        // Document may not exist — safe to ignore
+      }
+    });
+
+    test("Should update movieYearStats when new movie added for 2016", async () => {
+      await Expect
+        .outputFromExampleFiles([
+          "aggregation/stages/merge/materialized-view-define.js",
+          "aggregation/stages/merge/materialized-view-initial-run.js",
+          "aggregation/stages/merge/materialized-view-seed.js",
+          "aggregation/stages/merge/materialized-view-refresh-run.js",
+          "aggregation/stages/merge/materialized-view-find.js"
+        ])
+        .withDbName(dbName)
+        .shouldMatch("aggregation/stages/merge/materialized-view-refresh-find-output.sh");
+    });
+  });
+
 }, dbName);
