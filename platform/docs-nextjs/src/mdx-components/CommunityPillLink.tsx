@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { css, cx } from '@leafygreen-ui/emotion';
 import Badge, { type Variant } from '@leafygreen-ui/badge';
 import { theme } from '@/styles/theme';
@@ -26,7 +27,7 @@ export const CommunityPillLink = ({
 }: CommunityPillLinkProps) => {
   return (
     <div className={cx(pillLinkStyle)}>
-      {!!url && !!children && <Link to={url}>{children}</Link>}
+      {!!url && !!children && <Link to={url}>{children}</Link>}{' '}
       <Badge variant={variant}>{text}</Badge>
     </div>
   );

@@ -55,6 +55,24 @@ describe('convertSnootyAstToMdast', () => {
     expect(mdx).not.toMatch(/<p>\s*\/mongodb-docs\/tracks/);
   });
 
+  it('emits community-driver label as inline text so MDX does not wrap it in <p>', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'community-driver',
+          argument: [{ type: 'text', value: 'MongoEngine for Flask' }],
+          options: { url: 'https://mongoengine.org/' },
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    expect(mdx).toContain('url="https://mongoengine.org/"');
+    // Label must be inline — no newline between the opening tag and the text
+    expect(mdx).toMatch(/<CommunityDriver[^>]*>MongoEngine for Flask<\/CommunityDriver>/);
+  });
+
   it('collects meta directives into frontmatter', () => {
     const ast: SnootyNode = {
       type: 'root',

@@ -7,8 +7,7 @@ import path from 'path';
 import { useState } from 'react';
 import { Lightbox } from './Lightbox';
 import { Caption } from './Caption';
-
-const INTERNAL_IMAGE_API_PATH = '/docs/platform/api/images/';
+import { INTERNAL_IMAGE_API_PATH } from '@/constants';
 
 // Formats the image url to the api path
 // Strip any leading slash from imagePath to avoid double-slash when projectPath is empty (landing page)

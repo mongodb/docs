@@ -1321,6 +1321,18 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         };
       }
 
+      // community-driver label text must serialize inline (mdxJsxTextElement inside paragraph) so MDX does
+      // not wrap it in <p>, which would produce invalid <a><p> nesting in the rendered Link component.
+      if (directiveName === 'community-driver') {
+        const attributes: MdastNode[] = toJsxAttributes(node.options);
+        const labelText = parseSnootyArgument(node).trim();
+        const children: MdastNode[] = labelText ? [{ type: 'text', value: labelText }] : [];
+        return {
+          type: 'paragraph',
+          children: [{ type: 'mdxJsxTextElement', name: 'CommunityDriver', attributes, children }],
+        };
+      }
+
       // Generic fallback for any Snooty directive (ex: ...tab -> <Tab>) where pascalCase doesn't produce the desired result
       const DIRECTIVE_TO_COMPONENT: Record<string, string> = {
         see: 'See',

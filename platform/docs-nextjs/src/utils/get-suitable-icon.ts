@@ -1,4 +1,11 @@
-import { DOTCOM_BASE_URL, ICONS_BASE_URL } from '@/constants';
+import { ICONS_BASE_URL, INTERNAL_IMAGE_API_PATH } from '@/constants';
+
+// Mirrors blob-path-remap.ts stripDocsPrefix (kept inline — that file uses fs, client-unsafe).
+function stripDocsPrefix(prefix: string): string {
+  if (prefix === 'docs') return '';
+  if (prefix.startsWith('docs/')) return prefix.slice(5);
+  return prefix;
+}
 
 export const getSuitableIcon = ({
   icon,
@@ -13,9 +20,10 @@ export const getSuitableIcon = ({
 }) => {
   if (typeof icon === 'string') {
     if (icon.startsWith('/')) {
-      // Ensure proper URL joining with slashes. Docsets prefixes do not have leading slashes
-      const prefix = siteBasePrefix.length ? `${DOTCOM_BASE_URL}/${siteBasePrefix}` : DOTCOM_BASE_URL;
-      return isDarkMode && iconDark ? `${prefix}${iconDark}` : `${prefix}${icon}`;
+      const selectedIcon = isDarkMode && iconDark ? iconDark : icon;
+      const blobPrefix = stripDocsPrefix(siteBasePrefix);
+      const imagePath = blobPrefix ? `${blobPrefix}${selectedIcon}` : selectedIcon.replace(/^\//, '');
+      return `${INTERNAL_IMAGE_API_PATH}${imagePath}`;
     }
 
     const getIcon = `${icon}${isDarkMode ? '_inverse' : ''}`;

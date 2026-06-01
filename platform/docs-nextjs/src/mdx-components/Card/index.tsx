@@ -228,6 +228,7 @@ const Card = ({ children, cta, headline, icon, 'icon-dark': iconDark, 'icon-alt'
             width={Number(imgSize)}
             height={Number(imgSize)}
             className={useCompactIcon ? cx(compactIconStyle) : ''}
+            style={{ objectFit: 'contain' }}
           />
         )}
         <ConditionalWrapper

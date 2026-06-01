@@ -29,3 +29,5 @@ export const SIDE_NAV_CONTAINER_ID = 'docs-side-nav-container';
 export const TEMPLATE_CONTAINER_ID = 'template-container';
 
 export const CONTENT_MAX_WIDTH = 1200;
+
+export const INTERNAL_IMAGE_API_PATH = '/docs/platform/api/images/';
