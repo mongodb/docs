@@ -68,6 +68,19 @@ describe('findOwningProjectPath', () => {
     ).toBeNull();
   });
 
+  it('returns null for the landing catch-all when the key body first segment matches a named project', () => {
+    expect(
+      findOwningProjectPath('mdx/manual/unknown-ver/page.mdx', ['manual/v8.0', '']),
+    ).toBeNull();
+  });
+
+  it('returns empty string for the landing catch-all when the first segment does not match any named project', () => {
+    expect(
+      findOwningProjectPath('mdx/get-started/overview.mdx', ['manual/v8.0', '']),
+    ).toBe('');
+    expect(findOwningProjectPath('mdx/index.mdx', ['manual/v8.0', ''])).toBe('');
+  });
+
   it('matches exact path or prefix, using the first list entry that fits (longest-first order)', () => {
     const pathsLongestFirst = ['atlas/operator', 'atlas'];
     expect(findOwningProjectPath('mdx/atlas/x.mdx', pathsLongestFirst)).toBe(
@@ -413,6 +426,148 @@ describe('deleteOrphanedFilesFromBlobStore', () => {
     expect(store.delete).toHaveBeenCalledWith('reference/manual/v8.0/old-ref.json');
   });
 
+  // --- mixed landing + named-project builds ---
+
+  const landingAndManualData = makeAllContentData([
+    { projectName: 'manual', projectDirName: 'manual', versionName: 'v8.0', prefix: 'docs/manual' },
+    { projectName: 'landing', projectDirName: 'landing', versionName: '', prefix: 'docs' },
+  ]);
+
+  it('deletes a stale named-project blob when landing and that project are both in the build', async () => {
+    const store = makeStore(({ prefix }) => {
+      if (prefix === 'mdx/') {
+        return asyncPages([{
+          blobs: [
+            { key: 'mdx/manual/v8.0/current.mdx', etag: '' },
+            { key: 'mdx/manual/v8.0/stale.mdx', etag: '' },
+          ],
+        }]);
+      }
+      return asyncPages([{ blobs: [] }]);
+    });
+
+    await deleteOrphanedFilesFromBlobStore({
+      relativeFilePaths: ['manual/v8.0/current.mdx', 'landing/index.mdx'],
+      allContentData: landingAndManualData,
+      store: store as any,
+    });
+
+    expect(store.delete).toHaveBeenCalledWith('mdx/manual/v8.0/stale.mdx');
+  });
+
+  it('does not delete a current named-project blob when landing and that project are both in the build', async () => {
+    const store = makeStore(({ prefix }) => {
+      if (prefix === 'mdx/') {
+        return asyncPages([{
+          blobs: [{ key: 'mdx/manual/v8.0/current.mdx', etag: '' }],
+        }]);
+      }
+      return asyncPages([{ blobs: [] }]);
+    });
+
+    await deleteOrphanedFilesFromBlobStore({
+      relativeFilePaths: ['manual/v8.0/current.mdx', 'landing/index.mdx'],
+      allContentData: landingAndManualData,
+      store: store as any,
+    });
+
+    expect(store.delete).not.toHaveBeenCalled();
+  });
+
+  it('deletes a stale landing blob when landing and a named project are both in the build', async () => {
+    const store = makeStore(({ prefix }) => {
+      if (prefix === 'mdx/') {
+        return asyncPages([{
+          blobs: [
+            { key: 'mdx/index.mdx', etag: '' },
+            { key: 'mdx/get-started.mdx', etag: '' },
+          ],
+        }]);
+      }
+      return asyncPages([{ blobs: [] }]);
+    });
+
+    await deleteOrphanedFilesFromBlobStore({
+      relativeFilePaths: ['landing/index.mdx', 'manual/v8.0/current.mdx'],
+      allContentData: landingAndManualData,
+      store: store as any,
+    });
+
+    expect(store.delete).toHaveBeenCalledWith('mdx/get-started.mdx');
+  });
+
+  it('does not delete a current landing blob when landing and a named project are both in the build', async () => {
+    const store = makeStore(({ prefix }) => {
+      if (prefix === 'mdx/') {
+        return asyncPages([{
+          blobs: [{ key: 'mdx/index.mdx', etag: '' }],
+        }]);
+      }
+      return asyncPages([{ blobs: [] }]);
+    });
+
+    await deleteOrphanedFilesFromBlobStore({
+      relativeFilePaths: ['landing/index.mdx', 'manual/v8.0/current.mdx'],
+      allContentData: landingAndManualData,
+      store: store as any,
+    });
+
+    expect(store.delete).not.toHaveBeenCalled();
+  });
+
+  it('does not delete a blob whose first path segment matches a known project, even when landing is in the build', async () => {
+    const landingAndManualData = makeAllContentData([
+      { projectName: 'manual', projectDirName: 'manual', versionName: 'v8.0', prefix: 'docs/manual' },
+      { projectName: 'landing', projectDirName: 'landing', versionName: '', prefix: 'docs' },
+    ]);
+
+    const store = makeStore(({ prefix }) => {
+      if (prefix === 'mdx/') {
+        // Simulates a stale blob from a manual version no longer in allContentData,
+        // encountered during the broad landing prefix scan.
+        return asyncPages([{
+          blobs: [{ key: 'mdx/manual/deleted-version/page.mdx', etag: '' }],
+        }]);
+      }
+      return asyncPages([{ blobs: [] }]);
+    });
+
+    await deleteOrphanedFilesFromBlobStore({
+      relativeFilePaths: ['manual/v8.0/index.mdx', 'landing/index.mdx'],
+      allContentData: landingAndManualData,
+      store: store as any,
+    });
+
+    expect(store.delete).not.toHaveBeenCalledWith('mdx/manual/deleted-version/page.mdx');
+  });
+
+  it('detects and deletes an orphaned landing-page blob', async () => {
+    const landingData = makeAllContentData([
+      { projectName: 'landing', projectDirName: 'landing', versionName: '', prefix: 'docs' },
+    ]);
+
+    const store = makeStore(({ prefix }) => {
+      if (prefix === 'mdx/') {
+        return asyncPages([{
+          blobs: [
+            { key: 'mdx/index.mdx', etag: '' },
+            { key: 'mdx/get-started.mdx', etag: '' },
+          ],
+        }]);
+      }
+      return asyncPages([{ blobs: [] }]);
+    });
+
+    await deleteOrphanedFilesFromBlobStore({
+      relativeFilePaths: ['landing/index.mdx'],
+      allContentData: landingData,
+      store: store as any,
+    });
+
+    expect(store.delete).toHaveBeenCalledWith('mdx/get-started.mdx');
+    expect(store.delete).not.toHaveBeenCalledWith('mdx/index.mdx');
+  });
+
   it('does not delete a blob whose project cannot be classified', async () => {
     const store = makeStore(({ prefix }) => {
       if (prefix === 'mdx/manual/v8.0') {
@@ -447,6 +602,31 @@ describe('prefixesToListForOrphanScan', () => {
       'mdx/manual/v8.0',
       'image/manual/v8.0',
       'reference/manual/v8.0',
+    ]);
+  });
+
+  it('generates landing prefixes (blob-type + trailing slash) when landing is in pathsToBuild', () => {
+    const data = makeAllContentData([
+      { projectName: 'landing', projectDirName: 'landing', versionName: '', prefix: 'docs' },
+    ]);
+
+    expect(prefixesToListForOrphanScan(data)).toEqual([
+      'mdx/',
+      'image/',
+      'reference/',
+    ]);
+  });
+
+  it('returns only broad blob-type prefixes when landing is in the build, even with other projects', () => {
+    const data = makeAllContentData([
+      { projectName: 'manual', projectDirName: 'manual', versionName: 'v8.0', prefix: 'docs/manual' },
+      { projectName: 'landing', projectDirName: 'landing', versionName: '', prefix: 'docs' },
+    ]);
+
+    expect(prefixesToListForOrphanScan(data)).toEqual([
+      'mdx/',
+      'image/',
+      'reference/',
     ]);
   });
 

@@ -7,15 +7,22 @@ import { getDirNameToPrefix } from './mapFilesToUrlPaths.js';
 
 /**
  * Returns the URL-style path for each project version in allContentData.
+ * Pass `{ includeLanding: true }` to also include `''` (empty string) for the
+ * landing project, which has no URL subdirectory prefix of its own.
  */
 export const getProjectVersionPaths = (
   allContentData: AllContentData,
+  options: { includeLanding?: boolean } = {},
 ): string[] => {
   const paths: Set<string> = new Set<string>();
+  let hasLanding = false;
   for (const entry of Object.values(allContentData.docsPaths)) {
     const projectDocs = allContentData.atlasProjectDocuments[entry.projectName];
-    // Landing project is the fallback, has no prefix beyond the general docs/ prefix— skip it
-    if (entry.projectDirName === 'landing') continue;
+    // Landing project is the fallback, has no prefix beyond the general docs/ prefix
+    if (entry.projectDirName === 'landing') {
+      hasLanding = true;
+      continue;
+    }
 
     const prefix = projectDocs?.docsetsEntry?.prefix;
     if (!prefix) continue;
@@ -23,6 +30,9 @@ export const getProjectVersionPaths = (
 
     const projectPath = [stripped, entry.versionName].filter(Boolean).join('/');
     if (projectPath) paths.add(projectPath);
+  }
+  if (options.includeLanding && hasLanding) {
+    paths.add('');
   }
   return [...paths];
 };

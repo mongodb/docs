@@ -32,15 +32,19 @@ export function prefixesToListForOrphanScan(
       pathsBeingRebuilt.has(projectKey),
     ),
   );
-  const projectVersionPathSegments = getProjectVersionPaths({
-    ...allContentData,
-    docsPaths: docsPathsForThisBuild,
-  });
+  const projectVersionPathSegments = getProjectVersionPaths(
+    { ...allContentData, docsPaths: docsPathsForThisBuild },
+    { includeLanding: true },
+  );
+
+  // Landing's broad prefixes ('mdx/', 'image/', 'reference/') subsume every
+  // project-specific prefix — scanning both would cause duplicate store.delete calls.
+  if (projectVersionPathSegments.includes('')) {
+    return BLOB_TYPES.map((blobType) => `${blobType}/`);
+  }
 
   return BLOB_TYPES.flatMap((blobType) =>
-    projectVersionPathSegments.map(
-      (pathSegment) => `${blobType}/${pathSegment}`,
-    ),
+    projectVersionPathSegments.map((pathSegment) => `${blobType}/${pathSegment}`),
   );
 }
 
@@ -55,7 +59,20 @@ export function findOwningProjectPath(
   const slashIdx = blobKey.indexOf('/');
   if (slashIdx === -1) return null;
   const keyBody = blobKey.slice(slashIdx + 1); // strip blob-type segment
+  const namedPaths = allSortedProjectPaths.filter(p => p !== '');
   for (const projectPath of allSortedProjectPaths) {
+    if (projectPath === '') {
+      // Landing catch-all: only claim this blob if its first path segment does NOT
+      // match the first segment of any named project path. A blob like
+      // mdx/manual/deleted-version/page.mdx has first segment 'manual', which
+      // collides with 'manual/v8.0' — it belongs to that project family, not landing.
+      const segEnd = keyBody.indexOf('/');
+      const firstSeg = segEnd === -1 ? keyBody : keyBody.slice(0, segEnd);
+      const collidesWithNamedProject = namedPaths.some(
+        p => p === firstSeg || p.startsWith(firstSeg + '/'),
+      );
+      return collidesWithNamedProject ? null : '';
+    }
     if (keyBody.startsWith(projectPath + '/') || keyBody === projectPath) {
       return projectPath;
     }
@@ -75,8 +92,8 @@ async function listOrphanedKeysUnderPrefix(
   for await (const { blobs } of store.list({ prefix, paginate: true })) {
     for (const blob of blobs) {
       const owner = findOwningProjectPath(blob.key, allSortedProjectPaths);
-      console.log(`[blob cleanup] blob "${blob.key}" → owner: ${owner ?? 'null'}, inRebuilt: ${owner ? rebuiltProjectPaths.has(owner) : false}`);
-      if (!owner || !rebuiltProjectPaths.has(owner)) continue;
+      console.log(`[blob cleanup] blob "${blob.key}" → owner: ${owner ?? 'null'}, inRebuilt: ${owner !== null ? rebuiltProjectPaths.has(owner) : false}`);
+      if (owner === null || !rebuiltProjectPaths.has(owner)) continue;
       if (!expectedKeys.has(blob.key)) {
         console.log(`[blob cleanup] Orphan key: ${blob.key}`);
         orphanKeys.push(blob.key);
@@ -180,16 +197,28 @@ export async function deleteOrphanedFilesFromBlobStore({
     return;
   }
 
+  // Derive rebuiltProjectPaths from pathsToBuild directly rather than back-computing
+  // from the scan prefixes. When landing is in the build the dedup shortcut returns
+  // only broad prefixes ('mdx/', …), which would lose named-project paths from the set.
+  const pathsBeingRebuilt = new Set(allContentData.pathsToBuild);
   const rebuiltProjectPaths = new Set(
-    prefixes
-      .filter((p) => p.startsWith('mdx/'))
-      .map((p) => p.slice('mdx/'.length)),
+    getProjectVersionPaths(
+      {
+        ...allContentData,
+        docsPaths: Object.fromEntries(
+          Object.entries(allContentData.docsPaths).filter(([k]) =>
+            pathsBeingRebuilt.has(k),
+          ),
+        ),
+      },
+      { includeLanding: true },
+    ),
   );
 
   console.log(
     `[blob cleanup] Scanning ${prefixes.length} prefix(es) for orphaned blobs`,
   );
-  const allSortedProjectPaths = getProjectVersionPaths(allContentData)
+  const allSortedProjectPaths = getProjectVersionPaths(allContentData, { includeLanding: true })
     .sort((a, b) => b.length - a.length);
 
   console.log(
