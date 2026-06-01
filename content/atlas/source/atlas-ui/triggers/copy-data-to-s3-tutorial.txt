@@ -1,0 +1,246 @@
+.. _tutorial-copy-data-mongodb-to-s3:
+
+=======================================================
+Tutorial: Continuously Copy Data from MongoDB to AWS S3
+=======================================================
+
+.. meta::
+   :keywords: atlas data federation, scheduled triggers, s3, parquet, data copy, continuous replication
+   :description: Learn how to use Atlas Scheduled Triggers and Atlas Data Federation to continuously copy data from an Atlas cluster to an AWS S3 bucket in Parquet format.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Use {+adf+} and Atlas Scheduled Triggers to copy data from
+an |service| {+cluster+} to an |aws| |s3| bucket in Apache
+Parquet format. Parquet is a columnar format suited for
+analytics and machine learning workloads that expect data as
+files rather than documents. Run copies on a recurring
+schedule to offload analytics queries from your operational
+{+cluster+}.
+
+About this Task
+---------------
+
+The tutorial uses a delta approach, which means each Trigger run copies
+documents from the past 60 seconds. An alternative is a full snapshot,
+which copies the entire collection each time. The right approach depends
+on your data volume and the requirements of downstream consumers.
+
+The ``maxFileSize`` and ``maxRowGroupSize`` values in this
+tutorial are optimized for testing, not production. For
+production workloads, review the :ref:`$out stage options
+<adf-out-stage-options>` and adjust file sizes and partitioning
+based on your query patterns.
+
+Before you Begin
+----------------
+
+Before you start this tutorial, complete the following tasks:
+
+- Create an |service| account with a {+cluster+} that has the
+  data you want to copy. To get started, see
+  :ref:`create-new-cluster`.
+- Create an |aws| account with privileges to create
+  :abbr:`IAM (Identity and Access Management)` roles and
+  |s3| buckets. To configure the required permissions for
+  {+adf+}, see :ref:`deploy-s3`.
+- Install and configure the |aws|
+  :abbr:`CLI (Command Line Interface)`.
+
+Steps
+-----
+
+.. procedure::
+   :style: normal
+
+   .. step:: Deploy a {+FDI+} with S3 and Atlas data stores.
+
+      A {+fdi+} consolidates multiple data sources into a single
+      queryable interface. In this tutorial, you connect your |s3|
+      bucket and your |service| {+cluster+} as data stores in the same
+      {+fdi+}. Connecting both data stores lets the copy Trigger read
+      from the {+cluster+} and write to |s3|.
+
+      a. Deploy a {+fdi+} with an |s3| data store. To learn how,
+         see :ref:`adf-deploy-data-store`. When you configure
+         the |s3| data store, grant the IAM role
+         :guilabel:`Read and write` access to the bucket so
+         that {+adf+} can write Parquet files.
+
+      #. Add your |service| {+cluster+} as a second data store in the
+         {+fdi+}.
+
+      After you complete these steps, note the name of your {+fdi+}
+      service. You need this name in a later step.
+
+   .. step:: Create a Scheduled Trigger to insert test documents.
+
+      Create a Scheduled Trigger that inserts a new document
+      into your {+cluster+} every minute. This generates test
+      data so you can verify that the copy Trigger works.
+
+      a. .. include:: /includes/nav/list-triggers.rst
+
+      #. Click :guilabel:`Add Trigger`.
+
+      #. Select :guilabel:`Scheduled` as the
+         :guilabel:`Trigger Type`.
+
+      #. In :guilabel:`Trigger Details`, set the following
+         configuration:
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 35 65
+
+            * - Setting
+              - Value
+
+            * - :guilabel:`Trigger Name`
+              - ``Create_Event_Every_Min_Trigger``
+
+            * - :guilabel:`Schedule Type`
+              - :guilabel:`Basic`
+
+            * - :guilabel:`Interval`
+              - Every ``1`` minute
+
+            * - :guilabel:`Event Type`
+              - :guilabel:`Function`
+
+      #. In the :guilabel:`Function` section, select
+         :guilabel:`+ New Function` and enter the following
+         code. Replace the placeholder values with the names
+         of your Atlas service, database, and collection.
+
+         .. code-block:: javascript
+
+            exports = function () {
+
+               const mongodb = context.services.get(
+                  "NAME_OF_YOUR_ATLAS_SERVICE"
+               );
+               const db = mongodb.db("NAME_OF_YOUR_DATABASE");
+               const events = db.collection(
+                  "NAME_OF_YOUR_COLLECTION"
+               );
+
+               const event = events.insertOne({
+                  time: new Date(),
+                  aNumber: Math.random() * 100,
+                  type: "event"
+               });
+
+               return JSON.stringify(event);
+            };
+
+      #. Click :guilabel:`Save`.
+
+         After the Trigger runs, confirm that new documents
+         appear in your {+cluster+} collection every minute.
+
+   .. step:: Create a Scheduled Trigger to copy data to S3.
+
+      Create a Scheduled Trigger that runs an aggregation
+      pipeline using the :ref:`$out <adf-out-stage>` stage to
+      copy recent documents from your {+cluster+} to your |s3|
+      bucket in Parquet format every minute.
+
+      a. On the :guilabel:`Triggers` page, click
+         :guilabel:`Add Trigger`.
+
+      #. Select :guilabel:`Scheduled` as the
+         :guilabel:`Trigger Type`.
+
+      #. In :guilabel:`Trigger Details`, set the following
+         configuration:
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 35 65
+
+            * - Setting
+              - Value
+
+            * - :guilabel:`Trigger Name`
+              - ``Copy_Events_To_S3_Trigger``
+
+            * - :guilabel:`Schedule Type`
+              - :guilabel:`Basic`
+
+            * - :guilabel:`Interval`
+              - Every ``1`` minute
+
+            * - :guilabel:`Event Type`
+              - :guilabel:`Function`
+
+      #. In the :guilabel:`Function` section, select
+         :guilabel:`+ New Function` and enter the following
+         code. Replace the placeholder values with the names
+         of your {+fdi+} service, virtual database, virtual
+         collection, |s3| bucket, and |aws| region.
+
+         .. code-block:: javascript
+
+            exports = function () {
+
+               const service = context.services.get(
+                  "NAME_OF_YOUR_FEDERATED_DATA_SERVICE"
+               );
+               const db = service.db(
+                  "NAME_OF_YOUR_VIRTUAL_DATABASE"
+               );
+               const events = db.collection(
+                  "NAME_OF_YOUR_VIRTUAL_COLLECTION"
+               );
+
+               const pipeline = [
+                  {
+                     $match: {
+                        "time": {
+                           $gt: new Date(
+                              Date.now() - 60 * 1000
+                           ),
+                           $lt: new Date(Date.now())
+                        }
+                     }
+                  },
+                  {
+                     "$out": {
+                        "s3": {
+                           "bucket": "YOUR_S3_BUCKET_NAME",
+                           "region": "YOUR_AWS_REGION",
+                           "filename": "events",
+                           "format": {
+                              "name": "parquet",
+                              "maxFileSize": "10GB",
+                              "maxRowGroupSize": "100MB"
+                           }
+                        }
+                     }
+                  }
+               ];
+
+               return events.aggregate(pipeline);
+            };
+
+      #. Click :guilabel:`Save`.
+
+         After the Trigger runs, confirm that a Parquet file
+         named ``events`` appears in your |s3| bucket.
+
+Learn More
+----------
+
+- :ref:`atlas-scheduled-triggers`
+- :ref:`adf-out-stage`
+- :ref:`adf-deploy-data-store`
+- :ref:`adf-tutorial-parquet`

@@ -253,6 +253,11 @@ const tocData: TocItem[] = [
             contentSite: 'cloud-docs',
             url: '/docs/atlas/atlas-ui/triggers/scheduled-triggers-tutorial',
           },
+          {
+            label: 'Tutorial: Continuously Copy Data from MongoDB to AWS S3',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/atlas-ui/triggers/copy-data-to-s3-tutorial',
+          },
         ],
       },
       {
