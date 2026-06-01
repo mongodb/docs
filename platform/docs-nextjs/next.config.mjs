@@ -7,14 +7,15 @@ const atlasArchitectureRedirects = requireFile('./src/redirects/atlas-architectu
 const atlasCliRedirects = requireFile('./src/redirects/atlas-cli-redirects.json');
 const atlasGovernmentRedirects = requireFile('./src/redirects/atlas-government-redirects.json');
 const atlasOperatorRedirects = requireFile('./src/redirects/atlas-operator-redirects.json');
-const realmRedirects = requireFile('./src/redirects/realm-redirects.json');
 const nodeRedirects = requireFile('./src/redirects/node-redirects.json');
+const landingRedirects = requireFile('./src/redirects/landing-redirects.json');
+const realmRedirects = requireFile('./src/redirects/realm-redirects.json');
 
 // Only redirects with explicit force: true go here. These always fire regardless
 // of whether a page exists at the source path. All other redirects are checked in
 // page.tsx as a fallback when the page would otherwise 404, replicating Netlify's
 // default force=false behavior.
-const allRedirects = [...atlasRedirects, ...appServicesRedirects, ...atlasArchitectureRedirects, ...atlasCliRedirects, ...atlasGovernmentRedirects, ...atlasOperatorRedirects, ...realmRedirects, ...nodeRedirects];
+const allRedirects = [...atlasRedirects, ...appServicesRedirects, ...atlasArchitectureRedirects, ...atlasCliRedirects, ...atlasGovernmentRedirects, ...atlasOperatorRedirects, ...landingRedirects, ...realmRedirects, ...nodeRedirects];
 const forceRedirects = allRedirects
   .filter((r) => r.force === true)
   .map(({ force, ...rest }) => rest);
