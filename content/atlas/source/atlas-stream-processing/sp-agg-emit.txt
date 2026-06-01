@@ -187,17 +187,18 @@ The ``$emit`` stage takes a document with the following fields:
        values.
 
    * - ``config.acks``
-     - int
+     - string
      - Optional
-     - Number of acknowledgements required from the {+kafka+} {+cluster+} for a 
+     - Number of acknowledgements required from the {+kafka+} {+cluster+} for a
        successful ``$emit`` operation.
 
-       The default value is ``all``. {+atlas-sp+} supports the following values:
-     
-       - ``-1``
-       - ``0``
-       - ``1``
-       - ``all``
+       The default value is ``"all"``. {+atlas-sp+} supports the
+       following values:
+
+       - ``"-1"``
+       - ``"0"``
+       - ``"1"``
+       - ``"all"``
 
    * - ``config.compression_type``
      - string
@@ -300,6 +301,7 @@ The ``$emit`` stage takes a document with the following fields:
        - ``"json"``
        - ``"int"``
        - ``"long"``
+       - ``"double"``
 
        Defaults to ``binData``. If you specify ``config.key``, you
        must specify ``config.keyFormat``. If the ``config.key`` of a
@@ -359,7 +361,6 @@ use the ``$emit`` pipeline stage with the following prototype form:
        "db": "<target-db>" | <expression>,
        "coll": "<target-coll>" | <expression>,
        "parallelism": <number>,
-       "partitionBy": <expression>,
        "timeseries": {
          <options>
        }
@@ -399,26 +400,16 @@ The ``$emit`` stage takes a document with the following fields:
    * - ``parallelism``
      - integer
      - Optional
-     - Number of internal write threads that the timeseries sink operator uses
-       to write data to the time series collection. This improves throughput for
-       high-volume workloads by distributing write operations across multiple threads.
+     - Number of internal write threads that the timeseries sink operator
+       uses to write data to the time series collection. This improves
+       throughput for high-volume workloads by distributing write
+       operations across multiple threads.
 
        Defaults to ``1``. Maximum value is ``16``.
 
-   * - ``partitionBy``
-     - expression
-     - Optional
-     - Expression that determines how documents are partitioned across
-       write threads when ``parallelism`` is greater than ``1``. The hash
-       of the evaluated expression determines which thread processes each
-       document.
-
-       If ``parallelism`` is greater than ``1`` but ``partitionBy`` is not
-       specified, an unspecified partitioning strategy is used.
-
    * - ``timeseries``
      - document
-     - Required
+     - Optional
      - Document defining the :manual:`time series fields
        </core/timeseries/timeseries-procedures/#time-series-field-reference>`
        for the collection.
@@ -501,22 +492,29 @@ The ``$emit`` stage takes a document with the following fields:
      - Name of the Kinesis data stream to which to connect.
 
    * - ``region``
-     - string 
+     - string
      - Optional
      - Region in which the Kinesis Data Stream operates. {+aws+}
        supports multiple streams with the same name, each in a
        distinct region. This parameter allows {+atlas-sp+} to
        distinguish between such streams.
 
+   * - ``partitionKey``
+     - string | expression
+     - Required
+     - Key used to determine which Kinesis shard receives each
+       record. Must be a literal string or an expression that
+       evaluates to a string.
+
    * - ``config``
-     - document 
+     - document
      - Optional
-     - Document containing fields that override various default 
+     - Document containing fields that override various default
        values.
 
    * - ``config.outputFormat``
      - string
-     - Optional 
+     - Optional
      - JSON format to use when emitting messages to Kinesis. Must be one of the
        following values:
 
@@ -619,9 +617,9 @@ The ``$emit`` stage takes a document with the following fields:
        connection to write data to.
 
    * - ``bucket``
-     - string
-     - Required 
-     - Name of the |s3| bucket to which to write data.
+     - string | expression
+     - Required
+     - Name of the |s3| bucket to which to write data, specified as a literal string or an expression that evaluates to a string.
 
    * - ``region``
      - string
@@ -783,24 +781,25 @@ The ``$emit`` stage takes a document with the following fields:
 
    * - ``config.compression``
      - string
-     - Optional 
+     - Optional
      - Name of the compression algorithm to use.
        Must be one of the following values:
 
-       - "gzip"
-       - "snappy"
+       - ``"none"``
+       - ``"gzip"``
+       - ``"snappy"``
 
    * - ``config.compressionLevel``
-     - string
+     - integer
      - Conditional
      - Level of compression to apply to the emitted message. Supports
        values ``1-9`` inclusive; higher values mean more compression.
 
        Defaults to ``6``.
 
-       This parameter is required for and limited to ``gzip``. If you
-       set ``config.compression`` to ``snappy``, setting this parameter
-       has no effect.
+       This parameter is valid only when ``config.compression`` is
+       set to ``gzip``. Setting it with any other compression type
+       returns an error.
 
 .. _sp-emit-azure-blob:
 
@@ -817,22 +816,22 @@ pipeline stage with the following prototype form:
        "connectionName": "<registered-connection>",
        "container": "<storage-container>",
        "path": "<prefix-key>" | <expression>,
+       "parallelism": <int>,
+       "partitionBy": "<key>" | <expression>,
        "config": {
          "dateFormat": "default" | "ISO8601",
-	 "compression": "none" | "gzip" | "snappy",
-	 "compressionLevel": [1-9],
-         "outputFormat": "relaxedJson"| "canonicalJson" | "basicJson",
-	 "delimiter": "<delimiter>",
-	 "writeOptions": {
-	   "count": <int>,
-	   "interval": {
-	     "size": <int>,
-	     "unit": "ms" | "second" | "minute" | "hour" | "day"	    
-	   },
-	   "bytes": <int> 
-	 },
-	 "parallelism": <int>,
-	 "partitionBy": "<key>" | expression
+         "compression": "none" | "gzip" | "snappy",
+         "compressionLevel": [1-9],
+         "outputFormat": "relaxedJson" | "canonicalJson" | "basicJson",
+         "delimiter": "<delimiter>",
+         "writeOptions": {
+           "count": <int>,
+           "interval": {
+             "size": <int>,
+             "unit": "ms" | "second" | "minute" | "hour" | "day"
+           },
+           "bytes": <int>
+         }
        }
      }
    }
@@ -919,16 +918,16 @@ The ``$emit`` stage takes a document with the following fields:
        writes data without compression.
 
    * - ``config.compressionLevel``
-     - string
+     - integer
      - Conditional
      - Level of compression to apply to the emitted message. Supports
        values ``1-9`` inclusive; higher values mean more compression.
 
        Defaults to ``6``.
 
-       This parameter is required for and limited to ``gzip``. If you
-       set ``config.compression`` to ``snappy``, setting this parameter
-       has no effect.
+       This parameter is valid only when ``config.compression`` is
+       set to ``gzip``. Setting it with any other compression type
+       returns an error.
 
    * - ``config.outputFormat``
      - string

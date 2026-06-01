@@ -214,8 +214,6 @@ The ``$source`` stage takes a document with the following fields:
        - If you set this parameter to ``false``, stream processors
          commit partition offsets when {+atlas-sp+} takes a checkpoint.
 
-       You can set this parameter only if ``config.group_id`` is set.
-
        For an ephemeral stream processor defined with
        :ref:`sp.process() <atlas-sp-manage-processor-interactive>`,
        this parameter defaults to ``false`` unless you set
@@ -421,7 +419,7 @@ The ``$source`` stage takes a document with the following fields:
        :manual:`resume token </changeStreams/#resume-tokens-from-change-events>`.
 
        You can use only one of either ``config.startAfter`` or 
-       ``config.StartAtOperationTime``.
+       ``config.startAtOperationTime``.
 
    * - ``config.startAtOperationTime`` 
      - timestamp | date
@@ -430,7 +428,7 @@ The ``$source`` stage takes a document with the following fields:
        reporting.
 
        You can use only one of either ``config.startAfter`` or 
-       ``config.StartAtOperationTime``.
+       ``config.startAtOperationTime``.
 
        Accepts :manual:`MongoDB Extended JSON
        </reference/mongodb-extended-json/>` ``$date`` or ``$timestamp`` values.
@@ -622,16 +620,16 @@ The ``$source`` stage takes a document with the following fields:
        :manual:`resume token </changeStreams/#resume-tokens-from-change-events>`.
 
        You can use only one of either ``config.startAfter`` or 
-       ``config.StartAtOperationTime``.
+       ``config.startAtOperationTime``.
 
-   * - ``config.startAtOperationTime`` 
-     - timestamp
+   * - ``config.startAtOperationTime``
+     - timestamp | date
      - Conditional
-     - The operation time after which the source should begin 
+     - The operation time after which the source should begin
        reporting.
 
-       You can use only one of either ``config.startAfter`` or 
-       ``config.StartAtOperationTime``.
+       You can use only one of either ``config.startAfter`` or
+       ``config.startAtOperationTime``.
 
        Accepts :manual:`MongoDB Extended JSON
        </reference/mongodb-extended-json/>` ``$date`` or ``$timestamp`` values.
@@ -639,22 +637,24 @@ The ``$source`` stage takes a document with the following fields:
    * - ``config.fullDocument``
      - string
      - Conditional
-     - Setting that controls whether a change stream source should 
-       return a full document, or only the changes when an update 
+     - Setting that controls whether a change stream source should
+       return a full document, or only the changes when an update
        occurs. Must be one of the following:
 
+       - ``default`` : Uses the server default behavior. Does not
+         return a full document for ``update`` operations.
        - ``updateLookup`` : Returns only changes on update.
        - ``required`` : Must return a full document. If a full document
          is unavailable, returns nothing.
-       - ``whenAvailable`` : Returns a full document whenever one is 
+       - ``whenAvailable`` : Returns a full document whenever one is
          available, otherwise returns changes.
-      
-       If you do not specify a value for fullDocument, it defaults to
-       ``updateLookup``.
 
-       To use this field with a database change stream, you must 
-       enable change stream :ref:`Pre- and Post-Images 
-       <collMod-change-stream-pre-and-post-images>` on every collection 
+       If you do not specify a value for ``fullDocument``, it defaults
+       to ``default``.
+
+       To use this field with a database change stream, you must
+       enable change stream :ref:`Pre- and Post-Images
+       <collMod-change-stream-pre-and-post-images>` on every collection
        in that database.
 
    * - ``config.fullDocumentOnly``
@@ -813,7 +813,7 @@ The ``$source`` stage takes a document with the following fields:
        :manual:`resume token </changeStreams/#resume-tokens-from-change-events>`.
 
        You can use only one of either ``config.startAfter`` or 
-       ``config.StartAtOperationTime``.
+       ``config.startAtOperationTime``.
 
    * - ``config.startAtOperationTime`` 
      - date | timestamp
@@ -822,7 +822,7 @@ The ``$source`` stage takes a document with the following fields:
        reporting.
 
        You can use only one of either ``config.startAfter`` or 
-       ``config.StartAtOperationTime``.
+       ``config.startAtOperationTime``.
 
        Accepts :manual:`MongoDB Extended JSON
        </reference/mongodb-extended-json/>` ``$date`` or ``$timestamp`` values.
@@ -830,23 +830,25 @@ The ``$source`` stage takes a document with the following fields:
    * - ``config.fullDocument``
      - string
      - Conditional
-     - Setting that controls whether a change stream source should 
-       return a full document, or only the changes when an update 
+     - Setting that controls whether a change stream source should
+       return a full document, or only the changes when an update
        occurs. Must be one of the following:
 
+       - ``default`` : Uses the server default behavior. Does not
+         return a full document for ``update`` operations.
        - ``updateLookup`` : Returns only changes on update.
        - ``required`` : Must return a full document. If a full document
          is unavailable, returns nothing.
-       - ``whenAvailable`` : Returns a full document whenever one is 
+       - ``whenAvailable`` : Returns a full document whenever one is
          available, otherwise returns changes.
-      
-       If you do not specify a value for fullDocument, it defaults to
-       ``updateLookup``.
 
-       To use this field with a database change stream, you must 
-       enable change stream :ref:`Pre- and Post-Images 
-       <collMod-change-stream-pre-and-post-images>` on every collection 
-       in that database.
+       If you do not specify a value for ``fullDocument``, it defaults
+       to ``default``.
+
+       To use this field with a cluster change stream, you must
+       enable change stream :ref:`Pre- and Post-Images
+       <collMod-change-stream-pre-and-post-images>` on every collection
+       in that cluster.
 
    * - ``config.fullDocumentOnly``
      - boolean
@@ -1029,19 +1031,31 @@ The ``$source`` stage takes a document with the following fields:
        values.
 
    * - ``config.initialPosition``
-     - string 
+     - string
      - Optional
      - Position in the Kinesis data stream's history from which to
-       begin ingesting messages. Must be one of either:
+       begin ingesting messages. Must be one of the following:
 
        - ``"TRIM_HORIZON"``: Begin ingesting from the oldest message
          in the shard.
        - ``"LATEST"``: Begin ingesting from the newest message in the
          shard.
+       - ``"AT_TIMESTAMP"``: Begin ingesting from a specific timestamp.
+         Requires ``config.atTimestamp``.
+       - ``"AT_SEQUENCE_NUMBER"``: Begin ingesting at a specific
+         sequence number.
+       - ``"AFTER_SEQUENCE_NUMBER"``: Begin ingesting after a specific
+         sequence number.
 
        Defaults to ``"LATEST"``.
 
-   * - ``reshardDetectionIntervalSecs``
+   * - ``config.atTimestamp``
+     - date
+     - Conditional
+     - The timestamp from which to begin ingesting messages. Required
+       when ``config.initialPosition`` is ``"AT_TIMESTAMP"``.
+
+   * - ``config.reshardDetectionIntervalSecs``
      - integer
      - Optional
      - Interval, in seconds, between checks against the rate of data

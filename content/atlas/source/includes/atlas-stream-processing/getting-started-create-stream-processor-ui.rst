@@ -124,7 +124,7 @@ stream processor named ``solarDemo``:
          :pipeline:`$group` stage to derive the maximum temperature and
          the maximum, minimum, and average wattages of each solar device
          over 10-second intervals, then writes the results to a
-         collection named ``solarColl`` in the ``Cluster0`` database of
+         collection named ``solarColl`` in the ``solarDb`` database of
          your connected {+service+} cluster.
          
          This means, for example, that when the ``$group`` stage
@@ -174,10 +174,10 @@ stream processor named ``solarDemo``:
                   "$merge": {
                     "into": {
                       "connectionName": "mongodb1",
-                      "db": "Cluster0",
+                      "db": "solarDb",
                       "coll": "solarColl"
                     },
-                    "parallelism":16,
+                    "parallelism": 16
                   }
                 }
               ]

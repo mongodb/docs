@@ -459,9 +459,8 @@ To start a stream processor:
             { "ok" : 1 }
 
       This method returns ``{ "ok": 1 }`` if the stream processor exists
-      and isn't currently running. If you invoke
-      ``sp.processor.start()`` for a stream processor that is not
-      ``STOPPED``, {+mongosh+} will return an error.
+      and is in a startable state (``STOPPED``, ``CREATED``, or
+      ``FAILED``). Otherwise, {+mongosh+} returns an error.
 
 
 .. _streams-manage-stop:
@@ -524,9 +523,8 @@ To stop a stream processor:
             { "ok" : 1 }
 
       This method returns ``{ "ok": 1 }`` if the stream processor exists
-      and is currently running. If you invoke ``sp.processor.stop()``
-      for a stream processor that is not ``running``, {+mongosh+} will
-      return an error.
+      and is in the ``STARTED`` state. Otherwise, {+mongosh+} returns
+      an error.
 
 .. _streams-manage-modify: 
 
@@ -600,9 +598,9 @@ To modify a stream processor:
       .. code-block:: javascript
 
          sp.proc1.modify(<pipeline>, {
-            resumeFromCheckpoint: bool, // optional 
+            resumeFromCheckpoint: bool, // optional
             name: string, // optional
-            dlq: string, // optional
+            dlq: { connectionName: string, db: string, coll: string }, // optional
         })
 
 
@@ -764,11 +762,8 @@ To drop a stream processor:
 
          sp.proc01.drop()
 
-      This method returns: 
-
-      - ``true`` if the stream processor exists.
-
-      - ``false`` if the stream processor doesn't exist.
+      This method returns ``{ ok: 1 }`` on success and an error if the
+      stream processor doesn't exist.
 
       When you drop a stream processor, all resources that {+atlas-sp+} 
       provisioned for it are destroyed, along with all saved state.
@@ -807,7 +802,7 @@ To list all available stream processors:
       To list all available stream processors on the current {+spw+}
       with {+mongosh+}, use the :method:`sp.listStreamProcessors()`
       method. This returns a list of documents containing the name,
-      start time, current state, and pipeline associated with each
+      current state, and pipeline associated with each
       stream processor. It has the following syntax:
 
       .. code-block:: sh
@@ -838,36 +833,36 @@ To list all available stream processors:
               {
                 id: '0135',
                 name: "proc01",
-                last_modified: ISODate("2023-03-20T20:15:54.601Z"),
-                state: "RUNNING",
-                error_msg: '',
+                lastModified: ISODate("2023-03-20T20:15:54.601Z"),
+                state: "STARTED",
+                errorMsg: '',
                 pipeline: [
                   {
                     $source: {
-                      connectionName: "myKafka", 
+                      connectionName: "myKafka",
                       topic: "stuff"
                     }
                   },
                   {
-                    $match: { 
-                      temperature: 46 
+                    $match: {
+                      temperature: 46
                     }
                   },
                   {
                     $emit: {
                       connectionName: "mySink",
                       topic: "output",
-                    }  
+                    }
                   }
                 ],
                 lastStateChange: ISODate("2023-03-20T20:15:59.442Z")
               },
-              {   
+              {
                 id: '0218',
                 name: "proc02",
-                last_modified: ISODate("2023-03-21T20:17:33.601Z"),
+                lastModified: ISODate("2023-03-21T20:17:33.601Z"),
                 state: "STOPPED",
-                error_msg: '',
+                errorMsg: '',
                 pipeline: [
                   {
                     $source: {
@@ -890,18 +885,18 @@ To list all available stream processors:
                 lastStateChange: ISODate("2023-03-21T20:18:26.139Z")
               }
 
-        If you run the command again on the same {+spw+}, filtering for a 
-        ``"state"`` of ``"running"``, you see the following output:
+        If you run the command again on the same {+spw+}, filtering for a
+        ``"state"`` of ``"STARTED"``, you see the following output:
 
         .. io-code-block::
             :copyable: true
 
-            .. input:: 
+            .. input::
               :language: sh
 
-              sp.listStreamProcessors({"state": "running"})
+              sp.listStreamProcessors({"state": "STARTED"})
 
-            .. output:: 
+            .. output::
               :language: json
               :visible: false
               :linenos:
@@ -909,9 +904,9 @@ To list all available stream processors:
               {
                 id: '0135',
                 name: "proc01",
-                last_modified: ISODate("2023-03-20T20:15:54.601Z"),
-                state: "RUNNING",
-                error_msg: '',
+                lastModified: ISODate("2023-03-20T20:15:54.601Z"),
+                state: "STARTED",
+                errorMsg: '',
                 pipeline: [
                   {
                     $source: {
@@ -1104,7 +1099,7 @@ To view statistics of a stream processor:
           - The status of the stream processor. This field can have the
             following values:
 
-            - ``starting``
+            - ``created``
             - ``running``
             - ``error``
             - ``stopping``
@@ -1220,7 +1215,7 @@ To view statistics of a stream processor:
           - The number of bytes used by windows to store processor state.
 
         * - ``stats.watermark``
-          - integer
+          - date
           - The timestamp of the current watermark.
 
         * - ``stats.operatorStats``
@@ -1264,9 +1259,9 @@ To view statistics of a stream processor:
           - integer
           - The maximum memory usage of the operator in bytes or kilobytes.
 
-        * - ``stats.operatorStats.executionTimeSecs``
+        * - ``stats.operatorStats.executionTimeMillis``
           - integer
-          - The total execution time of the operator in seconds.
+          - The total execution time of the operator in milliseconds.
 
         * - ``stats.minOpenWindowStartTime``
           - date
