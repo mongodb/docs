@@ -23,10 +23,14 @@ export async function runMdxConversionForContentPaths({
 			const outputDirectory = path.join(mdxOutputPath, contentPath);
 
 			// For versioned projects, objects.inv must be served at two URLs:
-			//   /docs/{project}/{version}/objects.inv  (always — e.g. atlas-architecture references this)
-			//   /docs/{project}/objects.inv            (stable branch only — e.g. atlas and vector-search reference this)
+			//   /docs/{projectPath}/{version}/objects.inv  (always — e.g. atlas-architecture references this)
+			//   /docs/{projectPath}/objects.inv            (stable branch only — e.g. atlas and vector-search reference this)
 			// We always write to outputDirectory (version-specific). For the stable
 			// branch we also write to the project root directory one level up.
+
+			// Exception: "docs" (manual) has versions at /docs/{version}/objects.inv, so
+			// the "project root" would resolve to /docs/objects.inv — the same URL landing
+			// owns. Skip the additional write for this project.
 			const docsPath = allContentData.docsPaths[contentPath];
 			const isVersioned = !!docsPath?.versionName;
 			let additionalInvOutputDirectory: string | undefined;
@@ -39,7 +43,7 @@ export async function runMdxConversionForContentPaths({
 				b.gitBranchName === docsPath.versionName ||
 				b.urlAliases?.includes(docsPath.versionName),
 				);
-				if (branchEntry?.isStableBranch) {
+				if (branchEntry?.isStableBranch && docsPath.projectName !== 'docs') {
 					additionalInvOutputDirectory = path.join(
 						mdxOutputPath,
 						docsPath.projectDirName,
