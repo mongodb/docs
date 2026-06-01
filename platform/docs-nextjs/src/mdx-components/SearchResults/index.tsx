@@ -18,7 +18,7 @@ import { requestHeaders } from '@/utils/search-facet-constants';
 import { Tag, searchTagStyle } from '@/mdx-components/Tag';
 import type { FacetOption } from '@/types/data';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
-import { SearchContext, SearchContextProvider } from './search-context';
+import { SearchContext } from './search-context';
 import { SearchFilters } from '@/mdx-components/SearchResults/SearchFilters';
 import { SearchResult } from '@/mdx-components/SearchResults/SearchResult';
 import { EmptyResults, EMPTY_STATE_HEIGHT } from '@/mdx-components/SearchResults/EmptyResults';
@@ -464,7 +464,6 @@ const SearchResults = () => {
 
   return (
     <Suspense>
-      <SearchContextProvider>
         <div className={cx(SearchResultsContainer(showFacets))}>
           {showMobileFilters && isTabletOrMobile ? (
             <MobileFilters facets={searchResultFacets} />
@@ -591,7 +590,6 @@ const SearchResults = () => {
             </>
           )}
         </div>
-      </SearchContextProvider>
     </Suspense>
   );
 };

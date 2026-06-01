@@ -17,6 +17,7 @@ import layoutStyles from '@/app/docs/[[...path]]/layout.module.scss';
 import type { Docset, RemoteMetadata } from '@/types/data';
 import type { TextNode, TocTreeEntry } from '@/types/ast';
 import type { Environments } from '@/utils/env-config';
+import { SearchContextProvider } from '@/mdx-components/SearchResults/search-context';
 
 interface SearchPageContentProps {
   docsets: Docset[];
@@ -54,7 +55,9 @@ export function SearchPageContent({ docsets, env }: SearchPageContentProps) {
                       <div className={layoutStyles['content-container']}>
                         <ActionBar template="search" sidenav={true} />
                         <main>
-                          <SearchResults />
+                          <SearchContextProvider>
+                            <SearchResults />
+                          </SearchContextProvider>
                         </main>
                       </div>
                     </ChatbotProvider>
