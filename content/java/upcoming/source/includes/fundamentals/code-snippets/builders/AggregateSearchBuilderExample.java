@@ -118,6 +118,41 @@ public class AggregateSearchBuilderExample {
         collection.aggregate(aggregateStages).forEach(result -> System.out.println(result));
     }
 
+    private static void runVectorSearchOperator(MongoCollection<Document> collection) {
+        // begin vectorSearchOperator
+        List<Double> queryVector = List.of(
+            -0.014, -0.055, 0.047, -0.041, 0.027);
+
+        Bson searchStage = Aggregates.search(
+            SearchOperator.vectorSearch(
+                fieldPath("plot_embedding"),
+                queryVector,
+                10,
+                20
+            ).filter(SearchOperator.text(
+                fieldPath("genres"), "Drama")));
+
+        collection.aggregate(List.of(searchStage))
+            .forEach(result -> System.out.println(result));
+        // end vectorSearchOperator
+    }
+
+    private static void runVectorSearchExact(MongoCollection<Document> collection) {
+        // begin vectorSearchExact
+        List<Double> queryVector = List.of(
+            -0.014, -0.055, 0.047, -0.041, 0.027);
+
+        Bson searchStage = Aggregates.search(
+            SearchOperator.vectorSearchExact(
+                fieldPath("plot_embedding"),
+                queryVector,
+                5));
+
+        collection.aggregate(List.of(searchStage))
+            .forEach(result -> System.out.println(result));
+        // end vectorSearchExact
+    }
+
     public static void main(String[] args) {
         String uri = CONNECTION_URI; 
 
