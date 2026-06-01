@@ -71,14 +71,9 @@ const getLandingTemplateStyles = () => {
         color: ${palette.gray.light2};
       }
     }
-
-    & h1,
-    & h2 {
+    & h1 {
       font-size: 32px;
       margin-bottom: ${size.default};
-    }
-    & h2 {
-      margin-top: ${size.large};
     }
     & p {
       color: ${palette.black};
@@ -88,14 +83,6 @@ const getLandingTemplateStyles = () => {
       font-size: ${fontSize.default};
       letter-spacing: normal;
       margin-bottom: ${size.default};
-    }
-    & a {
-      color: ${palette.blue.base};
-      font-size: ${fontSize.small};
-      letter-spacing: normal;
-    }
-    & a:hover {
-      text-decoration: none;
     }
     & h1 {
       align-self: end;
