@@ -1,3 +1,10 @@
+.. _atlas-sp-20260525:
+
+25 May 2026 Release
+-------------------
+
+- Integrates an improvement to ``initialSync`` memory handling.
+
 .. _atlas-sp-20260507:
 
 7 May 2026 Release
@@ -10,7 +17,7 @@
 - Fixes an issue that returned an incorrect HTTP status code when
   a stream tenant is not found.
 - Displays a cost warning in the {+atlas-ui+} when you enable
-  {+aws-pl+} for {+s3+} or {+aws-kinesis+} connections.
+  {+aws-pl+} for S3 or {+aws-kinesis+} connections.
 - Hides the source message consumption and sink message delivery
   panels in the stream processor metrics UI when the source or
   sink does not support per-target statistics.
