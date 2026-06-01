@@ -129,6 +129,16 @@ export const convertZipFileToMdx: ConvertZipFileToMdx = async ({ zipPath, output
     // remove the nesting of the "documents" directory from the output path
     const outputPath = path.join(outputDirectory, relativePath).replace('documents/', '');
 
+    // Mirror the legacy Gatsby rule (only `filename.endsWith('.txt')` became a Page):
+    // `.rst` documents are includes, not standalone pages. Their content is emitted at
+    // the referenced `_includes/` path during page conversion (convertDirectiveInclude),
+    // so skip emitting them here to avoid creating directly-routable orphan pages.
+    // Note: substitution and asset maps above are still collected for these documents.
+    const filename = typeof tree.filename === 'string' ? tree.filename : '';
+    if (filename.endsWith('.rst')) {
+      continue;
+    }
+
     pageJobs.push({ outputPath, astRoot });
   }
 

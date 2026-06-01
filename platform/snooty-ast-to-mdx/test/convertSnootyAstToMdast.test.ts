@@ -289,10 +289,10 @@ describe('convertSnootyAstToMdast', () => {
     expect(onEmitMdxFile).toHaveBeenCalledTimes(1);
 
     const [{ outfilePath, mdastRoot }] = onEmitMdxFile.mock.calls[0];
-    expect(outfilePath).toBe('included-file.mdx');
+    expect(outfilePath).toBe('_includes/included-file.mdx');
     expect(mdastRoot).toHaveProperty('type', 'root');
 
-    expect(mdx).toBe(`<Include src="/included-file" />`);
+    expect(mdx).toBe(`<Include src="/_includes/included-file" />`);
   });
 
   it('buildSubstitutionRefXrefMap records ref_role with name label (Snooty std :ref: for .. |alias| replace:: :ref:)', () => {
@@ -828,7 +828,7 @@ describe('convertSnootyAstToMdast', () => {
     expect(refs?.substitutions).toHaveProperty('service', 'Atlas');
 
     // Calling page: <Include> carries a <Replacement> slot with the page-specific value
-    expect(mdx).toContain('<Include src="/nav/steps"');
+    expect(mdx).toContain('<Include src="/_includes/nav/steps"');
     expect(mdx).toContain('<Replacement name="service">');
     expect(mdx).toContain('Atlas');
   });
@@ -870,7 +870,7 @@ describe('convertSnootyAstToMdast', () => {
     const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
 
     // The <Replacement> slot should carry the page-level value (geo as inline code)
-    expect(mdx).toContain('<Include src="/search/field-types"');
+    expect(mdx).toContain('<Include src="/_includes/search/field-types"');
     expect(mdx).toContain('<Replacement name="fts-field-type">');
     expect(mdx).toContain('`geo`');
     // Must NOT carry the global default
@@ -930,7 +930,7 @@ describe('convertSnootyAstToMdast', () => {
     expect(includeMdx).not.toContain('dateFacet');
 
     // Calling page: <Replacement> slot carries the page-specific literal value
-    expect(mdx).toContain('<Include src="/search/field-types"');
+    expect(mdx).toContain('<Include src="/_includes/search/field-types"');
     expect(mdx).toContain('<Replacement name="fts-field-type">');
     expect(mdx).toContain('`geo`');
     expect(mdx).not.toContain('dateFacet');
@@ -977,7 +977,7 @@ describe('convertSnootyAstToMdast', () => {
     expect((mdastRoot as { __references?: ReferencesArtifact }).__references).toBeUndefined();
 
     expect(mdx).toContain('<Replacement name="field">');
-    expect(mdx).toContain('<Include src="/chunk"');
+    expect(mdx).toContain('<Include src="/_includes/chunk"');
   });
 
   it('bakes resolved substitution text into value attribute so per-page values are preserved', () => {

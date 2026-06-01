@@ -73,7 +73,8 @@ describe('convertJsonAstToMdx', () => {
 
     expect(fileCount).toBe(2);
 
-    const includePath = path.join(path.dirname(OUTPUT_PATH), includedRstPath.replace('.rst', '.mdx'));
+    // `.rst` includes are emitted under the non-routable `_includes/` namespace.
+    const includePath = path.join(path.dirname(OUTPUT_PATH), '_includes', includedRstPath.replace('.rst', '.mdx'));
     expect(fsWriteFileSpy).toHaveBeenCalledWith(includePath, expect.any(String));
     expect(fsMkdirSpy).toHaveBeenCalledWith(path.dirname(OUTPUT_PATH), { recursive: true });
     expect(fsReadFileSpy).not.toHaveBeenCalled();
@@ -147,7 +148,8 @@ describe('convertJsonAstToMdx', () => {
 
     await convertJsonAstToMdxFiles({ ast, outputPath: mainOut, outputRootDir: rootDir });
 
-    const mdxIncludedPath = path.join(rootDir, sharedRstPath.replace('.rst', '.mdx'));
+    // `.rst` includes are emitted under the non-routable `_includes/` namespace.
+    const mdxIncludedPath = path.join(rootDir, '_includes', sharedRstPath.replace('.rst', '.mdx'));
     expect(fsWriteFileSpy).toHaveBeenCalledWith(mdxIncludedPath, expect.any(String));
     expect(fsMkdirSpy).toHaveBeenCalledWith(path.dirname(OUTPUT_PATH), { recursive: true });
     expect(fsReadFileSpy).toHaveBeenCalled();

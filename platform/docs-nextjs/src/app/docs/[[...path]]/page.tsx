@@ -14,6 +14,13 @@ import { findSoftRedirect } from '@/redirects/soft-redirects';
  * params.path is undefined at /docs/ (Next.js [[...path]] root match). */
 const normalizeUrlPath = (path?: string[]): string[] => path ?? ['index'];
 
+/** Files under an `_includes/` segment are include-only fragments, not standalone
+ * pages. The <Include> component fetches them through loadMDX, but they must not be
+ * directly routable — mirrors the legacy Gatsby behavior where only `.txt` files
+ * became pages. Guard here at the route level rather than in loadMDX, which <Include>
+ * depends on to fetch these same files. */
+const isIncludeOnlyPath = (path: string[]): boolean => path.includes('_includes');
+
 // ISR (Incremental Static Regeneration) behavior
 export const revalidate = 60 * 60; // 1 hour in seconds
 export const dynamic = 'force-static'; // Pages should be statically generated
@@ -26,7 +33,7 @@ interface PageProps {
 
 export default async function MDXPage({ params }: PageProps) {
   const path = normalizeUrlPath(params.path);
-  const result = await loadMDX(path);
+  const result = isIncludeOnlyPath(path) ? null : await loadMDX(path);
 
   if (!result || !result.frontmatter) {
     // Page not found, check soft redirects before returning 404.
@@ -73,7 +80,7 @@ export default async function MDXPage({ params }: PageProps) {
 // Generate metadata for the page
 export async function generateMetadata({ params }: PageProps) {
   const path = normalizeUrlPath(params.path);
-  const result = await loadMDX(path);
+  const result = isIncludeOnlyPath(path) ? null : await loadMDX(path);
 
   if (!result || !result.frontmatter) {
     return notFound();

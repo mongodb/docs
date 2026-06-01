@@ -39,7 +39,17 @@ export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIn
 
   const emittedPath = toMdxIncludePath(pathText);
   const pathWithoutLeadingSlash = emittedPath.replace(/^\/+/, '');
-  const emittedPathNormalized = renameIncludesToUnderscore(pathWithoutLeadingSlash);
+  let emittedPathNormalized = renameIncludesToUnderscore(pathWithoutLeadingSlash);
+  // `.rst` sources are includes, not standalone pages. Real includes already live
+  // under an `includes/` directory (renamed to `_includes/` above), but some `.rst`
+  // files live in page-like paths (e.g. get-started/<lang>/...). Relocate those into
+  // the non-routable `_includes/` namespace so they resolve as includes without
+  // becoming directly addressable pages — mirroring the legacy `.txt`==page rule.
+  // Keeping both the emitted file path and the `<Include src>` derived below in sync
+  // depends on this single normalization step.
+  if (/\.rst$/i.test(pathText.trim()) && !/(^|\/)_includes\//.test(emittedPathNormalized)) {
+    emittedPathNormalized = `_includes/${emittedPathNormalized}`;
+  }
 
   const originalChildren: SnootyNode[] = Array.isArray(node.children) ? node.children : [];
 
