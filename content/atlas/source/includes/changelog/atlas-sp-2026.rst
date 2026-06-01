@@ -1,3 +1,26 @@
+.. _atlas-sp-20260507:
+
+7 May 2026 Release
+------------------
+
+- Adds support for the ``brazilsouth`` and ``australiaeast`` in |azure|,
+  ``eu-west-3`` in {+aws+}, and ``us-east4`` in {+gcp+} regions.
+- Adds support for private networking for |azure| Blob Storage
+  connections. To learn more, see :ref:`atlas-sp-pl-azure-blob-add`.
+- Fixes an issue that returned an incorrect HTTP status code when
+  a stream tenant is not found.
+- Displays a cost warning in the {+atlas-ui+} when you enable
+  {+aws-pl+} for {+s3+} or {+aws-kinesis+} connections.
+- Hides the source message consumption and sink message delivery
+  panels in the stream processor metrics UI when the source or
+  sink does not support per-target statistics.
+- Fixes an invalid field in the Kinesis sink template in the
+  Pipeline Visual Builder.
+- Adds a ``tier`` option to the
+  :oas-bump-atlas-op:`Create One Stream Processor
+  <creategroupstreamprocessor>` endpoint in the
+  {+atlas-admin-api+}.
+
 .. _atlas-sp-20260428:
 
 28 April 2026 Release
