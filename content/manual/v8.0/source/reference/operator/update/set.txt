@@ -53,15 +53,14 @@ Behavior
 
 .. include:: /includes/fact-update-operator-processing-order.rst
 
-If the field does not exist, :update:`$set` will add a new field with the
-specified value, provided that the new field does not violate a type
-constraint.
+If the field does not exist, :update:`$set` adds a new field with the
+specified value if the new field does not violate a type constraint.
 If you specify a dotted path for a non-existent field,
-:update:`$set` will create the embedded documents *as needed* to
+:update:`$set` creates the embedded documents *as needed* to
 fulfill the dotted path to the field.
 
-If you specify multiple field-value pairs, :update:`$set` will update
-or create each field.
+If you specify multiple field-value pairs, :update:`$set` updates
+or creates each field.
 
 .. include:: /includes/extracts/update-operation-empty-operand-expressions-set.rst
 
@@ -71,9 +70,9 @@ Advantages of $set
 The ``$set`` operator provides the following advantages compared to full
 document replacement:
 
-- **Targeted Updates**: ``$set`` modifies only the specified fields.
-  MongoDB's targeted approach ensures efficient updates by avoiding unnecessary
-  writes and overhead when you work with large documents.
+- **Targeted Updates**: ``$set`` modifies only the specified fields,
+  ensuring efficient updates by avoiding unnecessary writes and
+  overhead when you work with large documents.
 
 - **Efficient Oplog Entries**: ``$set`` optimizes replication by writing only the
   updated fields to the :term:`oplog` instead of the entire document. This
@@ -87,149 +86,78 @@ document replacement:
 Examples
 --------
 
-Create the ``products`` collection:
-
-.. code-block:: javascript
-
-   db.products.insertOne(
-      {
-        _id: 100,
-        quantity: 250,
-        instock: true,
-        reorder: false,
-        details: { model: "14QQ", make: "Clothes Corp" },
-        tags: [ "apparel", "clothing" ],
-        ratings: [ { by: "Customer007", rating: 4 } ]
-      }
-   )
+.. include:: /includes/sample-data-usage.rst
 
 Set Top-Level Fields
 ~~~~~~~~~~~~~~~~~~~~
 
-For the document matching the criteria ``_id`` equal to ``100``, the
-following operation uses the :update:`$set` operator to update the
-value of the ``quantity`` field, ``details`` field, and the ``tags``
-field.
+The following example uses the :update:`$set` operator to add the
+``label`` and ``status`` fields to the matching movie document:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/operators/set/set-top-level-fields.snippet.set-top-level-fields.js
+   :language: javascript
+   :category: usage example
 
-   db.products.updateOne(
-      { _id: 100 },
-      { $set:
-         {
-           quantity: 500,
-           details: { model: "2600", make: "Fashionaires" },
-           tags: [ "coats", "outerwear", "clothing" ]
-         }
-      }
-   )
+The operation returns the following result:
 
-The operation updates the:
-
-- value of ``quantity`` to ``500``
-- ``details`` field with new embedded document
-- ``tags`` field with new array
-
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/operators/set/set-top-level-fields-output.sh
+   :language: javascript
    :copyable: false
-
-   {
-     _id: 100,
-     quantity: 500,
-     instock: true,
-     reorder: false,
-     details: { model: '2600', make: 'Fashionaires' },
-     tags: [ 'coats', 'outerwear', 'clothing' ],
-     ratings: [ { by: 'Customer007', rating: 4 } ]
-   }
+   :category: usage example
 
 Set Fields in Embedded Documents
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/use-dot-notation.rst
 
-For the document matching the criteria ``_id`` equal to ``100``, the
-following operation updates the ``make`` field in the ``details``
-document:
+The following example uses dot notation to update the ``highlight``
+field of the ``imdb`` embedded document in the matching movie:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/operators/set/set-embedded-fields.snippet.set-embedded-fields.js
+   :language: javascript
+   :category: usage example
 
-   db.products.updateOne(
-      { _id: 100 },
-      { $set: { "details.make": "Kustom Kidz" } }
-   )
+The operation returns the following result:
 
-After updating, the document has the following values:
-
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/operators/set/set-embedded-fields-output.sh
+   :language: javascript
    :copyable: false
-
-   {
-      _id: 100,
-      quantity: 500,
-      instock: true,
-      reorder: false,
-      details: { model: '2600', make: 'Kustom Kidz' },
-      tags: [ 'coats', 'outerwear', 'clothing' ],
-      ratings: [ { by: 'Customer007', rating: 4 } ]
-   }
+   :category: usage example
 
 .. important::
 
-   The above code uses ``dot notation`` to update the ``make`` field of the 
-   embedded ``details`` document. The code format looks similar to the following 
-   code example, which instead *replaces the entire embedded document*, removing 
-   all other fields in the embedded ``details`` document:
+   The preceding example uses dot notation to update the ``highlight``
+   field of the embedded ``imdb`` document. The following format
+   instead *replaces the entire embedded document*, removing all
+   other fields from ``imdb``:
 
    .. code-block:: javascript
       :copyable: false
 
-      db.products.updateOne(
-         { _id: 100 },
-         { $set: { details:
-            {make: "Kustom Kidz"}
-            }
-         })
-
+      db.movies.updateOne(
+         { title: "The Dark Knight" },
+         { $set: { imdb: { highlight: "Critics' Choice" } } }
+      )
 
 Set Elements in Arrays
 ~~~~~~~~~~~~~~~~~~~~~~
 
 .. include:: /includes/use-dot-notation.rst
 
-For the document matching the criteria ``_id`` equal to ``100``, the
-following operation updates the value second element (array index of
-``1``) in the ``tags`` field and the ``rating`` field in the first
-element (array index of ``0``) of the ``ratings`` array.
+The following example uses the :update:`$set` operator to update the
+first element (array index ``0``) of the ``genres`` array in the
+matching movie document:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/operators/set/set-array-elements.snippet.set-array-elements.js
+   :language: javascript
+   :category: usage example
 
-   db.products.updateOne(
-      { _id: 100 },
-      { $set:
-         {
-           "tags.1": "rain gear",
-           "ratings.0.rating": 2
-         }
-      }
-   )
+The operation returns the following result:
 
-
-After updating, the document has the following values:
-
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/operators/set/set-array-elements-output.sh
+   :language: javascript
    :copyable: false
-
-   {
-     _id: 100,
-     quantity: 500,
-     instock: true,
-     reorder: false,
-     details: { model: '2600', make: 'Kustom Kidz' },
-     tags: [ 'coats', 'rain gear', 'clothing' ],
-     ratings: [ { by: 'Customer007', rating: 2 } ]
-   }
-
+   :category: usage example
 
 For additional update operators for arrays, see
 :doc:`/reference/operator/update-array`.
