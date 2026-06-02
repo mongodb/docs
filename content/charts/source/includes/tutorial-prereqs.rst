@@ -7,7 +7,7 @@ The following items are required to complete this tutorial:
   :doc:`Launch Charts page </launch-charts>` for instructions
   on launching |charts| from your |service| cluster.
 
-- :manual:`mongoimport </reference/program/mongoimport/>`.
+- :ref:`mongoimport <mongoimport>`.
   ``mongoimport`` is included in the Community and Enterprise versions
   of MongoDB available in the `download center
   <https://www.mongodb.com/try/download/enterprise>`_.

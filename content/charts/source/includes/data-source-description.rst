@@ -1,7 +1,7 @@
 A data source in |charts| references one of the following:
 
 - A :ref:`collection <collections>` or database 
-  :manual:`view </core/views>` in your MongoDB deployment. 
+  :ref:`view <views-landing-page>` in your MongoDB deployment. 
 - A :ref:`charts view <data-sources-pipeline>` that you create using a
   collection.
 

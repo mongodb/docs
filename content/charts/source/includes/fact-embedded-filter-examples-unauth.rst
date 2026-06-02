@@ -1,5 +1,5 @@
 Your filter must match the format used in a
-:manual:`$match </reference/operator/aggregation/match/>` query and
+:pipeline:`$match` query and
 be either a:
 
 - Top level query
@@ -11,9 +11,9 @@ be either a:
         { "quantity": { $gte: 20 } }
 
 - Or within boolean expressions (
-  :manual:`$and </reference/operator/query/and/>`,
-  :manual:`$nor </reference/operator/query/nor/>`,
-  :manual:`$or </reference/operator/query/or/>`)
+  :query:`$and`,
+  :query:`$nor`,
+  :query:`$or`)
 
   .. example::
 

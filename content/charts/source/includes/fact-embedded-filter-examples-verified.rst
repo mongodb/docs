@@ -1,5 +1,5 @@
 Your filter must match the format used in a
-:manual:`$match </reference/operator/aggregation/match/>` query as
+:pipeline:`$match` query as
 shown in the following examples:
 
 .. example::
