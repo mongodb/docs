@@ -17,5 +17,18 @@ public class Movie
     public string? Rated { get; set; }
     [BsonElement("metacritic")]
     public int Metacritic { get; set; }
+    [BsonElement("imdb")]
+    public ImdbData? Imdb { get; set; }
+}
+// :snippet-end:
+
+// :snippet-start: imdb-data-class
+[BsonIgnoreExtraElements]
+public class ImdbData
+{
+    [BsonElement("rating")]
+    public double? Rating { get; set; }
+    [BsonElement("votes")]
+    public int? Votes { get; set; }
 }
 // :snippet-end:

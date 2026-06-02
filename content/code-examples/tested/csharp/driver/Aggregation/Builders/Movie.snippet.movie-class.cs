@@ -11,4 +11,6 @@ public class Movie
     public string? Rated { get; set; }
     [BsonElement("metacritic")]
     public int Metacritic { get; set; }
+    [BsonElement("imdb")]
+    public ImdbData? Imdb { get; set; }
 }
