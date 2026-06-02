@@ -1,5 +1,6 @@
 To connect to the {+atlas-admin-api+}, |ak8so| reads the organization 
-ID and |api| keys from one of the following locations:
+ID and credentials (|api| keys or Service Account) from one of the 
+following locations:
 
 - :ref:`spec.connectionSecretRef.name <atlasproject-spec-connectionsecretref>` (if specified in 
   the :ref:`atlasproject-custom-resource`).

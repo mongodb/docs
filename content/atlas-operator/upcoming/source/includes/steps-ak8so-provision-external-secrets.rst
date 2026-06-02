@@ -1,5 +1,12 @@
 To provision secrets with External Secrets Operator:
 
+.. tip::
+
+   The following example shows API Key properties (``publicApiKey``, 
+   ``privateApiKey``). If you use Service Accounts, replace these 
+   with ``clientId`` and ``clientSecret``. To learn more, see 
+   :ref:`ak8so-service-accounts-ref`.
+
 a. Deploy the ``SecretStore`` custom resource for the ``default``
    service account in the ``mongodb-atlas-system`` namespace:
 

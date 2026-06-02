@@ -93,6 +93,11 @@ const tocData: TocItem[] = [
             ],
           },
           {
+            label: 'Service Accounts',
+            contentSite: 'atlas-operator',
+            url: '/docs/atlas/operator/:version/ak8so-service-accounts',
+          },
+          {
             label: 'Cloud Provider Integrations',
             contentSite: 'atlas-operator',
             url: '/docs/atlas/operator/:version/ak8so-unified-access',
