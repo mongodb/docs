@@ -1,6 +1,6 @@
 ---
 name: add-redirects
-description: "Add redirects to a MongoDB documentation project's netlify.toml when pages are renamed, moved, or deleted under content/. Use this skill when the user mentions adding redirects, when page .txt files are renamed/moved/deleted in content/*/source/, or when the check-redirects-needed hook flags pending page changes. Handles per-version redirects, ambiguity resolution for deletes, and correct placement in the existing netlify.toml structure."
+description: "Add redirects when MongoDB documentation pages are renamed, moved, or deleted under content/. Use this skill when page .txt files are renamed/moved/deleted in content/*/source/."
 ---
 
 # Add Redirects for MongoDB Docs
@@ -61,6 +61,29 @@ For any ambiguous case (D, or suspected manual rename that git didn't detect), s
 
 **Handle all changes in one pass.** List every pending deletion/rename to the user upfront, collect all redirect targets, then write all entries at once. Do not process one file and stop.
 
+### Build paradigm
+
+MongoDB documentation projects use two different build types:
+
+* **snooty-based** projects, legacy (e.g., `manual`, `compass`) use `netlify.toml` for redirects.
+* **next.js-based** projects (e.g., `atlas`) use `platform/docs-nextjs/src/redirects/<project>-redirects.json` for redirects.
+
+As we migrate all projects to next.js, this skill must check for the presence of `netlify.toml` and `platform/docs-nextjs/src/redirects/<project>-redirects.json` for a content site that contains changes. If `netlify.toml` exists, this skill must update the project's `netlify.toml` file and the appropriate `platform/docs-nextjs/src/redirects/<project>-redirects.json` file, if it exists. If `netlify.toml` does not exist, update only the JSON file.
+
+Run this command to check for `netlify.toml` each project with renamed / deleted / added `.txt` files:
+
+```bash
+ls content/<project>/netlify.toml 2>/dev/null
+```
+
+Run this command to check for `<project>-redirects.json` each project with renamed / deleted / added `.txt` files:
+
+```bash
+ls platform/docs-nextjs/src/redirects/<project>-redirects.json 2>/dev/null
+```
+
+Sections below contain references for updating redirects for both paradigms. The general process is the same, but the file format and insertion point differ.
+
 ### Directory-move detection (do this before resolving individual URLs)
 
 After listing all renames, check whether any group of renames represents a whole-directory move. A directory move has occurred when:
@@ -71,34 +94,13 @@ After listing all renames, check whether any group of renames represents a whole
 
 If those three conditions hold for a group of **four or more files**, **use a splat wildcard instead of individual entries**. For groups of three or fewer renames, write individual entries even if all three conditions are met — small moves are more readable and precise as explicit entries, and a splat is not worth the generality for two or three URLs.
 
-For **unversioned projects**, one entry covers all content:
+For **unversioned projects**: load references/non-version-directory-change-toml.md for toml example. Load references/non-version-directory-change.json for JSON example.
 
-```toml
-[[redirects]]
-from = "/docs/<slug>/<old-dir>/*"
-to = "/docs/<target-slug>/<new-dir>/:splat"
-```
+For **versioned projects**: load references/version-directory-change-toml.md for toml example. Load references/version-directory-change-json.md for JSON example.
 
-For **versioned projects**, Netlify does not support combining a `:version` named parameter with a `:splat` in the same rule. Write one entry per active version with the version hardcoded in the path:
+Do not write entries for EOL versions.
 
-```toml
-[[redirects]]
-from = "/docs/<slug>/v8.0/<old-dir>/*"
-to = "/docs/<slug>/v8.0/<new-dir>/:splat"
-
-[[redirects]]
-from = "/docs/<slug>/v7.0/<old-dir>/*"
-to = "/docs/<slug>/v7.0/<new-dir>/:splat"
-```
-
-Use the active version list from the ALIAS REDIRECTS section (see Step 6) to determine which versions need entries. Do not write entries for EOL versions.
-
-Before writing the splat(s), check the netlify.toml for conflicts:
-- If any file in the group already has an individual `from =` entry (especially with `force = true`), that file's existing redirect takes precedence. Write the splat anyway for the group — the more-specific entry above it will match first. Do not skip the splat because of one exception.
-- If the splat itself (`from = ".../*"`) already exists in the file pointing to the same destination, skip writing it.
-- Place the splat in the WILDCARD REDIRECTS section (or above the CATCH ALLS if no WILDCARD section exists), not in PAGE-SPECIFIC REDIRECTS.
-
-If the directory move only partially applies (some files in the source directory were not renamed), do not use a splat — write individual entries for each renamed file only.
+If the directory move only partially applies (some files in the source directory were not renamed), do not use a splat or path wildcard — write individual entries for each renamed file only.
 
 ## Step 2: Resolve file path → URL
 
@@ -122,28 +124,13 @@ Where `<version-segment>` depends on the project's directory naming convention:
 
 **Special case — MongoDB Manual:** The manual uses a nested directory structure. `content/manual/manual/` is the "current" release and maps to `/docs/manual/` (no version segment). `content/manual/upcoming/` maps to `/docs/upcoming/`, and `content/manual/v8.0/` maps to `/docs/v8.0/`. When working in `content/manual/manual/`, use `/docs/manual/` as the URL base, not `/docs/manual/manual/`.
 
-**The netlify.toml is authoritative.** Open the project's `netlify.toml` and read the URL shape from existing `[[redirects]]` entries — use that shape exactly. Do not rely solely on `name` from `snooty.toml`; treat it as a starting guess only. Do not invent a URL pattern the project does not already use.
+**The netlify.toml and <project>-redirects.json are authoritative.** If present, open the project's `netlify.toml` and read the URL shape from existing `[[redirects]]` entries — use that shape exactly. Do not rely solely on `name` from `snooty.toml`; treat it as a starting guess only. Do not invent a URL pattern the project does not already use. If `netlify.toml` is absent, rely on URL shape from objects in `<project>-redirects.json`.
 
 Non-versioned projects (e.g., `atlas`, `compass`) have a single `source/` at the project root; the path maps directly with no version segment.
 
-## Step 3: Check for legacy redirect format
+## Step 3: Find the insertion point
 
-Before writing anything, check whether the project also has a `config/redirects` file (the legacy `mut` format used by older projects such as `ops-manager`, `bi-connector`, `kubernetes-operator`).
-
-```bash
-ls content/<project>/*/config/redirects 2>/dev/null
-```
-
-If `config/redirects` exists **and** `netlify.toml` also exists:
-- Use `netlify.toml`. It is always the authoritative redirect source, even when `config/redirects` is also present.
-- Do not mention `config/redirects` to the user. Do not write to it. Proceed directly to Step 4.
-
-If only `netlify.toml` exists (the common case), continue to Step 4 without any flag.
-
-If only `config/redirects` exists (no `netlify.toml`):
-- This project is outside the scope of this skill. Surface the unsupported format to the user and stop.
-
-## Step 4: Find the insertion point in netlify.toml
+### netlify.toml
 
 Each project's `netlify.toml` lives at `content/<project>/netlify.toml` (outside version folders). It is divided into labeled sections, typically in this order:
 
@@ -158,78 +145,54 @@ Insert new page-level redirects in the **PAGE-SPECIFIC REDIRECTS** section, unde
 
 If the file has no section markers, append new entries at the end of the file — but before any `# CATCH ALLS` block if one exists. Never insert after the CATCH ALLS.
 
-## Step 5: Write the redirect entry
+### <project>-redirects.json
 
-The standard form is:
+Each project's JSON file lives at `platform/docs-nextjs/src/redirects/<project>-redirects.json`. It is a flat array of objects with `source` and `destination` fields. Insert new entries at the end of the array. Do not reorder existing entries or create duplicate entries.
 
-```toml
-[[redirects]]
-  from = "/docs/<slug>/<old-path>/"
-  to = "/docs/<slug>/<new-path>/"
-```
+## Step 4: Write the redirect entry
 
-Omit both `status` and `force`. Do not add `force = true` — it is only needed when the source file still exists on the filesystem, which should not be the case for renamed or deleted pages. Match the indentation style of neighboring entries.
+The standard form toml form is found in references/standard-redirect-form-toml.md. The standard JSON form is found in references/standard-redirect-form-json.md.
 
-For versioned projects, complete Step 6 before writing entries — the wildcard vs. per-version decision must be made first.
+For versioned projects, complete Step 5 before writing entries — the wildcard vs. per-version decision must be made first.
 
-## Step 6: Handle versioned and backported changes
+## Step 5: Handle versioned and backported changes
 
 When renames or deletes appear in multiple version directories of the same project, determine whether a wildcard or per-version entries are correct before writing anything.
 
 ### Determine the active versions
 
-Read the project's `netlify.toml` ALIAS REDIRECTS section. Each `from = "/docs/<slug>/<version>/*"` line names an active version (or an alias pointing to one). Versions that appear only in OFFLINE REDIRECTS are EOL — do not write redirects for them.
+Read the project's `snooty.toml` for each version. If `eol = true`, the version is end-of-life — do not write redirects for them.
 
 ### Wildcard vs. per-version decision
 
 Group the changed files by their **relative path** (the part after `source/`). For each group:
 
-**All active versions affected → use a `:version` wildcard** (one entry covers all):
-```toml
-[[redirects]]
-from = "/docs/<slug>/:version/<old-path>/"
-to = "/docs/<slug>/:version/<new-path>/"
-```
-Place this in the WILDCARD REDIRECTS section (or wherever the file already puts cross-version wildcards). Do not also write per-version entries for the same path — that creates duplicates.
+**All active versions affected → use a `:version` wildcard** (one entry covers all): load references/all-versions-affected-toml.md for toml example. Load references/all-versions-affected.json for JSON example.
 
-**Only some active versions affected → write one entry per affected version**, each under its respective `## <version>` subheading in PAGE-SPECIFIC REDIRECTS. Use the hardcoded version in the path (e.g., `/docs/v8.0/...`), not `:version`.
 
-**A wildcard redirect already covers the old path → no new entry needed.** Check the WILDCARD REDIRECTS section before writing anything. If an existing `from = "/docs/:version/<old-path>/*"` already resolves to the right destination, skip.
+Do not also write per-version entries for the same path — that creates duplicates.
+
+**Only some active versions affected → write one entry per affected version**
+
+- **`netlify.toml`**: each under its respective `## <version>` subheading in PAGE-SPECIFIC REDIRECTS. Use the hardcoded version in the path (e.g., `/docs/v8.0/...`), not `:version`.
+- **JSON**: Use the hardcoded version in the path (e.g., `/docs/v8.0/...`), not `:version`.
+
+**A wildcard redirect already covers the old path → no new entry needed.** If an existing `from = "/docs/:version/<old-path>/*"` or `source = "/docs/:version/:path*"` already resolves to the right destination, skip.
 
 If the change was only backported to some versions, redirects may also be needed in the *opposite direction* on versions that did not move — confirm with the user before writing reverse redirects.
 
-## Step 7: Validate
+## Step 6: Validate
 
-- **Self-redirect check:** `from` and `to` must not be equal.
-- **Chain check:** the `to` target must not itself appear as a `from` elsewhere in the file (the CI Redirect Linter will block either case).
-- **Ordering check:** new entries are above CATCH ALLS and in a reasonable spot relative to more-general wildcards.
+- **Self-redirect check:** `from` and `to` or `source` and `destination` must not be equal.
+- **Chain check:** the `to` or `source` target must not itself appear as a `from` or `destination` elsewhere in the file (the CI Redirect Linter will block either case).
+- **Ordering check: (for `netlify.toml` files only)** new entries are above CATCH ALLS and in a reasonable spot relative to more-general wildcards.
 - **Style check:** indentation and field order match the surrounding entries.
 
-## Step 8: Summarize and hand off
+## Step 7: Summarize and hand off
 
 Report to the user:
 
 - Each change detected and how it was classified.
-- Each `[[redirects]]` block added, with its destination section and version.
+- Each redirect block added, with its destination section and version.
 - Any ambiguities that required user confirmation.
 - Any cases where no redirect was needed and why.
-
-## Step 9: Add a redirect testing section to the PR description
-
-**This step is required every time redirects are written, regardless of whether a PR already exists.** Do not consider this skill complete until Step 8 is finished.
-
-If a PR already exists for this branch, add the section using `gh pr edit`. If no PR exists yet, prepare the section text and tell the user to include it when they open the PR.
-
-Add the following section to the PR description:
-
-```markdown
-## Test the redirect
-
-For human reviewers: to test the redirect links, append the **old** file path to the staging link when available. Watch it redirect to the new path in staging.
-
-**Note:** The testing links only work when:
-
-- The Netlify build is complete.
-- There are no build errors related to the files you renamed or removed.
-- The Netlify cache is cleared of the original files. For example, if you renamed or removed files in a follow-up commit, try rebuilding by clicking **Retry without cache with latest branch commit** in the Netlify UI.
-```

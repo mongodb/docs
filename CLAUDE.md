@@ -82,7 +82,6 @@ After presenting the completion summary, wait for explicit user instruction befo
 # GENERAL INSTRUCTIONS
 
 - Apply style guidance from .github/prompts/style-guide.prompt.md to all content regardless of how it is written in the ticket. If a ticket instruction directly conflicts with a style rule or critical instruction, stop and ask the writer for input before proceeding.
-- Do not modify any files outside of `content/` when working on documentation content. Changes to `platform/` require explicit user instruction and are outside the scope of documentation work.
 - Never open a PR without explicit instruction from the user.
 - For reStructuredText files, maintain consistent indentation, directive syntax, and formatting. Preserve ``{+text+}`` and ``|text|`` substitution markup as-is — do not expand or reformat these. Header underline characters must match the heading length exactly.
 - When editing YAML includes, maintain consistent ref naming and structure, and verify all ref anchors either already exist or are included in your suggested changes.
