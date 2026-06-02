@@ -55,19 +55,21 @@ const tocData: TocItem[] = [
             versions: { excludes: ['v8.0', 'v8.1', 'v8.2'] },
           },
           {
+            label: 'Entity Relationships',
+            contentSite: 'entity-framework',
+            url: '/docs/entity-framework/:version/fundamentals/relationships',
+          },
+          {
             label: 'Optimistic Concurrency',
             contentSite: 'entity-framework',
             url: '/docs/entity-framework/:version/fundamentals/optimistic-concurrency',
+            versions: { excludes: ['v8.0'] },
           },
           {
             label: 'Indexes',
             contentSite: 'entity-framework',
             url: '/docs/entity-framework/:version/fundamentals/indexes',
-          },
-          {
-            label: 'Entity Relationships',
-            contentSite: 'entity-framework',
-            url: '/docs/entity-framework/:version/fundamentals/relationships',
+            versions: { excludes: ['v8.0', 'v8.1'] },
           },
         ],
       },
