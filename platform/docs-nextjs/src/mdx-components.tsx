@@ -56,6 +56,7 @@ import { OpenAPIChangelog } from '@/mdx-components/OpenAPIChangelog';
 import { Field } from '@/mdx-components/Field';
 import { FieldList } from '@/mdx-components/FieldList';
 import { Instruqt } from '@/mdx-components/Instruqt';
+import DeprecatedVersionSelector from '@/mdx-components/DeprecatedVersionSelector';
 
 type InjectedProps = Record<string, unknown>;
 
@@ -131,6 +132,7 @@ export const components = (injectedProps?: InjectedProps) =>
       </Version>
     ),
     Describe: ({ children, ...props }) => <Describe {...props}>{children}</Describe>,
+    DeprecatedVersionSelector: () => <DeprecatedVersionSelector />,
     Example: ({ children, ...props }) => (
       <Admonition name="example" {...props}>
         {children}
