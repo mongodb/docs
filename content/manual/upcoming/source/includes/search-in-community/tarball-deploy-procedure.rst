@@ -1,7 +1,7 @@
 .. procedure::
    :style: normal
 
-   .. step:: Download the tarball. 
+   .. step:: Download the ``mongot`` tarball.
 
       Click the following link to download the Search in Community tarball.
 
@@ -19,7 +19,7 @@
             For ``AMD x86_64`` architectures, use the `AMD x86-64-compatible 
             tarball <https://downloads.mongodb.org/mongodb-search-community/0.53.0/mongot_community_0.53.0_linux_x86_64.tgz>`_.
 
-   .. step:: Extract the tarball from the downloaded file.
+   .. step:: Extract the ``mongot`` tarball.
 
       Run the following command to extract the tarball:
       
@@ -92,7 +92,7 @@
 
       **If you want to deploy a new replica set with keyfile
       authentication**, follow the steps in
-      :ref:`<deploy-rs-for-mongot>`. 
+      :ref:`deploy-rs-for-mongot`. 
 
    .. step:: Create a user for the ``mongot`` process on your MongoDB deployment.
 
