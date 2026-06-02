@@ -11,8 +11,7 @@
   destination region. To learn more, see :ref:`stream processor pricing
   <atlas-sp-processor-billing>`.
 - Updates pricing for ``SP10`` and ``SP30`` tier stream processors from
-  the :ref:`legacy worker-based model
-  <atlas-sp-architecture-workers-legacy>` to the per-processor pricing
+  the legacy worker-based model to the per-processor pricing
   model. To learn more, see :ref:`stream processor pricing
   <atlas-sp-processor-billing>`.
 
