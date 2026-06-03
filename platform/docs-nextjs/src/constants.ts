@@ -21,6 +21,7 @@ export const DOTCOM_BASE_URL = parseBooleanEnv(process.env.IS_PROD)
   ? 'https://www.mongodb.com'
   : 'https://mongodbcom-cdn.staging.corp.mongodb.com';
 export const DOTCOM_BASE_PREFIX = `docs`;
+export const ASSET_PREFIX = '/docs/docs_static_nextjs';
 
 export const ICONS_BASE_URL = `https://webimages.mongodb.com/_com_assets/icons/`;
 

@@ -8,7 +8,7 @@ import { H2 } from '@leafygreen-ui/typography';
 import { theme } from '@/styles/theme';
 import Breadcrumbs from '@/mdx-components/Breadcrumbs';
 import { useRouter } from 'next/navigation';
-import { DOTCOM_BASE_PREFIX } from '@/constants';
+import { ASSET_PREFIX } from '@/constants';
 
 const StyledMain = styled.main`
   max-width: 100vw;
@@ -48,7 +48,7 @@ const ImageContainer = styled.div`
 const FeatureNotAvailImage = () => {
   return (
     <ImageContainer>
-      <img src={`/${DOTCOM_BASE_PREFIX}/feature-not-avail.svg`} alt="Feature not available" height={240} width={360} />
+      <img src={`${ASSET_PREFIX}/feature-not-avail.svg`} alt="Feature not available" height={240} width={360} />
     </ImageContainer>
   );
 };
