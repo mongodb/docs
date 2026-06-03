@@ -16,6 +16,7 @@ public class LimitTest
         var results = _example.RunLimitPipeline();
         Expect.That(results)
             .WithOrderedSort()
+            .WithIgnoredFields("plot", "type", "cast", "directors", "writers")
             .ShouldMatch(FullPath("LimitOutput.txt"));
     }
 

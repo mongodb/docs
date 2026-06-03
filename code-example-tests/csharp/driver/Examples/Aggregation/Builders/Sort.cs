@@ -1,0 +1,35 @@
+using DotNetEnv;
+using MongoDB.Driver;
+
+namespace Examples.Aggregation.Builders;
+
+public class SortExample : IDisposable
+{
+    private readonly IMongoClient _client;
+    private readonly IMongoCollection<Movie> _movies;
+
+    public SortExample()
+    {
+        var uri = Env.GetString("CONNECTION_STRING",
+            "Env variable not found. Verify you have a .env file with a valid connection string.");
+        _client = new MongoClient(uri);
+        _movies = _client.GetDatabase("sample_mflix").GetCollection<Movie>("movies");
+    }
+
+    public List<Movie> RunSortPipeline()
+    {
+        // :snippet-start: sort
+        var pipeline = new EmptyPipelineDefinition<Movie>()
+            .Match(Builders<Movie>.Filter.Eq(m => m.Metacritic, 100))
+            .Sort(Builders<Movie>.Sort.Combine(
+                Builders<Movie>.Sort.Descending(m => m.Year),
+                Builders<Movie>.Sort.Ascending(m => m.Title)));
+        // :snippet-end:
+        return _movies.Aggregate(pipeline).ToList();
+    }
+
+    public void Dispose()
+    {
+        _client.Dispose();
+    }
+}
