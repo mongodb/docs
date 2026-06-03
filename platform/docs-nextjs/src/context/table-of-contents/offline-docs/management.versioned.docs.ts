@@ -2272,7 +2272,7 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/tutorial/modify-psa-replica-set-safely',
                       },
                       {
-                        label: 'Mitigate Performance Issues with PSA Replica Set',
+                        label: 'Mitigate Performance Issues in PSA Replica Set',
                         contentSite: 'docs',
                         url: '/docs/:version/tutorial/mitigate-psa-performance-issues',
                       },
