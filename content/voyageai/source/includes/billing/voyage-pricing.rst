@@ -35,11 +35,6 @@ the API key used for access. All models include a free tier. Get started with
            - $0.02
            - 200 million
 
-         * - ``voyage-context-3``
-           - $0.00018
-           - $0.18
-           - 200 million
-
          * - ``voyage-code-3``
            - $0.00018
            - $0.18
@@ -94,6 +89,11 @@ the API key used for access. All models include a free tier. Get started with
            - Price per 1K tokens
            - Price per 1M tokens
            - Free tokens
+
+         * - ``voyage-context-4``
+           - $0.00012
+           - $0.12
+           - 200 million
 
          * - ``voyage-context-3``
            - $0.00018

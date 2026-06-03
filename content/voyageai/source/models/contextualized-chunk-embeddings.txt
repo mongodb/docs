@@ -13,7 +13,7 @@ Contextualized Chunk Embeddings
 
 .. meta::
    :description: Learn about Voyage AI's contextualized chunk embedding models for improved retrieval accuracy.
-   :keywords: contextualized embeddings, voyage-context-3, chunk embeddings, document context
+   :keywords: :keywords: contextualized embeddings, voyage-context-3, voyage-context-4, chunk embeddings, document context
    
 .. contents:: On this page
    :local:
@@ -21,7 +21,7 @@ Contextualized Chunk Embeddings
    :depth: 2
    :class: singlecol
 
-``voyage-context-3`` is a contextualized chunk embedding model 
+``voyage-context-4`` is a contextualized chunk embedding model 
 that produces vectors for chunks that capture the full document 
 context without any manual metadata and context augmentation. This 
 leads to higher retrieval accuracies than with or without 
@@ -37,6 +37,15 @@ Available Models
 ----------------
 
 .. include:: /includes/tables/contextualized-chunk-embeddings-table.rst
+
+.. collapsible::
+   :heading: Older Models
+   :sub_heading: View older contextualized chunk embedding models that are still available.
+   :expanded: false
+
+   The following older models are still available, but we recommend using the newer ``voyage-context-4`` model for better accuracy and performance.
+
+   .. include:: /includes/tables/older-contextualized-chunk-embeddings-table.rst
 
 Tutorial
 --------
@@ -63,13 +72,17 @@ Usage
       .. code-block:: python
 
          voyageai.Client.contextualized_embed(
-             inputs: List[List[str]],
+             inputs: Union[List[List[str]], List[str]], # see below for specifics on when to pass one or the other. 
              model: str,
              input_type: Optional[str] = None,
              output_dimension: Optional[int] = None,
              output_dtype: Optional[str] = "float",
-             chunk_fn: Optional[Callable[[str], List[str]]] = None
+             enable_auto_chunking: Optional[bool] = False,
+             chunk_size: Optional[int] = 512,
+             chunk_overlap: Optional[int] = 0,
+             chunk_fn: Optional[Callable[[str], List[str]]] = None,
          )
+
 
       .. collapsible::
          :heading: Parameters
@@ -87,8 +100,51 @@ Usage
 
          .. include:: /includes/tables/contextualized-chunk-embeddings-returns.rst
 
-      Example
-      ~~~~~~~
+      Quick Reference: Valid Parameter Combinations
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+      .. list-table::
+         :widths: 20 15 10 15 10 30
+         :header-rows: 1
+
+         * - Use Case
+           - ``inputs`` Shape
+           - ``input_type``
+           - ``enable_auto_chunking``
+           - ``chunk_fn``
+           - Notes
+         * - Embed pre-chunked documents
+           - ``List[List[str]]``
+           - ``document``
+           - ``False`` or omitted
+           - Omitted
+           - Each inner list contains one document's chunks
+         * - Client-side chunking and embedding
+           - ``List[List[str]]``
+           - ``document``
+           - ``False`` or omitted
+           - Provided
+           - Common pattern: one full document string per inner list
+         * - Auto chunking and embedding
+           - ``List[str]``
+           - ``document``
+           - ``True``
+           - Omitted
+           - ``chunk_size`` and ``chunk_overlap`` apply only in this mode
+         * - Embed queries
+           - ``List[str]`` or ``List[List[str]]``
+           - ``query``
+           - ``False`` or omitted
+           - Omitted
+           - If nested, each inner list should contain a single query
+
+      Quickstart
+      ~~~~~~~~~~
+
+      **Auto Chunking and Embedding**
+
+      Use this when you want Voyage to split each full document into 
+      chunks for you.
 
       .. code-block:: python
 
@@ -96,56 +152,140 @@ Usage
 
          vo = voyageai.Client()
 
-         # Example input containing chunks from two documents
-         inputs = [
-             ["doc_1_chunk_1", "doc_1_chunk_2"],
-             ["doc_2_chunk_1", "doc_2_chunk_2"]
+         documents = [
+             "This is the SEC filing on Leafy Inc.'s Q2 2024 performance.\nThe company's revenue increased by 15% compared to the previous quarter.",
+             "This is the SEC filing on Elephant Ltd.'s Q2 2024 performance.\nThe company's revenue decreased by 2% compared to the previous quarter.",
          ]
 
-         # Vectorize inputs with contextualized embeddings
-         result = vo.contextualized_embed(inputs, model="voyage-context-3", input_type="document")
+         result = vo.contextualized_embed(
+             model="voyage-context-4",
+             inputs=documents,
+             input_type="document",
+             enable_auto_chunking=True,
+             chunk_size=512,
+             chunk_overlap=0,
+         )
 
-         # Access embeddings for each document
-         for doc_result in result.results:
-             for embedding in doc_result.embeddings:
-                 print(embedding)
+      When auto-chunking is enabled, the backend splits each full 
+      document into chunks before embedding.
+
+      **Embed Pre-Chunked Documents**
+
+      Use this when you have already split each document into chunks on 
+      the client side.
+
+      .. code-block:: python
+
+         import voyageai
+
+         vo = voyageai.Client()
+
+         inputs = [
+             [
+                 "This is the SEC filing on Leafy Inc.'s Q2 2024 performance.",
+                 "The company's revenue increased by 15% compared to the previous quarter.",
+             ],
+             [
+                 "This is the SEC filing on Elephant Ltd.'s Q2 2024 performance.",
+                 "The company's revenue decreased by 2% compared to the previous quarter.",
+             ],
+         ]
+
+         result = vo.contextualized_embed(
+             model="voyage-context-4",
+             inputs=inputs,
+             input_type="document",
+         )
+
+      Each inner list is embedded as a group, so each chunk is encoded 
+      in the context of the other chunks from the same document.
+
+      **Client-Side Chunking and Embedding**
+
+      Use this when you have full documents and want to handle chunking 
+      locally in the Python SDK rather than in the backend.
+
+      .. code-block:: python
+
+         import voyageai
+
+         vo = voyageai.Client()
+
+         inputs = [
+             [
+                 "This is the SEC filing on Leafy Inc.'s Q2 2024 performance.\nThe company's revenue increased by 15% compared to the previous quarter.",
+             ],
+             [
+                 "This is the SEC filing on Elephant Ltd.'s Q2 2024 performance.\nThe company's revenue decreased by 2% compared to the previous quarter.",
+             ],
+         ]
+
+         result = vo.contextualized_embed(
+             model="voyage-context-4",
+             inputs=inputs,
+             input_type="document",
+             chunk_fn=voyageai.default_chunk_fn,
+         )
+
+      ``chunk_fn`` is applied locally to each input string before the 
+      request is sent.
+
+      **Embedding Queries**
+
+      Use this when your inputs are search queries.
+
+      .. code-block:: python
+
+         import voyageai
+
+         vo = voyageai.Client()
+
+         result = vo.contextualized_embed(
+             model="voyage-context-4",
+             inputs=[
+                 "What was the revenue growth for Leafy Inc. in Q2 2024?",
+                 "What changed in Greenery Corp. between Q1 and Q2 2024?",
+             ],
+             input_type="query",
+         )
+
+      The following query input shape is also valid and is treated 
+      equivalently:
+
+      .. code-block:: python
+
+         result = vo.contextualized_embed(
+             model="voyage-context-4",
+             inputs=[
+                 ["What was the revenue growth for Leafy Inc. in Q2 2024?"],
+                 ["What changed in Greenery Corp. between Q1 and Q2 2024?"],
+             ],
+             input_type="query",
+         )
+
+      Returned Chunk Text
+      ~~~~~~~~~~~~~~~~~~~~
+
+      The response contains contextualized embedding results for each 
+      query or document. For document chunks, embeddings are ordered to 
+      match chunk order.
+
+      In the Python SDK, returned chunk text is available through 
+      ``chunk_texts`` on the result object. In the REST API, returned 
+      chunk text is available as ``text`` on each embedding item.
+
+      If you provide a client-side chunking function, the returned chunk 
+      text corresponds to the chunks produced by that function. When 
+      auto-chunking is enabled, the response also includes the 
+      backend-generated chunk text for each returned embedding so you 
+      can inspect and store it.
 
    .. selected-content::
       :selections: typescript
 
-      You can access {+voyage+} contextualized chunk embeddings in
-      JavaScript or TypeScript by sending HTTP requests using the Fetch API
-      or other HTTP clients.
-
-      Example
-      ~~~~~~~
-
-      .. code-block:: javascript
-
-         const apiKey = process.env.VOYAGE_API_KEY;
-         const url = "https://ai.mongodb.com/v1/contextualizedembeddings";
-
-         const headers = {
-             "Authorization": `Bearer ${apiKey}`,
-             "Content-Type": "application/json"
-         };
-
-         const data = {
-             inputs: [
-                 ["doc_1_chunk_1", "doc_1_chunk_2"],
-                 ["doc_2_chunk_1", "doc_2_chunk_2"]
-             ],
-             model: "voyage-context-3",
-             input_type: "document"
-         };
-
-         const response = await fetch(url, {
-             method: "POST",
-             headers: headers,
-             body: JSON.stringify(data)
-         });
-
-         const result = await response.json();
+      {+voyage+} contextualized chunk embeddings are also available in 
+      TypeScript through the ``voyageai`` package. See the 
+      Contextualized Embeddings API reference.
 
    .. selected-content::
       :selections: java
@@ -165,7 +305,7 @@ Usage
          import java.net.http.HttpResponse;
 
          String apiKey = System.getenv("VOYAGE_API_KEY");
-         String url = "https://ai.mongodb.com/v1/contextualizedembeddings";
+         String url = "https://api.voyageai.com/v1/contextualizedembeddings";
 
          String jsonBody = """
              {
@@ -174,7 +314,7 @@ Usage
                      ["doc_2_chunk_1", "doc_2_chunk_2"]
                  ],
                  "input_type": "document",
-                 "model": "voyage-context-3"
+                 "model": "voyage-context-4"
              }
              """;
 
@@ -214,7 +354,7 @@ Usage
 
          func main() {
              apiKey := os.Getenv("VOYAGE_API_KEY")
-             url := "https://ai.mongodb.com/v1/contextualizedembeddings"
+             url := "https://api.voyageai.com/v1/contextualizedembeddings"
 
              // Example input containing chunks from two documents
              inputs := [][]string{
@@ -225,7 +365,7 @@ Usage
              requestBody := map[string]interface{}{
                  "inputs":     inputs,
                  "input_type": "document",
-                 "model":      "voyage-context-3",
+                 "model":      "voyage-context-4",
              }
 
              jsonData, _ := json.Marshal(requestBody)
@@ -245,26 +385,65 @@ Usage
    .. selected-content::
       :selections: curl
 
-      You can access {+voyage+} contextualized chunk embeddings by sending 
-      a POST request using cURL to the endpoint 
-      ``https://ai.mongodb.com/v1/contextualizedembeddings``. Please
-      refer to the Contextualized Chunk Embeddings API Reference for
-      the specification.
+      REST API
+      ~~~~~~~~
+
+      {+voyage+} contextualized chunk embeddings are available at:
+
+      ``POST https://api.voyageai.com/v1/contextualizedembeddings``
+
+      See the Contextualized Embeddings API reference.
+
+      Response Shape
+      ~~~~~~~~~~~~~~
+
+      The REST API returns chunk text as ``text`` on each individual 
+      embedding item, not as a top-level ``chunk_texts`` list.
+
+      .. code-block:: json
+
+         {
+           "data": [
+             {
+               "data": [
+                 { "embedding": ["..."], "index": 0, "text": "chunk text here" },
+                 { "embedding": ["..."], "index": 1, "text": "..." }
+               ],
+               "index": 0
+             }
+           ],
+           "model": "voyage-context-4",
+           "usage": { "total_tokens": 100 },
+           "chunker_version": "1.0.0"
+         }
+
+      - ``data`` - A list of results, one per input query or document.
+      - ``data[].data`` - A list of embedding items for that input.
+      - ``data[].data[].embedding`` - The embedding vector.
+      - ``data[].data[].index`` - The chunk index within that input.
+      - ``data[].data[].text`` - The returned chunk text for that 
+        embedding item.
+      - ``model`` - The model used.
+      - ``usage.total_tokens`` - Total tokens processed.
+      - ``chunker_version`` - The version of the server-side chunker. 
+        This is returned when auto-chunking is enabled.
 
       Example
       ~~~~~~~
 
       .. code-block:: bash
 
-         curl \
-           --request POST 'https://ai.mongodb.com/v1/contextualizedembeddings' \
-           --header "Authorization: Bearer $VOYAGE_API_KEY" \
-           --header "Content-Type: application/json" \
-           --data '{
+         curl -X POST https://api.voyageai.com/v1/contextualizedembeddings \
+           -H "Authorization: Bearer $VOYAGE_API_KEY" \
+           -H "content-type: application/json" \
+           -d '{
              "inputs": [
-               ["doc_1_chunk_1", "doc_1_chunk_2"],
-               ["doc_2_chunk_1", "doc_2_chunk_2"]
+               "This is the SEC filing on Leafy Inc.'\''s Q2 2024 performance.\nThe company'\''s revenue increased by 15% compared to the previous quarter.",
+               "This is the SEC filing on Elephant Ltd.'\''s Q2 2024 performance.\nThe company'\''s revenue decreased by 2% compared to the previous quarter."
              ],
              "input_type": "document",
-             "model": "voyage-context-3"
+             "model": "voyage-context-4",
+             "enable_auto_chunking": true,
+             "chunk_size": 512,
+             "chunk_overlap": 0
            }'
