@@ -1,0 +1,67 @@
+name: Backport
+
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  backport:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo at merge commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install PyYAML
+        run: pip install pyyaml
+
+      - name: Configure git author
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Run backport script
+        id: backport
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          REPO: ${{ github.repository }}
+        run: python .github/scripts/backport.py
+
+      - name: Run lint-docs on backported files
+        if: steps.backport.outputs.branch != ''
+        continue-on-error: true
+        run: |
+          if [ -n "${{ steps.backport.outputs.lint_files }}" ]; then
+            ./lint-docs.sh all ${{ steps.backport.outputs.lint_files }} \
+              > lint-results.txt 2>&1 || true
+            echo "LINT_RESULTS<<EOF" >> "$GITHUB_ENV"
+            cat lint-results.txt >> "$GITHUB_ENV"
+            echo "EOF" >> "$GITHUB_ENV"
+          fi
+
+      - name: Append lint results to PR
+        if: steps.backport.outputs.pr_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -f lint-results.txt ]; then
+            gh pr comment "${{ steps.backport.outputs.pr_number }}" \
+              --body "$(printf '### lint-docs.sh all\n\n```\n%s\n```\n' "$(cat lint-results.txt)")"
+          fi
