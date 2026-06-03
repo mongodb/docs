@@ -295,6 +295,38 @@ describe('convertSnootyAstToMdast', () => {
     expect(mdx).toBe(`<Include src="/_includes/included-file" />`);
   });
 
+  it('inlines a sliced include instead of emitting a shared file (multi-slice collision)', () => {
+    // mapReduce.txt includes parameters-map-reduce.rst multiple ways. The parser resolves each
+    // slice into node.children. Emitting a shared _includes/parameters-map-reduce.mdx keyed only
+    // by source path would collide (dedupe keeps the first, so reduce/finalize render "map").
+    // Sliced includes must be inlined directly, like literalinclude — no file, no <Include>.
+    const makeSlicedInclude = (startAfter: string, endBefore: string, body: string): SnootyNode => ({
+      type: 'directive',
+      name: 'include',
+      argument: '/includes/parameters-map-reduce.rst',
+      options: { 'start-after': startAfter, 'end-before': endBefore },
+      children: [{ type: 'paragraph', children: [{ type: 'text', value: body }] }],
+    });
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        makeSlicedInclude('start-map', 'end-map', 'map slice content'),
+        makeSlicedInclude('start-reduce', 'end-reduce', 'reduce slice content'),
+        makeSlicedInclude('start-finalize', 'end-finalize', 'finalize slice content'),
+      ],
+    };
+    const onEmitMdxFile = jest.fn();
+    const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
+
+    // No include file emitted and no <Include> reference for sliced includes.
+    expect(onEmitMdxFile).not.toHaveBeenCalled();
+    expect(mdx).not.toContain('<Include');
+    // Each slice is inlined with its own distinct content (not a duplicate of the first).
+    expect(mdx).toContain('map slice content');
+    expect(mdx).toContain('reduce slice content');
+    expect(mdx).toContain('finalize slice content');
+  });
+
   it('buildSubstitutionRefXrefMap records ref_role with name label (Snooty std :ref: for .. |alias| replace:: :ref:)', () => {
     const ast: SnootyNode = {
       type: 'root',

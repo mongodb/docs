@@ -970,6 +970,24 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         return convertDirectiveInclude({ node, ctx, depth: depth });
       }
       if (directiveName === 'include' || directiveName === 'sharedinclude') {
+        // A sliced include (`:start-after:` / `:end-before:`) embeds only a fragment of the
+        // source file. The parser has already resolved that fragment into node.children.
+        // Emitting it as a shared `_includes/<source>.mdx` keyed only by the source path
+        // collides when one file is sliced multiple ways: every slice resolves to the same
+        // `<Include src>` and the emit dedupe keeps just the first (e.g. mapReduce's map/
+        // reduce/finalize sections would all render "map"). Inline the resolved slice
+        // directly instead — the same strategy `literalinclude` uses above. A whole-file
+        // include (no markers) keeps the `<Include>` reference so authors compose MDX the
+        // way they composed RST.
+        const isSliced = node.options?.['start-after'] != null || node.options?.['end-before'] != null;
+        if (isSliced) {
+          const sliceChildren = (Array.isArray(node.children) ? node.children : []).filter(
+            (c): c is SnootyNode =>
+              !!c && !(c.type === 'directive' && String(c.name ?? '').toLowerCase() === 'replacement'),
+          );
+          const converted = convertChildren({ nodes: sliceChildren, depth, ctx });
+          return converted.length === 1 ? converted[0] : converted;
+        }
         return convertDirectiveInclude({ node, ctx, depth: depth });
       }
       if (directiveName === 'list-table') {
@@ -1333,7 +1351,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         };
       }
 
-      // Generic fallback for any Snooty directive (ex: ...tab -> <Tab>) where pascalCase doesn't produce the desired result
+      // Admonitions and their aliases — these have registered MDX components.
       const DIRECTIVE_TO_COMPONENT: Record<string, string> = {
         see: 'See',
         seealso: 'See',
@@ -1345,12 +1363,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 
       const ADMONITION_DIRECTIVES = new Set(['tip', 'note', 'important', 'warning', 'example', 'see', 'seealso']);
       let includeArgumentAsChild = true;
-      if (node.argument && directiveName === 'only') {
-        // Convert the condition expression into an attribute instead of child text
-        const exprText = parseSnootyArgument(node);
-        attributes.push({ type: 'mdxJsxAttribute', name: 'expr', value: exprText.trim() });
-        includeArgumentAsChild = false;
-      } else if (node.argument && ADMONITION_DIRECTIVES.has(directiveName)) {
+      if (node.argument && ADMONITION_DIRECTIVES.has(directiveName)) {
         const titleText = parseSnootyArgument(node);
         if (titleText) {
           attributes.push({ type: 'mdxJsxAttribute', name: 'title', value: titleText });
@@ -1377,12 +1390,34 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         return null;
       }
 
-      return {
-        type: 'mdxJsxFlowElement',
-        name: componentName,
-        attributes,
-        children,
-      };
+      // Directives with registered MDX components in docs-nextjs — emit named JSX.
+      // Admonitions also receive special attribute handling above (title from argument).
+      const DIRECTIVES_WITH_REGISTERED_COMPONENTS = new Set([
+        ...ADMONITION_DIRECTIVES,
+        'cta-banner',
+        'introduction',
+        'search-results',
+      ]);
+
+      if (DIRECTIVES_WITH_REGISTERED_COMPONENTS.has(directiveName)) {
+        return {
+          type: 'mdxJsxFlowElement',
+          name: componentName,
+          attributes,
+          children,
+        };
+      }
+
+      // Unknown directive: pass children through rather than emitting an unregistered
+      // JSX component that would crash compileMDX. Mirrors old Snooty ComponentFactory
+      // behavior (warn + render children / return null for empty directives).
+      if (process.env.NODE_ENV !== 'production') {
+        console.warn(`[snooty-ast-to-mdx] unhandled directive: "${directiveName}"`);
+      }
+      if (children.length > 0) {
+        return children;
+      }
+      return null;
     }
 
     case 'ref_role':
@@ -1974,16 +2009,6 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         type: 'mdxJsxFlowElement',
         name: 'Tab',
         attributes,
-        children: convertChildren({ nodes: node.children, depth, ctx }),
-      };
-    }
-
-    case 'only': {
-      const condition = parseSnootyArgument(node);
-      return {
-        type: 'mdxJsxFlowElement',
-        name: 'Only',
-        attributes: [{ type: 'mdxJsxAttribute', name: 'condition', value: condition.trim() }],
         children: convertChildren({ nodes: node.children, depth, ctx }),
       };
     }
