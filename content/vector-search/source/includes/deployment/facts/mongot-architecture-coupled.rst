@@ -23,8 +23,7 @@ data is partitioned across ``mongod`` instances (shards) and each
 ``mongot`` process can only access the data on the ``mongod`` instance
 on the same node. Therefore, you can't run {+fts+} queries that target a
 particular  shard. ``mongos`` routes the query to all shards, making
-these *scatter gather* queries. If you use :manual:`zones
-</core/zone-sharding/>` to distribute a sharded collection over a
+these *scatter gather* queries. If you use :ref:`zones <zone-sharding>` to distribute a sharded collection over a
 subset of the shards in the cluster, {+fts+} routes the query to the
 zone that contains the shards for the collection that you are querying
 and runs your :pipeline:`$search` queries on just the shards where the

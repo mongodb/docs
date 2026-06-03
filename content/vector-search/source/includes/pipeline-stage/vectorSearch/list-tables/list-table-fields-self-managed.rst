@@ -93,8 +93,8 @@
      - Array of Numbers 
      - Required 
      - Array of numbers of ``float32``, |bson|
-       :manual:`BinData </reference/method/BinData/>` vectors with subtype
-       ``float32``, or |bson| :manual:`BinData </reference/method/BinData/>` 
+       :ref:`BinData <server-binData-method>` vectors with subtype
+       ``float32``, or |bson| :ref:`BinData <server-binData-method>` 
        vectors with subtype ``int1`` or ``int8`` type that represent the
        query vector. 
 

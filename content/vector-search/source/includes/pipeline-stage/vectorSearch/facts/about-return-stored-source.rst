@@ -56,8 +56,7 @@ of milliseconds that {+avs+} is behind in replicating changes from the
 :term:`oplog` of |mongod| in the |service| UI. To learn more, see 
 :ref:`review-atlas-search-metrics`.
 
-If there are :manual:`orphaned documents 
-</reference/glossary/#term-orphaned-document>` during chunk migration, 
+If there are :term:`orphaned documents <orphaned document>` during chunk migration, 
 {+avs+} might return duplicate documents for queries against sharded 
 cluster. 
 

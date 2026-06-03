@@ -202,7 +202,7 @@
             If you deploy ``mongot`` in a production environment,
             MongoDB recommends that you enable security and configure TLS. For
             more information about ``mongod`` security settings, see
-            :manual:`Self-Managed Security <core/self-managed-security>`. 
+            :ref:`Self-Managed Security <self-managed-security>`. 
                
          .. code-block:: shell 
             :linenos:

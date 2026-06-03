@@ -12,15 +12,14 @@ The quick start walks you through the following steps:
 1. Deploy MongoDB and ``mongot`` in Docker. 
 
    For more details on deploying by using a tarball or as an image in Docker,
-   see :manual:`Install MongoDB Community and MongoDB Search </administration/install-community>`.
+   see :ref:`Install MongoDB Community and MongoDB Search <install-mdb-community-edition>`.
 
 #. Load sample data, create a vector search index, and run vector search queries on your local deployment.
 
 .. note::
 
    The resulting set up of this quick start is not secure. For
-   more information on securing your deployment, see :manual:`Security for
-   Self-Managed Deployments </administration/security-checklist>`. 
+   more information on securing your deployment, see :ref:`Security for Self-Managed Deployments <security-checklist>`. 
 
 Architecture
 ~~~~~~~~~~~~

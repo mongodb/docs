@@ -12,6 +12,5 @@ customer-managed keys for comprehensive encryption coverage.
 
    Database nodes and Search Nodes use different encryption methods
    with the same customer-managed keys. Database nodes use the
-   :manual:`WiredTiger Encrypted Storage Engine
-   </core/security-encryption-at-rest/#encrypted-storage-engine>`,
+   :ref:`WiredTiger Encrypted Storage Engine <encrypted-storage-engine>`,
    while Search Nodes use encryption at the disk level.

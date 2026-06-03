@@ -2,17 +2,16 @@ Your index definition's ``vector`` type field must contain an array of
 numbers of *one* of the following types: 
 
 - |bson| ``double`` 
-- |bson| :manual:`BinData </reference/method/BinData/>` ``vector``
+- |bson| :ref:`BinData <server-binData-method>` ``vector``
   subtype ``float32``  
-- |bson| :manual:`BinData </reference/method/BinData/>` ``vector``
+- |bson| :ref:`BinData <server-binData-method>` ``vector``
   subtype ``int1`` 
-- |bson| :manual:`BinData </reference/method/BinData/>` ``vector``
+- |bson| :ref:`BinData <server-binData-method>` ``vector``
   subtype ``int8`` 
 
 .. note:: 
 
-   To learn more about generating |bson| :manual:`BinData
-   </reference/method/BinData/>` vectors with subtype ``float32``
+   To learn more about generating |bson| :ref:`BinData <server-binData-method>` vectors with subtype ``float32``
    ``int1`` or ``int8`` for your data, see 
    :ref:`avs-bindata-vector-subtype`.
 

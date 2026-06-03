@@ -7,7 +7,7 @@ documents using dot notation. The same embedding field can't be
 indexed multiple times in the same index definition.
 
 Before indexing your embeddings, we recommend converting your embeddings
-to |bson| :manual:`BinData </reference/method/BinData/>` vectors with
+to |bson| :ref:`BinData <server-binData-method>` vectors with
 subtype ``float32``, ``int1``, or ``int8`` for efficient storage
 in your cluster.  To learn more, see :ref:`how to convert
 your embeddings to BSON vectors <avs-bindata-vector-subtype>`. 

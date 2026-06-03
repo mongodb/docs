@@ -5,19 +5,16 @@ in order of decreasing verbosity:
 .. list-table:: 
    :widths: 30 70 
 
-   * - :manual:`allPlansExecution 
-       </reference/explain-results/#explain.executionStats>`
+   * - :ref:`allPlansExecution <executionStats>`
      - Information about the query plan including the ``stats`` fields, 
        which contain execution statistics for the query. Includes partial 
        execution data captured during plan selection.
 
-   * - :manual:`executionStats 
-       </reference/explain-results/#explain.executionStats>`
+   * - :ref:`executionStats <executionStats>`
      - Information about the query plan including the ``stats`` fields, 
        which contain execution statistics for the query.
 
-   * - :manual:`queryPlanner 
-       </reference/explain-results/#explain.queryPlanner>` (default)
+   * - :ref:`queryPlanner <queryPlanner>` (default)
      - Information about the query plan. Does not include the 
        ``stats`` fields, which contain execution statistics for 
        the query.

@@ -70,8 +70,7 @@
 
             If you're using a |service| cluster, your connection string
             follows this format, replacing ``"<connection-string>";``
-            with your cluster's |srv| :manual:`connection string 
-            </reference/connection-string/#find-your-mongodb-atlas-connection-string>`:
+            with your cluster's |srv| :ref:`connection string <find-connection-string>`:
             
             .. code-block::
 

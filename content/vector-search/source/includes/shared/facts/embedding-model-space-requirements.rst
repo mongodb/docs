@@ -25,6 +25,6 @@
        | 1.07kb (for ``int8``)
        | 0.167kb (for ``int1``)
 
-:icon-fa5:`star` :manual:`BinData </reference/method/BinData/>`
+:icon-fa5:`star` :ref:`BinData <server-binData-method>`
 quantized vectors. To learn more, see
 :ref:`Ingest Quantized Vectors <avs-bindata-vector-subtype>`.

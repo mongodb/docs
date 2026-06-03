@@ -45,7 +45,7 @@
        query-time. You can set this field only for ``vector``-type fields.
        You must specify a value less than or equal to ``8192``.
        
-       For indexing quantized vectors or :manual:`BinData </reference/method/BinData/>`,
+       For indexing quantized vectors or :ref:`BinData <server-binData-method>`,
        you can specify one of the following values:
 
        - ``1`` to ``8192`` for ``int8`` vectors for ingestion.

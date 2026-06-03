@@ -126,7 +126,7 @@ FIPS
 in ``mongod`` or ``mongos``. If you enable FIPS mode on ``mongod`` or
 ``mongos``, MongoDB does not enable FIPS mode on ``mongot`` and may result in
 undefined behavior. For more information on MongoDB and FIPS, see
-:manual:`Configure MongoDB for FIPS </tutorial/configure-fips/>`.
+:ref:`Configure MongoDB for FIPS <configure-mdb-for-fips>`.
 
 
 Host Name Validation

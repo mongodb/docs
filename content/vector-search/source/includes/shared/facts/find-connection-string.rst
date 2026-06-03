@@ -24,4 +24,4 @@ Replace ``<connection-string>`` with the connection string for your
 
          mongodb://localhost:<port-number>/?directConnection=true
       
-      To learn more, see :manual:`Connection Strings </reference/connection-string/>`.
+      To learn more, see :ref:`Connection Strings <mongodb-uri>`.
