@@ -67,20 +67,19 @@ jobs:
         if: steps.detect.outputs.eol_products != '[]'
         env:
           JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
-          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
           JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
           EOL_PRODUCTS: ${{ steps.detect.outputs.eol_products }}
           COMMIT_URL: ${{ github.event.head_commit.url }}
         run: |
           python3 - <<'PYEOF'
-          import json, os, urllib.request, urllib.error, base64, sys
+          import json, os, urllib.request, urllib.error, sys
 
           products = json.loads(os.environ['EOL_PRODUCTS'])
           base_url = os.environ['JIRA_BASE_URL'].rstrip('/')
-          creds = base64.b64encode(
-              f"{os.environ['JIRA_USER_EMAIL']}:{os.environ['JIRA_API_TOKEN']}".encode()
-          ).decode()
-          headers = {'Authorization': f'Basic {creds}', 'Content-Type': 'application/json'}
+          headers = {
+              'Authorization': f"Bearer {os.environ['JIRA_API_TOKEN']}",
+              'Content-Type': 'application/json',
+          }
 
           failed = False
           for p in products:
@@ -98,7 +97,7 @@ jobs:
                       'project': {'key': 'TSWRITING'},
                       'summary': summary,
                       'issuetype': {'name': 'Task'},
-                      'components': [{'name': 'KB articles'}],
+                      'components': [{'name': 'KB Articles'}],
                       'description': description,
                   }
               }).encode()
