@@ -11,7 +11,8 @@ const {
   Code,
   DBRef,
   MaxKey,
-  MinKey
+  MinKey,
+  UUID,
 } = require('mongodb');
 
 /**
@@ -130,6 +131,11 @@ class MongoshOutputParser {
     }
     MinKeyConstructor.prototype = MinKey.prototype;
 
+    function UUIDConstructor(value) {
+      return new UUID(value);
+    }
+    UUIDConstructor.prototype = UUID.prototype;
+
     return {
       Decimal128: Decimal128Constructor,
       NumberDecimal: Decimal128Constructor, // Legacy name
@@ -148,6 +154,7 @@ class MongoshOutputParser {
       DBRef: DBRefConstructor,
       MaxKey: MaxKeyConstructor,
       MinKey: MinKeyConstructor,
+      UUID: UUIDConstructor,
       Map: Map, // Native JavaScript Map for mongosh Map output
       // JavaScript typed arrays - required for Binary static methods like
       // Binary.fromInt8Array(new Int8Array([...])) and Binary.fromFloat32Array(...)
@@ -420,8 +427,17 @@ class MongoshOutputParser {
         const followedByDelimiter = /^[\s,\}\]]/.test(afterEllipsis);
 
         if (followedByDelimiter) {
-          // This is an unquoted ellipsis - quote it
-          result += '"..."';
+          // This is an unquoted ellipsis - quote it.
+          // If the last non-whitespace character in the output so far is '{',
+          // the ellipsis is in key position inside an object literal (e.g.
+          // `{ ... }`). Emit a key-value pair so the result is valid JS and
+          // isObjectEllipsis() can recognise it as `{ '...': '...' }`.
+          const lastNonWS = result.trimEnd().slice(-1);
+          if (lastNonWS === '{') {
+            result += '"...": "..."';
+          } else {
+            result += '"..."';
+          }
           i += 3;
         } else {
           // Not a standalone ellipsis, just copy the dot
