@@ -1,0 +1,118 @@
+name: Create Jira ticket on EOL
+
+on:
+  push:
+    branches:
+      - main
+    # Add new config file globs here when the MDX replacement for snooty.toml is decided.
+    # Also add the new glob to .github/eol-detection.yml.
+    paths:
+      - "content/**/snooty.toml"
+  workflow_dispatch: {}
+
+jobs:
+  detect-and-ticket:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect newly EOL'd products
+        id: detect
+        run: |
+          python3 - <<'PYEOF'
+          import yaml, subprocess, glob as glob_module, re, json, os
+
+          with open('.github/eol-detection.yml') as f:
+              config = yaml.safe_load(f)
+
+          changed = subprocess.run(
+              ['git', 'diff', '--name-only', 'HEAD~1', 'HEAD'],
+              capture_output=True, text=True
+          ).stdout.strip().splitlines()
+
+          newly_eol = []
+
+          for pattern in config['patterns']:
+              matched = set(glob_module.glob(pattern['file_glob'], recursive=True))
+              eol_re = re.compile(pattern['eol_pattern'], re.MULTILINE)
+              for filepath in changed:
+                  if filepath not in matched:
+                      continue
+                  diff = subprocess.run(
+                      ['git', 'diff', 'HEAD~1', 'HEAD', '--', filepath],
+                      capture_output=True, text=True
+                  ).stdout
+                  if not eol_re.search(diff):
+                      continue
+                  try:
+                      content = open(filepath).read()
+                  except FileNotFoundError:
+                      continue
+                  name_m = re.search(r'^name\s*[=:]\s*["\']?([^"\'\n]+)["\']?', content, re.MULTILINE)
+                  title_m = re.search(r'^title\s*[=:]\s*["\']?([^"\'\n]+)["\']?', content, re.MULTILINE)
+                  name = name_m.group(1).strip() if name_m else 'unknown'
+                  title = title_m.group(1).strip() if title_m else name
+                  version = next((p for p in filepath.split('/') if re.match(r'^v\d', p)), None)
+                  newly_eol.append({'file': filepath, 'name': name, 'title': title, 'version': version})
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write(f"eol_products={json.dumps(newly_eol)}\n")
+          print(f"Detected {len(newly_eol)} newly EOL'd product(s): {newly_eol}")
+          PYEOF
+
+      - name: Create Jira tickets
+        if: steps.detect.outputs.eol_products != '[]'
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_USER_EMAIL: ${{ secrets.JIRA_USER_EMAIL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          EOL_PRODUCTS: ${{ steps.detect.outputs.eol_products }}
+          COMMIT_URL: ${{ github.event.head_commit.url }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, os, urllib.request, urllib.error, base64, sys
+
+          products = json.loads(os.environ['EOL_PRODUCTS'])
+          base_url = os.environ['JIRA_BASE_URL'].rstrip('/')
+          creds = base64.b64encode(
+              f"{os.environ['JIRA_USER_EMAIL']}:{os.environ['JIRA_API_TOKEN']}".encode()
+          ).decode()
+          headers = {'Authorization': f'Basic {creds}', 'Content-Type': 'application/json'}
+
+          failed = False
+          for p in products:
+              version_str = f" {p['version']}" if p['version'] else ''
+              summary = f"EOL: {p['title']}{version_str}"
+              description = (
+                  "Documentation version marked end-of-life — KB article may need updating.\n\n"
+                  f"*Product:* {p['title']}\n"
+                  f"*Version:* {p['version'] or 'N/A'}\n"
+                  f"*Config file:* {{code}}{p['file']}{{code}}\n"
+                  f"*Commit:* {os.environ['COMMIT_URL']}"
+              )
+              payload = json.dumps({
+                  'fields': {
+                      'project': {'key': 'TSWRITING'},
+                      'summary': summary,
+                      'issuetype': {'name': 'Task'},
+                      'components': [{'name': 'KB articles'}],
+                      'description': description,
+                  }
+              }).encode()
+              req = urllib.request.Request(
+                  f'{base_url}/rest/api/2/issue', data=payload, headers=headers
+              )
+              try:
+                  with urllib.request.urlopen(req) as resp:
+                      key = json.loads(resp.read())['key']
+                      print(f"Created {key}: {summary} — {base_url}/browse/{key}")
+              except urllib.error.HTTPError as e:
+                  print(f"Failed for '{summary}': {e.code} {e.read().decode()}")
+                  failed = True
+
+          if failed:
+              sys.exit(1)
+          PYEOF
