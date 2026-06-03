@@ -1,7 +1,6 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import Image from 'next/image';
 import { createContext, useContext } from 'react';
 import styled from '@emotion/styled';
 import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
@@ -174,7 +173,7 @@ const CardContext = createContext<boolean | null>(null);
 const Card = ({ children, cta, headline, icon, 'icon-dark': iconDark, 'icon-alt': iconAlt, url }: CardProps) => {
   const { template } = usePageContext();
   const { darkMode } = useDarkMode();
-  const { siteBasePrefix } = useVersionContext();
+  const { siteBasePrefix, siteBasePrefixWithVersion } = useVersionContext();
   const cardGroupValues = useContext(CardGroupContext);
   const { isCompact, isExtraCompact, isCenterContentStyle, isLargeIconStyle } = cardGroupValues ?? {
     isCompact: false,
@@ -203,6 +202,11 @@ const Card = ({ children, cta, headline, icon, 'icon-dark': iconDark, 'icon-alt'
     isLanding && !isLargeIconStyle ? landingStyles : '', // must come after other styles to override
   ];
 
+  const resolvedUrl =
+    url && isRelativeUrl(url) && siteBasePrefixWithVersion
+      ? `/${siteBasePrefixWithVersion}${url}`
+      : url;
+
   const iconSrc = getSuitableIcon({
     icon,
     iconDark,
@@ -215,14 +219,14 @@ const Card = ({ children, cta, headline, icon, 'icon-dark': iconDark, 'icon-alt'
       <LeafyGreenCard
         className={cx(styling)}
         onClick={
-          url
+          resolvedUrl
             ? (event: React.MouseEvent<HTMLDivElement>) =>
-                onCardClick(router, url, headline, event.currentTarget as HTMLElement)
+                onCardClick(router, resolvedUrl, headline, event.currentTarget as HTMLElement)
             : undefined
         }
       >
         {icon && (
-          <Image
+          <img
             src={iconSrc}
             alt={iconAlt ?? ''}
             width={Number(imgSize)}
@@ -249,7 +253,7 @@ const Card = ({ children, cta, headline, icon, 'icon-dark': iconDark, 'icon-alt'
             {children}
             {cta && (
               <Body className={cx(bodyStyling)}>
-                <Link to={url}>{cta}</Link>
+                <Link to={resolvedUrl}>{cta}</Link>
               </Body>
             )}
           </div>
