@@ -84,3 +84,11 @@
        ``voyageai.default_chunk_fn`` is available. Use ``chunk_fn`` 
        for client-side chunking only; it cannot be combined with 
        ``enable_auto_chunking=True``.
+
+
+.. note::
+
+  - The listed limits for both ``chunk_size`` and ``chunk_overlap`` are upper bounds. 
+    The actual ``chunk_size`` and ``chunk_overlap`` can be less than the value passed, but cannot be higher.
+
+  - Overlapping tokens are billed in the same way as input tokens.
