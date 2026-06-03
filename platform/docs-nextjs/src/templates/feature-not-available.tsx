@@ -7,8 +7,8 @@ import Button from '@leafygreen-ui/button';
 import { H2 } from '@leafygreen-ui/typography';
 import { theme } from '@/styles/theme';
 import Breadcrumbs from '@/mdx-components/Breadcrumbs';
-import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { DOTCOM_BASE_PREFIX } from '@/constants';
 
 const StyledMain = styled.main`
   max-width: 100vw;
@@ -46,12 +46,9 @@ const ImageContainer = styled.div`
 `;
 
 const FeatureNotAvailImage = () => {
-  const altText = 'Feature not available';
-  const imgPath = '/feature-not-avail.svg';
-
   return (
     <ImageContainer>
-      <Image src={imgPath} alt={altText} height={240} width={360} />
+      <img src={`/${DOTCOM_BASE_PREFIX}/feature-not-avail.svg`} alt="Feature not available" height={240} width={360} />
     </ImageContainer>
   );
 };
