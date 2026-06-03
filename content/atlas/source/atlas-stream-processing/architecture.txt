@@ -106,6 +106,32 @@ When you restart a stream processor after an interruption,
 {+atlas-sp+} queries the last committed checkpoint and resumes
 operation from the described state.
 
+Checkpoints record source offsets rather than copies of source
+documents. For example, {+atlas-sp+} stores oplog resume tokens
+for change stream sources and partition offsets for Kafka sources.
+Deleting or expiring source documents after {+atlas-sp+} commits
+a checkpoint does not prevent the processor from resuming.
+
+If the oplog resume token that {+atlas-sp+} stored in the last
+checkpoint is no longer in the source cluster's oplog when you
+restart the processor, {+atlas-sp+} cannot resume from that
+checkpoint. To recover, restart the processor with
+``resumeFromCheckpoint=false``. To reduce the risk of this,
+configure your source cluster with an adequate oplog window. To
+learn how to set an oplog window, see
+:ref:`set-oplog-min-window`.
+
+For change stream ``$source`` configurations with ``initialSync``
+enabled, {+atlas-sp+} checkpoints both the initial sync phase,
+which copies the source collections, and the normal change event
+processing phase. During initial sync, {+atlas-sp+} records the
+starting oplog position and divides the source collections into
+partitions. The processor copies the existing documents through
+the partitions, then replays change events from the initial
+recorded position once the copy completes. {+atlas-sp+} creates
+checkpoints during initial sync, and the processor can resume if
+an interruption occurs.
+
 .. _kafka-source-offsets:
 
 Kafka Sources and Consumer Group Offsets
@@ -117,10 +143,10 @@ groups track these checkpoints as committed offsets in the Kafka cluster for
 each partition. 
 
 Because these updates happen periodically and asynchronously, the consumer
-group’s committed offsets can temporarily lag behind the most recent checkpoint.
+group's committed offsets can temporarily lag behind the most recent checkpoint.
 This can cause short-term delays in monitoring and lag metrics for tools that
 read committed offsets from Kafka, such as the ``kafka-consumer-group`` CLI
-tool. These tools may show the consumer group “behind” the stream processor’s
+tool. These tools may show the consumer group "behind" the stream processor's
 true internal position.
 
 The amount of lag between internal checkpoints and committed Kafka offsets is
