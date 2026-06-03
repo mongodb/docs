@@ -7,7 +7,6 @@ import Button from '@leafygreen-ui/button';
 import { H2 } from '@leafygreen-ui/typography';
 import { theme } from '@/styles/theme';
 import Breadcrumbs from '@/mdx-components/Breadcrumbs';
-import { DOTCOM_BASE_URL } from '@/constants';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 
@@ -48,7 +47,7 @@ const ImageContainer = styled.div`
 
 const FeatureNotAvailImage = () => {
   const altText = 'Feature not available';
-  const imgPath = `${DOTCOM_BASE_URL}/docs/assets/feature-not-avail.svg`;
+  const imgPath = '/feature-not-avail.svg';
 
   return (
     <ImageContainer>
