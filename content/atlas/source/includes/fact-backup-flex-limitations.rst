@@ -2,7 +2,7 @@
   snapshots. |service| always takes a single daily snapshot at the same
   time, starting 24 hours after the cluster was created.
 
-  If you require finer-grained backups, consider upgrading to an
+  If you require finer-grained backups, consider scaling up to an
   ``M10`` or larger cluster tier.
 
 - On-demand snapshots are not supported for {+Flex-clusters+}.
