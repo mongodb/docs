@@ -968,6 +968,74 @@ describe('convertSnootyAstToMdast', () => {
     expect(mdx).not.toContain('dateFacet');
   });
 
+  it('plain include suppresses typed-role substitution and emits substitution placeholder (YAML extract case)', () => {
+    // Reproduces the aggregate.txt / 4.2-changes-disconnect.rst bug.
+    // |operation| is defined on the page as :dbcommand:`aggregate` (a typed ref role).
+    // Snooty resolves the include body against the current page, so subChildren are correct here.
+    // But the _includes file is shared: if another page processes the same include last, it
+    // overwrites the file with its own |operation| value. The fix: always emit a substitution
+    // placeholder in the _includes file so the per-page <Replacement> slot provides the value.
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'substitution_definition',
+          refname: 'operation',
+          children: [
+            {
+              type: 'ref_role',
+              name: 'dbcommand',
+              target: 'dbcmd.aggregate',
+              children: [{ type: 'literal', value: 'aggregate' }],
+            },
+          ],
+        },
+        {
+          type: 'directive',
+          name: 'include',
+          argument: 'includes/extracts/4.2-changes-disconnect.rst',
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                { type: 'text', value: 'If the client that issued ' },
+                {
+                  type: 'substitution_reference',
+                  refname: 'operation',
+                  // Snooty resolved this for the current page: :dbcommand:`aggregate`
+                  children: [
+                    {
+                      type: 'ref_role',
+                      name: 'dbcommand',
+                      target: 'dbcmd.aggregate',
+                      children: [{ type: 'literal', value: 'aggregate' }],
+                    },
+                  ],
+                },
+                { type: 'text', value: ' disconnects.' },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const onEmitMdxFile = jest.fn();
+    const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
+
+    // _includes file: substitution placeholder — never bake the typed ref role
+    expect(onEmitMdxFile).toHaveBeenCalledTimes(1);
+    const [{ mdastRoot }] = onEmitMdxFile.mock.calls[0];
+    const includeMdx = convertMdastToMdx(mdastRoot);
+    expect(includeMdx).toContain('refKey="operation"');
+    expect(includeMdx).toContain('type="substitution"');
+    expect(includeMdx).not.toContain('<RefRole');
+
+    // Calling page: <Replacement> slot carries the page's typed ref role value
+    expect(mdx).toContain('<Include src="/_includes/extracts/4.2-changes-disconnect"');
+    expect(mdx).toContain('<Replacement name="operation">');
+    expect(mdx).toContain('dbcmd.aggregate');
+  });
+
   it('emits substitution_reference in include body as Reference type replacement (not _references)', () => {
     const ast: SnootyNode = {
       type: 'root',

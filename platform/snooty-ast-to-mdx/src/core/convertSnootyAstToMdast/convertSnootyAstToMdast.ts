@@ -1855,8 +1855,20 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 
       // Typed ref roles (:binary:, :authrole:, :term:, etc.) — emit as <RefRole> identical to
       // a standalone typed role, so |mongos| → <RefRole type="binary" name="bin.mongos">.
+      // Plain include bodies suppress the baked value so per-page <Replacement> slots take precedence.
       const typedRefNode = findTypedRefRoleInSubstitution(node.children);
       if (typedRefNode) {
+        if (ctx.suppressSubstitutionInlineValues && refname) {
+          return {
+            type: 'mdxJsxTextElement',
+            name: 'Reference',
+            attributes: [
+              { type: 'mdxJsxAttribute', name: 'refKey', value: refname },
+              { type: 'mdxJsxAttribute', name: 'type', value: 'substitution' },
+            ],
+            children: [],
+          };
+        }
         const roleName = typeof typedRefNode.name === 'string' ? typedRefNode.name : '';
         const key = extractRefTargetKeyFromRefRoleLike(typedRefNode) ?? '';
         if (roleName && key) {
