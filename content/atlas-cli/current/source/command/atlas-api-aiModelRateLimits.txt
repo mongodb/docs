@@ -12,7 +12,7 @@ atlas api aiModelRateLimits
    :depth: 1
    :class: singlecol
 
-
+Returns, adds, edits, and removes Rate Limits for your AI Models.
 
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
@@ -58,6 +58,7 @@ Related Commands
 * :ref:`atlas-api-aiModelRateLimits-getOrgModelLimit` - Retrieve a single AI model rate limit for the given organization.
 * :ref:`atlas-api-aiModelRateLimits-listGroupModelLimits` - Retrieve AI model rate limits for the given group.
 * :ref:`atlas-api-aiModelRateLimits-listOrgModelLimits` - Retrieve AI model rate limits for the given organization.
+* :ref:`atlas-api-aiModelRateLimits-resetModelRateLimit` - Reset the AI model rate limit for the given model group to default values.
 * :ref:`atlas-api-aiModelRateLimits-resetModelRateLimits` - Reset the AI Model rate limits for the given group to default values.
 * :ref:`atlas-api-aiModelRateLimits-updateModelRateLimit` - Update an AI model rate limit for the given model group.
 
@@ -69,5 +70,6 @@ Related Commands
    getOrgModelLimit </command/atlas-api-aiModelRateLimits-getOrgModelLimit>
    listGroupModelLimits </command/atlas-api-aiModelRateLimits-listGroupModelLimits>
    listOrgModelLimits </command/atlas-api-aiModelRateLimits-listOrgModelLimits>
+   resetModelRateLimit </command/atlas-api-aiModelRateLimits-resetModelRateLimit>
    resetModelRateLimits </command/atlas-api-aiModelRateLimits-resetModelRateLimits>
    updateModelRateLimit </command/atlas-api-aiModelRateLimits-updateModelRateLimit>

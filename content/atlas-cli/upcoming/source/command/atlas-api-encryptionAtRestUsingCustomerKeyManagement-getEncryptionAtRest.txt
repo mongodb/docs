@@ -17,7 +17,7 @@ Returns the configuration for encryption at rest using the keys you manage throu
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
-MongoDB Cloud encrypts all storage even if you don't use your own key management. This resource requires the requesting Service Account or API Key to have the Project Owner role.
+MongoDB Cloud encrypts all storage even if you don't use your own key management.
 
 
 LIMITED TO M10 OR GREATER: MongoDB Cloud limits this feature to dedicated cluster tiers of M10 and greater.
@@ -76,7 +76,7 @@ Options
    * - --version
      - string
      - false
-     - api version to use when calling the api call [options: "2023-01-01"], defaults to the latest version or the profiles api_version config value if set This value defaults to "2023-01-01".
+     - API version to use when calling the Atlas API endpoints [options: "2023-01-01"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "2023-01-01".
 
 Inherited Options
 -----------------

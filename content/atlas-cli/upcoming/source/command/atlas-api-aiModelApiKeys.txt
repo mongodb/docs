@@ -12,7 +12,7 @@ atlas api aiModelApiKeys
    :depth: 1
    :class: singlecol
 
-
+Returns, adds, edits, and removes API Keys for your AI Models.
 
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.

@@ -17,7 +17,7 @@ Invites one new or existing MongoDB Cloud user to join the organization.
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
-The invitation to join the organization will be sent to the username provided and must be accepted within 30 days. To use this resource, the requesting Service Account or API Key must have the Organization Owner role.
+The invitation to join the organization will be sent to the username provided and must be accepted within 30 days.
 
 
 Note: If the user does not have an existing MongoDB Cloud account, they will be prompted to finish setting up an account upon accepting the invitation. If the user already has an account, they will still receive an invitation to access the organization.
@@ -78,7 +78,7 @@ Options
    * - --version
      - string
      - false
-     - api version to use when calling the api call [options: "2025-02-19"], defaults to the latest version or the profiles api_version config value if set This value defaults to "2025-02-19".
+     - API version to use when calling the Atlas API endpoints [options: "2025-02-19"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "2025-02-19".
 
 Inherited Options
 -----------------

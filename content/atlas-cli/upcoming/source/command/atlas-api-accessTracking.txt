@@ -17,7 +17,7 @@ Returns access logs for authentication attempts made to Atlas database deploymen
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
-To view database access history, you must have either the Project Owner or Organization Owner role.
+
 
 Options
 -------

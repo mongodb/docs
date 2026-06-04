@@ -17,7 +17,7 @@ Returns the details for one cluster in the specified project.
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
-Clusters contain a group of hosts that maintain the same data set. The response includes clusters with asymmetrically-sized shards. To use this resource, the requesting Service Account or API Key must have the Project Read Only role. This feature is not available for serverless clusters.
+Clusters contain a group of hosts that maintain the same data set. The response includes clusters with asymmetrically-sized shards. This feature is not available for serverless clusters.
 
 
 This endpoint can also be used on Flex clusters that were created using the Create Cluster endpoint or former M2/M5 clusters that have been migrated to Flex clusters until January 2026. Please use the Get Flex Cluster endpoint for Flex clusters instead.
@@ -80,7 +80,7 @@ Options
    * - --version
      - string
      - false
-     - api version to use when calling the api call [options: "2023-01-01", "2023-02-01", "2024-08-05"], defaults to the latest version or the profiles api_version config value if set This value defaults to "2024-08-05".
+     - API version to use when calling the Atlas API endpoints [options: "2023-01-01", "2023-02-01", "2024-08-05"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "2024-08-05".
 
 Inherited Options
 -----------------

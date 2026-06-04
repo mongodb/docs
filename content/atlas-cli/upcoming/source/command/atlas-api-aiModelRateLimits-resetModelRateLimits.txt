@@ -71,7 +71,7 @@ Options
    * - --version
      - string
      - false
-     - api version to use when calling the api call [options: "preview"], defaults to the latest version or the profiles api_version config value if set This value defaults to "preview".
+     - API version to use when calling the Atlas API endpoints [options: "preview"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "preview".
 
 Inherited Options
 -----------------

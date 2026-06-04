@@ -17,7 +17,7 @@ Generates one X.509 certificate for the specified MongoDB user.
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
-Atlas manages the certificate and MongoDB user that belong to one project. To use this resource, the requesting Service Account or API Key must have the Project Owner role.
+Atlas manages the            certificate and MongoDB user that belong to one project.
 
 
 To get MongoDB Cloud to generate a managed certificate for a database user, set "x509Type" : "MANAGED" on the desired MongoDB Database User.
@@ -87,7 +87,7 @@ Options
    * - --version
      - string
      - false
-     - api version to use when calling the api call [options: "2023-01-01"], defaults to the latest version or the profiles api_version config value if set This value defaults to "2023-01-01".
+     - API version to use when calling the Atlas API endpoints [options: "2023-01-01"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "2023-01-01".
 
 Inherited Options
 -----------------

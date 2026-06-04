@@ -17,7 +17,7 @@ Returns details about the pending and active MongoDB Cloud users associated with
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
-Teams enable you to grant project access roles to MongoDB Cloud users. To use this resource, the requesting Service Account or API Key must have the Organization Member role.
+Teams enable you to grant project access roles to MongoDB Cloud users.
 
 
 Note: This resource cannot be used to view details about users invited via the deprecated Invite One MongoDB Cloud User to Join One Project endpoint.
@@ -67,9 +67,13 @@ Options
      - true
      - Unique 24-hexadecimal digit string that identifies the organization that contains your projects. Use the [/orgs](#tag/Organizations/operation/listOrganizations) endpoint to retrieve all organizations to which the authenticated user has access.
    * - --orgMembershipStatus
-     - string
+     - orgMembershipStatuses
      - false
-     - Organization membership status to filter users by. If you exclude this parameter, this resource returns both pending and active users. Not supported in deprecated versions.
+     - Deprecated: Use orgMembershipStatuses instead. Organization membership status to filter users by. Allowed values: ``ACTIVE``, ``PENDING``, ``INVITATION_EXPIRED``, ``INVITATION_REJECTED``. If you exclude this parameter, this resource returns ACTIVE and PENDING users. Not supported in deprecated versions.
+   * - --orgMembershipStatuses
+     - ACTIVE
+     - false
+     - Organization membership status to filter users by. You can supply this parameter multiple times. Allowed values: ACTIVE, ``PENDING``, ``INVITATION_EXPIRED``, ``INVITATION_REJECTED``. Replaces the deprecated ``orgMembershipStatus`` parameter. If you exclude this parameter, this resource returns ACTIVE and PENDING users. Cannot be combined with ``orgMembershipStatus``. Not supported in deprecated versions.
    * - -o, --output
      - string
      - false
@@ -101,7 +105,7 @@ Options
    * - --version
      - string
      - false
-     - api version to use when calling the api call [options: "2023-01-01", "2025-02-19"], defaults to the latest version or the profiles api_version config value if set This value defaults to "2025-02-19".
+     - API version to use when calling the Atlas API endpoints [options: "2023-01-01", "2025-02-19"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "2025-02-19".
 
 Inherited Options
 -----------------

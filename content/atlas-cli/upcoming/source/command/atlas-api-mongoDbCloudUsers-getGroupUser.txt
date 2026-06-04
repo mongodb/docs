@@ -17,9 +17,6 @@ Returns information about the specified MongoDB Cloud user within the context of
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
-To use this resource, the requesting Service Account or API Key must have the Project Read Only role.
-
-
 Note: You can only use this resource to fetch information about MongoDB Cloud human users. To return information about an API Key, use the Return One Organization API Key endpoint.
 
 
@@ -64,6 +61,10 @@ Options
      -
      - false
      - help for getGroupUser
+   * - --orgMembershipStatuses
+     - ACTIVE
+     - false
+     - Organization membership status to filter users by. You can supply this parameter multiple times. Allowed values: ACTIVE, ``PENDING``, ``INVITATION_EXPIRED``, ``INVITATION_REJECTED``. If you exclude this parameter, this resource returns ACTIVE and PENDING users. Not supported in deprecated versions.
    * - -o, --output
      - string
      - false
@@ -83,7 +84,7 @@ Options
    * - --version
      - string
      - false
-     - api version to use when calling the api call [options: "2025-02-19"], defaults to the latest version or the profiles api_version config value if set This value defaults to "2025-02-19".
+     - API version to use when calling the Atlas API endpoints [options: "2025-02-19"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "2025-02-19".
 
 Inherited Options
 -----------------

@@ -17,7 +17,7 @@ Upgrades a shared-tier cluster to a Flex or Dedicated (M10+) cluster in the spec
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
-To use this resource, the requesting Service Account or API Key must have the Project Cluster Manager role. Each project supports up to 25 clusters.
+Each project supports up to 25 clusters.
 
 
 This endpoint can also be used to upgrade Flex clusters that were created using the Create Cluster API or former M2/M5 clusters that have been migrated to Flex clusters, using instanceSizeName to “M2” or “M5” until January 2026. This functionality will be available until January 22, 2026, after which it will only be available for M0 clusters. Please use the Upgrade Flex Cluster endpoint instead.
@@ -80,7 +80,7 @@ Options
    * - --version
      - string
      - false
-     - api version to use when calling the api call [options: "2023-01-01"], defaults to the latest version or the profiles api_version config value if set This value defaults to "2023-01-01".
+     - API version to use when calling the Atlas API endpoints [options: "2023-01-01"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "2023-01-01".
 
 Inherited Options
 -----------------

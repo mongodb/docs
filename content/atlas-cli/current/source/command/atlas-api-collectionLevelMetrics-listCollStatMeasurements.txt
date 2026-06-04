@@ -99,7 +99,7 @@ Options
    * - --version
      - string
      - false
-     - api version to use when calling the api call [options: "2023-11-15"], defaults to the latest version or the profiles api_version config value if set This value defaults to "2023-11-15".
+     - API version to use when calling the Atlas API endpoints [options: "2023-11-15"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "2023-11-15".
 
 Inherited Options
 -----------------

@@ -17,7 +17,7 @@ Removes one cluster from the specified project.
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
-The cluster must have termination protection disabled in order to be deleted. To use this resource, the requesting Service Account or API Key must have the Project Owner role. This feature is not available for serverless clusters.
+The cluster must have termination protection disabled in order to be deleted. This feature is not available for serverless clusters.
 
 
 This endpoint can also be used on Flex clusters that were created using the Create Cluster endpoint or former M2/M5 clusters that have been migrated to Flex clusters until January 2026. Please use the Delete Flex Cluster endpoint for Flex clusters instead.
@@ -84,7 +84,7 @@ Options
    * - --version
      - string
      - false
-     - api version to use when calling the api call [options: "2023-01-01", "2023-02-01"], defaults to the latest version or the profiles api_version config value if set This value defaults to "2023-02-01".
+     - API version to use when calling the Atlas API endpoints [options: "2023-01-01", "2023-02-01"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "2023-02-01".
    * - -w, --watch
      -
      - false

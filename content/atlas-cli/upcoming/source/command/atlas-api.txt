@@ -176,8 +176,8 @@ Related Commands
 
 * :ref:`atlas-api-accessTracking` - Returns access logs for authentication attempts made to Atlas database deployments.
 * :ref:`atlas-api-activityFeed` - Returns pre-filtered activity feed links for projects and organizations.
-* :ref:`atlas-api-aiModelApiKeys` -
-* :ref:`atlas-api-aiModelRateLimits` -
+* :ref:`atlas-api-aiModelApiKeys` - Returns, adds, edits, and removes API Keys for your AI Models.
+* :ref:`atlas-api-aiModelRateLimits` - Returns, adds, edits, and removes Rate Limits for your AI Models.
 * :ref:`atlas-api-alertConfigurations` - Returns and edits the conditions that trigger alerts and how MongoDB Cloud notifies users.
 * :ref:`atlas-api-alerts` - Returns and acknowledges alerts that MongoDB Cloud triggers based on the alert conditions that you define.
 * :ref:`atlas-api-atlasSearch` - Returns, adds, edits, and removes Atlas Search indexes for the specified cluster.
@@ -201,6 +201,7 @@ Related Commands
 * :ref:`atlas-api-globalClusters` - Returns, adds, and removes Global Cluster managed namespaces and custom zone mappings.
 * :ref:`atlas-api-invoices` - Returns invoices.
 * :ref:`atlas-api-ldapConfiguration` - Returns, edits, verifies, and removes LDAP configurations.
+* :ref:`atlas-api-limitDescription` - Returns User-Configurable Project Limits.
 * :ref:`atlas-api-maintenanceWindows` - Returns, edits, and removes maintenance windows.
 * :ref:`atlas-api-mongoDbCloudUsers` - Returns, adds, and edits MongoDB Cloud users.
 * :ref:`atlas-api-monitoringAndLogs` - Returns database deployment monitoring and logging data.
@@ -255,6 +256,7 @@ Related Commands
    globalClusters </command/atlas-api-globalClusters>
    invoices </command/atlas-api-invoices>
    ldapConfiguration </command/atlas-api-ldapConfiguration>
+   limitDescription </command/atlas-api-limitDescription>
    maintenanceWindows </command/atlas-api-maintenanceWindows>
    mongoDbCloudUsers </command/atlas-api-mongoDbCloudUsers>
    monitoringAndLogs </command/atlas-api-monitoringAndLogs>

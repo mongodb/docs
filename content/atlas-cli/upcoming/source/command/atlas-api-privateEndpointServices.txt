@@ -63,6 +63,7 @@ Related Commands
 * :ref:`atlas-api-privateEndpointServices-getRegionalEndpointMode` - Checks whether each region in the specified cloud service provider can create multiple private endpoints per region.
 * :ref:`atlas-api-privateEndpointServices-listPrivateEndpointService` - Returns the name, interfaces, and state of all private endpoint services for the specified cloud service provider.
 * :ref:`atlas-api-privateEndpointServices-toggleRegionalEndpointMode` - Enables or disables the ability to create multiple private endpoints per region in all cloud service providers in one project.
+* :ref:`atlas-api-privateEndpointServices-updatePrivateEndpointService` - Updates the specified private endpoint service for the project.
 
 
 .. toctree::
@@ -77,3 +78,4 @@ Related Commands
    getRegionalEndpointMode </command/atlas-api-privateEndpointServices-getRegionalEndpointMode>
    listPrivateEndpointService </command/atlas-api-privateEndpointServices-listPrivateEndpointService>
    toggleRegionalEndpointMode </command/atlas-api-privateEndpointServices-toggleRegionalEndpointMode>
+   updatePrivateEndpointService </command/atlas-api-privateEndpointServices-updatePrivateEndpointService>

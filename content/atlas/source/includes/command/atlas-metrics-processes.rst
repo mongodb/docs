@@ -126,4 +126,4 @@ Examples
    :copyable: false
 
    # Return the JSON-formatted process metrics for the host atlas-lnmtkm-shard-00-00.ajlj3.mongodb.net:27017
-   atlas metrics processes atlas-lnmtkm-shard-00-00.ajlj3.mongodb.net:27017 --output json
+   atlas metrics processes atlas-lnmtkm-shard-00-00.ajlj3.mongodb.net:27017 --granularity PT1M --period PT1H --output json

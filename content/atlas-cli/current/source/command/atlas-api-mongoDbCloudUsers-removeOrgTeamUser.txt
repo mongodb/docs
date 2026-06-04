@@ -17,7 +17,7 @@ Removes one MongoDB Cloud user from one team.
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
-You can remove an active user or a user that has not yet accepted the invitation to join the organization. To use this resource, the requesting Service Account or API Key must have the Organization Owner role.
+You can remove an active user or a user that has not yet accepted the invitation to join the organization.
 
 
 Note: This resource cannot be used to remove a user invited via the deprecated Invite One MongoDB Cloud User to Join One Project endpoint.
@@ -82,7 +82,7 @@ Options
    * - --version
      - string
      - false
-     - api version to use when calling the api call [options: "2025-02-19"], defaults to the latest version or the profiles api_version config value if set This value defaults to "2025-02-19".
+     - API version to use when calling the Atlas API endpoints [options: "2025-02-19"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "2025-02-19".
 
 Inherited Options
 -----------------

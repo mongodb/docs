@@ -17,7 +17,7 @@ You can continually export mongod, mongos, and audit logs to an AWS S3 bucket.
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
-The new /logIntegrations API provides 1-minute log export. The existing /pushBasedLogExport API provides 5-minute log export and will be deprecated in the future. The log export integrations are managed at the project level.
+The new /logIntegrations API provides 1-minute log export on a best-effort basis. The existing /pushBasedLogExport API provides 5-minute log export and will be deprecated in the future. The log export integrations are managed at the project level.
 
 Options
 -------

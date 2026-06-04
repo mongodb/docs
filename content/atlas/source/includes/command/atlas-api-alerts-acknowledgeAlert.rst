@@ -17,7 +17,7 @@ Confirms receipt of one existing alert.
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
-This alert applies to any component in one project. Acknowledging an alert prevents successive notifications. You receive an alert when a monitored component meets or exceeds a value you set until you acknowledge the alert. To use this resource, the requesting Service Account or API Key must have the Project Alerts Manager, Project Monitoring Admin, Organization Owner, or Project Owner role. Use the Return All Alerts from One Project endpoint to retrieve all alerts to which the authenticated user has access.
+This alert applies to any component in one project. Acknowledging an alert prevents successive notifications. You receive an alert when a monitored component meets or exceeds a value you set until you acknowledge the alert. Use the Return All Alerts from One Project endpoint to retrieve all alerts to which the authenticated user has access.
 
 
 This resource remains under revision and may change.
@@ -84,7 +84,7 @@ Options
    * - --version
      - string
      - false
-     - api version to use when calling the api call [options: "2023-01-01", "2024-05-30"], defaults to the latest version or the profiles api_version config value if set This value defaults to "2024-05-30".
+     - API version to use when calling the Atlas API endpoints [options: "2023-01-01", "2024-05-30"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "2024-05-30".
 
 Inherited Options
 -----------------
