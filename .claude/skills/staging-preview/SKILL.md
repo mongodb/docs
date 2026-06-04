@@ -95,33 +95,35 @@ Use a short, human-readable label for each link (e.g., the page heading or opera
 
 ## Step 4 — Construct page-specific URLs for changed `includes` files
 
-Each `<site>/source` directory (or `<site>/<version>/source` directory for versioned docs) has an `includes` directory. Files under `includes/` are rendered on multiple pages using the `.. include::` or `.. literalinclude` directive.
+Each `<site>/source` directory (or `<site>/<version>/source` directory for versioned docs) has an `includes` directory. Files under `includes/` are rendered on multiple pages using include directives.
+
+**Format reference:** Read `references/rst-include-patterns.md` for include directive names, virtual path formats, and the page file extension. If this project uses `.mdx` pages instead of `.txt`, read `references/mdx-include-patterns.md` instead.
 
 For each changed file that has `includes/` in its path, first check whether the file is a YAML extract container or a regular include file, then follow the appropriate path below.
 
 ### YAML extract files (`.yaml`)
 
-YAML extract files contain multiple named blocks under `ref:` keys. They are never referenced directly — each `ref:` maps to a virtual path `/includes/extracts/<ref>.rst` that pages include with `.. include::`.
+YAML extract files contain multiple named blocks under `ref:` keys. They are never referenced directly — each `ref:` maps to a virtual include path (see `references/rst-include-patterns.md` for the format).
 
 1. **Identify changed refs from the diff** — Run the following two commands and cross-reference their output:
    - `grep -n "^ref:" <file>` — get the line numbers of all `ref:` blocks in the file.
    - `git diff $(git merge-base HEAD origin/HEAD)..HEAD -- <file>` — get the diff. Parse the `@@` hunk headers to find the line numbers of changed lines (the `+<start>` value in `@@ -a,b +start,c @@` gives the new-file line number of each hunk).
 
    For each changed hunk, find the largest `ref:` line number that is less than or equal to the hunk's starting line number. That is the ref block containing the change. Collect only those ref values.
-2. **For each changed ref**, construct the virtual include path `/includes/extracts/<ref>.rst`.
-3. **Search for `.txt` files that include each virtual path** using the same grep approach as the regular include steps below. Collect all unique `.txt` files found across all changed refs.
-4. **If no `.txt` files are found for any changed ref**, alert the user and skip to the next changed file.
-5. **Build staging URLs** for the collected `.txt` files following Step 3. If many pages are found, include a representative sample (up to five) and note in the PR body that additional pages may be affected.
+2. **For each changed ref**, construct the virtual include path using the format from the format reference file.
+3. **Search for page files that include each virtual path** using the same grep approach as the regular include steps below. Collect all unique page files found across all changed refs.
+4. **If no page files are found for any changed ref**, alert the user and skip to the next changed file.
+5. **Build staging URLs** for the collected page files following Step 3. If many pages are found, include a representative sample (up to five) and note in the PR body that additional pages may be affected.
 
-### Regular include files (`.rst`, `.txt`, etc.)
+### Regular include files
 
 Find a single page that renders the file and build a full staging URL for it:
 
 1. **Extract the file path** — Take everything after `source` in the file path. The result should begin with `/includes/`.
-2. **Search for files that include the changed file**. Use the `grep` command to search for the file path. For unversioned docs, search in the `<site>/source` directory. For versioned docs, search in the `<site>/<version>/source` directory, where `<version>` must match the version of the changed includes file. The grep command should search for the file path with the following pattern: `.. include:: <file-path>` or `.. literalinclude:: <file-path>`.
+2. **Search for files that include the changed file**. Use the `grep` command to search for the file path using the include directive patterns from the format reference file. For unversioned docs, search in the `<site>/source` directory. For versioned docs, search in the `<site>/<version>/source` directory, where `<version>` must match the version of the changed includes file.
 3. **If no files include the changed file**, alert the user and skip to the next changed file.
-4. **Find a .txt file that includes the changed file** — From the list of files that include the changed file, find any file that ends with `.txt`. Follow the instructions in Step 3 to build the staging URL for that file.
-5. **If none of the files that include the changed file are .txt files**, take that intermediate file, treat it as the new changed file, and repeat steps 1–4 to extract its path and search for files that include it. Do this until you find have a staging URL for a .txt file or reach a dead end. If you reach a dead end, alert the user and skip to the next changed file.
+4. **Find a page file that includes the changed file** — From the list of files that include the changed file, find any page file (see the format reference file for the extension). Follow the instructions in Step 3 to build the staging URL for that file.
+5. **If none of the files that include the changed file are page files**, take that intermediate file, treat it as the new changed file, and repeat steps 1–4 to extract its path and search for files that include it. Do this until you have a staging URL for a page file or reach a dead end. If you reach a dead end, alert the user and skip to the next changed file.
 
 If you did not already, add the constructed staging URL to the list of staging links with a descriptive label:
 

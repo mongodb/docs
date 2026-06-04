@@ -30,27 +30,15 @@ Extract the `published_at` field and format it as `Month D, YYYY` (e.g., `March 
 
 ### 4. Draft the new release notes entry
 
-Format the new entry to match the conventions observed in step 2, using the tool-specific overrides supplied by the calling skill. Insert the entry in the correct version-sorted position (newest version first). Do not assume the new entry belongs at the top — scan the existing headings to find where `{VERSION}` falls relative to other versions and insert it there, with a blank line separating it from the entry above and below. For example:
+Format the new entry to match the conventions observed in step 2, using the tool-specific overrides supplied by the calling skill. Insert the entry in the correct version-sorted position (newest version first). Do not assume the new entry belongs at the top — scan the existing headings to find where `{VERSION}` falls relative to other versions and insert it there, with a blank line separating it from the entry above and below.
 
-```
-vX.Y.Z
-------
-
-*Released Month D, YYYY*
-
-...
-
-vX.Y.Z-1
----------
-```
+**Format rules:** If `{RELEASE_NOTES_FILE}` ends in `.txt`, read `references/rst-formatting.md` for the heading template and line-length rules. If it ends in `.mdx`, read `references/mdx-formatting.md` instead.
 
 #### Shared rules (apply to all tools unless the calling skill overrides)
 
 - Set the release date to `*Released <date from step 3>*`.
-- The heading underline must exactly match the heading length. If the heading contains a substitution constant (e.g., `|compass|`), match the underline to the length of the raw RST source text, not the rendered word — check the existing headings in the file to confirm the expected underline length. If the heading uses a source constant (e.g., `{+mongosh+}`), match the underline to the length of the rendered text. 
 - Convert PR-style commit messages into clean sentence or noun-phrase descriptions. Drop scope prefixes like `feat(connections):` or `fix(indexes):` — extract only the meaningful description.
 - Preserve issue references for any ticket numbers present. Omit the reference if no ticket is listed.
-- Wrap all lines at 72 characters. Break long list items with a 2-space continuation indent.
 - Use the `{PRODUCT_SUBSTITUTION}` value for the heading (e.g. a substitution constant like `|compass|`, or a version prefix like `v`).
 - Use the `{CHANGELOG_LINK}` template for the full changelog entry at the bottom of the section.
 

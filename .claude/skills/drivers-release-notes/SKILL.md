@@ -66,9 +66,8 @@ Format the new entry to match the conventions observed in step 2 and the additio
 - Before making changes, ask the user if they want to create a new branch for the changes. If yes, request the ticket number and create a new branch named `DOCSP-<ticket number>-release-notes`. If no, proceed to the next step.
 - The section for the specified version might already exist. In that case, ensure that all the items fetched from GitHub are present in the existing section. If not, add the missing items. If all items are present, instruct the user that the release notes are already complete and move to the next step.
 - Some drivers, such as C# and Ruby, include an `_upcoming-breaking-changes:` ref anchor immediately preceding the newest release notes section. If so, ensure that you move the ref anchor so it's above the section for the version you are adding.
-- The heading underline must exactly match the heading length. If the heading contains a substitution constant (e.g., `{+libbson+}`), match the underline to the length of the rendered text. 
+- See the **Formatting Rules** section in `references/docs-templates.md` for heading underline and line-length rules.
 - Convert PR-style commit messages from the source code release notes into clean sentence or noun-phrase descriptions. Drop JIRA ticket prefixes like `PHPLIB-1714:` — extract only the meaningful description. Add detail to the description by retrieving additional context about the change in the linked ticket or PR.
-- Wrap all lines at 72 characters. Break long list items with a 2-space continuation indent.
 - Use the `{VERSION}` value for the heading (e.g. `What's New in {VERSION}`). The driver reference file includes instructions for determining the correct heading format for the driver.
 - At the bottom of the section, add a link to the changelog in the driver source code by using the `{CHANGELOG_LINK}`. Use this syntax: "To learn more about this release, see the
 :github:`v{VERSION} Release Notes <{CHANGELOG_LINK}>` on GitHub."

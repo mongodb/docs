@@ -21,17 +21,11 @@ Follow the workflow defined in `.claude/skills/release-notes-base/SKILL.md`, sub
 
 ## Format overrides
 
-These rules override the shared defaults in `release-notes-base`:
+These rules override the shared defaults in `release-notes-base`. For RST
+formatting (heading style, changelog link), read `references/rst-formatting.md`.
 
-- **Heading:** bare version number (e.g. `1.9.0`), underlined with `-----`. Do not prefix with `v` or use a substitution constant.
 - **Section labels:** before drafting, ask the writer which section labels to use. Present the following options and allow free input:
   - `New features and updates:`
   - `Bug Fixes:`
   - A custom label the writer provides
 - Omit a section entirely if it has no entries. If the release has both new features and bug fixes, confirm whether to use both sections or combine them under a single label.
-- **Changelog link:** place the inline RST hyperlink on its own line, immediately after the last bullet and before the next version heading. Use the exact format:
-
-  ```
-  `Full release notes available on GitHub
-  <https://github.com/mongodb-js/mongodb-mcp-server/releases/tag/v{VERSION}>`__.
-  ```

@@ -2,6 +2,14 @@
 
 RST templates used by the `drivers-release-notes` skill. Use these when drafting new release notes and upgrade guide sections.
 
+## Formatting Rules
+
+- **Heading underline**: must exactly match the heading length. If the heading
+  contains a substitution constant (e.g., `{+libbson+}`), match the underline
+  to the length of the rendered text.
+- **Line length**: wrap all content at 72 characters. Break long list items
+  with a 2-space continuation indent.
+
 ## Shared Templates
 
 ### Standard Entry Format
