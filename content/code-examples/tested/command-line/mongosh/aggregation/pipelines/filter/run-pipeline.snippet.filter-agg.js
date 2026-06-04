@@ -1,4 +1,3 @@
-// :snippet-start: filter-agg
 db.movies.aggregate( [
    // Stage 1: Match documents with the Drama genre
    { $match: { genres: "Drama" } },
@@ -12,4 +11,3 @@ db.movies.aggregate( [
    // Stage 4: Project only the fields needed for the result
    { $project: { _id: 0, title: 1, year: 1, directors: 1, runtime: 1 } }
 ] )
-// :snippet-end:

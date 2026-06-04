@@ -20,6 +20,15 @@ describeWithSampleData("mongosh sample_mflix example tests", () => {
     }
   });
 
+  test("Should return three oldest Drama movies with filtered fields", async () => {
+    await Expect
+      .outputFromExampleFiles([
+        "aggregation/pipelines/filter/run-pipeline.js"
+      ])
+      .withDbName(dbName)
+      .shouldMatch("aggregation/pipelines/filter/output.js");
+  });
+
   test("Should return results specifying batch size", async () => {
     await Expect
       .outputFromExampleFiles([

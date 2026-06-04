@@ -18,16 +18,6 @@ describe("mongosh aggregation pipeline tutorial tests", () => {
     }
   });
 
-  test("Should return filtered output that includes the three specified person records", async () => {
-    await Expect
-      .outputFromExampleFiles([
-        "aggregation/pipelines/filter/load-data.js",
-        "aggregation/pipelines/filter/run-pipeline.js"
-      ])
-      .withDbName(dbName)
-      .shouldMatch("aggregation/pipelines/filter/output.sh");
-  });
-
   test("Should return grouped and totaled output that includes the three expected records", async () => {
     await Expect
       .outputFromExampleFiles([
