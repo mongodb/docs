@@ -1,0 +1,7 @@
+// :snippet-start: reference-users
+db.users.insertOne( {
+   _id: 987,
+   name: "Joel M",
+   email: "joel_m@gameofthron.es"
+} )
+// :snippet-end:
