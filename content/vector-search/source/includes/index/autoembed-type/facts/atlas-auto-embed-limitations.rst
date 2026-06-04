@@ -32,3 +32,13 @@ regardless of your cluster's cloud provider. Data transfer costs apply.
 .. include:: /includes/index/shared/fact-fts-cluster-tier-limitations.rst
 
 .. include:: /includes/shared/facts/fact-search-index-limit.rst
+
+Automated Embedding does not currently support generating vector
+embeddings for text fields that are nested within an array of objects or
+subdocuments, such as ``reviews.comments`` in the
+:ref:`sample_airbnb.listingsAndReviews <sample-airbnb>` sample
+collection. Automated Embedding can only generate vector embeddings for
+top-level text fields or text fields nested within an object or
+subdocument, such as ``address.country`` in the
+:ref:`sample_airbnb.listingsAndReviews <sample-airbnb>` sample
+collection.

@@ -44,12 +44,16 @@
        | ``path``
      - String 
      - Required 
-     - Name of the text field to index. For nested fields, use dot notation
+     - Name of the text field to index. For nested fields, use :ref:`dot notation <document-dot-notation>` 
        to specify the path to embedded fields. If the text value in the 
        specified field exceeds 32,000 tokens, {+avs+} automatically 
        truncates during indexing to fit the context window of the embedding 
        model.
-
+       
+       Automated Embedding does not support generating vector embeddings
+       for fields that are nested within an array of objects or
+       subdocuments.
+             
    * - | ``fields.``
        | ``model``
      - String
