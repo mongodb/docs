@@ -3,6 +3,7 @@ import { getSiteMetadata } from '@/mdx-utils/load-metadata';
 
 jest.mock('@/mdx-utils/blob-read', () => ({
   getBlobString: jest.fn(),
+  BlobStoreReadError: class BlobStoreReadError extends Error {},
 }));
 
 // IMPORTANT: order is longest-prefix-first, mirroring how prefix-map.json is sorted in

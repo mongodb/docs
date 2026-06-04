@@ -1,6 +1,6 @@
 import { cache } from './react-cache';
 import type { RemoteMetadata } from '@/types/data';
-import { getBlobString } from './blob-read';
+import { getBlobString, BlobStoreReadError } from './blob-read';
 import { getBlobKey } from './get-blob-key';
 import projectPrefixPaths from '@/generated/prefix-map.json';
 
@@ -41,6 +41,9 @@ const getSiteMetadataCached = cache(
         return { projectPath, siteMetadata };
       }
     } catch (err) {
+      // A transient blob-store failure must keep its type so callers can avoid
+      // caching it as a 404 (see loadMDX). Don't mask it as "missing metadata".
+      if (err instanceof BlobStoreReadError) throw err;
       if (!(err instanceof SyntaxError)) {
         throw new Error(
           `[getSiteMetadata] Unexpected error reading blob for "${projectPath || 'landing'}": ${err instanceof Error ? err.message : String(err)

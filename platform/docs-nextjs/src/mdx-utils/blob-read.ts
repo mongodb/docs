@@ -3,6 +3,31 @@ import type { Store } from '@netlify/blobs';
 import { productionStore, branchSpecificStore, branchSpecificStoreName } from './blob-store';
 import { BLOB_STORE_NAME } from './blob-constants';
 
+/**
+ * Thrown when a blob read fails for a reason other than the key being absent
+ * (timeouts, 5xx, connection resets — i.e. transient infrastructure errors).
+ * A genuinely-missing key returns `null` instead of throwing. Callers use this
+ * type to tell "page does not exist" (a legitimate, cacheable 404) apart from
+ * "storage hiccup" (must NOT be frozen into a cached 404).
+ */
+export class BlobStoreReadError extends Error {
+  readonly key: string;
+  constructor(key: string, attemptedStores: string, cause: unknown) {
+    const causeMsg = cause instanceof Error ? cause.message : String(cause);
+    super(`Blob store read failed for key "${key}" (stores: ${attemptedStores}): ${causeMsg}`);
+    this.name = 'BlobStoreReadError';
+    this.key = key;
+    this.cause = cause;
+  }
+}
+
+/** A "not found" response is a legitimate miss, not a transient failure. */
+const isNotFoundError = (msg: string): boolean =>
+  msg.toLowerCase().includes('not found') ||
+  msg.includes('404') ||
+  msg.includes('401') ||
+  msg.includes('no such key');
+
 /** Try branchSpecificStore first, fall back to productionStore. */
 async function getFromStores(key: string, type: 'string' | 'blob'): Promise<string | Blob | null> {
   const storeEntries: Array<{ store: Store; name: string }> =
@@ -24,17 +49,12 @@ async function getFromStores(key: string, type: 'string' | 'blob'): Promise<stri
       }
     } catch (error) {
       const msg = error instanceof Error ? error.message : String(error);
-      if (
-        msg.toLowerCase().includes('not found') ||
-        msg.includes('404') ||
-        msg.includes('401') ||
-        msg.includes('no such key')
-      ) {
+      if (isNotFoundError(msg)) {
         continue;
       }
       const attempted = storeEntries.map((e) => `"${e.name}"`).join(', ');
       console.error(`Blob store error for key "${key}", attempted stores: ${attempted}`);
-      throw error;
+      throw new BlobStoreReadError(key, attempted, error);
     }
   }
   return null;

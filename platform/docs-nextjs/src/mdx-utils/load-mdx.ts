@@ -9,7 +9,7 @@ import { remarkHowToSeoMetadata } from './remark-how-to-seo-metadata';
 import { remarkResolveImports } from './remark-resolve-imports';
 import { remarkStepNumbers } from './remark-step-numbers';
 import { components } from '@/mdx-components';
-import { getBlobString } from './blob-read';
+import { getBlobString, BlobStoreReadError } from './blob-read';
 import { getBlobKey } from './get-blob-key';
 import { getSiteMetadata } from './load-metadata';
 
@@ -98,7 +98,13 @@ export const loadMDX = async (urlPath: string[], replacements?: Record<string, R
     }
 
     return await loadMDXCached(urlPath.join('/'));
-  } catch {
+  } catch (err) {
+    // A transient blob-store failure must not be cached as a 404. Re-throw it so
+    // the route renders an (uncached) error and self-heals on the next request,
+    // instead of freezing a notFound() for the whole deploy. Genuine misses
+    // already return null above without throwing, and compile errors on
+    // malformed MDX still fall through to null (treated as not-found).
+    if (err instanceof BlobStoreReadError) throw err;
     return null;
   }
 };
