@@ -1,6 +1,6 @@
 import { cache } from './react-cache';
 import type { RemoteMetadata } from '@/types/data';
-import { getBlobString, BlobStoreReadError } from './blob-read';
+import { getBlobStringWithFallback, BlobStoreReadError } from './blob-read';
 import { getBlobKey } from './get-blob-key';
 import projectPrefixPaths from '@/generated/prefix-map.json';
 
@@ -33,9 +33,9 @@ const getSiteMetadataCached = cache(
 
     // Single fetch: picks the best matching prefix and makes one request. If that blob
     // is missing or contains invalid JSON, an error is thrown — no other prefixes are tried.
-    const key = getBlobKey(projectPath ? `${projectPath}/_site.json` : '_site.json');
+    const siteJsonPath = projectPath ? `${projectPath}/_site.json` : '_site.json';
     try {
-      const siteMetadataString = await getBlobString(key);
+      const siteMetadataString = await getBlobStringWithFallback(siteJsonPath);
       if (siteMetadataString) {
         const siteMetadata: RemoteMetadata = JSON.parse(siteMetadataString);
         return { projectPath, siteMetadata };
@@ -55,7 +55,7 @@ const getSiteMetadataCached = cache(
 
     throw new Error(
       `[getSiteMetadata] Could not load site metadata for [${urlPath.join('/')}]: ` +
-      `blob not found or contains invalid JSON (key: ${key})`,
+      `blob not found or contains invalid JSON (key: ${getBlobKey(siteJsonPath)})`,
     );
   },
 );

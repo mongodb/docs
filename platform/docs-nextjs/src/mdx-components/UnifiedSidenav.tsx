@@ -110,7 +110,7 @@ const findPageParent = (tree: TocItem[], targetUrl: string): [boolean, TocItem |
   const dfs = (item: TocItem): [boolean, TocItem] | null => {
     path.push(item);
 
-    if (normalizeUrlForMatch(item.newUrl ?? '') === normalizeUrlForMatch(targetUrl)) {
+    if (normalizeUrlForMatch(item.newUrl ?? '').toLowerCase() === normalizeUrlForMatch(targetUrl).toLowerCase()) {
       for (let i = path.length - 1; i >= 0; i--) {
         if (path[i].showSubNav === true) {
           return [true, path[i]];

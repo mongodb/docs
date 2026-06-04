@@ -12,7 +12,7 @@ const normalizeForOffline = (str: string) => {
 export const isCurrentPage = (currentUrl: string, slug = '') => {
   if (!currentUrl || !slug) return false;
   if (isOfflineBuild) {
-    return normalizeForOffline(currentUrl) === normalizeForOffline(slug);
+    return normalizeForOffline(currentUrl).toLowerCase() === normalizeForOffline(slug).toLowerCase();
   }
-  return trimSlashes(currentUrl) === trimSlashes(slug);
+  return trimSlashes(currentUrl).toLowerCase() === trimSlashes(slug).toLowerCase();
 };

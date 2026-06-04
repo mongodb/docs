@@ -1,7 +1,6 @@
 import path from 'path';
 import { NextResponse, type NextRequest } from 'next/server';
-import { getBlob } from '@/mdx-utils/blob-read';
-import { IMAGE_PREFIX } from '@/mdx-utils/get-blob-key';
+import { getBlobWithFallback } from '@/mdx-utils/blob-read';
 
 const mimeTypes: Record<string, string> = {
   '.png': 'image/png',
@@ -19,8 +18,7 @@ const mimeTypes: Record<string, string> = {
 export async function GET(_req: NextRequest, { params }: { params: { path: string[] } }) {
   try {
     const imagePath = params.path.join('/');
-    const imageKey = `${IMAGE_PREFIX}/${imagePath}`;
-    const blob = await getBlob(imageKey);
+    const blob = await getBlobWithFallback(imagePath);
 
     if (!blob) {
       return new NextResponse('Not Found', { status: 404 });

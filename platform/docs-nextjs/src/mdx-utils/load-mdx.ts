@@ -9,7 +9,7 @@ import { remarkHowToSeoMetadata } from './remark-how-to-seo-metadata';
 import { remarkResolveImports } from './remark-resolve-imports';
 import { remarkStepNumbers } from './remark-step-numbers';
 import { components } from '@/mdx-components';
-import { getBlobString, BlobStoreReadError } from './blob-read';
+import { getBlobStringWithFallback, BlobStoreReadError } from './blob-read';
 import { getBlobKey } from './get-blob-key';
 import { getSiteMetadata } from './load-metadata';
 
@@ -18,13 +18,12 @@ export const VERSION_PLACEHOLDER = ':version';
 export const isVersionPlaceholder = (seg: string) => decodeURIComponent(seg) === VERSION_PLACEHOLDER;
 
 const fetchMdxString = async (filePath: string) => {
-  const pageKey = getBlobKey(`${filePath}.mdx`);
-  const mdxString = await getBlobString(pageKey);
+  const mdxString = await getBlobStringWithFallback(`${filePath}.mdx`);
   if (mdxString) return mdxString;
 
-  const blobString = await getBlobString(getBlobKey(`${filePath}/index.mdx`));
+  const blobString = await getBlobStringWithFallback(`${filePath}/index.mdx`);
   if (!blobString) {
-    console.warn('[fetchMdxString] NOT FOUND in blob store:', { pageKey });
+    console.warn('[fetchMdxString] NOT FOUND in blob store:', { pageKey: getBlobKey(`${filePath}.mdx`) });
   }
   return blobString;
 };

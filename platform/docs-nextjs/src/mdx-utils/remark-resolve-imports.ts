@@ -6,7 +6,7 @@ import { remark } from 'remark';
 import remarkMdx from 'remark-mdx';
 import remarkFrontmatter from 'remark-frontmatter';
 import remarkGfm from 'remark-gfm';
-import { getBlobString } from './blob-read';
+import { getBlobStringWithFallback } from './blob-read';
 import { getBlobKey } from './get-blob-key';
 
 type MdxJsxElement = MdxJsxFlowElement | MdxJsxTextElement;
@@ -114,7 +114,8 @@ const fetchAndParseInclude = async ({
 }: FetchAndParseIncludeArgs): Promise<Root | null> => {
   const mdxFilePath = src.replace(/^\/+/, '').replace(/\.mdx$/, '') + '.mdx';
   // projectPath is empty string for the landing page (no project path prefix)
-  const blobKey = getBlobKey(projectPath ? `${projectPath}/${mdxFilePath}` : mdxFilePath);
+  const rawPath = projectPath ? `${projectPath}/${mdxFilePath}` : mdxFilePath;
+  const blobKey = getBlobKey(rawPath);
 
   if (includeStack.has(blobKey)) {
     console.warn(`[remarkResolveImports] Circular include: ${[...includeStack, blobKey].join(' → ')}`);
@@ -125,7 +126,7 @@ const fetchAndParseInclude = async ({
   nextStack.add(blobKey);
 
   try {
-    const content = await getBlobString(blobKey);
+    const content = await getBlobStringWithFallback(rawPath);
     if (!content) {
       console.warn(`[remarkResolveImports] Could not load include: ${src} (key: ${blobKey})`);
       return null;
@@ -155,10 +156,11 @@ interface ReferencesData {
 
 const loadReferences = async (projectPath: string): Promise<ReferencesData | null> => {
   // projectPath is empty string for the landing page (no project path prefix)
-  const blobKey = getBlobKey(projectPath ? `${projectPath}/_references.json` : '_references.json');
+  const rawPath = projectPath ? `${projectPath}/_references.json` : '_references.json';
+  const blobKey = getBlobKey(rawPath);
 
   try {
-    const raw = await getBlobString(blobKey);
+    const raw = await getBlobStringWithFallback(rawPath);
     if (!raw) {
       console.warn(`[remarkResolveImports] _references.json not found (key: ${blobKey})`);
       return null;
