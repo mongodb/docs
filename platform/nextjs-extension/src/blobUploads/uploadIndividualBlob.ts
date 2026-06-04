@@ -4,13 +4,12 @@ export const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg
 export const INV_EXTENSION = '.inv';
 
 export const constructBlobKey = (relativePath: string): string => {
-  const isImage = IMAGE_EXTENSIONS.some((ext) =>
-    relativePath.toLowerCase().endsWith(ext),
-  );
-  const isJson = relativePath.toLowerCase().endsWith('.json');
-  const isInv = relativePath.toLowerCase().endsWith(INV_EXTENSION);
+  const lowerPath = relativePath.toLowerCase();
+  const isImage = IMAGE_EXTENSIONS.some((ext) => lowerPath.endsWith(ext));
+  const isJson = lowerPath.endsWith('.json');
+  const isInv = lowerPath.endsWith(INV_EXTENSION);
   const prefix = isImage ? 'image' : isJson ? 'reference' : isInv ? 'inventory' : 'mdx';
-  return `${prefix}/${relativePath}`;
+  return `${prefix}/${lowerPath}`;
 };
 
 const MAX_RETRIES = 3;
