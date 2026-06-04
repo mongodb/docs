@@ -92,10 +92,9 @@ async function listOrphanedKeysUnderPrefix(
   for await (const { blobs } of store.list({ prefix, paginate: true })) {
     for (const blob of blobs) {
       const owner = findOwningProjectPath(blob.key, allSortedProjectPaths);
-      console.log(`[blob cleanup] blob "${blob.key}" → owner: ${owner ?? 'null'}, inRebuilt: ${owner !== null ? rebuiltProjectPaths.has(owner) : false}`);
       if (owner === null || !rebuiltProjectPaths.has(owner)) continue;
       if (!expectedKeys.has(blob.key)) {
-        console.log(`[blob cleanup] Orphan key: ${blob.key}`);
+        console.log(`[blob cleanup] Orphan key: ${blob.key} → owner: ${owner}`);
         orphanKeys.push(blob.key);
       }
     }
