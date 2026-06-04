@@ -31,6 +31,10 @@ nvm use
 pnpm i
 ```
 
+Copy `docs-nextjs/.env.sample` to `docs-nextjs/.env` and fill in the required values.
+
+`MONGODB_URI` can be obtained from Atlas.
+
 Before you start the dev server for the docs, you may want to seed the blob storage with local MDX files. To do this, you should first convert a Snooty rST project to MDX:
 ```bash
 pnpm convert:rst-to-mdx -- manual
