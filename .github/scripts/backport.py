@@ -5,11 +5,12 @@ Triggered by .github/workflows/backport.yml when a PR merges into main.
 
 Logic:
   1. Read the merged PR's labels and changed files via gh.
-  2. For each label that maps to a versioned project in
-     .github/backport-config.yml, enumerate sibling version directories
-     (excluding configured EOL versions).
+  2. For each label in the format backport-<project>-<version> that matches a
+     project prefix in .github/backport-config.yml, record the explicit target
+     version. Only versions named in a backport label are targeted — the script
+     never backports to all versions by default.
   3. For each changed file under content/<project>/<source-version>/,
-     apply the change to every eligible sibling version:
+     apply the change to every explicitly requested target version:
        - Added files are mirrored to all target versions.
        - Modified files are copied only when the file already exists
          in the target (absence implies version-gated content).
@@ -132,22 +133,29 @@ def project_for_path(path: str) -> tuple[str | None, str | None, str | None]:
     return project, version, relative
 
 
-def eligible_targets(
-    project: str, source_version: str, config: dict
+def requested_targets(
+    project: str, source_version: str, config: dict, explicit_versions: list[str]
 ) -> list[str]:
+    """Return the subset of explicit_versions that are valid targets.
+
+    Filters out the source version, configured EOL exclusions, and version
+    directories that don't exist on disk.
+    """
     project_dir = REPO_ROOT / "content" / project
     excludes = set(
         (config.get("exclude_versions") or {}).get(project, [])
     )
     targets = []
-    for child in sorted(project_dir.iterdir()):
-        if not child.is_dir():
+    for version in explicit_versions:
+        if version == source_version:
             continue
-        if child.name == source_version:
+        if version in excludes:
+            print(f"  Skipping excluded version: {project}/{version}")
             continue
-        if child.name in excludes:
+        if not (project_dir / version).is_dir():
+            print(f"  Warning: {project}/{version} does not exist on disk, skipping")
             continue
-        targets.append(child.name)
+        targets.append(version)
     return targets
 
 
@@ -225,16 +233,26 @@ def main() -> int:
 
     config = load_config()
     label_map = config.get("label_map") or {}
-    label_to_project = {v: k for k, v in label_map.items()}
 
     labels, files = get_pr_metadata(pr_number, repo)
-    triggered_projects = {
-        label_to_project[label]
-        for label in labels
-        if label in label_to_project
-    }
-    if not triggered_projects:
-        print("No versioned-project labels on PR. Nothing to backport.")
+
+    # Parse backport-<project>-<version> labels into {project: [version, ...]}.
+    # The label_map values are label prefixes (e.g. "backport-manual"), so a
+    # label like "backport-manual-v8.0" matches prefix "backport-manual" and
+    # names target version "v8.0".
+    project_targets: dict[str, list[str]] = {}
+    sorted_label_map = sorted(label_map.items(), key=lambda x: len(x[1]), reverse=True)
+    for label in labels:
+        for project, prefix in sorted_label_map:
+            expected_prefix = prefix + "-"
+            if label.startswith(expected_prefix):
+                version = label[len(expected_prefix):]
+                if version:
+                    project_targets.setdefault(project, []).append(version)
+                break
+
+    if not project_targets:
+        print("No backport-<project>-<version> labels on PR. Nothing to backport.")
         return 0
 
     # Group changes per (project, source_version, target_version).
@@ -250,10 +268,12 @@ def main() -> int:
         status = entry.get("status", "modified")
         previous = entry.get("previous_filename")
         project, source_version, relative = project_for_path(path)
-        if project is None or project not in triggered_projects:
+        if project is None or project not in project_targets:
             continue
 
-        targets = eligible_targets(project, source_version, config)
+        targets = requested_targets(
+            project, source_version, config, project_targets[project]
+        )
         if not targets:
             continue
 
