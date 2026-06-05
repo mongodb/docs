@@ -109,7 +109,40 @@ To learn more, see:
 - :ref:`<has-ancestor-ref>`
 - :ref:`<has-root-ref>`
 
-Examples 
+Retrieve the Root Document ID
+-----------------------------
+
+When you use ``returnScope`` in a query, |fts| populates a
+``searchRootDocumentId`` metadata field. You can use the 
+``searchRootDocumentId`` metadata field on clusters running MongoDB 
+8.3 or later. This field contains the identifier of the root document 
+that contains each returned embedded document. To project this value, 
+use the :manual:`$meta </reference/operator/aggregation/meta/>` 
+expression with the ``searchRootDocumentId`` keyword.
+
+|fts| populates ``searchRootDocumentId`` only when your query sets
+both ``returnStoredSource: true`` and ``returnScope.path``. If you
+reference ``searchRootDocumentId`` in a query that does not specify
+``returnScope``, the query fails with the following error:
+
+.. code-block:: none
+
+   query requires $search root document id metadata, but it is not
+   available
+
+Use ``searchRootDocumentId`` if you want to:
+
+- Fetch fields from the parent document after filtering on the child 
+  documents.
+- Group child documents by their parent.
+
+Don't use ``searchRootDocumentId`` if:
+
+- You need only fields from the matched child documents.
+- You want to return the parent document for every child document 
+  in the result set, since this can be expensive.
+
+Examples
 --------
 
 The following examples demonstrate how to use the ``returnScope`` option
@@ -209,3 +242,40 @@ type fields that were stored on ``mongot``.
       .. output:: /includes/fts/return-scope/compound-query-mongosh-output.js
          :language: javascript 
          :visible: false
+
+.. collapsible::
+   :heading: Group Children by Parent
+   :sub_heading: Group children by parent using the searchRootDocumentId meta field.
+   :expanded: false
+
+   .. include:: /includes/fts/return-scope/root-document-id-desc.rst
+
+   .. io-code-block:: 
+      :copyable: true
+
+      .. input:: /includes/fts/return-scope/root-document-id-mongosh.sh
+         :language: javascript 
+         :linenos: 
+
+      .. output:: /includes/fts/return-scope/root-document-id-mongosh-output.js
+         :language: javascript 
+         :visible: false
+
+.. collapsible::
+   :heading: Fetch Parent Fields After Filtering
+   :sub_heading: Retrieve the fields from the parent document after filtering on the embedded document fields.
+   :expanded: false
+
+   .. include:: /includes/fts/return-scope/fetch-parent-fields-desc.rst
+
+   .. io-code-block:: 
+      :copyable: true
+
+      .. input:: /includes/fts/return-scope/fetch-parent-fields-mongosh.sh
+         :language: javascript 
+         :linenos: 
+
+      .. output:: /includes/fts/return-scope/fetch-parent-fields-mongosh-output.js
+         :language: javascript 
+         :visible: false
+
