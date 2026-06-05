@@ -98,7 +98,7 @@ async function generateSitemapIndexFull(): Promise<NextResponse> {
     }
   }
 
-  return new NextResponse(buildSitemapIndexXml(sitemapUrls), {
+  return new NextResponse(buildSitemapIndexXml(sitemapUrls.sort()), {
     status: 200,
     headers: {
       'Content-Type': 'application/xml; charset=utf-8',
