@@ -134,26 +134,6 @@ describe('GET /api/sitemap/[...path]', () => {
     });
   });
 
-  describe('sitemap-index.xml', () => {
-    it('returns a sitemap index pointing to sitemap-0.xml', async () => {
-      mockGetSiteMetadata.mockResolvedValue({
-        projectPath: 'drivers/node/current',
-        siteMetadata: createMockMetadata({ toctreeOrder: [] }),
-      });
-
-      const res = await GET(stubRequest, {
-        params: { path: ['drivers', 'node', 'current', 'sitemap-index.xml'] },
-      });
-
-      expect(res.status).toBe(200);
-      const body = await res.text();
-      expect(body).toContain('<sitemapindex');
-      expect(body).toContain(
-        '<loc>https://www.mongodb.com/docs/drivers/node/current/sitemap-0.xml</loc>',
-      );
-    });
-  });
-
   describe('composable tutorial pages', () => {
     it('appends query-string variants for each selection set', async () => {
       mockGetSiteMetadata.mockResolvedValue({
@@ -286,6 +266,48 @@ describe('GET /api/sitemap/[...path]', () => {
       const res = await GET(stubRequest, { params: { path: ['sitemap-index-full.xml'] } });
       const body = await res.text();
       expect(body).toContain('sitemap.xml.gz');
+    });
+  });
+
+  describe('invalid filename', () => {
+    it('returns 404 for an unrecognized sitemap filename', async () => {
+      const res = await GET(stubRequest, {
+        params: { path: ['atlas', 'sitemap-01asdf.xml'] },
+      });
+      expect(res.status).toBe(404);
+    });
+
+    it('returns 404 for a numeric-looking but invalid filename', async () => {
+      const res = await GET(stubRequest, {
+        params: { path: ['atlas', 'sitemap-0asdf.xml'] },
+      });
+      expect(res.status).toBe(404);
+    });
+
+    it('returns 200 for sitemap-0.xml', async () => {
+      mockGetSiteMetadata.mockResolvedValue({
+        projectPath: 'atlas',
+        siteMetadata: createMockMetadata({ toctreeOrder: ['index'] }),
+      });
+
+      const res = await GET(stubRequest, {
+        params: { path: ['atlas', 'sitemap-0.xml'] },
+      });
+      expect(res.status).toBe(200);
+    });
+
+    it('returns 404 for sitemap-1.xml', async () => {
+      const res = await GET(stubRequest, {
+        params: { path: ['atlas', 'sitemap-1.xml'] },
+      });
+      expect(res.status).toBe(404);
+    });
+
+    it('returns 404 for sitemap-index.xml', async () => {
+      const res = await GET(stubRequest, {
+        params: { path: ['atlas', 'sitemap-index.xml'] },
+      });
+      expect(res.status).toBe(404);
     });
   });
 

@@ -117,6 +117,10 @@ export async function GET(_req: Request, { params }: { params: { path: string[] 
     if (filename === 'sitemap-index-full.xml') {
       return generateSitemapIndexFull();
     }
+
+    if (filename !== 'sitemap-0.xml') {
+      return new NextResponse('Not Found', { status: 404 });
+    }
     // Drop the sitemap filename to get the project path segments for metadata lookup.
     // If there's only the filename (landing page sitemap), pass it as-is so
     // getSiteMetadata falls back to the empty-prefix landing page.
@@ -135,14 +139,9 @@ export async function GET(_req: Request, { params }: { params: { path: string[] 
       'Cache-Control': 'public, max-age=3600',
     };
 
-    if (filename === 'sitemap-index.xml') {
-      const xml = buildSitemapIndexXml([`${baseDocUrl}/sitemap-0.xml`]);
-      return new NextResponse(xml, { status: 200, headers: xmlHeaders });
-    }
-
     const urls = [
       ...new Set(siteMetadata.toctreeOrder.map((slug) => slugToUrl(baseDocUrl, slug))),
-    ];
+    ].sort();
 
     // Composable tutorial pages get additional sitemap entries for each selection
     // permutation, mirroring the query-string variants snooty/Gatsby added via resolvePages.
