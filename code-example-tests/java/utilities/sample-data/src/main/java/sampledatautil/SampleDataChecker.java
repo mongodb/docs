@@ -80,10 +80,10 @@ public class SampleDataChecker {
     private static MongoClient createClientWithTimeouts(String connectionString) {
         MongoClientSettings settings = MongoClientSettings.builder()
             .applyConnectionString(new ConnectionString(connectionString))
-            .applyToClusterSettings(builder -> 
-                builder.serverSelectionTimeout(2000, TimeUnit.MILLISECONDS))
-            .applyToSocketSettings(builder -> 
-                builder.connectTimeout(2000, TimeUnit.MILLISECONDS)
+            .applyToClusterSettings(builder ->
+                builder.serverSelectionTimeout(2000L, TimeUnit.MILLISECONDS))
+            .applyToSocketSettings(builder ->
+                builder.connectTimeout(2000L, TimeUnit.MILLISECONDS)
                       .readTimeout(2000, TimeUnit.MILLISECONDS))
             .build();
         return MongoClients.create(settings);
