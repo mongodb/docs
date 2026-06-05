@@ -64,6 +64,10 @@ export type FeedbackContextType = {
   setDetachForm: Dispatch<SetStateAction<boolean>>;
   screenshotElement: Element | null;
   setScreenshotElement: Dispatch<SetStateAction<Element | null>>;
+  comment: string;
+  setComment: Dispatch<SetStateAction<string>>;
+  email: string;
+  setEmail: Dispatch<SetStateAction<string>>;
 };
 
 export type FeedbackViewType = 'waiting' | 'comment' | 'rating' | 'submitted';
@@ -91,6 +95,10 @@ const initialValue: FeedbackContextType = {
   setDetachForm: () => {},
   screenshotElement: null,
   setScreenshotElement: () => {},
+  comment: '',
+  setComment: () => {},
+  email: '',
+  setEmail: () => {},
 };
 
 const FeedbackContext = createContext<FeedbackContextType>(initialValue);
@@ -116,6 +124,8 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
   const [progress, setProgress] = useState([true, false, false]);
   const [isScreenshotButtonClicked, setIsScreenshotButtonClicked] = useState(false);
   const [screenshotElement, setScreenshotElement] = useState<Element | null>(null);
+  const [comment, setComment] = useState('');
+  const [email, setEmail] = useState('');
   const [, startTransition] = useTransition();
   const { user, reassignCurrentUser } = useBrowserUser();
   const pathname = usePathname();
@@ -238,6 +248,8 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
     } finally {
       setFeedback(undefined);
       setFeedbackId(undefined);
+      setComment('');
+      setEmail('');
     }
   };
 
@@ -251,6 +263,8 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
     setIsScreenshotButtonClicked(false);
     setDetachForm(false);
     setScreenshotElement(null);
+    setComment('');
+    setEmail('');
   }, []);
 
   const value = {
@@ -272,6 +286,10 @@ export function FeedbackProvider({ page, test, position = 'right column', ...pro
     setDetachForm,
     screenshotElement,
     setScreenshotElement,
+    comment,
+    setComment,
+    email,
+    setEmail,
   };
 
   // reset feedback when route changes

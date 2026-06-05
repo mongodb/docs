@@ -11,8 +11,8 @@ import type {
   Attachment,
   Fingerprint,
   FeedbackSentiment,
-  starRating,
 } from '@/services/feedback/feedback-types';
+import { starRating } from '@/services/feedback/feedback-types';
 
 export type FeedbackPayload = {
   page: Page;
@@ -39,6 +39,11 @@ export async function POST(request: NextRequest) {
   }
 
   const { page, user, attachment, comment, category, rating, snootyEnv, feedback_id } = body;
+
+  const validRatings = Object.keys(starRating).map(Number);
+  if (!validRatings.includes(Number(rating))) {
+    return withCORS(NextResponse.json({ error: `Invalid rating value: ${rating}. Must be one of ${validRatings.join(', ')}` }, { status: 400 }));
+  }
 
   const fingerprint = constructFingerprint(request);
 
