@@ -24,73 +24,66 @@ Field Paths
    :class: singlecol
 
 
-You can use :term:`field path <field path>` expressions to access
-fields in input documents. To specify a field path, prefix the field
-name or the :ref:`dotted field path <document-dot-notation>` (if the
-field is in an embedded document) with a dollar sign ``$``.
-
-Use Cases
----------
-
-You can use field paths for the following use cases:
-
-- :ref:`agg-nested-fields`
-- :ref:`agg-array-of-nested-fields`
-- :ref:`agg-nested-array-of-arrays`
+Use :term:`field path <field path>` expressions to access fields in
+input documents. Prefix the field name or the :ref:`dotted field path
+<document-dot-notation>` (for embedded documents) with a dollar sign
+``$``.
 
 .. _agg-nested-fields:
 
 Nested Fields
-~~~~~~~~~~~~~
+-------------
 
-.. include:: /includes/sample-data-usage.rst
-
-The following example uses the ``movies`` collection from the
-``sample_mflix`` database. Each document in this collection has
-the following structure:
+The following examples use the `planets
+<https://www.mongodb.com/docs/atlas/sample-data/sample-guides/#collections>`_
+collection from the `Atlas Sample Databases
+<https://www.mongodb.com/docs/atlas/sample-data/>`_. Each document in
+this collection has the following structure:
 
 .. code-block:: javascript
    :copyable: false
 
    {
-      _id: ObjectId("573a1390f29313caabcd42e8"),
-      title: "The Great Train Robbery",
-      year: 1903,
-      imdb: { rating: 7.4, votes: 9847, id: 439 },
-      ...
+      _id: new ObjectId("6220f6b78a733c51b416c80e"),
+      name: "Uranus",
+      orderFromSun: 7,
+      hasRings: true,
+      mainAtmosphere: [ "H2", "He", "CH4" ],
+      surfaceTemperatureC: { min: null, max: null, mean: -197.2 }
    }
 
-.. include:: /includes/sample-data-additional-fields-note.rst
-
-To specify the nested field ``rating`` within the ``imdb`` field,
-use :term:`dot notation` (``"field.nestedField"``) with a dollar
-sign ``$``. The following aggregation pipeline projects only the
-``imdb_rating`` nested field value for the matching document:
-
-.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/field-paths/nested-field/project-nested-field.snippet.project-nested-field.js
-   :language: javascript
-   :copyable: true
-   :category: usage example
-
-Below is an example returned document:
+To specify the nested ``mean`` field within ``surfaceTemperatureC``,
+use :term:`dot notation` (``"field.nestedField"``) with a dollar sign
+``$``. This aggregation pipeline projects only the ``mean`` nested
+field value for each document:
 
 .. code-block:: javascript
-   :copyable: false
+   :copyable: true
 
-   [ { imdb_rating: 9.2 } ]
+   db.planets.aggregate( [
+      {
+         $project: {
+            nested_field: "$surfaceTemperatureC.mean"
+         }
+      }
+   ] )
+
+An example returned document:
+
+.. code-block:: javascript
+   :copyable: true
+
+   { _id: ObjectId('6220f6b78a733c51b416c80e'), nested_field: -197.2 }
 
 
 .. _agg-array-of-nested-fields:
 
 Array of Nested Fields
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
-You can use :term:`dot notation` in a field path to access a field that
-is nested within an array. 
-
-For example, consider a ``products`` collection that contains an
-``instock`` field. The ``instock`` field contains an array of nested
-``warehouse`` fields. 
+Use :term:`dot notation` in a field path to access a field nested
+within an array. For example, consider a ``products`` collection whose
+``instock`` field holds an array of nested ``warehouse`` fields:
 
 .. code-block:: javascript
 
@@ -105,10 +98,17 @@ For example, consider a ``products`` collection that contains an
 The following aggregation pipeline uses ``$instock.warehouse`` to access
 the nested ``warehouse`` fields. 
 
-.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/field-paths/array-of-nested-fields/project-array-field-path.snippet.project-array-field-path.js
-   :language: javascript
+.. code-block:: javascript
    :copyable: true
-   :category: usage example
+
+   db.products.aggregate( [
+      {
+         $project: {
+            item: 1,
+            warehouses: "$instock.warehouse"
+         }
+      }
+   ] )
 
 In this example, ``$instock.warehouse`` outputs an array of values that
 are in the nested ``warehouse`` field for each document. The pipeline
@@ -148,13 +148,11 @@ returns the following documents:
 .. _agg-nested-array-of-arrays:
 
 Array of Nested Arrays
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 You can also use :term:`dot notation` with a dollar sign ``$`` in a
-field path to access an array within a nested array. 
-
-This example uses a ``fruits`` collection that contains the
-following document:
+field path to access an array within a nested array. The following
+example uses a ``fruits`` collection with this document:
 
 .. code-block:: javascript
    :copyable: true
@@ -184,16 +182,16 @@ following document:
       }
    )
 
-The document in the collection contains an ``inventory`` array where
-each element in the array is an object that contains a nested array
-field. 
+The following aggregation pipeline accesses the nested ``apples``
+arrays inside ``inventory``:
 
-Consider the following aggregation pipeline:
-
-.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/field-paths/nested-array-of-arrays/project-nested-array.snippet.project-nested-array.js
-   :language: javascript
+.. code-block:: javascript
    :copyable: true
-   :category: usage example
+
+   db.fruits.aggregate( [
+      { $project:
+         { all_apples: "$inventory.apples" } }
+   ] )
 
 In this pipeline, ``$inventory.apples`` resolves to an array of nested
 arrays. The pipeline returns the following document:

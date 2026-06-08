@@ -6,25 +6,35 @@ Aggregation Pipeline Optimization
 
 .. default-domain:: mongodb
 
+.. facet::
+   :name: programming_language
+   :values: shell
+
+.. facet::
+   :name: genre 
+   :values: reference
+
+.. meta:: 
+   :description: Aggregation pipeline operations have an optimization phase which attempts to reshape the pipeline for improved performance.
+
 .. contents:: On this page
    :local:
    :backlinks: none
    :depth: 1
    :class: singlecol
 
-Aggregation pipeline operations have an optimization phase which
-attempts to reshape the pipeline for improved performance.
+Aggregation pipeline operations have an optimization phase that
+reshapes the pipeline for improved performance.
 
-To see how the optimizer transforms a particular aggregation pipeline,
-include the :method:`explain <db.collection.aggregate()>` option in the
+To see how the optimizer transforms a pipeline, include the
+:method:`explain <db.collection.aggregate()>` option in the
 :method:`db.collection.aggregate()` method.
 
 .. include:: /includes/fact-optimizations-subject-to-change.rst
 
-In addition to learning about the aggregation pipeline optimizations
-performed during the optimization phase, you will also see how to
-improve aggregation pipeline performance using :ref:`indexes and
-document filters <aggregation-pipeline-optimization-indexes-and-filters>`.
+This page also describes how to improve performance using
+:ref:`indexes and document filters
+<aggregation-pipeline-optimization-indexes-and-filters>`.
 
 .. |page-topic| replace:: :atlas:`run aggregation pipelines in the UI </atlas-ui/agg-pipeline>`
 
@@ -183,15 +193,12 @@ the following:
 ``$redact`` + ``$match`` Sequence Optimization
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-When possible, when the pipeline has the :pipeline:`$redact` stage
-immediately followed by the :pipeline:`$match` stage, the aggregation
-can sometimes add a portion of the :pipeline:`$match` stage before the
-:pipeline:`$redact` stage. If the added :pipeline:`$match` stage is at
-the start of a pipeline, the aggregation can use an index as well as
-query the collection to limit the number of documents that enter the
-pipeline. See
-:ref:`aggregation-pipeline-optimization-indexes-and-filters` for more
-information.
+When a :pipeline:`$redact` stage is immediately followed by a
+:pipeline:`$match`, the optimizer can sometimes add a portion of the
+``$match`` before the ``$redact``. If the added ``$match`` is at the
+start of the pipeline, the aggregation can use an index and query the
+collection to limit the documents that enter the pipeline. See
+:ref:`aggregation-pipeline-optimization-indexes-and-filters`.
 
 For example, if the pipeline consists of the following stages:
 
@@ -249,12 +256,10 @@ reordering optimization.
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When a :pipeline:`$sort` precedes a :pipeline:`$limit`, the optimizer
-can coalesce the :pipeline:`$limit` into the :pipeline:`$sort` if no
-intervening stages modify the number of documents 
-(e.g. :pipeline:`$unwind`, :pipeline:`$group`).
-MongoDB will not coalesce the :pipeline:`$limit` into the
-:pipeline:`$sort` if there are pipeline stages that change the number of
-documents between the :pipeline:`$sort` and :pipeline:`$limit` stages..
+can coalesce the ``$limit`` into the ``$sort`` if no intervening stages
+modify the number of documents (for example, :pipeline:`$unwind` or
+:pipeline:`$group`). MongoDB does not coalesce the ``$limit`` into the
+``$sort`` if intervening stages change the document count.
 
 For example, if the pipeline consists of the following stages:
 
@@ -292,13 +297,12 @@ information.
 
 .. note:: Sequence Optimization with $skip
 
-   If there is a :pipeline:`$skip` stage between the :pipeline:`$sort`
-   and :pipeline:`$limit` stages, MongoDB will coalesce the
-   :pipeline:`$limit` into the :pipeline:`$sort` stage and increase the
-   :pipeline:`$limit` value by the :pipeline:`$skip` amount. See
-   :ref:`agg-sort-skip-limit-sequence` for an example.
+   If a :pipeline:`$skip` stage sits between the :pipeline:`$sort` and
+   :pipeline:`$limit` stages, MongoDB coalesces the ``$limit`` into the
+   ``$sort`` and increases the ``$limit`` value by the ``$skip``
+   amount. See :ref:`agg-sort-skip-limit-sequence` for an example.
 
-.. [#coalescence-allowDiskUse] The optimization will still apply when
+.. [#coalescence-allowDiskUse] The optimization still applies when
    ``allowDiskUse`` is ``true`` and the ``n`` items exceed the
    :ref:`aggregation memory limit <agg-memory-restrictions>`.
 
@@ -449,15 +453,11 @@ element.
 |sbe-title| Pipeline Optimizations
 ----------------------------------
 
-MongoDB can use the :ref:`slot-based query execution engine 
-<sbe-landing>` to execute certain pipeline stages when specific 
-conditions are met. In most cases, the |sbe-short| provides improved 
-performance and lower CPU and memory costs compared to the classic query
-engine.
-
-.. note:: 
-
-   .. include:: /includes/fact-7.0-sbe-disabled.rst
+MongoDB can use the :ref:`slot-based query execution engine
+<sbe-landing>` to execute certain pipeline stages when specific
+conditions are met. In most cases, the |sbe-short| provides improved
+performance and reduced CPU and memory costs compared to the classic
+query engine.
 
 To verify that the |sbe-short| is used, run the aggregation with the
 ``explain`` option. This option outputs information on the

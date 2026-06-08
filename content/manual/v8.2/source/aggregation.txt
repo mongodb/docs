@@ -27,28 +27,24 @@ Aggregation Operations
 Aggregation operations process multiple documents and return computed
 results. You can use aggregation operations to:
 
-- Group values from multiple documents together.
-
-- Perform operations on the grouped data to return a single result.
-
+- Group values from multiple documents.
+- Compute a single result from the grouped data.
 - Analyze data changes over time.
-
 - Query the most up-to-date version of your data. 
 
-By using the built-in aggregation operators in MongoDB, you can perform 
-analytics on your cluster without having to move your data to another platform. 
+The aggregation operators in MongoDB let you run analytics on your
+cluster without moving data to another platform.
 
-Get Started 
+Get Started
 -----------
 
 To perform aggregation operations, you can use:
 
-- :ref:`Aggregation pipelines <aggregation-pipeline-intro>`, which are
-  the preferred method for performing aggregations.
-
+- :ref:`Aggregation pipelines <aggregation-pipeline-intro>`, the
+  preferred method.
 - :ref:`Single purpose aggregation methods
-  <single-purpose-agg-methods>`, which are simple but lack the
-  capabilities of an aggregation pipeline.
+  <single-purpose-agg-methods>`, which have less functionality than an
+  aggregation pipeline.
 
 .. |page-topic| replace:: :atlas:`run aggregation pipelines in the UI </atlas-ui/agg-pipeline>`
 
@@ -68,104 +64,62 @@ Aggregation Pipelines
 Aggregation Pipeline Example
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example pipeline uses documents from the :ref:`sample data 
-<sample-data>` available in MongoDB Atlas, specifically the 
-``sample_training.routes`` collection. In this pipeline, we'll find the top 
-three airlines that offer the most direct flights out of the airport in 
-Portland, Oregon, USA (PDX). 
+.. include:: /includes/sample-data-usage.rst
 
-First, add a :pipeline:`$match` stage to filter the documents to flights 
-that have a ``src_airport`` value of ``PDX`` and zero ``stops``:
+The following pipeline finds the top three directors who have directed
+the most movies in the database.
 
-.. code-block:: javascript 
+Use a :pipeline:`$match` stage to filter to movies that have directors
+listed (excluding documents where the directors field is null or empty):
 
-   {
-      $match : { 
-         "src_airport" : "PDX", 
-         "stops" : 0
-      }
-   }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/full-pipeline/run-pipeline.snippet.match-stage.js
+   :language: javascript
+   :category: usage example
 
-The ``$match`` stage reduces the number of documents in our pipeline from 66,985 
-to 113. Next, :pipeline:`$group` the documents by airline name and count 
-the number of flights: 
 
-.. code-block:: javascript
+The ``$match`` stage reduces the number of documents in our pipeline by 
+filtering out movies without director information. Next, use
+:pipeline:`$unwind` to deconstruct the directors array so you can
+count movies per individual director:
 
-   {
-      $group : { 
-         _id : { 
-            "airline name": "$airline.name", 
-         }
-         count : { 
-            $sum : 1
-         }
-      }
-   }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/full-pipeline/run-pipeline.snippet.unwind-stage.js
+   :language: javascript
+   :category: usage example
 
-The ``$group`` stage reduces the number of documents in the pipeline to 16 
-airlines. To find the airlines with the most flights, use the :pipeline:`$sort` 
-stage to sort the remaining documents in descending order:
+Use :pipeline:`$group` to group documents by director name and count
+each director's movies:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/full-pipeline/run-pipeline.snippet.group-stage.js
+   :language: javascript
+   :category: usage example
 
-   {
-      $sort : { 
-         count : -1
-      }
-   }
+Use :pipeline:`$sort` to order the remaining documents in descending
+order by movie count:
 
-After you sort your documents, use the :pipeline:`$limit` stage to return the 
-top three airlines that offer the most direct flights out of PDX:
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/full-pipeline/run-pipeline.snippet.sort-stage.js
+   :language: javascript
+   :category: usage example
 
-.. code-block:: javascript
+Use :pipeline:`$limit` to return the top three directors:
 
-   {
-      $limit : 3
-   }
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/full-pipeline/run-pipeline.snippet.limit-stage.js
+   :language: javascript
+   :category: usage example
 
-After putting the documents in the ``sample_training.routes`` collection through 
-this aggregation pipeline, the top three airlines offering non-stop flights from 
-PDX are Alaska, American, and United Airlines with 39, 17, and 13 flights, 
-respectively.
+The full pipeline:
 
-The full pipeline resembles the following: 
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/full-pipeline/run-pipeline.snippet.full-pipeline.js
+   :language: javascript
+   :category: usage example
 
-.. code-block:: javascript 
+The pipeline returns these results:
 
-   db.routes.aggregate( [
-      {
-         $match : { 
-            "src_airport" : "PDX", 
-            "stops" : 0
-         }
-      },
-      {
-         $group : { 
-            _id : { 
-               "airline name": "$airline.name", 
-            }
-            count : { 
-               $sum: 1
-            }
-         }
-      },
-      {
-         $sort : { 
-            count : -1
-         }
-      },
-      {
-         $limit : 3
-      }
-   ] )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/full-pipeline/output.sh
+   :language: javascript
+   :category: example return object
 
 For runnable examples containing sample input documents, see
-:ref:`Complete Aggregation Pipeline Examples
-<aggregation-pipeline-examples>`. 
-
-Learn More About Aggregation Pipelines
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+:ref:`aggregation-pipeline-examples`.
 
 To learn more about aggregation pipelines, see
 :ref:`aggregation-pipeline`.
@@ -175,9 +129,9 @@ To learn more about aggregation pipelines, see
 Single Purpose Aggregation Methods
 ----------------------------------
 
-The single purpose aggregation methods aggregate documents from a single
-collection. The methods are simple but lack the capabilities of an
-aggregation pipeline.
+Single purpose aggregation methods aggregate documents from a single
+collection. These methods have less functionality than an aggregation
+pipeline.
 
 .. list-table::
    :header-rows: 1
