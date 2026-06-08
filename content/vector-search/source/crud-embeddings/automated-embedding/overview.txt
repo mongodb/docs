@@ -219,7 +219,7 @@ Initial Sync
   sync if you hit rate limits.
 - MongoDB automatically retries failed embedding requests and
   implements exponential backoff.
-- You can monitor sync progress through :ref:`Atlas Search monitoring
+- You can monitor sync progress through :ref:`Search monitoring
   <review-atlas-search-metrics>`.
 
 Ongoing Updates
@@ -423,124 +423,72 @@ validating cleanup after dropping or redefining an index.
 
 .. collapsible:: 
    :heading: Check the Storage Size of the Generated Embeddings Collection
-   :sub_heading: Use the Atlas UI or mongosh to find the storage size of the generated embeddings collection.
+   :sub_heading: Use ``mongosh`` to find the storage size of the generated embeddings collection.
    :expanded: false
 
-   .. tabs::
+   .. procedure::
+      :style: normal
 
-      .. tab:: Atlas UI
-         :tabid: atlas
+      .. step:: Connect to your MongoDB deployment using ``mongosh``.
 
-         .. procedure::
-            :style: normal
+      .. step:: Check the storage size of the generated embeddings collection.
 
-            .. step:: Log in to {+service+} and navigate to the :guilabel:`Data Explorer`.
+         Run the following query after replacing the ``<generated_embeddings_collection_name>`` 
+         with the name of the generated embeddings collection:
 
-               a. If it's not already displayed, select your desired organization
-                  from the :icon-mms:`office` :guilabel:`Organizations` menu in
-                  the navigation bar.
+         .. code-block:: javascript
+            :copyable: true
+            :caption: Example: Check the storage size of the generated embeddings collection
+            :linenos:
 
-               #. If it's not already displayed, select your desired project
-                  from the :guilabel:`Projects` menu in the navigation bar.
+            use __mdb_internal_search
+            const mvColl = "<generated_embeddings_collection_name>"
+            db.getCollection(mvColl).stats()
 
-               #. In the sidebar, click :guilabel:`Data Explorer` under the 
-                  :guilabel:`Database` section.
+         The ``collStats`` command provides detailed storage metrics for
+         generated embeddings collections. Use this approach when you need
+         scripted access, sharded-cluster aggregation, or scheduled
+         monitoring.
 
-               In the :guilabel:`Data Explorer` page, the ``__mdb_internal_search`` database 
-               is displayed alongside your other databases. This database view shows:
+         The following ``collStats`` fields provide storage information:
 
-               - :guilabel:`Storage size` - Total disk space used by the database.
-               - :guilabel:`Data size` - Total size of all documents in the database.
-               - :guilabel:`Collections` - Number of collections in the database.
-               - :guilabel:`Indexes` - Number of indexes in the database.
+         .. list-table::
+            :header-rows: 1
+            :widths: 25 75
 
-               Sort by :guilabel:`Storage size` to see the amount of cluster disk space 
-               used by Automated Embedding.
+            * - Field
+              - Description
 
-            .. step:: View individual collection metrics.
+            * - ``count``
+              - Number of documents in the generated embeddings collection. 
+                One document exists for each source document with generated 
+                embeddings.
 
-               Click ``__mdb_internal_search`` to see each generated embeddings 
-               collection with:
+            * - ``size``
+              - Uncompressed logical size of all documents, in bytes.
 
-               - :guilabel:`Storage size` - Total disk space used by the collection.
-               - :guilabel:`Data size` - Total size of all documents in the collection.
-               - :guilabel:`Documents` - Number of documents in the collection.
-               - :guilabel:`Avg. document size` - Average size of a document in the collection.
-               - :guilabel:`Indexes` - Number of indexes on the collection.
-               - :guilabel:`Total index size` - Total size of all indexes on the collection.
+            * - ``storageSize``
+              - On-disk size of the collection's data files after WiredTiger
+                compression, in bytes.
 
-               .. note::
+            * - ``totalIndexSize``
+              - On-disk size of all MongoDB indexes on the generated embeddings 
+                collection, in bytes.
 
-                  The ``auto_embedding_leases`` collection is used for
-                  leader election and typically uses only kilobytes of
-                  storage.
+            * - ``totalSize``
+              - Sum of ``storageSize`` and ``totalIndexSize``. Represents
+                total disk usage.
 
-      .. tab:: mongosh
-         :tabid: mongosh
+            * - ``avgObjSize``
+              - Average uncompressed document size. Useful for validating
+                per-document embedding size.
 
-         .. procedure::
-            :style: normal
+         .. note::
 
-            .. step:: Connect to your MongoDB deployment using ``mongosh``.
-
-            .. step:: Check the storage size of the generated embeddings collection.
-
-               Run the following query after replacing the  ``<generated_embeddings_collection_name>`` 
-               with the name of the generated embeddings collection:
-
-               .. code-block:: javascript
-                  :copyable: true
-                  :caption: Example: Check the storage size of the generated embeddings collection
-                  :linenos:
-
-                  use __mdb_internal_search
-                  const mvColl = "<generated_embeddings_collection_name>"
-                  db.getCollection(mvColl).stats()
-
-               The ``collStats`` command provides detailed storage metrics for
-               generated embeddings collections. Use this approach when you need
-               scripted access, sharded-cluster aggregation, or scheduled
-               monitoring.
-
-               The following ``collStats`` fields provide storage information:
-
-               .. list-table::
-                  :header-rows: 1
-                  :widths: 25 75
-
-                  * - Field
-                    - Description
-
-                  * - ``count``
-                    - Number of documents in the generated embeddings collection. 
-                      One document exists for each source document with generated 
-                      embeddings.
-
-                  * - ``size``
-                    - Uncompressed logical size of all documents, in bytes.
-
-                  * - ``storageSize``
-                    - On-disk size of the collection's data files after WiredTiger
-                      compression, in bytes.
-
-                  * - ``totalIndexSize``
-                    - On-disk size of all MongoDB indexes on the generated embeddings 
-                      collection, in bytes.
-
-                  * - ``totalSize``
-                    - Sum of ``storageSize`` and ``totalIndexSize``. Represents
-                      total disk usage.
-
-                  * - ``avgObjSize``
-                    - Average uncompressed document size. Useful for validating
-                      per-document embedding size.
-
-               .. note::
-
-                  - ``storageSize`` and ``totalIndexSize`` reflect actual disk usage.
-                  - ``size`` is the uncompressed logical view and is typically larger.
-                  - These metrics show storage in the MongoDB cluster only. They don't 
-                    include disk used by the Lucene vector index on the ``mongot`` host.
+            - ``storageSize`` and ``totalIndexSize`` reflect actual disk usage.
+            - ``size`` is the uncompressed logical view and is typically larger.
+            - These metrics show storage in the MongoDB cluster only. They don't 
+              include disk used by the Lucene vector index on the ``mongot`` host.
 
 .. collapsible:: 
    :heading: Check Storage on a Replica Set
@@ -866,127 +814,97 @@ Retrieve Embeddings from the Generated Embeddings Collection
 
 .. collapsible::
    :heading: Retrieve Embeddings for a Document
-   :sub_heading: Use the Atlas UI or mongosh to retrieve embeddings from the generated embeddings collection.
+   :sub_heading: Use mongosh to retrieve embeddings from the generated embeddings collection.
    :expanded: false
-
-   .. tabs:: 
-
-      .. tab:: Atlas
-         :tabid: atlas
-
-         .. procedure:: 
-            :style: normal
-
-            .. step:: Log in to `{+service+} <https://cloud.mongodb.com>`__.
-
-            .. step:: Go to the :guilabel:`Data Explorer` page for your project.
-
-               a. If it's not already displayed, select your desired organization
-                  from the :icon-mms:`office` :guilabel:`Organizations` menu in
-                  the navigation bar.
-
-               #. If it's not already displayed, select your desired project
-                  from the :guilabel:`Projects` menu in the navigation bar.
-
-               #. In the sidebar, click :guilabel:`Data Explorer` under the 
-                  :guilabel:`Database` header.
-
-                  The `Data Explorer <https://cloud.mongodb.com/go?l=https%3A%2F%2Fcloud.mongodb.com%2Fv2%2F%3Cproject%3E%23%2Fexplorer%2F%3Ccluster%3E%2F__mdb_internal_search>`__ 
-                  page displays.
-                  
-            .. step:: In the :guilabel:`Database` dropdown, select the ``__mdb_internal_search`` database.
-
-      .. tab:: Self-Managed
-         :tabid: self
          
-         .. procedure:: 
-            :style: normal
+   .. procedure:: 
+      :style: normal
 
-            .. step:: Connect to your MongoDB deployment using ``mongosh``.
+      .. step:: Connect to your MongoDB deployment using ``mongosh``.
 
-            .. step:: Retrieve embeddings for a document.
+      .. step:: Retrieve embeddings for a document.
 
-               Run the following query after replacing the following placeholders:
+         Run the following query after replacing the following placeholders:
 
-               - ``<generated_embeddings_collection_name>`` - Name of the generated embeddings collection.
-               - ``<document_id>`` - ``_id`` of the document in the source collection.
-               - ``<auto_embed_field>`` - Name of the field indexed for Automated Embedding.
+         - ``<generated_embeddings_collection_name>`` - Name of the generated embeddings collection.
+         - ``<document_id>`` - ``_id`` of the document in the source collection.
+         - ``<auto_embed_field>`` - Name of the field indexed for Automated Embedding.
 
-               .. io-code-block:: 
-                  :copyable: true 
-                  :caption: Example: Retrieve embeddings from the generated embeddings collection
+         .. io-code-block:: 
+            :copyable: true 
+            :caption: Example: Retrieve embeddings from the generated embeddings collection
 
-                  .. input:: 
-                     :language: javascript
-                     :linenos:
+            .. input:: 
+               :language: javascript
+               :linenos:
 
-                     use __mdb_internal_search
-                     const mvColl = "<generated_embeddings_collection_name>"
-                     db.getCollection(mvColl).findOne(
-                        { _id: "<document_id>" },
-                        { _id: 1, "_autoEmbed.<auto_embed_field>": 1 }
-                     )
+               use __mdb_internal_search
+               const mvColl = "<generated_embeddings_collection_name>"
+               db.getCollection(mvColl).findOne(
+                  { _id: "<document_id>" },
+                  { _id: 1, "_autoEmbed.<auto_embed_field>": 1 }
+               )
 
-                  .. output:: 
-                     :language: javascript
-                     :linenos:
-                     :visible: false 
+            .. output:: 
+               :language: javascript
+               :linenos:
+               :visible: false 
 
-                     [
-                        { _autoEmbed: {}, _id: "ObjectId('573a1390f29313caabcd5c0f')" },
-                        { _autoEmbed: {}, _id: "ObjectId('573a1390f29313caabcd5c0f')" },
-                        {
-                           _autoEmbed: {
-                              fullplot: Binary.fromInt8Array(new Int8Array([
-                                 5, -30,  16,   4, -57,  -8, -17, -13,  16,  11, -22,  15,
-                                 -7,  13,   8,  -2,  -1, -14,  27,  10,  -9,  20,  14,  -2,
-                                 3, -56, -21,  10, -24,  12,  10,   9,  12,   7,   4,  14,
-                                 -7, -24, -15,  16,  13,  21,  -4, -16, -12, -15,   3, -33,
-                                 5, -21,   2,  -1,   0,  16,   7,  13,  19,   4,   5, -14,
-                              -34,   7, -16,  38,   4,   4,   7, -22,   8,  14,  15, -14,
-                                 -4,   6,  22, -17,   8,  27,   8,  13,  46, -12,  -7,  -9,
-                              -20,  13,  10,   4, -14, -11,  31,  -7,   0,  -3,   1,  16,
-                                 9,   5,   6,  -2,
-                              ... 924 more items
-                              ]))
-                           },
-                           _id: "ObjectId('573a1390f29313caabcd5c0f')"
-                        },
-                        {
-                           _autoEmbed: {
-                              fullplot: Binary.fromInt8Array(new Int8Array([
-                                 -5, -22,  22,  -6, -43, -13,  -5,   4,  5,   2,   4,  13,
-                                 0,  -3,  -3, -50,  -5,  -2,  -2,  27, -5,  36,  27,  12,
-                              -12,  -6,  -1,   9,  -7,  25,   4, -28,  3,   9,   3,  23,
-                                 8,  11,  11,  25, -19,  27,  17,  18, -1,   0,   5, -12,
-                                 13,  -5,  -3,   3, -17,  16, -15,  43, -1,   1,   1,  -6,
-                              -26,  16, -11,  13,  14,   0,  -9, -23, 25, -16,  11, -25,
-                                 7,   9,  -1,   0,  33,  -8,  -3, -18,  3,   4, -20, -14,
-                                 17,  -2,  -2, -10,  17, -25, -11,   9,  1,   2,  -8,   7,
-                                 20,  18,  17,  -2,
-                              ... 924 more items
-                              ]))
-                           },
-                           _id: "ObjectId('573a1390f29313caabcd5c0f')"
-                        },
-                        {
-                           _autoEmbed: {
-                              fullplot: Binary.fromInt8Array(new Int8Array([
-                                 0,  -1,  47,   6, -20, -14,  29,  -2,  13,  -1,  20,  11,
-                              -18,  -7,  12, -10, -25,  10,   7, -15,  11,   9, -14,  12,
-                                 -9, -22,  16,   0,  18,   5,   9, -26,  14, -27,   6,  20,
-                              -19,  -8,   1,  -5,  21,  13, -37,  -7,   0, -21, -51,   1,
-                              -38, -14,   4,   6, -23,  15,  19,  33,   8,   0,  -7,  -3,
-                              -25,   8, -29,  25,  -1,  12,   4, -21,  -1,   0, -14,  -3,
-                                 -6,  -3,   7,  30,   8,  -8,  34, -19, -12, -29, -15, -14,
-                                 1,  -4,   6,  -2, -36, -18,  -2,   4,  23,  17, -13,   1,
-                                 0,   7,  25, -19,
-                              ... 924 more items
-                              ]))
-                           },
-                           _id: "ObjectId('573a1390f29313caabcd5c0f')"
-                        }
-                     ]
+               [
+                  { _autoEmbed: {}, _id: "ObjectId('573a1390f29313caabcd5c0f')" },
+                  { _autoEmbed: {}, _id: "ObjectId('573a1390f29313caabcd5c0f')" },
+                  {
+                     _autoEmbed: {
+                        fullplot: Binary.fromInt8Array(new Int8Array([
+                           5, -30,  16,   4, -57,  -8, -17, -13,  16,  11, -22,  15,
+                           -7,  13,   8,  -2,  -1, -14,  27,  10,  -9,  20,  14,  -2,
+                           3, -56, -21,  10, -24,  12,  10,   9,  12,   7,   4,  14,
+                           -7, -24, -15,  16,  13,  21,  -4, -16, -12, -15,   3, -33,
+                           5, -21,   2,  -1,   0,  16,   7,  13,  19,   4,   5, -14,
+                        -34,   7, -16,  38,   4,   4,   7, -22,   8,  14,  15, -14,
+                           -4,   6,  22, -17,   8,  27,   8,  13,  46, -12,  -7,  -9,
+                        -20,  13,  10,   4, -14, -11,  31,  -7,   0,  -3,   1,  16,
+                           9,   5,   6,  -2,
+                        ... 924 more items
+                        ]))
+                     },
+                     _id: "ObjectId('573a1390f29313caabcd5c0f')"
+                  },
+                  {
+                     _autoEmbed: {
+                        fullplot: Binary.fromInt8Array(new Int8Array([
+                           -5, -22,  22,  -6, -43, -13,  -5,   4,  5,   2,   4,  13,
+                           0,  -3,  -3, -50,  -5,  -2,  -2,  27, -5,  36,  27,  12,
+                        -12,  -6,  -1,   9,  -7,  25,   4, -28,  3,   9,   3,  23,
+                           8,  11,  11,  25, -19,  27,  17,  18, -1,   0,   5, -12,
+                           13,  -5,  -3,   3, -17,  16, -15,  43, -1,   1,   1,  -6,
+                        -26,  16, -11,  13,  14,   0,  -9, -23, 25, -16,  11, -25,
+                           7,   9,  -1,   0,  33,  -8,  -3, -18,  3,   4, -20, -14,
+                           17,  -2,  -2, -10,  17, -25, -11,   9,  1,   2,  -8,   7,
+                           20,  18,  17,  -2,
+                        ... 924 more items
+                        ]))
+                     },
+                     _id: "ObjectId('573a1390f29313caabcd5c0f')"
+                  },
+                  {
+                     _autoEmbed: {
+                        fullplot: Binary.fromInt8Array(new Int8Array([
+                           0,  -1,  47,   6, -20, -14,  29,  -2,  13,  -1,  20,  11,
+                        -18,  -7,  12, -10, -25,  10,   7, -15,  11,   9, -14,  12,
+                           -9, -22,  16,   0,  18,   5,   9, -26,  14, -27,   6,  20,
+                        -19,  -8,   1,  -5,  21,  13, -37,  -7,   0, -21, -51,   1,
+                        -38, -14,   4,   6, -23,  15,  19,  33,   8,   0,  -7,  -3,
+                        -25,   8, -29,  25,  -1,  12,   4, -21,  -1,   0, -14,  -3,
+                           -6,  -3,   7,  30,   8,  -8,  34, -19, -12, -29, -15, -14,
+                           1,  -4,   6,  -2, -36, -18,  -2,   4,  23,  17, -13,   1,
+                           0,   7,  25, -19,
+                        ... 924 more items
+                        ]))
+                     },
+                     _id: "ObjectId('573a1390f29313caabcd5c0f')"
+                  }
+               ]
 
 .. collapsible::
    :heading: Retrieve Embeddings for Multiple Documents
@@ -1263,7 +1181,7 @@ Troubleshooting
 The following sections provide guidance for troubleshooting common issues with Automated Embedding.
 
 No generated embeddings collection matching the index ID
-  Your index might still be in :guialbel`Building` or :guilabel:`Pending` state.
+  Your index might still be in :guilabel:`Building` or :guilabel:`Pending` state.
   The generated embeddings collection is created lazily on first write. Check status using the 
   ``$listSearchIndexes``.
 
