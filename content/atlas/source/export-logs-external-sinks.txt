@@ -5,7 +5,7 @@ Export Logs to |aws| |s3| Buckets
 =================================
 
 .. meta::
-   :description: Export logs from `mongod`, `mongos`, and audit logs to an AWS S3 bucket from an `M10+` cluster every minute using Atlas.
+   :description: Export logs from `mongod`, `mongos`, and audit logs to an AWS S3 bucket from an `M10+` cluster every minute using Atlas. Includes log format documentation and changes from Push-Based Log Export.
 
 .. default-domain:: mongodb
 
@@ -126,6 +126,165 @@ To export logs to an |aws| |s3| bucket, complete the following steps.
          are correct before enabling the export.
 
    .. step:: Click :guilabel:`Finish`.
+
+.. _export-log-format:
+
+Exported Log Format
+-------------------
+
+{+service+} exports logs to your |s3| bucket as JSON objects with
+structured metadata. Each log entry includes the original MongoDB log
+message along with additional context fields that identify the source
+cluster, host, and log type.
+
+The exported logs use a structured format that differs from the legacy
+:ref:`Push-Based Log Export (PBLE) <mongodb-logs-push>` system. This
+new format provides enhanced metadata for log routing, filtering, and
+analysis in your logging infrastructure.
+
+Log Entry Structure
+~~~~~~~~~~~~~~~~~~~
+
+Each exported log entry is a JSON object with the following top-level
+fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Field
+     - Description
+
+   * - ``service.name``
+     - String that identifies the service type. Default set to ``mongodb``.
+
+   * - ``log``
+     - Original MongoDB log message as a JSON-encoded string. This
+       contains the structured log data from MongoDB, including fields
+       like ``t`` (timestamp), ``s`` (severity), ``c`` (component),
+       ``id`` (message ID), ``ctx`` (context), ``msg`` (message text),
+       and ``attr`` (attributes).
+
+   * - ``host.name``
+     - Fully qualified domain name of the MongoDB host that generated
+       the log entry (e.g., ``atlas-cluster-shard-00-00.example.mongodb.net``).
+
+   * - ``mongodb.group.id``
+     - |service| project ID (also known as group ID) that contains the
+       cluster.
+
+   * - ``mongodb.cluster.name``
+     - Internal cluster identifier that |service| uses.
+
+   * - ``mongodb.customer.cluster.name``
+     - User-defined cluster name as it appears in the {+atlas-ui+}.
+
+   * - ``mongodb.log.type``
+     - Type of log being exported. Possible values: ``mongod``,
+       ``mongos``, ``mongod-audit``, ``mongos-audit``.
+
+   * - ``timestamp``
+     - ISO 8601 timestamp when the log entry was generated.
+
+Example Log Entry
+~~~~~~~~~~~~~~~~~
+
+The following example shows a typical exported log entry:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "service.name": "mongodb",
+     "log": "{\"t\":{\"$date\":\"2026-05-19T21:58:00.309+00:00\"},\"s\":\"I\",\"c\":\"NETWORK\",\"id\":6723804,\"ctx\":\"conn928\",\"msg\":\"Ingress TLS handshake complete\",\"attr\":{\"durationMillis\":26}}",
+     "host.name": "atlas-cluster-shard-00-00.nzmz4k.mongodb.net",
+     "mongodb.group.id": "682f18ee72a6a02c8182cab3",
+     "mongodb.cluster.name": "atlas-cluster",
+     "mongodb.customer.cluster.name": "Cluster0",
+     "mongodb.log.type": "mongod",
+     "timestamp": "2026-05-19T21:58:00.309Z"
+   }
+
+The ``log`` field contains the original MongoDB log message. When
+parsed, it reveals the standard :ref:`MongoDB log message structure
+<log-messages-ref>`:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "t": {"$date": "2026-05-19T21:58:00.309+00:00"},
+     "s": "I",
+     "c": "NETWORK",
+     "id": 6723804,
+     "ctx": "conn928",
+     "msg": "Ingress TLS handshake complete",
+     "attr": {
+       "durationMillis": 26
+     }
+   }
+
+.. note::
+
+   The ordering of fields within the ``attr`` object may vary between
+   log entries and may differ from the legacy PBLE format. Your log
+   parsing tools should not rely on field order within ``attr``.
+
+Changes from Push-Based Log Export (PBLE)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The External Log Sink format includes several changes from the legacy
+:ref:`Push-Based Log Export (PBLE) <mongodb-logs-push>` system:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Change
+     - Description
+
+   * - Nested log content
+     - MongoDB log message is now nested under the ``log`` field as
+       a JSON-encoded string, rather than being at the top level. This
+       requires an additional JSON parsing step to extract the log
+       message fields.
+
+   * - Additional metadata fields
+     - New top-level fields provide context about the log source:
+       ``service.name``, ``host.name``, ``mongodb.group.id``,
+       ``mongodb.cluster.name``, ``mongodb.customer.cluster.name``,
+       ``mongodb.log.type``, and ``timestamp``.
+
+   * - Log entry ordering
+     - Order in which log entries appear in S3 may differ from
+       PBLE. Do not rely on log entry ordering for temporal analysis.
+       Use the ``timestamp`` field or the ``t.$date`` field within the
+       ``log`` content for accurate time-based processing.
+
+   * - Attribute field ordering
+     - Order of fields within the ``attr`` object may differ from
+       PBLE. Parse ``attr`` as a JSON object without relying on field
+       order.
+
+Parsing Considerations
+~~~~~~~~~~~~~~~~~~~~~~
+
+When processing exported logs:
+
+- **Two-level JSON parsing**: First parse the outer JSON object to
+  access metadata fields, then parse the ``log`` field as JSON to
+  access the MongoDB log message.
+
+- **Field extraction**: To extract specific MongoDB log fields (like
+  ``msg``, ``c``, or ``attr``), parse the ``log`` field first.
+
+- **Timestamp handling**: The top-level ``timestamp`` field uses ISO
+  8601 format, while the ``t.$date`` field within the ``log`` content
+  may use MongoDB's Extended JSON format. Both represent the same time.
+
+- **Cluster identification**: Use ``mongodb.customer.cluster.name`` to
+  filter logs by the cluster name shown in Atlas UI. The
+  ``mongodb.cluster.name`` field contains an internal identifier.
 
 .. _export-log-alerts:
 
