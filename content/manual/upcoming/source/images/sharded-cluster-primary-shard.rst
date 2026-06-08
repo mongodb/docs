@@ -1,3 +1,3 @@
 .. figure:: /images/sharded-cluster-primary-shard.bakedsvg.svg
-   :alt: Primary shard (Shard A) with non-sharded collections and chunks of sharded collection documents.
+   :alt: Primary shard containing non-sharded collections and chunks from sharded collections.
    :figwidth: 400px
