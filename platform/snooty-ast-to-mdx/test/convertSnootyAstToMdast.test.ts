@@ -1752,6 +1752,73 @@ describe('DefinitionTerm inline content rendering', () => {
     expect(mdx).toMatch(/Motor is deprecated\.\n\n[\s\S]*?For more information/);
   });
 
+  it('banner: keeps intro text and a following list as separate blocks', () => {
+    // Mirrors the real snooty.toml [[banners]] AST where an intro line is a bare text
+    // node sibling of a bullet list (e.g. atlas-resource-policies). The list must NOT be
+    // nested inside the intro paragraph, otherwise its first item glues onto the intro
+    // sentence ("...to:- Require ...").
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'banner',
+          options: { variant: 'info' },
+          children: [
+            { type: 'text', value: 'As of May 2026, you can now use Atlas Resource Policies to:' },
+            {
+              type: 'list',
+              enumtype: 'unordered',
+              children: [
+                { type: 'listItem', children: [{ type: 'text', value: 'Require dedicated config servers.' }] },
+                { type: 'listItem', children: [{ type: 'text', value: 'Require CMK encryption at rest.' }] },
+                { type: 'listItem', children: [{ type: 'text', value: 'Require database auditing.' }] },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    // The intro text must not be glued to the first list item on the same line.
+    // (Use [ \t] rather than \s so the check does not span the newline.)
+    expect(mdx).not.toMatch(/to:[ \t]*[*-]\s*Require/);
+    // The intro text ends its own line; the list follows on a later line.
+    expect(mdx).toMatch(/to:[ \t]*\n[\s\S]*Require dedicated config servers\./);
+    // All three list items render as proper bullets.
+    expect(mdx).toMatch(/[*-]\s*Require dedicated config servers\./);
+    expect(mdx).toMatch(/[*-]\s*Require CMK encryption at rest\./);
+    expect(mdx).toMatch(/[*-]\s*Require database auditing\./);
+  });
+
+  it('banner: emits a lone block child as a single node (no wrapping empty paragraph)', () => {
+    // When the banner body is only a block-level node (a list with no surrounding intro
+    // text), hoisting collapses to a single node rather than an array. The list must
+    // still render as bullets and must not be preceded by a stray empty paragraph.
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'directive',
+          name: 'banner',
+          options: { variant: 'info' },
+          children: [
+            {
+              type: 'list',
+              enumtype: 'unordered',
+              children: [{ type: 'listItem', children: [{ type: 'text', value: 'First option.' }] }],
+            },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    // The item renders as a bullet.
+    expect(mdx).toMatch(/[*-]\s*First option\./);
+    // The list is the first content inside the Banner, no empty line/paragraph before it.
+    expect(mdx).toMatch(/<Banner variant="info">\s*[*-]\s*First option\./);
+  });
+
   it('hoists <DefinitionList> out of paragraph when nested in a paragraph', () => {
     const ast: SnootyNode = {
       type: 'root',

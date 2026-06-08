@@ -1280,39 +1280,54 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         };
       }
 
-      // Banner directive: when the Snooty AST mixes inline nodes (text, RefRole, etc.)
-      // with paragraph nodes at the same level — which happens when an RST banner value
-      // splits its content across lines without blank-line paragraph breaks — merge
-      // everything into a single inline paragraph so there are no blank lines between
-      // the segments. When ALL children are proper block-level paragraphs (e.g. a banner
-      // with two distinct paragraphs of prose), keep them as separate paragraphs.
+      // Banner directive: the AST for an RST banner value (typically a snooty.toml
+      // [[banners]] entry) can mix inline nodes (text, RefRole, etc.) with block-level
+      // nodes (lists, tables) as siblings, depending on how the value is authored. When
+      // every child is a paragraph (e.g. two distinct paragraphs of prose), keep them as
+      // separate blocks. When the children are inline-only - which happens when a banner
+      // value splits across lines without blank-line paragraph breaks — merge everything
+      // into a single inline paragraph so there are no blank lines between the segments.
+      // When a block-level node is present (e.g. intro text followed by a bulleted list),
+      // split the content at block boundaries so the text and the list render as separate
+      // siblings — flattening them into one paragraph would nest the list inside a <p> and
+      // glue its first item onto the intro sentence (e.g. "...to:- Require ...").
       if (directiveName === 'banner') {
         const attributes: MdastNode[] = toJsxAttributes(node.options);
         const bodyChildren = convertChildren({ nodes: node.children, depth, ctx, parentType: 'banner' });
 
-        const hasNonParagraphChild = bodyChildren.some((child) => child.type !== 'paragraph');
+        const nonParagraphChildren = bodyChildren.filter((child) => child.type !== 'paragraph');
+        const hasBlockLevelChild = nonParagraphChildren.some((child) => MDAST_BLOCK_TYPES.has(child.type));
 
         let bannerChildren: MdastNode[];
-        if (hasNonParagraphChild) {
-          // Flatten paragraphs + bare inline nodes into a single inline paragraph.
-          const inlineNodes: MdastNode[] = [];
+        if (nonParagraphChildren.length === 0) {
+          // All children are paragraphs — preserve them as separate blocks.
+          bannerChildren = bodyChildren;
+        } else {
+          // Mixed content — unwrap paragraph wrappers into a single inline stream and
+          // collapse any residual newline+whitespace introduced by RST line wrapping.
+          const inlineStream: MdastNode[] = [];
           for (const child of bodyChildren) {
             if (child.type === 'paragraph' && Array.isArray(child.children)) {
-              inlineNodes.push(...child.children);
+              inlineStream.push(...child.children);
             } else {
-              inlineNodes.push(child);
+              inlineStream.push(child);
             }
           }
-          // Collapse any residual newline+whitespace in text nodes.
-          for (const n of inlineNodes) {
+          for (const n of inlineStream) {
             if (n.type === 'text' && typeof n.value === 'string') {
               n.value = n.value.replace(/\n\s*/g, ' ');
             }
           }
-          bannerChildren = inlineNodes.length > 0 ? [{ type: 'paragraph', children: inlineNodes }] : [];
-        } else {
-          // All children are paragraphs — preserve them as separate blocks.
-          bannerChildren = bodyChildren;
+
+          if (hasBlockLevelChild) {
+            // A block-level node is present — split the stream at block boundaries, hoisting
+            // block-level nodes (e.g. a list) out as siblings of the surrounding text paragraphs.
+            const hoisted = hoistFlowElementsFromParagraph(inlineStream);
+            bannerChildren = Array.isArray(hoisted) ? hoisted : [hoisted];
+          } else {
+            // Inline-only content — merge into a single inline paragraph.
+            bannerChildren = inlineStream.length > 0 ? [{ type: 'paragraph', children: inlineStream }] : [];
+          }
         }
 
         return {
