@@ -32,3 +32,5 @@ export class WebSiteSd extends StructuredData {
     };
   }
 }
+
+export const websiteSd = new WebSiteSd().toString();

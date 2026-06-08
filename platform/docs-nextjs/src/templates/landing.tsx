@@ -10,7 +10,7 @@ import { OfflineBanner } from '@/mdx-components/Banner/OfflineBanner';
 import { useVersionContext } from '@/context/version-context';
 import { usePageContext } from '@/context/page-context';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
-import { WebSiteSd } from '@/utils/structured-data/website-sd';
+import { websiteSd } from '@/utils/structured-data/website-sd';
 import { STRUCTURED_DATA_CLASSNAME } from '@/utils/structured-data/structured-data';
 
 const CONTENT_MAX_WIDTH = 1440;
@@ -171,8 +171,6 @@ const getLandingTemplateStyles = () => {
 const LandingTemplate = ({ children }: BaseTemplateProps & { children: ReactNode }) => {
   const { slug: pageSlug } = usePageContext();
   const { siteBasePrefixWithVersion } = useVersionContext();
-  const websiteSd = new WebSiteSd().toString();
-
   return (
     <>
       <script className={STRUCTURED_DATA_CLASSNAME} type="application/ld+json" dangerouslySetInnerHTML={{ __html: websiteSd }} />
