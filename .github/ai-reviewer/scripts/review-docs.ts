@@ -344,37 +344,92 @@ ${styleGuide}` : ''}
 
 ## Review Instructions
 
-**IMPORTANT: Writers experience cognitive overload during PR reviews.** They're already checking markup, build logs, staging, and other checks. Your feedback must be:
-- **Minimal**: Only flag definite problems that MUST be fixed
-- **Actionable**: Every comment should have a clear fix
-- **Concise**: Keep comments short and direct
+**IMPORTANT: Do NOT flag anything already caught by the deterministic linters or Vale. These tools run on every PR and will surface these issues separately.**
 
-1. **ONLY flag HIGH severity issues** - things that are definitely wrong and need fixing:
-   - Broken or malformed syntax (like malformed :ref: directives)
-   - Missing required elements (no H1, missing meta)
-   - Nested components (these are NOT allowed)
-   - Clear SEO violations (but ONLY if the PR touches that content - see rule 4)
+The following are already handled — skip them entirely:
 
-2. **DO NOT flag**:
-   - Minor style suggestions
-   - "Nice to have" improvements  
-   - Issues in content the PR didn't touch
-   - Anything subjective or debatable
+*SEO linter:* title length, meta description length
+*Nested components linter:* admonitions or tables nested inside each other
+*404 linter:* broken external links
 
-3. **Be concise**: One sentence for the issue, one sentence for the fix. No lengthy explanations.
+*Vale (all 52 active rules — do not re-flag any of these):*
+- Abbreviations: unspelled-out acronyms on first use
+- AbbreviationsPeriods: periods in acronyms/initialisms
+- Accessibility: non-descriptive link text
+- Adverbs: unnecessary adverbs
+- AmbiguousPronouns: sentences starting with ambiguous "This" or "That"
+- Ampersands: "&" instead of "and" in prose
+- Anthropomorphism: attributing human qualities to software
+- AvoidAccessible: misuse of "accessible"
+- AvoidFirstPerson: first-person pronouns ("I", "we", "our")
+- AvoidFutureTense: future tense ("will + verb")
+- AvoidObscure: Latin abbreviations ("i.e.", "e.g.", "etc.")
+- AvoidPastTense: past tense in descriptive content
+- AvoidSubjunctive: subjunctive mood ("would", "should", "could" expressing uncertainty)
+- AvoidSupported: unsupported claims about supported software
+- AvoidTerms: specific banned terms
+- AvoidWithSubstitution: word substitutions ("argument" → "option", etc.)
+- But: paragraphs starting with "But"
+- Careful: terms requiring verified usage ("following", "on", etc.)
+- ClickHereLinks: "click here" as link text
+- Colons: colons after incomplete sentences
+- CommaNonRestrictiveClause: missing comma with non-restrictive clauses
+- CommaOxford: missing Oxford comma
+- CommaQuotation: comma placement with embedded quotations
+- CommaRestrictiveClause: comma before restrictive "that" clauses
+- ComplexWords: complex word substitutions ("modify" → "change", etc.)
+- ConciseTerms: wordy phrases ("in order to" → "to", "is able to" → "can", "a number of" → "several", etc.)
+- ConsistencyEarlierLater: "earlier/later" vs "above/below" for version references
+- Contractions: non-standard or obscure contractions
+- ContractionsNegative: "does not" → "doesn't", "is not" → "isn't", etc.
+- Dashes: en dash used where em dash is required
+- DashesSpaces: whitespace around dashes
+- Dates: non-standard date formatting
+- Ellipsis: ellipses in prose
+- ExpletiveConstruct: "It is", "There is", "There are" constructions
+- GenderBias: gendered pronouns
+- Girls: "girls" or "boys" used to describe adults
+- GlobalAudienceIdioms: idiomatic expressions unfamiliar to global audiences
+- GlobalAudienceMetaphorical: metaphorical language
+- GlobalAudienceNonOppressiveLanguage: oppressive language
+- Hyphen: missing hyphens with "self-" prefix
+- Interjections: exclamation points in documentation
+- NegativeWords: negative framing where positive phrasing is preferred
+- Numbers: number formatting (numerals vs. spelled-out)
+- PossessiveAbbreviations: apostrophes in plural abbreviations
+- ProductNames: incorrect MongoDB product name formatting
+- Semicolons: semicolons in prose
+- SentenceLength: sentences over 25 words
+- Simplicity: "simply", "easy", "easily", "just"
+- SingleQuotes: single quotes in prose
+- Slashes: slashes where "or" should be used
+- ThatWhich: "which" in restrictive clauses, "that" in non-restrictive clauses
+- TitlesEnd: punctuation at the end of headings
+- Wordiness: nominalization ("perform an installation" → "install", etc.)
 
-4. **Check ALL files in the PR** - the writer requested this review.
+**Flag ONLY issues that pattern-matching tools cannot catch:**
+1. **Wrong voice**: "the user", "the developer", or any third-person reference where second-person "you" is required
+2. **Passive voice**: "to be" + past participle constructions ("is saved", "has been installed", "can be restarted") — rewrite with an active subject
+3. **Vague quantifiers**: always flag "various". Flag "some", "many", "several" when a specific count or enumerated list exists in context. If the same vague quantifier appears multiple times in one file, report it once and note it recurs — do not create a separate comment for each occurrence.
+4. **Wrong admonition type**: \`.. warning::\` is correct ONLY for data loss, irreversible actions, or security vulnerabilities. Performance tips and best practices belong in \`.. tip::\`. Supplemental information belongs in \`.. note::\`. Essential prerequisites belong in \`.. important::\`. Flag any \`.. warning::\` whose content does not describe data loss, a destructive operation, or a security risk.
+5. **Stacked admonitions**: two or more consecutive notes, tips, warnings, or important blocks — combine into one or move to a dedicated section
+6. **Non-parallel list items**: list items that don't follow the same grammatical form (e.g., mixing imperative verbs with noun phrases)
+7. **List introduction issues**: any sentence that introduces a bulleted or numbered list must end with a colon. Flag: a missing colon (e.g., "Set up your environment using these steps" with no trailing colon), "do the following" used as an introduction, or an introduction that counts the items ("the following three methods").
+8. **Cross-reference structure**: flag any sentence that opens with "See :ref:", "See :doc:", or "Refer to :ref:" followed by "to learn", "to understand", "for more information", or similar. Correct form puts the reason first: "To learn about X, see :ref:\`foo\`."
+9. **Broken RST directives**: malformed :ref:, :method:, :class:, or other inline roles where the syntax is wrong — e.g., \`:method:collection.insertOne\` instead of \`:method:\`collection.insertOne\`\`
+10. **Heading capitalization**: headings must use AP headline style. Scan every word in every heading. Capitalize: nouns, verbs, adjectives, adverbs, and the first and last word regardless of part of speech. Lowercase: articles (a, an, the), coordinating conjunctions (and, but, or, for, nor, so, yet), and prepositions (to, of, in, on, at, by, for, with, about, from, as, into, through, etc.) when they appear mid-heading. Example violation: "Performance And Tuning" — "And" is a coordinating conjunction and must be lowercase: "Performance and Tuning".
+11. **List item punctuation consistency**: scan every item in a list and check end punctuation. If ANY item ends with a period, ALL items must end with a period. If NO item ends with a period, none should. Flag the list if some items end with a period and others do not — e.g., "Install the driver." followed by "Copy your connection string" (no period) is a violation.
+12. **List items starting with articles**: list items must not begin with "a", "an", or "the".
 
-5. **Nested components are always HIGH priority** (flag these regardless):
-   - Admonitions inside admonitions
-   - Admonitions inside tables
-   - Examples inside admonitions or tables
-   - Procedures inside procedures
-   - Tables inside tables
+**Additional instructions:**
+- **Actionable**: Every comment must have a clear, specific fix
+- **Concise**: One sentence for the issue, one sentence for the fix
+- **No duplicates**: Report each distinct issue once per file, even if the same pattern recurs. Note recurrence in the single comment rather than filing multiple comments.
+- **Never re-flag Vale rules**: The Simplicity rule covers "simply", "easy", "easily", "just" — never flag these words regardless of context. The full list of 52 Vale rules above are off-limits even when they appear alongside other issues.
+- **Check ALL files in the PR** - the writer requested this review
+- **Report all applicable issues found** — if there are 10 problems in the categories above, report all 10
 
-6. **Report all issues found**. Don't limit yourself - if there are 10 problems, report 10 problems.
-
-7. **Format your response as JSON** with this structure:
+**Format your response as JSON** with this structure:
 \`\`\`json
 {
   "summary": "A 2-3 sentence overall assessment of the PR",
@@ -447,24 +502,139 @@ async function getAIReview(prompt: string, config: Config): Promise<AIReview> {
 // GITHUB POSTING
 // =============================================================================
 
+interface ExistingAIComment {
+  type: 'issue_comment' | 'pr_review';
+  id: number;
+}
+
+async function findExistingAIComment(
+  owner: string,
+  repo: string,
+  prNumber: number
+): Promise<ExistingAIComment | null> {
+  // Check issue comments first (canonical location for new runs)
+  const { data: issueComments } = await octokit.issues.listComments({
+    owner,
+    repo,
+    issue_number: prNumber,
+    per_page: 100,
+  });
+  const existingIssueComment = issueComments.find(
+    c =>
+      c.user?.login === 'github-actions[bot]' &&
+      c.body?.includes('**AI Review')
+  );
+  if (existingIssueComment) {
+    return { type: 'issue_comment', id: existingIssueComment.id };
+  }
+
+  // Fall back to PR reviews (legacy location from older runs)
+  const { data: reviews } = await octokit.pulls.listReviews({
+    owner,
+    repo,
+    pull_number: prNumber,
+    per_page: 100,
+  });
+  const existingReview = reviews.find(
+    r =>
+      r.user?.login === 'github-actions[bot]' &&
+      r.body?.includes('**AI Review')
+  );
+  if (existingReview) {
+    return { type: 'pr_review', id: existingReview.id };
+  }
+
+  return null;
+}
+
+function getValidDiffLines(patch: string): Set<number> {
+  const validLines = new Set<number>();
+  let currentLine = 0;
+  for (const line of patch.split('\n')) {
+    const hunkMatch = line.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+    if (hunkMatch) {
+      currentLine = parseInt(hunkMatch[1], 10) - 1;
+    } else if (line.startsWith('+')) {
+      currentLine++;
+      validLines.add(currentLine);
+    } else if (!line.startsWith('-')) {
+      currentLine++;
+      validLines.add(currentLine);
+    }
+  }
+  return validLines;
+}
+
+function resolveLineFromText(originalText: string, patch: string): number | null {
+  if (!originalText || !patch) return null;
+  const needle = originalText.trim();
+  let currentLine = 0;
+  for (const line of patch.split('\n')) {
+    const hunkMatch = line.match(/^@@ -\d+(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
+    if (hunkMatch) {
+      currentLine = parseInt(hunkMatch[1], 10) - 1;
+    } else if (line.startsWith('-')) {
+      // deleted line — skip, don't increment
+    } else {
+      currentLine++;
+      const content = line.startsWith('+') ? line.slice(1) : line;
+      if (content.includes(needle)) {
+        return currentLine;
+      }
+    }
+  }
+  return null;
+}
+
 async function postReview(
-  owner: string, 
-  repo: string, 
-  prNumber: number, 
-  pr: PRData, 
-  review: AIReview, 
-  config: Config
+  owner: string,
+  repo: string,
+  prNumber: number,
+  pr: PRData,
+  review: AIReview,
+  config: Config,
+  files: PRFile[]
 ): Promise<void> {
-  const comments: Array<{ path: string; line: number; body: string }> = [];
-  
+  const validLinesByFile = new Map<string, Set<number>>();
+  for (const file of files) {
+    if (file.patch) {
+      validLinesByFile.set(file.filename, getValidDiffLines(file.patch));
+    }
+  }
+
+  const comments: Array<{ path: string; line: number; side: string; body: string }> = [];
+
+  const patchByFile = new Map<string, string>();
+  for (const file of files) {
+    if (file.patch) {
+      patchByFile.set(file.filename, file.patch);
+    }
+  }
+
   for (const comment of review.comments.slice(0, config.feedback.max_inline_comments)) {
-    if (comment.line && comment.file) {
+    if (comment.file) {
+      const patch = patchByFile.get(comment.file);
+      const validLines = validLinesByFile.get(comment.file);
+
+      // Resolve line from original_text first; fall back to AI-reported line
+      let resolvedLine = comment.original_text && patch
+        ? resolveLineFromText(comment.original_text, patch)
+        : null;
+      console.log(`   🔍 ${comment.file}: original_text="${comment.original_text}" → resolvedLine=${resolvedLine}, AI line=${comment.line}`);
+      if (!resolvedLine) resolvedLine = comment.line ?? null;
+
+      if (!resolvedLine || !validLines || !validLines.has(resolvedLine)) {
+        console.log(`   ⚠️ Skipping inline comment for ${comment.file}:${resolvedLine} (not in diff)`);
+        continue;
+      }
+      comment.line = resolvedLine;
+
       const severityEmoji: Record<string, string> = {
         high: '🔴',
-        medium: '🟡', 
+        medium: '🟡',
         low: '🟢'
       };
-      
+
       const categoryLabel: Record<string, string> = {
         seo: 'SEO',
         style: 'Style Guide',
@@ -473,68 +643,115 @@ async function postReview(
         structure: 'Structure',
         nested: 'Nested Component'
       };
-      
+
       comments.push({
         path: comment.file,
         line: comment.line,
+        side: 'RIGHT',
         body: `${severityEmoji[comment.severity] || '💬'} **${categoryLabel[comment.category] || comment.category}**: ${comment.issue}
 
 **Fix:** ${comment.suggestion}`
       });
     }
   }
-  
+
   const qualityEmoji: Record<string, string> = {
     good: '✅',
     needs_work: '⚠️',
     significant_issues: '🚨'
   };
-  
+
   let summaryBody: string;
-  
+
+  const lastUpdated = new Date().toUTCString();
+  const rerequestPrompt = `<sub>This comment is updated with each new review. Last reviewed: ${lastUpdated}. Once you've addressed the feedback, add or re-add the \`ai-review-style\` label to request a new review.</sub>`;
+
   if (review.comments.length === 0) {
-    summaryBody = `${qualityEmoji[review.overall_quality] || '📝'} **AI Review: Looks good!** No issues found.`;
+    summaryBody = `${qualityEmoji[review.overall_quality] || '📝'} **AI Review: Looks good!** No issues found.
+
+${rerequestPrompt}`;
   } else {
-    const issueList = review.comments.map(c => {
+    const commentsByFile = new Map<string, ReviewComment[]>();
+    for (const c of review.comments) {
+      const file = c.file || 'unknown';
+      if (!commentsByFile.has(file)) commentsByFile.set(file, []);
+      commentsByFile.get(file)!.push(c);
+    }
+    const issueList = Array.from(commentsByFile.entries()).map(([file, fileComments]) => {
       const emoji: Record<string, string> = { high: '🔴', medium: '🟡', low: '🟢' };
-      return `- ${emoji[c.severity] || '💬'} ${c.issue}`;
-    }).join('\n');
-    
+      const items = fileComments.map(c => `  - ${emoji[c.severity] || '💬'} ${c.issue}`).join('\n');
+      return `**\`${file}\`**\n${items}`;
+    }).join('\n\n');
+
     summaryBody = `${qualityEmoji[review.overall_quality] || '📝'} **AI Review** - ${review.comments.length} issue${review.comments.length === 1 ? '' : 's'} found:
 
 ${issueList}
 
-<sub>See inline comments for details. Advisory only.</sub>`;
+<sub>See inline comments for details. Advisory only.</sub>
+
+${rerequestPrompt}`;
   }
 
-  try {
-    await withRetry(async () => {
-      await octokit.pulls.createReview({
+  // Post inline comments individually so `line`+`side` is used correctly.
+  // createReview silently maps `line` to the legacy `position` field, which
+  // is a diff offset rather than a file line number and causes comments to
+  // land at the wrong location. createReviewComment handles line+side properly.
+  const inlineComments = comments.filter(c => c.line > 0);
+  let postedCount = 0;
+  for (const comment of inlineComments) {
+    try {
+      await withRetry(async () => {
+        await octokit.pulls.createReviewComment({
+          owner,
+          repo,
+          pull_number: prNumber,
+          commit_id: pr.head.sha,
+          path: comment.path,
+          line: comment.line,
+          side: comment.side as 'LEFT' | 'RIGHT',
+          body: comment.body,
+        });
+      });
+      postedCount++;
+    } catch {
+      console.log(`⚠️ Could not post inline comment for ${comment.path}:${comment.line}, skipping`);
+    }
+  }
+  if (postedCount > 0) {
+    console.log(`✅ Posted ${postedCount} inline comment(s)`);
+  }
+
+  // Upsert the summary: edit the existing one wherever it lives, else create it
+  const existing = await findExistingAIComment(owner, repo, prNumber);
+
+  await withRetry(async () => {
+    if (existing?.type === 'issue_comment') {
+      await octokit.issues.updateComment({
+        owner,
+        repo,
+        comment_id: existing.id,
+        body: summaryBody,
+      });
+      console.log('✅ Updated existing AI review summary comment');
+    } else if (existing?.type === 'pr_review') {
+      await octokit.pulls.updateReview({
         owner,
         repo,
         pull_number: prNumber,
-        commit_id: pr.head.sha,
+        review_id: existing.id,
         body: summaryBody,
-        event: 'COMMENT',
-        comments: comments.filter(c => c.line > 0),
       });
-    });
-    
-    console.log('✅ Review posted successfully!');
-  } catch {
-    console.log('⚠️ Could not post inline comments, posting summary only...');
-    
-    await withRetry(async () => {
+      console.log('✅ Updated existing AI review PR review body');
+    } else {
       await octokit.issues.createComment({
         owner,
         repo,
         issue_number: prNumber,
         body: summaryBody,
       });
-    });
-    
-    console.log('✅ Summary comment posted successfully!');
-  }
+      console.log('✅ Created AI review summary comment');
+    }
+  });
 }
 
 // =============================================================================
@@ -629,7 +846,7 @@ async function main(): Promise<void> {
     return;
   }
   
-  await postReview(owner, repo, prNumber, pr, review, config);
+  await postReview(owner, repo, prNumber, pr, review, config, filesToReview);
 }
 
 main().catch(async error => {
