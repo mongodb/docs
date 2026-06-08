@@ -7,7 +7,7 @@ import useActiveHeading from '@/hooks/use-active-heading';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import type { HeadingOption, TextNode } from '@/types/ast';
 
-export type ActiveSelectorIds = { methodSelector?: string; tab?: string[] };
+export type ActiveSelectorIds = { methodSelector?: string; tab?: string[]; composable?: string };
 
 interface ContentsContextValue {
   activeHeadingId: string | null;
@@ -29,7 +29,7 @@ const defaultContextValue: ContentsContextValue = {
 
 const ContentsContext = createContext(defaultContextValue);
 
-function extractPlainText(nodes: TextNode[]): string {
+export function extractPlainText(nodes: TextNode[]): string {
   return nodes
     .map((node) => {
       if ('value' in node) return (node as TextNode).value ?? '';
@@ -42,6 +42,8 @@ function extractPlainText(nodes: TextNode[]): string {
 }
 
 const ContentsProvider = ({ children, headingNodes }: { children: ReactNode; headingNodes: HeadingOption[] }) => {
+  const [activeSelectorIds, setActiveSelectorIds] = useState<ActiveSelectorIds>({});
+
   // Both sluggers are fresh per page (re-created when headingNodes changes on navigation).
   // tocSlugger normalizes Snooty IDs to match github-slugger output for ToC links.
   // headingSlugger is given to Heading components so their Permalink IDs are generated
@@ -52,7 +54,11 @@ const ContentsProvider = ({ children, headingNodes }: { children: ReactNode; hea
       ...node,
       id: tocSlugger.slug(extractPlainText(node.title)),
     }));
-  }, [headingNodes]);
+    // activeSelectorIds.composable is included so the IntersectionObserver
+    // re-runs after ComposableTutorial sets its initial selections and the
+    // composable heading elements first appear in the DOM.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [headingNodes, activeSelectorIds.composable]);
 
   // headingNodes is listed as a dep so this resets on page navigation even though
   // the factory doesn't consume it directly.
@@ -60,7 +66,6 @@ const ContentsProvider = ({ children, headingNodes }: { children: ReactNode; hea
   const headingSlugger = useMemo(() => new Slugger(), [headingNodes]);
 
   const activeHeadingId = useActiveHeading(normalizedHeadingNodes);
-  const [activeSelectorIds, setActiveSelectorIds] = useState<ActiveSelectorIds>({});
 
   const { project } = useSnootyMetadata();
   // The guides site is the only site that takes advantage of headings, but never uses the Contents component

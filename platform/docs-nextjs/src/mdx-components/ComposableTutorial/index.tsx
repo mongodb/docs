@@ -14,6 +14,7 @@ import { useHash } from '@/hooks/use-hash';
 import { usePageContext } from '@/context/page-context';
 import ConfigurableOption from '@/mdx-components/ComposableTutorial/ConfigurableOption';
 import ComposableContext, { ComposableContextProvider } from '@/mdx-components/ComposableTutorial/composable-context';
+import { ContentsContext } from '@/context/contents-context';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 const DELIMITER_KEY = '**';
@@ -154,6 +155,7 @@ export interface ComposableTutorialProps {
 // Internal component that consumes the context
 const ComposableTutorialInternal = ({ children, composableOptions }: ComposableTutorialProps) => {
   const { currentSelections, setCurrentSelections } = useContext(ComposableContext);
+  const { setActiveSelectorIds } = useContext(ContentsContext);
   const { options: pageOptions } = usePageContext();
   const hash = useHash();
   const search = useSearchParams();
@@ -247,6 +249,16 @@ const ComposableTutorialInternal = ({ children, composableOptions }: ComposableT
     preserveHash.current = true;
     setCurrentSelections(defaultParams);
   }, [hash, refToSelection, setCurrentSelections, search, composableOptions, validSelections]);
+
+  // Notify ContentsContext when composable selections are first loaded so the
+  // IntersectionObserver re-runs after composable heading elements mount.
+  // On initial render currentSelections is {}, so heading elements are absent
+  // from the DOM when the observer first sets up — this triggers a re-run.
+  useEffect(() => {
+    if (!isEmpty(currentSelections)) {
+      setActiveSelectorIds((prev) => ({ ...prev, composable: JSON.stringify(currentSelections) }));
+    }
+  }, [currentSelections, setActiveSelectorIds]);
 
   // when updating selection state, update the url and local storage with the new selections
   useEffect(() => {
