@@ -17,22 +17,55 @@ export async function resolvePathsToBuild({
 	allContentData: AllContentData;
 	validParserCache: boolean;
 }) {
-	const forceRebuildAll = envVarToBool(process.env.FORCE_REBUILD_ALL);
+	const forceRebuildAllActive = envVarToBool(
+		process.env.FORCE_REBUILD_ALL_ACTIVE,
+	);
+	const forceRebuildAllInactive = envVarToBool(
+		process.env.FORCE_REBUILD_ALL_INACTIVE,
+	);
 	const forceRebuildPaths = (process.env.FORCE_REBUILD_PATHS ?? '')
 		.split(',')
 		.map((p) => p.trim())
 		.filter(Boolean);
 
-	if (forceRebuildAll || !validParserCache) {
-		if (forceRebuildAll) {
-			console.log('FORCE_REBUILD_ALL set — rebuilding all content paths');
+	// Parser cache misses only rebuild active paths — rebuilding inactive
+	// versions in the same run pushes the parser + persistence module past their
+	// available context budget in prod.
+	const rebuildActive = forceRebuildAllActive || !validParserCache;
+
+	if (rebuildActive || forceRebuildAllInactive) {
+		if (forceRebuildAllActive) {
+			console.log(
+				'FORCE_REBUILD_ALL_ACTIVE set — rebuilding all active content paths',
+			);
+		}
+		if (forceRebuildAllInactive) {
+			console.log(
+				'FORCE_REBUILD_ALL_INACTIVE set — rebuilding all inactive content paths',
+			);
 		}
 		if (!validParserCache) {
-			console.log('Parser cache is invalid — rebuilding all content paths');
+			console.log(
+				'Parser cache is invalid — rebuilding all active content paths',
+			);
 		}
-		allContentData.pathsToBuild.push(...contentDirectories);
-		return;
+
+		const pathsToAdd = contentDirectories.filter((contentPath) => {
+			const isActive = isPathActive(contentPath, allContentData);
+			return (isActive && rebuildActive) || (!isActive && forceRebuildAllInactive);
+		});
+		allContentData.pathsToBuild.push(...pathsToAdd);
+
+		// If we're rebuilding both active and inactive (effectively "all"), no
+		// further work is needed.
+		if (rebuildActive && forceRebuildAllInactive) {
+			return;
+		}
+		// Fall through: when only one of the two is set, we still want to allow
+		// FORCE_REBUILD_PATHS and changed-file detection to top up the queue with
+		// anything they would normally add on top of git-change detection.
 	}
+
 	// TODO: improve file changes detection
 	const fileChanges = await getFileChanges({
 		run: utils.run,
@@ -43,7 +76,11 @@ export async function resolvePathsToBuild({
 		fileChanges,
 		allFullContentPaths: contentDirectories,
 	});
-	allContentData.pathsToBuild.push(...changedContentPaths);
+	for (const contentPath of changedContentPaths) {
+		if (!allContentData.pathsToBuild.includes(contentPath)) {
+			allContentData.pathsToBuild.push(contentPath);
+		}
+	}
 
 	if (forceRebuildPaths.length > 0) {
 		console.log(
@@ -52,7 +89,7 @@ export async function resolvePathsToBuild({
 		for (const contentPath of contentDirectories) {
 			if (
 				forceRebuildPaths.some(
-					(p) => contentPath === p || contentPath.startsWith(p),
+					(p) => contentPath === p || contentPath.startsWith(`${p}/`),
 				) &&
 				!allContentData.pathsToBuild.includes(contentPath)
 			) {
@@ -63,3 +100,15 @@ export async function resolvePathsToBuild({
 	}
 	return;
 }
+
+/** Looks up a content path's active flag from docsPaths. Defaults to `true` for
+ *  unknown paths so we don't silently drop them from builds when metadata is
+ *  missing. */
+const isPathActive = (
+	contentPath: string,
+	allContentData: AllContentData,
+): boolean => {
+	const bundle = allContentData.docsPaths?.[contentPath];
+	if (!bundle) return true;
+	return bundle.active;
+};

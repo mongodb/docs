@@ -23,6 +23,9 @@ export interface ContentBundleData {
     projectDirName: string;
     /** Name of version or empty string if project is unversioned */
     versionName: string;
+    /** whether this content path corresponds to an active branch in repos_branches.
+     *  Unversioned projects are treated as active unless their sole branch is marked inactive. */
+    active: boolean;
     /** whether the content has changed in the last commit */
     changed: boolean;
     /** whether the content should be rebuilt */
@@ -56,21 +59,54 @@ export const processContentMetadata = async ({
       reposBranchesEntry,
     });
 
-    const active = !reposBranchesEntry.branches?.find(
-      (branch: BranchEntry): boolean => branch.name === versionName,
-    )?.active;
+    const active = isContentPathActive({ versionName, reposBranchesEntry });
     const shouldRebuild = active && clearCache;
 
     docsPaths[contentPath] = {
       projectName,
       projectDirName,
       versionName,
+      active,
       changed: false,
       shouldRebuild,
       fullPath: '', // TODO: set full path
     };
   });
   return { docsPaths };
+};
+
+/** Determines whether the given content path corresponds to an active branch
+ *  in its project's repos_branches entry.
+ *
+ *  - Unversioned projects (0 or 1 branch) are active unless their sole branch
+ *    is explicitly marked `active: false`.
+ *  - Versioned projects match the URL slug of the content path (the trailing
+ *    segment of `contentPath`) against `branch.urlSlug` first, then fall back
+ *    to `branch.name` and `branch.gitBranchName` for resilience.
+ */
+export const isContentPathActive = ({
+  versionName,
+  reposBranchesEntry,
+}: {
+  versionName: string;
+  reposBranchesEntry: ReposBranchesDocument;
+}): boolean => {
+  const branches = reposBranchesEntry?.branches ?? [];
+  if (branches.length <= 1) {
+    const branch = branches[0];
+    if (branch) {
+      return branch.active === true;
+    } else {
+      return true;
+    }
+  }
+  const branch = branches.find(
+    (b: BranchEntry) =>
+      b.urlSlug === versionName ||
+      b.name === versionName ||
+      b.gitBranchName === versionName,
+  );
+  return branch?.active === true;
 };
 
 /** Split the content path, retrieving project directory name and version name

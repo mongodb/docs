@@ -14,7 +14,7 @@ import {
   getFileChanges,
   findContentPathsWithChanges,
 } from '../../src/github/processFileChanges';
-import type { AllContentData } from '../../src/contentMetadata/processContentMetadata';
+import type { AllContentData, ContentBundleData } from '../../src/contentMetadata/processContentMetadata';
 
 const mockGetParser = getParser as jest.MockedFunction<typeof getParser>;
 const mockGetFileChanges = getFileChanges as jest.MockedFunction<typeof getFileChanges>;
@@ -27,23 +27,119 @@ const makeUtils = () =>
     git: { modifiedFiles: [], createdFiles: [], deletedFiles: [] },
   }) as unknown as Parameters<typeof resolvePathsToBuild>[0]['utils'];
 
-const makeAllContentData = (): AllContentData => ({
+const contentDirectories = ['atlas', 'manual/v8.0', 'node/current'];
+
+/** Build docsPaths metadata for the canonical contentDirectories above.
+ *  By default, marks the first two as active and the last as inactive. */
+const makeDocsPaths = (
+  overrides: Partial<Record<string, boolean>> = {},
+): ContentBundleData => {
+  const defaults: Record<string, boolean> = {
+    atlas: true,
+    'manual/v8.0': true,
+    'node/current': false,
+  };
+  const active = { ...defaults, ...overrides };
+  const docsPaths: ContentBundleData = {};
+  for (const path of Object.keys(active)) {
+    const parts = path.split('/');
+    docsPaths[path] = {
+      projectName: parts[0],
+      projectDirName: parts[0],
+      versionName: parts[1] ?? '',
+      active: active[path] as boolean,
+      changed: false,
+      shouldRebuild: false,
+      fullPath: '',
+    };
+  }
+  return docsPaths;
+};
+
+const makeAllContentData = (
+  docsPaths: ContentBundleData = makeDocsPaths(),
+): AllContentData => ({
   pathsToBuild: [],
-  docsPaths: {},
+  docsPaths,
   atlasProjectDocuments: {},
 });
 
-const contentDirectories = ['atlas', 'manual/v8.0', 'node/current'];
-
 beforeEach(() => {
   jest.resetAllMocks();
-  delete process.env.FORCE_REBUILD_ALL;
+  delete process.env.FORCE_REBUILD_ALL_ACTIVE;
+  delete process.env.FORCE_REBUILD_ALL_INACTIVE;
   delete process.env.FORCE_REBUILD_PATHS;
 });
 
-describe('resolvePathsToBuild — FORCE_REBUILD_ALL', () => {
-  it('pushes all contentDirectories when FORCE_REBUILD_ALL is set', async () => {
-    process.env.FORCE_REBUILD_ALL = 'true';
+describe('resolvePathsToBuild — FORCE_REBUILD_ALL_ACTIVE', () => {
+  it('pushes only active contentDirectories when FORCE_REBUILD_ALL_ACTIVE is set', async () => {
+    process.env.FORCE_REBUILD_ALL_ACTIVE = 'true';
+    mockGetParser.mockResolvedValue(true);
+    mockGetFileChanges.mockResolvedValue([]);
+    mockFindContentPathsWithChanges.mockResolvedValue({
+      changedContentPaths: [],
+      unchangedContentPaths: contentDirectories,
+    });
+    const allContentData = makeAllContentData();
+
+    await resolvePathsToBuild({
+      utils: makeUtils(),
+      validParserCache: true,
+      contentDirectories,
+      allContentData,
+    });
+
+    expect(allContentData.pathsToBuild).toEqual(['atlas', 'manual/v8.0']);
+    expect(allContentData.pathsToBuild).not.toContain('node/current');
+  });
+
+  it('still picks up inactive paths via git change detection', async () => {
+    process.env.FORCE_REBUILD_ALL_ACTIVE = 'true';
+    mockGetParser.mockResolvedValue(true);
+    mockGetFileChanges.mockResolvedValue(['content/node/current/source/index.rst']);
+    mockFindContentPathsWithChanges.mockResolvedValue({
+      changedContentPaths: ['node/current'],
+      unchangedContentPaths: ['atlas', 'manual/v8.0'],
+    });
+    const allContentData = makeAllContentData();
+
+    await resolvePathsToBuild({
+      utils: makeUtils(),
+      validParserCache: true,
+      contentDirectories,
+      allContentData,
+    });
+
+    expect(allContentData.pathsToBuild).toContain('atlas');
+    expect(allContentData.pathsToBuild).toContain('manual/v8.0');
+    expect(allContentData.pathsToBuild).toContain('node/current');
+  });
+});
+
+describe('resolvePathsToBuild — FORCE_REBUILD_ALL_INACTIVE', () => {
+  it('pushes only inactive contentDirectories when FORCE_REBUILD_ALL_INACTIVE is set', async () => {
+    process.env.FORCE_REBUILD_ALL_INACTIVE = 'true';
+    mockGetParser.mockResolvedValue(true);
+    mockGetFileChanges.mockResolvedValue([]);
+    mockFindContentPathsWithChanges.mockResolvedValue({
+      changedContentPaths: [],
+      unchangedContentPaths: contentDirectories,
+    });
+    const allContentData = makeAllContentData();
+
+    await resolvePathsToBuild({
+      utils: makeUtils(),
+      validParserCache: true,
+      contentDirectories,
+      allContentData,
+    });
+
+    expect(allContentData.pathsToBuild).toEqual(['node/current']);
+  });
+
+  it('skips git change detection when both ACTIVE and INACTIVE are set', async () => {
+    process.env.FORCE_REBUILD_ALL_ACTIVE = 'true';
+    process.env.FORCE_REBUILD_ALL_INACTIVE = 'true';
     mockGetParser.mockResolvedValue(true);
     const allContentData = makeAllContentData();
 
@@ -60,7 +156,49 @@ describe('resolvePathsToBuild — FORCE_REBUILD_ALL', () => {
 });
 
 describe('resolvePathsToBuild — invalid parser cache', () => {
-  it('pushes all contentDirectories when the parser cache is invalid', async () => {
+  it('pushes only active contentDirectories when the parser cache is invalid', async () => {
+    mockGetParser.mockResolvedValue(false);
+    mockGetFileChanges.mockResolvedValue([]);
+    mockFindContentPathsWithChanges.mockResolvedValue({
+      changedContentPaths: [],
+      unchangedContentPaths: contentDirectories,
+    });
+    const allContentData = makeAllContentData();
+
+    await resolvePathsToBuild({
+      utils: makeUtils(),
+      validParserCache: false,
+      contentDirectories,
+      allContentData,
+    });
+
+    expect(allContentData.pathsToBuild).toEqual(['atlas', 'manual/v8.0']);
+    expect(allContentData.pathsToBuild).not.toContain('node/current');
+  });
+
+  it('still picks up inactive paths via change detection on parser cache miss', async () => {
+    mockGetParser.mockResolvedValue(false);
+    mockGetFileChanges.mockResolvedValue(['content/node/current/source/index.rst']);
+    mockFindContentPathsWithChanges.mockResolvedValue({
+      changedContentPaths: ['node/current'],
+      unchangedContentPaths: ['atlas', 'manual/v8.0'],
+    });
+    const allContentData = makeAllContentData();
+
+    await resolvePathsToBuild({
+      utils: makeUtils(),
+      validParserCache: false,
+      contentDirectories,
+      allContentData,
+    });
+
+    expect(allContentData.pathsToBuild).toContain('atlas');
+    expect(allContentData.pathsToBuild).toContain('manual/v8.0');
+    expect(allContentData.pathsToBuild).toContain('node/current');
+  });
+
+  it('rebuilds all paths when parser cache is invalid AND FORCE_REBUILD_ALL_INACTIVE is set', async () => {
+    process.env.FORCE_REBUILD_ALL_INACTIVE = 'true';
     mockGetParser.mockResolvedValue(false);
     const allContentData = makeAllContentData();
 
@@ -79,9 +217,9 @@ describe('resolvePathsToBuild — invalid parser cache', () => {
 describe('resolvePathsToBuild — changed files detection', () => {
   it('only pushes paths that have changed files', async () => {
     mockGetParser.mockResolvedValue(true);
-    mockGetFileChanges.mockResolvedValue(['content/atlas/current/source/index.rst']);
+    mockGetFileChanges.mockResolvedValue(['content/atlas/source/index.rst']);
     mockFindContentPathsWithChanges.mockResolvedValue({
-      changedContentPaths: ['atlas/current'],
+      changedContentPaths: ['atlas'],
       unchangedContentPaths: ['manual/v8.0', 'node/current'],
     });
     const allContentData = makeAllContentData();
@@ -93,7 +231,7 @@ describe('resolvePathsToBuild — changed files detection', () => {
       allContentData,
     });
 
-    expect(allContentData.pathsToBuild).toEqual(['atlas/current']);
+    expect(allContentData.pathsToBuild).toEqual(['atlas']);
   });
 
   it('results in an empty pathsToBuild when no files have changed', async () => {
@@ -120,9 +258,9 @@ describe('resolvePathsToBuild — FORCE_REBUILD_PATHS', () => {
   it('adds matching paths that are not already queued', async () => {
     process.env.FORCE_REBUILD_PATHS = 'manual/v8.0';
     mockGetParser.mockResolvedValue(true);
-    mockGetFileChanges.mockResolvedValue(['content/atlas/current/source/index.rst']);
+    mockGetFileChanges.mockResolvedValue(['content/atlas/source/index.rst']);
     mockFindContentPathsWithChanges.mockResolvedValue({
-      changedContentPaths: ['atlas/current'],
+      changedContentPaths: ['atlas'],
       unchangedContentPaths: ['manual/v8.0', 'node/current'],
     });
     const allContentData = makeAllContentData();
@@ -134,17 +272,17 @@ describe('resolvePathsToBuild — FORCE_REBUILD_PATHS', () => {
       allContentData,
     });
 
-    expect(allContentData.pathsToBuild).toContain('atlas/current');
+    expect(allContentData.pathsToBuild).toContain('atlas');
     expect(allContentData.pathsToBuild).toContain('manual/v8.0');
     expect(allContentData.pathsToBuild).not.toContain('node/current');
   });
 
   it('does not duplicate a path already queued by changed-file detection', async () => {
-    process.env.FORCE_REBUILD_PATHS = 'atlas/current';
+    process.env.FORCE_REBUILD_PATHS = 'atlas';
     mockGetParser.mockResolvedValue(true);
-    mockGetFileChanges.mockResolvedValue(['content/atlas/current/source/index.rst']);
+    mockGetFileChanges.mockResolvedValue(['content/atlas/source/index.rst']);
     mockFindContentPathsWithChanges.mockResolvedValue({
-      changedContentPaths: ['atlas/current'],
+      changedContentPaths: ['atlas'],
       unchangedContentPaths: ['manual/v8.0', 'node/current'],
     });
     const allContentData = makeAllContentData();
@@ -156,10 +294,10 @@ describe('resolvePathsToBuild — FORCE_REBUILD_PATHS', () => {
       allContentData,
     });
 
-    expect(allContentData.pathsToBuild.filter((p) => p === 'atlas/current')).toHaveLength(1);
+    expect(allContentData.pathsToBuild.filter((p) => p === 'atlas')).toHaveLength(1);
   });
 
-  it('matches by prefix so a parent path forces all its children', async () => {
+  it('matches an exact path without matching sibling directories that share a prefix', async () => {
     process.env.FORCE_REBUILD_PATHS = 'atlas';
     mockGetParser.mockResolvedValue(true);
     mockGetFileChanges.mockResolvedValue([]);
@@ -167,7 +305,12 @@ describe('resolvePathsToBuild — FORCE_REBUILD_PATHS', () => {
       changedContentPaths: [],
       unchangedContentPaths: contentDirectories,
     });
-    const dirs = ['atlas/current', 'atlas/upcoming', 'manual/v8.0'];
+    const dirs = [
+      'atlas',
+      'atlas-cli',
+      'atlas-architecture',
+      'manual/v8.0',
+    ];
     const allContentData = makeAllContentData();
 
     await resolvePathsToBuild({
@@ -177,9 +320,33 @@ describe('resolvePathsToBuild — FORCE_REBUILD_PATHS', () => {
       allContentData,
     });
 
-    expect(allContentData.pathsToBuild).toContain('atlas/current');
-    expect(allContentData.pathsToBuild).toContain('atlas/upcoming');
+    expect(allContentData.pathsToBuild).toContain('atlas');
+    expect(allContentData.pathsToBuild).not.toContain('atlas-cli');
+    expect(allContentData.pathsToBuild).not.toContain('atlas-architecture');
     expect(allContentData.pathsToBuild).not.toContain('manual/v8.0');
+  });
+
+  it('matches a versioned parent path on segment boundaries', async () => {
+    process.env.FORCE_REBUILD_PATHS = 'manual';
+    mockGetParser.mockResolvedValue(true);
+    mockGetFileChanges.mockResolvedValue([]);
+    mockFindContentPathsWithChanges.mockResolvedValue({
+      changedContentPaths: [],
+      unchangedContentPaths: contentDirectories,
+    });
+    const dirs = ['manual/v8.0', 'manual/v7.0', 'node/current'];
+    const allContentData = makeAllContentData();
+
+    await resolvePathsToBuild({
+      utils: makeUtils(),
+      validParserCache: true,
+      contentDirectories: dirs,
+      allContentData,
+    });
+
+    expect(allContentData.pathsToBuild).toContain('manual/v8.0');
+    expect(allContentData.pathsToBuild).toContain('manual/v7.0');
+    expect(allContentData.pathsToBuild).not.toContain('node/current');
   });
 
   it('accepts a comma-separated list of paths', async () => {
@@ -201,6 +368,6 @@ describe('resolvePathsToBuild — FORCE_REBUILD_PATHS', () => {
 
     expect(allContentData.pathsToBuild).toContain('manual/v8.0');
     expect(allContentData.pathsToBuild).toContain('node/current');
-    expect(allContentData.pathsToBuild).not.toContain('atlas/current');
+    expect(allContentData.pathsToBuild).not.toContain('atlas');
   });
 });

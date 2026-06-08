@@ -88,13 +88,6 @@ extension.addBuildEventHandler(
 			environment: configEnvironment.ENV as Environments,
 		});
 
-		await resolvePathsToBuild({
-			utils,
-			contentDirectories,
-			allContentData,
-			validParserCache,
-		});
-
 		const projectNames: ProjectNames =
 			await getAllProjectNames(contentDirectories);
 		console.log("Retrieved all project names for changed content paths");
@@ -107,7 +100,10 @@ extension.addBuildEventHandler(
 
 		allContentData.atlasProjectDocuments = atlasProjectDocuments;
 
-		// updates allContentData with docsPaths and pathsToBuild
+		// Populate docsPaths (including each path's active/inactive status) before
+		// resolving which paths to build — resolvePathsToBuild needs that metadata
+		// to honor FORCE_REBUILD_ALL_ACTIVE / FORCE_REBUILD_ALL_INACTIVE and to
+		// limit parser-cache-miss rebuilds to active paths only.
 		Object.assign(
 			allContentData,
 			await processContentMetadata({
@@ -116,6 +112,13 @@ extension.addBuildEventHandler(
 				clearCache: false,
 			}),
 		);
+
+		await resolvePathsToBuild({
+			utils,
+			contentDirectories,
+			allContentData,
+			validParserCache,
+		});
 
 		if (allContentData.pathsToBuild) {
 			// run parser, persistence module for each content path (or all if parser version has changed)

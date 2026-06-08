@@ -42,17 +42,24 @@ It hooks into Netlify's build lifecycle with two hooks:
 
 ### Force Rebuild
 
-By default, `onPreBuild` only parses content paths whose files changed in the last commit (or all paths if the parser version changed). Two env vars override this:
+By default, `onPreBuild` only parses content paths whose files changed in the last commit. When the parser version changes (cache miss), every **active** content path is rebuilt — inactive versions are skipped because rebuilding them in the same run exceeds the parser + persistence module context budget in prod. Use the env vars below to override this default.
 
 | Variable | Value | Effect |
 |---|---|---|
-| `FORCE_REBUILD_ALL` | `true` | Rebuilds every content path, equivalent to a parser cache miss. |
-| `FORCE_REBUILD_PATHS` | Comma-separated path prefixes | Adds matching paths to the build queue on top of what git-change detection finds. A prefix like `golang` matches all versions (`golang/current`, `golang/v1.12`, etc.); `golang/current` targets only that version. Only applied when the parser cache is valid — ignored when `FORCE_REBUILD_ALL` is set or the cache is already invalid (since all paths rebuild anyway). |
+| `FORCE_REBUILD_ALL_ACTIVE` | `true` | Rebuilds every content path whose branch is marked `active` in `repos_branches`. Inactive paths still go through normal git-change detection. |
+| `FORCE_REBUILD_ALL_INACTIVE` | `true` | Rebuilds every content path whose branch is marked inactive. Active paths still go through normal git-change detection. Set both `_ACTIVE` and `_INACTIVE` to rebuild everything. |
+| `FORCE_REBUILD_PATHS` | Comma-separated path prefixes | Adds matching paths to the build queue on top of git-change detection. A prefix like `golang` matches all versions (`golang/current`, `golang/v1.12`, etc.); `golang/current` targets only that version. Already-queued paths are not duplicated. |
 
 Example: rebuild only the Go and Node drivers on the next deploy:
 
 ```
 FORCE_REBUILD_PATHS=golang,node
+```
+
+Example: force-rebuild every inactive driver version after a major parser change (to be run separately from the active-version rebuild):
+
+```
+FORCE_REBUILD_ALL_INACTIVE=true
 ```
 
 ## Integration with docs-nextjs
