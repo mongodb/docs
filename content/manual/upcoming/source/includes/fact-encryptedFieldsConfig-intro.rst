@@ -19,8 +19,5 @@ identifiers, types, and supported queries.
              { "queryType": "equality" },
            ]
          }
-       ],
-       "queryPatterns": [                    // optional
-          {"fieldName": queryType, "fieldName": queryType, … }
        ]
    }
