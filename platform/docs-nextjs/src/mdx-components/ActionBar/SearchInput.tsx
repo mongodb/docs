@@ -82,7 +82,7 @@ const SearchInput = ({ className }: SearchInputProps) => {
       tagbook: 'true',
     });
     inputRef.current?.blur();
-    router.push(`/docs/search/?q=${searchValue}`);
+    router.push(`/docs/site-search/?q=${searchValue}`);
   };
 
   return (

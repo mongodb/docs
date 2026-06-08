@@ -146,7 +146,7 @@ export const SearchContextProvider = ({
     if (page) {
       newSearch.set('page', page);
     }
-    router.push(`/docs/search/?${newSearch.toString()}`, { scroll: false });
+    router.push(`/docs/site-search/?${newSearch.toString()}`, { scroll: false });
   };
 
   const handleFacetChange = useCallback(
@@ -166,7 +166,7 @@ export const SearchContextProvider = ({
       });
       newSearch.set('page', '1');
       // The navigation might cause a small visual delay when facets are being checked
-      router.push(`/docs/search/?${newSearch.toString()}`, { scroll: false });
+      router.push(`/docs/site-search/?${newSearch.toString()}`, { scroll: false });
     },
     [searchParams.toString()], // eslint-disable-line react-hooks/exhaustive-deps
   );
@@ -175,7 +175,7 @@ export const SearchContextProvider = ({
     const newSearch = new URLSearchParams();
     newSearch.set('q', searchTerm ?? '');
     newSearch.set('page', '1');
-    router.push(`/docs/search/?${newSearch.toString()}`, { scroll: false });
+    router.push(`/docs/site-search/?${newSearch.toString()}`, { scroll: false });
   }, [searchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (

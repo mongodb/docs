@@ -25,7 +25,7 @@ interface SearchPageContentProps {
   cookies: Record<string, string>;
 }
 
-const SEARCH_SLUG = 'docs/search';
+const SEARCH_SLUG = 'docs/site-search';
 
 const EMPTY_METADATA: RemoteMetadata = {
   project: '',
