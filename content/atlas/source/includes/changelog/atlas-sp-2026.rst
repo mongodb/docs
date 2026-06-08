@@ -1,3 +1,17 @@
+.. _atlas-sp-20260605:
+
+5 June 2026 Release
+-------------------
+
+- Adds the ability to change the tier of a {+spw+} in the {+atlas-ui+}.
+- Adds direct links to the :guilabel:`Visual Builder` and
+  :guilabel:`JSON editor` on empty {+spw+} cards.
+- Fixes a bug where connection names could contain special characters
+  other than ``.``, ``-``, ``*``, and ``_``.
+- Fixes a bug where the :oas-bump-atlas-op:`Get One Stream Processor
+  <getgroupstreamprocessor>` endpoint returns an HTTP 400 rather than a
+  404 when the stream processor doesn't exist.
+
 .. _atlas-sp-20260525:
 
 25 May 2026 Release
