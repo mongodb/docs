@@ -164,6 +164,12 @@ documentation for that version.
 :data:`explain.queryPlanner` information details the plan selected by
 the :ref:`query optimizer <read-operations-query-optimization>`.
 
+.. note::
+
+   .. include:: /includes/cbr-default-plan.rst
+
+   For more information, see :ref:`query-plan-options`.
+
 These examples may combine the output structures of MongoDB's classic
 and slot-based execution engines. They are not meant to be 
 representative. Your output may differ significantly.
@@ -260,6 +266,37 @@ representative. Your output may differ significantly.
                      }
                   }
                }
+
+      - id: cbr
+        name: "Cost-Based Ranker"
+        content: |
+            If the query optimizer uses the cost-based ranker, the output
+            contains several additional fields. 
+
+            .. code-block:: javascript
+               :copyable: false
+
+               {
+                  queryPlanner: {
+                     mongosPlannerVersion: <int>
+                     winningPlan: { 
+                        isCached: <boolean>,
+                        stage: <STAGE1>,
+                        costEstimate: <float>,
+                        cardinalityEstimate: <float>,
+                        estimatesMetadata: { ceSource: '<string>' },
+                        inputStage: {
+                          stage: <STAGE1>,
+                          costEstimate: <float>,
+                          cardinalityEstimate: <float>,
+                          filterNumKeysEstimate: <float>,
+                          numKeysEstimate: <float>,
+                          estimatesMetadata: { ceSource: '<string>'} ,
+                          ...
+                        }
+                     }
+                  }
+               }      
 
             .. include:: /includes/plan-cache-rename.rst
 
@@ -402,6 +439,60 @@ representative. Your output may differ significantly.
       and the rejected plans. If the query has no cached plan, the field is
       ``false`` for the winning plan and the rejected plans.
 
+   .. data:: explain.queryPlanner.winningPlan.costEstimate
+
+      Float that represents the estimated abstract cost units used to execute
+      the cost-based ranker per stage. The cost-based ranker chooses the plan
+      with the lowest top level ``costEstimate``.
+
+      .. versionadded:: 8.3.3
+
+   .. data:: explain.queryPlanner.winningPlan.cardinalityEstimate
+
+      Float that represents the estimated number of documents or keys produced
+      by the stage of the cost-based ranker.
+
+      .. versionadded:: 8.3.3
+
+   .. data:: explain.queryPlanner.winningPlan.numKeysEstimate
+
+      Float that represents the estimated number of index keys that the query
+      planner predicts the plan to process.
+
+      A significant difference between the ``numKeysEstimate`` and the
+      ``costEstimate`` can indicate issues with the ``winningPlan``.
+
+      .. versionadded:: 8.3.3
+
+   .. data:: explain.queryPlanner.winningPlan.numDocsEstimate
+
+      Float that represents the estimated number of documents scanned.
+
+      .. versionadded:: 8.3.3
+
+   .. data:: explain.queryPlanner.winningPlan.estimatesMetadata
+
+      Contains metadata about how the estimate was derived.
+
+      .. versionadded:: 8.3.3
+
+   .. data:: explain.queryPlanner.winningPlan.estimatesMetadata.ceSource
+
+      The cardinality estimation method (CE) used for this stage. Possible 
+      float values include:
+
+      - ``sampling``: MongoDB calculates the estimate over a sample of the
+        base collection.
+      - ``heuristics``: Uses a set of rules to determine selectivity.
+        Only used when sampling fails. 
+      - ``mixed``: The estimate is a result of some computation that mixes
+        estimates of different types.
+      - ``metadata``: The estimate comes from database metadata like collection
+        cardinality. 
+      - ``code``: C++ computes the estimate directly, for instance a
+        constant or expression.
+
+      .. versionadded:: 8.3.3
 
    .. data:: explain.queryPlanner.winningPlan.queryPlan
 
@@ -748,6 +839,13 @@ representative. Your output may differ significantly.
          each examination. That is,
          :data:`explain.executionStats.totalDocsExamined` is *not* a
          count of the total number of *unique* documents examined.
+
+   .. data:: explain.executionStats.score
+
+      Double that represents the score of the winning plan chosen by the 
+      multi-planner. 
+
+      .. versionadded:: 8.3.3
 
    .. data:: explain.executionStats.executionStages
 

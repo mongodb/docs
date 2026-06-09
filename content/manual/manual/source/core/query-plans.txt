@@ -28,15 +28,36 @@ Query Plans
 
 .. TODO Consider moving this to the mechanics of the index section
 
-For any given query, the MongoDB query planner chooses and caches the
-most efficient query plan given the available indexes. To evaluate the
-efficiency of query plans, the query planner runs all candidate plans
-during a trial period. In general, the winning plan is the query plan
+For any given query, the MongoDB query planner chooses and caches an
+efficient query plan given the available indexes. The planner can use
+either the classic multi-planner or the cost-based ranker (CBR) to
+select a plan.
+
+.. _query-plan-options:
+
+Query Plan Options
+~~~~~~~~~~~~~~~~~~
+
+In the classic multi-planner, the winning plan is the query plan
 that produces the most results during the trial period while performing
 the least amount of work.
 
-The associated plan cache entry is used for subsequent queries with the
-same :term:`plan cache query shape`.
+Starting in MongoDB 8.3, multi-planning with a cost-based ranker backup 
+is the default plan selection mechanism for eligible queries. For a short trial 
+period, the multi-planner attempts to find a plan capable of returning a result
+within the timeframe. 
+
+If the attempt is unsuccessful, MongoDB applies a set of rules to decide
+whether the multi-planner should continue or if CBR should evaluate the plans
+to determine the optimal solution. CBR evaluates each node in a plan
+based on a cost function and its cardinality estimations. MongoDB selects the
+plan with the lowest overall cost as the winning plan. Currently, MongoDB only
+invokes the CBR for a small amount of queries.
+
+Both ranking mechanisms store the chosen plan in the **query plan cache** and
+reuse it for subsequent queries with the same
+:term:`plan cache query shape`. The rest of this page describes plan
+cache behavior and related concepts that apply to both mechanisms.
 
 The following diagram illustrates the query planner logic:
 
