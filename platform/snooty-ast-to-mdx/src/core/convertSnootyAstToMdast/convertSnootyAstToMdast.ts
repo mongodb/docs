@@ -1200,6 +1200,26 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         };
       }
 
+      if (directiveName === 'card-group') {
+        const attributes: MdastNode[] = toJsxAttributes(node.options);
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'CardGroup',
+          attributes,
+          children: convertChildren({ nodes: node.children, depth, ctx }),
+        };
+      }
+
+      if (directiveName === 'card') {
+        const attributes: MdastNode[] = toJsxAttributes(node.options);
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'Card',
+          attributes,
+          children: convertChildren({ nodes: node.children, depth, ctx }),
+        };
+      }
+
       // We can ignore any data passed into this since it is only used for https://www.mongodb.com/docs/openapi/preview/,
       // which fallbacks to a static default template when not pulling in a spec from the query param.
       if (directiveName === 'openapi') {
@@ -1995,36 +2015,6 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
     case 'transition':
       // Use standard markdown thematic break (--- / *** / ___) so MDX produces <hr>; map hr to Transition in docs-nextjs.
       return { type: 'thematicBreak' };
-
-    case 'card-group': {
-      const attributes: MdastNode[] = toJsxAttributes(node.options);
-      return {
-        type: 'mdxJsxFlowElement',
-        name: 'CardGroup',
-        attributes,
-        children: convertChildren({ nodes: node.children, depth, ctx }),
-      };
-    }
-
-    case 'tabs': {
-      const attributes: MdastNode[] = [];
-      if (typeof node.options?.tabset === 'string') {
-        attributes.push({ type: 'mdxJsxAttribute', name: 'tabset', value: node.options.tabset });
-      }
-      if (node.options?.hidden) {
-        attributes.push({
-          type: 'mdxJsxAttribute',
-          name: 'hidden',
-          value: { type: 'mdxJsxAttributeValueExpression', value: 'true' },
-        });
-      }
-      return {
-        type: 'mdxJsxFlowElement',
-        name: 'Tabs',
-        attributes,
-        children: convertChildren({ nodes: node.children, depth, ctx }),
-      };
-    }
 
     case 'tab': {
       const tabid = typeof node.options?.tabid === 'string' ? node.options.tabid : '';
