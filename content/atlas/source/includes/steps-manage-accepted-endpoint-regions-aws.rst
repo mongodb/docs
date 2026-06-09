@@ -1,13 +1,12 @@
+.. note::
+
+   Cross-region private endpoint connectivity allows you to
+   configure which |aws| regions can connect to your private
+   endpoint service, enabling applications in different regions to
+   access your {+service+} clusters through private endpoints.
+
 .. procedure::
    :style: normal
-
-   .. note::
-
-      Cross-region private endpoint connectivity is currently in
-      preview. This feature allows you to configure which |aws| regions
-      can connect to your private endpoint service, enabling
-      applications in different regions to access your {+service+}
-      clusters through private endpoints.
 
    .. include:: /includes/nav/steps-network-access.rst
 
