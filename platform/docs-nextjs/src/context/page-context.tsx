@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext } from 'react';
 import type { Root } from '@/types/ast';
 
 export type PageTemplateType =
@@ -21,8 +21,6 @@ export interface PageContextType {
   template: PageTemplateType | null;
   slug: string;
   tabsMainColumn: boolean | null;
-  hasBanner: boolean;
-  setHasBanner: (hasBanner: boolean) => void;
   options: Root['options'] | null;
 }
 
@@ -30,8 +28,6 @@ export const PageContext = createContext<PageContextType>({
   template: null,
   slug: '',
   tabsMainColumn: null,
-  hasBanner: false,
-  setHasBanner: () => {},
   options: null,
 });
 
@@ -52,10 +48,8 @@ export const PageContextProvider = ({
   tabsMainColumn,
   options,
 }: PageContextProviderProps) => {
-  const [hasBanner, setHasBanner] = useState(false);
-
   return (
-    <PageContext.Provider value={{ fileId, template, slug, tabsMainColumn, options, hasBanner, setHasBanner }}>
+    <PageContext.Provider value={{ fileId, template, slug, tabsMainColumn, options }}>
       {children}
     </PageContext.Provider>
   );

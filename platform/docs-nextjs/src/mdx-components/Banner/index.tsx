@@ -1,11 +1,9 @@
 'use client';
 
-import { useEffect } from 'react';
 import LeafyBanner, { Variant as LeafyVariant } from '@leafygreen-ui/banner';
 import { css, cx } from '@leafygreen-ui/emotion';
 import { getCurrLocale } from '@/utils/locale';
 import { baseBannerStyle, styleMapDark, styleMapLight } from './styles';
-import { usePageContext } from '@/context/page-context';
 
 export const alertMap = {
   info: LeafyVariant.Info,
@@ -28,6 +26,9 @@ const bannerStyle = ({ variant }: { variant: string }) => css`
       text-decoration-color: ${styleMapLight[variant].color};
     }
   }
+  p {
+    color: ${styleMapLight[variant].color};
+  }
   > svg {
     color: ${styleMapLight[variant].iconColor};
   }
@@ -46,6 +47,9 @@ const bannerStyle = ({ variant }: { variant: string }) => css`
         text-decoration-color: ${styleMapDark[variant].color};
       }
     }
+    p {
+      color: ${styleMapDark[variant].color};
+    }
     > svg {
       color: ${styleMapDark[variant].iconColor};
     }
@@ -61,12 +65,7 @@ export interface BannerProps {
 }
 
 export const Banner = ({ children, variant = 'info', locale: localeProp }: BannerProps) => {
-  const { setHasBanner } = usePageContext();
   const locale = getCurrLocale();
-
-  useEffect(() => {
-    setHasBanner(true);
-  }, [setHasBanner]);
 
   const locales = typeof localeProp === 'string' ? localeProp.split(',') : undefined;
   if (locales && !locales.includes(locale)) {

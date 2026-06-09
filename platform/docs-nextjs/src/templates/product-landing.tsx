@@ -70,12 +70,6 @@ const notGuidesStyles = css`
   }
 `;
 
-const hasBannerStyles = css`
-  & > section {
-    grid-template-rows: [banner] auto [header] auto [introduction] auto [kicker] auto;
-  }
-`;
-
 // Light-colored hero styling
 const hasLightHeroStyles = css`
   @media ${theme.screenSize.mediumAndUp} {
@@ -139,6 +133,10 @@ const wrapperStyles = css`
         1fr
       );
     grid-template-rows: [header] auto [introduction] auto [kicker] auto;
+
+    &:has([role='alert']) {
+      grid-template-rows: [banner] auto [header] auto [introduction] auto [kicker] auto;
+    }
 
     @media ${theme.screenSize.upToLarge} {
       grid-template-columns: 48px 1fr 48px;
@@ -217,7 +215,7 @@ const wrapperStyles = css`
 const REALM_LIGHT_HERO_PAGES = ['index.txt'];
 
 const ProductLandingTemplate = ({ children }: BaseTemplateProps) => {
-  const { options: pageOptions, hasBanner, slug: pageSlug, fileId } = usePageContext();
+  const { options: pageOptions, slug: pageSlug, fileId } = usePageContext();
   const { siteBasePrefixWithVersion } = useVersionContext();
   const { project } = useSnootyMetadata();
   const isGuides = project === 'guides';
@@ -234,8 +232,7 @@ const ProductLandingTemplate = ({ children }: BaseTemplateProps) => {
         wrapperStyles,
         isGuides ? guidesStyles : notGuidesStyles,
         hasLightHero && hasLightHeroStyles,
-        !hasMaxWidthParagraphs && maxWidthParagraphsStyles,
-        hasBanner && hasBannerStyles,
+        hasMaxWidthParagraphs && maxWidthParagraphsStyles,
         'product-landing-template',
       )}
     >
