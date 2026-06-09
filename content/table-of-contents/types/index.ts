@@ -249,6 +249,7 @@ export type DocSite =
   | 'pymongo'
   | 'ruby-driver'
   | 'rust'
+  | 'search'
   | 'scala'
   | 'docs'
   | 'guides'

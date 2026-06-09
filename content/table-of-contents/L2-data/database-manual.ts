@@ -116,8 +116,8 @@ const tocData: TocItem[] = [
   },
   {
     label: 'Search',
-    contentSite: 'cloud-docs',
-    url: '/docs/atlas/atlas-search',
+    contentSite: 'search',
+    url: '/docs/search/',
     collapsible: true,
     items: SearchData,
   },

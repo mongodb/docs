@@ -1,0 +1,56 @@
+.. procedure::
+   :style: normal
+      
+   .. step:: Ensure that you add the following dependency to your project.
+      
+      .. list-table::
+         :widths: 30 70 
+      
+         * - ``mongodb-driver-kotlin-coroutine``
+           - 4.10.0 or higher version
+      
+   .. step:: Run a |fts| query with the ``autocomplete`` operator on the ``movies`` collection.
+      
+      a. Create a file named ``AutocompleteQuery.kt``.
+      #. Copy and paste the following code into the ``AutocompleteQuery.kt`` file.
+      
+         The code example performs the following tasks:
+      
+         .. include:: /includes/query/operators-collectors/autocomplete/facts/fts-autocomplete-query-tasks.rst 
+         
+         .. literalinclude:: /includes/query/operators-collectors/autocomplete/code-snippets/kotlin/tutorial.kt
+            :language: kotlin
+            :linenos:
+            :dedent:
+            :emphasize-lines: 10
+      
+      #. .. include:: /includes/shared/facts/fact-fts-driver-connection-string.rst
+      #. Run the ``AutocompleteQuery.kt`` file.
+      
+         When you run the ``AutocompleteQuery.kt`` program in your IDE, it prints
+         the following documents:
+      
+         .. code-block:: none
+            :copyable: false
+      
+            Document{{title=Germany in Autumn}}
+            Document{{title=Germany Pale Mother}}
+            Document{{title=Gertie the Dinosaur}}
+            Document{{title=Geronimo: An American Legend}}
+            Document{{title=How to Live in the German Federal Republic}}
+            Document{{title=Geri's Game}}
+            Document{{title=The Gerson Miracle}}
+            Document{{title=The German Doctor}}
+            Document{{title=From Caligari to Hitler: German Cinema in the Age of the Masses}}
+            Document{{title=From Caligari to Hitler: German Cinema in the Age of the Masses}}
+            Document{{title=Gervaise}}
+            Document{{title=Germinal}}
+            Document{{title=Gerry}}
+            Document{{title=Gèraldine}}
+            Document{{title=Pionery-geroi}}
+            Document{{title=Rece do gèry}}
+            Document{{title=The Good German}}
+            Document{{title=Berlin Is in Germany}}
+            Document{{title=Almanya: Welcome to Germany}}
+            Document{{title=Hitler: A Film from Germany}}
+      

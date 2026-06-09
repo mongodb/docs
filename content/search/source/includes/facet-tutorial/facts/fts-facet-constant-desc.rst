@@ -1,0 +1,6 @@
+- :ref:`near <near-ref>` to search for movies released with a
+  ``pivot`` distance from ``origin`` of approximately three months
+  from November 11, 1921
+- ``facets`` to request the number of movies in each genre in the
+  ``genres`` string array field and the number of movies in the
+  years 1910 to 1939, inclusive

@@ -1,0 +1,73 @@
+.. procedure::
+   :style: normal
+      
+      
+   .. step:: Set up and initialize the .NET/C# project for the query.
+
+      a. Create a new directory called ``basic-autocomplete-example`` and
+         initialize your project with the ``dotnet new`` command.
+      
+         .. code-block:: bash
+      
+            mkdir basic-autocomplete-example
+            cd basic-autocomplete-example
+            dotnet new console
+      
+      #. Add the .NET/C# Driver to your project as a dependency.
+      
+         .. code-block:: bash
+      
+            dotnet add package MongoDB.Driver
+      
+   .. step:: Create the query in the ``Program.cs`` file.
+
+      a. Replace the contents of the ``Program.cs``  file with the
+         following code.
+      
+         The code example performs the following tasks:
+      
+         .. include:: /includes/query/operators-collectors/autocomplete/facts/fts-autocomplete-query-tasks.rst 
+         
+         .. literalinclude:: /includes/query/operators-collectors/autocomplete/code-snippets/csharp/tutorial.cs
+            :language: csharp
+            :linenos:
+            :dedent:
+            :emphasize-lines: 9
+      
+      #. .. include:: /includes/shared/facts/fact-fts-driver-connection-string.rst
+      
+   .. step:: Compile and run the ``Program.cs`` file.
+      
+      .. io-code-block::
+         :copyable: true
+      
+         .. input::
+            :language: bash
+      
+            dotnet run basic-autocomplete-example.csproj
+      
+         .. output::
+            :language: json
+            :visible: true
+      
+            { "title" : "Gertie the Dinosaur" }
+            { "title" : "Germany Year Zero" }
+            { "title" : "Germany in Autumn" }
+            { "title" : "Germany Pale Mother" }
+            { "title" : "Gerhard Richter - Painting" }
+            { "title" : "Geronimo: An American Legend" }
+            { "title" : "How to Live in the German Federal Republic" }
+            { "title" : "Geri's Game" }
+            { "title" : "The Gerson Miracle" }
+            { "title" : "The German Doctor" }
+            { "title" : "From Caligari to Hitler: German Cinema in the Age of the Masses" }
+            { "title" : "From Caligari to Hitler: German Cinema in the Age of the Masses" }
+            { "title" : "Gèraldine" }
+            { "title" : "Gervaise" }
+            { "title" : "Gertrud" }
+            { "title" : "Germinal" }
+            { "title" : "Gerry" }
+            { "title" : "Gerontophilia" }
+            { "title" : "Pionery-geroi" }
+            { "title" : "The Good German" }
+      

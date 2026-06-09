@@ -1,0 +1,973 @@
+.. _tokenizers-ref:
+
+==========
+Tokenizers
+==========
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: split text, split text into tokens, split text into chunks, edgeGram, nGram, configure token size, regexCaptureGroup, regexSplit, regular expression, regular expression delimiter, break rules, uaxUrlEmail, url and email tokenizer, whitespace, remove whitespace tokenizer, create index
+   :description: Use a tokenizer in a MongoDB Search custom analyzer to split chunks of text into groups, or tokens, for indexing purposes.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+A custom analyzer's tokenizer determines how |fts| splits up text into
+discrete chunks for indexing. Tokenizers require a type field, and some 
+take additional options as well.
+
+.. code-block:: json
+   :caption: Syntax
+
+   "tokenizer": {
+     "type": "<tokenizer-type>",
+     "<additional-option>": "<value>"
+   }
+
+.. _fts-tokenizer-types: 
+
+Tokenizer Types
+---------------
+
+|fts| supports the following types of tokenizer:
+
+- :ref:`edgeGram-tokenizer-ref`
+- :ref:`keyword-tokenizer-ref`
+- :ref:`nGram-tokenizer-ref`
+- :ref:`regexCaptureGroup-tokenizer-ref`
+- :ref:`regexSplit-tokenizer-ref`
+- :ref:`standard-tokenizer-ref`
+- :ref:`uaxUrlEmail-tokenizer-ref`
+- :ref:`whitespace-tokenizer-ref`
+
+.. include:: /includes/index/analyzers/facts/custom-analyzer-examples-intro.rst
+
+.. tabs-selector:: drivers
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+language of the example on this page.
+
+----------
+
+.. _edgeGram-tokenizer-ref:
+
+edgeGram
+--------
+
+The ``edgeGram`` tokenizer tokenizes input from the left side, or 
+"edge", of a text input into n-grams of given sizes. You can't use a 
+custom analyzer with :ref:`edgeGram <edgeGram-tokenizer-ref>` tokenizer
+in the ``analyzer`` field for :ref:`synonym <synonyms-ref>` or
+:ref:`autocomplete <bson-data-types-autocomplete>` :ref:`field mapping 
+definitions <fts-field-mappings>`. 
+
+Attributes 
+~~~~~~~~~~
+
+It has the following attributes: 
+
+.. note::
+  The ``edgeGram`` tokenizer yields multiple output tokens per word and across words 
+  in input text, producing token graphs.
+  
+  Because :ref:`autocomplete <bson-data-types-autocomplete>` field type mapping definitions 
+  and analyzers with :ref:`synonym <synonyms-ref>` mappings only work when used with 
+  non-graph-producing tokenizers, you can't use a custom analyzer with 
+  :ref:`edgeGram <edgeGram-tokenizer-ref>` tokenizer in the ``analyzer`` field for 
+  :ref:`autocomplete <bson-data-types-autocomplete>` 
+  field type mapping definitions or analyzers with :ref:`synonym <synonyms-ref>` mappings.
+
+.. list-table::
+   :widths: 12 11 12 65
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``edgeGram``.
+ 
+   * - ``minGram``
+     - integer
+     - yes
+     - Number of characters to include in the shortest token created.
+ 
+   * - ``maxGram``
+     - integer
+     - yes
+     - Number of characters to include in the longest token created.
+
+Example
+~~~~~~~
+
+The following index definition indexes the ``message`` field in the 
+``minutes`` collection using a custom analyzer named 
+``edgegramExample``. It uses the ``edgeGram`` tokenizer to create
+tokens (searchable terms) between ``2`` and ``7`` characters long
+starting from the first character on the left side of words in the
+``message`` field.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/edgegram_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/index/analyzers/code-snippets/tokenizers/mongosh/edgegram_mongosh.js
+         :language: javascript
+         :linenos:
+         :copyable: true
+
+The following query searches the ``message`` field in 
+the ``minutes`` collection for text that begin with ``tr``.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/edgegram_query_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/compass/edgegram_query.rst
+
+|fts| returns documents with ``_id: 1`` and ``_id: 3`` in the
+results because |fts| created a token with the value ``tr`` using the
+``edgeGram`` tokenizer for the documents, which matches the search
+term. If you index the ``message`` field using the ``standard``
+tokenizer, |fts| would not return any results for the search term
+``tr``. 
+   
+The following table shows the tokens that the ``edgeGram`` tokenizer 
+and by comparison, the ``standard`` tokenizer, create for the 
+documents in the results:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Tokenizer
+     - Token Outputs
+
+   * - ``standard``
+     - ``try``, ``to``, ``sign``, ``in``
+
+   * - ``edgeGram``
+     - ``tr``, ``try``, ``try{SPACE}``, ``try t``, ``try to``, ``try to{SPACE}``
+
+.. _keyword-tokenizer-ref:
+
+keyword
+-------
+
+The ``keyword`` tokenizer tokenizes the entire input as a single token.
+|fts| doesn't index string fields that exceed 32766 characters using the
+``keyword`` tokenizer. 
+
+Attributes 
+~~~~~~~~~~
+
+It has the following attributes:
+
+.. list-table::
+   :widths: 12 11 12 65
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``keyword``.
+
+Example
+~~~~~~~
+
+The following index definition indexes the ``message`` field in the 
+``minutes`` collection using a custom analyzer named 
+``keywordExample``. It uses the ``keyword`` tokenizer to create
+a token (searchable terms) on the entire field as a single term.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/keyword_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/index/analyzers/code-snippets/tokenizers/mongosh/keyword_mongosh.js
+         :language: javascript
+         :linenos:
+         :copyable: true
+
+The following query searches the ``message`` field in 
+the ``minutes`` collection for the phrase ``try to sign-in``.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/keyword_query_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/compass/keyword_query.rst
+
+|fts| returns the document with ``_id: 3`` in the results because |fts|
+created a token with the value ``try to sign-in`` using the
+``keyword`` tokenizer for the documents, which matches the search
+term. If you index the ``message`` field using the ``standard``
+tokenizer, |fts| returns documents with ``_id: 1``,
+``_id: 2`` and ``_id: 3`` for the search term ``try to sign-in``
+because each document contains some of the tokens the ``standard``
+tokenizer creates.
+   
+The following table shows the tokens that the ``keyword`` tokenizer 
+and by comparison, the ``standard`` tokenizer, create for the 
+document with ``_id: 3``:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Tokenizer
+     - Token Outputs
+
+   * - ``standard``
+     - ``try``, ``to``, ``sign``, ``in``
+
+   * - ``keyword``
+     - ``try to sign-in``
+
+.. _nGram-tokenizer-ref:
+
+nGram
+-----
+
+The ``nGram`` tokenizer tokenizes into text chunks, or "n-grams", of 
+given sizes. You can't use a custom analyzer with :ref:`nGram
+<nGram-tokenizer-ref>` tokenizer in the ``analyzer`` field for
+:ref:`synonym <synonyms-ref>` or :ref:`autocomplete
+<bson-data-types-autocomplete>` :ref:`field mapping definitions
+<fts-field-mappings>`. 
+
+
+Attributes 
+~~~~~~~~~~
+
+It has the following attributes: 
+
+.. list-table::
+   :widths: 12 11 12 65
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``nGram``.
+ 
+   * - ``minGram``
+     - integer
+     - yes
+     - Number of characters to include in the shortest token created.
+ 
+   * - ``maxGram``
+     - integer
+     - yes
+     - Number of characters to include in the longest token created.
+
+Example
+~~~~~~~
+
+The following index definition indexes the ``title`` field in the 
+``minutes`` collection using a custom analyzer named 
+``ngramExample``. It uses the ``nGram`` tokenizer to create
+tokens (searchable terms) between ``4`` and ``6`` characters long
+in the ``title`` field.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/nGram_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/index/analyzers/code-snippets/tokenizers/mongosh/nGram_mongosh.js
+         :language: javascript
+         :copyable: true
+
+The following query searches the ``title`` field in 
+the ``minutes`` collection for the term ``week``.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/nGram_query_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/compass/nGram_query.rst
+
+|fts| returns the document with ``_id: 1`` in the results because |fts|
+created a token with the value ``week`` using the ``nGram`` tokenizer
+for the documents, which matches the search term. If you index the
+``title`` field using the ``standard`` or ``edgeGram`` tokenizer,
+|fts| would not return any results for the search term ``week``.
+   
+The following table shows the tokens that the ``nGram`` tokenizer 
+and by comparison, the ``standard`` and ``edgeGram`` tokenizer create
+for the document with ``_id: 1``:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Tokenizer
+     - Token Outputs
+
+   * - ``standard``
+     - ``The``, ``team's``, ``weekly``, ``meeting`` 
+
+   * - ``edgeGram``
+     - ``The{SPACE}``, ``The t``, ``The te`` 
+
+   * - ``nGram``
+     - ``The{SPACE}``, ``The t``, ``The te``, ``he t``, ... ,
+       ``week``, ``weekl``, ``weekly``, ``eekl``, ..., ``eetin``,
+       ``eeting``, ``etin``, ``eting``, ``ting``
+
+.. _regexCaptureGroup-tokenizer-ref:
+
+regexCaptureGroup
+-----------------
+
+The ``regexCaptureGroup`` tokenizer matches a Java regular expression 
+pattern to extract tokens. 
+
+.. tip::
+
+   To learn more about the Java regular expression syntax, see the `Pattern
+   <https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html>`__
+   class in the Java documentation.
+
+Attributes 
+~~~~~~~~~~
+
+It has the following attributes:
+
+.. list-table::
+   :widths: 12 11 12 65
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``regexCaptureGroup``.
+ 
+   * - ``pattern``
+     - string
+     - yes
+     - Regular expression to match against.
+ 
+   * - ``group``
+     - integer
+     - yes
+     - Index of the character group within the matching expression to 
+       extract into tokens. Use ``0`` to extract all character groups.
+
+Example 
+~~~~~~~
+
+The following index definition indexes the ``page_updated_by.phone``
+field in the ``minutes`` collection using a custom analyzer named 
+``phoneNumberExtractor``. It uses the following:
+
+- ``mappings`` character filter to remove parenthesis around the first
+  three digits and replace all spaces and periods with dashes
+- ``regexCaptureGroup`` tokenizer to create a single token from the
+  first US-formatted phone number present in the text input
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/regexcapturegroup_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/index/analyzers/code-snippets/tokenizers/mongosh/regexCaptureGroup_mongosh.js
+         :language: javascript
+         :copyable: true
+   
+The following query searches the ``page_updated_by.phone`` field in 
+the ``minutes`` collection for the phone number ``123-456-9870``.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/regexCaptureGroup_query_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/compass/regexcapturegroup_query.rst
+
+|fts| returns the document with ``_id: 3`` in the results because |fts|
+created a token with the value ``123-456-7890`` using the
+``regexCaptureGroup`` tokenizer for the documents, which matches the
+search term. If you index the ``page_updated_by.phone`` field using
+the ``standard`` tokenizer, |fts| returns all of the documents for
+the search term ``123-456-7890``.
+   
+The following table shows the tokens that the ``regexCaptureGroup`` tokenizer 
+and by comparison, the ``standard`` tokenizer, create for the 
+document with ``_id: 3``:
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Tokenizer
+     - Token Outputs
+
+   * - ``standard``
+     - ``123``, ``456.9870``
+
+   * - ``regexCaptureGroup``
+     - ``123-456-9870`` 
+
+.. _regexSplit-tokenizer-ref:
+
+regexSplit
+----------
+
+The ``regexSplit`` tokenizer splits tokens with a Java regular-expression 
+based delimiter. 
+
+.. tip::
+
+   To learn more about the Java regular expression syntax, see the `Pattern
+   <https://docs.oracle.com/javase/8/docs/api/java/util/regex/Pattern.html>`__
+   class in the Java documentation.
+
+Attributes 
+~~~~~~~~~~
+
+It has the following attributes:
+
+.. list-table::
+   :widths: 12 11 12 65
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``regexSplit``.
+ 
+   * - ``pattern``
+     - string
+     - yes
+     - Regular expression to match against.
+
+Example 
+~~~~~~~
+
+The following index definition indexes the ``page_updated_by.phone``
+field in the ``minutes`` collection using a custom analyzer named 
+``dashDotSpaceSplitter``. It uses the ``regexSplit`` tokenizer to
+create tokens (searchable terms) from one or more hyphens, periods
+and spaces on the ``page_updated_by.phone`` field.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/regexSplit_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/index/analyzers/code-snippets/tokenizers/mongosh/regexSplit_mongosh.js
+         :language: javascript
+         :copyable: true
+
+The following query searches the ``page_updated_by.phone`` field in 
+the ``minutes`` collection for the digits ``9870``.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/regexSplit_query_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/compass/regexsplit_query.rst
+
+|fts| returns the document with ``_id: 3`` in the results because |fts|
+created a token with the value ``9870`` using the ``regexSplit``
+tokenizer for the documents, which matches the search term. If you
+index the ``page_updated_by.phone`` field using the ``standard``
+tokenizer, |fts| would not return any results for the search term
+``9870``.
+   
+The following table shows the tokens that the ``regexCaptureGroup``
+tokenizer and by comparison, the ``standard`` tokenizer, create for
+the document with ``_id: 3``:
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Tokenizer
+     - Token Outputs
+
+   * - ``standard``
+     - ``123``, ``456.9870``
+
+   * - ``regexSplit``
+     - ``(123)``, ``456``, ``9870`` 
+
+.. _standard-tokenizer-ref:
+
+standard
+--------
+
+The ``standard`` tokenizer tokenizes based on word break rules from the 
+`Unicode Text Segmentation algorithm <https://www.unicode.org/L2/L2019/19034-uax29-34-draft.pdf>`__. 
+
+Attributes 
+~~~~~~~~~~
+
+It has the following attributes:
+
+.. list-table::
+   :widths: 22 12 11 55
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``standard``.
+
+   * - ``maxTokenLength``
+     - integer
+     - no
+     - Maximum length for a single token. Tokens greater than this 
+       length are split at ``maxTokenLength`` into multiple tokens.
+
+       *Default*: ``255``
+
+Example
+~~~~~~~
+
+The following index definition indexes the ``message``
+field in the ``minutes`` collection using a custom analyzer named
+``standardExample``. It uses the ``standard`` tokenizer and the
+:ref:`stopword token filter <stopword-tf-ref>`.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/standard_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/index/analyzers/code-snippets/tokenizers/mongosh/standard_mongosh.js
+         :language: javascript
+         :linenos:
+         :copyable: true
+
+The following query searches the ``message`` field in 
+the ``minutes`` collection for the term ``signature``.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/standard_query_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/compass/standard_query.rst
+
+|fts| returns the document with ``_id: 4`` because |fts|
+created a token with the value ``signature`` using the ``standard``
+tokenizer for the documents, which matches the search term. If you
+index the ``message`` field using the ``keyword`` tokenizer, |fts|
+would not return any results for the search term ``signature``.
+   
+The following table shows the tokens that the ``standard``
+tokenizer and by comparison, the ``keyword`` analyzer, create for
+the document with ``_id: 4``:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Tokenizer
+     - Token Outputs
+
+   * - ``standard``
+     - ``write``, ``down``, ``your``, ``signature``, ``or``, ``phone``
+
+   * - ``keyword``
+     - ``write down your signature or phone №``
+
+.. _uaxUrlEmail-tokenizer-ref:
+
+uaxUrlEmail
+-----------
+
+The ``uaxUrlEmail`` tokenizer tokenizes |url|\s and email addresses.
+Although ``uaxUrlEmail`` tokenizer tokenizes based on word break rules
+from the `Unicode Text Segmentation
+algorithm <http://www.unicode.org/L2/L2019/19034-uax29-34-draft.pdf>`__, 
+we recommend using ``uaxUrlEmail`` tokenizer only when the indexed 
+field value includes |url|\s and email 
+addresses. For fields that don't include |url|\s or email addresses, use
+the :ref:`standard-tokenizer-ref` tokenizer to create tokens based on
+word break rules. 
+
+Attributes 
+~~~~~~~~~~
+
+It has the following attributes:
+
+.. list-table::
+   :widths: 12 11 12 65
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type`` 
+     - string
+     - yes 
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``uaxUrlEmail``.
+
+   * - ``maxTokenLength``
+     - int
+     - no
+     - Maximum number of characters in one token.
+
+       *Default*: ``255``
+
+Example 
+~~~~~~~
+
+.. collapsible::
+   :heading: Basic Example
+   :sub_heading: Create a simple index using the uaxUrlEmail tokenizer.
+   :expanded: false
+
+   The following index definition indexes the ``page_updated_by.email``
+   field in the ``minutes`` collection using a custom analyzer named 
+   ``basicEmailAddressAnalyzer``. It uses the ``uaxUrlEmail`` tokenizer to
+   create tokens (searchable terms) from |url|\s and email
+   addresses in the ``page_updated_by.email`` field.
+
+   .. tabs-drivers::
+
+      .. tab::
+         :tabid: atlas-ui
+
+         .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/uaxurlemail_basic_ui.rst
+
+      .. tab::
+         :tabid: shell
+
+         .. literalinclude:: /includes/index/analyzers/code-snippets/tokenizers/mongosh/uaxUrlEmail_basic_mongosh.js 
+            :language: javascript
+            :copyable: true
+
+   The following query searches the ``page_updated_by.email`` field in 
+   the ``minutes`` collection for the email ``lewinsky@example.com``.
+
+   .. tabs-drivers::
+
+      .. tab::
+         :tabid: atlas-ui
+
+         .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/uaxurlemail_basic_query_ui.rst
+
+      .. tab::
+         :tabid: shell
+
+         .. include:: /includes/index/analyzers/code-snippets/tokenizers/compass/uaxUrlEmail_basic_query.rst
+
+   |fts| returns the document with ``_id: 3`` in the results
+   because |fts| created a token with the value
+   ``lewinsky@example.com`` using the ``uaxUrlEmail`` tokenizer
+   for the documents, which matches the search term. If you
+   index the ``page_updated_by.email`` field using the
+   ``standard`` tokenizer, |fts| returns all the documents for
+   the search term ``lewinsky@example.com``.
+
+   The following table shows the tokens that the ``uaxUrlEmail``
+   tokenizer and by comparison, the ``standard`` tokenizer, create for
+   the document with ``_id: 3``:
+
+   .. list-table::
+      :widths: 20 80
+      :header-rows: 1
+
+      * - Tokenizer
+        - Token Outputs
+
+      * - ``standard``
+        - ``lewinsky``, ``example.com``
+
+      * - ``uaxUrlEmail``
+        - ``lewinsky@example.com``
+
+
+.. collapsible::
+   :heading: Advanced Example
+   :sub_heading: Create an index using the uaxUrlEmail tokenizer with autocomplete tokenization strategy.
+   :expanded: false
+            
+   The following index definition indexes the ``page_updated_by.email``
+   field in the ``minutes`` collection using a custom analyzer named 
+   ``emailAddressAnalyzer``. It uses the following:
+
+   - The :ref:`autocomplete <autocomplete-ref>` type with an
+     ``edgeGram`` :ref:`tokenization strategy
+     <bson-data-types-autocomplete>`
+   - The ``uaxUrlEmail`` tokenizer to create tokens (searchable
+     terms) from |url|\s and email addresses
+         
+   .. tabs-drivers::
+
+      .. tab::
+         :tabid: atlas-ui
+
+         .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/uaxUrlEmail_advanced_ui.rst
+
+      .. tab::
+         :tabid: shell
+
+         .. literalinclude:: /includes/index/analyzers/code-snippets/tokenizers/mongosh/uaxUrlEmail_advanced_mongosh.js
+            :language: javascript
+            :copyable: true
+
+   The following query searches the ``page_updated_by.email`` field in 
+   the ``minutes`` collection for the term ``exam``.
+
+   .. tabs-drivers::
+
+      .. tab::
+         :tabid: atlas-ui
+
+         .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/uaxUrlEmail_advanced_query_ui.rst
+
+      .. tab::
+         :tabid: shell
+
+         .. include:: /includes/index/analyzers/code-snippets/tokenizers/compass/uaxUrlEmail_advanced_query.rst
+            
+   |fts| returns the document with ``_id: 3`` in the results
+   because |fts| created a token with the value
+   ``lewinsky@example.com`` using the ``uaxUrlEmail`` tokenizer
+   for the documents, which matches the search term. If you
+   index the ``page_updated_by.email`` field using the
+   ``standard`` tokenizer, |fts| returns all the documents for
+   the search term ``lewinsky@example.com``.
+
+   The following table shows the tokens that the ``uaxUrlEmail``
+   tokenizer and by comparison, the ``standard`` tokenizer, create for
+   the document with ``_id: 3``:
+
+   .. list-table::
+      :widths: 20 20 60
+      :header-rows: 1
+
+      * - Tokenizer
+        - |fts| Field Type
+        - Token Outputs
+
+      * - ``standard``
+        - ``autocomplete`` ``edgeGram``
+        - ``le``, ``lew``, ``lewi``, ``lewin``, ``lewins``,
+           ``lewinsk``, ``lewinsky``, ``lewinsky@``,
+           ``lewinsky``, ``ex``, ``exa``, ``exam``, ``examp``,
+           ``exampl``, ``example``, ``example.``,
+           ``example.c``, ``example.co``, ``example.com``
+
+      * - ``uaxUrlEmail``
+        - ``autocomplete`` ``edgeGram``
+        - ``le``, ``lew``, ``lewi``, ``lewin``, ``lewins``,
+           ``lewinsk``, ``lewinsky``, ``lewinsky@``,
+           ``lewinsky@e``, ``lewinsky@ex``, ``lewinsky@exa``,
+           ``lewinsky@exam``, ``lewinsky@examp``,
+           ``lewinsky@exampl``
+
+.. _whitespace-tokenizer-ref:
+
+whitespace
+----------
+
+The ``whitespace`` tokenizer tokenizes based on occurrences of 
+whitespace between words. 
+
+Attributes 
+~~~~~~~~~~
+
+It has the following attributes:
+
+.. list-table::
+   :widths: 22 12 11 45
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this tokenizer type.
+       Value must be ``whitespace``.
+
+   * - ``maxTokenLength``
+     - integer
+     - no
+     - Maximum length for a single token. Tokens greater than this 
+       length are split at ``maxTokenLength`` into multiple tokens.
+
+       *Default*: ``255``
+
+Example 
+~~~~~~~
+
+The following index definition indexes the ``message``
+field in the ``minutes`` collection using a custom analyzer named  ``whitespaceExample``. It uses the ``whitespace`` tokenizer to
+create tokens (searchable terms) from any whitespaces in the
+``message`` field.
+   
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/whitespace_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/index/analyzers/code-snippets/tokenizers/mongosh/whitespace_mongosh.js
+         :language: javascript
+         :copyable: true
+
+The following query searches the ``message`` field in 
+the ``minutes`` collection for the term ``SIGN-IN``.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/atlas-ui/whitespace_query_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/index/analyzers/code-snippets/tokenizers/compass/whitespace_query.rst
+
+|fts| returns the document with ``_id: 3`` in the results because |fts|
+created a token with the value ``sign-in`` using the ``whitespace``
+tokenizer for the documents, which matches the search term. If you
+index the ``message`` field using the ``standard`` tokenizer, |fts|
+returns documents with ``_id: 1``, ``_id: 2`` and ``_id: 3`` for the
+search term ``sign-in``.
+   
+The following table shows the tokens that the ``whitespace``
+tokenizer and by comparison, the ``standard`` tokenizer, create for
+the document with ``_id: 3``:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+
+   * - Tokenizer
+     - Token Outputs
+
+   * - ``standard``
+     - ``try``, ``to``, ``sign``, ``in``
+
+   * - ``whitespace``
+     - ``try``, ``to``, ``sign-in``

@@ -1,0 +1,123 @@
+.. _ref-standard-analyzer:
+
+=================
+Standard Analyzer
+=================
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. meta::
+   :keywords: default analyzer, divide text, convert to lower case, remove punctuation, grammar based tokenization, create index
+   :description: Use the MongoDB Search standard analyzer to divide text into terms based on word boundaries, convert terms to lowercase, and remove punctuation.
+
+The ``standard`` analyzer is the default for all |fts| indexes and
+queries. It divides text into terms based on word boundaries, which
+makes it language-neutral for most use cases. It converts all terms
+to lower case and removes punctuation. It provides grammar-based 
+tokenization that recognizes email addresses, acronyms, 
+Chinese-Japanese-Korean characters, alphanumerics, and more.
+
+.. |analyzer-name| replace:: ``standard``
+
+.. include:: /includes/index/analyzers/facts/fact-fts-index-configurations.rst
+
+.. important:: 
+
+   .. include:: /includes/index/shared/facts/fact-fts-string-size-limit.rst
+
+Example
+-------
+
+.. include:: /includes/index/analyzers/facts/analyzer-example-intro.rst
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+interface for the example on this page.
+
+----------
+
+.. tabs-selector:: drivers
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/standard/atlas-ui/index_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/index/analyzers/code-snippets/standard/mongosh/index_mongosh.js
+         :language: javascript 
+         :copyable: true 
+         :linenos:
+
+The following query searches the ``title`` field for the term ``action``
+and limits the output to two results.  
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/standard/atlas-ui/query_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/index/analyzers/code-snippets/standard/compass/query_mongosh.rst
+
+|fts| returned these documents because it matched the query term
+``action`` to the token ``action`` for the documents, which |fts|
+created by doing the following for the text in the ``title`` field
+using the ``lucene.standard`` analyzer: 
+
+- Convert the text to lowercase. 
+- Split the text based on word boundaries and create separate tokens.
+
+The following table shows the tokens (searchable terms) that |fts|
+creates using the :ref:`ref-standard-analyzer` and, by contrast, the
+tokens that |fts| creates for the :ref:`ref-keyword-analyzer` and
+:ref:`ref-whitespace-analyzer` for the documents in the results: 
+
+.. list-table:: Tokens
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Title 
+     - Standard Analyzer Tokens 
+     - Keyword Analyzer Tokens
+     - Whitespace Analyzer Tokens
+
+   * - ``Action Jackson`` 
+     - ``action``, ``jackson``
+     - ``Action Jackson``
+     - ``Action``, ``Jackson``
+
+   * - ``Class Action`` 
+     - ``class``, ``action``
+     - ``Class Action``
+     - ``Class``, ``Action``
+
+If you index the field using the: 
+
+- :ref:`ref-keyword-analyzer`, |fts| wouldn't match the documents in the
+  results for the query term ``action`` because the ``keyword`` analyzer
+  matches only documents in which the search term matches the entire
+  contents of the field (``Action Jackson`` and ``Class Action``)
+  exactly.    
+- :ref:`ref-whitespace-analyzer`, |fts| wouldn't match the documents in
+  the results for the query term ``action`` because the ``whitespace``
+  analyzer tokenizes the ``title`` field value in its original case
+  (``Action``) and the query term has the lowercase ``action``, which
+  doesn't match the ``whitespace`` analyzer token. 

@@ -1,0 +1,230 @@
+.. procedure::
+   :style: normal
+      
+      
+   .. step:: Run a |fts| compound query that alters the score using the :ref:`scoring-constant` option.
+      
+      a. Create a file named ``compound-constant-query.js``. 
+      #. Copy and paste the code example into the 
+         ``compound-constant-query.js`` file.
+      
+         The code example performs the following tasks:
+      
+         - Imports ``mongodb``, MongoDB's Node.js driver.
+         - Creates an instance of the ``MongoClient`` class to establish a 
+           connection to your cluster.
+         - Uses the following compound clauses to query the collection: 
+      
+           .. include:: /includes/query/score/facts/fts-compound-constant-desc.rst
+      
+         - .. include:: /includes/query/score/facts/fts-compound-highlight-desc.rst
+      
+         - Uses the following pipeline stages:
+      
+           .. include:: /includes/query/score/facts/fts-compound-score-stages.rst
+      
+         - Iterates over the cursor to print the documents that match the 
+           query.
+           
+         .. literalinclude:: /includes/query/score/code-snippets/nodejs/compound-constant-query.js
+            :language: javascript
+            :dedent:
+            :linenos:
+            :emphasize-lines: 54
+      
+      #. .. include:: /includes/shared/facts/fact-fts-driver-connection-string.rst
+      #. Run the following command to query your collection:
+      
+         .. io-code-block::
+            :copyable: true
+      
+            .. input::
+               :language: bash
+         
+               node compound-constant-query.js
+            
+            .. output::
+               :language: javascript
+               :visible: true
+               
+               '{"title":"Snow in Paradise","year":2014,"score":5,"highlights":[{"score":1.382846713066101,"path":"title","texts":[{"value":"Snow","type":"hit"},{"value":" in Paradise","type":"text"}]}]}'
+               '{"title":"Dead Snow 2: Red vs. Dead","year":2014,"score":5,"highlights":[{"score":1.3924485445022583,"path":"title","texts":[{"value":"Dead ","type":"text"},{"value":"Snow","type":"hit"},{"value":" 2: Red vs. ","type":"text"}]}]}'
+               '{"title":"The Snow White Murder Case","year":2014,"score":5,"highlights":[{"score":1.3525336980819702,"path":"title","texts":[{"value":"The ","type":"text"},{"value":"Snow","type":"hit"},{"value":" White Murder Case","type":"text"}]}]}'
+               '{"title":"Snow on the Blades","year":2014,"score":5,"highlights":[{"score":1.3766303062438965,"path":"title","texts":[{"value":"Snow","type":"hit"},{"value":" on the Blades","type":"text"}]}]}'
+               '{"year":2013,"title":"The Secret Life of Walter Mitty","score":0,"highlights":[]}'
+               '{"title":"Jurassic World","year":2015,"score":0,"highlights":[]}'
+               '{"title":"Action Jackson","year":2014,"score":0,"highlights":[]}'
+               '{"year":2013,"title":"In Secret","score":0,"highlights":[]}'
+               '{"title":"The Stanford Prison Experiment","year":2015,"score":0,"highlights":[]}'
+               '{"year":2014,"title":"The Giver","score":0,"highlights":[]}'
+      
+         .. include:: /includes/query/score/facts/fts-compound-constant-score-desc.rst
+      
+   .. step:: Run a |fts| compound query that alters the score using the :ref:`scoring-boost` option.
+      
+      a. Create a file named ``compound-boost-query.js``. 
+      #. Copy and paste the code example into the 
+         ``compound-boost-query.js`` file.
+      
+         The code example performs the following tasks:
+      
+         - Imports ``mongodb``, MongoDB's Node.js driver.
+         - Creates an instance of the ``MongoClient`` class to establish a 
+           connection to your cluster.
+      
+         - Iterates over the cursor to print the documents that match the 
+           query.
+      
+         .. tabs:: 
+      
+            .. tab:: Simple Example
+               :tabid: simple
+      
+               The query uses the following pipeline stages:
+      
+               - :pipeline:`$search` stage to query the collection. The 
+                 query:
+      
+                 - Uses the following ``compound`` operator clauses: 
+      
+                   .. include:: /includes/query/score/facts/fts-compound-boost-desc.rst
+                   
+                 - .. include:: /includes/query/score/facts/fts-compound-highlight-desc.rst
+      
+               .. include:: /includes/query/score/facts/fts-compound-score-stages.rst
+      
+               .. literalinclude:: /includes/query/score/code-snippets/nodejs/compound-boost-query.js
+                  :language: javascript
+                  :dedent:
+                  :linenos:
+                  :emphasize-lines: 48
+      
+            .. tab:: Multiple Weights Example
+               :tabid: multi
+      
+               The query uses the following pipeline stages:
+      
+               - :pipeline:`$search` stage to query the collection. The 
+                 query: 
+                 
+                 - Uses the following ``compound`` operator clauses 
+                   with the ``boost`` option to prioritize some fields more 
+                   than other fields: 
+            
+                   .. include:: /includes/query/score/facts/fts-compound-boost-advanced-desc.rst
+      
+                 .. include:: /includes/query/score/facts/fts-compound-score-stages.rst
+       
+               .. literalinclude:: /includes/query/score/code-snippets/nodejs/boost-multi-query.js
+                  :language: js
+                  :dedent:
+                  :linenos:
+                  :emphasize-lines: 64
+      
+      #. .. include:: /includes/shared/facts/fact-fts-driver-connection-string.rst
+      #. Run the following command to query your collection:
+      
+         .. tabs:: 
+            :hidden:
+      
+            .. tab:: Simple Example
+               :tabid: simple
+      
+               .. io-code-block::
+                  :copyable: true
+      
+                  .. input::
+                     :language: bash
+      
+                     node compound-boost-query.js
+            
+                  .. output::
+                     :language: javascript
+                     :visible: true
+      
+                     '{"title":"Snow in Paradise","year":2014,"score":6.7722930908203125,"highlights":[{"score":1.382846713066101,"path":"title","texts":[{"value":"Snow","type":"hit"},{"value":" in Paradise","type":"text"}]}]}'
+                     '{"title":"Snow on the Blades","year":2014,"score":6.063445568084717,"highlights":[{"score":1.3766303062438965,"path":"title","texts":[{"value":"Snow","type":"hit"},{"value":" on the Blades","type":"text"}]}]}'
+                     '{"title":"The Snow White Murder Case","year":2014,"score":5.509652137756348,"highlights":[{"score":1.3525336980819702,"path":"title","texts":[{"value":"The ","type":"text"},{"value":"Snow","type":"hit"},{"value":" White Murder Case","type":"text"}]}]}'
+                     '{"title":"Dead Snow 2: Red vs. Dead","year":2014,"score":5.065053939819336,"highlights":[{"score":1.3924485445022583,"path":"title","texts":[{"value":"Dead ","type":"text"},{"value":"Snow","type":"hit"},{"value":" 2: Red vs. ","type":"text"}]}]}'
+                     '{"year":2013,"title":"The Secret Life of Walter Mitty","score":1,"highlights":[]}'
+                     '{"title":"Jurassic World","year":2015,"score":1,"highlights":[]}'
+                     '{"title":"Action Jackson","year":2014,"score":1,"highlights":[]}'
+                     '{"year":2013,"title":"In Secret","score":1,"highlights":[]}'
+                     '{"title":"The Stanford Prison Experiment","year":2015,"score":1,"highlights":[]}'
+                     '{"year":2014,"title":"The Giver","score":1,"highlights":[]}'
+      
+               .. include:: /includes/query/score/facts/fts-compound-boost-score-desc.rst
+      
+            .. tab:: Multiple Weights Example
+               :tabid: multi
+      
+               .. io-code-block::
+                  :copyable: true
+      
+                  .. input::
+                     :language: bash
+      
+                     node compound-boost-query.js
+            
+                  .. output:: /includes/query/score/code-snippets/output/boost-multi-nodejs-query-results.json
+                     :language: javascript
+                     :visible: true
+      
+   .. step:: Run a |fts| compound query that alters the score using the :ref:`scoring-function` option.
+      
+      a. Create a file named ``compound-function-query.js``. 
+      #. Copy and paste the code example into the 
+         ``compound-function-query.js`` file.
+      
+         The code example performs the following tasks:
+      
+         - Imports ``mongodb``, MongoDB's Node.js driver.
+         - Creates an instance of the ``MongoClient`` class to establish a 
+           connection to your cluster.
+         - Uses the following compound clauses to query the collection: 
+      
+           .. include:: /includes/query/score/facts/fts-compound-function-desc.rst
+      
+         - .. include:: /includes/query/score/facts/fts-compound-highlight-desc.rst
+      
+         - Uses the following pipeline stages:
+      
+           .. include:: /includes/query/score/facts/fts-compound-score-stages.rst
+      
+         - Iterates over the cursor to print the documents that match the 
+           query.
+      
+         .. literalinclude:: /includes/query/score/code-snippets/nodejs/compound-function-query.js
+            :language: javascript
+            :dedent:
+            :linenos:
+            :emphasize-lines: 60
+      
+      #. .. include:: /includes/shared/facts/fact-fts-driver-connection-string.rst
+      #. Run the following command to query your collection:
+      
+         .. io-code-block::
+            :copyable: true
+      
+            .. input::
+               :language: bash
+         
+               node compound-function-query.js
+            
+            .. output::
+               :language: javascript
+               :visible: true
+      
+               '{"title":"The Snow White Murder Case","year":2014,"score":10.454826354980469,"highlights":[{"score":1.3525336980819702,"path":"title","texts":[{"value":"The ","type":"text"},{"value":"Snow","type":"hit"},{"value":" White Murder Case","type":"text"}]}]}'
+               '{"title":"Snow on the Blades","year":2014,"score":10.3317232131958,"highlights":[{"score":1.3766303062438965,"path":"title","texts":[{"value":"Snow","type":"hit"},{"value":" on the Blades","type":"text"}]}]}'
+               '{"title":"Dead Snow 2: Red vs. Dead","year":2014,"score":10.032526969909668,"highlights":[{"score":1.3924485445022583,"path":"title","texts":[{"value":"Dead ","type":"text"},{"value":"Snow","type":"hit"},{"value":" 2: Red vs. ","type":"text"}]}]}'
+               '{"title":"Snow in Paradise","year":2014,"score":8.386146545410156,"highlights":[{"score":1.382846713066101,"path":"title","texts":[{"value":"Snow","type":"hit"},{"value":" in Paradise","type":"text"}]}]}'
+               '{"year":2013,"title":"The Secret Life of Walter Mitty","score":1,"highlights":[]}'
+               '{"title":"Jurassic World","year":2015,"score":1,"highlights":[]}'
+               '{"title":"Action Jackson","year":2014,"score":1,"highlights":[]}'
+               '{"year":2013,"title":"In Secret","score":1,"highlights":[]}'
+               '{"title":"The Stanford Prison Experiment","year":2015,"score":1,"highlights":[]}'
+               '{"year":2014,"title":"The Giver","score":1,"highlights":[]}'
+      
+         .. include:: /includes/query/score/facts/fts-compound-function-score-desc.rst
+      

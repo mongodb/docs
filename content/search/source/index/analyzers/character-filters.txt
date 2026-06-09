@@ -1,0 +1,475 @@
+.. _character-filters:
+.. _char-filters-ref:
+
+=================
+Character Filters
+=================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: character filter, htmlStrip, icuNormalize, mapping, persian
+   :description: Use the character filters in a MongoDB Search custom analyzer to examine text one character at a time and perform filtering operations.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Character filters examine text one character at a time and perform
+filtering operations. Character filters require a type field, and some
+take additional options as well.
+
+.. code-block:: json
+   :caption: Syntax
+
+   "charFilters": [
+     {
+       "type": "<filter-type>",
+       "<additional-option>": <value>
+     }
+   ]
+
+.. _fts-character-filter-types: 
+
+Character Filter Types
+----------------------
+
+|fts| supports the following types of character filter:
+
+- :ref:`htmlStrip <htmlStrip-ref>`
+- :ref:`icuNormalize <icuNormalize-ref>`
+- :ref:`mapping <mapping-ref>`
+- :ref:`persian <persian-ref>`
+
+.. include:: /includes/index/analyzers/facts/custom-analyzer-examples-intro.rst
+
+.. tabs-selector:: drivers
+
+----------
+
+.. |arrow| unicode:: U+27A4
+
+|arrow| Use the **Select your language** drop-down menu to set the 
+method to run the examples on this page.
+
+----------
+
+.. _htmlStrip-ref:
+
+htmlStrip
+---------
+
+The ``htmlStrip`` character filter strips out HTML constructs. 
+
+Attributes 
+~~~~~~~~~~
+
+The ``htmlStrip`` character filter has the following attributes:
+
+.. list-table::
+   :widths: 12 12 11 50
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this character filter type. 
+       Value must be ``htmlStrip``.
+
+   * - ``ignoredTags``
+     - array of strings
+     - yes
+     - List that contains the HTML tags to exclude from filtering.
+
+Example
+~~~~~~~
+
+The following index definition example indexes the ``text.en_US``
+field in the :ref:`minutes <custom-analyzers-eg-coll>` collection
+using a custom analyzer named ``htmlStrippingAnalyzer``. The
+custom analyzer specifies the following: 
+   
+- Remove all HTML tags from the text except the ``a`` tag using the
+  ``htmlStrip`` character filter.  
+- Generate tokens based on word break rules from the `Unicode Text
+  Segmentation algorithm 
+  <https://www.unicode.org/L2/L2019/19034-uax29-34-draft.pdf>`__
+  using the :ref:`standard-tokenizer-ref` tokenizer.  
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/character-filters/atlas-ui/htmlstrip_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/index/analyzers/code-snippets/character-filters/mongosh/htmlstrip_mongosh.js
+         :language: javascript
+         :linenos:
+         :copyable: true
+
+The following query looks for occurrences of the string ``head`` in
+the ``text.en_US`` field of the ``minutes`` collection. 
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/character-filters/atlas-ui/htmlstrip_query_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/index/analyzers/code-snippets/character-filters/compass/htmlstrip_query.rst
+
+|fts| doesn't return the document with ``_id: 1`` because the 
+string ``head`` is part of the HTML tag ``<head>``. The 
+document with ``_id: 3`` contains HTML tags, but the string 
+``head`` is elsewhere so the document is a match. The following
+table shows the tokens that |fts| generates for the ``text.en_US``
+field values in documents ``_id: 1``, ``_id: 2``, and  ``_id: 3`` in
+the :ref:`minutes <custom-analyzers-eg-coll>` collection using the
+``htmlStrippingAnalyzer``. 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Document ID 
+     - Output Tokens 
+
+   * - ``_id: 1``
+     - ``This``, ``page``, ``deals``, ``with``, ``department``,
+       ``meetings``  
+
+   * - ``_id: 2``
+     - ``The``, ``head``, ``of``, ``the``, ``sales``, ``department``,
+       ``spoke``, ``first`` 
+
+   * - ``_id: 3``
+     - ``We'll``, ``head``, ``out``, ``to``, ``the``, ``conference``,
+       ``room``, ``by``, ``noon``
+
+.. _icuNormalize-ref:
+
+icuNormalize
+------------
+
+The ``icuNormalize`` character filter normalizes text with the `ICU 
+<http://site.icu-project.org/>`__ Normalizer. It is based on Lucene's 
+`ICUNormalizer2CharFilter <https://lucene.apache.org/core/8_3_0/analyzers-icu/org/apache/lucene/analysis/icu/ICUNormalizer2CharFilter.html>`__. 
+
+Attributes 
+~~~~~~~~~~
+
+The ``icuNormalize`` character filter has the following attribute:
+
+.. list-table::
+   :widths: 12 12 11 65
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this character filter type. 
+       Value must be ``icuNormalize``.
+
+Example
+~~~~~~~
+
+The following index definition example indexes the ``message`` field
+in the :ref:`minutes <custom-analyzers-eg-coll>` collection using a
+custom analyzer named ``normalizingAnalyzer``. The custom analyzer
+specifies the following:  
+   
+- Normalize the text in the ``message`` field value using the
+  ``icuNormalize`` character filter. 
+- Tokenize the words in the field based on occurrences of whitespace
+  between words using the :ref:`whitespace-tokenizer-ref` tokenizer. 
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/character-filters/atlas-ui/icuNormalize_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/index/analyzers/code-snippets/character-filters/mongosh/icuNormalize_mongosh.js
+         :language: javascript
+         :copyable: true
+
+The following query searches for occurrences of the string 
+``no`` (for  number) in the ``message`` field of the ``minutes``
+collection. 
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/character-filters/atlas-ui/icuNormalize_query_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/index/analyzers/code-snippets/character-filters/compass/icuNormalize_query.rst
+
+|fts| matched document with ``_id: 4`` to the query term ``no``
+because it normalized the numero symbol ``№`` in the field using the 
+``icuNormalize`` character filter and created the token ``no`` for
+that typographic abbreviation of the word "number". |fts| generates
+the following tokens for the ``message`` field value in document
+``_id: 4`` using the ``normalizingAnalyzer``:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Document ID 
+     - Output Tokens 
+
+   * - ``_id: 4``
+     - ``write``, ``down``, ``your``, ``signature``, ``or``, ``phone``, ``no``
+
+.. _mapping-ref:
+
+mapping
+-------
+
+The ``mapping`` character filter applies user-specified normalization 
+mappings to characters. It is based on Lucene's `MappingCharFilter 
+<https://lucene.apache.org/core/8_0_0/analyzers-common/org/apache/lucene/analysis/charfilter/MappingCharFilter.html>`__. 
+
+Attributes 
+~~~~~~~~~~
+
+The ``mapping`` character filter has the following attributes:
+
+.. list-table::
+   :widths: 12 12 11 65
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this character filter type.
+
+       Value must be ``mapping``.
+ 
+   * - ``mappings``
+     - object
+     - yes
+     - Object that contains a comma-separated list of mappings. A 
+       mapping indicates that one character or group of characters 
+       should be substituted for another, in the format 
+       ``<original> : <replacement>``.
+
+Example
+~~~~~~~
+         
+The following index definition example indexes the 
+``page_updated_by.phone`` field in the :ref:`minutes 
+<custom-analyzers-eg-coll>` collection using a custom analyzer named 
+``mappingAnalyzer``. The custom analyzer specifies the  following:  
+         
+- Remove instances of hyphen (``-``), dot (``.``), open parenthesis 
+  (``(``), close parenthesis ( ``)``), and space characters in 
+  the phone field using the ``mapping`` character filter.  
+- Tokenize the entire input as a single token using the 
+  :ref:`keyword-tokenizer-ref` tokenizer.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/character-filters/atlas-ui/mapping_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/index/analyzers/code-snippets/character-filters/mongosh/mapping_mongosh.js
+         :language: javascript
+         :linenos:
+         :copyable: true
+
+The following query searches the ``page_updated_by.phone`` field for
+the string ``1234567890``. 
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/character-filters/atlas-ui/mapping_query_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/index/analyzers/code-snippets/character-filters/compass/mapping_query.rst
+
+The |fts| results contain one document where the numbers in the
+``phone`` string match the query string. |fts| matched the
+document to the query string even though the query doesn't
+include the parentheses around the phone area code and the
+hyphen between the numbers because |fts| removed these
+characters using the ``mapping`` character filter and created a
+single token for the field value. Specifically, |fts| generated
+the following token for the ``phone`` field in document with
+``_id: 1``:  
+         
+.. list-table:: 
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Document ID 
+     - Output Tokens 
+
+   * - ``_id: 1``
+     - ``1234567890``
+         
+|fts| would also match document with  ``_id: 1`` for searches
+for ``(123)-456-7890``, ``123-456-7890``, ``123.456.7890``, and
+so on because for :ref:`bson-data-types-string` fields, |fts| also
+analyzes search query terms using the index analyzer (or if
+specified, using the ``searchAnalyzer``). The following table shows
+the tokens that |fts| creates by removing instances of hyphen
+(``-``), dot (``.``), open parenthesis (``(``), close parenthesis (
+``)``), and space characters in the query term:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Query Term 
+     - Output Tokens 
+
+   * - ``(123)-456-7890``
+     - ``1234567890``
+
+   * - ``123-456-7890``
+     - ``1234567890``
+
+   * - ``123.456.7890``
+     - ``1234567890``
+
+.. _persian-ref:
+
+persian
+-------
+
+The ``persian`` character filter replaces instances of `zero-width 
+non-joiner <https://en.wikipedia.org/wiki/Zero-width_non-joiner>`__ 
+with the space character. This character filter is based on Lucene's 
+`PersianCharFilter <https://lucene.apache.org/core/8_0_0/analyzers-common/org/apache/lucene/analysis/fa/PersianCharFilter.html>`__. 
+
+Attributes 
+~~~~~~~~~~
+
+The ``persian`` character filter has the following attribute:
+
+.. list-table::
+   :widths: 12 12 11 65
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this character filter type. 
+       Value must be ``persian``.
+
+Example
+~~~~~~~ 
+
+The following index definition example indexes the ``text.fa_IR``
+field in the :ref:`minutes <custom-analyzers-eg-coll>` collection
+using a custom analyzer named ``persianCharacterIndex``. The 
+custom analyzer specifies the following:  
+
+- Apply the ``persian`` character filter to replace non-printing
+  characters in the field value with the space character.
+- Use the :ref:`whitespace-tokenizer-ref` tokenizer to create tokens
+  based on occurrences of whitespace between words.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/character-filters/atlas-ui/persian_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/index/analyzers/code-snippets/character-filters/mongosh/persian_mongosh.js
+         :language: javascript
+         :copyable: true
+      
+The following query searches the ``text.fa_IR`` field for the term
+``صحبت``. 
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/character-filters/atlas-ui/persian_query_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/index/analyzers/code-snippets/character-filters/compass/persian_query.rst
+
+|fts| returns the  ``_id: 2`` document that contains the query term.
+|fts| matches the query term to the document by first replacing
+instances of zero-width non-joiners with the space character and
+then creating individual tokens for each word in the field value
+based on occurrences of whitespace between words. Specifically, |fts|
+generates the following tokens for document with ``_id: 2``: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Document ID 
+     - Output Tokens 
+
+   * - ``_id: 2``
+     - ``ابتدا``, ``رئیس``, ``بخش``, ``فروش``, ``صحبت``, ``کرد``
+
+Learn More
+----------
+
+To see additional index definitions and queries that use the ``mapping`` character filter, see the following reference page examples: 
+
+- :ref:`shingle-tf-ref` token filter
+- :ref:`regexCaptureGroup-tokenizer-ref` tokenizer

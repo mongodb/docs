@@ -1,0 +1,563 @@
+.. _explain-ref:
+
+===================================================
+How to Retrieve Query Plan and Execution Statistics
+===================================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: all plans execution, explain response parameters, explain method limitations, text operator, execution stats example, autocomplete operator
+   :description: Run your MongoDB Search query with the explain method to learn about your $search query plan and its execution statistics.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+.. |search-type| replace:: |fts|
+.. |query-type| replace:: Lucene
+.. |timing-ref| replace:: :ref:`time <timing-breakdown>`
+.. |area-of-query-ref| replace:: :ref:`areas of query <areas-of-query>`
+.. |area-ref| replace:: :ref:`area <areas-of-query>`
+
+The |fts| query returns information about the ``$search`` query plan 
+and execution statistics when the query is run with the ``explain`` 
+method enabled. When you run a query with ``explain``, |fts| returns a
+|bson| document containing statistics and metadata that describes how the
+query was run internally in Lucene.  
+
+.. seealso:: 
+
+   :manual:`explain command </reference/command/explain/>` 
+
+.. tip:: Visualize Query Plans in the Playground
+
+   Generate and view ``explain`` plan summaries with the :ref:`MongoDB Search Playground
+   <explain-search-queries>`.
+
+.. _explain-syntax:
+
+Syntax 
+------
+
+.. code-block:: json 
+   :emphasize-lines: 1
+
+   db.<myCollection>.explain("<verbosity>").aggregate([
+     {
+       $search: {
+         "<operator>": {
+           "<operator-options>"
+         }
+       }
+     }
+   ])
+
+.. _explain-verbosity:
+
+Verbosity 
+---------
+
+.. include:: /includes/query/explain/facts/explain-verbosity.rst
+
+Output 
+------
+
+The query with the ``explain`` method returns the following fields in
+the ``stages.$_internalSearchMongotRemote`` object: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 20 10 60
+
+   * - Option 
+     - Type 
+     - Purpose
+  
+   * - ``mongotQuery`` 
+     - document 
+     - Contains the query that you ran. 
+
+   * - ``explain``
+     - document 
+     - Contains the ``explain`` results. To learn more, see
+       :ref:`explain-response`.  
+
+   * - ``internalMongotBatchSizeHistory``
+     - array of integers 
+     - Contains the size of each batch of documents that ``mongot``
+       returned to ``mongod``.
+
+.. _explain-response:
+
+Explain Results 
+---------------
+
+The ``explain`` method returns a |bson| document with the following
+fields in the ``explain`` document.
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 15 15 10 60
+
+   * - Option 
+     - Type 
+     - Necessity 
+     - Purpose
+
+   * - ``collectors``
+     - document
+     - Optional
+     - Describes the execution statistics for the collector. If 
+       ``indexPartitionExplain`` is present,
+       this is nested within each ``indexPartitionExplain`` instead of at the top-level. 
+
+   * - ``highlight``
+     - document
+     - Optional
+     - Details about the :ref:`highlight <highlight-ref>` execution for
+       the query. This is returned only if you specified :ref:`highlighting
+       <highlight-ref>` in the query.
+
+   * - ``indexPartitionExplain``
+     - array of documents
+     - Optional
+     - Contains per index partition details. This is only returned if
+       you configured two or more index partitions.
+
+   * - ``metadata``
+     - document
+     - Optional
+     - Contains useful metadata.
+
+   * - ``query``
+     - document
+     - Optional
+     - Describes the execution statistics for the query. This is not returned.
+       If ``indexPartitionExplain`` is present, this is nested within each ``indexPartitionExplain``, instead of at the top-level. 
+
+   * - ``resultMaterialization``
+     - document
+     - Optional
+     - Details related to retrieving per-document data from Lucene after
+       query execution. This is not returned for ``queryPlanner``
+       verbosity mode. 
+
+   * - ``resourceUsage``
+     - document
+     - Optional
+     - Details the resource usage of the query when it was executed.
+       This is not returned for ``queryPlanner`` verbosity mode.
+
+.. _explain-search-collect-stats:
+
+``collectors`` 
+~~~~~~~~~~~~~~~~
+
+.. include:: /includes/query/explain/facts/collect-stats.rst
+
+.. _explain-search-all-collector-stats:
+
+``allCollectorStats``
+`````````````````````
+
+.. include:: /includes/query/explain/facts/all-collector-stats.rst
+
+.. _explain-search-facet:
+
+``facet``
+`````````
+
+The ``facet`` is a |bson| document that details query and execution
+statistics when you specify a :ref:`facet <fts-facet-ref>` in the query.
+It contains the following fields:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 15 10 10 65
+
+   * - Option 
+     - Type 
+     - Necessity 
+     - Purpose
+
+   * - ``collectorStats``
+     - document
+     - Optional
+     - Shows statistics only for the ``facet`` collector. The keys in
+       here are identical to the ``allCollectorStats``. You can evaluate
+       the difference between this and the ``allCollectorStats`` to
+       determine the ``sort`` collector execution statistics if you
+       used ``sort`` in the query.
+
+   * - ``createCountsStats``
+     - document
+     - Optional
+     - Shows statistics related to creating the internal Lucene
+       object that holds all of the facet groupings. It contains
+       ``generateFacetCounts`` field, which returns the statistics
+       tracking the total duration and number of times ``mongot``
+       generates the Lucene object that holds all of the facets and
+       their counts. 
+
+   * - ``stringFacetFieldCardinalities``
+     - document
+     - Required
+     - Maps the field being faceted on to their cardinalities for
+       both the documents that matched the query and across the
+       entire Lucene index. It provides the following cardinality
+       information for each field:
+
+       - ``queried`` - Represents the facet cardinality of the field across all queried documents. 
+       - ``total`` - Represents the facet cardinality of the field across all documents in the index.
+
+.. _explain-search-sort:
+
+``sort`` 
+````````
+
+The ``sort`` is a |bson| document that details query and execution
+statistics when you specify a :ref:`sort <sort-ref>` in the query. It
+contains the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 15 10 10 65
+
+   * - Option 
+     - Type 
+     - Necessity 
+     - Purpose
+
+   * - ``stats``
+     - document
+     - Optional
+     - Tracks statistics related to ``sort`` execution across all sort
+       fields. It contains the following fields:
+
+       - ``comparator`` - Shows statistics and metadata around how
+         the Lucene sorts the results. 
+
+         - ``setBottom`` - Returns how often the current least competitive
+           sort value is updated with a new and more competitive value.
+           When sorting, |fts| keeps track of the bottom value and if a
+           new value surpasses the current bottom value in relevance or
+           competitiveness, this metric is incremented.
+         - ``compareBottom`` - Returns the timing and invocation
+           statistics related to comparing the current ``bottom``
+           value with a candidate ``bottom`` value.
+         - ``compareTop`` - Returns the timing and invocation
+           statistics related to comparing the current ``top`` value
+           with a candidate ``top`` value. 
+         - ``setHitsThresholdReached`` - Returns the timing and invocation
+           statistics related to when the maximum number of results
+           (``limit``) was reached.  
+         - ``competitiveIterator`` - Returns the timing and invocation
+           statistics related to iterating (only) over documents that
+           are likely to compete for top spots in the sorted results. 
+         - ``setScorer`` - Returns the timing and invocation
+           statistics related to computing the score and relevance of
+           documents.  
+
+       - ``prunedResultIterator`` - Shows the invocations and timing
+         statistics of ``nextDoc`` and ``advance`` method calls on
+         Lucene's ``competitiveIterator``.
+ 
+         This is not present in the output if it performs a mixed
+         data type sort.
+
+         It contains only the ``nextDoc`` field.
+
+   * - ``fieldInfos``
+     - document
+     - Required
+     - Maps the field being sorted on to the list of data types present in
+       the index for the field. 
+
+.. _explain-search-highlight:
+
+``highlight`` 
+~~~~~~~~~~~~~
+
+The ``highlight`` is a |bson| document that details query and execution
+statistics when you specify :ref:`highlighting <highlight-ref>` in the
+query. It contains the following fields: 
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 15 10 10 65
+
+   * - Option 
+     - Type 
+     - Necessity 
+     - Purpose
+
+   * - ``resolvedHighlightPaths`` 
+     - List<String> 
+     - Required 
+     - List of all the highlighted fields. If you specified a wildcard
+       path in the ``highlight`` section of your query, contains a list
+       of fully resolved document paths.  
+
+   * - ``stats`` 
+     - QueryExecutionArea 
+     - Optional 
+     - Invocation and timing statistics related to setting up and
+       executing highlights. It contains the following fields:
+
+       - ``setupHighlight`` - Time it took for setting up the internal
+         Lucene objects used during the ``executeHighlight`` phase. 
+       - ``executeHighlight`` - Time it took to run highlighting over
+         the matching documents. 
+
+.. _explain-search-index-partition:
+
+``indexPartitionExplain``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+the ``indexPartitionExplain`` contains :ref:`explain-response` for each
+index partition. The top-level :ref:`explain-search-collect-stats` and
+:ref:`explain-search-query` are inside the ``explain`` information of
+each index partition and absent at the top-level.
+
+.. _explain-search-metadata:
+
+``metadata`` 
+~~~~~~~~~~~~
+
+.. include:: /includes/query/explain/facts/explain-metadata.rst
+
+.. _explain-search-query:
+
+``query`` 
+~~~~~~~~~
+
+.. include:: /includes/query/explain/facts/explain-query.rst
+
+
+.. _explain-lucene-query:
+
+``args``
+````````
+
+.. include:: /includes/query/explain/facts/explain-args.rst
+
+
+.. _explain-timing-breakdown:
+
+``stats`` 
+`````````
+
+.. include:: /includes/query/explain/facts/explain-stats.rst
+
+.. _timing-breakdown:
+
+Timing Breakdown 
+++++++++++++++++
+
+.. include:: /includes/query/explain/facts/explain-time-breakdown.rst
+
+.. _areas-of-query:
+
+Areas of Query 
+++++++++++++++
+
+.. include:: /includes/query/explain/facts/explain-areas-of-query.rst
+
+.. _explain-search-result-materialization:
+
+``resultMaterialization``
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/query/explain/facts/result-materialization.rst
+
+.. _explain-search-resource-usage:
+
+``resourceUsage``
+~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/query/explain/facts/explain-resource-usage.rst
+
+.. _explain-egs:
+
+Examples 
+--------
+
+The following examples use the ``movies`` collection in the
+``sample_mflix`` database.
+
+.. include:: /includes/query/operators-collectors/shared/facts/get-started-atlas-search.rst
+
+.. _allplansexecution-ex:
+
+``allPlansExecution`` 
+~~~~~~~~~~~~~~~~~~~~~
+
+The following example uses different operators to query the ``title``
+field with the ``allPlansExecution`` :ref:`verbosity
+<explain-verbosity>` mode.  
+
+.. tabs:: 
+
+   .. tab:: Fuzzy Example 
+      :tabid: fuzzy
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/query/explain/code-snippets/javascript/allPlansExecution-fuzzy-query.js
+            :language: javascript
+
+         .. output:: /includes/query/explain/code-snippets/output/allPlansExecution-fuzzy-query-output.js
+            :language: javascript
+            :visible: false
+            :linenos: 
+
+   .. tab:: Highlight Example 
+      :tabid: highlight
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/query/explain/code-snippets/javascript/allPlansExecution-highlight-query.js
+            :language: javascript
+
+         .. output:: /includes/query/explain/code-snippets/output/allPlansExecution-highlight-query-output.js
+            :language: javascript
+            :emphasize-lines: 10-71
+            :visible: false
+            :linenos: 
+
+   .. tab:: Facet Example 
+      :tabid: facet
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/query/explain/code-snippets/javascript/allPlansExecution-facet-query.js
+            :language: javascript
+
+
+         .. output:: /includes/query/explain/code-snippets/output/allPlansExecution-facet-query-output.js
+            :language: javascript
+            :emphasize-lines: 25-85
+            :visible: false
+            :linenos: 
+
+   .. tab:: Index Partition Example 
+      :tabid: index-partition
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/query/explain/code-snippets/javascript/allPlansExecution-index-partition-query.js
+            :language: javascript
+
+         .. output:: /includes/query/explain/code-snippets/output/allPlansExecution-index-partition-query-output.js
+            :language: javascript
+            :visible: false
+            :linenos: 
+
+.. _queryplanner-ex:
+
+``queryPlanner`` 
+~~~~~~~~~~~~~~~~
+
+The following example uses different operators to query the ``title``
+field with the ``queryPlanner`` :ref:`verbosity <explain-verbosity>`
+mode.
+
+.. tabs:: 
+
+   .. tab:: Fuzzy Example 
+      :tabid: fuzzy
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/query/explain/code-snippets/javascript/queryPlanner-fuzzy-query.js
+            :language: javascript
+
+         .. output:: /includes/query/explain/code-snippets/output/queryPlanner-fuzzy-query-output.js
+            :language: javascript
+            :visible: false
+            :linenos: 
+
+   .. tab:: Highlight Example 
+      :tabid: highlight
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/query/explain/code-snippets/javascript/queryPlanner-highlight-query.js
+            :language: javascript
+
+         .. output:: /includes/query/explain/code-snippets/output/queryPlanner-highlight-query-output.js
+            :language: javascript
+            :emphasize-lines: 10-22
+            :visible: false
+            :linenos: 
+
+   .. tab:: Facet Example 
+      :tabid: facet
+
+      .. io-code-block:: 
+         :copyable: true
+
+         .. input:: /includes/query/explain/code-snippets/javascript/queryPlanner-facet-query.js
+            :language: javascript
+
+         .. output:: /includes/query/explain/code-snippets/output/queryPlanner-facet-query-output.js
+            :language: javascript
+            :emphasize-lines: 25-38
+            :visible: false
+            :linenos: 
+
+For queries that specify a :pipeline:`$limit` stage in the pipeline, the
+``explain`` results include the ``mongotDocsRequested`` metric, which
+shows the number of documents that ``mongod`` requested from ``mongot``. 
+
+.. example:: 
+
+   .. code-block:: shell 
+      :copyable: false 
+      :emphasize-lines: 6
+
+      {
+        "mongotQuery": {},
+        "explain": {},
+        "limit": <int>,
+        "sortSpec": {},
+        "mongotDocsRequested": <int>,
+      }
+
+.. _exstats-ex:
+
+``executionStats`` 
+~~~~~~~~~~~~~~~~~~
+
+The following example uses the :ref:`autocomplete <autocomplete-ref>` 
+to query the ``title`` field with the ``executionStats`` 
+:ref:`verbosity <explain-verbosity>` mode. 
+
+.. io-code-block:: 
+   :copyable: true
+  
+   .. input:: /includes/query/explain/code-snippets/javascript/executionStats-query.js
+      :language: javascript
+      :linenos:
+
+   .. output:: /includes/query/explain/code-snippets/output/executionStats-query-output.js
+      :language: javascript
+      :visible: false
+      :linenos:
+      :emphasize-lines: 13 - 120
+
+To learn more about the ``explain`` response elements, see
+:ref:`explain-response`.
