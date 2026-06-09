@@ -1698,7 +1698,6 @@ const tocData: TocItem[] = [
   {
     label: 'FAQ',
     contentSite: 'docs',
-    url: '/docs/:version/faq',
     collapsible: true,
     items: [
       {
