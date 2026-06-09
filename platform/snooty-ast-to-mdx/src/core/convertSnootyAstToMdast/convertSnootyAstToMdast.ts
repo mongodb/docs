@@ -1229,6 +1229,13 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         };
       }
 
+      if (directiveName === 'deprecated-version-selector') {
+        return {
+          type: 'mdxJsxFlowElement',
+          name: 'DeprecatedVersionSelector',
+        };
+      }
+
       if (directiveName === 'wayfinding') {
         const title = parseSnootyArgument(node);
         const children = node.children ?? [];
