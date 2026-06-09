@@ -1200,39 +1200,12 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         };
       }
 
-      if (directiveName === 'card-group') {
-        const attributes: MdastNode[] = toJsxAttributes(node.options);
-        return {
-          type: 'mdxJsxFlowElement',
-          name: 'CardGroup',
-          attributes,
-          children: convertChildren({ nodes: node.children, depth, ctx }),
-        };
-      }
-
-      if (directiveName === 'card') {
-        const attributes: MdastNode[] = toJsxAttributes(node.options);
-        return {
-          type: 'mdxJsxFlowElement',
-          name: 'Card',
-          attributes,
-          children: convertChildren({ nodes: node.children, depth, ctx }),
-        };
-      }
-
       // We can ignore any data passed into this since it is only used for https://www.mongodb.com/docs/openapi/preview/,
       // which fallbacks to a static default template when not pulling in a spec from the query param.
       if (directiveName === 'openapi') {
         return {
           type: 'mdxJsxFlowElement',
           name: 'OpenAPI',
-        };
-      }
-
-      if (directiveName === 'deprecated-version-selector') {
-        return {
-          type: 'mdxJsxFlowElement',
-          name: 'DeprecatedVersionSelector',
         };
       }
 
@@ -1436,8 +1409,15 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       // Admonitions also receive special attribute handling above (title from argument).
       const DIRECTIVES_WITH_REGISTERED_COMPONENTS = new Set([
         ...ADMONITION_DIRECTIVES,
+        'card',
+        'card-group',
+        'column',
+        'container',
         'cta-banner',
+        'deprecated-version-selector',
         'introduction',
+        'multi-column',
+        'openapi-changelog',
         'search-results',
       ]);
 
