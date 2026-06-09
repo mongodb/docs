@@ -38,20 +38,15 @@ Or the first heading after metadata.
 
 ## Meta Descriptions
 - Must be **unique**
-- Must be **150-200 characters** (not longer or shorter)
 - Don't copy/paste existing meta descriptions
 - Use AI to help generate unique descriptions
+- **Do not check character length** — the SEO linter checks this deterministically
 
 **Where to find in RST files:**
 ```rst
-:description: Your meta description text here that should be 150-200 characters.
+:description: A unique description of this page that summarizes the content for search engines and helps users decide whether to click through from search results to this page.
 ```
 Or in a `.. meta::` directive.
-
-**Examples:**
-- ❌ 95 characters - TOO SHORT
-- ❌ 250 characters - TOO LONG
-- ✅ 165 characters - GOOD
 
 ## Low Content Pages
 - Pages with **< 100 characters** should have `noindex` added

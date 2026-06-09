@@ -322,7 +322,7 @@ Check for ALL issues:
     : `## Review Focus: Critical Issues
 
 Check for:
-- SEO: titles outside 30-60 chars, meta descriptions outside 150-200 chars
+- SEO: titles outside 30-60 chars, missing meta descriptions
 - Nested components (not allowed)
 - Broken syntax
 Skip: style/clarity suggestions`;
