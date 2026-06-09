@@ -5,6 +5,6 @@ children's adventures in the plot for movies released between 1955 and
 
 .. seealso:: Additional Filter Examples
 
-   The :ref:`vector-search-tutorial` tutorial demonstrates other
+   The :ref:`vector-search-quick-start` tutorial demonstrates other
    pre-filters in semantic search queries against the embedded data in
    the ``sample_mflix.embedded_movies`` collection.

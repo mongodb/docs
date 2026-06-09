@@ -2426,7 +2426,7 @@ export const toc: L1TocItem[] = [
                   {
                     label: 'Semantic Search for Text',
                     contentSite: 'vector-search',
-                    url: '/docs/vector-search/tutorials/vector-search-tutorial',
+                    url: 'https://www.mongodb.com/docs/vector-search/tutorials/quick-start/',
                   },
                 ],
               },
