@@ -70,7 +70,7 @@ assign the required configuration variables.
 
         # Paste JSON schema below
 
-        # Paste encrypted client configuration code below
+        # Paste client configuration code below
 
         # Paste code to insert a document below
 
@@ -92,7 +92,9 @@ assign the required configuration variables.
       Then, replace the following placeholder values:
 
       - ``<connection string>``: Your MongoDB connection string
-      - ``<Automatic Encryption Shared Library path>``: The full path to your {+shared-library+}
+      - ``<Automatic Encryption Shared Library path>``: The full path to your {+shared-library+},
+        which resembles ``/<crypt shared directory>/lib/mongo_crypt_v1.dylib``
+        on macOS and ``C:\<crypt shared directory>\bin\mongo_crypt_v1.dll`` on Windows
 
       The ``config.py`` file instructs your application to
       store data encryption keys in the ``encryption.__keyVault`` namespace.
@@ -180,20 +182,22 @@ an encryption key and configure your application for {+csfle-abbrev+}.
       The code reads your {+dek-abbr+} ID and uses it to encrypt the following fields in the
       ``medicalRecords.patients`` collection:
 
-      - ``insurance.policyNumber``: Encrypted with Deterministic encryption
-      - ``ssn``: Encrypted with Deterministic encryption
-      - ``bloodType``: Encrypted with Random encryption
-      - ``medicalRecords``: Encrypted with Random encryption
+      - ``insurance.policyNumber``: Encrypted with deterministic encryption
+      - ``ssn``: Encrypted with deterministic encryption
+      - ``bloodType``: Encrypted with random encryption
+      - ``medicalRecords``: Encrypted with random encryption
 
-      Deterministic encryption allows you to perform equality queries on the
-      encrypted fields, and Random encryption provides stronger security for fields that
-      do not require querying.
+      Deterministic encryption allows you to perform equality queries
+      on the encrypted fields. Random encryption provides stronger
+      security for fields that you don't need to query, because this
+      algorithm does not support read operations on the encrypted
+      fields.
       
-   .. step:: Create a {+csfle-abbrev+}-enabled client.
+   .. step:: Create standard and {+csfle-abbrev+}-enabled clients.
 
       Paste the following code into your ``insert_encrypted_document.py``
-      file under the ``# Paste client creation code below`` comment to create
-      a MongoDB client configured for automatic encryption:
+      file under the ``# Paste client configuration code below`` comment to create
+      two MongoDB clients:
 
       .. literalinclude:: /includes/csfle/python/insert_encrypted_document.py
          :language: python
@@ -203,7 +207,9 @@ an encryption key and configure your application for {+csfle-abbrev+}.
      
       This code creates a ``MongoClient`` instance with an ``AutoEncryptionOpts`` object
       that specifies your KMS provider credentials, key vault namespace, encryption schema, and
-      the location of your {+shared-library+}.
+      the location of your {+shared-library+}. The code also creates a
+      standard ``MongoClient`` instance without automatic encryption.
+      In a future step, you will compare the output of both clients.
 
       .. include:: /includes/tutorials/csfle-shared-lib-learn-more.rst
 

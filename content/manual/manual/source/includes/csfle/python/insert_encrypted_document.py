@@ -63,6 +63,7 @@ fle_opts = AutoEncryptionOpts(
     kms_providers, config.key_vault_namespace, schema_map=patient_schema, **extra_options
 )
 secureClient = MongoClient(config.connection_string, auto_encryption_opts=fle_opts)
+regularClient = MongoClient(config.connection_string)
 # end-create-client
 
 # start-insert-document
@@ -78,9 +79,7 @@ collection.insert_one({
 
 # start-find-document
 print("Finding a document with the regular (non-encrypted) client:")
-regularClient = MongoClient(config.connection_string)
-result = regularClient.medicalRecords.patients.find_one({"name": "Jon Doe"})
-pprint.pprint(result)
+pprint.pprint(regularClient.medicalRecords.patients.find_one({"name": "Jon Doe"}))
 
 print("\nFinding a document with the encrypted client:")
 pprint.pprint(secureClient.medicalRecords.patients.find_one({"name": "Jon Doe"}))
