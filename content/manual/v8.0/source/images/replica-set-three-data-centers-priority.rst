@@ -1,3 +1,3 @@
 .. figure:: /images/replica-set-three-data-centers-priority.bakedsvg.svg
-   :alt: Diagram of a 5 member replica set distributed across three data centers. Replica set includes members with priority 0.5 and priority 0.
+   :alt: Five-member replica set across three data centers with priority 0.5 and priority 0 members.
    :figwidth: 700px

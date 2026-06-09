@@ -1,3 +1,3 @@
 .. figure:: /images/sharding-migrating.bakedsvg.svg
-   :alt: Diagram of a collection distributed across three shards. For this collection, the difference in the number of chunks between the shards reaches the *migration thresholds* (in this case, 2) and triggers migration.
+   :alt: Collection distributed across 3 shards triggers a chunk migration after reaching threshold of 2.
    :figwidth: 700px

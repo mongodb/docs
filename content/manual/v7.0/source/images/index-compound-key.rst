@@ -1,3 +1,3 @@
 .. figure:: /images/index-compound-key.bakedsvg.svg
-   :alt: Diagram of a compound index on the ``userid`` field (ascending) and the ``score`` field (descending). The index sorts first by the ``userid`` field and then by the ``score`` field.
+   :alt: Diagram of a compound index on userid (ascending) and score (descending), sorted by userid first.
    :figwidth: 720px
