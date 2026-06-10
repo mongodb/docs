@@ -125,7 +125,7 @@ function discoverRedirectFiles(dir: string): string[] {
   if (!fs.existsSync(dir)) return [];
   return fs
     .readdirSync(dir)
-    .filter((f) => f.endsWith('-redirects.json'))
+    .filter((f) => f.endsWith('-redirects.json') && f !== 'all-redirects.json')
     .map((f) => path.join(dir, f))
     .sort();
 }
