@@ -88,6 +88,6 @@
 
    .. step:: (*Optional*) Customize tuned or ktune profile 
   
-      If you use ``tuned`` or ``ktune`` proffiles on 
+      If you use ``tuned`` or ``ktune`` profiles on
       :abbr:`RHEL (Red Hat Enterprise Linux)`/ CentOS, you must also create 
       a custom ``tuned`` profile.
