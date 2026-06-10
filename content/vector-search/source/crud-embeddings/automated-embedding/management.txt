@@ -7,7 +7,7 @@ Manage Automated Embedding
 .. default-domain:: mongodb
 
 .. meta::
-   :description: Learn how to manage Automated Embedding from the Atlas UI.
+   :description: Learn how to manage Automated Embedding in MongoDB Atlas. Enable or disable the feature at the organization level, view embedding token usage, and manage rate limits.
    :keywords: vector embeddings, embedding model, vector database, vector search, voyage models, automated embedding, Atlas UI
 
 .. facet::
@@ -36,29 +36,50 @@ Enable or Disable Automated Embedding
       the ``autoEmbed`` type. To learn more, see :ref:`Create an Automated 
       Embedding Index <avs-create-index>`.
 
-      To disable Automated Embedding at the organization level, use |service| 
-      :ref:`Resource Policy <atlas-resource-policies-overview>`. You can disable 
-      the creation of ``autoEmbed`` type {+avs+} indexes entirely or you can 
-      disable Automated Embedding with exceptions. To allow specific projects 
-      as exceptions, use the following Cedar policy. Replace ``<project-id>`` 
-      with the ID of the project to exempt. To find your project ID, see
+      To disable Automated Embedding at the organization level, use an
+      :ref:`{+arp+} <atlas-resource-policies-overview>`. You can
+      disable Automated Embedding entirely or disable it with project-level
+      exceptions.
+
+      To disable Automated Embedding entirely, use the following syntax in your {+arp+}:
+
+      .. code-block:: text
+         :copyable: true
+
+         forbid (
+           principal,
+           action == ResourcePolicy::Action::"search.index.modify",
+           resource
+         )
+         when {
+           context.search.index.isAutoEmbed
+         };
+
+      To disable Automated Embedding with exceptions for specific projects,
+      use the following syntax in your {+arp+}. Replace each ``<project-id>`` with
+      the ID of the project to exempt. To find your project ID, see:
       :ref:`atlas-modify-project-settings`.
 
       .. code-block:: text
          :copyable: true
-         :caption: Example: Disable Automated Embedding with Project Exception
 
          forbid (
            principal,
-           action == ResourcePolicy::Action::"autoEmbedding.create",
+           action == ResourcePolicy::Action::"search.index.modify",
            resource
          )
-         unless { resource in ResourcePolicy::Project::"<project-id>" };
+         when {
+           context.search.index.isAutoEmbed
+         }
+         unless {
+           resource in ResourcePolicy::Project::"<project-id-1>" ||
+           resource in ResourcePolicy::Project::"<project-id-2>"
+         };
 
-      If you configure this policy, new projects can't create ``autoEmbed``
-      type indexes. This policy does not disable Automated Embedding for
-      projects that already have it enabled. You must manually delete the
-      ``autoEmbed`` type indexes from existing projects.
+      When active, these policies prevent new ``autoEmbed`` type indexes
+      from being created. Indexes created before the resource policy was
+      activated are not affected and must be deleted manually to maintain
+      compliance.
 
       To apply this policy to your organization:
 
