@@ -1,32 +1,39 @@
 .. code-block::
    :copyable: true
 
-   # Create a Group to Assign to Project 
+   # Create a Team to Assign to Project
    resource "mongodbatlas_team" "project_group" {
      org_id = var.atlas_org_id
      name   = var.atlas_group_name
-     usernames = [
-       "user1@example.com",
-       "user2@example.com"
-     ]
+   }
+
+   # Assign Users to the Team
+   resource "mongodbatlas_cloud_user_team_assignment" "team_members" {
+     for_each = toset(var.team_member_ids)
+     org_id   = var.atlas_org_id
+     team_id  = mongodbatlas_team.project_group.team_id
+     user_id  = each.value
    }
 
    # Create a Project
-   resource "mongodbatlas_project" "atlas-project" {
+   module "atlas_project" {
+     source  = "terraform-mongodbatlas-modules/project/mongodbatlas"
+     version = "~> 0.2"
+
      org_id = var.atlas_org_id
-     name = var.atlas_project_name
+     name   = var.atlas_project_name
    }
 
    # Assign the team to project with specific roles
    resource "mongodbatlas_team_project_assignment" "project_team" {
-     project_id = mongodbatlas_project.atlas-project.id
+     project_id = module.atlas_project.id
      team_id    = mongodbatlas_team.project_group.team_id
      role_names = ["GROUP_READ_ONLY", "GROUP_CLUSTER_MANAGER"]
    }
    
    # Create an Atlas Advanced Cluster 
    resource "mongodbatlas_advanced_cluster" "atlas-cluster" {
-     project_id = mongodbatlas_project.atlas-project.id
+     project_id = module.atlas_project.id
      name = "ClusterPortalProd"
      cluster_type = "REPLICASET"
      mongo_db_major_version = var.mongodb_version
@@ -64,7 +71,7 @@
 
    # Outputs to Display
    output "atlas_cluster_connection_string" { value = mongodbatlas_advanced_cluster.atlas-cluster.connection_strings.standard_srv }
-   output "project_name"      { value = mongodbatlas_project.atlas-project.name }
+   output "project_name"      { value = var.atlas_project_name }
 
 .. note::
 

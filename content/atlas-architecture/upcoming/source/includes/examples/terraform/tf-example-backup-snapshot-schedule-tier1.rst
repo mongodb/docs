@@ -8,14 +8,17 @@
      }
    }
 
-   resource "mongodbatlas_project" "atlas-project" {
+   module "atlas_project" {
+     source  = "terraform-mongodbatlas-modules/project/mongodbatlas"
+     version = "~> 0.2"
+
      org_id = var.org_id
      name   = var.project_name
    }
 
    resource "mongodbatlas_advanced_cluster" "automated_backup_test_cluster" {
      for_each     = local.atlas_clusters
-     project_id   = mongodbatlas_project.atlas-project.id
+     project_id   = module.atlas_project.id
     name         = each.value.name
      cluster_type = "REPLICASET"
 
@@ -46,7 +49,7 @@
    
    resource "mongodbatlas_cloud_backup_schedule" "test" {
      for_each                 = local.atlas_clusters
-     project_id               = mongodbatlas_project.atlas-project.id
+     project_id               = module.atlas_project.id
      cluster_name             = mongodbatlas_advanced_cluster.automated_backup_test_cluster[each.key].name
      reference_hour_of_day    = 3  # backup start hour in UTC
      reference_minute_of_hour = 45 # backup start minute in UTC

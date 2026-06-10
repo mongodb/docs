@@ -2,14 +2,17 @@
    :copyable: true
 
    # Create a Project
-   resource "mongodbatlas_project" "atlas-project" {
+   module "atlas_project" {
+     source  = "terraform-mongodbatlas-modules/project/mongodbatlas"
+     version = "~> 0.2"
+
      org_id = var.atlas_org_id
-     name = var.atlas_project_name
+     name   = var.atlas_project_name
    }
    
    # Create an Atlas Advanced Cluster 
    resource "mongodbatlas_advanced_cluster" "atlas-cluster" {
-     project_id = mongodbatlas_project.atlas-project.id
+     project_id = module.atlas_project.id
      name = "ClusterPortalDev"
      cluster_type = "REPLICASET"
      mongo_db_major_version = var.mongodb_version
@@ -50,8 +53,8 @@
    }
    
    # Outputs to Display
-   output "atlas_cluster_connection_string" { value = mongodbatlas_advanced_cluster.atlas-cluster.connection_strings.0.standard_srv }
-   output "project_name"      { value = mongodbatlas_project.atlas-project.name }
+   output "atlas_cluster_connection_string" { value = mongodbatlas_advanced_cluster.atlas-cluster.connection_strings.standard_srv }
+   output "project_name"      { value = var.atlas_project_name }
 
 .. note::
 

@@ -1,15 +1,18 @@
 .. code-block:: shell 
    :copyable: true 
 
-   # Create a project
-   resource "mongodbatlas_project" "project_test" {
-     name   = var.project_name
+   # Create a Project
+   module "atlas_project" {
+     source  = "terraform-mongodbatlas-modules/project/mongodbatlas"
+     version = "~> 0.2"
+
      org_id = var.org_id
+     name   = var.project_name
    }
 
    # Create a cluster with 3 nodes
    resource "mongodbatlas_advanced_cluster" "cluster_test" {
-     project_id   = mongodbatlas_project.project_test.id
+     project_id   = module.atlas_project.id
      name         = var.cluster_name
      cluster_type = "REPLICASET"
 

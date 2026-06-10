@@ -6,33 +6,30 @@
      required_providers {    
        mongodbatlas = {    
          source  = "mongodb/mongodbatlas"    
-         version = "~> 2.2"    
+         version = "~> 2.8"
        }    
      }    
      required_version = ">= 1.0"
    }  
   
-   # Configure the MongoDB Atlas Provider  
-   provider "mongodbatlas" {    
-     # Legacy API key authentication (backward compatibility)
-     public_key  = var.mongodbatlas_public_key    
-     private_key = var.mongodbatlas_private_key    
-     
-     # Recommended: Service account authentication
-     # Uncomment and configure the following for service account auth:
-     # service_account_id = var.mongodb_service_account_id
-     # private_key_file   = var.mongodb_service_account_key_file
-   }  
+   # Configure the MongoDB Atlas Provider
+   # Authenticate using environment variables:
+   # export MONGODB_ATLAS_SERVICE_ACCOUNT_ID="<service-account-id>"
+   # export MONGODB_ATLAS_SERVICE_ACCOUNT_SECRET="<service-account-secret>"
+   provider "mongodbatlas" {}
   
-   # Create a Project  
-   resource "mongodbatlas_project" "this" {    
-     org_id = var.atlas_org_id    
-     name   = var.atlas_project_name    
-   }  
+   # Create a Project
+   module "atlas_project" {
+     source  = "terraform-mongodbatlas-modules/project/mongodbatlas"
+     version = "~> 0.2"
+
+     org_id = var.atlas_org_id
+     name   = var.atlas_project_name
+   }
   
    # Create an Atlas Advanced Cluster  
    resource "mongodbatlas_advanced_cluster" "atlas-cluster" {    
-     project_id             = mongodbatlas_project.this.id    
+     project_id             = module.atlas_project.id    
      name                   = "ClusterPortalProd"    
      cluster_type           = "REPLICASET"    
      mongo_db_major_version = "8.0"    
@@ -61,7 +58,7 @@
   
    # Create comprehensive auditing configuration to capture all possible audit events  
    resource "mongodbatlas_auditing" "atlas-auditing" {    
-     project_id = mongodbatlas_project.this.id    
+     project_id = module.atlas_project.id    
     
      # Comprehensive audit filter to capture all possible audit events  
      audit_filter = jsonencode({    
@@ -288,21 +285,23 @@
      enabled                     = true # Enable auditing    
    }  
   
-   # Variables  
-   variable "mongodbatlas_public_key" {    
-     default     = ""    
-     description = "MongoDB Atlas Public Key"    
-     type        = string    
-     sensitive   = true    
-   }  
-  
-   variable "mongodbatlas_private_key" {    
-     default     = ""    
-     description = "MongoDB Atlas Private Key"    
-     type        = string    
-     sensitive   = true    
-   }  
-  
+   # Variables
+   # Service account authentication is the recommended authentication method for Terraform. 
+   # You can also use API key authentication if needed.
+   # Uncomment the following variables to use API key authentication instead:
+   # variable "mongodbatlas_public_key" {
+   #   default     = ""
+   #   description = "MongoDB Atlas Public Key"
+   #   type        = string
+   #   sensitive   = true
+   # }
+   # variable "mongodbatlas_private_key" {
+   #   default     = ""
+   #   description = "MongoDB Atlas Private Key"
+   #   type        = string
+   #   sensitive   = true
+   # }
+
    variable "atlas_org_id" {    
      default     = ""    
      description = "MongoDB Atlas Organization ID"    
@@ -318,7 +317,7 @@
    # Outputs  
    output "cluster_connection_string" {    
      description = "Connection string for the Atlas cluster"    
-     value       = mongodbatlas_advanced_cluster.atlas-cluster.connection_strings[0].standard_srv    
+     value       = mongodbatlas_advanced_cluster.atlas-cluster.connection_strings.standard_srv    
      sensitive   = true    
    }  
   
@@ -329,7 +328,7 @@
   
    output "project_id" {    
      description = "Atlas project ID"    
-     value       = mongodbatlas_project.this.id    
+     value       = module.atlas_project.id    
    }  
   
    output "auditing_enabled" {    
