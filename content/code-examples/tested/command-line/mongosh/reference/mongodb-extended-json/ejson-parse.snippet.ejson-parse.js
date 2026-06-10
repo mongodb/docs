@@ -1,0 +1,1 @@
+EJSON.parse( stringified )
