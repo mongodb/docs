@@ -3509,7 +3509,6 @@ export const toc: L1TocItem[] = [
             label: 'FAQ',
             contentSite: 'docs',
             collapsible: true,
-            url: '/docs/:version/faq',
             items: [
               {
                 label: 'Fundamentals',

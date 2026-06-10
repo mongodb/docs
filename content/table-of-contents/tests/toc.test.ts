@@ -49,6 +49,7 @@ const DocSitesTesting = [
   'ruby-driver',
   'rust',
   'scala',
+  'search',
   'docs',
   'guides',
   'spark-connector',
