@@ -1,7 +1,7 @@
 ---
 name: triage
 description: Run triage duty for CET/Cloud, Server, or Drivers/DBX. Retrieves Needs Triage tickets from Jira, builds a triage plan, and applies changes after human confirmation.
-argument-hint: [cet|server|dbx]
+argument-hint: [cet|server|dbx|--groom-backlog]
 context: fork
 ---
 
@@ -83,6 +83,13 @@ Determine ownership of CSFLE and Queryable Encryption tickets using these signal
 **Atlas Search / Vector Search (Server Origin):**
 Give any Atlas Search or Vector Search ticket the `Atlas` component and triage it for **CET/Cloud**, even if the engineering work originates from Server.
 
+**[CLOUDP]-prefixed tickets (Jira automation spawned):**
+DOCSP tickets with a `[CLOUDP]` prefix are typically created by Jira automation from a linked engineering ticket. Always assign the appropriate component first. Then trace the linked CLOUDP ticket to its parent epic and check for a docs owner:
+- **Epic has a docs owner** → assign the DOCSP ticket to that person and note it may duplicate an existing DOCSP ticket for the same epic.
+- **Epic has `"Documentation Changes" = Needed` not set but DOCSP tickets are being generated from its children** → do not assign to a person; add a comment flagging this for the triager and suggesting it be raised at the next Cloud docs team planning meeting to claim a docs owner.
+
+See `references/backlog-squad-classification.md` for the full routing pattern with examples.
+
 ---
 
 ## PART 3: TEAM MODULES
@@ -94,6 +101,8 @@ Team-specific rules, JQL queries, and knowledge sources live in separate referen
 | CET/Cloud | `references/cet-cloud.md` |
 | Server | `references/server.md` |
 | Drivers/DBX | `references/drivers-dbx.md` |
+
+**Atlas backlog cleanup:** When a significant number of unrouted Atlas backlog tickets have accumulated (no squad-specific component, unassigned, status = Backlog), run the classification pattern in `references/backlog-squad-classification.md`. This is a separate workflow from standard triage — it targets the Backlog status, not Needs Triage — and should be run periodically as a standalone cleanup pass.
 
 ---
 
@@ -113,6 +122,7 @@ Check `$ARGUMENTS`. If it contains a recognized team name, load the correspondin
 - `cet`, `cloud`, or `atlas` → **CET/Cloud** — read `references/cet-cloud.md`
 - `server` → **Server** — read `references/server.md`
 - `drivers` or `dbx` → **Drivers/DBX** — read `references/drivers-dbx.md`
+- `--groom-backlog` → **Atlas backlog cleanup** — skip Steps 2–7 and proceed directly to Part 5.
 
 If `$ARGUMENTS` is empty or unrecognized, you **must** ask the user before doing anything else: "Which team are you triaging for? (CET/Cloud, Server, or Drivers/DBX)" Do not infer the team from context or prior conversation. Do not proceed to Step 2 until the user replies with one of the specified options.
 
@@ -189,3 +199,44 @@ Once approved, use the `jira` skill to apply all approved changes:
 1. Apply components, labels, priority, and status changes. Always **add** — never remove existing labels or components. Because both the CLI and MCP replace these fields on write, read the ticket's current values first and include them alongside any new ones when writing. For status changes, use the Jira transition that moves the ticket to the target status. When closing as Won't Do, follow the `jira` skill's closing procedure with story points set to 0.
 2. For CET/Cloud only: assign individual writers.
 3. Add a comment to **every triaged ticket** using the appropriate template from `assets/comment-templates.md` (Assigned to Backlog, Moved to Ready for Work, or Closed).
+
+---
+
+## PART 5: ATLAS BACKLOG CLEANUP (--groom-backlog)
+
+Run this workflow when a significant number of unrouted Atlas backlog tickets have accumulated. This is a standalone cleanup pass — it targets tickets in **Backlog** status, not Needs Triage. Load `references/backlog-squad-classification.md` before proceeding.
+
+### Step B1: Retrieve Unrouted Backlog Tickets
+
+Run the following JQL:
+
+```
+project = DOCSP AND issuetype != Epic AND status = Backlog AND assignee is EMPTY AND component is EMPTY AND (resolutiondate > -7d OR resolutiondate is EMPTY) ORDER BY priority DESC
+```
+
+### Step B2: Classify Each Ticket
+
+For each ticket, read its summary, description, and linked tickets (one level only). Match against the squad routing signals in `references/backlog-squad-classification.md` in this order:
+
+1. **Component** — does the ticket match a known component for a squad?
+2. **Assigned Teams** — does the ticket match a known Assigned Teams value?
+3. **Keywords** — does the summary or description contain a known keyword from the squad's keyword list?
+4. **[CLOUDP] prefix** — trace the linked engineering ticket to its parent epic and apply the CLOUDP routing rules from Part 2.
+
+If a ticket matches, recommend the squad, component(s), Assigned Teams to set, and the standard routing comment. If it does not match any signal, add it to the **Unclassified** list.
+
+### Step B3: Present Plan, Confirm, and Execute
+
+Present the classification plan to the user. For each ticket, show: ticket ID, summary, recommended squad, component(s), Assigned Teams, and rationale. Show the Unclassified list separately at the end.
+
+**STOP HERE.** Ask the user to confirm before applying any changes.
+
+Once approved, apply the changes and add the standard routing comment to each classified ticket.
+
+### Step B4: Surface Unclassified Tickets
+
+Present the Unclassified list to the user with the following note:
+
+> These tickets didn't match any squad's components, Assigned Teams, or keywords. Review them manually. If a recurring keyword pattern appears across multiple tickets, consider adding it to `references/backlog-squad-classification.md`.
+
+Do not automatically add keywords to the reference file. All keyword updates are human-confirmed only.
