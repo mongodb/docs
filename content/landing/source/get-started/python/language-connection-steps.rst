@@ -48,7 +48,7 @@
       Copy and paste the following code into ``quickstart.py``. This code
       connects to your cluster and queries your sample data.
 
-      .. literalinclude:: /shared/drivers-get-started/python/get-started-connect.py
+      .. literalinclude:: /code-examples/tested/python/pymongo/get_started/get_started.snippet.example.py
          :language: python
 
    .. step:: Add your connection string
@@ -66,4 +66,6 @@
 
       The output includes details of the retrieved movie document:
 
-      .. include:: /get-started/includes/application-output.rst
+      .. literalinclude:: /code-examples/tested/python/pymongo/get_started/get_started_output.txt
+         :language: none
+         :copyable: false
