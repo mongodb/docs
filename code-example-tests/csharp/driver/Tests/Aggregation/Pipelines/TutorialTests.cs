@@ -16,6 +16,7 @@ public class TutorialTests
         var connectionString = Env.GetString("CONNECTION_STRING",
             "Env variable not found. Verify you have a .env file with a valid connection string.");
         _client = new MongoClient(connectionString);
+        _client.DropDatabase("agg_tutorials_db");
         examplesFolder = $"{Directory.GetCurrentDirectory()}/../../../../Examples/Aggregation/OutputFiles/";
     }
 

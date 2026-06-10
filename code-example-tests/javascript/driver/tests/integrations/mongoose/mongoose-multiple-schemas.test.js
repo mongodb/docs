@@ -52,7 +52,12 @@ describe('Mongoose multiple schemas tests', () => {
         published: false,
         content: 'This is the best post ever',
         tags: ['featured', 'announcement'],
-        author: { _id: '...', name: 'Jess Garcia', email: 'jgarcia@email.com', __v: 0 },
+        author: {
+          _id: '...',
+          name: 'Jess Garcia',
+          email: 'jgarcia@email.com',
+          __v: 0,
+        },
       });
   });
 });

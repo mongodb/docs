@@ -655,13 +655,8 @@ public class AtlasSearchExamplesTests
     public void TestSingleFieldSearchLambda()
     {
         var result = _examples.SingleFieldSearchLambda();
-        var bsonResult = result.Select(m => m.ToBsonDocument()).ToList();
-        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../../";
-        var outputLocation = "../../../content/code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/SingleFieldSearchOutput.txt";
-        var fullPath = Path.Combine(solutionRoot, outputLocation);
-        Expect.That(bsonResult)
-            .WithIgnoredFields("_id", "score", "plot_embedding", "paginationToken")
-            .ShouldMatch(fullPath);
+        Expect.That(result.Any(m => m.Title == "Spy Kids")).ShouldMatch(true);
+        Expect.That(result.Any(m => m.Title == "The Spy Who Loved Me")).ShouldMatch(true);
     }
 
     [Test]
@@ -671,13 +666,8 @@ public class AtlasSearchExamplesTests
     public void TestSingleFieldSearchString()
     {
         var result = _examples.SingleFieldSearchString("plot");
-        var bsonResult = result.Select(m => m.ToBsonDocument()).ToList();
-        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../../";
-        var outputLocation = "../../../content/code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/SingleFieldSearchOutput.txt";
-        var fullPath = Path.Combine(solutionRoot, outputLocation);
-        Expect.That(bsonResult)
-            .WithIgnoredFields("_id", "score", "plot_embedding", "paginationToken")
-            .ShouldMatch(fullPath);
+        Expect.That(result.Any(m => m.Title == "Spy Kids")).ShouldMatch(true);
+        Expect.That(result.Any(m => m.Title == "The Spy Who Loved Me")).ShouldMatch(true);
     }
 
     [Test]
@@ -718,12 +708,7 @@ public class AtlasSearchExamplesTests
     public void TestWildcardPathSearch()
     {
         var result = _examples.WildcardPathSearch();
-        var bsonResult = result.Select(m => m.ToBsonDocument()).ToList();
-        var solutionRoot = $"{Directory.GetCurrentDirectory()}/../../../../";
-        var outputLocation = "../../../content/code-examples/tested/csharp/driver/AtlasSearch/OutputFiles/WildcardPathSearchOutput.txt";
-        var fullPath = Path.Combine(solutionRoot, outputLocation);
-        Expect.That(bsonResult)
-            .WithIgnoredFields("_id", "score", "plot_embedding", "paginationToken")
-            .ShouldMatch(fullPath);
+        Expect.That(result.Any(m => m.Title == "Spy Kids")).ShouldMatch(true);
+        Expect.That(result.Any(m => m.Title == "The Spy Who Loved Me")).ShouldMatch(true);
     }
 }

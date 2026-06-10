@@ -1,4 +1,5 @@
 import { MongoClient } from 'mongodb';
+
 // Replace the placeholder with your connection string.
 const uri = '<connection-string>';
 const client = new MongoClient(uri);

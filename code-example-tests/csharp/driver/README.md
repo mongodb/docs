@@ -56,7 +56,7 @@ into this test project and add a test.
 TLDR: from the `/code-example-tests/csharp/driver` directory, run
 
 ```sh
-dotnet format && dotnet test && node snip
+node run-tests.js
 ```
 
 ### Create a code example file
@@ -620,6 +620,9 @@ run the snip script:
 ```sh
 node snip.js
 ```
+
+**Note:** if you run `node run-tests.js`, it snips all testable code examples 
+automatically.
 
 The updated example files output to `content/code-examples/tested/csharp/driver/`.
 Subdirectory structure is also automatically transferred. For example, generating

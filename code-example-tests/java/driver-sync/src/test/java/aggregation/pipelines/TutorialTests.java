@@ -22,6 +22,7 @@ public class TutorialTests {
     void setUp() {
         mongoClient = MongoClients.create(uri);
         database = mongoClient.getDatabase("agg_tutorials_db");
+        database.drop();
     }
 
     @AfterEach

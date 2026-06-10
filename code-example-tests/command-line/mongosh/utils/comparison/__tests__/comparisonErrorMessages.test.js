@@ -106,6 +106,41 @@ describe('Comparison Error Messages for Technical Writers', () => {
       expect(errorMessage).toContain('expected 3 elements');
       expect(errorMessage).toContain('got 2');
     });
+
+    it('should not double-claim a single actual when two expected docs are identical', () => {
+      // Regression: analyzeUnorderedMismatch populates a usedActual Set but
+      // previously never consulted it, so two identical expected docs would
+      // both report a perfect match against actual[0].
+      const expected = [
+        { x: 1 },
+        { x: 1 }
+      ];
+
+      const actual = [
+        { x: 1 },
+        { x: 2 }
+      ];
+
+      const result = MongoshComparisonEngine.compare(expected, actual);
+
+      expect(result.isMatch).toBe(false);
+      const errorMessage = result.getErrorSummary();
+
+      // No actual index should be claimed more than once as a perfect match.
+      const claims = errorMessage.match(/✓ matches actual\[\d+\]/g) || [];
+      const counts = claims.reduce((acc, claim) => {
+        acc[claim] = (acc[claim] || 0) + 1;
+        return acc;
+      }, {});
+      Object.entries(counts).forEach(([claim, count]) => {
+        expect(count).toBeLessThanOrEqual(1);
+      });
+
+      // Exactly one perfect match is expected; the other expected doc should
+      // appear as a "closest to" entry against the remaining actual.
+      expect(claims.length).toBe(1);
+      expect(errorMessage).toContain('❌ closest to actual[1]');
+    });
   });
 
   describe('Object Comparison', () => {

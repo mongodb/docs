@@ -59,27 +59,9 @@ Threading and Performance:
     - Memory usage is bounded by recursion depth limits
 """
 
-from .expect import Expect
-from .content_analyzer import ContentAnalyzer
-
-# Core comparison components (for advanced usage)
-from .comparison import (
-    ComparisonOptions,
-    ComparisonResult,
-    SchemaDefinition,
-    ConfigurationError,
-)
-from .errors import ComparisonError
+from .expect import Expect, ConfigurationError
 
 __all__ = [
-    # High-level API
     "Expect",
-    "ContentAnalyzer",
-    # Core components
-    "ComparisonOptions",
-    "ComparisonResult",
-    "ComparisonError",
-    # Schema validation
-    "SchemaDefinition",
     "ConfigurationError",
 ]

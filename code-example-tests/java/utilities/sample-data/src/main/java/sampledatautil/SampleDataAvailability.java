@@ -12,7 +12,7 @@ public class SampleDataAvailability {
 
     /**
      * Creates a new SampleDataAvailability result
-     * 
+     *
      * @param isAvailable True if all required sample databases and collections are available
      * @param missingDatabases List of database names that are missing or don't have required collections
      * @param availableDatabases List of database names that are available with required collections

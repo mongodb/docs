@@ -18,8 +18,7 @@ each test executing example code to verify that:
 - Examples do what we say they do
 
 We use tooling to extract the tested code examples to the `content/code-examples/tested`
-directory. The content of the `content/code-examples/tested` directory is tested,
-snippeted code that is ready to use in the documentation.
+directory. The content of the `content/code-examples/tested` directory is tested, snipped code that is ready to use in the documentation.
 
 ## Example extraction
 
@@ -61,6 +60,43 @@ run the tests locally. Contributors can and should run tests for any examples
 they're changing locally during the update process. Reviewers don't _need_ to
 run the tests directly, since the tests run automatically in CI, but if they
 _want_ to run the tests, they can check out the PR and run the tests locally.
+
+## Comparison kernel
+
+A language-agnostic comparison engine lives in `tools/comparison-kernel/`. It
+is shipped as native per-OS Go binaries committed under
+`tools/comparison-kernel/bin/` and invoked by each language suite through a
+thin bridge that talks newline-delimited JSON over the binary's stdin/stdout.
+No external runtime is required. Centralising the comparison logic keeps
+ellipsis handling, Extended JSON normalisation, and schema validation
+consistent across suites.
+
+Integration status:
+
+| Suite      | Bridge                                                                | Wired into tests |
+|------------|-----------------------------------------------------------------------|------------------|
+| Java       | `java/utilities/comparison-library/.../KernelBridge.java`             | yes |
+| C#         | `csharp/driver/Utilities/Comparison/KernelBridge.cs`                  | yes |
+| Python     | `python/pymongo/utils/comparison/kernel_bridge.py`                    | yes |
+| Go         | `go/driver/utils/compare/kernel_bridge.go`                            | yes |
+| JavaScript | `javascript/driver/utils/comparison/KernelBridge.js`                  | yes |
+| Mongosh    | n/a — uses in-process JS engine at `command-line/mongosh/utils/comparison/MongoshComparisonEngine.js` | no |
+
+### Why mongosh doesn't use the kernel
+
+Mongosh examples are shell scripts executed as `mongosh --file` subprocesses, so
+the "actual" value a test receives is raw stdout text rather than a
+JSON-serialisable structure like the drivers produce. That stdout uses
+shell-specific syntax — `ObjectId(...)`, `ISODate(...)`, bare object keys,
+multiple top-level documents with no array wrapper, and assorted REPL artifacts
+— which the kernel's JSON-shaped input contract can't accept directly.
+
+The mongosh suite parses that output in-process with Node's `vm` module against
+the `mongodb` package's BSON type constructors (see `MongoshOutputParser.js`)
+before comparing. Routing through the kernel would require porting that parser
+into Go and duplicating the BSON type wiring, with no behavioural gain over the
+driver suites that already feed the kernel structured data. Until that
+trade-off changes, mongosh keeps its own comparison engine.
 
 ## Symlinks
 

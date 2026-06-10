@@ -1,5 +1,5 @@
 import Expect from '../Expect.js';
-import { areObjectsEqual } from '../comparison/areObjectsEqual.js';
+
 import fs from 'fs';
 import path from 'path';
 import { Decimal128, ObjectId } from 'mongodb';
@@ -82,36 +82,6 @@ describe('Expect API (file-based comparison tests)', () => {
         Expect.that(actual).withOrderedSort().shouldMatch('temp-output.json');
       }).toThrow();
     });
-
-    it('matches arrays of objects with different key order in nested objects', () => {
-      const a = [{ foo: { x: 1, y: 2 }, bar: 3 }];
-      const b = [{ bar: 3, foo: { y: 2, x: 1 } }];
-      expect(areObjectsEqual(a, b, { comparisonType: 'unordered' })).toBe(true);
-    });
-
-    it('matches arrays of objects with different key order at top level', () => {
-      const a = [
-        { a: 1, b: 2 },
-        { c: 3, d: 4 },
-      ];
-      const b = [
-        { b: 2, a: 1 },
-        { d: 4, c: 3 },
-      ];
-      expect(areObjectsEqual(a, b, { comparisonType: 'unordered' })).toBe(true);
-    });
-
-    it('matches deeply nested arrays and objects with key order differences', () => {
-      const a = [{ arr: [{ foo: 1, bar: 2 }, { baz: 3 }] }];
-      const b = [{ arr: [{ bar: 2, foo: 1 }, { baz: 3 }] }];
-      expect(areObjectsEqual(a, b, { comparisonType: 'unordered' })).toBe(true);
-    });
-
-    it('matches arrays with duplicate objects in unordered comparison', () => {
-      const a = [{ x: 1 }, { x: 1 }, { y: 2 }];
-      const b = [{ y: 2 }, { x: 1 }, { x: 1 }];
-      expect(areObjectsEqual(a, b, { comparisonType: 'unordered' })).toBe(true);
-    });
   });
 
   describe('handles types as expected', () => {
@@ -175,24 +145,6 @@ describe('Expect API (file-based comparison tests)', () => {
       expect(() => {
         Expect.that(actual).shouldMatch('temp-output.json');
       }).toThrow();
-    });
-
-    it('normalizes and matches date strings in different formats', () => {
-      const a = [{ date: '2045-12-18T15:55:00.000Z' }];
-      const b = [{ date: new Date('2045-12-18T15:55:00Z').toISOString() }];
-      expect(areObjectsEqual(a, b, { comparisonType: 'unordered' })).toBe(true);
-    });
-
-    it('normalizes and matches ObjectId as string and as ObjectId instance', () => {
-      const oid = new ObjectId('507f1f77bcf86cd799439011');
-      const a = [{ _id: oid }];
-      const b = [{ _id: '507f1f77bcf86cd799439011' }];
-      expect(
-        areObjectsEqual(a, b, {
-          comparisonType: 'unordered',
-          ignoreFieldValues: ['_id'],
-        })
-      ).toBe(true);
     });
 
     it('matches empty arrays', () => {

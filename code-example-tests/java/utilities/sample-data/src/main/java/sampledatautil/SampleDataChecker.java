@@ -12,13 +12,13 @@ import java.util.stream.Collectors;
 
 /**
  * Utility for checking MongoDB sample data availability and conditionally skipping tests.
- * 
+ *
  * This class provides methods to automatically skip tests when sample data is missing,
  * with clear feedback about what's missing and how to fix it.
  */
 public class SampleDataChecker {
     private static final String DEFAULT_CONN_STRING_ENV = "CONNECTION_STRING";
-    
+
     /**
      * Standard MongoDB sample database names and their expected collections
      */
@@ -39,13 +39,13 @@ public class SampleDataChecker {
      * Cache for sample data availability to avoid repeated database queries
      */
     private static final Map<String, Boolean> sampleDataCache = new ConcurrentHashMap<>();
-    
+
     /**
      * Global flag to track if we've shown sample data availability summary
      */
     private static volatile boolean hasShownSummary = false;
     private static final Object summaryLock = new Object();
-    
+
     private static MongoClient mongoClient = null;
     private static String overrideConnectionString = null;
 
@@ -108,7 +108,7 @@ public class SampleDataChecker {
             }
             return overrideConnectionString;
         }
-        
+
         // Fall back to system environment
         return System.getenv(DEFAULT_CONN_STRING_ENV);
     }
@@ -144,15 +144,15 @@ public class SampleDataChecker {
 
     /**
      * Checks if a specific sample database and its expected collections exist
-     * 
+     *
      * @param databaseName The sample database name to check
      * @param requiredCollections Optional list of specific collections to verify
      * @return True if the sample database and collections exist
      */
     public static boolean checkSampleDataAvailable(String databaseName, List<String> requiredCollections) {
-        List<String> collectionsToCheck = requiredCollections != null ? requiredCollections 
+        List<String> collectionsToCheck = requiredCollections != null ? requiredCollections
             : STANDARD_SAMPLE_DATABASES.getOrDefault(databaseName, Collections.emptyList());
-        
+
         String collectionsKey = collectionsToCheck.stream().sorted().collect(Collectors.joining(","));
         String cacheKey = databaseName + ":" + collectionsKey;
 
@@ -163,7 +163,7 @@ public class SampleDataChecker {
                 // Check if database exists
                 List<String> databases = new ArrayList<>();
                 client.listDatabaseNames().into(databases);
-                
+
                 if (!databases.contains(databaseName)) {
                     return false;
                 }
@@ -190,7 +190,7 @@ public class SampleDataChecker {
 
     /**
      * Checks if a specific sample database and its expected collections exist
-     * 
+     *
      * @param databaseName The sample database name to check
      * @return True if the sample database exists with default collections
      */
@@ -200,7 +200,7 @@ public class SampleDataChecker {
 
     /**
      * Checks if any of the standard MongoDB sample databases are available
-     * 
+     *
      * @return List of available sample database names
      */
     public static List<String> getAvailableSampleDatabases() {
@@ -221,7 +221,7 @@ public class SampleDataChecker {
 
     /**
      * Checks if multiple sample databases are available
-     * 
+     *
      * @param requiredDatabases The sample database names to check
      * @param collectionsPerDatabase Optional map of database names to required collections
      * @return SampleDataAvailability result containing availability status and missing databases
@@ -229,10 +229,10 @@ public class SampleDataChecker {
     public static SampleDataAvailability checkMultipleSampleDatabases(
             List<String> requiredDatabases,
             Map<String, List<String>> collectionsPerDatabase) {
-        
+
         List<CompletableFuture<DatabaseCheckResult>> futures = requiredDatabases.stream()
             .map(dbName -> CompletableFuture.supplyAsync(() -> {
-                List<String> requiredCollections = collectionsPerDatabase != null 
+                List<String> requiredCollections = collectionsPerDatabase != null
                     ? collectionsPerDatabase.get(dbName) : null;
                 boolean isAvailable = checkSampleDataAvailable(dbName, requiredCollections);
                 return new DatabaseCheckResult(dbName, isAvailable);
@@ -262,7 +262,7 @@ public class SampleDataChecker {
 
     /**
      * Checks if multiple sample databases are available
-     * 
+     *
      * @param requiredDatabases The sample database names to check
      * @return SampleDataAvailability result containing availability status and missing databases
      */

@@ -1,0 +1,36 @@
+name: 'Verify comparison-kernel binaries'
+description: >
+  Cross-compiles the per-OS comparison-kernel binaries from source and fails
+  the workflow if any committed binary under
+  code-example-tests/tools/comparison-kernel/bin/ is out of sync with the Go
+  source. Keeps the language wrappers' "no Go toolchain needed" promise while
+  preventing silent drift between source and the committed artefacts.
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Go (pinned via go.mod)
+      uses: actions/setup-go@v5
+      with:
+        go-version-file: code-example-tests/tools/comparison-kernel/go.mod
+        # The kernel has no external dependencies, so there is no go.sum to
+        # cache. Disable the module cache to avoid a warning from setup-go.
+        cache: false
+
+    - name: Rebuild comparison-kernel binaries
+      shell: bash
+      working-directory: code-example-tests/tools/comparison-kernel
+      run: ./build.sh
+
+    - name: Verify the committed binaries match source
+      shell: bash
+      run: |
+        set -euo pipefail
+        dir=code-example-tests/tools/comparison-kernel/bin
+        if ! git diff --quiet -- "$dir"; then
+          echo "::error file=$dir::comparison-kernel binaries are out of sync with the Go source."
+          echo "::error::Run ./build.sh in code-example-tests/tools/comparison-kernel and commit the result."
+          git --no-pager diff --stat -- "$dir"
+          exit 1
+        fi
+        echo "comparison-kernel binaries are up to date."

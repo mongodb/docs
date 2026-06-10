@@ -594,15 +594,16 @@ certificates by running the following command in your terminal:
 
 `open /Applications/Python\ 3.12/Install\ Certificates.command`
 
+## Testing
 ### Run All Tests from the command line
 
 From the root of the `/python/pymongo` directory, run:
 
 ```
-python3 -m unittest discover tests_package
+node run-tests.js
 ```
 
-In this command, `tests_package` is the name of the directory that contains the tests.
+This command formats your code, tests it, and then generates your snippet files.
 
 ### Run Individual Tests from the command line
 
@@ -625,7 +626,7 @@ skipping tests, expected failures, or other advanced functionality, refer to the
 If any bugs occur or a test fails, investigate the error messages or add
 print debugging. If further assistance is needed, contact the DevDocs team.
 
-## To run the tests in CI
+### To run the tests in CI
 
 A GitHub workflow runs these tests in CI automatically when you change any
 files in the `examples` directory:
@@ -656,6 +657,9 @@ where you want to start the snip, and add `# :snippet-end:` to end the snip.
 See an example in [example_stub.py](examples/example_stub.py).
 
 ### Run the snip script (required)
+
+**Note:** if you run `node run-tests.js`, it snips all testable code examples 
+automatically.
 
 This test suite uses [Bluehawk](https://github.com/mongodb-university/Bluehawk)
 to snip or copy code examples from the test files.

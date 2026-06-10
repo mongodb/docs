@@ -21,6 +21,14 @@ function analyzeUnorderedMismatch(expected, actual, compareElementFn, path) {
     let bestMatch = null;
 
     for (let actIdx = 0; actIdx < actual.length; actIdx++) {
+      // Skip actuals already claimed by an earlier expected as a perfect
+      // match, so the failure report doesn't double-attribute one actual
+      // document to multiple expecteds (e.g. when two expected docs are
+      // identical and both would otherwise greedily claim actual[0]).
+      if (usedActual.has(actIdx)) {
+        continue;
+      }
+
       const elemPath = `${path}[${expIdx}]`;
 
       // Compare this expected element with this actual element

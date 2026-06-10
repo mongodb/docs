@@ -19,7 +19,19 @@ public abstract class AutoRemoval
     {
         var client = new MongoClient(uri);
         var database = client.GetDatabase("timeseries");
-        if (database.GetCollection<BsonDocument>(CollectionName) != null) database.DropCollection(CollectionName);
+
+        // GetCollection() is a client-side factory and always returns a
+        // non-null reference, so ask the server whether the collection
+        // actually exists before issuing a drop.
+        var existing = await database.ListCollectionNamesAsync(
+            new ListCollectionNamesOptions
+            {
+                Filter = new BsonDocument("name", CollectionName)
+            });
+        if (await existing.AnyAsync())
+        {
+            await database.DropCollectionAsync(CollectionName);
+        }
 
         // :snippet-start: create-timeseries-collection-for-removal
         var createCommand = new BsonDocument
@@ -35,8 +47,26 @@ public abstract class AutoRemoval
             { "expireAfterSeconds", 86400 }
         };
 
-        // Execute the command to create the collection  
-        await database.RunCommandAsync<BsonDocument>(createCommand);
+        // Execute the command to create the collection
+        // :remove-start:
+        // Retry on transient NamespaceExists (48), which can briefly
+        // surface when a prior test's drop hasn't fully cleared on the
+        // server. This is a test-environment concern, not example code.
+        for (var attempt = 0; ; attempt++)
+        {
+            try
+            {
+                // :remove-end:
+                await database.RunCommandAsync<BsonDocument>(createCommand);
+                // :remove-start:
+                break;
+            }
+            catch (MongoCommandException ex) when (attempt < 3 && ex.Code == 48)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(100 * (attempt + 1)));
+            }
+        }
+        // :remove-end:
         // :snippet-end:
     }
 

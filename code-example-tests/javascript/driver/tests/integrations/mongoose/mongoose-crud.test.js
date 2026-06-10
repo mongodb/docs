@@ -90,21 +90,33 @@ describe('Mongoose CRUD operation tests', () => {
   });
 
   it('Should return the _id of a blog post that matches the exists() query', async () => {
-    await Blog.create({ title: 'Awesome Post!', slug: 'awesome-post', author: 'Jess Garcia' });
+    await Blog.create({
+      title: 'Awesome Post!',
+      slug: 'awesome-post',
+      author: 'Jess Garcia',
+    });
     const result = await blogExists();
     expect(result).not.toBeNull();
     expect(result._id).toBeDefined();
   });
 
   it('Should return matching documents using both findOne() and where() methods', async () => {
-    await Blog.create({ title: 'Awesome Post!', slug: 'awesome-post', author: 'Jess Garcia' });
+    await Blog.create({
+      title: 'Awesome Post!',
+      slug: 'awesome-post',
+      author: 'Jess Garcia',
+    });
     const { blogFind, blogWhere } = await findBlogByAuthor();
     expect(blogFind._id.toString()).toBe(blogWhere._id.toString());
     expect(blogFind.author).toBe('Jess Garcia');
   });
 
   it('Should return only selected fields when using where() and select()', async () => {
-    await Blog.create({ title: 'Awesome Post!', slug: 'awesome-post', author: 'Jess Garcia' });
+    await Blog.create({
+      title: 'Awesome Post!',
+      slug: 'awesome-post',
+      author: 'Jess Garcia',
+    });
     const result = await findBlogWithSelect();
     expect(result.title).toBeDefined();
     expect(result.author).toBeDefined();

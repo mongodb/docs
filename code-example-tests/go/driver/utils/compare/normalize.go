@@ -1,22 +1,28 @@
 package compare
 
+// BSON / struct normalisation helpers used by the kernel bridge.
+//
+// These helpers convert Go-native (and BSON) types into JSON-compatible
+// values that the comparison kernel can consume directly. The kernel handles
+// every other normalisation step (MongoDB-shell syntax, ellipsis, date
+// formatting, etc.), so the helpers here are deliberately minimal.
+
 import (
 	"fmt"
 	"reflect"
-	"regexp"
 	"strings"
 	"time"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 )
 
-// convertActualResults converts various types of slices to normalized []interface{}
+// convertActualResults converts a slice of any BSON / struct type into a
+// normalised []interface{} ready for JSON marshalling on the kernel wire.
 func convertActualResults(actualResults interface{}) ([]interface{}, error) {
 	if actualResults == nil {
 		return nil, fmt.Errorf("actualResults is nil")
 	}
 
-	// Use reflection to handle different slice types
 	v := reflect.ValueOf(actualResults)
 	if v.Kind() != reflect.Slice {
 		return nil, fmt.Errorf("actualResults must be a slice, got %T", actualResults)
@@ -27,15 +33,12 @@ func convertActualResults(actualResults interface{}) ([]interface{}, error) {
 
 	for i := 0; i < length; i++ {
 		item := v.Index(i).Interface()
-
-		// Handle different types
 		switch doc := item.(type) {
 		case bson.D:
 			normalized[i] = normalizeValue(bsonDToMap(doc))
 		case bson.M:
 			normalized[i] = normalizeValue(bsonMToMap(doc))
 		default:
-			// Handle struct types by converting to map using reflection
 			normalized[i] = normalizeValue(structToMap(item))
 		}
 	}
@@ -43,219 +46,9 @@ func convertActualResults(actualResults interface{}) ([]interface{}, error) {
 	return normalized, nil
 }
 
-// preprocessMongoSyntax converts MongoDB document syntax to valid JSON
-func preprocessMongoSyntax(input string) string {
-	// Convert single quotes to double quotes for JSON compatibility
-	// This must be done before other transformations
-	input = convertSingleQuotesToDouble(input)
-
-	// Handle ObjectId constructor
-	objectIdRegex := regexp.MustCompile(`ObjectId\(['"]([^'"]+)['"]\)`)
-	input = objectIdRegex.ReplaceAllString(input, `"$1"`)
-
-	// Handle Decimal128 constructor
-	decimal128Regex := regexp.MustCompile(`Decimal128\(['"]([^'"]+)['"]\)`)
-	input = decimal128Regex.ReplaceAllString(input, `"$1"`)
-
-	// Handle Date constructor - convert to ISO string format
-	dateRegex := regexp.MustCompile(`Date\(['"]([^'"]+)['"]\)`)
-	input = dateRegex.ReplaceAllStringFunc(input, func(match string) string {
-		dateStr := dateRegex.FindStringSubmatch(match)[1]
-		if t, err := time.Parse(time.RFC3339, dateStr); err == nil {
-			return `"` + t.Format(time.RFC3339) + `"`
-		}
-		return `"` + dateStr + `"`
-	})
-
-	// Handle MongoDB extended JSON date format
-	mongoDateRegex := regexp.MustCompile(`{\s*"\$date"\s*:\s*"([^"]+)"\s*}`)
-	input = mongoDateRegex.ReplaceAllString(input, `"$1"`)
-
-	// Quote unquoted ellipsis patterns in a string-aware manner
-	// This must be done to avoid corrupting ellipsis that appear inside quoted strings
-	// (e.g., plot text ending with "...")
-	input = quoteUnquotedEllipsis(input)
-
-	// Convert standalone ellipsis on its own line to "...": "..." to indicate omitted fields
-	// This enables support for patterns like { ok: 1, ... } where ... indicates more fields exist
-	input = convertStandaloneEllipsisToField(input)
-
-	// Remove trailing commas for valid JSON
-	input = removeTrailingCommas(input)
-
-	return input
-}
-
-// convertStandaloneEllipsisToField converts standalone `"..."` on its own line to `"...": "..."`
-// This is used when writers use `...` at the end of a document to indicate omitted fields.
-func convertStandaloneEllipsisToField(input string) string {
-	// Match standalone "..." on its own line (with optional surrounding whitespace)
-	standaloneEllipsisRegex := regexp.MustCompile(`(?m)^(\s*)"\.\.\."\s*$`)
-	return standaloneEllipsisRegex.ReplaceAllString(input, `$1"...": "..."`)
-}
-
-// removeTrailingCommas removes trailing commas before closing braces and brackets for valid JSON
-func removeTrailingCommas(input string) string {
-	// Remove trailing commas before }
-	trailingCommaBeforeBrace := regexp.MustCompile(`,(\s*)\}`)
-	input = trailingCommaBeforeBrace.ReplaceAllString(input, `$1}`)
-
-	// Remove trailing commas before ]
-	trailingCommaBeforeBracket := regexp.MustCompile(`,(\s*)\]`)
-	input = trailingCommaBeforeBracket.ReplaceAllString(input, `$1]`)
-
-	return input
-}
-
-// convertSingleQuotesToDouble converts single-quoted strings to double-quoted strings for JSON compatibility.
-// This handles MongoDB shell syntax where single quotes are commonly used.
-func convertSingleQuotesToDouble(str string) string {
-	var result strings.Builder
-	i := 0
-
-	for i < len(str) {
-		char := str[i]
-
-		if char == '\'' {
-			// Start of single-quoted string - convert to double quote
-			result.WriteByte('"')
-			i++
-			for i < len(str) {
-				innerChar := str[i]
-				if innerChar == '\\' && i+1 < len(str) {
-					// Escaped character - copy both the backslash and next char
-					result.WriteByte(innerChar)
-					i++
-					result.WriteByte(str[i])
-					i++
-				} else if innerChar == '\'' {
-					// End of single-quoted string - convert to double quote
-					result.WriteByte('"')
-					i++
-					break
-				} else if innerChar == '"' {
-					// Double quote inside single-quoted string needs to be escaped
-					result.WriteString(`\"`)
-					i++
-				} else {
-					result.WriteByte(innerChar)
-					i++
-				}
-			}
-		} else if char == '"' {
-			// Already a double-quoted string - copy verbatim
-			result.WriteByte(char)
-			i++
-			for i < len(str) {
-				innerChar := str[i]
-				result.WriteByte(innerChar)
-				if innerChar == '\\' && i+1 < len(str) {
-					// Escaped character - copy the next char too
-					i++
-					result.WriteByte(str[i])
-				} else if innerChar == '"' {
-					// End of string
-					break
-				}
-				i++
-			}
-			i++
-		} else {
-			result.WriteByte(char)
-			i++
-		}
-	}
-
-	return result.String()
-}
-
-// quoteUnquotedEllipsis quotes unquoted ellipsis (...) that appear as property values or array elements.
-// This function is string-aware and will NOT modify ellipsis that appear inside quoted strings
-// (e.g., a plot description ending with "...").
-//
-// Handles two patterns:
-// 1. Property values: { key: ... } becomes { key: "..." }
-// 2. Array elements: [item, ...] becomes [item, "..."]
-//
-// Based on the MongoDB Shell implementation from commit fbccfb5c64bb2a4cdf89e1873f9e4b79469e28fd
-func quoteUnquotedEllipsis(str string) string {
-	var result strings.Builder
-	i := 0
-
-	for i < len(str) {
-		char := str[i]
-
-		if char == '"' {
-			// Inside a double-quoted string - copy verbatim until closing quote
-			result.WriteByte(char)
-			i++
-			for i < len(str) {
-				innerChar := str[i]
-				result.WriteByte(innerChar)
-				if innerChar == '\\' && i+1 < len(str) {
-					// Escaped character - copy the next char too
-					i++
-					result.WriteByte(str[i])
-				} else if innerChar == '"' {
-					// End of string
-					break
-				}
-				i++
-			}
-			i++
-		} else if char == '\'' {
-			// Inside a single-quoted string - copy verbatim until closing quote
-			result.WriteByte(char)
-			i++
-			for i < len(str) {
-				innerChar := str[i]
-				result.WriteByte(innerChar)
-				if innerChar == '\\' && i+1 < len(str) {
-					// Escaped character - copy the next char too
-					i++
-					result.WriteByte(str[i])
-				} else if innerChar == '\'' {
-					// End of string
-					break
-				}
-				i++
-			}
-			i++
-		} else if char == '.' && i+2 < len(str) && str[i:i+3] == "..." {
-			// Found potential ellipsis outside a string
-			// Check if this is an unquoted ellipsis that needs quoting
-			// Look ahead to see what follows the ellipsis
-			afterEllipsis := ""
-			if i+3 < len(str) {
-				afterEllipsis = str[i+3:]
-			}
-
-			// Check if followed by delimiter (whitespace, comma, closing brace/bracket)
-			followedByDelimiter := len(afterEllipsis) == 0 ||
-				afterEllipsis[0] == ' ' || afterEllipsis[0] == '\t' ||
-				afterEllipsis[0] == '\n' || afterEllipsis[0] == '\r' ||
-				afterEllipsis[0] == ',' || afterEllipsis[0] == '}' ||
-				afterEllipsis[0] == ']'
-
-			if followedByDelimiter {
-				// This is an unquoted ellipsis - quote it
-				result.WriteString(`"..."`)
-				i += 3
-			} else {
-				// Not a standalone ellipsis, just copy the dot
-				result.WriteByte(char)
-				i++
-			}
-		} else {
-			result.WriteByte(char)
-			i++
-		}
-	}
-
-	return result.String()
-}
-
-// normalizeValue recursively normalizes values for compare
+// normalizeValue recursively converts BSON wrappers, time values and numeric
+// types into JSON-friendly equivalents so the kernel sees the same shape on
+// every wire payload.
 func normalizeValue(value interface{}) interface{} {
 	if value == nil {
 		return nil
@@ -281,7 +74,7 @@ func normalizeValue(value interface{}) interface{} {
 	case time.Time:
 		return v.UTC().Format(time.RFC3339)
 	case int:
-		return float64(v) // Normalize all numbers to float64
+		return float64(v)
 	case int32:
 		return float64(v)
 	case int64:
@@ -307,7 +100,6 @@ func normalizeValue(value interface{}) interface{} {
 	}
 }
 
-// bsonDToMap converts bson.D to map[string]interface{}
 func bsonDToMap(doc bson.D) map[string]interface{} {
 	result := make(map[string]interface{})
 	for _, elem := range doc {
@@ -316,7 +108,6 @@ func bsonDToMap(doc bson.D) map[string]interface{} {
 	return result
 }
 
-// bsonMToMap converts bson.M to map[string]interface{}
 func bsonMToMap(doc bson.M) map[string]interface{} {
 	result := make(map[string]interface{})
 	for k, v := range doc {
@@ -325,7 +116,9 @@ func bsonMToMap(doc bson.M) map[string]interface{} {
 	return result
 }
 
-// structToMap converts a struct or other value to a map[string]interface{}
+// structToMap converts a struct (or pointer to struct) to a
+// map[string]interface{} using bson / json struct tags. Non-struct values are
+// returned unchanged so callers can pass any value through uniformly.
 func structToMap(v interface{}) interface{} {
 	if v == nil {
 		return nil
@@ -334,7 +127,6 @@ func structToMap(v interface{}) interface{} {
 	val := reflect.ValueOf(v)
 	typ := reflect.TypeOf(v)
 
-	// Handle pointer types
 	if val.Kind() == reflect.Ptr {
 		if val.IsNil() {
 			return nil
@@ -343,87 +135,42 @@ func structToMap(v interface{}) interface{} {
 		typ = typ.Elem()
 	}
 
-	// If it's already a map, return as-is
 	if val.Kind() == reflect.Map {
 		return v
 	}
-
-	// If it's not a struct, return the value as-is (primitives, slices, etc.)
 	if val.Kind() != reflect.Struct {
 		return v
 	}
 
-	// Convert struct to map
 	result := make(map[string]interface{})
-
 	for i := 0; i < val.NumField(); i++ {
 		field := val.Field(i)
 		fieldType := typ.Field(i)
 
-		// Skip unexported fields
 		if !field.CanInterface() {
 			continue
 		}
 
-		// Get the field name, checking for bson or json tags
 		fieldName := fieldType.Name
 		if bsonTag := fieldType.Tag.Get("bson"); bsonTag != "" && bsonTag != "-" {
-			// Parse bson tag (handle "fieldname,omitempty" format)
 			parts := strings.Split(bsonTag, ",")
 			if parts[0] != "" {
 				fieldName = parts[0]
 			}
 		} else if jsonTag := fieldType.Tag.Get("json"); jsonTag != "" && jsonTag != "-" {
-			// Parse json tag as fallback
 			parts := strings.Split(jsonTag, ",")
 			if parts[0] != "" {
 				fieldName = parts[0]
 			}
 		}
 
-		// Skip fields tagged with "-"
 		if fieldName == "-" {
 			continue
 		}
 
-		// Recursively convert the field value
 		fieldValue := field.Interface()
 		result[fieldName] = structToMap(fieldValue)
 	}
 
 	return result
-}
-
-// normalizePrimitive normalizes primitive values for compare
-func normalizePrimitive(value interface{}) interface{} {
-	switch v := value.(type) {
-	case bson.ObjectID:
-		return v.Hex()
-	case bson.Decimal128:
-		return v.String()
-	case bson.DateTime:
-		return time.Unix(int64(v)/1000, (int64(v)%1000)*1000000).UTC().Format(time.RFC3339)
-	case time.Time:
-		return v.UTC().Format(time.RFC3339)
-	case string:
-		// Handle ISO date strings
-		if matched, _ := regexp.MatchString(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}`, v); matched {
-			if t, err := time.Parse(time.RFC3339, v); err == nil {
-				return t.UTC().Format(time.RFC3339)
-			}
-		}
-		return v
-	case int:
-		return float64(v) // Normalize all numbers to float64
-	case int32:
-		return float64(v)
-	case int64:
-		return float64(v)
-	case float32:
-		return float64(v)
-	case float64:
-		return v
-	default:
-		return v
-	}
 }

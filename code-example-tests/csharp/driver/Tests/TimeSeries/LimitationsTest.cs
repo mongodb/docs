@@ -17,4 +17,10 @@ public class LimitationsTest
             Expect.That(result[1]["_id"]).ShouldMatch("b");
         }
     }
+
+    [TearDown]
+    public void TearDown()
+    {
+        Limitations.Cleanup();
+    }
 }

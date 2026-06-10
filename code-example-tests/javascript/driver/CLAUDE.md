@@ -73,13 +73,28 @@ describe('Your topic tests', () => {
 ## Sample Data
 
 ```javascript
-import { describeWithSampleData, itWithSampleData } from '../utils/sampleDataChecker.js';
+import {
+  describeWithSampleData,
+  itWithSampleData,
+} from '../utils/sampleDataChecker.js';
 
 // Entire suite requires sample data
-describeWithSampleData('Suite name', () => { /* tests */ }, 'sample_mflix');
+describeWithSampleData(
+  'Suite name',
+  () => {
+    /* tests */
+  },
+  'sample_mflix'
+);
 
 // Single test requires sample data
-itWithSampleData('test name', async () => { /* test */ }, 'sample_restaurants');
+itWithSampleData(
+  'test name',
+  async () => {
+    /* test */
+  },
+  'sample_restaurants'
+);
 ```
 
 Tests auto-skip when required sample databases are unavailable.
@@ -92,13 +107,13 @@ Tests auto-skip when required sample databases are unavailable.
 
 ## Commands
 
-| Command | Purpose |
-|---------|---------|
-| `npm test` | Run all tests (`--runInBand --detectOpenHandles`) |
-| `npx jest tests/path/file.test.js` | Run a single test file |
-| `npm test -- -t 'describe text'` | Run tests matching a name |
-| `npm run format` | Prettier format all files |
-| `npm run snip` | Extract snippets via Bluehawk |
+| Command                            | Purpose                                           |
+| ---------------------------------- | ------------------------------------------------- |
+| `npm test`                         | Run all tests (`--runInBand --detectOpenHandles`) |
+| `npx jest tests/path/file.test.js` | Run a single test file                            |
+| `npm test -- -t 'describe text'`   | Run tests matching a name                         |
+| `npm run format`                   | Prettier format all files                         |
+| `npm run snip`                     | Extract snippets via Bluehawk                     |
 
 All commands run from `code-example-tests/javascript/driver/`.
 

@@ -30,10 +30,8 @@ public class TimeSeriesTest
     {
         var expected = 4;
         var findResult = await QueryTimeSeriesCollection.TimeSeriesFindByTimeRange();
-        var result1 = await ComparisonEngine.CompareAsync(expected, findResult.Count);
-        Assert.That(result1.IsSuccess, Is.True);
-        var result2 = await ComparisonEngine.CompareAsync(45.200000000000003, findResult[0]["temp"]);
-        Assert.That(result2.IsSuccess, Is.True);
+        await Expect.That(findResult.Count).ShouldMatchAsync(expected);
+        await Expect.That(findResult[0]["temp"]).ShouldMatchAsync(45.200000000000003);
     }
 
     [Test]
@@ -54,24 +52,21 @@ public class TimeSeriesTest
         };
 
         var subfieldResult = await QueryTimeSeriesCollection.TimeSeriesFindBySubfield();
-        var result = await ComparisonEngine.CompareAsync(7, subfieldResult.Count);
-        Assert.That(result.IsSuccess, Is.True);
+        await Expect.That(subfieldResult.Count).ShouldMatchAsync(7);
     }
 
     [Test]
     public async Task TestTimeSeriesAggregate()
     {
         var aggResult = await QueryTimeSeriesCollection.TimeSeriesAggregate();
-        var result1 = await ComparisonEngine.CompareAsync(1, aggResult.Count);
-        Assert.That(result1.IsSuccess, Is.True);
-        var result2 = await ComparisonEngine.CompareAsync(47.357142857142854, aggResult[0]["avgTemp"]);
-        Assert.That(result2.IsSuccess, Is.True);
+        await Expect.That(aggResult.Count).ShouldMatchAsync(1);
+        await Expect.That(aggResult[0]["avgTemp"]).ShouldMatchAsync(47.357142857142854);
     }
 
     [TearDown]
     public void TearDown()
     {
-        var client = new MongoClient(Uri);
+        using var client = new MongoClient(Uri);
         var database = client.GetDatabase("timeseries");
         database.DropCollection("weather");
     }

@@ -13,7 +13,7 @@ export default {
     'node_modules/(?!(mongodb)/)',
   ],
   // Global setup/teardown for sample data checking
-  globalSetup: './jest.globalSetup.js',
+  globalSetup: './jest.globalSetup.cjs',
   globalTeardown: './jest.globalTeardown.js',
 };
 

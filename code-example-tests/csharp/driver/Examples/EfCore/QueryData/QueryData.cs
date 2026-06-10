@@ -115,38 +115,27 @@ public class QueryData
 
         // :snippet-start: order-by
         var planetList = db.Planets.OrderBy(p => p.orderFromSun);
-        // :remove-start:
-        var sw = new StringWriter();
-        Console.SetOut(sw);
-        // :remove-end:
-
         foreach (var p in planetList)
         {
             Console.WriteLine(p.name);
         }
         // :snippet-end:
-        Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true });
-        return sw.ToString().TrimEnd();
+        return planetList.ToList().ToJson();
     }
 
-    public string DoubleOrderBy()
+    public string? DoubleOrderBy()
     {
         var db = _db;
 
         // :snippet-start: order-by-then-by
         var planetList = db.Planets.OrderBy(o => o.hasRings).ThenBy(o => o.name);
-        // :remove-start:
-        var sw = new StringWriter();
-        Console.SetOut(sw);
-        // :remove-end:
 
         foreach (var p in planetList)
         {
             Console.WriteLine("Has rings: " + p.hasRings + ", Name: " + p.name);
         }
         // :snippet-end:
-        Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true });
-        return sw.ToString().TrimEnd();
+        return planetList.ToList().ToJson();
     }
 
     public List<Planet> TakeExample()

@@ -877,6 +877,8 @@ run the snip command:
 ```sh
 node snip.js
 ```
+**Note:** if you run `node run-tests.js`, it snips all testable code examples 
+automatically.
 
 This command generates updated example files from the `examples` directory.
 

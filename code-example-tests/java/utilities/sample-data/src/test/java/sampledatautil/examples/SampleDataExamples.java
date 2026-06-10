@@ -10,7 +10,7 @@ import java.util.*;
 
 /**
  * Example usage of the MongoDB Sample Data Utility.
- * 
+ *
  * This class demonstrates various ways to use the utility to check for
  * sample data availability and conditionally skip tests.
  */
@@ -66,7 +66,7 @@ public class SampleDataExamples {
     @Test
     public void testProgrammaticSingleDatabase() {
         SampleDataTestHelper.ensureSampleDataOrSkip("sample_mflix");
-        
+
         // Test code here - will only execute if sample_mflix is available
         System.out.println("Running test with sample_mflix data");
         // ... actual test implementation
@@ -77,9 +77,9 @@ public class SampleDataExamples {
      */
     @Test
     public void testProgrammaticWithCollections() {
-        SampleDataTestHelper.ensureSampleDataOrSkip("sample_mflix", 
+        SampleDataTestHelper.ensureSampleDataOrSkip("sample_mflix",
             new String[]{"movies", "users"});
-        
+
         // Test code here - will only execute if sample_mflix has movies and users collections
         System.out.println("Running test with movie and user data");
         // ... actual test implementation
@@ -92,7 +92,7 @@ public class SampleDataExamples {
     public void testProgrammaticMultipleDatabases() {
         List<String> requiredDatabases = Arrays.asList("sample_mflix", "sample_restaurants", "sample_training");
         SampleDataTestHelper.ensureSampleDataOrSkip(requiredDatabases);
-        
+
         // Test code here - will only execute if all three databases are available
         System.out.println("Running test with multiple sample databases");
         // ... actual test implementation
@@ -108,9 +108,9 @@ public class SampleDataExamples {
             "sample_mflix", Arrays.asList("movies", "theaters"),
             "sample_restaurants", Arrays.asList("restaurants", "neighborhoods")
         );
-        
+
         SampleDataTestHelper.ensureSampleDataOrSkip(databases, collectionsPerDatabase);
-        
+
         // Test code here - will only execute if both databases have their required collections
         System.out.println("Running test with complex collection requirements");
         // ... actual test implementation
@@ -128,7 +128,7 @@ public class SampleDataExamples {
     public void testConditionalLogic() {
         // Check if sample data is available without skipping the test
         boolean hasMflixData = SampleDataChecker.checkSampleDataAvailable("sample_mflix");
-        
+
         if (hasMflixData) {
             System.out.println("Running full test with sample_mflix data");
             // ... test logic with sample data
@@ -145,17 +145,17 @@ public class SampleDataExamples {
     public void testDetailedAvailabilityCheck() {
         List<String> databases = Arrays.asList("sample_mflix", "sample_restaurants", "sample_training");
         SampleDataAvailability result = SampleDataChecker.checkMultipleSampleDatabases(databases);
-        
+
         System.out.println("Overall availability: " + result.isAvailable());
         System.out.println("Available databases: " + result.getAvailableDatabases());
         System.out.println("Missing databases: " + result.getMissingDatabases());
-        
+
         // Run different test logic based on what's available
         if (result.getAvailableDatabases().contains("sample_mflix")) {
             System.out.println("Testing with movie data");
             // ... movie-specific tests
         }
-        
+
         if (result.getAvailableDatabases().contains("sample_restaurants")) {
             System.out.println("Testing with restaurant data");
             // ... restaurant-specific tests
@@ -168,12 +168,12 @@ public class SampleDataExamples {
     @Test
     public void testDiscoverAvailableDatabases() {
         List<String> availableDatabases = SampleDataChecker.getAvailableSampleDatabases();
-        
+
         System.out.println("Found " + availableDatabases.size() + " available sample databases:");
         for (String database : availableDatabases) {
             System.out.println("  - " + database);
         }
-        
+
         // Run tests based on what's actually available
         if (availableDatabases.isEmpty()) {
             System.out.println("No sample data available - running basic tests only");
@@ -195,10 +195,10 @@ public class SampleDataExamples {
     public void testCacheManagement() {
         // Clear cache if sample data availability might have changed
         SampleDataChecker.clearSampleDataCache();
-        
+
         // Now check availability (will query database again)
         boolean isAvailable = SampleDataChecker.checkSampleDataAvailable("sample_mflix");
-        
+
         System.out.println("Fresh check result: " + isAvailable);
         // ... test implementation
     }

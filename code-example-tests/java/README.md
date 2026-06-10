@@ -61,6 +61,24 @@ cd driver-sync && mvn clean test
 cd driver-reactive && mvn clean test
 ```
 
+## Code Formatting
+
+This project uses [Spotless](https://github.com/diffplug/spotless) with
+[Palantir Java Format](https://github.com/palantir/palantir-java-format) to
+enforce consistent code style across all modules.
+
+Spotless runs automatically as part of the build (during `mvn install` or
+`mvn verify`), so your code is formatted whenever you compile. You can also
+run it manually from the `java/` directory:
+
+```bash
+# Apply formatting to all modules
+mvn spotless:apply
+
+# Check formatting without modifying files (useful in CI)
+mvn spotless:check
+```
+
 ## Expected File Formats
 
 The library supports multiple input formats:

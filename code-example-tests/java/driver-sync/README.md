@@ -68,9 +68,8 @@ To create a new code example:
 1. Create a code example file
 2. Create an output file (optional)
 3. Add a corresponding test - refer to the instructions below for testing
-4. Format the code by running `mvn spotless:apply`
-5. Run the `snip.js` script to move the tested code to a docs directory
-6. Use the code example in a `literalinclude` or `io-code-block` in your docs set
+4. Run the `snip.js` script to move the tested code to a docs directory
+5. Use the code example in a `literalinclude` or `io-code-block` in your docs set
 
 If you're not comfortable adding a test, create this as an untested code example
 in your docs project's `source/code-examples` directory. Then, file a DOCSP ticket
@@ -80,7 +79,7 @@ into this test project and add a test.
 TLDR: from the `/code-example-tests/java/driver-sync` directory, run
 
 ```sh
-export CONNECTION_STRING="<your_connection_string>" && mvn spotless:apply && mvn test && node snip
+export CONNECTION_STRING="<your_connection_string>" && mvn test && node snip
 ```
 
 ### Create a code example file
@@ -101,20 +100,6 @@ to store the output alongside the example. For example:
 
 - `aggregation.pipelines.filter.Tutorial.java`
 - `aggregation.pipelines.filter.TutorialOutput.txt`
-
-### Format the code example files
-
-This project uses the [Spotless](https://github.com/diffplug/spotless) code formatting
-tool to enforce style formatting for code in the `driver-sync/src` directory. A GitHub
-workflow checks formatting automatically when you add or change any files in this directory.
-You can check and fix formatting manually on your machine before making your PR by
-running the following command from the root of the `driver-sync/` directory:
-
-```shell
-mvn spotless:apply
-```
-
-Alternately, you can configure your IDE to automatically format files on save.
 
 ## To add a test for a new code example
 
@@ -592,6 +577,9 @@ run the snip script:
 ```sh
 node snip.js
 ```
+
+**Note:** if you run `node run-tests.js`, it snips all testable code examples 
+automatically.
 
 The updated example files output to `content/code-examples/tested/java/driver-sync/`.
 Subdirectory structure is also automatically transferred. For example, generating

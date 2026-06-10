@@ -37,14 +37,21 @@ public static class ValueNormalizer
             BsonDateTime bsonDt => bsonDt.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
             BsonValue bsonValue => NormalizeBsonValue(bsonValue),
 
-            // Collections - normalize each element (preserve specific array types for primitives)
+            // Strings (also IEnumerable<char>, so handled before the IEnumerable branch).
+            string str => NormalizeString(str),
+
+            // Dictionaries - check for MongoDB Extended JSON patterns first, then normalize.
+            // Listed before the generic IEnumerable branch because dictionaries
+            // also implement IEnumerable.
+            IDictionary<string, object> dict => NormalizeDictionary(dict),
+
+            // Collections - normalize each element (preserve specific array types for primitives).
+            // The non-generic IEnumerable branch catches List<T> / IList<T> / etc. for any T,
+            // working around the lack of variance on IEnumerable<object>.
             int[] intArray => intArray, // Preserve int[] type
             string[] stringArray => stringArray, // Preserve string[] type
             Array array => array.Cast<object?>().Select(Normalize).ToArray(),
-            IEnumerable<object> enumerable => enumerable.Select(Normalize).ToArray(),
-
-            // Dictionaries - check for MongoDB Extended JSON patterns first, then normalize
-            IDictionary<string, object> dict => NormalizeDictionary(dict),
+            IEnumerable enumerable => enumerable.Cast<object?>().Select(Normalize).ToArray(),
 
             // JSON elements
             JsonElement element => NormalizeJsonElement(element),
@@ -52,8 +59,6 @@ public static class ValueNormalizer
             // Custom C# types (POCOs)
             var customType when IsCustomType(customType) => NormalizeCustomType(customType),
 
-            // Primitive types and strings
-            string str => NormalizeString(str), // Handle both date normalization and whitespace
             _ => value
         };
     }

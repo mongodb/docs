@@ -9,7 +9,7 @@ import java.util.*;
  * This extension is automatically applied when using the @RequiresSampleData annotation.
  */
 public class SampleDataExtension implements BeforeEachCallback, BeforeAllCallback {
-    
+
     @Override
     public void beforeEach(ExtensionContext context) {
         checkAndSkip(context);
@@ -24,18 +24,18 @@ public class SampleDataExtension implements BeforeEachCallback, BeforeAllCallbac
         Optional<RequiresSampleData> annotation = findAnnotation(context);
         if (annotation.isPresent()) {
             RequiresSampleData sampleDataAnnotation = annotation.get();
-            
+
             // Extract required databases
             List<String> requiredDatabases = extractRequiredDatabases(sampleDataAnnotation);
             List<String> requiredCollections = Arrays.asList(sampleDataAnnotation.collections());
-            
+
             if (requiredDatabases.isEmpty()) {
                 return; // No databases specified, nothing to check
             }
-            
+
             // Show summary before checking
             SampleDataChecker.showSampleDataSummary();
-            
+
             try {
                 // Check availability
                 SampleDataAvailability availability;
@@ -65,13 +65,13 @@ public class SampleDataExtension implements BeforeEachCallback, BeforeAllCallbac
                     availability = SampleDataChecker.checkMultipleSampleDatabases(
                         requiredDatabases, collectionsPerDatabase);
                 }
-                
+
                 if (!availability.isAvailable()) {
                     String missingDatabasesList = String.join(", ", availability.getMissingDatabases());
-                    String collectionsInfo = requiredCollections.isEmpty() ? "" : 
+                    String collectionsInfo = requiredCollections.isEmpty() ? "" :
                         " (collections: " + String.join(", ", requiredCollections) + ")";
                     String message = "Missing required sample data: " + missingDatabasesList + collectionsInfo;
-                    
+
                     System.out.println("\n⚠️  " + message);
                     Assumptions.assumeTrue(false, message);
                 }
@@ -86,7 +86,7 @@ public class SampleDataExtension implements BeforeEachCallback, BeforeAllCallbac
 
     private List<String> extractRequiredDatabases(RequiresSampleData annotation) {
         List<String> databases = new ArrayList<>();
-        
+
         // Check value array first (takes precedence)
         if (annotation.value().length > 0) {
             databases.addAll(Arrays.asList(annotation.value()));
@@ -94,7 +94,7 @@ public class SampleDataExtension implements BeforeEachCallback, BeforeAllCallbac
             // Fall back to single database field
             databases.add(annotation.database());
         }
-        
+
         return databases;
     }
 
@@ -105,7 +105,7 @@ public class SampleDataExtension implements BeforeEachCallback, BeforeAllCallbac
         if (methodAnnotation.isPresent()) {
             return methodAnnotation;
         }
-        
+
         // Fall back to class annotation
         return context.getTestClass()
             .flatMap(testClass -> Optional.ofNullable(testClass.getAnnotation(RequiresSampleData.class)));

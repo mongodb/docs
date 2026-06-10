@@ -580,12 +580,14 @@ The `TZ` variable sets the Node.js environment to use the UTC time zone. This
 is required to enforce time zone consistency between dates across different
 local environments and CI when running the test suite.
 
+## Testing
+
 ### Run All Tests from the command line
 
 From the `/javascript/driver` directory, run:
 
 ```sh
-npm test
+node run-tests.js
 ```
 
 This invokes the following command from the `package.json` `test` key:
@@ -624,7 +626,7 @@ From the `/javascript/driver` directory, run:
 npm test -- -t '<text string from the 'it()' block you want to run>'
 ```
 
-## To run the tests in CI
+### To run the tests in CI
 
 A GitHub workflow runs these tests in CI automatically when you change any
 files in the `examples` directory:
@@ -662,6 +664,9 @@ If you do not already have Bluehawk, install it with the following command:
 ```sh
 npm install -g bluehawk
 ```
+
+**Note:** if you run `node run-tests.js`, it snips all testable code examples
+automatically.
 
 To generate updated example files, from the `/javascript/driver` directory,
 run the snip command:

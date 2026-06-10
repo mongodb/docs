@@ -1,5 +1,5 @@
 var matchStage = Builders<BsonDocument>.Filter.Gte("timestamp",
-    new DateTime(2022, 1, 15, 0, 0, 0, DateTimeKind.Utc));
+    new DateTime(2045, 1, 15, 0, 0, 0, DateTimeKind.Utc));
 
 var pipeline = new EmptyPipelineDefinition<BsonDocument>()
     .Match(matchStage)

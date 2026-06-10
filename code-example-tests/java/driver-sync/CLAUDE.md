@@ -5,7 +5,6 @@
 - Java 21 (Zulu JDK recommended), Maven build
 - Multi-module project: parent POM at `code-example-tests/java/pom.xml`
 - Key deps: `mongodb-driver-sync` 5.6.0, `jackson-databind` 2.20.0, JUnit 5.13.4
-- Formatter: Spotless with Palantir Java Format (`mvn spotless:apply`)
 - Connection string via environment variable: `export CONNECTION_STRING="..."`
 - First-time setup: run `mvn clean install -DskipTests` from the `java/` directory
 
@@ -152,7 +151,6 @@ Tests auto-skip when required sample databases are unavailable.
 | `mvn test` | Run all tests |
 | `mvn -Dtest=TutorialTests test` | Run a specific test class |
 | `mvn test -Dtest="topic.subtopic.YourExampleTest#testYourExample"` | Run a single test method |
-| `mvn spotless:apply` | Format all files |
 | `node snip.js` | Extract snippets via Bluehawk |
 
 All commands run from `code-example-tests/java/driver-sync/`.
@@ -160,7 +158,5 @@ All commands run from `code-example-tests/java/driver-sync/`.
 ## Snippet Output
 
 `node snip.js` extracts to: `content/code-examples/tested/java/driver-sync/{topic}/{file}.snippet.{name}.java`
-
-If Maven is installed, snipped output is auto-formatted with Spotless before writing.
 
 Files to ignore from snipping are listed in `IGNORE_PATTERNS` in `snip.js`.

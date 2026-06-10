@@ -312,7 +312,7 @@ class ReactiveStreamsRealWorldPatternsTest {
 
         assertDoesNotThrow(() -> {
             Expect.expectFromPublisher(transformedPublisher, Duration.ofSeconds(10))
-                
+
                 .shouldMatch(expectedTransformedPattern);
         });
         */
@@ -530,7 +530,7 @@ class ReactiveStreamsRealWorldPatternsTest {
 		// Reactive results might come in different orders due to async nature
 		assertDoesNotThrow(() -> {
 			Expect.that(reactiveResults)
-				
+
 				.shouldMatch(expectedContent);
 		});
 	}
@@ -617,7 +617,7 @@ class ReactiveStreamsRealWorldPatternsTest {
 		// For unordered operations, sequence doesn't matter
 		assertDoesNotThrow(() -> {
 			Expect.that(unorderedResults)
-				
+
 				.shouldMatch(expectedOrdered);
 		});
 	}

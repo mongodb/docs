@@ -6,11 +6,15 @@
 namespace Examples.EfCore.Faq;
 
 using Examples.EfCore.QueryData;
+using MongoDB.Bson.Serialization.Attributes;
 using MongoDB.Driver;
 
 public class Movie
 {
+    [BsonElement("Title")]
     public string Title { get; set; } = null!;
+
+    [BsonElement("Genres")]
     public List<string> Genres { get; set; } = null!;
 }
 

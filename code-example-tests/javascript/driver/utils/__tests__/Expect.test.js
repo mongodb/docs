@@ -43,7 +43,7 @@ describe('Expect API', () => {
 
       expect(() => {
         Expect.that(actual).shouldMatch(expected);
-      }).toThrow(/Values do not match/);
+      }).toThrow(/Comparison failed|mismatch/);
     });
 
     it('should match nested objects', () => {
@@ -177,24 +177,6 @@ describe('Expect API', () => {
         Expect.that(actual).shouldMatch(expected);
       }).not.toThrow();
     });
-
-    it('should normalize whitespace in text comparison', () => {
-      const actual = 'Line 1\nLine 2\nLine 3';
-      const expected = 'Line 1\r\nLine 2\r\nLine 3';
-
-      expect(() => {
-        Expect.that(actual).shouldMatch(expected);
-      }).not.toThrow();
-    });
-
-    it('should trim trailing whitespace', () => {
-      const actual = 'Line 1   \nLine 2   ';
-      const expected = 'Line 1\nLine 2';
-
-      expect(() => {
-        Expect.that(actual).shouldMatch(expected);
-      }).not.toThrow();
-    });
   });
 
   describe('shouldMatch - MongoDB types', () => {
@@ -283,7 +265,7 @@ describe('Expect API', () => {
 
       expect(() => {
         Expect.that(actual).shouldMatch(expected);
-      }).toThrow(/Comparison failed/);
+      }).toThrow(/Comparison failed|mismatch/);
     });
 
     it('should include expected and actual values in error', () => {
@@ -442,7 +424,7 @@ describe('Expect API', () => {
 
         expect(() => {
           Expect.that(actual).shouldResemble(expected).withSchema({ count: 3 });
-        }).toThrow(/actual output has 2 documents, expected 3/);
+        }).toThrow(/actual output: Expected 3 documents but got 2/);
       });
 
       it('should fail when expected count does not match', () => {
@@ -451,7 +433,7 @@ describe('Expect API', () => {
 
         expect(() => {
           Expect.that(actual).shouldResemble(expected).withSchema({ count: 3 });
-        }).toThrow(/expected output has 1 documents, expected 3/);
+        }).toThrow(/expected output: Expected 3 documents but got 1/);
       });
     });
 
@@ -481,7 +463,7 @@ describe('Expect API', () => {
               count: 1,
               requiredFields: ['_id', 'name'],
             });
-        }).toThrow(/actual\[0\] is missing required field 'name'/);
+        }).toThrow(/actual\[0\]: Missing required field "name"/);
       });
 
       it('should fail when expected is missing required field', () => {
@@ -495,7 +477,7 @@ describe('Expect API', () => {
               count: 1,
               requiredFields: ['_id', 'name'],
             });
-        }).toThrow(/expected\[0\] is missing required field 'name'/);
+        }).toThrow(/expected\[0\]: Missing required field "name"/);
       });
     });
 
@@ -533,7 +515,7 @@ describe('Expect API', () => {
               requiredFields: ['year'],
               fieldValues: { year: 2020 },
             });
-        }).toThrow(/actual\[0\].year has value 2019, expected 2020/);
+        }).toThrow(/actual\[0\]\.year:.*has value 2019 but expected 2020/);
       });
 
       it('should fail when expected has wrong field value', () => {
@@ -548,7 +530,7 @@ describe('Expect API', () => {
               requiredFields: ['year'],
               fieldValues: { year: 2020 },
             });
-        }).toThrow(/expected\[0\].year has value 2019, expected 2020/);
+        }).toThrow(/expected\[0\]\.year:.*has value 2019 but expected 2020/);
       });
 
       it('should fail when field is missing for fieldValues check', () => {
@@ -563,7 +545,7 @@ describe('Expect API', () => {
               requiredFields: ['year'],
               fieldValues: { year: 2020 },
             });
-        }).toThrow(/actual\[0\] is missing required field 'year'/);
+        }).toThrow(/actual\[0\]: Missing (required )?field "year"/);
       });
     });
 
@@ -768,7 +750,7 @@ describe('Expect API', () => {
           Expect.that(actual)
             .shouldResemble(expected)
             .withSchema({ count: 1.5 });
-        }).toThrow(/expected 1\.5/);
+        }).toThrow(/requires a non-negative count number/);
       });
 
       it('should throw error when requiredFields is not an array', () => {
@@ -1094,7 +1076,7 @@ describe('Expect API', () => {
               requiredFields: ['_id', 'details.info.year'],
               fieldValues: { 'details.info.year': 2012 },
             });
-        }).toThrow(/actual\[0\] is missing required field 'details.info.year'/);
+        }).toThrow(/actual\[0\]: Missing required field "details\.info\.year"/);
       });
 
       it('should validate nested fieldValues using dot notation', () => {
@@ -1133,7 +1115,7 @@ describe('Expect API', () => {
               fieldValues: { 'queryPlanner.winningPlan.stage': 'IXSCAN' },
             });
         }).toThrow(
-          /actual\[0\]\.queryPlanner\.winningPlan\.stage has value "COLLSCAN", expected "IXSCAN"/
+          /actual\[0\]\.queryPlanner\.winningPlan\.stage:.*has value COLLSCAN but expected IXSCAN/
         );
       });
     });
@@ -1177,7 +1159,7 @@ describe('Expect API', () => {
               count: 1,
               requiredFields: ['_id', 'items[1].name'], // index 1 doesn't exist in actual
             });
-        }).toThrow(/actual\[0\] is missing required field 'items\[1\]\.name'/);
+        }).toThrow(/actual\[0\]: Missing required field "items\[1\]\.name"/);
       });
 
       it('should validate multiple array indices', () => {
@@ -1247,7 +1229,7 @@ describe('Expect API', () => {
               count: 1,
               requiredFields: ['_id', 'value.nested'], // 'value' is a string in actual
             });
-        }).toThrow(/actual\[0\] is missing required field 'value\.nested'/);
+        }).toThrow(/actual\[0\]: Missing required field "value\.nested"/);
       });
 
       it('should fail when path navigates through non-array for indexing', () => {
@@ -1261,7 +1243,7 @@ describe('Expect API', () => {
               count: 1,
               requiredFields: ['_id', 'items[0].name'], // 'items' is not an array in actual
             });
-        }).toThrow(/actual\[0\] is missing required field 'items\[0\]\.name'/);
+        }).toThrow(/actual\[0\]: Missing required field "items\[0\]\.name"/);
       });
     });
   });

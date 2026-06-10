@@ -107,18 +107,6 @@ public class TestDataLoader {
     }
 
     /**
-     * Enhanced validation that prints debug information on failure.
-     *
-     * @param expectedFilePath Path to expected results file
-     * @param actualPublisher Publisher of actual results
-     * @throws AssertionError if validation fails (with debug output)
-     */
-    public static void validatePublisherResultsFromFileWithDebug(String expectedFilePath, Publisher<Document> actualPublisher) {
-        ExpectReactive.that(actualPublisher)
-            .shouldMatchWithDebug(expectedFilePath);
-    }
-
-    /**
      * Manual collection of Publisher results with custom timeout.
      * Useful when you need more control over the collection process.
      *

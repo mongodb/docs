@@ -1,7 +1,11 @@
-using MongoDB.Bson;
-
 namespace Utilities.Comparison;
 
+/// <summary>
+/// Fluent comparison builder for MongoDB code-example tests. Every comparison
+/// is delegated to the language-agnostic comparison kernel (a native Go
+/// binary under tools/comparison-kernel/bin/) so behaviour stays consistent
+/// across all driver test suites.
+/// </summary>
 public class ExpectBuilder : IBuilder
 {
     private readonly object? _actual;
@@ -20,22 +24,20 @@ public class ExpectBuilder : IBuilder
     {
         _sortApiCalled = true;
         _options.ArrayMode = ArrayComparisonMode.Ordered;
-
         return this;
     }
+
     public IBuilder WithUnorderedSort()
     {
         _sortApiCalled = true;
         _options.ArrayMode = ArrayComparisonMode.Unordered;
-
         return this;
     }
+
     public IBuilder WithIgnoredFields(params string[] fieldNames)
     {
         foreach (var fieldName in fieldNames)
-        {
             _options.IgnoredFields.Add(fieldName);
-        }
         return this;
     }
 
@@ -45,276 +47,89 @@ public class ExpectBuilder : IBuilder
     }
 
     /// <summary>
-    ///     Initiates schema-based validation where results may vary but must conform to a defined schema.
-    ///     This is mutually exclusive with ShouldMatch(), WithIgnoredFields(), and sort APIs.
-    ///     If expected is a file path, the file will be loaded and parsed.
+    /// Initiate schema-based validation. Mutually exclusive with
+    /// <see cref="ShouldMatch"/>, <see cref="WithIgnoredFields"/>, and the
+    /// sort APIs.
     /// </summary>
-    /// <param name="expected">The expected output to validate against the schema (can be a file path)</param>
-    /// <returns>ISchemaBuilder that requires WithSchema() to complete validation</returns>
-    /// <exception cref="ComparisonException">
-    ///     Thrown if WithIgnoredFields(), WithOrderedSort(), or WithUnorderedSort() was called,
-    ///     or if ShouldMatch() was already called.
-    /// </exception>
     public ISchemaBuilder ShouldResemble(object? expected)
     {
         return ShouldResembleAsync(expected).GetAwaiter().GetResult();
     }
 
-    /// <summary>
-    ///     Async version of ShouldResemble. Initiates schema-based validation where results may vary
-    ///     but must conform to a defined schema. This is mutually exclusive with ShouldMatch(),
-    ///     WithIgnoredFields(), and sort APIs. If expected is a file path, the file will be loaded and parsed.
-    /// </summary>
-    /// <param name="expected">The expected output to validate against the schema (can be a file path)</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>ISchemaBuilder that requires WithSchema() to complete validation</returns>
-    /// <exception cref="ComparisonException">
-    ///     Thrown if WithIgnoredFields(), WithOrderedSort(), or WithUnorderedSort() was called,
-    ///     or if ShouldMatch() was already called.
-    /// </exception>
-    public async Task<ISchemaBuilder> ShouldResembleAsync(object? expected, CancellationToken cancellationToken = default)
+    public Task<ISchemaBuilder> ShouldResembleAsync(
+        object? expected, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
         if (_shouldMatchCalled)
-        {
             throw new ComparisonException(
                 "ShouldResemble() cannot be called after ShouldMatch(). These methods are mutually exclusive.");
-        }
-
         if (_options.IgnoredFields.Count > 0)
-        {
             throw new ComparisonException(
                 "WithIgnoredFields() cannot be used with ShouldResemble(). " +
                 "ShouldResemble() with WithSchema() does not support ignored fields.");
-        }
-
         if (_sortApiCalled)
-        {
             throw new ComparisonException(
                 "WithOrderedSort() and WithUnorderedSort() cannot be used with ShouldResemble(). " +
                 "ShouldResemble() with WithSchema() does not support sort options.");
-        }
 
         _shouldResembleCalled = true;
-
-        // Check if expected is a file path - if so, load and parse the file
-        if (expected is string stringExpected && PathUtilities.LooksLikeFilePath(stringExpected))
-        {
-            var parsedExpected = await LoadAndParseFileAsync(stringExpected);
-            return new SchemaBuilder(parsedExpected, _actual);
-        }
-
-        return new SchemaBuilder(expected, _actual);
+        return Task.FromResult<ISchemaBuilder>(new SchemaBuilder(expected, _actual));
     }
 
     /// <summary>
-    /// Loads and parses a file, returning the parsed content.
+    /// Execute the comparison against the expected value via the comparison
+    /// kernel. The expected argument can be a file-path string, a JSON-shaped
+    /// string, or any structured value (Document, Dictionary, IEnumerable,
+    /// primitive). The bridge serialises it appropriately.
     /// </summary>
-    private async Task<object?> LoadAndParseFileAsync(string filePath)
-    {
-        var fullPath = ResolveExpectedFilePath(filePath);
-
-        if (!File.Exists(fullPath))
-        {
-            throw new ComparisonException($"Expected output file not found: {filePath}");
-        }
-
-        var parseResult = await FileContentsParser.ParseFileAsync(fullPath);
-        if (!parseResult.IsSuccess)
-        {
-            throw new ComparisonException($"Failed to parse expected output file: {parseResult.Error}");
-        }
-
-        return parseResult.Data;
-    }
-
-    /// <summary>
-    /// Execute the comparison against the expected value.
-    /// This method automatically detects the content type and selects the
-    /// appropriate comparison strategy:
-    /// - File paths: Loads and parses the file content
-    /// - Strings with ellipsis: Uses pattern matching
-    /// - JSON strings: Parses and compares structurally
-    /// - Objects/Arrays: Direct structural comparison
-    /// </summary>
-    /// <param name="expected">The expected value (file path, string, object, etc.)</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Comparison result</returns>
-    /// <exception cref="ComparisonException">Thrown if comparison fails or methods are called in wrong order</exception>
-    public async Task<ComparisonResult> ShouldMatchAsync(object? expected,
-    CancellationToken cancellationToken = default)
+    public async Task<ComparisonResult> ShouldMatchAsync(
+        object? expected, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-
-        // Yield so the caller can cancel the token before comparison work begins.
-        // This ensures cancellation requested between task creation and awaiting is observed.
         await Task.Yield();
         cancellationToken.ThrowIfCancellationRequested();
 
         if (_shouldResembleCalled)
-        {
             throw new ComparisonException(
                 "ShouldMatch() cannot be called after ShouldResemble(). These methods are mutually exclusive.");
-        }
 
         _shouldMatchCalled = true;
 
-        // Check if expected is a file path - if so, load and parse the file
-        if (expected is string stringExpected && PathUtilities.LooksLikeFilePath(stringExpected))
+        var expectedContent = await KernelBridge.SerializeExpectedAsync(expected);
+        var actualPayload = KernelBridge.SerializeActual(_actual);
+
+        var kernelOptions = new KernelRequestOptions
         {
-            return await CompareWithExpectedFileAsync(stringExpected);
-        }
-
-        // Handle other string types (ellipsis patterns, JSON, plain strings)
-        if (expected is string strExpected)
-        {
-            if (EllipsisPatternMatcher.TryMatch(strExpected, _actual))
-            {
-                return new ComparisonSuccess();
-            }
-            if (JsonUtilities.LooksLikeJson(strExpected))
-            {
-                var parsedExpected = FileContentsParser.ParseText(strExpected);
-                if (_actual is string stringActual && JsonUtilities.LooksLikeJson(stringActual))
-                {
-                    var parsedActual = FileContentsParser.ParseText(stringActual);
-                    return await ComparisonEngine.CompareAsync(parsedExpected, parsedActual, _options);
-                }
-                return await ComparisonEngine.CompareAsync(parsedExpected, _actual, _options);
-            }
-            return await ComparisonEngine.CompareAsync(strExpected, _actual, _options);
-        }
-
-        // If actual is a JSON string and expected is not a string, parse actual first
-        if (_actual is string actualJsonStr && JsonUtilities.LooksLikeJson(actualJsonStr))
-        {
-            var parsedActual = FileContentsParser.ParseText(actualJsonStr);
-            // Unwrap single-element list when expected is not a collection
-            object? resolvedActual = parsedActual.Count == 1
-                ? parsedActual[0]
-                : (object)parsedActual.ToArray();
-            var jsonResult = await ComparisonEngine.CompareAsync(expected, resolvedActual, _options);
-            if (jsonResult.IsSuccess) return new ComparisonSuccess();
-            var jsonError = jsonResult as ComparisonError;
-            throw new ComparisonException($"Expected to match, but did not: {expected} != {_actual}",
-                jsonError);
-        }
-
-        var result = await ComparisonEngine.CompareAsync(expected, _actual, _options);
-        if (result.IsSuccess) return new ComparisonSuccess();
-
-        var comparisonError = result as ComparisonError;
-        throw new ComparisonException($"Expected to match, but did not: {expected} != {_actual}",
-            comparisonError);
-    }
-
-    /// <summary>
-    /// Handles comparison when the expected value is a file path.
-    /// Loads, parses, and compares the file contents against the actual value.
-    /// </summary>
-    private async Task<ComparisonResult> CompareWithExpectedFileAsync(string expectedFilePath)
-    {
-        var fullPath = ResolveExpectedFilePath(expectedFilePath);
-
-        if (!File.Exists(fullPath))
-        {
-            throw new ComparisonException($"Expected output file not found: {expectedFilePath}");
-        }
-
-        var parseResult = await FileContentsParser.ParseFileAsync(fullPath);
-        if (!parseResult.IsSuccess)
-        {
-            throw new ComparisonException($"Failed to parse expected output file: {parseResult.Error}");
-        }
-
-        var (normalizedExpected, normalizedActual) = NormalizeForComparison(parseResult.Data!, _actual);
-
-        // Check for global ellipsis pattern
-        var finalOptions = DetermineComparisonOptions(normalizedExpected);
-
-        var result = await ComparisonEngine.CompareAsync(normalizedExpected, normalizedActual, finalOptions);
-        if (result.IsSuccess) return new ComparisonSuccess();
-
-        var comparisonError = result as ComparisonError;
-        throw new ComparisonException($"Validation error: {comparisonError?.Message}", comparisonError);
-    }
-
-    /// <summary>
-    /// ShouldNotMatch is provided only for internal testing and should
-    /// not be used in your unit tests. If you find yourself wanting to
-    /// use this method, we strongly advise you to rewrite your test to
-    /// check for a positive result.
-    /// </summary>
-    /// <param name="expected"></param>
-    /// <returns></returns>
-    public ComparisonResult ShouldNotMatch(object? expected)
-    {
-        var result = ComparisonEngine.Compare(expected, _actual, _options);
-        if (!result.IsSuccess) // A failure here is a success. "War is peace, freedom is slavery, ignorance is strength"
-        {
-            return new ComparisonSuccess();
-        }
-
-        // Values matched — return a failure result instead of throwing so callers can assert on it
-        return new ComparisonError($"Expected to not match, but did match: {expected} != {_actual}");
-    }
-
-    /// <summary>
-    /// Resolves a relative expected file path to an absolute path.
-    /// Searches common locations for expected output files.
-    /// </summary>
-    private static string ResolveExpectedFilePath(string expectedFilePath)
-    {
-        // If absolute path, use as-is
-        if (Path.IsPathRooted(expectedFilePath))
-            return expectedFilePath;
-
-        // Look for examples directory relative to current directory or test assembly
-        var currentDir = Directory.GetCurrentDirectory();
-        var possiblePaths = new[]
-        {
-            Path.Combine(currentDir, "..", "examples", expectedFilePath),
-            Path.Combine(currentDir, "examples", expectedFilePath),
-            Path.Combine(currentDir, "..", "..", "examples", expectedFilePath),
-            expectedFilePath // Fallback to original path
+            ComparisonType = _options.ArrayMode == ArrayComparisonMode.Ordered ? "ordered" : null,
+            IgnoreFieldValues = _options.IgnoredFields.Count > 0 ? _options.IgnoredFields : null,
         };
 
-        return possiblePaths.FirstOrDefault(File.Exists) ?? expectedFilePath;
+        var response = await KernelBridge.Shared.CompareAsync(
+            expectedContent, actualPayload, kernelOptions, cancellationToken);
+
+        if (response.IsMatch) return new ComparisonSuccess();
+
+        if (!string.IsNullOrEmpty(response.Error))
+            throw new ComparisonException($"Kernel error: {response.Error}");
+
+        var errorMessage = BuildKernelErrorMessage(response.Errors);
+        var firstError = response.Errors?.FirstOrDefault();
+        var details = firstError != null
+            ? new ComparisonError(
+                firstError.Path ?? "",
+                firstError.Expected ?? "",
+                firstError.Actual ?? "",
+                firstError.Message)
+            : new ComparisonError(errorMessage);
+
+        throw new ComparisonException($"Validation error: {errorMessage}", details);
     }
 
-    /// <summary>
-    /// Normalizes expected and actual data for comparison.
-    /// Handles single vs multiple document scenarios.
-    /// </summary>
-    private static (object Expected, object Actual) NormalizeForComparison(List<object> expectedData,
-        object? actualOutput)
+    private static string BuildKernelErrorMessage(List<KernelError>? errors)
     {
-        // If expected has single item and actual is not array, compare as single objects
-        if (expectedData.Count == 1 && actualOutput is not IEnumerable<object>)
-            return (expectedData[0], actualOutput ?? new object());
-
-        // If expected has single item that is an array and actual is also an array,
-        // unwrap the expected to compare arrays directly
-        if (expectedData.Count == 1 &&
-            expectedData[0] is IEnumerable<object> expectedArray &&
-            (actualOutput is IEnumerable<object> || actualOutput is IEnumerable<BsonDocument>))
-            return (expectedArray, actualOutput);
-
-        // Otherwise compare as collections
-        return (expectedData.ToArray(), actualOutput ?? Array.Empty<object>());
-    }
-
-    /// <summary>
-    /// Determines final comparison options based on global ellipsis detection.
-    /// </summary>
-    private ComparisonOptions DetermineComparisonOptions(object normalizedExpected)
-    {
-        var hasRootGlobalEllipsis = normalizedExpected is IDictionary<string, object> dict &&
-                                    EllipsisPatternMatcher.HasGlobalEllipsis(dict);
-
-        return hasRootGlobalEllipsis
-            ? _options with { InheritedGlobalEllipsis = true }
-            : _options;
+        if (errors is not { Count: > 0 }) return "Comparison failed";
+        return string.Join("\n", errors.Select(e =>
+            string.IsNullOrEmpty(e.Path) ? e.Message : $"{e.Path}: {e.Message}"));
     }
 }

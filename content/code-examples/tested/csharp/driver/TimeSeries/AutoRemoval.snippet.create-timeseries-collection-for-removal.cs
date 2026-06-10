@@ -11,5 +11,5 @@ var createCommand = new BsonDocument
     { "expireAfterSeconds", 86400 }
 };
 
-// Execute the command to create the collection  
+// Execute the command to create the collection
 await database.RunCommandAsync<BsonDocument>(createCommand);

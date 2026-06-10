@@ -62,7 +62,7 @@ public class SecondaryIndexes
                 }
 
                 ,
-                { "timestamp", new DateTime(2022, 1, 15, 0, 0, 0, DateTimeKind.Utc) } ,
+                { "timestamp", new DateTime(2045, 1, 15, 0, 0, 0, DateTimeKind.Utc) } ,
                 { "currentConditions", new BsonDocument
                     {
                         { "windDirection", 127.0 },
@@ -88,7 +88,7 @@ public class SecondaryIndexes
                         }
                     }
                 },
-                { "timestamp", new DateTime(2022, 1, 15, 0, 1, 0, DateTimeKind.Utc) },
+                { "timestamp", new DateTime(2045, 1, 15, 0, 1, 0, DateTimeKind.Utc) },
                 { "currentConditions", new BsonDocument
                     {
                         { "windDirection", 128.0 },
@@ -114,7 +114,7 @@ public class SecondaryIndexes
                         }
                     }
                 },
-                { "timestamp", new DateTime(2022, 1, 15, 0, 1, 0, DateTimeKind.Utc) },
+                { "timestamp", new DateTime(2045, 1, 15, 0, 1, 0, DateTimeKind.Utc) },
                 { "currentConditions", new BsonDocument
                     {
                         { "windDirection", 115.0 },
@@ -145,7 +145,7 @@ public class SecondaryIndexes
 
         // :snippet-start: sort-with-secondary-index
         var matchStage = Builders<BsonDocument>.Filter.Gte("timestamp",
-            new DateTime(2022, 1, 15, 0, 0, 0, DateTimeKind.Utc));
+            new DateTime(2045, 1, 15, 0, 0, 0, DateTimeKind.Utc));
 
         var pipeline = new EmptyPipelineDefinition<BsonDocument>()
             .Match(matchStage)
