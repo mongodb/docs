@@ -55,6 +55,12 @@ const tocData: TocItem[] = [
             versions: { excludes: ['v8.0', 'v8.1', 'v8.2'] },
           },
           {
+            label: 'Run an Atlas Vector Search Query',
+            contentSite: 'entity-framework',
+            url: '/docs/entity-framework/:version/fundamentals/atlas-vector-search',
+            versions: { includes: ['upcoming'] },
+          },
+          {
             label: 'Entity Relationships',
             contentSite: 'entity-framework',
             url: '/docs/entity-framework/:version/fundamentals/relationships',
