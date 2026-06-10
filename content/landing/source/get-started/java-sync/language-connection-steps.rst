@@ -43,11 +43,8 @@
       that file. This code connects to your cluster and queries your
       sample data.
       
-      .. literalinclude:: /shared/drivers-get-started/java-sync/get-started-connect.java
+      .. literalinclude:: /code-examples/tested/java/driver-sync/getStarted/GetStarted.snippet.example.java
          :language: java
-         :start-after: // begin QuickStart
-         :end-before: // end QuickStart
-         :dedent:
 
    .. step:: Add your connection string
 
@@ -59,4 +56,6 @@
       output contains details about the retrieved
       movie document:
 
-      .. include:: /get-started/includes/application-output.rst
+      .. literalinclude:: /code-examples/tested/java/driver-sync/getStarted/GetStartedOutput.txt
+         :language: json
+         :copyable: false
