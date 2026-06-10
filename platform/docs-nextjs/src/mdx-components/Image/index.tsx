@@ -33,8 +33,8 @@ export interface ImageProps {
   alt: string;
   border?: boolean;
   lightbox?: boolean;
-  figwidth?: number;
-  width?: number;
+  figwidth?: number | string;
+  width?: number | string;
   caption?: string;
   className?: string;
   height?: number;
@@ -58,11 +58,27 @@ export const Image = ({
   const fullPath = path.join(projectPath, src);
   const imageUrl = isOfflineBuild ? `/docs/${fullPath}` : formatImageUrl(fullPath);
 
-  const normalizeWidth = () => (width ?? figwidth ? `${width ?? figwidth}px` : 'auto');
-  const normalizeHeight = () => (height ? `${height}px` : 'auto');
+  // Prefer figwidth (the author's intended display width from `:figwidth:`) over
+  // width, which Snooty auto-populates with the image's intrinsic pixel dimensions
+  // when no explicit `:width:` is set. Using intrinsic width would render images at
+  // full size, larger than the author intended.
+  // Numbers are pixel dimensions and need a `px` unit; strings already carry
+  // their unit (e.g. "50%" from `:figwidth: 50%`) and pass through unchanged.
+  const toCssLength = (value?: number | string) =>
+    value === undefined || value === null ? 'auto' : typeof value === 'number' ? `${value}px` : value;
+  const normalizeWidth = () => toCssLength(figwidth ?? width);
+  const normalizeHeight = () => toCssLength(height);
   const hasHeroImageClass = className === 'hero-img';
 
-  if (lightbox) {
+  // Match Snooty's Figure behavior: auto-enable the lightbox when the figure is
+  // scaled to under 90% of the image's intrinsic width, so downscaled images get a
+  // "click to enlarge" affordance even without an explicit `:lightbox:` option.
+  // Only applies to pixel widths; a percentage figwidth can't be compared to the
+  // intrinsic pixel width.
+  const showLightbox =
+    lightbox || (typeof figwidth === 'number' && typeof width === 'number' && figwidth / width < 0.9);
+
+  if (showLightbox) {
     return (
       <Lightbox
         figure={

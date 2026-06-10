@@ -1,15 +1,7 @@
 import path from 'path';
 import { NextResponse, type NextRequest } from 'next/server';
 import { getBlobWithFallback } from '@/mdx-utils/blob-read';
-
-const mimeTypes: Record<string, string> = {
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg',
-  '.gif': 'image/gif',
-  '.webp': 'image/webp',
-  '.svg': 'image/svg+xml',
-};
+import { detectImageContentType } from '@/utils/detect-image-content-type';
 
 /**
  * Handles GET requests via path segments
@@ -24,13 +16,21 @@ export async function GET(_req: NextRequest, { params }: { params: { path: strin
       return new NextResponse('Not Found', { status: 404 });
     }
 
-    const extension = path.extname(imagePath).toLowerCase();
-    const contentType = mimeTypes[extension] || 'application/octet-stream';
+    // Buffer the blob into a fixed-length body. Passing the Blob directly makes
+    // NextResponse stream it with `Transfer-Encoding: chunked` and no
+    // Content-Length, which browsers truncate for larger images — they arrive as
+    // 0-byte bodies and fail to decode (curl tolerates chunked, so it masks the
+    // bug). An explicit Content-Length avoids the chunked encoding entirely.
+    const bytes = Buffer.from(await blob.arrayBuffer());
 
-    return new NextResponse(blob, {
+    const extension = path.extname(imagePath).toLowerCase();
+    const contentType = detectImageContentType(bytes, extension);
+
+    return new NextResponse(bytes, {
       status: 200,
       headers: {
         'Content-Type': contentType,
+        'Content-Length': String(bytes.byteLength),
         'Cache-Control': 'public, max-age=31536000',
       },
     });

@@ -65,10 +65,6 @@ const LightboxWrapper = styled('div')<{ figwidth: string }>`
   margin-bottom: ${theme.size.medium};
   display: block;
   max-width: 100%;
-
-  img {
-    max-height: 500px;
-  }
 `;
 
 interface LightboxProps {

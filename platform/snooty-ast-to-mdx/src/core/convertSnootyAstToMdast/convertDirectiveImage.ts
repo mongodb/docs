@@ -78,7 +78,16 @@ interface ToNumericAttrArgs {
 const toNumericAttr = ({ name, value }: ToNumericAttrArgs): MdastNode | null => {
   if (value === undefined || value === null || value === '') return null;
 
-  const num = typeof value === 'number' ? value : parseFloat(String(value));
+  const raw = String(value).trim();
+
+  // Preserve percentage units as strings (e.g. "50%"). A bare parseFloat would
+  // succeed and drop the unit, after which the value would be rendered as
+  // pixels — making a `:figwidth: 50%` figure 50px wide instead of 50% wide.
+  if (raw.endsWith('%')) {
+    return { type: 'mdxJsxAttribute', name, value: raw } as MdastNode;
+  }
+
+  const num = typeof value === 'number' ? value : parseFloat(raw);
 
   if (!Number.isNaN(num)) {
     return {
@@ -88,7 +97,7 @@ const toNumericAttr = ({ name, value }: ToNumericAttrArgs): MdastNode | null => 
     } as MdastNode;
   }
 
-  return { type: 'mdxJsxAttribute', name, value: String(value) } as MdastNode;
+  return { type: 'mdxJsxAttribute', name, value: raw } as MdastNode;
 };
 
 interface GetImportPathArgs {
