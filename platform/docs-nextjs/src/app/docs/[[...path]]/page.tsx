@@ -1,4 +1,4 @@
-import { notFound, redirect } from 'next/navigation';
+import { notFound, permanentRedirect, redirect } from 'next/navigation';
 import { loadMDX } from '@/mdx-utils/load-mdx';
 import { getSiteMetadata } from '@/mdx-utils/load-metadata';
 import { getAllDocsetsWithVersionsCached } from '@/services/db/docsets';
@@ -9,6 +9,7 @@ import { getPageMetadata } from '@/utils/seo';
 import type { ServerSideChangelogData } from '@/types/openapi';
 import { getChangelogData } from '@/services/db/openapi';
 import { findSoftRedirect } from '@/redirects/soft-redirects';
+import { getIndexRedirectTarget } from '@/utils/index-redirect';
 
 /** Normalize the optional catch-all segment to a concrete path array.
  * params.path is undefined at /docs/ (Next.js [[...path]] root match). */
@@ -32,7 +33,11 @@ interface PageProps {
 }
 
 export default async function MDXPage({ params }: PageProps) {
+  const indexRedirect = getIndexRedirectTarget(params.path);
+  if (indexRedirect) return permanentRedirect(indexRedirect);
+
   const path = normalizeUrlPath(params.path);
+
   const result = isIncludeOnlyPath(path) ? null : await loadMDX(path);
 
   if (!result || !result.frontmatter) {
@@ -79,7 +84,12 @@ export default async function MDXPage({ params }: PageProps) {
 
 // Generate metadata for the page
 export async function generateMetadata({ params }: PageProps) {
+  // If the last URL segment is "index", return null to avoid generating metadata for the index page.
+  // We're redirecting to the parent path instead
+  if (getIndexRedirectTarget(params.path)) return null;
+
   const path = normalizeUrlPath(params.path);
+
   const result = isIncludeOnlyPath(path) ? null : await loadMDX(path);
 
   if (!result || !result.frontmatter) {
