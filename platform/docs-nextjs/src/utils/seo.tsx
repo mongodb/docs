@@ -111,8 +111,13 @@ const getCanonicalUrl = ({
   const siteBasePrefix = docset.prefix[getRepoBranchesPrefixEnv(env)];
   const pathPrefix = generateVersionedPrefix(siteBasePrefix, urlSlug);
 
+  // Strip a trailing "index" path segment (or root "/") so the canonical points
+  // to the clean URL (e.g. /docs/ instead of /docs/index/). Only matches "index"
+  // at the end of the path, leaving slugs like "index-management" untouched.
+  const cleanSlug = slug === '/' ? '' : slug.replace(/(^|\/)index$/, '');
+
   // Use default logic assuming there is no canonical provided from the meta directive
-  let canonical = `${DOTCOM_BASE_URL}${normalizePath(`${pathPrefix}/${slug === '/' ? '' : slug}`)}`;
+  let canonical = `${DOTCOM_BASE_URL}${normalizePath(`${pathPrefix}/${cleanSlug}`)}`;
 
   // else we check for EOL
   if (metadata.eol && metadata.canonical) {
