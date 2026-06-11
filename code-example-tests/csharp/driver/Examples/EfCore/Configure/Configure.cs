@@ -1,12 +1,13 @@
 // :replace-start: {
 //   "terms": {
-//     "DotNetEnv.Env.GetString(\"CONNECTION_STRING\")": "\"<Your MongoDB Connection URI>\"",
-//     "\"sample_guides\"": "\"<database name>\""
+//     "DotNetEnv.Env.GetString(\"CONNECTION_STRING\")": "\"<connection string>\"",
+//     "\"test_ef_configure\"": "\"<database name>\""
 //   }
 // }
 namespace Examples.EfCore.Configure;
 
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.EntityFrameworkCore.Extensions;
@@ -46,7 +47,7 @@ public class Configure
         var mongoClient = new MongoClient(DotNetEnv.Env.GetString("CONNECTION_STRING"));
 
         var dbContextOptions =
-            new DbContextOptionsBuilder<MyDbContext>().UseMongoDB(mongoClient, "sample_guides");
+            new DbContextOptionsBuilder<MyDbContext>().UseMongoDB(mongoClient, "test_ef_configure");
 
         var db = new MyDbContext(dbContextOptions.Options);
         // :snippet-end:
@@ -56,16 +57,25 @@ public class Configure
     public static void ConfigureEFProvider()
     {
         // :snippet-start: configure-ef-provider
-        var mongoClient = new MongoClient(DotNetEnv.Env.GetString("CONNECTION_STRING"));
+        var serviceCollection = new ServiceCollection();
+        serviceCollection.AddSingleton<IMongoClient>(
+            new MongoClient(DotNetEnv.Env.GetString("CONNECTION_STRING")));
 
-        var dbContextOptions =
-            new DbContextOptionsBuilder<MyDbContext>().UseMongoDB(mongoClient, "sample_guides");
+        serviceCollection.AddDbContext<MyDbContext>((serviceProvider, options) =>
+        {
+            var mongoClient = serviceProvider.GetRequiredService<IMongoClient>();
+            options.UseMongoDB(mongoClient, "test_ef_configure");
+        });
 
-        var db = new MyDbContext(dbContextOptions.Options);
+        using var app = serviceCollection.BuildServiceProvider();
+        using (var scope = app.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<MyDbContext>();
 
-        // Add a new customer and save it to the database
-        db.Customers.Add(new Customer() { Name = "John Doe", Order = "1 Green Tea" });
-        db.SaveChanges();
+            // Add a new customer and save it to the database
+            db.Customers.Add(new Customer() { Name = "John Doe", Order = "1 Green Tea" });
+            db.SaveChanges();
+        }
         // :snippet-end:
     }
 }

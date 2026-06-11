@@ -1,4 +1,4 @@
-var mongoClient = new MongoClient("<Your MongoDB Connection URI>");
+var mongoClient = new MongoClient("<connection string>");
 
 var dbContextOptions =
     new DbContextOptionsBuilder<MyDbContext>().UseMongoDB(mongoClient, "<database name>");

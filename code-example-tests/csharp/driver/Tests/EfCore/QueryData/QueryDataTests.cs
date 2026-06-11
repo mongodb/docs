@@ -1,6 +1,9 @@
 namespace Tests.EfCore.QueryData;
 
+using System.IO;
 using Examples.EfCore.QueryData;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using Utilities.Comparison;
@@ -181,6 +184,49 @@ public class QueryDataTests
         var result = example.CheckFieldIsNullOrMissing();
 
         Expect.That(result).ShouldMatch(new[] { "Planet X", "Planet Null" });
+    }
+
+    [Test]
+    [Description("Verifies that LogTo() logs output when a query is executed.")]
+    public void TestLogTo()
+    {
+        using var writer = new StringWriter();
+        Console.SetOut(writer);
+
+        using var db = QueryData.LogTo();
+        _ = db.Planets.FirstOrDefault();
+
+        Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true });
+        Expect.That(writer.ToString().Length > 0).ShouldMatch(true);
+    }
+
+    [Test]
+    [Description("Verifies that SensitiveDataLogging() logs output when a query is executed.")]
+    public void TestSensitiveDataLogging()
+    {
+        using var writer = new StringWriter();
+        Console.SetOut(writer);
+
+        using var db = QueryData.SensitiveDataLogging();
+        _ = db.Planets.FirstOrDefault();
+
+        Console.SetOut(new StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true });
+        Expect.That(writer.ToString().Length > 0).ShouldMatch(true);
+    }
+
+    [Test]
+    [Description("Verifies that HasElementName() correctly maps the property to the expected element name.")]
+    public void TestHasElementName()
+    {
+        var options = new DbContextOptionsBuilder<QueryDataDbContext>()
+            .UseMongoDB(_client, DbName)
+            .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning))
+            .Options;
+
+        using var db = new QueryDataDbContext(options);
+        var entityType = db.Model.FindEntityType(typeof(Planet));
+        var nameProperty = entityType?.FindProperty(nameof(Planet.name));
+        Expect.That(nameProperty?.GetElementName()).ShouldMatch("name");
     }
 
     private static string FullPath(string fileName)

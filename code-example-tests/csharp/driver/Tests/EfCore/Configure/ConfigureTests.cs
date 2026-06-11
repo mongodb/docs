@@ -9,26 +9,18 @@ using Utilities.Comparison;
 public class ConfigureTests
 {
     private IMongoClient _client = null!;
-    private IMongoCollection<BsonDocument> _customers = null!;
-
-    private static FilterDefinition<BsonDocument> TestCustomerFilter =>
-        Builders<BsonDocument>.Filter.And(
-            Builders<BsonDocument>.Filter.Eq("Name", "John Doe"),
-            Builders<BsonDocument>.Filter.Eq("Order", "1 Green Tea"));
 
     [SetUp]
     public void SetUp()
     {
         var connectionString = DotNetEnv.Env.GetString("CONNECTION_STRING");
         _client = new MongoClient(connectionString);
-        _customers = _client.GetDatabase("sample_guides").GetCollection<BsonDocument>("customers");
-        _customers.DeleteMany(TestCustomerFilter);
     }
 
     [TearDown]
     public void TearDown()
     {
-        _customers.DeleteMany(TestCustomerFilter);
+        _client.DropDatabase("test_ef_configure");
         _client.Dispose();
     }
 
@@ -46,7 +38,12 @@ public class ConfigureTests
     {
         Configure.ConfigureEFProvider();
 
-        var count = _customers.CountDocuments(TestCustomerFilter);
+        var customers = _client.GetDatabase("test_ef_configure")
+            .GetCollection<BsonDocument>("customers");
+        var filter = Builders<BsonDocument>.Filter.And(
+            Builders<BsonDocument>.Filter.Eq("Name", "John Doe"),
+            Builders<BsonDocument>.Filter.Eq("Order", "1 Green Tea"));
+        var count = customers.CountDocuments(filter);
         Expect.That(count).ShouldMatch(1);
     }
 }

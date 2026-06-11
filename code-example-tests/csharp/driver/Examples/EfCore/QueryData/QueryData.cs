@@ -1,7 +1,8 @@
 // :replace-start: {
 //   "terms": {
 //     "DotNetEnv.Env.GetString(\"CONNECTION_STRING\")": "\"<connection string URI>\"",
-//     "\"test_query_data\"": "\"sample_guides\""
+//     "\"test_query_data\"": "\"sample_guides\"",
+//     "QueryDataDbContext": "MyDbContext"
 //   }
 // }
 namespace Examples.EfCore.QueryData;
@@ -47,6 +48,23 @@ public class Planet
 }
 // :snippet-end:
 
+public class QueryDataDbContext : DbContext
+{
+    public DbSet<Planet> Planets { get; init; } = null!;
+
+    public QueryDataDbContext(DbContextOptions options) : base(options) { }
+
+    // :snippet-start: has-element-name
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+        modelBuilder.Entity<Planet>()
+            .Property(p => p.name)
+            .HasElementName("name");
+    }
+    // :snippet-end:
+}
+
 public class QueryData
 {
     private readonly PlanetDbContext _db;
@@ -63,6 +81,41 @@ public class QueryData
         // :snippet-start: create-instance
         var client = new MongoClient(DotNetEnv.Env.GetString("CONNECTION_STRING"));
         var db = PlanetDbContext.Create(client.GetDatabase("test_query_data"));
+        // :snippet-end:
+        return db;
+    }
+
+    public static QueryDataDbContext LogTo()
+    {
+        // :snippet-start: log-to
+        var mongoClient = new MongoClient(DotNetEnv.Env.GetString("CONNECTION_STRING"));
+
+        var dbContextOptions =
+            new DbContextOptionsBuilder<QueryDataDbContext>()
+                .UseMongoDB(mongoClient, "test_query_data")
+                .LogTo(Console.WriteLine)
+                .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)) // :remove:
+                .Options;
+
+        var db = new QueryDataDbContext(dbContextOptions);
+        // :snippet-end:
+        return db;
+    }
+
+    public static QueryDataDbContext SensitiveDataLogging()
+    {
+        // :snippet-start: sensitive-data-logging
+        var mongoClient = new MongoClient(DotNetEnv.Env.GetString("CONNECTION_STRING"));
+
+        var dbContextOptions =
+            new DbContextOptionsBuilder<QueryDataDbContext>()
+                .UseMongoDB(mongoClient, "test_query_data")
+                .LogTo(Console.WriteLine)
+                .EnableSensitiveDataLogging()
+                .ConfigureWarnings(w => w.Ignore(CoreEventId.ManyServiceProvidersCreatedWarning)) // :remove:
+                .Options;
+
+        var db = new QueryDataDbContext(dbContextOptions);
         // :snippet-end:
         return db;
     }
@@ -220,4 +273,3 @@ public class QueryData
     }
 }
 // :replace-end:
-

@@ -359,13 +359,79 @@ the ``orderFromSun`` field in the ``Planets`` collection:
    :language: csharp
    :category: usage example
 
+Inspect the Queries Sent to MongoDB
+-----------------------------------
+
+After you write a LINQ query, inspect the generated query to confirm that the provider
+is sending the expected shape to {+mdb-server+}. To inspect
+queries during development, enable EF Core logging on your ``DbContext`` by using
+the `LogTo() <https://learn.microsoft.com/en-us/ef/core/logging-events-diagnostics/simple-logging#configuration>`__
+method.
+
+The following example shows how to enable logging to the console when creating a
+``DbContext`` object:
+
+.. literalinclude:: /code-examples/tested/csharp/ef-core/QueryData/QueryData.snippet.log-to.cs
+   :language: csharp
+   :copyable: true
+   :emphasize-lines: 6
+   :category: usage example
+
+Enable Sensitive Data Logging
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The provider logs full MQL query text only when sensitive data logging is
+enabled. If you don't enable sensitive data logging, query logs might omit
+values. To enable sensitive data logging, call the
+`EnableSensitiveDataLogging()
+<https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontextoptionsbuilder.enablesensitivedatalogging>`__
+method from your ``DbContextOptionsBuilder`` object, as shown in the following
+example:
+
+.. literalinclude:: /code-examples/tested/csharp/ef-core/QueryData/QueryData.snippet.sensitive-data-logging.cs
+   :language: csharp
+   :copyable: true
+   :emphasize-lines: 7
+   :category: usage example
+
+.. important:: Avoid in Production
+
+   Enable sensitive data logging only in development environments.
+
+Custom Serialization Conventions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you register custom BSON serialization conventions on the ``MongoClient``,
+such as camel-case field naming, those conventions can change the field names
+stored in MongoDB so that they differ from the property names in your entity
+model. The {+provider-short+} uses entity property names to generate MQL, so
+a mismatch can cause queries to target the wrong fields and bypass any indexes
+on those fields. When your stored field names differ from your entity property
+names, you can explicitly map a property to its stored field name in
+``OnModelCreating()`` by using ``HasElementName()``, as shown in the following
+example:
+
+.. literalinclude:: /code-examples/tested/csharp/ef-core/QueryData/QueryData.snippet.has-element-name.cs
+   :language: csharp
+   :copyable: true
+   :emphasize-lines: 6
+   :category: usage example
+
+.. tip:: {+csharp-driver-short+} Monitoring APIs
+
+   If you need lower-level visibility into MongoDB commands, you can use the
+   {+csharp-driver-short+} monitoring APIs on your ``MongoClient`` object.
+   To learn more about these APIs, see
+   :driver:`Monitoring </csharp/current/logging-and-monitoring/monitoring/>`
+   in the {+csharp-driver-short+} documentation.
+
 Additional Information
 ----------------------
 
-To learn more about aggregations in MongoDB, see the :manual:`Aggregation
-Operations </aggregation>` guide in the {+mdb-server+} manual.
+To learn more about aggregations in MongoDB, see the :ref:`Aggregation
+Operations <aggregation>` guide in the {+mdb-server+} manual.
 
-To learn more about the methods discussed in this guide, see the following .NET API
+To learn more about the EF Core methods discussed in this guide, see the following .NET API
 documentation links:
 
 - `FirstOrDefault() <https://learn.microsoft.com/en-us/dotnet/api/system.linq.queryable.firstordefault>`__
@@ -374,10 +440,17 @@ documentation links:
 - `OrderByDescending() <https://learn.microsoft.com/en-us/dotnet/api/system.linq.queryable.orderbydescending>`__
 - `ThenBy() <https://learn.microsoft.com/en-us/dotnet/api/system.linq.queryable.thenby>`__
 - `ThenByDescending() <https://learn.microsoft.com/en-us/dotnet/api/system.linq.queryable.thenbydescending>`__
+- `LogTo() <https://learn.microsoft.com/en-us/ef/core/logging-events-diagnostics/simple-logging#configuration>`__
+- `EnableSensitiveDataLogging() <https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontextoptionsbuilder.enablesensitivedatalogging>`__
 
-To learn more about the ``Mql`` class methods, see the following {+csharp-driver-short+}
-API documentation links:
+To learn more about the {+csharp-driver-short+} methods used on this page,
+see the following API documentation links:
 
 - `Mql.Exists() <{+driver-api-root+}/MongoDB.Driver/MongoDB.Driver.Mql.Exists.html>`__
 - `Mql.IsMissing() <{+driver-api-root+}/MongoDB.Driver/MongoDB.Driver.Mql.IsMissing.html>`__
 - `Mql.IsNullOrMissing() <{+driver-api-root+}/MongoDB.Driver/MongoDB.Driver.Mql.IsNullOrMissing.html>`__
+
+To learn more about the ``HasElementName()`` method, see the following {+provider-short+}
+API documentation link:
+
+- `HasElementName() <{+api-root+}/Microsoft.EntityFrameworkCore.MongoPropertyBuilderExtensions.HasElementName.html>`__
