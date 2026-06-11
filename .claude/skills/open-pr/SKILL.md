@@ -27,6 +27,19 @@ Run these in parallel:
 
 From the changed files list, check whether any files exist under `content/`. Set a flag `HAS_DOC_FILES` to true if at least one such file exists, false otherwise.
 
+## Step 1c — Check PR size
+
+Run the size report from the repo root and show its output to the user:
+
+```bash
+python3 .claude/hooks/pr-size-check.py --report
+```
+
+This reports the PR's size and classification using the same logic as the PR-size hook. Reviews get harder past ~10 files / ~300 changed lines, and lose coverage past ~20 / ~1,200.
+
+- If the verdict is `EXCEEDS` or `large`, recommend splitting the work into smaller, independently reviewable PRs, and ask the user whether they want to split first or proceed with the current PR.
+- Do **not** block. If the user chooses to proceed, or the verdict is `exempt` (mechanical/backport/version-cut/code-example work) or within the recommended size, continue to Step 2.
+
 ## Step 2 — Derive the JIRA ticket
 
 Parse the ticket ID from the branch name. Branch names follow the pattern `DOCSP-NNNNN-<description>`. Extract the `DOCSP-NNNNN` portion.

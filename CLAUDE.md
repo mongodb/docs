@@ -121,6 +121,27 @@ When backporting (only when explicitly requested):
 - Apply to each specified version directory, adapting for version differences.
 - Verify technical accuracy per version before applying.
 
+# PR SIZE
+
+Large PRs lose review coverage: an audit of past PRs found reviews get
+harder past ~10 changed files / ~300 changed lines, and that past ~20 files
+/ ~1,200 lines reviewers stop engaging and approve without real review. Keep
+PRs reviewable.
+
+- Scope each PR to a single, self-contained change. Keep it under ~10 files /
+  ~300 changed lines where possible, and do not exceed ~20 files / ~1,200
+  changed lines.
+- When a task will clearly exceed these sizes, propose splitting it into
+  multiple independently reviewable PRs *before* writing code, and call out
+  the split in your plan.
+- If a size warning fires while you work, heed it: stop adding scope and
+  prefer to open what you have as its own PR. Continue past the recommended
+  size only when the user has explicitly authorized a larger PR.
+- These limits target hand-written content. Genuinely mechanical changes
+  (version flips, backports, bulk redirects/TOC updates, code example work
+  under `code-example-tests/`, and agent tooling under `.claude/` such as
+  hooks and skills) are exempt.
+
 # GITHUB INTEGRATION
 
 When the user requests a PR:
