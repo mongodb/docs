@@ -8980,7 +8980,7 @@ export const toc: L1TocItem[] = [
           {
             label: 'AI Agents',
             isExternal: true,
-            url: 'https://www.mongodb.com/docs/atlas/atlas-vector-search/ai-agents/',
+            url: 'https://www.mongodb.com/docs/vector-search/about/ai-agents/',
           },
         ],
       },
