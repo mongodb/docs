@@ -92,9 +92,6 @@ configure your stream processor:
 
          .. step:: Add a sink connection.
 
-            In the :guilabel:`Sink` field, select a destination
-            connection from the :guilabel:`Connection` drop-down list.
-
             In the :guilabel:`Sink` field, select a connection from the
             :guilabel:`Connection` drop-down list to write your
             processed data to.
@@ -105,9 +102,9 @@ configure your stream processor:
 
             .. example:: 
 
-               The following ``sink`` stage write processed data to the
+               The following ``sink`` stage writes processed data to the
                ``demoDb.demoColl`` collection in a connection named
-               ``demoConnection`` connection:
+               ``demoConnection``:
 
                .. code-block:: json
                   :copyable: true
@@ -138,7 +135,7 @@ configure your stream processor:
 
             If there are existing stream processors in your {+spw+},
             click the :guilabel:`+ Create stream processor` button, then
-            select :guilabel:`Visual Builder` from the drop-down
+            select :guilabel:`JSON editor` from the drop-down
             options.
 
             The JSON editor opens with a text box where you can
