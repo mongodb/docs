@@ -50,9 +50,9 @@ The `--custom` flag requires **lowercase-hyphenated** display names — not the 
 | Display Name | `--custom` Name | Field Key |
 |---|---|---|
 | Story Points | `story-points` | customfield_10555 |
-| Did you use AI? | `did-you-use-ai` | customfield_27257 |
+| Did you use AI? | `did-you-use-ai?` | customfield_27257 |
 
-Pattern: `"Display Name"` → `display-name` (strip punctuation, lowercase, hyphenate).
+Pattern: `"Display Name"` → `display-name` — lowercase and replace spaces with hyphens, but **do not strip punctuation**. jira-cli preserves characters like `?`, so "Did you use AI?" becomes `did-you-use-ai?` (trailing `?` included), not `did-you-use-ai`. Passing the wrong slug triggers an `Invalid custom fields used in the command` warning and the field is silently ignored (the command still exits 0).
 
 ### JQL ORDER BY
 
@@ -244,7 +244,7 @@ The `resolution` field is screen-controlled — it can only be set during the Cl
 ```bash
 jira issue edit DOCSP-12345 \
   --custom "story-points=3" \
-  --custom "did-you-use-ai=Yes" \
+  --custom "did-you-use-ai?=Yes" \
   --no-input
 jira issue move DOCSP-12345 "Close Issue"
 ```
