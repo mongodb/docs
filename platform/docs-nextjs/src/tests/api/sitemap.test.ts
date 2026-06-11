@@ -161,6 +161,26 @@ describe('GET /api/sitemap/[...path]', () => {
         '<loc>https://www.mongodb.com/docs/atlas/get-started/?cloud=atlas&amp;interface=shell</loc>',
       );
     });
+
+    it('sorts composable URLs together with toctreeOrder URLs', async () => {
+      mockGetSiteMetadata.mockResolvedValue({
+        projectPath: 'atlas',
+        siteMetadata: createMockMetadata({
+          toctreeOrder: ['zebra', 'apple'],
+          composablePages: {
+            'mango': [{ cloud: 'atlas' }],
+          },
+        }),
+      });
+
+      const res = await GET(stubRequest, {
+        params: { path: ['atlas', 'sitemap-0.xml'] },
+      });
+      const body = await res.text();
+
+      const locs = [...body.matchAll(/<loc>(.*?)<\/loc>/g)].map((m) => m[1]);
+      expect(locs).toEqual([...locs].sort());
+    });
   });
 
   describe('noIndexing', () => {
@@ -207,6 +227,41 @@ describe('GET /api/sitemap/[...path]', () => {
     });
   });
 
+  describe('sitemap-index.xml', () => {
+    it('returns a sitemapindex pointing to sitemap-0.xml for the same project', async () => {
+      mockGetSiteMetadata.mockResolvedValue({
+        projectPath: 'drivers/node/current',
+        siteMetadata: createMockMetadata({ toctreeOrder: ['index'] }),
+      });
+
+      const res = await GET(stubRequest, {
+        params: { path: ['drivers', 'node', 'current', 'sitemap-index.xml'] },
+      });
+      const body = await res.text();
+
+      expect(res.status).toBe(200);
+      expect(res.headers.get('Content-Type')).toBe('application/xml; charset=utf-8');
+      expect(body).toContain('<sitemapindex');
+      expect(body).toContain(
+        '<loc>https://www.mongodb.com/docs/drivers/node/current/sitemap-0.xml</loc>',
+      );
+    });
+
+    it('returns 404 for noIndexing branch', async () => {
+      mockGetSiteMetadata.mockResolvedValue({
+        projectPath: 'atlas',
+        siteMetadata: createMockMetadata({ project: 'atlas', branch: 'master', toctreeOrder: ['index'] }),
+      });
+      mockRepo(true);
+
+      const res = await GET(stubRequest, {
+        params: { path: ['atlas', 'sitemap-index.xml'] },
+      });
+
+      expect(res.status).toBe(404);
+    });
+  });
+
   describe('sitemap-index-full.xml', () => {
     const mockGetAllDocsets = getAllDocsetsWithVersionsCached as jest.MockedFunction<
       typeof getAllDocsetsWithVersionsCached
@@ -248,6 +303,14 @@ describe('GET /api/sitemap/[...path]', () => {
       expect(body).not.toContain('/upcoming/');
       expect(body).not.toContain('/beta/');
       expect(body).not.toContain('/internal/');
+    });
+
+    it('returns 503 when the DB is unavailable', async () => {
+      mockGetAllDocsets.mockRejectedValue(new Error('connection refused'));
+
+      const res = await GET(stubRequest, { params: { path: ['sitemap-index-full.xml'] } });
+
+      expect(res.status).toBe(503);
     });
 
     it('uses sitemap.xml.gz for non-snooty branches', async () => {
@@ -303,12 +366,30 @@ describe('GET /api/sitemap/[...path]', () => {
       expect(res.status).toBe(404);
     });
 
-    it('returns 404 for sitemap-index.xml', async () => {
+    it('returns 200 for sitemap-index.xml', async () => {
+      mockGetSiteMetadata.mockResolvedValue({
+        projectPath: 'atlas',
+        siteMetadata: createMockMetadata({ toctreeOrder: ['index'] }),
+      });
+
       const res = await GET(stubRequest, {
         params: { path: ['atlas', 'sitemap-index.xml'] },
       });
-      expect(res.status).toBe(404);
+      expect(res.status).toBe(200);
     });
+  });
+
+  it('returns 404 when the URL has extra path segments after the project prefix', async () => {
+    mockGetSiteMetadata.mockResolvedValue({
+      projectPath: 'bi-connector/current',
+      siteMetadata: createMockMetadata({ toctreeOrder: ['index'] }),
+    });
+
+    const res = await GET(stubRequest, {
+      params: { path: ['bi-connector', 'current', 'asdf', 'sitemap-0.xml'] },
+    });
+
+    expect(res.status).toBe(404);
   });
 
   it('returns 404 when getSiteMetadata throws', async () => {

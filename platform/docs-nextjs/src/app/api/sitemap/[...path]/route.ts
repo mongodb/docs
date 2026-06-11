@@ -70,7 +70,13 @@ async function isBranchNoIndexing(project: string, gitBranch: string): Promise<b
 // Mirrors hapley's sitemap_index_generator.py: queries docsets+repos_branches and
 // applies the same filtering to produce a cross-project sitemap index.
 async function generateSitemapIndexFull(): Promise<NextResponse> {
-  const docsets = await getAllDocsetsWithVersionsCached();
+  let docsets;
+  try {
+    docsets = await getAllDocsetsWithVersionsCached();
+  } catch {
+    // DB unavailable — return 503 so crawlers retry rather than de-indexing.
+    return new NextResponse('Service Unavailable', { status: 503 });
+  }
   const sitemapUrls: string[] = [];
 
   for (const docset of docsets) {
@@ -118,7 +124,7 @@ export async function GET(_req: Request, { params }: { params: { path: string[] 
       return generateSitemapIndexFull();
     }
 
-    if (filename !== 'sitemap-0.xml') {
+    if (filename !== 'sitemap-0.xml' && filename !== 'sitemap-index.xml') {
       return new NextResponse('Not Found', { status: 404 });
     }
     // Drop the sitemap filename to get the project path segments for metadata lookup.
@@ -127,6 +133,14 @@ export async function GET(_req: Request, { params }: { params: { path: string[] 
     const metadataPath = segments.length > 1 ? segments.slice(0, -1) : segments;
 
     const { projectPath, siteMetadata } = await getSiteMetadata(metadataPath);
+
+    // getSiteMetadata does a prefix match, so /bi-connector/current/asdf would
+    // resolve to projectPath='bi-connector/current'. Reject any path with extra
+    // segments after the known project prefix.
+    const pathBeforeFilename = segments.length > 1 ? segments.slice(0, -1).join('/') : '';
+    if (projectPath !== pathBeforeFilename) {
+      return new NextResponse('Not Found', { status: 404 });
+    }
 
     if (await isBranchNoIndexing(siteMetadata.project, siteMetadata.branch)) {
       return new NextResponse('Not Found', { status: 404 });
@@ -139,9 +153,14 @@ export async function GET(_req: Request, { params }: { params: { path: string[] 
       'Cache-Control': 'public, max-age=3600',
     };
 
+    if (filename === 'sitemap-index.xml') {
+      const xml = buildSitemapIndexXml([`${baseDocUrl}/sitemap-0.xml`]);
+      return new NextResponse(xml, { status: 200, headers: xmlHeaders });
+    }
+
     const urls = [
       ...new Set(siteMetadata.toctreeOrder.map((slug) => slugToUrl(baseDocUrl, slug))),
-    ].sort();
+    ];
 
     // Composable tutorial pages get additional sitemap entries for each selection
     // permutation, mirroring the query-string variants snooty/Gatsby added via resolvePages.
@@ -155,7 +174,7 @@ export async function GET(_req: Request, { params }: { params: { path: string[] 
       }
     }
 
-    const xml = buildSitemapXml(urls);
+    const xml = buildSitemapXml(urls.sort());
     return new NextResponse(xml, { status: 200, headers: xmlHeaders });
   } catch (error) {
     console.error('[sitemap] Error generating sitemap:', error);
