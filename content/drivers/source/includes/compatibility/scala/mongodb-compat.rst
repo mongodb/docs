@@ -6,6 +6,8 @@ The following table shows compatibility between the Scala driver and {+mdb-serve
    :class: compatibility-large
 
    * - Scala Driver Version
+     - MongoDB 8.3
+     - MongoDB 8.1 to 8.2
      - MongoDB 8.0
      - MongoDB 7.0
      - MongoDB 6.1
@@ -14,7 +16,20 @@ The following table shows compatibility between the Scala driver and {+mdb-serve
      - MongoDB 4.4
      - MongoDB 4.2
 
-   * - 5.2 to 5.8
+   * - 5.8
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+
+   * - 5.2 to 5.7
+     - ⊛
+     - ✓
      - ✓
      - ✓
      - ✓
@@ -24,6 +39,8 @@ The following table shows compatibility between the Scala driver and {+mdb-serve
      - ✓
 
    * - 4.10 to 5.1
+     - ⊛
+     - ⊛
      - ⊛
      - ✓
      - ✓
@@ -35,6 +52,8 @@ The following table shows compatibility between the Scala driver and {+mdb-serve
    * - 4.8 to 4.9
      - ⊛
      - ⊛
+     - ⊛
+     - ⊛
      - ✓
      - ✓
      - ✓
@@ -42,6 +61,8 @@ The following table shows compatibility between the Scala driver and {+mdb-serve
      - ✓
 
    * - 4.7
+     - ⊛
+     - ⊛
      - ⊛
      - ⊛
      - ⊛

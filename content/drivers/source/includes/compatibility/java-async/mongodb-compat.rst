@@ -7,12 +7,21 @@ The following table shows compatibility between the Java Reactive Streams driver
    :class: compatibility-large
 
    * - Java Reactive Streams Driver Version
-     - MongoDB 8.1
+     - MongoDB 8.3
+     - MongoDB 8.1 to 8.2
      - MongoDB 8.0
      - MongoDB 7.0
      - MongoDB 6.0
 
-   * - 5.2 to 5.8
+   * - 5.8
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+     - ✓
+
+   * - 5.2 to 5.7
+     - ⊛
      - ✓
      - ✓
      - ✓
@@ -21,10 +30,12 @@ The following table shows compatibility between the Java Reactive Streams driver
    * - 4.10 to 5.1
      - ⊛
      - ⊛
+     - ⊛
      - ✓
      - ✓
 
    * - 4.7 to 4.9
+     - ⊛
      - ⊛
      - ⊛
      - ⊛
@@ -35,8 +46,10 @@ The following table shows compatibility between the Java Reactive Streams driver
      - ⊛
      - ⊛
      - ⊛
+     - ⊛
 
    * - 3.11 to 3.12
+     - ✗ [#v3-note-async]_
      - ✗ [#v3-note-async]_
      - ⊛
      - ⊛
