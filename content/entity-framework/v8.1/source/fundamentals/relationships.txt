@@ -32,12 +32,56 @@ relationship types:
   modeling many-to-many relationships or when you need to access the documents
   independently.
 
+.. tip:: Design Your Schema for Query Patterns
+
+   When you model data for MongoDB, first determine the operations that your application runs
+   most often. Then, choose a document structure that supports those operations efficiently.
+   The most efficient schema in MongoDB might not match the schema that you
+   would use for a relational database. Instead, consider which data is commonly retrieved
+   together, which values change frequently, and which data relationships change over time.
+
+   To learn more about data modeling and migrating from a relational database to {+mdb-server+},
+   see the :ref:`SQL to MongoDB Mapping Chart <sql-to-mongodb-mapping>` and
+   :ref:`Data Modeling in MongoDB <manual-data-modeling-intro>` in the {+mdb-server+} documentation.
+
 Embedded Relationships
 ----------------------
 
 To embed a subdocument in a parent document, specify the model for the embedded document as
 an owned entity. Embedded relationships are the MongoDB-native way to model relationships
 and offer better performance for documents that you frequently access together.
+
+When to Embed Documents
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Use embedded documents when the related data is usually viewed in the context of its parent
+and when the embedded data remains reasonably bounded in size. This includes small sets of
+child values, such as addresses, settings, or a limited list of recent items. When you embed
+documents, {+mdb-server+} can improve performance by retrieving related data in a single
+database operation, and by updating related data atomically within a single document.
+
+Consider embedding data in the following cases:
+
+- Your application usually reads parent and child data together. Fetching everything
+  in one query is more efficient than making separate calls.
+- The related data doesn't grow without a clear upper bound. Bounded data won't cause
+  documents to grow indefinitely or hit MongoDB's 16MB document size limit.
+- The related data doesn't change often and independently of the parent. This incurs
+  less overhead from rewriting the parent document.
+
+.. note:: Nested Hierarchies
+
+   When you update any property of a nested owned entity, the {+provider-short+} rewrites
+   the entire root document. For entity hierarchies with three or more levels of nesting,
+   this write cost compounds, because a small change deep in the tree triggers a full parent document
+   rewrite. If your model uses deep nesting and your application performs frequent writes,
+   consider flattening the hierarchy or replacing inner owned entities with manual references.
+
+To learn more, see :ref:`Embedded Data <data-modeling-embedding>` in the
+{+mdb-server+} documentation.
+
+How to Embed Documents
+~~~~~~~~~~~~~~~~~~~~~~
 
 You can designate an owned entity in the following ways:
 
@@ -53,7 +97,7 @@ The following sections provide examples of these approaches for modeling single 
 multiple owned entities.
 
 One Owned Entity
-~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^
 
 To embed a single document within a parent document, call the ``OwnsOne()``
 method in your ``DbContext`` configuration or apply the ``[Owned]`` attribute
@@ -96,7 +140,7 @@ appears in MongoDB:
    }
 
 Multiple Owned Entities
-~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^
 
 To embed multiple documents in a parent document, call the ``OwnsMany()``
 method or apply the ``[Owned]`` attribute to the embedded class and define a
@@ -144,6 +188,32 @@ can store references manually by saving the ID of one document in a field of
 another document. This approach requires you to manage the relationship in your
 application code.
 
+When to Use References
+~~~~~~~~~~~~~~~~~~~~~~
+
+Use references when you regularly query the related data independent of its parent,
+when the child set can grow very large, or when the related data changes frequently.
+
+Consider using references in the following cases:
+
+- The related data grows without a clear upper bound. Unbounded arrays can cause
+  performance issues and might reach MongoDB's 16MB document size limit.
+- You need to query the related entity on its own. You can query and index the child
+  collection directly without scanning parent documents.
+- The related data changes often and independently of the parent. Frequent updates to
+  embedded data require rewriting the entire parent document each time, which is
+  inefficient.
+- The application doesn't usually read parent and child data together. By using
+  references, you avoid fetching child data that you don't need.
+- The relationship is many-to-many or otherwise complex.
+- Duplicating the data would create too much update overhead.
+
+To learn more, see :ref:`Reference Data <data-modeling-referencing>` in the
+{+mdb-server+} documentation.
+
+How to Use References
+~~~~~~~~~~~~~~~~~~~~~
+
 The following example shows how to store a reference to a related entity:
 
 .. literalinclude:: /code-examples/tested/csharp/driver/EfCore/Relationships/Relationships.snippet.manual-reference.cs
@@ -157,11 +227,31 @@ shown in the following example:
    :language: csharp
    :copyable:
 
+Use the Subset Pattern for Large One-to-Many Sets
+-------------------------------------------------
+
+If a parent document contains a large array but your application usually uses only the
+most recent or most frequently accessed items, consider the
+:ref:`Subset Pattern <group-data-subset-pattern>`.
+
+In the subset pattern, you keep the most frequently accessed items in the main document
+and move the rest into a separate collection. This approach can reduce document size and
+keep more of your working set in RAM, which can improve query performance.
+
+This pattern is useful when you want the performance benefits of embedding,
+but a full embedded history would cause documents to become too large or too expensive
+to load.
+
 Additional Information
 ----------------------
 
-To learn more about modeling data in MongoDB, see :manual:`Data Modeling
-</data-modeling/>` in the {+mdb-server+} documentation.
+To learn more about best practices for schema design in MongoDB, see
+:ref:`Best Practices for Data Modeling in MongoDB <data-modeling-best-practices>` and
+:ref:`Designing Your Schema <data-modeling-schema-design>` in the
+{+mdb-server+} documentation.
+
+To learn more about modeling data in MongoDB, see :ref:`Data Modeling
+<manual-data-modeling-intro>` in the {+mdb-server+} documentation.
 
 To learn more about owned entity types in {+framework-core+}, see `Owned Entity
 Types <https://learn.microsoft.com/en-us/ef/core/modeling/owned-entities>`__

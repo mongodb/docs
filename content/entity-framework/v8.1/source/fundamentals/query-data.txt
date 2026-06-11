@@ -184,10 +184,203 @@ on the ``name`` field.
    When sorting on fields with a boolean value, entities with a field value of
    ``false`` show before those with a value of ``true``.
 
+Limit the Number of Results
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the ``Take()`` method to specify a maximum number of entities to return from a query.
+
+The following code uses the ``Take()`` method to return the first 3 planets from the ``Planets`` collection:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/QueryData/QueryData.snippet.take.cs
+   :language: csharp
+   :category: usage example
+
+Skip Results
+~~~~~~~~~~~~
+
+Use the ``Skip()`` method to specify a number of entities to skip before returning results from a query.
+
+The following code uses the ``OrderBy()`` and ``Skip()`` methods to skip the first 5 planets (ordered by ``orderFromSun``) and return the remaining planets:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/QueryData/QueryData.snippet.skip.cs
+   :language: csharp
+   :category: usage example
+
+Scalar Aggregations
+-------------------
+
+The {+provider-short+} supports the following scalar aggregation methods:
+
+- ``Count()``: Returns the number of elements in a collection or the number of
+  documents that match a predicate
+- ``LongCount()``: Returns the number of elements in a collection as a ``long``
+  or the number of documents that match a predicate
+- ``Any()``: Returns ``true`` if any elements in a collection match the predicate
+- ``Max()``: Returns the maximum value of a specified field in a collection
+- ``Min()``: Returns the minimum value of a specified field in a collection
+- ``Sum()``: Returns the sum of values of a specified field in a collection
+- ``Average()``: Returns the average of values of a specified field in a collection
+
+The following sections show examples of each of the preceding methods.
+
+Count
+~~~~~
+
+The following example uses the ``Count()`` method to count the number of elements in the
+``Planets`` collection:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/Aggregation/Aggregation.snippet.count.cs
+   :language: csharp
+   :category: usage example
+
+The following example uses the ``Count()`` method to count the number of elements in the
+``Planets`` collection that have a ``hasRings`` field set to ``true``:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/Aggregation/Aggregation.snippet.count-predicate.cs
+   :language: csharp
+   :category: usage example
+
+LongCount
+~~~~~~~~~
+
+The following example uses the ``LongCount()`` method to count the number of
+elements in the ``Planets`` collection and returns the result as a ``long``:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/Aggregation/Aggregation.snippet.long-count.cs
+   :language: csharp
+   :category: usage example
+
+The following example uses the ``LongCount()`` method to count the number of
+elements in the ``Planets`` collection that have a ``hasRings`` field set to
+``true`` and returns the result as a ``long``:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/Aggregation/Aggregation.snippet.long-count-predicate.cs
+   :language: csharp
+   :category: usage example
+
+Any
+~~~
+
+The following example uses the ``Any()`` method to check if any elements in the
+``Planets`` collection have a ``hasRings`` field set to ``true``:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/Aggregation/Aggregation.snippet.any.cs
+   :language: csharp
+   :category: usage example
+
+Max
+~~~
+
+The following example uses the ``Max()`` method to find the maximum value of the
+``orderFromSun`` field in the ``Planets`` collection:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/Aggregation/Aggregation.snippet.max.cs
+   :language: csharp
+   :category: usage example
+
+Min
+~~~
+
+The following example uses the ``Min()`` method to find the minimum value of the
+``orderFromSun`` field in the ``Planets`` collection:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/Aggregation/Aggregation.snippet.min.cs
+   :language: csharp
+   :category: usage example
+
+Sum
+~~~
+
+The following example uses the ``Sum()`` method to find the sum of the
+``orderFromSun`` field in the ``Planets`` collection:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/Aggregation/Aggregation.snippet.sum.cs
+   :language: csharp
+   :category: usage example
+
+Average
+~~~~~~~
+
+The following example uses the ``Average()`` method to find the average value of
+the ``orderFromSun`` field in the ``Planets`` collection:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/Aggregation/Aggregation.snippet.average.cs
+   :language: csharp
+   :category: usage example
+
+Inspect the Queries Sent to MongoDB
+-----------------------------------
+
+After you write a LINQ query, inspect the generated query to confirm that the provider
+is sending the expected shape to {+mdb-server+}. To inspect
+queries during development, enable EF Core logging on your ``DbContext`` by using
+the `LogTo() <https://learn.microsoft.com/en-us/ef/core/logging-events-diagnostics/simple-logging#configuration>`__
+method.
+
+The following example shows how to enable logging to the console when creating a
+``DbContext`` object:
+
+.. literalinclude:: /code-examples/tested/csharp/ef-core/QueryData/QueryData.snippet.log-to.cs
+   :language: csharp
+   :copyable: true
+   :emphasize-lines: 6
+   :category: usage example
+
+Enable Sensitive Data Logging
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The provider logs full MQL query text only when sensitive data logging is
+enabled. If you don't enable sensitive data logging, query logs might omit
+values. To enable sensitive data logging, call the
+`EnableSensitiveDataLogging()
+<https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontextoptionsbuilder.enablesensitivedatalogging>`__
+method from your ``DbContextOptionsBuilder`` object, as shown in the following
+example:
+
+.. literalinclude:: /code-examples/tested/csharp/ef-core/QueryData/QueryData.snippet.sensitive-data-logging.cs
+   :language: csharp
+   :copyable: true
+   :emphasize-lines: 7
+   :category: usage example
+
+.. important:: Avoid in Production
+
+   Enable sensitive data logging only in development environments.
+
+Custom Serialization Conventions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you register custom BSON serialization conventions on the ``MongoClient``,
+such as camel-case field naming, those conventions can change the field names
+stored in MongoDB so that they differ from the property names in your entity
+model. The {+provider-short+} uses entity property names to generate MQL, so
+a mismatch can cause queries to target the wrong fields and bypass any indexes
+on those fields. When your stored field names differ from your entity property
+names, you can explicitly map a property to its stored field name in
+``OnModelCreating()`` by using ``HasElementName()``, as shown in the following
+example:
+
+.. literalinclude:: /code-examples/tested/csharp/ef-core/QueryData/QueryData.snippet.has-element-name.cs
+   :language: csharp
+   :copyable: true
+   :emphasize-lines: 6
+   :category: usage example
+
+.. tip:: {+csharp-driver-short+} Monitoring APIs
+
+   If you need lower-level visibility into MongoDB commands, you can use the
+   {+csharp-driver-short+} monitoring APIs on your ``MongoClient`` object.
+   To learn more about these APIs, see
+   :driver:`Monitoring </csharp/current/logging-and-monitoring/monitoring/>`
+   in the {+csharp-driver-short+} documentation.
+
 Additional Information
 ----------------------
 
-To learn more about the methods discussed in this guide, see the following .NET API
+To learn more about aggregations in MongoDB, see the :ref:`Aggregation
+Operations <aggregation>` guide in the {+mdb-server+} manual.
+
+To learn more about the EF Core methods discussed in this guide, see the following .NET API
 documentation links:
 
 - `FirstOrDefault() <https://learn.microsoft.com/en-us/dotnet/api/system.linq.queryable.firstordefault>`__
@@ -196,3 +389,17 @@ documentation links:
 - `OrderByDescending() <https://learn.microsoft.com/en-us/dotnet/api/system.linq.queryable.orderbydescending>`__
 - `ThenBy() <https://learn.microsoft.com/en-us/dotnet/api/system.linq.queryable.thenby>`__
 - `ThenByDescending() <https://learn.microsoft.com/en-us/dotnet/api/system.linq.queryable.thenbydescending>`__
+- `LogTo() <https://learn.microsoft.com/en-us/ef/core/logging-events-diagnostics/simple-logging#configuration>`__
+- `EnableSensitiveDataLogging() <https://learn.microsoft.com/en-us/dotnet/api/microsoft.entityframeworkcore.dbcontextoptionsbuilder.enablesensitivedatalogging>`__
+
+To learn more about the {+csharp-driver-short+} methods used on this page,
+see the following API documentation links:
+
+- `Mql.Exists() <{+driver-api-root+}/MongoDB.Driver/MongoDB.Driver.Mql.Exists.html>`__
+- `Mql.IsMissing() <{+driver-api-root+}/MongoDB.Driver/MongoDB.Driver.Mql.IsMissing.html>`__
+- `Mql.IsNullOrMissing() <{+driver-api-root+}/MongoDB.Driver/MongoDB.Driver.Mql.IsNullOrMissing.html>`__
+
+To learn more about the ``HasElementName()`` method, see the following {+provider-short+}
+API documentation link:
+
+- `HasElementName() <{+api-root+}/Microsoft.EntityFrameworkCore.MongoPropertyBuilderExtensions.HasElementName.html>`__

@@ -1,7 +1,7 @@
 .. _entity-framework-configure:
 
 ==============================
-Configure the {+provider-short+}
+Configure the EF Core Provider
 ==============================
 
 .. facet::
@@ -10,6 +10,7 @@ Configure the {+provider-short+}
 
 .. meta::
    :keywords: EF, EF Core, code example
+   :description: Learn how to configure an application to use the MongoDB Entity Framework Core Provider, including creating POCOs, DB context classes, and connection settings.
 
 .. contents:: On this page
    :local:
@@ -97,11 +98,31 @@ this way:
    :driver:`Connection guide </csharp/current/fundamentals/connection/connect/>`
    in the {+csharp-driver-short+} documentation.
 
+MongoClient and DbContext Lifetimes
+-----------------------------------
+
+The lifetime and configuration of your ``MongoClient`` and ``DbContext`` objects
+directly affect memory usage and connection pool efficiency.
+
+Register ``MongoClient`` as a **singleton** and share a single instance across all
+``DbContext`` registrations. Because each ``MongoClient`` object manages its own internal
+connection pool, creating a separate instance for each ``DbContext`` scope wastes
+connections and increases latency. To learn more, see
+:driver:`Manage MongoClient Disposables </csharp/current/fundamentals/connection/connect/#manage-mongoclient-disposables>`
+in the {+csharp-driver-short+} documentation.
+
+Register ``DbContext`` as a **scoped** service so that each request uses a new change
+tracker. A singleton ``DbContext`` accumulates tracked entity state across all requests,
+which causes stale data, memory growth, and increasingly slow change-detection as the
+tracker grows larger. To learn more, see
+`DbContext in Dependency Injection for ASP.NET Core <https://learn.microsoft.com/en-us/ef/core/dbcontext-configuration/#dbcontext-in-dependency-injection-for-asp-net-core>`__
+in the Microsoft {+framework-core+} documentation.
+
 Example
 -------
 
-The following code example shows how to configure the
-{+provider-short+} and insert a document into the database:
+The following code example shows how to register services by using dependency injection,
+configure the {+provider-short+}, and insert a document into the database:
 
 .. literalinclude:: /code-examples/tested/csharp/driver/EfCore/Configure/Configure.snippet.configure-ef-provider.cs
    :language: csharp
