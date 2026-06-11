@@ -48,6 +48,14 @@ const nextConfig = {
         source: '/docs/:path*/objects.inv',
         destination: '/api/inventory/:path*/objects.inv',
       },
+      {
+        source: '/docs/sitemap-:n.xml',
+        destination: '/api/sitemap/sitemap-:n.xml',
+      },
+      {
+        source: '/docs/:path*/sitemap-:n.xml',
+        destination: '/api/sitemap/:path*/sitemap-:n.xml',
+      },
       // Canonical public paths for Next.js API routes under /docs/platform/api/*
       {
         source: '/docs/platform/api/:path*',
