@@ -1,4 +1,5 @@
 import type { TocItem } from '../types';
+import efVersions from '../version-arrays/drivers/entity-framework-versions';
 
 const tocData: TocItem[] = [
   {
@@ -58,7 +59,7 @@ const tocData: TocItem[] = [
             label: 'Run an Atlas Vector Search Query',
             contentSite: 'entity-framework',
             url: '/docs/entity-framework/:version/fundamentals/atlas-vector-search',
-            versions: { includes: ['upcoming'] },
+            versions: { excludes: efVersions.before('v9.0') },
           },
           {
             label: 'Entity Relationships',

@@ -66,7 +66,7 @@ export const toc: L1TocItem[] = [
                 contentSite: 'entity-framework',
                 url: '/docs/entity-framework/:version/fundamentals/atlas-vector-search',
                 versions: {
-                  includes: ['upcoming'],
+                  excludes: ['v8.0', 'v8.1', 'v8.2', 'v8.3', 'v8.4'],
                 },
               },
               {
