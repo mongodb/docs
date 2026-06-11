@@ -95,11 +95,6 @@ the API key used for access. All models include a free tier. Get started with
            - $0.12
            - 200 million
 
-         * - ``voyage-context-3``
-           - $0.00018
-           - $0.18
-           - 200 million
-
    .. tab:: Multimodal
       :tabid: multimodal
 
