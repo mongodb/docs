@@ -80,7 +80,7 @@ public class SampleDataCheckerTests
             var (isAvailable, reason) = await SampleDataChecker.CheckSampleDataAvailableAsync(databaseName, []);
 
             Assert.That(isAvailable, Is.False);
-            Assert.That(reason, Is.EqualTo($"Database '{databaseName}' does not exist."));
+            Assert.That(reason, Is.EqualTo($"No collections found in '{databaseName}' (database may not exist or user may lack listCollections privilege)."));
         }
 
         [Test]

@@ -806,7 +806,7 @@ string from the Atlas cluster or local deployment you created in the prior step.
 From the `/go/driver/tests` directory, run:
 
 ```sh
-go test -v -p 1 ./...
+go test -v -p 1 -count=1 ./...
 ```
 
 This command runs all tests in the current module and its subdirectories.
@@ -818,7 +818,7 @@ You can run all the tests in a given package.
 From the `/go/driver/tests` directory, run:
 
 ```sh
-go test -v -p 1 ./aggregation/pipelines
+go test -v -p 1 -count=1 ./aggregation/pipelines
 ```
 
 ### Run Individual Tests from the command line
@@ -828,8 +828,14 @@ You can run a single test function within a given package.
 From the `/go/driver/tests` directory, run:
 
 ```sh
-go test -v ./... -run TestExampleOperations/YourExampleName
+go test -v -count=1 ./... -run TestExampleOperations/YourExampleName
 ```
+
+> **Note:** `-count=1` is required because `CONNECTION_STRING` is loaded from
+> `.env` at runtime rather than from the shell environment. Go's test result
+> cache keys on shell-level environment variables, so without `-count=1` it
+> serves stale cached results. To avoid typing it every time, add
+> `export GOFLAGS=-count=1` to your shell profile or `.envrc`.
 
 ## To run the tests in CI
 

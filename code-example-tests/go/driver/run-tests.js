@@ -35,7 +35,7 @@ run('go fmt ./...');
 // 2. Test (integration tests in tests/, unit tests in utils/)
 // -timeout caps total run time per package; without it `go test` defaults to
 // 10 min, long enough for many hung server-selection waits to accumulate.
-run('go test -v -p 1 -timeout 5m ./tests/... ./utils/...');
+run('go test -v -count=1 -p 1 -timeout 5m ./tests/... ./utils/...');
 
 // 3. Snip
 if (!NO_SNIP) run('node snip.js');

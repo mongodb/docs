@@ -86,14 +86,19 @@ func (sdc *SampleDataChecker) checkSampleDataAvailable(databaseName string, requ
 func (sdc *SampleDataChecker) performDatabaseCheck(databaseName string, collections []string) bool {
 	connectionString := sdc.getConnectionString()
 	if connectionString == "" {
-		return false // No connection string available
+		log.Printf("⚠️  sample data check for %q: CONNECTION_STRING is empty — check that .env is loaded", databaseName)
+		return false
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	// 10s covers the full operation (connect + ListCollectionNames). Unlike Java/Python,
+	// which set 2s per-socket timeouts on the client, Go's v2 driver relies on context
+	// cancellation as its primary timeout mechanism, so this ceiling is set higher.
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
 	client, err := mongo.Connect(options.Client().ApplyURI(connectionString))
 	if err != nil {
+		log.Printf("⚠️  sample data check for %q: connect error: %v", databaseName, err)
 		return false
 	}
 	defer func() {
@@ -102,32 +107,22 @@ func (sdc *SampleDataChecker) performDatabaseCheck(databaseName string, collecti
 		}
 	}()
 
-	// Check if database exists
-	databases, err := client.ListDatabaseNames(ctx, map[string]interface{}{})
+	// Check if database exists and collections are accessible by listing
+	// collections directly. This avoids requiring the cluster-level
+	// listDatabases privilege that Atlas M0 users often lack.
+	database := client.Database(databaseName)
+	existingCollections, err := database.ListCollectionNames(ctx, map[string]interface{}{})
 	if err != nil {
+		log.Printf("⚠️  sample data check for %q: ListCollectionNames error: %v", databaseName, err)
 		return false
 	}
-
-	dbExists := false
-	for _, db := range databases {
-		if db == databaseName {
-			dbExists = true
-			break
-		}
-	}
-
-	if !dbExists {
+	if len(existingCollections) == 0 {
+		log.Printf("⚠️  sample data check for %q: no collections found (database may not exist or user may lack listCollections privilege)", databaseName)
 		return false
 	}
 
 	// Check collections if specified
 	if len(collections) > 0 {
-		database := client.Database(databaseName)
-		existingCollections, err := database.ListCollectionNames(ctx, map[string]interface{}{})
-		if err != nil {
-			return false
-		}
-
 		// Convert to map for faster lookup
 		collectionMap := make(map[string]bool)
 		for _, col := range existingCollections {
@@ -137,7 +132,8 @@ func (sdc *SampleDataChecker) performDatabaseCheck(databaseName string, collecti
 		// Check if all required collections exist
 		for _, reqCol := range collections {
 			if !collectionMap[reqCol] {
-				return false // Missing required collection
+				log.Printf("⚠️  sample data check for %q: missing collection %q (found: %v)", databaseName, reqCol, existingCollections)
+				return false
 			}
 		}
 	}
@@ -156,6 +152,7 @@ func (sdc *SampleDataChecker) showSampleDataSummary() {
 	sdc.summaryShown = true
 
 	connectionString := sdc.getConnectionString()
+
 	if connectionString == "" {
 		log.Println("📊 Sample Data Status: No CONNECTION_STRING environment variable set")
 		log.Println("   Some tests may be skipped.")

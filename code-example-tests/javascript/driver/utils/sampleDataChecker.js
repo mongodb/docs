@@ -114,14 +114,14 @@ export async function checkSampleDataAvailable(
     await client.connect();
 
     try {
-      // Check if database exists
-      const adminDb = client.db().admin();
-      const databases = await adminDb.listDatabases();
-      const dbExists = databases.databases.some(
-        (db) => db.name === databaseName
-      );
+      // Check if database exists and collections are accessible by listing
+      // collections directly. This avoids requiring the cluster-level
+      // listDatabases privilege that Atlas M0 users often lack.
+      const db = client.db(databaseName);
+      const collections = await db.listCollections().toArray();
+      const existingCollections = collections.map((col) => col.name);
 
-      if (!dbExists) {
+      if (existingCollections.length === 0) {
         sampleDataCache.set(cacheKey, false);
         return false;
       }
@@ -130,10 +130,6 @@ export async function checkSampleDataAvailable(
       const collectionsToCheck =
         requiredCollections || SAMPLE_DATABASES[databaseName] || [];
       if (collectionsToCheck.length > 0) {
-        const db = client.db(databaseName);
-        const collections = await db.listCollections().toArray();
-        const existingCollections = collections.map((col) => col.name);
-
         const missingCollections = collectionsToCheck.filter(
           (col) => !existingCollections.includes(col)
         );

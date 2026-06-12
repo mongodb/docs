@@ -16,10 +16,8 @@ class TestSampleDataChecker(unittest.TestCase):
 
     def setUp(self):
         """Set up test fixtures before each test method."""
-        # Clear cache and reset connection state before each test
+        # Clear cache before each test
         SampleDataChecker.clear_sample_data_cache()
-        SampleDataChecker._client = None
-        SampleDataChecker._connection_string = None
 
         # Store original environment variable if it exists
         self._original_connection_string = os.environ.get("CONNECTION_STRING")
@@ -37,9 +35,6 @@ class TestSampleDataChecker(unittest.TestCase):
     @patch.dict(os.environ, {"CONNECTION_STRING": "mongodb://test:27017"})
     def test_get_connection_string_from_env(self):
         """Test getting connection string from environment variable."""
-        # Reset cached connection string
-        SampleDataChecker._connection_string = None
-
         connection_string = SampleDataChecker._get_connection_string()
         self.assertEqual(connection_string, "mongodb://test:27017")
 
@@ -50,9 +45,6 @@ class TestSampleDataChecker(unittest.TestCase):
         original_env = os.environ.get("CONNECTION_STRING")
         if "CONNECTION_STRING" in os.environ:
             del os.environ["CONNECTION_STRING"]
-
-        # Reset cached connection string
-        SampleDataChecker._connection_string = None
 
         try:
             # Mock that load_dotenv sets the environment variable
@@ -79,9 +71,6 @@ class TestSampleDataChecker(unittest.TestCase):
         if "CONNECTION_STRING" in os.environ:
             del os.environ["CONNECTION_STRING"]
 
-        # Reset cached connection string
-        SampleDataChecker._connection_string = None
-
         try:
             connection_string = SampleDataChecker._get_connection_string()
             self.assertIsNone(connection_string)
@@ -94,153 +83,109 @@ class TestSampleDataChecker(unittest.TestCase):
     @patch.object(
         SampleDataChecker, "_get_connection_string", return_value="mongodb://test:27017"
     )
-    def test_get_client_success(self, mock_get_conn_str, mock_mongo_client):
-        """Test successful MongoDB client creation."""
-        # Reset client state
-        SampleDataChecker._client = None
-
-        # Mock successful client creation
+    def test_perform_database_check_success(self, mock_get_conn_str, mock_mongo_client):
+        """Test _perform_database_check with a database and collections present."""
+        mock_db = Mock()
+        mock_db.list_collection_names.return_value = ["movies", "theaters", "users"]
         mock_client = Mock()
-        mock_client.admin.command.return_value = {"ok": 1}
+        mock_client.__getitem__ = Mock(return_value=mock_db)
         mock_mongo_client.return_value = mock_client
 
-        client = SampleDataChecker._get_client()
+        result = SampleDataChecker._perform_database_check(
+            "sample_mflix", ["movies", "theaters"]
+        )
 
-        self.assertIsNotNone(client)
+        self.assertTrue(result)
         mock_mongo_client.assert_called_once_with(
             "mongodb://test:27017",
             serverSelectionTimeoutMS=2000,
             connectTimeoutMS=2000,
             socketTimeoutMS=2000,
         )
-        mock_client.admin.command.assert_called_once_with("ping")
+        mock_client.close.assert_called_once()
 
     @patch("utils.sample_data.checker.MongoClient")
     @patch.object(
         SampleDataChecker, "_get_connection_string", return_value="mongodb://test:27017"
     )
-    def test_get_client_connection_failure(self, mock_get_conn_str, mock_mongo_client):
-        """Test MongoDB client creation with connection failure."""
-        # Reset client state
-        SampleDataChecker._client = None
-
-        # Mock connection failure
-        mock_mongo_client.side_effect = Exception("Connection failed")
-
-        client = SampleDataChecker._get_client()
-        self.assertIsNone(client)
-
-    @patch.object(SampleDataChecker, "_get_connection_string", return_value=None)
-    def test_get_client_no_connection_string(self, mock_get_conn_str):
-        """Test client creation when no connection string is available."""
-        client = SampleDataChecker._get_client()
-        self.assertIsNone(client)
-
-    @patch.object(SampleDataChecker, "_get_client")
-    def test_check_database_exists_success(self, mock_get_client):
-        """Test successful database existence check."""
-        # Mock client with database list
-        mock_client = Mock()
-        mock_client.list_database_names.return_value = [
-            "sample_mflix",
-            "sample_restaurants",
-            "admin",
-        ]
-        mock_get_client.return_value = mock_client
-
-        result = SampleDataChecker._check_database_exists("sample_mflix")
-        self.assertTrue(result)
-
-        result = SampleDataChecker._check_database_exists("nonexistent_db")
-        self.assertFalse(result)
-
-    @patch.object(SampleDataChecker, "_get_client", return_value=None)
-    def test_check_database_exists_no_client(self, mock_get_client):
-        """Test database existence check when client is unavailable."""
-        result = SampleDataChecker._check_database_exists("sample_mflix")
-        self.assertFalse(result)
-
-    @patch.object(SampleDataChecker, "_get_client")
-    def test_check_database_exists_error(self, mock_get_client):
-        """Test database existence check with error."""
-        # Mock client that raises an error
-        mock_client = Mock()
-        mock_client.list_database_names.side_effect = Exception("Database error")
-        mock_get_client.return_value = mock_client
-
-        result = SampleDataChecker._check_database_exists("sample_mflix")
-        self.assertFalse(result)
-
-    @patch.object(SampleDataChecker, "_get_client")
-    def test_check_collections_exist_success(self, mock_get_client):
-        """Test successful collection existence check."""
-        # Mock client with collection list
-        mock_client = Mock()
+    def test_perform_database_check_missing_collection(
+        self, mock_get_conn_str, mock_mongo_client
+    ):
+        """Test _perform_database_check when a required collection is absent."""
         mock_db = Mock()
-        mock_db.list_collection_names.return_value = [
-            "movies",
-            "theaters",
-            "users",
-            "comments",
-        ]
+        mock_db.list_collection_names.return_value = ["movies"]
+        mock_client = Mock()
         mock_client.__getitem__ = Mock(return_value=mock_db)
-        mock_get_client.return_value = mock_client
+        mock_mongo_client.return_value = mock_client
 
-        result = SampleDataChecker._check_collections_exist(
+        result = SampleDataChecker._perform_database_check(
             "sample_mflix", ["movies", "theaters"]
         )
-        self.assertTrue(result)
 
-        result = SampleDataChecker._check_collections_exist(
-            "sample_mflix", ["movies", "nonexistent"]
-        )
         self.assertFalse(result)
+        mock_client.close.assert_called_once()
 
-    @patch.object(SampleDataChecker, "_get_client", return_value=None)
-    def test_check_collections_exist_no_client(self, mock_get_client):
-        """Test collection existence check when client is unavailable."""
-        result = SampleDataChecker._check_collections_exist("sample_mflix", ["movies"])
+    @patch("utils.sample_data.checker.MongoClient")
+    @patch.object(
+        SampleDataChecker, "_get_connection_string", return_value="mongodb://test:27017"
+    )
+    def test_perform_database_check_empty_db(self, mock_get_conn_str, mock_mongo_client):
+        """Test _perform_database_check when the database has no collections."""
+        mock_db = Mock()
+        mock_db.list_collection_names.return_value = []
+        mock_client = Mock()
+        mock_client.__getitem__ = Mock(return_value=mock_db)
+        mock_mongo_client.return_value = mock_client
+
+        result = SampleDataChecker._perform_database_check("sample_mflix", [])
+
         self.assertFalse(result)
+        mock_client.close.assert_called_once()
 
-    @patch.object(SampleDataChecker, "_check_database_exists", return_value=True)
-    @patch.object(SampleDataChecker, "_check_collections_exist", return_value=True)
-    def test_check_sample_data_available_with_collections(
-        self, mock_check_collections, mock_check_db
+    @patch("utils.sample_data.checker.MongoClient")
+    @patch.object(
+        SampleDataChecker, "_get_connection_string", return_value="mongodb://test:27017"
+    )
+    def test_perform_database_check_connection_failure(
+        self, mock_get_conn_str, mock_mongo_client
     ):
+        """Test _perform_database_check when MongoClient raises an exception."""
+        mock_mongo_client.side_effect = Exception("Connection refused")
+
+        result = SampleDataChecker._perform_database_check("sample_mflix", ["movies"])
+
+        self.assertFalse(result)
+
+    @patch.object(SampleDataChecker, "_get_connection_string", return_value=None)
+    def test_perform_database_check_no_connection_string(self, mock_get_conn_str):
+        """Test _perform_database_check when no connection string is available."""
+        result = SampleDataChecker._perform_database_check("sample_mflix", ["movies"])
+        self.assertFalse(result)
+
+    @patch.object(SampleDataChecker, "_perform_database_check", return_value=True)
+    def test_check_sample_data_available_with_collections(self, mock_perform):
         """Test sample data availability check with specific collections."""
         result = SampleDataChecker.check_sample_data_available(
             "sample_mflix", ["movies", "theaters"]
         )
         self.assertTrue(result)
+        mock_perform.assert_called_once_with("sample_mflix", ["movies", "theaters"])
 
-        mock_check_db.assert_called_once_with("sample_mflix")
-        mock_check_collections.assert_called_once_with(
-            "sample_mflix", ["movies", "theaters"]
-        )
-
-    @patch.object(SampleDataChecker, "_check_database_exists", return_value=True)
-    @patch.object(SampleDataChecker, "_check_collections_exist", return_value=True)
-    def test_check_sample_data_available_default_collections(
-        self, mock_check_collections, mock_check_db
-    ):
-        """Test sample data availability check with default collections."""
+    @patch.object(SampleDataChecker, "_perform_database_check", return_value=True)
+    def test_check_sample_data_available_default_collections(self, mock_perform):
+        """Test sample data availability check uses default collections from registry."""
         result = SampleDataChecker.check_sample_data_available("sample_mflix")
         self.assertTrue(result)
 
-        mock_check_db.assert_called_once_with("sample_mflix")
-        # Should use default collections from registry
         expected_collections = ["movies", "theaters", "users", "comments", "sessions"]
-        mock_check_collections.assert_called_once_with(
-            "sample_mflix", expected_collections
-        )
+        mock_perform.assert_called_once_with("sample_mflix", expected_collections)
 
-    @patch.object(SampleDataChecker, "_check_database_exists", return_value=False)
-    def test_check_sample_data_available_db_not_exists(self, mock_check_db):
-        """Test sample data availability check when database doesn't exist."""
+    @patch.object(SampleDataChecker, "_perform_database_check", return_value=False)
+    def test_check_sample_data_available_not_found(self, mock_perform):
+        """Test sample data availability check when database is not found."""
         result = SampleDataChecker.check_sample_data_available("sample_mflix")
         self.assertFalse(result)
-
-        mock_check_db.assert_called_once_with("sample_mflix")
+        mock_perform.assert_called_once()
 
     def test_check_sample_data_available_invalid_database(self):
         """Test sample data availability check with invalid database name."""
@@ -250,26 +195,22 @@ class TestSampleDataChecker(unittest.TestCase):
     def test_check_sample_data_available_caching(self):
         """Test that sample data availability results are cached."""
         with patch.object(
-            SampleDataChecker, "_check_database_exists", return_value=True
-        ) as mock_check_db, patch.object(
-            SampleDataChecker, "_check_collections_exist", return_value=True
-        ) as mock_check_collections:
-
-            # First call
+            SampleDataChecker, "_perform_database_check", return_value=True
+        ) as mock_perform:
+            # First call — hits the database
             result1 = SampleDataChecker.check_sample_data_available(
                 "sample_mflix", ["movies"]
             )
             self.assertTrue(result1)
 
-            # Second call should use cache
+            # Second call — served from cache
             result2 = SampleDataChecker.check_sample_data_available(
                 "sample_mflix", ["movies"]
             )
             self.assertTrue(result2)
 
-            # Database and collections should only be checked once
-            self.assertEqual(mock_check_db.call_count, 1)
-            self.assertEqual(mock_check_collections.call_count, 1)
+            # Database check should only happen once
+            self.assertEqual(mock_perform.call_count, 1)
 
     @patch.object(SampleDataChecker, "check_sample_data_available")
     def test_check_multiple_sample_databases(self, mock_check_single):

@@ -36,15 +36,11 @@ Maintainer Notes:
     4. Keep error messages helpful for developers setting up their environment
 """
 
+import logging
 import os
 import unittest
 from typing import List, Optional, Dict, Any
 from pymongo import MongoClient
-from pymongo.errors import (
-    ConnectionFailure,
-    ServerSelectionTimeoutError,
-    ConfigurationError,
-)
 from dotenv import load_dotenv
 
 from .registry import (
@@ -65,8 +61,6 @@ class SampleDataChecker:
     is missing from the test environment.
 
     Class Attributes:
-        _connection_string (str): Cached MongoDB connection string
-        _client (MongoClient): Cached MongoDB client instance
         _cache (SampleDataCache): Thread-safe cache for availability results
 
     Design Decisions:
@@ -74,7 +68,8 @@ class SampleDataChecker:
         2. Aggressive caching: Database checks are expensive and results rarely change
         3. Short timeouts: 2-second limit prevents tests from hanging
         4. Silent failures: Network errors return False rather than raising exceptions
-        5. Single client reuse: Amortizes connection overhead across checks
+        5. Fresh connection per check: Connection string and client are not cached
+           between checks so environment changes are always picked up
 
     Threading Considerations:
         The class is designed for multi-threaded test environments where multiple
@@ -82,8 +77,6 @@ class SampleDataChecker:
         implementation provides appropriate locking for thread safety.
     """
 
-    _connection_string = None
-    _client = None
     _cache = get_cache()
 
     @classmethod
@@ -102,13 +95,7 @@ class SampleDataChecker:
         Design Decision: Environment variables take precedence over .env files
         to support CI/CD environments where secrets are injected as env vars.
         The .env file provides a convenient fallback for local development.
-
-        Caching Strategy: Connection string is cached after first lookup to
-        avoid repeated environment variable access and file I/O operations.
         """
-        if cls._connection_string is not None:
-            return cls._connection_string
-
         # Check environment variable first (CI/CD preferred method)
         connection_string = os.getenv("CONNECTION_STRING")
 
@@ -121,125 +108,60 @@ class SampleDataChecker:
                 # Silently handle .env loading errors (file missing, parse errors, etc.)
                 pass
 
-        cls._connection_string = connection_string
         return connection_string
 
     @classmethod
-    def _get_client(cls) -> Optional[MongoClient]:
+    def _perform_database_check(
+        cls, database_name: str, required_collections: List[str]
+    ) -> bool:
         """
-        Get MongoDB client with aggressive timeout settings for fast failure detection.
+        Open a fresh connection, check database and collection availability, then close it.
 
-        The client is configured with 2-second timeouts across all operations to
-        quickly determine connectivity status without hanging test execution.
-        This is essential for CI environments where MongoDB may not be available.
-
-        Returns:
-            Optional[MongoClient]: Configured MongoDB client or None if connection fails
-
-        Timeout Strategy:
-            - serverSelectionTimeoutMS: 2000ms to quickly detect unreachable servers
-            - connectTimeoutMS: 2000ms to prevent hanging on TCP connect attempts
-            - socketTimeoutMS: 2000ms to limit individual operation duration
-
-        Design Rationale:
-            Sample data checking should be fast and non-blocking. If a MongoDB
-            instance isn't readily available, tests should skip quickly rather
-            than wait for default timeout periods (30+ seconds).
-
-        Connection Validation:
-            A ping command is issued immediately to validate the connection works.
-            This catches authentication errors and other configuration issues early.
-        """
-        if cls._client is not None:
-            return cls._client
-
-        connection_string = cls._get_connection_string()
-        if connection_string is None:
-            return None
-
-        try:
-            # Configure aggressive timeouts for fast failure detection
-            cls._client = MongoClient(
-                connection_string,
-                serverSelectionTimeoutMS=2000,  # Quick server discovery
-                connectTimeoutMS=2000,  # Fast TCP connection timeout
-                socketTimeoutMS=2000,  # Short operation timeout
-            )
-            # Validate connection immediately with ping command
-            cls._client.admin.command("ping")
-            return cls._client
-        except (
-            ConnectionFailure,
-            ServerSelectionTimeoutError,
-            ConfigurationError,
-            Exception,
-        ):
-            # Silently handle all connection errors and return None
-            # This includes network issues, authentication failures, invalid URIs, etc.
-            cls._client = None
-            return None
-
-    @classmethod
-    def _close_client(cls) -> None:
-        """Close the MongoDB client connection."""
-        if cls._client is not None:
-            try:
-                cls._client.close()
-            except Exception:
-                # Silently handle close errors
-                pass
-            finally:
-                cls._client = None
-
-    @classmethod
-    def _check_database_exists(cls, database_name: str) -> bool:
-        """
-        Check if a database exists.
+        A new MongoClient is created for each invocation so that the connection
+        string is always read from the environment at check time. The client is
+        closed in a finally block regardless of outcome.
 
         Args:
             database_name (str): Name of the database to check
+            required_collections (List[str]): Collections that must exist
 
         Returns:
-            bool: True if database exists
+            bool: True if the database and all required collections are present
         """
-        client = cls._get_client()
-        if client is None:
+        connection_string = cls._get_connection_string()
+        if not connection_string:
+            logging.warning(
+                "⚠️  sample data check for %r: CONNECTION_STRING is empty — check that .env is loaded",
+                database_name,
+            )
             return False
 
+        client = None
         try:
-            db_list = client.list_database_names()
-            return database_name in db_list
-        except Exception:
-            # Silently handle errors and return False
-            return False
-
-    @classmethod
-    def _check_collections_exist(
-        cls, database_name: str, collection_names: List[str]
-    ) -> bool:
-        """
-        Check if all specified collections exist in a database.
-
-        Args:
-            database_name (str): Name of the database
-            collection_names (List[str]): List of collection names to check
-
-        Returns:
-            bool: True if all collections exist
-        """
-        client = cls._get_client()
-        if client is None:
-            return False
-
-        try:
+            client = MongoClient(
+                connection_string,
+                serverSelectionTimeoutMS=2000,
+                connectTimeoutMS=2000,
+                socketTimeoutMS=2000,
+            )
             db = client[database_name]
             existing_collections = db.list_collection_names()
-            return all(
-                collection in existing_collections for collection in collection_names
-            )
-        except Exception:
-            # Silently handle errors and return False
+            if not existing_collections:
+                return False
+            if required_collections:
+                return all(
+                    col in existing_collections for col in required_collections
+                )
+            return True
+        except Exception as e:
+            logging.warning("⚠️  sample data check for %r: %s", database_name, e)
             return False
+        finally:
+            if client is not None:
+                try:
+                    client.close()
+                except Exception:
+                    pass
 
     @classmethod
     def check_sample_data_available(
@@ -269,20 +191,7 @@ class SampleDataChecker:
         if cached_result is not None:
             return cached_result
 
-        # Check database existence
-        db_exists = cls._check_database_exists(database_name)
-        if not db_exists:
-            cls._cache.set(cache_key, False)
-            return False
-
-        # Check collections if specified
-        if required_collections:
-            collections_exist = cls._check_collections_exist(
-                database_name, required_collections
-            )
-            result = collections_exist
-        else:
-            result = True
+        result = cls._perform_database_check(database_name, required_collections)
 
         # Cache and return result
         cls._cache.set(cache_key, result)
@@ -421,6 +330,10 @@ class SampleDataChecker:
 
     @classmethod
     def cleanup(cls) -> None:
-        """Clean up resources. Call this in test teardown if needed."""
-        cls._close_client()
-        cls._connection_string = None
+        """No-op. Retained for API compatibility.
+
+        There is no persistent connection to close. The availability cache
+        intentionally persists for the lifetime of the test suite run and
+        is not cleared here.
+        """
+        pass

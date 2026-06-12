@@ -96,23 +96,21 @@ public static class SampleDataChecker
 
             using var client = new MongoClient(clientSettings);
 
-            // Check if database exists
-            var databases = await client.ListDatabaseNamesAsync();
-            var databaseList = await databases.ToListAsync();
-            var dbExists = databaseList.Contains(databaseName);
+            // Check if database exists and collections are accessible by listing
+            // collections directly. This avoids requiring the cluster-level
+            // listDatabases privilege that Atlas M0 users often lack.
+            var database = client.GetDatabase(databaseName);
+            var collectionsCursor = await database.ListCollectionNamesAsync();
+            var existingCollections = await collectionsCursor.ToListAsync();
 
-            if (!dbExists)
+            if (existingCollections.Count == 0)
             {
-                return (false, $"Database '{databaseName}' does not exist.");
+                return (false, $"No collections found in '{databaseName}' (database may not exist or user may lack listCollections privilege).");
             }
 
             // Check collections if specified
             if (requiredCollections != null && requiredCollections.Length > 0)
             {
-                var database = client.GetDatabase(databaseName);
-                var collections = await database.ListCollectionNamesAsync();
-                var existingCollections = await collections.ToListAsync();
-
                 var missingCollections = requiredCollections.Where(col => !existingCollections.Contains(col)).ToArray();
 
                 if (missingCollections.Length > 0)

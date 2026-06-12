@@ -46,7 +46,6 @@ public class SampleDataChecker {
     private static volatile boolean hasShownSummary = false;
     private static final Object summaryLock = new Object();
 
-    private static MongoClient mongoClient = null;
     private static String overrideConnectionString = null;
 
     /**
@@ -55,10 +54,6 @@ public class SampleDataChecker {
      */
     public static void setConnectionStringOverride(String uri) {
         overrideConnectionString = uri;
-        if (mongoClient != null) {
-            mongoClient.close();
-            mongoClient = null;
-        }
     }
 
     /**
@@ -68,14 +63,11 @@ public class SampleDataChecker {
     public static void clearSampleDataCache() {
         sampleDataCache.clear();
         hasShownSummary = false;
-        if (mongoClient != null) {
-            mongoClient.close();
-            mongoClient = null;
-        }
     }
 
     /**
-     * Creates a MongoDB client with appropriate timeouts for testing
+     * Creates a MongoDB client with appropriate timeouts for testing.
+     * The caller is responsible for closing the returned client.
      */
     private static MongoClient createClientWithTimeouts(String connectionString) {
         MongoClientSettings settings = MongoClientSettings.builder()
@@ -89,22 +81,11 @@ public class SampleDataChecker {
         return MongoClients.create(settings);
     }
 
-    private static MongoClient getClient() {
-        if (mongoClient == null) {
-            String uri = loadConnectionString();
-            if (uri == null || uri.isEmpty()) {
-                throw new IllegalStateException("No MongoDB connection string found in environment variable '" + DEFAULT_CONN_STRING_ENV + "'.");
-            }
-            mongoClient = createClientWithTimeouts(uri);
-        }
-        return mongoClient;
-    }
-
     private static String loadConnectionString() {
         // Try override first
         if (overrideConnectionString != null) {
             if (overrideConnectionString.isEmpty()) {
-                return null; // Return null for empty string to trigger the exception later
+                return null;
             }
             return overrideConnectionString;
         }
@@ -150,39 +131,45 @@ public class SampleDataChecker {
      * @return True if the sample database and collections exist
      */
     public static boolean checkSampleDataAvailable(String databaseName, List<String> requiredCollections) {
-        List<String> collectionsToCheck = requiredCollections != null ? requiredCollections
-            : STANDARD_SAMPLE_DATABASES.getOrDefault(databaseName, Collections.emptyList());
+        List<String> collectionsToCheck = requiredCollections != null
+            ? requiredCollections
+            : STANDARD_SAMPLE_DATABASES.get(databaseName);
+        if (collectionsToCheck == null) {
+            return false;
+        }
 
         String collectionsKey = collectionsToCheck.stream().sorted().collect(Collectors.joining(","));
         String cacheKey = databaseName + ":" + collectionsKey;
 
         return sampleDataCache.computeIfAbsent(cacheKey, key -> {
-            try {
-                MongoClient client = getClient();
+            String uri = loadConnectionString();
+            if (uri == null || uri.isEmpty()) {
+                System.err.printf("⚠️  sample data check for \"%s\": CONNECTION_STRING is empty — check that .env is loaded%n", databaseName);
+                return false;
+            }
+            try (MongoClient client = createClientWithTimeouts(uri)) {
+                // Check if database exists and collections are accessible by listing
+                // collections directly. This avoids requiring the cluster-level
+                // listDatabases privilege that Atlas M0 users often lack.
+                List<String> existingCollections = new ArrayList<>();
+                client.getDatabase(databaseName).listCollectionNames().into(existingCollections);
 
-                // Check if database exists
-                List<String> databases = new ArrayList<>();
-                client.listDatabaseNames().into(databases);
-
-                if (!databases.contains(databaseName)) {
+                if (existingCollections.isEmpty()) {
+                    System.err.printf("⚠️  sample data check for \"%s\": no collections found (database may not exist or user may lack listCollections privilege)%n", databaseName);
                     return false;
                 }
 
                 // Check collections if specified
-                if (!collectionsToCheck.isEmpty()) {
-                    List<String> existingCollections = new ArrayList<>();
-                    client.getDatabase(databaseName).listCollectionNames().into(existingCollections);
-
-                    for (String collection : collectionsToCheck) {
-                        if (!existingCollections.contains(collection)) {
-                            return false;
-                        }
+                for (String collection : collectionsToCheck) {
+                    if (!existingCollections.contains(collection)) {
+                        System.err.printf("⚠️  sample data check for \"%s\": missing collection \"%s\" (found: %s)%n", databaseName, collection, existingCollections);
+                        return false;
                     }
                 }
 
                 return true;
             } catch (Exception e) {
-                // Quietly handle connection errors - this is expected when MongoDB is not available
+                System.err.printf("⚠️  sample data check for \"%s\": %s%n", databaseName, e.getMessage());
                 return false;
             }
         });
