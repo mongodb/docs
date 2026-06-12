@@ -23,6 +23,12 @@ is enabled for the {+cluster+}.
   automatically scales the oplog size down to ensure it fits in the
   decreased storage size.
 
+  .. note::
+
+     In some high-volume bulk write scenarios, such as migrations, the 
+     {+cluster+} might not maintain the configured minimum oplog retention window. Plan 
+     :ref:`migrations <import-strategies>` and other write-intensive operations accordingly. 
+
 - You can opt out of {+cluster+} storage auto-scaling by un-checking the
   :guilabel:`Storage Scaling` checkbox in the :guilabel:`Auto-scale`
   section. If you opt out of storage auto-scaling, |service| manages
