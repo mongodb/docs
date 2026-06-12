@@ -1,3 +1,11 @@
+.. _mongodb-108.0.24.9016-1:
+
+MongoDB Agent 108.0.24.9016-1
+-----------------------------
+
+:ref:`Released with Ops Manager 8.0.24 on 2026-06-11
+<opsmgr-server-8.0.24>`.
+
 .. _mongodb-108.0.23.8997-1:
 
 MongoDB Agent 108.0.23.8997-1

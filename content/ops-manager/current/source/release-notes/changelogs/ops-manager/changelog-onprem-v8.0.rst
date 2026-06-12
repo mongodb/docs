@@ -1,3 +1,118 @@
+.. _opsmgr-server-8.0.24:
+
+|onprem| Server 8.0.24
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-06-11*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to
+  :ref:`108.0.24.9016-1 <mongodb-108.0.24.9016-1>`.
+- Adds support for the MongoDB Connector for BI 2.14.28.
+- Adds support for MongoDB on RHEL 9 (``ppc64le``) in the
+  |onprem| UI.
+- Expands Search Nodes support in |onprem| with the following
+  improvements:
+
+  - Adds sharded cluster topology awareness, including per-shard
+    grouping and drill-down in the UI.
+  - Adds overview sparkline charts to the Search Nodes cluster
+    overview page for at-a-glance health metrics.
+  - Adds an actions menu for Search Nodes clusters in the
+    Deployment Topology view for tasks such as removing a
+    cluster from |onprem| or renaming a sharded cluster.
+  - Integrates the LeafyGreen Search icon across Search cluster
+    cards and related UI surfaces.
+  - Adds ``mongot`` metric charts for CPU, memory, disk, index,
+    search, and vector search metrics, plus Search node metadata
+    such as hostname, version, port, RAM, OS, and health.
+  - Surfaces ``mongot`` hosts and metrics across the |onprem| UI,
+    including the Servers tab, Processes tab, Deployment
+    Topology view, and the MongoDB Usage page for license
+    reporting.
+
+- Adds OAuth 2.0 client credentials authentication for webhook
+  alert notifications. |onprem| automatically fetches, attaches,
+  and refreshes short-lived bearer tokens for webhook deliveries.
+- Clarifies the write concern description in the |onprem| UI to
+  note that the default write concern applies only to replica
+  sets and sharded clusters.
+- Raises the oldest supported {+mdbagent+} version to
+  107.0.16.8756 to prevent patch failures caused by missing S3
+  artifacts.
+- Adds validation of the ``gen.key`` before running database
+  migrations to prevent an incorrect key from triggering
+  unintended migrations.
+
+Improvements in Public Preview
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Introduces Restoration Mode, a supported disaster-recovery
+  path for |onprem|, which uses a secondary |onprem| instance to
+  back up the primary's AppDB. When you restore that AppDB to an
+  earlier point in time, |onprem| automatically detects the
+  restore, converges all automation agents on the restored
+  configuration, and resumes normal operation. Restoration Mode
+  includes the following capabilities:
+
+  - Shows UI banners and applies API and UI guardrails that
+    block deployment modifications until reconciliation
+    completes.
+  - Provides a retry action that resets the reconciliation
+    failure counter and re-runs reconciliation without exiting
+    Restoration Mode.
+  - Adds a Status API that exposes the current Restoration Mode
+    state, trigger reason, and timestamps for each project, plus
+    an explicit force-exit option for stuck states.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes a bug where |onprem| could return an internal server
+  error (HTTP 500) for a backup rollback request on a cluster
+  with no active backup status, such as a terminated cluster.
+  |onprem| now returns a clear ``JOB_NOT_FOUND`` response.
+- Fixes an issue where the |onprem| UI allowed setting a proxy
+  username without a password, or a password without a username,
+  which could cause server startup failures.
+- Fixes an issue where the ``DeploymentDiscoverySvc`` could silently
+  drop replica sets from the deployment cache when discovery
+  probes failed. |onprem| now logs clear warnings for these
+  failures.
+- Removes the deprecated ping ``v1/{key}`` endpoint to prevent
+  agent API keys from appearing in access logs.
+- Fixes an issue where the {+mdbagent+} flooded logs with local
+  database errors during ``fileCopyBased`` initial sync on standard
+  deployments.
+- Fixes the :guilabel:`Security Settings` page to stop sending stored
+  credentials to the browser.
+- Fixes the following |cve|\s:
+
+  - `CVE-2025-7339 <https://nvd.nist.gov/vuln/detail/CVE-2025-7339>`__
+  - `CVE-2026-33532 <https://nvd.nist.gov/vuln/detail/CVE-2026-33532>`__
+  - `CVE-2024-4067 <https://nvd.nist.gov/vuln/detail/CVE-2024-4067>`__
+  - `CVE-2024-10491 <https://nvd.nist.gov/vuln/detail/CVE-2024-10491>`__
+  - `CVE-2023-44270 <https://nvd.nist.gov/vuln/detail/CVE-2023-44270>`__
+  - `CVE-2025-54798 <https://nvd.nist.gov/vuln/detail/CVE-2025-54798>`__
+  - `CVE-2024-55565 <https://nvd.nist.gov/vuln/detail/CVE-2024-55565>`__
+  - `CVE-2025-57352 <https://nvd.nist.gov/vuln/detail/CVE-2025-57352>`__
+  - `CVE-2025-69873 <https://nvd.nist.gov/vuln/detail/CVE-2025-69873>`__
+  - `CVE-2025-68157 <https://nvd.nist.gov/vuln/detail/CVE-2025-68157>`__
+  - `CVE-2025-68458 <https://nvd.nist.gov/vuln/detail/CVE-2025-68458>`__
+  - `CVE-2026-2391 <https://nvd.nist.gov/vuln/detail/CVE-2026-2391>`__
+  - `CVE-2025-53864 <https://nvd.nist.gov/vuln/detail/CVE-2025-53864>`__
+  - `GHSA-xffm-g5w8-qvg7 <https://github.com/advisories/GHSA-xffm-g5w8-qvg7>`__
+  - `GHSA-6475-r3vj-m8vf <https://github.com/advisories/GHSA-6475-r3vj-m8vf>`__
+  - `GHSA-952p-6rrq-rcjv <https://github.com/advisories/GHSA-952p-6rrq-rcjv>`__
+  - `GHSA-7fh5-64p2-3v2j <https://github.com/advisories/GHSA-7fh5-64p2-3v2j>`__
+  - `GHSA-2g4f-4pwh-qvx6 <https://github.com/advisories/GHSA-2g4f-4pwh-qvx6>`__
+  - `GHSA-xwmg-2g98-w7v9 <https://github.com/advisories/GHSA-xwmg-2g98-w7v9>`__
+  - `GHSA-qqpg-mvqg-649v <https://github.com/advisories/GHSA-qqpg-mvqg-649v>`__
+  - `GHSA-rx8g-88g5-qh64 <https://github.com/advisories/GHSA-rx8g-88g5-qh64>`__
+  - `GHSA-w5hq-g745-h8pq <https://github.com/advisories/GHSA-w5hq-g745-h8pq>`__
+
 .. _opsmgr-server-8.0.23:
 
 |onprem| Server 8.0.23
