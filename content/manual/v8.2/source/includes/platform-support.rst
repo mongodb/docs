@@ -172,6 +172,18 @@
      - |checkmark| 
      - |checkmark|
 
+   * - Windows Server 2025
+     - x86_64 
+     - Enterprise
+     - 
+     - 
+
+   * - Windows Server 2025 
+     - x86_64 
+     - Community
+     - 
+     - 
+
    * - Windows Server 2022 
      - x86_64 
      - Enterprise
