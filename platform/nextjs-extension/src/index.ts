@@ -25,6 +25,7 @@ import { buildToc } from "./buildTOC/index";
 import { handleOfflineDownloads } from "./offline-docs/index";
 import { handleSearchManifests } from "./searchManifests/index";
 import { writePathPrefixListToFile, writeDirNameToPrefixMapToFile } from "./blobUploads/buildPrefixList";
+import { writeHealthCheckUrlsToBlob } from "./blobUploads/buildHealthCheckUrls";
 import { handleAllBlobUploads } from "./blobUploads/handleAllBlobUploads";
 import { deleteOrphanedFilesFromBlobStore } from "./blobUploads/deleteOrphanedFilesFromBlobStore";
 import { resolvePathsToBuild } from "./util/resolvePathsToBuild";
@@ -36,7 +37,7 @@ import {
 const ENVS_TO_RUN = ["dotcomprd", "dotcomstg"];
 
 const extension = new Extension({
-	isEnabled: envVarToBool(process.env.NEXTJS_EXTENSION_ENABLED),
+  isEnabled: envVarToBool(process.env.NEXTJS_EXTENSION_ENABLED),
 });
 
 /** Limit how deep to search below baseDir for snooty.toml (baseDir is depth 0) */
@@ -100,6 +101,11 @@ extension.addBuildEventHandler(
 
 		allContentData.atlasProjectDocuments = atlasProjectDocuments;
 
+		const isMain = process.env.HEAD === MAIN_BRANCH;
+		if (isMain) {
+			await writeHealthCheckUrlsToBlob(allContentData.atlasProjectDocuments);
+		}
+
 		// Populate docsPaths (including each path's active/inactive status) before
 		// resolving which paths to build — resolvePathsToBuild needs that metadata
 		// to honor FORCE_REBUILD_ALL_ACTIVE / FORCE_REBUILD_ALL_INACTIVE and to
@@ -133,7 +139,6 @@ extension.addBuildEventHandler(
 				shouldRunPersistence: ENVS_TO_RUN.includes(configEnvironment.ENV ?? ""),
 			});
 
-			const isMain = process.env.HEAD === MAIN_BRANCH;
 			const { branchStore, productionStore } = getMdxContentBlobStores({
 				branchName: configEnvironment.BRANCH as string,
 				siteId: process.env.NETLIFY_SITE_ID,

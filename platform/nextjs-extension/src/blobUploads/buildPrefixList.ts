@@ -83,3 +83,4 @@ export const writeDirNameToPrefixMapToFile = async (
   );
   console.log('[blob upload] dir-name-to-prefix.json written:', Object.keys(dirNameToPrefix).length, 'entries');
 };
+
