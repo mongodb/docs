@@ -12,14 +12,9 @@
 
    .. step:: View recommendations.
 
-      In the :guilabel:`Performance Advisor` tab, click 
+      In the :guilabel:`Performance Advisor` tab, click
       :guilabel:`Explore Recommendations` on the :guilabel:`Drop Indexes` card.
 
-   .. step:: (Optional) Change which host results to view.
-
-      By default, the results correspond to one of the primary hosts. 
-      However, you can select another host from the drop-down.
-      
    .. step:: On the index that you want to drop or hide, click :guilabel:`Drop Index`.
 
       The Performance Advisor displays a dialog box with a link to 
