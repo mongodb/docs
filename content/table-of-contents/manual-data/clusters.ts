@@ -2,24 +2,6 @@ import type { TocItem } from '../types';
 
 const tocData: TocItem[] = [
   {
-    label: 'Connection Strings',
-    contentSite: 'docs',
-    url: '/docs/:version/reference/connection-string',
-    collapsible: true,
-    items: [
-      {
-        label: 'Options',
-        contentSite: 'docs',
-        url: '/docs/:version/reference/connection-string-options',
-      },
-      {
-        label: 'Formats',
-        contentSite: 'docs',
-        url: '/docs/:version/reference/connection-string-formats',
-      },
-    ],
-  },
-  {
     label: 'Atlas Cluster Connection',
     contentSite: 'cloud-docs',
     url: '/docs/atlas/connect-to-database-deployment',
@@ -59,6 +41,24 @@ const tocData: TocItem[] = [
         label: 'Azure Service Connector',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/tutorial/azure-service-connector',
+      },
+    ],
+  },
+  {
+    label: 'Connection Strings',
+    contentSite: 'docs',
+    url: '/docs/:version/reference/connection-string',
+    collapsible: true,
+    items: [
+      {
+        label: 'Options',
+        contentSite: 'docs',
+        url: '/docs/:version/reference/connection-string-options',
+      },
+      {
+        label: 'Formats',
+        contentSite: 'docs',
+        url: '/docs/:version/reference/connection-string-formats',
       },
     ],
   },

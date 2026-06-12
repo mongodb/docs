@@ -41,8 +41,9 @@ const tocData: TocItem[] = [
     url: 'https://www.mongodb.com/docs/drivers/',
   },
   {
-    label: 'Connect to Clusters',
-    contentSite: 'cloud-docs',
+    label: 'Connect to a Cluster',
+    contentSite: 'docs',
+    url: '/docs/:version/connect-to-cluster',
     collapsible: true,
     items: ClustersData,
   },

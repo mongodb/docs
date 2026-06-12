@@ -117,28 +117,11 @@ export const toc: L1TocItem[] = [
             url: 'https://www.mongodb.com/docs/drivers/',
           },
           {
-            label: 'Connect to Clusters',
-            contentSite: 'cloud-docs',
+            label: 'Connect to a Cluster',
+            contentSite: 'docs',
             collapsible: true,
+            url: '/docs/:version/connect-to-cluster',
             items: [
-              {
-                label: 'Connection Strings',
-                contentSite: 'docs',
-                collapsible: true,
-                url: '/docs/:version/reference/connection-string',
-                items: [
-                  {
-                    label: 'Options',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/connection-string-options',
-                  },
-                  {
-                    label: 'Formats',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/connection-string-formats',
-                  },
-                ],
-              },
               {
                 label: 'Atlas Cluster Connection',
                 contentSite: 'cloud-docs',
@@ -179,6 +162,24 @@ export const toc: L1TocItem[] = [
                     label: 'Azure Service Connector',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/tutorial/azure-service-connector',
+                  },
+                ],
+              },
+              {
+                label: 'Connection Strings',
+                contentSite: 'docs',
+                collapsible: true,
+                url: '/docs/:version/reference/connection-string',
+                items: [
+                  {
+                    label: 'Options',
+                    contentSite: 'docs',
+                    url: '/docs/:version/reference/connection-string-options',
+                  },
+                  {
+                    label: 'Formats',
+                    contentSite: 'docs',
+                    url: '/docs/:version/reference/connection-string-formats',
                   },
                 ],
               },
