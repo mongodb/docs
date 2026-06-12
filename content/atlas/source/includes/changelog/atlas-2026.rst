@@ -163,6 +163,9 @@ March 2026
   enabled, allowing you to take backups while enforcing
   preventative controls against data exfiltration.
 
+- Updates the {+atlas-ui+} read preference to default to 
+  :readmode:`secondaryPreferred`.
+
 .. _atlas_2026_02:
 
 February 2026
