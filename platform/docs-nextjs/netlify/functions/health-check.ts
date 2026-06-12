@@ -45,7 +45,7 @@ export const config: Config = {
 // ---------------------------------------------------------------------------
 
 const SLACK_WEBHOOK_URL = process.env.SLACK_HEALTH_CHECK_WEBHOOK_URL ?? '';
-const REQUEST_TIMEOUT_MS = 5_000;
+const REQUEST_TIMEOUT_MS = 8_000;
 const CONCURRENCY = 25;
 
 // ---------------------------------------------------------------------------

@@ -111,9 +111,11 @@ const buildHealthCheckUrls = (
   // Sitemap index
   urls.add(SITEMAP_INDEX_URL);
 
-  // Per-project sitemap: every index-page URL gets a corresponding sitemap-0.xml
+  // Per-project sitemap: every index-page URL gets a corresponding sitemap-0.xml,
+  // except URLs whose last path segment is "upcoming" (no sitemap exists for those).
   for (const url of [...urls]) {
-    if (url !== SITEMAP_INDEX_URL) {
+    const lastSegment = url.replace(/\/+$/, '').split('/').at(-1);
+    if (url !== SITEMAP_INDEX_URL && lastSegment !== 'upcoming') {
       urls.add(`${url}sitemap-0.xml`);
     }
   }
