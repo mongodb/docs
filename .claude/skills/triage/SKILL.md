@@ -126,7 +126,11 @@ Check `$ARGUMENTS`. If it contains a recognized team name, load the correspondin
 
 If `$ARGUMENTS` is empty or unrecognized, you **must** ask the user before doing anything else: "Which team are you triaging for? (CET/Cloud, Server, or Drivers/DBX)" Do not infer the team from context or prior conversation. Do not proceed to Step 2 until the user replies with one of the specified options.
 
-**If the team is CET/Cloud**, immediately ask: "Who is this week's CET captain? (Please provide their MongoDB email address, e.g. asmith@mongodb.com)" before proceeding. Use the answer to assign all captain-duty tickets (as determined by the Captain Duty and Captain FAQ wikis) without asking again.
+**If the team is CET/Cloud**, set the captain as follows before proceeding:
+- If `auto` is in `$ARGUMENTS`: extract the email address from `$ARGUMENTS` (any token matching `*@*.*`). Use it as the captain without prompting. If no email address is found in `$ARGUMENTS`, stop and report: "Auto mode requires a captain email in the arguments, e.g. `/triage cet auto you@mongodb.com`."
+- Otherwise: ask "Who is this week's CET captain? (Please provide their MongoDB email address, e.g. asmith@mongodb.com)" and use the answer.
+
+Use the captain email to assign all captain-duty tickets (as determined by the Captain Duty and Captain FAQ wikis) without asking again.
 
 Apply shared rules from Parts 1 and 2 throughout all steps regardless of which team module is loaded. When the team module defines an explicit exception to a global rule, follow the team-specific rule instead.
 
@@ -159,7 +163,7 @@ Present a "No-Component Triage Plan" to the user. For each ticket, output:
 - **URL(s)** (only if a `mongodb.com/docs/` URL is clearly present in the ticket content; otherwise omit)
 - **Rationale** (what in the ticket content led to this recommendation)
 
-**STOP HERE.** Ask the user to confirm this plan is accurate. Do not make any Jira changes until the user explicitly approves. If the user requests adjustments, revise the plan and present it again before proceeding.
+If `auto` is in `$ARGUMENTS`, skip confirmation and proceed immediately to apply changes and continue to Step 4. Otherwise: **STOP HERE.** Ask the user to confirm this plan is accurate. Do not make any Jira changes until the user explicitly approves. If the user requests adjustments, revise the plan and present it again before proceeding.
 
 Once approved, apply the recommended components to each ticket, then proceed to Step 4. Triage any tickets that reappear in Step 5 normally — this is expected. Tickets routed to another team's component will not appear in Step 5 — that team's triager will pick them up.
 
@@ -193,7 +197,7 @@ If any ticket in the plan is **P1 or P2**, surface the following after the plan 
 > *{DOCSP-XXXXX} {Summary}*
 > <https://jira.mongodb.org/browse/{DOCSP-XXXXX}|View ticket>
 
-**STOP HERE.** Ask the user to confirm the plan is accurate. Do not proceed or make any Jira changes until the user explicitly approves. If the user requests adjustments, revise the plan and present it again before proceeding.
+If `auto` is in `$ARGUMENTS`, skip confirmation and proceed immediately to apply all changes. Otherwise: **STOP HERE.** Ask the user to confirm the plan is accurate. Do not proceed or make any Jira changes until the user explicitly approves. If the user requests adjustments, revise the plan and present it again before proceeding.
 
 Once approved, use the `jira` skill to apply all approved changes:
 1. Apply components, labels, priority, and status changes. Always **add** — never remove existing labels or components. Because both the CLI and MCP replace these fields on write, read the ticket's current values first and include them alongside any new ones when writing. For status changes, use the Jira transition that moves the ticket to the target status. When closing as Won't Do, follow the `jira` skill's closing procedure with story points set to 0.
