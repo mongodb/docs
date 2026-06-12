@@ -25,6 +25,41 @@ fi
 
 LINT_DIR="$REPO_ROOT/.github/lint-docs"
 
+# Run Vale and strip suppressed-severity counts from its summary line.
+# Uses CLICOLOR_FORCE=1 so Vale keeps colors even when stdout is a pipe.
+_vale_run() {
+  CLICOLOR_FORCE=1 vale --config "$REPO_ROOT/vale.ini" --minAlertLevel "$VALE_MIN_ALERT_LEVEL" "$@" | \
+    awk -v level="$VALE_MIN_ALERT_LEVEL" '
+      NR > 1 { print prev }
+      { prev = $0 }
+      END {
+        if (NR == 0) exit
+        gsub(/\033\[[0-9;]*m/, "", prev)
+        if (level == "suggestion") {
+          sub(/ and /, ", and ", prev)
+        } else if (level == "warning") {
+          match(prev, /[0-9]+ warnings?/)
+          w = substr(prev, RSTART, RLENGTH)
+          sub(/,.*in /, " and " w " in ", prev)
+        } else if (level == "error")
+          gsub(/, [0-9]+ warnings? and [0-9]+ suggestions? in /, " in ", prev)
+        print prev
+      }
+    '
+  return ${PIPESTATUS[0]}
+}
+
+# Vale alert threshold. Defaults to warning to match CI; override per-run, e.g.:
+#   VALE_MIN_ALERT_LEVEL=suggestion ./lint-docs.sh vale my-file.txt
+VALE_MIN_ALERT_LEVEL="${VALE_MIN_ALERT_LEVEL:-warning}"
+case "$VALE_MIN_ALERT_LEVEL" in
+  suggestion|warning|error) ;;
+  *)
+    echo "❌ Invalid VALE_MIN_ALERT_LEVEL: '$VALE_MIN_ALERT_LEVEL' (expected: suggestion, warning, or error)"
+    exit 1
+    ;;
+esac
+
 # Check if node is available
 if ! command -v node &> /dev/null; then
   echo "❌ Node.js is required but not installed"
@@ -57,7 +92,7 @@ case "$CMD" in
       echo "   Install: https://vale.sh/docs/vale-cli/installation/"
       exit 1
     fi
-    vale --config "$REPO_ROOT/vale.ini" --minAlertLevel suggestion "$@"
+    _vale_run "$@"
     ;;
   all|both)
     exit_code=0
@@ -75,7 +110,7 @@ case "$CMD" in
     echo ""
     echo "=== Vale Prose Linter ==="
     if command -v vale &> /dev/null; then
-      vale --config "$REPO_ROOT/vale.ini" --minAlertLevel suggestion "$@" || exit_code=1
+      _vale_run "$@" || exit_code=1
     else
       echo "⚠️  Vale is not installed. Skipping prose lint. Install: https://vale.sh/docs/vale-cli/installation/"
     fi
@@ -101,6 +136,10 @@ case "$CMD" in
     echo "  ./lint-docs.sh redirects content/atlas/netlify.toml"
     echo "  ./lint-docs.sh vale content/atlas/source/my-page.txt"
     echo "  ./lint-docs.sh all my-file.rst another-file.md"
+    echo ""
+    echo "Environment variables:"
+    echo "  VALE_MIN_ALERT_LEVEL   Vale threshold: suggestion, warning (default), or error"
+    echo "                         e.g. VALE_MIN_ALERT_LEVEL=suggestion ./lint-docs.sh vale my-file.txt"
     ;;
   *)
     echo "Unknown command: $CMD"
