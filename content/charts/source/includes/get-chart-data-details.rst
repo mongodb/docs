@@ -21,4 +21,5 @@ download your data, click :guilabel:`Download - CSV` or
 
 .. figure:: /images/charts/editor-chart-data.png
    :figwidth: 60%
-   :alt: Viewing chart data will display a table of the values used to create a chart. It also allows for downloading a CSV or JSON representation of that table.
+   :alt: Chart Data table showing chart values with CSV and JSON
+         download options.
