@@ -37,7 +37,7 @@ async function loadIndexPages(): Promise<string[]> {
 }
 
 export const config: Config = {
-  schedule: '*/10 * * * *', // every 10 minutes
+  // schedule: '*/10 * * * *', // every 10 minutes
 };
 
 // ---------------------------------------------------------------------------
