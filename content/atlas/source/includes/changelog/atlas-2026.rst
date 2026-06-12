@@ -9,6 +9,51 @@ May 2026
   connect to your {+service+} clusters through private endpoints. To
   learn more, see :ref:`manage-accepted-endpoint-regions`.
 
+- Improves the performance of {+data-explorer+} connection experience.
+
+- Adds support for retrieving expired and rejected
+  organization and project invitations through the |api|.
+
+- General Availability: Stores source fields in the
+  :ref:`Atlas Vector Search <fts-vectorSearch-ref>` index to reduce query
+  latency, which eliminates unnecessary document fetches during query execution.
+
+- Public Preview: Adds ``$similarityCosine``,
+  ``$similarityDotProduct``, and ``$similarityEuclidean``
+  aggregation expressions that compute exact vector
+  similarity between two vectors within an aggregation
+  pipeline, without requiring a vector search index.
+
+- Public Preview: Extends the ``$similarityCosine``,
+  ``$similarityDotProduct``, and ``$similarityEuclidean``
+  aggregation expressions to accept BinData vectors directly,
+  improving performance by eliminating array conversion.
+
+- Adds a :expression:`$meta` keyword ``searchRootDocumentId`` field when you
+  use the :ref:`Atlas Search <atlas-search>` ``returnScope`` operator for
+  searching nested data.
+
+- Public Preview: Enables automated text embedding in
+  :ref:`Atlas Vector Search <fts-vectorSearch-ref>` using
+  Voyage AI models, which eliminates the need for a separate
+  embedding pipeline when performing semantic search on
+  text data.
+
+- General Availability: Improves |hnsw| index correctness
+  in :ref:`Atlas Vector Search <fts-vectorSearch-ref>` by
+  adding new ``hnswOptions`` index configurations
+  (``maxEdges``, ``numEdgeCandidates``) that let advanced
+  users tune graph construction for higher recall.
+
+- Adds {+atlas-sp+} support in four new cloud regions:
+  {+azure+} Brazil South (``brazilsouth``), {+azure+} Australia
+  East (``australiaeast``), |AWS| EU West 3 (``eu-west-3``), and
+  {+gcp+} US East 4 (``us-east4``).
+
+- General Availability: Routes identical queries to the same search node
+  using consistent hashing, which produces deterministic results, to improve
+  the consistency of {+avs+} query results on search nodes.
+
 .. _atlas_2026_04:
 
 April 2026
@@ -32,7 +77,7 @@ April 2026
   embedding vectors.
 
 - Adds support for automated Voyage AI embeddings in the LangChainJS
-  framework, enabling seamless integration of MongoDB's
+  framework, enabling you to use MongoDB
   :ref:`auto-embedded vector search indexes
   <bson-data-types-embedded-documents>` with JavaScript applications.
 
@@ -224,4 +269,4 @@ January 2026
   with data exfiltration prevention policies enabled.
 
 
-.. last-run: 2026-05-06
+.. last-run: 2026-05-27
