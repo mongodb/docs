@@ -88,11 +88,11 @@ S3 Groom Job
 
 An |s3| blockstore groom job performs the following tasks:
 
-1. Writes all new blocks for ongoing snapshots to temporary database
+1. Writes all new blocks for ongoing snapshots to temporary database.
 
-2. Sends a delete request for dead blocks in source database
+2. Sends a delete request for dead blocks in source database.
 
-3. Resumes writing new blocks for ongoing snapshots to source database
+3. Resumes writing new blocks for ongoing snapshots to source database.
 
 4. Copies over new blocks from the temporary database back to the
    source database.
@@ -100,26 +100,19 @@ An |s3| blockstore groom job performs the following tasks:
 What Triggers a Groom Job
 -------------------------
 
-|onprem| triggers groom jobs when:
+When calculating the threshold for triggering a groom job, |onprem| considers 
+these factors: 
 
-- the percentage of living bytes drops below a given threshold and
-- the number of dead bytes reaches a minimum value.
+- Living bytes: bytes referenced by at least one existing snapshot. 
+- Dead bytes: bytes no longer referenced by any snapshot. 
+- Total bytes: the sum of living and dead bytes in a blockstore. 
 
-|onprem| also runs groom jobs at the following minimum intervals:
+|onprem| triggers groom jobs for a blockstore when both of these conditions are met:
 
-.. list-table::
-   :widths: 20 80
-   :header-rows: 1
-   :stub-columns: 1
+- the percentage of living to total bytes drops below a given threshold, and
+- the number of dead bytes exceeds a minimum value.
 
-   * - Blockstore Location
-     - Minimum Groom Interval
-   * - S3
-     - One time every two weeks
-   * - MongoDB
-     - One time per year
-
-When grooming, Ops Manager removes all the dead bytes.
+The thresholds vary by blockstore type:
 
 .. list-table::
    :widths: 30 35 35
@@ -137,6 +130,22 @@ When grooming, Ops Manager removes all the dead bytes.
    * - MongoDB
      - 45%
      - 2 GB
+
+|onprem| also runs groom jobs at the following minimum intervals:
+
+.. list-table::
+   :widths: 20 80
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Blockstore Location
+     - Minimum Groom Interval
+   * - S3
+     - One time every two weeks
+   * - MongoDB
+     - One time per year
+
+When grooming, Ops Manager removes all the dead bytes.
 
 You can start a groom from the
 :ref:`Grooms Priority admin page <groom-priority-page>`.
