@@ -11,15 +11,16 @@ interface ConvertDirectiveIncludeArgs {
 }
 
 /**
- * Recursively collect every substitution_reference in `nodes`, skipping nested include
- * directives (those emit their own <Replacement> slots when converted).
+ * Recursively collect every substitution_reference in `nodes`, traversing into nested include
+ * directives as well. A substitution used deep inside a nested (shared) include must surface to
+ * this outermost caller so its `<Include>` carries the value slot. Shared intermediate includes
+ * forward the value via a `<Reference type="replacement">` placeholder (see the slot loop below),
+ * so the per-page value supplied here propagates all the way down at runtime.
  * Returns a map of refname → resolved children (the Snooty-resolved content).
  */
 const collectSubstitutionRefs = (nodes: SnootyNode[]): Map<string, SnootyNode[]> => {
   const refs = new Map<string, SnootyNode[]>();
   const walk = (node: SnootyNode) => {
-    const name = String(node.name ?? '').toLowerCase();
-    if (node.type === 'directive' && (name === 'include' || name === 'sharedinclude')) return;
     if (node.type === 'substitution_reference' || node.type === 'substitution') {
       // Snooty BSON uses `name`; synthetic test data may use `refname` — mirror convertNode's fallback
       const key =
@@ -85,8 +86,12 @@ export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIn
     initialDepth: depth,
     substitutionRefXref: ctx.substitutionRefXref,
     substitutionDefLiterals: ctx.substitutionDefLiterals,
+    substitutionDefNodes: ctx.substitutionDefNodes,
     emitSubstitutionReferencesAsReplacement: isSlotBased,
     suppressSubstitutionInlineValues: !isSlotBased,
+    // This conversion emits an include *file*, so any nested includes within it must forward
+    // per-page substitution values via placeholders rather than baking a single value.
+    emittingIncludeFile: true,
   });
   ctx.emitMdxFile?.({ outfilePath: emittedPathNormalized, mdastRoot: emittedMdast });
 
@@ -106,6 +111,8 @@ export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIn
         currentOutfilePath: path.normalize(emittedPathNormalized),
         substitutionRefXref: ctx.substitutionRefXref,
         substitutionDefLiterals: ctx.substitutionDefLiterals,
+        substitutionDefNodes: ctx.substitutionDefNodes,
+        emittingIncludeFile: ctx.emittingIncludeFile,
         skipRootBlockWrapping: true,
       },
     );
@@ -125,6 +132,32 @@ export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIn
   if (!isSlotBased) {
     const substRefs = collectSubstitutionRefs(contentChildren);
     for (const [refname, subChildren] of substRefs) {
+      // When this include is itself being emitted as a shared file, do not bake a value: a single
+      // value would collide across pages that include this file with different substitutions
+      // (last-writer-wins on disk). Instead forward a `<Reference type="replacement">` placeholder
+      // that this include's caller (ultimately the top page) resolves via its own `<Replacement>`
+      // slot at runtime. resolveReplacementReferences matches it by refKey and substitutes the
+      // caller's value; if no caller ever supplies one the node falls back to _references.json.
+      if (ctx.emittingIncludeFile) {
+        replacementChildren.push({
+          type: 'mdxJsxFlowElement',
+          name: 'Replacement',
+          attributes: [{ type: 'mdxJsxAttribute', name: 'name', value: refname }],
+          children: [
+            {
+              type: 'mdxJsxTextElement',
+              name: 'Reference',
+              attributes: [
+                { type: 'mdxJsxAttribute', name: 'refKey', value: refname },
+                { type: 'mdxJsxAttribute', name: 'type', value: 'replacement' },
+              ],
+              children: [],
+            } as MdastNode,
+          ],
+        } as MdastNode);
+        continue;
+      }
+
       // Prefer the page-level substitution_definition children over the Snooty-resolved include
       // children: the include body is parsed independently using the global references file, so its
       // resolved value may be a different page's default rather than this page's override.

@@ -1,13 +1,27 @@
 import { render } from '@testing-library/react';
+import { remark } from 'remark';
+import remarkMdx from 'remark-mdx';
+import remarkFrontmatter from 'remark-frontmatter';
+import remarkGfm from 'remark-gfm';
 import { Include } from '@/mdx-components/Include';
 import { Replacement } from '@/mdx-components/Include/Replacement';
 import { loadMDX } from '@/mdx-utils/load-mdx';
+import { remarkResolveImports } from '@/mdx-utils/remark-resolve-imports';
+import { getBlobStringWithFallback } from '@/mdx-utils/blob-read';
+import { getBlobKey } from '@/mdx-utils/get-blob-key';
 
 jest.mock('@/mdx-utils/load-mdx', () => ({
   loadMDX: jest.fn(),
 }));
 
+jest.mock('@/mdx-utils/blob-read', () => ({
+  getBlobStringWithFallback: jest.fn(),
+}));
+
 const mockLoadMDX = loadMDX as jest.MockedFunction<typeof loadMDX>;
+const mockGetBlobStringWithFallback = getBlobStringWithFallback as jest.MockedFunction<
+  typeof getBlobStringWithFallback
+>;
 
 describe('Include', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -62,5 +76,94 @@ describe('Include', () => {
     const { getByText } = render(result);
 
     expect(getByText(/Error: Could not load content/)).toBeTruthy();
+  });
+});
+
+describe('remarkResolveImports — nested-include substitution propagation', () => {
+  // Mirrors the reference/command.txt collision fix: a substitution (|fts-index|) is only used in a
+  // shared description include nested inside a shared table include. The shared files carry a
+  // `type="replacement"` placeholder (no baked value); each top page supplies its own value on its
+  // <Include> slot. This verifies the value propagates down the chain at runtime so one page renders
+  // a link and another renders plain text — from the exact same shared files.
+  const PROJECT = 'test';
+  const LINK_URL = 'https://www.mongodb.com/docs/atlas/atlas-search/atlas-search-overview/#fts-indexes';
+
+  // Shared, caller-agnostic files (identical no matter which page includes them).
+  const TABLE_MDX = [
+    '<Include src="/_includes/desc">',
+    '  <Replacement name="fts-index">',
+    '    <Reference refKey="fts-index" type="replacement" />',
+    '  </Replacement>',
+    '</Include>',
+    '',
+  ].join('\n');
+  const DESC_MDX = 'Updates an existing <Reference refKey="fts-index" type="substitution" />.\n';
+  // A distinctive global fallback so we can prove the per-page slot wins (fallback is never used).
+  const REFERENCES_JSON = JSON.stringify({ substitutions: { 'fts-index': 'GLOBAL FALLBACK' }, refs: {} });
+
+  const blobFor = (mdxPath: string) => `mdx/${PROJECT}/${mdxPath}`;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // remark-resolve-imports calls getBlobStringWithFallback(relativePath); the wrapper computes
+    // the blob key via getBlobKey, so mirror that here to look up the keyed map.
+    mockGetBlobStringWithFallback.mockImplementation(async (relativePath: string) => {
+      const key = getBlobKey(relativePath);
+      const map: Record<string, string> = {
+        [blobFor('_includes/table.mdx')]: TABLE_MDX,
+        [blobFor('_includes/desc.mdx')]: DESC_MDX,
+        [`reference/${PROJECT}/_references.json`]: REFERENCES_JSON,
+      };
+      return map[key] ?? null;
+    });
+  });
+
+  const resolve = async (topPageMdx: string): Promise<string> => {
+    const file = await remark()
+      .use(remarkFrontmatter, ['yaml'])
+      .use(remarkGfm)
+      .use(remarkMdx)
+      .use(remarkResolveImports, { projectPath: PROJECT })
+      .process(topPageMdx);
+    return String(file);
+  };
+
+  it('renders a link for a page that defines the substitution as a link', async () => {
+    const linkPage = [
+      '<Include src="/_includes/table">',
+      '  <Replacement name="fts-index">',
+      `    <>[MongoDB Search index](${LINK_URL})</>`,
+      '  </Replacement>',
+      '</Include>',
+      '',
+    ].join('\n');
+
+    const output = await resolve(linkPage);
+
+    expect(output).toContain(LINK_URL);
+    expect(output).toContain('MongoDB Search index');
+    expect(output).not.toContain('GLOBAL FALLBACK');
+    // No leftover placeholders / unresolved references.
+    expect(output).not.toContain('type="replacement"');
+    expect(output).not.toContain('type="substitution"');
+  });
+
+  it('renders plain text for a page that defines the substitution as plain text', async () => {
+    const plainPage = [
+      '<Include src="/_includes/table">',
+      '  <Replacement name="fts-index">',
+      '    <>MongoDB Search index</>',
+      '  </Replacement>',
+      '</Include>',
+      '',
+    ].join('\n');
+
+    const output = await resolve(plainPage);
+
+    expect(output).toContain('MongoDB Search index');
+    expect(output).not.toContain(LINK_URL);
+    expect(output).not.toContain('GLOBAL FALLBACK');
+    expect(output).not.toContain('type="replacement"');
+    expect(output).not.toContain('type="substitution"');
   });
 });

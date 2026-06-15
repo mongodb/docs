@@ -531,6 +531,17 @@ const mergeSubstitutionDefLiteralMaps = (
   return out;
 };
 
+const mergeSubstitutionDefNodesMaps = (
+  parent: Map<string, SnootyNode[]> | undefined,
+  local: Map<string, SnootyNode[]>,
+): Map<string, SnootyNode[]> => {
+  const out = new Map<string, SnootyNode[]>(parent ?? []);
+  for (const [k, v] of local) {
+    out.set(k, v);
+  }
+  return out;
+};
+
 /**
  * Walk the full document tree for `substitution_definition` nodes whose body is **not** `:ref:` /
  * `:doc:` (those use {@link buildSubstitutionRefXrefMap}). Collects display text for roles such as
@@ -1908,6 +1919,21 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
 
       // Included RST often has text-only `substitution_reference` children (definitions live on the parent page).
       const fromCatalog = refname ? ctx.substitutionRefXref?.get(refname) : undefined;
+      // The catalog is keyed by alias name across the whole tree, so a definition elsewhere can
+      // override a page that defines the same alias locally. On a normal page the node's own
+      // children are Snooty's authoritative resolution, so prefer them when they differ from the
+      // catalog. Include bodies (slot / suppressed) still use the catalog.
+      const localResolvedText =
+        !ctx.emitSubstitutionReferencesAsReplacement && !ctx.suppressSubstitutionInlineValues
+          ? extractInlineDisplayText(node.children ?? [])
+          : '';
+      const catalogOverriddenByLocal = !!fromCatalog && !!localResolvedText && localResolvedText !== fromCatalog.title;
+      // Emit the node's resolved children directly so inline formatting (code, emphasis, etc.) is
+      // kept; a flat `value` would render as plain text at runtime.
+      if (catalogOverriddenByLocal) {
+        if (refname) ctx.collectedSubstitutions.set(refname, localResolvedText);
+        return convertChildren({ nodes: node.children ?? [], depth, ctx });
+      }
       if (fromCatalog) {
         const slotBody = ctx.emitSubstitutionReferencesAsReplacement;
         if (fromCatalog.href && !ctx.collectedRefs.has(fromCatalog.refTargetKey)) {
@@ -2172,8 +2198,22 @@ interface ConvertSnootyAstToMdastOptions {
   substitutionRefXref?: Map<string, SubstitutionRefXrefInfo>;
   /** Parent page non-xref substitution definitions (`:pipeline:`, plain text); merged with this root's definitions. */
   substitutionDefLiterals?: Map<string, string>;
+  /**
+   * Parent page raw `substitution_definition` children keyed by refname. Threaded into nested
+   * include conversions so deeply-nested includes (e.g. page → table → row description) can build
+   * `<Replacement>` slots from the page-level definition rather than the global default Snooty baked
+   * into the include body. Merged with this root's own definitions.
+   */
+  substitutionDefNodes?: Map<string, SnootyNode[]>;
   /** Plain include bodies only: suppress the `value` attribute so `<Replacement>` slots win. */
   suppressSubstitutionInlineValues?: boolean;
+  /**
+   * True when this conversion emits an include file body (not a top-level page). Threaded onto the
+   * context so `convertDirectiveInclude` emits propagating `<Reference type="replacement">`
+   * placeholders for nested-include substitution slots instead of baking a single value into the
+   * shared file. The recursive include-body conversion sets this to `true`.
+   */
+  emittingIncludeFile?: boolean;
   /**
    * When true, skip the `wrapInlineBlockNode` pass at the root and section levels.
    * Use when converting inline-only slot content (e.g. `<Replacement>` values) where
@@ -2199,7 +2239,10 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
     buildSubstitutionDefinitionLiteralMap(root),
   );
 
-  const substitutionDefNodes = buildSubstitutionDefinitionNodesMap(root);
+  const substitutionDefNodes = mergeSubstitutionDefNodesMaps(
+    options?.substitutionDefNodes,
+    buildSubstitutionDefinitionNodesMap(root),
+  );
 
   const ctx: ConversionContext = {
     emitMdxFile: options?.onEmitMdxFile,
@@ -2209,6 +2252,7 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
     substitutionDefLiterals,
     substitutionDefNodes,
     suppressSubstitutionInlineValues: options?.suppressSubstitutionInlineValues,
+    emittingIncludeFile: options?.emittingIncludeFile,
     collectedSubstitutions,
     collectedRefs,
   };

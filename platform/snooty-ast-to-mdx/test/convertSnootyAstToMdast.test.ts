@@ -377,6 +377,64 @@ describe('convertSnootyAstToMdast', () => {
     });
   });
 
+  it('page-local literal substitution wins over a same-named xref catalog entry from elsewhere', () => {
+    // Reproduces the autocomplete-type heading bug: |fts-field-type| is defined globally as an xref
+    // (:ref:`dateFacet`) — which lands in the name-keyed xref catalog — but THIS page redefines it
+    // locally as ``autocomplete``. The page-content occurrence (here, a heading) resolves to the
+    // local literal in Snooty, and the converter must emit that, not the cross-scope catalog xref.
+    const ast: SnootyNode = {
+      type: 'root',
+      children: [
+        // Cross-scope xref definition that populates the catalog (e.g. from the facet page).
+        {
+          type: 'substitution_definition',
+          refname: 'fts-field-type',
+          children: [
+            {
+              type: 'ref_role',
+              name: 'label',
+              domain: 'std',
+              target: 'bson-data-types-date-facet',
+              fileid: ['atlas-search/field-types/date-facet-type', 'std-label-bson-data-types-date-facet'],
+              children: [{ type: 'text', value: 'dateFacet' }],
+            },
+          ],
+        },
+        // Page-local override as a plain literal.
+        {
+          type: 'substitution_definition',
+          refname: 'fts-field-type',
+          children: [{ type: 'literal', children: [{ type: 'text', value: 'autocomplete' }] }],
+        },
+        // Heading using the alias; Snooty resolved it to the local literal.
+        {
+          type: 'heading',
+          depth: 2,
+          children: [
+            { type: 'text', value: 'Define the Index for the ' },
+            {
+              type: 'substitution_reference',
+              name: 'fts-field-type',
+              children: [{ type: 'literal', children: [{ type: 'text', value: 'autocomplete' }] }],
+            },
+            { type: 'text', value: ' Type' },
+          ],
+        },
+      ],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+
+    // The heading must carry the local value, not the cross-scope catalog xref.
+    expect(mdx).toContain('autocomplete');
+    expect(mdx).not.toContain('bson-data-types-date-facet');
+    expect(mdx).not.toContain('dateFacet');
+    // The local definition is inline code (``autocomplete``), so the heading must preserve that
+    // formatting by inlining the resolved children — not flatten it to a plain `value` string
+    // (which the runtime renders as unstyled text).
+    expect(mdx).toContain('Define the Index for the `autocomplete` Type');
+    expect(mdx).not.toContain('value="autocomplete"');
+  });
+
   it('substitution_reference with expanded reference node emits Reference name + title (not type substitution)', () => {
     const ast: SnootyNode = {
       type: 'root',
@@ -1184,6 +1242,110 @@ describe('convertSnootyAstToMdast', () => {
     expect(mdx).toContain('<Replacement name="ldap-provider-link">');
     expect(mdx).toContain('Okta');
     expect(mdx).toContain('https://okta.com');
+  });
+
+  it('propagates per-page substitution values through nested shared includes via placeholder slots', () => {
+    // Reproduces the reference/command.txt collision: |fts-index| is only *used* inside a
+    // description include that is itself nested inside a shared table include. Multiple pages
+    // include that same table with different |fts-index| definitions, so the shared table.mdx must
+    // NOT bake a single value (last-writer-wins on disk). Instead the shared file emits a
+    // `<Reference type="replacement">` placeholder and each top page carries its own value on its
+    // `<Include>` slot, which propagates down to the placeholder at runtime.
+    const LINK_URL = 'https://www.mongodb.com/docs/atlas/atlas-search/atlas-search-overview/#fts-indexes';
+
+    // The description include is shared; it is the same regardless of which page includes it.
+    const descriptionInclude = (resolvedChildren: SnootyNode[]): SnootyNode => ({
+      // Outer include (the table) — carries no substitution refs of its own.
+      type: 'directive',
+      name: 'include',
+      argument: 'atlas-search-commands/atlas-search-command-table.rst',
+      children: [
+        {
+          // Inner include (the row description) — this is where |fts-index| is actually used.
+          type: 'directive',
+          name: 'include',
+          argument: 'atlas-search-commands/command-descriptions/updateSearchIndex-description.rst',
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                { type: 'text', value: 'Updates an existing ' },
+                { type: 'substitution_reference', refname: 'fts-index', children: resolvedChildren },
+                { type: 'text', value: '.' },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    // Page A defines |fts-index| as a link (mirrors :atlas:`MongoDB Search index </.../#fts-indexes>`).
+    const linkPage: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'substitution_definition',
+          refname: 'fts-index',
+          children: [{ type: 'reference', refuri: LINK_URL, children: [{ type: 'text', value: 'MongoDB Search index' }] }],
+        },
+        descriptionInclude([
+          { type: 'reference', refuri: LINK_URL, children: [{ type: 'text', value: 'MongoDB Search index' }] },
+        ]),
+      ],
+    };
+
+    // Page B defines |fts-index| as plain text (mirrors release-notes/7.0.txt).
+    const plainPage: SnootyNode = {
+      type: 'root',
+      children: [
+        {
+          type: 'substitution_definition',
+          refname: 'fts-index',
+          children: [{ type: 'text', value: 'MongoDB Search index' }],
+        },
+        descriptionInclude([{ type: 'text', value: 'MongoDB Search index' }]),
+      ],
+    };
+
+    const linkEmit = jest.fn();
+    const { mdx: linkPageMdx } = convertSnootyAst({ ast: linkPage, onEmitMdxFile: linkEmit });
+
+    const plainEmit = jest.fn();
+    const { mdx: plainPageMdx } = convertSnootyAst({ ast: plainPage, onEmitMdxFile: plainEmit });
+
+    // The shared table.mdx must be caller-agnostic: a placeholder, NOT a baked value.
+    const getTableMdx = (emit: jest.Mock) => {
+      const call = emit.mock.calls.find(([{ outfilePath }]) =>
+        String(outfilePath).includes('atlas-search-command-table'),
+      );
+      expect(call).toBeDefined();
+      return convertMdastToMdx(call![0].mdastRoot);
+    };
+    for (const tableMdx of [getTableMdx(linkEmit), getTableMdx(plainEmit)]) {
+      expect(tableMdx).toContain('<Replacement name="fts-index">');
+      expect(tableMdx).toContain('refKey="fts-index"');
+      expect(tableMdx).toContain('type="replacement"');
+      // Caller-agnostic: no baked value (neither the link nor inline `value=`).
+      expect(tableMdx).not.toContain(LINK_URL);
+      expect(tableMdx).not.toContain('value=');
+    }
+
+    // The shared description.mdx stays a plain substitution reference (no baked value).
+    const descCall = linkEmit.mock.calls.find(([{ outfilePath }]) =>
+      String(outfilePath).includes('updateSearchIndex-description'),
+    );
+    expect(descCall).toBeDefined();
+    const descMdx = convertMdastToMdx(descCall![0].mdastRoot);
+    expect(descMdx).toContain('type="substitution"');
+    expect(descMdx).not.toContain('value=');
+
+    // Each top page carries its OWN value on its <Include table> slot.
+    expect(linkPageMdx).toContain('<Replacement name="fts-index">');
+    expect(linkPageMdx).toContain(LINK_URL);
+
+    expect(plainPageMdx).toContain('<Replacement name="fts-index">');
+    expect(plainPageMdx).toContain('MongoDB Search index');
+    expect(plainPageMdx).not.toContain(LINK_URL);
   });
 
   it('wraps inline role nodes (icon, guilabel) in a fragment inside Replacement slot', () => {

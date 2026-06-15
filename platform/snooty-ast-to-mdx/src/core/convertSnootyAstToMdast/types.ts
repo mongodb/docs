@@ -65,6 +65,14 @@ export interface ConversionContext {
    * slots; unmatched refs fall back to `_references.json`.
    */
   suppressSubstitutionInlineValues?: boolean;
+  /**
+   * True while converting the body of an include file (i.e. the MDX currently being generated is a
+   * shared include, not a top-level page). In this mode the auto-`<Replacement>` slot loop in
+   * `convertDirectiveInclude` emits a `<Reference type="replacement">` placeholder instead of baking
+   * a concrete value, so the shared include file stays caller-agnostic. The actual per-page value is
+   * supplied by the top-level page's `<Include>` slot and propagates down at runtime.
+   */
+  emittingIncludeFile?: boolean;
   /** Collected references to emit into a _references.ts artifact */
   collectedSubstitutions: Map<string, CollectedSubstitutionValue>;
   collectedRefs: Map<string, string>;
