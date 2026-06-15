@@ -88,6 +88,29 @@ $vectorSearchIndexName = $collection->createSearchIndex(
 );
 // end-create-vector-index
 
+// start-create-vector-index-stored-source
+$vectorSearchIndexName = $collection->createSearchIndex(
+    [
+        'fields' => [
+            [
+                'type' => 'vector',
+                'path' => 'plot_embedding',
+                'numDimensions' => 1536,
+                'similarity' => 'dotProduct',
+            ],
+            [
+                'type' => 'filter',
+                'path' => 'year',
+            ],
+        ],
+        'storedSource' => [
+            'include' => ['title', 'plot', 'year'],
+        ],
+    ],
+    ['name' => 'myVSidx', 'type' => 'vectorSearch'],
+);
+// end-create-vector-index-stored-source
+
 // start-create-multiple-indexes
 $indexNames = $collection->createSearchIndexes(
     [
