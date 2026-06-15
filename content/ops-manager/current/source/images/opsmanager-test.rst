@@ -1,3 +1,3 @@
 .. figure:: /images/ops-manager-test.png
-   :alt: The minimal deployment is suitable for development or testing, and hosts the application and backup daemon, as well as associated databases on a single server.
+   :alt: Minimal deployment for development or testing, with the application, backup daemon, and databases on a single server.
    :figwidth: 255px
