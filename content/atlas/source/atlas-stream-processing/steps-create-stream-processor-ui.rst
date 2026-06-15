@@ -140,8 +140,17 @@ configure your stream processor:
 
             The JSON editor opens with a text box where you can
             configure your stream processor in |json| format.
-          
-         .. step:: Define the stream processor. 
+
+         .. step:: (Optional) Upload a file to populate the editor.
+
+            Click :guilabel:`Upload File` and select a JSON file
+            that contains your stream processor definition. The file
+            must use the same |json| format that the
+            :oas-bump-atlas-op:`Create One Stream Processor
+            <creategroupstreamprocessor>` endpoint requires.
+            Your uploaded file replaces the default editor content.
+
+         .. step:: Define the stream processor.
 
             Specify the |json| definition for your stream processor in
             the JSON editor text box. This definition must include a
