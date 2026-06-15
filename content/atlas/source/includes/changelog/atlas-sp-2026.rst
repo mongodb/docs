@@ -29,10 +29,12 @@
 - Adds support for private networking for |azure| Blob Storage
   connections. To learn more, see :ref:`atlas-sp-pl-azure-blob-add`.
 - Fixes an issue that returned an incorrect HTTP status code when
-  a stream tenant is not found.
-- Displays a cost warning in the {+atlas-ui+} when you enable
-  {+aws-pl+} for S3 or {+aws-kinesis+} connections.
-- Hides the source message consumption and sink message delivery
+  a workspace is not found.
+- Adds a display of the {+aws-pl+} cost for {+aws-kinesis+} and
+  S3 connections in the {+atlas-ui+}.
+- Fixes a UI issue where {+gcp-psc+} costs were not displaying
+  correctly for {+gcp+} workspaces.
+- Removes the source message consumption and sink message delivery
   panels in the stream processor metrics UI when the source or
   sink does not support per-target statistics.
 - Fixes an invalid field in the Kinesis sink template in the
