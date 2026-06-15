@@ -6,6 +6,6 @@ var pipeline = new EmptyPipelineDefinition<Movie>()
             {
                 Id = m.Id,
                 Title = m.Title,
-                LeadActor = m.Cast[0],
+                LeadActor = m.Cast![0],
             })
     );

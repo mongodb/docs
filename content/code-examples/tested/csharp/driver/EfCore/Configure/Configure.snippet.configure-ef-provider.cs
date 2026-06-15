@@ -8,7 +8,7 @@ serviceCollection.AddDbContext<MyDbContext>((serviceProvider, options) =>
     options.UseMongoDB(mongoClient, "<database name>");
 });
 
-var app = serviceCollection.BuildServiceProvider();
+using var app = serviceCollection.BuildServiceProvider();
 using (var scope = app.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<MyDbContext>();

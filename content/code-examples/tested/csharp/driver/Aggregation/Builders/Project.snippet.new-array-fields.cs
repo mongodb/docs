@@ -6,7 +6,7 @@ var pipeline = new EmptyPipelineDefinition<Movie>()
             {
                 Id = m.Id,
                 Title = m.Title,
-                LeadActor = m.Cast[0],
-                Crew = m.Directors.Concat(m.Writers).ToList()
+                LeadActor = m.Cast![0],
+                Crew = m.Directors!.Concat(m.Writers!).ToList()
             })
     );
