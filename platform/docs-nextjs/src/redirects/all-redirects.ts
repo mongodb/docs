@@ -16,6 +16,7 @@ import kubernetesRedirects from './kubernetes-redirects.json';
 import landingRedirects from './landing-redirects.json';
 import mongocliRedirects from './mongocli-redirects.json';
 import nodeRedirects from './node-redirects.json';
+import opsManagerRedirects from './ops-manager-redirects.json';
 import realmRedirects from './realm-redirects.json';
 import searchRedirects from './search-redirects.json';
 import sqlInterfaceRedirects from './sql-interface-redirects.json';
@@ -38,6 +39,7 @@ export const allRedirects: RedirectEntry[] = [
   ...landingRedirects,
   ...mongocliRedirects,
   ...nodeRedirects,
+  ...opsManagerRedirects,
   ...realmRedirects,
   ...searchRedirects,
   ...sqlInterfaceRedirects,
