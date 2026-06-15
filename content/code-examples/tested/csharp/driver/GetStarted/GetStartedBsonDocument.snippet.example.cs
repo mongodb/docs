@@ -1,5 +1,6 @@
-using MongoDB.Driver;
 using MongoDB.Bson;
+using MongoDB.Bson.IO;
+using MongoDB.Driver;
 
 var connectionString = Environment.GetEnvironmentVariable("MONGODB_URI");
 if (connectionString == null)

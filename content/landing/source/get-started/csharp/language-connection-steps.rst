@@ -22,7 +22,7 @@
       Copy and paste the following code into the ``Program.cs`` file
       in your application:
 
-      .. literalinclude:: /shared/drivers-get-started/csharp/get-started-connect.cs
+      .. literalinclude:: /code-examples/tested/csharp/driver/GetStarted/GetStartedBsonDocument.snippet.example.cs
          :language: csharp
 
    .. step:: Add your connection string
@@ -41,4 +41,6 @@
       The application output contains details about the retrieved
       movie document:
 
-      .. include:: /get-started/includes/application-output.rst
+      .. literalinclude:: /code-examples/tested/csharp/driver/GetStarted/get-started-bson-output.sh
+         :language: none
+         :copyable: false

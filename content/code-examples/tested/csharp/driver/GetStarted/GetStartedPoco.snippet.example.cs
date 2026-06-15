@@ -19,7 +19,7 @@ var movie = collection.Find(filter).First();
 
 Console.WriteLine($"Title: {movie.Title}");
 Console.WriteLine($"Plot: {movie.Plot}");
-Console.WriteLine($"Genres: {string.Join(", ", movie.Genres)}");
+Console.WriteLine($"Genres: {string.Join(", ", movie.Genres ?? [])}");
 
 [BsonIgnoreExtraElements]
 public class Movie
@@ -28,12 +28,11 @@ public class Movie
     public ObjectId Id { get; set; }
 
     [BsonElement("title")]
-    public string Title { get; set; }
+    public string? Title { get; set; }
 
     [BsonElement("plot")]
-    public string Plot { get; set; }
+    public string? Plot { get; set; }
 
     [BsonElement("genres")]
-    public List<string> Genres { get; set; }
+    public List<string>? Genres { get; set; }
 }
-
