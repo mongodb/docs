@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useState, useSyncExternalStore } from 'react';
+import { useCallback, useMemo, useState, useSyncExternalStore } from 'react';
 import { css as LeafyCss, cx } from '@leafygreen-ui/emotion';
 import Tooltip from '@leafygreen-ui/tooltip';
-import Link from '@/mdx-components/LegacyLink';
+import { Link } from '@/mdx-components/Link';
 import { formatText } from '@/utils/format-text';
 import { theme } from '@/styles/theme';
 import type { BreadcrumbType } from './breadcrumb-container';
@@ -40,11 +40,20 @@ const linkWrapperLayoutStyling = LeafyCss`
   }
 `;
 
-// On resize events, recheck if our truncation status
-function subscribeToResizeEvents(callback: () => void) {
+// Recheck truncation on window resize and whenever the element's box changes,
+// so layout shifts after the initial measurement don't leave a stale value.
+function subscribeToSizeChanges(node: HTMLDivElement | null, callback: () => void) {
   window.addEventListener('resize', callback);
+
+  let observer: ResizeObserver | undefined;
+  if (node && typeof ResizeObserver !== 'undefined') {
+    observer = new ResizeObserver(callback);
+    observer.observe(node);
+  }
+
   return () => {
     window.removeEventListener('resize', callback);
+    observer?.disconnect();
   };
 }
 
@@ -59,8 +68,10 @@ function getServerSnapshot() {
 const TRUNCATION_THRESHOLD = 125; // px
 
 const useIsTruncated = (node: HTMLDivElement | null) => {
+  const subscribe = useMemo(() => (callback: () => void) => subscribeToSizeChanges(node, callback), [node]);
+
   const isTruncated = useSyncExternalStore(
-    subscribeToResizeEvents,
+    subscribe,
     () => {
       const isTruncated = (node?.scrollWidth ?? 0) > (node?.clientWidth ?? 0);
       const isExcessivelyTruncated = node ? isTruncated && node?.clientWidth <= TRUNCATION_THRESHOLD : false;

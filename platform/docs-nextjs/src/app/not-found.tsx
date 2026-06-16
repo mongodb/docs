@@ -8,7 +8,7 @@ import { palette } from '@leafygreen-ui/palette';
 import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
 import { Body } from '@leafygreen-ui/typography';
 import { theme } from '@/styles/theme';
-import Link from '@/mdx-components/LegacyLink';
+import { Link } from '@/mdx-components/Link';
 import layoutStyles from '@/app/layout.module.scss';
 import { ChatbotProvider } from '@/context/chatbot-context';
 

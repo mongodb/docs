@@ -10,7 +10,7 @@ import { theme } from '@/styles/theme';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { useVersionContext } from '@/context/version-context';
 import { tocItemKey } from '@/utils/create-toc-key';
-import LinkComponent from '@/mdx-components/LegacyLink';
+import { Link as LinkComponent} from '@/mdx-components/Link';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
 import { isCurrentPage } from '@/utils/is-current-page';
 import { isSelectedTocNode } from '@/utils/is-selected-toc-node';
@@ -199,7 +199,7 @@ export const UnifiedTocNavItem = ({
       <SideNavItem
         aria-label={label}
         as={isUnifiedTOCInDevMode ? (undefined as never) : LinkComponent}
-        contentSite={contentSite}
+        isSidenav
         to={newUrl}
         onClick={handleClick}
         className={cx(l2ItemStyling({ level, isAccordion }))}
@@ -269,7 +269,7 @@ export const UnifiedTocNavItem = ({
         active={isActive}
         aria-label={label}
         as={LinkComponent}
-        contentSite={contentSite}
+        isSidenav
         to={newUrl}
         onClick={(event) => {
           sidenavAnalytics(label, event.currentTarget as HTMLElement);
@@ -343,7 +343,7 @@ export const CollapsibleNavItem = ({
     <>
       <SideNavItem
         as={newUrl ? LinkComponent : (undefined as never)}
-        contentSite={contentSite}
+        isSidenav
         to={newUrl || undefined}
         active={isActive}
         className={cx(
@@ -416,7 +416,7 @@ export const StaticNavItem = ({
       active={isActive}
       aria-label={label}
       data-l1-tab={'true'}
-      contentSite={contentSite}
+      isSidenav
       hideExternalIcon={true}
       as={isUnifiedTOCInDevMode ? (undefined as never) : LinkComponent}
       to={newUrl}
