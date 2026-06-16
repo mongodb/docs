@@ -1,4 +1,4 @@
-.. Last updated: April 09, 2026 at 02:37 PM EDT
+.. Last updated: June 11, 2026 at 03:16 PM EDT
 
 .. list-table::
    :header-rows: 1
@@ -65,13 +65,37 @@
    * - ``AI_MODELS_API_KEY_CREATED``
      - .. _atlas_event_ai_models_api_key_created:
 
-       AI Models API key created
+       AI Models API key has been created
      - no
 
    * - ``AI_MODELS_API_KEY_DELETED``
      - .. _atlas_event_ai_models_api_key_deleted:
 
-       AI Models API key deleted
+       AI Models API key has been deleted
+     - no
+
+   * - ``AI_MODELS_API_KEY_UPDATED``
+     - .. _atlas_event_ai_models_api_key_updated:
+
+       AI Models API key has been updated
+     - no
+
+   * - ``AI_MODELS_RATE_LIMIT_RESET``
+     - .. _atlas_event_ai_models_rate_limit_reset:
+
+       AI Models rate limit has been reset
+     - no
+
+   * - ``AI_MODELS_RATE_LIMIT_UPDATED``
+     - .. _atlas_event_ai_models_rate_limit_updated:
+
+       AI Models rate limit has been updated
+     - no
+
+   * - ``AI_MODELS_USAGE_TIER_UPDATED``
+     - .. _atlas_event_ai_models_usage_tier_updated:
+
+       AI Models usage tier has been updated
      - no
 
    * - ``ALERT_ACKNOWLEDGED_AUDIT``
@@ -860,6 +884,30 @@
        Charts API request succeeded
      - no
 
+   * - ``CHARTS_DASHBOARD_EXPORTED``
+     - .. _atlas_event_charts_dashboard_exported:
+
+       Dashboard exported
+     - no
+
+   * - ``CHARTS_DASHBOARD_EXPORT_FAILED``
+     - .. _atlas_event_charts_dashboard_export_failed:
+
+       Dashboard export failed
+     - no
+
+   * - ``CHARTS_DASHBOARD_IMPORTED``
+     - .. _atlas_event_charts_dashboard_imported:
+
+       Dashboard imported
+     - no
+
+   * - ``CHARTS_DASHBOARD_IMPORT_FAILED``
+     - .. _atlas_event_charts_dashboard_import_failed:
+
+       Dashboard import failed
+     - no
+
    * - ``CHECK_PAYMENT_RECEIVED``
      - .. _atlas_event_check_payment_received:
 
@@ -1004,6 +1052,12 @@
        A collection was created for a cluster
      - no
 
+   * - ``CLUSTER_CONNECTION_FIND_DOCUMENTS``
+     - .. _atlas_event_cluster_connection_find_documents:
+
+       Run find to fetch documents from a collection
+     - no
+
    * - ``CLUSTER_CONNECTION_GET_AGGREGATED_VIEW_INFOS``
      - .. _atlas_event_cluster_connection_get_aggregated_view_infos:
 
@@ -1056,6 +1110,12 @@
      - .. _atlas_event_cluster_created:
 
        New cluster created
+     - no
+
+   * - ``CLUSTER_CREATED_VIA_ANIS``
+     - .. _atlas_event_cluster_created_via_anis:
+
+       Cluster created via Azure Native integration
      - no
 
    * - ``CLUSTER_CREDENTIAL_UPDATED_AUDIT``
@@ -1340,6 +1400,18 @@
        Cluster Mongot process arguments update submitted
      - no
 
+   * - ``CLUSTER_MONGUARD_DISABLED``
+     - .. _atlas_event_cluster_monguard_disabled:
+
+       Atlas Network Protection Layer became inactive on a cluster
+     - no
+
+   * - ``CLUSTER_MONGUARD_ENABLED``
+     - .. _atlas_event_cluster_monguard_enabled:
+
+       Atlas Network Protection Layer became active on a cluster
+     - no
+
    * - ``CLUSTER_OPLOG_RESIZED``
      - .. _atlas_event_cluster_oplog_resized:
 
@@ -1423,6 +1495,18 @@
 
        Cluster regional outage simulation started
      - no
+
+   * - ``CLUSTER_RESET_FORCE_RECONFIG_REQUESTED``
+     - .. _atlas_event_cluster_reset_force_reconfig_requested:
+
+       User requested reset force reconfiguration for cluster
+     - no
+
+   * - ``CLUSTER_RESHARDING_COMPLETED``
+     - .. _atlas_event_cluster_resharding_completed:
+
+       Cluster resharding completed
+     - yes
 
    * - ``CLUSTER_RESURRECTED``
      - .. _atlas_event_cluster_resurrected:
@@ -1531,6 +1615,18 @@
 
        Cluster update submitted
      - no
+
+   * - ``COMPUTE_AUTO_SCALE_DOWNSCALE_SKIPPED_FALLBACK_ANALYTICS``
+     - .. _atlas_event_compute_auto_scale_downscale_skipped_fallback_analytics:
+
+       Compute auto-scaling down skipped for analytics tier: target instance size currently capacity constrained in region
+     - yes
+
+   * - ``COMPUTE_AUTO_SCALE_DOWNSCALE_SKIPPED_FALLBACK_BASE``
+     - .. _atlas_event_compute_auto_scale_downscale_skipped_fallback_base:
+
+       Compute auto-scaling down skipped for base tier: target instance size currently capacity constrained in region
+     - yes
 
    * - ``COMPUTE_AUTO_SCALE_INITIATED``
      - .. _atlas_event_compute_auto_scale_initiated:
@@ -2036,10 +2132,22 @@
        Credit Amount Remaining Cents Modified
      - no
 
+   * - ``CREDIT_AWS_ACCOUNT_ID_MODIFIED``
+     - .. _atlas_event_credit_aws_account_id_modified:
+
+       Credit AWS Account ID Modified
+     - no
+
    * - ``CREDIT_AWS_CUSTOMER_ID_MODIFIED``
      - .. _atlas_event_credit_aws_customer_id_modified:
 
        Credit AWS Customer ID Modified
+     - no
+
+   * - ``CREDIT_AWS_LICENSE_ARN_MODIFIED``
+     - .. _atlas_event_credit_aws_license_arn_modified:
+
+       Credit AWS License ARN Modified
      - no
 
    * - ``CREDIT_AWS_PRODUCT_CODE_MODIFIED``
@@ -2204,11 +2312,29 @@
        Backup Daemon is down
      - yes
 
+   * - ``DAEMON_STARTED``
+     - .. _atlas_event_daemon_started:
+
+       A backup daemon started.
+     - no
+
    * - ``DAEMON_UP``
      - .. _atlas_event_daemon_up:
 
        Backup Daemon is up
      - no
+
+   * - ``DAILY_BILLING_CHANGE_NORMAL``
+     - .. _atlas_event_daily_billing_change_normal:
+
+       Project daily billing percentage change is below threshold
+     - no
+
+   * - ``DAILY_BILLING_CHANGE_OVER_THRESHOLD``
+     - .. _atlas_event_daily_billing_change_over_threshold:
+
+       Project daily billing has increased by more than the threshold percent
+     - yes
 
    * - ``DAILY_BILL_OVER_THRESHOLD``
      - .. _atlas_event_daily_bill_over_threshold:
@@ -2534,6 +2660,18 @@
        Encryption at Rest KMS network access restored
      - no
 
+   * - ``ENCRYPTION_AT_REST_PRIVATE_ENDPOINT_CREATED``
+     - .. _atlas_event_encryption_at_rest_private_endpoint_created:
+
+       Encryption at Rest private endpoint created
+     - no
+
+   * - ``ENCRYPTION_AT_REST_PRIVATE_ENDPOINT_DELETED``
+     - .. _atlas_event_encryption_at_rest_private_endpoint_deleted:
+
+       Encryption at Rest private endpoint deleted
+     - no
+
    * - ``ENDPOINT_SERVICE_CREATED``
      - .. _atlas_event_endpoint_service_created:
 
@@ -2568,6 +2706,18 @@
      - .. _atlas_event_extra_maintenance_deferral_granted:
 
        Admin granted an extra maintenance deferral for project
+     - no
+
+   * - ``FAILOVER_STUCK``
+     - .. _atlas_event_failover_stuck:
+
+       A standby cluster failover has been in progress longer than the configured threshold
+     - yes
+
+   * - ``FAILOVER_STUCK_RESOLVED``
+     - .. _atlas_event_failover_stuck_resolved:
+
+       A previously stuck standby cluster failover is no longer stuck
      - no
 
    * - ``FEATURE_FLAG_MAINTENANCE``
@@ -2670,7 +2820,7 @@
      - .. _atlas_event_fts_index_cleaned_up:
 
        Search Index Automatically Cleaned Up
-     - no
+     - yes
 
    * - ``FTS_INDEX_CREATED``
      - .. _atlas_event_fts_index_created:
@@ -3200,6 +3350,18 @@
        Newly provisioned search node no longer has any failed indexes
      - no
 
+   * - ``HOST_SEARCH_PROCESS_NOT_THROTTLING``
+     - .. _atlas_event_host_search_process_not_throttling:
+
+       MongoDB Search: Search Process is no longer overloaded
+     - no
+
+   * - ``HOST_SEARCH_PROCESS_THROTTLING``
+     - .. _atlas_event_host_search_process_throttling:
+
+       MongoDB Search: Search Process is Overloaded
+     - yes
+
    * - ``HOST_SECURITY_CHECKUP_MET``
      - .. _atlas_event_host_security_checkup_met:
 
@@ -3554,6 +3716,42 @@
        License accepted
      - no
 
+   * - ``LIFECYCLE_MANAGEMENT_POLICY_CREATED``
+     - .. _atlas_event_lifecycle_management_policy_created:
+
+       Lifecycle Management policy created
+     - no
+
+   * - ``LIFECYCLE_MANAGEMENT_POLICY_DELETED``
+     - .. _atlas_event_lifecycle_management_policy_deleted:
+
+       Lifecycle Management policy deleted
+     - no
+
+   * - ``LIFECYCLE_MANAGEMENT_POLICY_PAUSED``
+     - .. _atlas_event_lifecycle_management_policy_paused:
+
+       Lifecycle Management policy paused
+     - no
+
+   * - ``LIFECYCLE_MANAGEMENT_POLICY_PAUSE_REQUESTED``
+     - .. _atlas_event_lifecycle_management_policy_pause_requested:
+
+       Lifecycle Management policy pause requested
+     - no
+
+   * - ``LIFECYCLE_MANAGEMENT_POLICY_RESUMED``
+     - .. _atlas_event_lifecycle_management_policy_resumed:
+
+       Lifecycle Management policy resumed
+     - no
+
+   * - ``LIFECYCLE_MANAGEMENT_POLICY_UPDATED``
+     - .. _atlas_event_lifecycle_management_policy_updated:
+
+       Lifecycle Management policy updated
+     - no
+
    * - ``LOG_COLLECTION_REQUESTED``
      - .. _atlas_event_log_collection_requested:
 
@@ -3600,6 +3798,36 @@
      - .. _atlas_event_log_streaming_enabled:
 
        Log Streaming enabled
+     - no
+
+   * - ``LOG_STREAMING_EXPORT_FAILED_NONRETRYABLE``
+     - .. _atlas_event_log_streaming_export_failed_nonretryable:
+
+       Log export has failed. Check your integration settings and credentials.
+     - yes
+
+   * - ``LOG_STREAMING_EXPORT_FAILED_RETRIES_EXHAUSTED``
+     - .. _atlas_event_log_streaming_export_failed_retries_exhausted:
+
+       Log export is failing after multiple attempts. Logs are being queued and will be sent once the connection is restored.
+     - yes
+
+   * - ``LOG_STREAMING_EXPORT_RECOVERED``
+     - .. _atlas_event_log_streaming_export_recovered:
+
+       Log export has recovered. Queued logs are ready to resume sending.
+     - no
+
+   * - ``LOG_STREAMING_REPLAY_COMPLETE``
+     - .. _atlas_event_log_streaming_replay_complete:
+
+       All queued logs have been delivered to sink.
+     - no
+
+   * - ``LOG_STREAMING_REPLAY_STARTED``
+     - .. _atlas_event_log_streaming_replay_started:
+
+       Log export has recovered. Queued logs are now being sent.
      - no
 
    * - ``LOG_UPLOADER_ACTIVATED``
@@ -3703,6 +3931,24 @@
 
        Maintenance started
      - yes
+
+   * - ``MAINTENANCE_WAVE_ASSIGNMENT_ADDED``
+     - .. _atlas_event_maintenance_wave_assignment_added:
+
+       Project maintenance wave assignment added
+     - no
+
+   * - ``MAINTENANCE_WAVE_ASSIGNMENT_MODIFIED``
+     - .. _atlas_event_maintenance_wave_assignment_modified:
+
+       Project maintenance wave assignment modified
+     - no
+
+   * - ``MAINTENANCE_WAVE_ASSIGNMENT_REMOVED``
+     - .. _atlas_event_maintenance_wave_assignment_removed:
+
+       Project maintenance wave assignment removed
+     - no
 
    * - ``MAINTENANCE_WINDOW_ADDED_AUDIT``
      - .. _atlas_event_maintenance_window_added_audit:
@@ -3979,6 +4225,18 @@
 
        Monitoring has the latest version
      - no
+
+   * - ``MONTHLY_BILLING_CHANGE_NORMAL``
+     - .. _atlas_event_monthly_billing_change_normal:
+
+       Project monthly billing percentage change is below threshold
+     - no
+
+   * - ``MONTHLY_BILLING_CHANGE_OVER_THRESHOLD``
+     - .. _atlas_event_monthly_billing_change_over_threshold:
+
+       Project monthly billing has increased by more than the threshold percent
+     - yes
 
    * - ``MOVE_SKIPPED``
      - .. _atlas_event_move_skipped:
@@ -4394,6 +4652,18 @@
        Credit card information was updated
      - no
 
+   * - ``ORG_DAILY_BILLING_CHANGE_NORMAL``
+     - .. _atlas_event_org_daily_billing_change_normal:
+
+       Organization daily billing change is within normal threshold
+     - no
+
+   * - ``ORG_DAILY_BILLING_CHANGE_OVER_THRESHOLD``
+     - .. _atlas_event_org_daily_billing_change_over_threshold:
+
+       Organization daily billing has increased by more than the limit you set compared to previous day
+     - yes
+
    * - ``ORG_DAILY_BILL_OVER_THRESHOLD``
      - .. _atlas_event_org_daily_bill_over_threshold:
 
@@ -4531,6 +4801,18 @@
 
        This organization's MongoDB version end of life extension request is pending
      - no
+
+   * - ``ORG_MONTHLY_BILLING_CHANGE_NORMAL``
+     - .. _atlas_event_org_monthly_billing_change_normal:
+
+       Organization monthly billing change is within normal threshold
+     - no
+
+   * - ``ORG_MONTHLY_BILLING_CHANGE_OVER_THRESHOLD``
+     - .. _atlas_event_org_monthly_billing_change_over_threshold:
+
+       Organization monthly billing has increased by more than the limit you set compared to the previous 30 days
+     - yes
 
    * - ``ORG_NO_FINANCIAL_PROTECTION``
      - .. _atlas_event_org_no_financial_protection:
@@ -4712,6 +4994,30 @@
        Wallet information was updated
      - no
 
+   * - ``ORG_WAVE_ASSIGNMENT_MODE_ENV_TAG_MAPPING``
+     - .. _atlas_event_org_wave_assignment_mode_env_tag_mapping:
+
+       Organization maintenance wave assignment mode was set to: Environment Tag Mapping
+     - no
+
+   * - ``ORG_WAVE_ASSIGNMENT_MODE_MANUAL``
+     - .. _atlas_event_org_wave_assignment_mode_manual:
+
+       Organization maintenance wave assignment mode was set to: Manual
+     - no
+
+   * - ``ORG_WEEKLY_BILLING_CHANGE_NORMAL``
+     - .. _atlas_event_org_weekly_billing_change_normal:
+
+       Organization weekly billing change is within normal threshold
+     - no
+
+   * - ``ORG_WEEKLY_BILLING_CHANGE_OVER_THRESHOLD``
+     - .. _atlas_event_org_weekly_billing_change_over_threshold:
+
+       Organization weekly billing has increased by more than the limit you set compared to the previous 7 days
+     - yes
+
    * - ``OS_MAINTENANCE``
      - .. _atlas_event_os_maintenance:
 
@@ -4752,6 +5058,24 @@
      - .. _atlas_event_otel_log_streaming_enabled:
 
        OTel Log Streaming enabled
+     - no
+
+   * - ``OTEL_METRIC_INTEGRATION_CONFIGURATION_UPDATED``
+     - .. _atlas_event_otel_metric_integration_configuration_updated:
+
+       OTel Metric Integration configuration updated
+     - no
+
+   * - ``OTEL_METRIC_INTEGRATION_DISABLED``
+     - .. _atlas_event_otel_metric_integration_disabled:
+
+       OTel Metric Integration disabled
+     - no
+
+   * - ``OTEL_METRIC_INTEGRATION_ENABLED``
+     - .. _atlas_event_otel_metric_integration_enabled:
+
+       OTel Metric Integration enabled
      - no
 
    * - ``OUTSIDE_FLEX_METRIC_THRESHOLD``
@@ -5024,6 +5348,18 @@
        Project maintenance will bypass scheduled window
      - no
 
+   * - ``PROJECT_COLLECT_DATABASE_STATISTICS_UPDATED``
+     - .. _atlas_event_project_collect_database_statistics_updated:
+
+       Collect database specific statistics updated
+     - no
+
+   * - ``PROJECT_CREATED_VIA_ANIS``
+     - .. _atlas_event_project_created_via_anis:
+
+       Project created via Azure Native integration
+     - no
+
    * - ``PROJECT_ENABLE_EXTENDED_STORAGE_SIZES_UPDATED``
      - .. _atlas_event_project_enable_extended_storage_sizes_updated:
 
@@ -5148,6 +5484,18 @@
      - .. _atlas_event_query_engine_tenant_updated:
 
        Data Lake tenant updated
+     - no
+
+   * - ``QUERY_SAMPLING_STARTED``
+     - .. _atlas_event_query_sampling_started:
+
+       Query sampling was enabled
+     - no
+
+   * - ``QUERY_SAMPLING_STOPPED``
+     - .. _atlas_event_query_sampling_stopped:
+
+       Query sampling was disabled
      - no
 
    * - ``QUERY_SHAPE_BLOCKED``
@@ -5492,6 +5840,18 @@
        Search deployment updated.
      - no
 
+   * - ``SEARCH_HOST_DISABLE_FTS``
+     - .. _atlas_event_search_host_disable_fts:
+
+       The FTS disabled was updated on a search host
+     - no
+
+   * - ``SEARCH_HOST_PAUSE_ALL_INITIAL_SYNCS``
+     - .. _atlas_event_search_host_pause_all_initial_syncs:
+
+       The pause all initial syncs was updated on a search host
+     - no
+
    * - ``SECURITY_CHECKUP_ALERTS_UPDATED``
      - .. _atlas_event_security_checkup_alerts_updated:
 
@@ -5780,6 +6140,18 @@
        Shadow cluster replay status updated
      - no
 
+   * - ``SHARD_KEY_ANALYSIS_FINISHED``
+     - .. _atlas_event_shard_key_analysis_finished:
+
+       analyzeShardKey command job was completed
+     - no
+
+   * - ``SHARD_KEY_ANALYSIS_STARTED``
+     - .. _atlas_event_shard_key_analysis_started:
+
+       analyzeShardKey command job was submitted
+     - no
+
    * - ``SNAPSHOT_DELETED_AUDIT``
      - .. _atlas_event_snapshot_deleted_audit:
 
@@ -5862,6 +6234,30 @@
      - .. _atlas_event_ssl_certificate_issued:
 
        New SSL certificate has been successfully issued for a cluster instance
+     - no
+
+   * - ``STANDBY_LINK_INITIALIZATION_STUCK``
+     - .. _atlas_event_standby_link_initialization_stuck:
+
+       A standby link has been in the initialization workflow longer than the configured threshold
+     - yes
+
+   * - ``STANDBY_LINK_INITIALIZATION_STUCK_RESOLVED``
+     - .. _atlas_event_standby_link_initialization_stuck_resolved:
+
+       A previously stuck standby link initialization is no longer stuck
+     - no
+
+   * - ``STANDBY_LINK_TERMINATION_STUCK``
+     - .. _atlas_event_standby_link_termination_stuck:
+
+       A standby link termination has been in progress longer than the configured threshold
+     - yes
+
+   * - ``STANDBY_LINK_TERMINATION_STUCK_RESOLVED``
+     - .. _atlas_event_standby_link_termination_stuck_resolved:
+
+       A previously stuck standby link termination is no longer stuck
      - no
 
    * - ``STEP_SKIPPED``
@@ -6457,6 +6853,18 @@
 
        Host has the latest version
      - no
+
+   * - ``WEEKLY_BILLING_CHANGE_NORMAL``
+     - .. _atlas_event_weekly_billing_change_normal:
+
+       Project weekly billing percentage change is below threshold
+     - no
+
+   * - ``WEEKLY_BILLING_CHANGE_OVER_THRESHOLD``
+     - .. _atlas_event_weekly_billing_change_over_threshold:
+
+       Project weekly billing has increased by more than the threshold percent
+     - yes
 
    * - ``WIRE_TRANSFER_PAYMENT_RECEIVED``
      - .. _atlas_event_wire_transfer_payment_received:
