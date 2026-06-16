@@ -75,9 +75,17 @@ The following diagram shows the relationship between ``inbound`` and
          reflects outbound traffic from your network, and outbound traffic for the 
          control plane reflects inbound traffic to your network.
 
-To add the returned IP addresses to your cloud provider's KMS IP access list, 
-see the prerequisites for managing customer keys with :ref:`AWS <aws-ksm-prereqs>`, 
-:ref:`Azure <azure-kms-prereqs>`, and :ref:`GCP <gcp-kms-prereqs>`.
+To add the returned IP addresses to your cloud provider's KMS IP access list,
+see the prerequisites for managing customer keys with
+:ref:`AWS <aws-ksm-prereqs>`, :ref:`Azure <azure-kms-prereqs>`,
+and :ref:`GCP <gcp-kms-prereqs>`.
+
+.. important::
+
+   |service| may update its control plane IP addresses over time. To
+   ensure continued connectivity between |service| and your KMS,
+   periodically fetch the current control plane IP addresses and
+   update your KMS access list.
 
 .. _atlas-required-outbound-access:
 
