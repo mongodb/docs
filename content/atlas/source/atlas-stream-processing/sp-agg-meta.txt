@@ -32,6 +32,7 @@ stages:
 - :pipeline:`$source`
 - :pipeline:`$hoppingWindow`
 - :pipeline:`$tumblingWindow`
+- :pipeline:`$sessionWindow`
 - :pipeline:`$https`
 
 A ``$meta`` expression has the following prototype form:
@@ -42,28 +43,50 @@ A ``$meta`` expression has the following prototype form:
 
 .. code-block:: json
 
-  { 
-    source: {
-      type: string,
-      ts: date,
-      source.topic: string
-      source.partition: int
-      source.offset: int
-      source.key: string|int|long|double|object|binData
-      source.headers: array[obj]
-    },
-    window: { 
-      start: date,
-      end: date
-    },
-    https: { 
-      url: string
-      method: string
-      httpStatusCode: int
-      responseTimeMs: int  
-    }
-  }
-
+   "source": {
+     "type": "<source-type>",
+     "ts": {
+       "$date": "<datetime>"
+     },
+     "topic": "<string>",
+     "partition": <int>,
+     "offset": <int>,
+     "key": "<kafka-key>",
+     "headers": [
+       {
+	 "k": "<header-key>",
+	 "v": "<header-value>"
+       }
+     ],
+     "operationType": "<db-operation>",
+     "ns": {
+       "db": "<namespace-db>",
+       "coll": "<namespace-coll>"
+     },
+     "documentKey": {
+       "_id": {
+	 "$oid": "<object-id>"
+       }
+     },
+     "initialSync": {
+       "phase": "<sync-state>"
+     }
+     "kinesisStream": "<kinesis-name>",
+     "shardId": "<kinesis-shard-id>",
+     "sequenceNumber": "<doc-uuid>",
+     "partitionKey": "<partition-id>",
+   }
+   "window": {
+     "start": <ISODate>,
+     "end": <ISODate>,
+     "partition": "<session-partition>"
+   },
+   "https": {
+     "url": "<target-url>",
+     "method": "<request-method>",
+     "httpStatusCode": <http-code>,
+     "responseTimeMs": <response-time-ms>
+   }
 
 .. _atlas-sp-agg-meta-syntax:
 
@@ -76,90 +99,199 @@ of this path must be ``"stream"``. You can query the following paths:
 
 .. list-table::
    :header-rows: 1
-   :widths: 25 25 50
+   :widths: 25 17 17 41
 
    * - Path
      - Type
+     - Conditionality
      - Description
 
    * - ``stream``
      - object
+     - Always
      - All metadata for the :pipeline:`$source` stage and any window
        stage or :pipeline:`$https` stage configured in the pipeline.
 
    * - ``stream.source``
-     - object
-     - All metadata for the :pipeline:`$source` stage.
+     - document
+     - Always
+     - Document containing metadata for the :pipeline:`$source` stage.
 
    * - ``stream.source.type``
      - string
+     - Always
      - Type of connection used as a source.
 
    * - ``stream.source.ts``
      - ISODate
+     - Always
      - Date and time of the record at the point of ingestion.
 
    * - ``stream.source.topic``
      - string
-     - Kafka topic from which the stream ingests records. Available
-       only from a Kafka source.
+     - Conditional
+     - Kafka topic from which the stream ingests records. Applies only
+       to a Kafka source.
 
    * - ``stream.source.partition``
      - integer
+     - Conditional
      - Partition of the Kafka topic from which the stream ingests
-       records. Available only from a Kafka source.
+       records. Applies only to a Kafka source.
 
    * - ``stream.source.offset``
      - integer
-     - Offset tracking message order and queue position within a
-       Kafka source partition. Available only from a Kafka source.
+     - Conditional
+     - Offset tracking message order and queue position within a Kafka
+       source partition. Applies only to a Kafka source.
 
    * - ``stream.source.key``
-     - string|int|long|double|object|binData
+     - string | int | long | double | object | binData
+     - Conditional
      - Key assigned to Kafka messages for partitioning and load
-       distribution. Available only from a Kafka source.
+       distribution. Applies only to a Kafka source.
 
    * - ``stream.source.headers``
      - array
-     - Set of key-value pairs describing Kafka message metadata.
+     - Conditional
+     - Set of key-value pairs describin Kafka message
+       metadata. Applies only to a Kafka source.
+
+   * - ``stream.source.operationType``
+     - string
+     - Conditional
+     - Type of database operation which {+atlas-sp+} attempted to
+       perform against the given document. Applies only to an
+       {+service+} change stream source.
+
+   * - ``stream.source.ns``
+     - document
+     - Conditional
+     - Document containing the namespace from which {+atlas-sp+}
+       sources documents. Applies only to an {+service+} change stream source.
+
+   * - ``stream.source.ns.db``
+     - string
+     - Conditional
+     - Name of the database against which {+atlas-sp+} attempts
+       operations. Applies only to an {+service+} change stream
+       source.
+     
+       This value is the same for all documents for a
+       :ref:`Collection Change Stream
+       <atlas-sp-agg-source-syntax-coll>` or :ref:`Database Change
+       Stream <atlas-sp-agg-source-syntax-db>` source. Varies for a
+       :ref:`Cluster Change Stream
+       <atlas-sp-agg-source-syntax-cluster>` source.
+
+   * - ``stream.source.ns.coll``
+     - string
+     - Conditional
+     - Name of the collection against which {+atlas-sp+} attempts
+       operations. Applies only to an {+service+} change stream
+       source.
+     
+       This value is the same for all documents for a
+       :ref:`Collection Change Stream
+       <atlas-sp-agg-source-syntax-coll>` source. Varies for a
+       :ref:`Database Change Stream <atlas-sp-agg-source-syntax-db>`
+       or :ref:`Cluster Change Stream
+       <atlas-sp-agg-source-syntax-cluster>` source.
+
+   * - ``stream.source.documentKey._id``
+     - document
+     - Conditional
+     - Document containing the Object ID of the source document.
+       Applies only to an {+service+} change stream source.
+
+   * - ``stream.source.initialSync.phase``
+     - string
+     - Conditional
+     - Current state of the initial sync operation. Applies only to an
+       {+service+} change stream source during initial sync.
+
+   * - ``stream.source.kinesisStream``
+     - string
+     - Conditional
+     - Name of the :ref:`Kinesis Data Stream
+       <atlas-sp-agg-source-syntax-kinesis>` from which {+atlas-sp+}
+       sources doucments. Applies only to an {+aws+} Kinesis source.
+
+   * - ``stream.source.shardId``
+     - string
+     - Conditional
+     - ID of the shard within the Kinesis Data Stream from which
+       {+atlas-sp+} sources documents. Applies only to an {+aws+}
+       Kinesis source.
+
+   * - ``stream.source.sequenceNumber``
+     - string
+     - Conditional
+     - Unique identifier of the document sourced from the Kinesis Data
+       Stream. Applies only to an {+aws+} Kinesis source.
+
+   * - ``stream.source.partitionKey``
+     - string
+     - Conditional
+     - Unique identifier of the partition to which the source document
+       belongs. Applies only to an {+aws+} Kinesis source.
 
    * - ``stream.window``
-     - object
-     - All metadata for the :pipeline:`$hoppingWindow` or
-       :pipeline:`$tumblingWindow` stage. This object is set
-       only when a document enters a :pipeline:`$hoppingWindow` or
-       :pipeline:`$tumblingWindow` stage.
+     - document
+     - Conditional
+     - Document containing window metadata. Applies only if the
+       document was processed in a window.
 
    * - ``stream.window.start``
      - ISODate
-     - Start time of the current window.
+     - Conditional
+     - Window open time. Applies only if the
+       document was processed in a window.
 
    * - ``stream.window.end``
      - ISODate
-     - End time of the current window.
+     - Conditional
+     - Window close time. Applies only if the
+       document was processed in a window.
+
+   * - ``stream.window.partition``
+     - string
+     - Conditional
+     - Session window partition to which the document belongs.
+       Applies only if the document was processed in a
+       :ref:`session window <session-windows>`.
 
    * - ``stream.https``
-     - object
-     - All metadata for the :pipeline:`$https` stage.
-       This object is set only when  an :pipeline:`$https` 
-       stage outputs a document.
+     - document
+     - Conditional
+     - Document containing metadata for the :ref:`$https
+       <atlas-sp-agg-https>` stage. Applies only when the processing
+       failure occurred in the ``$https`` stage.
 
    * - ``stream.https.url``
      - string
-     - URL from which the :pipeline:`$https` stage sources data.
+     - Conditional
+     - Target URL of the ``$https`` stage. Applies only when the
+       processing failure occurred in the ``$https`` stage.
 
    * - ``stream.https.method``
      - string
-     - HTTPS request method sent to the URL.
+     - Conditional
+     - HTTP request method used by the ``$https`` stage. Applies
+       only when the processing failure occurred in the ``$https``
+       stage.
 
    * - ``stream.https.httpStatusCode``
      - int
-     - HTTP response code for the request sent to the URL.
+     - Conditional
+     - HTTP response status code of the request. Applies only
+       when the processing failure occurred in the ``$https`` stage.
 
    * - ``stream.https.responseTimeMs``
      - int
-     - Time, in milliseconds, it took to receive the response
-       from the URL.
+     - Conditional
+     - Response time of the request in milliseconds. Applies only
+       when the processing failure occurred in the ``$https`` stage. 
 
 Behavior
 --------
