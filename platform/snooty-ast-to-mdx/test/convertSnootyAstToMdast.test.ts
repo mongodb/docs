@@ -2215,6 +2215,21 @@ describe('DefinitionTerm inline content rendering', () => {
       expect(mdx).toContain(`caption={'Say "hello"'}`);
     });
 
+    it('collapses newlines in a wrapped caption to a single space', () => {
+      // A `:caption:` wrapped across multiple lines in RST arrives with embedded
+      // newlines. These must collapse to spaces so the single-line fence meta does
+      // not serialize a newline as `&#xA;`, which breaks acorn on re-parse.
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [{ type: 'code', lang: 'yaml', caption: 'Example: a long\n   wrapped caption', value: 'x: 1' }],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+      expect(mdx).toContain("caption={'Example: a long wrapped caption'}");
+      expect(mdx).not.toContain('&#xA;');
+      expect(mdx).not.toMatch(/caption=\{'[^']*\n/);
+    });
+
+
     it('puts source in the fence info string as a single-quoted JSX expression', () => {
       const ast: SnootyNode = {
         type: 'root',

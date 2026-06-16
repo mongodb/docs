@@ -65,6 +65,11 @@ const extractArgText = (n: SnootyNode): string => {
 
 const escapeJsxText = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/\{/g, '&#123;');
 
+/** Serialize a string for a single-line code-fence meta expression (e.g. `caption={'...'}`): collapse whitespace runs (wrapped RST options
+ *  carry newlines that break acorn on re-parse), then escape backslashes and single quotes. */
+const escapeCodeMetaString = (s: string): string =>
+  s.replace(/\s+/g, ' ').trim().replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+
 /** Serialize a single Snooty inline node to a JSX string fragment. */
 const snootyInlineToJsx = (node: SnootyNode): string => {
   switch (node.type) {
@@ -198,10 +203,10 @@ const convertCodeNode = (node: SnootyNode, fallbackLang?: string | null): MdastN
     metaParts.push(`linenos={${node.linenos}}`);
   }
   if (typeof node.caption === 'string') {
-    metaParts.push(`caption={'${node.caption.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'}`);
+    metaParts.push(`caption={'${escapeCodeMetaString(node.caption)}'}`);
   }
   if (typeof node.source === 'string') {
-    metaParts.push(`source={'${node.source.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'}`);
+    metaParts.push(`source={'${escapeCodeMetaString(node.source)}'}`);
   }
   if (node.lineno_start !== undefined) {
     metaParts.push(`lineno_start={${Number(node.lineno_start)}}`);
