@@ -227,6 +227,7 @@ def main() -> int:
     pr_number = os.environ["PR_NUMBER"]
     pr_title = os.environ["PR_TITLE"]
     pr_author = os.environ["PR_AUTHOR"]
+    pr_merged_by = os.environ.get("PR_MERGED_BY", "")
     base_ref = os.environ.get("PR_BASE_REF", "main")
     repo = os.environ["REPO"]
     merge_sha = os.environ.get("PR_MERGE_SHA", "")
@@ -365,25 +366,28 @@ def main() -> int:
     )
     body = "\n".join(body_lines)
 
-    pr_url = gh(
-        [
-            "pr",
-            "create",
-            "--repo",
-            repo,
-            "--base",
-            base_ref,
-            "--head",
-            branch,
-            "--title",
-            f"Backport #{pr_number}: {pr_title}",
-            "--body",
-            body,
-            "--assignee",
-            pr_author,
-            "--draft",
-        ]
-    ).strip()
+    create_args = [
+        "pr",
+        "create",
+        "--repo",
+        repo,
+        "--base",
+        base_ref,
+        "--head",
+        branch,
+        "--title",
+        f"Backport #{pr_number}: {pr_title}",
+        "--body",
+        body,
+        "--draft",
+    ]
+    # GitHub rejects bot accounts as assignees. When the author is a bot
+    # (e.g. sage-bot), fall back to whoever merged the original PR so a human
+    # owns the backport. Skip assignment entirely if neither is a human.
+    assignee = pr_author if not pr_author.endswith("[bot]") else pr_merged_by
+    if assignee and not assignee.endswith("[bot]"):
+        create_args.extend(["--assignee", assignee])
+    pr_url = gh(create_args).strip()
 
     new_pr_number = pr_url.rstrip("/").split("/")[-1]
     set_output("branch", branch)
