@@ -1,14 +1,10 @@
 When you run ``main.go``, it should output the details of the movie from
 the sample dataset which looks something like the following:
 
-.. code-block:: json
-
-   {
-       "_id": "573a1398f29313caabce9682",
-       ...
-       "title": "Back to the Future",
-       ...
-   }
+.. literalinclude:: /includes/code-examples/tested/go/driver/get_started/get_started_output.txt
+   :language: json
+   :copyable: false
+   :category: example return object
 
 If you receive no output or an error, check whether you properly set up
 your environment variable and whether you loaded the sample dataset in

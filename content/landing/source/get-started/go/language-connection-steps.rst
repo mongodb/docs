@@ -39,8 +39,9 @@
       Copy and paste the following code into your ``main.go`` file. This code
       connects to your cluster and queries your sample data.
 
-      .. literalinclude:: /shared/drivers-get-started/go/get-started-connect.go
+      .. literalinclude:: /code-examples/tested/go/driver/get_started/get_started.snippet.example.go
          :language: go
+         :category: usage example
 
    .. step:: Add your connection string
 
