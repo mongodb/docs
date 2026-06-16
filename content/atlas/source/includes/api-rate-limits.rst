@@ -1,4 +1,4 @@
-.. Last updated: April 10, 2026 at 2:50 PM EDT
+.. Last updated: June 16, 2026 at 3:47 PM EDT
 
 .. _api-rate-limits-aws-clusters-dns:
 
@@ -320,6 +320,7 @@ Clusters
 * **GET** ``/api/atlas/v2/groups/{groupId}/sampleDatasetLoad/{sampleDatasetId}``
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}``
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs``
+* **POST** ``/api/atlas/v2/groups/{groupId}/clusterConfigurations:validate``
 * **POST** ``/api/atlas/v2/groups/{groupId}/clusters``
 * **POST** ``/api/atlas/v2/groups/{groupId}/clusters/tenantUpgrade``
 * **POST** ``/api/atlas/v2/groups/{groupId}/clusters/tenantUpgradeToServerless``
