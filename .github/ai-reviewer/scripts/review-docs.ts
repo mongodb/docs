@@ -19,17 +19,17 @@ interface Config {
     include_patterns: string[];
     exclude_patterns: string[];
     max_files: number;
+    max_diff_size: number;
   };
   feedback: {
     granularity: string;
     max_inline_comments: number;
+    include_summary: boolean;
   };
 }
 
 interface Guidelines {
-  seoGuidelines: string;
   styleGuide: string;
-  nestedComponentsGuide: string;
 }
 
 interface PRFile {
@@ -50,7 +50,7 @@ interface ReviewComment {
   file: string;
   line?: number;
   severity: 'high' | 'medium' | 'low';
-  category: 'seo' | 'style' | 'typo' | 'clarity' | 'structure' | 'nested';
+  category: 'style' | 'typo' | 'clarity' | 'structure';
   issue: string;
   suggestion: string;
   original_text?: string;
@@ -231,15 +231,9 @@ function loadConfig(): Config {
 }
 
 function loadGuidelines(): Guidelines {
-  const seoPath = join(__dirname, '..', 'seo-guidelines.md');
   const stylePath = join(__dirname, '..', 'style-guide-reference.md');
-  const nestedPath = join(__dirname, '..', 'nested-components-guide.md');
-  
-  const seoGuidelines = readFileSync(seoPath, 'utf-8');
   const styleGuide = readFileSync(stylePath, 'utf-8');
-  const nestedComponentsGuide = readFileSync(nestedPath, 'utf-8');
-  
-  return { seoGuidelines, styleGuide, nestedComponentsGuide };
+  return { styleGuide };
 }
 
 async function getPRDetails(owner: string, repo: string, prNumber: number): Promise<{ pr: PRData; files: PRFile[] }> {
@@ -275,13 +269,28 @@ function filterFiles(files: PRFile[], config: Config): PRFile[] {
   }).slice(0, config.review.max_files);
 }
 
+function truncatePatches(files: PRFile[], maxTotalSize: number): PRFile[] {
+  let totalSize = 0;
+  return files.map(file => {
+    if (!file.patch) return file;
+    const remaining = maxTotalSize - totalSize;
+    if (remaining <= 0) return { ...file, patch: '(diff truncated — total diff size limit reached)' };
+    if (file.patch.length > remaining) {
+      totalSize += remaining;
+      return { ...file, patch: file.patch.slice(0, remaining) + '\n... (truncated)' };
+    }
+    totalSize += file.patch.length;
+    return file;
+  });
+}
+
 // =============================================================================
 // PROMPT BUILDING
 // =============================================================================
 
 function buildPrompt(files: PRFile[], guidelines: Guidelines, config: Config, reviewMode: string): string {
-  const { seoGuidelines, styleGuide, nestedComponentsGuide } = guidelines;
-  
+  const { styleGuide } = guidelines;
+
   const filesContent = files.map(file => {
     return `
 ### File: ${file.filename}
@@ -297,11 +306,10 @@ ${file.patch || '(binary file or no changes)'}
   const isStyleOnly = reviewMode === 'style';
   const isFull = reviewMode === 'full';
   
-  const modeInstructions = isStyleOnly 
+  const modeInstructions = isStyleOnly
     ? `## Review Focus: Writing Style & Clarity
 
-NOTE: The deterministic linter handles SEO and syntax issues. 
-You should focus ONLY on:
+NOTE: The deterministic linter handles SEO and nested components — focus ONLY on:
 - Writing clarity and readability
 - Active vs passive voice
 - Terminology consistency
@@ -309,23 +317,19 @@ You should focus ONLY on:
 - Audience appropriateness
 - Flow and organization
 
-Skip: SEO issues (title length, meta length), syntax errors, nested components - the linter catches those.`
+Skip: SEO issues (title length, meta length) and nested components - the linter catches those.`
     : isFull
     ? `## Review Focus: Full Style Guide
 
-Check for ALL issues:
+Check for all issues — both prose quality and structural correctness:
 - Writing style and clarity
 - Terminology consistency
 - Active voice usage
 - Audience appropriateness
-- Plus any SEO or syntax issues you notice`
+- Structural issues: cross-reference order, admonition types, list formatting, broken RST directives`
     : `## Review Focus: Critical Issues
 
-Check for:
-- SEO: titles outside 30-60 chars, missing meta descriptions
-- Nested components (not allowed)
-- Broken syntax
-Skip: style/clarity suggestions`;
+Apply all 12 rules. Flag only violations you are absolutely certain about — raise the bar for certainty and skip anything marginal or context-dependent.`;
 
   return `You are an expert technical writing reviewer for MongoDB documentation.
 
@@ -333,13 +337,7 @@ ${modeInstructions}
 
 ## Your Guidelines
 
-### SEO Guidelines:
-${seoGuidelines}
-
-### Nested Components Guidelines (NOT allowed):
-${nestedComponentsGuide}
-${isStyleOnly || isFull ? `
-### Style Guide Reference:
+${isStyleOnly || isFull ? `### Style Guide Reference:
 ${styleGuide}` : ''}
 
 ## Review Instructions
@@ -408,18 +406,18 @@ The following are already handled — skip them entirely:
 - Wordiness: nominalization ("perform an installation" → "install", etc.)
 
 **Flag ONLY issues that pattern-matching tools cannot catch:**
-1. **Wrong voice**: "the user", "the developer", or any third-person reference where second-person "you" is required
-2. **Passive voice**: "to be" + past participle constructions ("is saved", "has been installed", "can be restarted") — rewrite with an active subject
+1. **Wrong voice**: "the user", "the developer", or any third-person reference where second-person "you" is required.
+2. **Passive voice**: "to be" + past participle constructions ("is saved", "has been installed", "can be restarted") — rewrite with an active subject. 
 3. **Vague quantifiers**: always flag "various". Flag "some", "many", "several" when a specific count or enumerated list exists in context. If the same vague quantifier appears multiple times in one file, report it once and note it recurs — do not create a separate comment for each occurrence.
 4. **Wrong admonition type**: \`.. warning::\` is correct ONLY for data loss, irreversible actions, or security vulnerabilities. Performance tips and best practices belong in \`.. tip::\`. Supplemental information belongs in \`.. note::\`. Essential prerequisites belong in \`.. important::\`. Flag any \`.. warning::\` whose content does not describe data loss, a destructive operation, or a security risk.
 5. **Stacked admonitions**: two or more consecutive notes, tips, warnings, or important blocks — combine into one or move to a dedicated section
 6. **Non-parallel list items**: list items that don't follow the same grammatical form (e.g., mixing imperative verbs with noun phrases)
-7. **List introduction issues**: any sentence that introduces a bulleted or numbered list must end with a colon. Flag: a missing colon (e.g., "Set up your environment using these steps" with no trailing colon), "do the following" used as an introduction, or an introduction that counts the items ("the following three methods").
+7. **List introduction issues**: RST wraps lines at ~72 characters — a single sentence may span multiple consecutive \`+\` diff lines. Reconstruct the full sentence by joining all consecutive non-blank \`+\` lines before checking the final character. Only then: flag if the colon is absent from the last character of the reconstructed sentence immediately before list items begin. Do NOT flag a sentence that contains a colon mid-sentence followed by more prose (e.g., "The tutorial uses two files: an application file and a helpers file." — this is a complete sentence, not a list introduction). Also flag: "do the following" used as an introduction, or an introduction that counts items ("the following three methods").
 8. **Cross-reference structure**: flag any sentence that opens with "See :ref:", "See :doc:", or "Refer to :ref:" followed by "to learn", "to understand", "for more information", or similar. Correct form puts the reason first: "To learn about X, see :ref:\`foo\`."
-9. **Broken RST directives**: malformed :ref:, :method:, :class:, or other inline roles where the syntax is wrong — e.g., \`:method:collection.insertOne\` instead of \`:method:\`collection.insertOne\`\`
+9. **Broken RST directives**: flag inline roles where the content after the role name is not wrapped in backticks. Correct RST role syntax: \`:rolename:\` followed immediately by a backtick, content, then a closing backtick. Examples of violations: \`:method:collection.insertOne\` (content has no backtick wrapper), \`:ref:my-label\` (same issue). Check :ref:, :method:, :class:, :attr:, :option:, and similar roles.
 10. **Heading capitalization**: headings must use AP headline style. Scan every word in every heading. Capitalize: nouns, verbs, adjectives, adverbs, and the first and last word regardless of part of speech. Lowercase: articles (a, an, the), coordinating conjunctions (and, but, or, for, nor, so, yet), and prepositions (to, of, in, on, at, by, for, with, about, from, as, into, through, etc.) when they appear mid-heading. Example violation: "Performance And Tuning" — "And" is a coordinating conjunction and must be lowercase: "Performance and Tuning".
-11. **List item punctuation consistency**: scan every item in a list and check end punctuation. If ANY item ends with a period, ALL items must end with a period. If NO item ends with a period, none should. Flag the list if some items end with a period and others do not — e.g., "Install the driver." followed by "Copy your connection string" (no period) is a violation.
-12. **List items starting with articles**: list items must not begin with "a", "an", or "the".
+11. **List item punctuation consistency**: applies ONLY to standalone bulleted (\`-\`) or numbered (\`1.\`, \`#.\`) lists — you must see explicit RST list markers (\`-\`, \`*\`, \`1.\`, \`#.\`) at the start of lines to apply this rule. Do NOT apply to prose paragraphs, even if they end with periods. Do NOT apply to rows in \`.. list-table::\`, \`.. csv-table::\`, or \`.. table::\` directives — table cells are not list items. Do NOT apply to items consisting solely of inline code (double backtick markup), such as enumerated values like \`\`"insert"\`\`, \`\`"cdc"\`\`, \`\`{ truncate: int }\`\` — these do not require terminal punctuation. For qualifying lists: if ANY item ends with a period, ALL must end with a period; if NO item ends with a period, none should. Flag only when some items end with a period and others do not — e.g., "Install the driver." followed by "Copy your connection string" (no period).
+12. **List items starting with articles**: list items must not begin with "a", "an", or "the". You must see explicit RST list markers (\`-\`, \`*\`, \`1.\`, \`#.\`) at the start of lines to apply this rule — do NOT apply to prose paragraphs. Only flag when an article is literally the first token of the item, before any markup. An item like \`- **kms_provider_name** - The KMS used...\` opens with bold markup, not an article — do not flag it. Do not apply inside \`.. list-table::\` rows.
 
 **Additional instructions:**
 - **Actionable**: Every comment must have a clear, specific fix
@@ -427,7 +425,7 @@ The following are already handled — skip them entirely:
 - **No duplicates**: Report each distinct issue once per file, even if the same pattern recurs. Note recurrence in the single comment rather than filing multiple comments.
 - **Never re-flag Vale rules**: The Simplicity rule covers "simply", "easy", "easily", "just" — never flag these words regardless of context. The full list of 52 Vale rules above are off-limits even when they appear alongside other issues.
 - **Check ALL files in the PR** - the writer requested this review
-- **Report all applicable issues found** — if there are 10 problems in the categories above, report all 10
+- **Report every violation you are certain about, skip everything you are not** — do not artificially limit your findings, but do not flag anything you are uncertain about.
 
 **Format your response as JSON** with this structure:
 \`\`\`json
@@ -439,7 +437,7 @@ The following are already handled — skip them entirely:
       "file": "path/to/file.rst",
       "line": 42,
       "severity": "high|medium|low",
-      "category": "seo|style|typo|clarity|structure|nested",
+      "category": "style|typo|clarity|structure|nested",
       "issue": "Brief description of the issue",
       "suggestion": "How to fix it",
       "original_text": "The problematic text (if applicable)"
@@ -455,7 +453,7 @@ ${filesContent}
 
 Now review these changes and provide your feedback as JSON.
 
-**Remember: Less is more.** Only flag definite issues that must be fixed. Aim for 0-5 comments. If the PR looks good, say so - that's valuable feedback too! Writers are already overwhelmed with things to check.`;
+**Remember: Quality over quantity.** Only flag issues you are certain violate a rule above. If you are uncertain, do not flag it — silence is better than a marginal flag. Writers benefit from precise, confident feedback. If the PR looks good, say so in the summary.`;
 }
 
 // =============================================================================
@@ -595,14 +593,20 @@ async function postReview(
   config: Config,
   files: PRFile[]
 ): Promise<void> {
+  // Apply severity filter based on granularity config before doing anything else
+  const granularity = config.feedback.granularity;
+  const filteredComments = review.comments.filter(c => {
+    if (granularity === 'minimal') return c.severity === 'high';
+    if (granularity === 'balanced') return c.severity === 'high' || c.severity === 'medium';
+    return true; // 'detailed' — all severities
+  });
+
   const validLinesByFile = new Map<string, Set<number>>();
   for (const file of files) {
     if (file.patch) {
       validLinesByFile.set(file.filename, getValidDiffLines(file.patch));
     }
   }
-
-  const comments: Array<{ path: string; line: number; side: string; body: string }> = [];
 
   const patchByFile = new Map<string, string>();
   for (const file of files) {
@@ -611,7 +615,23 @@ async function postReview(
     }
   }
 
-  for (const comment of review.comments.slice(0, config.feedback.max_inline_comments)) {
+  const severityEmoji: Record<string, string> = {
+    high: '🔴',
+    medium: '🟡',
+    low: '🟢'
+  };
+
+  const categoryLabel: Record<string, string> = {
+    style: 'Style Guide',
+    typo: 'Typo',
+    clarity: 'Clarity',
+    structure: 'Structure',
+  };
+
+  // Resolve lines for ALL filtered comments before slicing to max_inline_comments.
+  // Slicing first would discard valid later comments if early ones fail line resolution.
+  const resolvedComments: Array<{ path: string; line: number; side: string; body: string }> = [];
+  for (const comment of filteredComments) {
     if (comment.file) {
       const patch = patchByFile.get(comment.file);
       const validLines = validLinesByFile.get(comment.file);
@@ -627,26 +647,10 @@ async function postReview(
         console.log(`   ⚠️ Skipping inline comment for ${comment.file}:${resolvedLine} (not in diff)`);
         continue;
       }
-      comment.line = resolvedLine;
 
-      const severityEmoji: Record<string, string> = {
-        high: '🔴',
-        medium: '🟡',
-        low: '🟢'
-      };
-
-      const categoryLabel: Record<string, string> = {
-        seo: 'SEO',
-        style: 'Style Guide',
-        typo: 'Typo',
-        clarity: 'Clarity',
-        structure: 'Structure',
-        nested: 'Nested Component'
-      };
-
-      comments.push({
+      resolvedComments.push({
         path: comment.file,
-        line: comment.line,
+        line: resolvedLine,
         side: 'RIGHT',
         body: `${severityEmoji[comment.severity] || '💬'} **${categoryLabel[comment.category] || comment.category}**: ${comment.issue}
 
@@ -655,50 +659,15 @@ async function postReview(
     }
   }
 
-  const qualityEmoji: Record<string, string> = {
-    good: '✅',
-    needs_work: '⚠️',
-    significant_issues: '🚨'
-  };
-
-  let summaryBody: string;
-
-  const lastUpdated = new Date().toUTCString();
-  const rerequestPrompt = `<sub>This comment is updated with each new review. Last reviewed: ${lastUpdated}. Once you've addressed the feedback, add or re-add the \`ai-review-style\` label to request a new review.</sub>`;
-
-  if (review.comments.length === 0) {
-    summaryBody = `${qualityEmoji[review.overall_quality] || '📝'} **AI Review: Looks good!** No issues found.
-
-${rerequestPrompt}`;
-  } else {
-    const commentsByFile = new Map<string, ReviewComment[]>();
-    for (const c of review.comments) {
-      const file = c.file || 'unknown';
-      if (!commentsByFile.has(file)) commentsByFile.set(file, []);
-      commentsByFile.get(file)!.push(c);
-    }
-    const issueList = Array.from(commentsByFile.entries()).map(([file, fileComments]) => {
-      const emoji: Record<string, string> = { high: '🔴', medium: '🟡', low: '🟢' };
-      const items = fileComments.map(c => `  - ${emoji[c.severity] || '💬'} ${c.issue}`).join('\n');
-      return `**\`${file}\`**\n${items}`;
-    }).join('\n\n');
-
-    summaryBody = `${qualityEmoji[review.overall_quality] || '📝'} **AI Review** - ${review.comments.length} issue${review.comments.length === 1 ? '' : 's'} found:
-
-${issueList}
-
-<sub>See inline comments for details. Advisory only.</sub>
-
-${rerequestPrompt}`;
-  }
+  // Slice to cap AFTER resolution so the cap applies to postable comments only
+  const toPost = resolvedComments.slice(0, config.feedback.max_inline_comments);
 
   // Post inline comments individually so `line`+`side` is used correctly.
   // createReview silently maps `line` to the legacy `position` field, which
   // is a diff offset rather than a file line number and causes comments to
   // land at the wrong location. createReviewComment handles line+side properly.
-  const inlineComments = comments.filter(c => c.line > 0);
   let postedCount = 0;
-  for (const comment of inlineComments) {
+  for (const comment of toPost) {
     try {
       await withRetry(async () => {
         await octokit.pulls.createReviewComment({
@@ -719,6 +688,57 @@ ${rerequestPrompt}`;
   }
   if (postedCount > 0) {
     console.log(`✅ Posted ${postedCount} inline comment(s)`);
+  }
+
+  if (config.feedback.include_summary === false) return;
+
+  // Build summary from severity-filtered comments so counts match the active granularity.
+  // Build after posting so postedCount is accurate for the inline note.
+  const qualityEmoji: Record<string, string> = {
+    good: '✅',
+    needs_work: '⚠️',
+    significant_issues: '🚨'
+  };
+
+  let summaryBody: string;
+
+  const lastUpdated = new Date().toUTCString();
+  const rerequestPrompt = `<sub>This comment is updated with each new review. Last reviewed: ${lastUpdated}. Once you've addressed the feedback, add or re-add the \`ai-review-style\` label to request a new review.</sub>`;
+
+  if (filteredComments.length === 0) {
+    summaryBody = `${qualityEmoji[review.overall_quality] || '📝'} **AI Review: Looks good!** No issues found.
+
+${rerequestPrompt}`;
+  } else {
+    const cap = config.feedback.max_inline_comments;
+    const cappedComments = filteredComments.slice(0, cap);
+    const truncatedCount = filteredComments.length - cappedComments.length;
+
+    const commentsByFile = new Map<string, ReviewComment[]>();
+    for (const c of cappedComments) {
+      const file = c.file || 'unknown';
+      if (!commentsByFile.has(file)) commentsByFile.set(file, []);
+      commentsByFile.get(file)!.push(c);
+    }
+    const issueList = Array.from(commentsByFile.entries()).map(([file, fileComments]) => {
+      const items = fileComments.map(c => `  - ${severityEmoji[c.severity] || '💬'} ${c.issue}`).join('\n');
+      return `**\`${file}\`**\n${items}`;
+    }).join('\n\n');
+
+    const inlineNote = postedCount > 0
+      ? `Inline comments pinned to changed lines for ${postedCount} of the above. `
+      : '';
+    const truncatedNote = truncatedCount > 0
+      ? ` ${truncatedCount} additional finding${truncatedCount === 1 ? '' : 's'} not shown.`
+      : '';
+
+    summaryBody = `${qualityEmoji[review.overall_quality] || '📝'} **AI Review** - ${filteredComments.length} issue${filteredComments.length === 1 ? '' : 's'} found:
+
+${issueList}
+
+<sub>${inlineNote}Advisory only.${truncatedNote}</sub>
+
+${rerequestPrompt}`;
   }
 
   // Upsert the summary: edit the existing one wherever it lives, else create it
@@ -806,7 +826,10 @@ async function main(): Promise<void> {
   filesToReview.forEach(f => console.log(`   - ${f.filename}`));
   console.log();
   
-  const prompt = buildPrompt(filesToReview, guidelines, config, reviewMode);
+  const maxDiffSize = config.review.max_diff_size || 100000;
+  const truncatedFiles = truncatePatches(filesToReview, maxDiffSize);
+
+  const prompt = buildPrompt(truncatedFiles, guidelines, config, reviewMode);
   
   console.log('🤖 Requesting AI review...\n');
   const review = await getAIReview(prompt, config);
