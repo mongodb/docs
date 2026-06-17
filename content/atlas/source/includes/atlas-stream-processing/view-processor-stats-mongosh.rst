@@ -34,13 +34,24 @@ The output document has the following fields:
 
   * - ``stats.status``
     - string
-    - The status of the stream processor. This field can have the
-      following values:
+    - The engine state of the stream processor, which represents its
+      internal execution state on a single worker. This field can
+      have the following values:
 
       - ``starting``
       - ``running``
       - ``error``
       - ``stopping``
+
+      This differs from the ``state`` field returned by
+      :method:`sp.listStreamProcessors()`, which reports the |service|
+      control-plane lifecycle state of the stream processor. The
+      two values can differ. For example, a processor's
+      control-plane ``state`` can be ``STOPPING`` while its engine
+      ``stats.status`` is still ``running``, or the control-plane
+      ``state`` can be ``PROVISIONING`` while ``stats.status``
+      returns no value because the processor is not yet running on
+      a worker.
 
   * - ``stats.scaleFactor``
     - integer
