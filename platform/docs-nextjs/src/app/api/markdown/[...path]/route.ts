@@ -42,8 +42,18 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     const { projectPath } = await getSiteMetadata(path);
     const resolvedMdx = await preResolveImportsForMarkdownExport(mdxString, projectPath);
 
+    // Optional ?tabs=<tabid>[,<tabid>...] filters the export to the named
+    // tabs by their stable tabid. Absent param = all tabs (unchanged).
+    const tabsParam = request.nextUrl.searchParams.get('tabs');
+    const tabFilters = tabsParam
+      ?.split(',')
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0);
+
     // Omit contentMdxDir: includes/refs are already resolved from the blob store above.
-    const markdown = await mdxToMarkdown(resolvedMdx);
+    const markdown = await mdxToMarkdown(resolvedMdx, undefined, undefined, {
+      tabFilters,
+    });
 
     // Return markdown with proper content type
     return withCORS(
@@ -52,6 +62,7 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
         headers: {
           'Content-Type': 'text/markdown; charset=utf-8',
           'Cache-Control': 'public, s-maxage=3600, stale-while-revalidate=86400',
+          'Netlify-Vary': 'query=tabs',
         },
       }),
     );

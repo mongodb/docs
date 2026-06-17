@@ -1,4 +1,5 @@
 import { visit } from "unist-util-visit";
+import type { Plugin } from "unified";
 import type { Root } from "mdast";
 
 /**
@@ -27,9 +28,28 @@ import type { Root } from "mdast";
  *   …
  *   ### Atlas UI
  *   …
+ *
+ * Optional filtering: when `tabFilter` is provided, only tabs whose `tabid`
+ * matches an entry in the filter are emitted; all other tabs are dropped.
+ * Matching is case-insensitive and operates on the stable `tabid` attribute
+ * only (never the display `name`). When `tabFilter` is omitted or empty,
+ * every tab is emitted, preserving the prior behavior exactly.
  */
-export function transformTabs() {
-  return (tree: Root) => {
+interface TransformTabsOptions {
+  /** Stable `tabid` values to keep. Omit or leave empty to keep all tabs. */
+  tabFilters?: string[];
+}
+
+export function transformTabs(
+  options: TransformTabsOptions = {}
+): Plugin<[], Root> {
+  const filters = (options.tabFilters ?? [])
+    .map((id) => id.trim().toLowerCase())
+    .filter((id) => id.length > 0);
+  const hasFilter = filters.length > 0;
+  const allowed = new Set(filters);
+
+  return () => (tree: Root) => {
     const replacements: Array<{
       parent: { children: any[] };
       index: number;
@@ -47,6 +67,23 @@ export function transformTabs() {
 
       const nameAttr = node.attributes?.find((a: any) => a.name === "name");
       const tabName: string = nameAttr?.value ?? "Tab";
+
+      // When a filter is active, keep only tabs whose tabid matches.
+      // Tabs without a tabid (or with an empty tabid) are not addressable
+      // and are dropped while filtering.
+      if (hasFilter) {
+        const tabidAttr = node.attributes?.find(
+          (a: any) => a.name === "tabid"
+        );
+        const tabid =
+          typeof tabidAttr?.value === "string"
+            ? tabidAttr.value.trim().toLowerCase()
+            : "";
+        if (!tabid || !allowed.has(tabid)) {
+          replacements.push({ parent, index, nodes: [] });
+          return;
+        }
+      }
 
       const heading: any = {
         type: "heading",
