@@ -19,6 +19,7 @@ const DocumentContainer = styled('div')`
 
 const StyledMainColumn = styled(MainColumn)`
   grid-area: main;
+  max-width: 800px;
 `;
 
 const DriversIndexTemplate = ({ children }: BaseTemplateProps) => {
