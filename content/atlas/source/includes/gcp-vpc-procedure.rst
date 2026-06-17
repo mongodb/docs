@@ -14,7 +14,7 @@ To configure VPC Peering for a GCP-backed cluster:
 
    .. step:: Initiate peering.
 
-      a. Click :icon-fa5:`plus` :guilabel:`Add Peering Connection`.
+      a. Click :guilabel:`Add outbound connection`.
 
       #. Enter the required information in the 
          :guilabel:`Peering Connection` modal.
