@@ -74,7 +74,7 @@ end
 # start-valid
 class Person
   include Mongoid::Document
-  
+
   field :name, type: String
   field :age, type: Integer
 
@@ -87,3 +87,10 @@ Person.new(name: "Berta Odom", age: 4).valid?
 # Returns false
 Person.new(name: "Cody Peng", age: -5).valid?
 # end-valid
+
+# start-assoc-limitation
+band = Band.first
+Band.transaction do
+  band.update!(members: [])
+end
+# end-assoc-limitation
