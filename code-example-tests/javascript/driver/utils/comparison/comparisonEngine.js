@@ -40,6 +40,7 @@ class ComparisonResult {
  */
 function normalizeItem(value) {
   if (value === null || value === undefined) return value;
+  if (typeof value === 'bigint') return value.toString();
   if (value instanceof ObjectId) return value.toString();
   if (value instanceof Decimal128) return value.toString();
   if (value instanceof Date) return value.toISOString();

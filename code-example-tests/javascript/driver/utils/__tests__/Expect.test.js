@@ -209,6 +209,15 @@ describe('Expect API', () => {
         Expect.that(actual).shouldMatch(expected);
       }).not.toThrow();
     });
+
+    it('should normalize BigInt types', () => {
+      const actual = { operationId: 9007199254740993n, commandName: 'ping' };
+      const expected = { operationId: '9007199254740993', commandName: 'ping' };
+
+      expect(() => {
+        Expect.that(actual).shouldMatch(expected);
+      }).not.toThrow();
+    });
   });
 
   describe('shouldMatch - file comparison', () => {
