@@ -73,7 +73,7 @@ Options
    * - -r, --region
      - string
      - true
-     - Human-readable label that identifies the physical location of your Atlas Stream Processing instance. The region can affect network latency and performance if it is far from your source or sink. For AWS, region name must be in the following format: VIRGINIA_USA. For a list of valid values, see https://www.mongodb.com/docs/atlas/reference/amazon-aws/#std-label-aws-stream-processing-regions. For Azure, region name must be in the following format: eastus. For a list of valid values, see https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#std-label-azure-stream-processing-regions.
+     - Human-readable label that identifies the physical location of your Atlas Stream Processing instance. The region can affect network latency and performance if it is far from your source or sink. For AWS, region name must be in the following format: VIRGINIA_USA. For a list of valid values, see https://www.mongodb.com/docs/atlas/reference/amazon-aws/#stream-processing-workspaces. For Azure, region name must be in the following format: eastus. For a list of valid values, see https://www.mongodb.com/docs/atlas/reference/microsoft-azure/#stream-processing-workspaces. For GCP, region name must be in the following format: us-central1. For a list of valid values, see https://www.mongodb.com/docs/atlas/reference/google-gcp/#stream-processing-workspaces.
 
 Inherited Options
 -----------------

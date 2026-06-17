@@ -17,7 +17,7 @@ Creates one cluster in the specified project.
 The atlas api sub-command is automatically generated from the MongoDB Atlas Admin API and offers full coverage of the Admin API.
 Admin API capabilities have their own release lifecycle, which you can check via the provided API endpoint documentation link.
 
-Clusters contain a group of hosts that maintain the same data set. This resource can create clusters with asymmetrically-sized shards. Each project supports up to 25 database deployments. To use this resource, the requesting Service Account or API Key must have the Project Owner role or Project Cluster Creator role. This feature is not available for serverless clusters.
+Clusters contain a group of hosts that maintain the same data set. This resource can create clusters with asymmetrically-sized shards. Each project supports up to 25 database deployments. This feature is not available for serverless clusters.
 
 
 Please note that using an instanceSize of M2 or M5 will create a Flex cluster instead. Support for the instanceSize of M2 or M5 will be discontinued in January 2026. We recommend using the Create Flex Cluster API for such configurations moving forward.
@@ -80,7 +80,7 @@ Options
    * - --version
      - string
      - false
-     - api version to use when calling the api call [options: "2023-01-01", "2023-02-01", "2024-08-05", "2024-10-23"], defaults to the latest version or the profiles api_version config value if set This value defaults to "2024-10-23".
+     - API version to use when calling the Atlas API endpoints [options: "2023-01-01", "2023-02-01", "2024-08-05", "2024-10-23"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "2024-10-23".
    * - -w, --watch
      - 
      - false
