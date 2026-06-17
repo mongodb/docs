@@ -18,10 +18,6 @@
            dimensions = 2048 # The dimensions of the vector embeddings to be indexed
         )
 
-      .. tip::
-
-         `create_vector_search_index API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/index/langchain_mongodb.index.create_vector_search_index.html>`__
-
    .. step:: Create the {+fts+} index.
 
       Run the following code in your notebook to create a 
@@ -49,4 +45,4 @@
 
       .. tip::
 
-         `create_fulltext_search_index API Reference <https://langchain-mongodb.readthedocs.io/en/latest/langchain_mongodb/index/langchain_mongodb.index.create_fulltext_search_index.html>`__
+         ``create_fulltext_search_index`` API Reference

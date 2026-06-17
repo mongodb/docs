@@ -6,8 +6,8 @@
 
    
    This key defines which
-   :k8sdocs:`label <concepts/overview/working-with-objects/labels/>`
+   `label <https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/>`__
    is used to determine which topology
-   :k8sdocs:`domain <concepts/scheduling-eviction/topology-spread-constraints/>`
+   `domain <https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/>`__
    a node belongs to.
    
