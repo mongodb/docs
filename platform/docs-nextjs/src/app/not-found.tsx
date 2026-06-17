@@ -14,6 +14,8 @@ import { ChatbotProvider } from '@/context/chatbot-context';
 
 import { DOTCOM_BASE_URL, DOTCOM_BASE_PREFIX } from '@/constants';
 import { ActionBar } from '@/mdx-components/ActionBar';
+import { TrackJS } from "trackjs";
+import { useEffect } from 'react';
 
 const BASE_URL = `${DOTCOM_BASE_URL}/${DOTCOM_BASE_PREFIX}`;
 
@@ -88,6 +90,10 @@ const ErrorBoxContainer = () => {
   const { darkMode } = useDarkMode();
   const pathname = usePathname();
   const fromURL = `${DOTCOM_BASE_URL}${pathname}`;
+
+  useEffect(() => {
+    TrackJS.track(`page_not_found - fromURL: ${fromURL}`);
+  }, []);
 
   return (
     <div className={errorBoxStyle}>
