@@ -1127,6 +1127,110 @@ may be preferred.
    options, see `High-performance Premium Storage and managed disks for VMs
    <https://docs.microsoft.com/en-us/azure/storage/storage-premium-storage>`_
 
+.. _adaptive-capacity:
+
+Adaptive Capacity
+-----------------
+
+.. banner::
+   :variant: info
+
+   |service| is rolling out adaptive capacity for |azure|
+   {+clusters+} in a phased approach. This feature might not be
+   available to your organization yet.
+
+Adaptive capacity is a feature of |azure| instances that |service|
+uses to help keep your {+cluster+} available when an |azure| region is
+temporarily out of capacity for the instance type that your
+{+cluster+} uses. |service| enables adaptive capacity by default for
+{+clusters+} on |azure| that have at least one node.
+
+.. note::
+
+   |azure| `capacity reservations
+   <https://learn.microsoft.com/en-us/azure/virtual-machines/capacity-reservation-overview>`__
+   are not the same as |service|'s use of |azure| adaptive capacity.
+   |service| respects |azure| capacity reservations and uses the logic
+   described in this section.
+
+When an |azure| region temporarily runs out of capacity for the
+instance type that your {+cluster+} uses, you might be unable to scale
+the {+cluster+}, and |service| might be unable to replace a node during
+automatic recovery. To keep your {+cluster+} available, |service|
+provisions an alternate instance type with available capacity and moves
+the {+cluster+} to it temporarily.
+
+How Adaptive Capacity Works
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When |service| detects that the |azure| instance type your {+cluster+}
+uses is out of capacity, |service| provisions an alternate instance
+type with available capacity and moves your {+cluster+} to it
+temporarily so the {+cluster+} can continue running. |service| selects
+the alternate instance type from the same :ref:`cluster class
+<storage-class-ui>` and doesn't move your data.
+
+|service| uses adaptive capacity only when you change a {+cluster+}'s
+compute resources, such as when you:
+
+- :ref:`Create a {+cluster+} <create-new-cluster>`
+- :ref:`Scale a {+cluster+} tier <scale-cluster>`
+
+|service| doesn't use adaptive capacity when you add nodes or shards.
+
+The alternate instance type keeps your {+cluster+} available, and the
+change causes no downtime. The alternate instance type might provide
+lower performance than the original instance type, so your application
+might experience higher CPU use, increased latency, or timeouts until
+|service| returns your {+cluster+} to its original instance type.
+
+When the original instance type returns to available capacity,
+|service| automatically returns your {+cluster+} to it. If you define a
+maintenance window, |service| respects that window.
+
+Supported Clusters
+~~~~~~~~~~~~~~~~~~
+
+On |azure|, |service| uses adaptive capacity for {+dedicated-clusters+}
+``M30`` and larger that have at least one node. Adaptive capacity is
+available for these {+clusters+} in all |azure| regions listed in
+:ref:`Supported Regions <microsoft-azure-supported-regions>`.
+|service| doesn't use adaptive capacity for ``M10`` or ``M20``
+{+clusters+}, {+Free-clusters+}, or {+Flex-clusters+}.
+
+If you select an ``M10`` or ``M20`` instance type that has no available
+capacity, |service| notifies you in the {+atlas-ui+}. To deploy your
+{+cluster+}, do one of the following:
+
+- Select a different |azure| region. To review available |azure|
+  regions, see :ref:`Supported Regions
+  <microsoft-azure-supported-regions>`.
+- Select a larger {+cluster+} tier (``M30`` or larger).
+- Wait for capacity to return.
+
+Capacity shortages are temporary. The instance type becomes available
+again when the cloud provider restores capacity in the region.
+
+|service| doesn't use adaptive capacity for {+clusters+} that use
+:ref:`NVMe storage <nvme-storage>` because |service| couples their
+storage to the instance type.
+
+|service| doesn't change your {+cluster+}'s price when it provisions an
+alternate instance type due to capacity constraints.
+
+Opt Out of Adaptive Capacity
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We recommend that you enable adaptive capacity to maintain the
+availability of your {+cluster+} during |azure| capacity shortages.
+|service| enables adaptive capacity by default. You can opt out of
+using adaptive capacity for an individual {+cluster+}. When you opt
+out, |service| keeps your {+cluster+} on its original instance type,
+and a capacity shortage might prevent you from scaling the {+cluster+}.
+
+To opt out of |service| adaptive capacity changes, see
+:ref:`adaptive-capacity-setting`.
+
 .. _microsoft-azure-search-nodes:
 
 Dedicated Search Nodes
