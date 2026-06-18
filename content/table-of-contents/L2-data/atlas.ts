@@ -188,6 +188,11 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/tutorial/manage-project-settings',
       },
       {
+        label: 'Data Validation',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/data-validation',
+      },
+      {
         label: 'User-Defined Tags',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/project-tags',

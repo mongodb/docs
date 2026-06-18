@@ -8,7 +8,7 @@ Encryption at Rest using Customer Key Management
 
 .. meta::
    :keywords: encryption, keys, cloud provider credentials, aws kms, gcp kms, azure vault
-   :description: Enable encryption at rest in Atlas using your cloud provider's Key Management Service for added security.
+   :description: Enable encryption at rest in Atlas using your cloud provider's Key Management Service. Configure customer-managed keys with AWS KMS, Azure Key Vault, or Google Cloud KMS for enhanced security.
 
 .. contents:: On this page
    :local:
@@ -75,6 +75,13 @@ lack of a |kms| provider disables your cluster.
 To learn about recommendations for encryption, including data classification levels and the types of encryption to use, see
 :ref:`arch-center-data-encryption-recs` in the {+atlas-arch-center+}.
 
+.. note::
+
+   For clusters with encryption at rest using customer-managed keys,
+   |service| :ref:`data validation <data-validation>` requires
+   additional access to your |kms| to decrypt data.
+   To learn more, see :ref:`data-validation-kms-usage`.
+
 Required Access
 ---------------
 
@@ -96,7 +103,7 @@ and enable Customer Key Management:
 Allow Access From the |service| Control Plane
 ----------------------------------------------
       
-Depending on your Key Management Service configuration, you might have
+Depending on your |kms| configuration, you might have
 to add |service| control plane IP addresses to enable Encryption at Rest
 for your project so that |service| can communicate with your |kms|. 
 
@@ -239,6 +246,101 @@ documentation:
 - **AWS KMS:** :aws:`Delete customer master keys </kms/latest/developerguide/deleting-keys.html>`
 - **Azure Key Vault:** `Recover deleted key <https://learn.microsoft.com/en-us/rest/api/keyvault/keys/recover-deleted-key/recover-deleted-key>`_
 - **GCP KMS:** :gcp:`Destroy and restore key versions </kms/docs/destroy-restore>`
+
+.. _data-validation-kms-usage:
+
+Data Validation KMS Usage
+--------------------------
+
+For clusters with encryption at rest using customer-managed keys,
+|service| :ref:`data validation <data-validation>` requires
+additional |kms| access to decrypt data during
+validation checks.
+
+Data validation is enabled by default for all projects. You can
+:ref:`opt out <data-validation-disable>` if the additional KMS costs,
+requests, or security considerations do not align with your
+requirements.
+
+Key Management Service Usage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When data validation is enabled, validation instances make additional
+requests to your |kms| to decrypt data from encrypted
+clusters.
+
+**Request Volume:**
+
+|service| makes approximately one decrypt request per replica set
+member per hour during validation. A standard three-node replica set with a seven-day validation window generates approximately 500 additional KMS requests.
+
+**Estimated Costs:**
+
+For most clusters, validation-related KMS costs are minimal. For
+current pricing, see your cloud provider's documentation.
+
+**Security Considerations:**
+
+- Validation instances appear as additional principals in your KMS
+  audit logs.
+
+- If you use IP allowlists for your |kms|, you might
+  need to add validation instance IP ranges to your allowlist.
+
+- Validation instances use the same customer-managed keys as your
+  cluster nodes.
+
+For the current list of validation instance IP ranges, contact
+|mdb-support|.
+
+.. _data-validation-ip-allowlists:
+
+IP Allowlist Configuration for Encrypted Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Most |kms| configurations do not require additional IP allowlist changes
+for data validation. However, if your |kms| uses
+IP-based access controls (for example, Azure Key Vault with firewall
+restrictions), you must add validation instance IP ranges to your
+allowlist. Otherwise, validation fails.
+
+To configure IP allowlists for your |kms|:
+
+.. tabs::
+
+   .. tab:: AWS KMS
+      :tabid: aws
+
+      |aws| |kms| typically allows access by IAM role. No additional
+      IP allowlist configuration is required for validation instances
+      if your IAM policy permits the |service| role.
+
+   .. tab:: Azure Key Vault
+      :tabid: azure
+
+      Azure Key Vault commonly uses strict IP allowlists. If validation
+      fails with KMS access errors, add the |service| validation IP ranges
+      to your Azure Key Vault network rules.
+
+      #. In the Azure portal, navigate to your Key Vault.
+
+      #. Select :guilabel:`Networking` from the left menu.
+
+      #. Under :guilabel:`Firewalls and virtual networks`, add the
+         |service| validation IP ranges.
+
+      #. Click :guilabel:`Save`.
+
+
+   .. tab:: Google Cloud KMS
+      :tabid: gcp
+
+      |gcp| |kms| typically allows access by service account. No
+      additional IP allowlist configuration is required for
+      validation instances if your IAM policy permits the |service|
+      service account.
+
+To learn more about data validation, see :ref:`data-validation`.
 
 Encrypted Backups
 -----------------

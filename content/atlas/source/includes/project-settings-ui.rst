@@ -72,8 +72,21 @@ global sharded {+clusters+} using private endpoints.
 Collect Database Specific Statistics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :guilabel:`Collect Database Specific Statistics` setting allows you to enable or 
+The :guilabel:`Collect Database Specific Statistics` setting allows you to enable or
 disable the collection of database statistics in :doc:`cluster metrics </monitor-cluster-metrics>`.
+
+Data Validation
+~~~~~~~~~~~~~~~
+
+The :guilabel:`Data Validation` setting controls automatic data validation
+for all clusters in the project.
+
+|service| validates data consistency across all clusters in a project by comparing data across replica set nodes. For clusters
+with encryption at rest using customer-managed keys, validation requires
+decrypting data with your key and stores inconsistency details for up to
+90 days and run metadata for up to 3 years.
+
+To learn more, see :ref:`data-validation`.
 
 Set Preferred Cluster Maintenance Start Time
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
