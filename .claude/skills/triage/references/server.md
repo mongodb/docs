@@ -3,7 +3,7 @@
 ## JQL Query
 
 ```
-project = DOCSP AND issuetype != Epic AND (resolutiondate > -7d OR resolutiondate is EMPTY) AND component in (Server, Manual, mongosh, TOOLS, Compass, VSCode, C2C, mongosync, Migrator, IntelliJ, "mcp-server") AND status = "Needs Triage" AND assignee is EMPTY ORDER BY created ASC
+project = DOCSP AND issuetype != Epic AND (resolutiondate > -7d OR resolutiondate is EMPTY) AND component in (Server, Manual, mongosh, TOOLS, Compass, VSCode, C2C, mongosync, Migrator, IntelliJ, "mcp-server", AMP) AND status = "Needs Triage" AND assignee is EMPTY ORDER BY created ASC
 ```
 
 ## Knowledge Sources
