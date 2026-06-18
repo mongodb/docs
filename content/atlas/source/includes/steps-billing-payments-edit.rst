@@ -22,7 +22,7 @@
    .. step:: Click :guilabel:`Edit` in the :guilabel:`Payment Method` card.
       
    .. step:: Update your :guilabel:`Billing Address` details as needed.
-      
+
       .. list-table::
          :widths: 20 10 70
          :header-rows: 1
@@ -31,32 +31,36 @@
          * - Field
            - Necessity
            - Action
-      
+
+         * - Full name
+           - Required
+           - Type the full name associated with your billing address.
+
          * - Country
            - Required
            - Select the country for your billing address. You can also
              start typing the name of the country and then select it from
              the filtered list of countries.
-      
+
          * - VAT ID
            - Conditional
            - |service| displays the :guilabel:`VAT ID` field if you
              select a country other than the United States.
-      
+
              To learn more about VAT, see
              :ref:`VAT ID <vat-id-number>`.
-      
+
              .. include:: /includes/vat-clarification.rst
-      
-         * - Address Line 1
+
+         * - Address
            - Required
-           - Type the mailing address for your billing address.
-      
-         * - Address Line 2
+           - Type the street address for your billing address.
+
+         * - Apt, suite, etc.
            - Optional
-           - Type an additional line for the mailing address for your
+           - Type the apartment, suite, or floor number for your
              billing address.
-      
+
          * - City
            - Required
            - Type the name of the city for your billing address.
