@@ -14,6 +14,7 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('@/hooks/use-hash', () => ({
   useHash: () => '',
+  navigate: jest.fn(),
 }));
 
 // Two selection dimensions: interface (driver | mongosh) and language (nodejs | python)

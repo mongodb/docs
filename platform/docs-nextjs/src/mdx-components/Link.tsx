@@ -1,6 +1,7 @@
 'use client';
 
 import NextLink from 'next/link';
+import { usePathname } from 'next/navigation';
 import { css, cx } from '@leafygreen-ui/emotion';
 import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
 import { palette } from '@leafygreen-ui/palette';
@@ -149,6 +150,22 @@ export const Link = ({
   ...other
 }: LinkProps) => {
   if (!to) to = '';
+  const pathname = usePathname();
+
+  // If a link points to a section on the current page, strip it down to just the `#hash`.
+  // A full-path NextLink would reload the route, dropping the query string (e.g. composable
+  // `?deployment-type=...`) and skipping `hashchange`. A bare `#hash` anchor keeps the query
+  // and fires hashchange, so in-page selectors (composable tutorials, tabs) can react.
+  if (to && pathname && !isOfflineBuild) {
+    const hashIdx = to.indexOf('#');
+    if (hashIdx > 0) {
+      const stripTrailingSlash = (p: string) => p.replace(/\/+$/, '');
+      if (stripTrailingSlash(to.slice(0, hashIdx)) === stripTrailingSlash(pathname)) {
+        to = to.slice(hashIdx);
+      }
+    }
+  }
+
   const anchor = to.startsWith('#');
 
   const anchorProps = validateHTMAttributes('anchor', other);
