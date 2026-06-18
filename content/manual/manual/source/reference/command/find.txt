@@ -3,7 +3,7 @@ find (database command)
 =======================
 
 .. meta::
-   :description: Execute queries using the `find` command to retrieve documents with various options like sorting, limiting, and specifying read concerns.
+   :description: Execute queries using the find command to retrieve documents with options such as sort order, limits, projections, index hints, collation, and read concern.
 
 .. default-domain:: mongodb
 
@@ -76,8 +76,8 @@ The :dbcommand:`find` command has the following syntax:
 
 .. note::
   Since MongoDB 4.4, the ``find`` command ignores the
-  ``oplogReplay`` flag. If the ``oplogReplay`` flag is set, 
-  the server accepts it for backwards compatibility, but has no effect.
+  ``oplogReplay`` flag. If set, the server accepts it for backwards
+  compatibility but ignores it.
   
 .. _find-cmd-fields:
 
@@ -101,8 +101,8 @@ The command accepts the following fields:
 
    * - ``filter``
      - document
-     - Optional. The query predicate. If unspecified, then all documents in
-       the collection will match the predicate.
+     - Optional. The query predicate. If unspecified, all documents in
+       the collection match the predicate.
 
    * - .. _find-cmd-sort:
    
@@ -120,12 +120,12 @@ The command accepts the following fields:
    * - ``hint``
      - string or document
      - Optional. Index specification. Specify either the index name as a
-       string or the index key pattern. If specified, then the query system
-       will only consider plans using the hinted index.
-       
-       With the following exception, ``hint`` is required if the command 
-       includes the ``min`` and/or ``max`` fields; ``hint`` is not required 
-       with ``min`` and/or ``max`` if the ``filter`` is an equality condition 
+       string or the index key pattern. If specified, the query system
+       only considers plans using the hinted index.
+
+       With the following exception, ``hint`` is required if the command
+       includes the ``min`` or ``max`` fields. ``hint`` is not required
+       with ``min`` or ``max`` if the ``filter`` is an equality condition
        on the ``_id`` field ``{ _id: <value> }``.
        
    * - ``skip``
@@ -207,9 +207,10 @@ The command accepts the following fields:
        
    * - ``returnKey``
      - boolean
-     - Optional. If true, returns only the index keys in the resulting documents.
-       Default value is false. If returnKey is true and the :dbcommand:`find`
-       command does not use an index, the returned documents will be empty.
+     - Optional. If true, returns only the index keys in the resulting
+       documents. Defaults to false. If returnKey is true and the
+       :dbcommand:`find` command does not use an index, the returned
+       documents are empty.
 
    * - ``showRecordId``
      - boolean
@@ -222,16 +223,16 @@ The command accepts the following fields:
 
    * - ``awaitData``
      - boolean
-     - Optional. Use in conjunction with the tailable option to block a
-       :dbcommand:`getMore` command on the cursor temporarily at the end
-       of data rather than returning no data. After a timeout period,
-       :dbcommand:`find` returns as normal.
+     - Optional. Use with the tailable option to block a
+       :dbcommand:`getMore` command on the cursor temporarily at the
+       end of data rather than returning no data. After a timeout
+       period, :dbcommand:`find` returns as normal.
 
    * - ``noCursorTimeout``
      - boolean
      - Optional. Prevents the server from timing out non-session idle cursors 
        after an inactivity period of 30 minutes. Ignored for cursors that are 
-       part of a session. For more information, refer to 
+       part of a session. For more information, see
        :ref:`Session Idle Timeout <session-idle-timeout>`.
 
        
@@ -241,7 +242,7 @@ The command accepts the following fields:
      
        Optional. For queries against a sharded collection, allows the
        command (or subsequent :dbcommand:`getMore` commands) to return
-       partial results, rather than an error, if one or more queried
+       partial results instead of an error if one or more queried
        shards are unavailable.
 
        .. include:: /includes/find-getmore-partialresults.rst
@@ -291,9 +292,9 @@ The command accepts the following fields:
 Output
 ~~~~~~
 
-The command returns a document that contains the cursor information,
-including the :ref:`cursor ID <cursor-id>` and the first batch of documents. 
-For example, the command returns the following document when run against a sharded
+The command returns a document with cursor information, including
+the :ref:`cursor ID <cursor-id>` and the first batch of documents.
+The following example shows the output when run against a sharded
 collection:
 
 .. code-block:: javascript
@@ -360,8 +361,8 @@ collection:
      - Indicates whether the command has succeeded (``1``) or failed
        (``0``).
 
-In addition to the aforementioned :dbcommand:`find`-specific fields,
-the :method:`db.runCommand()` includes the following information for
+In addition to the preceding :dbcommand:`find`-specific fields,
+:method:`db.runCommand()` includes the following information for
 replica sets and sharded clusters:
 
 - ``$clusterTime``
@@ -377,25 +378,22 @@ helper methods.
 Behavior
 --------
 
-The following section describes behavioral considerations of the ``find()``
-command. 
-
 .. _find-order-of-operations:
 
 Order of Operations
 ~~~~~~~~~~~~~~~~~~~
 
-MongoDB generally produces the output of a ``find()`` operation with the
-following order of operations:
+A ``find()`` operation generally uses the following order of
+operations:
 
-- match 
-- sort 
-- skip 
-- limit 
+- match
+- sort
+- skip
+- limit
 - project
 
 MongoDB may execute components in a different order to optimize query
-performance while still maintaining the above order of operations. 
+performance while maintaining the above order of operations.
 
 ``$regex`` Find Queries No Longer Ignore Invalid Regex
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -418,10 +416,10 @@ Session Idle Timeout
 
 .. include:: /includes/extracts/sessions-cursor-timeout.rst
 
-For operations that return a cursor, if the cursor may be idle for
-longer than 30 minutes, issue the operation within an explicit session
-using :method:`Mongo.startSession()` and periodically refresh the
-session using the :dbcommand:`refreshSessions` command. See
+If the cursor may be idle for longer than 30 minutes, issue the
+operation within an explicit session using
+:method:`Mongo.startSession()`. Periodically refresh the session
+using the :dbcommand:`refreshSessions` command. See
 :limit:`Session Idle Timeout` for more information.
 
 Transactions
@@ -477,13 +475,13 @@ Examples
 Specify a Sort and Limit
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following command uses ``find`` on the ``movies`` collection to
-find movies with an IMDB rating of 9 or higher that are in the Drama genre. The
-command includes a ``projection`` to only return the ``title``, ``imdb.rating``,
-and ``year`` fields in the matching documents.
+The following command queries the ``movies`` collection for movies
+with an IMDB rating of at least 9 that are in the Drama genre. The
+command includes a ``projection`` to return only the ``title``,
+``imdb.rating``, and ``year`` fields.
 
-The command sorts the documents in the result set by the ``title``
-field and limits the result set to 5 documents.
+The command sorts results by ``title`` and limits the output to 5
+documents.
 
 .. literalinclude:: /code-examples/tested/command-line/mongosh/database-commands/find/specify-sort-and-limit.snippet.specify-sort-and-limit.js
    :language: javascript
@@ -495,8 +493,8 @@ Override Default Read Concern
 To override the default read concern level of :readconcern:`"local"`,
 use the ``readConcern`` option.
 
-This code example performs the following operations on the ``movies``
-collection on a replica set:
+The following code example performs these operations on the
+``movies`` collection on a replica set:
 
 - finds movies with an IMDB rating below 5
 - limits the results to 5 documents

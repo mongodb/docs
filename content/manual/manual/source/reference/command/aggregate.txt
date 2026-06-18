@@ -3,7 +3,7 @@ aggregate (database command)
 ============================
 
 .. meta::
-   :description: Perform data aggregation using the aggregation pipeline with various options like collation, read concern, and index hint.
+   :description: Perform data aggregation using the aggregation pipeline with options such as collation, read concern, index hints, write concern, and custom let variables.
 
 .. default-domain:: mongodb
 
@@ -18,10 +18,9 @@ Definition
 
 .. dbcommand:: aggregate
 
-   Performs aggregation operation using the :ref:`aggregation pipeline
-   <aggregation-pipeline>`. The pipeline allows users 
-   to process data from a collection or other source with a sequence of 
-   stage-based manipulations.
+   Performs an aggregation operation using the :ref:`aggregation pipeline
+   <aggregation-pipeline>`. The pipeline lets you process data from a
+   collection or other source through a sequence of stages.
 
    .. |method| replace:: :method:`db.aggregate` and 
       :method:`db.collection.aggregate` helper methods or with the
@@ -175,8 +174,9 @@ arguments:
 
      - string or document
 
-     - Optional. The index to use for the aggregation. The index is on the initial
-       collection/view against which the aggregation is run.
+     - Optional. The index to use for the aggregation. The index is on
+       the initial collection or view against which the aggregation
+       is run.
 
        Specify the index either by the index name or by the index
        specification document.
@@ -244,10 +244,10 @@ Session Idle Timeout
 
 .. include:: /includes/extracts/sessions-cursor-timeout.rst
 
-For operations that return a cursor, if the cursor may be idle for
-longer than 30 minutes, issue the operation within an explicit session
-using :method:`Mongo.startSession()` and periodically refresh the
-session using the :dbcommand:`refreshSessions` command. See
+If the cursor may be idle for longer than 30 minutes, issue the
+operation within an explicit session using
+:method:`Mongo.startSession()`. Periodically refresh the session
+using the :dbcommand:`refreshSessions` command. See
 :limit:`Session Idle Timeout` for more information.
 
 Transactions
@@ -278,7 +278,7 @@ You also cannot specify the ``explain`` option.
 Client Disconnection
 ~~~~~~~~~~~~~~~~~~~~~
 
-For :dbcommand:`aggregate` operation that do not include the
+For :dbcommand:`aggregate` operations that do not include the
 :pipeline:`$out` or :pipeline:`$merge` stages:
 
 .. include:: /includes/extracts/4.2-changes-disconnect.rst
@@ -312,13 +312,12 @@ Example
 
 .. include:: /includes/deprecation-aggregate-wo-cursor.rst
 
-Rather than run the :dbcommand:`aggregate` command directly, most
-users should use the :method:`db.collection.aggregate()` helper
-provided in :binary:`~bin.mongosh` or the equivalent helper in
-their driver. 
+Instead of running the :dbcommand:`aggregate` command directly,
+use the :method:`db.collection.aggregate()` helper in
+:binary:`~bin.mongosh` or the equal helper in your driver.
 
-Except for the first two examples which demonstrate the command 
-syntax, the examples in this page use the
+Except for the first two examples that demonstrate the command
+syntax, the examples on this page use the
 :method:`db.collection.aggregate()` helper.
 
 .. include:: /includes/sample-data-usage.rst
@@ -333,16 +332,15 @@ like these:
 
 .. include:: /includes/agg-sample-documents.rst
 
-The following example performs an :dbcommand:`aggregate` operation on
-the ``movies`` collection to calculate the count of each distinct
-genre that appears in the collection.
+The following example aggregates the ``movies`` collection to
+calculate the count of each distinct genre:
 
 .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/run-cmd-pipeline/run-pipeline.snippet.run-cmd-pipeline.js
    :language: javascript
    :category: usage example
 
-In :binary:`~bin.mongosh`, this operation can use the
-:method:`db.collection.aggregate()` helper as in the following example:
+In :binary:`~bin.mongosh`, run the same aggregation using the
+:method:`db.collection.aggregate()` helper:
 
 .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/project-unwind-group/run-pipeline.snippet.project-unwind-group.js
    :language: javascript
@@ -351,9 +349,9 @@ In :binary:`~bin.mongosh`, this operation can use the
 Use $currentOp on an Admin Database
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following example runs a pipeline with two stages on the admin
-database. The first stage runs the :pipeline:`$currentOp` operation 
-and the second stage filters the results of that operation. 
+The following example runs a two-stage pipeline on the admin
+database. The first stage executes the :pipeline:`$currentOp`
+operation, and the second stage filters the results.
 
 .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/currentOp/run-pipeline.snippet.current-op-agg.js
    :language: javascript
@@ -361,21 +359,22 @@ and the second stage filters the results of that operation.
 
 .. note::
 
-   The :dbcommand:`aggregate` command does not specify a collection and
-   instead takes the form ``{aggregate: 1}``. This is because the initial 
-   :pipeline:`$currentOp` stage does not draw input from a collection. It
-   produces its own data that the rest of the pipeline uses. 
+   The :dbcommand:`aggregate` command does not specify a collection
+   and instead takes the form ``{aggregate: 1}``. The initial
+   :pipeline:`$currentOp` stage does not draw input from a
+   collection. The stage produces its own data for the rest of the
+   pipeline to use.
 
-   The new :method:`db.aggregate()` helper has been added to assist in
-   running collectionless aggregations such as this. The above aggregation
-   could also be run like :ref:`this <admin-pipeline-currentOp>` example.
+   The :method:`db.aggregate()` helper supports collectionless
+   aggregations such as this. Run the above aggregation like
+   :ref:`this <admin-pipeline-currentOp>` example.
 
    
 Return Information on the Aggregation Operation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following aggregation operation sets the optional field ``explain``
-to ``true`` to return information about the aggregation operation.
+The following example sets ``explain`` to ``true`` to return
+information about the aggregation.
 
 .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/explain-field/run-pipeline.snippet.agg-explain-field.js
    :language: javascript
@@ -397,8 +396,8 @@ Interaction with ``allowDiskUseByDefault``
 Aggregate Data Specifying Batch Size
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-To specify an *initial* batch size, specify the ``batchSize`` in the
-``cursor`` field, as in the following example:
+To set an *initial* batch size, include the ``batchSize`` in the
+``cursor`` field:
 
 .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/batch-size/run-pipeline.snippet.agg-batch-size.js
    :language: javascript
@@ -413,7 +412,7 @@ Specify a Collation
 
 .. include:: /includes/collation-agg-example.rst
    
-For descriptions on the collation fields, see
+For descriptions of the collation fields, see
 :ref:`collation-document-fields`.
 
 Hint an Index
@@ -449,8 +448,9 @@ like this one:
       runtime: 142
    }
 
-The following example uses the ``let`` option to define variables that can be used 
-in the pipeline. This aggregation finds movies with high ratings and long runtimes:
+The following example uses the ``let`` option to define variables
+for the pipeline. The example finds movies with high ratings and
+long runtimes:
 
 .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/pipelines/let-option-run-cmd/run-pipeline.snippet.let-opt-run-cmd.js
    :language: javascript
@@ -460,4 +460,4 @@ Learn More
 ----------
 
 - :method:`db.collection.aggregate()`
-- :ref:`<agg-pipeline-limits>`
+- :ref:`agg-pipeline-limits`
