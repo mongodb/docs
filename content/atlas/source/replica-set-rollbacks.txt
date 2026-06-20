@@ -1,0 +1,126 @@
+:orphan:
+
+.. _atlas-replica-set-rollbacks:
+
+==================================
+Rollbacks During Failover in Atlas
+==================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: atlas rollback, replica set rollback, rollback during
+      failover, write concern risk, HOST_ROLLBACK
+   :description: Learn how Atlas handles replica set rollbacks during failover events, how to detect them using the activity feed, and how to recover rolled-back data by contacting support.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+A rollback reverts write operations on a former :term:`primary` when
+it rejoins its replica set after a failover. |service| clusters use
+``{ w: "majority" }`` as the default write concern for MongoDB. With
+this default, |service| acknowledges writes only after replicating
+them to a majority of members. Acknowledged writes cannot be rolled
+back, so a rollback does not result in data loss.
+
+If you configure ``{ w: 1 }`` write concern, a rollback can affect
+writes that have not yet replicated. Before a rollback occurs, plan
+how to identify rolled-back operations and decide whether to reissue
+them.
+
+To learn about replica set rollback mechanics, see
+:manual:`Rollbacks During Replica Set Failover
+</core/replica-set-rollbacks/>`.
+
+.. _atlas-rollback-behavior:
+
+Rollback Behavior in Atlas
+--------------------------
+
+When a rollback occurs in |service|, the following conditions apply:
+
+- |service| generates a ``HOST_ROLLBACK`` event in your project
+  activity feed. To learn how to check for this event, see
+  :ref:`Detect Rollbacks <atlas-detect-rollbacks>`.
+- |service| does not maintain a list of rolled-back operations.
+
+.. _atlas-write-concern-rollback:
+
+Write Concern and Rollback Risk
+-------------------------------
+
+|service| clusters use ``{ w: "majority" }`` as the default
+:manual:`write concern </reference/write-concern/>` for MongoDB.
+With this default, a rollback does not result in data loss. The
+write concern you configure determines whether a rollback can
+result in data loss:
+
+- ``{ w: "majority" }`` (default) — |service| acknowledges a
+  write only after a majority of replica set members confirm it.
+  Because the write was replicated before the primary stepped
+  down, a rollback cannot include these writes.
+- ``{ w: 1 }`` — |service| acknowledges a write after only the
+  primary records it, without waiting for replication to
+  secondaries. If the primary steps down before the write
+  replicates, the write may be rolled back and the data may not
+  be recoverable.
+
+Unlike self-managed deployments, |service| also triggers replica set
+elections during routine maintenance operations, including:
+
+- Rolling maintenance and patch updates
+- Scaling events, such as changing cluster tier or disk size
+- General cluster configuration changes
+
+|service| performs these operations on a rolling basis to avoid
+downtime. However, each election creates a period where
+``{ w: 1 }`` writes may not have replicated to secondaries. If you
+use ``{ w: 1 }``, account for these election sources when evaluating
+your tolerance for rollback risk.
+
+.. _atlas-detect-rollbacks:
+
+Detect Rollbacks
+----------------
+
+When |service| detects a rollback condition during a failover, it
+generates a ``HOST_ROLLBACK`` event. You can check for this event
+in the following ways:
+
+- **Activity feed**: View ``HOST_ROLLBACK`` events in your project
+  activity feed. To learn more, see :ref:`activity-feed`.
+- **Alerts**: Configure an alert on the ``HOST_ROLLBACK`` event type
+  to receive a notification when the event occurs. To learn more,
+  see :ref:`configure-alerts`.
+
+.. note::
+
+   |service| also generates a ``HOST_ROLLBACK`` event during
+   point-in-time restore operations due to data differences between
+   the source and target clusters. You can ignore this event when
+   it occurs in that context. To learn more, see
+   :ref:`restore-from-continuous`.
+
+.. _atlas-recover-rollbacks:
+
+Recover Rolled-Back Data
+------------------------
+
+If a rollback occurs, contact |mdb-support| to determine whether
+recovery of the rolled-back data is possible.
+
+Learn More
+----------
+
+- :manual:`Rollbacks During Replica Set Failover
+  </core/replica-set-rollbacks/>`
+- :ref:`test-failover`
+- :manual:`Write Concern </reference/write-concern/>`
+- :ref:`resilient-application`

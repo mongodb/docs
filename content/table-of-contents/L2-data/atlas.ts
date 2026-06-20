@@ -404,6 +404,11 @@ const tocData: TocItem[] = [
               },
             ],
           },
+          {
+            label: 'Replica Set Rollbacks',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/replica-set-rollbacks',
+          },
         ],
       },
       {
