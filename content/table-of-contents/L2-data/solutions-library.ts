@@ -138,6 +138,11 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: 'Clinical Decision Support',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/clinical-decision-support',
+          },
+          {
             label: 'Hybrid FHIR ODL',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/fhir-data-layer',

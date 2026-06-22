@@ -1,0 +1,662 @@
+.. _arch-center-is-clinical-support:
+
+================================================
+Clinical Decision Support for Care Gap Detection
+================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: HEDIS care gaps, FHIR, MongoDB Atlas, Clinical Decision Support, Healthcare compliance CMS, Real-time clinical queries, EHR interoperability solutions, Healthcare quality measures, FHIR data performance bottlenecks
+   :description: Use MongoDB Atlas to detect care gaps, monitor patient vitals in real time, and deliver low-latency clinical decision support on a FHIR data foundation. Explore the solution.
+   
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+**Use cases:** `Connected Health <https://www.mongodb.com/solutions/industries/healthcare/interoperability>`__,
+`Modernization <https://www.mongodb.com/solutions/use-cases/legacy-modernization>`__,
+`Single View <https://www.mongodb.com/solutions/use-cases/single-view>`__
+
+**Industries:** `Healthcare <https://www.mongodb.com/solutions/industries/healthcare>`__,
+`Life Sciences <https://www.mongodb.com/solutions/industries/healthcare>`__
+
+**Products:** `MongoDB Atlas <http://mongodb.com/atlas>`__,\
+:ref:`MongoDB Atlas Charts <charts-landing>`,
+:ref:`MongoDB Time Series <manual-timeseries-landing>`,
+:ref:`MongoDB Queryable Encryption <qe-manual-feature-qe>`
+
+Solution Overview
+-----------------
+
+Healthcare providers operate under strict quality requirements. Federal
+agencies and insurers, including the :abbr:`CMS (Centers for Medicare
+and Medicaid Services)` and major health plans, require providers to
+measure, track, and report the quality of care they deliver to patients.
+Compliance with these mandates carries financial consequences, such as
+higher reimbursements for organizations meeting these standards, and
+penalties for those that don't.
+
+:abbr:`HEDIS (Healthcare Effectiveness Data and Information Set)`
+defines the quality requirements. This measurement set specifies the
+clinical activities that providers must complete for each patient, for
+example, an :abbr:`HbA1c (Hemoglobin A1c)`, a kidney evaluation, and a
+diabetic eye exam for diabetic patients. When a patient does not receive
+a required activity within the measurement period, a care gap opens.
+
+Care gaps are not just a compliance problem. Left undetected, they lead
+to worse patient outcomes, higher hospital readmission rates, disease
+progression, and preventable complications. They also result in lower
+CMS Star Ratings and lost reimbursements under contracts where providers
+get paid based on patient outcomes, rather than the volume of services
+delivered.
+
+Most organizations know care gaps exist. However, they face an
+operational challenge. While :abbr:`FHIR (Fast Healthcare
+Interoperability Resources)` data stores allow medical software and
+:abbr:`EHR (Electronic Health Record)` systems to securely communicate
+and share data, they are not optimized for real-time operational
+clinical queries. Under live workloads, they encounter predictable
+bottlenecks, such as high query latency, poor performance on nested
+resource aggregations, a lack of native time series support, and
+escalating costs with increased query volume. As a result, care
+coordinators cannot get data from these systems fast enough to track
+HEDIS compliance, close patient gaps, and intervene in time.
+
+To overcome these performance bottlenecks, this solution presents a
+:abbr:`CDS (Clinical Decision Support)` system built on a FHIR data
+foundation and powered by MongoDB Atlas as the operational layer. In
+this architecture, FHIR handles interoperability and data exchange,
+while MongoDB Atlas powers real-time vitals monitoring, HEDIS care gap
+computation, and clinical workflows. With this framework, care
+coordinators get low-latency data access and real-time decision support
+at the point of care.
+
+.. figure:: /includes/images/industry-solutions/clinical-decision-concepts.svg
+   :figwidth: 1200px
+   :alt: Benefits of real-time clinical decision support with MongoDB
+   
+   Figure 1. Benefits of real-time clinical decision support with MongoDB
+
+Reference Architectures
+-----------------------
+
+This solution ingests clinical data from wearable devices and healthcare
+systems, routes it through a data store and an operational layer, and
+delivers real-time decision support to care coordinators, as shown in
+the architecture diagram below. 
+
+.. figure:: /includes/images/industry-solutions/clinical-decision-architecture.svg
+   :figwidth: 1200px
+   :alt: High-level architecture
+   
+   Figure 2. High-level architecture
+
+The FHIR data store layer holds the raw FHIR R4 resources, which include: 
+
+- ``Patient``
+- ``Condition``
+- ``MedicationRequest``
+- ``Observation``
+- ``Encounter``
+- ``AllergyIntolerance``
+
+This layer handles conformance validation and R4 normalization, serving
+as the canonical source of truth for interoperability under :abbr:`HIPAA
+(Health Insurance Portability and Accountability Act)` and
+:abbr:`HITRUST (Health Information Trust Alliance)` compliance
+requirements.
+
+MongoDB Atlas provides the operational layer. It stores denormalized
+documents and time series data optimized for the queries, aggregations,
+and real-time workflows required for clinical decision support.
+
+To turn this stored clinical data into real-time action, the platform
+orchestrates the following components:
+
+- MongoDB Atlas serves as the operational foundation storing all
+  clinical data in a flexible polymorphic schema. 
+
+- The Data Generation Pipeline reads from the FHIR data store and
+  populates MongoDB Atlas with patient records, vitals, and CDS rules. 
+
+- The system incorporates the ``AlertEngine`` and ``QualityEngine``
+  Python modules to support clinical decisions. The ``AlertEngine``
+  monitors live vitals for immediate clinical risk, and the
+  ``QualityEngine`` evaluates clinical history for HEDIS compliance
+  gaps. Both engines write their results to the ``patient_360`` document
+  in MongoDB Atlas.
+
+- Finally, the care gap workflow delivers the engine’s results directly
+  to care coordinators. For example, when the ``AlertEngine`` fires a
+  critical alert, the care gap workflow prioritizes open gaps so
+  coordinators can see urgent cases first. 
+
+The following sections describe each part of this flow.
+
+MongoDB Atlas: Key Capabilities
+```````````````````````````````
+
+Designed for complex healthcare workloads, MongoDB Atlas replaces legacy
+systems with a highly optimized, native data ecosystem. Below is an
+overview of the core capabilities that enable the platform to provide
+real-time decision support.
+
+.. figure:: /includes/images/industry-solutions/clinical-decision-features.svg
+   :figwidth: 1200px
+   :alt: Atlas Key Capabilities
+   
+   Figure 3. Atlas Key Capabilities
+
+**Flexible document model:** The ``patient_360 collection`` stores a
+complete patient record in a single document—including demographics,
+conditions, medications, labs, vitals summaries, care gaps, alerts,
+personalized thresholds, and data provenance. A single document answers
+questions that would require multi-resource joins against a FHIR store.
+
+**Time series collections:** The ``synthetic_vitals`` collection stores
+wearable device data using MongoDB's native time series collections.
+These collections provide automatic data bucketing, efficient range
+queries, and purpose-built storage for high-frequency, time-ordered
+data.
+
+**Change streams:** The platform uses change streams to react to new
+vitals in real time. When a reading arrives, the system evaluates CDS
+rules and generates clinical alerts without polling.
+
+**Queryable encryption:** MongoDB Queryable Encryption secures sensitive
+patient fields at rest. The application queries encrypted :abbr:`PHI
+(Protected Health Information)` fields without exposing plaintext,
+meeting HIPAA requirements and eliminating the need for a separate
+encryption layer.
+
+**Aggregation pipeline:** This framework handles dashboard aggregations,
+care gap computation, vitals trend analysis, and HEDIS scoring,
+resolving complex clinical queries in milliseconds.
+
+**Structure for AI and analytics:** The ``patient_360`` document
+delivers normalized clinical facts, structured evidence, and metadata
+provenance to downstream AI and analytics pipelines without additional
+transformation.
+
+The Data Generation Pipeline
+````````````````````````````
+
+Upon initialization, this solution uses a multi-step pipeline to seed
+and activate the CDS system, illustrated below. 
+
+.. figure:: /includes/images/industry-solutions/clinical-decision-pipeline.svg
+   :figwidth: 1200px
+   :alt: Data Generation Pipeline
+   
+   Figure 4. Data Generation Pipeline
+
+The Data Generation Pipeline drives the initialization sequence which
+creates synthetic and materialized clinical data, computes personalized
+thresholds and care gaps, and starts the real time monitoring. The
+pipeline works as follows:
+
+1. **Generates FHIR patient bundles:** Creates FHIR R4 transaction
+   bundles including conditions, medications, lab observations, encounters,
+   and allergies. It stores these bundles in the FHIR data store, which
+   serves as the interoperability layer.
+
+#. **Generates vitals histories:** Produces a 24-hour time series of
+   vital signs per patient, representing normal, deteriorating, or acute
+   physiological patterns. It stores the data in the
+   ``synthetic_vitals`` time series collection.
+
+#. **Materializes patient_360 documents:** Transforms each FHIR bundle
+   into a denormalized ``patient_360`` document in MongoDB Atlas. The
+   transformation includes a ``data_provenance`` block that links back
+   to the source FHIR record.
+
+#. **Seeds CDS rules:** Inserts clinical decision support rule
+   definitions into the ``cds_rules`` collection.
+
+#. **Computes personalized thresholds:** Calculates per-patient vital
+   sign thresholds based on active medications and conditions. It stores
+   these results in the ``patient_360`` document.
+
+#. **Evaluates CDS rules:** Runs the ``AlertEngine`` against current
+   vitals and writes generated alerts to the ``alerts`` collection.
+
+#. **Computes HEDIS care gaps:** Runs the ``QualityEngine`` against each
+   patient's clinical history and writes structured care gap results to
+   the ``patient_360`` document.
+
+#. **Seeds provider attributions:** Generates provider-patient
+   attribution relationships in the ``attributions`` collection,
+   determining which providers receive gap results and alerts.
+
+#. **Starts real-time monitoring:** Activates the vitals simulation
+   worker and begins streaming live vital sign data to the clinical
+   platform via server-sent events.
+
+The CDS Engines 
+``````````````` 
+
+CDS engines analyze patient data to provide actionable insights for care
+teams. This solution separates clinical monitoring from quality measure
+computation into two independent engines. This architectural pattern
+adheres to the Da Vinci initiative, an HL7 FHIR accelerator program for
+care interoperability, which recommends decoupling real-time alerting
+and HEDIS gap logic.
+
+AlertEngine: Real-Time Threshold Monitoring
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``AlertEngine`` evaluates incoming vitals against CDS rules and
+generates clinical alerts. It verifies the following CDS rules:
+
+- **Beta-blocker-aware tachycardia:** Assesses heart rate above
+  personalized threshold.
+
+- **Multi-factor hypoglycemia:** Checks the aggregated conditions for
+  heart rate spike, type 2 diabetes, insulin, age 65 or older, and low
+  activity.
+
+- **Chronic kidney disease metabolic acidosis:** Monitors respiratory
+  rate above 22 sustained for 30 minutes.
+
+- **Sepsis warning:** Controls the presence of three or more of the modified
+  :abbr:`SIRS (Systemic Inflammatory Response Syndrome)` criteria, with
+  diabetes as a risk amplifier.
+
+- **Comparative context:** Evaluates patient medication and condition
+  profile to produce different severity warnings.
+
+The ``AlertEngine`` checks sustained breaches, not single readings. It
+uses a 2-hour baseline window for spike detection and a 4-hour trend
+window for deterioration. The engine applies context to every alert,
+meaning the same heart rate reading generates a critical alert for a
+beta-blocker patient and a low-severity flag for a healthy patient.
+
+QualityEngine: HEDIS Care Gap Computation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The ``QualityEngine`` determines whether each patient has received the
+clinical care required within a HEDIS measurement period. The engine
+targets patients with type 2 diabetes and :abbr:`CKD (Chronic Kidney
+Disease)`, and evaluates their clinical histories against designated
+HEDIS measures. 
+
+The following table shows these HEDIS measures:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 35 35
+
+   * - Measure
+     - Code
+     - Evidence Required
+   * - Comprehensive Diabetes Care — HbA1c Testing
+     - CDC-HBA
+     - HbA1c lab result
+   * - Kidney Health Evaluation for Diabetes
+     - KED
+     - eGFR and uACR lab results
+   * - Controlling High Blood Pressure
+     - CBP
+     - Qualifying encounter
+   * - Statin Therapy for Patients with Diabetes
+     - SPD
+     - Total cholesterol lab result
+   * - Eye Exam for Patients with Diabetes
+     - EED
+     - Qualifying encounter
+
+Care coordinators use the ``QualityEngine`` results to identify which
+patients need intervention and prioritize outreach before gaps affect
+quality scores and reimbursements. Each result includes gap status,
+evidence found, evidence missing, recommended action, priority score,
+and a recompute date. Additionally, the engine exposes a FHIR compliant
+endpoint that returns a ``MeasureReport`` bundle to ensure
+interoperability with payer systems.
+
+Care Gap Workflow
+`````````````````
+
+The care gap workflow serves as the systematic process healthcare
+organizations use to identify, track, and resolve discrepancies between
+a patient's actual clinical care and established medical guidelines. The
+care gap detection follows a structured path from identification to
+closure consisting of these actions:
+
+- **Evaluate:** The ``QualityEngine`` assesses each patient's clinical
+  history against HEDIS measure criteria.
+
+- **Write:** The system writes open gaps to the ``patient_360``
+  document, along with their supporting evidence, recommended action,
+  and priority.
+
+- **Review:** Care coordinators review open gaps in the clinical
+  platform, sorted by priority and overdue period.
+
+- **Intervene:** For actionable gaps such as :abbr:`KED (Kidney Health
+  Evaluation for Diabetes)` and :abbr:`CDC-HBA (Comprehensive Diabetes
+  Care — HbA1c Testing)`, the platform opens a structured intervention
+  workspace where the coordinator orders labs, records completion, or
+  schedules follow-up.
+
+- **Close:** When the intervention completes, the gap status updates in
+  the ``patient_360`` document and the ``QualityEngine`` re-evaluates on
+  the next cycle.
+
+- **Escalate:** When the ``AlertEngine`` detects a clinical alert, it
+  elevates the priority of related open gaps and notifies the care team.
+  Alerts without a related gap, like a sepsis warning, route directly to
+  the care team as independent clinical notifications.
+
+Data Model Approach
+-------------------
+
+A FHIR R4 transaction bundle for a single patient contains more than 20
+individual resources. To determine if a patient over 65 with type 2
+diabetes who takes insulin is at risk of hypoglycemia, the system must: 
+
+- Query the FHIR store to retrieve a ``Patient`` resource. 
+
+- Correlate that resource with multiple ``Condition`` and
+  ``MedicationRequest`` resources. 
+
+- Apply rule logic across the combined result. 
+
+Under live production workloads, this traversal adds latency and
+produces unpredictable query times. For example, patients in this
+solution can have up to five active conditions, six medication
+resources, eight lab observation resources, an encounter, and a clinical
+note, all of which a CDS rule must evaluate. 
+
+To bypass this overhead, the ``patient_360`` document consolidates this
+fragmented data into a single document, eliminating the traversal
+entirely. All clinical data for a single patient lives in one document
+structured as follows:
+
+- ``patient_id``: Unique patient identifier linked to the source FHIR
+  record.
+
+- ``demographics``: Age, gender, and encrypted PHI fields (name, MRN,
+  date of birth).
+
+- ``conditions``: Active diagnoses with :abbr:`SNOMED (Systemized
+  Nomenclature of Medicine)` codes and onset dates.
+
+- ``medications``: Active prescriptions with dose, route, and frequency.
+
+- ``labs``: Results with values, units, and reference ranges.
+
+- ``flags``: Computed booleans derived from conditions and medications.
+
+- ``personalized_thresholds``: Per patient vital sign limits based on
+  active medications.
+
+- ``vitals_summary``: Latest readings, 4-hour averages, and 24-hour
+  trends.
+
+- ``active_alerts``: CDS alerts generated by the ``AlertEngine``.
+
+- ``care_gaps``: HEDIS measure results computed by the
+  ``QualityEngine``.
+
+- ``data_provenance``: source FHIR collection, patient ID, and
+  materialization metadata.
+
+Clinical Data as Document Arrays
+````````````````````````````````
+
+In the ``patient_360`` document, each condition represents an entry in
+the ``conditions`` array, while each medication represents an entry in
+the ``medications`` array. As shown below, the document stores clinical
+entities in the shape they are used, rather than splitting across
+separate tables:
+
+.. code-block:: javascript
+
+   {
+      "conditions": [
+         {
+            "code": "44054006",
+            "display": "Type 2 diabetes mellitus",
+            "clinical_status": "active",
+            "onset_date": "2017-10-21T21:29:59.716351+00:00"
+         },
+         {
+            "code": "433144002",
+            "display": "Chronic kidney disease stage 3",
+            "clinical_status": "active",
+            "onset_date": "2023-09-12T21:29:59.716372+00:00"
+         }
+      ],
+      "medications": [
+         {
+            "display": "Insulin glargine 100 units/mL injection",
+            "dose": "20.0 units",
+            "route": "subcutaneous",
+            "frequency": "once daily at bedtime",
+            "status": "active"
+         },
+         {
+            "display": "Atenolol 50 mg oral tablet",
+            "dose": "50.0 mg",
+            "route": "oral",
+            "frequency": "once daily",
+            "status": "active"
+         }
+      ]
+   }
+
+Computed Operational Fields
+```````````````````````````
+
+The FHIR bundle contains standard interoperability data, whereas the
+``patient_360`` document incorporates operational fields that FHIR does
+not define, including clinical flags, care gap results, personalized
+thresholds, and active alerts. 
+
+For instance, the materialization pipeline, embedded within the broader
+Data Generation Pipeline, computes clinical flags from the FHIR bundle
+and writes them directly to the ``patient_360`` document. The
+``AlertEngine`` reads these flags to determine which CDS rules apply to
+a patient, including:
+
+- ``flags.has_beta_blocker``: Activates the beta-blocker heart rate rule.
+
+- ``flags.has_insulin``: Activates the multi-factor hypoglycemia rule.
+
+- ``flags.has_ckd``: Activates the CKD metabolic acidosis and
+  respiratory rules. 
+
+- ``flags.condition_codes``: SNOMED codes for all active conditions.
+
+Care gap results use the same approach. The materialization pipeline
+computes care gap results and appends them directly to the
+``patient_360`` document. Each computed HEDIS measure is stored within
+the ``care_gaps`` array along with its associated ``status``,
+``priority``, ``evidence``, and ``recommended_action``. Unlike standard
+FHIR, the document model stores this information alongside the patient's
+clinical record. An example of this structure is shown below:
+
+.. code-block:: javascript
+
+   {
+      "care_gaps": [
+         {
+            "hedis_measure": "CDC-HBA",
+            "measure_name": "Comprehensive Diabetes Care — HbA1c Testing",
+            "status": "open",
+            "days_overdue": 34,
+            "priority": "high",
+            "evidence": {
+               "found": ["HbA1c 5.13% (2025-10-07)"],
+               "missing": []
+            },
+            "recommended_action": "Schedule or order an HbA1c follow-up"
+         }
+      ]
+   }
+
+This approach offers additional flexibility; when clinical requirements
+change, you can extend the document. New CDS rules write new fields to
+the same document without affecting existing ones.
+
+Traceability to the Source Record 
+````````````````````````````````` 
+
+The ``patient_360`` document constitutes a derived operational view, not
+a replacement for the FHIR record. The materialization pipeline produces
+this view from the FHIR resources. To audit any clinical decision or
+care gap result, every document includes a ``data_provenance`` block:
+
+.. code-block:: javascript
+
+   {
+      "data_provenance": {
+         "layer": "cds_operational",
+         "source_fhir_collection": "synthetic_patients",
+         "source_patient_id": "1b3bbaec-def8-4b55-8e87-9d04b55d6890",
+         "materialization_version": "1.0",
+         "last_materialized_at": "2026-05-09T21:30:04.873754+00:00",
+         "fhir_resource_count": 22
+      }
+   }
+
+The FHIR data store remains the canonical source of truth for
+interoperability, whereas MongoDB Atlas holds the operational view,
+maintaining a direct link back to its source data.
+
+Encrypted Fields Within the Document Model
+``````````````````````````````````````````
+
+Healthcare regulations require applications to encrypt PHI. A common
+approach involves storing encrypted PHI in a separate system and
+retrieving it only when needed. However, this framework introduces a
+second data store, a separate key management layer, and increased
+latency to every patient record fetch.
+
+MongoDB Queryable Encryption eliminates this overhead keeping PHI in the
+same document. It secures highly sensitive fields, such as the patient's
+name, :abbr:`MRN (Medical Record Number)`, and date of birth, making
+them readable only to authorized client applications with the encryption
+key. The remainder of the document remains queryable for operational
+use:
+
+.. code-block:: javascript
+
+   {
+      "demographics": {
+         "name": { "$binary": { "base64": "EAXZmoXjO0re...", "subType": "06" } },
+         "given": { "$binary": { "base64": "EF1RChFVFEJC...", "subType": "06" } },
+         "family": { "$binary": { "base64": "EK18iT8qVki8...", "subType": "06" } },
+         "birth_date": { "$binary": { "base64": "EJOsqgLJPEjI...", "subType": "06" } },
+         "gender": "female",
+         "age": 77
+      }
+   }
+
+For example, microservices like the ``AlertEngine`` and
+``QualityEngine`` read flags, thresholds, and care gap fields, neither
+reads the encrypted demographic fields.
+
+Build the Solution
+------------------
+
+Find detailed installation instructions in the `GitHub repository
+<https://github.com/mongodb-industry-solutions/healthcare-clinical-platform>`__.
+The repository includes steps to obtain a MongoDB Atlas connection
+string, Docker configurations for containerized deployment, and
+instructions for local deployment.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Configure the prerequisites and setup
+
+      - Install `Docker Desktop
+        <https://www.docker.com/products/docker-desktop/>`__ to run the
+        platform as containers.
+
+      - Create a MongoDB Atlas M10 cluster and configure network access.
+
+      - Connect to your Atlas cluster and copy the connection string.
+
+      - [Optional] Create an AWS account with access to the
+        ``HealthLake`` service if you want to persist FHIR bundles in an
+        external FHIR data store.
+
+   .. step:: Deploy the platform with Docker Compose
+
+      - Run the following command from the project root: 
+
+        .. code-block:: sh
+
+           docker compose up --build
+      
+      - This command starts the FastAPI backend on port 8000 and the Next.js
+        frontend on port 8080.
+
+   .. step:: Launch the platform and data seeding
+
+      - Open http://localhost:8080 in your browser. At login, choose the
+        persona that matches your demonstration scenario:
+
+        - **Frida (Simulation Mode)**: Select Frida to configure
+          simulation settings before seeding. The platform runs a
+          multi-step pipeline that generates and loads all data
+          automatically. Use this mode for a live demonstration with
+          real-time vitals streaming.
+
+        - **Diego (Existing Data Mode)**: Select Diego to connect to a
+          previously seeded dataset with no simulation running. Use this
+          option when you want to demonstrate the platform against stable
+          data or when the seeding pipeline has already run.
+
+      - Explore the patient dashboard, review open care gaps, and
+        monitor vitals in real time.
+
+Key Learnings
+-------------
+
+- **Use MongoDB Atlas as the operational layer for FHIR workflows:** Extend
+  the application's FHIR data foundation with a denormalized operational
+  layer in MongoDB Atlas to power real-time clinical queries, care gap
+  computation, and vitals monitoring.
+
+- **Model patient data as a single document:** Store conditions,
+  medications, labs, alerts, care gaps, and vital sign thresholds
+  together in one document, enabling your application to retrieve
+  everything it needs in one read, without joining multiple resources.
+
+- **Precompute clinical flags and thresholds at data ingestion:**
+  Extract key clinical facts from FHIR bundles and store them as
+  computed fields in MongoDB Atlas at ingestion time, allowing CDS
+  engines to evaluate rules without re-reading source records.
+
+- **Write care gap and alert results directly into the patient
+  document:** Use array fields like ``care_gaps`` and ``active_alerts``
+  to store HEDIS measure results and clinical alerts alongside the
+  clinical record, providing care coordinators with complete, actionable
+  information in one query.
+
+- **Protect PHI with MongoDB Queryable Encryption:** Apply queryable
+  encryption to sensitive patient fields to secure PHI while avoiding
+  plaintext exposure, meeting HIPAA requirements without a separate
+  encryption layer.
+
+Authors
+-------
+
+- Giovanni Rodríguez Fragoso, MongoDB
+- Francesc Mateu Amengual, MongoDB
+- Diego Canales, MongoDB
+
+Learn More
+----------
+
+- :ref:`arch-center-is-medical-generator`
+- :ref:`arch-center-is-openehr-persistance`
+- :ref:`arch-center-is-fhir-data-layer`
