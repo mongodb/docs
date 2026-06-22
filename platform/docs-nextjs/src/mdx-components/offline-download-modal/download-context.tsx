@@ -4,7 +4,7 @@ import { createContext, useMemo, useContext, useState } from 'react';
 import { DownloadModal } from './download-modal';
 import { useUnifiedToc } from '@/context/unified-toc-context';
 import type { TocItem } from '@/mdx-components/UnifiedSidenav/types';
-import { useVersionContext } from '@/context/version-context';
+import { useVersionContext, getDefaultVersionIndex } from '@/context/version-context';
 import type { AvailableVersions } from '@/context/version-context';
 import type { Environments } from '@/utils/env-config';
 
@@ -13,10 +13,21 @@ export type OfflineVersion = {
   url: string;
 };
 
+// An OfflineVersion plus the identity fields needed to determine the default ("current") version.
+// Assembled internally, then stripped down to OfflineVersion before being stored on an OfflineObject.
+type VersionEntry = OfflineVersion & {
+  urlSlug: string;
+  gitBranchName: string;
+  urlAliases?: string[] | null;
+};
+
 export type OfflineObject = {
   displayName: string;
   subTitle?: string;
   versions: OfflineVersion[];
+  // Index into `versions` for the initially selected download; prefers the "current"
+  // branch via getDefaultVersionIndex, otherwise 0.
+  versionIndex: number;
   l1?: boolean;
   subNav?: boolean;
 };
@@ -47,14 +58,14 @@ function createOfflineUrl(label: string, version: string = 'main', isVersionedpr
   return `${OFFLINE_BASE_URL}/${sanitizedLabel}-${version}.tar.gz`;
 }
 
-// Collect versions from versioned groups within an L1's children (skips subNav items)
+// Collect versions from versioned groups within an L1's children (skips subNav items).
 function collectVersionsFromGroups(
   items: TocItem[] | undefined,
   availableVersions: AvailableVersions,
   parentLabel: string,
-): OfflineVersion[] {
-  const versions: OfflineVersion[] = [];
-  if (!items) return versions;
+): VersionEntry[] {
+  const versionEntries: VersionEntry[] = [];
+  if (!items) return versionEntries;
 
   for (const item of items) {
     if (item.showSubNav) continue;
@@ -64,17 +75,20 @@ function collectVersionsFromGroups(
       const availVersions = availableVersions[item.contentSite];
       if (availVersions) {
         for (const version of availVersions) {
-          versions.push({
+          versionEntries.push({
             displayName: version.versionSelectorLabel,
             url: createOfflineUrl(parentLabel, version.urlSlug, item.contentSite),
+            urlSlug: version.urlSlug,
+            gitBranchName: version.gitBranchName,
+            urlAliases: version.urlAliases,
           });
         }
       }
     }
-    versions.push(...collectVersionsFromGroups(item.items, availableVersions, parentLabel));
+    versionEntries.push(...collectVersionsFromGroups(item.items, availableVersions, parentLabel));
   }
 
-  return versions;
+  return versionEntries;
 }
 
 // Find and process items with showSubNav: true
@@ -88,7 +102,7 @@ function findShowSubNavItems(
   for (const item of items) {
     // If this item has showSubNav: true and a contentSite, create an entry
     if (item.showSubNav && item.contentSite) {
-      const versionsList: OfflineVersion[] = [];
+      const versionEntries: VersionEntry[] = [];
 
       // Check if the first child has versionDropdown: true (versioned group pattern)
       const firstChild = item.items?.[0];
@@ -96,24 +110,30 @@ function findShowSubNavItems(
         const availVersions = availableVersions[firstChild.contentSite];
         if (availVersions) {
           for (const version of availVersions) {
-            versionsList.push({
+            versionEntries.push({
               displayName: version.versionSelectorLabel,
               url: createOfflineUrl(item.label, version.urlSlug, item.contentSite),
+              urlSlug: version.urlSlug,
+              gitBranchName: version.gitBranchName,
+              urlAliases: version.urlAliases,
             });
           }
         }
       } else {
         // Non-versioned, default to 'main'
-        versionsList.push({
+        versionEntries.push({
           displayName: 'main',
           url: createOfflineUrl(item.label),
+          urlSlug: 'main',
+          gitBranchName: 'main',
         });
       }
 
       offlineObjects.push({
         displayName: item.label,
-        versions: versionsList,
+        versions: versionEntries.map(({ displayName, url }) => ({ displayName, url })),
         subNav: true,
+        versionIndex: getDefaultVersionIndex(versionEntries),
       });
     } else {
       // Only recurse if this item doesn't have showSubNav
@@ -138,35 +158,40 @@ function transformTocToOfflineObjects(tocTree: TocItem[], availableVersions: Ava
   for (const l1Item of tocTree) {
     if (!l1Item.contentSite) continue;
 
-    const l1Versions: OfflineVersion[] = [];
+    const versionEntries: VersionEntry[] = [];
 
     if (l1Item.versionDropdown) {
       const availVersions = availableVersions[l1Item.contentSite];
       if (availVersions) {
         for (const version of availVersions) {
-          l1Versions.push({
+          versionEntries.push({
             displayName: version.versionSelectorLabel,
             url: createOfflineUrl(l1Item.label, version.urlSlug, l1Item.contentSite),
+            urlSlug: version.urlSlug,
+            gitBranchName: version.gitBranchName,
+            urlAliases: version.urlAliases,
           });
         }
       }
     }
 
     // Collect versions from any versioned groups inside this L1
-    const groupVersions = collectVersionsFromGroups(l1Item.items, availableVersions, l1Item.label);
-    l1Versions.push(...groupVersions);
+    versionEntries.push(...collectVersionsFromGroups(l1Item.items, availableVersions, l1Item.label));
 
-    if (l1Versions.length === 0) {
-      l1Versions.push({
+    if (versionEntries.length === 0) {
+      versionEntries.push({
         displayName: 'main',
         url: createOfflineUrl(l1Item.label),
+        urlSlug: 'main',
+        gitBranchName: 'main',
       });
     }
 
     offlineObjects.push({
       displayName: l1Item.label,
-      versions: l1Versions,
+      versions: versionEntries.map(({ displayName, url }) => ({ displayName, url })),
       l1: true,
+      versionIndex: getDefaultVersionIndex(versionEntries),
       ...(l1Item.subTitle && { subTitle: l1Item.subTitle }),
     });
 

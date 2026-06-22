@@ -26,11 +26,14 @@ type AvailableGroups = Record<string, Group[]>;
 const STORAGE_KEY = 'activeVersions';
 const LEGACY_GIT_BRANCH = 'legacy';
 
+type VersionIdentifier = Pick<BranchData, 'urlSlug' | 'gitBranchName' | 'urlAliases'>;
+
+const isCurrentVersion = (branch: VersionIdentifier) =>
+  branch.urlSlug === 'current' || branch.gitBranchName === 'current' || branch.urlAliases?.includes('current');
+
 const getInitBranchName = (branches: BranchData[]) => {
   // Find 'current' branch as first option
-  const currentBranch = branches.find(
-    (b) => b.urlSlug === 'current' || b.gitBranchName === 'current' || b.urlAliases?.includes('current'),
-  );
+  const currentBranch = branches.find(isCurrentVersion);
   if (currentBranch) {
     return currentBranch.gitBranchName;
   }
@@ -39,6 +42,12 @@ const getInitBranchName = (branches: BranchData[]) => {
     return activeBranch.gitBranchName;
   }
   return branches[0]?.gitBranchName || null;
+};
+
+// Finds the index of the 'current' version; falls back to the first version in the list if not found
+export const getDefaultVersionIndex = (versions: VersionIdentifier[]) => {
+  const currentIndex = versions.findIndex(isCurrentVersion);
+  return currentIndex >= 0 ? currentIndex : 0;
 };
 
 const getInitVersions = (branchListByProduct: AvailableVersions) => {
