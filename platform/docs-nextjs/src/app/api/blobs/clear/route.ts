@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
-import { productionStore as store } from '@/mdx-utils/blob-store';
+import { getProductionStore } from '@/mdx-utils/blob-store';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
+  const store = getProductionStore();
   // We do not want to publicly expose the ability to clear all blobs in production.
   // This is meant for use in local development only
   if (process.env.NODE_ENV !== 'development') {

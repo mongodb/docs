@@ -1,6 +1,6 @@
 import { cache } from './react-cache';
 import type { Store } from '@netlify/blobs';
-import { productionStore, branchSpecificStore, branchSpecificStoreName } from './blob-store';
+import { getProductionStore, getBranchStore } from './blob-store';
 import { BLOB_STORE_NAME } from './blob-constants';
 import { getBlobKey, getBlobKeyOriginalCase } from './get-blob-key';
 
@@ -29,15 +29,16 @@ const isNotFoundError = (msg: string): boolean =>
   msg.includes('401') ||
   msg.includes('no such key');
 
-/** Try branchSpecificStore first, fall back to productionStore. */
+/** Try branch store first, fall back to productionStore. */
 async function getFromStores(key: string, type: 'string' | 'blob'): Promise<string | Blob | null> {
+  const branchResult = getBranchStore();
   const storeEntries: Array<{ store: Store; name: string }> =
-    branchSpecificStore !== null
+    branchResult !== null
       ? [
-          { store: branchSpecificStore, name: branchSpecificStoreName! },
-          { store: productionStore, name: BLOB_STORE_NAME },
+          { store: branchResult.store, name: branchResult.name },
+          { store: getProductionStore(), name: BLOB_STORE_NAME },
         ]
-      : [{ store: productionStore, name: BLOB_STORE_NAME }];
+      : [{ store: getProductionStore(), name: BLOB_STORE_NAME }];
 
   for (const { store } of storeEntries) {
     try {
