@@ -156,7 +156,28 @@ describe('resolvePathsToBuild — FORCE_REBUILD_ALL_INACTIVE', () => {
 });
 
 describe('resolvePathsToBuild — invalid parser cache', () => {
-  it('pushes only active contentDirectories when the parser cache is invalid', async () => {
+  it('only rebuilds changed paths when the parser cache is invalid', async () => {
+    mockGetParser.mockResolvedValue(false);
+    mockGetFileChanges.mockResolvedValue(['content/atlas/source/index.rst']);
+    mockFindContentPathsWithChanges.mockResolvedValue({
+      changedContentPaths: ['atlas'],
+      unchangedContentPaths: ['manual/v8.0', 'node/current'],
+    });
+    const allContentData = makeAllContentData();
+
+    await resolvePathsToBuild({
+      utils: makeUtils(),
+      validParserCache: false,
+      contentDirectories,
+      allContentData,
+    });
+
+    expect(allContentData.pathsToBuild).toEqual(['atlas']);
+    expect(allContentData.pathsToBuild).not.toContain('manual/v8.0');
+    expect(allContentData.pathsToBuild).not.toContain('node/current');
+  });
+
+  it('does not rebuild any paths when the parser cache is invalid and nothing changed', async () => {
     mockGetParser.mockResolvedValue(false);
     mockGetFileChanges.mockResolvedValue([]);
     mockFindContentPathsWithChanges.mockResolvedValue({
@@ -172,34 +193,17 @@ describe('resolvePathsToBuild — invalid parser cache', () => {
       allContentData,
     });
 
-    expect(allContentData.pathsToBuild).toEqual(['atlas', 'manual/v8.0']);
-    expect(allContentData.pathsToBuild).not.toContain('node/current');
+    expect(allContentData.pathsToBuild).toEqual([]);
   });
 
-  it('still picks up inactive paths via change detection on parser cache miss', async () => {
-    mockGetParser.mockResolvedValue(false);
-    mockGetFileChanges.mockResolvedValue(['content/node/current/source/index.rst']);
-    mockFindContentPathsWithChanges.mockResolvedValue({
-      changedContentPaths: ['node/current'],
-      unchangedContentPaths: ['atlas', 'manual/v8.0'],
-    });
-    const allContentData = makeAllContentData();
-
-    await resolvePathsToBuild({
-      utils: makeUtils(),
-      validParserCache: false,
-      contentDirectories,
-      allContentData,
-    });
-
-    expect(allContentData.pathsToBuild).toContain('atlas');
-    expect(allContentData.pathsToBuild).toContain('manual/v8.0');
-    expect(allContentData.pathsToBuild).toContain('node/current');
-  });
-
-  it('rebuilds all paths when parser cache is invalid AND FORCE_REBUILD_ALL_INACTIVE is set', async () => {
+  it('rebuilds only inactive paths (plus changed) when parser cache is invalid AND FORCE_REBUILD_ALL_INACTIVE is set', async () => {
     process.env.FORCE_REBUILD_ALL_INACTIVE = 'true';
     mockGetParser.mockResolvedValue(false);
+    mockGetFileChanges.mockResolvedValue([]);
+    mockFindContentPathsWithChanges.mockResolvedValue({
+      changedContentPaths: [],
+      unchangedContentPaths: contentDirectories,
+    });
     const allContentData = makeAllContentData();
 
     await resolvePathsToBuild({
@@ -209,8 +213,10 @@ describe('resolvePathsToBuild — invalid parser cache', () => {
       allContentData,
     });
 
-    expect(allContentData.pathsToBuild).toEqual(contentDirectories);
-    expect(mockGetFileChanges).not.toHaveBeenCalled();
+    expect(allContentData.pathsToBuild).toEqual(['node/current']);
+    expect(allContentData.pathsToBuild).not.toContain('atlas');
+    expect(allContentData.pathsToBuild).not.toContain('manual/v8.0');
+    expect(mockGetFileChanges).toHaveBeenCalled();
   });
 });
 

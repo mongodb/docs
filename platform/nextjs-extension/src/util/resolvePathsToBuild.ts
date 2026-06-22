@@ -28,12 +28,16 @@ export async function resolvePathsToBuild({
 		.map((p) => p.trim())
 		.filter(Boolean);
 
-	// Parser cache misses only rebuild active paths — rebuilding inactive
-	// versions in the same run pushes the parser + persistence module past their
-	// available context budget in prod.
-	const rebuildActive = forceRebuildAllActive || !validParserCache;
+	// A cache miss (invalid parser cache) no longer fans out to every active
+	// path. We only rebuild paths that changed in the last commit (detected
+	// below), plus anything covered by the explicit force-rebuild flags.
+	if (!validParserCache) {
+		console.log(
+			'Parser cache is invalid — rebuilding only changed content paths',
+		);
+	}
 
-	if (rebuildActive || forceRebuildAllInactive) {
+	if (forceRebuildAllActive || forceRebuildAllInactive) {
 		if (forceRebuildAllActive) {
 			console.log(
 				'FORCE_REBUILD_ALL_ACTIVE set — rebuilding all active content paths',
@@ -44,21 +48,16 @@ export async function resolvePathsToBuild({
 				'FORCE_REBUILD_ALL_INACTIVE set — rebuilding all inactive content paths',
 			);
 		}
-		if (!validParserCache) {
-			console.log(
-				'Parser cache is invalid — rebuilding all active content paths',
-			);
-		}
 
 		const pathsToAdd = contentDirectories.filter((contentPath) => {
 			const isActive = isPathActive(contentPath, allContentData);
-			return (isActive && rebuildActive) || (!isActive && forceRebuildAllInactive);
+			return (isActive && forceRebuildAllActive) || (!isActive && forceRebuildAllInactive);
 		});
 		allContentData.pathsToBuild.push(...pathsToAdd);
 
 		// If we're rebuilding both active and inactive (effectively "all"), no
 		// further work is needed.
-		if (rebuildActive && forceRebuildAllInactive) {
+		if (forceRebuildAllActive && forceRebuildAllInactive) {
 			return;
 		}
 		// Fall through: when only one of the two is set, we still want to allow
