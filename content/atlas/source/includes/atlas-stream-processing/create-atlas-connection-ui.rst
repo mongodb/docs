@@ -37,6 +37,11 @@ To add an Atlas Cluster connection to your {+spw+} through the
 	 support, the available {+clusters+} appear grouped by
 	 project.
 
+      #. **(Optional)** If you plan to use this connection to create a
+	 stream processor with :ref:`failover processor
+	 <atlas-sp-architecture-failover>` functionality, configure
+	 the :guilabel:`Failover region settings`.
+	 
       #. Click :guilabel:`+ Add Connection`.
       
 

@@ -119,12 +119,23 @@ configure your stream processor:
                     }
                   }
 
+         .. step:: (Optional) Create failover processors.
+
+            In the :guilabel:`Advanced settings` pane, toggle
+            :guilabel:`Create failover processor(s)` to create one or
+	    more :ref:`failover processors
+	    <atlas-sp-architecture-failover>`.
+
+	    :gold:`IMPORTANT`: This feature is only available in
+            {+spw+}s configured with failover regions. To learn more,
+	    see :ref:`Limitations <atlas-sp-limitations>`.
+		  
          .. step:: Click :guilabel:`Create stream processor`.
 
-            The stream processor is created and listed on the
-            :guilabel:`Stream Processors` tab of the :guilabel:`Stream
-            Processing` page.
-
+            {+atlas-sp+} creates the stream processor and lists it on
+            the :guilabel:`Stream Processors` tab of the
+            :guilabel:`Stream Processing` page.
+		  
    .. tab:: JSON Editor 
       :tabid: json-editor
 
@@ -212,3 +223,20 @@ configure your stream processor:
                       }
                     ]
                   }
+
+         .. step:: (Optional) Create failover processors.
+
+            In the :guilabel:`Advanced settings` pane, toggle
+            :guilabel:`Create failover processor(s)` to create one or
+	    more :ref:`failover processors
+	    <atlas-sp-architecture-failover>`.
+
+	    :gold:`IMPORTANT`: This feature is only available in
+            {+spw+}s configured with failover regions. To learn more,
+	    see :ref:`Limitations <atlas-sp-limitations>`.
+		  
+         .. step:: Click :guilabel:`Create stream processor`.
+
+            {+atlas-sp+} creates the stream processor and lists it on
+            the :guilabel:`Stream Processors` tab of the
+            :guilabel:`Stream Processing` page.

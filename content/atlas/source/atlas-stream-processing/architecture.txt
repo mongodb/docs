@@ -217,6 +217,78 @@ Possible states include:
 
    Stream processors might appear intermittently in PROVISIONING state in monitoring dashboards as the system allocates resources. This is normal behavior during scaling operations. If a processor remains in PROVISIONING state for extended periods (>10 minutes), check your {+spw+} resource limits and tier configuration.
 
+.. _atlas-sp-architecture-failover:
+
+Failover Processors
+-------------------
+
+{+atlas-sp+} provides high availability in the form of failover
+processors. A failover processor mirrors an active stream processor
+using checkpoint replication, enabling you to seamlessly resume
+stream processing from the latest state in the event of service
+interruption in your {+spw+}'s primary region. {+atlas-sp+}
+automatically synchronizes any changes you make to the active
+processor's aggregation pipeline to its failover processors.
+
+To use failover processors you must:
+
+- Configure one or more failover regions in the target {+spw+}. 
+- Configure a multi-region cluster with a node in the failover region
+  within the same project as your {+spw+}.
+- Configure the connections in your {+spw+} to support failover
+  regions. You can do this when you :ref:`create the connection
+  <atlas-sp-add-connection>`, or you can modify an existing connection
+  to support failover regions.
+- Configure one or more failover processors for your target stream
+  processor. You can do this when you :ref:`create
+  <atlas-sp-manage-processor-create>` the processor, or you can modify
+  an existing processor to use failover processors.
+
+You can initiate one of three types of failover event:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+
+   * - Type
+     - Description
+
+   * - Graceful
+     - Shuts down an active processor, creates and copies a
+       checkpoint, and resumes processing from the most recent
+       checkpoint.
+
+   * - Forced
+     - Activates the failover processor without resuming from
+       a checkpoint. This is recommended only when you can't
+       perform a graceful failover.
+
+   * - Dry Run
+     - Tests the failover process without consuming data,
+       allowing you to validate failover configuration before
+       putting it into production.
+
+.. _atlas-sp-architecture-failover-considerations:
+
+Failover Considerations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+You can create failover regions for a {+spw+} when you initially
+:ref:`create <atlas-sp-manage-spi-create>` the workspace, or you can
+modify an existing {+spw+} to use failover regions.
+
+You can trigger failover for individual processors, all processors
+within a given workspace, or for all processors with failover
+configured in a specified region.
+
+Failover processors guarantee at-least-once processing semantics.
+
+To learn more about requirements and limitations of failover
+processors, see :ref:`Limitations <atlas-sp-limitations>`.
+
+To learn about failover processor pricing, see the :ref:`billing
+documentation <atlas-sp-billing>`.
+
 .. _atlas-sp-error-handling:
 
 Error Handling and Retry Policies

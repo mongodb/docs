@@ -38,7 +38,7 @@
 ------------------------
 
 - Adds support to :ref:`create a stream processor pipeline
-  <streams-manage-create>` in the {+atlas-ui+}.
+  <atlas-sp-manage-processor-create>` in the {+atlas-ui+}.
   
 .. _atlas-sp-20250901:
 
