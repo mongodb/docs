@@ -41,6 +41,7 @@ import scalaDriverRedirects from './scala-driver-redirects.json';
 import searchRedirects from './search-redirects.json';
 import sparkConnectorRedirects from './spark-connector-redirects.json';
 import sqlInterfaceRedirects from './sql-interface-redirects.json';
+import standbyClustersRedirects from './standby-clusters-redirects.json';
 import vectorSearchRedirects from './vector-search-redirects.json';
 import voyageaiRedirects from './voyageai-redirects.json';
 
@@ -85,6 +86,7 @@ export const allRedirects: RedirectEntry[] = [
   ...searchRedirects,
   ...sparkConnectorRedirects,
   ...sqlInterfaceRedirects,
+  ...standbyClustersRedirects,
   ...vectorSearchRedirects,
   ...voyageaiRedirects,
 ] as RedirectEntry[];
