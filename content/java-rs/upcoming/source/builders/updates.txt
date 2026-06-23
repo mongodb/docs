@@ -1,0 +1,622 @@
+.. _java-rs-builders-updates:
+
+================
+Updates Builders
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to use the Updates builder in the MongoDB Java Reactive Streams driver.
+   :keywords: code example, update, modify, builder
+
+Overview
+--------
+
+In this guide, you can learn how to specify **updates** by using
+:ref:`builders <java-rs-builders>` in the {+driver-short+}.
+
+The ``Updates`` builder provides helper methods to simplify the following
+tasks:
+
+- :ref:`java-rs-field-updates`: Updating or removing the value of a particular field
+- :ref:`java-rs-array-updates`: Updating values in an array-valued field
+- :ref:`java-rs-multiple-updates`: Performing multiple updates at once, such as setting or changing more than one field
+
+Some methods that expect update documents are:
+
+- ``updateOne()``
+- ``updateMany()``
+- ``bulkWrite()``
+
+The ``Updates`` class provides static factory methods for all the MongoDB update
+operators. Each method returns an instance of the
+:driver:`BSON </java/sync/current/data-formats/document-data-format-bson/>`
+type, which you can pass to any method that expects an update argument.
+
+.. tip::
+
+   For brevity, you may choose to import the methods of the `Updates
+   <{+core-api+}/client/model/Updates.html>`__ and `Filters
+   <{+core-api+}/client/model/Filters.html>`__ class statically:
+
+   .. literalinclude:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-static-import
+      :end-before: end-static-import
+
+   The following examples assume this static import.
+
+The examples in this guide use the following document:
+
+.. code-block:: json
+
+   {
+       "_id": 1,
+       "color": "red",
+       "qty": 5,
+       "vendor": [ "A", "D", "M" ],
+       "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+   }
+
+.. _java-rs-field-updates:
+
+Field Updates
+-------------
+
+Set
+~~~
+
+Use the `set() <{+core-api+}/client/model/Updates.html#set(java.lang.String,TItem)>`__
+method to assign the value of a field in an update operation.
+
+The following example sets the value of the ``qty`` field to "11":
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-set-update
+      :end-before: end-set-update
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 1,
+         "color": "red",
+         "qty": 11,
+         "vendor": [ "A", "D", "M" ],
+         "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+      }
+
+The following example adds two new fields to the original document:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-combine-set
+      :end-before: end-combine-set
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 1,
+         "color": "red",
+         "qty": 5,
+         "vendor": [ "A", "D", "M" ],
+         "lastModified": { "$date": "2021-03-05T05:00:00Z" },
+         "width": 6.5,
+         "height": 10
+      }
+
+Unset
+~~~~~
+Use the `unset() <{+core-api+}/client/model/Updates.html#unset(java.lang.String)>`__ method
+to delete the value of a field in an update operation.
+
+The following example deletes the ``qty`` field:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-unset-update
+      :end-before: end-unset-update
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 1,
+         "color": "red",
+         "vendor": [ "A", "D", "M" ],
+         "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+      }
+
+Set On Insert
+~~~~~~~~~~~~~
+Use the `setOnInsert() <{+core-api+}/client/model/Updates.html#setOnInsert(java.lang.String,TItem)>`__
+method to assign the value of a field in an update operation on an
+insert of a document.
+
+The following example sets the value of the ``qty`` field to "7"
+if an upsert resulted in the insert of a document:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-set-on-insert-update
+      :end-before: end-set-on-insert-update
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 1,
+         "color": "red",
+         "qty": 7,
+         "vendor": [ "A", "D", "M" ],
+         "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+      }
+
+.. note::
+
+   If the document is not inserted, no change will occur.
+
+Increment
+~~~~~~~~~
+Use the `inc() <{+core-api+}/client/model/Updates.html#inc(java.lang.String,java.lang.Number)>`__
+method to increment the value of a numeric field in an update operation.
+
+The following example increments the value of the ``qty`` field by
+"3":
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-inc-update
+      :end-before: end-inc-update
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 1,
+         "color": "red",
+         "qty": 8,
+         "vendor": [ "A", "D", "M" ],
+         "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+      }
+
+Multiply
+~~~~~~~~
+Use the `mul() <{+core-api+}/client/model/Updates.html#mul(java.lang.String,java.lang.Number)>`__
+method to multiply the value of a numeric field in an update operation.
+
+The following example multiplies the value of the ``qty`` field by
+"2":
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-mul-update
+      :end-before: end-mul-update
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 1,
+         "color": "red",
+         "qty": 10,
+         "vendor": [ "A", "D", "M" ],
+         "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+      }
+
+Rename
+~~~~~~
+Use the `rename() <{+core-api+}/client/model/Updates.html#rename(java.lang.String,java.lang.String)>`__
+method to rename the value of a field in an update operation.
+
+The following example renames the ``qty`` field to "quantity":
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-rename-update
+      :end-before: end-rename-update
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 1,
+         "color": "red",
+         "vendor": [ "A", "D", "M" ],
+         "lastModified": { "$date": "2021-03-05T05:00:00Z" },
+         "quantity": 5
+      }
+
+Min
+~~~
+Use the `min() <{+core-api+}/client/model/Updates.html#min(java.lang.String,TItem)>`__
+method to update the value of a field with the smaller number of the two
+specified in an update operation.
+
+The following example sets the value of the ``qty`` field to the
+minimum of its current value and "2":
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-min-update
+      :end-before: end-min-update
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 1,
+         "color": "red",
+         "qty": 2,
+         "vendor": [ "A", "D", "M" ],
+         "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+      }
+
+Max
+~~~
+Use the `max() <{+core-api+}/client/model/Updates.html#max(java.lang.String,TItem)>`__
+method to update the value of a field with the larger number of the two
+specified in an update operation.
+
+The following example sets the value of the ``qty`` field to the
+maximum of its current value and "8":
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-max-update
+      :end-before: end-max-update
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 1,
+         "color": "red",
+         "qty": 8,
+         "vendor": [ "A", "D", "M" ],
+         "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+      }
+
+Current Date
+~~~~~~~~~~~~
+Use the `currentDate() <{+core-api+}/client/model/Updates.html#currentDate(java.lang.String)>`__
+method to assign the value of a field in an update operation to the
+current date as a :manual:`BSON date </reference/bson-types/#date>`.
+
+The following example sets the value of the ``lastModified`` field to
+the current date as a BSON date:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-current-date-update
+      :end-before: end-current-date-update
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 1,
+         "color": "red",
+         "qty": 5,
+         "vendor": [ "A", "D", "M" ],
+         "lastModified": { "$date": "2021-03-22T21:01:20.027Z" }
+      }
+
+Current Timestamp
+~~~~~~~~~~~~~~~~~
+Use the `currentTimestamp() <{+core-api+}/client/model/Updates.html#currentTimestamp(java.lang.String)>`__
+method to assign the value of a field in an update operation to the
+current date as a :manual:`timestamp </reference/bson-types/#timestamps>`.
+
+The following example sets the value of the ``lastModified`` field to
+the current date as a BSON timestamp:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-current-timestamp-update
+      :end-before: end-current-timestamp-update
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 1,
+         "color": "red",
+         "qty": 5,
+         "vendor": [ "A", "D", "M" ],
+         "lastModified": { "$timestamp": { "t": 1616446880, "i": 5 } }
+      }
+
+Bit
+~~~
+Use the `bitwiseOr() <{+core-api+}/client/model/Updates.html#bitwiseOr(java.lang.String,int)>`__,
+`bitwiseAnd() <{+core-api+}/client/model/Updates.html#bitwiseAnd(java.lang.String,int)>`__,
+and `bitwiseXor() <{+core-api+}/client/model/Updates.html#bitwiseXor(java.lang.String,int)>`__
+methods to perform a bitwise update of the integer value of a field in
+an update operation.
+
+The following example performs a bitwise ``OR`` between the number
+"10" and the integer value of the ``qty`` field:
+
+.. literalinclude:: /includes/builders/updates.java
+   :language: java
+   :dedent:
+   :start-after: begin-bitwise-or-update
+   :end-before: end-bitwise-or-update
+
+The bitwise operation results in 15:
+
+.. code-block:: none
+   :copyable: false
+
+   0101  // 5 in binary 
+   1010  // 10 in binary
+   ----
+   1111 // 15 in binary
+
+The preceding example updates the original document to the following state:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+      "_id": 1,
+      "color": "red",
+      "qty": 15,
+      "vendor": [ "A", "D", "M" ],
+      "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+   }
+
+.. _java-rs-array-updates:
+
+Array Updates
+-------------
+
+Add to Set
+~~~~~~~~~~
+Use the `addToSet() <{+core-api+}/client/model/Updates.html#addToSet(java.lang.String,TItem)>`__
+method to append a value to an array if the value is not already present
+in an update operation.
+
+The following example adds the value "C" to the array value of
+the ``vendor`` field:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-add-to-set-update
+      :end-before: end-add-to-set-update
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 1,
+         "color": "red",
+         "qty": 5,
+         "vendor": [ "A", "D", "M", "C" ],
+         "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+      }
+
+Pop
+~~~
+Use the `popFirst() <{+core-api+}/client/model/Updates.html#popFirst(java.lang.String)>`__
+method to remove the first element of an array and the
+`popLast() <{+core-api+}/client/model/Updates.html#popLast(java.lang.String)>`__
+method to remove the last element of an array in an update operation.
+
+The following example pops the first element off of the array value
+of the ``vendor`` field:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-pop-first-update
+      :end-before: end-pop-first-update
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 1,
+         "color": "red",
+         "qty": 5,
+         "vendor": [ "D", "M" ],
+         "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+      }
+
+Pull All
+~~~~~~~~
+Use the `pullAll() <{+core-api+}/client/model/Updates.html#pullAll(java.lang.String,java.util.List)>`__
+method to remove all instances of values from an existing array in
+an update operation.
+
+The following example removes vendor "A" and "M" from the ``vendor`` array:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-pull-all-update
+      :end-before: end-pull-all-update
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 1,
+         "color": "red",
+         "qty": 5,
+         "vendor": [ "D" ],
+         "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+      }
+
+Pull
+~~~~
+Use the `pull() <{+core-api+}/client/model/Updates.html#pull(java.lang.String,TItem)>`__
+method to remove all instances of a value from an existing array in
+an update operation.
+
+The following example removes the value "D" from the ``vendor``
+array:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-pull-update
+      :end-before: end-pull-update
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 1,
+         "color": "red",
+         "qty": 5,
+         "vendor": [ "A", "M" ],
+         "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+      }
+
+Push
+~~~~
+Use the `push() <{+core-api+}/client/model/Updates.html#push(java.lang.String,TItem)>`__
+method to append a value to an array in an update operation.
+
+The following examples pushes "C" to the ``vendor`` array:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-push-update
+      :end-before: end-push-update
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 1,
+         "color": "red",
+         "qty": 5,
+         "vendor": [ "A", "D", "M", "C" ],
+         "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+      }
+
+.. _java-rs-multiple-updates:
+
+Combining Multiple Update Operators
+-----------------------------------
+An application can update multiple fields of a single document by
+combining two or more of the update operators described in the preceding
+sections.
+
+The following example increments the value of the ``qty`` field by "6", sets
+the value of the ``color`` field to "purple", and pushes "R" to
+the ``vendor`` field:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/updates.java
+      :language: java
+      :dedent:
+      :start-after: begin-combine-update
+      :end-before: end-combine-update
+
+   .. output::
+      :language: json
+      :visible: false
+
+      {
+         "_id": 1,
+         "color": "purple",
+         "qty": 11,
+         "vendor": [ "A", "D", "M", "R" ],
+         "lastModified": { "$date": "2021-03-05T05:00:00Z" }
+      }
+

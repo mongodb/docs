@@ -59,37 +59,44 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Create a MongoClient',
                 contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/connect-to-mongo/create-a-mongo-client',
+                url: '/docs/languages/java/reactive-streams-driver/:version/connect/create-a-mongo-client',
+              },
+              {
+                label: 'Specify Connection Options',
+                contentSite: 'java-rs',
+                collapsible: true,
+                items: [
+                  {
+                    label: 'Stable API',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/connect/specify-connection-options/stable-api',
+                  },
+                  {
+                    label: 'Limit Execution Time',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/connect/specify-connection-options/csot',
+                  },
+                  {
+                    label: 'Connection Pools',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/connect/specify-connection-options/connection-pools',
+                  },
+                  {
+                    label: 'Compress Network Traffic',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/connect/specify-connection-options/network-compression',
+                  },
+                ],
               },
               {
                 label: 'Choose a Connection Target',
                 contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/connect-to-mongo/choose-connection-target',
+                url: '/docs/languages/java/reactive-streams-driver/:version/connect/choose-connection-target',
               },
               {
                 label: 'Connection URI Options',
                 contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/connect-to-mongo/connection-options',
-              },
-              {
-                label: 'Limit Execution Time',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/connect-to-mongo/csot',
-              },
-              {
-                label: 'TLS/SSL',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/connect-to-mongo/tls',
-              },
-              {
-                label: 'Compress Network Traffic',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/connect-to-mongo/network-compression',
-              },
-              {
-                label: 'Stable API',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/connect-to-mongo/stable-api',
+                url: '/docs/languages/java/reactive-streams-driver/:version/connect/connection-options',
               },
             ],
           },
@@ -99,169 +106,119 @@ export const toc: L1TocItem[] = [
             url: '/docs/languages/java/reactive-streams-driver/:version/db-coll',
           },
           {
-            label: 'Write Data',
+            label: 'CRUD Operations',
             contentSite: 'java-rs',
             collapsible: true,
-            url: '/docs/languages/java/reactive-streams-driver/:version/write-data-to-mongo',
             items: [
               {
-                label: 'Insert',
+                label: 'Insert Documents',
                 contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/write/insert-documents',
+                url: '/docs/languages/java/reactive-streams-driver/:version/crud/insert-documents',
               },
               {
-                label: 'Update',
+                label: 'Query Documents',
                 contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/write/write-update-documents',
+                collapsible: true,
+                url: '/docs/languages/java/reactive-streams-driver/:version/crud/query-documents',
+                items: [
+                  {
+                    label: 'Specify a Query',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/crud/query-documents/specify-a-query',
+                  },
+                  {
+                    label: 'Find Documents',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/crud/query-documents/find',
+                  },
+                  {
+                    label: 'Specify Documents to Return',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/crud/query-documents/specify-documents-to-return',
+                  },
+                  {
+                    label: 'Specify Fields to Return',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/crud/query-documents/specify-fields-return',
+                  },
+                  {
+                    label: 'Count Documents',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/crud/query-documents/count-documents',
+                  },
+                  {
+                    label: 'Retrieve Distinct Field Values',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/crud/query-documents/distinct',
+                  },
+                  {
+                    label: 'Data Cursors',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/crud/query-documents/cursors',
+                  },
+                  {
+                    label: 'Text Query',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/crud/query-documents/text-search',
+                  },
+                  {
+                    label: 'Geospatial Search',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/crud/query-documents/geo',
+                  },
+                ],
               },
               {
-                label: 'Replace',
+                label: 'Update Documents',
                 contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/write/replace-documents',
+                url: '/docs/languages/java/reactive-streams-driver/:version/crud/update-documents',
               },
               {
-                label: 'Delete',
+                label: 'Replace Documents',
                 contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/write/write-delete-documents',
+                url: '/docs/languages/java/reactive-streams-driver/:version/crud/replace-documents',
               },
               {
-                label: 'Bulk Write',
+                label: 'Delete Documents',
                 contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/write/bulk-writes',
+                url: '/docs/languages/java/reactive-streams-driver/:version/crud/delete-documents',
+              },
+              {
+                label: 'Bulk Write Operations',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/crud/bulk-writes',
               },
               {
                 label: 'Transactions',
                 contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/write/transactions',
+                url: '/docs/languages/java/reactive-streams-driver/:version/crud/transactions',
               },
               {
-                label: 'GridFS',
+                label: 'Collations',
                 contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/write/store-large-docs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/crud/collations',
               },
               {
-                label: 'Write Concern',
+                label: 'Configure CRUD Operations',
                 contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/write/write-concern',
+                url: '/docs/languages/java/reactive-streams-driver/:version/crud/configure-crud-operations',
               },
               {
-                label: 'Run a Database Command',
+                label: 'Store Large Files',
                 contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/write/run-command',
+                url: '/docs/languages/java/reactive-streams-driver/:version/crud/store-large-docs',
               },
             ],
           },
           {
-            label: 'Read Data',
+            label: 'Custom Subscribers',
             contentSite: 'java-rs',
-            collapsible: true,
-            url: '/docs/languages/java/reactive-streams-driver/:version/read-data-from-mongo',
-            items: [
-              {
-                label: 'Query',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/read/specify-a-query',
-              },
-              {
-                label: 'Retrieve Data',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/read/retrieve-data',
-              },
-              {
-                label: 'Specify Fields to Return',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/read/specify-fields-return',
-              },
-              {
-                label: 'Specify Documents to Return',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/read/specify-documents-to-return',
-              },
-              {
-                label: 'Count Documents',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/read/count-documents',
-              },
-              {
-                label: 'Distinct Field Values',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/read/distinct',
-              },
-              {
-                label: 'Data Cursors',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/read/cursors',
-              },
-              {
-                label: 'Read Preference',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/read/read-preference',
-              },
-              {
-                label: 'Text Query',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/read/text-search',
-              },
-              {
-                label: 'Geospatial Search',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/read/geo',
-              },
-              {
-                label: 'Monitor Data Changes',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/read/change-streams',
-              },
-            ],
-          },
-          {
-            label: 'Indexes',
-            contentSite: 'java-rs',
-            url: '/docs/languages/java/reactive-streams-driver/:version/indexes',
+            url: '/docs/languages/java/reactive-streams-driver/:version/custom-implementations',
           },
           {
             label: 'Aggregation',
             contentSite: 'java-rs',
             url: '/docs/languages/java/reactive-streams-driver/:version/aggregation',
-          },
-          {
-            label: 'Security',
-            contentSite: 'java-rs',
-            collapsible: true,
-            items: [
-              {
-                label: 'Authentication',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/security/auth',
-              },
-              {
-                label: 'Enterprise Authentication',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/security/enterprise-authentication',
-              },
-              {
-                label: 'In-Use Encryption',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/security/encrypt',
-              },
-            ],
-          },
-          {
-            label: 'Third-Party Integrations',
-            contentSite: 'java-rs',
-            collapsible: true,
-            items: [
-              {
-                label: 'Integrate with Spring Boot',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/integrations/spring-boot',
-              },
-            ],
-          },
-          {
-            label: 'Replica Set Operations',
-            contentSite: 'java-rs',
-            url: '/docs/languages/java/reactive-streams-driver/:version/read-write-configuration',
           },
           {
             label: 'Data Formats',
@@ -273,37 +230,161 @@ export const toc: L1TocItem[] = [
                 contentSite: 'java-rs',
                 url: '/docs/languages/java/reactive-streams-driver/:version/data-formats/time-series',
               },
+              {
+                label: 'POJOs',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/data-formats/pojos',
+              },
+              {
+                label: 'Codecs',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/data-formats/codecs',
+              },
+              {
+                label: 'Extended JSON',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/data-formats/extended-json',
+              },
+              {
+                label: 'BSON',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/drivers/java/sync/current/data-formats/document-data-format-bson/',
+              },
             ],
           },
           {
-            label: 'Logging',
+            label: 'Indexes',
             contentSite: 'java-rs',
-            url: '/docs/languages/java/reactive-streams-driver/:version/logging',
+            url: '/docs/languages/java/reactive-streams-driver/:version/indexes',
           },
           {
-            label: 'Monitor Your Deployment',
+            label: 'Run a Database Command',
             contentSite: 'java-rs',
-            url: '/docs/languages/java/reactive-streams-driver/:version/monitoring',
+            url: '/docs/languages/java/reactive-streams-driver/:version/run-command',
           },
           {
-            label: 'Validate Driver Signatures',
+            label: 'MongoDB Search',
             contentSite: 'java-rs',
-            url: '/docs/languages/java/reactive-streams-driver/:version/validate-signatures',
+            url: '/docs/languages/java/reactive-streams-driver/:version/mongodb-search',
           },
           {
-            label: 'POJO CRUD Examples',
+            label: 'MongoDB Vector Search',
             contentSite: 'java-rs',
-            url: '/docs/languages/java/reactive-streams-driver/:version/pojo-examples',
+            url: '/docs/languages/java/reactive-streams-driver/:version/mongodb-vector-search',
           },
           {
-            label: 'Custom Subscribers',
+            label: 'Logging and Monitoring',
             contentSite: 'java-rs',
-            url: '/docs/languages/java/reactive-streams-driver/:version/custom-implementations',
+            collapsible: true,
+            items: [
+              {
+                label: 'Logging',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/logging-monitoring/logging',
+              },
+              {
+                label: 'Monitoring',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/logging-monitoring/monitoring',
+              },
+              {
+                label: 'Change Streams',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/logging-monitoring/change-streams',
+              },
+            ],
           },
           {
-            label: 'What\'s New',
+            label: 'Security',
             contentSite: 'java-rs',
-            url: '/docs/languages/java/reactive-streams-driver/:version/whats-new',
+            collapsible: true,
+            items: [
+              {
+                label: 'Authentication',
+                contentSite: 'java-rs',
+                collapsible: true,
+                url: '/docs/languages/java/reactive-streams-driver/:version/security/auth',
+                items: [
+                  {
+                    label: 'SCRAM',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/security/auth/scram',
+                  },
+                  {
+                    label: 'X.509',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/security/auth/x509',
+                  },
+                  {
+                    label: 'AWS IAM',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/security/auth/aws-iam',
+                  },
+                  {
+                    label: 'OIDC',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/security/auth/oidc',
+                  },
+                  {
+                    label: 'LDAP (PLAIN)',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/security/auth/ldap',
+                  },
+                  {
+                    label: 'Kerberos (GSSAPI)',
+                    contentSite: 'java-rs',
+                    url: '/docs/languages/java/reactive-streams-driver/:version/security/auth/kerberos',
+                  },
+                ],
+              },
+              {
+                label: 'Enterprise Authentication',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/security/enterprise-authentication',
+              },
+              {
+                label: 'In-Use Encryption',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/security/encrypt',
+              },
+              {
+                label: 'TLS/SSL',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/security/tls',
+              },
+              {
+                label: 'Validate Driver Signatures',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/security/validate-signatures',
+              },
+            ],
+          },
+          {
+            label: 'Reference',
+            contentSite: 'java-rs',
+            collapsible: true,
+            items: [
+              {
+                label: 'Release Notes',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/reference/release-notes',
+              },
+              {
+                label: 'Compatibility',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/reference/compatibility',
+              },
+              {
+                label: 'Upgrade',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/reference/upgrade',
+              },
+            ],
+          },
+          {
+            label: 'API Documentation',
+            isExternal: true,
+            url: 'https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-reactive-streams/',
           },
           {
             label: 'Issues & Help',
@@ -324,6 +405,11 @@ export const toc: L1TocItem[] = [
             label: 'API Documentation',
             isExternal: true,
             url: 'https://mongodb.github.io/mongo-java-driver/5.8/apidocs/driver-reactive-streams/',
+          },
+          {
+            label: 'View the Source',
+            isExternal: true,
+            url: 'https://github.com/mongodb/mongo-java-driver',
           },
         ],
       },

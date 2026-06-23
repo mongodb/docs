@@ -1,0 +1,385 @@
+.. _javars-pojo-qs:
+.. _java-rs-pojo:
+
+============================
+Use POJOs to Model Your Data
+============================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: java reactive streams, code example, custom class, data model
+   :description: Learn how to use POJOs to model your data with the Java Reactive Streams driver. See instructions for configuring the driver and performing CRUD operations.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the {+driver-short+} to store
+and retrieve data modeled by plain old Java objects, or **POJOs**. POJOs are
+often used for data encapsulation, which is the practice of separating
+business logic from data representation.
+
+.. tip::
+
+   To learn more about POJOs, see the :wikipedia:`Plain old Java object
+   <w/index.php?title=Plain_old_Java_object&oldid=1318077370>` Wikipedia entry.
+
+This guide shows how to perform the following tasks:
+
+- Configure the driver to serialize and deserialize POJOs
+- Perform CRUD operations by using data modeled by POJOs
+
+.. include:: /includes/subscriber-note.rst
+
+Sample POJOs
+------------
+
+The examples in this guide use the ``Person`` and ``Address`` POJO classes
+to model documents in a sample collection named ``people``.
+
+The ``Person`` class stores a person's name, age, and address. This class
+has the following definition:
+
+.. literalinclude:: /includes/data-formats/Person.java
+   :start-after: start-person-class
+   :end-before: end-person-class
+   :language: java
+   :copyable:
+   :dedent:
+
+The ``Address`` class stores a street, city, and ZIP code. This class has the
+following definition:
+
+.. literalinclude:: /includes/data-formats/Address.java
+   :start-after: start-address-class
+   :end-before: end-address-class
+   :language: java
+   :copyable:
+   :dedent:
+
+When you define a POJO class, ensure that you meet
+the following requirements:
+
+- The POJO class cannot implement interfaces or extend classes from a framework.
+- Include all fields for which you want to store and retrieve data, and ensure that
+  they are not marked as ``static`` or ``transient``.
+- If you include public getter or setter methods following the
+  `JavaBean naming conventions <https://docs.oracle.com/javase/tutorial/javabeans/writing/properties.html>`__,
+  the driver calls them when serializing or deserializing data. If you omit getter
+  or setter methods for a public field, the driver accesses or assigns them directly.
+
+Configure the Driver for POJOs
+------------------------------
+
+Before you can use a POJO with the {+driver-short+}, you must configure it to
+serialize and deserialize POJOs by creating a custom ``CodecRegistry``. The
+following steps show how to create the ``CodecRegistry`` and apply it to a
+client, database, or collection.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a ``PojoCodecProvider``.
+
+      The following code uses the ``automatic(true)`` setting of the
+      ``PojoCodecProvider.Builder`` class to automatically apply the POJO codec to
+      any class and its properties:
+
+      .. literalinclude:: /includes/data-formats/pojos.java
+         :start-after: start-create-provider
+         :end-before: end-create-provider
+         :language: java
+         :copyable:
+         :dedent:
+
+   .. step:: Create a ``CodecRegistry``.
+
+      Create a ``CodecRegistry`` that combines the default codec registry with
+      the ``PojoCodecProvider``, as shown in the following code:
+
+      .. literalinclude:: /includes/data-formats/pojos.java
+         :start-after: start-create-registry
+         :end-before: end-create-registry
+         :language: java
+         :copyable:
+         :dedent:
+
+      .. note::
+
+         Registries are checked in order until one returns a codec for the requested
+         class. Include the default codec registry first in the list, and include the
+         ``PojoCodecProvider`` last because it can provide a codec
+         for almost any class.
+
+   .. step:: Apply the ``CodecRegistry``.
+
+      Configure a ``MongoClient``, ``MongoDatabase``, or ``MongoCollection`` instance to
+      use the custom ``CodecRegistry``. You can set the codec registry
+      in one of the following ways:
+
+      a. Set the ``CodecRegistry`` on a ``MongoClient``:
+
+         .. literalinclude:: /includes/data-formats/pojos.java
+            :start-after: start-client-registry
+            :end-before: end-client-registry
+            :language: java
+            :copyable:
+            :dedent:
+
+      b. Set the ``CodecRegistry`` on a ``MongoDatabase``:
+
+         .. literalinclude:: /includes/data-formats/pojos.java
+            :start-after: start-database-registry
+            :end-before: end-database-registry
+            :language: java
+            :copyable:
+            :dedent:
+
+      c. Set the ``CodecRegistry`` on a ``MongoCollection``:
+
+         .. literalinclude:: /includes/data-formats/pojos.java
+            :start-after: start-collection-registry
+            :end-before: end-collection-registry
+            :language: java
+            :copyable:
+            :dedent:
+
+   .. step:: Get a typed collection.
+
+      Pass your POJO class to ``getCollection()`` as the document class parameter
+      and specify it as the type argument of your ``MongoCollection`` instance,
+      as shown in the following code:
+
+      .. literalinclude:: /includes/data-formats/pojos.java
+         :start-after: start-typed-collection
+         :end-before: end-typed-collection
+         :language: java
+         :copyable:
+         :dedent:
+
+Perform CRUD Operations
+-----------------------
+
+After you configure the driver to use the ``Person``
+POJO, you can perform CRUD operations on data modeled by the POJO.
+
+Insert Data
+~~~~~~~~~~~
+
+The codec registry automatically creates a POJO ``Codec`` for unknown classes,
+allowing you to use POJOs out of the box without extra configuration.
+
+To insert a single ``Person`` into the collection, call the ``insertOne()``
+method and subscribe to the result. The following example inserts a ``Person``
+instance named ``ada`` into the ``people`` collection:
+
+.. literalinclude:: /includes/data-formats/pojos.java
+   :start-after: start-insert-one
+   :end-before: end-insert-one
+   :language: java
+   :copyable:
+   :dedent:
+
+To insert multiple ``Person`` instances, call the ``insertMany()`` method and
+pass a list of instances, as shown in the following example:
+
+.. literalinclude:: /includes/data-formats/pojos.java
+   :start-after: start-insert-many
+   :end-before: end-insert-many
+   :language: java
+   :copyable:
+   :dedent:
+
+Query Data
+~~~~~~~~~~
+
+To query the collection, use the ``find()`` method. You can pass a filter
+object to the ``find()`` method to retrieve documents that match certain
+conditions. The driver provides ``Filters`` helper methods that you can use
+to create filter objects.
+
+.. important::
+
+   When querying POJOs, you *must* query against the document field name and
+   not the POJO property name. They are the same by default, but it is possible
+   to change how the driver maps POJO property names.
+
+Retrieve One
+^^^^^^^^^^^^
+
+To retrieve the first ``Person`` instance that matches a filter, call the ``first()``
+method on the result of a ``find()`` operation.
+
+The following example retrieves the first ``Person`` instance that has an ``address.city``
+field value of ``"Wimborne"``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/data-formats/pojos.java
+      :language: java
+      :start-after: start-find-one
+      :end-before: end-find-one
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Person{id='...', name='Timothy Berners-Lee', age=61, address=Address{street='Colehill', city='Wimborne', zip='null'}}
+
+Retrieve Multiple
+^^^^^^^^^^^^^^^^^
+
+To retrieve all ``Person`` instances that match a filter, call the ``find()``
+method and subscribe to the results.
+
+The following example retrieves every ``Person`` instance that has an ``age`` field value greater
+than ``30``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/data-formats/pojos.java
+      :start-after: start-find-multiple
+      :end-before: end-find-multiple
+      :language: java
+      :dedent:
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Person{id='...', name='Charles Babbage', age=45, address=Address{street='5 Devonshire Street', city='London', zip='W11'}}
+      Person{id='...', name='Timothy Berners-Lee', age=61, address=Address{street='Colehill', city='Wimborne', zip='null'}}
+
+Update Data
+~~~~~~~~~~~
+
+To update documents in a collection, use the ``updateOne()`` and
+``updateMany()`` methods. Pass the following parameters to these methods:
+
+- **Filter object** that specifies the document or documents to update.
+- **Update document** that specifies the modifications. To view a list of available
+  operators, see :ref:`Update Operators <update-operators>` in the
+  {+mdb-server+} manual.
+
+The update methods return an ``UpdateResult`` type that provides information
+about the operation, including the number of documents modified.
+
+Update One
+^^^^^^^^^^
+
+To update a single ``Person`` instance that matches a filter, use the ``updateOne()``
+method.
+
+The following example updates the ``Person`` named ``"Ada Byron"`` by setting
+the ``age`` field value to ``23`` and ``name`` field value to ``"Ada Lovelace"``:
+
+.. literalinclude:: /includes/data-formats/pojos.java
+   :start-after: start-update-one
+   :end-before: end-update-one
+   :language: java
+   :copyable:
+   :dedent:
+
+Update Multiple
+^^^^^^^^^^^^^^^
+
+To update all ``Person`` instances that match a filter, use the
+``updateMany()`` method.
+
+The following example sets the ``zip`` field value to ``null`` for all ``Person``
+instances that have a non-null ``zip`` value:
+
+.. literalinclude:: /includes/data-formats/pojos.java
+   :start-after: start-update-many
+   :end-before: end-update-many
+   :language: java
+   :copyable:
+   :dedent:
+
+Replace One
+^^^^^^^^^^^
+
+To replace an existing ``Person`` instance entirely, use the ``replaceOne()``
+method.
+
+The following example replaces the ``Person`` instance that has a ``name`` field value of
+``"Ada Lovelace"`` with the ``Person`` referenced by the ``ada`` variable:
+
+.. literalinclude:: /includes/data-formats/pojos.java
+   :start-after: start-replace-one
+   :end-before: end-replace-one
+   :language: java
+   :copyable:
+   :dedent:
+
+Delete Data
+~~~~~~~~~~~
+
+To delete documents from a collection, use the ``deleteOne()`` and
+``deleteMany()`` methods. Pass a filter object to match the document or
+documents to delete.
+
+The delete methods return a ``DeleteResult`` type that provides information
+about the operation, including the number of documents deleted.
+
+Delete One
+^^^^^^^^^^
+
+To delete a single ``Person`` that matches a filter, use the ``deleteOne()``
+method.
+
+The following example deletes one ``Person`` instance that has an ``address.city``
+field value of ``"Wimborne"``:
+
+.. literalinclude:: /includes/data-formats/pojos.java
+   :start-after: start-delete-one
+   :end-before: end-delete-one
+   :language: java
+   :copyable:
+   :dedent:
+
+Delete Multiple
+^^^^^^^^^^^^^^^
+
+To delete all ``Person`` instances that match a filter, use the
+``deleteMany()`` method.
+
+The following example deletes all ``Person`` instances that have an ``address.city``
+field value of ``"London"``:
+
+.. literalinclude:: /includes/data-formats/pojos.java
+   :start-after: start-delete-many
+   :end-before: end-delete-many
+   :language: java
+   :copyable:
+   :dedent:
+
+Additional Information
+----------------------
+
+To learn more about the CRUD operations mentioned in this guide, see the
+:ref:`CRUD Operations <java-rs-write-insert>` section.
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods and classes mentioned in this guide, see the
+following API documentation:
+
+- `PojoCodecProvider <{+api-root+}/bson/org/bson/codecs/pojo/PojoCodecProvider.html>`__
+- `PojoCodecProvider.Builder <{+api-root+}/bson/org/bson/codecs/pojo/PojoCodecProvider.Builder.html>`__
+- `CodecRegistry <{+api-root+}/bson/org/bson/codecs/configuration/CodecRegistry.html>`__
+- `fromRegistries() <{+api-root+}/bson/org/bson/codecs/configuration/CodecRegistries.html#fromRegistries(org.bson.codecs.configuration.CodecRegistry...)>`__
+- `fromProviders() <{+api-root+}/bson/org/bson/codecs/configuration/CodecRegistries.html#fromProviders(org.bson.codecs.configuration.CodecProvider...)>`__
+- `getDefaultCodecRegistry() <{+core-api+}/MongoClientSettings.html?is-external=true#getDefaultCodecRegistry()>`__

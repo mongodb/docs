@@ -1,0 +1,510 @@
+.. _java-rs-builders-filters:
+
+================
+Filters Builders
+================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to use the Filters builder in the MongoDB Java Reactive Streams driver.
+   :keywords: code example, filter, query, builder
+
+Overview
+--------
+
+In this guide, you can learn how to use **builders** to specify
+**filters** for your queries in the {+driver-short+}.
+
+Builders are classes provided by the {+driver-short+} that help you
+construct :driver:`BSON </java/sync/current/data-formats/document-data-format-bson/>`
+objects. To learn more, see the :ref:`builders guide <java-rs-builders>`.
+
+Filters are operations used to limit the results of a query based on
+specified conditions. Filters are a helpful tool to locate
+information that matches search conditions in a collection.
+
+You can use filters in the following places:
+
+- As a parameter to the ``find()`` method
+- In a match stage of an aggregation pipeline
+- As a parameter to the ``deleteOne()`` or ``deleteMany()`` method
+- As a parameter to the ``updateOne()`` or ``updateMany()`` method
+
+Some examples of results from queries with filters are:
+
+- Items that cost more than $0 but less than $25
+- Foods that are both gluten-free and less than 500 calories
+- Food critic reviews that mention "spicy"
+
+This guide shows you how to use builders with examples of the following
+types of operators:
+
+- :ref:`Comparison <java-rs-filters-comparison>`
+- :ref:`Logical <java-rs-filters-logical>`
+- :ref:`Arrays <java-rs-filters-arrays>`
+- :ref:`Elements <java-rs-filters-elements>`
+- :ref:`Evaluation <java-rs-filters-evaluation>`
+- :ref:`Bitwise <java-rs-filters-bitwise>`
+- :ref:`Geospatial <java-rs-filters-geospatial>`
+
+The ``Filters`` class provides static factory methods for all the MongoDB query
+operators. Each method returns an instance of the
+:driver:`BSON </java/sync/current/data-formats/document-data-format-bson/>`
+type, which you can pass to any method that expects a query filter.
+
+.. tip::
+
+   For brevity, you may choose to import all methods of the
+   `Filters <{+core-api+}/client/model/Filters.html>`__
+   class statically:
+
+   .. literalinclude:: /includes/builders/filters.java
+      :language: java
+      :dedent:
+      :start-after: begin-static-import
+      :end-before: end-static-import
+
+   The following examples assume this static import.
+
+Sample Data
+-----------
+
+The examples in this guide use the following sample collections:
+
+Collection: ``paint_purchases``
+
+.. code-block:: json
+
+   { "_id": 1, "color": "red", "qty": 5, "vendor": ["A"] }
+   { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
+   { "_id": 3, "color": "blue", "qty": 8, "vendor": ["B", "A"] }
+   { "_id": 4, "color": "white", "qty": 6, "vendor": ["D"] }
+   { "_id": 5, "color": "yellow", "qty": 11, "vendor": ["A", "B"] }
+   { "_id": 6, "color": "pink", "qty": 5, "vendor": ["C"] }
+   { "_id": 7, "color": "green", "qty": 8,"vendor": ["B", "C"] }
+   { "_id": 8, "color": "orange", "qty": 7, "vendor": ["A", "D"] }
+
+Collection: ``binary_numbers``
+
+.. code-block:: json
+
+   { "_id": 9, "a": 54, "binaryValue": "00110110" }
+   { "_id": 10, "a": 20, "binaryValue": "00010100" }
+   { "_id": 11, "a": 68, "binaryValue": "1000100" }
+   { "_id": 12, "a": 102, "binaryValue": "01100110" }
+
+Collection: ``geo_points``
+
+.. code-block:: json
+
+   { "_id": 13, "coordinates": { "type": "Point", "coordinates": [2.0, 2.0] } }
+   { "_id": 14, "coordinates": { "type": "Point", "coordinates": [5.0, 6.0] } }
+   { "_id": 15, "coordinates": { "type": "Point", "coordinates": [1.0, 3.0] } }
+   { "_id": 16, "coordinates": { "type": "Point", "coordinates": [4.0, 7.0] } }
+
+.. _java-rs-filters-comparison:
+
+Comparison
+----------
+
+The comparison filters include all operators that compare the value in a
+document to a specified value.
+
+The comparison operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Comparison Method
+     - Matches
+
+   * - `eq() <{+core-api+}/client/model/Filters.html#eq(java.lang.String,TItem)>`__
+     - values equal to a specified value.
+
+   * - `gt() <{+core-api+}/client/model/Filters.html#gt(java.lang.String,TItem)>`__
+     - values greater than a specified value.
+
+   * - `gte() <{+core-api+}/client/model/Filters.html#gte(java.lang.String,TItem)>`__
+     - values greater than or equal to a specified value.
+
+   * - `lt() <{+core-api+}/client/model/Filters.html#lt(java.lang.String,TItem)>`__
+     - values less than a specified value.
+
+   * - `lte() <{+core-api+}/client/model/Filters.html#lte(java.lang.String,TItem)>`__
+     - values less than or equal to a specified value.
+
+   * - `ne() <{+core-api+}/client/model/Filters.html#ne(java.lang.String,TItem)>`__
+     - values not equal to a specified value.
+
+   * - `in() <{+core-api+}/client/model/Filters.html#in(java.lang.String,java.lang.Iterable)>`__
+     - any of the values specified in an array.
+
+   * - `nin() <{+core-api+}/client/model/Filters.html#nin(java.lang.String,java.lang.Iterable)>`__
+     - none of the values specified in an array.
+
+   * - `empty() <{+core-api+}/client/model/Filters.html#empty()>`__
+     - all the documents.
+
+The following example creates a filter that matches all documents where
+the value of the ``qty`` field equals "5" in the ``paint_purchases`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/filters.java
+      :language: java
+      :dedent:
+      :start-after: begin-equal-comparison
+      :end-before: end-equal-comparison
+
+   .. output::
+      :language: json
+      :visible: false
+
+      { "_id": 1, "color": "red", "qty": 5, "vendor": ["A"] }
+      { "_id": 6, "color": "pink", "qty": 5, "vendor": ["C"] }
+
+The following example creates a filter that matches all documents where
+the value of the ``qty`` field is greater than or equal to "10" in the
+``paint_purchases`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/filters.java
+      :language: java
+      :dedent:
+      :start-after: begin-gte-comparison
+      :end-before: end-gte-comparison
+
+   .. output::
+      :language: json
+      :visible: false
+
+      { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
+      { "_id": 5, "color": "yellow", "qty": 11, "vendor": ["A", "B"] }
+
+The following example creates a filter that matches all documents in
+the ``paint_purchases`` collection because the predicate is empty:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/filters.java
+      :language: java
+      :dedent:
+      :start-after: begin-empty-comparison
+      :end-before: end-empty-comparison
+
+   .. output::
+      :language: json
+      :visible: false
+
+      { "_id": 1, "color": "red", "qty": 5, "vendor": ["A"] }
+      { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
+      { "_id": 3, "color": "blue", "qty": 8, "vendor": ["B", "A"] }
+      ...
+
+.. _java-rs-filters-logical:
+
+Logical
+-------
+
+The logical operators perform logical operations based on the conditions of the specified method.
+
+The logical operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Logical Method
+     - Matches
+
+   * - `and() <{+core-api+}/client/model/Filters.html#and(java.lang.Iterable)>`__
+     - documents with the conditions of all the filters. This operator joins filters with a logical ``AND``.
+
+   * - `or() <{+core-api+}/client/model/Filters.html#or(org.bson.conversions.Bson...)>`__
+     - documents with the conditions of either filter. This operator joins filters with a logical ``OR``.
+
+   * - `not() <{+core-api+}/client/model/Filters.html#not(org.bson.conversions.Bson)>`__
+     - documents that do not match the filter.
+
+   * - `nor() <{+core-api+}/client/model/Filters.html#nor(org.bson.conversions.Bson...)>`__
+     - documents that fail to match both filters. This operator joins filters with a logical ``NOR``.
+
+The following example creates a filter that matches documents where
+the value of the ``qty`` field is greater than "8" or the value
+of the ``color`` field equals "pink" in the ``paint_purchases`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/filters.java
+      :language: java
+      :dedent:
+      :start-after: begin-or-comparison
+      :end-before: end-or-comparison
+
+   .. output::
+      :language: json
+      :visible: false
+
+      { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
+      { "_id": 5, "color": "yellow", "qty": 11, "vendor": ["A", "B"] }
+      { "_id": 6, "color": "pink", "qty": 5, "vendor": ["C"] }
+
+.. _java-rs-filters-arrays:
+
+Arrays
+------
+
+The array operators evaluate the array field in a document.
+
+The array operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Array Method
+     - Matches
+
+   * - `all() <{+core-api+}/client/model/Filters.html#all(java.lang.String,java.lang.Iterable)>`__
+     - documents if the array field contains every element specified in the query.
+
+   * - `elemMatch() <{+core-api+}/client/model/Filters.html#elemMatch(java.lang.String,org.bson.conversions.Bson)>`__
+     - documents if an element in the array field matches all the specified conditions.
+
+   * - `size() <{+core-api+}/client/model/Filters.html#size(java.lang.String,int)>`__
+     - documents if the array field is a specified number of elements.
+
+The following example matches documents with a ``vendor`` array
+containing both "A" and "D" in the ``paint_purchases`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/filters.java
+      :language: java
+      :dedent:
+      :start-after: begin-all-comparison
+      :end-before: end-all-comparison
+
+   .. output::
+      :language: json
+      :visible: false
+
+      { "_id": 8, "color": "orange", "qty": 7, "vendor": ["A", "D"] }
+
+.. _java-rs-filters-elements:
+
+Elements
+--------
+
+The elements operators evaluate the nature of a specified field.
+
+The elements operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Elements Method
+     - Matches
+
+   * - `exists() <{+core-api+}/client/model/Filters.html#exists(java.lang.String)>`__
+     - documents that have the specified field.
+
+   * - `type() <{+core-api+}/client/model/Filters.html#type(java.lang.String,java.lang.String)>`__
+     - documents if a field is of the specified type.
+
+The following example matches documents that have a ``qty`` field and a
+value not equal to "5" or "8" in the ``paint_purchases`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/filters.java
+      :language: java
+      :dedent:
+      :start-after: begin-exists-comparison
+      :end-before: end-exists-comparison
+
+   .. output::
+      :language: json
+      :visible: false
+
+      { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
+      { "_id": 4, "color": "white", "qty": 6, "vendor": ["D"]}
+      { "_id": 5, "color": "yellow", "qty": 11, "vendor": ["A", "B"] }
+      { "_id": 8, "color": "orange", "qty": 7, "vendor": ["A", "D"] }
+
+.. _java-rs-filters-evaluation:
+
+Evaluation
+----------
+
+The evaluation operators evaluate the value of any field in a document.
+
+The evaluation operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Evaluation Method
+     - Matches
+
+   * - `mod() <{+core-api+}/client/model/Filters.html#mod(java.lang.String,long,long)>`__
+     - documents where a modulo operation on a field value produces a specified result.
+
+   * - `regex() <{+core-api+}/client/model/Filters.html#regex(java.lang.String,java.lang.String)>`__
+     - documents where values contain a specified regular expression.
+
+   * - `text() <{+core-api+}/client/model/Filters.html#text(java.lang.String)>`__
+     - documents which contain a specified full-text search expression.
+
+   * - `where() <{+core-api+}/client/model/Filters.html#where(java.lang.String)>`__
+     - documents which contain a specified JavaScript expression.
+
+The following example matches documents that have a ``color`` field
+starting with the letter "p" in the ``paint_purchases`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/filters.java
+      :language: java
+      :dedent:
+      :start-after: begin-regex-comparison
+      :end-before: end-regex-comparison
+
+   .. output::
+      :language: json
+      :visible: false
+
+      { "_id": 2, "color": "purple", "qty": 10, "vendor": ["C", "D"] }
+      { "_id": 6, "color": "pink", "qty": 5, "vendor": ["C"] }
+
+.. _java-rs-filters-bitwise:
+
+Bitwise
+-------
+
+The bitwise operators convert a number into its binary value to
+evaluate its bits.
+
+The bitwise operator methods include:
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Bitwise Method
+     - Matches
+
+   * - `bitsAllSet() <{+core-api+}/client/model/Filters.html#bitsAllSet(java.lang.String,long)>`__
+     - documents where the specified bits of a field are set (i.e. "1").
+
+   * - `bitsAllClear() <{+core-api+}/client/model/Filters.html#bitsAllClear(java.lang.String,long)>`__
+     - documents where the specified bits of a field are clear (i.e. "0").
+
+   * - `bitsAnySet() <{+core-api+}/client/model/Filters.html#bitsAnySet(java.lang.String,long)>`__
+     - documents where at least one of the specified bits of a field are set (i.e. "1").
+
+   * - `bitsAnyClear() <{+core-api+}/client/model/Filters.html#bitsAnyClear(java.lang.String,long)>`__
+     - documents where at least one of the specified bits of a field are clear (i.e. "0").
+
+The following example matches documents that have an ``a`` field
+with bits set at positions of the corresponding bitmask "34" (i.e.
+"00100010") in the ``binary_numbers`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/filters.java
+      :language: java
+      :dedent:
+      :start-after: begin-bits-comparison
+      :end-before: end-bits-comparison
+
+   .. output::
+      :language: json
+      :visible: false
+
+      { "_id": 9, "a": 54, "binaryValue": "00110110" }
+      { "_id": 12, "a": 102, "binaryValue": "01100110" }
+
+.. _java-rs-filters-geospatial:
+
+Geospatial
+----------
+
+The geospatial operators evaluate a specified coordinate and its
+relation to a shape or location.
+
+The geospatial operator methods include:
+
+.. list-table::
+   :widths: 30, 70
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Geospatial Method
+     - Matches
+
+   * - `geoWithin() <{+core-api+}/client/model/Filters.html#geoWithin(java.lang.String,org.bson.conversions.Bson)>`__
+     - documents containing a GeoJSON geometry value that falls within a bounding GeoJSON geometry.
+
+   * - `geoWithinBox() <{+core-api+}/client/model/Filters.html#geoWithinBox(java.lang.String,double,double,double,double)>`__
+     - documents containing a coordinates value that exist within the specified box.
+
+   * - `geoWithinPolygon() <{+core-api+}/client/model/Filters.html#geoWithinPolygon(java.lang.String,java.util.List)>`__
+     - documents containing a coordinates value that exist within the specified polygon.
+
+   * - `geoWithinCenter() <{+core-api+}/client/model/Filters.html#geoWithinCenter(java.lang.String,double,double,double)>`__
+     - documents containing a coordinates value that exist within the specified circle.
+
+   * - `geoWithinCenterSphere() <{+core-api+}/client/model/Filters.html#geoWithinCenterSphere(java.lang.String,double,double,double)>`__
+     - geometries containing a geospatial data value (GeoJSON or legacy coordinate pairs) that exist within the specified circle, using spherical geometry.
+
+   * - `geoIntersects() <{+core-api+}/client/model/Filters.html#geoIntersects(java.lang.String,org.bson.conversions.Bson)>`__
+     - geometries that intersect with a GeoJSON geometry. The ``2dsphere`` index supports ``$geoIntersects``.
+
+   * - `near() <{+core-api+}/client/model/Filters.html#near(java.lang.String,org.bson.conversions.Bson,java.lang.Double,java.lang.Double)>`__
+     - geospatial objects in proximity to a point. Requires a geospatial index. The ``2dsphere`` and ``2d`` indexes support ``$near``.
+
+   * - `nearSphere() <{+core-api+}/client/model/Filters.html#nearSphere(java.lang.String,org.bson.conversions.Bson,java.lang.Double,java.lang.Double)>`__
+     - geospatial objects in proximity to a point on a sphere. Requires a geospatial index. The ``2dsphere`` and ``2d`` indexes support ``$nearSphere``.
+
+The following example creates a filter that matches documents in which
+the ``point`` field contains a GeoJSON geometry that falls within
+the given :manual:`Polygon </reference/geojson/#polygon>`
+in the ``geo_points`` collection:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/builders/filters.java
+      :language: java
+      :dedent:
+      :start-after: begin-geo-within-comparison
+      :end-before: end-geo-within-comparison
+
+   .. output::
+      :language: json
+      :visible: false
+
+      { "_id": 13, "coordinates": {"type": "Point", "coordinates": [2.0, 2.0]} }
+      { "_id": 15, "coordinates": {"type": "Point", "coordinates": [1.0, 3.0]} }
