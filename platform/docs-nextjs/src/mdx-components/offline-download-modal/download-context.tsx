@@ -2,7 +2,7 @@
 
 import { createContext, useMemo, useContext, useState } from 'react';
 import { DownloadModal } from './download-modal';
-import { useUnifiedToc } from '@/context/unified-toc-context';
+import { tocData } from '@/context/toc-data/data.copied';
 import type { TocItem } from '@/mdx-components/UnifiedSidenav/types';
 import { useVersionContext, getDefaultVersionIndex } from '@/context/version-context';
 import type { AvailableVersions } from '@/context/version-context';
@@ -210,8 +210,10 @@ type ProviderProps = {
 
 const OfflineDownloadProvider = ({ children }: ProviderProps) => {
   const [modalOpen, setModalOpen] = useState(false);
-  const { tocTree } = useUnifiedToc();
   const { availableVersions } = useVersionContext();
+
+  // Always use the real (non-legacy, non-offline) TOC tree for the download modal.
+  const tocTree = tocData as unknown as TocItem[];
 
   const offlineObjects = useMemo(() => {
     if (!tocTree || tocTree.length === 0) {
