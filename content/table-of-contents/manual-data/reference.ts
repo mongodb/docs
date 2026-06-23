@@ -1042,6 +1042,12 @@ const tocData: TocItem[] = [
             url: '/docs/:version/reference/method/sp.processor.drop',
           },
           {
+            label: 'sp.processor.modify',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/method/sp.processor.modify',
+            versions: { includes: ['upcoming'] },
+          },
+          {
             label: 'sp.processor.sample',
             contentSite: 'docs',
             url: '/docs/:version/reference/method/sp.processor.sample',
