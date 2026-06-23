@@ -1910,6 +1910,7 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         const roleName = typeof typedRefNode.name === 'string' ? typedRefNode.name : '';
         const key = extractRefTargetKeyFromRefRoleLike(typedRefNode) ?? '';
         if (roleName && key) {
+          collectRefTargetFromRefRoleLike(typedRefNode, ctx);
           return {
             type: 'mdxJsxTextElement',
             name: 'RefRole',

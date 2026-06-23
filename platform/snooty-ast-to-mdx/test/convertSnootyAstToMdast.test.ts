@@ -784,6 +784,7 @@ describe('convertSnootyAstToMdast', () => {
                   type: 'ref_role',
                   name: 'binary',
                   target: 'bin.mongos',
+                  url: 'https://www.mongodb.com/docs/manual/reference/program/mongos/#mongodb-binary-bin.mongos',
                   children: [{ type: 'literal', value: 'mongos' }],
                 },
               ],
@@ -792,12 +793,18 @@ describe('convertSnootyAstToMdast', () => {
         },
       ],
     };
-    const { mdx } = convertSnootyAst({ ast });
+    const { mdx, mdast } = convertSnootyAst({ ast });
     expect(mdx).toContain('<RefRole');
     expect(mdx).toContain('type="binary"');
     expect(mdx).toContain('name="bin.mongos"');
     expect(mdx).not.toContain('type="substitution"');
     expect(mdx).not.toContain('refKey=');
+    // The URL must be collected into _references.json so the link resolves at render time.
+    const refs = (mdast.__references as ReferencesArtifact)?.refs;
+    expect(refs).toHaveProperty(
+      ['bin.mongos'],
+      'https://www.mongodb.com/docs/manual/reference/program/mongos/#mongodb-binary-bin.mongos',
+    );
   });
 
   it('resolves typed-role substitution_reference via catalog when children are empty (include file)', () => {
