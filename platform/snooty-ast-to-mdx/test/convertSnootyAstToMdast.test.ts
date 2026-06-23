@@ -1624,6 +1624,80 @@ describe('convertSnootyAstToMdast', () => {
       expect(mdx).not.toContain('\\<your');
     });
 
+    it('escapes < followed by a letter (e.g. generics like <T>) so MDX does not treat it as a JSX tag', () => {
+      // Regression: `<T>` in link text inside a DefinitionDescription was left unescaped,
+      // so MDX parsed `<T>` as an unclosed JSX element and failed to compile.
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'definitionList',
+            children: [
+              {
+                type: 'definitionListItem',
+                term: [{ type: 'text', value: 'ObservableSubscriber' }],
+                children: [
+                  {
+                    type: 'paragraph',
+                    children: [
+                      { type: 'text', value: 'The base subscriber class is the ' },
+                      {
+                        type: 'reference',
+                        refuri: 'https://example.com/SubscriberHelpers.java',
+                        children: [{ type: 'text', value: 'ObservableSubscriber<T>' }],
+                      },
+                      { type: 'text', value: ' that stores results.' },
+                    ],
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      // `<` in the link text is escaped; no raw `<T>` tag remains
+      expect(mdx).toContain('ObservableSubscriber\\<T>');
+      expect(mdx).not.toMatch(/ObservableSubscriber<T>/);
+    });
+
+    it('escapes a standalone < followed by a letter in plain JSX-element text', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'directive',
+            name: 'note',
+            children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Type is List<String> here.' }] }],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      expect(mdx).toContain('List\\<String>');
+      expect(mdx).not.toMatch(/List<String>/);
+    });
+
+    it('does not double-escape < followed by whitespace (left to the stringifier)', () => {
+      // Our pass skips `< ` (the negative lookahead excludes whitespace); the remark-mdx
+      // stringifier escapes it to a single `\<`. The important guarantee is no doubling.
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'directive',
+            name: 'note',
+            children: [{ type: 'paragraph', children: [{ type: 'text', value: 'a < b comparison' }] }],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      expect(mdx).toContain('comparison');
+      expect(mdx).not.toMatch(/\\\\</);
+    });
+
     it('escapes < followed by a digit inside a JSX element (stringifier does not handle this context)', () => {
       // In JSX element children the stringifier does NOT escape `<` to `\<`.
       // Our injectJsxAngleBracketEscapes pass inserts html nodes so that `\<`
