@@ -296,6 +296,18 @@
        Project maintenance window removed
      - no
 
+   * - ``ATLAS_NETWORK_PROTECTION_LAYER_ACTIVE``
+     - .. _atlas_event_atlas_network_protection_layer_active:
+
+       Atlas Network Protection Layer became active on a cluster
+     - no
+
+   * - ``ATLAS_NETWORK_PROTECTION_LAYER_INACTIVE``
+     - .. _atlas_event_atlas_network_protection_layer_inactive:
+
+       Atlas Network Protection Layer became inactive on a cluster
+     - no
+
    * - ``ATLAS_SQL_SCHEDULED_UPDATE_CREATED``
      - .. _atlas_event_atlas_sql_scheduled_update_created:
 
