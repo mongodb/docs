@@ -100,10 +100,20 @@ AtlasPrivateEndpointSpec is the specification of the desired configuration of a 
      - GCPConfiguration is the specific Google Cloud settings for the private endpoint.
      - false
 
+   * -  ``portMappingEnabled``
+     - boolean
+     - ``PortMappingEnabled`` indicates whether this endpoint service uses ``PSC`` port-mapping. ``GCP`` only.
+     - false
+
    * -  ``projectRef``
      - object
      - ``projectRef`` is a reference to the parent ``AtlasProject`` resource.
        Mutually exclusive with the "``externalProjectRef``" field.
+     - false
+
+   * -  ``supportedRegions``
+     - []string
+     - ``SupportedRegions`` is the list of regions from which ``AWS`` Private Link traffic is forwarded to this endpoint. ``AWS`` only.
      - false
 
 .. _atlasprivateendpoint-spec-awsconfiguration: 
@@ -319,6 +329,11 @@ AtlasPrivateEndpointStatus is the most recent observed status of the AtlasPrivat
        *Format*: int64
      - false
 
+   * -  ``portMappingEnabled``
+     - boolean
+     - ``PortMappingEnabled`` indicates whether the ``GCP`` endpoint service uses ``PSC`` port-mapping. ``GCP`` only.
+     - false
+
    * -  ``resourceId``
      - string
      - ``ResourceID`` is the root-relative path that identifies of the Atlas Azure Private Link Service
@@ -342,6 +357,11 @@ AtlasPrivateEndpointStatus is the most recent observed status of the AtlasPrivat
    * -  ``serviceStatus``
      - string
      - ``ServiceStatus`` is the state of the private endpoint service
+     - false
+
+   * -  ``supportedRegions``
+     - []string
+     - ``SupportedRegions`` is the list of regions from which ``AWS`` Private Link traffic is forwarded. ``AWS`` only.
      - false
 
 .. _atlasprivateendpoint-status-conditions: 

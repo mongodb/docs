@@ -173,9 +173,8 @@ AtlasFederatedAuth.spec.roleMappings.roleAssignments
      - false
 
    * -  ``role``
-     - enum
-     - The ``role`` in Atlas that should be given to group members.
-       *Enum*: ``ORG_MEMBER``, ``ORG_READ_ONLY``, ``ORG_BILLING_ADMIN``, ``ORG_GROUP_CREATOR``, ``ORG_OWNER``, ``ORG_BILLING_READ_ONLY``, ``GROUP_OWNER``, ``GROUP_READ_ONLY``, ``GROUP_DATA_ACCESS_ADMIN``, ``GROUP_DATA_ACCESS_READ_ONLY``, ``GROUP_DATA_ACCESS_READ_WRITE``, ``GROUP_CLUSTER_MANAGER``, ``GROUP_SEARCH_INDEX_EDITOR``, ``GROUP_DATABASE_ACCESS_ADMIN``, ``GROUP_BACKUP_MANAGER``, ``GROUP_STREAM_PROCESSING_OWNER``, ``ORG_STREAM_PROCESSING_ADMIN``, ``GROUP_OBSERVABILITY_VIEWER``
+     - string
+     - The ``role`` in Atlas that should be given to group members. See `https://www.mongodb.com/docs/atlas/reference/user-roles/ <https://www.mongodb.com/docs/atlas/reference/user-roles/>`__ for allowed values
      - false
 
 .. _atlasfederatedauth-status: 
