@@ -117,6 +117,24 @@ export const toc: L1TocItem[] = [
                     url: '/docs/ops-manager/:version/tutorial/configure-backup-high-availability',
                   },
                   {
+                    label: 'Back Up and Restore Ops Manager',
+                    contentSite: 'ops-manager',
+                    collapsible: true,
+                    url: '/docs/ops-manager/:version/tutorial/nav/back-up-ops-manager',
+                    items: [
+                      {
+                        label: 'Configure a Secondary Ops Manager',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/tutorial/configure-back-up-ops-manager',
+                      },
+                      {
+                        label: 'Restore from a Secondary Ops Manager',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/tutorial/restore-back-up-ops-manager',
+                      },
+                    ],
+                  },
+                  {
                     label: 'Monitor Large Deployments',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/tutorial/monitoring-large-deployments',

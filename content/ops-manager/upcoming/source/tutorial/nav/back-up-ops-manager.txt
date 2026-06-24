@@ -1,0 +1,211 @@
+.. _back-up-ops-manager:
+
+=======================================================
+Back Up and Restore |onprem| Using a Secondary Instance
+=======================================================
+
+.. meta::
+   :description: Learn how a secondary Ops Manager backs up a primary Ops Manager and its backing databases and serves as the disaster recovery path if you lose the primary.
+
+.. default-domain:: mongodb
+
+.. banner::
+   :variant: warning
+
+   Backup and restore of |onprem| with a secondary |onprem| instance
+   is in `Preview <https://www.mongodb.com/docs/preview-features/>`__.
+   This feature and its documentation might change at any time during
+   the preview period.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can deploy a second |onprem| instance, called a *secondary*
+|onprem|, to back up a primary |onprem| and its
+:ref:`backing databases <backing-database>`. The secondary |onprem|
+also serves as your recovery path if you lose the primary |onprem|.
+
+This pattern protects the operational data that |onprem| stores in its
+:ref:`application database <mms-application-database>` and metadata
+stores. Use this guide to design, configure, and operate disaster
+recovery for |onprem| itself.
+
+This guide is for |onprem| administrators who manage backup and
+disaster recovery and for teams who design high availability and
+disaster recovery topologies for |onprem|.
+
+How Secondary |onprem| Backup Works
+-----------------------------------
+
+In this pattern, two |onprem| instances have distinct
+responsibilities:
+
+- The *primary* |onprem| manages your MongoDB deployments and their
+  backups, as usual.
+
+- The *secondary* |onprem| manages and backs up only the primary
+  |onprem|'s backing databases. The secondary |onprem| doesn't manage
+  your application clusters.
+
+The {+mdbagent+} runs on each host of the primary |onprem|'s
+:ref:`application database <mms-application-database>` and registers
+with the secondary |onprem|. The secondary |onprem| takes continuous
+and point-in-time backups of those backing databases.
+
+If you lose the primary |onprem|, you restore its backing databases
+from the secondary |onprem| and then start a new primary |onprem|. The
+primary |onprem| reconnects to the restored backing databases and
+resumes management of your MongoDB deployments.
+
+When the {+mdbagent+}s reconnect after the restart, they report a
+configuration version newer than the restored database. The primary
+|onprem| detects the mismatch, automatically enters *Restoration Mode*
+for the affected project, converges all agents on the restored
+configuration, and blocks deployment changes until reconciliation
+completes.
+
+Architecture
+------------
+
+The following table describes the components in this pattern and their
+responsibilities:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Component
+     - Responsibility
+
+   * - Primary |onprem|
+     - Manages your MongoDB deployments and their backups. Stores its
+       own operational data in its application database, snapshot
+       metadata store, and oplog metadata store.
+
+   * - Secondary |onprem|
+     - Runs a :ref:`Backup Daemon <manage-backup-daemon>` that writes
+       to an |s3| blockstore for application database snapshots and
+       oplog slices. Continuously backs up the primary |onprem|'s
+       backing databases. Doesn't manage your application clusters.
+
+   * - Application database
+     - Stores the primary |onprem|'s operational data, including
+       project configuration, automation state, and backup metadata.
+       You must back up the application database.
+
+   * - Snapshot and oplog metadata stores
+     - Store the block and oplog indexes for the deployments that the
+       primary |onprem| backs up. Back up these stores as well.
+
+   * - {+mdbagent+}
+     - Runs on each backing database host and registers with the
+       secondary |onprem| to perform backups and restores.
+
+The secondary |onprem| stores the backups of the primary |onprem|'s
+backing databases in its own |s3| blockstore, separate from the
+primary |onprem|'s backup storage.
+
+Deployment Variants
+-------------------
+
+Deploy the secondary |onprem| in a separate failure domain from the
+primary |onprem| to prevent a single failure from affecting both
+instances. Common variants include:
+
+Different Regions
+~~~~~~~~~~~~~~~~~
+
+Deploy the secondary |onprem| in a different cloud region than the
+primary |onprem|. This variant protects against the loss of a region.
+
+Different Data Centers
+~~~~~~~~~~~~~~~~~~~~~~
+
+Deploy the secondary |onprem| in a different data center than the
+primary |onprem|. This variant protects against the loss of a data
+center.
+
+Separate Backup Network
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Place the secondary |onprem| on a separate network that is dedicated
+to backup traffic. This variant isolates backup traffic from your
+application network.
+
+.. important::
+
+   Deploy the secondary |onprem| in a separate failure domain, such as
+   a different rack, availability zone, region, or network segment,
+   from the primary |onprem|. If both instances share a failure
+   domain, a single failure can disrupt both the primary |onprem| and
+   its recovery path.
+
+Supported Versions and Limitations
+----------------------------------
+
+Before you use this pattern, review the following requirements and
+limitations.
+
+Supported Versions
+~~~~~~~~~~~~~~~~~~
+
+Both the primary and secondary |onprem| instances must run |onprem|
+8.0.24 or later.
+
+The secondary |onprem| must run the same version as the primary
+|onprem| or a later version. Don't run a secondary |onprem| that is
+earlier than the primary |onprem|.
+
+.. include:: /includes/backup/fact-om-version-downgrade-warning.rst
+
+Limitations
+~~~~~~~~~~~
+
+- This pattern backs up the primary |onprem|'s backing databases. It
+  doesn't back up arbitrary MongoDB clusters. The primary |onprem|
+  continues to manage backups for your MongoDB deployments.
+
+- Backing up and reconciling the snapshot metadata store and the oplog
+  metadata store is a manual procedure. |onprem| doesn't automatically
+  select a restore point for these stores. As a result, backup
+  metadata can be inconsistent after a restore, and some backups might
+  be non-restorable. |onprem| validates a snapshot before it restores
+  and fails with an error rather than performing an unsafe restore.
+
+- Restoration Mode doesn't apply to externally managed deployments,
+  such as deployments that a Kubernetes Operator manages. After you
+  restore the application database, agents in these projects receive
+  the restored configuration directly on their next poll and converge
+  without entering Restoration Mode. No action is required for these
+  projects.
+
+- A snapshot can become unrestorable if its data blocks are no longer
+  in the snapshot store. Before a restore, the primary |onprem|
+  verifies that the snapshot's blocks exist. If blocks are missing,
+  the restore fails with an error and leaves the replica set
+  unmodified, instead of wiping it and failing partway through.
+
+- An untested restore is an operational risk. Validate the backup and
+  restore path regularly. See the validation runbook in
+  :ref:`Restore Ops Manager from a Secondary Ops Manager
+  <restore-back-up-ops-manager>`.
+
+Next Steps
+----------
+
+To set up and operate this pattern, see the following pages:
+
+- :ref:`Configure a Secondary Ops Manager to Back Up Ops Manager
+  <configure-back-up-ops-manager>`
+- :ref:`Restore Ops Manager from a Secondary Ops Manager
+  <restore-back-up-ops-manager>`
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   Configure a Secondary |onprem| </tutorial/configure-back-up-ops-manager>
+   Restore from a Secondary |onprem| </tutorial/restore-back-up-ops-manager>

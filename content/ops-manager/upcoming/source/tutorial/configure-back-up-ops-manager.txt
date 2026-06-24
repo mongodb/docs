@@ -1,0 +1,204 @@
+.. _configure-back-up-ops-manager:
+
+==================================================
+Configure a Secondary |onprem| to Back Up |onprem|
+==================================================
+
+.. meta::
+   :description: Configure a secondary Ops Manager to continuously back up a primary Ops Manager's application database and metadata stores for disaster recovery and point-in-time restores.
+
+.. default-domain:: mongodb
+
+.. banner::
+   :variant: warning
+
+   Backup and restore of |onprem| with a secondary |onprem| instance
+   is in `Preview <https://www.mongodb.com/docs/preview-features/>`__.
+   This feature and its documentation might change at any time during
+   the preview period.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This guide shows you how to configure a secondary |onprem| to back up
+a primary |onprem| and its
+:ref:`backing databases <backing-database>`. For an overview of this
+pattern, see
+:ref:`Back Up and Restore Ops Manager Using a Secondary Instance
+<back-up-ops-manager>`.
+
+Considerations
+--------------
+
+Isolate This Backup Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Keep this backup configuration separate from the backups that the
+primary |onprem| takes of your MongoDB deployments. Use a dedicated
+project on the secondary |onprem| for the primary |onprem|'s backing
+databases. This separation prevents confusion between |onprem|
+disaster recovery backups and your application backups.
+
+Back Up All Backing Databases
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You must back up the primary |onprem|'s
+:ref:`application database <mms-application-database>`. Back up the
+snapshot metadata store and the oplog metadata store as well. When you
+back up all three backing databases, you can restore them to a single
+consistent point in time.
+
+Prerequisites
+-------------
+
+Before you configure the secondary |onprem|, complete the following
+prerequisites.
+
+Secondary |onprem| Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Deploy a secondary |onprem| in a separate failure domain from the
+  primary |onprem|. You can use a fresh |onprem| installation that
+  runs the same version as the primary |onprem| or a later version.
+
+- Deploy the secondary |onprem|'s own application database as a
+  :manual:`replica set </reference/glossary/#std-term-replica-set>`
+  for high availability.
+
+- Enable and configure a :ref:`Backup Daemon <manage-backup-daemon>`
+  on the secondary |onprem| with an |s3| blockstore for the primary
+  |onprem|'s application database snapshots.
+
+Primary |onprem| Backing Databases
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Run the primary |onprem|'s application database as a multi-member
+  replica set (for example, a three-member replica set) for automatic
+  failover. Backup supports replica sets and sharded clusters. If you
+  must back up an existing standalone application database, convert it
+  to a replica set first. A single-member replica set is acceptable
+  only as a transitional step toward a multi-member topology.
+
+- Run the application database on MongoDB Enterprise.
+
+- To test the backup and restore path end to end, ensure the primary
+  |onprem| has at least one project with a backup-enabled managed
+  cluster.
+
+Network and Security
+~~~~~~~~~~~~~~~~~~~~
+
+- Allow the secondary |onprem| application servers to reach the
+  primary |onprem|'s backing database hosts on the {+mdbagent+} port.
+
+- Allow the primary |onprem|'s backing database hosts to reach the
+  secondary |onprem| on the secondary |onprem| application port.
+
+- Enable |tls| or equivalent transport encryption between the primary
+  and secondary |onprem| instances. The backup traffic carries the
+  primary |onprem|'s application configuration, which includes
+  credentials and other sensitive data.
+
+- Confirm that you can authenticate to the primary |onprem|'s backing
+  databases. To learn more, see
+  :ref:`configure-connections-to-app-db`.
+
+Preserve Per-Host State
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Before a disaster occurs, preserve the following files on each primary
+|onprem| host. These files are not part of the application database
+backup and must be retained separately:
+
+.. include:: /includes/backup/fact-om-per-host-state-table.rst
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Add the application database to the secondary |onprem|
+
+      On the secondary |onprem|, add the primary |onprem|'s
+      application database as an existing deployment:
+
+      a. Create or select a dedicated project for the primary
+         |onprem|'s backing databases.
+
+      #. Click :guilabel:`Deployment`, :guilabel:`Add Existing
+         MongoDB Deployment`, then add the application database
+         replica set. To learn more, see :ref:`add-mdb-processes`.
+
+      #. Install the {+mdbagent+} on each application database host
+         and register it with the secondary |onprem| using the
+         secondary |onprem| project's ``mmsGroupId`` and ``mmsApiKey``.
+         To learn more, see
+         :ref:`Install the MongoDB Agent to Manage Deployments
+         <automation-agent-install-steps-manage>`.
+
+      #. Confirm that all application database members show as healthy
+         in the secondary |onprem| before you continue.
+
+   .. step:: Enable backup for the application database
+
+      In the secondary |onprem|, enable backup for the primary
+      |onprem|'s application database:
+
+      a. From the deployment view, click the :icon-fa5:`ellipsis-v`
+         menu, then click :guilabel:`Enable Backup`.
+
+      #. Confirm that the Backup Daemon is running and a blockstore is
+         configured on the secondary |onprem|.
+
+      #. Set the snapshot schedule, retention policy, and storage
+         target.
+
+      #. Wait for the first snapshot to complete and for a continuous
+         point-in-time recovery window to appear. This confirms that
+         the backup is healthy.
+
+      To learn more about backup configuration, see
+      :ref:`backup-deployment`.
+
+   .. step:: Back up the metadata stores
+
+      Also back up the primary |onprem|'s snapshot metadata store and
+      oplog metadata store:
+
+      a. Add each replica set to the secondary |onprem| the same way
+         you added the application database.
+
+      #. Enable backup for each.
+
+      Backing up all three backing databases lets you restore them to a
+      single consistent point in time during recovery.
+
+   .. step:: Verify the configuration
+
+      Confirm that the secondary |onprem| backs up the backing
+      databases as expected:
+
+      a. Confirm that new snapshots appear on the schedule that you
+         set.
+
+      #. Confirm that the point-in-time recovery window is continuous
+         and advances over time.
+
+.. note::
+
+   Restoration Mode is enabled by default in |onprem| 8.0.24 and
+   later. To disable it, set the custom variable
+   ``mms.featureFlag.automation.restorationMode`` to ``disabled``
+   under :guilabel:`Admin`, :guilabel:`General`,
+   :guilabel:`Ops Manager Config`, :guilabel:`Custom Variables`.
+   The change takes effect on the next {+mdbagent+} poll, without
+   a restart.
+
+After you configure this pattern, validate the restore path regularly.
+To restore the primary |onprem| in a disaster recovery event, see
+:ref:`Restore Ops Manager from a Secondary Ops Manager
+<restore-back-up-ops-manager>`.

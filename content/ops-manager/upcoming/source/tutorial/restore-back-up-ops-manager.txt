@@ -1,0 +1,399 @@
+.. _restore-back-up-ops-manager:
+
+==========================================
+Restore |onprem| from a Secondary |onprem|
+==========================================
+
+.. meta::
+   :description: Restore a primary Ops Manager and its backing databases from a secondary Ops Manager in a disaster recovery event, then validate that the restored instance is healthy.
+
+.. default-domain:: mongodb
+
+.. banner::
+   :variant: warning
+
+   Backup and restore of |onprem| with a secondary |onprem| instance
+   is in `Preview <https://www.mongodb.com/docs/preview-features/>`__.
+   This feature and its documentation might change at any time during
+   the preview period.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+When you lose the primary |onprem|, you restore its
+:ref:`backing databases <backing-database>` from the secondary
+|onprem| and then start a new primary |onprem|. Use this procedure
+after an event such as a failed upgrade, accidental data deletion, or
+infrastructure failure. When the primary |onprem| restarts, it
+automatically enters Restoration Mode to reconcile agent
+configuration before normal operation resumes. For an overview of
+this pattern, see
+:ref:`Back Up and Restore Ops Manager Using a Secondary Instance
+<back-up-ops-manager>`. To configure this pattern, see
+:ref:`Configure a Secondary Ops Manager to Back Up Ops Manager
+<configure-back-up-ops-manager>`.
+
+Considerations
+--------------
+
+Restore Order
+~~~~~~~~~~~~~
+
+The sequence of restoring the backing databases and starting the
+primary |onprem| is critical.
+
+.. warning::
+
+   Restore the backing databases before you start the primary
+   |onprem|. If you start the primary |onprem| before you restore its
+   backing databases, the primary |onprem| can write inconsistent
+   state and create a split-brain scenario between the old and new
+   deployments.
+
+If the secondary |onprem| also backs up the snapshot metadata store
+and the oplog metadata store, restore all three backing databases to
+the same point in time, or restore the metadata stores to a slightly
+later point in time than the application database, before you start
+the primary |onprem|. Restoring the metadata stores to an earlier
+point than the application database causes the primary |onprem| to
+reject affected restore jobs with HTTP 409 ("snapshot blocks
+missing").
+
+Recovery Point
+~~~~~~~~~~~~~~
+
+A point-in-time restore recovers the application database to the
+point in time that you select, not to the moment of the disaster.
+Operations that Backup didn't capture in an oplog slice before the
+disaster might not be recoverable. Select a restore point as close to
+the disaster as your point-in-time recovery window allows.
+
+After the primary |onprem| restarts, reconciliation recovers the
+deployment automation configuration from the {+mdbagent+}s. Other
+recent application database changes reflect the restore point that you
+select.
+
+Version Compatibility
+~~~~~~~~~~~~~~~~~~~~~
+
+The primary and secondary |onprem| versions must stay compatible.
+
+.. include:: /includes/backup/fact-om-version-downgrade-warning.rst
+
+Prerequisites
+-------------
+
+- Restoration Mode is enabled by default in |onprem| 8.0.24 and
+  later. If you disabled it, re-enable it on the primary |onprem|
+  before you restore. For the steps, see
+  :ref:`Configure a Secondary Ops Manager to Back Up Ops Manager
+  <configure-back-up-ops-manager>`.
+
+- Confirm that the secondary |onprem| has a completed snapshot and a
+  continuous point-in-time recovery window for the backing databases.
+
+- Confirm that you preserved the required per-host state for recovery,
+  including the ``gen.key`` file from the original primary |onprem|
+  installation.
+
+Preserve Per-Host State
+-----------------------
+
+A full primary |onprem| recovery requires more than the application
+database. Preserve the following state on each host, in addition to
+the application database that the secondary |onprem| backs up:
+
+.. include:: /includes/backup/fact-om-per-host-state-table.rst
+
+Restore the Primary |onprem|
+----------------------------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Choose a restore point
+
+      In the secondary |onprem|, choose a point in time before the
+      failure event. Use the point-in-time recovery window for the
+      primary |onprem|'s application database.
+
+   .. step:: Restore the backing databases
+
+      In the secondary |onprem|, restore the primary |onprem|'s
+      application database to the point in time that you chose:
+
+      a. Click :guilabel:`Continuous Backup`, then select the
+         application database replica set.
+
+      #. Click the :icon-fa5:`ellipsis-v` menu, then click
+         :guilabel:`Restore`.
+
+      #. Select :guilabel:`Point in Time`, then enter the target date
+         and time.
+
+      #. Click :guilabel:`Choose Cluster to Restore to`, select the
+         application database replica set hosts, then click
+         :guilabel:`Restore`.
+
+      The secondary |onprem|'s {+mdbagent+} stops the application
+      database processes, replaces the data with the restored
+      snapshot, replays the oplog to the target time, and restarts the
+      processes.
+
+      .. warning::
+
+         If the secondary |onprem| also backs up the snapshot and
+         oplog metadata stores, restore them to the same point in time
+         as the application database, or to a slightly later point,
+         before you start the primary |onprem|. Restoring the metadata
+         stores to an earlier point causes the primary |onprem| to
+         reject affected restore jobs with HTTP 409 ("snapshot blocks
+         missing").
+
+      If you restore only the application database, the secondary
+      |onprem| leaves the metadata stores unchanged. This is safe for
+      normal operation, but backup snapshots that the primary |onprem|
+      took between the restore point and now might be unavailable.
+
+   .. step:: Rebuild lost hosts if needed
+
+      If you lost the application database hosts, provision empty
+      MongoDB processes with the same replica set name and ownership.
+      Reinstall the {+mdbagent+} on each host before you run the
+      automated restore.
+
+   .. step:: Start the primary |onprem|
+
+      Start the primary |onprem|. The primary |onprem| connects to the
+      restored application database, reads the restored state, and
+      begins recovery. To learn more, see
+      :ref:`start-and-stop-application`.
+
+   .. step:: Let reconciliation complete
+
+      The primary |onprem| enters Restoration Mode and reconciles the
+      deployment configuration automatically. While reconciliation
+      runs, the primary |onprem| shows a Restoration Mode banner. No
+      manual action is required. The primary |onprem| exits
+      Restoration Mode when reconciliation completes.
+
+Restoration Mode and Reconciliation
+-----------------------------------
+
+After you restore the application database and start the primary
+|onprem|, the primary |onprem| compares each {+mdbagent+}'s
+configuration version with the restored configuration version. If an
+agent reports a later version, the primary |onprem| enters Restoration
+Mode for that project and reconciles the configuration automatically:
+
+- The primary |onprem| isolates the project. It shows a Restoration
+  Mode banner, returns an unchanged response to agent polls, and
+  blocks deployment changes from the user interface and the |api|
+  until reconciliation completes.
+
+- The primary |onprem| collects the configuration version from each
+  agent, selects the agent with the latest configuration, and writes
+  that configuration to the application database as the authoritative
+  configuration.
+
+- The primary |onprem| exits Restoration Mode for the project and
+  resumes normal operation. Backups resume automatically.
+
+This reconciliation prevents a split-brain scenario. It converges all
+agents on a single authoritative configuration before any agent
+receives a new configuration.
+
+When you roll the application database back to an earlier point in
+time, the restored configuration no longer includes deployment changes
+that you made after the restore point. Without reconciliation, agents
+receive the older configuration and stop the processes that the
+configuration no longer references. The impact depends on the
+deployment change:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Deployment Change
+     - Risk Without Reconciliation
+
+   * - New replica set member
+     - The data exists on other members, so you lose no data.
+
+   * - New shard with migrated chunks
+     - The migrated chunks exist only on the new shard. Stopping it
+       makes that data unreachable, which causes data loss.
+
+   * - New process version
+     - The process can't run on the rolled-back binary version, which
+       causes operational drift.
+
+   * - New index
+     - Index queries degrade until |onprem| rebuilds the index.
+
+Reconciliation prevents these outcomes. The primary |onprem| converges
+all agents on the latest configuration and enqueues an on-demand
+snapshot before it exits Restoration Mode, which gives you a coherent
+backup point.
+
+Validate the Restored |onprem|
+------------------------------
+
+Confirm that the restored primary |onprem| is healthy:
+
+- Confirm that the {+mdbagent+}s reconnect and report as healthy.
+
+- Confirm that automation, backup, and monitoring resume for your
+  managed deployments.
+
+- Confirm that the primary |onprem| exits Restoration Mode. To check
+  the Restoration Mode status, send a ``GET`` request to the following
+  endpoint as a user with the :authrole:`Project Read Only` role. The
+  response shows the current state, the trigger reason, and timestamps
+  for the project:
+
+  .. code-block:: http
+
+     GET /api/public/v1.0/groups/{PROJECT-ID}/restorationMode
+
+Recover From a Stuck Reconciliation
+-----------------------------------
+
+If the primary |onprem| restarts while it is in Restoration Mode, it
+re-triggers reconciliation on the next {+mdbagent+} poll. You don't
+need to take action for the restart case.
+
+Reconciliation might not complete, for example because agents are
+unreachable. In that case, use one of the following |api| endpoints
+as a user with the :authrole:`Project Owner` role:
+
+- To retry reconciliation, send a ``POST`` request to the following
+  endpoint. The retry resets the reconciliation failure counter and
+  re-runs reconciliation without exiting Restoration Mode:
+
+  .. code-block:: http
+
+     POST /api/public/v1.0/groups/{PROJECT-ID}/restorationMode/retry
+
+- To force the primary |onprem| to exit Restoration Mode and accept
+  the restored configuration, send a ``DELETE`` request to the
+  following endpoint:
+
+  .. code-block:: http
+
+     DELETE /api/public/v1.0/groups/{PROJECT-ID}/restorationMode
+
+.. warning::
+
+   When you force the primary |onprem| to exit Restoration Mode, it
+   accepts the restored configuration without reconciling later agent
+   configurations. Use this endpoint only when reconciliation can't
+   complete. After force-exit, the primary |onprem| serves the
+   restored configuration to all agents in the project and won't
+   re-enter Restoration Mode until every agent has converged on it.
+
+Cut Over to the Restored |onprem|
+---------------------------------
+
+This pattern restores the primary |onprem| in place. It doesn't
+promote the secondary |onprem| to replace the primary |onprem|.
+
+After you validate the restored primary |onprem|, complete the
+cutover:
+
+- Update the :setting:`URL to Access Ops Manager` setting and any
+  |dns| records to point to the restored primary |onprem|.
+
+- Confirm that the {+mdbagent+}s connect to the restored primary
+  |onprem|. The agents reconnect without re-registration when the
+  ``mmsGroupId`` and ``mmsApiKey`` in their configuration match the
+  restored project records.
+
+Operational Guidance
+--------------------
+
+Use the following practices to operate and validate this pattern over
+time.
+
+Test the Backup and Restore Path
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An untested restore is an operational risk. Test this backup and
+restore path regularly. Treat the following runbook as a required
+practice, not optional guidance:
+
+- Perform a test restore on a schedule. Restore the backing databases
+  to a sandbox |onprem| and confirm that it starts and reconciles.
+
+- Confirm that snapshots appear on schedule and that the point-in-time
+  recovery window stays continuous.
+
+- Review the primary |onprem| and secondary |onprem| logs for backup
+  and restore errors.
+
+Monitor the Secondary |onprem|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Monitor the secondary |onprem| and the backing databases that it backs
+up:
+
+- Use |onprem| backup alerts to watch for missed or failed snapshots
+  of the backing databases.
+
+- Confirm that the point-in-time recovery window stays continuous and
+  keeps advancing.
+
+- Monitor the health of the secondary |onprem|'s application database
+  and :ref:`Backup Daemon <manage-backup-daemon>`.
+
+Failure Scenarios
+~~~~~~~~~~~~~~~~~
+
+The following table describes how this pattern behaves in common
+failure scenarios:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 35 35
+
+   * - Scenario
+     - Impact
+     - Recovery
+
+   * - Secondary |onprem| temporarily unavailable
+     - New backups and restores pause. The primary |onprem| and all
+       managed agents continue running.
+     - Restore the secondary |onprem|. Backup agents resume
+       automatically.
+
+   * - Secondary |onprem| fails after a restore
+     - None. After you restore the application database, the primary
+       |onprem| enters Restoration Mode and reconciles without the
+       secondary |onprem|.
+     - No action required.
+
+   * - Loss of both |onprem| instances
+     - You lose point-in-time recovery for the primary |onprem|'s
+       application database.
+     - Rebuild the secondary |onprem| and re-import the application
+       database, or rebuild the primary |onprem| and re-import your
+       clusters manually.
+
+Performance, Storage, and Cost Considerations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider the following when you run a dedicated secondary |onprem|:
+
+- Size the secondary |onprem| materially smaller than a production
+  primary |onprem|. It manages only the primary |onprem|'s backing
+  databases for backup and restore, and doesn't manage your MongoDB
+  clusters.
+
+- Plan snapshot storage capacity for the backing databases based on
+  your snapshot schedule and retention policy.
+
+- Account for the extra infrastructure and operational cost of
+  running a dedicated secondary |onprem|.
