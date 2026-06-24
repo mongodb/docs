@@ -37,7 +37,7 @@ import {
 const ENVS_TO_RUN = ["dotcomprd", "dotcomstg"];
 
 const extension = new Extension({
-  isEnabled: envVarToBool(process.env.NEXTJS_EXTENSION_ENABLED_STAGING_2),
+  isEnabled: envVarToBool(process.env.NEXTJS_EXTENSION_ENABLED),
 });
 
 /** Limit how deep to search below baseDir for snooty.toml (baseDir is depth 0) */
