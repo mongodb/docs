@@ -1045,7 +1045,6 @@ const tocData: TocItem[] = [
             label: 'sp.processor.modify',
             contentSite: 'docs',
             url: '/docs/:version/reference/method/sp.processor.modify',
-            versions: { includes: ['upcoming'] },
           },
           {
             label: 'sp.processor.sample',
