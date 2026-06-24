@@ -69,6 +69,7 @@ beforeEach(() => {
   delete process.env.FORCE_REBUILD_ALL_ACTIVE;
   delete process.env.FORCE_REBUILD_ALL_INACTIVE;
   delete process.env.FORCE_REBUILD_PATHS;
+  delete process.env.ALLOW_INACTIVE_VERSIONS;
 });
 
 describe('resolvePathsToBuild — FORCE_REBUILD_ALL_ACTIVE', () => {
@@ -363,7 +364,9 @@ describe('resolvePathsToBuild — FORCE_REBUILD_PATHS', () => {
       changedContentPaths: [],
       unchangedContentPaths: contentDirectories,
     });
-    const allContentData = makeAllContentData();
+    const allContentData = makeAllContentData(
+      makeDocsPaths({ 'node/current': true }),
+    );
 
     await resolvePathsToBuild({
       utils: makeUtils(),
@@ -375,5 +378,54 @@ describe('resolvePathsToBuild — FORCE_REBUILD_PATHS', () => {
     expect(allContentData.pathsToBuild).toContain('manual/v8.0');
     expect(allContentData.pathsToBuild).toContain('node/current');
     expect(allContentData.pathsToBuild).not.toContain('atlas');
+  });
+
+  it('skips inactive versions of a forced docset by default', async () => {
+    process.env.FORCE_REBUILD_PATHS = 'manual';
+    mockGetParser.mockResolvedValue(true);
+    mockGetFileChanges.mockResolvedValue([]);
+    mockFindContentPathsWithChanges.mockResolvedValue({
+      changedContentPaths: [],
+      unchangedContentPaths: ['manual/v8.0', 'manual/v7.0', 'node/current'],
+    });
+    const dirs = ['manual/v8.0', 'manual/v7.0', 'node/current'];
+    const allContentData = makeAllContentData(
+      makeDocsPaths({ 'manual/v8.0': true, 'manual/v7.0': false }),
+    );
+
+    await resolvePathsToBuild({
+      utils: makeUtils(),
+      validParserCache: true,
+      contentDirectories: dirs,
+      allContentData,
+    });
+
+    expect(allContentData.pathsToBuild).toContain('manual/v8.0');
+    expect(allContentData.pathsToBuild).not.toContain('manual/v7.0');
+  });
+
+  it('includes inactive versions of a forced docset when ALLOW_INACTIVE_VERSIONS is set', async () => {
+    process.env.FORCE_REBUILD_PATHS = 'manual';
+    process.env.ALLOW_INACTIVE_VERSIONS = 'true';
+    mockGetParser.mockResolvedValue(true);
+    mockGetFileChanges.mockResolvedValue([]);
+    mockFindContentPathsWithChanges.mockResolvedValue({
+      changedContentPaths: [],
+      unchangedContentPaths: ['manual/v8.0', 'manual/v7.0', 'node/current'],
+    });
+    const dirs = ['manual/v8.0', 'manual/v7.0', 'node/current'];
+    const allContentData = makeAllContentData(
+      makeDocsPaths({ 'manual/v8.0': true, 'manual/v7.0': false }),
+    );
+
+    await resolvePathsToBuild({
+      utils: makeUtils(),
+      validParserCache: true,
+      contentDirectories: dirs,
+      allContentData,
+    });
+
+    expect(allContentData.pathsToBuild).toContain('manual/v8.0');
+    expect(allContentData.pathsToBuild).toContain('manual/v7.0');
   });
 });

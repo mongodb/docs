@@ -27,6 +27,9 @@ export async function resolvePathsToBuild({
 		.split(',')
 		.map((p) => p.trim())
 		.filter(Boolean);
+	const allowInactiveVersions = envVarToBool(
+		process.env.ALLOW_INACTIVE_VERSIONS,
+	);
 
 	// A cache miss (invalid parser cache) no longer fans out to every active
 	// path. We only rebuild paths that changed in the last commit (detected
@@ -92,6 +95,13 @@ export async function resolvePathsToBuild({
 				) &&
 				!allContentData.pathsToBuild.includes(contentPath)
 			) {
+				// Only force-build active versions unless ALLOW_INACTIVE_VERSIONS is set to true
+				if (!allowInactiveVersions && !isPathActive(contentPath, allContentData)) {
+					console.log(
+						`Skipping inactive path (set ALLOW_INACTIVE_VERSIONS to include): ${contentPath}`,
+					);
+					continue;
+				}
 				console.log(`Force-adding to build: ${contentPath}`);
 				allContentData.pathsToBuild.push(contentPath);
 			}
