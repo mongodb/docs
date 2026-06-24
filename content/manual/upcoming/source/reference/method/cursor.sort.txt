@@ -90,59 +90,36 @@ Sort Consistency
 
 .. include:: /includes/fact-sort-consistency.rst
 
-Consider the following ``restaurant`` collection:
-
-.. code-block:: js
-
-   db.restaurants.insertMany( [
-      { _id: 1, name: "Central Park Cafe", borough: "Manhattan"},
-      { _id: 2, name: "Rock A Feller Bar and Grill", borough: "Queens"},
-      { _id: 3, name: "Empire State Pub", borough: "Brooklyn"},
-      { _id: 4, name: "Stan's Pizzaria", borough: "Manhattan"},
-      { _id: 5, name: "Jane's Deli", borough: "Brooklyn"},
-   ] );
+The following examples use the ``restaurants`` collection in the
+``sample_restaurants`` database, which contains documents with a
+``borough`` field that has duplicate values.
 
 The following command uses the :method:`~cursor.sort()` method to sort
 on the ``borough`` field:
 
-.. code-block:: js
-
-   db.restaurants.find().sort( { "borough": 1 } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/reference/sort/sort-inconsistent.snippet.sort-inconsistent.js
+   :language: javascript
+   :copyable: true
 
 In this example, sort order may be inconsistent, since the ``borough``
-field contains duplicate values for both ``Manhattan`` and ``Brooklyn``.
-Documents are returned in alphabetical order by ``borough``, but the
-order of those documents with duplicate values for ``borough`` might not
-be the same across multiple executions of the same sort. For example,
-here are the results from two different executions of the above command:
-
-.. code-block:: js
-   :copyable: false
-
-   { _id: 3, name: "Empire State Pub", borough: "Brooklyn" }
-   { _id: 5, name: "Jane's Deli", borough: "Brooklyn" }
-   { _id: 1, name: "Central Park Cafe", borough: "Manhattan" }
-   { _id: 4, name: "Stan's Pizzaria", borough: "Manhattan" }
-   { _id: 2, name: "Rock A Feller Bar and Grill", borough: "Queens" }
-
-   { _id: 5, name: "Jane's Deli", borough: "Brooklyn" }
-   { _id: 3, name: "Empire State Pub", borough: "Brooklyn" }
-   { _id: 4, name: "Stan's Pizzaria", borough: "Manhattan" }
-   { _id: 1, name: "Central Park Cafe", borough: "Manhattan" }
-   { _id: 2, name: "Rock A Feller Bar and Grill", borough: "Queens" }
-
-While the values for ``borough`` are still sorted in alphabetical order,
-the order of the documents containing duplicate values for ``borough``
-(i.e. ``Manhattan`` and ``Brooklyn``) is not the same.
+field contains duplicate values. Documents are returned in alphabetical
+order by ``borough``, but the order of those documents with duplicate
+values for ``borough`` might not be the same across multiple executions
+of the same sort.
 
 To achieve a *consistent sort*, add a field which contains exclusively
 unique values to the sort. The following command uses the
 :method:`~cursor.sort()` method to sort on both the ``borough`` field
 and the ``_id`` field:
 
-.. code-block:: js
+.. io-code-block::
+   :copyable: true
 
-   db.restaurants.find().sort( { "borough": 1, "_id": 1 } )
+   .. input:: /code-examples/tested/command-line/mongosh/reference/sort/sort-consistent.snippet.sort-consistent.js
+      :language: javascript
+
+   .. output:: /code-examples/tested/command-line/mongosh/reference/sort/sort-consistent-output.sh
+      :language: javascript
 
 Since the ``_id`` field is always guaranteed to contain exclusively
 unique values, the returned sort order will always be the same across
@@ -161,12 +138,19 @@ Specify in the sort parameter the field or fields to sort by and a
 value of ``1`` or ``-1`` to specify an ascending or descending sort
 respectively.
 
-The following operation sorts the documents first by the ``age`` field
-in descending order and then by the ``posts`` field in ascending order:
+The following operation sorts the documents from the ``movies``
+collection in the ``sample_mflix`` database, first by the ``year``
+field in descending order and then by the ``title`` field in ascending
+order:
 
-.. code-block:: javascript
+.. io-code-block::
+   :copyable: true
 
-   db.users.find({ }).sort( { age : -1, posts: 1 } )
+   .. input:: /code-examples/tested/command-line/mongosh/reference/sort/sort-ascending-descending.snippet.sort-ascending-descending.js
+      :language: javascript
+
+   .. output:: /code-examples/tested/command-line/mongosh/reference/sort/sort-ascending-descending-output.sh
+      :language: javascript
 
 .. include:: /includes/fact-sort-order.rst
 
@@ -211,29 +195,21 @@ key` depends on whether the sort is ascending or descending:
 
 The query filter does not affect sort key selection.
 
-For example, create a ``shoes`` collection with these documents:
+For example, the following queries use the ``movies`` collection in
+the ``sample_mflix`` database to sort documents by the ``genres``
+array field in ascending and descending order:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/reference/sort/sort-array-ascending.snippet.sort-array-ascending.js
+   :language: javascript
+   :copyable: true
 
-   db.shoes.insertMany( [
-     { _id: 'A', sizes: [ 7, 11 ] },
-     { _id: 'B', sizes: [ 8, 9, 10 ] }
-   ] )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/reference/sort/sort-array-descending.snippet.sort-array-descending.js
+   :language: javascript
+   :copyable: true
 
-The following queries sort the documents by the ``sizes`` field in
-ascending and descending order:
-
-.. code-block:: javascript
-
-   // Ascending sort
-   db.shoes.find().sort( { sizes: 1 } )
-
-   // Descending sort
-   db.shoes.find().sort( { sizes: -1 } )
-
-Both of the preceding queries return the document with ``_id: 'A'`` first 
-because sizes ``7`` and ``11`` are the lowest and highest in the entries in the 
-``sizes`` array, respectively.
+In the ascending sort, MongoDB uses the first genre alphabetically as
+the sort key. In the descending sort, MongoDB uses the last genre
+alphabetically as the sort key.
 
 Filter and Sort by an Array Field
 `````````````````````````````````
@@ -241,24 +217,16 @@ When you filter and sort by a field that contains an array, the filter
 does not affect the value used as the :term:`sort key`. The sort
 always considers all array values as potential sort keys.
 
-For example, the following query finds shoes with sizes greater than ``9`` and 
-sorts the results by ``size`` in ascending order:
+For example, the following query finds movies with a genre that
+is greater than ``"P"`` and sorts the results in ascending order:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/reference/sort/sort-array-filter.snippet.sort-array-filter.js
+   :language: javascript
+   :copyable: true
 
-   db.shoes.find( { sizes: { $gt: 9 } } ).sort( { sizes: 1 } )
-
-The sort is ascending, which means that the sort key is the lowest value in the 
-``sizes`` array:
-
-- In document ``_id: 'A'``, the lowest sizes element is ``7``. This value is 
-  used as the sort key even though it does not match the filter 
-  ``{ sizes: { $gt: 9 }``.
-
-- In document ``_id: 'B'``, the lowest size is ``8``. Similarly, this 
-  value is used as the sort key even though it does not match the filter.
-
-The query returns the document with ``_id: 'A'`` first.
+The sort is ascending, which means that the sort key is the lowest
+value in the ``genres`` array, even if that value does not match
+the filter ``{ genres: { $gt: "P" } }``.
 
 .. tip:: Sort only by Matched Values
 
@@ -338,79 +306,40 @@ projection.
 Examples
 --------
 
-A collection ``orders`` contain the following documents:
+The following examples use the ``movies`` collection in the
+``sample_mflix`` database.
 
-.. code-block:: javascript
+The following query returns movies without specifying a sort order:
 
-   db.orders.insertMany( [
-      { _id: 1, item: { category: "cake", type: "chiffon" }, amount: 10 },
-      { _id: 2, item: { category: "cookies", type: "chocolate chip" }, amount: 50 },
-      { _id: 3, item: { category: "cookies", type: "chocolate chip" }, amount: 15 },
-      { _id: 4, item: { category: "cake", type: "lemon" }, amount: 30 },
-      { _id: 5, item: { category: "cake", type: "carrot" }, amount: 20 },
-      { _id: 6, item: { category: "brownies", type: "blondie" }, amount: 10 }
-   ] )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/reference/sort/sort-no-order.snippet.sort-no-order.js
+   :language: javascript
+   :copyable: true
 
-The following query, which returns all documents from the ``orders``
-collection, does not specify a sort order:
+The query returns the documents in indeterminate order.
 
-.. code-block:: javascript
+The following query specifies a sort on the ``runtime`` field in
+descending order:
 
-   db.orders.find()
+.. io-code-block::
+   :copyable: true
 
-The query returns the documents in indeterminate order:
+   .. input:: /code-examples/tested/command-line/mongosh/reference/sort/sort-runtime-desc.snippet.sort-runtime-desc.js
+      :language: javascript
 
-.. code-block:: javascript
-   :copyable: false
+   .. output:: /code-examples/tested/command-line/mongosh/reference/sort/sort-runtime-desc-output.sh
+      :language: javascript
 
-   { _id: 1, item: { category: "cake", type: "chiffon" }, amount: 10 }
-   { _id: 2, item: { category: "cookies", type: "chocolate chip" }, amount: 50 }
-   { _id: 3, item: { category: "cookies", type: "chocolate chip" }, amount: 15 }
-   { _id: 4, item: { category: "cake", type: "lemon" }, amount: 30 }
-   { _id: 5, item: { category: "cake", type: "carrot" }, amount: 20 }
-   { _id: 6, item: { category: "brownies", type: "blondie" }, amount: 10 }
+The following query sorts first by the ``imdb.rating`` field in
+ascending order, and then by the ``title`` field in ascending order:
 
-The following query specifies a sort on the ``amount`` field in
-descending order.
+.. io-code-block::
+   :copyable: true
 
-.. code-block:: javascript
+   .. input:: /code-examples/tested/command-line/mongosh/reference/sort/sort-imdb-rating.snippet.sort-imdb-rating.js
+      :language: javascript
 
-   db.orders.find().sort( { amount: -1 } )
-
-The query returns the following documents, in descending order of
-``amount``:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { _id: 2, item: { category: "cookies", type: "chocolate chip" }, amount: 50 }
-   { _id: 4, item: { category: "cake", type: "lemon" }, amount: 30 }
-   { _id: 5, item: { category: "cake", type: "carrot" }, amount: 20 }
-   { _id: 3, item: { category: "cookies", type: "chocolate chip" }, amount: 15 }
-   { _id: 1, item: { category: "cake", type: "chiffon" }, amount: 10 }
-   { _id: 6, item: { category: "brownies", type: "blondie" }, amount: 10 }
-
-The following query specifies the sort order using the fields from an
-embedded document ``item``. The query sorts first by the ``category`` field
-in ascending order, and then within each ``category``, by the ``type``
-field in ascending order.
-
-.. code-block:: javascript
-
-   db.orders.find().sort( { "item.category": 1, "item.type": 1 } )
-
-The query returns the following documents, ordered first by the
-``category`` field, and within each category, by the ``type`` field:
-
-.. code-block:: javascript
-   :copyable: false
-
-   { _id: 6, item: { category: "brownies", type: "blondie" }, amount: 10 }
-   { _id: 5, item: { category: "cake", type: "carrot" }, amount: 20 }
-   { _id: 1, item: { category: "cake", type: "chiffon" }, amount: 10 }
-   { _id: 4, item: { category: "cake", type: "lemon" }, amount: 30 }
-   { _id: 2, item: { category: "cookies", type: "chocolate chip" }, amount: 50 }
-   { _id: 3, item: { category: "cookies", type: "chocolate chip" }, amount: 15 }
+   .. output:: /code-examples/tested/command-line/mongosh/reference/sort/sort-imdb-rating-output.sh
+      :language: javascript
 
 .. _return-storage-order:
 .. _return-natural-order:
