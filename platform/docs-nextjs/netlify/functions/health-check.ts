@@ -13,6 +13,35 @@ import { TOP_PAGES, INDEX_PAGES } from './health-check-utils/top-pages';
 
 const HEALTH_CHECK_BLOB_STORE = 'health-check-urls';
 const HEALTH_CHECK_BLOB_KEY = 'index-pages';
+// Key used to prevent duplicate runs when Netlify fires the function on multiple instances.
+// Any instance that sees a lock written within this window assumes another instance is
+// already running and exits early. Must be shorter than the schedule interval (10 min).
+const LOCK_KEY = 'run-lock';
+const LOCK_WINDOW_MS = 5 * 60 * 1_000; // 5 minutes
+
+/**
+ * Attempts to acquire a run lock so only one Netlify instance executes the
+ * health check when the scheduler fires on multiple instances concurrently.
+ *
+ * Returns true if this instance should proceed, false if another instance
+ * acquired the lock recently and this one should exit early.
+ */
+async function acquireRunLock(): Promise<boolean> {
+  try {
+    const store = getStore(HEALTH_CHECK_BLOB_STORE);
+    const existing = await store.get(LOCK_KEY, { type: 'json' }) as { ts: number } | null;
+    if (existing && typeof existing.ts === 'number' && Date.now() - existing.ts < LOCK_WINDOW_MS) {
+      console.log(`[health-check] run lock held by another instance (age ${Math.round((Date.now() - existing.ts) / 1000)}s) — skipping`);
+      return false;
+    }
+    await store.setJSON(LOCK_KEY, { ts: Date.now() });
+    return true;
+  } catch (err) {
+    // If blob storage is unavailable, allow the run rather than silently skipping.
+    console.warn('[health-check] Failed to check/write run lock — proceeding anyway:', err);
+    return true;
+  }
+}
 
 /**
  * Loads index-page URLs from the `health-check-urls` blob store written by
@@ -228,6 +257,11 @@ export default async function handler(): Promise<Response> {
   if (!SLACK_WEBHOOK_URL) {
     console.error('SLACK_WEBHOOK_URL is not set — skipping health check');
     return new Response('Missing SLACK_WEBHOOK_URL', { status: 500 });
+  }
+
+  const acquired = await acquireRunLock();
+  if (!acquired) {
+    return new Response('Skipped — another instance is already running', { status: 200 });
   }
 
   const indexPages = await loadIndexPages();
