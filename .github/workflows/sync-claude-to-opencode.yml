@@ -1,0 +1,186 @@
+name: Sync .claude to .opencode
+
+on:
+  # Wednesday and Friday at 2 pm CDT (18:00 UTC).
+  # GitHub Actions does not auto-adjust for DST; in winter (CST = UTC-6)
+  # this runs at 12 pm CST instead. Update the cron to 20:00 UTC if
+  # 2 pm CST precision is needed in winter.
+  schedule:
+    - cron: '0 18 * * 3,5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    if: github.repository == '10gen/docs-mongodb-internal'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Get latest .claude commit SHA
+        id: sha
+        run: |
+          set -euo pipefail
+          LATEST=$(git log -1 --format='%H' -- .claude/)
+          echo "latest=${LATEST}" >> "$GITHUB_OUTPUT"
+
+      - name: Restore last synced SHA from cache
+        uses: actions/cache/restore@v4
+        with:
+          path: .claude-sync-last-sha
+          key: claude-sync-sha-${{ steps.sha.outputs.latest }}
+          restore-keys: |
+            claude-sync-sha-
+
+      - name: Check for new .claude commits
+        id: check
+        run: |
+          set -euo pipefail
+
+          LATEST="${{ steps.sha.outputs.latest }}"
+          LAST=""
+          if [ -f ".claude-sync-last-sha" ]; then
+            LAST=$(tr -d '[:space:]' < .claude-sync-last-sha)
+          fi
+
+          echo "last_sha=${LAST}" >> "$GITHUB_OUTPUT"
+
+          if [ -z "$LATEST" ]; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "No commits found for .claude/ — skipping."
+          elif [ "$LATEST" = "$LAST" ]; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "✅ Already synced at ${LATEST}"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "🔄 New commits detected. Last synced: ${LAST:-none}"
+          fi
+
+      - name: Set up Node.js
+        if: steps.check.outputs.has_changes == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install openpackage
+        if: steps.check.outputs.has_changes == 'true'
+        run: npm install -g opkg
+
+      - name: Run openpackage sync
+        if: steps.check.outputs.has_changes == 'true'
+        run: openpackage sync --push
+
+      - name: Check for .opencode changes
+        if: steps.check.outputs.has_changes == 'true'
+        id: diff
+        run: |
+          set -euo pipefail
+
+          MODIFIED=$(git diff --name-only -- .opencode/ | wc -l | tr -d ' ')
+          UNTRACKED=$(git ls-files --others --exclude-standard .opencode/ | wc -l | tr -d ' ')
+          TOTAL=$(( MODIFIED + UNTRACKED ))
+
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "has_diff=false" >> "$GITHUB_OUTPUT"
+            echo "No .opencode/ changes after sync — already up to date."
+          else
+            echo "has_diff=true" >> "$GITHUB_OUTPUT"
+            echo "📝 ${TOTAL} file(s) changed in .opencode/"
+          fi
+
+      - name: Build commit log
+        if: steps.diff.outputs.has_diff == 'true'
+        id: log
+        run: |
+          set -euo pipefail
+
+          LAST="${{ steps.check.outputs.last_sha }}"
+          LATEST="${{ steps.sha.outputs.latest }}"
+
+          if [ -n "$LAST" ] && git cat-file -e "${LAST}" 2>/dev/null; then
+            LOG=$(git log --oneline "${LAST}..${LATEST}" -- .claude/)
+          else
+            LOG=$(git log --oneline -10 -- .claude/)
+          fi
+
+          {
+            echo 'log<<COMMIT_LOG_EOF'
+            printf '%s\n' "$LOG"
+            echo 'COMMIT_LOG_EOF'
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Close stale sync PRs
+        if: steps.diff.outputs.has_diff == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          gh pr list \
+            --search "head:auto/sync-claude-opencode" \
+            --state open \
+            --json number \
+            --jq '.[].number' | \
+          xargs -r -I{} gh pr close {} \
+            --comment "Superseded by a newer sync run."
+
+      - name: Create branch, commit, and open PR
+        if: steps.diff.outputs.has_diff == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_ACCESS_TOKEN }}
+          LATEST_SHA: ${{ steps.sha.outputs.latest }}
+          COMMIT_LOG: ${{ steps.log.outputs.log }}
+        run: |
+          set -euo pipefail
+
+          DATE=$(date +%Y%m%d)
+          SHORT="${LATEST_SHA:0:7}"
+          BRANCH="auto/sync-claude-opencode-${DATE}-${SHORT}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "${BRANCH}"
+          git add .opencode/
+          git commit -m "chore: sync .claude to .opencode (${SHORT})"
+          git push origin "${BRANCH}"
+
+          cat > /tmp/pr-body.md <<PREOF
+          ## Automated .claude → .opencode sync
+
+          This PR was opened automatically by the scheduled sync workflow.
+
+          ### .claude commits included
+
+          \`\`\`
+          ${COMMIT_LOG}
+          \`\`\`
+
+          ---
+          *Generated by \`.github/workflows/sync-claude-to-opencode.yml\`*
+          PREOF
+
+          gh pr create \
+            --title "chore: sync .claude to .opencode (${DATE})" \
+            --body-file /tmp/pr-body.md \
+            --head "${BRANCH}" \
+            --base main
+
+      - name: Save synced SHA to cache
+        if: steps.diff.outputs.has_diff == 'true'
+        run: printf '%s' "${{ steps.sha.outputs.latest }}" > .claude-sync-last-sha
+
+      - name: Cache synced SHA
+        if: steps.diff.outputs.has_diff == 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .claude-sync-last-sha
+          key: claude-sync-sha-${{ steps.sha.outputs.latest }}

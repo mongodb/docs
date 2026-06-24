@@ -1,0 +1,111 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/check-redirects-needed.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.file_path | select(test(\"\\\\.claude/hooks/\"))' | { read -r f; [ -n \"$f\" ] && chmod +x \"$f\"; } 2>/dev/null || true"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/toc-write-hook.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/toc-bash-hook.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/vale-check.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/nested-components-check.sh"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/pr-size-check.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "if": "Bash(git *)",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/docs-git-process-hooks/check-git-best-practices.sh"
+          },
+          {
+            "type": "command",
+            "if": "Bash(git merge*)",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/docs-git-process-hooks/check-merge-workflow.sh"
+          },
+          {
+            "type": "command",
+            "if": "Bash(git checkout*)",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/docs-git-process-hooks/check-branch-creation.sh"
+          },
+          {
+            "type": "command",
+            "if": "Bash(git fetch origin && git checkout*)",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/docs-git-process-hooks/check-branch-creation.sh"
+          },
+          {
+            "type": "command",
+            "if": "Bash(git switch*)",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/docs-git-process-hooks/check-branch-creation.sh"
+          },
+          {
+            "type": "command",
+            "if": "Bash(git fetch origin && git switch*)",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/docs-git-process-hooks/check-branch-creation.sh"
+          },
+          {
+            "type": "command",
+            "if": "Bash(git branch*)",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/docs-git-process-hooks/check-branch-creation.sh"
+          },
+          {
+            "type": "command",
+            "if": "Bash(git fetch origin && git branch*)",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/docs-git-process-hooks/check-branch-creation.sh"
+          },
+          {
+            "type": "command",
+            "command": "$CLAUDE_PROJECT_DIR/.claude/hooks/block-push-missing-redirects.sh"
+          }
+        ]
+      }
+    ]
+  }
+}
