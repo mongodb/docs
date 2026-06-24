@@ -28,10 +28,12 @@ Limitations
 -----------
 
 - |product-name| supports Views with the following stages:
- 
+
   - :pipeline:`$addFields`
   - :pipeline:`$set`
-  - :pipeline:`$match` with a :query:`$expr` operator.
+  - :pipeline:`$match`
+
+  You can use the :query:`$expr` operator only within the :pipeline:`$match` stage.
 
 - Index names must be unique across a source collection and 
   all of its Views.
