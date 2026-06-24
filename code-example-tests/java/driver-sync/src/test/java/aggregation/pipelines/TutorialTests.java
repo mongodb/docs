@@ -93,6 +93,6 @@ public class TutorialTests {
         var output = example.runTutorial();
 
         Expect.that(output)
-            .shouldMatch("src/main/java/aggregation/pipelines/joinMultiField/TutorialOutput.txt");
+                .shouldMatch("src/main/java/aggregation/pipelines/joinMultiField/TutorialOutput.txt");
     }
 }

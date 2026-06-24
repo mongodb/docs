@@ -6,7 +6,6 @@ import (
 	"driver-examples/examples/get_started"
 	"driver-examples/utils"
 	"driver-examples/utils/compare"
-	
 )
 
 // TestGetStarted tests the Get Started example
