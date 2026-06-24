@@ -5240,6 +5240,11 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/method/sp.processor.drop',
                       },
                       {
+                        label: 'sp.processor.modify',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/method/sp.processor.modify',
+                      },
+                      {
                         label: 'sp.processor.sample',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/method/sp.processor.sample',

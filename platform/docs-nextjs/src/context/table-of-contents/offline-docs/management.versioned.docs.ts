@@ -126,11 +126,6 @@ export const toc: L1TocItem[] = [
                 url: '/docs/atlas/tutorial/manage-organizations/#require-ip-access-list-for-the-atlas-administration-api',
               },
               {
-                label: 'Atlas Network Protection Layer',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/security/network-protection-layer',
-              },
-              {
                 label: 'Invitations',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/invitations',
@@ -416,6 +411,11 @@ export const toc: L1TocItem[] = [
                         url: '/docs/atlas/tutorial/test-resilience/simulate-regional-outage',
                       },
                     ],
+                  },
+                  {
+                    label: 'Replica Set Rollbacks',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/replica-set-rollbacks',
                   },
                 ],
               },

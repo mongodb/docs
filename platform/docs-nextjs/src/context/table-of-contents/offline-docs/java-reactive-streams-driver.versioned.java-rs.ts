@@ -221,6 +221,44 @@ export const toc: L1TocItem[] = [
             url: '/docs/languages/java/reactive-streams-driver/:version/aggregation',
           },
           {
+            label: 'Builders',
+            contentSite: 'java-rs',
+            collapsible: true,
+            url: '/docs/languages/java/reactive-streams-driver/:version/builders',
+            items: [
+              {
+                label: 'Aggregation',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/builders/aggregates',
+              },
+              {
+                label: 'Filters',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/builders/filters',
+              },
+              {
+                label: 'Indexes',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/builders/indexes',
+              },
+              {
+                label: 'Projection',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/builders/projections',
+              },
+              {
+                label: 'Sort',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/builders/sort',
+              },
+              {
+                label: 'Update',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/builders/updates',
+              },
+            ],
+          },
+          {
             label: 'Data Formats',
             contentSite: 'java-rs',
             collapsible: true,
@@ -360,6 +398,18 @@ export const toc: L1TocItem[] = [
             ],
           },
           {
+            label: 'Third-Party Integrations',
+            contentSite: 'java-rs',
+            collapsible: true,
+            items: [
+              {
+                label: 'Integrate with Spring Boot',
+                contentSite: 'java-rs',
+                url: '/docs/languages/java/reactive-streams-driver/:version/integrations/spring-boot',
+              },
+            ],
+          },
+          {
             label: 'Reference',
             contentSite: 'java-rs',
             collapsible: true,
@@ -371,8 +421,8 @@ export const toc: L1TocItem[] = [
               },
               {
                 label: 'Compatibility',
-                contentSite: 'java-rs',
-                url: '/docs/languages/java/reactive-streams-driver/:version/reference/compatibility',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=java&java-driver-framework=java-async',
               },
               {
                 label: 'Upgrade',
@@ -384,27 +434,12 @@ export const toc: L1TocItem[] = [
           {
             label: 'API Documentation',
             isExternal: true,
-            url: 'https://mongodb.github.io/mongo-java-driver/5.6/apidocs/driver-reactive-streams/',
+            url: 'https://mongodb.github.io/mongo-java-driver/5.8/apidocs/driver-reactive-streams/',
           },
           {
             label: 'Issues & Help',
             contentSite: 'java-rs',
             url: '/docs/languages/java/reactive-streams-driver/:version/issues-and-help',
-          },
-          {
-            label: 'Compatibility',
-            isExternal: true,
-            url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=java&java-driver-framework=java-async',
-          },
-          {
-            label: 'Upgrade',
-            contentSite: 'java-rs',
-            url: '/docs/languages/java/reactive-streams-driver/:version/upgrade',
-          },
-          {
-            label: 'API Documentation',
-            isExternal: true,
-            url: 'https://mongodb.github.io/mongo-java-driver/5.8/apidocs/driver-reactive-streams/',
           },
           {
             label: 'View the Source',

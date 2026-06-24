@@ -118,11 +118,6 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/tutorial/manage-organizations/#require-ip-access-list-for-the-atlas-administration-api',
       },
       {
-        label: 'Atlas Network Protection Layer',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/security/network-protection-layer',
-      },
-      {
         label: 'Invitations',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/invitations',
