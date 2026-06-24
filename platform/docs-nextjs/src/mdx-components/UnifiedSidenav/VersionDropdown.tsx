@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { cx, css as LeafyCSS } from '@leafygreen-ui/emotion';
 import { palette } from '@leafygreen-ui/palette';
 import { Option, OptionGroup, Select } from '@leafygreen-ui/select';
@@ -38,6 +38,12 @@ export const selectStyling = LeafyCSS`
     span {
       font-size: ${theme.fontSize.small};
     }
+  }
+`;
+
+const listboxStyling = LeafyCSS`
+  [role='listbox'] {
+    overscroll-behavior: contain;
   }
 `;
 
@@ -111,6 +117,7 @@ type VersionDropdownProps = {
 const VersionDropdown = ({ contentSite = null }: VersionDropdownProps) => {
   const router = useRouter();
   const snootyMetadata = useSnootyMetadata();
+  const [open, setOpen] = useState(false);
   const { availableVersions, availableGroups, docsets, onVersionSelect, activeVersions } = useVersionContext();
   const eol = snootyMetadata.eol;
   const project = contentSite ? contentSite : snootyMetadata.project;
@@ -118,6 +125,22 @@ const VersionDropdown = ({ contentSite = null }: VersionDropdownProps) => {
   const groups = availableGroups[project];
   const docset = docsets.find((docset) => docset.project === project);
   const showEol = docset?.branches?.some((b) => !b.active) || false;
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const closeOnWindowScroll = () => {
+      setOpen(false);
+    };
+
+    window.addEventListener('scroll', closeOnWindowScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener('scroll', closeOnWindowScroll);
+    };
+  }, [open]);
 
   const onSelectChange = useCallback(
     (value: string) => {
@@ -162,9 +185,11 @@ const VersionDropdown = ({ contentSite = null }: VersionDropdownProps) => {
     <Select
       role="button"
       allowDeselect={false}
-      className={cx(selectStyling, eol ? eolVersionFlipperStyle : '')}
+      className={cx(selectStyling, listboxStyling, eol ? eolVersionFlipperStyle : '')}
       aria-labelledby="View a different version of documentation."
       onChange={onSelectChange}
+      open={open}
+      setOpen={setOpen}
       placeholder={'Select a version'}
       value={activeVersionValue}
       disabled={eol}
