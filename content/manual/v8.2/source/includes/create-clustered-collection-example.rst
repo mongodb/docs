@@ -1,12 +1,10 @@
 The following :dbcommand:`create` example adds a :ref:`clustered
 collection <clustered-collections>` named ``products``:
 
-.. code-block:: javascript
-
-   db.runCommand( {
-      create: "products",
-      clusteredIndex: { "key": { _id: 1 }, "unique": true, "name": "products clustered key" }
-   } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/collections/clustered/create/run-command.snippet.run-command.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 In the example, :ref:`clusteredIndex <create.clusteredIndex>`
 specifies:

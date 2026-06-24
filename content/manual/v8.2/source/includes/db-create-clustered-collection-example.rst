@@ -1,12 +1,10 @@
 The following :method:`db.createCollection()` example adds a
 :ref:`clustered collection <clustered-collections>` named ``stocks``:
 
-.. code-block:: javascript
-
-   db.createCollection(
-      "stocks",
-      { clusteredIndex: { "key": { _id: 1 }, "unique": true, "name": "stocks clustered key" } }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/collections/clustered/create/create-by-method.snippet.create-by-method.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 In the example, :ref:`clusteredIndex
 <db.createCollection.clusteredIndex>` specifies:
