@@ -54,6 +54,7 @@ export type BranchEntry = {
   publishOriginalBranchName: boolean;
   urlAliases: Array<string>;
   eol_type?: 'download' | 'link';
+  buildsWithSnooty?: boolean;
 };
 
 /** Repos branches entry for a project */

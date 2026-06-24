@@ -37,7 +37,7 @@ import {
 const ENVS_TO_RUN = ["dotcomprd", "dotcomstg"];
 
 const extension = new Extension({
-  isEnabled: envVarToBool(process.env.NEXTJS_EXTENSION_ENABLED),
+  isEnabled: envVarToBool(process.env.NEXTJS_EXTENSION_ENABLED_STAGING_2),
 });
 
 /** Limit how deep to search below baseDir for snooty.toml (baseDir is depth 0) */
@@ -102,9 +102,6 @@ extension.addBuildEventHandler(
 		allContentData.atlasProjectDocuments = atlasProjectDocuments;
 
 		const isMain = process.env.HEAD === MAIN_BRANCH;
-		if (isMain) {
-			await writeHealthCheckUrlsToBlob(allContentData.atlasProjectDocuments);
-		}
 
 		// Populate docsPaths (including each path's active/inactive status) before
 		// resolving which paths to build — resolvePathsToBuild needs that metadata
@@ -118,6 +115,12 @@ extension.addBuildEventHandler(
 				clearCache: false,
 			}),
 		);
+
+		// Write health-check URLs after docsPaths is populated so the URL structure
+		// matches the prefix-map exactly (both derived from allContentData.docsPaths).
+		if (isMain) {
+			await writeHealthCheckUrlsToBlob(allContentData);
+		}
 
 		await resolvePathsToBuild({
 			utils,

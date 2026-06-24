@@ -37,16 +37,21 @@ async function loadIndexPages(): Promise<string[]> {
 }
 
 export const config: Config = {
-  // schedule: '*/10 * * * *', // every 10 minutes
+  schedule: '*/10 * * * *', // every 10 minutes
 };
 
 // ---------------------------------------------------------------------------
 // CONFIG
 // ---------------------------------------------------------------------------
 
-const SLACK_WEBHOOK_URL = process.env.SLACK_HEALTH_CHECK_WEBHOOK_URL ?? '';
+const SLACK_WEBHOOK_URL = process.env.SLACK_HEALTH_CHECK_PRIVATE_WEBHOOK ?? '';
 const REQUEST_TIMEOUT_MS = 8_000;
 const CONCURRENCY = 25;
+const MAX_RETRIES = 2;        // re-check a failing URL this many times before alerting
+const RETRY_DELAY_MS = 3_000; // wait between retries
+// Netlify scheduled functions time out at 15 minutes. We post a warning at 12 minutes
+// so there's headroom to send the Slack message before the process is killed.
+const FUNCTION_DEADLINE_MS = 12 * 60 * 1_000;
 
 // ---------------------------------------------------------------------------
 // TYPES
@@ -99,22 +104,58 @@ function isFailure(result: CheckResult): boolean {
   return result.status < 200 || result.status >= 300;
 }
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Checks a URL and retries up to MAX_RETRIES times on failure before giving up.
+ * Transient blips (CDN cold starts, brief timeouts) are silently recovered;
+ * only consistent failures across all attempts are returned as failures.
+ */
+async function checkUrlWithRetry(url: string): Promise<CheckResult> {
+  let lastResult = await checkUrl(url);
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    if (!isFailure(lastResult)) return lastResult;
+    console.warn(
+      `[health-check] ${url} failed (attempt ${attempt}/${MAX_RETRIES + 1}), retrying in ${RETRY_DELAY_MS}ms…`,
+    );
+    await sleep(RETRY_DELAY_MS);
+    lastResult = await checkUrl(url);
+  }
+  if (!isFailure(lastResult)) {
+    console.log(`[health-check] ${url} recovered after retry — transient failure, not alerting`);
+  }
+  return lastResult;
+}
+
 // ---------------------------------------------------------------------------
 // CONCURRENCY HELPER
 // Runs `fn` over all items with at most `limit` in-flight at once.
+// Stops early and sets `aborted = true` if `deadlineMs` is exceeded between batches.
 // ---------------------------------------------------------------------------
+
+interface ConcurrencyResult<R> {
+  results: R[];
+  aborted: boolean;
+}
 
 async function withConcurrency<T, R>(
   items: T[],
   limit: number,
   fn: (item: T) => Promise<R>,
-): Promise<R[]> {
+  startTime: number,
+  deadlineMs: number,
+): Promise<ConcurrencyResult<R>> {
   const results: R[] = [];
   for (let i = 0; i < items.length; i += limit) {
+    if (Date.now() - startTime >= deadlineMs) {
+      return { results, aborted: true };
+    }
     const batch = items.slice(i, i + limit);
     results.push(...(await Promise.all(batch.map(fn))));
   }
-  return results;
+  return { results, aborted: false };
 }
 
 // ---------------------------------------------------------------------------
@@ -132,22 +173,51 @@ async function postToSlack(text: string): Promise<void> {
   }
 }
 
-function buildSlackMessage(failures: CheckResult[]): string {
-  const header = `🔴 *Docs health check: ${failures.length} failure${failures.length !== 1 ? 's' : ''} detected*`;
-
-  // Show up to 20 failures; note total if more
+function formatFailureLines(failures: CheckResult[]): string[] {
   const displayed = failures.slice(0, 20);
   const lines = displayed.map((f) => {
     const statusLabel = f.timedOut ? 'TIMEOUT' : `${f.status}`;
-    const duration = `${f.durationMs}ms`;
-    return `• \`${statusLabel}\` ${f.url} _(${duration})_`;
+    return `• \`${statusLabel}\` ${f.url} _(${f.durationMs}ms)_`;
   });
-
   if (failures.length > 20) {
     lines.push(`_…and ${failures.length - 20} more_`);
   }
+  return lines;
+}
 
-  return [header, ...lines].join('\n');
+function buildSlackMessage(failures: CheckResult[]): string {
+  const header = `🔴 *Docs health check: ${failures.length} failure${failures.length !== 1 ? 's' : ''} detected*`;
+  return [header, ...formatFailureLines(failures)].join('\n');
+}
+
+function buildTimeoutMessage({
+  failures,
+  checkedCount,
+  totalCount,
+  elapsedMs,
+}: {
+  failures: CheckResult[];
+  checkedCount: number;
+  totalCount: number;
+  elapsedMs: number;
+}): string {
+  const elapsedMin = (elapsedMs / 60_000).toFixed(1);
+  const unchecked = totalCount - checkedCount;
+  const timeoutPct = failures.length > 0
+    ? Math.round(failures.filter((f) => f.timedOut).length / failures.length * 100)
+    : 0;
+
+  const lines = [
+    `⏱️ *Docs health check hit the time limit (${elapsedMin} min)*`,
+    `Checked ${checkedCount} of ${totalCount} URLs — *${unchecked} URLs not checked*.`,
+    `${failures.length} failure${failures.length !== 1 ? 's' : ''} found in the URLs that were checked (${timeoutPct}% were request timeouts — likely cause of slowdown).`,
+  ];
+
+  if (failures.length > 0) {
+    lines.push('', '*Failures found so far:*', ...formatFailureLines(failures));
+  }
+  
+  return lines.join('\n');
 }
 
 // ---------------------------------------------------------------------------
@@ -165,8 +235,16 @@ export default async function handler(): Promise<Response> {
 
   console.log(`Checking ${allPages.length} pages with concurrency ${CONCURRENCY}…`);
 
-  const results = await withConcurrency(allPages, CONCURRENCY, checkUrl);
+  const startTime = Date.now();
+  const { results, aborted } = await withConcurrency(allPages, CONCURRENCY, checkUrlWithRetry, startTime, FUNCTION_DEADLINE_MS);
   const failures = results.filter(isFailure);
+  const elapsedMs = Date.now() - startTime;
+
+  if (aborted) {
+    console.error(`[health-check] Hit time limit after ${(elapsedMs / 60_000).toFixed(1)} min — checked ${results.length}/${allPages.length} URLs, ${failures.length} failures so far`);
+    await postToSlack(buildTimeoutMessage({ failures, checkedCount: results.length, totalCount: allPages.length, elapsedMs }));
+    return new Response('Timed out', { status: 500 });
+  }
 
   console.log(`Done. ${results.length} checked, ${failures.length} failed.`);
 
