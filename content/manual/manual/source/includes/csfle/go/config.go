@@ -1,4 +1,4 @@
-// Configuration for CSFLE example files.
+// Shared configuration for CSFLE example files.
 package main
 
 import (

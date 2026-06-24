@@ -1,215 +1,358 @@
+.. _csfle-quick-start-set-up-csharp:
+
+Set Up Your Project
+~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in this section to create your project files and
+assign the required configuration variables. 
 
 .. procedure::
-   :style: normal
+   :style: connected
 
-   .. step:: Create a {+cmk-long+}
+   .. step:: Create your .NET console project.
 
-      You must create a {+cmk-long+} ({+cmk-abbr+}) to perform {+csfle-abbrev+}.
+      Run the following commands to create a new .NET console project
+      in a directory named ``CSharpCSFLE``:
 
-      Create a 96-byte {+cmk-long+} and save it in your **Local Key Provider**,
-      which is your filesystem,
-      as the file ``master-key.txt``:
+      .. code-block:: bash
 
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/local/reader/CSFLE/MakeDataKey.cs
-         :start-after: start-local-cmk
-         :end-before: end-local-cmk
+         mkdir CSharpCSFLE && cd CSharpCSFLE
+         dotnet new console
+
+   .. step:: Install the dependencies.
+
+      From your ``CSharpCSFLE`` directory, run the following
+      commands to install the MongoDB C# Driver and the
+      ``MongoDB.Driver.Encryption`` package:
+
+      .. code-block:: bash
+
+         dotnet add package MongoDB.Driver
+         dotnet add package MongoDB.Driver.Encryption
+
+   .. step:: Create your main project file.
+
+      Replace the contents of the ``Program.cs`` file that was
+      generated in your ``CSharpCSFLE`` directory with the following
+      code:
+
+      .. literalinclude:: /includes/csfle/csharp/Program.cs
          :language: csharp
+         :caption: CSharpCSFLE/Program.cs
          :dedent:
 
-      In addition to byte strings, you can also use a Base64-encoded string as a
-      local key.
-               
+      The ``Program.cs`` file contains your main method, which calls the
+      code in your other project files to generate encryption keys and
+      perform encrypted operations.
+
+   .. step:: Create your data key file.
+
+      To generate a {+cmk-long+} and {+dek-long+}, create a file named
+      ``MakeDataKey.cs`` in your ``CSharpCSFLE`` directory and paste the
+      following code:
+
+      .. code-block:: csharp
+         :caption: CSharpCSFLE/MakeDataKey.cs
+
+         using MongoDB.Driver;
+         using MongoDB.Bson;
+         using MongoDB.Driver.Encryption;
+
+         namespace CsfleTutorial;
+
+         public static class MakeDataKey
+         {
+             public static void MakeKey()
+             {
+                 // Paste CMK generation code below
+
+                 // Paste index creation code below
+
+                 // Paste DEK creation code below
+             }
+         }
+
+      In future steps, you will add code to this file under each
+      corresponding comment.
+
+   .. step:: Create your encrypted operations file.
+
+      Next, create a file named ``InsertEncryptedDocument.cs`` in your
+      ``CSharpCSFLE`` directory and paste the following code:
+
+      .. code-block:: csharp
+         :caption: CSharpCSFLE/InsertEncryptedDocument.cs
+
+         using MongoDB.Driver;
+         using MongoDB.Bson;
+         using MongoDB.Driver.Encryption;
+
+         namespace CsfleTutorial;
+
+         public static class InsertEncryptedDocument
+         {
+             public static void Insert()
+             {
+                 var db = "medicalRecords";
+                 var coll = "patients";
+                 var dbNamespace = $"{db}.{coll}";
+
+                 // Paste encryption schema below
+
+                 // Paste client configuration code below
+
+                 // Paste code to insert a document below
+
+                 // Paste code to query the document below
+             }
+         }
+
+      In future steps, you will add code that inserts and queries
+      encrypted documents under each corresponding comment.
+
+   .. step:: Assign your configuration variables.
+
+      Each of your project files uses variables from a configuration
+      class. Create a file named ``Config.cs`` in your ``CSharpCSFLE``
+      directory and paste the following code:
+
+      .. literalinclude:: /includes/csfle/csharp/Config.cs
+         :language: csharp
+         :caption: CSharpCSFLE/Config.cs
+         :dedent:
+
+      Then, replace the following placeholder values:
+
+      - ``<connection string>``: Your MongoDB connection string
+      - ``<Automatic Encryption Shared Library path>``: The full path
+        to your {+shared-library+}, which resembles the following paths:
+        
+        - **macOS**: ``/<crypt shared directory>/lib/mongo_crypt_v1.dylib``
+        - **Linux**: ``/<crypt shared directory>/lib/mongo_crypt_v1.so``
+        - **Windows**: ``C:\<crypt shared directory>\bin\mongo_crypt_v1.dll``
+
+      The ``Config.cs`` file instructs your application to store data
+      encryption keys in the ``encryption.__keyVault`` namespace.
+
+.. _csfle-quick-start-configure-csharp:
+
+Configure Encryption
+~~~~~~~~~~~~~~~~~~~~
+
+After setting up your project, follow the steps in this section to
+create an encryption key and configure your project for
+{+csfle-abbrev+}.
+
+.. procedure::
+   :style: connected
+
+   .. _csfle-quick-start-create-master-key-csharp:
+
+   .. step:: Create a {+cmk-long+}.
+
+      Paste the following code into your ``MakeDataKey.cs`` file inside
+      the ``MakeKey()`` method, below the
+      ``// Paste CMK generation code below`` comment, to generate a
+      96-byte {+cmk-long+} ({+cmk-abbr+}) and save it to your
+      filesystem:
+
+      .. literalinclude:: /includes/csfle/csharp/MakeDataKey.cs
+         :language: csharp
+         :caption: CSharpCSFLE/MakeDataKey.cs
+         :start-after: start-generate-cmk
+         :end-before: end-generate-cmk
+         :dedent:
+
       .. include:: /includes/queryable-encryption/qe-warning-local-keys.rst
 
-      .. include:: /includes/in-use-encryption/cmk-csfle-bash.rst
+   .. step:: Create a unique index on your {+key-vault-long+}.
 
-      .. see:: Complete Code
-      
-         To view the complete code for making a {+cmk-long+}, see
-         `our Github repository <{+sample-app-url-csfle+}/dotnet/local/reader/CSFLE/MakeDataKey.cs>`__.
-      
-   .. step:: Create a Unique Index on your {+key-vault-long+}
+      {+csfle+} depends on server-enforced uniqueness of key alternate
+      names, so you must create a unique index on the ``keyAltNames``
+      field in your {+key-vault-long+}.
 
-      Create a partial unique index on the ``keyAltNames`` field in your
-      ``encryption.__keyVault`` namespace. This index should have a 
-      ``partialFilterExpression`` for documents where ``keyAltNames`` exists.
+      Add the following code to your ``MakeDataKey.cs`` file below the
+      ``// Paste index creation code below`` comment to connect to
+      MongoDB and create a partial unique index on the ``keyAltNames``
+      field:
 
-      {+csfle+} depends on server-enforced uniqueness of key alternate names.
-
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/local/reader/CSFLE/MakeDataKey.cs
+      .. literalinclude:: /includes/csfle/csharp/MakeDataKey.cs
+         :language: csharp
+         :caption: CSharpCSFLE/MakeDataKey.cs
          :start-after: start-create-index
          :end-before: end-create-index
-         :language: csharp
          :dedent:
 
-   .. step:: Create a {+dek-long+}
+   .. _csfle-local-create-dek-csharp:
 
-      a. Read the {+cmk-long+} and Specify KMS Provider Settings
+   .. step:: Create a {+dek-long+}.
 
-         Retrieve the contents of the {+cmk-long+} file that you generated
-         in the :ref:`Create a {+cmk-long+} <csfle-quick-start-create-master-key>` step of this guide.
+      .. _csfle-quick-start-create-dek-csharp:
 
-         Use the {+cmk-abbr+} value in your KMS provider settings. The
-         client uses these settings to discover the {+cmk-abbr+}. As
-         you are using the Local Key Provider, set the provider name to
-         ``local``.
+      Add the following code to your ``MakeDataKey.cs`` file below the
+      ``// Paste DEK creation code below`` comment to configure a
+      ``ClientEncryption`` instance and generate a {+dek-long+}:
 
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/local/reader/CSFLE/MakeDataKey.cs
-            :start-after: start-kmsproviders
-            :end-before: end-kmsproviders
-            :language: csharp
-            :dedent:
+      .. literalinclude:: /includes/csfle/csharp/MakeDataKey.cs
+         :language: csharp
+         :caption: CSharpCSFLE/MakeDataKey.cs
+         :start-after: start-create-data-key
+         :end-before: end-create-data-key
+         :dedent:
 
-      #. Create a Data Encryption Key
+      The ``ClientEncryption`` instance uses your KMS provider settings,
+      key vault namespace, and client to manage encryption keys. Once
+      configured, the code calls the ``CreateDataKey()`` method to
+      generate a {+dek-long+} and writes it to a separate file.
 
-         Construct a client with your MongoDB connection string and {+key-vault-long+}
-         namespace, and create a {+dek-long+}:
+   .. _csfle-quickstart-encryption-schema-csharp:
 
-         .. note:: {+key-vault-long-title+} Namespace Permissions
+   .. step:: Define an encryption schema.
 
-            .. include:: /includes/note-key-vault-permissions
+      .. _field-level-encryption-data-key-retrieve-csharp:
 
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/local/reader/CSFLE/MakeDataKey.cs
-            :start-after: start-create-dek
-            :end-before: end-create-dek
-            :language: csharp
-            :dedent:
+      Add the following code to your ``InsertEncryptedDocument.cs`` file
+      below the ``// Paste encryption schema below`` comment to define
+      an encryption schema:
 
-         The output from the code above should resemble the following:
+      .. literalinclude:: /includes/csfle/csharp/InsertEncryptedDocument.cs
+         :language: csharp
+         :caption: CSharpCSFLE/InsertEncryptedDocument.cs
+         :start-after: start-json-schema
+         :end-before: end-json-schema
+         :dedent:
 
-         .. code-block:: none
-            :copyable: false
+      The code reads your {+dek-abbr+} ID and uses it to encrypt the
+      following fields in the ``medicalRecords.patients`` collection:
 
-            DataKeyId [base64]: 3k13WkSZSLy7kwAAP4HDyQ==
+      - ``insurance.policyNumber``: Encrypted with deterministic
+        encryption
+      - ``ssn``: Encrypted with deterministic encryption
+      - ``bloodType``: Encrypted with random encryption
+      - ``medicalRecords``: Encrypted with random encryption
 
-      .. see:: Complete Code
+      Deterministic encryption allows you to perform equality queries on
+      encrypted fields. Random encryption provides stronger security but
+      does not support read operations on the encrypted fields.
 
-         To view the complete code for making a {+dek-long+}, see
-         `our Github repository
-         <{+sample-app-url-csfle+}/dotnet/local/reader/CSFLE/MakeDataKey.cs>`__.
-      
-   .. step:: Configure the MongoClient
+   .. step:: Create standard and {+csfle-abbrev+}-enabled clients.
 
-      a. Specify the {+key-vault-long-title+} Namespace
+      Paste the following code into your ``InsertEncryptedDocument.cs``
+      file below the
+      ``// Paste client configuration code below`` comment to create two
+      MongoDB clients:
 
-         Specify ``encryption.__keyVault`` as the {+key-vault-long+}
-         namespace.
+      .. literalinclude:: /includes/csfle/csharp/InsertEncryptedDocument.cs
+         :language: csharp
+         :caption: CSharpCSFLE/InsertEncryptedDocument.cs
+         :start-after: start-create-client
+         :end-before: end-create-client
+         :dedent:
 
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/local/reader/CSFLE/InsertEncryptedDocument.cs
-            :start-after: start-key-vault
-            :end-before: end-key-vault
-            :language: csharp
-            :dedent:
+      This code creates a ``MongoClient`` instance with an
+      ``AutoEncryptionOptions`` object that specifies your KMS provider
+      settings, key vault namespace, encryption schema, and the location
+      of your {+shared-library+}. The code also creates a standard
+      ``MongoClient`` instance without automatic encryption. In a future
+      step, you will compare the output of both clients.
 
-      #. Specify the Local {+cmk-long+}
+      .. include:: /includes/tutorials/csfle-shared-lib-learn-more.rst
 
-         Specify the KMS provider and specify your key inline:
+.. _csfle-quick-start-operations-csharp:
 
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/local/reader/CSFLE/InsertEncryptedDocument.cs
-            :start-after: start-kmsproviders
-            :end-before: end-kmsproviders
-            :language: csharp
-            :dedent:
+Perform Encrypted Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      #. Create an Encryption Schema For Your Collection
+After configuring your project and database connection, follow the
+steps in this section to insert and query encrypted documents.
 
-         .. tip:: Add Your {+dek-long+} Base64 ID
+.. procedure::
+   :style: connected
 
-            Make sure to update the following code to include your Base64
-            {+dek-abbr+} ID. You received this value in the
-            :ref:`Generate your {+dek-long+} <csfle-local-create-dek>` step of this
-            guide.
+   .. _csfle-quick-start-insert-csharp:
 
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/local/reader/CSFLE/InsertEncryptedDocument.cs
-            :start-after: start-schema
-            :end-before: end-schema
-            :language: csharp
-            :dedent:
+   .. step:: Insert a document with encrypted fields.
 
-      #. Specify the Location of the {+shared-library+}
+      Add the following code to your ``InsertEncryptedDocument.cs`` file
+      below the ``// Paste code to insert a document below`` comment to
+      insert a document into the ``medicalRecords.patients`` collection:
 
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/local/reader/CSFLE/InsertEncryptedDocument.cs
-            :start-after: start-extra-options
-            :end-before: end-extra-options
-            :language: csharp
-            :dedent:
-         
-         .. include:: /includes/tutorials/csfle-shared-lib-learn-more.rst
+      .. literalinclude:: /includes/csfle/csharp/InsertEncryptedDocument.cs
+         :language: csharp
+         :caption: CSharpCSFLE/InsertEncryptedDocument.cs
+         :start-after: start-insert-document
+         :end-before: end-insert-document
+         :dedent:
 
-      #. Create the MongoClient
-
-         Instantiate a MongoDB client object with the following
-         automatic encryption settings:
-
-         .. tabs::
-
-            .. tab:: C# Driver v3.0+
-               :tabid: csharp-v3
-
-               .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/local/reader/CSFLE/InsertEncryptedDocument.cs
-                  :start-after: start-client
-                  :end-before: end-client
-                  :language: csharp
-                  :dedent:
-            
-            .. tab:: C# Driver < v3.0
-               :tabid: csharp-v2
-
-               .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/local/reader/CSFLE/InsertEncryptedDocument.cs
-                  :start-after: MongoClientSettings.Extensions.AddAutoEncryption(); // .NET/C# Driver v3.0 or later only
-                  :end-before: end-client
-                  :language: csharp
-                  :dedent:
-
-   .. step:: Insert a Document with Encrypted Fields
-
-      Use your {+csfle-abbrev+}-enabled
-      ``MongoClient`` instance to insert a {+in-use-doc+} into the
-      ``medicalRecords.patients`` namespace using the following code
-      snippet:
-
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/local/reader/CSFLE/InsertEncryptedDocument.cs
-          :start-after: start-insert
-          :end-before: end-insert
-          :language: csharp
-          :dedent:
-
-      When you insert a document, your {+csfle-abbrev+}-enabled client
-      encrypts the fields of your document such that it resembles the following:
+      When you insert the document, your {+csfle-abbrev+}-enabled client
+      automatically encrypts the specified fields. The stored document
+      resembles the following code:
 
       .. literalinclude:: /includes/quick-start/inserted-doc-enc.json
          :language: json
          :copyable: false
 
-      .. see:: Complete Code
+   .. step:: Query encrypted data.
 
-         To view the complete code for inserting a {+in-use-doc+}, see
-         `our Github repository
-         <{+sample-app-url-csfle+}/dotnet/local/reader/CSFLE/InsertEncryptedDocument.cs>`__
-         
-   .. step:: Retrieve Your {+in-use-doc-title+}
+      Add the following code to your ``InsertEncryptedDocument.cs`` file
+      below the ``// Paste code to query the document below`` comment to
+      retrieve the document with both a {+csfle-abbrev+}-enabled client
+      and a standard client:
 
-      Retrieve the {+in-use-doc+} you inserted in the
-      :ref:`Insert a Document with Encrypted Fields <csfle-quick-start-insert>`
-      step of this guide.
-
-      To show the functionality of {+csfle-abbrev+}, the following code snippet queries for
-      your document with a client configured for automatic {+csfle-abbrev+} as well as
-      a client that is not configured for automatic {+csfle-abbrev+}.
-
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/local/reader/CSFLE/InsertEncryptedDocument.cs
-         :start-after: start-find
-         :end-before: end-find
+      .. literalinclude:: /includes/csfle/csharp/InsertEncryptedDocument.cs
          :language: csharp
+         :caption: CSharpCSFLE/InsertEncryptedDocument.cs
+         :start-after: start-find-document
+         :end-before: end-find-document
          :dedent:
 
-      The output of the preceding code snippet should look like this:
+      The {+csfle-abbrev+}-enabled client automatically decrypts the
+      encrypted fields when it retrieves the document. The standard
+      client returns the encrypted binary values.
 
-      .. literalinclude:: /includes/quick-start/find-output.out
-         :language: json
+   .. step:: Run the application.
+
+      To start the application, run the following command from your
+      project directory:
+
+      .. code-block:: bash
+
+         dotnet run
+
+      If successful, your output resembles the following example:
+
+      .. code-block:: none
          :copyable: false
 
-      .. see:: Complete Code
+         ============================================================
+         Running MakeDataKey...
+         ============================================================
+         DataKeyId [base64]: ...
 
-         To view the complete code for finding a {+in-use-doc+}, see
-         `our Github repository <{+sample-app-url-csfle+}/dotnet/local/reader/CSFLE/InsertEncryptedDocument.cs>`__
+         ============================================================
+         Running InsertEncryptedDocument...
+         ============================================================
+         Finding a document with the regular (non-encrypted) client:
+
+         { "_id" : { "$oid" : "..." }, "name" : "Jon Doe",
+         "ssn" : { "$binary" : { "base64" : "...", "subType" : "06" } },
+         "bloodType" : { "$binary" : { "base64" : "...", "subType" : "06" } },
+         "medicalRecords" : { "$binary" : { "base64" : "...", "subType" : "06" } },
+         "insurance" : { "policyNumber" : { "$binary" : { "base64" : "...",
+         "subType" : "06" } }, "provider" : "MaestCare" } }
+
+         Finding a document with the encrypted client:
+
+         { "_id" : { "$oid" : "..." }, "name" : "Jon Doe", "ssn" : 241014209,
+         "bloodType" : "AB+", "medicalRecords" :
+         [{ "weight" : 180, "bloodPressure" : "120/80" }],
+         "insurance" : { "policyNumber" : 123142,
+         "provider" : "MaestCare" } }
+
+         ============================================================
+         All scripts completed successfully!
+         ============================================================
+
+      The output includes your {+dek-abbr+} ID, the encrypted document
+      as stored in your database, and the decrypted document retrieved
+      with your {+csfle-abbrev+}-enabled client.
