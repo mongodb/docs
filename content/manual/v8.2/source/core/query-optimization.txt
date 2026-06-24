@@ -38,21 +38,23 @@ collection and the index.
 Create indexes for your most common queries. If a query searches
 multiple fields, create a :ref:`compound index <index-type-compound>`.
 
-For example, consider the following query on the ``type`` field in the
-``inventory`` collection:
+For example, consider the following query on the ``rated`` field in the
+``movies`` collection:
 
 .. code-block:: javascript
 
-   let typeValue = <someUserInput>;
-   db.inventory.find( { type: typeValue } );
+   let ratingValue = <someUserInput>;
+   db.movies.find( { rated: ratingValue } );
 
-To improve performance on this query, add an index on the ``type`` field.
+To improve performance for this query, add an index to the ``movies``
+collection on the ``rated`` field. [#ensureIndexOrder]_ In
+:binary:`~bin.mongosh`, create indexes using the
+:method:`db.collection.createIndex()` method:
 
-.. code-block:: javascript
-
-   db.inventory.createIndex( { type: 1 } )
-
-[#ensureIndexOrder]_ In :binary:`~bin.mongosh`, use :method:`db.collection.createIndex()`:
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/query-optimization/create-index.snippet.create-single-field-index.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 To analyze query performance, see :doc:`/tutorial/analyze-query-plan`.
 
@@ -88,15 +90,14 @@ Project Only Necessary Data
 When you need a subset of fields from documents, you can improve performance by 
 returning only the fields you need. Projections reduce network traffic and processing time.
 
-For example, consider the following query to return only the ``timestamp``, ``title``, 
-``author``, and ``abstract`` fields.
+For example, if your query to the ``movies`` collection needs only the
+``year``, ``title``, ``directors``, and ``plot`` fields, specify
+those fields in the projection:
 
-.. code-block:: javascript
-
-   db.posts.find( 
-      {}, 
-      { timestamp : 1, title : 1, author : 1, abstract : 1} 
-   ).sort( { timestamp : -1 } )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/query-optimization/projection-query.snippet.projection-query.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 .. |$project| replace:: :pipeline:`$project` aggregation
 
@@ -110,30 +111,33 @@ Example
 To achieve a covered query, index the projected fields. The :ref:`ESR (Equality, Sort, Range) rule
 <esr-indexing-guideline>` applies to the order of fields in the index.
 
-For example, consider the following index on the ``inventory`` collection:
+For example, consider the following index on a ``movies`` collection:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/query-optimization/esr-index.snippet.esr-index.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
-   db.inventory.createIndex( { type: 1, _id: 1, price: 1, item: 1, expiryDate: 1} )
+The preceding index, while technically correct, isn't structured to
+optimize query performance.
 
-The above query, while technically correct, is not structured to optimize query performance.
+The following query uses the ESR (Equality, Sort, Range) rule to
+structure a more efficient aggregation pipeline and improve query
+response times.
 
-The following query applies the ESR rule for a more efficient compound
-index:
-
-.. code-block:: javascript
-
-   db.inventory.aggregate([
-     { $match: {type: "food", expiryDate: { $gt: ISODate("2025-07-10T00:00:00Z") }}},
-     { $sort: { item: 1 }},
-     { $project: { _id: 1, price: 1} }
-   ])
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/query-optimization/esr-aggregate.snippet.esr-aggregate.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 The index and query follow the ESR rule:
 
-- ``type`` is used for an equality match (E), so it is the first field in the index.
-- ``item`` is used for sorting (S), so it is after ``type`` in the index.
-- ``expiryDate`` is used for a range query (R), so it is the last field in the index.
+- ``rated`` is used for an equality match (E), so it is the first
+  field in the index.
+- ``title`` is used for sorting (S), so it is after ``rated`` in
+  the index.
+- ``released`` is used for a range query (R), so it is the last
+  field in the index.
 
 Limit Query Results
 -------------------
@@ -142,13 +146,14 @@ MongoDB :term:`cursors <cursor>` return results in batches. If you know
 how many results you need, pass that value to the :method:`~cursor.limit()`
 method to reduce network resource usage.
 
-Limit results after sorting so you know which documents are returned.
-For example, the following query returns only the 10 most recent results from the 
-``posts`` collection:
+Sort results before applying a limit to ensure that the query returns
+the expected documents. For example, if you need only 10 results from
+your query to the ``movies`` collection, run the following query:
 
-.. code-block:: javascript
-
-   db.posts.find().sort( { timestamp : -1 } ).limit(10)
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/query-optimization/limit-query.snippet.limit-query.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 For more information, see :method:`~cursor.limit()`.
 
@@ -156,19 +161,23 @@ Use Index Hints
 ---------------
 
 The :ref:`query optimizer <read-operations-query-optimization>`
-selects the optimal index for a specific operation. However, 
-you can force a specific index using the :method:`~cursor.hint()` method. 
-This is useful for performance testing or when a field appears in several indexes 
-and you need to guarantee which index MongoDB uses.
+typically selects the optimal index for a specific operation. However,
+you can force MongoDB to use a specific index using the
+:method:`~cursor.hint()` method. Use :method:`~cursor.hint()` to support
+performance testing or when you are querying a field that appears in
+several indexes to ensure that MongoDB uses the correct index.
 
 Use Server-Side Operations
 --------------------------
 
-Use the :update:`$inc` operator to increment or decrement values in documents.
-The operator increments the field value on the server side, as an alternative
-to selecting a document, making simple modifications on the client side, and then
-writing the document to the server. Additionaly, the operator prevents race conditions
-when multiple application instances update the same field concurrently.
+Use the :update:`$inc` operator to increment or decrement
+values in documents. The operator increments the value of the field on
+the server side, as an alternative to selecting a document, making
+changes in the client code, and then writing the entire
+document to the server. The :update:`$inc` operator can also help
+avoid race conditions that occur when two application instances query
+for a document, manually increment a field, and save the entire
+document back at the same time.
 
 .. _covered-queries:
 .. _indexes-covered-queries:
@@ -194,55 +203,65 @@ having to examine any documents. An index covers a query when all of the followi
 Example
 ~~~~~~~
 
-An ``inventory`` collection has the following index on the ``type`` and ``item`` fields:
+A ``movies`` collection has the following index on the ``rated`` and
+``title`` fields:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/query-optimization/covered-query-index.snippet.covered-query-index.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
-   db.inventory.createIndex( { type: 1, item: 1 } )
+The index covers the following operation which queries on the ``rated``
+and ``title`` fields and returns only the ``title`` field:
 
-The index covers the following query, which filters on ``type`` and
-``item`` and returns only ``item``:
-
-.. code-block:: javascript
-
-   db.inventory.find(
-      { type: "food", item:/^c/ },
-      { item: 1, _id: 0 }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/query-optimization/covered-query.snippet.covered-query.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 For the specified index to cover the query, the projection document
 must explicitly specify ``_id: 0`` to exclude the ``_id`` field from
-the result since the index does not include the ``_id`` field.
+the result since the index doesn't include the ``_id`` field.
 
 Embedded Documents
 ~~~~~~~~~~~~~~~~~~
 
 An index can cover a query on fields within embedded documents.
 
-For example, consider the following ``userdata`` collection:
+For example, consider the ``theaters`` collection from the
+:atlas:`sample_mflix </sample-data/sample-mflix/>` dataset, which
+has documents with the following structure:
 
 .. code-block:: javascript
+   :copyable: false
 
-   db.userdata.insertOne(
-      { _id: 1, user: { login: "tester" } }
-   )
+   {
+     theaterId: <num>,
+     location: {
+       address: {
+         street1: "<address>",
+         city: "<city>",
+         state: "<state>",
+         zipcode: "<zip>"
+       },
+       geo: { ... }
+     }
+   }
 
 The collection has the following index:
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/query-optimization/embedded-doc-index.snippet.embedded-doc-index.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
-   db.userdata.createIndex(
-      { "user.login": 1 }
-   )
+The ``{ "location.address.city": 1 }`` index covers the following
+query:
 
-The ``{ "user.login": 1 }`` index covers the following query:
-
-.. code-block:: javascript
-
-   db.userdata.find(
-      { "user.login": "tester" },
-      { "user.login": 1, _id: 0 }
-   )
+.. literalinclude:: /code-examples/tested/command-line/mongosh/indexes/query-optimization/embedded-doc-find.snippet.embedded-doc-find.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 .. note::
 
