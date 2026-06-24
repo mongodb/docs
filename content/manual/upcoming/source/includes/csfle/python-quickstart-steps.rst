@@ -9,14 +9,30 @@ assign the required configuration variables.
 .. procedure::
    :style: connected
 
+   .. step:: Install the dependencies.
+
+      First, ensure that you have the following dependencies installed
+      in your development environment:
+
+      - `Python3 version 3.8 or later <https://www.python.org/downloads/>`__
+      - `pip <https://pip.pypa.io/en/stable/installation/>`__
+
+      Then, create a directory named ``python-csfle`` to store your project files.
+      From this directory, start a `virtual environment <https://docs.python.org/3/library/venv.html>`__
+      and install the PyMongo driver:
+
+      .. code-block:: bash
+
+         python3 -m pip install pymongo
+
    .. step:: Create your main project file.
 
-      Create a directory named ``python-csfle`` to store your project files, 
-      and then add a file named ``main.py`` to this directory.
+      Add a file named ``main.py`` to your ``python-csfle`` directory.
       Paste the following code into this file:
 
       .. literalinclude:: /includes/csfle/python/main.py
          :language: python
+         :caption: python-csfle/main.py
          :dedent:
 
       The ``main.py`` file contains your main function, which imports and runs the code
@@ -28,7 +44,8 @@ assign the required configuration variables.
       in your ``python-csfle`` directory and paste the following code:
 
       .. code-block:: python
-         
+         :caption: python-csfle/make_data_key.py
+
          from pymongo import MongoClient, ASCENDING
          from pymongo.encryption_options import AutoEncryptionOpts
          from pymongo.encryption import ClientEncryption
@@ -55,6 +72,7 @@ assign the required configuration variables.
       and paste the following code:
 
       .. code-block:: python
+         :caption: python-csfle/insert_encrypted_document.py
 
         from pymongo import MongoClient
         from pymongo.encryption_options import AutoEncryptionOpts
@@ -81,20 +99,24 @@ assign the required configuration variables.
 
    .. step:: Assign your configuration variables.
 
-      Each of your project files import variables from a configuration file.
+      Each of your project files imports variables from a configuration file.
       Create a file named ``config.py`` in your ``python-csfle`` directory and paste
       the following code:
 
       .. literalinclude:: /includes/csfle/python/config.py
          :language: python
+         :caption: python-csfle/config.py
          :dedent:
 
       Then, replace the following placeholder values:
 
       - ``<connection string>``: Your MongoDB connection string
-      - ``<Automatic Encryption Shared Library path>``: The full path to your {+shared-library+},
-        which resembles ``/<crypt shared directory>/lib/mongo_crypt_v1.dylib``
-        on macOS and ``C:\<crypt shared directory>\bin\mongo_crypt_v1.dll`` on Windows
+      - ``<Automatic Encryption Shared Library path>``: The full path
+        to your {+shared-library+}, which resembles the following paths:
+        
+        - **macOS**: ``/<crypt shared directory>/lib/mongo_crypt_v1.dylib``
+        - **Linux**: ``/<crypt shared directory>/lib/mongo_crypt_v1.so``
+        - **Windows**: ``C:\<crypt shared directory>\bin\mongo_crypt_v1.dll``
 
       The ``config.py`` file instructs your application to
       store data encryption keys in the ``encryption.__keyVault`` namespace.
@@ -120,6 +142,7 @@ an encryption key and configure your application for {+csfle-abbrev+}.
 
       .. literalinclude:: /includes/csfle/python/make_data_key.py
          :language: python
+         :caption: python-csfle/make_data_key.py
          :start-after: start-generate-cmk
          :end-before: end-generate-cmk
          :dedent:
@@ -138,6 +161,7 @@ an encryption key and configure your application for {+csfle-abbrev+}.
 
       .. literalinclude:: /includes/csfle/python/make_data_key.py
          :language: python
+         :caption: python-csfle/make_data_key.py
          :start-after: start-create-index
          :end-before: end-create-index
          :dedent:
@@ -154,6 +178,7 @@ an encryption key and configure your application for {+csfle-abbrev+}.
 
       .. literalinclude:: /includes/csfle/python/make_data_key.py
          :language: python
+         :caption: python-csfle/make_data_key.py
          :start-after: start-create-data-key
          :end-before: end-create-data-key
          :dedent:
@@ -175,6 +200,7 @@ an encryption key and configure your application for {+csfle-abbrev+}.
 
       .. literalinclude:: /includes/csfle/python/insert_encrypted_document.py
          :language: python
+         :caption: python-csfle/insert_encrypted_document.py
          :start-after: start-json-schema
          :end-before: end-json-schema
          :dedent:
@@ -201,6 +227,7 @@ an encryption key and configure your application for {+csfle-abbrev+}.
 
       .. literalinclude:: /includes/csfle/python/insert_encrypted_document.py
          :language: python
+         :caption: python-csfle/insert_encrypted_document.py
          :start-after: start-create-client
          :end-before: end-create-client
          :dedent:
@@ -234,6 +261,7 @@ steps in this section to insert and query encrypted documents.
 
       .. literalinclude:: /includes/csfle/python/insert_encrypted_document.py
          :language: python
+         :caption: python-csfle/insert_encrypted_document.py
          :start-after: start-insert-document
          :end-before: end-insert-document
          :dedent:
@@ -254,6 +282,7 @@ steps in this section to insert and query encrypted documents.
 
       .. literalinclude:: /includes/csfle/python/insert_encrypted_document.py
          :language: python
+         :caption: python-csfle/insert_encrypted_document.py
          :start-after: start-find-document
          :end-before: end-find-document
          :dedent:

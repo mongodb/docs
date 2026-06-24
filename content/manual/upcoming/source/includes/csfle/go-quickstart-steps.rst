@@ -1,206 +1,403 @@
+.. _csfle-quick-start-set-up-go:
+
+Set Up Your Project
+~~~~~~~~~~~~~~~~~~~
+
+Follow the steps in this section to create your project files and
+assign the required configuration variables.
 
 .. procedure::
-   :style: normal
+   :style: connected
 
-   .. step:: Create a {+cmk-long+}
+   .. step:: Install the dependencies.
 
-      You must create a {+cmk-long+} ({+cmk-abbr+}) to perform {+csfle-abbrev+}.
+      Create and navigate to a directory named ``go-csfle``, and then
+      initialize a Go module:
 
-      Create a 96-byte {+cmk-long+} and save it in your **Local Key Provider**,
-      which is your filesystem,
-      as the file ``master-key.txt``:
+      .. code-block:: bash
 
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/local/reader/make-data-key.go
-         :start-after: start-local-cmk
-         :end-before: end-local-cmk
+         mkdir go-csfle && cd go-csfle
+         go mod init go-csfle
+
+      Then, add the MongoDB Go Driver to your project by running the
+      following command:
+
+      .. code-block:: bash
+
+         go get go.mongodb.org/mongo-driver/v2/mongo
+
+   .. step:: Create your main project file.
+
+      Add a file named ``main.go`` to your ``go-csfle`` directory
+      and paste the following code:
+
+      .. literalinclude:: /includes/csfle/go/main.go
          :language: go
          :dedent:
+         :caption: go-csfle/main.go
 
-      In addition to byte strings, you can also use a Base64-encoded string as a
-      local key.
+      The ``main.go`` file contains your main function, which calls
+      the functions from your other project files in sequence.
+
+   .. step:: Create your data key file.
+
+      To generate a {+cmk-long+} and {+dek-long+}, create a file
+      named ``make_data_key.go`` in your ``go-csfle`` directory and
+      paste the following code:
+
+      .. code-block:: go
+         :caption: go-csfle/make_data_key.go
+
+         package main
+
+         import (
+            "context"
+            "crypto/rand"
+            "encoding/base64"
+            "fmt"
+            "os"
+
+            "go.mongodb.org/mongo-driver/v2/bson"
+            "go.mongodb.org/mongo-driver/v2/mongo"
+            "go.mongodb.org/mongo-driver/v2/mongo/options"
+         )
+
+         func MakeKey() error {
+            // Paste CMK generation code below
+
+            // Paste index creation code below
+
+            // Paste DEK creation code below
+
+            return nil
+         }
+
+      In future steps, you will add code to this file under each
+      corresponding comment.
+
+   .. step:: Create your encrypted operations file.
+
+      Next, create a file named ``insert_encrypted_document.go`` in
+      your ``go-csfle`` directory and paste the following code:
+
+      .. code-block:: go
+         :caption: go-csfle/insert_encrypted_document.go
+
+         package main
+
+         import (
+            "context"
+            "fmt"
+            "os"
+            "strings"
+
+            "go.mongodb.org/mongo-driver/v2/bson"
+            "go.mongodb.org/mongo-driver/v2/mongo"
+            "go.mongodb.org/mongo-driver/v2/mongo/options"
+         )
+
+         func Insert() error {
+            // Paste JSON schema below
+
+            // Paste client configuration code below
+
+            // Paste code to insert a document below
+
+            // Paste code to query the document below
+
+            return nil
+         }
+
+      In future steps, you will add code that inserts and queries
+      encrypted documents under each corresponding comment.
+
+   .. step:: Assign your configuration variables.
+
+      Each of your project files uses variables from a configuration
+      file. Create a file named ``config.go`` in your ``go-csfle``
+      directory and paste the following code:
+
+      .. literalinclude:: /includes/csfle/go/config.go
+         :language: go
+         :dedent:
+         :caption: go-csfle/config.go
+
+      Then, replace the following placeholder values:
+
+      - ``<connection string>``: Your MongoDB connection string
+      - ``<Automatic Encryption Shared Library path>``: The full path
+        to your {+shared-library+}, which resembles the following paths:
+        
+        - **macOS**: ``/<crypt shared directory>/lib/mongo_crypt_v1.dylib``
+        - **Linux**: ``/<crypt shared directory>/lib/mongo_crypt_v1.so``
+        - **Windows**: ``C:\<crypt shared directory>\bin\mongo_crypt_v1.dll``
+
+      The ``config.go`` file instructs your application to store data
+      encryption keys in the ``encryption.__keyVault`` namespace.
+
+.. _csfle-quick-start-configure-go:
+
+Configure Encryption
+~~~~~~~~~~~~~~~~~~~~
+
+After setting up your project, follow the steps in this section to
+create an encryption key and configure your app for
+{+csfle-abbrev+}.
+
+.. procedure::
+   :style: connected
+
+   .. _csfle-quick-start-create-master-key-go:
+
+   .. step:: Create a {+cmk-long+}.
+
+      Paste the following code into your ``make_data_key.go`` file
+      under the ``// Paste CMK generation code below`` comment to
+      generate a 96-byte {+cmk-long+} ({+cmk-abbr+}) and save it to
+      your filesystem:
+
+      .. literalinclude:: /includes/csfle/go/make_data_key.go
+         :language: go
+         :start-after: start-generate-cmk
+         :end-before: end-generate-cmk
+         :dedent:
+         :caption: go-csfle/make_data_key.go
 
       .. include:: /includes/queryable-encryption/qe-warning-local-keys.rst
 
-      .. include:: /includes/in-use-encryption/cmk-csfle-bash.rst
+   .. step:: Create a unique index on your {+key-vault-long+}.
 
-      .. see:: Complete Code
-      
-         To view the complete code for making a {+cmk-long+}, see
-         `our Github repository <{+sample-app-url-csfle+}/go/local/reader/make-data-key.go>`__.
-      
-   .. step:: Create a Unique Index on your {+key-vault-long+}
+      {+csfle+} depends on server-enforced uniqueness of key alternate
+      names, so you must create a unique index on the
+      ``keyAltNames`` field in your {+key-vault-long+}.
 
-      Create a partial unique index on the ``keyAltNames`` field in your
-      ``encryption.__keyVault`` namespace. This index should have a 
-      ``partialFilterExpression`` for documents where ``keyAltNames`` exists.
+      Add the following code to your ``make_data_key.go`` file under
+      the ``// Paste index creation code below`` comment to connect
+      to MongoDB and create a partial unique index on the
+      ``keyAltNames`` field:
 
-      {+csfle+} depends on server-enforced uniqueness of key alternate names.
-
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/local/reader/make-data-key.go
+      .. literalinclude:: /includes/csfle/go/make_data_key.go
+         :language: go
          :start-after: start-create-index
          :end-before: end-create-index
-         :language: go
          :dedent:
+         :caption: go-csfle/make_data_key.go
 
-   .. step:: Create a {+dek-long+}
+   .. step:: Create a {+dek-long+}.
 
-      a. Read the {+cmk-long+} and Specify KMS Provider Settings
+      Add the following code to your ``make_data_key.go`` file under
+      the ``// Paste DEK creation code below`` comment to configure a
+      ``ClientEncryption`` instance and generate a {+dek-long+}:
 
-         Retrieve the contents of the {+cmk-long+} file that you generated
-         in the :ref:`Create a {+cmk-long+} <csfle-quick-start-create-master-key>` step of this guide.
+      .. literalinclude:: /includes/csfle/go/make_data_key.go
+         :language: go
+         :start-after: start-create-data-key
+         :end-before: end-create-data-key
+         :dedent:
+         :caption: go-csfle/make_data_key.go
 
-         Use the {+cmk-abbr+} value in your KMS provider settings. The
-         client uses these settings to discover the {+cmk-abbr+}. As
-         you are using the Local Key Provider, set the provider name to
-         ``local``.
+      The ``ClientEncryption`` instance uses your KMS provider
+      credentials, key vault namespace, and client to manage encryption
+      keys. Once configured, the code calls ``CreateDataKey`` to
+      generate a {+dek-long+} and writes it to a separate file.
 
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/local/reader/make-data-key.go
-            :start-after: start-kmsproviders
-            :end-before: end-kmsproviders
-            :language: go
-            :dedent:
+   .. step:: Define an encryption schema.
 
-      #. Create a Data Encryption Key
+      Add the following code to your
+      ``insert_encrypted_document.go`` file under the
+      ``// Paste JSON schema below`` comment to define an encryption
+      schema:
 
-         Construct a client with your MongoDB connection string and {+key-vault-long+}
-         namespace, and create a {+dek-long+}:
+      .. literalinclude:: /includes/csfle/go/insert_encrypted_document.go
+         :language: go
+         :start-after: start-json-schema
+         :end-before: end-json-schema
+         :dedent:
+         :caption: go-csfle/insert_encrypted_document.go
 
-         .. note:: {+key-vault-long-title+} Namespace Permissions
+      The code reads your {+dek-abbr+} ID and uses it to encrypt the
+      following fields in the ``medicalRecords.patients`` collection:
 
-            .. include:: /includes/note-key-vault-permissions
+      - ``insurance.policyNumber``: Deterministically encrypted
+      - ``ssn``: Deterministically encrypted
+      - ``bloodType``: Randomly encrypted
+      - ``medicalRecords``: Randomly encrypted
 
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/local/reader/make-data-key.go
-            :start-after: start-create-dek
-            :end-before: end-create-dek
-            :language: go
-            :dedent:
+      Deterministic encryption allows you to perform equality queries
+      on the encrypted fields. Random encryption provides stronger
+      security for fields that you don't need to query, because this
+      algorithm does not support read operations on the encrypted
+      fields.
 
-         The output from the code above should resemble the following:
+   .. step:: Create a {+csfle-abbrev+}-enabled client.
 
-         .. code-block:: none
-            :copyable: false
+      Paste the following code into your
+      ``insert_encrypted_document.go`` file under the
+      ``// Paste client configuration code below`` comment to create
+      two MongoDB clients:
 
-            DataKeyId [base64]: 3k13WkSZSLy7kwAAP4HDyQ==
+      .. literalinclude:: /includes/csfle/go/insert_encrypted_document.go
+         :language: go
+         :start-after: start-create-client
+         :end-before: end-create-client
+         :dedent:
+         :caption: go-csfle/insert_encrypted_document.go
 
-      .. see:: Complete Code
+      This code creates a ``MongoClient`` instance that uses
+      ``AutoEncryptionOptions``. The options specify your KMS provider
+      credentials, key vault namespace, encryption schema, and the
+      location of your {+shared-library+}. The code also creates a
+      standard ``MongoClient`` instance without automatic encryption.
+      In a future step, you will compare the output of both clients.
 
-         To view the complete code for making a {+dek-long+}, see
-         `our Github repository
-         <{+sample-app-url-csfle+}/go/local/reader/make-data-key.go>`__.
-      
-   .. step:: Configure the MongoClient
+      .. include:: /includes/tutorials/csfle-shared-lib-learn-more.rst
 
-      a. Specify the {+key-vault-long-title+} Namespace
+.. _csfle-quick-start-operations-go:
 
-         Specify ``encryption.__keyVault`` as the {+key-vault-long+}
-         namespace.
+Perform Encrypted Operations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/local/reader/insert-encrypted-document.go
-            :start-after: start-key-vault
-            :end-before: end-key-vault
-            :language: go
-            :dedent:
+After configuring your app and database connection, follow
+the steps in this section to insert and query encrypted documents.
 
-      #. Specify the Local {+cmk-long+}
+.. procedure::
+   :style: connected
 
-         Specify the KMS provider and specify your key inline:
+   .. _csfle-quick-start-insert-go:
 
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/local/reader/insert-encrypted-document.go
-            :start-after: start-kmsproviders
-            :end-before: end-kmsproviders
-            :language: go
-            :dedent:
+   .. step:: Insert a document with encrypted fields.
 
-      #. Create an Encryption Schema For Your Collection
+      Add the following code to your
+      ``insert_encrypted_document.go`` file under the
+      ``// Paste code to insert a document below`` comment to insert
+      a document into the ``medicalRecords.patients`` collection:
 
-         .. tip:: Add Your {+dek-long+} Base64 ID
+      .. literalinclude:: /includes/csfle/go/insert_encrypted_document.go
+         :language: go
+         :start-after: start-insert-document
+         :end-before: end-insert-document
+         :dedent:
+         :caption: go-csfle/insert_encrypted_document.go
 
-            Make sure to update the following code to include your Base64
-            {+dek-abbr+} ID. You received this value in the
-            :ref:`Generate your {+dek-long+} <csfle-local-create-dek>` step of this
-            guide.
-
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/local/reader/insert-encrypted-document.go
-            :start-after: start-schema
-            :end-before: end-schema
-            :language: go
-            :dedent:
-
-      #. Specify the Location of the {+shared-library+}
-
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/local/reader/insert-encrypted-document.go
-            :start-after: start-extra-options
-            :end-before: end-extra-options
-            :language: go
-            :dedent:
-         
-         .. include:: /includes/tutorials/csfle-shared-lib-learn-more.rst
-
-      #. Create the MongoClient
-
-         Instantiate a MongoDB client object with the following
-         automatic encryption settings:
-
-         .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/local/reader/insert-encrypted-document.go
-            :start-after: start-client
-            :end-before: end-client
-            :language: go
-            :dedent:
-
-   .. step:: Insert a Document with Encrypted Fields
-
-      Use your {+csfle-abbrev+}-enabled
-      ``MongoClient`` instance to insert a {+in-use-doc+} into the
-      ``medicalRecords.patients`` namespace using the following code
-      snippet:
-
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/local/reader/insert-encrypted-document.go
-          :start-after: start-insert
-          :end-before: end-insert
-          :language: go
-          :dedent:
-
-      .. note::
-
-         Rather than creating a raw BSON document, you can pass a struct with ``bson`` tags directly
-         to the driver for encoding.
-
-      When you insert a document, your {+csfle-abbrev+}-enabled client
-      encrypts the fields of your document such that it resembles the following:
+      When you insert the document, your {+csfle-abbrev+}-enabled
+      client automatically encrypts the specified fields. The stored
+      document resembles the following:
 
       .. literalinclude:: /includes/quick-start/inserted-doc-enc.json
          :language: json
          :copyable: false
 
-      .. see:: Complete Code
+   .. step:: Query encrypted data.
 
-         To view the complete code for inserting a {+in-use-doc+}, see
-         `our Github repository
-         <{+sample-app-url-csfle+}/go/local/reader/insert-encrypted-document.go>`__.
-         
-   .. step:: Retrieve Your {+in-use-doc-title+}
+      Add the following code to your
+      ``insert_encrypted_document.go`` file under the
+      ``// Paste code to query the document below`` comment to
+      retrieve the document with both a {+csfle-abbrev+}-enabled
+      client and a standard client:
 
-      Retrieve the {+in-use-doc+} you inserted in the
-      :ref:`Insert a Document with Encrypted Fields <csfle-quick-start-insert>`
-      step of this guide.
-
-      To show the functionality of {+csfle-abbrev+}, the following code snippet queries for
-      your document with a client configured for automatic {+csfle-abbrev+} as well as
-      a client that is not configured for automatic {+csfle-abbrev+}.
-
-      .. literalinclude:: /includes/generated/in-use-encryption/csfle/go/local/reader/insert-encrypted-document.go
-         :start-after: start-find
-         :end-before: end-find
+      .. literalinclude:: /includes/csfle/go/insert_encrypted_document.go
          :language: go
+         :start-after: start-find-document
+         :end-before: end-find-document
          :dedent:
+         :caption: go-csfle/insert_encrypted_document.go
 
-      The output of the preceding code snippet should look like this:
+      The {+csfle-abbrev+}-enabled client automatically decrypts the
+      encrypted fields when it retrieves the document. The standard
+      client returns the encrypted binary values.
 
-      .. literalinclude:: /includes/quick-start/find-output.out
-         :language: json
+   .. step:: Run the application.
+
+      To install required dependencies, run the following command
+      from your project directory:
+
+      .. code-block:: bash
+
+         go mod tidy
+
+      Then start the application:
+
+      .. code-block:: bash
+
+         go run -tags cse .
+
+      .. note::
+
+         Go CSFLE applications require the ``-tags cse`` build
+         flag to run.
+
+      If successful, your output resembles the following example:
+
+      .. code-block:: none
          :copyable: false
 
-      .. see:: Complete Code
+         ============================================================
+         Running make_data_key...
+         ============================================================
+         DataKeyId [base64]: <dataKeyId>
 
-         To view the complete code for finding a {+in-use-doc+}, see
-         `our Github repository <{+sample-app-url-csfle+}/go/local/reader/insert-encrypted-document.go>`__.
+         ============================================================
+         Running insert_encrypted_document...
+         ============================================================
+         Finding a document with the regular (non-encrypted) client:
+         {
+             "_id": {
+                 "$oid": "..."
+             },
+             "name": "Jon Doe",
+             "ssn": {
+                 "$binary": {
+                     "base64": "...",
+                     "subType": "06"
+                 }
+             },
+             "bloodType": {
+                 "$binary": {
+                     "base64": "...",
+                     "subType": "06"
+                 }
+             },
+             "medicalRecords": {
+                 "$binary": {
+                     "base64": "...",
+                     "subType": "06"
+                 }
+             },
+             "insurance": {
+                 "provider": "MaestCare",
+                 "policyNumber": {
+                     "$binary": {
+                         "base64": "...",
+                         "subType": "06"
+                     }
+                 }
+             }
+         }
+
+         Finding a document with the encrypted client:
+         {
+             "_id": {
+                 "$oid": "..."
+             },
+             "name": "Jon Doe",
+             "ssn": 241014209,
+             "bloodType": "AB+",
+             "medicalRecords": [
+                 {
+                     "bloodPressure": "120/80",
+                     "weight": 180
+                 }
+             ],
+             "insurance": {
+                 "provider": "MaestCare",
+                 "policyNumber": 123142
+             }
+         }
+
+         ============================================================
+         All scripts completed successfully!
+         ============================================================
+
+      The output includes your {+dek-abbr+} ID, the encrypted
+      document as stored in your database, and the decrypted document
+      retrieved with your {+csfle-abbrev+}-enabled client.
