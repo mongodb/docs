@@ -30,6 +30,7 @@ import stableStringify from 'fast-json-stable-stringify';
 // Tabs-selector is already handled in frontmatter
 // IA is legacy toc
 const DIRECTIVES_TO_REMOVE = [
+  'cssclass',
   'default-domain',
   'dismissible-skills-card',
   'ia',
