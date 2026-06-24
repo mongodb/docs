@@ -79,10 +79,14 @@ const linkStyling = (linkThemeStyle: LinkThemeStyle) => css`
  */
 function addOfflineIndexHtml(url: string): string {
   const hashIdx = url.indexOf('#');
-  if (hashIdx === -1) return url.replace(/\/?$/, '/index.html');
-  const path = url.slice(0, hashIdx);
-  const hash = url.slice(hashIdx).replace(/\/$/, '');
-  return path.replace(/\/?$/, '/index.html') + hash;
+  const rawPath = hashIdx === -1 ? url : url.slice(0, hashIdx);
+  const hash = hashIdx === -1 ? '' : url.slice(hashIdx).replace(/\/$/, '');
+  // Strip a trailing slash before checking so a path that already ends in
+  // index.html (e.g. links pre-processed by useProcessedUnifiedToc, then given a
+  // trailing slash by assertLeadingAndTrailingSlash) doesn't get a second one.
+  const path = rawPath.replace(/\/$/, '');
+  if (path.endsWith('/index.html')) return path + hash;
+  return path + '/index.html' + hash;
 }
 
 // Symlinks (absolute mongodb.com/docs URLs) render with a rotated ArrowRight glyph.
