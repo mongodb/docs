@@ -1,3 +1,11 @@
+.. _atlas-sp-20260611:
+
+11 June 2026 Release
+--------------------
+
+- Adds the ability to change the tier of a stream processor in
+  {+mongosh+}. To learn more, see :method:`sp.processor.modify()`.
+
 .. _atlas-sp-20260605:
 
 5 June 2026 Release
