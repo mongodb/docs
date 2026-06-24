@@ -138,6 +138,9 @@ const fetchAndParseInclude = async ({
 
     resolveReplacementReferences(parsed, replacementSlots ?? {});
 
+    // Resolve any <Include> nodes introduced by the replacement slots above.
+    await resolveIncludes({ tree: parsed, projectPath, includeStack: nextStack });
+
     return parsed;
   } catch (err) {
     console.warn(`[remarkResolveImports] Failed to include: ${src}`, err);

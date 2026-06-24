@@ -167,3 +167,81 @@ describe('remarkResolveImports — nested-include substitution propagation', () 
     expect(output).not.toContain('type="substitution"');
   });
 });
+
+describe('remarkResolveImports — <Include> nodes inside <Replacement> slots', () => {
+  // Regression test for the bug where <Include> nodes nested inside <Replacement> slots
+  // were injected into the template AFTER the initial resolveIncludes pass, leaving raw
+  // <Include> JSX in the compiled output and crashing React at render time.
+  //
+  // Real-world example: arrays.mdx supplies <Replacement name="positional-code-example-tabs">
+  // which contains <Include src="/_includes/update-one/positional-operator-code-intro" />.
+  const PROJECT = 'test';
+
+  // The top-level page passes a Replacement slot that itself contains an <Include>.
+  const PAGE_MDX = [
+    '<Include src="/_includes/template">',
+    '  <Replacement name="code-intro">',
+    '    <Include src="/_includes/intro-snippet" />',
+    '  </Replacement>',
+    '</Include>',
+    '',
+  ].join('\n');
+
+  // The template references the replacement slot where the include will land.
+  const TEMPLATE_MDX = [
+    '## Section',
+    '',
+    '<Reference refKey="code-intro" type="replacement" />',
+    '',
+    'Some template content.',
+    '',
+  ].join('\n');
+
+  // The inner include that must be resolved from within the slot.
+  const INTRO_SNIPPET_MDX = 'Before running this example, call `connect()`.\n';
+
+  const REFERENCES_JSON = JSON.stringify({ substitutions: {}, refs: {} });
+
+  const blobFor = (mdxPath: string) => `mdx/${PROJECT}/${mdxPath}`;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetBlobStringWithFallback.mockImplementation(async (relativePath: string) => {
+      const key = getBlobKey(relativePath);
+      const map: Record<string, string> = {
+        [blobFor('_includes/template.mdx')]: TEMPLATE_MDX,
+        [blobFor('_includes/intro-snippet.mdx')]: INTRO_SNIPPET_MDX,
+        [`reference/${PROJECT}/_references.json`]: REFERENCES_JSON,
+      };
+      return map[key] ?? null;
+    });
+  });
+
+  const resolve = async (topPageMdx: string): Promise<string> => {
+    const file = await remark()
+      .use(remarkFrontmatter, ['yaml'])
+      .use(remarkGfm)
+      .use(remarkMdx)
+      .use(remarkResolveImports, { projectPath: PROJECT })
+      .process(topPageMdx);
+    return String(file);
+  };
+
+  it('resolves an <Include> nested inside a <Replacement> slot', async () => {
+    const output = await resolve(PAGE_MDX);
+
+    // The inner include's content should appear in the output.
+    expect(output).toContain('call `connect()`');
+    // Template content should be present too.
+    expect(output).toContain('Some template content');
+    // No raw <Include> tags should remain in the output.
+    expect(output).not.toContain('<Include');
+  });
+
+  it('does not leave raw <Include> components that would crash React at render time', async () => {
+    const output = await resolve(PAGE_MDX);
+
+    // A raw unresolved <Include> would look like `<Include src="..." />` in the serialised output.
+    expect(output).not.toMatch(/<Include\s/);
+  });
+});
