@@ -78,6 +78,12 @@ const tocData: TocItem[] = [
             url: '/docs/entity-framework/:version/fundamentals/indexes',
             versions: { excludes: ['v8.0', 'v8.1'] },
           },
+          {
+            label: 'Queryable Encryption',
+            contentSite: 'entity-framework',
+            url: '/docs/entity-framework/:version/fundamentals/queryable-encryption',
+            versions: { excludes: efVersions.before('v8.3') },
+          },
         ],
       },
       {

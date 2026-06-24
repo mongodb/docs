@@ -90,6 +90,14 @@ export const toc: L1TocItem[] = [
                   excludes: ['v8.0', 'v8.1'],
                 },
               },
+              {
+                label: 'Queryable Encryption',
+                contentSite: 'entity-framework',
+                url: '/docs/entity-framework/:version/fundamentals/queryable-encryption',
+                versions: {
+                  excludes: ['v8.0', 'v8.1', 'v8.2'],
+                },
+              },
             ],
           },
           {

@@ -1,0 +1,1 @@
+MongoClientSettings.Extensions.AddAutoEncryption();
