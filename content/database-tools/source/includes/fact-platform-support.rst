@@ -56,14 +56,14 @@
   * - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS 9
     - |checkmark|
     - |checkmark|
-    - 
-    -
-    
+    - |checkmark|
+    - |checkmark|
+
   * - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS 8
     - |checkmark|
     -
     - |checkmark|
-    -
+    - |checkmark|
 
   * - :abbr:`RHEL (Red Hat Enterprise Linux)` / CentOS 7
     - |checkmark|
