@@ -10,6 +10,8 @@ Improvements
 
 - Updates the {+mdbagent+} to
   :ref:`108.0.24.9016-1 <mongodb-108.0.24.9016-1>`.
+- Supports :dbtools:`MongoDB Database Tools 100.17.0
+  </release-notes/dbtools-100.17.0-changelog>`.
 - Adds support for the MongoDB Connector for BI 2.14.28.
 - Adds support for MongoDB on RHEL 9 (``ppc64le``) in the
   |onprem| UI.
