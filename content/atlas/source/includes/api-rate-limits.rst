@@ -1,4 +1,4 @@
-.. Last updated: June 16, 2026 at 3:47 PM EDT
+.. Last updated: June 24, 2026 at 3:07 PM EDT
 
 .. _api-rate-limits-aws-clusters-dns:
 
@@ -1196,6 +1196,7 @@ Streams
 * **DELETE** ``/api/atlas/v2/groups/{groupId}/streams/vpcPeeringConnections/{id}``
 * **DELETE** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}``
 * **DELETE** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}``
+* **DELETE** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections/{failoverConnectionId}``
 * **DELETE** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}``
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams``
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams/accountDetails``
@@ -1207,17 +1208,21 @@ Streams
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/auditLogs``
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections``
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}``
+* **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections``
+* **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections/{failoverConnectionId}``
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}``
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processors``
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}:downloadOperationalLogs``
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}``
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}``
+* **PATCH** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections/{failoverConnectionId}``
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}``
 * **POST** ``/api/atlas/v2/groups/{groupId}/streams``
 * **POST** ``/api/atlas/v2/groups/{groupId}/streams/privateLinkConnections``
 * **POST** ``/api/atlas/v2/groups/{groupId}/streams/vpcPeeringConnections/{id}:accept``
 * **POST** ``/api/atlas/v2/groups/{groupId}/streams/vpcPeeringConnections/{id}:reject``
 * **POST** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections``
+* **POST** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections``
 * **POST** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor``
 * **POST** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}:start``
 * **POST** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}:startWith``
