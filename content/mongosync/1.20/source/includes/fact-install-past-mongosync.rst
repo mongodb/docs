@@ -1,0 +1,1 @@
+This tutorial installs the latest version of ``mongosync``.

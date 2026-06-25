@@ -14,10 +14,11 @@ const allVersions: string[] = [
   'v1.18',
   'v1.19',
   'v1.20',
+  'v1.21',
 ];
 const deprecatedVersions: string[] = ['v1.9'];
 
-const namedVersions = new Map<string, string>([['v1.20', 'current']]);
+const namedVersions = new Map<string, string>([['v1.21', 'current']]);
 
 const mongosyncVersions = new Versions(
   allVersions,

@@ -62,8 +62,9 @@ Behavior
 - When ``mongosync`` is in the ``IDLE`` state, all output
   fields except ``state`` and ``canCommit`` are ``null``.
   
-- When ``mongosync`` is in the ``PAUSED`` state, the
-  ``lagTimeSeconds`` field is ``null``.
+- When ``mongosync`` is in the ``PAUSED`` state, the ``lag``
+  object is ``null`` and the deprecated ``lagTimeSeconds`` field
+  is ``null``.
 
 - When ``mongosync`` is in the ``INITIALIZING`` state, ``mongosync``  rejects
   ``/start`` requests. Once initialization completes, ``mongosync`` returns 
@@ -79,13 +80,13 @@ Behavior
   copy phase return 0 for ``estimatedCopiedBytes`` and 1 for 
   ``estimatedTotalBytes``.
 
-- ``estimatedTotalBytes`` may change throughout the collection copy 
-  phase if documents are inserted or deleted on the source cluster.
+- During collection copy, ``estimatedTotalBytes`` only changes if
+  ``estimatedCopiedBytes`` exceeds it. In that case, ``mongosync``
+  raises ``estimatedTotalBytes`` to equal ``estimatedCopiedBytes``.
 
-- ``estimatedCopiedBytes`` is never greater than 
-  ``estimatedTotalBytes``. Progress reaches 100% at the end of the 
-  collection copy phase (``estimatedCopiedBytes`` = 
-  ``estimatedTotalBytes``).
+- At the end of collection copy, ``estimatedTotalBytes`` equals
+  ``estimatedCopiedBytes``. ``mongosync`` uses the total bytes copied
+  as the source of truth. Both values are best-effort estimates.
 
 Endpoint Protection
 ~~~~~~~~~~~~~~~~~~~

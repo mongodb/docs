@@ -16,15 +16,24 @@
    * - ``canCommit``
      - boolean
      - If ``true``, indicates that a :ref:`commit <c2c-api-commit>`
-       request will succeed. This also means that:
+       request succeeds. This also means that:
 
-       - The initial sync has completed and is applying change events. 
-       - The embedded verifier is in an appropriate state for commit.
-       
-       If you set :ref:`buildIndexes
-       <mongosync-build-indexes>` to ``"afterDataCopy"`` or ``"excludeHashedAfterCopy"``
-       when calling ``start``, ``{canCommit: true}`` also indicates that 
-       index builds are complete.
+       - The initial sync has completed and is applying change
+         events.
+       - The embedded verifier is in an appropriate state for
+         commit.
+       - The lag for ``mongosync`` and the embedded verifier is
+         30 seconds or less.
+
+       If you set :ref:`buildIndexes <mongosync-build-indexes>`
+       to ``"afterDataCopy"`` or ``"excludeHashedAfterCopy"``
+       when calling ``start``, ``{canCommit: true}`` also
+       indicates that index builds are complete.
+
+       .. versionchanged:: 1.21
+
+          ``canCommit`` is ``false`` when ``mongosync`` or the
+          embedded verifier reports more than 30 seconds of lag.
 
    * - ``canWrite``
      - boolean
@@ -74,31 +83,63 @@
        - ``"waiting for commit to complete"``
        - ``"commit completed"``
 
+   * - ``lag``
+     - object
+     - Reports synchronization lag broken down by component. The ``lag``
+       object is ``null`` when ``mongosync`` is in the ``IDLE`` or
+       ``PAUSED`` state.
+
+       .. versionadded:: 1.21
+
+   * - ``lag.overallLagSeconds``
+     - integer
+     - Time difference in seconds between the latest event timestamp
+       that ``mongosync`` applied to the destination cluster and the
+       latest timestamp on the source cluster. Equals ``lagTimeSeconds``
+       in all states.
+
+       .. versionadded:: 1.21
+
+   * - ``lag.crudLagSeconds``
+     - integer
+     - CRUD component of the synchronization lag in seconds. This field
+       is ``null`` when ``mongosync`` has not yet set the source
+       timestamp for CRUD operations.
+
+       .. versionadded:: 1.21
+
+   * - ``lag.ddlLagSeconds``
+     - integer
+     - DDL component of the synchronization lag in seconds. This field
+       is ``null`` when the DDL applier is disabled (for example, when
+       the source server version is earlier than 6.0) or when no DDL
+       event has been applied yet.
+
+       .. versionadded:: 1.21
+
    * - ``lagTimeSeconds``
      - integer
-     - Time difference in seconds between the latest event timestamp that
-       ``mongosync`` applied to the destination cluster and the latest
-       timestamp on the source cluster for this instance of ``mongosync``.
+     - *Deprecated in mongosync 1.21.* Use ``lag.overallLagSeconds``
+       instead. This field may be removed in a future version.
 
-       ``mongosync`` performs periodic no-op writes on the source cluster,
-       which may prevent the value of the ``lagTimeSeconds`` field from
-       reaching zero until ``mongosync`` commits the migration.
+       Time difference in seconds between the latest event timestamp
+       that ``mongosync`` applied to the destination cluster and the
+       latest timestamp on the source cluster for this instance of
+       ``mongosync``.
+
+       ``mongosync`` performs periodic no-op writes on the source
+       cluster, which may prevent the value of the ``lagTimeSeconds``
+       field from reaching zero until ``mongosync`` commits the
+       migration.
 
        Due to constant no-ops on the source cluster, the time difference
        is often a few seconds above zero, even if there are no real
        writes on the source cluster. The time difference becomes zero
        when ``mongosync`` commits the migration.
 
-       With the introduction of the :ref:`embdedded verfier<c2c-embedded-verifier>`
-       in version 1.9, there are three different ``lagTimeSeconds`` fields whenever
-       embedded verification is enabled: 
-       
-       - ``lagTimeSeconds`` for ``mongosync``
-       - ``lagTimeSeconds`` for the source cluster for the verifier
-       - ``lagTimeSeconds`` for the destination cluster for the verifier
-
-       When embdedded verification is disabled, ``lagTimeSeconds`` only applies
-       to ``mongosync``.
+       As of version 1.9, ``/progress`` also reports verifier lag. See
+       ``verification.source.lagTimeSeconds`` and
+       ``verification.destination.lagTimeSeconds`` in this table.
 
    * - ``totalEventsApplied``
      - integer
@@ -120,31 +161,30 @@
      - Estimated total number of bytes to be copied globally by all
        ``mongosync`` instances during the initial copying of
        collections.
-       
 
-       ``mongosync`` approximates the estimated total number of bytes
-       prior to migration and does not update this value during the
-       synchronization process. This value does not reflect changes
-       made to the source cluster during sync and is not an accurate
-       indicator of migration progress. 
+       ``mongosync`` calculates this value before collection copy
+       begins. During collection copy, this value only changes if
+       ``estimatedCopiedBytes`` exceeds it, in which case ``mongosync``
+       raises ``estimatedTotalBytes`` to equal ``estimatedCopiedBytes``.
+       After collection copy completes, ``estimatedTotalBytes`` equals
+       ``estimatedCopiedBytes``. This value is a best-effort estimate.
 
    * - ``collectionCopy``
        ``.estimatedCopiedBytes``
      - integer
-     - Estimated number of bytes which have been copied to the destination
-       cluster by this ``mongosync`` instance during the initial copying of 
+     - Estimated number of bytes copied to the destination cluster by
+       this ``mongosync`` instance during the initial copying of
        collections.
 
-       To calculate the total estimated progress as a percentage, add the value
-       of the ``estimatedCopiedBytes`` field for each ``mongosync`` instance
-       and divide the result by the value of the ``estimatedTotalBytes`` field
-       . Then, multiply the result by 100.
+       To calculate total estimated progress as a percentage:
 
-       The value of ``estimatedCopiedBytes`` may be larger than the
-       value of the ``estimatedTotalBytes`` due to retried operations.
-       A comparison of ``estimatedTotalBytes`` and
-       ``estimatedCopiedBytes`` is not an accurate indicator of
-       migration progress.  
+       #. Add the ``estimatedCopiedBytes`` value for each
+          ``mongosync`` instance.
+       #. Divide the result by ``estimatedTotalBytes``.
+       #. Multiply the result by 100.
+
+       Both values are best-effort estimates and may not accurately
+       reflect actual migration progress.
 
    * - ``destination.`` ``pingLatencyMs``
      - integer

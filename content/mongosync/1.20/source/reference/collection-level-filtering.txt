@@ -1,0 +1,232 @@
+.. _c2c-filtered-sync:
+
+=============
+Filtered Sync
+=============
+
+.. meta::
+   :keywords: cluster to cluster sync, cluster-to-cluster sync
+
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: twocols
+
+.. versionadded:: 1.1
+
+.. include:: /includes/api/facts/filtering-intro.rst
+
+Starting in 1.1, ``mongosync`` supports inclusion filters to specify which
+databases and collections to include in sync.  Starting in 1.6, ``mongosync``
+also supports exclusion filters and regular expressions.
+
+- With inclusion filters, ``mongosync`` syncs matching
+  databases and collections.
+- With exclusion filters, ``mongosync`` syncs all databases
+  and collections, except for those that match the filters.
+- With both inclusion and exclusion filters, ``mongosync`` only syncs
+  databases and collections that match the inclusion filters then excludes
+  any that also match the exclusion filters.
+- With no filters, ``mongosync`` syncs all databases and collections.
+
+.. _c2c-filter-syntax:
+
+Filter Syntax
+-------------
+
+The :ref:`c2c-api-start` API endpoint accepts two fields that configure 
+filtered sync: ``includeNamespaces`` and ``excludeNamespaces``.
+Each field takes an array of filters that specify the databases and collections 
+to include or exclude from sync.
+
+.. note::
+
+   If the :ref:`c2c-api-start` call uses both ``includeNamespaces`` and 
+   ``excludeNamespaces`` parameters, ``mongosync`` first matches databases
+   and collections from the inclusion filters, then excludes those that
+   also match an exclusion filter.
+
+Filters have the following syntax:
+
+.. literalinclude:: /code-examples/reference/collection-level-filtering/1.json
+   :language: json
+   :copyable: false
+
+To learn more about the ``pattern`` and ``options`` regular expression syntax, see :ref:`c2c-filter-regex`. 
+
+Filters must include either the ``database`` field or the ``databaseRegex`` field.
+
+If you need the filter to match specific collections, you can use either 
+the ``collections`` array to specify collections individually or define 
+a regular expression using the ``collectionsRegex`` field.
+
+.. _c2c-configure-filter:
+
+Configure a Filter
+------------------
+
+.. important::
+
+   Once you start ``mongosync`` with a filter in place, the filter
+   cannot be modified. If you do need to create a new filter,
+   see: :ref:`mongosync-restart-migration`.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Identify Databases and Collections.
+
+      Identify the databases and collections that you want to sync to
+      the destination cluster. 
+
+      - When you add a set of databases to the filter, you also exclude any
+        other databases in the cluster.
+      
+      - When you specify a collection in your filter, you also exclude any
+        other collections that are in the same database.
+
+   .. step:: Create a Filter.
+
+      The :ref:`c2c-api-start` API accepts two parameters that configure
+      optional filters: 
+      
+      - The ``includeNamespaces`` parameter takes an array of filters, which
+        are used to determines which databases and collections ``mongosync`` 
+        should include in the sync.
+      - The ``excludeNamespaces`` parameter takes an array of filters, which
+        are used to determine which databases and collections ``mongosync``
+        should exclude from the sync.
+     
+      If you don't specify a filter, ``mongosync`` performs a full cluster
+      sync.
+
+      Create inclusion and/or exclusion filters to identify the databases and
+      collections you want to sync.
+
+      For example, this inclusion filter would configure ``mongosync`` to only
+      sync collections whose names begin with ``accounts_`` from the ``sales`` 
+      database, except for the ``accounts_old`` collection:
+
+      .. literalinclude:: /code-examples/reference/collection-level-filtering/2.json
+         :language: json
+
+      For more information on filters, see :ref:`c2c-filter-syntax`. 
+
+   .. step:: Use the Filter.
+
+      To use the filter, attach the filter json when you make the
+      :ref:`/start <c2c-api-start>` API call to begin syncing.
+
+      .. literalinclude:: /includes/api/requests/start-filtered.sh
+         :language: bash
+
+For an example configuration, see: :ref:`c2c-example-start-with-filter`.
+
+.. _c2c-change-filter:
+
+Replace an Existing Filter
+--------------------------
+
+You cannot update an existing filter. You must stop the ongoing sync
+process, prepare the destination cluster, and restart ``mongosync`` with
+a new filter. To restart ``mongosync``, see :ref:`mongosync-restart-migration`.
+
+.. _c2c-filter-renaming-collections:
+
+Adding and Renaming Collections
+-------------------------------
+
+You can, with some restrictions, add or :method:`rename a collection
+<db.collection.renameCollection>` during a filtered sync.
+
+.. warning::
+
+   If your renaming operation violates the renaming restrictions,
+   ``mongosync`` stops syncing and reports an error.
+
+   To clean up and restart after an error, follow the steps to
+   :ref:`replace an existing filter <c2c-change-filter>`.
+
+Adding and Renaming Within a Single Database
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can add new collections or rename an existing collection if the
+entire database is part of the filter. 
+
+You can also rename a collection if the old name and the new name are
+both specified in the filter. 
+
+See the :ref:`renaming examples <c2c-example-rename-while-syncing>`.
+
+Renaming Across Different Databases
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can only rename a collection across databases if the entire target
+database is part of a filter. If the filter specifies individual
+collections in the target database, renaming across databases does not
+work.
+
+See the :ref:`renaming examples <c2c-example-rename-while-syncing>`.
+
+
+.. _c2c-filter-with-out:
+
+Filtering with mapReduce and $out
+---------------------------------
+
+To use the :pipeline:`$out` aggregation stage or
+the :dbcommand:`mapReduce` command (when set to create
+or replace a collection) with filtering, you must 
+filter the whole database and not just
+the specified collection.
+
+For example, consider this aggregation pipeline:
+
+.. literalinclude:: /code-examples/reference/collection-level-filtering/6.js
+   :language: javascript
+
+The ``$out`` stage creates the ``authors`` collection in the ``library``
+database. If you want to sync the ``authors`` collection, you must
+specify the entire ``library`` database in your filter. The filter will
+not work if you only specify the ``authors`` collection.
+
+This filter works:
+
+.. literalinclude:: /code-examples/reference/collection-level-filtering/7.json
+   :language: json
+
+This filter does not work: 
+
+.. literalinclude:: /code-examples/reference/collection-level-filtering/8.json
+   :language: json
+
+Limitations
+-----------
+
+.. include:: /includes/limitations-filtering.rst
+
+Examples
+--------
+
+.. _c2c-example-start-with-filter:
+
+Start ``mongosync`` with a Filter
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/example-filter-collection.rst
+
+.. _c2c-example-rename-while-syncing:
+
+Adding and Renaming Collections While Syncing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/example-filter-collection-with-renaming.rst
+
+.. toctree::
+   :hidden:
+
+   Regular Expressions </reference/collection-level-filtering/filter-regex>
