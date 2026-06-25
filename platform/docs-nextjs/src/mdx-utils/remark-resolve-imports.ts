@@ -355,22 +355,32 @@ const resolveRefLinks = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
   applyReplacements(replacements);
 };
 
-/** Unwrap a single paragraph so inline `<Reference type="replacement" />` can become phrasing nodes.
+/** Block-level node types that must never be flattened into an inline (text) context. */
+const TRULY_BLOCK = new Set(['code', 'heading', 'blockquote', 'list', 'listItem', 'thematicBreak', 'table']);
+
+/** Convert a replacement-slot fragment into nodes appropriate for where the
+ * `<Reference type="replacement" />` appears.
  *
- * Also handles the legacy case where inline substitution content (e.g. :icon-mms: + :guilabel:)
- * was serialized with blank lines between elements by the converter, causing remark to re-parse
- * each element as mdxJsxFlowElement (block). When the fragment contains flow elements but no
- * truly-block content (code, heading, admonition, etc.), convert flow elements to text elements
- * and unwrap paragraphs so the nodes can be spliced into an inline context.
+ * Block context (`inline` is false — the reference is a flow element on its own line):
+ * splice the slot's nodes unchanged so block content (e.g. <Tabs> with code, a self-closing
+ * <Target>/<Instruqt>, tables) keeps its block structure. Forcing these into an inline node
+ * places phrasing nodes at the root, which makes remark-stringify drop the blank lines between
+ * blocks; the resulting MDX can no longer be re-parsed (the markdown-export `acorn` crash).
+ *
+ * Inline context (`inline` is true — the reference is a text element within a sentence):
+ * recover phrasing nodes by unwrapping a lone paragraph and flattening inline-only flow
+ * elements. This handles the legacy case where inline substitution content (e.g. :icon-mms: +
+ * :guilabel:) was serialized with blank lines and re-parsed as separate flow elements.
  */
-const replacementSlotToNodes = (fragment: Node[]): Node[] => {
+const replacementSlotToNodes = (fragment: Node[], inline: boolean): Node[] => {
+  if (!inline) return fragment;
+
   const [first] = fragment;
   if (fragment.length === 1 && first.type === 'paragraph') {
     return [...(first as Paragraph).children];
   }
-  // Inline-only content serialized as block: mdxJsxFlowElement nodes with no truly-block
-  // siblings. Convert flow→text and unwrap paragraphs to recover the intended inline nodes.
-  const TRULY_BLOCK = new Set(['code', 'heading', 'blockquote', 'list', 'listItem', 'thematicBreak', 'table']);
+  // Inline content serialized as block: flatten mdxJsxFlowElement nodes back to inline,
+  // unless the fragment contains a truly block-level node (which must keep its structure).
   if (fragment.some((n) => n.type === 'mdxJsxFlowElement') && !fragment.some((n) => TRULY_BLOCK.has(n.type))) {
     return fragment.flatMap((n) => {
       if (n.type === 'paragraph') return [...(n as Paragraph).children];
@@ -426,7 +436,11 @@ const resolveReplacementReferences = (tree: Root, slots: Record<string, Node[]>)
       return;
     }
 
-    replacements.push({ index, parent, replacement: replacementSlotToNodes(fragment) });
+    // A reference parsed inside a sentence is a text element (inline context); one on its
+    // own line is a flow element (block context). Only inline references should have their
+    // slot flattened to phrasing — block references must keep block-level slot content.
+    const inline = node.type === 'mdxJsxTextElement';
+    replacements.push({ index, parent, replacement: replacementSlotToNodes(fragment, inline) });
   });
 
   applyReplacements(replacements);
