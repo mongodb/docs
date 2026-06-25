@@ -11,6 +11,246 @@ export const toc: L1TocItem[] = [
         contentSite: 'laravel',
         group: true,
         versionDropdown: true,
+        versions: {
+          includes: ['current', 'upcoming'],
+        },
+        items: [
+          {
+            label: 'Overview',
+            contentSite: 'laravel',
+            url: '/docs/drivers/php/laravel-mongodb/:version/',
+          },
+          {
+            label: 'Get Started',
+            contentSite: 'laravel',
+            url: '/docs/drivers/php/laravel-mongodb/:version/get-started',
+          },
+          {
+            label: 'Connect',
+            contentSite: 'laravel',
+            collapsible: true,
+            items: [
+              {
+                label: 'Connection Guide',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/connect/connect-to-mongodb',
+              },
+              {
+                label: 'Connection Options',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/connect/connection-options',
+              },
+              {
+                label: 'TLS Configuration',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/connect/tls',
+              },
+            ],
+          },
+          {
+            label: 'Databases & Collections',
+            contentSite: 'laravel',
+            collapsible: true,
+            url: '/docs/drivers/php/laravel-mongodb/:version/database-collection',
+            items: [
+              {
+                label: 'Time Series',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/database-collection/time-series',
+              },
+            ],
+          },
+          {
+            label: 'Model Data',
+            contentSite: 'laravel',
+            collapsible: true,
+            items: [
+              {
+                label: 'Eloquent Model Class',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/model-data/model-class',
+              },
+              {
+                label: 'Relationships',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/model-data/relationships',
+              },
+              {
+                label: 'Schema Builder',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/model-data/schema-builder',
+              },
+            ],
+          },
+          {
+            label: 'Interact with Data',
+            contentSite: 'laravel',
+            collapsible: true,
+            items: [
+              {
+                label: 'Insert Documents',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/interact-data/insert',
+              },
+              {
+                label: 'Query Documents',
+                contentSite: 'laravel',
+                collapsible: true,
+                url: '/docs/drivers/php/laravel-mongodb/:version/interact-data/query',
+                items: [
+                  {
+                    label: 'Retrieve MongoDB Data',
+                    contentSite: 'laravel',
+                    url: '/docs/drivers/php/laravel-mongodb/:version/interact-data/query/retrieve',
+                  },
+                  {
+                    label: 'Search Text',
+                    contentSite: 'laravel',
+                    url: '/docs/drivers/php/laravel-mongodb/:version/interact-data/query/search-text',
+                  },
+                  {
+                    label: 'Modify Query Results',
+                    contentSite: 'laravel',
+                    url: '/docs/drivers/php/laravel-mongodb/:version/interact-data/query/modify-results',
+                  },
+                  {
+                    label: 'Read Preference',
+                    contentSite: 'laravel',
+                    url: '/docs/drivers/php/laravel-mongodb/:version/interact-data/query/read-pref',
+                  },
+                  {
+                    label: 'Query Logging',
+                    contentSite: 'laravel',
+                    url: '/docs/drivers/php/laravel-mongodb/:version/interact-data/query/query-logging',
+                  },
+                ],
+              },
+              {
+                label: 'Update Documents',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/interact-data/modify',
+              },
+              {
+                label: 'Delete Documents',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/interact-data/delete',
+              },
+              {
+                label: 'Aggregation',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/interact-data/aggregation-builder',
+              },
+              {
+                label: 'MongoDB Search',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/interact-data/atlas-search',
+              },
+              {
+                label: 'MongoDB Vector Search',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/interact-data/vector-search',
+              },
+              {
+                label: 'Query Builder',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/interact-data/query-builder',
+              },
+              {
+                label: 'Transactions',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/interact-data/transactions',
+              },
+              {
+                label: 'Store Large Files',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/interact-data/filesystems',
+              },
+              {
+                label: 'Tutorial: Build a Back End',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/interact-data/backend-service-tutorial',
+              },
+              {
+                label: 'Tutorial: Build a Full-Stack Application',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/interact-data/application-tutorial',
+              },
+            ],
+          },
+          {
+            label: 'Integrations',
+            contentSite: 'laravel',
+            collapsible: true,
+            items: [
+              {
+                label: 'Cache & Locks',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/integrations/cache',
+              },
+              {
+                label: 'Full-Text Search with Scout',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/integrations/scout',
+              },
+              {
+                label: 'HTTP Sessions',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/integrations/sessions',
+              },
+              {
+                label: 'Queues',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/integrations/queues',
+              },
+              {
+                label: 'User Authentication',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/integrations/user-authentication',
+              },
+            ],
+          },
+          {
+            label: 'Reference',
+            contentSite: 'laravel',
+            collapsible: true,
+            items: [
+              {
+                label: 'Upgrade',
+                contentSite: 'laravel',
+                url: '/docs/drivers/php/laravel-mongodb/:version/upgrade',
+              },
+              {
+                label: 'Release Notes',
+                isExternal: true,
+                url: 'https://github.com/mongodb/laravel-mongodb/releases/',
+              },
+            ],
+          },
+          {
+            label: 'Feature Compatibility',
+            contentSite: 'laravel',
+            url: '/docs/drivers/php/laravel-mongodb/:version/feature-compatibility',
+          },
+          {
+            label: 'Version Compatibility',
+            contentSite: 'drivers',
+            url: '/docs/drivers/compatibility/?driver-language=php&php-driver-framework=laravel',
+          },
+          {
+            label: 'Issues & Help',
+            contentSite: 'laravel',
+            url: '/docs/drivers/php/laravel-mongodb/:version/issues-and-help',
+          },
+        ],
+      },
+      {
+        label: 'Laravel MongoDB',
+        contentSite: 'laravel',
+        group: true,
+        versionDropdown: true,
+        versions: {
+          includes: ['v4.x'],
+        },
         items: [
           {
             label: 'Overview',
@@ -57,14 +297,6 @@ export const toc: L1TocItem[] = [
                 label: 'Next Steps',
                 contentSite: 'laravel',
                 url: '/docs/drivers/php/laravel-mongodb/:version/quick-start/next-steps',
-              },
-              {
-                label: 'Tutorial: Build a Back End',
-                contentSite: 'laravel',
-                url: '/docs/drivers/php/laravel-mongodb/:version/quick-start/backend-service-tutorial',
-                versions: {
-                  excludes: ['v4.x'],
-                },
               },
             ],
           },
@@ -194,14 +426,6 @@ export const toc: L1TocItem[] = [
                     contentSite: 'laravel',
                     url: '/docs/drivers/php/laravel-mongodb/:version/fundamentals/read-operations/read-pref',
                   },
-                  {
-                    label: 'Query Logging',
-                    contentSite: 'laravel',
-                    url: '/docs/drivers/php/laravel-mongodb/:version/fundamentals/read-operations/query-logging',
-                    versions: {
-                      excludes: ['v4.x'],
-                    },
-                  },
                 ],
               },
               {
@@ -231,22 +455,6 @@ export const toc: L1TocItem[] = [
                 label: 'Aggregation Builder',
                 contentSite: 'laravel',
                 url: '/docs/drivers/php/laravel-mongodb/:version/fundamentals/aggregation-builder',
-              },
-              {
-                label: 'MongoDB Search',
-                contentSite: 'laravel',
-                url: '/docs/drivers/php/laravel-mongodb/:version/fundamentals/atlas-search',
-                versions: {
-                  excludes: ['v4.x'],
-                },
-              },
-              {
-                label: 'MongoDB Vector Search',
-                contentSite: 'laravel',
-                url: '/docs/drivers/php/laravel-mongodb/:version/fundamentals/vector-search',
-                versions: {
-                  excludes: ['v4.x'],
-                },
               },
             ],
           },
@@ -300,22 +508,6 @@ export const toc: L1TocItem[] = [
             label: 'Cache & Locks',
             contentSite: 'laravel',
             url: '/docs/drivers/php/laravel-mongodb/:version/cache',
-          },
-          {
-            label: 'Scout Integration',
-            contentSite: 'laravel',
-            url: '/docs/drivers/php/laravel-mongodb/:version/scout',
-            versions: {
-              excludes: ['v4.x'],
-            },
-          },
-          {
-            label: 'HTTP Sessions',
-            contentSite: 'laravel',
-            url: '/docs/drivers/php/laravel-mongodb/:version/sessions',
-            versions: {
-              excludes: ['v4.x'],
-            },
           },
           {
             label: 'Queues',
