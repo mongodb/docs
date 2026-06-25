@@ -1,0 +1,69 @@
+name: Notify Slack on docs-maverick PR ready for review
+
+on:
+  pull_request:
+    types: [ready_for_review]
+
+permissions:
+  pull-requests: read
+  contents: read
+
+jobs:
+  notify-maverick:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check docs-maverick author and reviewers
+        id: check
+        uses: actions/github-script@v7
+        with:
+          # PAT (or fine-grained token) with read:org / "Members: Read".
+          # The default GITHUB_TOKEN cannot read org team membership.
+          github-token: ${{ secrets.DEPENDABOT_PAT }}
+          script: |
+            const ORG = '10gen';
+            const TEAM_SLUG = 'docs-maverick';
+
+            const pr = context.payload.pull_request;
+
+            // 1) Fetch all docs-maverick members once into a Set.
+            const members = await github.paginate(
+              github.rest.teams.listMembersInOrg,
+              { org: ORG, team_slug: TEAM_SLUG, per_page: 100 }
+            );
+            const team = new Set(members.map(m => m.login.toLowerCase()));
+
+            // Condition 1: PR author is on the team.
+            const author = pr.user.login;
+            const authorOnTeam = team.has(author.toLowerCase());
+
+            // Condition 2: at least one requested reviewer is on the team.
+            const reviewers = (pr.requested_reviewers || []).map(r => r.login);
+            const reviewerOnTeam = reviewers.some(r => team.has(r.toLowerCase()));
+
+            core.info(`Author: ${author} (on team: ${authorOnTeam})`);
+            core.info(`Requested reviewers: ${reviewers.join(', ') || '(none)'}`);
+            core.info(`A reviewer is on the team: ${reviewerOnTeam}`);
+
+            const shouldNotify = authorOnTeam && reviewerOnTeam;
+            core.setOutput('notify', String(shouldNotify));
+
+            // Prefer the author's display name, fall back to their login.
+            let authorName = author;
+            try {
+              const { data: user } = await github.rest.users.getByUsername({ username: author });
+              if (user.name) authorName = user.name;
+            } catch (e) {
+              core.warning(`Could not fetch display name for ${author}: ${e.message}`);
+            }
+            core.setOutput('author_name', authorName);
+
+      - name: Send Slack notification
+        if: steps.check.outputs.notify == 'true'
+        uses: slackapi/slack-github-action@v2.1.0
+        with:
+          webhook: ${{ secrets.SLACK_MAVERICK_WEBHOOK }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "New PR for the team to review, opened by ${{ steps.check.outputs.author_name }}: <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>"
+            }
