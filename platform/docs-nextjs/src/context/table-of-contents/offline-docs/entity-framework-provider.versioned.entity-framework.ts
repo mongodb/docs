@@ -18,82 +18,89 @@ export const toc: L1TocItem[] = [
             url: '/docs/entity-framework/:version',
           },
           {
-            label: 'Quick Start',
+            label: 'Get Started',
             contentSite: 'entity-framework',
-            url: '/docs/entity-framework/:version/quick-start',
+            url: '/docs/entity-framework/:version/get-started',
           },
           {
-            label: 'Connection Troubleshooting',
-            isExternal: true,
-            url: 'https://www.mongodb.com/docs/drivers/csharp/current/connect/connection-troubleshooting/',
-          },
-          {
-            label: 'Quick Reference',
-            contentSite: 'entity-framework',
-            url: '/docs/entity-framework/:version/quick-reference',
-          },
-          {
-            label: 'Fundamentals',
+            label: 'Connect',
             contentSite: 'entity-framework',
             collapsible: true,
-            url: '/docs/entity-framework/:version/fundamentals',
             items: [
               {
                 label: 'Configuration',
                 contentSite: 'entity-framework',
-                url: '/docs/entity-framework/:version/fundamentals/configure',
+                url: '/docs/entity-framework/:version/connect/configure',
               },
               {
-                label: 'Query Data',
+                label: 'Connection Troubleshooting',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/drivers/csharp/current/connect/connection-troubleshooting/',
+              },
+            ],
+          },
+          {
+            label: 'Model Data',
+            contentSite: 'entity-framework',
+            collapsible: true,
+            items: [
+              {
+                label: 'Entity Relationships',
                 contentSite: 'entity-framework',
-                url: '/docs/entity-framework/:version/fundamentals/query-data',
+                url: '/docs/entity-framework/:version/model-data/relationships',
               },
               {
-                label: 'Write Data',
+                label: 'Indexes',
                 contentSite: 'entity-framework',
-                url: '/docs/entity-framework/:version/fundamentals/write-data',
+                url: '/docs/entity-framework/:version/model-data/indexes',
               },
               {
-                label: 'Transactions',
+                label: 'Optimistic Concurrency',
                 contentSite: 'entity-framework',
-                url: '/docs/entity-framework/:version/fundamentals/transactions',
-                versions: {
-                  excludes: ['v8.0', 'v8.1', 'v8.2'],
-                },
+                url: '/docs/entity-framework/:version/model-data/optimistic-concurrency',
               },
+            ],
+          },
+          {
+            label: 'Interact with Data',
+            contentSite: 'entity-framework',
+            collapsible: true,
+            items: [
               {
-                label: 'Run an Atlas Vector Search Query',
+                label: 'MongoDB Vector Search',
                 contentSite: 'entity-framework',
-                url: '/docs/entity-framework/:version/fundamentals/atlas-vector-search',
+                url: '/docs/entity-framework/:version/interact-data/atlas-vector-search',
                 versions: {
                   excludes: ['v8.0', 'v8.1', 'v8.2', 'v8.3', 'v8.4'],
                 },
               },
               {
-                label: 'Entity Relationships',
+                label: 'Quick Reference',
                 contentSite: 'entity-framework',
-                url: '/docs/entity-framework/:version/fundamentals/relationships',
+                url: '/docs/entity-framework/:version/interact-data/quick-reference',
               },
               {
-                label: 'Optimistic Concurrency',
+                label: 'Query Data',
                 contentSite: 'entity-framework',
-                url: '/docs/entity-framework/:version/fundamentals/optimistic-concurrency',
+                url: '/docs/entity-framework/:version/interact-data/query-data',
+              },
+              {
+                label: 'Transactions',
+                contentSite: 'entity-framework',
+                url: '/docs/entity-framework/:version/interact-data/transactions',
                 versions: {
-                  excludes: ['v8.0'],
+                  excludes: ['v8.0', 'v8.1', 'v8.2'],
                 },
               },
               {
-                label: 'Indexes',
+                label: 'Write Data',
                 contentSite: 'entity-framework',
-                url: '/docs/entity-framework/:version/fundamentals/indexes',
-                versions: {
-                  excludes: ['v8.0', 'v8.1'],
-                },
+                url: '/docs/entity-framework/:version/interact-data/write-data',
               },
               {
                 label: 'Queryable Encryption',
                 contentSite: 'entity-framework',
-                url: '/docs/entity-framework/:version/fundamentals/queryable-encryption',
+                url: '/docs/entity-framework/:version/interact-data/queryable-encryption',
                 versions: {
                   excludes: ['v8.0', 'v8.1', 'v8.2'],
                 },
@@ -101,40 +108,42 @@ export const toc: L1TocItem[] = [
             ],
           },
           {
-            label: 'Limitations',
+            label: 'Reference',
+            contentSite: 'entity-framework',
+            collapsible: true,
+            items: [
+              {
+                label: 'FAQ',
+                contentSite: 'entity-framework',
+                url: '/docs/entity-framework/:version/reference/faq',
+              },
+              {
+                label: 'Release Notes',
+                contentSite: 'entity-framework',
+                url: '/docs/entity-framework/:version/reference/release-notes',
+                versions: {
+                  excludes: ['v8.0'],
+                },
+              },
+              {
+                label: 'Upgrade',
+                contentSite: 'entity-framework',
+                url: '/docs/entity-framework/:version/reference/upgrade',
+                versions: {
+                  excludes: ['v8.0'],
+                },
+              },
+            ],
+          },
+          {
+            label: 'Feature Limitations',
             contentSite: 'entity-framework',
             url: '/docs/entity-framework/:version/limitations',
           },
           {
-            label: 'Issues & Help',
-            contentSite: 'entity-framework',
-            url: '/docs/entity-framework/:version/issues-and-help',
-          },
-          {
-            label: 'FAQ',
-            contentSite: 'entity-framework',
-            url: '/docs/entity-framework/:version/faq',
-          },
-          {
-            label: 'Release Notes',
-            contentSite: 'entity-framework',
-            url: '/docs/entity-framework/:version/release-notes',
-            versions: {
-              excludes: ['v8.0'],
-            },
-          },
-          {
-            label: 'Upgrade',
-            contentSite: 'entity-framework',
-            url: '/docs/entity-framework/:version/upgrade',
-            versions: {
-              excludes: ['v8.0'],
-            },
-          },
-          {
-            label: 'Compatibility',
-            isExternal: true,
-            url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=csharp&csharp-driver-framework=entity-framework',
+            label: 'Version Compatibility',
+            contentSite: 'drivers',
+            url: '/docs/drivers/compatibility/?driver-language=csharp&csharp-driver-framework=entity-framework',
           },
           {
             label: 'API Documentation',
@@ -199,6 +208,11 @@ export const toc: L1TocItem[] = [
             versions: {
               includes: ['current', 'upcoming'],
             },
+          },
+          {
+            label: 'Issues & Help',
+            contentSite: 'entity-framework',
+            url: '/docs/entity-framework/:version/issues-and-help',
           },
         ],
       },
