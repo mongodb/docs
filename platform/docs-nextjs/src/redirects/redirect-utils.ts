@@ -50,6 +50,15 @@ function resolveDestination(
   if (ABSOLUTE_URL_RE.test(destination)) {
     return destination;
   }
-  const toPath = compile(destination, { encode: encodeURIComponent });
-  return toPath(params);
+  // Only the path portion is a path-to-regexp pattern. A query string or
+  // fragment may contain characters (e.g. `?`, `&`) that path-to-regexp v6
+  // interprets as modifiers, which throws "Unexpected MODIFIER". Split the
+  // suffix off, compile only the path, then re-append the suffix unchanged.
+  const suffixIndex = destination.search(/[?#]/);
+  const pathPart =
+    suffixIndex === -1 ? destination : destination.slice(0, suffixIndex);
+  const suffix = suffixIndex === -1 ? '' : destination.slice(suffixIndex);
+
+  const toPath = compile(pathPart, { encode: encodeURIComponent });
+  return toPath(params) + suffix;
 }

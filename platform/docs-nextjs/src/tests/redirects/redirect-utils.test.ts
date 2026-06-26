@@ -110,6 +110,57 @@ describe('redirect-utils', () => {
       expect(result?.statusCode).toBe(302);
     });
 
+    it('preserves a query string in the destination', () => {
+      const compiled = compileRedirects([
+        {
+          source: '/docs/languages/python/pymongo-driver/:version/reference/compatibility/',
+          destination: '/docs/drivers/compatibility/?driver-language=python&python-driver-framework=pymongo',
+          statusCode: 301,
+        },
+      ]);
+
+      const result = findMatchingRedirect(
+        '/docs/languages/python/pymongo-driver/current/reference/compatibility/',
+        compiled,
+      );
+      expect(result).toEqual({
+        destination: '/docs/drivers/compatibility/?driver-language=python&python-driver-framework=pymongo',
+        statusCode: 301,
+      });
+    });
+
+    it('interpolates params in the path while preserving the query string', () => {
+      const compiled = compileRedirects([
+        {
+          source: '/docs/drivers/node/:version/compatibility/',
+          destination: '/docs/drivers/node/:version/compat/?tab=overview',
+          statusCode: 301,
+        },
+      ]);
+
+      const result = findMatchingRedirect('/docs/drivers/node/current/compatibility/', compiled);
+      expect(result).toEqual({
+        destination: '/docs/drivers/node/current/compat/?tab=overview',
+        statusCode: 301,
+      });
+    });
+
+    it('preserves a fragment in the destination', () => {
+      const compiled = compileRedirects([
+        {
+          source: '/docs/old/',
+          destination: '/docs/new/#section',
+          statusCode: 301,
+        },
+      ]);
+
+      const result = findMatchingRedirect('/docs/old/', compiled);
+      expect(result).toEqual({
+        destination: '/docs/new/#section',
+        statusCode: 301,
+      });
+    });
+
     it('returns absolute URL destinations without path-to-regexp compilation', () => {
       const compiled = compileRedirects([
         {
