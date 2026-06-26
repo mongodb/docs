@@ -15,16 +15,6 @@ The following table shows compatibility between the .NET/C# driver and {+mdb-ser
      - MongoDB 4.4
      - MongoDB 4.2
 
-   * - 3.10
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✓
-     - ✗
-
    * - 3.8 to 3.9
      - ✓
      - ✓
