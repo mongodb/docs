@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Open a backport PR for a merged docs PR.
+"""Open one backport PR per target version for a merged docs PR.
 
 Triggered by .github/workflows/backport.yml when a PR merges into main.
 
@@ -16,11 +16,15 @@ Logic:
          in the target (absence implies version-gated content).
        - Removals and renames apply only when the original path exists
          in the target.
-  4. Commit the copied changes to a backport branch and open one PR.
+  4. Commit the copied changes to a per-version backport branch and open one
+     PR per target version.
+  5. Post a comment on the original PR with a results table — a checkmark for
+     each successfully created PR, an X for any version that had conflicts and
+     requires a manual backport.
 
 Outputs (written to $GITHUB_OUTPUT):
-  branch     - the backport branch name (empty if no PR opened)
-  pr_number  - the new PR number (empty if no PR opened)
+  branches   - space-separated list of backport branch names
+  pr_numbers - space-separated list of new PR numbers
   lint_files - space-separated list of backported file paths for
                lint-docs.sh to check.
 """
@@ -167,11 +171,14 @@ def apply_change(
     status: str,
     previous_relative: str | None,
     merge_sha: str = "",
-) -> tuple[str | None, list[str]]:
+) -> tuple[str | None, list[str], bool]:
     """Apply a single file change to the target version.
 
-    Returns (display_str | None, paths_to_stage). display_str is None
-    when the change was skipped.
+    Returns (display_str | None, paths_to_stage, had_conflict).
+
+    display_str is None when the change was skipped or failed.
+    had_conflict is True when a patch failed to apply (not merely absent from
+    the target), meaning the writer must backport this file manually.
     """
     base = REPO_ROOT / "content" / project
     target_path = base / target_version / relative
@@ -183,44 +190,47 @@ def apply_change(
         target_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source_path, target_path)
         display = str(target_path.relative_to(REPO_ROOT))
-        return display, [display]
+        return display, [display], False
 
     if status in {"modified", "changed"}:
         # Only apply when the file already exists in the target version.
         # Absence there is meaningful — likely intentionally deleted or
         # version-gated content. Don't resurrect it.
         if not target_path.exists():
-            return None, []
+            return None, [], False
         target_rel = str(target_path.relative_to(REPO_ROOT))
         source_rel = f"content/{project}/{source_version}/{relative}"
         if merge_sha and apply_patch(merge_sha, source_rel, target_rel):
-            return target_rel, [target_rel]
-        # Fallback: copy whole file if patch doesn't apply cleanly.
-        target_path.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source_path, target_path)
-        return target_rel, [target_rel]
+            return target_rel, [target_rel], False
+        # Patch failed to apply — this is a conflict, not a skip.
+        return None, [], True
 
     if status == "removed":
         if target_path.exists():
             target_path.unlink()
             display = str(target_path.relative_to(REPO_ROOT))
-            return display, [display]
-        return None, []
+            return display, [display], False
+        return None, [], False
 
     if status == "renamed" and previous_relative:
         old_target = base / target_version / previous_relative
         # Only act if the original path existed in the target version.
         if not old_target.exists():
-            return None, []
+            return None, [], False
         target_path.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(source_path, target_path)
         old_target.unlink()
         new_rel = str(target_path.relative_to(REPO_ROOT))
         old_rel = str(old_target.relative_to(REPO_ROOT))
         display = f"{new_rel} (renamed from {previous_relative})"
-        return display, [new_rel, old_rel]
+        return display, [new_rel, old_rel], False
 
-    return None, []
+    return None, [], False
+
+
+def post_comment(repo: str, pr_number: str, body: str) -> None:
+    """Post a comment on the given PR."""
+    gh(["pr", "comment", pr_number, "--repo", repo, "--body", body])
 
 
 def main() -> int:
@@ -256,13 +266,10 @@ def main() -> int:
         print("No backport-<project>-<version> labels on PR. Nothing to backport.")
         return 0
 
-    # Group changes per (project, source_version, target_version).
-    # results[(project, target)] = list of (status, summary_string)
-    applied: dict[tuple[str, str], list[str]] = {}
-    skipped: list[str] = []
-    lint_paths: list[str] = []
-    stage_paths: list[str] = []
-    processed: set[tuple[str, str, str]] = set()
+    # Build pending changes grouped by (project, target_version).
+    # pending[(project, target)] = list of (source_version, relative, status, previous_relative)
+    pending: dict[tuple[str, str], list[tuple[str, str, str, str | None]]] = {}
+    processed_keys: set[tuple[str, str, str]] = set()
 
     for entry in files:
         path = entry["path"]
@@ -283,117 +290,221 @@ def main() -> int:
         # relative to the version directory.
         previous_relative = None
         if previous:
-            prefix = f"content/{project}/{source_version}/"
+            pfx = f"content/{project}/{source_version}/"
             previous_relative = (
-                previous[len(prefix):] if previous.startswith(prefix) else previous
+                previous[len(pfx):] if previous.startswith(pfx) else previous
             )
 
         for target in targets:
             key = (project, target, relative)
-            if key in processed:
+            if key in processed_keys:
                 continue
-            processed.add(key)
-            display, staged = apply_change(
-                project, source_version, target, relative, status, previous_relative, merge_sha
+            processed_keys.add(key)
+            pending.setdefault((project, target), []).append(
+                (source_version, relative, status, previous_relative)
             )
-            if display is None:
+
+    if not pending:
+        print("No backportable changes found. Skipping PR creation.")
+        return 0
+
+    # Determine the assignee once (reused for every PR).
+    # GitHub rejects bot accounts as assignees. When the author is a bot
+    # (e.g. sage-bot), fall back to whoever merged the original PR so a human
+    # owns the backport. Skip assignment entirely if neither is a human.
+    assignee = pr_author if not pr_author.endswith("[bot]") else pr_merged_by
+    if assignee and assignee.endswith("[bot]"):
+        assignee = ""
+
+    # Determine who to @-mention in comments (same human-fallback logic).
+    mention = pr_author if not pr_author.endswith("[bot]") else pr_merged_by
+    if mention and mention.endswith("[bot]"):
+        mention = ""
+
+    # Process each (project, target_version) independently, creating one PR
+    # per version.  result_rows records (label, pr_url_or_none, conflict_files)
+    # for the summary comment posted on the original PR.
+    result_rows: list[tuple[str, str | None, list[str]]] = []
+    all_lint_paths: list[str] = []
+    all_branches: list[str] = []
+    all_pr_numbers: list[str] = []
+
+    for (project, target_version), changes in sorted(pending.items()):
+        label = f"content/{project}/{target_version}"
+        branch = f"backport/pr-{pr_number}-{project}-{target_version}"
+
+        print(f"\nProcessing backport to {label} ...")
+
+        # Branch from origin/base_ref so each backport is an independent PR.
+        run(["git", "checkout", "-b", branch, f"origin/{base_ref}"])
+
+        applied: list[str] = []
+        conflict_files: list[str] = []
+        skipped: list[str] = []
+        stage_paths: list[str] = []
+        lint_paths: list[str] = []
+
+        for source_version, relative, status, previous_relative in changes:
+            display, staged, had_conflict = apply_change(
+                project, source_version, target_version, relative,
+                status, previous_relative, merge_sha,
+            )
+            if had_conflict:
+                conflict_files.append(
+                    f"content/{project}/{source_version}/{relative}"
+                )
+            elif display is None:
                 reason = {
                     "modified": "not present in target",
                     "changed": "not present in target",
                     "removed": "already absent in target",
                     "renamed": "original path absent in target",
                 }.get(status, "not applicable")
-                skipped.append(f"{path} → {project}/{target} ({reason})")
-                continue
-            applied.setdefault((project, target), []).append(display)
-            stage_paths.extend(staged)
-            clean_path = display.split(" (renamed", 1)[0]
-            if clean_path.endswith(".txt") or clean_path.endswith(".rst") or clean_path.endswith(".yaml"):
-                lint_paths.append(clean_path)
+                skipped.append(
+                    f"content/{project}/{source_version}/{relative} ({reason})"
+                )
+            else:
+                applied.append(display)
+                stage_paths.extend(staged)
+                clean_path = display.split(" (renamed", 1)[0]
+                if clean_path.endswith((".txt", ".rst", ".yaml")):
+                    lint_paths.append(clean_path)
 
-    if not applied:
-        print("No backportable changes found. Skipping PR creation.")
-        return 0
+        if not applied:
+            # Nothing to commit — clean up the branch and move on.
+            run(["git", "checkout", "--detach", merge_sha])
+            run(["git", "branch", "-D", branch])
+            if conflict_files:
+                print(f"  Conflicts only — no PR created for {label}.")
+                result_rows.append((label, None, conflict_files))
+            else:
+                print(f"  Nothing to backport to {label} (all files skipped).")
+            continue
 
-    branch = f"backport/pr-{pr_number}"
-    run(["git", "checkout", "-b", branch])
-    run(["git", "add", "--"] + stage_paths)
-    run(
-        [
-            "git",
-            "-c", "commit.gpgsign=false",
-            "commit",
-            "-m",
-            f"Backport #{pr_number}: {pr_title}",
+        # Commit and push.
+        run(["git", "add", "--"] + stage_paths)
+        run(
+            [
+                "git",
+                "-c", "commit.gpgsign=false",
+                "commit",
+                "-m",
+                f"Backport #{pr_number} to {label}: {pr_title}",
+            ]
+        )
+        run(["git", "push", "-u", "origin", branch])
+
+        # Build the per-version PR body.
+        body_lines = [
+            f"Backports the changes from #{pr_number} to `{label}`.",
+            "",
+            "## What was copied",
+            "",
         ]
-    )
-    run(["git", "push", "-u", "origin", branch])
-
-    body_lines = [
-        f"Backports the changes from #{pr_number} to sibling version directories.",
-        "",
-        "## What was copied",
-        "",
-    ]
-    for (project, target), paths in sorted(applied.items()):
-        body_lines.append(f"**`content/{project}/{target}/`**")
-        for p in paths:
+        for p in applied:
             body_lines.append(f"- `{p}`")
         body_lines.append("")
 
-    if skipped:
-        body_lines.append("## Skipped")
-        body_lines.append("")
-        body_lines.append(
-            "These files did not exist in the target version and were "
-            "not backported. Review whether the new content should be "
-            "added manually:"
-        )
-        body_lines.append("")
-        for s in skipped:
-            body_lines.append(f"- {s}")
-        body_lines.append("")
+        if conflict_files:
+            body_lines.extend([
+                "## Conflicts – manual action required",
+                "",
+                "The following files had patch conflicts and were **not** "
+                "automatically backported. Please apply them manually:",
+                "",
+            ])
+            for cf in conflict_files:
+                body_lines.append(f"- `{cf}`")
+            body_lines.append("")
 
-    body_lines.extend(
-        [
+        if skipped:
+            body_lines.extend([
+                "## Skipped",
+                "",
+                "These files did not exist in the target version and were "
+                "not backported. Review whether the new content should be "
+                "added manually:",
+                "",
+            ])
+            for s in skipped:
+                body_lines.append(f"- {s}")
+            body_lines.append("")
+
+        body_lines.extend([
             "## Review",
             "",
             f"Original author: @{pr_author}",
             "",
             "Lint results (`./lint-docs.sh all`) will be posted as a comment "
             "once the workflow completes.",
+        ])
+        body = "\n".join(body_lines)
+
+        create_args = [
+            "pr", "create",
+            "--repo", repo,
+            "--base", base_ref,
+            "--head", branch,
+            "--title", f"Backport #{pr_number} to {label}: {pr_title}",
+            "--body", body,
+            "--draft",
         ]
-    )
-    body = "\n".join(body_lines)
+        if assignee:
+            create_args.extend(["--assignee", assignee])
+        pr_url = gh(create_args).strip()
 
-    create_args = [
-        "pr",
-        "create",
-        "--repo",
-        repo,
-        "--base",
-        base_ref,
-        "--head",
-        branch,
-        "--title",
-        f"Backport #{pr_number}: {pr_title}",
-        "--body",
-        body,
-        "--draft",
-    ]
-    # GitHub rejects bot accounts as assignees. When the author is a bot
-    # (e.g. sage-bot), fall back to whoever merged the original PR so a human
-    # owns the backport. Skip assignment entirely if neither is a human.
-    assignee = pr_author if not pr_author.endswith("[bot]") else pr_merged_by
-    if assignee and not assignee.endswith("[bot]"):
-        create_args.extend(["--assignee", assignee])
-    pr_url = gh(create_args).strip()
+        new_pr_number = pr_url.rstrip("/").split("/")[-1]
+        all_branches.append(branch)
+        all_pr_numbers.append(new_pr_number)
+        all_lint_paths.extend(lint_paths)
+        result_rows.append((label, pr_url, conflict_files))
+        print(f"  Opened backport PR: {pr_url}")
 
-    new_pr_number = pr_url.rstrip("/").split("/")[-1]
-    set_output("branch", branch)
-    set_output("pr_number", new_pr_number)
-    set_output("lint_files", " ".join(lint_paths))
-    print(f"Opened backport PR: {pr_url}")
+        # Return to detached HEAD at the merge commit so the next iteration
+        # can branch cleanly from origin/base_ref.
+        run(["git", "checkout", "--detach", merge_sha])
+
+    # Post a results summary comment on the original PR.
+    if result_rows:
+        comment_lines = [
+            "## Backport Results",
+            "",
+            "| Version | Status |",
+            "| ------- | ------ |",
+        ]
+        manual_needed: list[str] = []
+        for label, pr_url, conflict_files in result_rows:
+            if pr_url:
+                pr_num = pr_url.rstrip("/").split("/")[-1]
+                if conflict_files:
+                    status_cell = (
+                        f"✅ [PR #{pr_num}]({pr_url}) "
+                        f"(partial – {len(conflict_files)} file(s) had conflicts, "
+                        f"manual action required)"
+                    )
+                    manual_needed.append(label)
+                else:
+                    status_cell = f"✅ [PR #{pr_num}]({pr_url})"
+            else:
+                status_cell = "❌ Conflicts – manual backport required"
+                manual_needed.append(label)
+            comment_lines.append(f"| `{label}` | {status_cell} |")
+
+        if manual_needed and mention:
+            comment_lines.extend([
+                "",
+                f"@{mention} The following version(s) could not be fully "
+                f"backported due to conflicts. Please backport them manually:",
+                "",
+            ])
+            for v in manual_needed:
+                comment_lines.append(f"- `{v}`")
+
+        post_comment(repo, pr_number, "\n".join(comment_lines))
+
+    set_output("branches", " ".join(all_branches))
+    set_output("pr_numbers", " ".join(all_pr_numbers))
+    set_output("lint_files", " ".join(all_lint_paths))
     return 0
 
 
