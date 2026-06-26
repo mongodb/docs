@@ -7,21 +7,18 @@ import { Include } from '@/mdx-components/Include';
 import { Replacement } from '@/mdx-components/Include/Replacement';
 import { loadMDX } from '@/mdx-utils/load-mdx';
 import { remarkResolveImports } from '@/mdx-utils/remark-resolve-imports';
-import { getBlobStringWithFallback } from '@/mdx-utils/blob-read';
-import { getBlobKey } from '@/mdx-utils/get-blob-key';
+import { getBlobString } from '@/mdx-utils/blob-read';
 
 jest.mock('@/mdx-utils/load-mdx', () => ({
   loadMDX: jest.fn(),
 }));
 
 jest.mock('@/mdx-utils/blob-read', () => ({
-  getBlobStringWithFallback: jest.fn(),
+  getBlobString: jest.fn(),
 }));
 
 const mockLoadMDX = loadMDX as jest.MockedFunction<typeof loadMDX>;
-const mockGetBlobStringWithFallback = getBlobStringWithFallback as jest.MockedFunction<
-  typeof getBlobStringWithFallback
->;
+const mockGetBlobString = getBlobString as jest.MockedFunction<typeof getBlobString>;
 
 describe('Include', () => {
   beforeEach(() => jest.clearAllMocks());
@@ -105,10 +102,7 @@ describe('remarkResolveImports — nested-include substitution propagation', () 
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // remark-resolve-imports calls getBlobStringWithFallback(relativePath); the wrapper computes
-    // the blob key via getBlobKey, so mirror that here to look up the keyed map.
-    mockGetBlobStringWithFallback.mockImplementation(async (relativePath: string) => {
-      const key = getBlobKey(relativePath);
+    mockGetBlobString.mockImplementation(async (key: string) => {
       const map: Record<string, string> = {
         [blobFor('_includes/table.mdx')]: TABLE_MDX,
         [blobFor('_includes/desc.mdx')]: DESC_MDX,
@@ -206,8 +200,7 @@ describe('remarkResolveImports — <Include> nodes inside <Replacement> slots', 
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetBlobStringWithFallback.mockImplementation(async (relativePath: string) => {
-      const key = getBlobKey(relativePath);
+    mockGetBlobString.mockImplementation(async (key: string) => {
       const map: Record<string, string> = {
         [blobFor('_includes/template.mdx')]: TEMPLATE_MDX,
         [blobFor('_includes/intro-snippet.mdx')]: INTRO_SNIPPET_MDX,

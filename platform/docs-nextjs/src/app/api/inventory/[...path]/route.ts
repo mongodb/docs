@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { getBlobWithFallback } from '@/mdx-utils/blob-read';
+import { getBlob } from '@/mdx-utils/blob-read';
+import { getBlobKey } from '@/mdx-utils/get-blob-key';
 
 // Serves intersphinx inventory files from the blob store.
 // Rewrites map /docs/:path*/objects.inv to this handler.
@@ -7,7 +8,7 @@ import { getBlobWithFallback } from '@/mdx-utils/blob-read';
 export async function GET(_req: NextRequest, { params }: { params: { path: string[] } }) {
   try {
     const invPath = params.path.join('/');
-    const blob = await getBlobWithFallback(invPath);
+    const blob = await getBlob(getBlobKey(invPath));
 
     if (!blob) {
       return new NextResponse('Not Found', { status: 404 });

@@ -3,14 +3,14 @@ import remarkFrontmatter from 'remark-frontmatter';
 import remarkGfm from 'remark-gfm';
 import remarkMdx from 'remark-mdx';
 import remarkStringify from 'remark-stringify';
-import { getBlobStringWithFallback } from '@/mdx-utils/blob-read';
+import { getBlobString } from '@/mdx-utils/blob-read';
 import { remarkResolveImports } from '@/mdx-utils/remark-resolve-imports';
 
 jest.mock('@/mdx-utils/blob-read', () => ({
-  getBlobStringWithFallback: jest.fn(),
+  getBlobString: jest.fn(),
 }));
 
-const mockGetBlob = getBlobStringWithFallback as jest.MockedFunction<typeof getBlobStringWithFallback>;
+const mockGetBlob = getBlobString as jest.MockedFunction<typeof getBlobString>;
 
 const PROJECT_PATH = 'csharp/current';
 

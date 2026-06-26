@@ -6,7 +6,7 @@ import { remark } from 'remark';
 import remarkMdx from 'remark-mdx';
 import remarkFrontmatter from 'remark-frontmatter';
 import remarkGfm from 'remark-gfm';
-import { getBlobStringWithFallback } from './blob-read';
+import { getBlobString } from './blob-read';
 import { getBlobKey } from './get-blob-key';
 
 type MdxJsxElement = MdxJsxFlowElement | MdxJsxTextElement;
@@ -126,7 +126,7 @@ const fetchAndParseInclude = async ({
   nextStack.add(blobKey);
 
   try {
-    const content = await getBlobStringWithFallback(rawPath);
+    const content = await getBlobString(blobKey);
     if (!content) {
       console.warn(`[remarkResolveImports] Could not load include: ${src} (key: ${blobKey})`);
       return null;
@@ -163,7 +163,7 @@ const loadReferences = async (projectPath: string): Promise<ReferencesData | nul
   const blobKey = getBlobKey(rawPath);
 
   try {
-    const raw = await getBlobStringWithFallback(rawPath);
+    const raw = await getBlobString(blobKey);
     if (!raw) {
       console.warn(`[remarkResolveImports] _references.json not found (key: ${blobKey})`);
       return null;

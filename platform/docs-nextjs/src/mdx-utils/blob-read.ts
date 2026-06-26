@@ -2,8 +2,6 @@ import { cache } from './react-cache';
 import type { Store } from '@netlify/blobs';
 import { getProductionStore, getBranchStore } from './blob-store';
 import { BLOB_STORE_NAME } from './blob-constants';
-import { getBlobKey, getBlobKeyOriginalCase } from './get-blob-key';
-
 /**
  * Thrown when a blob read fails for a reason other than the key being absent
  * (timeouts, 5xx, connection resets — i.e. transient infrastructure errors).
@@ -29,13 +27,13 @@ const isNotFoundError = (msg: string): boolean =>
   msg.includes('401') ||
   msg.includes('no such key');
 
-/** Try branch store first, fall back to productionStore. */
+/** Try branch store first, fall back to production store. */
 async function getFromStores(key: string, type: 'string' | 'blob'): Promise<string | Blob | null> {
-  const branchResult = getBranchStore();
+  const branchStore = getBranchStore();
   const storeEntries: Array<{ store: Store; name: string }> =
-    branchResult !== null
+    branchStore !== null
       ? [
-          { store: branchResult.store, name: branchResult.name },
+          { store: branchStore.store, name: branchStore.name },
           { store: getProductionStore(), name: BLOB_STORE_NAME },
         ]
       : [{ store: getProductionStore(), name: BLOB_STORE_NAME }];
@@ -70,39 +68,3 @@ export const getBlob = async (key: string): Promise<Blob | null> => {
   return (await getFromStores(key, 'blob')) as Blob | null;
 };
 
-/**
- * Try lowercase key first; if not found, fall back to the original-case key and warn.
- * Remove this and all call sites once the blob store is fully migrated to lowercase keys.
- */
-export const getBlobStringWithFallback = async (relativePath: string): Promise<string | null> => {
-  const key = getBlobKey(relativePath);
-  const result = await getBlobString(key);
-  if (result !== null) return result;
-
-  const fallbackKey = getBlobKeyOriginalCase(relativePath);
-  if (fallbackKey !== key) {
-    const fallback = await getBlobString(fallbackKey);
-    if (fallback !== null) {
-      console.warn(`[blob-read] camelCase fallback used for "${key}" — safe to remove once all blobs are migrated to lowercase`);
-      return fallback;
-    }
-  }
-  return null;
-};
-
-/** Same as getBlobStringWithFallback but for binary Blob responses */
-export const getBlobWithFallback = async (relativePath: string): Promise<Blob | null> => {
-  const key = getBlobKey(relativePath);
-  const result = await getBlob(key);
-  if (result !== null) return result;
-
-  const fallbackKey = getBlobKeyOriginalCase(relativePath);
-  if (fallbackKey !== key) {
-    const fallback = await getBlob(fallbackKey);
-    if (fallback !== null) {
-      console.warn(`[blob-read] camelCase fallback used for "${key}" — safe to remove once all blobs are migrated to lowercase`);
-      return fallback;
-    }
-  }
-  return null;
-};
