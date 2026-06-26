@@ -215,6 +215,41 @@ provisioning or scaling  {+clusters+} to less than ``M30`` or greater than ``M60
     ) 
     when { (context.cluster has minGeneralClassInstanceSizeValue && context.cluster.minGeneralClassInstanceSizeValue < 30) || (context.cluster has maxGeneralClassInstanceSizeValue && context.cluster.maxGeneralClassInstanceSizeValue > 60) };
 
+.. _restrict-eras-ui:
+
+Restrict Atlas Embedding and Reranking API Service for Projects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example restricts access to the
+:ref:`{+voyage-api-full+} <voyage-api-overview>`
+for all projects in an organization. This effectively prevents users from
+creating :ref:`model API keys <voyage-api-keys>` for any projects in the
+organization.
+
+.. code-block::
+   :copyable: true
+
+    forbid (
+      principal, 
+      action == ResourcePolicy::Action::"project.aiModelAPI.modify",
+      resource
+    );
+
+You can specify projects as exceptions using the policy's ``unless`` clause.
+The following example restricts access to the {+voyage-api+} for all
+projects in an organization *except* the project with ID
+``6217f7fff7957854e2d09179``:
+
+.. code-block::
+   :copyable: true
+
+    forbid (
+      principal, 
+      action == ResourcePolicy::Action::"project.aiModelAPI.modify",
+      resource
+    ) 
+    unless { resource in ResourcePolicy::Project::"6217f7fff7957854e2d09179" };
+
 .. _require-maintenance-window-ui:
 
 Require Project Maintenance Windows

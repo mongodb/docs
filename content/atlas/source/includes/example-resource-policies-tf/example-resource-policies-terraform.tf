@@ -36,6 +36,43 @@ resource "mongodbatlas_resource_policy" "forbid_project_access_anywhere" {
 }
 # end-restrict-ip
 
+# start-restrict-eras
+resource "mongodbatlas_resource_policy" "restrict_eras_all_projects" {
+  org_id = var.org_id
+  name   = "restrict-eras-all-projects"
+  policies = [
+    {
+      body = <<EOF
+        forbid (
+            principal,
+            action == ResourcePolicy::Action::"project.aiModelAPI.modify",
+            resource
+        );
+      EOF
+    },
+  ]
+}
+# end-restrict-eras
+
+# start-restrict-eras-except-project
+resource "mongodbatlas_resource_policy" "restrict_eras_except_one_project" {
+  org_id = var.org_id
+  name   = "restrict-eras-except-one-project"
+  policies = [
+    {
+      body = <<EOF
+        forbid (
+            principal,
+            action == ResourcePolicy::Action::"project.aiModelAPI.modify",
+            resource
+        )
+        unless { resource in ResourcePolicy::Project::"6217f7fff7957854e2d09179" };
+      EOF
+    },
+  ]
+}
+# end-restrict-eras-except-project
+
 # start-require-database-auditing
 resource "mongodbatlas_resource_policy" "require_database_auditing" {
   org_id = var.org_id
