@@ -7,8 +7,16 @@ on:
     # review_requested   = a reviewer added after the PR is already open.
     types: [ready_for_review, opened, reopened, review_requested]
 
+# Serialize runs for the same PR so the "already notified" check can't be
+# raced by two events firing at once. Do NOT cancel in-progress runs, or a
+# run that has already sent Slack could be killed before it sets the marker.
+concurrency:
+  group: maverick-notify-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
 permissions:
-  pull-requests: read
+  pull-requests: write
+  issues: write
   contents: read
 
 jobs:
@@ -21,16 +29,31 @@ jobs:
         id: check
         uses: actions/github-script@v7
         with:
-          # PAT (or fine-grained token) with read:org / "Members: Read".
+          # PAT (or fine-grained token) with read:org / "Members: Read" to read
+          # team membership, and repo write to add the dedup label below.
           # The default GITHUB_TOKEN cannot read org team membership.
           github-token: ${{ secrets.DEPENDABOT_PAT }}
           script: |
             const ORG = '10gen';
             const TEAM_SLUG = 'docs-maverick';
+            const NOTIFIED_LABEL = 'maverick-review-notified';
 
             const pr = context.payload.pull_request;
 
-            // 1) Fetch all docs-maverick members once into a Set.
+            // Idempotency guard: if we've already notified for this PR, stop.
+            // Fetch labels live (the event payload may be stale relative to a
+            // run that just finished for an earlier event on the same PR).
+            const currentLabels = await github.paginate(
+              github.rest.issues.listLabelsOnIssue,
+              { owner: context.repo.owner, repo: context.repo.repo, issue_number: pr.number, per_page: 100 }
+            );
+            if (currentLabels.some(l => l.name === NOTIFIED_LABEL)) {
+              core.info('PR already notified (label present); skipping.');
+              core.setOutput('notify', 'false');
+              return;
+            }
+
+            // Fetch all docs-maverick members once into a Set.
             const members = await github.paginate(
               github.rest.teams.listMembersInOrg,
               { org: ORG, team_slug: TEAM_SLUG, per_page: 100 }
@@ -70,5 +93,21 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": "LFR: Opened by ${{ steps.check.outputs.author_name }}: <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>"
+              "text": "New PR for the team to review, opened by ${{ steps.check.outputs.author_name }}: <${{ github.event.pull_request.html_url }}|${{ github.event.pull_request.title }}>"
             }
+
+      - name: Mark PR as notified
+        # Runs only after Slack succeeds, so a failed send leaves no marker
+        # and the next event can retry. Uses the default GITHUB_TOKEN (not
+        # DEPENDABOT_PAT) since writing labels only needs repo write access.
+        if: steps.check.outputs.notify == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            await github.rest.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.payload.pull_request.number,
+              labels: ['maverick-review-notified'],
+            });
