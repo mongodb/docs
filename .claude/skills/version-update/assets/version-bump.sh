@@ -363,7 +363,7 @@ else
                 run rm -rf "$DOCSET_DIR/current"
             fi
             echo "  copy    upcoming/  →  current/"
-            run cp -r "$DOCSET_DIR/upcoming" "$DOCSET_DIR/current"
+            run cp -rP "$DOCSET_DIR/upcoming" "$DOCSET_DIR/current"
             ;;
         per_minor|atlas_cli)
             ARCHIVE_VER="$(archive_dir_version "$DOCSET" "$OLD_VERSION")"
@@ -372,13 +372,13 @@ else
             echo "  rename  current/  →  v${ARCHIVE_VER}/"
             run mv "$DOCSET_DIR/current" "$ARCHIVE"
             echo "  copy    upcoming/  →  current/"
-            run cp -r "$DOCSET_DIR/upcoming" "$DOCSET_DIR/current"
+            run cp -rP "$DOCSET_DIR/upcoming" "$DOCSET_DIR/current"
             ;;
         mongosync)
             ARCHIVE="$DOCSET_DIR/v${OLD_VERSION}"
             [[ -d "$ARCHIVE" ]] && die "Archive already exists: $ARCHIVE"
             echo "  copy    current/  →  v${OLD_VERSION}/"
-            run cp -r "$DOCSET_DIR/current" "$ARCHIVE"
+            run cp -rP "$DOCSET_DIR/current" "$ARCHIVE"
             echo "  (current/ remains as working directory)"
             ;;
     esac

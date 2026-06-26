@@ -285,7 +285,7 @@ ls content/{DOCSET}/netlify.toml 2>/dev/null
 
 # Next.js format (flat JSON), keyed by URL slug — confirm the slug from an
 # existing entry; it is not always the docset directory name
-ls platform/docs-nextjs/redirects/*-redirects.json 2>/dev/null
+ls platform/docs-nextjs/src/redirects/*-redirects.json 2>/dev/null
 ```
 
 Routing:
@@ -298,7 +298,7 @@ Routing:
   → apply both, keeping the two files consistent.
 - Neither present → stop and ask the user; do not invent a redirect file.
 
-The Next.js redirect file lives under `platform/docs-nextjs/redirects/`,
+The Next.js redirect file lives under `platform/docs-nextjs/src/redirects/`,
 outside `content/`. Editing it is expected here, but flag it as a
 `platform/` change in the Step 11 change summary.
 
