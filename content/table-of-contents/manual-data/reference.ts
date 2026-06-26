@@ -26,7 +26,6 @@ const tocData: TocItem[] = [
       {
         label: 'Query Plan Cache',
         contentSite: 'docs',
-        url: '/docs/:version/reference/command/nav-plan-cache',
         collapsible: true,
         items: [
           {
@@ -54,7 +53,6 @@ const tocData: TocItem[] = [
       {
         label: 'Authentication',
         contentSite: 'docs',
-        url: '/docs/:version/reference/command/nav-authentication',
         collapsible: true,
         items: [
           {
@@ -72,7 +70,6 @@ const tocData: TocItem[] = [
       {
         label: 'User Management',
         contentSite: 'docs',
-        url: '/docs/:version/reference/command/nav-user-management',
         collapsible: true,
         items: [
           {
@@ -115,7 +112,6 @@ const tocData: TocItem[] = [
       {
         label: 'Role Management',
         contentSite: 'docs',
-        url: '/docs/:version/reference/command/nav-role-management',
         collapsible: true,
         items: [
           {
@@ -173,7 +169,6 @@ const tocData: TocItem[] = [
       {
         label: 'Replication',
         contentSite: 'docs',
-        url: '/docs/:version/reference/command/nav-replication',
         collapsible: true,
         items: [
           {
@@ -246,7 +241,6 @@ const tocData: TocItem[] = [
       {
         label: 'Sharding',
         contentSite: 'docs',
-        url: '/docs/:version/reference/command/nav-sharding',
         collapsible: true,
         items: [
           {
@@ -521,7 +515,6 @@ const tocData: TocItem[] = [
       {
         label: 'Sessions',
         contentSite: 'docs',
-        url: '/docs/:version/reference/command/nav-sessions',
         collapsible: true,
         items: [
           {
@@ -569,7 +562,6 @@ const tocData: TocItem[] = [
       {
         label: 'Administration',
         contentSite: 'docs',
-        url: '/docs/:version/reference/command/nav-administration',
         collapsible: true,
         items: [
           {
@@ -772,7 +764,6 @@ const tocData: TocItem[] = [
       {
         label: 'Diagnostics',
         contentSite: 'docs',
-        url: '/docs/:version/reference/command/nav-diagnostic',
         collapsible: true,
         items: [
           {
@@ -885,7 +876,6 @@ const tocData: TocItem[] = [
       {
         label: 'Auditing',
         contentSite: 'docs',
-        url: '/docs/:version/reference/command/nav-auditing',
         collapsible: true,
         items: [
           {
@@ -898,7 +888,6 @@ const tocData: TocItem[] = [
       {
         label: 'Atlas Search',
         contentSite: 'docs',
-        url: '/docs/:version/reference/command/nav-atlas-search',
         collapsible: true,
         items: [
           {
