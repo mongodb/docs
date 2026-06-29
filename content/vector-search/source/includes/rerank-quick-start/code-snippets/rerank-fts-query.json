@@ -1,0 +1,52 @@
+db.embedded_movies.aggregate([
+  {
+    "$search": {
+      "index": "search_index",
+      "text": {
+        "query": "martial arts",
+        "path": "fullplot"
+      }
+    }
+  },
+  {
+    "$limit": 100
+  },
+  { 
+    "$project": {
+      "_id": 0,
+      "title": 1,
+      "fullplot": 1,
+      "searchScore": { "$meta": "searchScore" }
+    }
+  },
+  {
+    "$match": {
+      "fullplot": { "$exists": true, "$type": "string" }
+    }
+  },
+  {
+    "$rerank": {
+      "model": "rerank-2.5",
+      "query": {
+        "text": "martial arts; prioritize movie plots about martial arts competition and training"
+      },
+      "path": "fullplot",
+      "numDocsToRerank": 100
+    }
+  },
+  {
+    "$addFields": {
+      "rerankScore": { "$meta": "score" }
+    }
+  },
+  { "$limit": 10 },
+  {
+    "$project": {
+      "_id": 0,
+      "title": 1,
+      "fullplot": 1,
+      "searchScore": 1,
+      "rerankScore": 1
+    }
+  }
+])

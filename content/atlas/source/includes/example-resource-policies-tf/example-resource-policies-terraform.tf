@@ -368,3 +368,22 @@ resource "mongodbatlas_resource_policy" "restrict_auto_embedding" {
   ]
 }
 # end-restrict-auto-embedding
+
+# start-restrict-native-reranking
+resource "mongodbatlas_resource_policy" "restrict_native_reranking" {
+  org_id = var.org_id
+  name   = "restrict-native-reranking"
+  policies = [
+    {
+      body = <<EOF
+        forbid (
+            principal,
+            action == ResourcePolicy::Action::"project.rerank.modify",
+            resource
+        )
+        when { context.project.rerankEnabled == true };
+      EOF
+    },
+  ]
+}
+# end-restrict-native-reranking

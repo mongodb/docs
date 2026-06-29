@@ -1,0 +1,247 @@
+.. _native-reranking-management:
+
+=======================
+Manage Native Reranking
+=======================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Enable or disable Native Reranking for an Atlas project, configure resource policies, and view rate limits and usage tiers for $rerank with Voyage AI reranker models.
+   :keywords: native reranking, $rerank, Voyage AI, enable reranking, disable reranking, resource policy, rate limits, Atlas UI, project settings, vector search
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can perform the following tasks in the {+atlas-ui+}: 
+
+- Enable or disable Native Reranking :ref:`for all projects 
+  in your organization <rerank-enable-disable>` or :ref:`per 
+  project <rerank-resource-policy>`.
+- :ref:`Monitor Token Usage <rerank-monitor-usage>`.
+- :ref:`View <rerank-view-rate-limits>` rate limits.
+- :ref:`View metrics <rerank-metrics>`.
+
+Permissions Required 
+--------------------
+
+To enable or disable Native Reranking, you must have 
+:authrole:`Project Owner` access to the project. 
+If you have :authrole:`Organization Owner` access, you must 
+add yourself as a ``Project Owner`` to the project for  
+enabling or disabling Native Reranking.
+
+To view rate limits and usage metrics, you must have 
+:authrole:`Project Read Only` or 
+:authrole:`Project Search Index Editor` or higher access to 
+the project.
+
+Enable or Disable Native Reranking for a Project
+------------------------------------------------
+
+Before you can use the ``$rerank`` stage, you must enable 
+Native Reranking for your project. 
+
+.. _rerank-enable-disable:
+
+Enable or Disable Native Reranking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To enable or disable reranking, complete the following steps:
+
+.. procedure:: 
+   :style: Normal 
+
+   .. include:: /includes/nav/steps-project-settings.rst
+
+   .. step:: Enable or disable reranking.
+
+      **To enable** reranking, do the following:
+
+      a. In the :guilabel:`Project Settings` tab, set the
+         :guilabel:`Native Reranking: $rerank in the Aggregation Pipeline`
+         toggle to :guilabel:`On`.
+      #. In the :guilabel:`Confirm Rerank Model Usage`
+         window, select the checkbox to confirm that you
+         understand the costs associated with using the
+         ``$rerank`` stage and click :guilabel:`Confirm`.
+
+      **To disable** reranking, complete the following steps:
+
+      a. In the :guilabel:`Project Settings` tab, set the
+         :guilabel:`Native Reranking: $rerank in the Aggregation Pipeline`
+         toggle to :guilabel:`Off`.
+      #. In the :guilabel:`Disable Native Reranking`
+         confirmation window, type ``Disable`` and click
+         :guilabel:`Disable`.
+
+         Disabling reranking might cause running queries
+         that use the ``$rerank`` stage to fail.      
+
+.. _rerank-resource-policy:
+
+Restrict Native Reranking Using a Resource Policy
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can configure a resource policy at the organization
+level to block ``$rerank`` entirely or with exceptions.
+To do this, add a ``forbid`` rule written in Cedar that
+targets the ``$rerank`` action. If you configure this
+policy, new projects can't enable ``$rerank``. However, the
+policy does not disable projects that already have
+``$rerank`` enabled. You must disable ``$rerank``
+individually for each project that already has it enabled.
+To disable ``$rerank`` for a project, see
+:ref:`rerank-enable-disable`.
+
+You can disable ``$rerank`` with exceptions by using the
+``unless`` clause in the ``forbid`` rule.
+
+.. code-block:: text
+   :copyable: false
+   :caption: Example: Disable $rerank with Exceptions
+
+   forbid (principal, action == ResourcePolicy::Action::"$rerank", resource) unless { <exception> };
+
+To learn more about setting the resource policy, see
+:ref:`atlas-resource-policies-overview`.
+
+.. _rerank-monitor-usage:
+
+Monitor Token Usage 
+-------------------
+
+Monitor your token usage on the :guilabel:`Usage` page in
+the {+atlas-ui+}. To view usage:
+
+.. procedure:: 
+   :style: Normal 
+
+   .. include:: /includes/nav/steps-search-simple.rst
+
+   .. step:: Click :guilabel:`Usage` under :guilabel:`Native Reranking` in the navigation bar.
+
+      The :guilabel:`Usage` page provides several views to
+      monitor and analyze your token usage. To learn more,
+      see :ref:`rerank-usage-page`.
+
+Manage Rate Limits 
+------------------
+
+The :guilabel:`Rate Limits` page in the {+atlas-ui+} provides 
+the rate limits for your project and guidance on how to 
+increase them.
+
+.. _rerank-rate-limits:
+
+Usage Tiers and Rate Limits 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+|service| enforces rate limits on the number of requests
+that you can make within a specific time frame, measured
+in tokens per minute (TPM) or requests per minute (RPM).
+Rate limits follow a tiered system, with higher tiers
+offering increased limits. 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40 40
+
+   * - Model
+     - Requests Per Minute (RPM)
+     - Tokens Per Minute (TPM)
+
+   * - ``rerank-2.5``
+     - 4,000
+     - 4,000,000
+
+   * - ``rerank-2.5-lite``
+     - 4,000
+     - 8,000,000
+
+   * - ``rerank-2``
+     - 4,000
+     - 4,000,000
+
+   * - ``rerank-2-lite``
+     - 4,000
+     - 8,000,000
+
+.. _rerank-view-rate-limits:
+
+View Rate Limits
+~~~~~~~~~~~~~~~~
+
+.. procedure:: 
+   :style: Normal 
+
+   .. include:: /includes/nav/steps-search-simple.rst
+
+   .. step:: Click :guilabel:`Rate Limits` under :guilabel:`Native Reranking` in the navigation bar.
+
+.. _rerank-increase-rate-limits:
+
+Increase Rate Limits
+~~~~~~~~~~~~~~~~~~~~
+
+MongoDB automatically increases rate limits as your usage increases. 
+If you still need a higher rate limit, contact `MongoDB Support 
+<https://support.mongodb.com/>`__.
+
+.. _rerank-metrics:
+
+Monitor Metrics for Native Reranking
+------------------------------------
+
+You can monitor ``$rerank`` usage through the following metrics 
+in the {+atlas-ui+}:  
+
+.. list-table::
+   :widths: 30 70
+   :header-rows: 1
+
+   * - Metric
+     - Description
+   * - :guilabel:`$rerank Query Status Rate`
+     - The percentage of ``$rerank`` queries that complete successfully.
+       Use this metric to identify failures in ``$rerank`` queries, such 
+       as rate limit errors or connectivity issues with |voyage|.
+   * - :guilabel:`$rerank Token Usage Rate`
+     - The total number of tokens that ``$rerank`` queries consume. Use 
+       this metric to monitor token consumption and correlate usage with 
+       billing.
+
+To view metrics for ``$rerank`` usage:
+
+.. procedure:: 
+   :style: Normal 
+
+   .. step:: Navigate to the :guilabel:`Metrics` tab for your cluster.
+
+      a. Select the organization that
+         contains your project from the |ui-org-menu| in the
+         navigation bar.
+
+      #. Select your project from the :guilabel:`Projects` menu 
+         in the navigation bar.
+
+      #. In the sidebar, click :guilabel:`Clusters` under 
+         the :guilabel:`Database` heading.
+
+      #. Click the name of the cluster to open the 
+         :guilabel:`Cluster` sidebar.
+
+      #. Click :guilabel:`Metrics` in the :guilabel:`Cluster` sidebar.
+
+   .. step:: Select the :guilabel:`Native Reranking Metrics` to view. 
+      
+      You can view the :guilabel:`$rerank Query Status Rate` and 
+      :guilabel:`$rerank Token Usage Rate` metrics by clicking 
+      the appropriate metric.

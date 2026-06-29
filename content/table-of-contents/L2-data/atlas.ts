@@ -1092,6 +1092,11 @@ const tocData: TocItem[] = [
         isExternal: true,
       },
       {
+        label: 'Native Reranking',
+        url: 'https://www.mongodb.com/docs/vector-search/query/native-reranking/billing',
+        isExternal: true,
+      },
+      {
         label: 'Stream Processing',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/billing/stream-processing-costs',

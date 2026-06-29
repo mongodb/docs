@@ -819,3 +819,45 @@ on a {+cluster+} that has {+fts+} indexes:
          }
       ]
    }
+
+.. _restrict-native-reranking:
+
+Restrict Native Reranking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example prevents users from enabling Native
+Reranking (the ``$rerank`` aggregation stage) for any project in
+the organization. This policy prevents projects from enabling
+Native Reranking, but does not disable ``$rerank`` for projects
+that already have it enabled. To disable Native Reranking for a
+project that already has it enabled, see
+:ref:`rerank-enable-disable`.
+
+.. code-block::
+   :copyable: true
+   :emphasize-lines: 5
+
+   {
+      "name": "Restrict Native Reranking",
+      "policies": [
+         {
+            "body": "forbid (principal, action == ResourcePolicy::Action::\"project.rerank.modify\", resource) when { context.project.rerankEnabled == true };"
+         }
+      ]
+   }
+
+To allow Native Reranking for specific projects, use the
+``unless`` clause to exclude them:
+
+.. code-block::
+   :copyable: true
+   :emphasize-lines: 5
+
+   {
+      "name": "Restrict Native Reranking with Exceptions",
+      "policies": [
+         {
+            "body": "forbid (principal, action == ResourcePolicy::Action::\"project.rerank.modify\", resource) when { context.project.rerankEnabled == true } unless { resource in ResourcePolicy::Project::\"<PROJECT-ID>\" };"
+         }
+      ]
+   }

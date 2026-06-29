@@ -57,7 +57,7 @@ unexpected scoring results. Use ``autocomplete`` in static mappings.
 
 However, if you need to include ``autocomplete`` in dynamic mappings, you can
 add it to a custom ``typeSet`` definition. To learn more about ``autocomplete``
-and custom ``typeSet`` configurations, see :ref:`autocomplete-index-size`.
+and custom ``typeSet`` configurations, see :ref:`Index Size and Configuration <index-perf>`.
 
 .. _autocomplete-index-build-time:
 

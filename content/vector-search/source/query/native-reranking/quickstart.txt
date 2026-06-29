@@ -1,0 +1,262 @@
+.. _native-reranking-quickstart:
+
+=================================
+Get Started With Native Reranking
+=================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Get started with native reranking in MongoDB Atlas Vector Search. Use the $rerank aggregation stage with Voyage AI reranker models to reorder query results by relevance.
+   :keywords: MongoDB search, MongoDB Vector Search, native reranking, $rerank pipeline stage, Reranker Models, Voyage AI, quickstart
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The :pipeline:`$rerank` aggregation stage reorders input documents
+using :website:`Voyage AI reranking models </voyageai/models/rerankers>`
+and returns the same documents sorted by relevance to the query. The 
+``$rerank`` stage can appear anywhere in an aggregation pipeline. 
+
+You don't need to create an index to run :pipeline:`$rerank` queries. 
+However, MongoDB recommends using :pipeline:`$rerank` after a 
+:pipeline:`$vectorSearch`, :pipeline:`$search`, :pipeline:`$rankFusion`, 
+or :pipeline:`$scoreFusion` stage, which require creating a :ref:`{+avs+} 
+<avs-types-vector-search>` or :ref:`{+fts+} <ref-create-index>` index on 
+your collection.
+
+This quickstart demonstrates how to enable and use Native Reranking in 
+|service| by using the :pipeline:`$rerank` aggregation stage on queries 
+against the :ref:`sample_mflix <sample-mflix>` dataset. 
+
+.. _rerank-prereqs:
+
+Prerequisites
+-------------
+
+Before you begin, complete the following tasks: 
+
+- Deploy a |service| cluster with MongoDB 8.3 or later by selecting 
+  :guilabel:`Latest Version with Auto-Upgrades` in the {+atlas-ui+} 
+  :guilabel:`Cluster Builder` page. 
+
+  To learn more about an |service| cluster, see :ref:`Create a Cluster 
+  <create-new-cluster>`. Native reranking is not available for self-managed 
+  deployments.
+
+- Load the :ref:`sample_mflix <sample-mflix>` dataset into your cluster.
+
+  To learn more, see :ref:`Load Sample Data <load-sample-data>`.
+
+- Download and install {+mongosh+}.
+
+  To learn more, see :mongosh:`Install the MongoDB Shell </install>`.
+
+To learn more about the compatibility and requirements for using 
+``$rerank``, see :ref:`rerank-considerations`.
+
+Procedure
+---------
+
+To get started with native reranking, follow these steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Enable Native Reranking.
+
+      .. include:: /includes/nav/steps-project-settings.rst
+
+      #. Scroll down to the :guilabel:`Native Reranking` section and toggle
+         :guilabel:`Enable Native Reranking` to :guilabel:`On`.
+
+      #. Click :guilabel:`Confirm`.
+
+   .. step:: Run a Native Reranking query. 
+      
+      The following query uses the :pipeline:`$rerank` stage to find the top 
+      ten movies that are most relevant to the query for *martial arts*.
+
+      a. Switch to the ``sample_mflix`` database:
+
+         .. code-block:: javascript
+            :copyable: true
+
+            use sample_mflix
+
+      #. Run a Native Reranking query.
+
+         .. include:: /includes/rerank-quick-start/facts/rerank-query.rst
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/rerank-quick-start/code-snippets/rerank-query.json
+               :language: json 
+               :linenos: 
+
+            .. output:: /includes/rerank-quick-start/output/rerank-query.js
+               :language: javascript 
+               :visible: false
+
+   .. step:: Create the indexes for running Native Reranking queries with ``$vectorSearch`` and ``$search``.
+
+      MongoDB recommends using :pipeline:`$rerank` after a 
+      :pipeline:`$vectorSearch`, :pipeline:`$search`, :pipeline:`$rankFusion`, 
+      or :pipeline:`$scoreFusion` stage. To do so, create a {+avs+} and {+fts+} 
+      index on your collection to run the :pipeline:`$vectorSearch` and 
+      :pipeline:`$search` stages. 
+
+      To try the sample queries that use the :pipeline:`$vectorSearch` and 
+      :pipeline:`$search` stages in this quickstart, you must create a {+avs+} 
+      and {+fts+} index on your collection.
+
+      .. collapsible:: 
+         :heading: Create a MongoDB Vector Search index
+         :sub_heading: Create a MongoDB Vector Search index on the plot_embedding_voyage_4_large field.
+         :expanded: false
+
+         To create the index, complete the following steps:
+
+         a. Click :guilabel:`Search & Vector Search` in the sidebar.
+
+         #. Click :guilabel:`Create Index`.
+
+         #. Start your index configuration: 
+          
+            - Select :guilabel:`Vector Search` as the index type.
+            - Enter ``vector_index`` as the name of the index.
+            - Select the ``sample_mflix.embedded_movies`` collection.
+            - Select :guilabel:`JSON Editor` as the editor type.
+
+         #. Click :guilabel:`Next` and paste the following index definition 
+            in the JSON editor:
+
+            .. literalinclude:: /includes/rerank-quick-start/code-snippets/avs-index.json
+               :language: json
+               :copyable: true
+               :caption: Index on the ``plot_embedding_voyage_4_large`` field.
+
+         #. Click :guilabel:`Next`, then click :guilabel:`Create Index`.
+
+      .. collapsible:: 
+         :heading: Create a MongoDB Search index
+         :sub_heading: Create a MongoDB Search index on the ``fullplot`` field.
+         :expanded: false
+
+         To create the index, complete the following steps:
+
+         a. Click :guilabel:`Search & Vector Search` in the sidebar.
+
+         #. Click :guilabel:`Create Index`.
+
+         #. Start your index configuration: 
+          
+            - Select :guilabel:`Search` as the index type.
+            - Enter ``search_index`` as the name of the index.
+            - Select the ``sample_mflix.embedded_movies`` collection.
+            - Select :guilabel:`JSON Editor` as the editor type.
+
+         #. Click :guilabel:`Next` and paste the following index definition 
+            in the JSON editor:
+
+            .. literalinclude:: /includes/rerank-quick-start/code-snippets/fts-index.json
+               :language: json
+               :copyable: true
+               :caption: Dynamic Index on the dynamically indexable fields.
+
+         #. Click :guilabel:`Next`, then click :guilabel:`Create Index`.
+
+   .. step:: Prepare to run ``$vectorSearch`` and ``$search`` queries with Native Reranking.
+
+      a. Connect to your cluster using {+mongosh+}.
+
+      #. Create a file named ``embeddings.js`` to store the embeddings 
+         to use in the queries.
+
+      #. Copy and paste the following embeddings into the file. 
+
+         .. literalinclude:: /includes/rerank-quick-start/code-snippets/embeddings.js
+            :language: javascript
+            :copyable: true
+            :caption: Embeddings for the query term "martial arts".
+      
+      #. Switch to the ``sample_mflix`` database:
+
+         .. code-block:: javascript
+            :copyable: true
+
+            use sample_mflix
+
+      #. Load the embeddings into {+mongosh+}.
+
+         .. code-block:: javascript
+            :copyable: true
+
+            load('embeddings.js');
+
+   .. step:: Run the ``$vectorSearch`` and ``$search`` with Native Reranking. 
+      
+      The following queries use the :pipeline:`$rerank` stage after a 
+      :pipeline:`$vectorSearch` and :pipeline:`$search` stage to find the top 
+      ten movies that are most relevant to the query for *martial arts*.
+
+      .. collapsible:: 
+         :heading: Use Native Reranking with Vector Search
+         :sub_heading: Run $rerank after $vectorSearch.
+         :expanded: false
+
+         .. include:: /includes/rerank-quick-start/facts/rerank-avs-query.rst
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/rerank-quick-start/code-snippets/rerank-avs-query.json
+               :language: json 
+               :linenos: 
+
+            .. output:: /includes/rerank-quick-start/output/rerank-avs-query.js
+               :language: javascript 
+               :visible: false
+
+      .. collapsible:: 
+         :heading: Use Native Reranking query with MongoDB Search
+         :sub_heading: Run $rerank after $search.
+         :expanded: false
+
+         .. include:: /includes/rerank-quick-start/facts/rerank-fts-query.rst
+
+         .. io-code-block:: 
+            :copyable: true 
+
+            .. input:: /includes/rerank-quick-start/code-snippets/rerank-fts-query.json
+               :language: json 
+               :linenos: 
+
+            .. output:: /includes/rerank-quick-start/output/rerank-fts-query.js
+               :language: javascript 
+               :visible: false
+      
+Additional Resources 
+--------------------
+
+To learn more about Native Reranking, see the following resources:
+
+- :ref:`$rerank Aggregation Stage <rerank-agg-pipeline>`
+- :ref:`Manage Billing for Native Reranking <native-reranking-billing>`
+- :ref:`Manage Native Reranking <native-reranking-management>`
+- :ref:`Hybrid Search with Native Reranking <avs-hybrid-search>`
+
+.. toctree::
+   :titlesonly:
+
+   $rerank Aggregation Stage </query/aggregation-stages/rerank>
+   Manage Billing </query/native-reranking/billing>
+   Manage Native Reranking </query/native-reranking/managing>

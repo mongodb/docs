@@ -10,24 +10,24 @@ takes the following input pipelines:
 
    * - ``vectorPipeline``  
      - This pipeline contains the :pipeline:`$vectorSearch` query. It
-       searches the ``plot_embedding_voyage_3_large`` field for the
-       string *star wars* specified as vector embeddings in the
+       searches the ``plot_embedding_voyage_4_large`` field for the
+       string *charming animal* specified as vector embeddings in the
        ``queryVector`` field of the query. The query uses the
-       ``voyage-3-large`` embedding model from |voyage|, which is the 
+       ``voyage-4-large`` embedding model from |voyage|, which is the 
        same model used for the embeddings in the
-       ``plot_embedding_voyage_3_large`` field. The query also
-       specifies a search for up to ``100`` nearest neighbors and
-       limit the results to ``20`` documents only. This stage returns
+       ``plot_embedding_voyage_4_large`` field. The query also
+       specifies a search for up to ``500`` nearest neighbors and
+       limit the results to ``50`` documents only. This stage returns
        the scored documents from the semantic search.
 
    * - ``fullTextPipeline``  
      - This pipeline contains the following stages: 
       
        - :pipeline:`$search` to search for movies that contain the term
-         ``star wars`` in the ``title`` field. This stage returns the
+         ``charming animal`` in the ``fullplot`` field. This stage returns the
          scored documents from the full-text search.
        - :pipeline:`$limit` to limit the output of :pipeline:`$search`
-         stage to ``20`` results only.
+         stage to ``50`` results only.
 
 The sample query uses the following stages to return the results of the
 semantic and text search as a single scored list of documents:
@@ -40,7 +40,7 @@ semantic and text search as a single scored list of documents:
 
        - ``_id`` 
        - ``title`` 
-       - ``plot``
+       - ``fullplot``
        - ``scoreDetails``
     
    * - :pipeline:`$limit` 

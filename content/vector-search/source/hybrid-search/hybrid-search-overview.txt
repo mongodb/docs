@@ -21,10 +21,10 @@ How to Perform Hybrid Search
    :class: singlecol
 
 A hybrid search is an aggregation of different search methods or search
-queries for the same or similar query criteria. This technique utilizes
+queries for the same or similar query criteria. This technique uses
 algorithms to rank results and return unified results from the different
-methods of search. You can use the ``$rankFusion`` to perform a
-hybrid search.
+methods of search. You can use :pipeline:`$rankFusion` and 
+:pipeline:`$scoreFusion` to perform a hybrid search.
 
 What is Reciprocal Rank Fusion?
 -------------------------------
@@ -41,7 +41,7 @@ actions:
    (``r``) of the document with a constant number, ``60``, to smooth
    the score (``rank_constant``), and then divide ``1`` by the sum of
    ``r`` and ``rank_constant`` for the reciprocal rank of the document 
-   in the results. You can't set the value of ``rank_constant`` and it
+   in the results. You cannot set the value of ``rank_constant`` and it
    defaults to ``60``. 
 
    .. code-block:: shell 
@@ -74,10 +74,74 @@ actions:
    the results for a single, combined ranked list of documents in the
    results. 
 
+What is Relative Score Fusion?
+------------------------------
+
+Relative score fusion is a technique to combine results from different
+search methods into a single result set by using the actual relevance
+scores from each pipeline — rather than the rank position of documents.
+This gives fine-grained control over how scores from different
+retrieval methods are normalized, weighted, and merged. You can use
+:pipeline:`$scoreFusion` to perform hybrid search using relative score
+fusion.
+
+Relative score fusion combines results by performing the following
+actions:
+
+Normalize the scores from each pipeline.
+  For each document in each pipeline's results, normalizes the raw score
+  to a common scale using the normalization parameter. Score scales
+  differ significantly across retrieval methods — for example, vector
+  search scores are typically between ``0`` and ``1``, while full-text 
+  BM25 scores can range much higher. Normalization brings scores from
+  different pipelines onto a comparable scale before combining them.
+  Three normalization methods are supported:
+
+  - ``none`` — Scores are combined as-is without normalization. Use when
+    all pipelines already produce scores on comparable scales.
+  - ``sigmoid`` — Applies the sigmoid function to each score, mapping
+    scores to the range (``0, 1``) without considering the distribution 
+    of other scores in the result set:
+
+    .. code-block:: shell 
+       :copyable: false
+
+       normalized_score = 1 / (1 + e⁻ˢ)
+
+  - ``minMaxScaler`` — Applies min-max scaling using the minimum and
+    maximum scores observed across the result set, mapping the lowest
+    score to ``0`` and the highest to ``1``:
+
+    .. code-block:: shell 
+       :copyable: false
+
+       normalized_score = (s - min_s) / (max_s - min_s)
+
+Apply weights to each pipeline's normalized scores.
+  For each pipeline, multiplies each document's normalized score by the
+  pipeline's weight ``w``. Weights default to ``1`` if not specified. 
+  Use weights to give more importance to one search method over 
+  another.
+
+  .. code-block:: shell 
+     :copyable: false
+
+     weighted_score = w x normalized_score
+
+Combine the weighted scores for each document.
+  For each document that appears across all search results, combines the
+  weighted scores from all pipelines in which that document appeared.
+  The default combination method is ``avg``, which averages the weighted
+  scores. Use expression to define custom combination logic.
+
+Sort the results by the combined score.
+  Sorts all documents in the results based on their combined score across
+  all pipelines to produce a single, unified ranked list.
+
 About the Different Hybrid Search Use Cases  
 -------------------------------------------
 
-You can leverage {+avs+} to perform several types of hybrid search.
+You can use {+avs+} to perform several types of hybrid search.
 Specifically, {+avs+} supports the following use cases: 
 
 - Full-text and vector search in a single query: You can combine results
@@ -108,6 +172,11 @@ Specifically, {+avs+} supports the following use cases:
   ``$scoreFusion``, weights control the contribution of each pipeline's
   scores to the final result. 
 
+  Furthermore, to reorder the documents in the results based on
+  relevance to the query, you can use the :pipeline:`$rerank` stage
+  after the ``$rankFusion`` or ``$scoreFusion`` stage. To learn more, see
+  :ref:`rerank-agg-pipeline`.
+
 - Multiple vector search queries in a single query: The MongoDB
   ``$rankFusion`` pipeline supports multiple sub-pipelines that contain
   vector search queries executed against the same collection and
@@ -135,7 +204,7 @@ Disjoint Result Sets
 ~~~~~~~~~~~~~~~~~~~~
 
 If you want to capture false negatives that one search methodology
-couldn't catch, having disjoint results from individual sub-pipelines
+could not catch, having disjoint results from individual sub-pipelines
 might be acceptable. When you have disjoint results, most or all of the
 results might appear to be returned from one of the pipelines and not
 the other. However, if you want all the sub-pipelines to return similar 
@@ -144,10 +213,10 @@ results, try increasing the number of results per sub-pipeline.
 Weights
 ~~~~~~~
 
-We recommend weighing lexical and vector queries on a per-query basis
-rather than having static weights for all queries to improve the
+MongoDB recommends weighing lexical and vector queries on a per-query
+basis rather than having static weights for all queries to improve the
 relevance of the results for each query. This also improves computation
-resource utilization by allocating resources on the query that needs it
+resource usage by allocating resources on the query that needs it
 most. 
 
 Multiple Pipelines 
@@ -155,7 +224,7 @@ Multiple Pipelines
 
 You can combine an arbitrary number of sub-pipelines together in the
 ``$rankFusion`` or ``$scoreFusion`` stage, but they must all execute
-against the same collection. You can't use the ``$rankFusion`` or
+against the same collection. You cannot use the ``$rankFusion`` or
 ``$scoreFusion`` stage to search across collections. Use the
 :pipeline:`$unionWith` stage with :pipeline:`$vectorSearch` for
 cross-collection search.
@@ -163,8 +232,8 @@ cross-collection search.
 Non-Search Pipelines
 ~~~~~~~~~~~~~~~~~~~~
 
-We recommend using :pipeline:`$match`, :pipeline:`$sort`, and so on in
-your pipeline to boost on specific fields within your collection
+MongoDB recommends using :pipeline:`$match`, :pipeline:`$sort`, and so
+on in your pipeline to boost on specific fields within your collection
 without requiring a search pipeline.
 
 Geospatial Relevance
@@ -180,20 +249,21 @@ and scores might not be identical.
 Limit the Results 
 ~~~~~~~~~~~~~~~~~
 
-We recommend setting limits for the number of results to return for each
-sub-pipeline. If the pipeline stage inside the
-:pipeline:`$rankFusion` or :pipeline:`$scoreFusion` input pipeline doesn't support limiting the number of results (such
-as :pipeline:`$search`), we recommend that you use :pipeline:`$limit`
+MongoDB recommends setting limits for the number of results to return
+for each sub-pipeline. If the pipeline stage inside the
+:pipeline:`$rankFusion` or :pipeline:`$scoreFusion` input pipeline
+does not support limiting the number of results (such as
+:pipeline:`$search`), MongoDB recommends that you use :pipeline:`$limit`
 subsequently inside the input pipeline to limit the number of documents
 that :pipeline:`$rankFusion` or :pipeline:`$scoreFusion` evaluates. 
 
 Advanced Pre-Filters 
 ~~~~~~~~~~~~~~~~~~~~
 
-We recommend using :ref:`fts-vectorSearch-ref` if you want to pre-filter
-data for vector search using :pipeline:`$search` operators that include
-analyzed text capabilities such as fuzzy search, phrase matching,
-location filtering, wildcard pattern matching, and so on. 
+MongoDB recommends using :ref:`fts-vectorSearch-ref` if you want to
+pre-filter data for vector search using :pipeline:`$search` operators
+that include analyzed text capabilities such as fuzzy search, phrase
+matching, location filtering, wildcard pattern matching, and so on. 
 
 Limitations 
 -----------
@@ -201,13 +271,15 @@ Limitations
 The following limitations apply to hybrid search using
 ``$rankFusion`` and ``$scoreFusion``: 
 
-- ``$rankFusion`` is only supported on MongoDB 8.0 and later (including latest
-  version with auto upgrades). ``$scoreFusion`` is available on v8.2+.
+- ``$rankFusion`` is supported only on MongoDB 8.0 and later (including
+  the latest version with auto upgrades). ``$scoreFusion`` is available
+  on v8.3 and later.
 
   .. note::
 
-     When you upgrade from 8.0, you might have to pause executing ``$rankFusion`` 
-     queries.
+     To use ``$scoreFusion``, your cluster must run MongoDB v8.3 or
+     later. When you upgrade from 8.0, you might have to pause
+     executing ``$rankFusion`` queries.
 
 - ``$rankFusion`` and ``$scoreFusion`` sub-pipelines can contain only the
   following stages:  
@@ -219,8 +291,8 @@ The following limitations apply to hybrid search using
   - :pipeline:`$geoNear`
 
 - ``$rankFusion`` and ``$scoreFusion`` preserve a traceable link back to
-  the original input document for each sub-pipeline. Therefore, it
-  doesn't support the following: 
+  the original input document for each sub-pipeline. Therefore, they do
+  not support the following: 
   
   - :pipeline:`$project` stage 
   - :ref:`storedSource <fts-stored-source-definition>` fields
@@ -228,10 +300,10 @@ The following limitations apply to hybrid search using
 - ``$rankFusion`` and ``$scoreFusion`` sub-pipelines run serially, not
   in parallel. 
 
-- ``$rankFusion`` and ``$scoreFusion`` don't support pagination.
+- ``$rankFusion`` and ``$scoreFusion`` do not support pagination.
 
 - ``rankFusion`` can be run on :ref:`Views <views-landing-page>` only on
-  clusters running MongoDB 8.0 or higher. You can't run ``rankFusion``
+  clusters running MongoDB 8.0 or later. You cannot run ``rankFusion``
   within a view definition or on a time series collection.
 
 .. _avs-hybrid-search-prereqs:
@@ -245,7 +317,25 @@ Prerequisites
 
 To try these tutorials, you must have the following: 
 
-- A cluster with MongoDB version v8.0 or later. 
+- A cluster with MongoDB version v8.0 or later. To use
+  ``$scoreFusion``, your cluster must run MongoDB v8.3 or later.
+
+  .. note:: 
+
+     For Automated Embedding, your cluster auto-scaling must 
+     be enabled with the following settings: 
+
+     - If your current cluster tier is ``M10`` or ``M20``
+       (burst-able CPU instances), set a maximum instance size of
+       ``M30`` or larger.
+     - If your current cluster tier is ``M30`` or larger, set the
+       maximum instance size to a tier that is larger than your
+       current tier.
+     - For clusters using NVMe storage, select the Scale NVME
+       cluster tier when storage is running low option.
+     - For Free (``M0``) and Flex tier clusters, no further action 
+       is required.
+
 - The :authrole:`Project Data Access Admin` access to the project to
   create {+avs+} and {+fts+} indexes.
 - The ``sample_mflix`` database loaded into your cluster. To

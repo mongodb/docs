@@ -42,7 +42,7 @@
 
         This field mapping is required for the :ref:`third use case <avs-unionwith-use-cases>`.
 
-      - ``plot_embedding_voyage_3_large`` field as the ``vector`` :ref:`type <avs-types-vector>`. 
+      - ``plot_embedding_voyage_4_large`` field as the ``vector`` :ref:`type <avs-types-vector>`. 
         This field contains vector embeddings that represent the summary of a 
         movie's plot. The index definition:
             
@@ -51,7 +51,7 @@
 
         This field mapping is required all the queries in this tutorial. 
 
-      - ``title_voyageai_embedding`` field as the ``vector`` :ref:`type <avs-types-vector>`. 
+      - ``title_embedding_voyage_4_large`` field as the ``vector`` :ref:`type <avs-types-vector>`. 
         This field contains vector embeddings that represent the
         title of the movie. The index definition:
             

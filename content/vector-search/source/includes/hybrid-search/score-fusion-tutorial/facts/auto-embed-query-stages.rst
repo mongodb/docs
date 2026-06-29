@@ -1,0 +1,45 @@
+The sample query uses the ``$scoreFusion`` stage to execute the
+semantic and full text queries independently and then de-duplicate and
+combine the input query results into a final scored results set. It
+returns a set of documents based on the combined score from their
+input pipelines and the combination weights. Specifically, this stage 
+takes the following input pipelines:
+
+.. list-table:: 
+   :widths: 30 70 
+
+   * - ``vectorPipeline``  
+     - This pipeline contains the :pipeline:`$vectorSearch` query. It
+       searches the ``fullplot`` field for the string *charming animal*. 
+       The query uses the ``voyage-4`` embedding model from |voyage| to 
+       generate embeddings for the query text, which is the same model 
+       used for the generating embeddings for the ``fullplot`` field. 
+       The query also specifies a search for up to ``500`` nearest 
+       neighbors and limit the results to ``50`` documents only. This 
+       stage returns the scored documents from the semantic search.
+
+   * - ``fullTextPipeline``  
+     - This pipeline contains the following stages: 
+      
+       - :pipeline:`$search` to search for movies that contain the term
+         ``charming animal`` in the ``fullplot`` field. This stage returns the
+         scored documents from the full-text search.
+       - :pipeline:`$limit` to limit the output of :pipeline:`$search`
+         stage to ``50`` results only.
+
+The sample query uses the following stages to return the results of the
+semantic and text search as a single scored list of documents:
+
+.. list-table:: 
+   :widths: 30 70 
+
+   * - :pipeline:`$project` 
+     - Includes only the following fields in the results:  
+
+       - ``_id`` 
+       - ``title`` 
+       - ``fullplot``
+       - ``scoreDetails``
+    
+   * - :pipeline:`$limit` 
+     - Limits the output to ``10`` results only.

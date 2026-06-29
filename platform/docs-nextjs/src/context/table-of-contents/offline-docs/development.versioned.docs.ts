@@ -2206,6 +2206,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/search/tutorial/hybrid-search',
                   },
                   {
+                    label: 'Native Reranking',
+                    contentSite: 'docs',
+                    url: 'https://www.mongodb.com/docs/vector-search/query/native-reranking/quickstart',
+                  },
+                  {
                     label: 'Synonyms',
                     contentSite: 'search',
                     url: '/docs/search/tutorial/synonyms-tutorial',
@@ -2387,6 +2392,33 @@ export const toc: L1TocItem[] = [
                     label: 'Use Compatible Views',
                     contentSite: 'vector-search',
                     url: '/docs/vector-search/query/view-support',
+                  },
+                ],
+              },
+              {
+                label: 'Native Reranking',
+                contentSite: 'vector-search',
+                collapsible: true,
+                items: [
+                  {
+                    label: '$rerank Aggregation Stage',
+                    contentSite: 'vector-search',
+                    url: '/docs/vector-search/query/aggregation-stages/rerank',
+                  },
+                  {
+                    label: 'Get Started',
+                    contentSite: 'vector-search',
+                    url: '/docs/vector-search/query/native-reranking/quickstart',
+                  },
+                  {
+                    label: 'Manage Native Reranking',
+                    contentSite: 'vector-search',
+                    url: '/docs/vector-search/query/native-reranking/managing',
+                  },
+                  {
+                    label: 'Manage Billing',
+                    contentSite: 'vector-search',
+                    url: '/docs/vector-search/query/native-reranking/billing',
                   },
                 ],
               },

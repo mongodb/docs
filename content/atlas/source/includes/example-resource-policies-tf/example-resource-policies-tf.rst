@@ -247,3 +247,19 @@ indexes.
    :language: terraform
    :start-after: # start-restrict-auto-embedding
    :end-before: # end-restrict-auto-embedding
+
+.. _tf-restrict-native-reranking:
+
+Restrict Native Reranking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example prevents users from enabling Native
+Reranking (the ``$rerank`` aggregation stage) for any project in
+the organization. This policy prevents projects from enabling
+Native Reranking, but does not disable projects that already have
+it enabled.
+
+.. literalinclude:: /includes/example-resource-policies-tf/example-resource-policies-terraform.tf
+   :language: terraform
+   :start-after: # start-restrict-native-reranking
+   :end-before: # end-restrict-native-reranking

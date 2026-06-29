@@ -449,6 +449,11 @@ const tocData: TocItem[] = [
         url: '/docs/search/tutorial/hybrid-search',
       },
       {
+        label: 'Native Reranking',
+        contentSite: 'docs',
+        url: 'https://www.mongodb.com/docs/vector-search/query/native-reranking/quickstart',
+      },
+      {
         label: 'Synonyms',
         contentSite: 'search',
         url: '/docs/search/tutorial/synonyms-tutorial',

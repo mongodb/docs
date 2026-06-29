@@ -75,6 +75,33 @@ const tocData: TocItem[] = [
     ],
   },
   {
+    label: 'Native Reranking',
+    contentSite: 'vector-search',
+    collapsible: true,
+    items: [
+      {
+        label: '$rerank Aggregation Stage',
+        contentSite: 'vector-search',
+        url: '/docs/vector-search/query/aggregation-stages/rerank',
+      },
+      {
+        label: 'Get Started',
+        contentSite: 'vector-search',
+        url: '/docs/vector-search/query/native-reranking/quickstart',
+      },
+      {
+        label: 'Manage Native Reranking',
+        contentSite: 'vector-search',
+        url: '/docs/vector-search/query/native-reranking/managing',
+      },
+      {
+        label: 'Manage Billing',
+        contentSite: 'vector-search',
+        url: '/docs/vector-search/query/native-reranking/billing',
+      },
+    ],
+  },
+  {
     label: 'Create Embeddings Manually',
     contentSite: 'vector-search',
     url: '/docs/vector-search/crud-embeddings/create-embeddings-manual',

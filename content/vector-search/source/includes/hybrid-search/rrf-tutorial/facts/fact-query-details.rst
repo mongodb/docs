@@ -15,4 +15,4 @@ About the Query
    :sub_heading: Details about the pipeline stages in the query.
    :expanded:
 
-   .. include:: /includes/hybrid-search/rrf-tutorial/facts/rrf-query-stages.rst
+   .. include:: /includes/hybrid-search/rrf-tutorial/facts/auto-embed-query-stages.rst

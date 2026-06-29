@@ -1100,6 +1100,11 @@ export const toc: L1TocItem[] = [
                 url: 'https://www.mongodb.com/docs/vector-search/crud-embeddings/automated-embedding/billing',
               },
               {
+                label: 'Native Reranking',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/vector-search/query/native-reranking/billing',
+              },
+              {
                 label: 'Stream Processing',
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/billing/stream-processing-costs',

@@ -30,7 +30,7 @@
       <https://www.voyageai.com/>`__. Specifically, this code does the
       following: 
 
-      - Specifies the ``voyage-3-large`` embedding model.
+      - Specifies the ``voyage-4-large`` embedding model.
       - Creates a function named ``get_embedding()`` that calls the model's |api|
         to generate ``2048`` dimension embedding for a given text input.
       - Connects to the cluster and fetches ``3500`` documents
@@ -38,7 +38,7 @@
       - Generates embeddings from each document's ``title`` field by
         using the ``get_embedding()`` function. 
       - Updates each document with a new field named
-        ``title_voyageai_embedding`` that contains the embedding value by
+        ``title_embedding_voyage_4_large`` that contains the embedding value by
         using the MongoDB PyMongo Driver.  
 
       .. io-code-block:: 
