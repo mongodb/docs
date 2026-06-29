@@ -1,4 +1,4 @@
-.. Last updated: June 11, 2026 at 03:16 PM EDT
+.. Last updated: June 25, 2026 at 02:59 PM EDT
 
 .. list-table::
    :header-rows: 1
@@ -62,40 +62,52 @@
        Admin Override payment method expired automatically
      - no
 
-   * - ``AI_MODELS_API_KEY_CREATED``
-     - .. _atlas_event_ai_models_api_key_created:
+   * - ``AI_MODELS_APIS_API_KEY_CREATED``
+     - .. _atlas_event_ai_models_apis_api_key_created:
 
-       AI Models API key has been created
+       API key has been created
      - no
 
-   * - ``AI_MODELS_API_KEY_DELETED``
-     - .. _atlas_event_ai_models_api_key_deleted:
+   * - ``AI_MODELS_APIS_API_KEY_DELETED``
+     - .. _atlas_event_ai_models_apis_api_key_deleted:
 
-       AI Models API key has been deleted
+       API key has been deleted
      - no
 
-   * - ``AI_MODELS_API_KEY_UPDATED``
-     - .. _atlas_event_ai_models_api_key_updated:
+   * - ``AI_MODELS_APIS_API_KEY_UPDATED``
+     - .. _atlas_event_ai_models_apis_api_key_updated:
 
-       AI Models API key has been updated
+       API key has been updated
      - no
 
-   * - ``AI_MODELS_RATE_LIMIT_RESET``
-     - .. _atlas_event_ai_models_rate_limit_reset:
+   * - ``AI_MODELS_APIS_FREE_TOKENS_ADMIN_ADJUSTED``
+     - .. _atlas_event_ai_models_apis_free_tokens_admin_adjusted:
 
-       AI Models rate limit has been reset
+       Free token balance has been adjusted by admin
      - no
 
-   * - ``AI_MODELS_RATE_LIMIT_UPDATED``
-     - .. _atlas_event_ai_models_rate_limit_updated:
+   * - ``AI_MODELS_APIS_RATE_LIMIT_ADMIN_OVERRIDE``
+     - .. _atlas_event_ai_models_apis_rate_limit_admin_override:
 
-       AI Models rate limit has been updated
+       Rate limit has been overridden by admin
      - no
 
-   * - ``AI_MODELS_USAGE_TIER_UPDATED``
-     - .. _atlas_event_ai_models_usage_tier_updated:
+   * - ``AI_MODELS_APIS_RATE_LIMIT_RESET``
+     - .. _atlas_event_ai_models_apis_rate_limit_reset:
 
-       AI Models usage tier has been updated
+       Rate limit has been reset
+     - no
+
+   * - ``AI_MODELS_APIS_RATE_LIMIT_UPDATED``
+     - .. _atlas_event_ai_models_apis_rate_limit_updated:
+
+       Rate limit has been updated
+     - no
+
+   * - ``AI_MODELS_APIS_USAGE_TIER_UPDATED``
+     - .. _atlas_event_ai_models_apis_usage_tier_updated:
+
+       Usage tier has been updated
      - no
 
    * - ``ALERT_ACKNOWLEDGED_AUDIT``
@@ -294,18 +306,6 @@
      - .. _atlas_event_atlas_maintenance_window_removed:
 
        Project maintenance window removed
-     - no
-
-   * - ``ATLAS_NETWORK_PROTECTION_LAYER_ACTIVE``
-     - .. _atlas_event_atlas_network_protection_layer_active:
-
-       Atlas Network Protection Layer became active on a cluster
-     - no
-
-   * - ``ATLAS_NETWORK_PROTECTION_LAYER_INACTIVE``
-     - .. _atlas_event_atlas_network_protection_layer_inactive:
-
-       Atlas Network Protection Layer became inactive on a cluster
      - no
 
    * - ``ATLAS_SQL_SCHEDULED_UPDATE_CREATED``
@@ -1392,6 +1392,12 @@
      - .. _atlas_event_cluster_migrate_back_to_aws_managed_ip_requested:
 
        Cluster migrate back to AWS managed ip addresses requested
+     - no
+
+   * - ``CLUSTER_MONGODB_VERSION_UPDATED``
+     - .. _atlas_event_cluster_mongodb_version_updated:
+
+       All processes in a cluster had their MongoDB version updated to the latest supported patch
      - no
 
    * - ``CLUSTER_MONGOS_IS_MISSING``
@@ -4382,6 +4388,72 @@
        Replica set has no primary
      - yes
 
+   * - ``OAUTH_AUTHORIZATION_DENIED``
+     - .. _atlas_event_oauth_authorization_denied:
+
+       OAuth authorization denied
+     - no
+
+   * - ``OAUTH_AUTHORIZATION_GRANTED``
+     - .. _atlas_event_oauth_authorization_granted:
+
+       OAuth authorization granted
+     - no
+
+   * - ``OAUTH_CLIENT_CREATED``
+     - .. _atlas_event_oauth_client_created:
+
+       OAuth client created
+     - no
+
+   * - ``OAUTH_CLIENT_DELETED``
+     - .. _atlas_event_oauth_client_deleted:
+
+       OAuth client deleted
+     - no
+
+   * - ``OAUTH_CLIENT_SECRET_CREATED``
+     - .. _atlas_event_oauth_client_secret_created:
+
+       OAuth client secret created
+     - no
+
+   * - ``OAUTH_CLIENT_SECRET_DELETED``
+     - .. _atlas_event_oauth_client_secret_deleted:
+
+       OAuth client secret deleted
+     - no
+
+   * - ``OAUTH_CLIENT_UPDATED``
+     - .. _atlas_event_oauth_client_updated:
+
+       OAuth client updated
+     - no
+
+   * - ``OAUTH_TOKEN_ISSUED``
+     - .. _atlas_event_oauth_token_issued:
+
+       OAuth token issued
+     - no
+
+   * - ``OAUTH_TOKEN_REVOKED``
+     - .. _atlas_event_oauth_token_revoked:
+
+       OAuth token revoked
+     - no
+
+   * - ``OAUTH_USER_CONSENT_GRANTED``
+     - .. _atlas_event_oauth_user_consent_granted:
+
+       OAuth user consent granted
+     - no
+
+   * - ``OAUTH_USER_CONSENT_REVOKED``
+     - .. _atlas_event_oauth_user_consent_revoked:
+
+       OAuth user consent revoked
+     - no
+
    * - ``OIDC_IDENTITY_PROVIDER_DISABLED``
      - .. _atlas_event_oidc_identity_provider_disabled:
 
@@ -4686,6 +4758,12 @@
      - .. _atlas_event_org_daily_bill_under_threshold:
 
        Daily amount billed is below the limit you set
+     - no
+
+   * - ``ORG_DELEGATION_SETTINGS_UPDATED``
+     - .. _atlas_event_org_delegation_settings_updated:
+
+       Delegation Settings for Organization were updated
      - no
 
    * - ``ORG_DISCONNECTED_FROM_MLAB``
@@ -5370,6 +5448,12 @@
      - .. _atlas_event_project_created_via_anis:
 
        Project created via Azure Native integration
+     - no
+
+   * - ``PROJECT_ENABLE_DATA_VALIDATION_UPDATED``
+     - .. _atlas_event_project_enable_data_validation_updated:
+
+       Data validation setting updated
      - no
 
    * - ``PROJECT_ENABLE_EXTENDED_STORAGE_SIZES_UPDATED``
