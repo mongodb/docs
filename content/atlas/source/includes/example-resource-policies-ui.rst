@@ -166,9 +166,8 @@ from a wildcard IP (``0.0.0.0/0``):
     ) 
     when { context.project.ipAccessList.contains(ip("0.0.0.0/0")) };
 
-The following example uses the ``unless`` clause to allow users to 
-edit projects *only* from the IP addresses ``1.2.3.4/32``, ``8.8.8.8/32``, 
-and ``4.4.4.4/32``:
+The following example uses the ``unless`` clause to allow connections *only*
+from the IP addresses ``1.2.3.4/32``, ``8.8.8.8/32``, and ``4.4.4.4/32``:
 
 .. code-block::
    :copyable: true 
