@@ -1,0 +1,860 @@
+.. _mongot-troubleshooting:
+
+============================================
+Troubleshoot Self-Managed mongot Deployments
+============================================
+
+.. meta::
+   :description: Diagnose and resolve common issues with mongot in self-managed MongoDB Search and Vector Search deployments on Linux or Docker, including startup, sync, memory, and query failures.
+   :keywords: self-managed, mongot, troubleshooting, MongoDB Search, MongoDB Vector Search, Linux, Docker, startup failure, replication, memory, query failure
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+This page covers the most common problems in a self-managed
+``mongot`` deployment that you run directly on Linux or in a
+Docker container, with step-by-step recovery procedures. Each
+scenario assumes you have already identified the failure mode
+and need a procedure to resolve it.
+
+.. note:: Deployment Scope
+
+   This page applies to ``mongot`` deployments that you run
+   directly, such as a Linux tarball installation or a Docker
+   container. If you deploy ``mongot`` with the {+k8s-op+}, see
+   the `{+k8s-op+} documentation
+   <https://www.mongodb.com/docs/kubernetes/current/>`__ for
+   {+k8s+}-specific troubleshooting.
+
+Before You Begin
+----------------
+
+Before you work through a scenario, confirm where your
+deployment stands:
+
+- If you have a metric anomaly but don't yet know what's wrong,
+  start with the metric definitions in
+  :ref:`mongot-metrics-reference` and the thresholds in
+  :ref:`mongot-recommended-alerts`.
+- If you recently completed a deployment or configuration
+  change, start with :ref:`mongot-verify-connection`.
+
+If your symptom doesn't match any scenario, capture artifacts as
+described in :ref:`mongot-capture-for-support` and open a support
+case.
+
+.. _mongot-troubleshooting-startup:
+
+``mongot`` Doesn't Start
+------------------------
+
+The ``mongot`` process fails to come up after you start it.
+
+Symptoms
+   - The process exits within seconds of startup.
+   - In a container, the process restarts in a loop.
+   - No "ready" log message appears.
+
+Common causes
+   In priority order:
+
+   #. The configuration file is malformed or missing required
+      fields.
+   #. Authentication to ``mongod`` fails at startup.
+   #. ``mongot`` can't reach ``mongod`` at the configured
+      address.
+   #. A TLS configuration error occurs.
+   #. The configured port is already in use.
+   #. The data path isn't writable.
+
+Diagnose
+   Review the most recent startup log lines. The error message
+   identifies the failing subsystem.
+
+   .. tabs:: 
+
+      .. tab:: Container
+         :tabid: container
+
+         .. code-block:: sh
+
+            docker logs --tail 100 <container-id>
+
+      .. tab:: Linux
+         :tabid: linux
+
+         .. code-block:: sh
+
+            journalctl -u mongot --no-pager | tail -n 200
+
+      .. tab:: Log file
+         :tabid: log-file
+
+         .. code-block:: sh
+
+            tail -n 200 /var/log/mongot/mongot.log
+
+   Look for the following patterns:
+
+   - ``Failed to parse config file`` indicates invalid YAML.
+   - ``Authentication failed`` or ``Unauthorized`` indicates a
+     credentials or x.509 trust issue.
+   - ``Connection refused`` or ``unable to connect to host``
+     indicates a wrong host or port, or that ``mongod`` isn't
+     running.
+   - ``SSL handshake failed`` indicates a CA trust or
+     certificate SAN mismatch.
+   - ``Address already in use`` indicates that another process
+     is bound to the same port.
+   - ``Cannot write to <dataPath>`` indicates a permission or
+     path issue.
+
+Resolve
+   - **Configuration:** Fix the YAML. To learn about valid
+     settings, see :ref:`mongot-config-settings`.
+   - **Authentication:** Verify that the user exists on
+     ``mongod`` with the required role. See :ref:`mongot-auth`.
+   - **Reachability:** Run ``nc -zv <mongod-host>
+     <mongod-port>`` from the ``mongot`` host. Check firewalls,
+     DNS, and the ``mongod`` ``bindIp`` setting.
+   - **TLS:** Verify that both ``mongot`` and ``mongod`` trust the
+     same certificate authority (CA) so that each side's certificate
+     chains up to a trusted CA. Also verify that the certificate SAN
+     matches the hostname that ``mongot`` uses. See
+     :ref:`mongot-tls-encryption`.
+   - **Port in use:** Identify the conflicting process with
+     ``ss -lntp`` or ``lsof -i :<port>``. Change the ``mongot``
+     port or stop the other process.
+   - **Data path:** Verify that the directory exists and is
+     writable by the ``mongot`` process user. Update ownership
+     and permissions as needed.
+
+.. _mongot-troubleshooting-query-fails:
+
+Query Fails With a Connection Error
+-----------------------------------
+
+A query fails because ``mongod`` can't reach ``mongot``.
+
+Symptoms
+   - A :pipeline:`$search`, :pipeline:`$searchMeta`, or
+     :pipeline:`$vectorSearch` query returns a connection error
+     such as ``Error connecting to <host>:<port> ::
+     Connection refused``.
+   - Or the query returns ``Error connecting to Search Index
+     Management service``.
+
+Common causes
+   #. ``mongot`` isn't running on the host that ``mongod`` tries
+      to reach.
+   #. The ``mongod`` host or port setting for ``mongot`` is
+      wrong and doesn't match the ``mongot`` listener.
+   #. ``mongot`` is running but crashed or is restarting.
+   #. TLS is mismatched. The ``mongod`` is configured for TLS but
+      ``mongot`` isn't, or the reverse.
+
+Diagnose
+   From the ``mongod`` host, test connectivity to ``mongot``:
+
+   .. code-block:: sh
+
+      nc -zv <mongot-host> <mongot-port>
+
+   From the ``mongot`` host, confirm the process is running and
+   listening:
+
+   .. code-block:: sh
+
+      ps aux | grep '[m]ongot'
+      ss -lntp | grep <mongot-port>
+
+   Inspect the ``mongod`` log for the matching error and the
+   configured ``mongot`` host:
+
+   .. code-block:: sh
+
+      grep -E 'mongotHost|searchIndexManagementHostAndPort' \
+        /var/log/mongodb/mongod.log
+
+Resolve
+   - If ``mongot`` isn't running, restart it. If it fails to
+     come up, follow :ref:`mongot Doesn't Start 
+     <mongot-troubleshooting-startup>`.
+   - If the ``mongot`` host setting is wrong, correct the
+     ``mongod`` parameter and restart ``mongod``.
+   - If TLS is mismatched, reconcile the TLS configuration on
+     both sides. See :ref:`mongot-tls-encryption`.
+
+.. _mongot-troubleshooting-resync:
+
+``mongot`` Keeps Re-Syncing
+---------------------------
+
+An index repeatedly drops out of steady state and starts an
+initial sync.
+
+Symptoms
+   - Logs repeat ``Initial sync starting`` followed by
+     exceptions.
+   - In steady state, logs show ``Exception requiring resync
+     occurred during steady state replication``.
+   - The index-manager state transitions back into
+     ``INITIAL_SYNC``.
+   - Search returns stale results during the re-sync window.
+
+Common causes
+   #. The ``mongod`` oplog rolled over before ``mongot`` could
+      catch up, usually because ``mongot`` was too slow or down,
+      or because the oplog is too small.
+   #. A transient issue, such as a network interruption or a
+      brief ``mongod`` restart, caused a steady-state exception.
+      A single occurrence is recoverable, but repeated
+      occurrences aren't.
+   #. A document mapping explosion repeatedly fills the
+      ``mongot`` heap, triggering an out-of-memory error and a
+      re-sync.
+   #. The index data is corrupted.
+   #. A very large number of indexes, dynamic mappings, or
+      expensive field choices drive sustained replication lag.
+
+Diagnose
+   Review the following metrics:
+
+   - ``mongot_replication_mongodb_indexManagerState`` cycles
+     between ``INITIAL_SYNC`` and ``STEADY_STATE``.
+   - ``mongot_index_stats_numLuceneMaxDocs`` is cyclic or stuck.
+   - ``mongot_index_stats_indexing_replicationLagMs`` continues
+     to climb.
+   - ``mongot_jvm_memory_used_bytes`` and
+     ``mongot_jvm_gc_pause_seconds_sum`` rise under memory
+     pressure.
+
+   Look in the ``mongot`` log for the error that precedes the
+   re-sync, then check the oplog window and heap:
+
+   .. code-block:: sh
+
+      grep -E 'SteadyStateException|CappedPositionLost|OutOfMemoryError' \
+        mongot.log
+
+   In ``mongosh``, check the ``mongod`` oplog size
+   with ``db.getReplicationInfo()``.
+
+Resolve
+   - If the oplog is too small for the ``mongot`` apply rate,
+     increase the ``mongod`` oplog size, or close the gap with
+     more ``mongot`` capacity or fewer concurrent indexes.
+   - If steady-state exceptions repeat, capture FTDC and open a
+     support case.
+   - For a document mapping explosion, find the offending index,
+     usually one with a ``dynamic: true`` mapping that ingests
+     documents with arbitrary keys. Switch to a :ref:`static 
+     mapping <static-dynamic-mappings>` or restrict the field 
+     set, then restart ``mongot`` to clear the heap state.
+   - For index corruption, which is rare, capture FTDC, then
+     drop and recreate the affected index. Don't delete files
+     under the data path manually.
+
+.. _mongot-troubleshooting-oom:
+
+OutOfMemory Error or ``mongot`` Killed by the OS
+------------------------------------------------
+
+``mongot`` exits because it runs out of memory.
+
+Symptoms
+   - ``mongot`` exits unexpectedly and the container restart
+     count climbs.
+   - Logs end with ``OutOfMemoryError: Java heap space``, a
+     JVM-side out-of-memory error.
+   - System logs from ``dmesg`` or ``journalctl`` show that the
+     OOM killer terminated the process, a host-side
+     out-of-memory error.
+
+Common causes
+   #. The heap is too small for the workload, especially during
+      a large initial sync or merge.
+   #. A document mapping explosion consumes the heap. See
+      :ref:`mongot Keeps Re-Syncing <mongot-troubleshooting-resync>`.
+   #. The container memory limit is too low. Even with a
+      correctly sized heap, the JVM non-heap overhead can push
+      past the limit.
+   #. Poor index definitions, such as too many indexes or
+      expensive definitions, increase memory pressure.
+   #. A memory leak occurs, which is rare but possible in
+      preview builds.
+
+Diagnose
+   Review the following metrics:
+
+   - ``mongot_jvm_memory_used_bytes`` increases with
+     memory-intensive queries and index definitions.
+   - ``mongot_jvm_gc_pause_seconds_sum`` shows the cumulative
+     time spent in garbage-collection pauses.
+   - ``machine_swap_bytes`` stays near zero in a healthy
+     deployment. Swap usage indicates severe memory pressure.
+
+   Check the ``mongot`` log for the out-of-memory stack trace
+   and the configured heap size:
+
+   .. code-block:: sh
+
+      grep -E 'OutOfMemoryError|Java heap space' mongot.log
+      ps -ef | grep '[m]ongot' | grep -oE '\-Xmx[0-9a-zA-Z]+'
+
+   For a container, check the configured memory limit:
+
+   .. code-block:: sh
+
+      docker inspect <container> | grep -i memory
+
+Resolve
+   - Increase ``-Xmx`` if the host has memory headroom.
+   - In a container, set the memory limit noticeably larger than
+     ``-Xmx`` to accommodate non-heap overhead. As a starting
+     point, set the container limit to at least the ``-Xmx``
+     value plus 30%.
+   - If the heap is large enough but you still run out of
+     memory, look for indexing patterns that cause the
+     explosion. The ``mongot`` log identifies the index.
+   - Reduce the number of indexes or simplify expensive index
+     definitions if they're the source of memory pressure.
+   - If you suspect a memory leak, capture FTDC and a heap dump
+     for support.
+
+.. _mongot-troubleshooting-initial-sync:
+
+Initial Sync Is Slow or Stuck
+-----------------------------
+
+A new index takes a long time to complete its initial sync.
+
+Symptoms
+   - The index state remains in ``INITIAL_SYNC`` for a long
+     time.
+   - In some cases, the replication manager enters 
+     ``INITIAL_SYNC_BACKOFF`` before retrying initial sync.
+   - ``mongot_index_stats_numLuceneMaxDocs`` grows only slowly.
+   - The index isn't queryable while the initial sync runs.
+
+Common causes
+   #. The ``mongod`` source host is underprovisioned and can't
+      feed the initial sync fast enough.
+   #. Disk, CPU, or memory pressure elsewhere slows the build.
+   #. A large initial backfill exceeds the current hardware
+      envelope.
+
+Diagnose
+   Watch ``mongot_replication_mongodb_indexManagerState`` and
+   ``mongot_index_stats_numLuceneMaxDocs`` for document growth.
+
+   Don't treat ``mongot_index_stats_indexing_replicationLagMs``
+   as authoritative during initial sync. This metric doesn't
+   populate meaningfully during initial sync. Instead, review
+   system-health metrics to confirm that the system has
+   sufficient resources.
+
+Resolve
+   - Scale the ``mongod`` source host if it's the bottleneck.
+   - Add CPU or memory where the system is resource-constrained.
+   - Re-check disk headroom before you retry a large initial
+     build.
+
+.. _mongot-troubleshooting-index-stuck:
+
+Indexes Stuck in PENDING or BUILDING status
+-------------------------------------------
+
+An index doesn't progress past the ``PENDING`` or ``BUILDING``
+state.
+
+Symptoms
+   - An index remains in ``PENDING`` or ``BUILDING`` for more
+     than a few minutes on a collection that isn't large.
+   - The ``mongot`` log shows no failures, only a lack of
+     progress.
+
+Common causes
+   #. ``mongot`` isn't making sync progress. See :ref:`Large
+      Replication Lag <mongot-troubleshooting-large-lag>`.
+   #. The embedding endpoint is failing for Automated Embedding
+      indexes.
+   #. The indexing executor pool is saturated by other indexes
+      building concurrently.
+   #. ``mongot`` was recently restarted and indexes are catching
+      up.
+   #. Disk pressure paused a new build or rebuild even though
+      the definition was accepted.
+
+Diagnose
+   Review ``mongot_replication_mongodb_indexManagerState`` and
+   ``mongot_index_stats_numLuceneMaxDocs`` for progress.
+
+   In ``mongosh``, check the index status and any
+   error field:
+
+   .. code-block:: javascript
+
+      db.<collection>.getSearchIndexes()
+
+   Confirm that indexing throughput is increasing:
+
+   .. code-block:: sh
+
+      rate(mongot_index_stats_indexing_insert_total[5m])
+
+   For Automated Embedding indexes, check whether the embedding
+   retry counters are greater than zero:
+
+   .. code-block:: sh
+
+      rate(mongot_indexing_steadyStateChangeStream_rescheduledEmbeddingGetMores_total[5m])
+      rate(mongot_initialsync_queue_requeuedEmbeddingInitialSyncs_total[5m])
+
+Resolve
+   - If indexing throughput is flat, review the ``mongot`` log
+     for the index name and any exceptions.
+   - If embedding retries are greater than zero, fix the embedding path.
+     See :ref:`mongot-with-auto-embed`.
+   - If the executor pool is saturated, reduce concurrent index
+     builds or scale ``mongot``.
+   - If disk is the blocker, add headroom or move the build to a
+     larger node.
+
+.. _mongot-troubleshooting-query-empty:
+
+Queries Return Empty Results
+----------------------------
+
+A query returns no results even though matching documents exist.
+
+Symptoms
+   - You can run ``findOne()`` on a document that you expect to
+     find in the search index.
+   - A :pipeline:`$search` query against the same field returns
+     nothing, or fewer results than expected.
+
+Common causes
+   #. The index hasn't finished building for the documents you
+      expect to match.
+   #. Replication lag means ``mongot`` hasn't received the
+      documents yet.
+   #. The index definition doesn't cover the field you search
+      on.
+   #. The query expression is wrong, such as a numeric
+      expression against a field indexed as a string.
+   #. Indexing failed on the specific documents.
+
+Diagnose
+   In ``mongosh``, check the index status and confirm
+   whether the index has seen the document:
+
+   .. code-block:: javascript
+
+      db.<collection>.getSearchIndexes()
+
+   Then review ``mongot_index_stats_indexing_replicationLagMs``
+   to check for replication lag.
+
+Resolve
+   - Wait for the index to reach the ready state.
+   - Wait for replication lag to clear.
+   - Adjust the index definition or the query.
+   - If indexing fails on specific documents, the ``mongot`` log
+     identifies the failure reason. Fix or filter those
+     documents.
+
+CPU Saturation or Throttling
+----------------------------
+
+Sustained CPU pressure degrades query and replication
+performance.
+
+Symptoms
+   - Query latency rises under sustained CPU pressure.
+   - Replication lag increases because query work and indexing
+     work contend for CPU.
+   - In severe cases, health checks fail and the process
+     restarts.
+
+Common causes
+   #. The ``mongot`` host is underprovisioned for the current
+      mix of query and indexing work.
+   #. Too much concurrent indexing work competes with query
+      execution.
+   #. The workload needs load shedding or capacity scaling.
+
+Diagnose
+   Review the following metrics:
+
+   - ``mongot_command_searchCommandTotalLatency_seconds_max``
+   - ``mongot_index_stats_indexing_replicationLagMs``
+   - Host CPU and load metrics, which spike under saturation.
+
+   No explicit log message indicates that the host is
+   CPU-throttled.
+
+Resolve
+   - Scale CPU on the ``mongot`` host.
+   - Reduce load through load-shedding practices if available.
+   - Simplify indexing work if replication activity competes
+     with queries.
+
+Disk Pressure or Data Path Nearly Full
+--------------------------------------
+
+The ``mongot`` data path runs low on free space.
+
+Symptoms
+   - Free space on the ``mongot`` data path falls toward zero.
+   - Existing indexes accumulate replication lag once disk usage
+     is high.
+   - A new or rebuilt index may stay in ``INITIAL_SYNC`` when
+     disk pressure is severe.
+   - Queries continue to succeed even while replication is
+     paused for disk protection.
+
+Common causes
+   #. The host doesn't have enough free space for normal
+      indexing growth.
+   #. A new or rebuilt index needs more temporary headroom than
+      the current disk can provide.
+
+Diagnose
+   Review the following metrics:
+
+   - ``mongot_system_disk_space_data_path_free_bytes`` reports
+     free bytes in the data directory.
+   - ``mongot_system_disk_space_data_path_total_bytes`` reports
+     total bytes in the data directory.
+
+   Watch for replication-pause behavior tied to disk thresholds.
+   Replication stops when disk usage exceeds roughly 90% and
+   resumes after usage drops below roughly 85%. For a new index
+   or rebuild, expect the definition to be accepted but the
+   build to stay stuck if disk pressure is already above the
+   protective threshold.
+
+Resolve
+   - Add disk capacity if the host or volume can be safely
+     expanded.
+   - Delete unneeded indexes to free space if that's
+     operationally acceptable.
+   - Keep extra headroom before you build or rebuild large
+     indexes. Plan for roughly 125% of the expected
+     steady-state footprint during a rebuild.
+   - On local instance-store NVMe, don't assume you can resize
+     in place. You generally need a larger machine class and a
+     reindex when you outgrow local instance-store capacity.
+   - If you use EBS-backed storage, a live resize is more
+     feasible, but NVMe remains the preferred guidance for
+     ``mongot`` performance. See
+     :ref:`mongot-storage-class-recommendations`.
+
+.. _mongot-troubleshooting-bson-limit:
+
+Replication Lag From the 16 MB BSON Limit
+-----------------------------------------
+
+A change-stream event exceeds the 16 MB BSON limit and stalls
+replication.
+
+Symptoms
+   - An index becomes stale or starts rebuilding after a
+     steady-state replication error.
+   - The ``mongot`` log shows ``change stream payload exceeding
+     16MB BSON limit``, ``BSONObjectTooLarge``, or error code
+     ``10334`` during ``getMore``.
+   - Your stored documents may appear smaller than 16 MB, but
+     the failure still occurs.
+
+Common causes
+   #. The change-stream event exceeds 16 MB because it includes
+      both the document and additional change-stream metadata.
+   #. Large updates to already-large documents make the
+      change-stream payload bigger than the stored document size
+      alone suggests.
+
+Diagnose
+   Review the following metrics:
+
+   - ``mongot_changestream_numSplitEvents_total`` counts events
+     that exceeded the 16 MB payload size.
+   - ``mongot_index_stats_indexing_replicationLagMs`` reports
+     replication lag for a specific index.
+
+   Search the ``mongot`` log for the following strings:
+
+   - ``change stream payload exceeding 16MB BSON limit``
+   - ``BSONObjectTooLarge``
+   - ``Executor error during getMore``
+   - ``code 10334``
+
+   If a document-size check shows the largest documents are
+   below 16 MB, don't rule out this scenario. The change event
+   includes metadata in addition to the document itself.
+
+Resolve
+   - Reduce document size and avoid large updates to
+     already-large documents where possible.
+   - Where possible, replace the document instead of applying a
+     large update to an existing large document.
+   - If most writes are updates, review the update query to
+     reduce the change-stream event metadata size.
+   - After you correct the workload, allow the rebuild to
+     complete. If the workload pattern doesn't change, the index
+     may hit the same failure again.
+   - If the issue recurs after you adjust the workload, capture
+     logs and escalate with the incident details.
+
+.. _mongot-troubleshooting-large-lag:
+
+Large Replication Lag
+----------------------
+
+Replication lag grows steadily over time.
+
+Symptoms
+   - Replication lag grows steadily and may reach many hours or
+     multiple days.
+   - ``mongot`` becomes memory-constrained or repeatedly runs
+     out of memory while trying to keep up.
+   - The host may still serve queries, but query performance can
+     degrade because of replication work and large index
+     footprints.
+
+Common causes
+   #. A very large number of indexes increases replication and
+      indexing overhead.
+   #. Broad use of ``dynamic: true`` increases field count and
+      index size, which raises memory pressure.
+   #. Repeated out-of-memory events worsen lag and make metrics
+      appear choppy or incomplete.
+   #. The bottleneck is on the source database. Underprovisioned
+      ``mongod`` secondaries with high CPU and cache pressure
+      can prevent change-stream events from emitting fast
+      enough.
+
+Diagnose
+   Review the following metrics:
+
+   - ``mongot_index_stats_indexing_replicationLagMs`` reports
+     replication lag for a specific index.
+   - ``mongot_indexing_steadyStateChangeStream_getMoresScheduled``
+     reports scheduled ``getMore`` operations.
+   - ``mongot_replication_mongodb_indexManagerState`` identifies
+     which indexes aren't progressing.
+   - ``mongot_jvm_memory_used_bytes`` and host CPU and load
+     metrics show resource pressure.
+
+   Count the total number of indexes and review whether many
+   rely on ``dynamic: true`` or index unnecessary
+   high-cardinality fields.
+
+Resolve
+   - Scale ``mongot`` CPU and memory first if the nodes run out
+     of memory or are memory-constrained.
+   - Reduce the total number of indexes. At very high index
+     counts, adding more search nodes can worsen the load
+     pattern unless you first bring the change-stream load under
+     control.
+   - Turn off dynamic schema mapping where it isn't required.
+     Prefer ``dynamic: false`` and explicitly map only the
+     subfields needed for queries.
+   - Reduce the number of indexed fields, especially
+     high-cardinality fields such as timestamps or user IDs, and
+     remove deep facet mappings that aren't used for faceting.
+   - If ``mongod`` secondaries are the bottleneck, scale the
+     core database to improve change-stream throughput.
+
+TLS Handshake Failures
+----------------------
+
+The TLS handshake between ``mongot`` and ``mongod`` fails.
+
+Symptoms
+   - The ``mongot`` log shows ``SSL handshake failed``,
+     ``Certificate verification failed``, or ``bad
+     certificate``.
+   - The ``mongod`` log shows similar errors when it tries to
+     reach ``mongot``.
+
+Common causes
+   #. CA mismatch: both ends don't trust the same CA.
+   #. The certificate SAN doesn't include the hostname in use.
+   #. The certificate is expired.
+   #. TLS mode mismatch: one side requires TLS and the other
+      disabled it.
+   #. Cipher suite or TLS version mismatch, which is rare.
+
+Diagnose
+   Inspect the certificates that each side serves and verify the
+   chain against your CA:
+
+   .. code-block:: sh
+
+      openssl s_client -connect <mongot-host>:<mongot-port> -showcerts
+      openssl s_client -connect <mongod-host>:<mongod-port> -showcerts
+      openssl verify -CAfile <ca-bundle> <cert-file>
+      openssl x509 -in <cert-file> -text -noout
+
+Resolve
+   - Distribute the correct CA to both endpoints.
+   - Reissue certificates with the correct SAN list.
+   - Renew expired certificates.
+   - Reconcile the TLS modes on both sides. See
+     :ref:`mongot-tls-encryption`.
+
+Index Reaches the Lucene Document Limit
+---------------------------------------
+
+A single index exceeds the Lucene maximum document count.
+
+Symptoms
+   - A very large index stops making forward progress near the
+     Lucene document-count limit.
+   - Logs show ``java.lang.IllegalArgumentException: number of
+     documents in the index cannot exceed 2147483519``.
+   - ``mongot_index_stats_numLuceneMaxDocs`` approaches the hard
+     limit and may stop publishing after the limit is hit.
+   - The index-manager state changes to a failed state.
+
+Common causes
+   #. A single unpartitioned index exceeded Lucene's maximum
+      document count of ``2147483519``.
+   #. A new index was accepted and began building but failed
+      once it hit the same hard limit.
+
+Diagnose
+   Watch ``mongot_index_stats_numLuceneMaxDocs`` as the primary
+   preventative signal for this failure mode, and check the log
+   for the exact exception string:
+
+   .. code-block:: text
+
+      java.lang.IllegalArgumentException: number of documents in the index cannot exceed 2147483519
+
+Resolve
+   Partition the index so that each partition stays under the
+   Lucene document-count limit, then rebuild the index with
+   ``numPartitions`` set appropriately. Expect trade-offs:
+   partitioning can require query fan-out across multiple
+   partitions and may affect search performance.
+
+   .. code-block:: json
+
+      {
+        "numPartitions": 4,
+        "mappings": {
+          "dynamic": true
+        }
+      }
+
+Automated Embedding Failures
+----------------------------
+
+An Automated Embedding index can't reach the embedding endpoint.
+
+Symptoms
+   - An Automated Embedding index stays in ``PENDING`` or
+     ``BUILDING``.
+   - The ``mongot`` log shows errors against the embedding
+     endpoint.
+   - The embedding retry counters
+     ``mongot_indexing_steadyStateChangeStream_rescheduledEmbeddingGetMores_total``
+     or
+     ``mongot_initialsync_queue_requeuedEmbeddingInitialSyncs_total``
+     are greater than zero. Use these counters as indirect indicators and
+     check the log for the actual HTTP error from the embedding
+     endpoint.
+
+Common causes
+   #. The {+model-api-key+} is invalid or expired.
+   #. The network can't reach the embedding endpoint.
+   #. The embedding provider is rate limiting requests.
+   #. The embedding provider has an outage.
+
+Diagnose
+   Test connectivity to the embedding endpoint from the
+   ``mongot`` host, then check the log:
+
+   .. code-block:: sh
+
+      grep -E 'voyage|embedding' mongot.log
+
+Resolve
+   - Replace the {+model-api-key+} and restart ``mongot``.
+   - Open network egress to the embedding endpoint.
+   - If the provider rate limits requests, raise the limit or
+     reduce indexing concurrency.
+   - If the provider has an outage, monitor `{+voyageai+} status
+     <https://status.voyageai.com/>`__ and consider switching
+     endpoints.
+
+   For the full embedding configuration model, see
+   :ref:`mongot-with-auto-embed`.
+
+Storage Signals Such as Sustained IOPS or Page Faults
+-----------------------------------------------------
+
+Sustained storage IOPS or page faults indicate a storage
+bottleneck. If you run on local NVMe, look first at memory
+headroom. If you run on any other storage class, such as a SAN,
+general-purpose cloud SSD, or SATA SSD, the storage class is the
+likely root cause and a migration is warranted. See
+:ref:`mongot-storage-class-recommendations`.
+
+Performance Degrades Without an Obvious Cause
+---------------------------------------------
+
+Performance regresses without a recent deployment change.
+
+Symptoms
+   - Query latency rose without an obvious deployment change.
+   - CPU or memory usage climbed.
+
+Common causes
+   #. The workload changed, with more or larger queries.
+   #. A new index now consumes resources.
+   #. A document mapping explosion consumes the heap.
+   #. Storage degraded, such as a noisy neighbor, a RAID
+      rebuild, or a cloud-provider issue.
+   #. A garbage-collection tuning regression occurred after a
+      JVM update.
+
+Diagnose
+   Pivot through the metrics by symptom, such as query latency,
+   heap, executor queue, and storage IOPS. For metric
+   definitions and thresholds, see :ref:`mongot-metrics-reference`
+   and :ref:`mongot-recommended-alerts`.
+
+Resolve
+   The resolution depends on the root cause. Options include
+   scaling, capacity planning, or index review, such as dropping
+   unused indexes and refining mappings.
+
+.. _mongot-capture-for-support:
+
+Capture Diagnostics for Support
+-------------------------------
+
+When you can't resolve an issue locally, capture the following
+before you open a support case:
+
+#. ``mongot`` logs that cover the issue time frame plus one hour
+   before. Forward ``mongod`` logs for the same window.
+#. FTDC for the affected ``mongot`` instance. See
+   :ref:`mongot-logs-ftdc`.
+#. Dashboard snapshots of the metrics over the issue time frame.
+#. Versions of ``mongot`` and ``mongod``.
+#. What changed, such as recent deployments, configuration
+   changes, or traffic patterns.
+#. Steps to reproduce the issue, if you can reproduce it on 
+   demand.

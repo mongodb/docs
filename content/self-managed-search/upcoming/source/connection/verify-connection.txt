@@ -1,0 +1,207 @@
+.. _mongot-verify-connection:
+
+=============================
+Verify Your mongot Connection
+=============================
+
+.. meta::
+   :description: Verify that your mongot and mongod self-managed deployments are running and connected
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+Before You Begin
+----------------
+
+Install MongoDB Community and MongoDB Search. For installation
+tutorials, see :ref:`install-mdb-community-edition` and :ref:`community-search-deploy`.
+
+Steps
+-----
+
+Use the following procedure to confirm that your ``mongot``
+instance is active and connected to your self-managed
+``mongod`` instance.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Verify that your ``mongot`` instance is active.
+
+      To check the status of your ``mongot`` instance, run
+      one of the following commands in your terminal, based on
+      your installation method:
+
+      .. collapsible::
+         :heading: Tarball or systemd
+         :expanded: false
+
+         .. code-block:: shell
+
+            ps aux | grep '[m]ongot'
+
+         If ``mongot`` is active, this command returns the
+         ``mongot`` process with a reference to your
+         configuration file.
+
+      .. collapsible::
+         :heading: Container
+         :expanded: false
+
+         .. code-block:: shell
+
+            # standalone mongot container
+            docker ps --filter "name=<mongot-container-name>"
+
+            # atlas-local
+            docker ps --filter "ancestor=mongodb/mongodb-atlas-local"
+
+         If ``mongot`` is active, this command returns the
+         active container.
+
+   .. step:: Verify the health of your ``mongot`` instance.
+
+      To check the health of your ``mongot`` instance, use
+      the ``/health`` and ``/ready`` endpoints.
+
+      To check if ``mongot`` is live, ``curl`` against the
+      ``/health`` endpoint:
+
+      .. note::
+
+         The default ``healthCheck`` address is ``localhost:8080``. However, you
+         can define the address in the :setting:`healthCheck.address` option in
+         your ``mongot`` configuration file.
+
+      .. code-block:: shell
+
+         curl localhost:8080/health
+
+      The endpoint returns one of the following responses:
+
+      - ``{"status":"SERVING"}``, if the ``mongot`` process is running.
+      - ``{"status":"NOT_SERVING"}``, if the ``mongot`` process isn't
+        running.
+
+      To check if ``mongot`` is ready for queries, ``curl``
+      against the ``/ready`` endpoint:
+
+      .. code-block:: shell
+
+         curl localhost:8080/ready
+
+      The endpoint returns one of the following responses:
+
+      - ``{"status":"SERVING"}``, if the ``mongot`` process is ready for
+        queries.
+      - ``{"status":"NOT_SERVING"}``, if the ``mongot`` process isn't
+        ready for queries.
+
+   .. step:: Check ``mongot`` Prometheus metrics.
+
+      If you enabled the Prometheus metrics endpoint in your
+      ``mongot`` configuration file, ``curl`` the ``/metrics``
+      endpoint to retrieve process-level metrics:
+
+      .. code-block:: shell
+
+         curl localhost:9946/metrics
+
+      .. note::
+
+         The default ``metrics`` address is ``localhost:9946``.
+         To use a different address, set the
+         :setting:`metrics.address` option in your ``mongot``
+         configuration file.
+
+      To view the state of search index replication, filter for the
+      ``mongot_replication_mongodb_indexManagerState`` metric:
+
+      .. code-block:: shell
+
+         curl -s localhost:9946/metrics | grep -E \
+            "^(# (HELP|TYPE) mongot_replication_mongodb_indexManagerState|mongot_replication_mongodb_indexManagerState)"
+
+   .. step:: Verify that index management is active.
+
+      To verify that index management is active, run
+      a search index management method against any collection.
+
+      For example, the following command checks if any search
+      indexes exist on a ``movies`` collection:
+
+      .. code-block:: javascript
+
+         db.movies.getSearchIndexes()
+
+      If the operation succeeds without an error, index
+      management is functional.
+
+   .. step:: Run a search query.
+
+      Run an end-to-end search query to confirm that the full
+      query path is functional.
+
+      For example, create a ``test`` collection with a search
+      index:
+
+      .. code-block:: javascript
+
+         db.test.insertMany([
+            { name: "alpha" },
+            { name: "beta" },
+            { name: "alphabet" }
+         ])
+
+         db.test.createSearchIndex(
+            "verify-index",
+            { mappings: { dynamic: true } }
+         )
+
+      Verify that MongoDB builds the index:
+
+      .. code-block:: javascript
+
+         db.test.getSearchIndexes()
+
+      The index is ready for queries if the command returns the following
+      response:
+
+      .. code-block:: javascript
+         :copyable: false
+
+         status: 'READY',
+         queryable: true,
+
+      Then, run a search query:
+
+      .. code-block:: javascript
+
+         db.test.aggregate([
+            {
+               $search: {
+                  index: "verify-index",
+                  text:  { query: "alpha", path: "name" }
+               }
+            }
+         ])
+
+      A successful query confirms that you configured
+      ``mongod`` and ``mongot`` correctly.
+
+For troubleshooting your ``mongot`` and ``mongod`` connection, see
+:ref:`Troubleshoot MongoDB Search for Self-Managed Deployments
+<mongot-limitations>`. 
+
+Next Steps
+----------
+
+- Create :atlas:`MongoDB Search indexes </atlas-search/searching/>`.
+- Create :atlas:`MongoDB Vector Search indexes </atlas-vector-search/vector-search-type/>`.

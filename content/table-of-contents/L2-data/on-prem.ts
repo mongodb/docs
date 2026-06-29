@@ -1,3 +1,4 @@
+import SearchOnPremData from '../docset-data/search-on-prem';
 import type { TocItem } from '../types';
 import manualVersions from '../version-arrays/server-docs/manual';
 
@@ -81,18 +82,6 @@ const tocData: TocItem[] = [
             contentSite: 'docs',
             url: '/docs/:version/reference/installation-ubuntu-community-troubleshooting',
             versions: { includes: manualVersions.after('v8.0') },
-          },
-          {
-            label: 'Connect to Search',
-            contentSite: 'docs',
-            versions: { excludes: manualVersions.before('v8.2') },
-            url: '/docs/:version/core/search-in-community/connect-to-search',
-          },
-          {
-            label: 'Deploy Replica Set for Search',
-            contentSite: 'docs',
-            versions: { excludes: manualVersions.before('v8.2') },
-            url: '/docs/:version/core/search-in-community/deploy-rs-keyfile-mongot',
           },
         ],
       },
@@ -229,22 +218,10 @@ const tocData: TocItem[] = [
         ],
       },
       {
-        label: 'Verify Package Integrity',
+        label: 'Verify MongoDB Package Integrity',
         contentSite: 'docs',
-        collapsible: true,
         versions: { excludes: manualVersions.before('v8.2') },
-        items: [
-          {
-            label: 'Verify MongoDB Package Integrity',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/verify-mongodb-packages',
-          },
-          {
-            label: 'Verify mongot Package Integrity',
-            contentSite: 'docs',
-            url: '/docs/:version/core/search-in-community/verify-mongot-packages',
-          },
-        ],
+        url: '/docs/:version/tutorial/verify-mongodb-packages',
       },
       {
         label: 'MongoDB Package Components',
@@ -644,416 +621,369 @@ const tocData: TocItem[] = [
     ],
   },
   {
-    label: 'Scaling',
+    label: 'Sharding',
     contentSite: 'docs',
     collapsible: true,
     items: [
       {
-        label: 'Sharding',
+        label: 'Deploy a Sharded Cluster',
         contentSite: 'docs',
+        url: '/docs/:version/tutorial/deploy-shard-cluster',
         collapsible: true,
         items: [
           {
-            label: 'Deploy a Sharded Cluster',
+            label: 'Tiered Hardware for Varying SLA or SLO',
             contentSite: 'docs',
-            url: '/docs/:version/tutorial/deploy-shard-cluster',
-            collapsible: true,
-            items: [
-              {
-                label: 'Tiered Hardware for Varying SLA or SLO',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/sharding-tiered-hardware-for-varying-slas',
-              },
-            ],
-          },
-          {
-            label: 'Zones',
-            contentSite: 'docs',
-            url: '/docs/:version/core/zone-sharding',
-            collapsible: true,
-            items: [
-              {
-                label: 'Manage',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/manage-shard-zone',
-                collapsible: true,
-                items: [
-                  {
-                    label: 'Update Shard Zone',
-                    contentSite: 'docs',
-                    url: '/docs/:version/tutorial/manage-shard-zone/update-existing-shard-zone',
-                  },
-                ],
-              },
-              {
-                label: 'Segment by Location',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/sharding-segmenting-data-by-location',
-              },
-              {
-                label: 'Segment by Application or Customer',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/sharding-segmenting-shards',
-              },
-              {
-                label: 'Distributed Local Writes for Insert-Only Workloads',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/sharding-high-availability-writes',
-              },
-              {
-                label: 'Distribute Collections',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/sharding-distribute-collections-with-zones',
-              },
-            ],
-          },
-          {
-            label: 'Sharding Administration',
-            contentSite: 'docs',
-            url: '/docs/:version/administration/sharded-cluster-administration',
-            collapsible: true,
-            items: [
-              {
-                label: 'Scaling Strategies',
-                contentSite: 'docs',
-                url: '/docs/:version/core/sharding-scaling-strategies',
-                collapsible: true,
-                items: [
-                  {
-                    label: 'Start with Sharded Clusters',
-                    contentSite: 'docs',
-                    url: '/docs/:version/core/sharding-start-with-sharding',
-                  },
-                  {
-                    label: 'Manage Unsharded Collections',
-                    contentSite: 'docs',
-                    url: '/docs/:version/core/sharding-manage-unsharded-collections',
-                  },
-                  {
-                    label: 'Distribute Collection Data',
-                    contentSite: 'docs',
-                    url: '/docs/:version/core/sharding-distribute-collection-data',
-                  },
-                  {
-                    label: 'Consolidate Collection Data',
-                    contentSite: 'docs',
-                    url: '/docs/:version/core/sharding-consolidate-collection-data',
-                  },
-                ],
-              },
-              {
-                label: 'View Cluster Configuration',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/view-sharded-cluster-configuration',
-              },
-              {
-                label: 'Add Shards',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/add-shards-to-shard-cluster',
-              },
-              {
-                label: 'Add a Member to a Shard',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/add-member-to-shard',
-              },
-              {
-                label: 'Remove Shards',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/remove-shards-from-cluster',
-              },
-              {
-                label: 'Embedded to Dedicated Config Server',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/embedded-to-dedicated',
-                versions: { excludes: manualVersions.before('v8.3') },
-              },
-              {
-                label: 'Clear jumbo Flag',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/clear-jumbo-flag',
-              },
-              {
-                label: 'Config Shard',
-                contentSite: 'docs',
-                url: '/docs/:version/core/config-shard',
-                collapsible: true,
-                items: [
-                  {
-                    label:
-                      'Convert a Replica Set to a Sharded Cluster with an Embedded Config Server',
-                    contentSite: 'docs',
-                    url: '/docs/:version/tutorial/convert-replica-set-to-embedded-config-server',
-                  },
-                ],
-              },
-              {
-                label: 'Start with a Config Shard',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/start-a-sharded-cluster-with-config-shard',
-              },
-              {
-                label: 'Reshard to the Same Shard Key',
-                contentSite: 'docs',
-                url: '/docs/:version/core/reshard-to-same-key',
-              },
-              {
-                label: 'Reshard a Collection back to the Same Shard Key',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/resharding-back-to-same-key',
-              },
-              {
-                label: 'Resharding for Adding and Removing Shards',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/resharding-for-adding-and-removing-shards',
-              },
-              {
-                label: 'Troubleshoot Stuck Chunk Migrations',
-                contentSite: 'docs',
-                url: '/docs/:version/troubleshooting/chunk-migrations-stuck',
-              },
-            ],
-          },
-          {
-            label: 'Replace a Config Server',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/replace-config-server',
-          },
-          {
-            label: 'Restart a Sharded Cluster',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/restart-sharded-cluster',
-          },
-          {
-            label: 'Migrate a Sharded Cluster to Different Hardware',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/migrate-sharded-cluster-to-new-hardware',
-          },
-          {
-            label: 'Back Up Cluster Metadata',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/backup-sharded-cluster-metadata',
-          },
-          {
-            label: 'Convert a Sharded Cluster to Replica Set',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/convert-sharded-cluster-to-replica-set',
-          },
-          {
-            label: 'Convert a Replica Set to a Sharded Cluster',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/convert-replica-set-to-replicated-shard-cluster',
-          },
-          {
-            label: 'Reference',
-            contentSite: 'docs',
-            url: '/docs/:version/reference/sharding',
-            collapsible: true,
-            items: [
-              {
-                label: 'Config Database',
-                contentSite: 'docs',
-                url: '/docs/:version/reference/config-database',
-              },
-              {
-                label: 'Defragment Sharded Collections',
-                contentSite: 'docs',
-                url: '/docs/:version/core/defragment-sharded-collections',
-                collapsible: true,
-                items: [
-                  {
-                    label: 'Start',
-                    contentSite: 'docs',
-                    url: '/docs/:version/core/defragment-sharded-collections/start-defragmenting-sharded-collection',
-                  },
-                  {
-                    label: 'Monitor',
-                    contentSite: 'docs',
-                    url: '/docs/:version/core/defragment-sharded-collections/monitor-defragmentation-sharded-collection',
-                  },
-                  {
-                    label: 'Stop',
-                    contentSite: 'docs',
-                    url: '/docs/:version/core/defragment-sharded-collections/stop-defragmenting-sharded-collection',
-                  },
-                ],
-              },
-              {
-                label: 'Inconsistency Types',
-                contentSite: 'docs',
-                url: '/docs/:version/reference/inconsistency-type',
-                collapsible: true,
-                items: [
-                  {
-                    label: 'CollectionAuxiliaryMetadataMismatch',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/CollectionAuxiliaryMetadataMismatch',
-                  },
-                  {
-                    label: 'CollectionOptionsMismatch',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/CollectionOptionsMismatch',
-                  },
-                  {
-                    label: 'CollectionUUIDMismatch',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/CollectionUUIDMismatch',
-                  },
-                  {
-                    label: 'CorruptedChunkShardKey',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/CorruptedChunkShardKey',
-                  },
-                  {
-                    label: 'CorruptedZoneShardKey',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/CorruptedZoneShardKey',
-                  },
-                  {
-                    label: 'HiddenShardedCollection',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/HiddenShardedCollection',
-                  },
-                  {
-                    label: 'InconsistentIndex',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/InconsistentIndex',
-                  },
-                  {
-                    label: 'MisplacedCollection',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/MisplacedCollection',
-                  },
-                  {
-                    label: 'MissingLocalCollection',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/MissingLocalCollection',
-                  },
-                  {
-                    label: 'MissingRoutingTable',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/MissingRoutingTable',
-                  },
-                  {
-                    label: 'MissingShardKeyIndex',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/MissingShardKeyIndex',
-                  },
-                  {
-                    label: 'RangeDeletionMissingShardKeyIndex',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/RangeDeletionMissingShardKeyIndex',
-                  },
-                  {
-                    label: 'RoutingTableMissingMaxKey',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/RoutingTableMissingMaxKey',
-                  },
-                  {
-                    label: 'RoutingTableMissingMinKey',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/RoutingTableMissingMinKey',
-                  },
-                  {
-                    label: 'RoutingTableRangeGap',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/RoutingTableRangeGap',
-                  },
-                  {
-                    label: 'RoutingTableRangeOverlap',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/RoutingTableRangeOverlap',
-                  },
-                  {
-                    label: 'ShardCatalogCacheCollectionMetadataMismatch',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/ShardCatalogCacheCollectionMetadataMismatch/',
-                    versions: { excludes: manualVersions.before('v8.2') },
-                  },
-                  {
-                    label: 'ShardMissingCollectionRoutingInfo',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/ShardMissingCollectionRoutingInfo',
-                    versions: { includes: ['v8.0'] },
-                  },
-                  {
-                    label: 'ShardThinksCollectionIsUnsharded',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/ShardThinksCollectionIsUnsharded',
-                    versions: { includes: ['v7.0'] },
-                  },
-                  {
-                    label: 'TrackedUnshardedCollectionHasInvalidKey',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/TrackedUnshardedCollectionHasInvalidKey',
-                  },
-                  {
-                    label: 'TrackedUnshardedCollectionHasMultipleChunks',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/TrackedUnshardedCollectionHasMultipleChunks',
-                  },
-                  {
-                    label: 'ZonesRangeOverlap',
-                    contentSite: 'docs',
-                    url: '/docs/:version/reference/inconsistency-type/ZonesRangeOverlap',
-                  },
-                ],
-              },
-              {
-                label: 'Operational Restrictions',
-                contentSite: 'docs',
-                url: '/docs/:version/core/sharded-cluster-requirements',
-              },
-              {
-                label: 'Troubleshoot Sharded Clusters',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/troubleshoot-sharded-clusters',
-              },
-              {
-                label: 'Node Direct Commands',
-                contentSite: 'docs',
-                url: '/docs/:version/reference/supported-shard-direct-commands',
-              },
-            ],
+            url: '/docs/:version/tutorial/sharding-tiered-hardware-for-varying-slas',
           },
         ],
       },
       {
-        label: 'mongot Deployment Sizing',
+        label: 'Zones',
         contentSite: 'docs',
+        url: '/docs/:version/core/zone-sharding',
         collapsible: true,
-        versions: { excludes: manualVersions.before('v8.2') },
         items: [
           {
-            label: 'Introduction',
+            label: 'Manage',
             contentSite: 'docs',
-            url: '/docs/:version/tutorial/mongot-sizing/introduction',
-          },
-          {
-            label: 'Quickstart',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/mongot-sizing/quick-start',
-          },
-          {
-            label: 'Advanced Guidance',
-            contentSite: 'docs',
+            url: '/docs/:version/tutorial/manage-shard-zone',
             collapsible: true,
             items: [
               {
-                label: 'Architecture Patterns',
+                label: 'Update Shard Zone',
                 contentSite: 'docs',
-                url: '/docs/:version/tutorial/mongot-sizing/advanced-guidance/architecture',
-              },
-              {
-                label: 'Resource Allocation',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/mongot-sizing/advanced-guidance/resource-allocation',
-              },
-              {
-                label: 'Hardware',
-                contentSite: 'docs',
-                url: '/docs/:version/tutorial/mongot-sizing/advanced-guidance/hardware',
+                url: '/docs/:version/tutorial/manage-shard-zone/update-existing-shard-zone',
               },
             ],
+          },
+          {
+            label: 'Segment by Location',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/sharding-segmenting-data-by-location',
+          },
+          {
+            label: 'Segment by Application or Customer',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/sharding-segmenting-shards',
+          },
+          {
+            label: 'Distributed Local Writes for Insert-Only Workloads',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/sharding-high-availability-writes',
+          },
+          {
+            label: 'Distribute Collections',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/sharding-distribute-collections-with-zones',
+          },
+        ],
+      },
+      {
+        label: 'Sharding Administration',
+        contentSite: 'docs',
+        url: '/docs/:version/administration/sharded-cluster-administration',
+        collapsible: true,
+        items: [
+          {
+            label: 'Scaling Strategies',
+            contentSite: 'docs',
+            url: '/docs/:version/core/sharding-scaling-strategies',
+            collapsible: true,
+            items: [
+              {
+                label: 'Start with Sharded Clusters',
+                contentSite: 'docs',
+                url: '/docs/:version/core/sharding-start-with-sharding',
+              },
+              {
+                label: 'Manage Unsharded Collections',
+                contentSite: 'docs',
+                url: '/docs/:version/core/sharding-manage-unsharded-collections',
+              },
+              {
+                label: 'Distribute Collection Data',
+                contentSite: 'docs',
+                url: '/docs/:version/core/sharding-distribute-collection-data',
+              },
+              {
+                label: 'Consolidate Collection Data',
+                contentSite: 'docs',
+                url: '/docs/:version/core/sharding-consolidate-collection-data',
+              },
+            ],
+          },
+          {
+            label: 'View Cluster Configuration',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/view-sharded-cluster-configuration',
+          },
+          {
+            label: 'Add Shards',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/add-shards-to-shard-cluster',
+          },
+          {
+            label: 'Add a Member to a Shard',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/add-member-to-shard',
+          },
+          {
+            label: 'Remove Shards',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/remove-shards-from-cluster',
+          },
+          {
+            label: 'Embedded to Dedicated Config Server',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/embedded-to-dedicated',
+            versions: { excludes: manualVersions.before('v8.3') },
+          },
+          {
+            label: 'Clear jumbo Flag',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/clear-jumbo-flag',
+          },
+          {
+            label: 'Config Shard',
+            contentSite: 'docs',
+            url: '/docs/:version/core/config-shard',
+            collapsible: true,
+            items: [
+              {
+                label:
+                  'Convert a Replica Set to a Sharded Cluster with an Embedded Config Server',
+                contentSite: 'docs',
+                url: '/docs/:version/tutorial/convert-replica-set-to-embedded-config-server',
+              },
+            ],
+          },
+          {
+            label: 'Start with a Config Shard',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/start-a-sharded-cluster-with-config-shard',
+          },
+          {
+            label: 'Reshard to the Same Shard Key',
+            contentSite: 'docs',
+            url: '/docs/:version/core/reshard-to-same-key',
+          },
+          {
+            label: 'Reshard a Collection back to the Same Shard Key',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/resharding-back-to-same-key',
+          },
+          {
+            label: 'Resharding for Adding and Removing Shards',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/resharding-for-adding-and-removing-shards',
+          },
+          {
+            label: 'Troubleshoot Stuck Chunk Migrations',
+            contentSite: 'docs',
+            url: '/docs/:version/troubleshooting/chunk-migrations-stuck',
+          },
+        ],
+      },
+      {
+        label: 'Replace a Config Server',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/replace-config-server',
+      },
+      {
+        label: 'Restart a Sharded Cluster',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/restart-sharded-cluster',
+      },
+      {
+        label: 'Migrate a Sharded Cluster to Different Hardware',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/migrate-sharded-cluster-to-new-hardware',
+      },
+      {
+        label: 'Back Up Cluster Metadata',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/backup-sharded-cluster-metadata',
+      },
+      {
+        label: 'Convert a Sharded Cluster to Replica Set',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/convert-sharded-cluster-to-replica-set',
+      },
+      {
+        label: 'Convert a Replica Set to a Sharded Cluster',
+        contentSite: 'docs',
+        url: '/docs/:version/tutorial/convert-replica-set-to-replicated-shard-cluster',
+      },
+      {
+        label: 'Reference',
+        contentSite: 'docs',
+        url: '/docs/:version/reference/sharding',
+        collapsible: true,
+        items: [
+          {
+            label: 'Config Database',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/config-database',
+          },
+          {
+            label: 'Defragment Sharded Collections',
+            contentSite: 'docs',
+            url: '/docs/:version/core/defragment-sharded-collections',
+            collapsible: true,
+            items: [
+              {
+                label: 'Start',
+                contentSite: 'docs',
+                url: '/docs/:version/core/defragment-sharded-collections/start-defragmenting-sharded-collection',
+              },
+              {
+                label: 'Monitor',
+                contentSite: 'docs',
+                url: '/docs/:version/core/defragment-sharded-collections/monitor-defragmentation-sharded-collection',
+              },
+              {
+                label: 'Stop',
+                contentSite: 'docs',
+                url: '/docs/:version/core/defragment-sharded-collections/stop-defragmenting-sharded-collection',
+              },
+            ],
+          },
+          {
+            label: 'Inconsistency Types',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/inconsistency-type',
+            collapsible: true,
+            items: [
+              {
+                label: 'CollectionAuxiliaryMetadataMismatch',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/CollectionAuxiliaryMetadataMismatch',
+              },
+              {
+                label: 'CollectionOptionsMismatch',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/CollectionOptionsMismatch',
+              },
+              {
+                label: 'CollectionUUIDMismatch',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/CollectionUUIDMismatch',
+              },
+              {
+                label: 'CorruptedChunkShardKey',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/CorruptedChunkShardKey',
+              },
+              {
+                label: 'CorruptedZoneShardKey',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/CorruptedZoneShardKey',
+              },
+              {
+                label: 'HiddenShardedCollection',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/HiddenShardedCollection',
+              },
+              {
+                label: 'InconsistentIndex',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/InconsistentIndex',
+              },
+              {
+                label: 'MisplacedCollection',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/MisplacedCollection',
+              },
+              {
+                label: 'MissingLocalCollection',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/MissingLocalCollection',
+              },
+              {
+                label: 'MissingRoutingTable',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/MissingRoutingTable',
+              },
+              {
+                label: 'MissingShardKeyIndex',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/MissingShardKeyIndex',
+              },
+              {
+                label: 'RangeDeletionMissingShardKeyIndex',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/RangeDeletionMissingShardKeyIndex',
+              },
+              {
+                label: 'RoutingTableMissingMaxKey',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/RoutingTableMissingMaxKey',
+              },
+              {
+                label: 'RoutingTableMissingMinKey',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/RoutingTableMissingMinKey',
+              },
+              {
+                label: 'RoutingTableRangeGap',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/RoutingTableRangeGap',
+              },
+              {
+                label: 'RoutingTableRangeOverlap',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/RoutingTableRangeOverlap',
+              },
+              {
+                label: 'ShardCatalogCacheCollectionMetadataMismatch',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/ShardCatalogCacheCollectionMetadataMismatch/',
+                versions: { excludes: manualVersions.before('v8.2') },
+              },
+              {
+                label: 'ShardMissingCollectionRoutingInfo',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/ShardMissingCollectionRoutingInfo',
+                versions: { includes: ['v8.0'] },
+              },
+              {
+                label: 'ShardThinksCollectionIsUnsharded',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/ShardThinksCollectionIsUnsharded',
+                versions: { includes: ['v7.0'] },
+              },
+              {
+                label: 'TrackedUnshardedCollectionHasInvalidKey',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/TrackedUnshardedCollectionHasInvalidKey',
+              },
+              {
+                label: 'TrackedUnshardedCollectionHasMultipleChunks',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/TrackedUnshardedCollectionHasMultipleChunks',
+              },
+              {
+                label: 'ZonesRangeOverlap',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/ZonesRangeOverlap',
+              },
+            ],
+          },
+          {
+            label: 'Operational Restrictions',
+            contentSite: 'docs',
+            url: '/docs/:version/core/sharded-cluster-requirements',
+          },
+          {
+            label: 'Troubleshoot Sharded Clusters',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/troubleshoot-sharded-clusters',
+          },
+          {
+            label: 'Node Direct Commands',
+            contentSite: 'docs',
+            url: '/docs/:version/reference/supported-shard-direct-commands',
           },
         ],
       },
@@ -1674,6 +1604,13 @@ const tocData: TocItem[] = [
         ],
       },
     ],
+  },
+  {
+    label: 'Search and Vector Search',
+    contentSite: 'self-managed-search',
+    url: '/docs/search/self-managed/:version/',
+    showSubNav: true,
+    items: SearchOnPremData,
   },
   {
     label: 'Operations Checklist',

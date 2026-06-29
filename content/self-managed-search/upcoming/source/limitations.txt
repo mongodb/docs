@@ -1,0 +1,418 @@
+.. _mongot-limitations:
+
+=========================================
+Known Limitations for Self-managed mongot
+=========================================
+
+.. meta::
+  :description: Learn about known limitations and unsupported behavior for self-managed mongot deployments, and compare Search and Vector Search feature support between Atlas and self-managed mongot.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page describes limitations and unsupported behavior for
+self-managed ``mongot`` deployments.
+
+Limitations by Category
+-----------------------
+
+The following sections describe known limitations for self-managed
+``mongot`` deployments, grouped by category.
+
+Deployment, Topology, and Platform Support
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 30 20 50
+   :header-rows: 1
+
+   * - Limitation
+     - Applies to
+     - Description
+   * - mongot Standalone Tarball or Container Isn't a Supported
+       Enterprise Production Path
+     - Enterprise Advanced.
+     - Running ``mongot`` from a standalone tarball or container
+       is not a supported production path for Enterprise Advanced.
+       Enterprise production support assumes MCK-managed ``mongot``,
+       with the related operational tooling, monitoring integration,
+       and support coverage.
+   * - atlas-local Docker Image Is Not a Production Deployment
+       Target
+     - The ``atlas-local`` Docker image.
+     - The ``atlas-local`` Docker image is a single-container,
+       single-node setup that is intended for local development and
+       testing, and is not suitable for production. For production,
+       use a supported production deployment path.
+   * - mongot Isn't Supported on IBM Power (ppc64le) or IBM Z
+       (s390x)
+     - All editions and deployment paths.
+     - ``mongot`` isn't supported on IBM Power (``ppc64le``) or
+       IBM Z (``s390x``). ``mongot`` is supported only on Linux for
+       ``x86_64`` and ``aarch64``.
+   * - Windows and macOS Aren't Supported as Native Deployment
+       Targets
+     - All editions and deployment paths.
+     - MongoDB doesn't provide native Windows or macOS ``mongot``
+       binaries, because ``mongot`` is built for Linux. For local
+       development and testing, deploy ``mongot`` using the
+       ``atlas-local`` Docker image. For more complex deployments,
+       manage ``mongot`` using the |mck| or configure the
+       ``mongodb-community-search`` container image to connect to
+       your MongoDB environment.
+
+Packaging and Installation
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 30 20 50
+   :header-rows: 1
+
+   * - Limitation
+     - Applies to
+     - Description
+   * - The Linux Tarball Doesn't Install a systemd Service
+     - Community Edition tarball installs.
+     - The Linux tarball doesn't include a ``systemd`` unit. You
+       can author your own ``systemd`` unit or use the container
+       image for process lifecycle management.
+   * - Package Manager Installation Isn't Available for Community
+       Edition
+     - Community Edition.
+     - ``apt`` and ``yum`` installation isn't available for
+       Community Edition. To install ``mongot``, use the tarball
+       or container image.
+
+.. _self-managed-limitation-encryption-at-rest:
+
+Authentication and Security
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 30 20 50
+   :header-rows: 1
+
+   * - Limitation
+     - Applies to
+     - Description
+   * - X.509 Certificate Rotation Requires a mongot Restart
+     - All deployment paths.
+     - ``mongot`` reads X.509 certificates at startup. To pick up
+       new certificates, you must restart ``mongot`` after rotating
+       X.509 certificates. To minimize interruptions, schedule
+       certificate rotations during maintenance windows.
+   * - SCRAM Password Rotation Requires a mongot Restart
+     - All deployment paths.
+     - ``mongot`` reads SCRAM credentials at startup. To pick up
+       new credentials, you must restart ``mongot`` after rotating
+       SCRAM credentials. To minimize interruptions, schedule SCRAM
+       credential rotations during maintenance windows.
+   * - mongot Doesn't Validate OCSP or CRL Revocation
+     - All deployment paths that use X.509 or TLS authentication.
+     - ``mongot`` doesn't validate X.509 or TLS certificate revocation
+       through :abbr:`OCSP (Online Certificate Status Protocol)` or
+       :abbr:`CRLs (Certificate Revocation Lists)`. To handle
+       revocation, remove the corresponding ``$external`` user on
+       ``mongod``. After removal, the next handshake rejects the revoked
+       certificate. 
+   * - mongot Doesn't Provide Application-Level Encryption at Rest
+     - All deployment paths.
+     - ``mongot`` doesn't provide native application-level
+       encryption at rest. Instead, you can encrypt the underlying
+       filesystem or block device, for example with LUKS or
+       ``dm-crypt`` on Linux, cloud-provider-managed encrypted
+       volumes, or KMS-backed disk encryption.
+   * - FIPS-Validated TLS Mode Is Not Supported
+     - All deployment paths.
+     - ``mongot`` doesn't support running its TLS stack in a
+       FIPS-validated cryptographic mode.
+
+.. _self-managed-limitation-metrics-ui:
+.. _self-managed-limitation-ops-manager-visibility:
+
+Observability
+~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 30 20 50
+   :header-rows: 1
+
+   * - Limitation
+     - Applies to
+     - Description
+   * - |service| Search Metrics UI Isn't Available for Self-Managed
+       Deployments
+     - All self-managed deployments.
+     - The |fts| Metrics UI isn't available with self-managed
+       ``mongot``. Use Prometheus and Grafana, or another monitoring
+       stack, with the ``mongot`` ``/metrics`` endpoint. To learn more,
+       see :ref:`mongot-tool-integrations`.
+   * - {+om+} Visibility Not Comprehensive for ``mongot``
+     - Enterprise Advanced deployments that use {+om+} and |mck|.
+     - In Enterprise Advanced, {+om+} ingests and displays a limited set
+       of metrics through an |mck|-deployed OpenTelemetry pipeline.
+       These metrics are curated for support triage, health visibility,
+       and Search SKU usage reporting, but not for deep diagnostics. To
+       learn more about available metrics, see
+       :ref:`mongot-metrics-reference`.
+
+Operations and Upgrades
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 30 20 50
+   :header-rows: 1
+
+   * - Limitation
+     - Applies to
+     - Description
+   * - One mongot Instance Can't Serve Multiple mongod Deployments
+     - All deployment paths.
+     - A single ``mongot`` instance can't be shared across multiple
+       unrelated MongoDB deployments because a ``mongot`` instance
+       is bound to exactly one replica set, or to one shard in a
+       sharded cluster. To serve queries for multiple MongoDB
+       deployments, deploy a separate ``mongot`` instance for each
+       replica set or shard.
+   * - Major-Version Downgrades Require Re-sync
+     - All deployment paths.
+     - Downgrading ``mongot`` across major versions requires a
+       re-sync between ``mongod`` and ``mongot`` because major
+       versions aren't rollback-safe.
+   * - mongot Upgrades Require a Process Restart
+     - All deployment paths.
+     - ``mongot`` upgrades require a process restart. To minimize
+       interruptions, schedule maintenance windows or use a rolling
+       restart pattern with multiple ``mongot`` instances under
+       |mck|.
+   * - mongot Configuration Changes Require a Restart
+     - All deployment paths.
+     - ``mongot`` reads its configuration at startup. To apply
+       configuration changes, you must restart ``mongot`` after
+       editing the ``mongot`` configuration file.
+
+|service| Versus Self-Managed Feature Comparison
+------------------------------------------------
+
+The following sections compare support for |fts| and {+avs+} features
+between |service| and self-managed ``mongot``. Use the tables in this
+section to compare options for a migration or hybrid deployment.
+
+Search and Vector Search Behavior
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Search and Vector Search share the same search engine on |service| and
+self-managed ``mongot``, so query behavior, scoring, and index
+semantics are generally consistent across platforms. 
+
+The following table compares which Search and Vector Search features are
+available between |service|-managed and self-managed ``mongot``. 
+
+.. list-table::
+   :widths: 40 60
+   :header-rows: 1
+
+   * - Search and Vector Search Feature
+     - Feature Availability
+   * - ``$search``, ``$searchMeta``, and ``$vectorSearch``
+       aggregation stages
+     - Same on |service| and self-managed
+   * - Index definition syntax
+     - ``nestedRoot`` syntax not supported on self-managed ``mongot``.
+       To learn more, see :ref:`avs-types-vector-search`.
+   * - ``createSearchIndex``, ``dropSearchIndex``,
+       ``updateSearchIndex``, and ``getSearchIndexes`` helper methods
+     - Same on |service| and self-managed
+   * - ``$listSearchIndexes`` aggregation stage
+     - Output for self-managed ``mongot`` differs from |service| Search.
+       See :pipeline:`$listSearchIndexes` for the |service| Search
+       output shape. Self-managed ``mongot`` output differs in the
+       following fields:
+
+       - No top-level ``type`` field
+       - ``synonymMappingStatusDetail`` is a flat list of status
+         objects, not a nested document
+   * - Lucene-based scoring and ranking
+     - Same on |service| and self-managed
+   * - Synonyms, analyzers, and custom mappings
+     - Same on |service| and self-managed
+   * - Vector quantization options
+     - Same on |service| and self-managed
+   * - ``$rerank``
+     - Available only on |service|.
+   * - Automated Embedding through |voyage|
+     - Preview on both platforms. To learn which Automated Embedding
+       features are supported for self-managed ``mongot``, see
+       :ref:`self-managed-limitation-auto-embed`.
+
+.. _self-managed-limitation-auto-embed:
+
+Automated Embedding
+```````````````````
+
+The following table compares Automated Embedding feature support between
+|service| and self-managed ``mongot``. To learn more about automated
+embedding, see :ref:`avs-auto-embeddings`.
+
+.. list-table::
+   :widths: 30 35 35
+   :header-rows: 1
+
+   * - Automated Embedding Feature
+     - |service|
+     - Self-Managed ``mongot``
+   * - |voyage| integration
+     - Available in Preview with the same |voyage| models and options as
+       self-managed ``mongot``.
+     - Available in Preview with the same |voyage| models and options as
+       |service|.
+   * - Rate-limit visibility
+     - |service| exposes RPM and TPM limits in the UI.
+     - Rate-limit visibility isn't surfaced in the product. Limits are
+       enforced on the |voyage| side.
+   * - Billing path
+     - |service| can bill embeddings through the MongoDB proxy
+       endpoint.
+     - Billing depends on whether you use the MongoDB proxy endpoint or
+       connect directly to |voyage|.
+
+Deployment and Lifecycle Management
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table compares how |service| and self-managed deployments
+handle operational aspects of deploying and managing the lifecycle of
+``mongot``.
+
+.. list-table::
+   :widths: 30 35 35
+   :header-rows: 1
+
+   * - Operational Aspect
+     - |service|
+     - Self-managed ``mongot``
+   * - Provisioning
+     - MongoDB provisions and runs ``mongot``.
+     - You provision ``mongot`` by using a tarball, container,
+       |mck|, or ``atlas-local``.
+   * - ``mongot`` version visibility
+     - |service| exposes release timing rather than direct
+       ``mongot`` version strings.
+     - ``mongot`` packages are versioned with explicit
+       ``MAJOR.MINOR.PATCH`` versions.
+   * - Upgrades
+     - MongoDB performs |service| upgrades on its own cadence.
+     - Upgrades are entirely self-managed.
+   * - Security patching
+     - MongoDB applies patches on |service|.
+     - Security patching requires self-managed upgrades.
+   * - Multi-instance scaling
+     - |fts| Nodes handle scale-out within the
+       managed service.
+     - For multiple search nodes or sharded topologies, use |mck| or
+       manage the topology yourself.
+   * - Sharded clusters
+     - Supported in |service|.
+     - Supported only with the |mck| for Enterprise Advanced. The |mck|
+       doesn't support sharded architectures with Community Edition.
+
+Monitoring and Observability
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table compares which monitoring tools and observability
+options are available for |service| and self-managed ``mongot``.
+
+.. list-table::
+   :widths: 30 35 35
+   :header-rows: 1
+
+   * - Monitoring and Observability Option
+     - |service|
+     - Self-managed ``mongot``
+   * - |fts| Metrics UI
+     - Available in the {+atlas-ui+}.
+     - Not available. To learn more, see
+       :ref:`self-managed-limitation-metrics-ui`. 
+   * - MongoDB-managed alerts
+     - Curated alerts with default thresholds.
+     - You define alerting yourself. To learn more, see
+       :ref:`mongot-recommended-alerts`. 
+   * - FTDC retention
+     - Managed by MongoDB.
+     - You manage rotation and retention.
+   * - Log retention
+     - Managed by MongoDB.
+     - You forward and retain logs.
+   * - ``mongot``-metric dashboards
+     - Available in the {+atlas-ui+}.
+     - Not provided in a UI component. To learn how to build dashboards
+       from ``mongot`` metrics, see :ref:`mongot-metrics-reference`. 
+   * - {+om+} ``mongot`` visibility
+     - Not available in |service|.
+     - In Enterprise Advanced, {+om+} exposes curated ``mongot`` metrics
+       through an |mck|-deployed OpenTelemetry pipeline. To learn more,
+       see :ref:`self-managed-limitation-ops-manager-visibility`. 
+
+Reliability and Availability
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following table compares how |service| and self-managed deployments
+handle reliability and availability capabilities for ``mongod`` and
+``mongot``. 
+
+.. list-table::
+   :widths: 30 35 35
+   :header-rows: 1
+
+   * - Reliability and Availability Capability
+     - |service|-managed Deployment
+     - Self-managed Deployment
+   * - ``mongot`` instance availability
+     - |service| manages recovery behavior.
+     - You are responsible for supervision and recovery. Use
+       |mck|-managed replicas or your own process supervision.
+   * - Backup and restore
+     - |service| :ref:`{+cloud-backup+} <backup-cloud-provider>` manages
+       ``mongod`` snapshots. Search indexes in ``mongot`` can be rebuilt
+       from data restored from MongoDB database snapshots.
+     - You are responsible for backing up ``mongod``. Search indexes in
+       ``mongot`` can be rebuilt from data restored from MongoDB
+       database snapshots.
+   * - Disaster recovery
+     - |service| provides regional and cloud failover patterns.
+     - You design the disaster recovery topology yourself.
+   * - Capacity scaling
+     - |service| provides managed Search Node scaling.
+     - You size capacity up front and rescale by changing
+       ``mongot`` resources and restarting as needed.
+
+Security
+~~~~~~~~
+
+The following table compares how |service|-managed deployments and
+self-managed deployments handle security for ``mongod`` and ``mongot``.
+
+.. list-table::
+   :widths: 30 35 35
+   :header-rows: 1
+
+   * - Security Feature
+     - |service|-managed Deployment
+     - Self-managed Deployment 
+   * - Authentication between ``mongod`` and ``mongot``
+     - Managed internally by |service|.
+     - You configure SCRAM or X.509 authentication.
+   * - TLS for ``mongod`` to ``mongot``
+     - Always on and managed by |service|.
+     - You configure TLS yourself. 
+   * - Encryption at rest
+     - |service| provides managed encryption-at-rest options,
+       including KMS integrations.
+     - ``mongot`` doesn't provide native encryption at rest. To learn
+       more, see :ref:`self-managed-limitation-encryption-at-rest`.

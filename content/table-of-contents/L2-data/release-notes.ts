@@ -319,14 +319,21 @@ const tocData: TocItem[] = [
     ],
   },
   {
-    label: 'Search Release Notes',
+    label: 'Search & Vector Search Release Notes',
     contentSite: 'cloud-docs',
-    url: '/docs/atlas/atlas-search/changelog',
-  },
-  {
-    label: 'Vector Search Release Notes',
-    contentSite: 'vector-search',
-    url: '/docs/vector-search/changelog',
+    collapsible: true,
+    items: [
+      {
+        label: 'Atlas',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/search-changelog',
+      },
+      {
+        label: 'Self-Managed',
+        contentSite: 'vector-search',
+        url: '/docs/search/self-managed/:version/release-notes',
+      },
+    ],
   },
 ];
 

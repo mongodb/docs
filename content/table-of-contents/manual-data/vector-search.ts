@@ -224,7 +224,7 @@ const tocData: TocItem[] = [
   {
     label: 'Changelog',
     isExternal: true,
-    url: 'https://www.mongodb.com/docs/vector-search/changelog/',
+    url: 'https://www.mongodb.com/docs/atlas/search-changelog/',
   },
 ];
 

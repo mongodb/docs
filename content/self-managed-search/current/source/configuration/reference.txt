@@ -1,0 +1,996 @@
+.. _mongot-config-settings:
+
+================
+Configure mongot
+================
+
+.. meta::
+   :description: Learn how to configure mongot for MongoDB Search Community deployments using a YAML configuration file. Find required and optional settings for replica sets and sharded clusters.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Use a YAML configuration file to configure ``mongot`` for
+|mdb-search| deployments. The following example shows the full
+configuration structure with all available settings:
+
+.. code-block:: yaml
+
+   syncSource:
+      replicaSet: <object>
+         hostAndPort: <string or list of strings>
+         x509: <object>
+            caFile: <string>
+            tlsCertificateKeyFile: <string>
+            tlsCertificateKeyFilePasswordFile: <string>
+         scramAuth: <object> 
+            username: <string>
+            passwordFile: <string>
+            authSource: <string>
+            tls: <object>
+               enabled: <boolean>
+               caFile: <string>
+               tlsCertificateKeyFile: <string>
+               tlsCertificateKeyFilePasswordFile: <string>
+      router: <object>
+         hostAndPort: <string or list of strings>
+         x509: <object>
+            caFile: <string>
+            tlsCertificateKeyFile: <string>
+            tlsCertificateKeyFilePasswordFile: <string>
+         scramAuth: <object> 
+            username: <string>
+            passwordFile: <string>
+            authSource: <string>
+            tls: <object>
+               enabled: <boolean>
+               caFile: <string>
+               tlsCertificateKeyFile: <string>
+               tlsCertificateKeyFilePasswordFile: <string>
+      replicationReader: 
+         readPreference: <string> 
+         tagSets: <string or list of strings>  
+   storage: <object>
+      dataPath: <string>
+   server: <object>
+      grpc: <object>
+         address: <string>
+         tls: <object>
+            mode: <string>
+            certificateKeyFile: <string>
+            certificateKeyFilePasswordFile: <string>
+            caFile: <string>
+      name: <string> 
+   metrics: <object>
+      enabled: <boolean>
+      address: <string>
+   healthCheck: <object>
+      address: <string>
+   logging: <object>
+      verbosity: <string>
+      logPath: <string>
+   embedding:
+      providerEndpoint: <string>
+      queryKeyFile: <string>
+      indexingKeyFile: <string>
+      isAutoEmbeddingViewWriter: <boolean>
+   advancedConfigs: <object>
+      indexing: <object>
+         lucene: <object>
+            refresh: <object>
+               intervalMs: <int>
+            mergePolicy: <object>
+               tiered: <object>
+                  vectorMergePolicy: <object>
+                     mergeBudgetMb: <int>
+            mergeScheduler: <object>
+               concurrent: <object>
+                  maxThreadCount: <int>
+            fieldLimit: <int>
+      querying: <object>
+         lucene: <object>
+            maxClauseLimit: <int>
+            vectorFloorSegmentMB: <double>
+      replication: <object>
+         mongodb: <object>
+            numConcurrentInitialSyncs: <int>
+            numConcurrentChangeStreams: <int>
+            numIndexingThreads: <int>
+            numConcurrentSynonymSyncs: <int>
+      autoEmbedding: <object>
+         materializedView: <object>
+            numConcurrentChangeStreams: <int>
+            numIndexingThreads: <int>
+            numEmbeddingThreads: <int>
+            numConcurrentInitialSyncs: <int>
+            matViewWriterMaxConnections: <int>
+            mvWriteRateLimitRps: <int>
+            embeddingProviderRpsLimit: <int>
+      ftdc: <object>
+         enabled: <boolean>
+         directorySizeMb: <int>
+         fileSizeMb: <int>
+         collectionPeriodMillis: <int>
+
+.. _mongot-config-required-settings:
+
+Required Settings
+-----------------
+
+This section describes settings required for all ``mongot``
+deployments. If you define only the required settings, ``mongot``
+uses the defaults for all optional settings. 
+
+.. setting:: syncSource.replicaSet
+   
+   *Type*: Object
+
+   Replication connections to ``mongod`` for ``mongot``.
+
+.. setting:: syncSource.replicaSet.hostAndPort
+
+   *Type*: String or List of Strings
+
+   One or more host and port specifiers used to construct the seed
+   list in the ``mongod`` connection string. Regardless of the
+   number of specifiers provided, ``mongot`` establishes the
+   connection in replica set mode, not standalone mode.
+
+.. setting:: storage.dataPath
+   
+   *Type*: String
+
+   Path that ``mongot`` must use as a base path for storing index
+   data and the local index catalog.
+
+.. setting:: server
+  
+   *Type*: Object
+
+   Settings for the ``mongot`` query servers.
+
+.. setting:: server.grpc
+
+   *Type*: Object
+
+   Listen server settings for gRPC communication between
+   ``mongot`` and ``mongod``. 
+
+.. setting:: server.grpc.address
+
+   *Type*: String
+
+   Address on which the gRPC listen server listens. Use the
+   following format:
+
+   .. code-block::
+
+      <host>:<port>
+
+   In self-managed deployments, this address must be reachable 
+   by the ``mongod`` processes that send search and 
+   index management traffic to ``mongot``. Configure it so it 
+   matches the host and port that ``mongod`` uses for its 
+   ``mongotHost`` and ``searchIndexManagementHostAndPort`` 
+   settings.
+
+   For single-host development, ``localhost`` is the safest 
+   default. If ``mongod`` and ``mongot`` run on different hosts, 
+   set ``server.grpc.address`` to an interface that ``mongod`` 
+   can reach.
+
+   .. include:: /includes/installation/facts/global-interface-warning.rst
+
+.. _mongot-config-optional-settings:
+
+Optional Settings
+-----------------
+
+This section describes optional and conditionally required settings
+for ``mongot``. If you omit these settings, ``mongot`` uses the
+specified default value when applicable.
+
+Replica Set Authentication Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. setting:: syncSource.replicaSet.x509
+
+   *Type*: Object
+
+   *Necessity*: Required if you do not use ``syncSource.replicaSet.scramAuth``
+
+   X.509 certificate settings for authenticating ``mongot`` with
+   ``mongod``. 
+
+.. setting:: syncSource.replicaSet.x509.caFile 
+
+   *Type*: String
+
+   *Necessity*: Required if you use ``syncSource.replicaSet.x509``
+
+   Certificate Authority (CA) file that contains trusted
+   certificates for verifying the certificate presented by
+   ``mongod``. The file must contain an X.509 certificate
+   collection in PEM format. 
+
+.. setting:: syncSource.replicaSet.x509.tlsCertificateKeyFile
+
+   *Type*: String
+
+   *Necessity*: Required if you use ``syncSource.replicaSet.x509``
+
+   Path to the PEM file that contains the X.509 certificate and
+   private key for authenticating ``mongot`` with ``mongod``.
+   Required when you configure ``syncSource.replicaSet.x509``.
+
+.. setting:: syncSource.replicaSet.x509.tlsCertificateKeyFilePasswordFile
+
+   *Type*: String
+
+   *Necessity*: Optional
+
+   Path to the file that contains the password to decrypt the
+   certificate key file specified in
+   ``syncSource.replicaSet.x509.tlsCertificateKeyFile``.
+
+.. setting:: syncSource.replicaSet.scramAuth
+
+   *Type*: Object
+
+   *Necessity*: Required if you do not use ``syncSource.replicaSet.x509``
+
+   Settings for SCRAM authentication.
+
+.. setting:: syncSource.replicaSet.scramAuth.username
+
+   *Type*: String
+
+   *Necessity*: Required
+
+   The username to authenticate with.
+
+.. setting:: syncSource.replicaSet.scramAuth.passwordFile
+
+   *Type*: String
+
+   *Necessity*: Required
+
+   Path to a file that contains the password to authenticate with.
+
+.. setting:: syncSource.replicaSet.scramAuth.authSource
+
+    *Type*: String
+
+    *Necessity*: Optional
+
+    *Default*: admin
+
+    Name of the database associated with the ``mongot`` authentication 
+    credentials. 
+
+.. setting:: syncSource.replicaSet.scramAuth.tls
+
+   *Type*: Object
+
+   *Necessity*: Optional
+
+   *Default*: false
+
+   Settings for TLS. 
+
+.. setting:: syncSource.replicaSet.scramAuth.tls.enabled
+
+   *Type*: Boolean
+
+   *Necessity*: Required if you specify ``syncSource.replicaSet.scramAuth.tls``
+
+   Flag to enable TLS authentication. Set to ``true`` to enable 
+   TLS authentication.
+
+.. setting:: syncSource.replicaSet.scramAuth.tls.caFile
+
+   *Type*: String
+
+   *Necessity*: Optional
+
+   Certificate Authority (CA) file that contains trusted
+   certificates for verifying the certificate presented by
+   ``mongod``. The file must contain an X.509 certificate
+   collection in PEM format. 
+
+.. setting:: syncSource.replicaSet.scramAuth.tls.tlsCertificateKeyFile 
+
+   *Type*: String
+
+   *Necessity*: Optional
+
+   Path to the PEM file that contains the X.509 certificate and
+   private key for authenticating ``mongot`` with ``mongod``.
+
+.. setting:: syncSource.replicaSet.scramAuth.tls.tlsCertificateKeyFilePasswordFile
+
+   *Type*: String
+
+   *Necessity*: Optional
+
+   Path to the file that contains the password to decrypt the certificate key
+   file specified in ``syncSource.replicaSet.scramAuth.tls.tlsCertificateKeyFile``.
+
+Sharded Clusters Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. setting:: syncSource.router
+
+   *Type*: Object
+
+   Replication connections to ``mongos`` for ``mongot``. If
+   omitted, ``mongot`` assumes it is running in a non-sharded
+   environment. Required for sharded cluster deployments.
+
+.. setting:: syncSource.router.x509
+
+   *Type*: Object
+
+   *Necessity*: Required if you do not use ``syncSource.router.scramAuth``
+
+   X.509 certificate settings for authenticating ``mongot`` with
+   ``mongos``. 
+
+.. setting:: syncSource.router.x509.caFile
+
+   *Type*: String
+
+   *Necessity*: Required if you use ``syncSource.router.x509``
+
+   Certificate Authority (CA) file that contains trusted
+   certificates for verifying the certificate presented by
+   ``mongos``. The file must contain an X.509 certificate
+   collection in PEM format. 
+
+.. setting:: syncSource.router.x509.tlsCertificateKeyFile
+
+   *Type*: String
+
+   *Necessity*: Required if you use ``syncSource.router.x509``
+
+   Path to the PEM file that contains the X.509 certificate and
+   private key for authenticating ``mongot`` with ``mongos``.
+   Required when you configure ``syncSource.router.x509``.
+
+.. setting:: syncSource.router.x509.tlsCertificateKeyFilePasswordFile
+
+   *Type*: String
+
+   *Necessity*: Optional
+
+   Path to the file that contains the password to decrypt the
+   certificate key file specified in
+   ``syncSource.router.x509.tlsCertificateKeyFile``.
+
+.. setting:: syncSource.router.scramAuth
+
+   *Type*: Object
+
+   *Necessity*: Required if you do not use ``syncSource.router.x509``
+
+   Settings for SCRAM authentication.
+
+.. setting:: syncSource.router.scramAuth.username
+
+   *Type*: String
+
+   *Necessity*: Required
+
+   The username to authenticate with.
+
+.. setting:: syncSource.router.scramAuth.passwordFile
+
+   *Type*: String
+
+   *Necessity*: Required
+
+   Path to a file that contains the password to authenticate with.
+
+.. setting:: syncSource.router.scramAuth.authSource
+
+    *Type*: String
+
+    *Necessity*: Optional
+
+    Name of the database associated with the ``mongot`` authentication 
+    credentials. If unspecified, ``authSource`` defaults to ``admin``.
+
+.. setting:: syncSource.router.scramAuth.tls 
+
+   *Type*: Object
+
+   *Necessity*: Optional
+
+   *Default*: false
+
+   Settings for TLS. 
+
+.. setting:: syncSource.router.scramAuth.tls.enabled
+
+   *Type*: Boolean
+
+   *Necessity*: Required if you specify ``syncSource.router.scramAuth.tls``
+
+   Flag to enable TLS authentication. Set to ``true`` to 
+   enable TLS authentication. 
+
+.. setting:: syncSource.router.scramAuth.tls.caFile
+
+   *Type*: String
+
+   *Necessity*: Optional
+
+   Certificate Authority (CA) file that contains trusted
+   certificates for verifying the certificate presented by
+   ``mongos``. The file must contain an X.509 certificate
+   collection in PEM format. 
+
+.. setting:: syncSource.router.scramAuth.tls.tlsCertificateKeyFile
+
+   *Type*: String
+
+   *Necessity*: Optional. 
+
+   Path to the PEM file that contains the X.509 certificate and
+   private key for authenticating ``mongot`` with ``mongos``.
+
+.. setting:: syncSource.router.scramAuth.tls.tlsCertificateKeyFilePasswordFile
+
+   *Type*: String
+
+   Path to the file that contains the password to decrypt the certificate key
+   file specified in ``syncSource.router.scramAuth.tls.tlsCertificateKeyFile``.
+
+Replication Read Preference Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. setting:: syncSource.replicationReader
+
+   *Type*: Object
+
+   Controls the read preference that ``mongot`` uses when reading
+   from the replica set for replication.
+
+   To filter reads by replica set member tags, specify
+   ``syncSource.replicationReader.tagSets``.
+
+.. setting:: syncSource.replicationReader.readPreference
+
+   *Type*: String
+
+   *Default*: ``secondaryPreferred``
+
+   Read preference ``mongot`` uses for replication operations. You
+   can specify the following values:
+
+   - ``primary``
+   - ``primaryPreferred``
+   - ``secondary``
+   - ``secondaryPreferred``
+   - ``nearest``
+
+   .. note::
+
+      Index management commands always use ``primary`` read
+      preference, regardless of this setting.
+
+.. setting:: syncSource.replicationReader.tagSets
+
+   *Type*: Array
+
+   Array of tag sets that filter which replica set members receive
+   replication reads. You cannot configure this setting if
+   ``syncSource.replicationReader.readPreference`` is ``primary``.
+
+   Each element of ``tagSets`` is an array of
+   ``{ name: <name>, value: <value> }`` objects that match replica
+   set member tags. ``mongot`` evaluates tag sets in order and
+   uses the first tag set that matches a member. For example:
+
+   .. code-block:: yaml
+
+      tagSets:
+        - [ { name: hostname, value: mongod1 },
+            { name: region, value: us-east-1 } ]
+
+gRPC Server Settings
+~~~~~~~~~~~~~~~~~~~~
+
+The :setting:`server.grpc.address` setting is required. All other
+``server.grpc`` settings are optional.
+
+.. setting:: server.grpc.tls
+
+   *Type*: Object
+
+   |tls| configuration options for the gRPC listen server.
+
+.. setting:: server.grpc.tls.mode
+
+   *Type*: String
+
+   |tls| mode for the gRPC server. Must be one of the following values:
+   
+   - ``"TLS"``
+   - ``"mTLS"``
+   - ``"disabled"``
+   
+   Required when you configure ``server.grpc.tls``.
+
+.. setting:: server.grpc.tls.certificateKeyFile
+
+   *Type*: String
+
+   PEM file that contains a valid X.509 certificate for ``mongot``
+   using a PKCS#8 private key. ``mongod`` validates this
+   certificate using a Certificate Authority (CA) file that you
+   specify with the ``--tlsCAFile`` option. Required when
+   ``server.grpc.tls.mode`` is ``"TLS"`` or ``"mTLS"``.
+
+.. setting:: server.grpc.tls.certificateKeyFilePasswordFile
+
+   *Type*: String
+
+   Path to the file that contains the password to decrypt the certificate key
+   file specified in ``server.grpc.tls.certificateKeyFile``.
+
+.. setting:: server.grpc.tls.caFile
+
+   *Type*: String
+
+   Certificate Authority (CA) file that contains trusted
+   certificates for verifying the certificate presented by
+   ``mongod``. The file must contain an X.509 certificate
+   collection in PEM format. Required when
+   ``server.grpc.tls.mode`` is ``"mTLS"``.
+
+.. setting:: server.name
+
+   *Type*: String
+
+   User-provided name to identify a ``mongot`` instance. MongoDB
+   uses ``server.name`` to identify ``mongot`` hosts across
+   programmatic interfaces such as :pipeline:`$listSearchIndexes`.
+   If you omit this setting, MongoDB generates a name automatically.
+
+Metrics Settings
+~~~~~~~~~~~~~~~~
+
+.. setting:: metrics
+
+   *Type*: Object
+
+   Settings for the ``mongot`` Prometheus metrics endpoint
+   listener.
+
+.. setting:: metrics.enabled
+
+   *Type*: Boolean
+
+   Flag that enables the Prometheus metrics endpoint. If you set
+   this to ``false``, MongoDB parses and validates the syntax of the
+   other settings in the ``metrics`` block but does not start the
+   Prometheus metrics listener. Required when you configure
+   ``metrics``.
+
+.. setting:: metrics.address
+
+   *Type*: String
+
+   *Default*: ``localhost:9946``
+
+   Socket address (IPv4 or IPv6) on which the Prometheus ``/metrics``
+   endpoint is exposed. Use the following format:
+
+   .. code-block:: shell
+
+      <host>:<port>
+
+Health Checks Settings
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. setting:: healthCheck
+
+   *Type*: Object
+
+   Settings for the ``mongot`` health check endpoint. You cannot
+   disable the health check endpoint, but you can configure its
+   listen address.
+
+.. setting:: healthCheck.address
+
+   *Type*: String
+
+   *Default*: ``localhost:8080``
+
+   Address on which the health check listener listens. Use the
+   following format:
+
+   .. code-block:: shell
+
+      <host>:<port>
+
+Logging Settings
+~~~~~~~~~~~~~~~~
+
+.. setting:: logging
+
+   *Type*: Object
+
+   Options for logging.
+
+.. setting:: logging.verbosity
+
+   *Type*: String
+
+   *Default*: ``INFO``
+
+   Verbosity of logging. The value must be a valid Logback log
+   level.
+
+.. setting:: logging.logPath
+
+   *Type*: String
+
+   Path to a file where ``mongot`` writes logs using a Logback 
+   file appender. If you omit this setting, MongoDB does not 
+   create or configure a log file appender.
+
+Automated Embedding Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Basic Settings
+``````````````
+
+Configure the following settings to enable Automated Embedding. 
+
+.. note:: 
+
+   - ``queryKeyFile`` and ``indexingKeyFile`` work as a pair. If 
+     you do not configure either file, ``mongot`` logs a warning and 
+     disables auto-embedding.
+
+   - ``providerEndpoint`` is optional. When set, ``mongot`` applies 
+     it as an override for the configured embedding service endpoint.
+
+   - ``isAutoEmbeddingViewWriter`` defaults to ``false`` if you omit
+     it.
+
+.. setting:: embedding.providerEndpoint
+
+   *Type*: String
+
+   URL of the embedding provider endpoint. Optional override for the 
+   default embedding provider endpoint. Use this if you want ``mongot`` 
+   to send embedding requests to a specific provider endpoint instead 
+   of the default endpoint.
+
+.. setting:: embedding.queryKeyFile
+
+   *Type*: String
+
+   Path to the file that contains the key for the query-time embedding 
+   requests. Required for Automated Embedding.
+
+.. setting:: embedding.indexingKeyFile
+
+   *Type*: String
+
+   Path to the file that contains the key for the index-time embedding 
+   requests. Required for Automated Embedding.
+
+.. setting:: embedding.isAutoEmbeddingViewWriter
+
+   *Type*: Boolean
+
+   Flag to designate the leader ``mongot`` instance responsible
+   for writing the automated embedding View. If true, this
+   ``mongot`` instance acts as the writer for auto-embedding
+   materialized-view updates.
+
+   For single-instance deployments, set this to ``true`` to enable
+   the instance to write the automated embeddings View.
+
+   If you have multiple ``mongot`` instances for replica sets or
+   sharded clusters, ensure that only one instance writes the
+   automated embedding View to prevent duplication or conflicts.
+   Set the value to:
+
+   - ``true`` to designate a ``mongot`` instance as the leader
+     responsible for writing the auto-embeddings View.
+   - ``false`` to designate a ``mongot`` instance as a follower
+     that does not write the auto-embeddings View.
+
+Advanced Settings
+`````````````````
+
+.. setting:: advancedConfigs.autoEmbedding.materializedView.numConcurrentChangeStreams
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: 2 times the host's CPU core count
+
+   Maximum number of steady-state change streams that the
+   materialized view replication process can have outstanding at
+   any one time. Must be a positive integer.
+
+.. setting:: advancedConfigs.autoEmbedding.materializedView.numIndexingThreads
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: The host's CPU core count, with a minimum of ``1``
+
+   Number of threads used to write embedding data into the
+   materialized view's indexes. Must be a positive integer.
+
+.. setting:: advancedConfigs.autoEmbedding.materializedView.numEmbeddingThreads
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: The host's CPU core count, with a minimum of ``1``
+
+   Number of threads used to request embeddings from the
+   embedding provider. Must be a positive integer.
+
+.. setting:: advancedConfigs.autoEmbedding.materializedView.numConcurrentInitialSyncs
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: Half of 
+   ``advancedConfigs.replication.mongodb.numConcurrentInitialSyncs``. 
+   If the result is less than ``1``, then it uses ``1``. If you do\n   not set\n   ``advancedConfigs.replication.mongodb.numConcurrentInitialSyncs``\n   also, then it defaults to ``1``.
+
+   Maximum number of Automated Embedding indexes that can run their
+   initial sync at the same time. Limiting concurrency reduces
+   the load placed on the source ``mongod`` node and embedding
+   provider during initial builds. Must be a positive integer.
+
+.. setting:: advancedConfigs.autoEmbedding.materializedView.matViewWriterMaxConnections
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``4``
+
+   Maximum number of connections used to write to the
+   materialized view collection. Must be a positive integer no
+   greater than ``16``.
+
+.. setting:: advancedConfigs.autoEmbedding.materializedView.mvWriteRateLimitRps
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: No limit
+
+   Maximum number of bulk write commits per second to the
+   materialized view collection on this node. Use this setting to
+   limit write throughput to the source ``mongod`` node. Must be a
+   positive integer.
+
+.. setting:: advancedConfigs.autoEmbedding.materializedView.embeddingProviderRpsLimit
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: No limit
+
+   Maximum number of requests per second this node can send to
+   the embedding provider. This is a node-level limit. Must be a
+   positive integer no greater than ``100``.
+
+Advanced Indexing Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. setting:: advancedConfigs.indexing.lucene.refresh.intervalMs
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``1000``
+
+   Interval, in milliseconds, that ``mongot`` waits before
+   refreshing an index to make recently indexed changes visible
+   to queries. Lower values reduce the delay between writing a
+   document and being able to query it, at the cost of more
+   frequent refresh work. Must be a positive integer.
+
+.. setting:: advancedConfigs.indexing.lucene.mergePolicy.tiered.vectorMergePolicy.mergeBudgetMb
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: 10% of the host's total memory
+
+   Memory budget, in megabytes, available to background merges of
+   vector index segments. A larger budget allows more segments to
+   be merged together at once, which can improve query
+   performance but uses more memory during merges. Must be a
+   positive integer.
+
+.. setting:: advancedConfigs.indexing.lucene.mergeScheduler.concurrent.maxThreadCount
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: The number of CPU cores available to the host
+
+   Maximum number of threads that can perform index segment
+   merges concurrently. Higher values allow more merges to run in
+   parallel. Must be a positive integer.
+
+.. setting:: advancedConfigs.indexing.lucene.fieldLimit
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: No limit
+
+   Maximum number of indexed fields allowed in an index. Use this
+   setting to guard against unbounded field growth in indexes.
+   Must be at least ``3``.
+
+Advanced Querying Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. setting:: advancedConfigs.querying.lucene.maxClauseLimit
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``1024``
+
+   Maximum number of clauses a single query can expand to.
+   ``mongot`` rejects queries that expand beyond this limit. 
+   Raising this limit allows larger queries but increases their 
+   memory and CPU cost. Must be a positive integer.
+
+.. setting:: advancedConfigs.querying.lucene.vectorFloorSegmentMB
+
+   *Type*: Double
+
+   *Necessity*: Optional
+
+   *Default*: ``64.0``
+
+   Floor segment size, in megabytes, used by the merge policy for
+   {+avs+} indexes. ``mongot`` merges segments smaller than 
+   ``advancedConfigs.querying.lucene.vectorFloorSegmentMB`` together 
+   more aggressively to reduce the total number of segments and 
+   improve query performance. Value must be a positive number.
+
+Advanced Replication Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. setting:: advancedConfigs.replication.mongodb.numConcurrentInitialSyncs
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: The lesser of the host's CPU core count and ``2``
+
+   Maximum number of indexes that can run their initial sync at
+   the same time. Limiting concurrency reduces the load placed on
+   the source ``mongod`` node while many indexes build
+   simultaneously. Must be a positive integer.
+
+.. setting:: advancedConfigs.replication.mongodb.numConcurrentChangeStreams
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: 2 times the host's CPU core count
+
+   Maximum number of steady-state change streams that can have
+   outstanding requests to the source ``mongod`` node at any one
+   time. This setting controls how many indexes can pull updates
+   concurrently after their initial sync completes. Must be a
+   positive integer.
+
+.. setting:: advancedConfigs.replication.mongodb.numIndexingThreads
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: Half the host's CPU core count, with a minimum of ``1``
+
+   Number of threads used to write replicated documents and changes 
+   into indexes. Higher values can improve indexing throughput but 
+   might increase CPU and memory usage. Value must be a positive 
+   integer.
+
+.. setting:: advancedConfigs.replication.mongodb.numConcurrentSynonymSyncs
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``2``
+
+   Maximum number of synonym source collections that can sync
+   concurrently. Must be a positive integer.
+
+.. _mongot-advanced-ftdc-settings:
+
+Advanced FTDC Settings
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. setting:: advancedConfigs.ftdc.enabled
+
+   *Type*: Boolean
+
+   *Necessity*: Optional
+
+   *Default*: ``true``
+
+   Flag that enables full-time diagnostic data capture (FTDC).
+   FTDC diagnostic data collection is enabled by default. When
+   ``false``, ``mongot`` creates no FTDC reporter at bootstrap,
+   so it captures no diagnostic data.
+
+.. setting:: advancedConfigs.ftdc.directorySizeMb
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``100``
+
+   Maximum total size, in megabytes, of the FTDC archive
+   directory. Must be at least ``10`` and greater than
+   ``advancedConfigs.ftdc.fileSizeMb``.
+
+.. setting:: advancedConfigs.ftdc.fileSizeMb
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``10``
+
+   Maximum size, in megabytes, of an individual FTDC archive
+   file. Must be at least ``1`` and less than
+   ``advancedConfigs.ftdc.directorySizeMb``.
+
+.. setting:: advancedConfigs.ftdc.collectionPeriodMillis
+
+   *Type*: Integer
+
+   *Necessity*: Optional
+
+   *Default*: ``1000``
+
+   Sampling interval, in milliseconds, that controls how often
+   ``mongot`` collects metrics into FTDC. Must be at least
+   ``100``.

@@ -1,0 +1,66 @@
+
+The following sections provide more detail on the recommendation for
+each storage class.
+
+Local PCIe/NVMe SSD: Default Recommendation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Local NVMe is the best fit for ``mongot`` because Lucene's
+random-read-heavy access pattern benefits directly from
+microsecond-scale device latency and high random-read IOPS. Store
+index data on a dedicated NVMe volume and don't share it with the
+operating system, logs, or other databases. A dedicated device
+prevents I/O contention from noisy neighbors on the host and keeps
+the filesystem cache focused on index pages.
+
+Local Enterprise SATA/SAS SSD: Acceptable Baseline
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Enterprise SATA and SAS SSDs offer substantially better latency 
+than spinning disk and provide enough random-read IOPS for small to 
+moderate production workloads. They are appropriate when NVMe is 
+unavailable. Continue to use a dedicated data volume. Don't combine 
+index storage with the OS or boot volume. For latency-sensitive or 
+indexing-heavy deployments, we recommend local NVMe.
+
+All-Flash SAN as a Block Device: Acceptable Second Choice
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A SAN can serve ``mongot`` index storage if it meets the following 
+conditions:
+
+1. **It is mounted as a block device** (FC, iSCSI, or NVMe-oF).
+   
+   Block semantics preserve the file-locking and atomic-rename
+   behavior that ``mongot`` needs. Shared-file protocols do not.
+
+#. **It is validated under representative load.** 
+
+   The storage network and host path often dominate latency more
+   than the array itself. Benchmark under realistic mixed query
+   and indexing load before using in production.
+
+Even when both conditions are met, the network hop makes SAN a
+compromise versus local SSD. Treat it as the path you take only 
+when local NVMe is not feasible.
+
+NFS, NAS, and Shared File Protocols: Not Recommended
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Lucene has  problems over NFS, including readers seeing stale segments 
+metadata and encountering ``FileNotFound`` errors on segment files that 
+were already replaced during merges. Native filesystem locking semantics 
+that Lucene relies on can fail in certain NFS environments. Even if a
+shared-filesystem deployment works during testing, we don't recommend it 
+for a live production index under change.
+
+HDD and Spinning Media: Not Recommended
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Spinning media is measured in milliseconds rather than microseconds, and 
+the IOPS ceiling is hundreds rather than tens of thousands. It is 
+mismatched to Lucene's random-read profile and to ``mongot``'s indexing 
+and merge behavior. This includes throughput-optimized and cold HDD tiers 
+from cloud providers, which are positioned for sequential, throughput-heavy 
+workloads.
+

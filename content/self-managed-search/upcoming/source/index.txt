@@ -1,0 +1,185 @@
+.. _mongot-overview:
+
+====================================================================
+{+fts+} and {+avs+} on Self-Managed Deployments
+====================================================================
+
+.. meta::
+   :description: Learn about deploying and operating mongot for {+fts+} and {+avs+} on self-managed MongoDB deployments, including Community and Enterprise editions.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+About ``mongot``
+----------------
+
+``mongot`` is the {+fts+} and {+avs+} process that powers
+the :pipeline:`$search`, :pipeline:`$searchMeta`, and
+:pipeline:`$vectorSearch` aggregation stages. Built on Apache
+Lucene, ``mongot`` runs as a separate process from ``mongod``
+and performs the following functions:
+
+- Synchronizes index data from ``mongod`` over a permanent
+  connection driven by change streams.
+- Maintains search indexes on dedicated storage.
+- Serves search queries proxied through ``mongod``. Clients
+  never connect to ``mongot`` directly.
+
+{+service+} manages ``mongot`` for you. On Community Edition
+and |ent-build|, you deploy and operate ``mongot`` yourself.
+
+Try {+fts+} and {+avs+} Locally
+------------------------------------------------------
+
+To evaluate {+fts+} and {+avs+}, start with the
+`mongodb/mongodb-atlas-local
+<https://hub.docker.com/r/mongodb/mongodb-atlas-local>`__
+Docker image. This image bundles ``mongod`` and ``mongot``
+in a single container so you can focus on building {+fts+}
+and {+avs+} features.
+
+Use ``atlas-local`` when you want to:
+
+- Prototype :pipeline:`$search` and :pipeline:`$vectorSearch`
+  queries against your own data.
+- Develop and run integration tests in CI.
+- Try :ref:`automated embedding <mongot-with-auto-embed>` before
+  choosing a production model.
+
+Use ``atlas-local`` for evaluation only. The image runs as a
+single node and lacks high availability, so don't use it as a
+production deployment target.
+
+Get started with the following commands:
+
+.. code-block:: sh
+
+   docker pull mongodb/mongodb-atlas-local:preview
+   docker run -p 27017:27017 mongodb/mongodb-atlas-local
+
+For the full walkthrough, see
+:ref:`mongot-deployment-using-atlas-local` and
+`Atlas CLI: Deploy a Local Atlas Deployment with Search
+<https://www.mongodb.com/docs/atlas/cli/current/atlas-cli-deploy-fts/>`__.
+
+When you're ready to deploy to production, return to this page
+for guidance on production deployment paths.
+
+Production Deployment Paths
+---------------------------
+
+Self-managed {+fts+} and {+avs+} deployment options differ
+between MongoDB editions.
+
+|ent-build|
+~~~~~~~~~~~~~~
+
+The primary deployment pattern uses MongoDB Ops Manager to
+manage ``mongod`` on virtual machines. The
+`{+k8s-op+} <https://www.mongodb.com/docs/kubernetes/current/>`__
+manages ``mongot`` on a {+k8s+} cluster. This deployment
+supports replica sets and sharded clusters with multiple
+``mongot`` instances, and lets you size ``mongot`` per workload
+independently of ``mongod``. To learn more, see :ref:`{+k8s-op+} 
+documentation <k8s-deploy-search-resources>`.
+
+You can also run |ent-build| outside the {+k8s+} environment
+and connect it directly to ``mongot`` instances on a {+k8s+}
+cluster. To learn more, see :ref:`{+k8s-op+} documentation 
+<k8s-deploy-search-resources>`.
+
+.. note::
+
+   |ent-build| doesn't support standalone tarball or container
+   deployments of ``mongot``.
+
+Community Edition
+~~~~~~~~~~~~~~~~~
+
+Community Edition provides the following installation artifacts:
+
+- :ref:`Linux tarball <mongot-deployment-on-linux>`:
+  Install the ``mongot`` binary directly.
+- :ref:`Container image <mongot-deployment-using-docker>`:
+  Pull and run the official ``mongot`` container.
+
+You can either run these artifacts directly as a standalone or 
+deploy them in {+k8s+} using the {+k8s-op-short+}.
+
+How ``mongot`` Works with ``mongod``
+------------------------------------
+
+A self-managed deployment runs two ``mongot`` processes per replica set:
+
+.. figure:: /images/mongot-architecture.png
+   :alt: Architecture diagram showing the relationship between the application, mongod, and mongot processes in a self-managed deployment.
+   :figwidth: 650px
+
+- The client application connects only to ``mongod``. ``mongod`` routes
+  the {+fts+} and {+avs+} aggregation stage requests to ``mongot`` over
+  gRPC.
+- ``mongot`` connects to ``mongod`` to stream change events
+  and maintain the index.
+- ``mongot`` writes index segments to dedicated storage. 
+
+Next Steps
+----------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Objective
+     - Resource
+
+   * - Evaluate or build features for the first time
+     - :ref:`mongot-deployment-using-atlas-local`
+
+   * - Install Community Edition on Linux or Docker
+     - :ref:`mongot-deployment-on-linux` or
+       :ref:`mongot-deployment-using-docker`
+
+   * - Deploy on Kubernetes (Community or Enterprise)
+     - `MongoDB Controllers for Kubernetes
+       <https://www.mongodb.com/docs/kubernetes/current/>`__
+
+   * - Confirm an existing installation works
+     - :ref:`mongot-verify-connection`
+
+   * - Size before deploying
+     - :ref:`mongot-sizing-intro`
+
+.. toctree::
+   :titlesonly:
+   :hidden:
+
+   /installation/docker
+   /installation/linux
+   /installation/quick-start
+   /installation/upgrade-downgrade
+   /configuration/automated-embedding
+   /configuration/reference
+   /connection/connect-to-search
+   /connection/verify-connection
+   /deployment/backup-restore
+   /deployment/compatibility-requirements
+   /deployment/monitoring
+   /deployment/verify-mongot-packages
+   /limitations
+   /release-notes
+   /resource-planning-sizing/architecture
+   /resource-planning-sizing/hardware
+   /resource-planning-sizing/introduction
+   /resource-planning-sizing/quick-start
+   /resource-planning-sizing/resource-allocation
+   /resource-planning-sizing/storage-class
+   /security/authentication-and-authorization
+   /security/tls-encryption
+   /troubleshooting

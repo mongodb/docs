@@ -1,0 +1,176 @@
+.. _mongot-storage-class-recommendations:
+
+============================================
+Storage Class Recommendations for ``mongot``
+============================================
+
+.. meta::
+   :description: Choose storage hardware for self-managed mongot: local NVMe SSD is recommended, all-flash SAN block devices are acceptable, and NFS or HDD are not recommended for Lucene-based search index workloads.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page provides guidance for selecting storage for self-managed
+``mongot`` ({+fts+} and {+avs+} process) deployments on bare-metal
+and virtualized environments.
+
+Performance depends on the full storage system (device, controller,
+host, network, and filesystem). Validate your chosen class under
+representative load before you deploy to production.
+
+Why Storage Class Matters for ``mongot``
+----------------------------------------
+
+.. :snippet-start: overview
+
+``mongot`` is built on Apache Lucene, which accesses index segments
+through memory-mapped files and depends on low-latency random reads
+for both query serving and background index maintenance. Storage
+latency affects:
+
+- **Query latency.** Cache misses fall through to disk on the
+  critical path of every query.
+
+- **Indexing and replication throughput.** Segment merges, initial
+  sync, and replication all read existing segments and write new
+  ones. Write-only assumptions do not hold.
+
+- **Stability under load.** As filesystem-cache pressure increases,
+  query latency degrades non-linearly with storage latency.
+
+These properties make storage class one of the highest-impact
+infrastructure decisions for a ``mongot`` deployment.
+
+.. :snippet-end:
+
+.. :snippet-start: recommendation-summary
+
+Recommendation Summary
+----------------------
+
+- **Use dedicated local NVMe SSD by default** for production
+  ``mongot`` index storage.
+
+- **Use local enterprise SATA or Serial Attached SCSI (SAS) SSD**
+  only when NVMe is unavailable and the workload is small to
+  moderate.
+
+- **Use an all-flash SAN only when** it is presented as a block
+  device and validated under representative mixed read and write
+  load.
+
+- **Do not use**:
+
+  - NFS, NAS, SMB, or other shared file protocols
+  - General-purpose cloud SSD as the production index tier
+  - Any spinning media
+
+.. :snippet-end:
+
+.. :snippet-start: storage-class-guidance
+
+Storage Class Guidance
+----------------------
+
+The following table summarizes the recommendation for each storage
+class. Latency and IOPS bands reflect generalized public benchmarks
+for the class. Your hardware might be different. Your results might
+differ.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 22 18 15 30
+
+   * - Category
+     - Storage Class
+     - Random-Read Latency Band
+     - Random-Read IOPS Band
+     - Recommendation
+
+   * - Recommended
+     - Local PCIe/NVMe SSD
+     - ~20-150 µs
+     - 170K+ per device, scaling to 1M+ on premium enterprise
+       drives
+     - Recommended default for production. Best fit for Lucene's
+       random-read profile.
+
+   * - Conditional
+     - Local enterprise SATA/SAS SSD
+     - ~100-200 µs
+     - ~95K-100K per device
+     - Acceptable baseline for small to moderate workloads on
+       dedicated data volumes. Not recommended for latency-sensitive
+       or indexing-heavy deployments.
+
+   * - Conditional
+     - All-flash SAN, block device (FC, iSCSI, NVMe-oF)
+     - Sub-millisecond under normal load, though it varies
+       materially by protocol and network
+     - 200K+ at the array, though real-world throughput depends on
+       the full host-to-array path
+     - Acceptable second choice only when block-mounted, all-flash,
+       and validated end-to-end under representative load.
+
+   * - Not recommended
+     - General-purpose cloud SSD (for example, boot-oriented
+       network SSD tiers)
+     - Single-digit milliseconds
+     - A few thousand baseline IOPS, scaling with provisioning
+     - Positioned for boot, development, test, and broad
+       transactional use. Not suitable for low-latency random read
+       workloads.
+
+   * - Not recommended
+     - NFS, NAS, SMB, or other shared file protocols
+     - See rationale
+     - See rationale
+     - Correctness risk in addition to performance: Lucene has
+       documented file-locking and cache-coherency failures over
+       NFS. Do not use.
+
+   * - Not recommended
+     - HDD, throughput-optimized HDD, cold HDD, or other magnetic
+       media
+     - 5-10 ms
+     - 75-500 per volume
+     - Significantly slower than SSD-class media and fundamentally
+       mismatched to Lucene's access pattern.
+
+.. :snippet-end:
+
+.. :snippet-start: monitor-storage-choice
+
+Monitor Your Storage Choice
+---------------------------
+
+Pair storage selection with monitoring, especially if your storage
+class is anything other than local NVMe.
+
+- **Investigate sustained disk IOPS above ~1K** on the index volume.
+  Healthy operation should not sit near the device's saturation point.
+
+- **Monitor Search page faults above ~1000/s** as these indicate the
+  operating system is repeatedly pulling needed index pages from disk
+  rather than serving them from filesystem cache. Together with
+  elevated IOPS, this indicates storage or memory pressure on the
+  critical path.
+
+- **Watch p99 query latency** for non-linear growth as load
+  increases. Storage-bound deployments degrade sharply rather than
+  gracefully.
+
+If you see these signals on a SAN, general-purpose, or SATA/SAS
+deployment, revisit the storage class before scaling up. If you
+see them on local NVMe, look first at memory headroom for the
+filesystem cache and at whether the volume is genuinely dedicated
+to ``mongot``.
+
+.. :snippet-end:

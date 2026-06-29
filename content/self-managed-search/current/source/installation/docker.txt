@@ -1,0 +1,295 @@
+.. _mongot-deployment-using-docker:
+
+======================================================================
+Install or Uninstall MongoDB Search on Community in a Docker Container
+======================================================================
+
+.. meta::
+   :description: Learn about configuring mongot for {+avs+} Automated Embedding.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+You can install the search process, ``mongot``, in MongoDB Community Edition. The search 
+process is available for deployment as an image in Docker. The ``mongot`` process 
+supports full-text search and semantic search with your own embeddings or automated 
+embeddings.
+
+Install MongoDB Search and Vector Search with Docker
+----------------------------------------------------
+
+.. note::
+
+   To onboard more quickly with a deployment meant for experimentation, see the 
+   following tutorials for Self-Managed deployments:
+
+   - :atlas:`MongoDB Search Quick Start </atlas-search/tutorial/?deployment-type=self>`  
+   - :atlas:`MongoDB Vector Search Quick Start </atlas-vector-search/tutorials/vector-search-quick-start/?deployment-type=self>`
+
+Before You Begin
+~~~~~~~~~~~~~~~~
+
+Before you deploy ``mongot``, you must complete the following steps: 
+
+a. Install Docker and Docker Compose.
+
+#. .. include:: /includes/installation/auto-embed-shared-prereq.rst
+
+Procedure
+~~~~~~~~~
+
+.. warning::
+
+   This procedure provides a simple and insecure default configuration that does
+   not enable access control. The steps create a deployment intended for local
+   experimentation only. 
+   
+   Before exposing these containers and using your setup in production, see
+   the following resources to secure your deployment:
+
+   - :ref:`security-checklist`
+   - :ref:`enable-access-control`
+   - :ref:`security-enable-access-control-replica-set`
+   - :ref:`configure-mongod-mongos-for-tls-ssl`
+   - :ref:`network-config-hardening`
+
+.. procedure::
+   :style: normal
+
+   .. step:: Pull the ``mongot`` Docker image.
+
+      To pull the ``mongot`` Docker image, run the following command:
+
+      .. code-block:: shell
+
+         docker pull mongodb/mongodb-community-search:latest
+
+      To verify the image is on your Docker Desktop, run the following
+      command:
+
+      .. code-block:: shell
+
+         docker image ls mongodb/mongodb-community-search
+
+   .. step:: Create a Docker network.
+
+      To create a docker network for inter-container communication between the
+      database and search containers, run the following command:
+
+      .. code-block:: shell
+
+         docker network create search-community
+
+   .. step:: Download the MongoDB Docker image.
+
+      To download the MongoDB Docker image, run the following 
+      command:
+
+      .. code-block:: shell
+
+         docker pull mongodb/mongodb-community-server:latest
+
+      .. note::
+
+         You must have a minimum of MongoDB 8.2+ to use MongoDB Search with an
+         on-prem deployment. For more information, see :atlas:`MongoDB Search
+         Compatibility </atlas-search/about/feature-compatibility/>`. 
+
+      For additional details on installing MongoDB with Docker,
+      see `Install MongoDB Community with Docker 
+      <https://www.mongodb.com/docs/manual/tutorial/install-mongodb-community-with-docker/>`_.
+
+   .. step:: Create a ``mongot`` sync-user password file.
+
+      Create a password file for ``mongot`` to connect to ``mongod``. 
+
+      For example, select your operating system and replace
+      ``<mongot_password>`` with your password. Then, run the following command
+      to create a file called ``passwordFile``:
+
+      .. code-block:: shell
+
+         echo -n "<mongot_password>" > passwordFile
+         chmod 400 passwordFile
+
+      .. note::
+
+         The ``-n`` flag prevents a trailing newline. 
+
+   .. step:: Create your mongod configuration file.
+
+      .. _create-mongod-config-docker:
+
+      To create your configuration file, save the following code to ``mongod.conf`` 
+      or your preferred location.
+
+      .. include:: /includes/sample-mongod-conf-docker.rst
+
+   .. step:: Start your ``mongod``. 
+
+      .. _start-repset-no-auth-docker:
+
+      To start the ``mongod``:
+
+      - Replace ``<your_admin_username>`` with the username you want to specify
+        for your admin user.
+      - Replace ``<your_admin_password>`` with the password you want to specify
+        for your admin user.
+      - Replace ``</path/to/data/db>`` with the path to the local
+        directory for the mounted volume.
+      - Replace ``</path/to/mongod.conf>`` with the path to the 
+        configuration file you created above.
+
+      .. code-block:: shell
+
+         docker run --rm \
+            --name mongod \
+            -v </path/to/mongod.conf>:/etc/mongod.conf:ro \
+            -v </path/to/data/db>:/data/db \
+            -p 27017:27017 \
+            --network search-community \
+            mongodb/mongodb-community-server:latest \
+            --config /etc/mongod.conf \
+            --replSetMember=mongod.search-community:27017
+
+   .. step:: In a new shell, start ``mongosh``.
+
+      Run the following command to connect to the ``mongod`` instance you
+      started on port ``27017``, replacing ``<your_admin_username>`` and
+      ``<your_admin_password>`` with the username and password you created for
+      your admin user.
+
+      .. code-block:: shell
+
+         docker exec -it mongod mongosh --port 27017
+
+   .. step:: Create a user for the ``mongot`` process on your MongoDB deployment.
+
+      ``mongot`` must be able to connect to your MongoDB deployment through a
+      user with the :authrole:`searchCoordinator` role.
+
+      Run the following command to connect to the ``admin`` database:
+
+      .. code-block:: javascript
+
+         use admin
+
+      To create a user with the ``searchCoordinator`` role:
+
+      - Replace ``<your-mongot-username>`` with a username for your ``mongot`` user.
+      - Replace ``<your-mongot-password>`` with the password that you specified in
+        your ``passwordFile`` in step 5.
+      - Run the following command:
+
+      .. code-block:: javascript
+
+         db.createUser(
+            {
+               user: "<mongot_username>",
+               pwd: "<mongot_password>",
+               roles: [ "searchCoordinator" ]
+            }
+         )
+
+      For more information on creating users, see :ref:`create-users`.
+
+   .. step:: Specify your search configuration options.
+
+      .. _mongot-search-config:
+
+      You can configure ``mongot`` with a YAML configuration file. You must
+      specify the username that you specified in the previous step as the
+      ``syncSource.replicaSet.username``. You must also specify the
+      ``passwordFile`` that you created in the previous step as the
+      ``syncSource.replicaSet.passwordFile``. 
+
+      For more information
+      on ``mongot`` configuration options, see
+      :ref:`mongot-configuration-options`. 
+      
+      For example, you can adapt the settings to your local 
+      configuration as shown below:
+
+      .. include:: /includes/sample-mongot-conf-docker.rst
+
+      Save your file to ``mongot.config`` or your preferred file location.
+
+      Both containers run on the same ``search-community`` Docker network.
+
+   .. step:: Start the mongot process.
+
+      To start the Search in Community binary, ``mongot``:
+
+      - Replace ``</path/to/data/mongot>`` with the path to the local
+        directory for the mounted volume to store ``mongot`` data.
+      - Replace ``</path/to/mongot.conf>`` with the path to the
+        ``mongot`` configuration file that you created in the previous step.
+      - Replace ``</path/to/passwordFile>`` with the path to the password file you created.
+
+      .. code-block:: shell
+
+         docker run --rm \
+            --name mongot-community \
+            -v </path/to/data/mongot>:/data/mongot \
+            -v </path/to/mongot.conf>:/mongot-community/config.default.yml \
+            -v </path/to/passwordFile>:/passwordFile:ro \
+            --network search-community \
+            -p 8080:8080 \
+            -p 9946:9946 \
+            mongodb/mongodb-community-search:latest
+
+
+      This command:
+
+      - Mounts the volume.
+      - Mounts a configuration file from a local volume.
+      - Specifies the port range.
+      - Exposes the metrics port.
+      - Starts the container on the ``search-community`` Docker
+        network with a container named ``mongot-community``.
+
+   .. include:: /includes/verify-mongot-health.rst
+
+Uninstall MongoDB Search and MongoDB Vector Search with Docker
+--------------------------------------------------------------
+
+To completely remove MongoDB Search and MongoDB Vector Search from a
+system, remove the container image, the configuration files, and any
+data or log directories. The following section guides you through the
+necessary steps.
+
+.. procedure:: 
+   :style: normal
+
+   .. step:: Drop the ``mongotUser`` user.
+
+      .. include:: /includes/installation/uninstall/drop-mongotUser.rst
+
+   .. step:: Stop the ``mongot``.
+
+      To stop the ``mongot`` process, stop the container image running in Docker.
+
+   .. step:: Remove any configuration files.
+
+      .. include:: /includes/installation/uninstall/remove-mongot-configs.rst
+
+   .. step:: Remove the password file.
+
+      .. include:: /includes/installation/uninstall/remove-keyfile-passwordfile.rst
+
+   .. step:: Remove the data directory for ``mongot``.
+
+      .. include:: /includes/installation/uninstall/remove-mongot-data-directory.rst
+      
+Next Steps
+~~~~~~~~~~
+
+- Create :atlas:`MongoDB Search indexes </atlas-search/searching/>`
+- Create :atlas:`MongoDB Vector Search indexes </atlas-vector-search/vector-search-type/>`

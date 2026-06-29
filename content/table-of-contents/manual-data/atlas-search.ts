@@ -497,7 +497,7 @@ const tocData: TocItem[] = [
     ],
   },
   {
-    label: 'Monitor Atlas Search',
+    label: 'Monitor Search',
     contentSite: 'search',
     url: '/docs/search/deployment/monitoring',
     collapsible: true,
@@ -555,7 +555,7 @@ const tocData: TocItem[] = [
   {
     label: 'Changelog',
     isExternal: true,
-    url: 'https://www.mongodb.com/docs/search/changelog/',
+    url: 'https://www.mongodb.com/docs/atlas/search-changelog/',
   },
 ];
 

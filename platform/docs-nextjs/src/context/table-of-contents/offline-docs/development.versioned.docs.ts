@@ -2254,7 +2254,7 @@ export const toc: L1TocItem[] = [
                 ],
               },
               {
-                label: 'Monitor Atlas Search',
+                label: 'Monitor Search',
                 contentSite: 'search',
                 collapsible: true,
                 url: '/docs/search/deployment/monitoring',
@@ -2312,7 +2312,7 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Changelog',
                 isExternal: true,
-                url: 'https://www.mongodb.com/docs/search/changelog/',
+                url: 'https://www.mongodb.com/docs/atlas/search-changelog/',
               },
             ],
           },
@@ -2545,7 +2545,7 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Changelog',
                 isExternal: true,
-                url: 'https://www.mongodb.com/docs/vector-search/changelog/',
+                url: 'https://www.mongodb.com/docs/atlas/search-changelog/',
               },
             ],
           },
@@ -9718,14 +9718,21 @@ export const toc: L1TocItem[] = [
             ],
           },
           {
-            label: 'Search Release Notes',
+            label: 'Search & Vector Search Release Notes',
             contentSite: 'cloud-docs',
-            url: '/docs/atlas/atlas-search/changelog',
-          },
-          {
-            label: 'Vector Search Release Notes',
-            contentSite: 'vector-search',
-            url: '/docs/vector-search/changelog',
+            collapsible: true,
+            items: [
+              {
+                label: 'Atlas',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/search-changelog',
+              },
+              {
+                label: 'Self-Managed',
+                contentSite: 'vector-search',
+                url: '/docs/search/self-managed/:version/release-notes',
+              },
+            ],
           },
         ],
       },

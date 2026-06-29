@@ -244,6 +244,7 @@ export type DocSite =
   | 'sql-interface'
   | 'atlas-charts'
   | 'docs-relational-migrator'
+  | 'self-managed-search'
   | 'vector-search'
   | 'magenta'
   | 'visual-studio-extension';

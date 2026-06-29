@@ -1,0 +1,410 @@
+.. _mongot-configure-auth:
+.. _mongot-auth:
+
+=========================================================
+Configure Authentication and Authorization for ``mongot``
+=========================================================
+
+.. meta::
+   :description: Learn how to configure SCRAM and X.509 authentication for mongot's sync source connection to your self-managed MongoDB deployment, plus gRPC transport security.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+``mongot`` communicates over two distinct channels, each of which
+requires its own security configuration:
+
+- **Sync source** (``syncSource.replicaSet``, ``syncSource.router``):
+  ``mongot``'s outbound connection to your MongoDB deployment for
+  replication. You configure an authentication mechanism here so that
+  ``mongot`` can authenticate to ``mongod`` or ``mongos``.
+
+- **gRPC server** (``server.grpc``): The inbound channel over which
+  ``mongod`` connects to ``mongot`` for search queries and index
+  management commands. ``mongod`` and ``mongot`` authenticate to each
+  other through mTLS.
+
+.. note::
+
+   The health check (``healthCheck``) and metrics (``metrics``)
+   endpoints don't support TLS or authentication. Restrict access to
+   these ports at the network layer.
+
+Considerations
+--------------
+
+Before you configure authentication, review the following points:
+
+- You must configure exactly one authentication mechanism for the sync
+  source: either **SCRAM** or **X.509**. The two mechanisms are mutually
+  exclusive for each connection block.
+
+- For sharded clusters, you must specify both ``syncSource.replicaSet``
+  and ``syncSource.router`` in your ``mongot`` configuration file, and
+  configure authentication on each connection independently.
+  ``syncSource.router`` is not implied by ``syncSource.replicaSet``, so
+  you must configure it explicitly. Each shard requires its own
+  dedicated ``mongot`` instance.
+
+  - ``syncSource.replicaSet`` maps the ``mongot`` instance to its
+    shard's replica set.
+
+  - ``syncSource.router`` provides the ``mongos`` connection for
+    cluster-wide coordination.
+
+- The ``searchCoordinator`` built-in role must exist on your MongoDB
+  deployment before ``mongot`` can authenticate. This role is
+  available in MongoDB 8.2 and later.
+
+Before You Begin
+----------------
+
+Add the following ``setParameter`` options to your ``mongod``
+configuration file, then restart ``mongod``:
+
+.. code-block:: yaml
+
+   setParameter:
+      mongotHost: <host>:<port>
+      searchIndexManagementHostAndPort: <host>:<port>
+      skipAuthenticationToSearchIndexManagementServer: false
+      useGrpcForSearch: true
+
+The ``setParameter`` option sets server parameters that tell the
+``mongod`` server how to locate and communicate with ``mongot``. You
+must set these parameters before ``mongot`` can connect to your
+deployment.
+
+To learn more about the ``mongod`` configuration file, see
+:ref:`configuration-options`.
+
+Configure Sync Source Authentication
+------------------------------------
+
+Configure one of the following authentication mechanisms on the sync
+source connection so that ``mongot`` can authenticate to your MongoDB
+deployment.
+
+.. tabs::
+
+   .. tab:: SCRAM
+      :tabid: scram
+
+      :abbr:`SCRAM (Salted Challenge Response Authentication Mechanism)`
+      authenticates ``mongot`` to your MongoDB deployment with a
+      username and password.
+
+      To configure SCRAM for ``mongot``, complete the following steps:
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Create the ``mongot`` user in the ``admin`` database.
+
+            Create the user on your MongoDB replica set with the
+            ``searchCoordinator`` role.
+
+            Run the following command in {+mongosh+}:
+
+            .. code-block:: javascript
+
+               use admin
+               db.createUser({
+                  user: "mongotUser",
+                  pwd: "<password>",
+                  roles: [ { role: "searchCoordinator", db: "admin" } ]
+               })
+
+         .. step:: Create a password file on the ``mongot`` host.
+
+            Replace ``<password>`` with your password, then run the
+            command for your operating system to create the password
+            file. The file must **not** contain a trailing newline.
+
+            For Linux or macOS:
+
+            .. code-block:: bash
+
+               echo -n "<password>" > /etc/mongot/secrets/passwordFile
+               chmod 400 /etc/mongot/secrets/passwordFile
+
+            For Windows Command Prompt:
+
+            .. code-block:: bat
+
+               echo|set /p="<password>" > passwordFile
+
+            For Windows PowerShell:
+
+            .. code-block:: powershell
+
+               [System.IO.File]::WriteAllText("passwordFile", "<password>")
+
+         .. step:: Add the ``scramAuth`` block to your ``mongot`` configuration.
+
+            Add the ``scramAuth`` block under ``syncSource.replicaSet``.
+            For sharded clusters, also add the same block under
+            ``syncSource.router``. List multiple hosts in
+            ``hostAndPort`` so ``mongot`` can still discover the
+            replica set if one host is unavailable:
+
+            .. code-block:: yaml
+
+               syncSource:
+                  replicaSet:
+                     hostAndPort:
+                        - "<host1>:27017"
+                        - "<host2>:27017"
+                     scramAuth:
+                        username: mongotUser
+                        authSource: admin
+                        passwordFile: /etc/mongot/secrets/passwordFile
+                        tls:
+                           enabled: false
+
+            For sharded clusters, configure ``scramAuth`` under both
+            ``syncSource.replicaSet`` and ``syncSource.router``.
+            ``syncSource.replicaSet`` authenticates ``mongot`` to the
+            shard's replica set, and ``syncSource.router`` authenticates
+            ``mongot`` to ``mongos`` for cluster-wide coordination. You
+            can use the same credentials for both connections, or
+            separate credentials if you administer them independently:
+
+            .. code-block:: yaml
+
+               syncSource:
+                  replicaSet:
+                     hostAndPort:
+                        - "<shard-host1>:27017"
+                        - "<shard-host2>:27017"
+                     scramAuth:
+                        username: mongotShardUser
+                        authSource: admin
+                        passwordFile: /etc/mongot/secrets/shard-passwordFile
+                        tls:
+                           enabled: false
+                  router:
+                     hostAndPort:
+                        - "<mongos1>:27017"
+                        - "<mongos2>:27017"
+                     scramAuth:
+                        username: mongotRouterUser
+                        authSource: admin
+                        passwordFile: /etc/mongot/secrets/router-passwordFile
+                        tls:
+                           enabled: false
+
+            For more information on the ``mongot`` configuration file,
+            see :ref:`mongot-config-settings`.
+
+         .. step:: Enable TLS for the sync source connection if needed.
+
+            If your MongoDB deployment has TLS enabled, set
+            ``tls.enabled`` to ``true`` and provide the following
+            fields to your ``mongot`` configuration file as needed:
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 40 60
+
+               * - Field
+                 - Description
+
+               * - ``caFile``
+                 - The PEM file that contains one or more X.509 CA
+                   certificates that verify ``mongod``'s server
+                   certificate. If you omit this field, ``mongot``
+                   uses the JVM default trust store.
+
+               * - ``tlsCertificateKeyFile``
+                 - The PEM file that contains both the client's X.509
+                   certificate and its private key. Required only if
+                   ``mongod`` verifies client certificates.
+
+               * - ``tlsCertificateKeyFilePasswordFile``
+                 - The password that decrypts the client certificate
+                   key. Required only if ``tlsCertificateKeyFile`` is
+                   password-protected.
+
+   .. tab:: X.509
+      :tabid: x509
+
+      X.509 authentication allows ``mongot`` to authenticate to your
+      MongoDB deployment with a TLS client certificate instead of a
+      username and password. TLS is always enabled when you use X.509.
+
+      To configure X.509 for ``mongot``, complete the following steps:
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Create the ``mongot`` user in the ``$external`` database.
+
+            Create the user on your MongoDB replica set with the
+            ``searchCoordinator`` role. The username must exactly match
+            the subject of the client certificate.
+
+            Run the following command in {+mongosh+}:
+
+            .. code-block:: javascript
+
+               use $external
+               db.createUser({
+                  user: "CN=mongot,OU=...",
+                  roles: [ { role: "searchCoordinator", db: "admin" } ]
+               })
+
+         .. step:: Add the ``x509`` block to your ``mongot`` configuration.
+
+            Add the ``x509`` block under ``syncSource.replicaSet``. For
+            sharded clusters, add the same block under
+            ``syncSource.router``.
+
+            In the ``x509`` block, ``tlsCertificateKeyFile`` and
+            ``caFile`` are required. List multiple hosts in
+            ``hostAndPort`` so ``mongot`` can still discover the replica
+            set if one host is unavailable:
+
+            .. code-block:: yaml
+
+               syncSource:
+                  replicaSet:
+                     hostAndPort:
+                        - "<host1>:27017"
+                        - "<host2>:27017"
+                     x509:
+                        tlsCertificateKeyFile: /etc/mongot/tls/mongot-client.pem
+                        caFile: /etc/mongot/tls/ca.pem
+                        # tlsCertificateKeyFilePasswordFile: /etc/mongot/secrets/cert-key-password
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 40 60
+
+               * - Field
+                 - Description
+
+               * - ``tlsCertificateKeyFile``
+                 - Required. The PEM file that contains both the X.509
+                   certificate and its private key.
+
+               * - ``caFile``
+                 - Required. The PEM file that contains one or more
+                   X.509 CA certificates that verify ``mongod``'s
+                   certificate.
+
+               * - ``tlsCertificateKeyFilePasswordFile``
+                 - Optional. The file that contains the password that
+                   decrypts the private key in
+                   ``tlsCertificateKeyFile``, if the key is encrypted.
+
+            For sharded clusters, configure ``x509`` under both
+            ``syncSource.replicaSet`` and ``syncSource.router``. Use the
+            same field structure for both connections, and provide the
+            ``mongos`` endpoints in ``syncSource.router.hostAndPort``:
+
+            .. code-block:: yaml
+
+               syncSource:
+                  replicaSet:
+                     hostAndPort:
+                        - "<shard-host1>:27017"
+                        - "<shard-host2>:27017"
+                     x509:
+                        tlsCertificateKeyFile: /etc/mongot/tls/mongot-client.pem
+                        caFile: /etc/mongot/tls/ca.pem
+                        # tlsCertificateKeyFilePasswordFile: /etc/mongot/secrets/cert-key-password
+                  router:
+                     hostAndPort:
+                        - "<mongos1>:27017"
+                        - "<mongos2>:27017"
+                     x509:
+                        tlsCertificateKeyFile: /etc/mongot/tls/mongot-client.pem
+                        caFile: /etc/mongot/tls/ca.pem
+                        # tlsCertificateKeyFilePasswordFile: /etc/mongot/secrets/cert-key-password
+
+Configure gRPC Server Transport Security
+----------------------------------------
+
+The gRPC server is the inbound channel over which ``mongod`` connects to
+``mongot`` for search queries and index management commands. You secure
+this channel at the transport layer with TLS. To mutually authenticate
+``mongod`` and ``mongot``, use mTLS.
+
+You configure the TLS mode with the ``server.grpc.tls.mode`` option on
+``mongot`` and the :setting:`searchTLSMode <setParameter.searchTLSMode>`
+parameter on ``mongod``. When you don't set ``searchTLSMode``,
+``mongod`` inherits the TLS mode from :setting:`net.tls.mode` for its
+connection to ``mongot`` because ``searchTLSMode`` defaults to
+``globalTLS``.
+
+You can configure one of the following TLS modes in the ``mongot``
+configuration file:
+
+.. TODO (DOCSP-59944): This gRPC transport security content is
+   temporarily included on this page so that it can be reviewed now.
+   Move it to the TLS encryption page (tls-encryption.txt) and replace
+   it here with a cross-reference once that page is ready.
+
+Disabled
+~~~~~~~~
+
+No TLS. Use this mode only for deployments where ``mongod`` and
+``mongot`` run on the same host:
+
+.. code-block:: yaml
+
+   server:
+      grpc:
+         address: "localhost:27028"
+         tls:
+            mode: "disabled"
+
+TLS
+~~~
+
+``mongot`` presents a server certificate, and ``mongod`` verifies it
+before establishing the connection. This mode requires
+``certificateKeyFile``:
+
+.. code-block:: yaml
+
+   server:
+      grpc:
+         address: "0.0.0.0:27028"
+         tls:
+            mode: "tls"
+            certificateKeyFile: /etc/mongot/tls/mongot-server.pem
+            # certificateKeyFilePasswordFile: /etc/mongot/secrets/server-key-password
+
+Mutual TLS (mTLS)
+~~~~~~~~~~~~~~~~~
+
+Both ``mongot`` and ``mongod`` present and verify each other's
+certificates. This mode requires ``certificateKeyFile`` and ``caFile``.
+When you use ``mtls``, you must also configure ``mongod`` with the
+corresponding TLS settings for its connection to ``mongot``:
+
+.. code-block:: yaml
+
+   server:
+      grpc:
+         address: "0.0.0.0:27028"
+         tls:
+            mode: "mtls"
+            certificateKeyFile: /etc/mongot/tls/mongot-server.pem
+            caFile: /etc/mongot/tls/ca.pem
+
+Learn More
+----------
+
+- :ref:`mongot-config-settings`
+- :ref:`mongot-limitations`
+- :ref:`mongot-monitoring`

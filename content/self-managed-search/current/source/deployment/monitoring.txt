@@ -1,0 +1,215 @@
+.. _mongot-monitoring:
+
+=========================
+Monitor mongot Deployment
+=========================
+
+.. meta::
+   :description: An overview of topics related to monitoring self-managed mongot deployments including signal categories, key signals, healthy signal states, and a comparison of monitoring Atlas vs. self-managed deployments.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+``mongot`` is a Lucene-based, JVM-hosted, memory-mapped search engine. It has 
+different operational characteristics than ``mongod``:
+
+- **Latency-sensitive to storage**. Random-read disk latency directly affects 
+  query and indexing performance. Storage class is one of the highest-impact 
+  decisions for a deployment.
+- **Memory-mapped index access.** Filesystem cache pressure correlates with 
+  query latency in a non-linear way. Small memory shortfalls cause large 
+  latency degradation.
+- **Replication-driven.** ``mongot`` is a downstream consumer of ``mongod`` 
+  :ref:`change streams <changeStreams>`. Replication lag, oplog reads, and
+  connection health all affect index freshness.
+- **Multiple workload phases.** Initial sync, merge, steady-state replication,
+  and query each stress different resources. A signal that is healthy under one
+  phase may indicate a problem under another.
+
+Signal Categories
+-----------------
+
+.. list-table::
+   :header-rows: 1
+
+   * - Category
+     - What It Tells You
+
+   * - Health
+     - Whether the ``mongot`` process is up, has finished startup, and is ready
+       to accept work.
+
+   * - Replication
+     - Whether the ``mongot`` process is up-to-date with the ``mongod`` change
+       stream. If not, this data tells you far behind it is.
+
+   * - Indexing
+     - Whether the mongot process is building and maintaining indexes, whether
+       merges are progressing, and whether initial sync is progressing.
+
+   * - Query
+     - Latency, throughput, and error rate across :pipeline:`$search`, 
+       :pipeline:`$searchMeta`, and :pipeline:`$vectorSearch`.
+
+   * - Executor Pools
+     - Thread-pool utilization and queue depth. Saturation here predicts query
+       latency degradation.
+
+   * - JVM
+     - Metrics related to Heap, Garbage Collection, and threads on the JVM.
+
+   * - System
+     - Metrics related to CPU, memory, disk I/O, network — at the process or
+       container level.
+
+   * - Storage
+     - Metrics related to IOPS, page-fault rate, and free space. 
+
+   * - Embedding
+     - Throughput and error rate against the Voyage AI endpoint
+       when :ref:`Automated Embedding <avs-auto-embeddings>` is enabled.
+
+Key Signals for mongot
+----------------------
+
+These are the key signals to monitor. If you can monitor only a few signals, 
+start with these:
+
+Health and Process Status
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Whether or not the ``mongot`` process is up. A ``mongot`` that is restarting
+  cannot serve traffic. Crash loops signal that there is a problem with 
+  ``mongot`` availability.
+- Whether or not health has reached the ``SERVING`` state. A ``mongot`` that
+  started but never finished initialization cannot respond to queries.
+
+Query Latency
+~~~~~~~~~~~~~
+
+- 50th percentile (p50) and 99th percentile (p99) query latency for ``$search``
+  and ``$vectorSearch.`` Watch p99 especially because ``mongot`` deployments tend 
+  to degrade non-linearly under storage or memory pressure. p99 surfaces 
+  problems before p50 does.
+- Latency for index-management requests such as ``createSearchIndex``, 
+  ``getSearchIndexes``, and the ``$listSearchIndexes`` aggregation stage. 
+  Spikes in these requests can indicate ``mongot`` is busy or unreachable from 
+  ``mongod``.
+
+Replication Lag
+~~~~~~~~~~~~~~~
+
+- Time since the last applied change event from mongod. This signal is exposed
+  directly as ``mongot_index_stats_indexing_replicationLagMs`` (per-index, 
+  milliseconds). A small steady-state lag, from sub-second to seconds, is 
+  normal. However, a growing lag indicates ``mongot`` cannot keep up. Sustained
+  lag eventually falls off the oplog and forces a re-sync. A re-sync is much 
+  worse than lag itself because it requires a full rebuild of the index. A full 
+  index rebuild is computationally expensive and time-consuming.
+- ``mongot_index_stats_*`` metrics are emitted per search index and only appear
+  once at least one index exists. On a fresh deployment with no indexes, the
+  replication-lag series is absent rather than zero. This is normal.
+
+Indexing Progress
+~~~~~~~~~~~~~~~~~
+
+- Active indexing operations and their state (``PENDING``, ``BUILDING``, 
+  ``READY``, ``FAILED``). Stuck builds indicate either resource exhaustion or a
+  data issue.
+- Merge throughput. Merges are background work. If merges fall behind, query
+  latency rises.
+
+Executor Pool Saturation
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Queue depth for the query executor and indexing executor. Sustained non-zero
+queue depth indicates saturation and that queries are waiting for a worker
+thread. This is a very early warning that latency will rise.
+
+JVM Health
+~~~~~~~~~~
+
+- Heap utilization after Garbage Collection. A heap consistently above 85% 
+  post-Garbage Collection can result in an ``OutOfMemoryError`` error.
+- Garbage Collection pause time. Long :abbr:`GC (Garbage Collection)` pauses
+  directly translate to query-latency spikes.
+
+Storage Pressure
+~~~~~~~~~~~~~~~~
+
+- Sustained disk IOPS above the device's safe operating point is a sign that 
+  storage is the bottleneck. The storage class advisory threshold is 1,000 
+  sustained IOPS as a flag. For details, see 
+  :ref:`Storage Class Recommendations for mongot
+  <mongot-storage-class-recommendations>`.
+- Page fault rate. Sustained search page faults above 1,000/s indicate the OS
+  is repeatedly pulling index pages from disk rather than serving them from
+  cache. With elevated IOPS, this is the canonical signal of memory pressure on
+  the critical path.
+
+Free Disk Space on the Index Volume
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Having less than 20% free on the mongot ``dataPath`` volume can cause 
+availability issues. Merges might require disk space beyond the live index
+footprint. If you undersize the volume, this can causes silent failures.
+
+Healthy Signals
+---------------
+
+A healthy ``mongot`` deployment in steady state has the following signals:
+
+- Process is up, health is ``SERVING``.
+- Replication lag is consistently sub-second.
+- Query p99 latency is stable across days and is not climbing.
+- Executor pool queue depth is consistently near zero.
+- JVM post-GC heap is well below the configured maximum.
+- Indexing operations finish in expected time and complete in ``READY``.
+- No errors in the mongot log beyond known benign messages.
+
+If all of these are true, the deployment is considered healthy. If there is
+any drift, see the relevant page for deeper metrics to investigate.
+
+Atlas vs. Self-Managed Observability
+------------------------------------
+
+Atlas users have:
+
+- The Atlas Search Metrics UI.
+- MongoDB-managed alerting on a curated set of thresholds.
+- Atlas support with direct access to ``mongot`` FTDC and logs.
+
+Self-managed users have:
+
+- The metrics and logs you configure ``mongot`` to export.
+- The alerting platform that you wire up.
+- Responsibility for FTDC capture and forwarding to MongoDB support if you need
+  help.
+
+Self-managed users must stand up monitoring before going to production. 
+
+Learn More
+----------
+
+- :ref:`Setup Monitoring for New Deployment <mongot-setup-monitoring-new-deployment>`
+- :ref:`Metric Reference <mongot-metrics-reference>`
+- :ref:`Logs and FTDC <mongot-logs-ftdc>`
+- :ref:`Recommended Alerts <mongot-recommended-alerts>`
+- :ref:`Monitoring Tool Integrations <mongot-tool-integrations>`
+- :ref:`Storage Class Recommendations for mongot <mongot-storage-class-recommendations>`
+
+.. toctree::
+   :titlesonly:
+
+   Setup Monitoring New Deployment </monitoring/setup-monitoring-new-deployment>
+   Metric Reference Catalog </monitoring/metrics-reference>
+   Recommended Alerts </monitoring/recommended-alerts>
+   Monitoring Tool Integrations </monitoring/tool-integrations>
+   Logs and FTDC </monitoring/logs-ftdc>

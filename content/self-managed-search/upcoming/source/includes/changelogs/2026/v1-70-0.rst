@@ -1,0 +1,373 @@
+These release notes cover changes from the public preview release
+(0.40.0, October 2025) through the general availability release
+(1.70.0). Changes are scoped to Community Edition and Enterprise
+Advanced self-managed deployments. Atlas-managed deployments are
+excluded.
+
+New Features and Improvements
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 70 15 15
+
+   * - Description
+     - Available in Community Edition
+     - Available in Enterprise Advanced
+
+   * - **Authentication restructured into** ``scramAuth`` **and**
+       ``x509`` **blocks.** The sync-source authentication config
+       now uses explicit ``scramAuth`` (username/password) and
+       ``x509`` (certificate) sub-blocks rather than flat fields,
+       with stronger validation at startup. Existing configurations
+       must be migrated to the new structure.
+       *Introduced in v1.70.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **X.509 certificate authentication for sync-source
+       connections.** ``mongot`` can now authenticate to ``mongod``
+       and ``mongos`` using TLS client certificates as a fully
+       supported alternative to SCRAM. Configure
+       ``syncSource.replicaSet.x509`` or
+       ``syncSource.router.x509`` with your certificate key file
+       and CA file. *Introduced in v1.70.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Encrypted key file support for TLS.** Both the sync-source
+       TLS connection and the gRPC server TLS accept a
+       ``certificateKeyFilePasswordFile`` so private keys no longer
+       need to be stored unencrypted on disk.
+       *Introduced in v1.70.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **New** ``syncSource.replicationReader`` **config block.**
+       Operators can now control which replica-set member ``mongot``
+       reads from during initial sync and change-stream replication.
+       Accepts a ``readPreference`` value and optional ``tagSets``
+       for targeting members with specific replica-set tags. The
+       deprecated ``replicaSet.readPreference`` field has been
+       removed. *Introduced in v0.66.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **New** ``advancedConfigs`` **top-level config block.**
+       Optional performance-tuning parameters are now grouped under
+       a single ``advancedConfigs:`` block with sub-blocks for
+       ``indexing``, ``querying``, ``replication``,
+       ``autoEmbedding``, and ``ftdc``. FTDC and disk monitoring
+       settings have moved here from the top level.
+       *Introduced in v1.70.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Sharded cluster support through** ``syncSource.router``.
+       A ``router`` sub-block in ``syncSource`` enables connecting
+       to a ``mongos`` router for sharded deployments. Each shard
+       requires its own dedicated ``mongot`` instance, with
+       ``replicaSet`` mapping the instance to its specific shard
+       and ``router`` handling cluster-wide coordination.
+       *Available since v0.40.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Sorted indexes (index-sort).** Search indexes can now be
+       configured with a sort order on one or more fields. Queries
+       with a ``$sort`` matching the index sort key skip the
+       full-collection sort phase, significantly improving latency
+       for sort-heavy workloads such as recency or price-sorted
+       results. *Introduced in v0.66.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Nested vector search.** ``$vectorSearch`` now supports
+       querying vector fields embedded inside nested document
+       arrays. Define a ``nestedRoot`` path in the index definition
+       to issue per-item similarity searches within arrays of
+       sub-documents. *Introduced in v1.70.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Vector stored source.** Vector search indexes can store
+       original vector values alongside index data. When a
+       ``$vectorSearch`` query requests ``returnStoredSource``, raw
+       vector values are returned directly from the index, reducing
+       latency by eliminating a second read from ``mongod``.
+       *Introduced in v0.65.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Automatic ENN fallback for low-recall vector search.**
+       ``mongot`` now detects when approximate nearest-neighbor
+       (ANN) search would return too few results due to high
+       document-deletion rates and automatically falls back to exact
+       nearest-neighbor (ENN) search, improving recall quality
+       without requiring query changes. *Introduced in v0.66.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Drill-sideways faceting.** Facet queries use Lucene's
+       drill-sideways algorithm, computing facet counts across all
+       documents in a single pass. This enables "show counts as if
+       this facet filter were not applied" behavior common in
+       navigation UIs, without a second query.
+       *Introduced in v0.69.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Facet bucket limit raised to 10,000.** The maximum number
+       of buckets returned for number and date facets has been
+       raised from 1,000 to 10,000, enabling finer-grained
+       aggregations over large value ranges.
+       *Introduced in v1.70.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Aligned index definition syntax for self-managed**
+       ``mongot``. The index definition JSON format accepted by
+       self-managed ``mongot`` has been unified with Atlas. Index
+       definitions can be used interchangeably without modification.
+       *Introduced in v1.70.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Auto-embedding with Voyage AI in self-managed** ``mongot``.
+       Self-managed ``mongot`` now supports automated embedding
+       generation. Configure the ``embedding:`` block with API key
+       files and ``mongot`` automatically generates and maintains
+       vector embeddings from your text fields as documents are
+       inserted or updated. *Introduced in v1.70.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **HNSW parameters configurable for auto-embedding indexes.**
+       The ``m`` and ``efConstruction`` HNSW graph construction
+       parameters can now be specified in auto-embedding index
+       definitions, giving control over the accuracy/throughput
+       trade-off of the approximate nearest-neighbor index.
+       *Introduced in v0.65.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Prometheus metrics endpoint for self-managed** ``mongot``.
+       Self-managed ``mongot`` exposes a Prometheus-compatible
+       ``/metrics`` endpoint (configurable with ``metrics.address``,
+       default ``localhost:9946``) for monitoring index health,
+       replication lag, query latency, and resource usage.
+       *Available since v0.40.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **HTTP health and readiness endpoints.** The ``/health``
+       endpoint (configurable with ``healthCheck.address``, default
+       ``localhost:8080``) returns ``{"status":"SERVING"}``
+       (HTTP 200) when ``mongot`` is ready and
+       ``{"status":"NOT_SERVING"}`` (HTTP 503) otherwise, suitable
+       for container liveness and readiness probes.
+       *Available since v0.40.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **$listSearchIndexes support for self-managed** ``mongot``.
+       Self-managed ``mongot`` now supports running
+       ``$listSearchIndexes`` on a collection to inspect the state,
+       definition, and status of all search indexes, matching the
+       behavior available in Atlas. *Introduced in v1.70.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Container-aware memory metrics.** System memory metrics now
+       read from cgroup limits when running inside a container
+       rather than reporting total host physical memory, giving
+       accurate available-memory figures in Docker and Kubernetes
+       environments. *Introduced in v0.69.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Replication pause thresholds aligned with Atlas.** The
+       thresholds at which ``mongot`` pauses index replication to
+       avoid overwhelming ``mongod`` are now consistent between
+       Atlas and self-managed deployments.
+       *Introduced in v0.66.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Lucene upgraded to 10.1.** The underlying search library
+       was upgraded from Lucene 9.x to Lucene 10.1, bringing query
+       performance improvements, improved segment merge behavior,
+       and correctness fixes for compound queries, sorted indexes,
+       and vector search. *Introduced in v1.70.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Java runtime upgraded to Java 21.** The ``mongot`` binary
+       now ships with Java 21 (LTS), replacing Java 17. Java 21
+       delivers JIT improvements, better garbage collection, and a
+       longer support lifecycle. *Introduced in v0.69.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Docker base image upgraded to Amazon Linux 2023.** The
+       ``mongot`` Docker image now uses Amazon Linux 2023, replacing
+       Amazon Linux 2, providing newer glibc, updated OpenSSL, and
+       a longer support lifecycle. *Introduced in v0.69.0.*
+     - |checkmark|
+     - |checkmark|
+
+Bug Fixes
+~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 70 15 15
+
+   * - Description
+     - Available in Community Edition
+     - Available in Enterprise Advanced
+
+   * - **Search indexes protected from deletion when router
+       configuration is inconsistent with cluster topology.**
+       In a sharded cluster where ``mongot`` lacked router
+       configuration, a search index could be deleted when catalog
+       metadata moved to another shard. ``mongot`` now protects
+       search indexes from deletion and preserves catalog metadata
+       integrity in this scenario. *Fixed in v0.69.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Startup crash when** ``syncSource.router`` **topology
+       mismatched** ``replicaSet``. ``mongot`` could crash during
+       bootstrap in a sharded cluster if the router topology was
+       inconsistent with the configured ``replicaSet``. This is now
+       caught at startup and reported as a configuration error with
+       a clear message. *Fixed in v1.70.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Indexes that failed during initial sync are now
+       automatically recovered.** A search index that failed
+       partway through initial sync would remain in a FAILED state
+       permanently, requiring manual intervention. ``mongot`` now
+       detects and retries failed initial syncs on restart.
+       *Fixed in v1.70.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Incorrect STEADY to INITIAL_SYNC status transition.** A bug
+       in the Lucene-layer status computation could incorrectly
+       transition a fully-indexed search index from STEADY back to
+       INITIAL_SYNC, triggering unnecessary re-indexing. Indexes
+       now correctly remain in STEADY state. *Fixed in v0.67.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Replication shutdown when sync-source host is
+       unavailable.** When all configured replica-set members are
+       unreachable for an extended period, ``mongot`` now cleanly
+       shuts down replication rather than spinning indefinitely,
+       preventing resource exhaustion and surfacing the outage
+       through health-check failures. *Fixed in v0.67.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Stale system metrics.** System metrics reported through the
+       Prometheus endpoint could become stale after extended
+       uptime. The metrics collection loop is now correctly reset
+       on each scrape cycle. *Fixed in v1.70.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Leading wildcard query regression (Lucene 10).** A
+       regression introduced during the Lucene 10 migration caused
+       leading-wildcard queries to return incorrect or missing
+       results. Resolved in Lucene 10.1. *Fixed in v1.70.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Pure** ``should`` **-clause query regressions (Lucene 10).**
+       Queries composed entirely of ``should`` clauses returned
+       incorrect scores or missed documents after the Lucene 10
+       upgrade. Resolved in Lucene 10.1. *Fixed in v1.70.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Nested vector search score inflation with**
+       ``scoreMode: "avg"``. ``$vectorSearch`` with nested vectors
+       and ``scoreMode: "avg"`` returned inflated ANN scores
+       compared to ENN results. ANN and ENN scoring are now
+       consistent. *Fixed in v0.67.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Nested vector search with binary quantization returned
+       incorrect results.** ``$vectorSearch`` on nested vector
+       fields using binary quantization could return incorrect
+       results due to a bug in the child-filter path.
+       *Fixed in v0.69.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Drill-sideways token facets on empty fields threw an
+       exception.** Facet queries using the ``token`` field type on
+       collections where no documents had indexed the field would
+       throw an ``invalid dim`` exception. The empty case is now
+       handled correctly. *Fixed in v0.69.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Sparse facet double-counting.** Iterating the key array of
+       a sparse SSDV field could double-count or skip entries in
+       facet results. Facet counts are now accurate for fields with
+       sparse data. *Fixed in v0.69.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Autocomplete operator dropped the final prefix token.**
+       When a user typed a word mid-completion, the autocomplete
+       operator would sometimes discard the prefix token for the
+       last word, returning results only for prior complete words.
+       *Fixed in v0.65.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Dropped collection metadata not cleaned up.** When a
+       MongoDB collection was dropped, stale index catalog metadata
+       could accumulate and cause incorrect state if the collection
+       was subsequently recreated. Metadata is now correctly removed
+       on collection drop. *Fixed in v1.70.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Native memory leak in FTDC data collection.** A native
+       memory leak in the FTDC collection routine caused
+       ``mongot``'s off-heap memory footprint to grow over time.
+       *Fixed in v0.66.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Auto-embedding zombie lease race condition.** A race
+       between heartbeat checks and state-transition logic could
+       leave an auto-embedding leader lease in a zombie state after
+       the holder stopped. The lease state machine now uses atomic
+       state checks to eliminate this window. *Fixed in v0.69.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Materialized view full-replace incorrectly scoped for**
+       ``_id.<subfield>`` **filters.** Auto-embedding indexes whose
+       filter included a sub-field of ``_id`` would incorrectly
+       replace the entire materialized view on update, discarding
+       out-of-filter documents. The update is now correctly scoped.
+       *Fixed in v1.70.0.*
+     - |checkmark|
+     - |checkmark|
+
+   * - **Security dependency upgrades.** Third-party libraries with
+       known CVEs were updated: Netty upgraded to 4.1.132+, Jackson
+       upgraded to 2.18.6, Logback-core updated, Plexus-Utils
+       upgraded to 4.0.3, and netty-tcnative upgraded to
+       2.0.79.Final. *Applied in v0.69.0.*
+     - |checkmark|
+     - |checkmark|
