@@ -117,7 +117,7 @@ example Entity Framework uses `version-number = "10.0"` and
 **Entity Framework patch releases only**: confirm whether this patch targets
 the current stable line (`current`) or a backport to an archived version. If a
 backport, record the target directory as BACKPORT_DIR (for example, `v9.1`)
-and use it in place of `upcoming` throughout Steps 3, 4, and 7.
+and use it in place of `upcoming` throughout Steps 3, 4, 7A, and 7B.
 
 ## Step 3: Check for Release Notes
 
@@ -179,7 +179,7 @@ Continue to Step 4 without waiting for user input.
 
 **For all docsets except AKO, Server Manual, Atlas Architecture Center, and
 Entity Framework backport patches**, run `version-bump.sh` to automate
-Steps 4, 5, 6, and 7 in one pass, then skip directly to Step 8.
+Steps 4, 5, 6, and 7A (version arrays) in one pass.
 
 First do a dry run and show the output to the user:
 
@@ -193,13 +193,13 @@ First do a dry run and show the output to the user:
 ```
 
 Confirm the dry-run output looks correct, then run without `--dry-run` to
-apply. Review with `git diff`. Then skip to Step 8.
+apply. Review with `git diff`. Then skip to Step 7B.
 
 **AKO**: no `snooty.toml` version constant and no script support. Follow
 Steps 5 and 6 manually.
 
 **Entity Framework backport (BACKPORT_DIR set)**: skip the script. Substitute
-BACKPORT_DIR for `upcoming` throughout this step and Step 7.
+BACKPORT_DIR for `upcoming` throughout this step and Steps 7A and 7B.
 
 **Server Manual and Atlas Architecture Center**: skip this section entirely —
 those docsets have dedicated workflows (see Step 1).
@@ -265,11 +265,17 @@ to `targetDirectoryChoices` only; do not modify `sourceDirectoryChoices`.
 - **MongoCLI**: no update — no archives are created.
 - **Patch releases**: no update for any docset.
 
-## Step 7: Update ToC Files
+## Step 7A: Update Version Arrays
 
-Read `references/toc-updates.md` for version array and docset data file paths
-and update rules for this docset. Skip any file that does not exist for the
-docset and inform the user.
+Read the **Version Arrays** section of `references/toc-updates.md` and apply
+version array updates for this docset. Skip if no version array file exists
+for the docset and inform the user.
+
+## Step 7B: Update Docset Data Files
+
+Read the **Docset Data** section of `references/toc-updates.md` and apply
+docset data file updates for this docset. Skip any file that does not exist
+for the docset and inform the user.
 
 ## Step 8: Update Redirects
 
