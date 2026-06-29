@@ -968,6 +968,11 @@ const tocData: TocItem[] = [
             contentSite: 'cloud-docs',
             url: '/docs/atlas/tutorial/otel-integration',
           },
+          {
+            label: 'Webhooks',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/tutorial/webhook-integration',
+          },
         ],
       },
       {

@@ -191,23 +191,33 @@
        .. include:: /includes/fact-ms-teams-redacted.rst
 
    * - Webhook
-        
+
      - Sends an |http| POST
-       request to an endpoint for programmatic processing. The 
+       request to an endpoint for programmatic processing. The
        request body contains a |json| document that uses the same
        format as the {+atlas-admin-api+}
        :oas-bump-atlas-op:`Alerts resource <listgroupalerts>`.
-        
-       This option is available only if you have configured Webhook 
-       settings on the :ref:`Integrations 
+
+       |service| includes |http| headers with each webhook request,
+       including ``X-MMS-Event`` to indicate the alert state and
+       ``X-MMS-Signature`` (if a secret is configured) to verify
+       request authenticity.
+
+       For detailed information about webhook payloads, headers,
+       authentication, and limitations, see
+       :ref:`webhook-integration`.
+
+       This option is available only if you have configured Webhook
+       settings on the :ref:`Integrations
        <third-party-integrations>` page.
 
        .. include:: /includes/fact-webhook-redacted.rst
 
-       1. In the :guilabel:`Webhook URL` field, specify the target 
+       1. In the :guilabel:`Webhook URL` field, specify the target
           |url| for webhook-based alerts.
 
-       #. (Optional) If you set up your Webhook integration with a 
-          secret, in the :guilabel:`Webhook Secret` field, specify the 
-          authentication secret for webhook-based alerts.
+       #. (Optional) If you set up your Webhook integration with a
+          secret, in the :guilabel:`Webhook Secret` field, specify the
+          secret that |service| uses to generate the ``X-MMS-Signature``
+          header for request verification.
   

@@ -8,3 +8,7 @@ and secret appear redacted:
 - **Secret:** If the secret is longer than 10 characters, |service|
   redacts all but the last four characters. If the secret is 10
   characters or fewer, |service| fully redacts the secret.
+
+|service| uses the secret to generate the ``X-MMS-Signature`` header 
+for request verification and does not send it as an authentication 
+header.

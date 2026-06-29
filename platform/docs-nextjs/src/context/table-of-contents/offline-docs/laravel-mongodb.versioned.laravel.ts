@@ -233,8 +233,8 @@ export const toc: L1TocItem[] = [
           },
           {
             label: 'Version Compatibility',
-            contentSite: 'drivers',
-            url: '/docs/drivers/compatibility/?driver-language=php&php-driver-framework=laravel',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/drivers/compatibility/?driver-language=php&php-driver-framework=laravel',
           },
           {
             label: 'Issues & Help',

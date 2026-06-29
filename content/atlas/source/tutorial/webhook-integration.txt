@@ -1,0 +1,236 @@
+.. meta::
+   :keywords: atlas cli, atlas ui, webhook
+   :description: Configure Atlas webhook integration to receive alert notifications via HTTP POST requests for programmatic processing.
+
+.. _webhook-integration:
+
+=======================
+Integrate with Webhooks
+=======================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can configure |service| to send alert notifications to a webhook
+endpoint as |http| POST requests for programmatic processing. Webhooks
+allow you to integrate |service| alerts with custom monitoring
+systems, incident management platforms, or automation workflows.
+
+Required Access
+---------------
+
+To integrate |service| with webhooks, you must have
+:authrole:`Organization Owner` or :authrole:`Project Owner` access to
+the project.
+
+Configure a Webhook Integration
+-------------------------------
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-project-integrations.rst
+
+   .. step:: Click :guilabel:`Configure` for :guilabel:`Webhook Settings`.
+
+   .. step:: Enter the webhook URL.
+
+      In the :guilabel:`Webhook URL` field, enter the endpoint URL where
+      |service| should send alert notifications.
+
+   .. step:: (Optional) Enter a webhook secret.
+
+      In the :guilabel:`Webhook Secret` field, enter a secret key.
+      |service| uses this secret to generate the ``X-MMS-Signature``
+      header for request verification.
+
+   .. step:: Click :guilabel:`Save`.
+
+To send alerts to your webhook, configure alert notifications. To
+learn more, see :ref:`configure-alerts`.
+
+Request Headers
+---------------
+
+|service| includes the following |http| headers with each webhook
+request:
+
+.. list-table::
+   :widths: 25 75
+   :header-rows: 1
+
+   * - Header
+     - Description
+
+   * - ``X-MMS-Event``
+     - Indicates the alert state. Possible values:
+
+       - ``alert.open``: |service| just opened the alert.
+       - ``alert.close``: |service| resolved the alert.
+       - ``alert.update``: A previously opened alert is still open.
+       - ``alert.acknowledge``: A user acknowledged the alert.
+       - ``alert.cancel``: The alert became invalid; |service| canceled
+         it.
+       - ``alert.inform``: Represents an informational alert, which
+         is a point-in-time event, such as "Primary Elected."
+
+   * - ``X-MMS-Signature``
+     - (Optional) If you specify a secret in the
+       :guilabel:`Webhook Secret` field, |service| includes this
+       header. Contains the Base64-encoded |hmac|-SHA-1 signature of
+       the request body. |service| creates the signature using the
+       provided secret. Use this header to verify that the webhook
+       request originated from |service|.
+
+Request Body
+------------
+
+The request body contains a |json| document that uses the same
+format as the {+atlas-admin-api+}
+:oas-bump-atlas-op:`Alerts resource <listgroupalerts>`. The payload
+includes key fields such as:
+
+- ``id``: Unique identifier for the alert.
+- ``eventTypeName``: Type of event that triggered the alert.
+- ``created``: Timestamp when the alert was created.
+- ``status``: Current status of the alert (e.g., ``OPEN``,
+  ``CLOSED``).
+- ``humanReadable``: Human-readable description of the alert. This
+  field contains the project name and organization name in the format
+  "Project: [project name] Organization: [org name]" along with other
+  alert details.
+
+For a complete list of fields, refer to the {+atlas-admin-api+}
+:oas-bump-atlas-op:`Get All Project Alerts <listgroupalerts>`
+documentation.
+
+Example Webhook Payload
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows a sample webhook payload for a disk space
+alert:
+
+.. code-block:: json
+
+   {
+     "id": "5d1b6f8e8c2e4e2d3c4a5b6c",
+     "groupId": "5d1b6f8e8c2e4e2d3c4a5b6d",
+     "eventTypeName": "OUTSIDE_METRIC_THRESHOLD",
+     "status": "OPEN",
+     "created": "2024-01-15T10:30:00Z",
+     "updated": "2024-01-15T10:30:00Z",
+     "lastNotified": "2024-01-15T10:30:00Z",
+     "humanReadable": "Disk space used on data partition is 95.2%. 
+       Project: MyProject Organization: MyOrganization",
+     "metricName": "DISK_PARTITION_SPACE_USED_DATA",
+     "currentValue": {
+       "number": 95.2,
+       "units": "RAW"
+     }
+   }
+
+Authenticate Webhook Requests
+-----------------------------
+
+The :guilabel:`Webhook Secret` field stores a secret that |service|
+uses solely to generate the ``X-MMS-Signature`` header for request
+verification. |service| does not send the secret directly as an
+authentication header or bearer token.
+
+If your webhook endpoint requires authentication, you must handle it
+independently using one of the following methods:
+
+- **Query Parameters**: Include authentication credentials in the
+  :guilabel:`Webhook URL` as query parameters. For example:
+  ``https://example.com/webhook?token=your-auth-token``
+
+- **IP Access List**: Configure your webhook endpoint to accept
+  requests only from :ref:`Atlas IP addresses <atlas-add-inbound-ips>`.
+  This configuration ensures that only |service| can send requests to
+  your endpoint.
+
+- **Reverse Proxy or API Gateway**: Use a reverse proxy or API
+  gateway that handles authentication before forwarding requests to
+  your webhook endpoint.
+
+Verify Webhook Requests
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To verify that a webhook request originated from |service|, validate
+the ``X-MMS-Signature`` header:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Retrieve the ``X-MMS-Signature`` header value from the incoming request.
+
+   .. step:: Calculate the Base64-encoded |hmac|-SHA-1 signature of the request body using your webhook secret.
+
+   .. step:: Compare your calculated signature with the ``X-MMS-Signature`` header value.
+
+      If they match, the request is authentic.
+
+Limitations
+-----------
+
+When you use webhook integrations, consider the following limitations:
+
+Alert Severity Not Included
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The webhook payload does not include the alert severity level that
+you configure in |service|. To retrieve the configured severity,
+make an additional call to the {+atlas-admin-api+}
+:oas-bump-atlas-op:`Get One Alert Configuration <getalertconfig>`
+endpoint using the ``alertConfigId`` from the webhook payload.
+
+No Manual Test Alerts
+~~~~~~~~~~~~~~~~~~~~~
+
+|service| does not provide a way to trigger test alerts manually. To
+test your webhook endpoint, you can temporarily set up an alert with
+conditions that are easy to trigger, such as:
+
+- A low disk space threshold on a test cluster.
+- A connection count threshold that you can trigger by opening
+  multiple connections.
+- A replication lag threshold on a test replica set.
+
+After you confirm your webhook receives alerts correctly, you can
+delete the test alert configuration.
+
+Firewall Configuration
+----------------------
+
+If your firewall requires you to configure an IP access list, allow
+access from :ref:`Atlas IP addresses <atlas-add-inbound-ips>` so that
+|service| can communicate with your webhook endpoint.
+
+Troubleshoot Webhook Delivery Issues
+-------------------------------------
+
+If your webhook does not receive alerts:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Verify that the webhook URL is correct and accessible from the internet.
+
+   .. step:: Check that your firewall allows incoming requests from :ref:`Atlas IP addresses <atlas-add-inbound-ips>`.
+
+   .. step:: Ensure your webhook endpoint returns a 2xx HTTP status code.
+
+      |service| considers other status codes as failures.
+
+   .. step:: Review your alert configuration to ensure alerts are enabled and the webhook is selected as a notification method.
+
+   .. step:: Check the :guilabel:`Activity Feed` in the |service| UI for any webhook delivery errors.
