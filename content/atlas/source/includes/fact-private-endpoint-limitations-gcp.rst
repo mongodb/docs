@@ -1,7 +1,27 @@
-- {+gcp-psc+} must be active in all regions into which you 
-  deploy a multi-region cluster. You will receive an error 
-  if {+gcp-psc+} is active in some, but not all, targeted 
-  regions.
+- {+gcp-psc+} must be active in all regions where you
+  deploy a multi-region {+cluster+}. If you configure
+  {+gcp-psc+} for only some of the {+cluster+} regions, the
+  private endpoint configuration is incomplete for the
+  multi-region deployment. In this state, |service| might
+  not publish or continue resolving the private endpoint
+  |srv| connection string, and |dns| resolution for the
+  private endpoint hostname might fail.
+
+  If you try to use a previously available private endpoint
+  |srv| connection string while {+gcp-psc+} isn't active in
+  all required regions, you might receive an error similar
+  to the following:
+
+  .. code-block:: none
+     :copyable: false
+
+     querySrv ENOTFOUND _mongodb._tcp.abcd-pl-0.ab123c.mongodb.net
+
+  To resolve this error, configure and activate {+gcp-psc+}
+  for each region where you deploy the {+cluster+}. After
+  {+gcp-psc+} is active for all required regions, |service|
+  publishes the private endpoint |srv| connection string and
+  it resolves successfully.
 
 - You can do only one of the following:
 
