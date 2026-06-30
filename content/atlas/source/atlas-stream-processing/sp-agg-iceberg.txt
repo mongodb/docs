@@ -1,0 +1,519 @@
+.. _atlas-sp-agg-iceberg:
+
+==============================
+``$iceberg`` Aggregation Stage
+==============================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, $iceberg aggregation pipeline stage 
+   :description: Use the $iceberg aggregation stage in Atlas Stream Processing to write processed stream data Apache Iceberg tables on AWS S3 buckets.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. _atlas-sp-agg-iceberg-def:
+
+Definition
+----------
+
+The ``$iceberg`` stage specifies a connection in the :ref:`Connection
+Registry <atlas-sp-manage-connections>` to an {+aws+} |s3| bucket
+where you can write data to an {+iceberg+} table.
+
+.. _atlas-sp-agg-iceberg-placement:
+
+Placement
+---------
+
+``$iceberg`` must be the last stage of any pipeline in which it
+appears. You can use only one ``$iceberg`` stage per pipeline.
+
+.. _atlas-sp-agg-iceberg-syntax:
+
+Syntax
+------
+
+The ``$iceberg`` pipeline stage has the following prototype form:
+
+.. code-block:: json
+
+   {
+     "$iceberg": {
+       "connectionName": "<registered-connection>",
+       "bucket": "<target-bucket>"
+       "databaseName": "<database>",
+       "tableName": "<string>", | <expression>
+       "path": "<key-prefix>",
+       "region": "<target-region>",
+       "mode": "cdc" | "insert",
+       "operationType: "insert" | "auto",
+       "idFieldName": "<field-name>",
+       "partitionedBy": {
+         "<column-name>": "<partition-transform>",
+	 . . .
+       },
+       "catalog": {
+         "type": "hadoop" | "glue"
+       }
+     }
+   }
+
+The ``$iceberg`` stage takes a document with the following fields:
+
+.. list-table:: 
+   :header-rows: 1
+   :widths: 25 10 12 40
+
+   * - Field 
+     - Type 
+     - Necessity 
+     - Description
+
+   * - ``connectionName`` 
+     - string
+     - Required 
+     - Name, of the {+aws+} |s3| connection to use for reads and
+       writes. This must match the name of the connection in the 
+       :ref:`Connection Registry <atlas-sp-manage-connections>`.
+
+   * - ``bucket``
+     - string
+     - Required 
+     - Name of the |s3| bucket containing the target {+iceberg+} database.
+
+   * - ``databaseName``
+     - string
+     - Required
+     - Name of the {+iceberg+} database containing the target table.
+     
+   * - ``tableName``
+     - string | expression
+     - Required
+     - Name of the target {+iceberg+} table. Must be either a string or an
+       expression that evaluates to a string. Use expressions for
+       dynamic routing per-document.
+
+   * - ``path``
+     - string
+     - Required
+     - Prefix key of the path to your {+iceberg+} database.
+
+   * - ``region``
+     - string
+     - Conditional
+     - {+aws+} region of the bucket. Required for stream processors
+       *not* running on {+aws+}.
+
+   * - ``mode``
+     - string
+     - Optional
+     - Strategy for determining which operation to perform per input
+       document.
+
+       - ``"cdc"`` causes {+atlas-sp+} to determine operation type by
+         reading the ``stream.source.operationType`` metadata field.
+       - ``"insert"`` causes {+atlas-sp+} to append each document to
+         the target table as a new row, ignoring operation type
+         declarations in the ``stream.source.operationType`` metadata field.
+
+       Defaults to ``cdc``.
+
+   * - ``idFieldName``
+     - string
+     - Optional
+     - Field and column name used as the row key in ``cdc``
+       mode.
+
+       Defaults to ``"_id"``.
+
+   * - ``partitionedBy``
+     - document
+     - Optional
+     - Partitioning specification. If you don't set this field,
+       ``$iceberg`` sets a default partition transform for the
+       ``idFieldName`` column.
+
+       Must be a document containing one or more key-value pairs. Each
+       key must be the name of a column against which to perform a
+       partition transform, and each value must the partition
+       transform to use. The first partition transform must be against
+       ``idFieldName``.
+
+       The partition transform value of a given field must be one of
+       the following:
+
+       - ``"identity"``
+       - ``"year"``
+       - ``"month"``
+       - ``"day"``
+       - ``"hour"``
+       - ``{ truncate: int }``
+       - ``{ bucket: int }``
+
+       For more information about {+iceberg+} partition transforms, see
+       the `Apache Iceberg documentation
+       <https://iceberg.apache.org/spec/#partition-transforms>`__.
+
+   * - ``catalog``
+     - document 
+     - Optional
+     - Document defining the `Iceberg catalog
+       <https://iceberg.apache.org/docs/latest/catalog-properties>`__
+       to use. Must be a document containing the ``type`` field with a
+       value of either ``"hadoop"`` or ``"glue"``.
+
+.. _atlas-sp-agg-iceberg-behavior:
+
+Behavior
+--------
+
+If you use the ``$iceberg`` stage, it must be the last stage in your
+stream processor.
+
+{+atlas-sp+} supports the ``$iceberg`` stage for only ``SP10``,
+``SP30``, and ``SP50`` stream processors. Your processor tier
+determines the maximum number of tables supported for dynamic routing:
+
+.. list-table::
+   :widths: 50 50
+   :header-rows: 1
+
+   * - Tier
+     - Max Tables
+
+   * - SP10
+     - 5
+
+   * - SP30
+     - 10
+
+   * - SP50
+     - 50
+
+The ``$iceberg`` stage infers the schema of the resulting {+iceberg+}
+table from the schema of the stream processor's output data. As
+{+atlas-sp+} observes new fields in the stream, the table schema
+evolves accordingly.
+
+If you specify a table that doesn't already exist, {+iceberg+}
+creates the table when it receives the first message that targets it.
+
+{+atlas-sp+} guarantees at-least-once processing for output to
+{+iceberg+} tables.
+
+You can use a :ref:`dynamic expression <aggregation-expressions>` as
+the value of the ``tableName`` field. By using a dynamic expression to
+capture document-specific values, you can route input documents to
+different tables according to these values. The expression must
+evaluate to a string. For an example, see :ref:`Dynamic Routing
+<atlas-sp-agg-iceberg-example-routing>`. To learn more see
+:ref:`expression operators <aggregation-expression-operators>`.
+
+If you specify a topic with a dynamic expression, but {+atlas-sp+}
+cannot evaluate the expression for a given message, {+atlas-sp+} sends
+that message to the :term:`dead letter queue`, if it's configured, and
+processes subsequent messages. If there's no :term:`dead letter
+queue` configured, then {+atlas-sp+} skips the message completely and
+processes subsequent messages.
+
+.. _atlas-sp-agg-iceberg-conversion:
+
+Type Conversion
+```````````````
+
+{+atlas-sp+} performs type conversion from `BSON
+<https://bsonspec.org/>`__ to `Iceberg primitive types
+<https://iceberg.apache.org/spec/#primitive-types>`__ when writing to
+tables in the ``$iceberg`` stage.
+
+.. list-table::
+   :widths: 25 25 50
+   :header-rows: 1
+
+   * - BSON
+     - {+iceberg+} Primitive
+     - Details
+
+   * - ``string`` 
+     - ``string``
+     -
+
+   * - ``int``
+     - ``int``
+     -
+
+   * - ``long``
+     - ``long``
+     - 
+
+   * - ``double``
+     - ``double``
+     - 
+
+   * - ``bool``
+     - ``boolean``
+     - 
+
+   * - ``ObjectId``
+     - ``string``
+     - Hexadecimal-encoded
+
+   * - ``UUID``
+     - ``string``
+     - Stringified UUID
+
+   * - ``BinData``
+     - ``binary``
+     - Doesn't apply to UUID
+
+   * - ``date``
+     - ``timestamptz``
+     - UTC time, measured to the microsecond
+
+   * - ``timestamp``
+     - ``timestamptz``
+     - UTC time, measure to the microsecond
+
+   * - ``object``
+     - ``string``
+     - Serialized as a :ref:`Basic JSON <atlas-sp-agg-emit-basic-json>` string
+
+   * - ``array``
+     - ``string``
+     - Serialized as a :ref:`Basic JSON <atlas-sp-agg-emit-basic-json>` string   
+
+Other BSON types are unsupported. {+atlas-sp+} sends documents with
+unsupported BSON types to the :ref:`DLQ <atlas-sp-dlq>`.
+
+.. _atlas-sp-agg-iceberg-example:
+
+Examples
+--------
+
+The follow examples illustrate various applications of the
+``$iceberg`` stage.
+
+.. _atlas-sp-agg-iceberg-example-archive:
+
+Archiving a Changestream
+````````````````````````
+
+The following example demonstrates how to write the initial contents
+and changestream of an {+service+} database to an {+iceberg+} table in an
+append-only fashion, creating a durable archive of that database's
+operational history. This aggregation has two stages:
+
+1. The :pipeline:`$source` stage establishes a connection with the
+   {+service+} database, specifically targeting the ``orders``
+   collection in the ``db`` database. It enables initial sync to
+   capture documents in the database at the time of processor
+   activation, and ensures that the full document is captured by each
+   changestream event.
+
+2. The ``$iceberg`` stage establishes a connection to the {+aws+} |s3|
+   bucket, writing to a table named ``myTable`` in the
+   ``iceberg-warehouse/`` path. By specifying only ``insert``
+   operations, it ensures an append-only, log-style write flow.
+
+.. code-block:: json
+   :copyable: true
+
+   {
+     "$source": {
+       "connectionName": "atlas1",
+       "db": "db",
+       "coll": "orders",
+       "initialSync": {
+         "enable": true
+       },
+       "config": {
+         "fullDocument": "required"
+       }
+     },
+     "$iceberg": {
+       "connectionName": "myS3Connection",
+       "bucket": "myData",
+       "path": "iceberg-warehouse/",
+       "tableName": "myTable",
+       "mode": "insert"
+     }
+   }
+
+.. _atlas-sp-agg-iceberg-example-mirror:
+
+Mirroring a Collection
+``````````````````````
+
+The following example demonstrates how to mirror an {+service+}
+collection in its entirety to an {+iceberg+} table. 
+
+Before defining the aggregation, set the following variable:
+
+.. code-block:: js
+   :copyable: true
+
+   const isDeleteExpr = {$eq: [{$meta: "stream.source.operationType"}, "delete"]};
+
+The following aggregation adds, updates, and deletes {+iceberg+} table
+entries in sync with changes to the {+service+} source collection. It
+has four stages:
+
+1. The :pipeline:`$source` stage establishes a connection with the
+   {+service+} database, specifically targeting the ``orders``
+   collection in the ``db`` database. It enables initial sync to
+   capture documents in the database at the time of processor
+   activation, and ensures that the full document is captured by each
+   changestream event.
+   
+2. The :pipeline:`$match` stage filters on ``operationType`` so that
+   only documents with valid operation type declarations are
+   processed.
+
+3. The :pipeline:`$replaceRoot` stage changes the document root
+   depending on the type of operation.
+   
+   - For delete operations, it changes the document root to the
+     document's key. This results in a record that the document was
+     deleted but excludes its content from further processing.
+
+   - For all other operations, it changes the document root to the
+     ``fullDocument``, passing the content of the document along for
+     further processing while excluding changestream metadata.
+     
+4. The ``$iceberg`` stage establishes a connection to the {+aws+} |s3|
+   bucket, writing to an {+iceberg+} table named ``myTable`` in the
+   ``iceberg-warehouse/`` path. In ``cdc`` mode, this stage determines
+   the operation to perform against the {+iceberg+} table by reading from
+   the ``stream.source.operationType`` metadata field of each document.
+
+.. code-block:: json
+   :copyable: true
+
+   {
+     "$source": {
+       "connectionName": "atlas1",
+       "db": "db",
+       "coll": "orders",
+       "initialSync": {
+         "enable": true
+       },
+       "config": {
+         "fullDocument": "required"
+       }
+     },
+     "$match": {
+       "operationType": {
+         "$in": ["insert", "update", "delete", "replace"]
+       }
+     },
+     "$replaceRoot": {
+       "newRoot": {
+         "$cond": {
+           "if": isDeleteExpr,
+           "then": "$documentKey",
+           "else": "$fullDocument"
+         }
+       }
+     }
+     "$iceberg": {
+       "connectionName": "myS3Connection",
+       "bucket": "myData",
+       "path": "iceberg-warehouse/",
+       "tableName": "myTable",
+       "mode": "cdc"
+     }
+   }
+
+.. _atlas-sp-agg-iceberg-example-routing:
+
+From Multi-Collection Source to Multi-Table {+iceberg+} Target
+`````````````````````````````````````````````````````````````````````````````````````````````````
+
+In the following example, {+atlas-sp+} uses dynamic expressions to
+dynamically route documents to various output targets.
+
+1. The :pipeline:`$source` stage establishes a connection with the
+   {+service+} database, specifically targeting the collections ``a``,
+   ``b``, and ``c`` in the ``db`` database. It enables initial sync to
+   capture documents in the database at the time of processor
+   activation, and ensures that the full document is captured by each
+   changestream event.
+
+2. The ``$match`` stage filters for documents whose ``operationType``
+   is one of ``"insert"``, ``"update"``, ``"delete"``, or
+   ``"replace"``.
+
+3. The :pipeline:`$replaceRoot` stage changes the document root
+   depending on the type of operation.
+   
+   - For delete operations, it changes the document root to the
+     document's key. This results in a record that the document was
+     deleted but excludes its content from further processing.
+
+   - For all other operations, it changes the document root to the
+     ``fullDocument``, passing the content of the document along for
+     further processing while excluding changestream metadata.
+
+4. The ``$iceberg`` stage establishes a connection to the {+aws+} |s3|
+   bucket named ``myData``, writing to an {+iceberg+} table in the
+   ``iceberg-warehouse/`` path. It determines the name of the table
+   according to the name of the source ``collection`` as retrieved
+   from document metadata. It also determines the operation to perform
+   according to document metadata.
+
+.. code-block:: json
+   :copyable: true
+
+
+   {
+     "$source": {
+       "connectionName": "atlas1",
+       "db": "db",
+       "coll": ["a", "b", "c"],
+       "initialSync": {
+	 "enable": true
+       },
+       "config": {
+	 "fullDocument": "required"
+       }
+     }
+   },
+   {
+     "$match": {
+       "operationType": {
+	 "$in": ["insert", "update", "delete", "replace"]
+       }
+     }
+   },
+   {
+     "$replaceRoot": {
+       "newRoot": {
+	 "$cond": {
+	   "if": {
+	     "$eq": [{ "$meta": "stream.source.operationType" }, "delete"]
+	   },
+	   "then": "$documentKey",
+	   "else": "$fullDocument"
+	 }
+       }
+     }
+   },
+   {
+     "$iceberg": {
+       "connectionName": "myS3Connection",
+       "databaseName": "iceberg-db",
+       "bucket": "myData",
+       "path": "iceberg-warehouse/",
+       "tableName": { "$meta": "stream.source.ns.coll" },
+       "mode": "cdc"
+     }
+   }

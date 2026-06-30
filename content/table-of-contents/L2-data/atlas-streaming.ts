@@ -205,6 +205,11 @@ const tocData: TocItem[] = [
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/atlas-stream-processing/sp-agg-externalFunction',
               },
+              {
+                label: '$iceberg',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/atlas-stream-processing/sp-agg-iceberg',
+              },
             ],
           },
         ],
