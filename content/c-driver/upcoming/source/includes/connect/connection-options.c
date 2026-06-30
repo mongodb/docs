@@ -114,7 +114,7 @@ void disable_tls_certificate_revocation_check_example(void) {
 // Allow Insecure TLS
 void allow_insecure_tls_example(void) {
     // start-uri-allow-insecure-tls
-    mongoc_uri_t *uri = mongoc_uri_new("mongodb+srv://localhost:27017/?tls=true&tlsAllowInvalidCertificates=true");
+    mongoc_uri_t *uri = mongoc_uri_new("mongodb+srv://localhost:27017/?tls=true&tlsInsecure=true");
     // end-uri-allow-insecure-tls
 
     mongoc_client_t *client = mongoc_client_new_from_uri(uri);
