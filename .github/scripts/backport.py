@@ -33,7 +33,6 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
 import subprocess
 import sys
 from pathlib import Path
@@ -53,6 +52,27 @@ def run(cmd: list[str], **kwargs) -> str:
 
 def gh(args: list[str]) -> str:
     return run(["gh", *args])
+
+
+def remote_branch_sha(branch: str) -> str | None:
+    """Return branch's current commit SHA on origin, or None if it doesn't exist."""
+    result = subprocess.run(
+        ["git", "ls-remote", "origin", f"refs/heads/{branch}"],
+        cwd=REPO_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    line = result.stdout.strip()
+    return line.split()[0] if line else None
+
+
+def has_staged_changes() -> bool:
+    """Return True if there are staged changes to commit."""
+    result = subprocess.run(
+        ["git", "diff", "--staged", "--quiet"], cwd=REPO_ROOT, check=False
+    )
+    return result.returncode != 0
 
 
 def set_output(key: str, value: str) -> None:
@@ -115,6 +135,25 @@ def apply_patch(merge_sha: str, source_rel: str, target_rel: str) -> bool:
         return True
     except subprocess.CalledProcessError:
         return False
+
+
+def read_blob_at(sha: str, rel_path: str) -> bytes:
+    """Return rel_path's contents exactly as they were at the given commit.
+
+    The backport branch is created from the live tip of base_ref (so the
+    resulting PR diffs cleanly), which can be ahead of merge_sha by the time
+    this runs — especially on a re-trigger long after the original merge.
+    Reading content straight off disk would silently pick up whatever else
+    landed on source_version in the meantime. Pinning reads to merge_sha
+    keeps a backport limited to exactly what the original PR changed.
+    """
+    result = subprocess.run(
+        ["git", "show", f"{sha}:{rel_path}"],
+        cwd=REPO_ROOT,
+        check=True,
+        capture_output=True,
+    )
+    return result.stdout
 
 
 def project_for_path(path: str) -> tuple[str | None, str | None, str | None]:
@@ -182,13 +221,15 @@ def apply_change(
     """
     base = REPO_ROOT / "content" / project
     target_path = base / target_version / relative
-    source_path = base / source_version / relative
+    source_rel = f"content/{project}/{source_version}/{relative}"
 
     if status == "added":
         # Mirror new files to every eligible target version. Writers can
-        # drop ones that shouldn't apply during PR review.
+        # drop ones that shouldn't apply during PR review. Read the blob at
+        # merge_sha rather than the live file so later, unrelated commits to
+        # source_version aren't pulled in by a re-trigger.
         target_path.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source_path, target_path)
+        target_path.write_bytes(read_blob_at(merge_sha, source_rel))
         display = str(target_path.relative_to(REPO_ROOT))
         return display, [display], False
 
@@ -199,7 +240,6 @@ def apply_change(
         if not target_path.exists():
             return None, [], False
         target_rel = str(target_path.relative_to(REPO_ROOT))
-        source_rel = f"content/{project}/{source_version}/{relative}"
         if merge_sha and apply_patch(merge_sha, source_rel, target_rel):
             return target_rel, [target_rel], False
         # Patch failed to apply — this is a conflict, not a skip.
@@ -218,7 +258,7 @@ def apply_change(
         if not old_target.exists():
             return None, [], False
         target_path.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(source_path, target_path)
+        target_path.write_bytes(read_blob_at(merge_sha, source_rel))
         old_target.unlink()
         new_rel = str(target_path.relative_to(REPO_ROOT))
         old_rel = str(old_target.relative_to(REPO_ROOT))
@@ -335,8 +375,17 @@ def main() -> int:
 
         print(f"\nProcessing backport to {label} ...")
 
-        # Branch from origin/base_ref so each backport is an independent PR.
-        run(["git", "checkout", "-b", branch, f"origin/{base_ref}"])
+        # If this branch already exists (a prior trigger created it), build on
+        # top of its current tip instead of recreating it from scratch — that
+        # way a re-trigger never needs a force-push and any commits a writer
+        # added directly to the branch survive. Otherwise branch fresh from
+        # origin/base_ref so the new branch's PR diffs cleanly against base.
+        branch_existed = remote_branch_sha(branch) is not None
+        if branch_existed:
+            run(["git", "fetch", "origin", branch])
+            run(["git", "checkout", "-B", branch, "FETCH_HEAD"])
+        else:
+            run(["git", "checkout", "-b", branch, f"origin/{base_ref}"])
 
         applied: list[str] = []
         conflict_files: list[str] = []
@@ -381,8 +430,32 @@ def main() -> int:
                 print(f"  Nothing to backport to {label} (all files skipped).")
             continue
 
-        # Commit and push.
         run(["git", "add", "--"] + stage_paths)
+
+        if branch_existed and not has_staged_changes():
+            # Branch already has this exact content (e.g. a re-trigger from
+            # an unrelated label change) — nothing to commit, so leave the
+            # existing branch/PR untouched rather than pushing a no-op.
+            print(f"  No changes for {label} (branch already up to date).")
+            run(["git", "checkout", "--detach", merge_sha])
+            run(["git", "branch", "-D", branch])
+            existing_pr_url = gh(
+                [
+                    "pr", "list",
+                    "--repo", repo,
+                    "--head", branch,
+                    "--state", "open",
+                    "--json", "url",
+                    "--jq", ".[0].url",
+                ]
+            ).strip()
+            if existing_pr_url:
+                result_rows.append((label, existing_pr_url, conflict_files))
+            continue
+
+        # Commit and push. Starting from the branch's actual current tip
+        # (whether freshly branched or fetched above) means this is always a
+        # fast-forward, so no force-push is needed even on a re-trigger.
         run(
             [
                 "git",
@@ -440,25 +513,43 @@ def main() -> int:
         ])
         body = "\n".join(body_lines)
 
-        create_args = [
-            "pr", "create",
-            "--repo", repo,
-            "--base", base_ref,
-            "--head", branch,
-            "--title", f"Backport #{pr_number} to {label}: {pr_title}",
-            "--body", body,
-            "--draft",
-        ]
-        if assignee:
-            create_args.extend(["--assignee", assignee])
-        pr_url = gh(create_args).strip()
+        # If a PR for this branch already exists (re-triggered by a later
+        # label), the push above already updated it — don't create a
+        # duplicate.
+        existing_pr_url = gh(
+            [
+                "pr", "list",
+                "--repo", repo,
+                "--head", branch,
+                "--state", "open",
+                "--json", "url",
+                "--jq", ".[0].url",
+            ]
+        ).strip()
+
+        if existing_pr_url:
+            pr_url = existing_pr_url
+            print(f"  Updated existing backport PR: {pr_url}")
+        else:
+            create_args = [
+                "pr", "create",
+                "--repo", repo,
+                "--base", base_ref,
+                "--head", branch,
+                "--title", f"Backport #{pr_number} to {label}: {pr_title}",
+                "--body", body,
+                "--draft",
+            ]
+            if assignee:
+                create_args.extend(["--assignee", assignee])
+            pr_url = gh(create_args).strip()
+            print(f"  Opened backport PR: {pr_url}")
 
         new_pr_number = pr_url.rstrip("/").split("/")[-1]
         all_branches.append(branch)
         all_pr_numbers.append(new_pr_number)
         all_lint_paths.extend(lint_paths)
         result_rows.append((label, pr_url, conflict_files))
-        print(f"  Opened backport PR: {pr_url}")
 
         # Return to detached HEAD at the merge commit so the next iteration
         # can branch cleanly from origin/base_ref.
