@@ -3,10 +3,14 @@
   same cloud provider and region to host
   your application and {+cluster+} when possible.
 
+- You can configure {+gen-2-clusters+} on only ``M30+`` {+Dedicated-clusters+} on |aws|.
+  To learn more, see
+  :ref:`AWS Gen2 Dedicated Clusters <aws-gen2-clusters>`. 
+
 - .. include:: /includes/facts/cross-region-limits.rst
 
-- M30 and higher clusters are recommended for production environments.
-  {+Clusters+} with sustained loads on M10 and M20 tiers may experience
+- We recommend ``M30`` and higher clusters for production environments.
+  {+Clusters+} with sustained loads on ``M10`` and ``M20`` tiers may experience
   degraded performance over time.
 
 - .. include:: /includes/fact-database-deployment-project-limit-lettered.rst

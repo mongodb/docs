@@ -1,6 +1,7 @@
-Clusters can span regions and cloud service providers. The total number
-of nodes in clusters spanning across regions has a specific constraint
-on a per-project basis.
+Gen1 clusters can span regions and cloud service providers. AWS Gen2 clusters
+can span regions so long as all regions support Gen2 clusters. To learn more,
+see the
+:ref:`AWS Reference for Gen2 Dedicated clusters <aws-reference-gen2-clusters>`.
 
 |service| limits the total number of nodes in other regions in one
 project to a total of 40, **not** including:
