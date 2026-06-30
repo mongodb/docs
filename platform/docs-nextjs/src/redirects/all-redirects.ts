@@ -39,6 +39,7 @@ import rubyDriverRedirects from './ruby-driver-redirects.json';
 import rustRedirects from './rust-redirects.json';
 import scalaDriverRedirects from './scala-driver-redirects.json';
 import searchRedirects from './search-redirects.json';
+import selfManagedSearchRedirects from './self-managed-search-redirects.json';
 import sparkConnectorRedirects from './spark-connector-redirects.json';
 import sqlInterfaceRedirects from './sql-interface-redirects.json';
 import standbyClustersRedirects from './standby-clusters-redirects.json';
@@ -84,6 +85,7 @@ export const allRedirects: RedirectEntry[] = [
   ...rustRedirects,
   ...scalaDriverRedirects,
   ...searchRedirects,
+  ...selfManagedSearchRedirects,
   ...sparkConnectorRedirects,
   ...sqlInterfaceRedirects,
   ...standbyClustersRedirects,
