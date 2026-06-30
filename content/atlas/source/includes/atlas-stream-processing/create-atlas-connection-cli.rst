@@ -1,6 +1,10 @@
 Add an Atlas Cluster Connection through the {+atlas-cli+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+:gold:`IMPORTANT`: To create a cross-project {+service+} connection,
+first enable the functionality. To learn more, see :ref:`Cross-Project
+Connections <atlas-sp-manage-connections-cross-project>`
+
 To add an Atlas Cluster connection to your {+spw+} through
 the {+atlas-cli+}, follow these steps:
 

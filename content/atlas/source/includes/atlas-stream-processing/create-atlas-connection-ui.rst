@@ -6,6 +6,12 @@ To add an Atlas Cluster connection to your {+spw+} through the
 
 .. procedure::
    :style: normal
+
+   .. step:: **(Optional)** Enable cross-project connections.
+
+      To create a cross-project {+service+} connection, first enable
+      this functionality. To learn more, see :ref:`Cross-Project
+      Connections <atlas-sp-manage-connections-cross-project>`
 	   
    .. include:: /includes/nav/steps-stream-processing.rst
 		
