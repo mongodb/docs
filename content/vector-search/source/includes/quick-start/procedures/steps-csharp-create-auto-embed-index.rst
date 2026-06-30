@@ -31,6 +31,9 @@
             :caption: Program.cs
             :linenos:
 
+         For details on all the {+avs+} index settings for Automated Embedding, see 
+         :ref:`avs-types-vector-search-options`.
+
    .. step:: Specify the ``<connection string>``.
 
       .. include:: /includes/quick-start/procedures/steps-connection-string-drivers-hidden.rst

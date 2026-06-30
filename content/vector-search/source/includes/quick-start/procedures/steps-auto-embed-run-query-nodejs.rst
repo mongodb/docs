@@ -11,6 +11,9 @@
          :emphasize-lines: 5
          :caption: run-query.js
 
+      For details on all the {+avs+} query settings for Automated Embedding, see 
+      :ref:`$vectorSearch syntax <vectorSearch-agg-pipeline-syntax>`.
+
    .. step:: Replace the ``<connection-string>``.
 
       Ensure that your connection string includes your database user's

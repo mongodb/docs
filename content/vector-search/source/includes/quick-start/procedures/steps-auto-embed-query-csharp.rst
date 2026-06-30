@@ -14,6 +14,9 @@
 
       .. include:: /includes/quick-start/facts/fact-avs-auto-embed-quick-start-query-intro.rst
 
+      For details on all the {+avs+} query settings for Automated Embedding, see 
+      :ref:`$vectorSearch syntax <vectorSearch-agg-pipeline-syntax>`.
+
    .. step:: Replace the ``<connection string>`` placeholder and save the file.
 
       Ensure that your connection string includes your database user's

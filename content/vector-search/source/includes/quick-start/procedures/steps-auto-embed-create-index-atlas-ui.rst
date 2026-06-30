@@ -44,6 +44,9 @@
                :copyable: true 
                :linenos: 
 
+      For details on all the {+avs+} index settings for Automated Embedding, see 
+      :ref:`avs-types-vector-search-options`.
+
    .. step:: Click :guilabel:`Next`.
 
    .. step:: Click :guilabel:`Create Vector Search Index`. 

@@ -34,3 +34,6 @@
          :linenos:
 
       .. include:: /includes/quick-start/facts/avs-quick-start-auto-embed-index-description.rst
+
+      For details on all the {+avs+} index settings for Automated Embedding, see 
+      :ref:`avs-types-vector-search-options`.

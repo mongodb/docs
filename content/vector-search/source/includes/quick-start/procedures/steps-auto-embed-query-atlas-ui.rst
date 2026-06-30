@@ -30,3 +30,6 @@
             :visible: false
             :language: json
             :linenos:
+
+      For details on all the {+avs+} query settings for Automated Embedding, see 
+      :ref:`$vectorSearch syntax <vectorSearch-agg-pipeline-syntax>`.

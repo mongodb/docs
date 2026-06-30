@@ -20,6 +20,9 @@
             :caption: create-index.go
             :linenos:
 
+         For details on all the {+avs+} index settings for Automated Embedding, see 
+         :ref:`avs-types-vector-search-options`.
+
       c. Replace the ``<connection-string>`` placeholder in the index definition
          with your deployment's connection string and save the file.
 

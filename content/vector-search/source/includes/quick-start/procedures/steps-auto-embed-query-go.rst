@@ -15,6 +15,9 @@
          :copyable: true
          :caption: main.go
 
+      For details on all the {+avs+} query settings for Automated Embedding, see 
+      :ref:`$vectorSearch syntax <vectorSearch-agg-pipeline-syntax>`.
+
    .. step:: Replace the ``<connection-string>`` placeholder.
 
       Ensure that your connection string includes your database user's
