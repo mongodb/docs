@@ -1,0 +1,12 @@
+// :snippet-start: set-embedded-doc
+db.movies.aggregate( [
+   { $match: { runtime: { $gt: 1000 } } },
+   {
+      $set: {
+         "imdb.normalizedRating": {
+            $multiply: [ "$imdb.rating", 10 ]
+         }
+      }
+   }
+] )
+// :snippet-end:

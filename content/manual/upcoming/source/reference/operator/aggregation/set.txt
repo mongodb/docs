@@ -93,63 +93,34 @@ Examples
    .. tab::
       :tabid: shell
 
+      .. include:: /includes/sample-data-usage.rst
+
       Using Two ``$set`` Stages
       ~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      Create a sample ``scores`` collection with the following:
-
-      .. code-block:: javascript
-
-         db.scores.insertMany( [
-            { _id: 1, student: "Maya", homework: [ 10, 5, 10 ], quiz: [ 10, 8 ], extraCredit: 0 },
-            { _id: 2, student: "Ryan", homework: [ 5, 6, 5 ], quiz: [ 8, 8 ], extraCredit: 8 }
-         ] )
 
       The following operation uses two :pipeline:`$set` stages to
       include three new fields in the output documents:
 
-      .. code-block:: javascript
+      .. io-code-block::
+         :copyable: true
 
-         db.scores.aggregate( [
-            {
-              $set: {
-                 totalHomework: { $sum: "$homework" },
-                 totalQuiz: { $sum: "$quiz" }
-              }
-            },
-            {
-              $set: {
-                 totalScore: { $add: [ "$totalHomework", "$totalQuiz", "$extraCredit" ] } }
-            }
-         ] )
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/set/two-stages.snippet.set-two-stages.js
+            :language: javascript
+            :category: usage example
 
-      The operation returns the following documents:
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/set/two-stages-output.sh
+            :language: javascript
 
-      .. code-block:: javascript
-         :copyable: false
+      First Stage (``$set``):
+         The first :pipeline:`$set` stage adds two fields:
+         ``imdbScoreScaled``, which multiplies the IMDB rating by
+         ``10``, and ``runtimeHours``, which divides the runtime by
+         ``60`` and rounds down to the nearest integer.
 
-         [
-            {
-               _id: 1,
-               student: "Maya",
-               homework: [ 10, 5, 10 ],
-               quiz: [ 10, 8 ],
-               extraCredit: 0,
-               totalHomework: 25,
-               totalQuiz: 18,
-               totalScore: 43
-            },
-            {
-               _id: 2,
-               student: "Ryan",
-               homework: [ 5, 6, 5 ],
-               quiz: [ 8, 8 ],
-               extraCredit: 8,
-               totalHomework: 16,
-               totalQuiz: 16,
-               totalScore: 40
-            }
-         ]
+      Second Stage (``$set``):
+         The second :pipeline:`$set` stage adds ``totalScore``,
+         which sums ``imdbScoreScaled`` and ``runtimeHours``
+         computed in the previous stage.
 
       Adding Fields to an Embedded Document
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -158,181 +129,95 @@ Examples
 
       Use dot notation to add new fields to embedded documents.
 
-      Create a sample collection ``vehicles`` with the following:
+      The following aggregation operation adds a new field
+      ``normalizedRating`` to the embedded document ``imdb``:
 
-      .. code-block:: javascript
+      .. io-code-block::
+         :copyable: true
 
-         db.vehicles.insertMany( [
-            { _id: 1, type: "car", specs: { doors: 4, wheels: 4 } },
-            { _id: 2, type: "motorcycle", specs: { doors: 0, wheels: 2 } },
-            { _id: 3, type: "jet ski" }
-         ] )
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/set/embedded-doc.snippet.set-embedded-doc.js
+            :language: javascript
+            :category: usage example
 
-      The following aggregation operation adds a new field ``fuel_type`` to
-      the embedded document ``specs``.
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/set/embedded-doc-output.sh
+            :language: javascript
 
-      .. code-block:: javascript
-
-         db.vehicles.aggregate( [
-            { $set: { "specs.fuel_type": "unleaded" } }
-         ] )
-
-      The operation returns the following results:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         [
-            { _id: 1, type: "car", specs: { doors: 4, wheels: 4, fuel_type: "unleaded" } },
-            { _id: 2, type: "motorcycle", specs: { doors: 0, wheels: 2, fuel_type: "unleaded" } },
-            { _id: 3, type: "jet ski", specs: { fuel_type: "unleaded" } }
-         ]
-
-      Overwriting an existing field
+      Overwriting an Existing Field
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       Specifying an existing field name in a :pipeline:`$set` operation
       causes the original field to be replaced.
 
-      Create a sample collection called ``animals`` with the following:
+      The following :pipeline:`$set` operation overrides the ``rated``
+      field:
 
-      .. code-block:: javascript
+      .. io-code-block::
+         :copyable: true
 
-         db.animals.insertOne( { _id: 1, dogs: 10, cats: 15 } )
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/set/overwrite-field.snippet.set-overwrite-field.js
+            :language: javascript
+            :category: usage example
 
-      The following :pipeline:`$set` operation overrides the ``cats`` field:
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/set/overwrite-field-output.sh
+            :language: javascript
 
-      .. code-block:: javascript
+      It is possible to replace one field with another. In the
+      following example, the ``title`` field substitutes for the
+      ``_id`` field.
 
-         db.animals.aggregate( [
-           { $set: { cats: 20 } }
-         ] )
+      The following aggregation operation uses ``$set`` to replace
+      the ``_id`` field of each document with the value of the
+      ``title`` field and replaces the ``title`` field with the
+      string ``"movie"``:
 
-      The operation returns the following document:
+      .. io-code-block::
+         :copyable: true
 
-      .. code-block:: javascript
-         :copyable: false
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/set/field-substitution.snippet.set-field-substitution.js
+            :language: javascript
+            :category: usage example
 
-         [ { _id: 1, dogs: 10, cats: 20 } ]
-
-      It is possible to replace one field with another. In the following
-      example the ``item`` field substitutes for the ``_id`` field.
-
-      Create a sample collection called ``fruits`` contains the following
-      documents:
-
-      .. code-block:: javascript
-
-         db.fruits.insertMany( [
-            { _id: 1, item: "tangerine", type: "citrus" },
-            { _id: 2, item: "lemon", type: "citrus" },
-            { _id: 3, item: "grapefruit", type: "citrus" }
-         ] )
-
-      The following aggregration operation uses ``$set`` to replace the
-      ``_id`` field of each document with the value of the ``item`` field,
-      and replaces the ``item`` field with a string ``"fruit"``.
-
-      .. code-block:: javascript
-
-         db.fruits.aggregate( [
-           { $set: { _id: "$item", item: "fruit" } }
-         ] )
-
-      The operation returns the following:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         [
-            { _id: "tangerine", item: "fruit", type: "citrus" },
-            { _id: "lemon", item: "fruit", type: "citrus" },
-            { _id: "grapefruit", item: "fruit", type: "citrus" }
-         ]
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/set/field-substitution-output.sh
+            :language: javascript
 
       .. _set-add-element-to-array:
 
       Add Element to an Array
       ~~~~~~~~~~~~~~~~~~~~~~~
 
-      Create a sample ``scores`` collection with the following:
-
-      .. code-block:: javascript
-
-         db.scores.insertMany( [
-            { _id: 1, student: "Maya", homework: [ 10, 5, 10 ], quiz: [ 10, 8 ], extraCredit: 0 },
-            { _id: 2, student: "Ryan", homework: [ 5, 6, 5 ], quiz: [ 8, 8 ], extraCredit: 8 }
-         ] )
-
       You can use :pipeline:`$set` with a :expression:`$concatArrays`
-      expression to add an element to an existing array field. For example,
-      the following operation uses :pipeline:`$set` to replace the
-      ``homework`` field with a new array whose elements are the current
-      ``homework`` array concatenated with another array containing a new
-      score ``[ 7 ]``.
+      expression to add an element to an existing array field. The
+      following operation uses :pipeline:`$set` to replace the
+      ``genres`` field with a new array whose elements are the
+      current ``genres`` array concatenated with another array
+      containing a new genre ``[ "Classic" ]``:
 
-      .. code-block:: javascript
+      .. io-code-block::
+         :copyable: true
 
-         db.scores.aggregate( [
-            { $match: { _id: 1 } },
-            { $set: { homework: { $concatArrays: [ "$homework", [ 7 ] ] } } }
-         ] )
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/set/add-to-array.snippet.set-add-to-array.js
+            :language: javascript
+            :category: usage example
 
-      The operation returns the following:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         [ { _id: 1, student: "Maya", homework: [ 10, 5, 10, 7 ], quiz: [ 10, 8 ], extraCredit: 0 } ]
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/set/add-to-array-output.sh
+            :language: javascript
 
       Creating a New Field with Existing Fields
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      Create a sample ``scores`` collection with the following:
+      The following aggregation operation adds a new field
+      ``titleWithYear`` to each document that concatenates the
+      movie title with its release year:
 
-      .. code-block:: javascript
+      .. io-code-block::
+         :copyable: true
 
-         db.scores.insertMany( [
-            { _id: 1, student: "Maya", homework: [ 10, 5, 10 ], quiz: [ 10, 8 ], extraCredit: 0 },
-            { _id: 2, student: "Ryan", homework: [ 5, 6, 5 ], quiz: [ 8, 8 ], extraCredit: 8 }
-         ] )
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/set/new-field.snippet.set-new-field.js
+            :language: javascript
+            :category: usage example
 
-      The following aggregation operation adds a new field ``quizAverage``
-      to each document that contains the average of the ``quiz`` array.
-
-      .. code-block:: javascript
-
-         db.scores.aggregate( [
-            {
-               $set: {
-                  quizAverage: { $avg: "$quiz" }
-               }
-            }
-         ] )
-
-      The operation returns the following documents:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         [
-            {
-               _id: 1,
-               student: 'Maya',
-               homework: [ 10, 5, 10 ],
-               quiz: [ 10, 8 ],
-               extraCredit: 0,
-               quizAverage: 9
-            },
-            {
-               _id: 2,
-               student: 'Ryan',
-               homework: [ 5, 6, 5 ],
-               quiz: [ 8, 8 ],
-               extraCredit: 8,
-               quizAverage: 8
-            }
-         ]
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/set/new-field-output.sh
+            :language: javascript
 
    .. tab::
       :tabid: csharp
