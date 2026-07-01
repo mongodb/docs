@@ -7,24 +7,25 @@ Keyword Analyzer
 .. default-domain:: mongodb
 
 .. meta::
-   :keywords: term search, keyword search, full-text search, text analyzer, single term index, exact match search, index strings, single string search
-   :description: Use the MongoDB Search keyword analyzer to index multiple terms in a string field as a single searchable term.
+   :keywords: term search, keyword search, full-text search, text analyzer, single term index, exact match search, index strings, single string search, code example
+   :description: Use the MongoDB Search keyword analyzer to index multiple terms in a string field as a single searchable term. Only exact matches on the field are returned.
 
 The ``keyword`` analyzer accepts a string or array of strings as a
 parameter and indexes them as a single term (token). Only exact matches
-on the field are returned. It leaves all text in its original letter case.
+on the field are returned. It leaves all text in its original
+letter case.
 
-.. tip:: 
+.. tip::
 
-   For exact matching, instead of using the ``keyword`` analyzer, you
-   can index the field as the |fts| :ref:`token <bson-data-types-token>`
-   type and use the :ref:`equals <equals-ref>` operator to search the field. 
+   For exact matching, instead of the ``keyword`` analyzer, index
+   the field as the |fts| :ref:`token <bson-data-types-token>` type.
+   Use the :ref:`equals <equals-ref>` operator to search the field.
 
 .. |analyzer-name| replace:: ``keyword``
 
 .. include:: /includes/index/analyzers/facts/fact-fts-index-configurations.rst
 
-.. important:: 
+.. important::
 
    .. include:: /includes/index/shared/facts/fact-fts-string-size-limit.rst
 
@@ -33,30 +34,95 @@ Example
 
 .. include:: /includes/index/analyzers/facts/analyzer-example-intro.rst
 
-.. |arrow| unicode:: U+27A4
 
 .. composable-tutorial::
-   :options: interface, language
-   :defaults: atlas-ui, None
-
-   |arrow| Use the **Select your language** drop-down menu to set the
-   language of the example on this page.
+   :options: interface, config-editor
+   :defaults: atlas-ui, visual
 
    .. selected-content::
-      :selections: atlas-ui, None
+      :selections: atlas-ui, visual
+
+      1. Click :guilabel:`Refine Your Index` to configure your index.
+      #. In the :guilabel:`Index Configurations` section, toggle 
+         :guilabel:`Dynamic Mapping` to :guilabel:`off`.
+      #. In the :guilabel:`Field Mappings` section, click
+         :guilabel:`Add Field` to open the :guilabel:`Add Field Mapping`
+         window.
+      #. Click :guilabel:`Customized Configuration`.
+      #. Select ``title`` from the :guilabel:`Field Name` dropdown.
+      #. Click the :guilabel:`Data Type` dropdown and select
+         :guilabel:`String` if it isn't already selected.
+      #. Expand :guilabel:`String Properties` and make the following
+         changes:
+
+         .. list-table:: 
+            :stub-columns: 1
+
+            * - Index Analyzer 
+              - Select ``lucene.keyword`` from the dropdown. 
+      
+            * - Search Analyzer 
+              - Select ``lucene.keyword`` from the dropdown.
+
+            * - Index Options 
+              - Use the default ``offsets``.
+
+            * - Store 
+              - Use the default ``true``.
+
+            * - Ignore Above 
+              - Keep the default setting.
+
+            * - Norms 
+              - Use the default ``include``.
+
+      #. Click :guilabel:`Add`.
+      #. Click :guilabel:`Save Changes`.
+      #. Click :guilabel:`Create Search Index`.
+   
+   .. selected-content::
+      :selections: atlas-ui, json
+
+      1. Replace the default index definition with the following index definition.
+
+         .. code-block:: json
+            :copyable: true
+            :emphasize-lines: 6
+      
+            {
+              "mappings": {
+                "fields": {
+                  "title": {
+                    "type": "string",
+                    "analyzer": "lucene.keyword"
+                  }
+                }
+              }
+            }
+
+      #. Click :guilabel:`Next`.
+      #. Click :guilabel:`Create Search Index`.
 
       .. include:: /includes/index/analyzers/code-snippets/keyword/atlas-ui/index_ui.rst
 
    .. selected-content::
-      :selections: mongosh, None
+      :selections: mongosh, visual
 
       .. literalinclude:: /includes/index/analyzers/code-snippets/keyword/mongosh/index_mongosh.js
          :language: javascript 
          :copyable: true 
          :linenos:
 
-   The following query searches for the phrase ``Class Action`` in the
-   ``title`` field. 
+   .. selected-content::
+      :selections: mongosh, json
+
+      .. literalinclude:: /includes/fts/analyzers/keyword/index_mongosh.js
+         :language: javascript
+         :copyable: true
+         :linenos:
+
+   The following query searches for the phrase ``Class Action`` in
+   the ``title`` field.
 
    .. selected-content::
       :selections: atlas-ui, None
@@ -64,7 +130,12 @@ Example
       .. include:: /includes/index/analyzers/code-snippets/keyword/atlas-ui/query_ui.rst
 
    .. selected-content::
-      :selections: mongosh, None
+      :selections: mongosh, visual
+
+      .. include:: /includes/fts/analyzers/keyword/query_mongosh.rst
+
+   .. selected-content::
+      :selections: mongosh, json
 
       .. include:: /includes/index/analyzers/code-snippets/keyword/compass/query_mongosh.rst
 
@@ -72,7 +143,7 @@ Example
 |fts| returned the document because it matched the query term ``Class
 Action`` to the single token ``Class Action`` that it creates for the
 text in the field using the ``lucene.keyword`` analyzer. By contrast,
-|fts| doesn't return any results for the following query: 
+|fts| doesn't return any results for the following query:
 
 .. code-block:: json 
    :copyable: true 
@@ -88,15 +159,14 @@ text in the field using the ``lucene.keyword`` analyzer. By contrast,
      }
    ])
 
-Many documents in the collection contain the string ``action``, but the 
-``keyword`` analyzer only matches documents in which the search term
-matches the entire contents of the field exactly. For the preceding
-query, the ``keyword`` analyzer wouldn't return any results. However, if
-you indexed the field using the :ref:`ref-standard-analyzer` or
-:ref:`ref-simple-analyzer`, |fts| would return multiple documents in the
-results, including the document with the title field value ``Class 
-Action``, because it would create tokens similar to the following, which
-it would then match to the query term:
+Many documents in the collection contain the string ``action``.
+The ``keyword`` analyzer returns no results for this query. It
+only matches documents where the search term matches the entire
+field contents. If you index the field using the
+:ref:`ref-standard-analyzer` or :ref:`ref-simple-analyzer`, |fts|
+returns many results. The results include the document with the
+title ``Class Action``. Those analyzers create tokens similar to
+the following and match them to the query term:
 
 .. list-table:: Tokens
    :header-rows: 1
