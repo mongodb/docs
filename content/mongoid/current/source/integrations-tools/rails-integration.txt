@@ -9,6 +9,7 @@ Configure Ruby on Rails Options
    :values: reference
 
 .. meta::
+   :description: Learn how to configure Mongoid options in a Ruby on Rails application, including Rails-specific features such as ActiveJob, error handling, and execution time logging.
    :keywords: web framework, api, code example, ruby
 
 .. contents:: On this page
@@ -80,6 +81,32 @@ provides the conversions between {+odm+} exceptions and HTTP codes:
 
 - ``Mongoid::Errors::DocumentNotFound``: Converted to ``404 Not Found``
 - ``Mongoid::Errors::Validations``: Converted to ``422 Unprocessable Content``
+
+.. _mongoid-rails-activejob:
+
+ActiveJob
+---------
+
+{+odm+} supports `ActiveJob
+<{+active-record-docs+}/active_job_basics.html>`__. When using
+``ActiveJob`` with {+odm+}, serialize ``BSON::ObjectId`` values as
+strings and reconstitute them inside the job. If you pass a
+``BSON::ObjectId`` directly, ``ActiveJob`` might fail to deserialize it
+because ``ActiveJob`` serializes arguments to JSON.
+
+The following example shows the recommended pattern:
+
+.. code-block:: ruby
+
+   record = Model.find(...)
+   MyJob.perform_later(record._id.to_s)
+
+   class MyJob < ApplicationJob
+     def perform(id_as_string)
+       record = Model.find(id_as_string)
+       # ...
+     end
+   end
 
 Execution Time Logging
 ----------------------

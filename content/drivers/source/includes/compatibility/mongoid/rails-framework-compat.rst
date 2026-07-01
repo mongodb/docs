@@ -1,16 +1,3 @@
-Mongoid is compatible with many of the frameworks that constitute Ruby on Rails.
-In this section, you can learn about which frameworks you can use with Mongoid.
-
-Mongoid attempts to offer API compatibility with `Active Record
-<https://guides.rubyonrails.org/active_record_basics.html>`__, but libraries
-that depend directly on Active Record might not work as expected if you
-use Mongoid as a direct replacement.
-
-.. note::
-
-   You can use Mongoid alongside Active Record within the same
-   application.
-
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
@@ -29,7 +16,7 @@ use Mongoid as a direct replacement.
         alongside Mongoid models.
 
    * - ``ActionMailbox``
-     - *Unsupported*
+     -
      - Depends directly on Active Record.
 
    * - ``ActionMailer``
@@ -41,7 +28,7 @@ use Mongoid as a direct replacement.
      - 
 
    * - ``ActionText``
-     - *Unsupported*
+     -
      - Depends directly on Active Record.
 
    * - ``ActionView``
@@ -50,30 +37,23 @@ use Mongoid as a direct replacement.
 
    * - ``ActiveJob``
      - ✓
-     - Serialization of BSON and Mongoid objects works best if you
-       explicitly send ``BSON::ObjectId`` values as strings, and
-       reconstitute them in the job. For example:
-  
-       .. code-block:: ruby
-       
-          record = Model.find(...)
-          MyJob.perform_later(record._id.to_s)
-   
-          class MyJob < ApplicationJob
-            def perform(id_as_string)
-              record = Model.find(id_as_string)
-              # ...
-            end
-          end
+     - Serialize ``BSON::ObjectId`` values as strings and reconstitute
+       them inside the job. To learn more, see `ActiveJob
+       <https://www.mongodb.com/docs/mongoid/current/integrations-tools/rails-integration/#mongoid-rails-activejob>`__.
 
    * - ``ActiveModel``
-     - ✓ 
+     - ✓
      - The ``Mongoid::Document`` module includes
        ``ActiveModel::Model`` and leverages ``ActiveModel::Validations``
        for `Document Validation <https://www.mongodb.com/docs/mongoid/current/data-modeling/validation/>`__.
 
+   * - ``ActiveRecord``
+     - ✓
+     - Mongoid is an alternative to Active Record. You can run both in
+       the same application.
+
    * - ``ActiveStorage``
-     - *Unsupported*
+     -
      - Depends directly on Active Record.
 
    * - ``ActiveSupport``

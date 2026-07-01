@@ -1,8 +1,3 @@
-The following table shows compatibility between versions of Laravel and the
-Laravel Integration. A check mark (✓) in a cell means that the Laravel Integration version is
-fully compatible with the Laravel version. A blank cell means that the versions are
-not compatible.
-
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
