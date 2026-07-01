@@ -1,0 +1,140 @@
+.. _cpp-authentication-oidc:
+
+=====================================
+OpenID Connect (OIDC) Authentication
+=====================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to authenticate to MongoDB using the MONGODB-OIDC mechanism in the C++ driver, with examples for Azure Instance Metadata Service and Azure Functions/App Service Environment.
+   :keywords: code example, azure, workload identity, enterprise
+
+Overview
+--------
+
+.. important::
+
+   The ``MONGODB-OIDC`` authentication mechanism requires
+   {+mdb-server+} v7.0 or later running on a Linux platform.
+
+The ``MONGODB-OIDC`` authentication mechanism allows you to
+use `OpenID Connect (OIDC) <https://openid.net/connect/>`__ tokens
+to authenticate to {+mdb-server+}. The {+driver-short+}
+supports OIDC authentication for **workload identities**. A
+workload identity is an identity that you assign to a software workload,
+such as an application, service, script, or container, to
+authenticate and access other services and resources.
+
+The following sections describe how to use the ``MONGODB-OIDC``
+authentication mechanism to authenticate to various platforms.
+
+.. tip:: More Information
+
+   To learn more about the ``MONGODB-OIDC`` authentication mechanism, see
+   :manual:`OpenID Connect Authentication </core/security-oidc/>` and
+   :manual:`MongoDB Server Parameters
+   </reference/parameters/#mongodb-parameter-param.oidcIdentityProviders>`
+   in the {+mdb-server+} manual.
+
+Code Placeholders
+~~~~~~~~~~~~~~~~~
+
+The code examples on this page use the following placeholders:
+
+- ``<hostname>``: Network address of your {+mdb-server+} deployment
+- ``<client_id>``: Client ID or application ID of your
+  Azure managed identity or enterprise application
+- ``<token-resource>``: Value of the ``audience`` server
+  parameter configured on your {+mdb-server+} deployment
+
+To use the code examples on this page, replace these placeholders
+with your own values.
+
+.. _cpp-authentication-oidc-azure-imds:
+
+Azure IMDS
+----------
+
+If your application runs on an Azure VM or uses the
+`Azure Instance Metadata Service
+<https://learn.microsoft.com/en-us/azure/virtual-machines/instance-metadata-service>`__
+(IMDS), you can authenticate to {+mdb-server+} by using the
+{+driver-short+}'s built-in Azure support.
+
+To use Azure IMDS authentication, include the following parameters
+in your connection string:
+
+- ``<client_id>``: If you're using an Azure managed identity, set
+  this to the client ID of the managed identity
+- ``authMechanism``: Set to ``MONGODB-OIDC``
+- ``authMechanismProperties``: Set to
+  ``ENVIRONMENT:azure,TOKEN_RESOURCE:<token-resource>``
+
+The following example uses the ``MONGODB-OIDC`` mechanism to
+authenticate to {+mdb-server+}:
+
+.. literalinclude:: /includes/authentication.cpp
+   :language: cpp
+   :copyable: true
+   :start-after: // start-azure-imds-connection-string
+   :end-before: // end-azure-imds-connection-string
+   :dedent:
+
+.. tip::
+
+   If your application runs on an Azure VM and only one managed
+   identity is associated with the VM, you can omit the ``<client_id>``
+   parameter from the connection string.
+
+.. _cpp-authentication-oidc-azure-ase:
+
+Azure Functions and App Service Environment
+-------------------------------------------
+
+The {+driver-short+} doesn't provide built-in support for Azure
+Functions or Azure App Service Environment (ASE). To use
+``MONGODB-OIDC`` authentication from these platforms, complete
+the following steps:
+
+.. procedure::
+   :style: connected
+
+   .. step:: Install the Azure SDK for C++
+
+      Install the `Azure SDK for C++
+      <https://learn.microsoft.com/en-us/azure/developer/cpp/sdk/overview>`__.
+
+   .. step:: Define a custom OIDC callback
+
+      Use the ``oidc_callback()`` method on your
+      ``mongocxx::options::client`` instance to define a callback
+      that retrieves an OIDC token by using
+      ``Azure::Identity::DefaultAzureCredential``:
+
+      .. literalinclude:: /includes/authentication.cpp
+         :language: cpp
+         :copyable: true
+         :start-after: // start-azure-ase-callback
+         :end-before: // end-azure-ase-callback
+         :dedent:
+
+API Documentation
+-----------------
+
+To learn more about creating a ``mongocxx::client`` object in the
+{+driver-short+} or configuring client options, see the following
+API documentation:
+
+- `mongocxx::client
+  <{+api+}/classmongocxx_1_1v__noabi_1_1client.html>`__
+- `mongocxx::options::client
+  <{+api+}/classmongocxx_1_1v__noabi_1_1options_1_1client.html>`__
