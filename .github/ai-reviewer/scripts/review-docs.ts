@@ -11,8 +11,6 @@ import YAML from 'yaml';
 
 interface Config {
   ai: {
-    model: string;
-    fallback_model: string;
     max_tokens: number;
   };
   review: {
@@ -160,64 +158,56 @@ const octokit = new Octokit({
   auth: process.env.GITHUB_TOKEN,
 });
 
-// Model preferences in order (best to fallback)
-const MODEL_PREFERENCES = [
-  'claude-sonnet-4-20250514',
-  'claude-3-5-sonnet-20241022',
-  'claude-3-5-sonnet-latest',
-  'claude-3-sonnet-20240229',
-];
+// Model family preferences in order (most preferred to least preferred).
+// These are matched as substrings against model IDs, so they stay valid
+// across version bumps — no hardcoded version numbers needed.
+const FAMILY_PREFERENCES = ['sonnet', 'haiku'];
 
 // =============================================================================
 // MODEL SELECTION
 // =============================================================================
 
-async function getAvailableModel(configModel: string): Promise<string> {
-  try {
-    console.log('   Checking available models...');
-    const response = await fetch('https://api.anthropic.com/v1/models', {
-      headers: {
-        'x-api-key': process.env.ANTHROPIC_API_KEY!,
-        'anthropic-version': '2023-06-01',
-      },
-    });
-    
-    if (!response.ok) {
-      console.log('   ⚠️ Could not fetch models list, using config model');
-      return configModel;
-    }
-    
-    const data = await response.json() as { data: Array<{ id: string }> };
-    const availableIds = new Set(data.data.map(m => m.id));
-    
-    // First check if config model is available
-    if (availableIds.has(configModel)) {
-      console.log(`   ✓ Using configured model: ${configModel}`);
-      return configModel;
-    }
-    
-    // Otherwise find best available from preferences
-    for (const model of MODEL_PREFERENCES) {
-      if (availableIds.has(model)) {
-        console.log(`   ✓ Config model unavailable, using: ${model}`);
-        return model;
-      }
-    }
-    
-    // Last resort: use first available model that looks like sonnet
-    const sonnetModel = data.data.find(m => m.id.includes('sonnet'));
-    if (sonnetModel) {
-      console.log(`   ✓ Using discovered model: ${sonnetModel.id}`);
-      return sonnetModel.id;
-    }
-    
-    console.log('   ⚠️ No suitable model found, trying config model anyway');
-    return configModel;
-  } catch (error) {
-    const err = error as Error;
-    console.log(`   ⚠️ Error checking models: ${err.message}, using config model`);
-    return configModel;
+async function getAvailableModel(): Promise<string> {
+  console.log('   Checking available models...');
+  const response = await fetch('https://api.anthropic.com/v1/models', {
+    headers: {
+      'x-api-key': process.env.ANTHROPIC_API_KEY!,
+      'anthropic-version': '2023-06-01',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      `Could not fetch Anthropic models list (HTTP ${response.status}). ` +
+      `Cannot select a model to run the review.`
+    );
   }
+
+  const data = await response.json() as {
+    data: Array<{ id: string; created_at: string }>;
+  };
+
+  // Sort newest-first so the first match in any family is always the
+  // most recent version of that family.
+  const availableModels = [...data.data].sort(
+    (a, b) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+
+  for (const family of FAMILY_PREFERENCES) {
+    const match = availableModels.find(m =>
+      m.id.toLowerCase().includes(family)
+    );
+    if (match) {
+      console.log(`   ✓ Using newest available ${family} model: ${match.id}`);
+      return match.id;
+    }
+  }
+
+  throw new Error(
+    `No model matching families [${FAMILY_PREFERENCES.join(', ')}] found in ` +
+    `the Anthropic models list. Update FAMILY_PREFERENCES in review-docs.ts.`
+  );
 }
 
 // =============================================================================
@@ -468,7 +458,7 @@ async function getAIReview(prompt: string, config: Config): Promise<AIReview> {
     writeToSummary(`⚠️ Warning: Large diff size (~${estimatedTokens} estimated tokens)`);
   }
   
-  const model = await getAvailableModel(config.ai.model);
+  const model = await getAvailableModel();
   
   return withRetry(async () => {
     const response = await anthropic.messages.create({
@@ -482,9 +472,14 @@ async function getAIReview(prompt: string, config: Config): Promise<AIReview> {
       ],
     });
     
-    const content = (response.content[0] as { text: string }).text;
-    
-    const jsonMatch = content.match(/```json\n?([\s\S]*?)\n?```/) || 
+    const textBlock = response.content.find(block => block.type === 'text');
+    if (!textBlock || textBlock.type !== 'text') {
+      const types = response.content.map(b => b.type).join(', ') || 'empty';
+      throw new Error(`No text block in response. Content types: ${types}`);
+    }
+    const content = textBlock.text;
+
+    const jsonMatch = content.match(/```json\n?([\s\S]*?)\n?```/) ||
                       content.match(/\{[\s\S]*\}/);
     
     if (jsonMatch) {
