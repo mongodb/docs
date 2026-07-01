@@ -3,7 +3,7 @@ Configure the MongoDB Agent for Kerberos
 ========================================
 
 .. meta::
-   :description: Configure the MongoDB Agent to authenticate with Kerberos by setting up the necessary Kerberos files, creating a user principal, and assigning roles.
+   :description: Configure the MongoDB Agent to authenticate with Kerberos by setting up the necessary Kerberos files, creating a Kerberos user principal, and assigning roles.
 
 .. default-domain:: mongodb
 
@@ -36,7 +36,8 @@ Add Kerberos as Authentication Mechanism for Deployment
 
 .. include:: /includes/fact-mdbagent-access-control-host-settings.rst
 
-For the purposes of this tutorial, you must ensure the following:
+For the purposes of this tutorial, verify that your deployment
+meets these conditions:
 
 - Your deployment supports Kerberos authentication and
 - {+mdbagent+} uses Kerberos authentication.
@@ -64,15 +65,116 @@ Create Kerberos User Principal for the {+mdbagent+}
 Create a User and Assign Roles for the {+mdbagent+} UPN
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. tabs::
+Select your deployment type to view the appropriate steps.
 
-   .. tab:: Deployments Managed by Automation
-      :tabid: managed-kerberos
+.. composable-tutorial::
+   :options: kerberos-deployment, ldap-authorization
+   :defaults: managed, None
 
-      .. include:: /includes/note-manage-mdbagent-auth-with-automation-kerberos.rst
+   .. selected-content::
+      :selections: managed, None
 
-   .. tab:: Deployments Not Managed by Automation
-      :tabid: unmanaged-kerberos
+      When {+aagent+} is activated, |mms| manages {+mdbagent+}
+      authentication.
 
-      .. include:: /includes/fact-mdbagent-kerberos-principal-as-user.rst
+      To configure Kerberos for {+mdbagent+} authentication, see
+      :doc:`/tutorial/enable-kerberos-authentication-for-group`.
 
+   .. selected-content::
+      :selections: unmanaged, ldap
+
+      After creating the Kerberos |upn| for the {+mdbagent+}, create
+      a MongoDB user on your deployment that corresponds to the
+      {+mdbagent+}'s |upn| and grant it privileges.
+
+      Where you create the MongoDB user depends upon whether or not
+      you are using
+      :manual:`LDAP authorization </core/security-ldap-external>`.
+
+      .. include:: /includes/ldap-deprecated.rst
+
+      If you are using |ldap| authorization in your MongoDB
+      deployment, you must create an |ldap| user and |ldap| group for
+      the {+mdbagent+} on the |ldap| server. After creating the |ldap|
+      user and group, map the |ldap| group to a MongoDB role in your
+      deployment's ``admin`` database.
+
+      .. warning::
+
+         When using |ldap| Authorization, do not create *any* MongoDB
+         users in the ``$external`` database. MongoDB 3.4 and later
+         does not start if a MongoDB user exists in the ``$external``
+         database and |ldap| authorization is enabled.
+
+      For the MongoDB user representing the {+mdbagent+}:
+
+      #. Create a new |ldap| user on your |ldap| server named with
+         the {+mdbagent+}'s |upn|.
+
+      #. Create an |ldap| group whose name matches the {+mdbagent+}'s
+         role.
+
+      #. Create the {+mdbagent+}'s role in your ``admin`` database
+         with the appropriate permissions.
+
+         .. note::
+
+            When {+aagent+} is activated, {+aagent+} automatically
+            creates a role for the {+mdbagent+} user for |ldap|
+            authentication.
+
+      #. Assign the |ldap| user to the |ldap| group.
+
+      .. seealso::
+
+         - To create an |ldap| user, see documentation for your
+           |ldap| implementation.
+         - To create an |ldap| group, see documentation for your
+           |ldap| implementation.
+         - To assign the appropriate roles for the {+mdbagent+}, see
+           :doc:`/reference/required-access-mongodb-agent`.
+         - To map an |ldap| group and MongoDB role, see the
+           :ref:`LDAP Roles section <security-ldap-external-roles>`
+           of the :manual:`LDAP authorization
+           </core/security-ldap-external>` page in the MongoDB
+           manual.
+         - To configure |ldap| authorization without |mms| automation,
+           see the :manual:`LDAP Authorization
+           </core/security-ldap-external>` page in the MongoDB manual.
+
+   .. selected-content::
+      :selections: unmanaged, no-ldap
+
+      After creating the Kerberos |upn| for the {+mdbagent+}, create
+      a MongoDB user on your deployment that corresponds to the
+      {+mdbagent+}'s |upn| and grant it privileges.
+
+      If you are not using |ldap| authorization, you must add the
+      {+mdbagent+}'s |upn| as a user in the ``$external`` database in
+      your MongoDB deployment. Without |ldap| authorization, MongoDB
+      uses the ``$external`` database to authenticate a user against
+      Kerberos.
+
+      .. note::
+
+         To discover the appropriate roles for the {+mdbagent+}, see
+         :doc:`/reference/required-access-mongodb-agent`.
+
+      From {+mongosh+}, issue the following commands to create the
+      MongoDB user:
+
+      .. code-block:: javascript
+
+         db.getSiblingDB("$external").createUser(
+           {
+             user : "<Kerberos Principal>",
+             roles : [
+               { role : "clusterAdmin", db : "admin" },
+               { role : "readWriteAnyDatabase", db : "admin" },
+               { role : "userAdminAnyDatabase", db : "admin" },
+               { role : "dbAdminAnyDatabase", db : "admin" },
+               { role : "backup", db : "admin" },
+               { role : "restore", db : "admin" }
+             ]
+           }
+         )

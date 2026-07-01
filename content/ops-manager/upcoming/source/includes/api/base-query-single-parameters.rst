@@ -12,14 +12,14 @@
    * - pretty
      - boolean
      - Optional
-     - Flag indicating whether the response body should be in a
+     - Flag indicating whether the response body is in a
        :wikipedia:`prettyprint <Prettyprint?oldid=791126873>` format.
      - ``false``
 
    * - envelope
      - boolean
      - Optional
-     - Flag that indicates whether or not to wrap the response in an
+     - Flag that indicates whether to wrap the response in an
        envelope.
 
        Some |api| clients cannot access the |http| response headers or
@@ -29,17 +29,7 @@
        For endpoints that return one result, the response body
        includes:
 
-       .. list-table::
-          :widths: 30 70
-          :header-rows: 1
-          :stub-columns: 1
-
-          * - Name
-            - Description
-
-          * - ``status``
-            - |http| response code
-          * - ``content``
-            - Expected response body
+       - ``status``: |http| response code
+       - ``content``: Expected response body
 
      - ``false``
