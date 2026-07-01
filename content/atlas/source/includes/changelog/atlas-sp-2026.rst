@@ -1,3 +1,12 @@
+.. _atlas-sp-20260630:
+
+30 June 2026 Release
+---------------------
+
+- Adds general availability support for writing to {+iceberg+}
+  tables using the ``$iceberg`` aggregation stage. To learn more,
+  see :ref:`$iceberg <atlas-sp-agg-iceberg>`.
+
 .. _atlas-sp-20260611:
 
 11 June 2026 Release
