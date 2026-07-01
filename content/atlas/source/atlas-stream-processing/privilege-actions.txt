@@ -1,0 +1,215 @@
+.. _atlas-sp-privilege-actions:
+
+========================================
+Stream Processing Privilege Actions
+========================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: atlas stream processing, privilege actions, custom roles,
+      database users, security
+   :description: Learn about the privilege actions available for Atlas Stream Processing, which you can assign to database users and custom roles to control access to stream processors.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Privilege actions define the operations a database user or
+:ref:`custom role <mongodb-roles>` can perform on stream processors
+within a {+spw+}. Assign only the privilege actions a user needs to
+that user or to a custom role.
+
+All privilege actions apply to the {+spw+} as a whole. You cannot scope
+them to individual named processors within a {+spw+}. All actions are
+valid on {+atlas-sp+} instances only.
+
+A user with the :atlasrole:`atlasAdmin` or
+:atlasrole:`readWriteAnyDatabase` role can perform all stream
+processing actions. A user with the :atlasrole:`readAnyDatabase`
+role can perform the read-only subset. For details,
+see :ref:`atlas-sp-built-in-roles-summary`.
+
+If a user lacks the required privilege for an action, the command
+returns ``MongoServerError[Unauthorized]: not authorized: missing
+privilege for action <privilege-action> on resource <resource>``.
+
+To create a custom role with specific {+atlas-sp+} privilege actions,
+see :ref:`add-mongodb-roles`.
+
+.. _atlas-sp-built-in-roles-summary:
+
+Built-in Role Summary
+---------------------
+
+The following table shows built-in roles that include {+atlas-sp+}
+privilege actions.
+
+.. list-table::
+   :widths: 40 60
+   :header-rows: 1
+
+   * - Built-in Role
+     - Included Privilege Actions
+
+   * - :atlasrole:`atlasAdmin`
+     - All {+atlas-sp+} privilege actions
+
+   * - :atlasrole:`readAnyDatabase`
+     - ``getStreamProcessor``, ``listStreamProcessors``,
+       ``streamProcessorStats``, ``listStreamConnections``
+
+   * - :atlasrole:`readWriteAnyDatabase`
+     - All {+atlas-sp+} privilege actions
+
+.. _atlas-sp-actions:
+
+Atlas Stream Processing Actions
+-------------------------------
+
+.. _atlas-sp-action-createStreamProcessor:
+
+.. authaction:: createStreamProcessor
+
+   Authorizes the :method:`sp.createStreamProcessor()` method, which
+   defines a new named stream processor with its pipeline and options.
+
+   Assign this action to allow users to create named stream processors
+   before starting them.
+
+   .. note::
+
+      {+atlas-sp+} validates the tier format at create time.
+      {+atlas-sp+} enforces the maximum tier size when you start the
+      processor, not when you create it.
+
+.. _atlas-sp-action-dropStreamProcessor:
+
+.. authaction:: dropStreamProcessor
+
+   Authorizes the :method:`sp.processor.drop()` method, which
+   permanently deletes a named stream processor.
+
+   Assign this action to allow users to delete stream processors. A
+   user with this action can delete any processor in the {+spw+}. No
+   mechanism restricts this action to specific named processors.
+
+.. _atlas-sp-action-getStreamProcessor:
+
+.. authaction:: getStreamProcessor
+
+   Authorizes the ``getStreamProcessor`` command, which retrieves the
+   state and configuration of a named stream processor. Results include
+   name, state, pipeline, error message, and last state change time.
+
+   Assign this action to allow users to inspect a specific stream
+   processor's state.
+
+.. _atlas-sp-action-listStreamConnections:
+
+.. authaction:: listStreamConnections
+
+   Authorizes the :method:`sp.listConnections()` method, which lists
+   all connections in the {+spw+} connection registry. Depending on
+   connection type, results can include connection name, type,
+   cluster name, project ID, region, bootstrap servers, and storage
+   account fields.
+
+   Assign this action to allow users to view the data sources and
+   sinks available to stream processors in the {+spw+}.
+
+.. _atlas-sp-action-listStreamProcessors:
+
+.. authaction:: listStreamProcessors
+
+   Authorizes the :method:`sp.listStreamProcessors()` method, which
+   lists all stream processors in a {+spw+}. Results can include name,
+   ID, last modified time, state, tier, error message, worker count,
+   pipeline, dead letter queue, and last state change time. You can
+   pass a filter to narrow results.
+
+   Assign this action to allow users to discover all stream processors
+   in a {+spw+}. Drivers and tools also require this action to
+   populate processor lists. The command returns all processors in the
+   {+spw+}. No mechanism restricts visibility to specific named
+   processors.
+
+.. _atlas-sp-action-modifyStreamProcessor:
+
+.. authaction:: modifyStreamProcessor
+
+   Authorizes the :method:`sp.processor.modify()` method, which
+   modifies an existing stream processor.
+
+   Assign this action to allow users to update a stream processor's
+   configuration without deleting and recreating it.
+
+.. _atlas-sp-action-processStreamProcessor:
+
+.. authaction:: processStreamProcessor
+
+   Authorizes the ``processStreamProcessor`` command, which runs a
+   stream-processing pipeline in one-shot mode without creating a named
+   processor.
+
+   Assign this action to allow users to run a pipeline in one-shot
+   mode.
+
+   .. note::
+
+      To run the :method:`sp.process()` mongosh method, also assign the
+      ``sampleStreamProcessor`` privilege action. ``sp.process()`` uses
+      the sample mechanism internally and requires both privileges.
+
+.. _atlas-sp-action-sampleStreamProcessor:
+
+.. authaction:: sampleStreamProcessor
+
+   Authorizes the :method:`sp.processor.sample()` method and the
+   underlying ``startSampleStreamProcessor`` and
+   ``getMoreSampleStreamProcessor`` commands. Use
+   ``startSampleStreamProcessor`` to start a sampling session on a
+   named, running stream processor. Use
+   ``getMoreSampleStreamProcessor`` to retrieve the next batch of
+   results. The default batch size is 5 when ``batchSize`` is 0 or
+   omitted.
+
+   Assign this action to allow users to preview live output from a
+   running stream processor or paginate through sampled results. The
+   sampling session attaches to the processor's live output. The
+   processor produces results only while running.
+
+.. _atlas-sp-action-startStreamProcessor:
+
+.. authaction:: startStreamProcessor
+
+   Authorizes the :method:`sp.processor.start()` method, which starts
+   or resumes a named stream processor.
+
+   Assign this action to allow users to start or resume a named stream
+   processor.
+
+.. _atlas-sp-action-stopStreamProcessor:
+
+.. authaction:: stopStreamProcessor
+
+   Authorizes the :method:`sp.processor.stop()` method, which stops a
+   running named stream processor.
+
+   Assign this action to allow users to pause or halt a running stream
+   processor.
+
+.. _atlas-sp-action-streamProcessorStats:
+
+.. authaction:: streamProcessorStats
+
+   Authorizes the :method:`sp.processor.stats()` method, which uses the
+   ``getStreamProcessorStats`` command to retrieve operational metrics
+   for a stream processor. {+atlas-sp+} omits the stats document when
+   no metrics are available. Pass ``verbose: true`` for more detail.
+   Verbose mode requires no separate privilege.
+
+   Assign this action to allow users to monitor throughput, error
+   rates, or operational metrics for a stream processor.
