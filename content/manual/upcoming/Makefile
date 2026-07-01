@@ -176,6 +176,7 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/examples/mongocxx/with_transaction.cpp -o ${DRIVERS_PATH}/cpp-with-transaction.cpp
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/examples/mongocxx/mongodb.com/versioned_api_examples.cpp -o ${DRIVERS_PATH}/cpp-versioned_api.cpp
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/examples/mongocxx/mongodb.com/documentation_examples.cpp -o ${DRIVERS_PATH}/cpp-documentation-examples.cpp
+	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-cxx-driver/master/examples/mongocxx/mongodb.com/change_streams_examples.cpp -o ${DRIVERS_PATH}/cpp-change-streams.cpp
 
 # go
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-go-driver/master/internal/docexamples/examples.go -o ${DRIVERS_PATH}/go_examples.go
