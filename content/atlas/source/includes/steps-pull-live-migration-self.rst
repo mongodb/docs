@@ -162,6 +162,8 @@
       and indicates that your source and destination {+clusters+} are in sync.
       Proceed to the next step.
 
+   .. _lm-pull-cutover-self:
+
    .. step::  Perform the cutover.
 
       Cutover is a three-step process of directing your application's reads and writes

@@ -8,7 +8,8 @@ of your data in transit to |service|:
 - MongoDB encrypts data in transit between the |service|-managed live migration
   server and the destination cluster. If you require encryption for data
   in transit between the source cluster and the |service|-managed migration
-  server, configure |tls| on your source cluster.
+  server, configure |tls| on your source cluster. To learn more,
+  see :ref:`Configure TLS/SSL </tutorial/upgrade-cluster-to-ssl/>`.
 
 - MongoDB protects access to the |service|-managed migration server instances
   as it protects access to any other parts of |service|.

@@ -20,8 +20,8 @@
       a. Connect to your source {+cluster+}.
 
          i. Select the source :guilabel:`Organization` from the drop-down menu.
-         #. After that, select the source :guilabel:`Project` from the drop-down menu.
-         #. Finally, select the source :guilabel:`Cluster` from the drop-down menu.
+         #. Select the source :guilabel:`Project` from the drop-down menu.
+         #. Select the source :guilabel:`Cluster` from the drop-down menu.
 
       #. Connect your destination {+cluster+}.
 
@@ -109,6 +109,8 @@
       |service| activates the :guilabel:`Cutover to your destination cluster` button
       and indicates that your source and destination {+clusters+} are in sync.
       Proceed to the next step.
+
+   .. _lm-pull-cutover-atlas:
 
    .. step::  Perform the cutover.
 
