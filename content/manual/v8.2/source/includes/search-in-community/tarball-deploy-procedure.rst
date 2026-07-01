@@ -80,7 +80,7 @@
 
       **If you want to deploy a new replica set with keyfile
       authentication**, follow the steps in
-      :ref:`<deploy-rs-for-mongot>`. 
+      :ref:`<deploy-repl-set-with-keyfile>`. 
 
    .. step:: Create your password file.
 
