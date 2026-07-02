@@ -3,11 +3,11 @@
 .. _k8s-use-fts-vs:
 
 =====================================
-Use |text-search| and |vector-search| 
+Use |text-search| and |vector-search|
 =====================================
 
 .. meta::
-   :description: Load data, create MongoDB Search and Vector Search indexes, and run queries using the indexes.
+   :description: Load sample data, create MongoDB Search and Vector Search indexes, run queries against the indexes, and troubleshoot common issues when using search on Kubernetes.
 
 .. default-domain:: mongodb
 
@@ -17,40 +17,38 @@ Use |text-search| and |vector-search|
    :depth: 1
    :class: singlecol
 
-If you installed MongoDBSearch resource successfully, you can create
+After you install the MongoDBSearch custom resource, you can create
 |text-search| and |vector-search| indexes as the ``mdb-user`` and run
 |text-search| and |vector-search| queries using the indexes. This page
 describes how to load sample data, create |text-search| and
-|vector-search| indexes for the data, and run |text-search| and
-|vector-search| queries against the data. 
+|vector-search| indexes for the sample data, and run |text-search| and
+|vector-search| queries against the sample data.
 
 .. composable-tutorial::
    :options: mdb-edition, cluster-topology
    :defaults: community, repl
 
-   Prerequisites 
+   Prerequisites
    -------------
 
    To use |text-search| and |vector-search|, you must have the following:
 
    - Successful deployment of ``MongoDB`` and MongoDBSearch.
 
-     To learn more, see: 
+     To learn more, see:
 
-     - :ref:`k8s-fts-vs-install-enterprise`
-     - :ref:`k8s-fts-vs-install-external-enterprise`
+     - :ref:`k8s-deploy-search-resources`
 
-   - User with permissions to create |text-search| and |vector-search| and
-     run |text-search| and |vector-search| queries.
+   - User with permissions to create |text-search| and |vector-search| 
+     indexes and run |text-search| and |vector-search| queries.
 
      To learn more, see :ref:`k8s-search-create-role-user`.
 
-   - |k8s| command-line tool, ``kubectl``, configured to communicate 
-     with your cluster.
-   
-   - Bash v5.1 or later for running the commands in this tutorial. 
+   - ``kubectl``, configured to communicate with your cluster.
 
-   Procedure 
+   - Bash v5.1 or later to run the commands in this tutorial.
+
+   Procedure
    ---------
 
    .. selected-content::
@@ -88,7 +86,7 @@ describes how to load sample data, create |text-search| and
          kubectl get pods -n ${MDB_NS} --context ${K8S_CTX} | grep search
 
          # Check mongot logs for connection or sync errors
-         kubectl logs ${MDB_RESOURCE_NAME}-search-0 \
+         kubectl logs ${MDB_RESOURCE_NAME}-search-0-0 \
            -n ${MDB_NS} --context ${K8S_CTX} --tail=50
 
          # Verify index status from the replica set
@@ -113,7 +111,7 @@ describes how to load sample data, create |text-search| and
 
         The ``MongoDBSearch`` TLS certificate referenced by
         ``spec.security.tls.certificateKeySecretRef`` must be trusted
-        by the ``MongoDBCommunity`` replica set members. 
+        by the ``MongoDBCommunity`` replica set members.
 
         .. deprecated:: 1.8.0
 
@@ -132,7 +130,7 @@ describes how to load sample data, create |text-search| and
          kubectl get pods -n ${MDB_NS} --context ${K8S_CTX} | grep search
 
          # Check mongot logs for connection or sync errors
-         kubectl logs ${MDB_RESOURCE_NAME}-search-0 \
+         kubectl logs ${MDB_RESOURCE_NAME}-search-0-0 \
            -n ${MDB_NS} --context ${K8S_CTX} --tail=50
 
          # Verify index status from the replica set
@@ -187,32 +185,32 @@ describes how to load sample data, create |text-search| and
 
       **Common Causes:**
 
-      - ``mongot`` pods are not ready on one or more shards. 
-      
+      - ``mongot`` pods are not ready on one or more shards.
+
         All per-shard ``mongot`` instances must be running before index
         creation succeeds.
-      
+
       - The ``search-sync-source`` user credentials are incorrect or
-        the password Secret was not created. 
-        
+        the password Secret was not created.
+
         Verify by running the following command:
 
         .. code-block:: shell
-        
+
            kubectl get secret ${MDB_SEARCH_RESOURCE_NAME}-search-sync-source-password -n ${MDB_NS}
-      
-      - TLS CA mismatch between ``mongod`` and ``mongot``. 
-      
+
+      - TLS CA mismatch between ``mongod`` and ``mongot``.
+
         The CA certificate in ``MDB_TLS_CA_CONFIGMAP`` must be the same CA
         that signed the external ``mongod`` server certificates.
-      
-      - The Envoy proxy is not routing traffic correctly. 
-      
+
+      - The Envoy proxy is not routing traffic correctly.
+
         Verify that per-shard proxy Services exist:
-        
+
         .. code-block:: shell
-        
-           kubectl get svc -n ${MDB_NS} | grep proxy-svc 
+
+           kubectl get svc -n ${MDB_NS} | grep proxy-svc
 
       - The ``mongotHost`` parameter on the external ``mongod``
         instances does not match the Envoy proxy Service endpoint
@@ -318,13 +316,103 @@ describes how to load sample data, create |text-search| and
         ``kubectl get secrets -n ${MDB_NS} | grep tls``.
       - The external sharded cluster hostnames in
         ``spec.source.external.shardedCluster.router.hosts`` and
-        ``spec.source.external.shardedCluster.shards[].hosts`` are 
+        ``spec.source.external.shardedCluster.shards[].hosts`` are
         incorrect or unreachable from the |k8s| cluster.
       - The ``mongot`` container image cannot be pulled. Check for
         image pull errors with
         ``kubectl get events -n ${MDB_NS} | grep pull``.
 
-Resources 
+   Search Index Management Service Connection Error
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   This issue applies to deployments that use a managed Envoy load
+   balancer (``spec.loadBalancer.managed``).
+
+   .. selected-content::
+      :selections: enterprise, repl
+
+      **Symptoms:** When you create a |text-search| or
+      |vector-search| index, the command fails with the following
+      error:
+
+      .. code-block:: text
+
+         MongoServerError[CommandFailed]: Error connecting to Search Index Management service.
+
+      **Check:**
+
+      .. code-block:: shell
+
+         # Inspect the DNS names in the load balancer server certificate
+         kubectl get secret \
+           ${MDB_TLS_CERT_SECRET_PREFIX}-${MDB_RESOURCE_NAME}-search-lb-0-cert \
+           -n ${MDB_NS} --context ${K8S_CTX} \
+           -o "jsonpath={.data['tls\.crt']}" | base64 -d | \
+           openssl x509 -noout -text | grep -A1 "Subject Alternative Name"
+
+         # Inspect the DNS names in the load balancer client certificate
+         kubectl get secret \
+           ${MDB_TLS_CERT_SECRET_PREFIX}-${MDB_RESOURCE_NAME}-search-lb-0-client-cert \
+           -n ${MDB_NS} --context ${K8S_CTX} \
+           -o "jsonpath={.data['tls\.crt']}" | base64 -d | \
+           openssl x509 -noout -text | grep -A1 "Subject Alternative Name"
+
+      **Common Causes:**
+
+      - The DNS names in the load balancer client or server
+        certificates don't include the load balancer hostname
+        that ``mongod`` uses to connect to ``mongot``.
+
+        Review the DNS names in the certificates. If they aren't
+        correct, update the certificates and re-create the
+        certificate Secrets. For the load balancer certificate
+        naming conventions, see :ref:`k8s-deploy-search-resources`.
+
+   .. selected-content::
+      :selections: enterprise, shard
+
+      **Symptoms:** When you create a |text-search| or
+      |vector-search| index through ``mongos``, the command fails
+      with the following error:
+
+      .. code-block:: text
+
+         MongoServerError[CommandFailed]: Error connecting to Search Index Management service.
+
+      **Check:**
+
+      .. code-block:: shell
+
+         # Inspect the DNS names in the load balancer server certificate
+         kubectl get secret \
+           ${MDB_TLS_CERT_SECRET_PREFIX}-${MDB_SEARCH_RESOURCE_NAME}-search-lb-0-cert \
+           -n ${MDB_NS} --context ${K8S_CTX} \
+           -o "jsonpath={.data['tls\.crt']}" | base64 -d | \
+           openssl x509 -noout -text | grep -A1 "Subject Alternative Name"
+
+         # Inspect the DNS names in the load balancer client certificate
+         kubectl get secret \
+           ${MDB_TLS_CERT_SECRET_PREFIX}-${MDB_SEARCH_RESOURCE_NAME}-search-lb-0-client-cert \
+           -n ${MDB_NS} --context ${K8S_CTX} \
+           -o "jsonpath={.data['tls\.crt']}" | base64 -d | \
+           openssl x509 -noout -text | grep -A1 "Subject Alternative Name"
+
+      **Common Causes:**
+
+      - The wildcard SAN in the load balancer server certificate
+        doesn't cover all per-shard proxy Service host names that
+        ``mongod`` uses to connect to ``mongot`` through SNI 
+        routing.
+      - The load balancer client certificate is not signed by
+        the CA that ``mongot`` trusts.
+
+        Review the SANs in the server certificate and verify that
+        the client certificate is signed by the correct CA. If
+        they aren't correct, update the certificates and re-create
+        the certificate Secrets. For the load balancer certificate
+        naming conventions, see :ref:`k8s-deploy-search-resources`.
+
+Resources
 ---------
 
 To learn more about creating indexes and running search queries, see:

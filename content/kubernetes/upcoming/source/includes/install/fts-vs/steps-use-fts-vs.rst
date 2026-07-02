@@ -14,8 +14,8 @@
 
       #. To connect using the TLS-enabled connection string, as shown
          (on line 27) in the ``env_variables.sh`` file, download the
-         public CA certificate for the MongoDBSearch service so that the 
-         ``mongosh`` client can reference it.   
+         CA certificate for the MongoDBSearch service so that the
+         ``mongosh`` client can reference it.
 
    .. step:: Deploy a pod for MongoDB client tools.
 
@@ -116,9 +116,9 @@
          database and uses the ``db.<collection>.createSearchIndex()`` 
          method to create an index. 
     
-         .. collapsible:: 
-            :heading: Search Index 
-            :expanded: false 
+         .. collapsible::
+            :heading: Create Search Index
+            :expanded: false
 
             The following command creates a |text-search| index named
             ``default`` with dynamic mappings on the ``movies``

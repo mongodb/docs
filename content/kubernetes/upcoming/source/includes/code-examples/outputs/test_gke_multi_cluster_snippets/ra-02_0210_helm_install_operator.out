@@ -1,6 +1,6 @@
 Release "mongodb-kubernetes-operator-multi-cluster" does not exist. Installing it now.
 NAME: mongodb-kubernetes-operator-multi-cluster
-LAST DEPLOYED: Wed Apr  1 20:13:14 2026
+LAST DEPLOYED: Wed Jul  1 06:40:01 2026
 NAMESPACE: mongodb-operator
 STATUS: deployed
 REVISION: 1
@@ -9,9 +9,9 @@ USER-SUPPLIED VALUES:
 dummy: value
 multiCluster:
   clusters:
-  - gke_scratch-kubernetes-team_europe-central2-a_k8s-mdb-0-mongodb-kubxd456e3-11241
-  - gke_scratch-kubernetes-team_europe-central2-b_k8s-mdb-1-mongodb-kubxd456e3-11241
-  - gke_scratch-kubernetes-team_europe-central2-c_k8s-mdb-2-mongodb-kubxd456e3-11241
+  - gke_scratch-kubernetes-team_europe-central2-a_k8s-mdb-0-6a44b344349x7481ab2-7157
+  - gke_scratch-kubernetes-team_europe-central2-b_k8s-mdb-1-6a44b344349x7481ab2-7157
+  - gke_scratch-kubernetes-team_europe-central2-c_k8s-mdb-2-6a44b344349x7481ab2-7157
 namespace: mongodb-operator
 operator:
   createOperatorServiceAccount: false
@@ -51,14 +51,14 @@ community:
     version: 4.4.0
 database:
   name: mongodb-kubernetes-database
-  version: 1.8.0
+  version: 1.9.0
 dummy: value
 initDatabase:
   name: mongodb-kubernetes-init-database
-  version: 1.8.0
+  version: 1.9.0
 initOpsManager:
   name: mongodb-kubernetes-init-ops-manager
-  version: 1.8.0
+  version: 1.9.0
 managedSecurityContext: false
 mongodb:
   appdbAssumeOldFormat: false
@@ -67,15 +67,18 @@ mongodb:
 multiCluster:
   clusterClientTimeout: 10
   clusters:
-  - gke_scratch-kubernetes-team_europe-central2-a_k8s-mdb-0-mongodb-kubxd456e3-11241
-  - gke_scratch-kubernetes-team_europe-central2-b_k8s-mdb-1-mongodb-kubxd456e3-11241
-  - gke_scratch-kubernetes-team_europe-central2-c_k8s-mdb-2-mongodb-kubxd456e3-11241
+  - gke_scratch-kubernetes-team_europe-central2-a_k8s-mdb-0-6a44b344349x7481ab2-7157
+  - gke_scratch-kubernetes-team_europe-central2-b_k8s-mdb-1-6a44b344349x7481ab2-7157
+  - gke_scratch-kubernetes-team_europe-central2-c_k8s-mdb-2-6a44b344349x7481ab2-7157
   kubeConfigSecretName: mongodb-enterprise-operator-multi-cluster-kubeconfig
+  memberClusterRequiredHealthyStreak: 5
   performFailOver: true
 namespace: mongodb-operator
 operator:
   additionalArguments: []
   affinity: {}
+  clusterIdentity:
+    clusterName: ""
   createOperatorServiceAccount: false
   createResourcesServiceAccountsAndRoles: false
   enableClusterMongoDBRoles: true
@@ -90,6 +93,8 @@ operator:
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 2000
+    seccompProfile:
+      type: RuntimeDefault
   replicas: 1
   resources:
     limits:
@@ -98,7 +103,11 @@ operator:
     requests:
       cpu: 500m
       memory: 200Mi
-  securityContext: {}
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
   telemetry:
     collection:
       clusters: {}
@@ -111,7 +120,7 @@ operator:
   vaultSecretBackend:
     enabled: false
     tlsSecretRef: ""
-  version: 1.8.0
+  version: 1.9.0
   watchNamespace: mongodb-om,mongodb
   watchedResources:
   - mongodb
@@ -119,6 +128,7 @@ operator:
   - mongodbusers
   - mongodbcommunity
   - mongodbsearch
+  - voyageais
   webhook:
     installClusterRole: true
     name: ""
@@ -141,12 +151,15 @@ registry:
   versionUpgradeHook: quay.io/mongodb
 search:
   envoyImage: envoyproxy/envoy:v1.37-latest
+  metricsForwarderImage: otel/opentelemetry-collector-contrib:0.152.0
   name: mongodb-search
   repo: quay.io/mongodb
-  version: 0.64.0
+  version: 1.70.1
 versionUpgradeHook:
   name: mongodb-kubernetes-operator-version-upgrade-post-start-hook
   version: 1.0.10
+voyageai:
+  repo: quay.io/mongodb/voyageai
 
 HOOKS:
 MANIFEST:
@@ -254,14 +267,18 @@ spec:
         app.kubernetes.io/component: controller
         app.kubernetes.io/name: mongodb-kubernetes-operator-multi-cluster
         app.kubernetes.io/instance: mongodb-kubernetes-operator-multi-cluster
+      annotations:
+        mongodb.com/installation-method: "helm"
     spec:
       serviceAccountName: mongodb-kubernetes-operator-multi-cluster
       securityContext:
         runAsNonRoot: true
         runAsUser: 2000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: mongodb-kubernetes-operator-multi-cluster
-          image: "quay.io/mongodb/mongodb-kubernetes:1.8.0"
+          image: "quay.io/mongodb/mongodb-kubernetes:1.9.0"
           imagePullPolicy: Always
           args:
             - -watch-resource=mongodb
@@ -269,6 +286,7 @@ spec:
             - -watch-resource=mongodbusers
             - -watch-resource=mongodbcommunity
             - -watch-resource=mongodbsearch
+            - -watch-resource=voyageais
             - -watch-resource=mongodbmulticluster
             - -watch-resource=clustermongodbroles
           command:
@@ -285,6 +303,11 @@ spec:
             requests:
               cpu: 500m
               memory: 200Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
           env:
             - name: OPERATOR_ENV
               value: dev
@@ -302,6 +325,8 @@ spec:
               value: "168h"
             - name: CLUSTER_CLIENT_TIMEOUT
               value: "10"
+            - name: MDB_MEMBER_CLUSTER_REQUIRED_HEALTHY_STREAK
+              value: "5"
             - name: IMAGE_PULL_POLICY
               value: Always
             # Database
@@ -310,16 +335,16 @@ spec:
             - name: INIT_DATABASE_IMAGE_REPOSITORY
               value: quay.io/mongodb/mongodb-kubernetes-init-database
             - name: INIT_DATABASE_VERSION
-              value: "1.8.0"
+              value: "1.9.0"
             - name: DATABASE_VERSION
-              value: "1.8.0"
+              value: "1.9.0"
             # Ops Manager
             - name: OPS_MANAGER_IMAGE_REPOSITORY
               value: quay.io/mongodb/mongodb-enterprise-ops-manager-ubi
             - name: INIT_OPS_MANAGER_IMAGE_REPOSITORY
               value: quay.io/mongodb/mongodb-kubernetes-init-ops-manager
             - name: INIT_OPS_MANAGER_VERSION
-              value: "1.8.0"
+              value: "1.9.0"
             - name: OPS_MANAGER_IMAGE_PULL_POLICY
               value: Always
             - name: AGENT_IMAGE
@@ -338,6 +363,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: MCK_INSTALLER
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.annotations['mongodb.com/installation-method']
             - name: OPERATOR_NAME
               value: mongodb-kubernetes-operator-multi-cluster
             # Community Env Vars Start
@@ -359,9 +388,13 @@ spec:
             - name: MDB_SEARCH_NAME
               value: "mongodb-search"
             - name: MDB_SEARCH_VERSION
-              value: "0.64.0"
+              value: "1.70.1"
             - name: MDB_ENVOY_IMAGE
               value: "envoyproxy/envoy:v1.37-latest"
+            - name: MDB_SEARCH_METRICS_FORWARDER_IMAGE
+              value: "otel/opentelemetry-collector-contrib:0.152.0"
+            - name: MDB_VOYAGEAI_REPO_URL
+              value: "quay.io/mongodb/voyageai"
       volumes:
         - name: webhook-server-dir
           emptyDir: {}

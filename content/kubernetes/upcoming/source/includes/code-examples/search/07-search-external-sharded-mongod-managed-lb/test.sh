@@ -72,7 +72,7 @@ run 07_0316a_create_mongot_tls_certificates.sh
 # Create TLS certificates for managed load balancer (Envoy)
 run 07_0316b_create_lb_tls_certificates.sh
 
-# Create MongoDBSearch with loadBalancer.managed
+# Create MongoDBSearch with clusters[].loadBalancer.managed
 # NOTE: No Envoy deployment script - the operator handles this automatically!
 run 07_0320_create_mongodb_search_resource.sh
 run_for_output 07_0325_wait_for_search_resource.sh

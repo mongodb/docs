@@ -1272,35 +1272,128 @@ export const toc: L1TocItem[] = [
             },
             items: [
               {
-                label: 'Install and Use with MongoDB Community Edition',
+                label: 'Supported Topologies',
                 contentSite: 'mck',
-                url: '/docs/kubernetes/:version/tutorial/install-fts-vs-with-community',
+                url: '/docs/kubernetes/:version/fts-vs/deployment/supported-topologies',
                 versions: {
-                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5'],
+                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
                 },
               },
               {
-                label: 'Install and Use with MongoDB Enterprise Edition',
+                label: 'Compatibility and Requirements',
                 contentSite: 'mck',
-                url: '/docs/kubernetes/:version/tutorial/install-fts-vs-with-enterprise',
-              },
-              {
-                label: 'Install and Use with External MongoDB Enterprise Edition',
-                contentSite: 'mck',
-                url: '/docs/kubernetes/:version/tutorial/install-fts-vs-with-external-enterprise',
-              },
-              {
-                label: 'Migrate External MongoDB Enterprise to Use gRPC',
-                contentSite: 'mck',
-                url: '/docs/kubernetes/:version/tutorial/migrate-fts-vs-with-external-mongod-to-grpc',
+                url: 'https://www.mongodb.com/docs/search/self-managed/current/deployment/compatibility-requirements',
                 versions: {
-                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5'],
+                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
                 },
               },
               {
-                label: 'Use Search & Vector Search',
+                label: 'Resource Planning and Sizing',
                 contentSite: 'mck',
-                url: '/docs/kubernetes/:version/tutorial/fts-vs-quickstart',
+                url: '/docs/kubernetes/:version/fts-vs/deployment/resource-planning-sizing',
+                versions: {
+                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
+                },
+              },
+              {
+                label: 'Install with Community and Enterprise Edition',
+                contentSite: 'mck',
+                collapsible: true,
+                versions: {
+                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
+                },
+                items: [
+                  {
+                    label: 'Single-Cluster Installation',
+                    contentSite: 'mck',
+                    url: '/docs/kubernetes/:version/fts-vs/deployment/single-cluster-installation',
+                  },
+                  {
+                    label: 'Multi-Cluster Installation',
+                    contentSite: 'mck',
+                    url: '/docs/kubernetes/:version/fts-vs/deployment/multi-cluster-installation',
+                  },
+                  {
+                    label: 'Verify Package Integrity',
+                    contentSite: 'mck',
+                    url: '/docs/kubernetes/:version/fts-vs/deployment/verify-package-integrity',
+                  },
+                  {
+                    label: 'Connect and Verify',
+                    contentSite: 'mck',
+                    url: '/docs/kubernetes/:version/fts-vs/deployment/connect-verify',
+                  },
+                ],
+              },
+              {
+                label: 'Migrate from Public Preview to General Availability',
+                contentSite: 'mck',
+                url: '/docs/kubernetes/:version/tutorial/migrate-fts-vs-preview-to-ga',
+                versions: {
+                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
+                },
+              },
+              {
+                label: 'Configuration and Maintenance',
+                contentSite: 'mck',
+                collapsible: true,
+                versions: {
+                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5'],
+                },
+                items: [
+                  {
+                    label: 'Configure mongot',
+                    contentSite: 'mck',
+                    url: '/docs/kubernetes/:version/reference/fts-vs-settings',
+                  },
+                  {
+                    label: 'Configure Automated Embedding',
+                    contentSite: 'mck',
+                    url: '/docs/kubernetes/:version/fts-vs/configuration/automated-embedding',
+                  },
+                  {
+                    label: 'Configure Authentication and Authorization',
+                    contentSite: 'mck',
+                    url: '/docs/kubernetes/:version/fts-vs/configuration/authentication-authorization',
+                  },
+                  {
+                    label: 'Configure Security: TLS and Encryption',
+                    contentSite: 'mck',
+                    url: '/docs/kubernetes/:version/fts-vs/configuration/tls-encryption',
+                  },
+                ],
+              },
+              {
+                label: 'Monitor Deployment',
+                contentSite: 'mck',
+                url: '/docs/kubernetes/:version/fts-vs/deployment/monitor',
+                versions: {
+                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
+                },
+              },
+              {
+                label: 'Known Limitations',
+                contentSite: 'mck',
+                url: '/docs/kubernetes/:version/fts-vs/limitations',
+                versions: {
+                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
+                },
+              },
+              {
+                label: 'Troubleshooting',
+                contentSite: 'mck',
+                url: '/docs/kubernetes/:version/fts-vs/troubleshoot',
+                versions: {
+                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
+                },
+              },
+              {
+                label: 'FAQs',
+                contentSite: 'mck',
+                url: '/docs/kubernetes/:version/fts-vs/faq',
+                versions: {
+                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
+                },
               },
             ],
           },
@@ -1667,7 +1760,7 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Search & Vector Search Settings',
                 contentSite: 'mck',
-                url: '/docs/kubernetes/:version/reference/fts-vs-settings',
+                url: 'https://www.mongodb.com/docs/kubernetes/current/reference/fts-vs-settings/',
               },
               {
                 label: 'Third-Party Integrations',

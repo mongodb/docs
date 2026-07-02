@@ -44,7 +44,7 @@ export OPS_MANAGER_ORG_ID="<SET ORG ID>"
 # ============================================================================
 
 # Minimum required MongoDB version for Search is 8.2
-export MDB_VERSION="8.2.6-ent"
+export MDB_VERSION="8.3.4-ent"
 
 # ============================================================================
 # USER CREDENTIALS (change these in production!)

@@ -8,11 +8,12 @@ spec:
     tls:
       certificateKeySecretRef:
         name: ${MDB_SEARCH_TLS_SECRET_NAME}
-  resourceRequirements:
-    limits:
-      cpu: "3"
-      memory: 5Gi
-    requests:
-      cpu: "2"
-      memory: 3Gi
+  clusters:
+    - resourceRequirements:
+        limits:
+          cpu: "3"
+          memory: 5Gi
+        requests:
+          cpu: "2"
+          memory: 3Gi
 EOF
