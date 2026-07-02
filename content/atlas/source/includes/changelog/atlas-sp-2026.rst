@@ -7,6 +7,19 @@
   tables using the ``$iceberg`` aggregation stage. To learn more,
   see :ref:`$iceberg <atlas-sp-agg-iceberg>`.
 
+.. _atlas-sp-20260615:
+
+15 June 2026 Release
+---------------------
+
+- Adds support for multi-collection ``initialSync``. To learn more,
+  see :ref:`atlas-sp-agg-source-syntax-coll`.
+- Adds an ``addedParallelism`` field to
+  :method:`sp.processor.stats()` that reports the additional
+  parallelism the stream processor has configured, equal to the
+  :ref:`Max Parallelism <stream-processing-costs>` defined by its
+  stream processor tier.
+
 .. _atlas-sp-20260611:
 
 11 June 2026 Release
