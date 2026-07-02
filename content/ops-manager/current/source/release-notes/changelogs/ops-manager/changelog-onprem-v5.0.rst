@@ -9,7 +9,7 @@
 - Updates the {+mdbagent+} to :ref:`11.0.27.7162
   <mongodb-11.0.27.7162>`.
 - Includes :dbtools:`MongoDB Database Tools 100.7.1
-  </release-notes/database-tools-changelog/#100.7.1-changelog>`.
+  </release-notes/dbtools-100.7.1-changelog/>`.
 - Fixes CVE-2023-4009: Privilege Escalation for :authrole:`Project Owner`
   and :authrole:`Project User Admin` roles in |onprem|.
 
@@ -32,7 +32,7 @@
   <mongodb-11.0.26.7158>`.
 - Includes BI Connector 2.14.6.
 - Includes :dbtools:`MongoDB Database Tools 100.7.0
-  </release-notes/database-tools-changelog/#100.7.0-changelog>`.
+  </release-notes/dbtools-100.7.0-changelog/>`.
 - Defaults the :guilabel:`Multiple Workers` option for a single file 
   during backup to :guilabel:`On`.
 - Snapshots now include a flag that indicates whether or not they are incremental.
@@ -72,7 +72,7 @@
 - Updates the {+mdbagent+} to :ref:`11.0.24.7131
   <mongodb-11.0.24.7131>`.
 - Compatible with :dbtools:`MongoDB Database Tools 100.6.1
-  </release-notes/database-tools-changelog/#100.6.1-changelog>`.
+  </release-notes/dbtools-100.6.1-changelog/>`.
 
 .. _opsmgr-server-5.0.18:
 
@@ -106,7 +106,7 @@
 - Updates ``commons-text`` to 1.10.0 to address 
   `CVE-2022-42889 <https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2022-42889>`__.
 - Compatible with :dbtools:`MongoDB Database Tools 100.6.0 
-  </release-notes/database-tools-changelog/#100.6.0-changelog>`.
+  </release-notes/dbtools-100.6.0-changelog/>`.
 - Uses amazon2 packages instead of RHEL7 packages on amazon2 hosts for
   :dl:`MongoDB Database Tools <database-tools>`. If you run |onprem| in the :doc:`local mode
   </tutorial/configure-local-mode>`, you can download

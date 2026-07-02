@@ -332,7 +332,7 @@ Improvements
   - Ubuntu 16.04
   - Ubuntu 18.04
 
-- Supports :dbtools:`MongoDB Database Tools 100.15.0 </release-notes/database-tools-changelog/#100.15.0-changelog>`.
+- Supports :dbtools:`MongoDB Database Tools 100.15.0 </release-notes/dbtools-100.15.0-changelog/>`.
 - Sets a Content-Security-Policy (CSP) header to strengthen
   protection against malicious browser-side code and unauthorized
   content attacks.
@@ -379,7 +379,7 @@ Improvements
 ~~~~~~~~~~~~
 
 - Updates the {+mdbagent+} to :ref:`108.0.20.8953-1 <mongodb-108.0.20.8953-1>`.
-- Supports :dbtools:`MongoDB Database Tools 100.14.1 </release-notes/database-tools-changelog/#100.14.1-changelog>`.
+- Supports :dbtools:`MongoDB Database Tools 100.14.1 </release-notes/dbtools-100.14.1-changelog/>`.
 - Releases MongoDB Shell `2.5.10 <https://github.com/mongodb-js/mongosh/releases/tag/v2.5.10>`__
   and `2.6.0 <https://github.com/mongodb-js/mongosh/releases/tag/v2.6.0>`__ to |cloud-short|.
 - Releases MongoDB Shell `2.6.0 <https://github.com/mongodb-js/mongosh/releases/tag/v2.6.0>`__ to |onprem|.
@@ -610,7 +610,7 @@ Improvements
 ~~~~~~~~~~~~
 
 - Updates the {+mdbagent+} to :ref:`108.0.15.8882-1 <mongodb-108.0.15.8882-1>`.
-- Supports :dbtools:`MongoDB Database Tools 100.13.0 </release-notes/database-tools-changelog/#100.13.0-changelog>`.
+- Supports :dbtools:`MongoDB Database Tools 100.13.0 </release-notes/dbtools-100.13.0-changelog/>`.
 
 - Makes the following improvements to the |onprem| UI:
 
