@@ -1,0 +1,370 @@
+.. _k8s-fts-vs-installation:
+
+=================================================
+Configure Automated Embedding for |vector-search|
+=================================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to configure Automated Embedding to automatically generate vector embeddings at index time and query time for Atlas Vector Search using Voyage AI models.
+   :keywords: vector search, mongot, automated embedding, voyage ai, autoEmbed, embeddings, code example
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. note::
+
+   Automated Embedding is in Preview for ``mongot`` in |k8s| cluster.
+   The feature and corresponding documentation might change at any
+   time during the Preview period. To learn more, see `Preview
+   Features <https://www.mongodb.com/docs/preview-features/>`__.
+
+This page describes how to configure Automated Embedding on
+your |k8s| deployment of |vector-search|. The Automated Embedding
+functionality in |vector-search| generates vector embeddings for
+your text data at index-time and for query text at query-time.
+Therefore, you don't have to maintain a separate embedding pipeline 
+in your application.
+
+This tutorial is for developers who are building semantic search
+or {+rag+} features and want ``mongot`` to manage embeddings.
+
+What Automated Embedding Does
+-----------------------------
+
+Without Automated Embedding, your application must:
+
+1. Generate an embedding for each document that you insert or
+   update.
+#. Store that embedding alongside the document in your collection.
+#. Generate an embedding for every query, using the same model, at
+   query-time.
+#. Submit the query embedding to ``$vectorSearch``.
+
+With Automated Embedding, the ``mongot`` process handles steps 1,
+2, and 3. Your application:
+
+1. Configures a |vector-search| index with the ``autoEmbed`` field type
+   for the text field.
+#. Inserts and updates documents normally. Then, ``mongot`` reads the 
+   text field, generates the embedding through the configured embedding 
+   model, and stores it.
+#. Issues ``$vectorSearch`` queries with the query text, not a
+   pre-computed embedding. Then, ``mongot`` generates the embedding for 
+   the query text.
+
+Supported Embedding Providers
+-----------------------------
+
+Self-managed ``mongot`` Automated Embedding integrates with
+|voyage| embedding models.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Model
+     - Description
+
+   * - ``voyage-4-lite``
+     - High-volume, cost-sensitive applications.
+
+   * - ``voyage-4``
+     - Recommended. Balanced performance for general text search.
+
+   * - ``voyage-4-large``
+     - Maximum accuracy for complex semantic relationships.
+
+   * - ``voyage-code-3``
+     - Specialized for code search and technical documentation.
+
+You incur costs for embedding generation. To learn more, see
+:ref:`auto-embed-billing`.
+
+Prerequisites
+-------------
+
+- ``mongot`` 1.70.1 or later in your |k8s| deployment.
+- MongoDB 8.2 or later.
+- Two |voyage| |api| keys.
+
+  Use two separate keys, one for index-time embedding generation
+  and one for query-time. Separate keys isolate query workload
+  from indexing workload and allow independent rate-limit
+  accounting. To learn more, see :ref:`auto-embed-rate-limits`.
+
+- Outbound network access from ``mongot`` to the embedding
+  endpoint.
+
+  The default endpoint is ``https://ai.mongodb.com/v1/embeddings``,
+  which proxies |voyage| with MongoDB-managed billing, for keys
+  generated using the {+atlas-ui+}. You can also use
+  ``https://api.voyageai.com/v1/embeddings`` for direct |voyage|
+  access if you generated the |api| key directly from |voyage|.
+
+Generate |voyage| |api| Keys
+----------------------------
+
+You can generate |voyage| |api| keys through either of the
+following paths:
+
+- (Recommended) Through your |service| account. |service|
+  provides |api| key management with built-in rate-limit
+  configuration. The keys are not tied to an |service| cluster.
+  To learn more, see :ref:`Manage API Keys <voyage-api-keys>`.
+
+- Through |voyage| directly at
+  `voyageai.com <https://www.voyageai.com/>`__.
+
+Generate two keys and name them clearly, for example,
+``mongot-prod-index`` and ``mongot-prod-query``. Store the keys
+in :ref:`secure secret storage <k8s-set-secret-storage-tool>`.
+
+Configure ``mongot`` for Automated Embedding
+--------------------------------------------
+
+Create a |k8s| Secret with both keys:
+
+.. code-block:: shell
+
+   kubectl create secret generic voyage-api-keys \
+     --from-literal=indexing-key=<your-index-key> \
+     --from-literal=query-key=<your-query-key> \
+     --namespace=<your-namespace>
+
+Reference it from the MongoDBSearch Custom Resource:
+
+.. code-block:: yaml
+   :emphasize-lines: 7-9
+
+   apiVersion: mongodb.com/v1
+   kind: MongoDBSearch
+   metadata:
+     name: mdbs
+   spec:
+     # ...
+     autoEmbedding:
+       embeddingModelAPIKeySecret:
+         name: voyage-api-keys
+
+Optionally, set ``spec.autoEmbedding.providerEndpoint`` to
+override the embedding endpoint that ``mongot`` uses. When you
+omit this field, ``mongot`` uses its built-in default endpoint, 
+``https://ai.mongodb.com/v1/embeddings``. To learn more, see 
+:ref:`k8s-search-specification`.
+
+Create an Automated Embedding Index
+-----------------------------------
+
+After you configure ``mongot`` with your |voyage| |api| keys,
+define a |vector-search| index that uses the ``autoEmbed`` field 
+type. The index definition specifies which text field ``mongot``
+embeds, which model it uses, the indexing method, quantization,
+and other parameters. To learn more about the ``autoEmbed``
+index definition, see :ref:`avs-types-vector-search-options`.
+
+.. code-block:: javascript
+   :copyable: true
+
+   kubectl exec --context "${K8S_CTX}" -n "${MDB_NS}" mongodb-tools-pod -- \
+   mongosh --quiet "${MDB_CONNECTION_STRING}" \
+      --eval "use sample_mflix" \
+      --eval 'db.movies.createSearchIndex("vector_auto_embed_index", "vectorSearch",
+         { "fields": [ {
+            "type": "autoEmbed",
+            "modality": "text",
+            "path": "plot",
+            "model": "'"${EMBEDDING_MODEL}"'",
+            "numDimensions": 1024,
+            "similarity": "cosine",
+            "quantization": "scalar",
+            "indexingMethod": "hnsw",
+            "hnswOptions": {
+               "maxEdges": 16,
+               "numEdgeCandidates": 200
+            }
+         } ] });'
+
+The following table describes the ``autoEmbed`` index definition
+fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Field
+     - Purpose
+
+   * - ``type: "autoEmbed"``
+     - Marks the field for automatic embedding.
+
+   * - ``modality: "text"``
+     - The data modality. ``text`` is the only supported
+       modality.
+
+   * - ``path``
+     - The field in your collection to embed.
+
+   * - ``model``
+     - The |voyage| model name. The model must be one that your
+       |api| key has access to.
+
+   * - ``numDimensions``
+     - The number of dimensions for the embedding vector. The
+       model determines the supported dimensions.
+
+   * - ``similarity``
+     - The similarity function to use for vector search. The
+       supported functions are ``cosine``, ``dotProduct``, and
+       ``euclidean``.
+
+   * - ``indexingMethod``
+     - The indexing method to use. The supported methods are
+       ``flat`` and ``hnsw``.
+
+   * - ``hnswOptions``
+     - (Optional) The HNSW index options. Required if
+       ``indexingMethod`` is ``hnsw``.
+
+   * - ``quantization``
+     - (Optional) The quantization type to use. The supported
+       types are ``float``, ``scalar``, ``binary``, and
+       ``binaryNoRescore``.
+
+You can mix ``autoEmbed`` fields with ``filter`` fields in the
+same index. You cannot mix ``autoEmbed`` with raw vector fields
+on the same path.
+
+Run an Automated Embedding Query
+--------------------------------
+
+Submit query text, not a pre-computed embedding. ``mongot``
+generates the query embedding for you.
+
+.. code-block:: javascript
+   :copyable: true
+
+   kubectl exec --context "${K8S_CTX}" -n "${MDB_NS}" mongodb-tools-pod -- \
+   mongosh --quiet "${MDB_CONNECTION_STRING}" \
+      --eval "use sample_mflix" \
+      --eval 'db.movies.aggregate([ {
+         $vectorSearch: {
+            index: "vector_auto_embed_index",
+            path: "plot",
+            query: "spy thriller",
+            numCandidates: 150,
+            limit: 10
+         }
+      }, {
+         $project: {
+            _id: 0,
+            plot: 1,
+            title: 1,
+            score: { $meta: "vectorSearchScore" }
+         }
+      }]);'
+
+To learn more, see :ref:`return-vector-search-results`.
+
+Embedding Storage
+-----------------
+
+``mongot`` persists embeddings in a dedicated internal database
+on the |k8s| cluster. ``mongot`` does not store embeddings in your
+source collection. ``mongot`` can regenerate embeddings from the
+source text, and you incur charges for embedding generation.
+
+Changes to the embedding model, output dimensions, or
+quantization trigger a full re-embedding of the affected
+index. You incur charges for the regeneration. To learn more, 
+see :ref:`mongot-auto-embed-regeneration`.
+
+To learn more, see :ref:`auto-embed-materialized-views`.
+
+.. _mongot-auto-embed-regeneration:
+
+When ``mongot`` Regenerates Embeddings
+--------------------------------------
+
+``mongot`` regenerates embeddings for an ``autoEmbed`` field
+when any of the following occur:
+
+- You insert a document.
+- You change the embedded field in a document. ``mongot`` detects
+  the change through change streams.
+- You change the embedding model in the index definition.
+- You change the embedding output dimension or data type.
+- You change the text field path.
+
+If you change any of the last three items, ``mongot`` rebuilds
+the entire index from scratch. The rebuild can be costly for
+large collections. Plan model changes deliberately.
+
+Cost and Rate Limiting
+----------------------
+
+MongoDB charges per million tokens at model-specific rates.
+Indexing cost is proportional to the total text volume of the
+indexed field across the collection. Query cost is proportional
+to the volume of query text.
+
+If you use the |voyage| |api| key that you created using your
+|service| account, you can view |api| key usage and rate limits
+in the {+atlas-ui+}. To learn more, see :ref:`voyage-billing`.
+If you use keys created directly from |voyage|, you must monitor
+your usage and rate limits in the |voyage| dashboard.
+
+|voyage|-side rate-limit errors appear in ``mongot`` logs and as
+failed-document indicators on the affected index. These errors
+do not disable the index, but they can delay indexing of new
+documents.
+
+Failure Modes
+-------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Symptom
+     - Likely Cause
+
+   * - The index stays in ``PENDING`` status past a few minutes.
+     - ``mongot`` cannot reach the embedding endpoint, or the
+       |api| key is invalid. Check ``mongot`` logs for HTTP
+       errors against the embedding endpoint.
+
+   * - Indexing delays appear intermittently.
+     - |voyage|-side rate limiting. Either increase your
+       rate limit or reduce indexing-time embedding load.
+
+   * - Queries against the index return an error that mentions
+       embeddings.
+     - The query |api| key is invalid or expired. Verify the
+       contents of ``queryKeyFile``.
+
+   * - All queries against the index return empty results.
+     - The index might have been rebuilt and is still
+       re-embedding the corpus. Check the index status with
+       ``db.collection.getSearchIndexes()``.
+
+Limitations
+-----------
+
+- **Preview status.** Configuration shape, supported models, and
+  default endpoints might change before Automated Embedding is
+  generally available.
+
+- **One embedding model per field.** Mixed-model indexes are not
+  supported.
+
+- **No embedding model failover.** If the |voyage| endpoint is
+  unreachable, indexing of new documents stalls.

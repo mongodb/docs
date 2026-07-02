@@ -1,0 +1,819 @@
+.. _plan-om-resource:
+
+=========================================
+Plan Your |onprem| Resource
+=========================================
+
+.. meta::
+   :description: Plan your Ops Manager resource deployment using Kubernetes Operator, including architecture, the MongoDBOpsManager CRD components, encryption, backup, and application database configurations.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+MongoDB |onprem-link| is an enterprise application that manages, backs
+up, and monitors MongoDB deployments. With |onprem|, you can scale and
+upgrade MongoDB, optimize queries, perform point-in-time restores, receive
+performance alerts, and monitor your deployments. To manage and maintain
+|onprem| and its underlying database, you can use the |k8s-op| to run
+|onprem| as a resource deployed in a container on |k8s|.
+
+You can deploy |onprem| resources in one of the following ways:
+
+- **Single Kubernetes cluster mode**. You can deploy a single |onprem|
+  instance to support your single |k8s| cluster deployment of MongoDB resources.
+
+- **Multiple Kubernetes cluster mode**. You can deploy multiple |onprem|
+  and {+appdb+} instances in multiple |k8s| clusters. In this
+  mode, the multi-cluster of |opsmanager-resources| supports
+  a deployment of the |application| and the {+appdb+} on
+  multiple |k8s| clusters.
+
+Before you deploy an |onprem| resource in either a single or multiple
+|k8s| clusters, review :ref:`meko-om-arch` and :ref:`considerations <om-rsrc-considerations>`,
+and complete the :ref:`prerequisites <om-rsrc-prereqs>`.
+
+Architecture
+------------
+
+For |onprem| resource architecture details, see:
+
+- Single |k8s| cluster deployments of |onprem| resources: :ref:`meko-om-arch`.
+- Multiple |k8s| cluster deployments of |onprem| resources: :ref:`om-multi-k8s`.
+
+.. _om-crd-overview:
+
+The ``MongoDBOpsManager`` Custom Resource Definition
+-----------------------------------------------------
+
+The |k8s-op-short| manages |onprem| deployments using the ``MongoDBOpsManager``
+|k8s-custom-resource| in each |k8s| cluster where you deploy the resource.
+The |k8s-op-short| watches the resource's specification for changes.
+When the specification changes, the |k8s-op-short| validates the changes
+and makes the appropriate updates to the resource in each of the |k8s|
+clusters where you deploy |onprem| components.
+
+``MongoDBOpsManager`` |k8s-custom-resource|\s specification defines the
+following |onprem| components:
+
+- The {+appdb+}
+- The |onprem| application
+- The Backup Daemon 
+
+The following diagram describes the related components for an |onprem|
+deployment:
+
+- In single-cluster deployments, you deploy these components in the same |k8s|
+  cluster where you install the |k8s-op-short|. This cluster is known
+  as the "operator cluster".
+- In multi-cluster deployments, you:
+  
+  - Deploy each component in different |k8s| clusters, known as "member clusters".
+    You can also deploy a simplified multi-cluster deployment with a single
+    member |k8s| cluster. To learn more, see :ref:`mode-multi-or-single`.
+  - Install the |k8s-op-short| in one |k8s| cluster, known as the "operator cluster"
+    from where the |k8s-op-short| manages all other member clusters. The
+    operator cluster can also be considered a member cluster as it too can
+    host the |onprem| components. See :ref:`Multi-Cluster Architecture Diagram <om-multi-k8s-diagram>`.
+
+.. figure:: /images/meko-arch.svg
+   :alt: Diagram showing the high-level architecture of the MongoDB
+         Enterprise Kubernetes Operator (single Kubernetes Cluster)
+   :figwidth: 600px
+
+
+{+appdb+} for the |onprem| Resource
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For the {+appdb+}, the |k8s-op-short| deploys a MongoDB replica set
+as a |k8s-statefulset|.
+
+Each Pod for the {+appdb+} has the following containers:
+
+- |mongod|.
+- {+mdbagent+}. To override the {+mdbagent+} version, use
+  the ``$AGENT_IMAGE`` environment variable or ``agent.version``
+  in the Helm chart that you use for installing the |k8s-op-short|.
+- {+monitoring-agent+}. You can't override the {+monitoring-agent+}\'s version.
+  The version that the |k8s-op-short| uses ensures backwards compatibility
+  with the |onprem| versions.
+
+  To view the {+monitoring-agent+}\'s version:
+
+  - Inspect ``/usr/local/om_version_mapping.json`` inside the Pod for
+    the |k8s-op-short| or the image for the |k8s-op-short|.
+  - Check the {+monitoring-agent+}\'s container image on the Pod where you deploy
+    the {+appdb+}.
+
+In multi-cluster deployments (when you set
+:opsmgrkube:`spec.applicationDatabase.topology` to ``MultiCluster``),
+the |k8s-op-short| creates the StatefulSet in each |k8s| cluster specified
+for the {+appdb+} in :opsmgrkube:`spec.applicationDatabase.clusterSpecList`.
+
+The following actions take place in each member |k8s| cluster hosting 
+MongoDB replica set nodes for the {+appdb+}:
+
+- |k8s| creates one Pod in the StatefulSet for each node that comprises
+  your {+appdb+} replica set. Each Pod in the StatefulSet runs
+  a ``mongod`` and the {+mdbagent+}.
+
+  To enable each {+mdbagent+} to start |mongod| on its Pod in the StatefulSet,
+  you must specify a specific MongoDB Server version for the {+appdb+}
+  using the :opsmgrkube:`spec.applicationDatabase.version` setting. The version
+  that you specify in this setting must correspond to the tag in the
+  :qr-mdb:`container registry </mongodb-enterprise-server?tab=tags>`.
+  
+- Each {+mdbagent+} starts |mongod|\s on its {+appdb+}
+  Pod. {+mdbagent+}\'s add |mongod| processes to the {+appdb+} replica set.
+
+  You configure the number of replicas and other configuration options
+  for the {+appdb+} replica set in the :opsmgrkube:`spec.applicationDatabase`
+  collection in the ``MongoDBOpsManager`` custom resource. The |k8s-op-short|
+  passes this configuration to the {+mdbagent+}\'s using a |k8s-secret| that the
+  |k8s-op-short| mounts to each Pod in the {+appdb+} StatefulSet.
+
+  In multi-cluster {+appdb+} deployments, (where :opsmgrkube:`spec.applicationDatabase.topology`
+  is set to ``MultiCluster``), you specify the number of nodes in each member
+  cluster separately for each member cluster in
+  :opsmgrkube:`spec.applicationDatabase.clusterSpecList`.
+  In multi-cluster deployments, the ``replicas`` setting in
+  :opsmgrkube:`spec.applicationDatabase` is ignored.
+
+- Each time that you update the :opsmgrkube:`spec.applicationDatabase` collection,
+  the |k8s-op-short| applies the changes to the {+mdbagent+} configuration and
+  the StatefulSet specification, if applicable. If the StatefulSet specification
+  changes, |k8s| upgrades the Pods in a rolling fashion and restarts each Pod.
+
+- To provide connectivity to each {+appdb+} Pod from within each
+  |k8s| cluster hosting the {+appdb+}, the |k8s-op-short| creates
+  a headless |k8s-service|.
+  In multi-cluster deployments of the {+appdb+}, the |k8s-op-short|
+  also creates one service per Pod named ``<om_resource_name>-db-N-svc`` (this corresponds
+  to :opsmgrkube:`metadata.name`),
+  and uses its |fqdn|, such as ``<om_resource_name>-db-0.<namespace>.svc.cluster.local``,
+  as a hostname for connecting to a particular |mongod|.
+
+- Depending on the |k8s-sc| or the environment to which you deploy the
+  |k8s-op-short|, |k8s| might create the |k8s-pvs| using
+  :k8sdocs:`dynamic volume provisioning </concepts/storage/dynamic-provisioning/>`.
+
+  You can customize the |k8s-pvcs| for the {+appdb+} Pods using
+  :opsmgrkube:`spec.applicationDatabase.podSpec.persistence.single <spec.applicationDatabase>`
+  or :opsmgrkube:`spec.applicationDatabase.podSpec.persistence.multiple <spec.applicationDatabase>`.
+
+{+appdb+} Topology
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To elect a primary, a majority of the {+appdb+} replica set's
+nodes must be available. If a majority of replica set's nodes fail,
+the replica set can't form a voting majority to elect a primary node.
+To learn more, see :ref:`Replica Set Deployment Architectures <replica-set-architecture>`.
+
+If possible, use an odd number of member |k8s| clusters and distribute your
+{+appdb+} nodes across data centers, zones, or |k8s| clusters.
+To learn more, see :ref:`Replica Sets Distributed Across Two or More Data Centers <replica-set-geographical-distribution>`.
+
+Consider the following examples of the {+appdb+}\'s topology:
+
+.. tabs::
+
+   .. tab:: Five-member {+appdb+}
+      :tabid: five-member
+
+      For a five-member {+appdb+}, some possible distributions of members include:
+
+      - Two clusters: three members to ``Cluster 1`` and two members to ``Cluster 2``.
+
+        - If ``Cluster 2`` fails, ``Cluster 1`` hosts a sufficient number of
+          {+appdb+}\'s replica set members to elect a primary node.
+        - If ``Cluster 1`` fails, ``Cluster 2`` doesn't have enough Application
+          Database's members to elect a primary node.
+
+      - Three clusters: two members to ``Cluster 1``, two members to ``Cluster 2``, and one member to ``Cluster 3``.
+
+        - If any single cluster fails, there are enough members on the remaining clusters to elect a primary node.
+        - If two clusters fail, there are not enough members on any remaining cluster to elect a primary node.
+
+   .. tab:: Seven-member {+appdb+}
+      :tabid: seven-member
+
+      For a seven-member {+appdb+}, consider the following distribution of members:
+
+      - Two clusters: four members to ``Cluster 1`` and three members to ``Cluster 2``.
+
+        - If ``Cluster 2`` fails, there are enough members on ``Cluster 1`` to elect a primary node.
+        - If ``Cluster 1`` fails, there are not enough members on ``Cluster 2`` to elect a primary node.
+        
+      Although ``Cluster 2`` meets the three member minimum for the {+appdb+},
+      a majority of the {+appdb+}\'s seven members must be available
+      to elect a primary node.
+
+To learn more, see :ref:`disaster-recovery-om-appdb`.
+
+.. _application-om-arch:
+
+|onprem| Application Servers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After the {+appdb+} reaches a **Running** state, the |k8s-op-short|
+starts deploying the |application|:
+
+- It configures a StatefulSet on each member |k8s| cluster.
+- For each |onprem| replica set that you want to deploy, |k8s| creates one Pod
+  in the StatefulSet.
+- Each Pod contains one |application| process.
+
+To make your single cluster |onprem| deployment resilient to single Pod
+failures, increase the number of replicas hosting the |application|,
+using :opsmgrkube:`spec.replicas`.
+
+To make your multi-cluster |onprem| deployment resilient to entire data
+center or zone failures, deploy the |application| in multiple |k8s| clusters
+by setting :opsmgrkube:`spec.topology` and :opsmgrkube:`spec.applicationDatabase.topology`
+to ``MultiCluster``. See also :ref:`disaster-recovery-om-appdb`.
+
+Backup Daemon for the |onprem| Resource
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If :opsmgrkube:`spec.backup.enabled` is **true**, then on each member
+|k8s| cluster, the |k8s-op-short| starts the Backup Daemon after
+the |application| reaches a **Running** stage. For the Backup Daemon,
+the |k8s-op-short| deploys a StatefulSet to each member |k8s| cluster.
+In each member cluster, |k8s| creates as many Backup Daemon Pods in the
+StatefulSet as specified in :opsmgrkube:`spec.backup.members`.
+In single cluster deployments, these actions take place on the operator
+cluster that you use for installing the |k8s-op-short| and deploying the
+|onprem| components.
+
+If you enable backup, configure the :term:`oplog store <Oplog Store Database>`,
+a :term:`blockstore <Backup Blockstore Database>`,
+or an |s3| :term:`snapshot store <S3 Snapshot Store>` at the global
+``spec.backup`` level, and not for each |k8s| member cluster.
+
+You can also :ref:`encrypt backup jobs <configure-kmip-backup-encryption>`,
+but :ref:`limitations <kmip-limitations>` apply to deployments where the
+same  |k8s-op-short| instance is not managing both the
+:ref:`MongoDBOpsManager <k8s-om-specification>` and :ref:`MongoDB <k8s-specification>`
+custom resources.
+
+If you enable backup, the |k8s-op-short| creates a |k8s-pvc| for the
+Backup Daemon's :term:`head database` on each member |k8s| cluster.
+You can configure the head database using the :opsmgrkube:`spec.backup.headDB`
+setting.
+
+The |k8s-op-short| invokes |onprem| APIs to ensure that the |application|\'s
+backup configuration matches the one that you define in the custom resource
+definitions for each member |k8s| cluster.
+
+.. _om-rsrc-considerations:
+
+Considerations
+--------------
+
+.. _om-rsrc-considerations-encrypt-key:
+
+Encryption Key
+~~~~~~~~~~~~~~
+
+The |k8s-op-short| generates an encryption key to protect sensitive
+information in the :ref:`mms-application-database`. The |k8s-op-short|
+saves this key in a |k8s-secret| in the same namespace as the |onprem|
+resource. The |k8s-op-short| names the secret
+``<om-resource-name>-gen-key``.
+
+.. include:: /includes/facts/fact-can-change-secret-storage-tool.rst
+
+If you remove the |onprem| resource, the key remains stored in the
+secret on the |k8s| cluster. If you stored the {+appdb+} in
+a |k8s-pv| and you create another |onprem| resource with the same name,
+the |k8s-op-short| reuses the secret. If you create an |onprem|
+resource with a different name, then |k8s-op-short| creates a new
+secret and {+appdb+}, and the old secret isn't reused.
+
+{+appdb+}
+~~~~~~~~~~~~~~~~~~~~
+
+.. _app-db-topology:
+
+Topology
+^^^^^^^^
+
+- When you create an instance of |onprem| through the |k8s-op-short| in
+  a single |k8s| cluster, the :ref:`mms-application-database`
+  is deployed as a :term:`replica set`. You can't configure the {+appdb+}
+  as a :term:`standalone` database or :term:`sharded cluster`. If you have
+  concerns about performance or size requirements for the {+appdb+},
+  contact |mdb-support|.
+
+- When you create an instance of |onprem| through
+  the |k8s-op-short| in a multi-cluster mode, the |k8s-op-short| can configure
+  the :ref:`mms-application-database` on multiple member clusters. To learn more,
+  see :ref:`om-multi-k8s`.
+
+Monitoring
+^^^^^^^^^^
+
+The |k8s-op-short| automatically configures |onprem| to monitor the
+{+appdb+} that backs the |application|. The |k8s-op-short|
+creates a project named ``<ops-manager-deployment-name>-db`` for you to
+monitor the {+appdb+} deployment.
+
+|onprem| monitors the {+appdb+} deployment, but |onprem| doesn't
+manage it. You can't change the {+appdb+}\'s configuration in
+the |application|.
+
+.. important::
+
+    The |onprem| UI might display warnings in the
+    ``<ops-manager-deployment-name>-db`` project stating that the
+    agents for the {+appdb+} are out of date. You can safely
+    ignore these warnings.
+
+.. _app-db-auth:
+
+Authentication
+^^^^^^^^^^^^^^
+
+The |k8s-op-short| enforces ``SCRAM-SHA-256``
+:ref:`authentication <scram-mechanisms>` on
+the {+appdb+}.
+
+The |k8s-op-short| creates the database user which |onprem| uses to
+connect to the {+appdb+}. This database user has the
+following attributes:
+
+.. list-table::
+   :widths: 30 70
+   :stub-columns: 1
+
+   * - Username
+     - ``mongodb-ops-manager``
+
+   * - Authentication Database
+     - ``admin``
+
+   * - Roles
+     -
+       - :authrole:`readWriteAnyDatabase`
+       - :authrole:`dbAdminAnyDatabase`
+       - :authrole:`clusterMonitor`
+
+You can't modify the |onprem| database user's name and roles. You
+:ref:`create a secret <om-db-user-secret>` to set the database user's
+password. You edit the secret to update the password. If you don't
+create a secret or delete an existing secret, the |k8s-op-short|
+generates a password and stores it.
+
+To learn about other options for secret
+storage, see :ref:`Configure Secret Storage <k8s-set-secret-storage-tool>`.
+Multi-cluster deployments don't support storing secrets in |hashicorp-vault|.
+
+.. _app-db-offline:
+
+Offline Deployments
+^^^^^^^^^^^^^^^^^^^
+
+The |k8s-op-short| requires that you specify the MongoDB Enterprise version
+for the :opsmgr:`Application Database 
+</core/system-overview/#application-database>` image to enable any
+deployments of |onprem| resources, including offline deployments.
+
+.. _om-rsrc-config:
+
+Streamlined Configuration
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+After you deploy |onprem|, you need to configure it. The regular
+procedure involves setting up |onprem| through the
+:opsmgr:`configuration wizard </reference/config/ui-settings>`. If you
+set some essential settings in your object specification before you
+deploy, you can bypass the configuration wizard.
+
+In the :opsmgrkube:`spec.configuration` block of your |onprem| object
+specification, you need to:
+
+- Add :ref:`mms.ignoreInitialUiSetup <bypass-ui-config>` and set to
+  ``true``.
+
+- Add the :ref:`minimum configuration settings <bypass-ui-config>` to
+  allow the |onprem| instance to start without errors.
+
+.. example::
+
+   To disable the |onprem| configuration wizard, configure the
+   following settings in your :opsmgrkube:`spec.configuration` block:
+
+   .. literalinclude:: /includes/code-examples/yaml-files/om-spec-configuration-block.yaml
+      :language: yaml
+      :copyable: false
+      :linenos:
+
+   Replace the example values with the values you want your |onprem| to
+   use.
+
+.. _om-rsrc-backup:
+
+Backup
+~~~~~~
+
+|k8s-op-short| enables :ref:`mms-backup-functional-overview` by
+default. The |k8s-op-short| deploys a |k8s-statefulset| comprised of
+one Pod to host the :ref:`backup-daemon` and then creates a |k8s-pvc|
+and |k8s-pv| for the Backup Daemon's :term:`head database`. The
+|k8s-op-short| uses the :opsmgr:`Ops Manager API </reference/api/>` to
+enable the Backup Daemon and configure the head database.
+
+.. important::
+
+   To configure Backup, you must create the |k8s-mdbrscs| or |mongodb-multis|
+   for the :term:`oplog store <Oplog Store Database>` and for one of the
+   following:
+
+   - :term:`oplog store <Oplog Store Database>` or |s3| oplog store.
+     If you deploy both the oplog store and the |s3|  oplog store, |onprem|
+     chooses one to use for Backup at random.
+   - |s3| :term:`snapshot store <S3 Snapshot Store>` or :term:`blockstore <Backup Blockstore Database>`.
+     If you deploy both an |s3| :term:`snapshot store <S3 Snapshot Store>` and a
+     :term:`blockstore <Backup Blockstore Database>`, |onprem| chooses one
+     to use for Backup at random.
+
+   The |onprem| resource remains in a ``Pending`` state until you configure these Backup resources.
+   
+   You can also :ref:`encrypt backup jobs <configure-kmip-backup-encryption>`, but 
+   :ref:`limitations <kmip-limitations>` apply to deployments where the same 
+   |k8s-op-short| instance is not managing both the 
+   :ref:`MongoDBOpsManager <k8s-om-specification>` and :ref:`MongoDB <k8s-specification>` 
+   custom resources.
+
+Oplog Store
+^^^^^^^^^^^
+
+You must deploy a three-member replica set to store your
+:term:`oplog slices <Oplog Slice>`.
+
+.. include:: /includes/admonitions/fact-backing-db-auth.rst
+
+S3 Oplog Store
+^^^^^^^^^^^^^^
+
+To configure an |s3| oplog store, you must create an |aws| |s3| or
+|s3|-compatible bucket to store your database Backup Oplog.
+
+You can configure the oplog store for both |k8s-mdbrsc| and |mongodb-multi|,
+using the :opsmgrkube:`spec.backup.s3OpLogStores.mongodbResourceRef.name` setting
+in the |onprem| resource definition.
+
+Blockstore
+^^^^^^^^^^
+
+To configure a :term:`blockstore <Backup Blockstore Database>`, you
+must deploy a replica set to store snapshots.
+
+S3 Snapshot Store
+^^^^^^^^^^^^^^^^^
+
+To configure an |s3| :term:`snapshot store <S3 Snapshot Store>`, you
+must create an |aws| |s3| or |s3|-compatible bucket to store your
+database Backup :opsmgr:`snapshots </reference/glossary/#std-term-snapshot>`.
+
+The default configuration stores snapshot metadata in the Application
+Database. You can also deploy a replica set to store snapshot metadata,
+then configure it using the
+:opsmgrkube:`spec.backup.s3Stores.mongodbResourceRef.name` settings in
+the |onprem| resource definition.
+
+You can configure the |s3| snapshot store for both |k8s-mdbrsc| and |mongodb-multi|.
+
+You can update any additional |s3|
+:opsmgr:`configuration settings </tutorial/manage-s3-blockstore-storage/#provide-the-s3-blockstore-details>`
+that |k8s-op-short| doesn't manage through the |application|.
+
+Disable Backup
+^^^^^^^^^^^^^^
+
+To disable backup after you enabled it:
+
+1. Set the |onprem| |k8s| |k8s-obj| :opsmgrkube:`spec.backup.enabled`
+   setting to ``false``.
+
+#. :opsmgr:`Disable backups </tutorial/disable-backup>` in the
+   |application|.
+
+#. Delete the :ref:`backup-daemon` |k8s-statefulset|:
+
+   .. code-block:: sh
+
+      kubectl delete statefulset <metadata.name> -backup-daemon \
+       -n <metadata.namespace>
+
+.. important::
+
+   The |k8s-pvc| and |k8s-pv| for the Backup Daemon's :term:`head
+   database` are not deleted when you delete the :ref:`backup-daemon`
+   |k8s-statefulset|. You can retrieve stored data before you delete
+   these |k8s| resources.
+
+   To learn about reclaiming |k8s-pvs|, see the
+   :k8sdocs:`Kubernetes documentation </concepts/storage/persistent-volumes/#reclaiming>`.
+
+.. _kmip-manual-procedure:
+
+Manually Configure KMIP Backup Encryption
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+For deployments where the same |k8s-op-short| instance is *not* managing both the
+:ref:`MongoDBOpsManager <k8s-om-specification>` and 
+:ref:`MongoDB <k8s-specification>` custom resources, 
+you must manually configure |kmip| backup encryption client settings in |onprem| 
+using the following procedure. If the |k8s-op-short| *is* managing both resources, 
+see :ref:`configure-kmip-backup-encryption` instead.
+
+Prerequisites
+#############
+
+- A running |kmip| server.
+- A running |onprem| instance, `configured to use KMIP <https://www.mongodb.com/docs/kubernetes-operator/master/tutorial/configure-kmip-backup-encryption/#configure-the-onprem-custom-resource-to-use-kmip-backup-encryption>`__.
+- A |tls| secret that `concatenates the private key and the KMIP client certificate in PEM format <https://www.mongodb.com/docs/kubernetes-operator/master/tutorial/configure-kmip-backup-encryption/#create-the-of-the-client-certificate-and-private-key>`__.
+
+Procedure
+#########
+
+1. Mount the |tls| secret to the :ref:`MongoDBOpsManager <k8s-om-specification>` custom resource. For example:
+
+   .. code-block:: yaml
+ 
+      apiVersion: mongodb.com/v1
+      kind: MongoDBOpsManager
+      metadata:
+        name: ops-manager-pod-spec
+      spec:
+        < ... omitted ... >
+        statefulSet:
+          spec:
+            template:
+              spec:
+                volumes:
+                - name: kmip-client-test-prefix-mdb-latest-kmip-client
+                  secretName: test-prefix-mdb-latest-kmip-client
+                containers:
+                  - name: mongodb-ops-manager
+                    volumeMounts:
+                    - mountPath: /mongodb-ops-manager/kmip/client/test-prefix-mdb-latest-kmip-client
+                      name: kmip-client-test-prefix-mdb-latest-kmip-client
+                      readOnly: true
+        ...
+   
+2. Configure the |kmip| settings for your project in |onprem| following the procedure 
+   in :ref:`configure-group-kmip`.
+
+.. _config-https:
+
+Configure |onprem| to Run over HTTPS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can configure your |onprem| instance created through the |k8s-op-short|
+to run over |https| instead of |http|. 
+
+To configure your |onprem| instance to run over |https|: 
+
+1. Create a secret that contains the |tls| certificate and private key.
+2. Add this secret to the |onprem| configuration object. 
+
+For detailed instructions, see :ref:`deploy-om-container`.
+
+.. important::
+   
+   If you have existing deployments, you must restart them manually 
+   after enabling |https|. To avoid restarting your deployments, 
+   configure |https| before deploying your managed resources.
+
+   To learn more, see :ref:`https-enablement-issues`.
+
+Ops Manager Application Access
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+By default, the |k8s-op-short| doesn't create a |k8s| service to route
+traffic originating from outside of the |k8s| cluster to the |onprem|
+application.
+
+To access the |onprem| application, you can:
+
+- Configure the |k8s-op-short| to create a |k8s| service.
+- Create a |k8s| service manually. MongoDB recommends using a
+  ``LoadBalancer`` |k8s| service if your cloud provider supports it.
+- If you're using OpenShift, use
+  `routes <https://docs.openshift.com/enterprise/3.0/architecture/core_concepts/routes.html>`__.
+- Use a third-party service, such as Istio.
+
+The simplest method is configuring the |k8s-op-short| to create a |k8s|
+service that routes external traffic to the |onprem| application. The
+|onprem| deployment procedure instructs you to add the following
+settings to the |k8s-obj| specification that configures the
+|k8s-op-short| to create a service:
+
+- ``spec.``:opsmgrkube:`~spec.externalConnectivity`
+- ``spec.externalConnectivity.``:opsmgrkube:`~spec.externalConnectivity.type`
+
+In addition, for deployments on multiple |k8s| clusters, see :ref:`om-nw-lb-mesh`.
+
+.. _om-local-mode:
+
+Deploying |onprem| in Remote or Local Mode
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can use the |k8s-op-short| to configure a single |onprem| cluster to operate in 
+**Local** or **Remote** mode if your environment prevents granting hosts
+in your |k8s| cluster access to the Internet. In these modes, the Backup
+Daemons and managed MongoDB resources download installation archives
+from |onprem| instead of from the Internet:
+
+- :ref:`deploy-om-container-remote-mode`: |onprem| reads the
+  installation archives from HTTP endpoints on a web server
+  or S3-compatible file store deployed to your |k8s| cluster.
+  
+- :ref:`deploy-om-container-local-mode`: |onprem| reads the instalation
+  archives from a |k8s-pv| that you create for the |onprem| StatefulSet.
+
+.. _mdb-resource-deployment-locations:
+
+Managing External MongoDB Deployments
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you deploy |onprem| with the |k8s-op-short|, |onprem| can manage
+MongoDB database resources deployed:
+
+- To the same |k8s| cluster as |onprem|.
+- Outside of |k8s| clusters.
+
+If |onprem| manages MongoDB database resources deployed to different
+|k8s| clusters than |onprem| or outside of |k8s| clusters, you must:
+
+1. Add the ``mms.centralUrl`` setting to ``spec.configuration`` in the
+   |onprem| resource specification.
+
+   Set the value to the URL by which |onprem| is exposed outside of the
+   |k8s| cluster:
+
+   .. code-block:: yaml
+
+      spec:
+        configuration:
+          mms.centralUrl: https://a9a8f8566e0094380b5c257746627b82-1037623671.us-east-1.elb.example.com:8080/
+
+#. :ref:`Update the ConfigMaps <example-k8s-configmap>` referenced by
+   all MongoDB database resources inside the |k8s| cluster that you
+   deployed with the |k8s-op-short|.
+
+   Set ``data.baseUrl`` to the same value of the
+   :opsmgrkube:`spec.configuration.mms.centralUrl <spec.configuration>`
+   setting in the |onprem| resource specification.
+
+   .. important::
+
+      This includes the ConfigMaps :k8s:`referenced by the MongoDB database resources
+      for the oplog and snapshot stores 
+      </tutorial/deploy-om-container/#deploy-mongodb-database-resources-to-complete-the-backup-configuration>`.
+
+.. _om_with_multi-clusters:
+
+Deploying |onprem| in Multi-Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+See :ref:`om-multi-k8s`.
+
+
+Secret Storage
+--------------
+
+To avoid storing secrets in |k8s|, migrate all |k8s| |k8s-secrets| that
+the |k8s-op-short| creates to a :ref:`secret storage tool <k8s-set-secret-storage-tool>`.
+Multi-cluster deployments don't support storing secrets in secret storage
+tools such as |hashicorp-vault|.
+
+.. _om-rsrc-prereqs:
+
+Prerequisites
+-------------
+
+1. If you have not already, run the following command to run all
+   ``kubectl`` commands in the namespace you :ref:`created
+   <k8s-prerequisites>`:
+
+   .. code-block:: sh
+
+      kubectl config set-context $(kubectl config current-context) \
+        -n <metadata.namespace>
+
+   .. note::
+
+      .. include:: /includes/admonitions/note-om-context-scope-multi-cluster.rst
+
+#. :doc:`Install </tutorial/install-k8s-operator>` the |k8s-op|.
+
+
+#. Ensure that the host on which you want to deploy |onprem| has a
+   minimum of five gigabytes of memory.
+
+.. _om-first-user:
+
+4. Create a |k8s| |k8s-secret| for an admin user in the same |k8s-ns|
+   as the |onprem| resource. If you are deploying |onprem| in a |multi-cluster|,
+   use the same |k8s-ns| that you set for your |multi-cluster| :ref:`scope <mc-namespace-scope-ref>`.
+
+   .. include:: /includes/facts/fact-if-use-vault.rst
+
+   .. include:: /includes/facts/fact-learn-more-secret-storage.rst
+
+   When you deploy the |onprem| resource, |onprem| creates a user with
+   these credentials and grants it the :authrole:`Global Owner` role.
+   Use these credentials to log in to |onprem| for the first time. Once
+   you deploy |onprem|, change the password or remove this secret.
+
+   .. note::
+
+      The admin user's password must adhere to the |onprem|
+      :opsmgr:`password complexity requirements
+      </tutorial/edit-your-user-account#edit-your-user-account>`. 
+
+   .. code-block:: sh
+
+      kubectl create secret generic <adminusercredentials> \
+        --from-literal=Username="<username>" \
+        --from-literal=Password="<password>" \
+        --from-literal=FirstName="<firstname>" \
+        --from-literal=LastName="<lastname>"
+
+.. _om-db-user-secret:
+
+1. (*Optional*) To set the password for the |onprem| database user,
+   create a |k8s-secret| in the same |k8s-ns| as the |onprem| resource.
+
+   .. include:: /includes/facts/fact-if-use-vault.rst
+
+   The |k8s-op-short| creates the database user that |onprem| uses to
+   connect to the :ref:`mms-application-database`. You can set the
+   password for this database user by invoking the following command to
+   create a secret:
+
+   .. code-block:: sh
+
+      kubectl create secret generic <om-db-user-secret-name> \
+        --from-literal=password="<om-db-user-password>"
+
+   .. note::
+
+      If you choose to create a secret for the |onprem| database user,
+      you must specify the secret's
+      :opsmgrkube:`~spec.applicationDatabase.passwordSecretKeyRef.name`
+      in the |onprem| resource definition. By default, the
+      |k8s-op-short| looks for the password value in the ``password``
+      key. If you stored the password value in a different key, you
+      must also specify that
+      :opsmgrkube:`~spec.applicationDatabase.passwordSecretKeyRef.key`
+      name in the |onprem| resource definition.
+
+   If you don't create a secret, then the |k8s-op-short| automatically
+   generates a password and stores it internally. To learn more,
+   see :ref:`app-db-auth`.
+
+#. (*Optional*). To configure Backup to an |s3| snapshot store, create
+   a |k8s-secret| in the same namespace as the |onprem| resource.
+
+   .. include:: /includes/facts/fact-if-use-vault.rst
+
+   This secret stores your |s3| credentials so that the |k8s-op-short|
+   can connect |onprem| to your |aws| |s3| or |s3|-compatible bucket.
+   The secret must contain the following key-value pairs:
+
+   .. list-table::
+      :widths: 30 70
+
+      * - Key
+        - Value
+
+      * - ``accessKey``
+        - Unique identifer of the |aws| user who owns the |s3| or
+          |s3|-compatible bucket.
+
+      * - ``secretKey``
+        - Secret key of the |aws| user who owns the |s3| or
+          |s3|-compatible bucket.
+
+   To create the secret, invoke the following command:
+
+   .. code-block:: sh
+
+      kubectl create secret generic <my-aws-s3-credentials> \
+        --from-literal=accessKey="<AKIAIOSFODNN7EXAMPLE>" \
+        --from-literal=secretKey="<wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY>"
+
+   To learn more about managing |s3| snapshot storage, see the
+   :opsmgr:`Prerequisites </tutorial/manage-s3-blockstore-storage/#prerequisites>`.

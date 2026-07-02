@@ -1,0 +1,52 @@
+apiVersion: mongodb.com/v1
+kind: MongoDBOpsManager
+metadata:
+  name: ops-manager
+  namespace: mongodb
+spec:
+  replicas: 1
+  version: 8.0.0
+  adminCredentials: ops-manager-admin-secret
+  applicationDatabase:
+    version: "8.0.0"
+    members: 3
+    agent:
+    #agent.logRotate is deprecated and overwritten by agent.mongod.logRotate.
+      logRotate:
+      #Automation Agent log rotation
+      startupOptions:
+        maxLogFiles: 10
+        maxLogFileSize: 2
+      #Readiness probe log rotation
+      readinessProbe:
+        environmentVariables:
+          READINESS_PROBE_LOGGER_MAX_SIZE: 10
+          READINESS_PROBE_LOGGER_BACKUPS: 1
+          READINESS_PROBE_LOGGER_MAX_AGE: 3
+          READINESS_PROBE_LOGGER_COMPRESS: true
+          MDB_WITH_AGENT_FILE_LOGGING: false
+          LOG_FILE_PATH: /var/log/mongodb-mms-automation/readiness.log
+      #AppDB backup log rotation
+      backupAgent:
+        logRotate:
+          sizeThresholdMB: "10"
+          timeThresholdHrs: 10
+      #AppDB Monitoring Agent log rotation
+      monitoringAgent:
+        logRotate:
+          sizeThresholdMB: "10"
+          timeThresholdHrs: 10
+      #AppDB (mongod) log rotation
+      mongod:
+        logRotate:
+          sizeThresholdMB: "10"
+          timeThresholdHrs: 10
+          numUncompressed: 10
+          numTotal: 10
+          percentOfDiskspace: 10
+        auditlogRotate:
+          sizeThresholdMB: "10"
+          timeThresholdHrs: 10
+          numUncompressed: 10
+          numTotal: 10
+          percentOfDiskspace: 10

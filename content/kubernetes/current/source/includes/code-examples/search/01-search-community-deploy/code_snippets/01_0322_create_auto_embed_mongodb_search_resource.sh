@@ -14,15 +14,16 @@ spec:
     tls:
       certificateKeySecretRef:
         name: ${MDB_SEARCH_TLS_SECRET_NAME}
-  resourceRequirements:
-    limits:
-      cpu: "3"
-      memory: 5Gi
-    requests:
-      cpu: "2"
-      memory: 3Gi
   autoEmbedding:
     providerEndpoint: ${PROVIDER_ENDPOINT}
     embeddingModelAPIKeySecret:
       name: ${AUTO_EMBEDDING_API_KEY_SECRET_NAME}
+  clusters:
+    - resourceRequirements:
+        limits:
+          cpu: "3"
+          memory: 5Gi
+        requests:
+          cpu: "2"
+          memory: 3Gi
 EOF

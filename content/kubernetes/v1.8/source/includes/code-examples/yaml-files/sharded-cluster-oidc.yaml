@@ -1,0 +1,42 @@
+apiVersion: mongodb.com/v1
+kind: MongoDB
+metadata:
+  name: my-oidc-shardedcluster
+spec:
+  type: ShardedCluster
+  shardCount: 2
+  mongodsPerShardCount: 3
+  mongosCount: 2
+  configServerCount: 3
+  version: 7.0.11-ent
+  opsManager:
+    configMapRef:
+      name: <my-project-configmap>
+  credentials: <my-credentials-secret>
+  security:
+    authentication:
+      modes: ["SCRAM", "OIDC"]
+      oidcProviderConfigs:
+        # Provider 1: For human users (Workforce/Group)
+        - configurationName: "idp0-human-users"
+          issuerURI: "https://<your-idp0-domain>"
+          clientId: "<human-users-client-id>"
+          audience: "api://default"
+          groupsClaim: "groups"
+          authorizationMethod: "WorkforceIdentityFederation"
+          authorizationType: "GroupMembership"
+        # Provider 2: For service accounts (Workload/UserID)
+        - configurationName: "service-accounts"
+          issuerURI: "https://<your-idp-uri>"
+          clientId: "<services-client-id>"
+          audience: "mongodb-api"
+          userClaim: "sub"
+          authorizationMethod: "WorkloadIdentityFederation"
+          authorizationType: "UserID"
+    roles:
+      # Role mapping for the human user group
+      - role: "idp0-human-users/db-admins"
+        db: "admin"
+        roles:
+          - role: "readWriteAnyDatabase"
+            db: "admin"

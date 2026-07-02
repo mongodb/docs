@@ -1,0 +1,29 @@
+apiVersion: mongodb.com/v1
+kind: MongoDB
+metadata:
+  name: my-oidc-replicaset
+spec:
+  type: ReplicaSet
+  members: 3
+  version: 7.0.11-ent
+  opsManager:
+    configMapRef:
+      name: <my-project-configmap>
+  credentials: <my-credentials-secret>
+  security:
+    authentication:
+      modes: ["SCRAM", "OIDC"]
+      oidcProviderConfigs:
+        - configurationName: "reporting-services"
+          issuerURI: "https://<your-idp-uri>"
+          clientId: "<reporting-services-client-id>"
+          audience: "mongodb-api"
+          groupsClaim: "service-roles"
+          authorizationMethod: "WorkloadIdentityFederation"
+          authorizationType: "GroupMembership"
+    roles:
+      - role: "reporting-services/report-generators"
+        db: "admin"
+        roles:
+          - role: "read"
+            db: "sales-data"

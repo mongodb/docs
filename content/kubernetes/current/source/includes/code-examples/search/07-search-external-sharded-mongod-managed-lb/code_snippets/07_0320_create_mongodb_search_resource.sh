@@ -8,7 +8,6 @@ metadata:
   name: ${MDB_SEARCH_RESOURCE_NAME}
 spec:
   logLevel: DEBUG
-  replicas: ${MDB_MONGOT_REPLICAS}
   source:
     username: search-sync-source
     passwordSecretRef:
@@ -30,22 +29,26 @@ spec:
               - ${MDB_EXTERNAL_SHARD_1_HOST}
       tls:
         ca:
-          name: ${MDB_TLS_CA_SECRET_NAME}
+          name: ${MDB_TLS_CA_CONFIGMAP}
   security:
     tls:
       certsSecretPrefix: ${MDB_TLS_CERT_SECRET_PREFIX}
-  # loadBalancer.managed -- operator auto-deploys
-  # and configures Envoy proxy
-  loadBalancer:
-    managed:
-      externalHostname: ${MDB_SEARCH_RESOURCE_NAME}-search-0-{shardName}-proxy-svc.${MDB_NS}.svc.cluster.local
-  resourceRequirements:
-    limits:
-      cpu: "2"
-      memory: 3Gi
-    requests:
-      cpu: "1"
-      memory: 2Gi
+  clusters:
+    - replicas: ${MDB_MONGOT_REPLICAS}
+      # loadBalancer.managed -- operator auto-deploys
+      # and configures Envoy proxy
+      loadBalancer:
+        managed:
+          externalHostname: ${MDB_SEARCH_RESOURCE_NAME}-search-0-{shardName}-proxy-svc.${MDB_NS}.svc.cluster.local
+          # Shard-agnostic endpoint the mongos routers use to reach mongot.
+          routerHostname: ${MDB_SEARCH_RESOURCE_NAME}-search-0-proxy-svc.${MDB_NS}.svc.cluster.local
+      resourceRequirements:
+        limits:
+          cpu: "2"
+          memory: 3Gi
+        requests:
+          cpu: "1"
+          memory: 2Gi
 EOF
 
 echo "[ok] MongoDBSearch resource '${MDB_SEARCH_RESOURCE_NAME}' created"

@@ -1,0 +1,288 @@
+.. _mongodb-crd-logging-specification:
+
+=================================
+MongoDB CRD Log Rotation Settings
+=================================
+
+.. meta::
+   :description: Configure log rotation settings for MongoDB and Ops Manager CRDs, detailing logging configuration fields and default locations for various log types.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecols
+
+You can configure log rotation settings for |k8s-crds|
+in the :doc:`MongoDB  </reference/k8s-operator-specification>` and 
+:doc:`Ops Manager </reference/k8s-operator-om-specification>` |crd| manifests.
+
+The following table outlines logging configuration fields 
+that you can define in the MongoDB |crd| manifests, 
+and where they can be defined or accessed elsewhere if you choose not 
+to configure them directly from the |crd| manifests.
+
+.. _crd-logging-comparison-table:
+
+.. include:: /includes/list-tables/crd-logging-configuration
+
+MongoDB Log Rotation
+--------------------
+
+.. note::
+   
+   For |onprem| 6, you can only configure ``mongod`` logs with this setting starting with version 6.0.2.
+   For |onprem| 7, you can only configure ``mongod`` logs with this setting starting with version 7.0.4.
+   For previous |onprem| versions, you must use the |onprem| UI to configure ``mongod`` logs.
+
+You can configure a log's rotation 
+in the MongoDB |crd|, as shown in the following example manifest. 
+
+See the preceding :ref:`comparison table <crd-logging-comparison-table>` for more 
+information about configuring the rotation of other MongoDB-specific logs. 
+
+Automation Agent Logs
+~~~~~~~~~~~~~~~~~~~~~
+You can configure the MongoDB automation agent logs in the MongoDB |crd| manifest 
+under :setting:`spec.agent.startupOptions`.
+
+Example Manifest
+~~~~~~~~~~~~~~~~
+
+.. note::
+
+   For sharded clusters, you can only configure log rotation at the ``spec.agent`` level. 
+   Configuring log rotation on sub-spec levels such as ``spec.configsrv.agent`` or 
+   ``spec.shardsvr.agent`` is not supported. 
+
+.. literalinclude:: /includes/code-examples/yaml-files/example-mongodb-logging-config.yaml
+    :language: yaml
+
+{+appdb+} Log Rotation
+---------------------------------
+You can configure the following log's rotation in the ``MongoDBOpsManager`` |crd|, 
+as shown in the following example manifest. See the preceding table for more 
+information about configuring the rotation of other {+appdb+}-specific logs. 
+
+MongoDB Logs
+~~~~~~~~~~~~~
+You can configure the {+appdb+} MongoDB log rotation in the 
+``MongoDBOpsManager`` manifest under :opsmgrkube:`spec.applicationDatabase.agent.<component>.logRotate`.  
+MongoDB compresses log files beyond the two most recent logs by default.
+
+Logs:
+   - ``/var/log/mongodb-mms-automation/mongodb.log``
+
+Automation Agent Logs
+~~~~~~~~~~~~~~~~~~~~~
+You can configure the {+appdb+} Automation Agent log rotation in the 
+``MongoDBOpsManager`` manifest under 
+:opsmgrkube:`spec.applicationDatabase.agent.startupOptions`.  
+
+Logs:
+   - ``/var/log/mongodb-mms-automation/automation-agent-stderr.log``
+   - ``/var/log/mongodb-mms-automation/automation-agent-verbose.log``
+   - ``/var/log/mongodb-mms-automation/automation-agent.log``
+
+Audit Logs
+~~~~~~~~~~
+You can configure the {+appdb+} Audit log rotation in the ``MongoDBOpsManager`` 
+manifest under 
+:opsmgrkube:`spec.applicationDatabase.agent.mongod.auditlogRotate`. 
+
+.. note::
+
+   The ``auditLogRotate`` setting depends on the ``logRotate`` setting. 
+   In order for ``auditLogRotate`` to take effect, you must also configure ``logRotate``.
+
+Logs:
+   - ``/var/log/mongodb-mms-automation/mongodb-audit.log``
+
+Example Manifest
+~~~~~~~~~~~~~~~~
+
+.. literalinclude:: /includes/code-examples/yaml-files/example-ops-manager-logging-config.yaml
+   :language: yaml
+
+.. _k8s-om-log-rotation:
+
+|onprem| Log Rotation
+------------------------
+
+To manage and rotate |onprem|, you can either 
+:ref:`manually override the StatefulSet <k8s-om-log-rotation-statefulset>` or  
+:ref:`use CRD settings <k8s-om-log-rotation-crd>`.
+
+.. _k8s-om-log-rotation-statefulset:
+
+Configure |onprem| Logs with the StatefulSet
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To manage and rotate |onprem| logs, you can manually override the default logging 
+configuration using a ConfigMap and StatefulSet override. This process involves 
+creating a custom ``logback.xml`` configuration file and applying it to your 
+|onprem| Pods.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the custom ``logback.xml`` configuration file.
+
+      You can retrieve the existing ``logback.xml`` to use as a template by running 
+      the following command:
+
+      .. code-block:: sh 
+         :copyable: true
+
+         kubectl cp om-pod-spec-0:/mongodb-ops-manager/conf/logback.xml ~/Downloads/logback-confs/logback.xml
+
+      To learn more about creating a custom ``logback.xml``, see :ref:`change-onprem-log-rotation`.
+
+   .. step:: Create a ConfigMap from the custom ``logback.xml``.
+
+      Ensure that the key in the ConfigMap is exactly the name of the file you want
+      to replace so that the mount path and subpath only overwrite one file and 
+      not the entire directory. In this example, the file name is ``logback.xml``:
+
+      .. code-block:: sh 
+         :copyable: true
+
+         kubectl create configmap logback-config --from-file=logback.xml=path/to/your/custom_logback.xml
+
+   .. step:: Override the StatefulSet configuration.
+
+      Use the StatefulSet override feature to mount the custom ``logback.xml`` in your 
+      |onprem| Pods. Add the following to your StatefulSet configuration:
+
+      .. note::
+
+         The ``key`` in the following ConfigMap is ``logback.xml`` by default to ensure 
+         it correctly replaces the default file with the same name.
+
+      .. code-block:: yaml
+
+         spec:
+           template:
+             spec:
+               volumes:
+                 - name: logback-volume
+                   configMap:
+                     name: logback-config
+                     items:
+                       - key: logback.xml
+                         path: logback.xml
+               containers:
+                 - name: mongodb-ops-manager
+                   volumeMounts:
+                     - name: logback-volume
+                     mountPath: /mongodb-ops-manager/conf-template/logback.xml
+                     subPath: logback.xml
+
+   .. step:: Replicate the ConfigMap for |multi-cluster-om|s.
+
+      If you are using a |multi-cluster-om|, ensure you replicate the ``logback-config`` 
+      ConfigMap to all member clusters.
+
+.. _k8s-om-log-rotation-crd:
+
+Configure |onprem| Logs with the CRD
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can also manage |onprem| log rotation by using |crd| settings, which simplifies
+the log rotation process by linking to the ConfigMap directly in the |crd|.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create the custom ``logback.xml`` configuration file.
+
+      You can retrieve the existing ``logback.xml`` to use as a template by running 
+      the following command:
+
+      .. code-block:: sh 
+         :copyable: true
+
+         kubectl cp om-pod-spec-0:/mongodb-ops-manager/conf/logback.xml ~/Downloads/logback-confs/logback.xml
+
+      To learn more about creating a custom ``logback.xml``, see :ref:`change-onprem-log-rotation`.
+
+   .. step:: (Optional) Create a custom ``logback-access.xml`` configuration file.
+
+      Use the ``logback-access.xml`` file to configure logging for HTTP access requests, 
+      such as those handled by a web server. If you want to customize how these access 
+      logs are managed, you can create a custom ``logback-access.xml`` file similar 
+      to the ``logback.xml``. 
+
+      Retrieve the existing ``logback-access.xml`` to use as a template by running 
+      the following command:
+
+      .. code-block:: sh 
+         :copyable: true
+
+         kubectl cp om-pod-spec-0:/mongodb-ops-manager/conf/logback-access.xml ~/Downloads/logback-confs/logback-access.xml
+
+      Modify this file according to your logging requirements.
+   
+   .. step:: Create a ConfigMap from the custom ``logback.xml`` and ``logback-access.xml``.
+
+      Ensure that the key in the ConfigMap is exactly the name of the file you want
+      to replace so that the mount path and subpath only overwrite one file and 
+      not the entire directory. The following examples use default file names, 
+      ``logback.xml`` and ``logback-access.xml``:
+
+      .. code-block:: sh 
+         :copyable: true
+
+         kubectl create configmap logback-config --from-file=logback.xml=path/to/your/custom_logback.xml
+
+      .. code-block:: sh 
+         :copyable: true
+
+         kubectl create configmap logback-access-config --from-file=logback-access.xml=path/to/your/custom_access_logback.xml
+
+   .. step:: Set the |crd| logging properties.
+
+      Add the following settings to your |onprem| |crd|:
+
+      * :setting:`spec.logging.LogBackAccessRef`
+      * :setting:`spec.logging.LogBackRef`
+      * :setting:`spec.backup.logging.LogBackAccessRef`
+      * :setting:`spec.backup.logging.LogBackRef`
+
+      .. note::
+      
+         The file names ``logback.xml`` and ``logback-access.xml`` are the default file 
+         names and must be the keys 
+         in the ConfigMap for the |k8s-op-short| to recognize them.
+
+      For example:
+
+      .. code-block:: yaml
+
+         apiVersion: mongodb.com/v1
+         kind: MongoDBOpsManager
+         metadata:
+           name: ops-manager
+           namespace: mongodb
+         spec:
+           replicas: 1
+           version: 8.0.0
+           adminCredentials: ops-manager-admin-secret
+           logging:
+             LogBackAccessRef: 
+               name: logback-access-config
+             LogBackRef:
+               name: logback-config
+           backup:
+             enabled: true
+             logging:
+               LogBackAccessRef:
+                 name: my-logback-access-cm-backup
+               LogBackRef:
+                 name: my-logback-cm-backup
+
+      The |k8s-op-short| automatically generates the volume mounts similar to 
+      the preceding example and links the ConfigMap files to the correct locations in 
+      the |onprem| Pods.

@@ -1,0 +1,106 @@
+.. _k8s-fts-vs-limitations:
+
+=================================
+``mongot`` Deployment Limitations
+=================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn about the limitations for deploying MongoDB Search and Vector Search on Kubernetes, including supported topologies, embedding, backup, and configuration constraints.
+   :keywords: vector search, compatibility, requirements, mongod, version
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page lists the known limitations of |text-search| and
+|vector-search| when you deploy ``mongot`` with the |k8s-op|.
+Review this page and the release notes to learn about any
+changes to these limitations in future releases.
+
+Deployment and Topology
+-----------------------
+
+- Sharded cluster topologies that the |k8s-op| manages are
+  supported for MongoDB Enterprise Advanced only. To learn which
+  topologies the |k8s-op| supports, see
+  :ref:`k8s-fts-vs-supported-topologies`.
+- A ``mongot`` instance is bound to a single replica set, or to a
+  single shard in a sharded cluster. You cannot share one
+  ``mongot`` instance across multiple ``mongod`` deployments.
+  Deploy a separate ``mongot`` instance for each replica set or
+  shard.
+  
+Security
+--------
+
+- ``mongot`` reads certificates at startup and does not reload
+  them while running. If you rotate the TLS certificate in the
+  Secret that ``spec.security.tls.certsSecretPrefix`` references,
+  the |k8s-op| detects the change and restarts ``mongot``
+  automatically in a rolling fashion, one ``mongot`` pod at a time
+  in each ``mongot`` group.
+- ``mongot`` reads credentials at startup. After you rotate the
+  SCRAM password for the ``search-sync-source`` user, you must
+  restart ``mongot`` so that it reads the new credentials. The
+  |k8s-op| does not restart ``mongot`` automatically for this
+  change.
+- ``mongot`` does not validate OCSP or CRL certificate revocation.
+  To reject a revoked certificate, remove the corresponding
+  ``$external`` user on ``mongod``.
+- ``mongot`` does not provide application-level encryption at rest.
+  To encrypt the ``mongot`` index data, encrypt the underlying
+  volume with a |k8s|-level or cloud-provider mechanism. To learn
+  more, see :ref:`k8s-fts-vs-tls-encryption`.
+
+Configuration and Maintenance
+-----------------------------
+
+- ``mongot`` reads its configuration at startup and does not
+  support live configuration reload. If you change the
+  ``MongoDBSearch`` resource, the |k8s-op| restarts ``mongot``
+  automatically in a rolling fashion, one ``mongot`` pod at a time
+  in each ``mongot`` group, to apply the change.
+- ``mongot`` upgrades require a process restart. No in-place binary
+  swap is supported. To learn more, see
+  :ref:`k8s-fts-vs-upgrade-downgrade`.
+- Index storage is not portable across ``mongot`` major versions.
+  A ``mongot`` major-version downgrade requires a re-sync, which
+  rebuilds the index from the source data. Plan major-version
+  upgrades carefully and back up ``mongod`` so that the index can
+  be rebuilt if you need to downgrade.
+
+Observability
+-------------
+
+- The Metrics UI in Atlas is not available for ``mongot``
+  deployments that you manage yourself. To set up monitoring, use
+  the metrics endpoint that ``mongot`` exposes, or forward
+  ``mongot`` metrics to Ops Manager with the metrics forwarder. The
+  metrics forwarder requires Ops Manager 8.0.25 or later and does
+  not support Cloud Manager. To learn more, see
+  :ref:`k8s-fts-vs-monitor`.
+
+Search and Vector Search Features
+---------------------------------
+
+- Automated embedding is a Preview feature and integrates only
+  with |voyage| models. To use another embedding provider, generate
+  embeddings in your application and store them in a vector field.
+- Features that are guarded by Atlas-only flags are not available
+  on self-managed ``mongot``. A feature is available on
+  self-managed deployments only after it ships in a ``mongot``
+  binary release.
+
+Learn More
+----------
+
+- :ref:`k8s-fts-vs-troubleshoot`
+- :ref:`k8s-fts-vs-supported-topologies`

@@ -1,0 +1,565 @@
+:noprevnext:
+
+.. _k8s-fts-vs-migrate-preview-to-ga:
+
+===============================================
+Migrate MongoDBSearch from Public Preview to GA
+===============================================
+
+.. meta::
+   :description: Migrate an existing MongoDBSearch configuration from Public Preview to GA. Update required fields, move settings to new paths, and clean up orphaned resources after upgrading the Kubernetes Operator.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This guide describes the changes that you must make to recreate an
+existing MongoDBSearch deployment after you upgrade the
+|k8s-op-short| to the General Availability (GA) release of
+MongoDBSearch.
+
+.. important::
+
+   This migration is not an in-place upgrade, and search doesn't
+   keep running while you migrate. The |k8s-op-short| rebuilds
+   your search deployment from scratch. Until the new deployment is
+   ready and finishes reindexing your data, |text-search| and
+   |vector-search| queries (the ``$search`` and ``$vectorSearch``
+   aggregation stages) are unavailable. Use this guide to recreate
+   an equivalent configuration of your Public Preview deployment on
+   the GA |k8s-op-short|, not to upgrade a running deployment
+   without interruption.
+
+In this guide, "Public Preview" means any release of MongoDBSearch
+before GA. The MongoDBSearch custom resource has only ever had one
+API version, ``v1``, so neither Kubernetes nor the |k8s-op-short|
+converts old field values automatically. You must apply every change
+in this guide by hand, once, to your existing manifest.
+
+This guide doesn't cover new GA capabilities or optional fields. If
+a section doesn't apply to your existing manifest, skip it.
+
+Before You Begin
+----------------
+
+GA enforces a minimum supported ``mongot`` version, ``1.70.1``. If
+your MongoDBSearch resource pins an explicit ``spec.version`` earlier
+than ``1.70.1``, reconciliation fails after the upgrade with an
+unsupported-version error. If you don't set ``spec.version``, the
+|k8s-op-short| supplies its own default (``1.70.1`` as of this GA
+release) and you don't need to take any action.
+
+Before you upgrade, check which version, if any, you've pinned:
+
+.. code-block:: sh
+   :copyable: true
+
+   kubectl get mongodbsearch <name> -n <namespace> -o jsonpath='{.spec.version}'
+
+If the command prints a version earlier than ``1.70.1``, update
+``spec.version`` to ``1.70.1`` or later as part of the manifest
+changes in the next section.
+
+Update Your MongoDBSearch Configuration
+---------------------------------------
+
+A Public Preview MongoDBSearch custom resource never had a
+``spec.clusters`` field. At GA, ``spec.clusters`` is required, and
+several fields that used to live at the top level of ``spec`` now
+live only inside ``spec.clusters[0]``. Every existing manifest needs
+the same mechanical edit, once, regardless of topology.
+
+The examples in this section use a MongoDBSearch resource named
+``my-search`` in the ``mongodb`` namespace. Substitute your own
+resource's name and namespace.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Add the required ``spec.clusters`` field and move per-cluster settings into it.
+
+      Six top-level ``spec`` fields move inside ``spec.clusters[0]``:
+
+      .. list-table::
+         :widths: 50 50
+         :header-rows: 1
+
+         * - Public Preview Path
+           - GA Path
+
+         * - ``spec.replicas``
+           - ``spec.clusters[0].replicas``
+
+         * - ``spec.persistence``
+           - ``spec.clusters[0].persistence``
+
+         * - ``spec.resourceRequirements``
+           - ``spec.clusters[0].resourceRequirements``
+
+         * - ``spec.statefulSet``
+           - ``spec.clusters[0].statefulSet``
+
+         * - ``spec.loadBalancer``
+           - ``spec.clusters[0].loadBalancer``
+
+         * - ``spec.jvmFlags``
+           - ``spec.clusters[0].jvmFlags``
+
+      When ``spec.clusters`` has exactly one entry, which is the
+      case for every Public Preview workload, you don't need to set
+      ``spec.clusters[0].name`` or ``spec.clusters[0].index``.
+
+      ``logLevel``, ``security``, ``source``, ``version``, and
+      ``autoEmbedding`` stay at the top level of ``spec``, unchanged.
+
+      .. example::
+
+         The following Public Preview configuration:
+
+         .. code-block:: yaml
+            :copyable: true
+
+            apiVersion: mongodb.com/v1
+            kind: MongoDBSearch
+            metadata:
+              name: my-search
+              namespace: mongodb
+            spec:
+              source:
+                mongodbResourceRef:
+                  name: my-replica-set
+              replicas: 3
+              persistence:
+                single:
+                  storage: 20Gi
+              resourceRequirements:
+                requests:
+                  cpu: "1"
+                  memory: 2Gi
+                limits:
+                  cpu: "2"
+                  memory: 4Gi
+              statefulSet:
+                spec:
+                  template:
+                    spec:
+                      nodeSelector:
+                        disktype: ssd
+              loadBalancer:
+                managed:
+                  replicas: 2
+              jvmFlags:
+                - "-Xmx2g"
+
+         becomes the following configuration at GA:
+
+         .. code-block:: yaml
+            :copyable: true
+
+            apiVersion: mongodb.com/v1
+            kind: MongoDBSearch
+            metadata:
+              name: my-search
+              namespace: mongodb
+            spec:
+              source:
+                mongodbResourceRef:
+                  name: my-replica-set
+              clusters:
+                - replicas: 3
+                  persistence:
+                    single:
+                      storage: 20Gi
+                  resourceRequirements:
+                    requests:
+                      cpu: "1"
+                      memory: 2Gi
+                    limits:
+                      cpu: "2"
+                      memory: 4Gi
+                  statefulSet:
+                    spec:
+                      template:
+                        spec:
+                          nodeSelector:
+                            disktype: ssd
+                  loadBalancer:
+                    managed:
+                      replicas: 2
+                  jvmFlags:
+                    - "-Xmx2g"
+
+      .. important::
+
+         If you skip this step, the |k8s| API server rejects your
+         Public Preview manifest outright: ``spec.clusters`` is a
+         required field with no default, so this is an immediate
+         admission failure, not a delayed or silent one.
+
+   .. step:: Move ``spec.prometheus`` to ``spec.observability.prometheus``.
+
+      This change is more than a rename: at GA, the Prometheus metrics
+      endpoint is enabled by default, while in Public Preview it was
+      disabled unless you explicitly set ``spec.prometheus``.
+
+      If you already set ``spec.prometheus``, move it as-is:
+
+      .. example::
+
+         Public Preview:
+
+         .. code-block:: yaml
+            :copyable: true
+
+            spec:
+              prometheus:
+                port: 9946
+
+         GA:
+
+         .. code-block:: yaml
+            :copyable: true
+
+            spec:
+              observability:
+                prometheus:
+                  port: 9946
+
+      If you never set ``spec.prometheus``, you have nothing to move,
+      but a Prometheus scrape target on port ``9946`` appears after
+      the upgrade where none existed before.
+
+      .. important::
+
+         To keep metrics disabled after the upgrade, add the
+         following explicitly:
+
+         .. code-block:: yaml
+            :copyable: true
+
+            spec:
+              observability:
+                prometheus:
+                  mode: disabled
+
+   .. step:: Update the external MongoDB TLS CA reference from a Secret to a ConfigMap.
+
+      .. warning::
+
+         This change breaks existing TLS with no automatic
+         fallback. If your MongoDBSearch resource configures a TLS
+         CA at ``spec.source.external.tls.ca`` and you skip this
+         step, external TLS breaks the moment the GA
+         |k8s-op-short| starts reconciling: it only ever reads a
+         ``ConfigMap``, and it has no fallback to a ``Secret``. If
+         your resource doesn't use ``spec.source.external.tls.ca``
+         at all, this step doesn't apply to you.
+
+      The field path, ``spec.source.external.tls.ca.name``, doesn't
+      change. What changes is the kind of |k8s| object the
+      |k8s-op-short| expects at that name: a ``Secret`` in Public
+      Preview, a ``ConfigMap`` at GA. Both expect the CA certificate
+      at the same key, ``ca.crt``.
+
+      .. example::
+
+         In Public Preview, ``spec.source.external.tls.ca.name``
+         refers to a ``Secret``:
+
+         .. code-block:: yaml
+            :copyable: true
+
+            apiVersion: v1
+            kind: Secret
+            metadata:
+              name: my-search-external-ca
+              namespace: mongodb
+            type: Opaque
+            stringData:
+              ca.crt: |
+                -----BEGIN CERTIFICATE-----
+                ...
+                -----END CERTIFICATE-----
+
+         At GA, the same name must refer to a ``ConfigMap`` with the
+         same ``ca.crt`` key:
+
+         .. code-block:: yaml
+            :copyable: true
+
+            apiVersion: v1
+            kind: ConfigMap
+            metadata:
+              name: my-search-external-ca
+              namespace: mongodb
+            data:
+              ca.crt: |
+                -----BEGIN CERTIFICATE-----
+                ...
+                -----END CERTIFICATE-----
+
+         The referencing ``MongoDBSearch`` resource is unchanged.
+         ``spec.source.external.tls.ca.name`` still points at the
+         same name:
+
+         .. code-block:: yaml
+            :copyable: true
+
+            apiVersion: mongodb.com/v1
+            kind: MongoDBSearch
+            metadata:
+              name: my-search
+              namespace: mongodb
+            spec:
+              source:
+                external:
+                  hostAndPorts:
+                    - mongodb-0.example.com:27017
+                  tls:
+                    ca:
+                      name: my-search-external-ca
+
+      Create the ``ConfigMap`` before you upgrade the
+      |k8s-op-short| if you can, or at the same time:
+
+      .. code-block:: sh
+         :copyable: true
+
+         kubectl create configmap my-search-external-ca \
+           --from-file=ca.crt=./ca.crt \
+           --namespace mongodb
+
+      You can reuse your old ``Secret``'s name, as shown in the
+      preceding example, or choose a new one. The |k8s-op-short| no
+      longer reads the old ``Secret``. You can delete it once you
+      confirm that external TLS works again.
+
+What Happens to Your Kubernetes Resources
+-----------------------------------------
+
+This section covers what happens to the underlying |k8s| objects
+that the |k8s-op-short| manages, and what to verify and clean up
+afterward. What changes depends on whether your MongoDBSearch
+resource syncs from a replica set or a sharded cluster.
+
+.. _k8s-fts-vs-migrate-preview-to-ga-relabeled:
+
+Resources That Keep Their Names
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Most operator-managed resources keep the same name at GA. The
+|k8s-op-short| updates these resources in place on the next
+reconcile, and you don't need to take any action:
+
+- The proxy Service (``<name>-search-0-proxy-svc``)
+- The Envoy load balancer Deployment, ConfigMap, and certificates
+  (``<name>-search-lb-0...``)
+- TLS, X.509, and password Secrets, except the operator-managed
+  per-shard TLS Secret described in
+  :ref:`k8s-fts-vs-migrate-preview-to-ga-sharded`
+
+Replica Set Sources: Resources Recreated Under New Names
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your MongoDBSearch resource syncs from a replica set
+(non-sharded) source, the GA |k8s-op-short| recreates three
+resources under new names the first time it reconciles your
+MongoDBSearch resource. The |k8s-op-short| doesn't adopt, rename, or
+delete the old objects. This behavior is by design.
+
+The following table uses the ``my-search`` example resource from the
+preceding section:
+
+.. list-table::
+   :widths: 34 33 33
+   :header-rows: 1
+
+   * - Resource
+     - Public Preview Name
+     - GA Name
+
+   * - ``mongot`` StatefulSet
+     - ``my-search-search``
+     - ``my-search-search-0``
+
+   * - ``mongot`` headless Service
+     - ``my-search-search-svc``
+     - ``my-search-search-0-svc``
+
+   * - ``mongot`` config ConfigMap
+     - ``my-search-search-config``
+     - ``my-search-search-0-config``
+
+This change has the following practical effects:
+
+- The new StatefulSet starts empty. Its pods get new
+  ``PersistentVolumeClaims``, so ``mongot`` reindexes from scratch,
+  which can take time depending on your data set size.
+- The old StatefulSet's pods keep running. The |k8s-op-short|
+  doesn't scale them down. Until you delete the old StatefulSet, you
+  run double the compute for your ``mongot`` pods.
+- The old StatefulSet's PVCs and the old ConfigMap become orphaned.
+  Nothing reads them anymore, but nothing deletes them either.
+- The headless Service's DNS name change requires no action from
+  you. Without a load balancer, the |k8s-op-short| rewrites the
+  sync-source connection string on every reconcile. With a managed
+  or unmanaged load balancer, this Service isn't part of the
+  connection path.
+
+.. important::
+
+   The |k8s-op-short| never deletes the old objects for you. After
+   you confirm that the new StatefulSet is healthy (see
+   :ref:`k8s-fts-vs-migrate-preview-to-ga-verification`), delete the
+   old resources to avoid paying for doubled compute indefinitely.
+   This cleanup is a required step, not an optional one.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Delete the old StatefulSet, Service, and ConfigMap.
+
+      Confirm that the new StatefulSet is healthy first (see
+      :ref:`k8s-fts-vs-migrate-preview-to-ga-verification`), then
+      run:
+
+      .. code-block:: sh
+         :copyable: true
+
+         kubectl delete statefulset my-search-search -n mongodb
+         kubectl delete service my-search-search-svc -n mongodb
+         kubectl delete configmap my-search-search-config -n mongodb
+
+   .. step:: Delete the orphaned PersistentVolumeClaims.
+
+      Deleting the StatefulSet doesn't delete its PVCs, so remove
+      them separately:
+
+      .. code-block:: sh
+         :copyable: true
+
+         # Preview the PVCs to delete:
+         PVCS=$(kubectl get pvc -n mongodb -o name \
+           | grep -E 'data-my-search-search-[0-9]+$')
+         echo "$PVCS"
+
+         # After confirming, delete exactly what you previewed:
+         echo "$PVCS" | xargs kubectl delete -n mongodb
+
+      The old PVCs match ``data-my-search-search-<ordinal>``, for
+      example ``data-my-search-search-0``. Don't delete anything
+      matching ``data-my-search-search-0-<ordinal>``, for example
+      ``data-my-search-search-0-0``. Those belong to the new
+      StatefulSet.
+
+.. _k8s-fts-vs-migrate-preview-to-ga-sharded:
+
+Sharded Cluster Sources: Names Unchanged, With One Exception
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If your MongoDBSearch resource syncs from a sharded cluster source,
+the per-shard resource names are identical in Public Preview and GA.
+The |k8s-op-short| doesn't recreate them under new names. Instead, it
+updates them in place:
+
+.. list-table::
+   :widths: 40 60
+   :header-rows: 1
+
+   * - Resource
+     - Name in Public Preview and GA (no change)
+
+   * - Per-shard ``mongot`` StatefulSet
+     - ``my-search-search-0-<shard-name>``
+
+   * - Per-shard ``mongot`` headless Service
+     - ``my-search-search-0-<shard-name>-svc``
+
+   * - Per-shard ``mongot`` config ConfigMap
+     - ``my-search-search-0-<shard-name>-config``
+
+   * - Per-shard proxy Service
+     - ``my-search-search-0-<shard-name>-proxy-svc``
+
+The one exception applies if you use per-shard TLS certificates. The
+|k8s-op-short| combines the certificate and key from the TLS Secret
+you provide into an operator-managed Secret per shard, and recreates
+that Secret under a new name:
+
+.. list-table::
+   :widths: 34 33 33
+   :header-rows: 1
+
+   * - Resource
+     - Public Preview Name
+     - GA Name
+
+   * - Per-shard TLS operator-combined Secret
+     - ``<shard-name>-search-certificate-key``
+     - ``my-search-search-0-<shard-name>-certificate-key``
+
+The TLS Secrets that you provide keep their names. Only this
+operator-managed Secret is renamed. The |k8s-op-short| doesn't
+delete the old Secret, which becomes orphaned. Verify that the new
+Secret exists and that TLS works for that shard, then delete the old
+one by hand.
+
+.. _k8s-fts-vs-migrate-preview-to-ga-verification:
+
+Verification
+------------
+
+Complete this checklist after you upgrade the |k8s-op-short| and
+apply the manifest changes, and before you delete any old resources:
+
+- Confirm that ``kubectl get mongodbsearch <name> -n <namespace> -o
+  yaml`` shows ``spec.clusters`` populated, and no leftover
+  top-level ``replicas``, ``persistence``, ``resourceRequirements``,
+  ``statefulSet``, ``loadBalancer``, ``jvmFlags``, or ``prometheus``
+  fields.
+- Confirm that the new ``mongot`` StatefulSet, ``<name>-search-0``
+  for a single-cluster deployment, has all pods ``Running`` and
+  ``Ready``.
+- Confirm that ``mongot`` has finished reindexing on the new pods
+  before you delete anything from the old StatefulSet. Check
+  ``mongot``'s logs or index status for completion, not only pod
+  readiness.
+- If you rely on Prometheus scraping, confirm that your scrape
+  configuration or dashboards reflect the new default-enabled
+  behavior: either the metrics now appear, or your explicit
+  ``mode: disabled`` setting keeps them disabled.
+- If you use ``spec.source.external`` with TLS, confirm that the CA
+  ``ConfigMap`` referenced by ``spec.source.external.tls.ca.name``
+  exists and contains a valid ``ca.crt`` key, and that ``mongot``'s
+  connection to the external MongoDB deployment is healthy.
+- For replica set sources, confirm that you've located and deleted
+  the old ``<name>-search``, ``<name>-search-svc``, and
+  ``<name>-search-config`` objects and their orphaned PVCs.
+  For sharded sources, confirm that you've deleted the old
+  per-shard TLS Secrets.
+
+Get Support
+-----------
+
+If any part of your upgrade doesn't match what this guide describes,
+or you encounter an issue that this guide doesn't cover, contact
+|mdb-support|. Include your MongoDBSearch manifest with secrets
+redacted, the |k8s-op-short| version you're upgrading from and to,
+and the output of:
+
+.. code-block:: sh
+   :copyable: true
+
+   kubectl describe mongodbsearch <name> -n <namespace>
+
+Learn More
+----------
+
+- :ref:`k8s-fts-vs-compatibility-requirements`
+- :ref:`k8s-fts-vs-upgrade-downgrade`
+- :ref:`k8s-search-specification`
+- :ref:`k8s-fts-vs-faq`

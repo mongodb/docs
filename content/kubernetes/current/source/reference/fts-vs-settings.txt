@@ -5,20 +5,20 @@
 ==========================================
 
 .. meta::
-   :description: Configure MongoDB search and vector search settings for deployment.
+   :description: Reference for the MongoDBSearch resource settings that configure MongoDB Search and Vector Search deployments on Kubernetes, including source, security, resource, and persistence fields.
 
 .. default-domain:: mongodb
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 3
+   :depth: 4
    :class: singlecols
 
 You can deploy |text-search| and |vector-search| alongside MongoDB 8.2
 or later using |k8s-op-full|.
 
-Example Resource Specification 
+Example Resource Specification
 ------------------------------
 
 The following example shows the settings inside the ``spec`` object for
@@ -31,11 +31,12 @@ settings, see the :ref:`k8s-fts-vs-required-settings` and
    This example is not a working configuration. It
    contains all available fields populated with sample
    values for reference. Some fields are mutually
-   exclusive (for example, ``source.mongodbResourceRef``
-   and ``source.external``). Refer to the field
+   exclusive, and some take precedence over others (for
+   example, ``source.external`` takes precedence over
+   ``source.mongodbResourceRef``). Refer to the field
    descriptions below for valid combinations.
 
-.. example:: 
+.. example::
 
    .. literalinclude:: /reference/k8s/example-fts-vs.yaml
       :language: yaml
@@ -44,21 +45,21 @@ settings, see the :ref:`k8s-fts-vs-required-settings` and
 
 .. _k8s-fts-vs-required-settings:
 
-Required Settings 
+Required Settings
 -----------------
 
-This section describes the settings that are required for deploying 
+This section describes the settings that are required for deploying
 the |text-search| and |vector-search| resource. If you define only the
 required settings in the Custom Resource Definition (CRD), the
-|k8s-op-full| uses the defaults for all optional settings to configure MongoDBSearch.  
+|k8s-op-full| uses the defaults for all optional settings to configure MongoDBSearch.
 
-.. _mdbsearcg-api-version:
+.. _mdbsearch-api-version:
 
 ``apiVersion``
   *Type*: string
 
   Version of the MongoDB |k8s| resource schema. Set the value to
-  ``mongodb.com/v1``. 
+  ``mongodb.com/v1``.
 
 .. _mdbsearch-kind-spec:
 
@@ -72,31 +73,49 @@ required settings in the Custom Resource Definition (CRD), the
 ``metadata.namespace``
   *Type*: string
 
-  Namespace where the MongoDBSearch resource should be created. To
+  Namespace in which to create the MongoDBSearch resource. To
   leverage automatic configuration of MongoDBSearch and ``MongoDB``
-  or ``MongoDBCommunity`` resources, the MongoDBSearch resource
-  should be created in the same namespace as the ``MongoDB`` or
-  ``MongoDBCommunity`` resource. 
+  or ``MongoDBCommunity`` resources, create the MongoDBSearch
+  resource in the same namespace as the ``MongoDB`` or
+  ``MongoDBCommunity`` resource.
 
 .. _mdbsearch-metadata-name:
 
 ``metadata.name``
   *Type*: string
 
-  Unique identifier of the MongoDBSearch resource. The resource name can
-  be a maximum of 44 characters in length. 
+  Unique identifier of the MongoDBSearch resource. The name must be a
+  valid |k8s| DNS subdomain name. Keep the name short. The
+  |k8s-op-short| derives the names of the |k8s| resources it creates
+  from it, for example
+  ``{name}-search-{clusterIndex}-{shardName}``. The |k8s-op-short|
+  validates that every generated name fits within the |k8s| DNS
+  limits of 63 characters for labels and 253 characters for
+  subdomain names.
+
+``spec.clusters``
+  *Type*: array of objects
+
+  Per-|k8s|-cluster deployment configuration for
+  MongoDBSearch. This field is required and must contain at
+  least one entry and at most 50 entries: one entry for a
+  single-cluster deployment, or one entry for each |k8s|
+  cluster that runs ``mongot`` pods in a multi-cluster
+  deployment. For the full field reference, including
+  ``name`` and ``index``, see
+  :ref:`spec.clusters <mdbsearch-spec-clusters>`.
 
 .. _k8s-fts-vs-optional-settings:
 
-Optional Settings 
+Optional Settings
 -----------------
 
 This section describes the optional settings for the |text-search| and
 |vector-search| resource. If you omit the optional settings and define
 only the required settings in the |crd|, the |k8s-op-full| uses the
-defaults for all optional settings to configure MongoDBSearch. 
+defaults for all optional settings to configure MongoDBSearch.
 
-Settings for Configuring the Data Source 
+Settings for Configuring the Data Source
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. _mdbsearch-spec-source:
@@ -122,8 +141,9 @@ Settings for Configuring the Data Source
     the same name as set for ``metadata.name`` in
     MongoDBSearch, in the same namespace.
   - Find the password secret for the ``mongot`` user from
-    the ``<MongoDBSearch.metadata.name>-search-sync-source-password``
-    secret.
+    the ``<MongoDBSearch.metadata.name>-<username>-password``
+    secret, which for the default username yields
+    ``<MongoDBSearch.metadata.name>-search-sync-source-password``.
 
 .. _mdbsearch-spec-source-mongodb-resourceref-name:
 
@@ -160,40 +180,56 @@ Settings for Configuring the Data Source
     and configures the addresses of the search pods.
 
   If your database is deployed outside of |k8s| or is in
-  a different namespace, use ``spec.external`` to configure
-  connection to the database. This field is mutually
-  exclusive with ``spec.external``.
+  a different namespace, use ``spec.source.external`` to
+  configure the connection to the database. If you set
+  both fields, ``spec.source.external`` takes precedence.
 
   If omitted, the |k8s-op-short| looks for a ``MongoDB``
   or ``MongoDBCommunity`` resource with the same name as
   this MongoDBSearch resource.
 
-Setting for Configuring ``mongot`` User 
+.. _mdbsearch-spec-source-mongodb-resourceref-namespace:
+
+``spec.source.mongodbResourceRef.namespace``
+  *Type*: string
+
+  Namespace of the ``MongoDB`` or ``MongoDBCommunity``
+  resource that ``spec.source.mongodbResourceRef.name``
+  refers to. The |k8s-op-short| currently ignores this
+  field and always uses the namespace of the
+  MongoDBSearch resource. Cross-namespace references are
+  unsupported. If your database is in a different
+  namespace, use ``spec.source.external``.
+
+Setting for Configuring ``mongot`` User
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. _mdbsearch-spec-source-username:
 
 ``spec.source.username``
-  *Type*: string 
+  *Type*: string
 
   Username to use to authenticate ``mongot`` with ``mongod``. The
   specified user must have the :authrole:`searchCoordinator` role. If
   omitted, the |k8s-op-short| assumes the username is
-  ``search-sync-source``. 
+  ``search-sync-source``.
 
 .. _mdbsearch-spec-source-passwordSecretRef-name:
 
 ``spec.source.passwordSecretRef.name``
-  *Type*: string 
+  *Type*: string
 
   Name of the secret that contains the password that ``mongot`` must use
-  to authenticate with ``mongod``. If omitted, defaults to 
-  ``<MongoDBSearch.metadata.name>-search-sync-source-password``. 
+  to authenticate with ``mongod``. If omitted, defaults to
+  ``<MongoDBSearch.metadata.name>-<username>-password``, where
+  ``<username>`` is the value of ``spec.source.username``. For the
+  default username ``search-sync-source``, this yields
+  ``<MongoDBSearch.metadata.name>-search-sync-source-password``.
 
 .. _mdbsearch-spec-source-passwordSecretRef-key:
 
 ``spec.source.passwordSecretRef.key``
-  *Type*: string 
+  *Type*: string
 
   Key under which the password value is stored in the secret. If
   omitted, defaults to ``password``.
@@ -212,8 +248,9 @@ Settings for x509 Authentication
   instead of username and password.
 
   This field is mutually exclusive with
-  ``spec.source.passwordSecretRef`` and
-  ``spec.source.username``. The |k8s-op-short| rejects
+  ``spec.source.passwordSecretRef``,
+  ``spec.source.username``, and ``spec.source.tls``. The
+  |k8s-op-short| rejects
   the configuration if you specify both x509 and
   password authentication.
 
@@ -226,10 +263,12 @@ Settings for x509 Authentication
   key for authenticating to the MongoDB sync source. The
   Secret must contain the following keys:
 
-  - ``tls.crt`` — Client certificate (required)
-  - ``tls.key`` — Private key (required)
-  - ``tls.keyFilePassword`` — Password for the private
-    key (optional)
+  - ``tls.crt`` — Client certificate
+  - ``tls.key`` — Private key
+
+  If the private key is encrypted with a password, store
+  the password in a separate Secret and reference it with
+  ``spec.source.x509.keyFilePasswordSecretRef``.
 
   You must specify this field if you set
   ``spec.source.x509``.
@@ -245,6 +284,69 @@ Settings for x509 Authentication
               clientCertificateSecretRef:
                 name: mongot-x509-client-cert
 
+.. _mdbsearch-spec-source-x509-keyFilePasswordSecretRef:
+
+``spec.source.x509.keyFilePasswordSecretRef``
+  *Type*: object
+
+  Secret that contains the password that decrypts the
+  password-encrypted private key in
+  ``spec.source.x509.clientCertificateSecretRef``. The
+  Secret must contain the password under the
+  ``keyFilePassword`` key. Omit this field if the private
+  key is not encrypted.
+
+Settings for TLS Client Certificates with SCRAM Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. _mdbsearch-spec-source-tls:
+
+``spec.source.tls``
+  *Type*: object
+
+  Configures a TLS client certificate for the ``mongot``
+  sync source connection if you use SCRAM (username and
+  password) authentication. If you set this field,
+  ``mongot`` presents the client certificate during the
+  TLS handshake with the source MongoDB deployment
+  (mutual TLS transport). ``mongot`` still authenticates
+  with the username and password.
+
+  Use this field only with SCRAM authentication
+  (``spec.source.passwordSecretRef``). This field is
+  mutually exclusive with ``spec.source.x509``. If you
+  want the client certificate itself to serve as the
+  authentication credential, use ``spec.source.x509``
+  instead.
+
+.. _mdbsearch-spec-source-tls-clientCertificateSecretRef:
+
+``spec.source.tls.clientCertificateSecretRef``
+  *Type*: object
+
+  Secret that contains the TLS client certificate and key
+  that ``mongot`` presents during the TLS handshake with
+  the source MongoDB deployment. The Secret must contain
+  the following keys:
+
+  - ``tls.crt`` — Client certificate
+  - ``tls.key`` — Private key
+
+  You must specify this field if you set
+  ``spec.source.tls``.
+
+.. _mdbsearch-spec-source-tls-keyFilePasswordSecretRef:
+
+``spec.source.tls.keyFilePasswordSecretRef``
+  *Type*: object
+
+  Secret that contains the password that decrypts the
+  password-encrypted private key in
+  ``spec.source.tls.clientCertificateSecretRef``. The
+  Secret must contain the password under the
+  ``keyFilePassword`` key. Omit this field if the private
+  key is not encrypted.
+
 Settings for Connecting to External MongoDB
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -254,16 +356,41 @@ a connection to an external MongoDB deployment.
 .. _mdbsearch-spec-source-external:
 
 ``spec.source.external``
-  *Type*: object 
+  *Type*: object
 
   Settings that describe the external data source. This object describes
   the settings for the |text-search| and |vector-search| resource to
-  connect to an external MongoDB. These settings should be specified
+  connect to an external MongoDB. Specify these settings
   only if you want to connect to an external MongoDB that wasn't
-  deployed using the |k8s-op-short|. If specified, these settings
-  override settings for ``spec.source.mongodbResourceRef.name``. If you
+  deployed using the |k8s-op-short|. If you specify these settings,
+  they take precedence over ``spec.source.mongodbResourceRef``. If you
   used the |k8s-op-short| to install MongoDB in the same cluster, these
   settings are optional.
+
+.. _mdbsearch-spec-source-external-keyfileSecretRef:
+
+``spec.source.external.keyfileSecretRef``
+  *Type*: object
+
+  Secret that contains the ``mongod`` keyfile that ``mongot`` uses
+  to connect to the external MongoDB deployment.
+
+.. _mdbsearch-spec-source-external-keyfileSecretRef-name:
+
+``spec.source.external.keyfileSecretRef.name``
+  *Type*: string
+
+  Name of the Secret that contains the keyfile. You must specify
+  this field if you set
+  ``spec.source.external.keyfileSecretRef``.
+
+.. _mdbsearch-spec-source-external-keyfileSecretRef-key:
+
+``spec.source.external.keyfileSecretRef.key``
+  *Type*: string
+
+  Key under which the keyfile is stored in the Secret. This
+  field is optional.
 
 Settings for Connecting to an External Replica Set
 ``````````````````````````````````````````````````
@@ -284,12 +411,12 @@ Settings for Connecting to an External Replica Set
   ``hostAndPorts`` for replica set sources and
   ``shardedCluster`` for sharded cluster sources.
 
-  .. example:: 
+  .. example::
 
-     .. code-block:: shell 
-        :copyable: false 
+     .. code-block:: shell
+        :copyable: false
 
-        hostAndPorts: 
+        hostAndPorts:
           - mdbc-rs-0.my-external-domain.example.com:27017
           - mdbc-rs-1.my-external-domain.example.com:27017
           - mdbc-rs-2.my-external-domain.example.com:27017
@@ -297,41 +424,41 @@ Settings for Connecting to an External Replica Set
 .. _mdbsearch-spec-source-external-tls:
 
 ``spec.source.external.tls``
-  *Type*: object 
+  *Type*: object
 
   TLS Settings that ``mongot`` must use when connecting to the external
-  MongoDB database. 
+  MongoDB database.
 
 .. _mdbsearch-spec-source-external-tls-ca:
 
 ``spec.source.external.tls.ca.name``
-  *Type*: string 
+  *Type*: string
 
-  Name of the Secret containing the trusted chain of the certificate
+  Name of the ConfigMap containing the trusted chain of the certificate
   authorities that issued the TLS certificate used by the ``mongod``
-  nodes. 
+  nodes.
 
-  .. example:: 
+  .. example::
 
-     .. code-block:: yaml 
-        :copyable: false 
+     .. code-block:: yaml
+        :copyable: false
 
         spec:
           source:
             external:
               tls:
-                ca: 
+                ca:
                   name: trusted-ca
-  
+
   You must specify the certificate (or certificate chain)
-  under the ``ca.crt`` key in this Secret.
+  under the ``ca.crt`` key in this ConfigMap.
 
-  .. example:: 
+  .. example::
 
-     .. code-block:: yaml 
-        :copyable: false 
+     .. code-block:: yaml
+        :copyable: false
 
-        name: Secret
+        kind: ConfigMap
         apiVersion: v1
         metadata:
           name: trusted-ca
@@ -432,7 +559,7 @@ extend the existing ``spec.source.external`` settings.
   entry describes one shard's replica set. The
   |k8s-op-short| creates one ``mongot`` StatefulSet for
   each shard, where each StatefulSet contains the number
-  of pods specified in ``spec.replicas``. Specify at
+  of pods specified in ``spec.clusters[].replicas``. Specify at
   least one shard entry.
 
 .. _mdbsearch-spec-source-external-shardedCluster-shards-shardName:
@@ -448,14 +575,21 @@ extend the existing ``spec.source.external`` settings.
   **Naming constraints:**
 
   - Must be unique across all shards.
-  - Must conform to |k8s| DNS subdomain name rules
-    (`RFC 1123 <https://tools.ietf.org/html/rfc1123>`__), which
-    allow lowercase alphanumeric characters, hyphen (``-``), and period (``.``),
-    and require that the name start with an alphabetic character
-    and end with an alphanumeric character. Underscores (``_``)
-    are not allowed.
-  - The combined length of ``metadata.name`` and
-    ``shardName`` must be less than 50 characters.
+  - Must conform to |k8s| DNS label name rules
+    (`RFC 1123 <https://tools.ietf.org/html/rfc1123>`__),
+    which allow lowercase alphanumeric characters and
+    hyphens (``-``), and require that the name start and
+    end with an alphanumeric character. Periods (``.``)
+    and underscores (``_``) are not allowed. The maximum
+    length is 63 characters.
+  - The |k8s-op-short| combines ``metadata.name``, the
+    cluster index, and ``shardName`` into the names of the
+    |k8s| resources it creates (for example,
+    ``{name}-search-{clusterIndex}-{shardName}``), and
+    validates that every generated name fits within the
+    |k8s| DNS limits of 63 characters for labels and 253
+    characters for subdomain names. Keep ``shardName``
+    short enough for these limits.
 
   .. example::
 
@@ -494,23 +628,917 @@ extend the existing ``spec.source.external`` settings.
               - "shard0-node2.external:27018"
               - "shard0-node3.external:27018"
 
+Settings for Cluster Deployment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following settings describe each entry of the required
+``spec.clusters`` array.
+
+.. _mdbsearch-spec-clusters:
+
+``spec.clusters``
+  *Type*: array of objects
+
+  Per-|k8s|-cluster deployment configuration for
+  MongoDBSearch. This field is required and must contain at
+  least one entry and at most 50 entries. All sizing and
+  placement settings, such as ``replicas``, ``loadBalancer``,
+  ``resourceRequirements``, ``persistence``, ``jvmFlags``,
+  and ``statefulSet``, live inside a ``clusters`` entry.
+  These settings have no top-level equivalents.
+
+  For a single-cluster deployment, specify one entry. You
+  can omit ``name`` and ``index``.
+
+  .. example::
+
+     .. code-block:: yaml
+        :copyable: false
+
+        spec:
+          clusters:
+            - {}
+
+  For a multi-cluster deployment, specify one entry for each
+  |k8s| cluster that runs ``mongot`` pods. If you specify
+  more than one entry, the following rules apply:
+
+  - ``name`` is required on every entry and must be unique.
+  - ``index`` is required on every entry and must be unique.
+  - The MongoDB source must be external
+    (``spec.source.external``). Multi-cluster deployments
+    don't support operator-managed MongoDB sources.
+  - Every entry must configure an operator-managed load
+    balancer (``loadBalancer.managed``). Multi-cluster
+    deployments don't support unmanaged load balancers.
+
+  The |k8s-op-short| enforces these rules through CRD
+  validation rules and reconcile-time validation.
+
+.. _mdbsearch-spec-clusters-name:
+
+``spec.clusters[].name``
+  *Type*: string
+
+  Name of the |k8s| cluster for this entry, with a maximum
+  length of 253 characters. You can omit this field for a
+  single-cluster deployment.
+
+  If ``spec.clusters`` contains more than one entry,
+  ``name`` is required, must be unique across entries, and
+  can't change after you create the resource.
+
+.. _mdbsearch-spec-clusters-index:
+
+``spec.clusters[].index``
+  *Type*: integer
+
+  Stable integer identifier of the |k8s| cluster for this
+  entry. The value must be between ``0`` and ``999``, and
+  must be unique across entries. If ``spec.clusters``
+  contains more than one entry, ``index`` is required on
+  every entry.
+
+  The |k8s-op-short| includes the index in the names of the
+  |k8s| resources it creates for this cluster entry, for
+  example ``{name}-search-{index}`` for StatefulSets,
+  ``{name}-search-{index}-svc`` for Services, and
+  ``{name}-search-{index}-config`` for ConfigMaps. For
+  sharded cluster sources, the names also include the shard
+  name, for example ``{name}-search-{index}-{shardName}``
+  and ``{name}-search-{index}-{shardName}-svc``.
+
+  .. warning::
+
+     Don't change the ``index`` of an existing entry because
+     the index is part of the resource names. Changing
+     it causes the |k8s-op-short| to create new resources
+     under the new index and orphan the resources at the
+     old index. This applies to every index-bearing
+     resource, including proxy Services
+     (``{name}-search-{index}[-{shardName}]-proxy-svc``),
+     the Envoy Deployment and ConfigMap
+     (``{name}-search-lb-{index}``), load balancer
+     certificate Secrets, and metrics forwarder resources
+     (``{name}-search-metrics-forwarder-{index}``).
+
+  For a single-cluster deployment, you can omit this field
+  and it defaults to ``0``. However, if each member |k8s|
+  cluster runs its own |k8s-op-short| instance, set
+  ``index`` explicitly to a distinct value in each
+  cluster's MongoDBSearch resource. Distinct indexes keep
+  the generated hostnames and resource names from
+  colliding across clusters.
+
+Sizing and Storage
+``````````````````
+
+.. _mdbsearch-spec-replicas:
+
+``spec.clusters[].replicas``
+  *Type*: integer
+
+  Number of ``mongot`` pods to deploy in this |k8s|
+  cluster. For a replica set
+  source, this is the total number of ``mongot`` pods. For
+  a sharded cluster source, this is the number of
+  ``mongot`` pods per shard.
+
+  If ``spec.clusters[].replicas`` is greater than ``1``, you must
+  also configure ``spec.clusters[].loadBalancer`` to route traffic
+  between ``mongod`` and the multiple ``mongot``
+  instances.
+
+  If you set ``spec.clusters[].replicas`` to ``0``, the
+  |k8s-op-short| takes the ``mongot`` deployment in this
+  cluster offline. The |k8s-op-short| scales the
+  StatefulSet to zero pods and keeps the MongoDBSearch
+  resource and its other |k8s| resources in place.
+
+  If omitted, defaults to ``1``.
+
+  .. example::
+
+     .. code-block:: yaml
+        :copyable: false
+
+        spec:
+          clusters:
+            - replicas: 2
+
+.. _mdbsearch-spec-resource-requirements:
+
+``spec.clusters[].resourceRequirements``
+  *Type*: `core/v1/ResourceRequirements
+  <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#resourcerequirements-v1-core>`__
+
+  CPU and memory that the ``mongodb-search`` container can
+  request and be limited to. We recommend using this
+  field to customize resource allocations instead of
+  overriding it with ``spec.clusters[].statefulSet``.
+
+  If you do not override the JVM heap size in
+  ``spec.clusters[].jvmFlags``, the |k8s-op-short| sets the
+  default heap size (``-Xmx``) to 50% of the memory
+  request of the ``mongot`` container. Adjust
+  ``spec.clusters[].resourceRequirements`` accordingly to control
+  both pod resources and JVM heap size.
+
+  If omitted, the |k8s-op-short| uses the following default
+  values:
+
+  .. code-block:: yaml
+     :copyable: false
+
+     requests:
+       cpu: 2
+       memory: 4Gi
+
+.. _mdbsearch-spec-resource-requirements-limits:
+
+``spec.clusters[].resourceRequirements.limits``
+  *Type*: object
+
+  Upper cap on the resources (CPU and memory) that the ``mongodb-search``
+  container can consume. By default, no limits are set. If
+  omitted, the pod isn't restricted and so, might use all the resources
+  on the node. We recommend setting limits based on your workload.
+
+.. _mdbsearch-spec-resource-requirements-requests:
+
+``spec.clusters[].resourceRequirements.requests``
+  *Type*: object
+
+  Amount of CPU and memory requested for the ``mongodb-search``
+  container. If you specify only one of ``cpu`` or ``memory``, the
+  |k8s-op-short| applies the default value for the other. If omitted,
+  the |k8s-op-short| uses the following default
+  values:
+
+  .. code-block:: yaml
+     :copyable: false
+
+     requests:
+       cpu: 2
+       memory: 4Gi
+
+.. _mdbsearch-spec-persistence-single:
+
+``spec.clusters[].persistence.single``
+  *Type*: object
+
+  Storage configuration for |text-search| and |vector-search|
+  persistence volume where |text-search| and |vector-search| indexes are
+  stored. Each search instance (pod) has its own independent storage to
+  maintain indexes, which isn't shared with the MongoDB database. Only
+  index metadata (definitions) are stored in the database itself.
+
+  .. list-table::
+     :widths: 20 20 60
+     :header-rows: 1
+
+     * - Scalar
+       - Data Type
+       - Description
+
+     * - ``labelSelector``
+       - string
+       - `Tag
+         <https://kubernetes.io/docs/concepts/storage/persistent-volumes/#selector>`__
+         used to bind mounted volumes to directories.
+
+     * - ``storage``
+       - string
+       - Minimum size of |k8s-pv| to mount. This value is
+         expressed as an integer followed by a unit of storage in
+         |jedec| notation.
+
+         Default value is ``16G``.
+
+         For example, if a :term:`replica set` requires 60
+         gigabytes of storage space, set this value to ``60G``.
+
+     * - ``storageClass``
+       - string
+       - Type of storage specified in a |k8s-pvc|. You can create
+         this storage type as a |k8s-sc| object before using it in this
+         |k8s-obj| specification.
+
+         .. include:: /includes/admonitions/fact-reclaimpolicy-to-retain.rst
+
+  MongoDBSearch supports only the ``single`` persistence mode, which
+  uses one volume for all data. Although the |crd| schema also
+  contains a ``spec.clusters[].persistence.multiple`` field, the
+  |k8s-op-short| doesn't apply it. If you omit ``persistence``, the
+  |k8s-op-short| sets ``spec.clusters[].persistence.single.storage``
+  to ``16G``.
+
+Load Balancing
+``````````````
+
+.. _mdbsearch-spec-loadBalancer:
+
+``spec.clusters[].loadBalancer``
+  *Type*: object
+
+  Configuration for L7 load balancing between ``mongod``
+  (or ``mongos``) and ``mongot``. This field is required
+  if ``spec.clusters[].replicas`` is greater than ``1``. If
+  ``spec.clusters[].replicas`` is ``1``, this field is optional. You
+  can configure a load balancer even for a single
+  ``mongot`` instance to prepare for scaling up later.
+
+  Exactly one of ``managed`` or ``unmanaged`` must be set.
+
+  All entries in ``spec.clusters`` must agree on the load
+  balancer mode: either every entry sets
+  ``loadBalancer.managed``, every entry sets
+  ``loadBalancer.unmanaged``, or no entry sets
+  ``loadBalancer``. The |k8s-op-short| rejects mixed
+  modes. Multi-cluster deployments support only the
+  managed mode.
+
+  The load balancer affects which TLS certificates
+  ``mongod`` clients see and which hostnames those
+  certificates must contain:
+
+  - **Without a load balancer**, ``mongod`` connects
+    directly to ``mongot``. The TLS certificate
+    presented to ``mongod`` is ``mongot``'s own
+    certificate. If the MongoDB cluster is outside of
+    |k8s|, the ``mongot`` service is exposed on an
+    external domain. You must include that external
+    domain in the ``mongot`` TLS certificate's SAN
+    (Subject Alternative Name) field.
+  - **With a managed load balancer**
+    (``spec.clusters[].loadBalancer.managed``), the Envoy proxy is
+    the only component that connects directly to
+    ``mongot``. The Envoy proxy reaches ``mongot``
+    through the internal Service FQDNs:
+
+    - Replica set:
+      ``<name>-search-<clusterIndex>-svc.<ns>.svc.cluster.local``
+    - Sharded cluster:
+      ``<name>-search-<clusterIndex>-<shard>-svc.<ns>.svc.cluster.local``
+
+    We recommend that you include these service FQDNs in
+    the ``mongot`` TLS certificate's SAN field. The
+    operator-managed Envoy proxy currently validates the
+    ``mongot`` certificate against the certificate
+    authority only and doesn't match SAN hostnames.
+    External ``mongod`` processes see the
+    **Envoy proxy's** TLS certificate, so include
+    external domains in the Envoy certificate's SANs,
+    not in the ``mongot`` certificate.
+
+  .. tip::
+
+     Enable a managed load balancer even if you
+     initially deploy a single ``mongot`` pod. With
+     the load balancer in place, the domains in your
+     TLS certificates remain stable if you scale up
+     ``spec.clusters[].replicas`` later because the load balancer
+     is already present between ``mongod`` and
+     ``mongot``.
+
+.. _mdbsearch-spec-loadBalancer-managed:
+
+``spec.clusters[].loadBalancer.managed``
+  *Type*: object
+
+  Configures an operator-managed
+  `Envoy <https://www.envoyproxy.io/>`__ load balancer.
+  The |k8s-op-short| deploys and manages the Envoy proxy
+  with correct routing, mTLS, and HTTP/2+gRPC stream
+  pinning. Set this field to an empty object (``{}``) to
+  use the defaults.
+
+  This field is mutually exclusive with
+  ``spec.clusters[].loadBalancer.unmanaged``.
+
+  For sharded cluster sources, you must also configure
+  ``spec.security.tls`` if you use a managed load
+  balancer. The Envoy proxy routes traffic to the correct
+  shard using SNI, which requires TLS.
+
+  .. example::
+
+     .. code-block:: yaml
+        :copyable: false
+
+        spec:
+          clusters:
+            - loadBalancer:
+                managed: {}
+
+.. _mdbsearch-spec-loadBalancer-managed-externalHostname:
+
+``spec.clusters[].loadBalancer.managed.externalHostname``
+  *Type*: string
+
+  Hostname that the Envoy proxy expects for SNI matching
+  on incoming requests. The |k8s-op-short| uses this
+  value to configure routing rules that match the TLS
+  SNI field from incoming ``mongod`` connections. The
+  Envoy TLS server certificate must include this
+  hostname in its SAN (Subject Alternative Name) field.
+
+  For sharded cluster sources, the value must contain a
+  ``{shardName}`` placeholder, which the |k8s-op-short|
+  expands per shard. Each shard gets its own hostname,
+  and the Envoy TLS server certificate must include all
+  expanded shard hostnames in its SANs. You can use a
+  wildcard certificate to cover all shards with a single
+  certificate and avoid re-issuing when shards are
+  added. For replica set sources, don't use the
+  ``{shardName}`` placeholder.
+
+  This field is required if MongoDB is externally
+  managed (not deployed by the |k8s-op-short|). If
+  MongoDB is operator-managed in the same cluster, omit
+  this field because the |k8s-op-short| auto-configures
+  routing.
+
+  In multi-cluster deployments, each cluster entry
+  typically uses a distinct hostname. However, the
+  |k8s-op-short| permits sharing one hostname across
+  clusters, for example if a failover proxy that spans
+  availability zones fronts the Envoy proxies of
+  multiple clusters.
+
+  .. example::
+
+     .. code-block:: yaml
+        :copyable: false
+
+        # Replica set with external MongoDB
+        spec:
+          clusters:
+            - loadBalancer:
+                managed:
+                  externalHostname: "search.apps.example.com"
+
+        # Sharded cluster with external MongoDB
+        spec:
+          clusters:
+            - loadBalancer:
+                managed:
+                  externalHostname: "{shardName}.search.example.com"
+
+.. _mdbsearch-spec-loadBalancer-managed-routerHostname:
+
+``spec.clusters[].loadBalancer.managed.routerHostname``
+  *Type*: string
+
+  Endpoint that ``mongos`` routers use to reach this
+  cluster's ``mongot`` instances through the managed
+  Envoy load balancer, in the ``host:port`` format. The
+  |k8s-op-short| uses the hostname for SNI matching on
+  the cluster-level routing chain, so the Envoy TLS
+  server certificate must include this hostname in its
+  SANs.
+
+  This field is required if you use a managed load
+  balancer with an external sharded MongoDB source
+  (``spec.source.external.shardedCluster``). The
+  |k8s-op-short| ignores this field for replica set
+  sources and for operator-managed MongoDB.
+
+  Unlike ``externalHostname``, the |k8s-op-short| uses
+  this value verbatim, so the value must not contain a
+  ``{shardName}`` placeholder. This endpoint is the
+  shard-agnostic entry point for ``mongos``.
+
+  In multi-cluster deployments, each cluster entry
+  typically uses a distinct value. However, the
+  |k8s-op-short| permits sharing one value across
+  clusters, for example if a failover proxy that spans
+  availability zones fronts the Envoy proxies of
+  multiple clusters.
+
+  .. example::
+
+     .. code-block:: yaml
+        :copyable: false
+
+        spec:
+          clusters:
+            - loadBalancer:
+                managed:
+                  externalHostname: "{shardName}.search.example.com"
+                  routerHostname: "search-router.example.com:27028"
+
+.. _mdbsearch-spec-loadBalancer-managed-replicas:
+
+``spec.clusters[].loadBalancer.managed.replicas``
+  *Type*: integer
+
+  Number of Envoy proxy pods to deploy in this |k8s|
+  cluster. The value must be ``1`` or greater. If
+  omitted, defaults to ``1``.
+
+.. _mdbsearch-spec-loadBalancer-managed-resourceRequirements:
+
+``spec.clusters[].loadBalancer.managed.resourceRequirements``
+  *Type*: `core/v1/ResourceRequirements
+  <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#resourcerequirements-v1-core>`__
+
+  CPU and memory that the Envoy container can request and
+  be limited to. If you specify this setting, the
+  |k8s-op-short| replaces the defaults entirely.
+
+  If omitted, the |k8s-op-short| uses the following
+  default values:
+
+  .. code-block:: yaml
+     :copyable: false
+
+     requests:
+       cpu: 100m
+       memory: 128Mi
+     limits:
+       cpu: 500m
+       memory: 512Mi
+
+  .. example::
+
+     .. code-block:: yaml
+        :copyable: false
+
+        spec:
+          clusters:
+            - loadBalancer:
+                managed:
+                  resourceRequirements:
+                    requests:
+                      cpu: "200m"
+                      memory: "256Mi"
+                    limits:
+                      cpu: "1"
+                      memory: "1Gi"
+
+.. _mdbsearch-spec-loadBalancer-managed-deployment:
+
+``spec.clusters[].loadBalancer.managed.deployment``
+  *Type*: object
+
+  Overrides that the |k8s-op-short| merges into the
+  operator-created Envoy Deployment. Follows the same
+  convention as ``spec.statefulSet`` on MongoDB
+  resources. If omitted, the |k8s-op-short| uses
+  defaults for the Envoy Deployment.
+
+  This object contains two fields:
+
+  - ``metadata`` — contains ``labels`` and
+    ``annotations`` fields that the |k8s-op-short|
+    merges into the Envoy Deployment metadata.
+  - ``spec`` — an `apps/v1/DeploymentSpec
+    <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#deploymentspec-v1-apps>`__
+    object. The |k8s-op-short| merges these overrides
+    into the Envoy Deployment spec.
+
+  .. example::
+
+     .. code-block:: yaml
+        :copyable: false
+
+        spec:
+          clusters:
+            - loadBalancer:
+                managed:
+                  deployment:
+                    spec:
+                      template:
+                        spec:
+                          nodeSelector:
+                            kubernetes.io/os: linux
+
+.. _mdbsearch-spec-loadBalancer-managed-retryPolicy:
+
+``spec.clusters[].loadBalancer.managed.retryPolicy``
+  *Type*: object
+
+  Retry behavior that the Envoy proxy applies to
+  individual gRPC streams to the upstream ``mongot``
+  instances. The Envoy proxy sends each retry attempt to
+  a different ``mongot`` host than the failed attempt.
+
+  If you omit this field, the Envoy proxy retries with
+  the default values: ``2`` retries with a per-try
+  timeout of ``60s``.
+
+  .. example::
+
+     .. code-block:: yaml
+        :copyable: false
+
+        spec:
+          clusters:
+            - loadBalancer:
+                managed:
+                  retryPolicy:
+                    numRetries: 2
+                    perTryTimeout: "60s"
+
+.. _mdbsearch-spec-loadBalancer-managed-retryPolicy-numRetries:
+
+``spec.clusters[].loadBalancer.managed.retryPolicy.numRetries``
+  *Type*: integer
+
+  Maximum number of retries per request. The value must
+  be ``1`` or greater. If omitted, defaults to ``2``,
+  which allows three total attempts for each request.
+
+.. _mdbsearch-spec-loadBalancer-managed-retryPolicy-perTryTimeout:
+
+``spec.clusters[].loadBalancer.managed.retryPolicy.perTryTimeout``
+  *Type*: string
+
+  Timeout for each individual attempt, including the
+  original request, expressed as a duration string (for
+  example, ``"30s"``). If omitted, defaults to ``"60s"``.
+
+.. _mdbsearch-spec-loadBalancer-managed-minMongotReadyReplicas:
+
+``spec.clusters[].loadBalancer.managed.minMongotReadyReplicas``
+  *Type*: integer
+
+  Minimum number of ready ``mongot`` replicas that a
+  ``mongot`` group (for example, the ``mongot`` instances
+  of one shard) must have before the Envoy proxy routes
+  traffic to it. While a group is below this threshold,
+  the Envoy proxy forwards the traffic intended for that
+  group to a healthy ``mongot`` group and marks the
+  requests with the ``routed_from_another_shard`` header.
+  These requests return empty results instead of errors.
+
+  The value must be ``1`` or greater. If omitted,
+  defaults to ``1``.
+
+.. _mdbsearch-spec-loadBalancer-unmanaged:
+
+``spec.clusters[].loadBalancer.unmanaged``
+  *Type*: object
+
+  Configures a user-provided (Bring Your Own) L7 load
+  balancer. You are responsible for deploying and
+  configuring the load balancer externally.
+
+  This field is mutually exclusive with
+  ``spec.clusters[].loadBalancer.managed``. Multi-cluster
+  deployments don't support unmanaged load balancers.
+
+.. _mdbsearch-spec-loadBalancer-unmanaged-endpoint:
+
+``spec.clusters[].loadBalancer.unmanaged.endpoint``
+  *Type*: string
+
+  The endpoint of the BYO load balancer in
+  ``host:port`` format. You must specify this field if
+  you configure ``spec.clusters[].loadBalancer.unmanaged``.
+
+  If the |k8s-op-short| manages the MongoDB deployment
+  (using ``spec.source.mongodbResourceRef``), the
+  |k8s-op-short| writes this value into
+  the ``mongod`` configuration as ``mongotHost`` and
+  ``searchIndexManagementHostAndPort``. If MongoDB is
+  external, you configure the ``mongod`` parameters
+  yourself using the same value.
+
+  For external sharded cluster sources, the value must
+  contain a ``{shardName}`` placeholder that the
+  |k8s-op-short| expands per shard, and it must contain
+  more than just the placeholder. For external replica
+  set sources, the value must not contain a
+  ``{shardName}`` placeholder.
+
+  .. example::
+
+     .. code-block:: yaml
+        :copyable: false
+
+        # Replica set example
+        spec:
+          clusters:
+            - loadBalancer:
+                unmanaged:
+                  endpoint: "search-lb.corp.example.com:443"
+
+        # Sharded cluster example
+        spec:
+          clusters:
+            - loadBalancer:
+                unmanaged:
+                  endpoint: "{shardName}-lb.corp.example.com:443"
+
+Per-Shard Overrides
+```````````````````
+
+.. _mdbsearch-spec-shardOverrides:
+
+``spec.clusters[].shardOverrides``
+  *Type*: array of objects
+
+  Overrides that size specific shards within this cluster
+  entry differently from the cluster defaults. Use this
+  field to give individual shards more or fewer ``mongot``
+  replicas, resources, or storage than the rest of the
+  cluster.
+
+  You can use this field only with an external sharded
+  cluster source
+  (``spec.source.external.shardedCluster``). Each shard
+  name that you reference must exist in
+  ``spec.source.external.shardedCluster.shards[*].shardName``,
+  and you can override each shard at most once per
+  cluster entry.
+
+  If you set ``replicas``, ``resourceRequirements``,
+  ``persistence``, or ``jvmFlags`` in an override, they
+  replace the cluster value for the named shards. The
+  |k8s-op-short| deep-merges ``statefulSet`` onto the
+  cluster value. Fields that you don't set inherit the
+  cluster value.
+
+  .. example::
+
+     .. code-block:: yaml
+        :copyable: false
+
+        spec:
+          clusters:
+            - replicas: 2
+              shardOverrides:
+                - shardNames:
+                    - shard-0
+                  replicas: 3
+                  resourceRequirements:
+                    requests:
+                      cpu: "4"
+                      memory: 8Gi
+
+.. _mdbsearch-spec-shardOverrides-shardNames:
+
+``spec.clusters[].shardOverrides[*].shardNames``
+  *Type*: array of strings
+
+  Names of the shards within this cluster entry that the
+  override applies to. This field is required and must
+  contain at least one entry.
+
+.. _mdbsearch-spec-shardOverrides-replicas:
+
+``spec.clusters[].shardOverrides[*].replicas``
+  *Type*: integer
+
+  Replaces the cluster's ``mongot`` replica count for the
+  named shards. A value of ``0`` takes the ``mongot``
+  instances for these shards offline.
+
+.. _mdbsearch-spec-shardOverrides-resourceRequirements:
+
+``spec.clusters[].shardOverrides[*].resourceRequirements``
+  *Type*: `core/v1/ResourceRequirements
+  <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#resourcerequirements-v1-core>`__
+
+  Replaces the cluster's CPU and memory requests and
+  limits for the named shards.
+
+.. _mdbsearch-spec-shardOverrides-persistence:
+
+``spec.clusters[].shardOverrides[*].persistence``
+  *Type*: object
+
+  Replaces the cluster's persistent volume configuration
+  for the named shards. Uses the same schema as
+  ``spec.clusters[].persistence``.
+
+.. _mdbsearch-spec-shardOverrides-statefulSet:
+
+``spec.clusters[].shardOverrides[*].statefulSet``
+  *Type*: object
+
+  StatefulSet overrides for the named shards. Unlike the
+  other override fields, the |k8s-op-short| deep-merges
+  this value onto the cluster's
+  ``spec.clusters[].statefulSet`` value instead of
+  replacing it.
+
+.. _mdbsearch-spec-shardOverrides-jvmFlags:
+
+``spec.clusters[].shardOverrides[*].jvmFlags``
+  *Type*: array of strings
+
+  Replaces the cluster's ``spec.clusters[].jvmFlags`` for
+  the named shards if you set it to a non-empty list. The
+  format rules for ``spec.clusters[].jvmFlags`` also
+  apply to this field.
+
+Sync Source Selection
+`````````````````````
+
+.. _mdbsearch-spec-syncSourceSelector:
+
+``spec.clusters[].syncSourceSelector``
+  *Type*: object
+
+  Selects which ``mongod`` nodes the ``mongot`` instances
+  in this cluster entry sync data from.
+
+.. _mdbsearch-spec-syncSourceSelector-matchTagSets:
+
+``spec.clusters[].syncSourceSelector.matchTagSets``
+  *Type*: array of objects
+
+  Ordered list of replica set tag sets that selects the
+  sync source ``mongod`` nodes by their replica set tags.
+  The |k8s-op-short| passes the list to the ``mongot``
+  configuration. ``mongot`` syncs from the nodes that the
+  first matching tag set selects, and prefers secondary
+  nodes.
+
+  Each entry is a map of tag names to tag values. An empty
+  document (``{}``) matches any node, so you can append a
+  trailing ``{}`` entry as a match-any fallback if no
+  earlier tag set matches. You can specify at most 50
+  entries.
+
+  .. example::
+
+     .. code-block:: yaml
+        :copyable: false
+
+        spec:
+          clusters:
+            - syncSourceSelector:
+                matchTagSets:
+                  - region: us-east-1
+                    workload: search
+                  - {}
+
+JVM Flags
+`````````
+
+.. _mdbsearch-spec-jvmFlags:
+
+``spec.clusters[].jvmFlags``
+  *Type*: array of strings
+
+  JVM flags passed to the ``mongot`` process. The
+  |k8s-op-short| includes the flags without modification
+  in the ``mongot``
+  startup command using
+  ``--jvm-flags "<all flags space-separated>"``.
+
+  Each flag must start with ``-X``, ``-XX:``, or ``-D``,
+  must not contain spaces, and can contain only
+  alphanumeric characters and the ``.``, ``_``, ``+``,
+  ``:``, ``-``, and ``=`` characters. The |k8s-op-short|
+  rejects flags that don't match these rules.
+
+  If you don't specify ``-Xms`` or ``-Xmx`` in this
+  field, the |k8s-op-short| auto-calculates heap size by
+  setting both to half of
+  ``spec.clusters[].resourceRequirements.requests.memory``. If you don't
+  specify resource requirements, the
+  |k8s-op-short| uses a default of 4Gi memory request,
+  yielding approximately ``-Xmx2048m -Xms2048m``.
+
+  If you provide your own ``-Xms`` or ``-Xmx`` values,
+  the |k8s-op-short| uses them and does not override
+  the values.
+  The |k8s-op-short| always appends the flags you provide
+  after the operator-computed flags.
+
+  To learn more, see
+  :ref:`Hardware Sizing for mongot <k8s-fts-vs-planning-sizing>`.
+
+  .. example::
+
+     .. code-block:: yaml
+        :copyable: false
+
+        spec:
+          clusters:
+            - jvmFlags:
+                - -Xms2g
+                - -Xmx2g
+
+StatefulSet Overrides
+`````````````````````
+
+.. _mdbsearch-spec-statefulset:
+
+``spec.clusters[].statefulSet``
+  *Type*: object
+
+  Overrides for the `StatefulSet
+  <https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/>`__
+  that the |k8s-op-short| creates for deploying ``mongot``
+  pods. The |k8s-op-short| always applies the overrides
+  last, so they overwrite the settings that the
+  |k8s-op-short| computes.
+
+  This object contains two fields:
+
+  - ``metadata`` — contains ``labels`` and
+    ``annotations`` fields that the |k8s-op-short|
+    merges into the StatefulSet metadata.
+  - ``spec`` — an `apps/v1/StatefulSetSpec
+    <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#statefulsetspec-v1-apps>`__
+    object. The |k8s-op-short| merges these overrides
+    into the StatefulSet spec.
+
+  .. note::
+
+     Don't set resource requirements or persistence settings using
+     ``spec.clusters[].statefulSet``. Instead, use the ``spec.clusters[].resourceRequirements``
+     and ``spec.clusters[].persistence`` fields respectively.
+
+Advanced ``mongot`` Settings
+````````````````````````````
+
+.. _mdbsearch-spec-advancedMongotConfigs:
+
+``spec.clusters[].advancedMongotConfigs``
+  *Type*: object
+
+  Advanced ``mongot`` settings for this cluster entry. The
+  |k8s-op-short| renders the value verbatim under the
+  ``advancedConfigs`` key of the ``mongot`` configuration
+  file, without reading or modifying it. This field
+  doesn't affect the settings that the |k8s-op-short|
+  generates elsewhere in the ``mongot`` configuration.
+
+  Use this field only for ``mongot`` settings that the
+  MongoDBSearch resource doesn't expose as first-class
+  fields.
+
 Settings for Security
 ~~~~~~~~~~~~~~~~~~~~~
 
 .. _mdbsearch-spec-security:
 
 ``spec.security``
-  *Type*: object 
+  *Type*: object
 
   Security settings for ``mongot`` listen server.
 
 .. _mdbsearch-spec-security-tls:
 
 ``spec.security.tls``
-  *Type*: object 
+  *Type*: object
 
   :abbr:`TLS (Transport Layer Security)` settings for ``mongot``. If
-  omitted, ``mongot`` won't use TLS for incoming connections.
+  omitted, ``mongot`` doesn't use TLS for incoming connections.
+
+  If you use a managed load balancer with a sharded
+  cluster source, this field is required. The Envoy proxy
+  routes traffic to the correct shard using SNI, which
+  depends on the TLS ClientHello. The |k8s-op-short|
+  fails the reconcile if you omit ``spec.security.tls``
+  in this configuration.
 
 .. _mdbsearch-spec-security-tls.certificateKeySecretRef-name:
 
@@ -518,7 +1546,7 @@ Settings for Security
   *Type*: string
 
   .. deprecated:: 1.8.0
-     
+
      Use ``spec.security.tls.certsSecretPrefix`` instead.
 
   Name of the TLS secret in the same namespace containing
@@ -567,34 +1595,62 @@ Settings for Security
      * - Replica set's ``mongot`` server cert
        - ``{certsSecretPrefix}-{name}-search-cert``
 
-     * - Sharded ``mongot`` cert (per shard)
-       - ``{certsSecretPrefix}-{name}-search-0-{shardName}-cert``
+     * - Sharded ``mongot`` cert (per cluster and shard)
+       - ``{certsSecretPrefix}-{name}-search-{clusterIndex}-{shardName}-cert``
 
-     * - Managed load balancer server cert
-       - ``{certsSecretPrefix}-{name}-search-lb-0-cert``
+     * - Managed load balancer server cert (per cluster, all topologies)
+       - ``{certsSecretPrefix}-{name}-search-lb-{clusterIndex}-cert``
 
      * - Managed load balancer client cert
-       - ``{certsSecretPrefix}-{name}-search-lb-0-client-cert``
+       - ``{certsSecretPrefix}-{name}-search-lb-{clusterIndex}-client-cert``
 
   Where:
 
   - ``{name}`` is ``metadata.name`` of the
     MongoDBSearch resource
+  - ``{clusterIndex}`` is the value of
+    ``spec.clusters[].index`` (``0`` for a single-cluster
+    deployment that doesn't set an index)
   - ``{shardName}`` is the value of
     ``spec.source.external.shardedCluster.shards[*].shardName``
 
-  If omitted, this field defaults to an empty string and the
-  |k8s-op-short| uses
-  ``spec.security.tls.certificateKeySecretRef`` instead.
+  The |k8s-op-short| uses one managed load balancer server
+  certificate per cluster for all topologies. For sharded
+  clusters, the SANs of this certificate must include all
+  expanded shard hostnames from ``externalHostname`` and
+  the ``routerHostname``.
+
+  The |k8s-op-short| resolves the ``mongot`` server
+  certificate secret name in the following order:
+
+  1. If you set
+     ``spec.security.tls.certificateKeySecretRef.name``,
+     the |k8s-op-short| uses that name.
+  2. If you set ``certsSecretPrefix``, the |k8s-op-short|
+     uses the naming patterns in the preceding table.
+  3. If you set neither field, the |k8s-op-short| uses
+     the default name ``{name}-search-cert`` for replica
+     set deployments, or the default per-shard pattern
+     ``{name}-search-{clusterIndex}-{shardName}-cert``
+     for sharded deployments.
+
+  If you don't set ``certsSecretPrefix``, the managed load
+  balancer certificates also use default names: the
+  |k8s-op-short| mounts
+  ``{name}-search-lb-{clusterIndex}-cert`` for the server
+  certificate and
+  ``{name}-search-lb-{clusterIndex}-client-cert`` for the
+  client certificate.
 
   .. note::
 
-     For sharded cluster deployments, you must use
-     ``certsSecretPrefix`` instead of
-     ``certificateKeySecretRef``. The |k8s-op-short|
-     rejects ``certificateKeySecretRef`` for sharded
-     topologies because a single secret reference cannot
-     cover per-shard certificates.
+     For sharded cluster deployments, the |k8s-op-short|
+     rejects ``certificateKeySecretRef`` because a single
+     secret reference cannot cover per-shard certificates.
+     Use ``certsSecretPrefix``, or set neither field and
+     create secrets that follow the default per-shard
+     pattern and the default-named load balancer
+     certificate secrets.
 
   .. example::
 
@@ -606,170 +1662,128 @@ Settings for Security
             tls:
               certsSecretPrefix: my-prefix
 
-Settings for Multiple Mongot Instances
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. _mdbsearch-spec-security-tls-keyFilePasswordSecretRef:
 
-.. _mdbsearch-spec-replicas:
-
-``spec.replicas``
-  *Type*: integer
-
-  Number of ``mongot`` pods to deploy. For a replica set
-  source, this is the total number of ``mongot`` pods. For
-  a sharded cluster source, this is the number of
-  ``mongot`` pods per shard.
-
-  If ``spec.replicas`` is greater than ``1``, you must
-  also configure ``spec.loadBalancer`` to route traffic
-  between ``mongod`` and the multiple ``mongot``
-  instances.
-
-  If omitted, defaults to ``1``.
-
-  .. example::
-
-     .. code-block:: yaml
-        :copyable: false
-
-        spec:
-          replicas: 2
-
-Settings for Load Balancing
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. _mdbsearch-spec-loadBalancer:
-
-``spec.loadBalancer``
+``spec.security.tls.keyFilePasswordSecretRef``
   *Type*: object
 
-  Configuration for L7 load balancing between ``mongod``
-  (or ``mongos``) and ``mongot``. This field is required
-  if ``spec.replicas`` is greater than ``1``. If
-  ``spec.replicas`` is ``1``, this field is optional. You
-  can configure a load balancer even for a single
-  ``mongot`` instance to prepare for scaling up later.
+  Secret that contains the password that decrypts the
+  password-encrypted server private key in the TLS
+  certificate secret. The Secret must contain the password
+  under the ``keyFilePassword`` key. Omit this field if
+  the server private key is not encrypted.
 
-  Exactly one of ``managed`` or ``unmanaged`` must be set.
+Settings for Logging
+~~~~~~~~~~~~~~~~~~~~
 
-  The load balancer affects which TLS certificates
-  ``mongod`` clients see and which hostnames those
-  certificates must contain:
+.. _mdbsearch-spec-log-level:
 
-  - **Without a load balancer**, ``mongod`` connects
-    directly to ``mongot``. The TLS certificate
-    presented to ``mongod`` is ``mongot``'s own
-    certificate. If the MongoDB cluster is outside of
-    |k8s|, the ``mongot`` service is exposed on an
-    external domain. You must include that external
-    domain in the ``mongot`` TLS certificate's SAN
-    (Subject Alternative Name) field.
-  - **With a managed load balancer**
-    (``spec.loadBalancer.managed``), the Envoy proxy is
-    the only component that connects directly to
-    ``mongot``. Envoy reaches ``mongot`` pods using
-    their internal headless Service FQDNs:
-
-    - Replica set:
-      ``<pod>.<name>-search-svc.<ns>.svc.cluster.local``
-    - Sharded cluster:
-      ``<pod>.<name>-search-0-<shard>-svc.<ns>.svc.cluster.local``
-
-    Issue the ``mongot`` TLS certificate with these
-    cluster-local domains in the SAN field. You can use
-    a wildcard certificate to avoid re-issuing
-    certificates when the number of ``mongot`` pods
-    changes. External ``mongod`` processes see the
-    **Envoy proxy's** TLS certificate, so include
-    external domains in the Envoy certificate's SANs,
-    not in the ``mongot`` certificate.
-
-  .. tip::
-
-     Enable a managed load balancer even if you
-     initially deploy a single ``mongot`` pod. With
-     the load balancer in place, the domains in your
-     TLS certificates remain stable if you scale up
-     ``spec.replicas`` later because the load balancer
-     is already present between ``mongod`` and
-     ``mongot``.
-
-.. _mdbsearch-spec-loadBalancer-managed:
-
-``spec.loadBalancer.managed``
-  *Type*: object
-
-  Configures an operator-managed
-  `Envoy <https://www.envoyproxy.io/>`__ load balancer.
-  The |k8s-op-short| deploys and manages the Envoy proxy
-  with correct routing, mTLS, and HTTP/2+gRPC stream
-  pinning. Set this field to an empty object (``{}``) to
-  use the defaults.
-
-  This field is mutually exclusive with
-  ``spec.loadBalancer.unmanaged``.
-
-  .. example::
-
-     .. code-block:: yaml
-        :copyable: false
-
-        spec:
-          loadBalancer:
-            managed: {}
-
-.. _mdbsearch-spec-loadBalancer-managed-externalHostname:
-
-``spec.loadBalancer.managed.externalHostname``
+``spec.logLevel``
   *Type*: string
 
-  Hostname that the Envoy proxy expects for SNI matching
-  on incoming requests. The |k8s-op-short| uses this
-  value to configure routing rules that match the TLS
-  SNI field from incoming ``mongod`` connections. The
-  Envoy TLS server certificate must include this
-  hostname in its SAN (Subject Alternative Name) field.
+  Verbosity of the ``mongot`` logs. Value can be one of the following:
 
-  For sharded clusters, the value must contain a
-  ``{shardName}`` placeholder that the |k8s-op-short|
-  expands per shard. Each shard gets a unique hostname,
-  and the Envoy TLS server certificate must include all
-  expanded shard hostnames in its SANs. You can use a
-  wildcard certificate to cover all shards with a single
-  certificate and avoid re-issuing when shards are
-  added.
+  - ``TRACE``
+  - ``DEBUG``
+  - ``INFO``
+  - ``WARN``
+  - ``ERROR``
 
-  This field is required if MongoDB is externally
-  managed (not deployed by the |k8s-op-short|). If
-  MongoDB is operator-managed in the same cluster, omit
-  this field because the |k8s-op-short| auto-configures
-  routing.
+  If omitted, defaults to ``INFO``.
 
-  .. example::
+Settings for Metrics
+~~~~~~~~~~~~~~~~~~~~
 
-     .. code-block:: yaml
-        :copyable: false
+.. _mdbsearch-spec-observability:
 
-        # Replica set with external MongoDB
-        spec:
-          loadBalancer:
-            managed:
-              externalHostname: "search.apps.example.com"
+``spec.observability``
+  *Type*: object
 
-        # Sharded cluster with external MongoDB
-        spec:
-          loadBalancer:
-            managed:
-              externalHostname: "{shardName}.search.example.com"
+  Observability settings for the MongoDBSearch resource,
+  including the Prometheus metrics endpoint in ``mongot``
+  and the metrics forwarder for |onprem|.
 
-.. _mdbsearch-spec-loadBalancer-managed-resourceRequirements:
+.. _mdbsearch-spec-prometheus:
 
-``spec.loadBalancer.managed.resourceRequirements``
+``spec.observability.prometheus``
+  *Type*: object
+
+  Configuration for the Prometheus metrics endpoint in
+  ``mongot``. If you omit this field, the |k8s-op-short|
+  enables the metrics endpoint on the default port
+  ``9946``. To disable the endpoint, set
+  ``spec.observability.prometheus.mode`` to
+  ``disabled``. To change the port, set
+  ``spec.observability.prometheus.port``.
+
+.. _mdbsearch-spec-prometheus-mode:
+
+``spec.observability.prometheus.mode``
+  *Type*: string
+
+  Enables or disables the Prometheus metrics endpoint in
+  ``mongot``. Value can be one of the following:
+
+  - ``enabled``
+  - ``disabled``
+
+  If omitted, defaults to ``enabled``.
+
+.. _mdbsearch-spec-prometheus-port:
+
+``spec.observability.prometheus.port``
+  *Type*: integer
+
+  Port on which to enable Prometheus metrics endpoint. By default,
+  Prometheus metrics endpoint is enabled on port ``9946``.
+
+.. _mdbsearch-spec-metricsForwarder:
+
+``spec.observability.metricsForwarder``
+  *Type*: object
+
+  Configuration for the metrics forwarder, a Deployment
+  that the |k8s-op-short| creates to scrape the ``mongot``
+  Prometheus metrics and forward them to |onprem|.
+
+.. _mdbsearch-spec-metricsForwarder-mode:
+
+``spec.observability.metricsForwarder.mode``
+  *Type*: string
+
+  Whether the |k8s-op-short| creates the metrics
+  forwarder. Value can be one of the following:
+
+  - ``auto`` — The |k8s-op-short| creates the forwarder
+    for operator-managed ``MongoDB`` (|onprem|-backed)
+    sources, and for external sources only if you set
+    ``spec.observability.metricsForwarder.opsManager``.
+    For ``MongoDBCommunity`` sources, the |k8s-op-short|
+    doesn't create the forwarder.
+  - ``enabled`` — The |k8s-op-short| always creates the
+    forwarder. If the source is a ``MongoDBCommunity``
+    resource, the |k8s-op-short| reports an error because
+    the forwarder isn't supported for ``MongoDBCommunity``
+    sources.
+  - ``disabled`` — The |k8s-op-short| never creates the
+    forwarder.
+
+  If omitted, defaults to ``auto``.
+
+  The ``enabled`` and ``auto`` modes require the
+  Prometheus endpoint
+  (``spec.observability.prometheus``) to be enabled. If
+  you disable the endpoint, the |k8s-op-short| reports an
+  ``Invalid`` metrics forwarder status.
+
+.. _mdbsearch-spec-metricsForwarder-resourceRequirements:
+
+``spec.observability.metricsForwarder.resourceRequirements``
   *Type*: `core/v1/ResourceRequirements
   <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#resourcerequirements-v1-core>`__
 
-  CPU and memory that the Envoy container can request and
-  be limited to. If you specify this setting, the
-  |k8s-op-short| replaces the defaults entirely.
+  CPU and memory that the metrics forwarder container can
+  request and be limited to.
 
   If omitted, the |k8s-op-short| uses the following
   default values:
@@ -781,277 +1795,73 @@ Settings for Load Balancing
        cpu: 100m
        memory: 128Mi
      limits:
-       cpu: 500m
-       memory: 512Mi
+       cpu: 250m
+       memory: 256Mi
 
-  .. example::
+.. _mdbsearch-spec-metricsForwarder-deployment:
 
-     .. code-block:: yaml
-        :copyable: false
-
-        spec:
-          loadBalancer:
-            managed:
-              resourceRequirements:
-                requests:
-                  cpu: "200m"
-                  memory: "256Mi"
-                limits:
-                  cpu: "1"
-                  memory: "1Gi"
-
-.. _mdbsearch-spec-loadBalancer-managed-deployment:
-
-``spec.loadBalancer.managed.deployment``
+``spec.observability.metricsForwarder.deployment``
   *Type*: object
 
   Overrides that the |k8s-op-short| merges into the
-  operator-created Envoy Deployment. Follows the same
-  convention as ``spec.statefulSet`` on MongoDB
-  resources. If omitted, the |k8s-op-short| uses
-  defaults for the Envoy Deployment.
+  operator-created metrics forwarder Deployment. Follows
+  the same convention as
+  ``spec.clusters[].loadBalancer.managed.deployment``: a
+  ``metadata`` field with ``labels`` and ``annotations``,
+  and a ``spec`` field with an `apps/v1/DeploymentSpec
+  <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#deploymentspec-v1-apps>`__
+  object.
 
-  This object contains two fields:
+.. _mdbsearch-spec-metricsForwarder-opsManager:
 
-  - ``metadata`` — contains ``labels`` and
-    ``annotations`` fields that the |k8s-op-short|
-    merges into the Envoy Deployment metadata.
-  - ``spec`` — an `apps/v1/DeploymentSpec
-    <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#deploymentspec-v1-apps>`__
-    object. The |k8s-op-short| merges these overrides
-    into the Envoy Deployment spec.
-
-  .. example::
-
-     .. code-block:: yaml
-        :copyable: false
-
-        spec:
-          loadBalancer:
-            managed:
-              deployment:
-                spec:
-                  template:
-                    spec:
-                      nodeSelector:
-                        kubernetes.io/os: linux
-
-.. _mdbsearch-spec-loadBalancer-unmanaged:
-
-``spec.loadBalancer.unmanaged``
+``spec.observability.metricsForwarder.opsManager``
   *Type*: object
 
-  Configures a user-provided (Bring Your Own) L7 load
-  balancer. You are responsible for deploying and
-  configuring the load balancer externally.
+  |onprem| project and credentials that the metrics
+  forwarder sends metrics to. If omitted, the
+  |k8s-op-short| derives the project and credentials from
+  the connection configuration of the source MongoDB
+  resource. Set this field for external MongoDB sources,
+  where no source MongoDB resource exists.
 
-  This field is mutually exclusive with
-  ``spec.loadBalancer.managed``.
+  If you set this field, you must set both
+  ``agentCredentials`` and ``projectConfigMapRef``.
 
-.. _mdbsearch-spec-loadBalancer-unmanaged-endpoint:
+.. _mdbsearch-spec-metricsForwarder-opsManager-agentCredentials:
 
-``spec.loadBalancer.unmanaged.endpoint``
+``spec.observability.metricsForwarder.opsManager.agentCredentials.name``
   *Type*: string
 
-  The endpoint of the BYO load balancer in
-  ``host:port`` format. The |k8s-op-short| writes this value into
-  the ``mongod`` configuration as ``mongotHost`` and
-  ``searchIndexManagementHostAndPort``.
+  Name of the Secret that contains the |onprem| Agent API
+  key that the metrics forwarder authenticates with.
 
-  This field is required only when the |k8s-op-short|
-  manages the MongoDB deployment (using
-  ``spec.source.mongodbResourceRef``), because the
-  |k8s-op-short| needs the endpoint to configure
-  ``mongod`` parameters. If both the load balancer and
-  MongoDB are external (not managed by the
-  |k8s-op-short|), this field is not required because
-  you configure ``mongod`` parameters yourself.
+.. _mdbsearch-spec-metricsForwarder-opsManager-projectConfigMapRef:
 
-  For sharded clusters, the value must contain a
-  ``{shardName}`` placeholder that the |k8s-op-short|
-  expands per shard.
-
-  .. example::
-
-     .. code-block:: yaml
-        :copyable: false
-
-        # Replica set example
-        spec:
-          loadBalancer:
-            unmanaged:
-              endpoint: "search-lb.corp.example.com:443"
-
-        # Sharded cluster example
-        spec:
-          loadBalancer:
-            unmanaged:
-              endpoint: "{shardName}-lb.corp.example.com:443"
-
-Settings for Provisioning Resources
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. _mdbsearch-spec-resource-requirements:
-
-``spec.resourceRequirements``
-  *Type*: `core/v1/ResourceRequirements
-  <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.34/#resourcerequirements-v1-core>`__ 
-
-  CPU and memory that the ``mongodb-search`` container can
-  request and be limited to. We recommend using this
-  field to customize resource allocations instead of
-  overriding it with ``spec.statefulSet``.
-
-  If you do not override the JVM heap size in
-  ``spec.jvmFlags``, the |k8s-op-short| sets the
-  default heap size (``-Xmx``) to 50% of the memory
-  available to the ``mongot`` pod. Adjust
-  ``spec.resourceRequirements`` accordingly to control
-  both pod resources and JVM heap size.
-
-  If omitted, the |k8s-op-short| uses the following default
-  values: 
-
-  .. code-block:: yaml 
-     :copyable: false 
-
-     requests: 
-       cpu: 2
-       memory: 2G
-
-.. _mdbsearch-spec-resource-requirements-limits:
-
-``spec.resourceRequirements.limits``
-  *Type*: object 
-
-  Upper cap on the resource, CPU and memory, that the ``mongodb-search``
-  container can consume. By default, there are no limits set. If
-  omitted, the pod isn't restricted and so, might use all the resources
-  on the node. We recommend setting limits based on your workload. 
-
-.. _mdbsearch-spec-resource-requirements-requests:
-
-``spec.resourceRequirements.requests``
-  *Type*: object 
-
-  Amount of CPU and memory requested for the ``mongodb-search``
-  container. If omitted, the |k8s-op-short| uses the following default 
-  values: 
-
-  .. code-block:: yaml 
-     :copyable: false 
-
-     requests: 
-       cpu: 2
-       memory: 2G
-
-.. _mdbsearch-spec-persistence-single:
-
-``spec.persistence.single``
-  *Type*: object 
-
-  Storage configuration for |text-search| and |vector-search|
-  persistence volume where |text-search| and |vector-search| indexes are
-  stored. Each search instance (pod) has its own independent storage to
-  maintain indexes, which isn't shared with the MongoDB database. Only
-  index metadata (definitions) are stored in the database itself.
-
-  .. list-table::
-     :widths: 20 20 60
-     :header-rows: 1
-
-     * - Scalar
-       - Data Type
-       - Description
-
-     * - ``labelSelector``
-       - string
-       - `Tag
-         <https://kubernetes.io/docs/concepts/storage/persistent-volumes/#selector>`__
-         used to bind mounted volumes to directories.
-
-     * - ``storage``
-       - string
-       - Minimum size of |k8s-pv| that should be mounted. This value is
-         expressed as an integer followed by a unit of storage in
-         |jedec| notation.
-
-         Default value is 16Gi.
-
-         For example, if :term:`replica set` requires 60
-         gigabytes of storage space, set this value to ``60Gi``.
-
-     * - ``storageClass``
-       - string
-       - Type of storage specified in a |k8s-pvc|. You may create
-         this storage type as a |k8s-sc| object before using it in this
-         |k8s-obj| specification.
-
-         .. include:: /includes/admonitions/fact-reclaimpolicy-to-retain.rst
-
-  MongoDBSearch supports only ``single`` persistence field. If omitted,
-  the |k8s-op-short| sets ``spec.persistence.single.storage`` to ``10GB``.
-
-Settings for Logging 
-~~~~~~~~~~~~~~~~~~~~
-
-.. _mdbsearch-spec-log-level: 
-
-``spec.logLevel``
-  *Type*: string 
-
-  Verbosity of the ``mongot`` logs. Value can be one of the following: 
-
-  - ``TRACE``
-  - ``DEBUG``
-  - ``INFO``
-  - ``WARN``
-  - ``ERROR``
-
-  If omitted, defaults to ``INFO``.
-
-Settings for Metrics 
-~~~~~~~~~~~~~~~~~~~~
-
-.. _mdbsearch-spec-prometheus:
-
-``spec.prometheus`` 
-  *Type*: object
-
-  **This is available only in v1.6 and later.**
-  
-  Configuration to enable Prometheus metrics endpoint. If omitted, the
-  metrics endpoint in ``mongot`` is disabled. To enable Prometheus
-  metrics endpoint on the default port (``9946``), specify an empty
-  ``{}`` object in the ``spec.prometheus`` field. To change the port,
-  set it in ``spec.prometheus.port`` field. 
-
-.. _mdbsearch-spec-prometheus-port:
-
-``spec.prometheus.port``
+``spec.observability.metricsForwarder.opsManager.projectConfigMapRef.name``
   *Type*: string
 
-  Port on which to enable Prometheus metrics endpoint. By default,
-  Prometheus metrics endpoint is enabled on port ``9946``.
+  Name of the ConfigMap that contains the |onprem| project
+  configuration that the metrics forwarder sends metrics
+  to.
 
 .. _mdbsearch-auto-embedding:
 
-Settings for Automated Embedding 
+Settings for Automated Embedding
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. important:: 
+.. important::
 
-   Automated embedding is available as a Preview feature for only MongoDB 
-   Community Edition deployment. The feature and corresponding documentation 
-   might change at any time during the Preview period. To learn more, see 
-   `Preview Features <https://www.mongodb.com/docs/preview-features/>`__. 
+   Automated embedding is available only as a Preview feature for MongoDB
+   Community Edition deployment. The feature and corresponding documentation
+   might change at any time during the Preview period. To learn more, see
+   `Preview Features <https://www.mongodb.com/docs/preview-features/>`__.
 
 .. _mdbsearch-spec-auto-embedding:
 
 ``spec.autoEmbedding``
-  *Type*: Object 
+  *Type*: Object
 
-  Configuration for :ref:`Automated Embedding <avs-auto-embeddings>` for 
+  Configuration for :ref:`Automated Embedding <avs-auto-embeddings>` for
   text data in your collection.
 
 .. _mdbsearch-spec-auto-embedding-model-api-key-secret:
@@ -1059,12 +1869,12 @@ Settings for Automated Embedding
 ``spec.autoEmbedding.embeddingModelAPIKeySecret``
   *Type*: Object
 
-  Configuration for the embedding model provider |api| keys. To enable 
-  Automated Embedding, you must create two keys, one for generating 
-  embeddings at index-time for data in your collection and another for 
-  generating embeddings at query-time for the query text. If you don't 
-  already have the keys, we recommend that you create keys from two Atlas 
-  projects. To learn more about creating keys for the Atlas projects 
+  Configuration for the embedding model provider |api| keys. To enable
+  Automated Embedding, you must create two keys, one for generating
+  embeddings at index-time for data in your collection and another for
+  generating embeddings at query-time for the query text. If you don't
+  already have the keys, we recommend that you create keys from two Atlas
+  projects. To learn more about creating keys for the Atlas projects
   from the Atlas UI, see :ref:`Manage API Keys <voyage-manage-api-keys>`.
 
 .. _mdbsearch-spec-auto-embedding-model-api-key-secret-name:
@@ -1072,61 +1882,58 @@ Settings for Automated Embedding
 ``spec.autoEmbedding.embeddingModelAPIKeySecret.name``
   *Type*: string
 
-  Name of the secret that contains the embedding model |api| keys that 
+  Name of the secret that contains the embedding model |api| keys that
   ``mongot`` must use to generate embeddings at index- and query-time.
+  The Secret must contain the index-time key under the
+  ``indexing-key`` key and the query-time key under the ``query-key``
+  key.
 
-.. _mdbsearch-spec-auto-embedding-provider-emdpoint:
+  You can omit ``embeddingModelAPIKeySecret`` only if
+  ``spec.autoEmbedding.providerEndpoint`` points to the
+  operator-managed, self-hosted Voyage AI embedding service.
+  Otherwise, the |k8s-op-short| requires it.
+
+.. _mdbsearch-spec-auto-embedding-provider-endpoint:
 
 ``spec.autoEmbedding.providerEndpoint``
   *Type*: string
 
-  Embedding model endpoint URL for generating embeddings. Value varies 
-  based on whether you create the keys from the Atlas UI (recommended) 
-  or directly from the embedding service (|voyage|). For keys created 
-  from: 
+  Embedding model endpoint URL for generating embeddings. Value varies
+  based on whether you create the keys from the Atlas UI (recommended)
+  or directly from the embedding service (|voyage|). For keys created
+  from:
 
   - Atlas UI, value is ``https://ai.mongodb.com/v1/embeddings`` (default)
   - |voyage|, value is ``https://api.voyageai.com/v1/embeddings``
 
-Settings for JVM Configuration
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Settings for Feature Flags
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. _mdbsearch-spec-jvmFlags:
+.. _mdbsearch-spec-featureFlags:
 
-``spec.jvmFlags``
-  *Type*: array of strings
+``spec.featureFlags``
+  *Type*: object
 
-  JVM flags passed to the ``mongot`` process. The
-  |k8s-op-short| includes the flags without modification
-  in the ``mongot``
-  startup command using
-  ``--jvm-flags "<all flags space-separated>"``.
+  Feature flags for ``mongot``. If you set a flag to
+  ``true``, the |k8s-op-short| renders it into the
+  ``mongot`` configuration. If you omit the
+  ``featureFlags`` object or an individual flag, the
+  schema default for that flag applies (``true`` for
+  ``enableOverloadRetrySignal``).
 
-  If you don't specify ``-Xms`` or ``-Xmx`` in this
-  field, the |k8s-op-short| auto-calculates heap size by
-  setting both to half of
-  ``spec.resourceRequirements.requests.memory``. If you don't
-  specify resource requirements, the
-  |k8s-op-short| uses a default of 4Gi memory request,
-  yielding approximately ``-Xmx2048m -Xms2048m``.
+.. _mdbsearch-spec-featureFlags-enableOverloadRetrySignal:
 
-  If you provide your own ``-Xms`` or ``-Xmx`` values,
-  the |k8s-op-short| uses them and does not override
-  the values.
-  The |k8s-op-short| always appends the flags you provide
-  after the operator-computed flags.
+``spec.featureFlags.enableOverloadRetrySignal``
+  *Type*: boolean
 
-  To learn more, see :ref:`Hardware Sizing for mongot <mongot-sizing-hardware>`.
+  Enables the ``mongot`` overload retry signal. If you
+  enable this flag, ``mongot`` signals load shedding to
+  upstream proxies (such as the operator-managed Envoy
+  load balancer) through gRPC ``RESOURCE_EXHAUSTED``
+  responses. The proxies then retry the request on
+  another ``mongot`` instance.
 
-  .. example::
-
-     .. code-block:: yaml
-        :copyable: false
-
-        spec:
-          jvmFlags:
-            - -Xms2g
-            - -Xmx2g
+  If omitted, defaults to ``true``.
 
 Other Settings
 ~~~~~~~~~~~~~~
@@ -1134,30 +1941,13 @@ Other Settings
 .. _mdbsearch-spec-version:
 
 ``spec.version``
-  *Type*: string 
+  *Type*: string
 
-  Version of ``mongodb-search`` docker image. If omitted, the
-  |k8s-op-short| automatically chooses the newest version of
-  MongoDBSearch. You can set it explicitly to prevent
-  automatic upgrades when the |k8s-op-short| version is upgraded. 
-
-.. _mdbsearch-spec-statefulset:
-
-``spec.statefulSet``
-  *Type*: `apps/v1/StatefulSet <https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.26/#statefulset-v1-apps>`__
-
-  Specification for the `StatefulSet
-  <https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/>`__,
-  created for deploying ``mongot`` pods, that overwrites the settings
-  that the |k8s-op-short| applies. The overrides are always applied
-  last. Supports both the ``spec.statefulSet.spec`` and
-  ``spec.statefulSet.metadata`` fields. 
-
-  .. note::
-
-     Don't set resource requirements or persistence settings using
-     ``spec.statefulSet``. Instead, use the ``spec.resourceRequirements``
-     and ``spec.persistence`` fields respectively.
+  Version of the ``mongodb-search`` Docker image. If omitted,
+  the |k8s-op-short| uses the default |text-search| version
+  bundled with it. You can set the version explicitly to
+  prevent automatic upgrades when you upgrade the
+  |k8s-op-short|.
 
 Status Fields
 -------------
@@ -1165,14 +1955,90 @@ Status Fields
 The |k8s-op-short| reports status information under the
 ``status`` field of the MongoDBSearch resource.
 
+.. _mdbsearch-status-phase:
+
+``status.phase``
+  *Type*: string
+
+  Current phase of the MongoDBSearch resource. Possible
+  values include ``Pending``, ``Running``, ``Failed``,
+  ``Disabled``, ``Updated``, and ``Unsupported``.
+
+  This field is visible in ``kubectl get`` output under the
+  ``PHASE`` column.
+
+.. _mdbsearch-status-message:
+
+``status.message``
+  *Type*: string
+
+  Human-readable message with details about the current
+  status, such as the reason the resource is in a
+  ``Pending`` or ``Failed`` phase.
+
+.. _mdbsearch-status-lastTransition:
+
+``status.lastTransition``
+  *Type*: string
+
+  Timestamp of the last transition of ``status.phase``.
+
+.. _mdbsearch-status-observedGeneration:
+
+``status.observedGeneration``
+  *Type*: integer
+
+  Generation of the MongoDBSearch resource that the
+  |k8s-op-short| last processed.
+
+.. _mdbsearch-status-warnings:
+
+``status.warnings``
+  *Type*: array of strings
+
+  Warnings that the |k8s-op-short| reports for the
+  resource.
+
+.. _mdbsearch-status-version:
+
+``status.version``
+  *Type*: string
+
+  Version of |text-search| (``mongot``) that the
+  |k8s-op-short| reconciled.
+
+  This field is visible in ``kubectl get`` output under the
+  ``VERSION`` column.
+
+.. _mdbsearch-status-resourcesNotReady:
+
+``status.resourcesNotReady``
+  *Type*: array of objects
+
+  Dependent |k8s| resources that are not yet ready. Each
+  entry reports the ``kind`` and ``name`` of the resource
+  and an optional ``message`` and list of ``errors``.
+
+.. _mdbsearch-status-pvc:
+
+``status.pvc``
+  *Type*: array of objects
+
+  State of the persistent volume claims of the ``mongot``
+  StatefulSets. Each entry reports the ``phase`` and the
+  ``statefulsetName`` that the claims belong to.
+
 .. _mdbsearch-status-loadBalancer:
 
 ``status.loadBalancer``
   *Type*: object
 
   Status of the operator-managed load balancer (Envoy). This
-  field is present only when ``spec.loadBalancer.managed`` is
-  set.
+  field is present only if you set
+  ``spec.clusters[].loadBalancer.managed``. For
+  multi-cluster deployments, the |k8s-op-short| reports
+  the worst phase across the Envoy deployments of all
+  clusters.
 
 .. _mdbsearch-status-loadBalancer-phase:
 
@@ -1188,11 +2054,48 @@ The |k8s-op-short| reports status information under the
   This field is also visible in ``kubectl get`` output under
   the ``LOADBALANCER`` column.
 
-  .. example::
+.. _mdbsearch-status-loadBalancer-message:
 
-     .. code-block:: shell
-        :copyable: false
+``status.loadBalancer.message``
+  *Type*: string
 
-        $ kubectl get mdbs
-        NAME                   PHASE     VERSION      LOADBALANCER   AGE
-        mdb-rs-ext-lb-search   Running   0.64.0       Running        14m
+  Human-readable message with details about the managed
+  load balancer status.
+
+.. _mdbsearch-status-metricsForwarder:
+
+``status.metricsForwarder``
+  *Type*: object
+
+  Status of the metrics forwarder.
+
+.. _mdbsearch-status-metricsForwarder-phase:
+
+``status.metricsForwarder.phase``
+  *Type*: string
+
+  Current phase of the metrics forwarder. Possible values
+  include ``Pending``, ``Running``, and ``Failed``. The
+  phase reports ``Disabled`` if you set
+  ``spec.observability.metricsForwarder.mode`` to
+  ``disabled``.
+
+  This field is also visible in ``kubectl get`` output under
+  the ``METRICSFORWARDER`` column.
+
+.. _mdbsearch-status-metricsForwarder-message:
+
+``status.metricsForwarder.message``
+  *Type*: string
+
+  Human-readable message with details about the metrics
+  forwarder status.
+
+.. example::
+
+   .. code-block:: shell
+      :copyable: false
+
+      $ kubectl get mdbs
+      NAME                   PHASE     VERSION   LOADBALANCER   METRICSFORWARDER   AGE
+      mdb-rs-ext-lb-search   Running   1.70.1    Running        Running            14m
