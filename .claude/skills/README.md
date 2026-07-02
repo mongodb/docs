@@ -19,6 +19,8 @@ Skills every writer should know, regardless of team.
 | `/add-redirects` | Add redirects when MongoDB documentation pages are renamed, moved, or deleted under content/ |
 | `/unified-toc` | Update the unified table of contents when pages are added, removed, or moved |
 | `/version-update` | Create a new version of any versioned MongoDB documentation docset — drivers, providers, or product docsets |
+| `/docs-drift` | Detect drift between a documentation property and its source code, classify each finding (Confirmed / Tracked / Upcoming / Intentional / Needs-eng- confirmation), and draft held DOCSP tickets for confirmed drift only |
+| `/source-explorer` | Read a product's source code and build a plain-language summary of its public surface — flags, options, API endpoints, states, defaults, and constraints |
 
 ## Grove & Code Examples
 
