@@ -3,7 +3,7 @@ Configure the {+mdbagent+} for Access Control
 ==============================================
 
 .. meta::
-   :description: Configure the MongoDB Agent to authenticate with the necessary roles and privileges for access control.
+   :description: Configure the MongoDB Agent to authenticate with the necessary roles and privileges for access control using SCRAM-SHA, LDAP, Kerberos, or X.509 authentication.
 
 .. default-domain:: mongodb
 
@@ -17,10 +17,428 @@ If your MongoDB deployment enforces access control, the {+mdbagent+}
 must authenticate to your MongoDB databases as a user with the proper :manual:`roles </reference/built-in-roles>` and
 :manual:`privileges </reference/privilege-actions>`.
 
+Select your authentication type to view the configuration
+steps for SCRAM-SHA, |ldap|, Kerberos, or X.509.
+
+.. composable-tutorial::
+   :options: auth-type, kerberos-deployment-nav, ldap-authorization-nav, ldap-deployment-nav, ldap-function-nav, scram-deployment-nav, scram-function-nav, x509-deployment-nav, x509-ldap-authorization-nav
+   :defaults: challenge, None, None, None, None, managed, None, None, None
+
+   .. selected-content::
+      :selections: challenge, None, None, None, None, managed, None, None, None
+
+      .. include:: /tutorial/configure-mongodb-agent-for-scram.txt
+         :start-after: start-include-content
+         :end-before: end-include-content
+
+      When you install the {+mdbagent+} with {+aagent+}, |mms| creates a
+      user to authenticate on the MongoDB database. |mms| create this
+      MongoDB user (``mms-automation``) in the ``admin`` database with
+      the correct privileges for each {+mdbagent+} function.
+
+      Configure these credentials in |mms|.
+
+      1. Navigate to :guilabel:`Deployment` :icon-fa5:`arrow-right`
+         :guilabel:`Security` :icon-fa5:`arrow-right`
+         :guilabel:`Settings`
+
+      2. Continue through the modal until you see the
+         :guilabel:`Configure Ops Manager Agents` page
+
+      3. Add the appropriate credentials:
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 30 70
+
+            * - Setting
+              - Value
+
+            * - :guilabel:`{+mdbagent+} Username`
+              - Enter the {+mdbagent+} username.
+
+            * - :guilabel:`{+mdbagent+} Password`
+              - Enter the password for the {+mdbagent+} username.
+
+   .. selected-content::
+      :selections: challenge, None, None, None, None, unmanaged, backup, None, None
+
+      .. include:: /tutorial/configure-mongodb-agent-for-scram.txt
+         :start-after: start-include-content
+         :end-before: end-include-content
+
+      Each {+mdbagent+} function uses a different set of
+      MongoDB shell ({+mongosh+}) commands to configure a user with the
+      appropriate roles and privileges.
+
+      **Create a User**
+
+      To back up MongoDB instances, create a user in the ``admin``
+      database. Assign this user the roles provided in the
+      following example.
+
+      Use the following {+mongosh+} command to create the user:
+
+      .. code-block:: javascript
+
+         db.getSiblingDB("admin").createUser(
+            {
+               user: "<username>",
+               pwd: "<password>",
+               roles: [ {
+                  role: "clusterAdmin", db: "admin"
+               } ]
+            }
+         )
+
+      To learn more about the required access, see :ref:`Required
+      Access for MongoDB Agent Backup <required-permissions-mms-backup>`.
+
+      **Configure {+bagent+} Credentials**
+
+      After you create the user for the {+bagent+} function, add
+      the credentials to the Backup Settings.
+
+      1. Navigate to :guilabel:`Backup` :icon-fa5:`arrow-right`
+         :guilabel:`<backup-deployment>` :icon-fa5:`arrow-right`
+         :icon-mms:`ellipsis` :icon-fa5:`arrow-right`
+         :guilabel:`Edit Credentials`.
+
+      2. Click :guilabel:`Credentials`.
+
+      3. Add the appropriate credentials:
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 30 70
+
+            * - Setting
+              - Value
+
+            * - :guilabel:`{+bagent+} Username`
+              - Enter the {+bagent+} username.
+
+            * - :guilabel:`{+bagent+} Password`
+              - Enter the password for the {+bagent+} username.
+
+   .. selected-content::
+      :selections: challenge, None, None, None, None, unmanaged, monitoring, None, None
+
+      .. include:: /tutorial/configure-mongodb-agent-for-scram.txt
+         :start-after: start-include-content
+         :end-before: end-include-content
+
+      Each {+mdbagent+} function uses a different set of
+      MongoDB shell ({+mongosh+}) commands to configure a user with the
+      appropriate roles and privileges.
+
+      To monitor MongoDB instances that use SCRAM
+      authentication, add a user to the ``admin`` database in
+      MongoDB. Assign this user the roles provided in the
+      following example.
+
+      .. code-block:: javascript
+
+         db.getSiblingDB("admin").createUser(
+            {
+               user: "<username>",
+               pwd: "<password>",
+               roles: [ {
+                 role: "clusterMonitor", db: "admin"
+               } ]
+            }
+         )
+
+      To learn what roles this function requires, see
+      :ref:`Monitoring settings <mongodb-agent-monitoring-settings>`.
+
+      **Configure {+magent+} Credentials**
+
+      After you create the user for the {+magent+} function, add
+      the credentials to the Monitoring Settings.
+
+      1. Navigate to :guilabel:`Deployment`
+         :icon-fa5:`arrow-right` :guilabel:`<deployment>`
+         :icon-fa5:`arrow-right` :icon-mms:`ellipsis`
+         :icon-fa5:`arrow-right` :guilabel:`Monitoring Settings`.
+
+      2. Click :guilabel:`Credentials`.
+
+      3. Add the appropriate credentials:
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 30 70
+
+            * - Setting
+              - Value
+
+            * - :guilabel:`{+magent+} Username`
+              - Enter the {+magent+} username.
+
+            * - :guilabel:`{+magent+} Password`
+              - Enter the password for the {+magent+} username.
+
+   .. selected-content::
+      :selections: ldap, None, None, managed, None, None, None, None, None
+
+      .. include:: /tutorial/configure-mongodb-agent-for-ldap.txt
+         :start-after: start-include-content
+         :end-before: end-include-content
+
+      To automate MongoDB instances that use |ldap| authentication, add
+      a MongoDB user that possesses the required roles and privileges
+      to the ``$external`` database in MongoDB. The ``$external``
+      database allows |mongod| to consult an external source, such as
+      an |ldap| server, to authenticate.
+
+      Use the following commands to create the users from {+mongosh+}:
+
+      .. code-block:: javascript
+
+         db.getSiblingDB("$external").createUser(
+           {
+             user : "<username>",
+             roles : [
+               { role : "clusterAdmin", db : "admin" },
+               { role : "readWriteAnyDatabase", db : "admin" },
+               { role : "userAdminAnyDatabase", db : "admin" },
+               { role : "dbAdminAnyDatabase", db : "admin" },
+               { role : "backup", db : "admin" },
+               { role : "restore", db : "admin" }
+             ]
+           }
+         )
+
+      To learn more about the required access, see
+      :doc:`/reference/required-access-mongodb-agent`.
+
+   .. selected-content::
+      :selections: ldap, None, None, unmanaged, backup, None, None, None, None
+
+      .. include:: /tutorial/configure-mongodb-agent-for-ldap.txt
+         :start-after: start-include-content
+         :end-before: end-include-content
+
+      To back up MongoDB instances that use |ldap|
+      authentication, add a user that possess the required roles
+      to the ``$external`` database in MongoDB. The ``$external``
+      database stores credentials for external authentication and
+      authorization details.
+
+      Use the following {+mongosh+} command to create the user:
+
+      .. code-block:: javascript
+
+         db.getSiblingDB("$external").createUser(
+            {
+               user : "<username>",
+               roles: [ {
+                  role: "clusterAdmin", db: "admin"
+               } ]
+            }
+         )
+
+      To learn more about the required access, see
+      :ref:`Required Access for MongoDB Agent Backup
+      <required-permissions-mms-backup>`.
+
+   .. selected-content::
+      :selections: ldap, None, None, unmanaged, monitoring, None, None, None, None
+
+      .. include:: /tutorial/configure-mongodb-agent-for-ldap.txt
+         :start-after: start-include-content
+         :end-before: end-include-content
+
+      To monitor MongoDB instances that use |ldap|
+      authentication, add a user to the ``$external`` database in
+      MongoDB. The ``$external`` database stores credentials for
+      external authentication and authorization details. Assign
+      this user the roles provided in the following example.
+
+      Use the following {+mongosh+} command to create the user:
+
+      .. code-block:: javascript
+
+         db.getSiblingDB("$external").createUser(
+             {
+               user : "<username>",
+               roles: [ { role: "clusterMonitor", db: "admin" } ]
+             }
+         )
+
+      To learn what roles this function requires, see
+      :ref:`Monitoring settings <mongodb-agent-monitoring-settings>`.
+
+   .. selected-content::
+      :selections: kerberos, managed, None, None, None, None, None, None, None
+
+      .. _create-krb5-upn-for-mongodb-agent:
+      .. _create-mongodb-user-for-mongodb-agent:
+
+      .. include:: /tutorial/configure-mongodb-agent-for-kerberos.txt
+         :start-after: start-include-content
+         :end-before: end-include-content
+
+      When {+aagent+} is activated, |mms| manages {+mdbagent+}
+      authentication.
+
+      To configure Kerberos for {+mdbagent+} authentication, see
+      :doc:`/tutorial/enable-kerberos-authentication-for-group`.
+
+   .. selected-content::
+      :selections: kerberos, unmanaged, ldap, None, None, None, None, None, None
+
+      .. include:: /tutorial/configure-mongodb-agent-for-kerberos.txt
+         :start-after: start-include-content
+         :end-before: end-include-content
+
+      After creating the Kerberos |upn| for the {+mdbagent+}, create
+      a MongoDB user on your deployment that corresponds to the
+      {+mdbagent+}'s |upn| and grant it privileges.
+
+      Where you create the MongoDB user depends upon whether or not
+      you are using
+      :manual:`LDAP authorization </core/security-ldap-external>`.
+
+      .. include:: /includes/ldap-deprecated.rst
+
+      If you are using |ldap| authorization in your MongoDB
+      deployment, you must create an |ldap| user and |ldap| group for
+      the {+mdbagent+} on the |ldap| server. After creating the |ldap|
+      user and group, map the |ldap| group to a MongoDB role in your
+      deployment's ``admin`` database.
+
+      .. warning::
+
+         When using |ldap| Authorization, do not create *any* MongoDB
+         users in the ``$external`` database. MongoDB 3.4 and later
+         does not start if a MongoDB user exists in the ``$external``
+         database and |ldap| authorization is enabled.
+
+      For the MongoDB user representing the {+mdbagent+}:
+
+      #. Create a new |ldap| user on your |ldap| server named with
+         the {+mdbagent+}'s |upn|.
+
+      #. Create an |ldap| group whose name matches the {+mdbagent+}'s
+         role.
+
+      #. Create the {+mdbagent+}'s role in your ``admin`` database
+         with the appropriate permissions.
+
+         .. note::
+
+            When {+aagent+} is activated, {+aagent+} automatically
+            creates a role for the {+mdbagent+} user for |ldap|
+            authentication.
+
+      #. Assign the |ldap| user to the |ldap| group.
+
+      .. seealso::
+
+         - To create an |ldap| user, see documentation for your
+           |ldap| implementation.
+         - To create an |ldap| group, see documentation for your
+           |ldap| implementation.
+         - To assign the appropriate roles for the {+mdbagent+}, see
+           :doc:`/reference/required-access-mongodb-agent`.
+         - To map an |ldap| group and MongoDB role, see the
+           :ref:`LDAP Roles section <security-ldap-external-roles>`
+           of the :manual:`LDAP authorization
+           </core/security-ldap-external>` page in the MongoDB
+           manual.
+         - To configure |ldap| authorization without |mms| automation,
+           see the :manual:`LDAP Authorization
+           </core/security-ldap-external>` page in the MongoDB manual.
+
+   .. selected-content::
+      :selections: kerberos, unmanaged, no-ldap, None, None, None, None, None, None
+
+      .. include:: /tutorial/configure-mongodb-agent-for-kerberos.txt
+         :start-after: start-include-content
+         :end-before: end-include-content
+
+      After creating the Kerberos |upn| for the {+mdbagent+}, create
+      a MongoDB user on your deployment that corresponds to the
+      {+mdbagent+}'s |upn| and grant it privileges.
+
+      If you are not using |ldap| authorization, you must add the
+      {+mdbagent+}'s |upn| as a user in the ``$external`` database in
+      your MongoDB deployment. Without |ldap| authorization, MongoDB
+      uses the ``$external`` database to authenticate a user against
+      Kerberos.
+
+      .. note::
+
+         To discover the appropriate roles for the {+mdbagent+}, see
+         :doc:`/reference/required-access-mongodb-agent`.
+
+      From {+mongosh+}, issue the following commands to create the
+      MongoDB user:
+
+      .. code-block:: javascript
+
+         db.getSiblingDB("$external").createUser(
+           {
+             user : "<Kerberos Principal>",
+             roles : [
+               { role : "clusterAdmin", db : "admin" },
+               { role : "readWriteAnyDatabase", db : "admin" },
+               { role : "userAdminAnyDatabase", db : "admin" },
+               { role : "dbAdminAnyDatabase", db : "admin" },
+               { role : "backup", db : "admin" },
+               { role : "restore", db : "admin" }
+             ]
+           }
+         )
+
+   .. selected-content::
+      :selections: x509, None, None, None, None, None, None, managed, None
+
+      .. include:: /tutorial/configure-mongodb-agent-for-x509.txt
+         :start-after: start-include-content
+         :end-before: end-include-content
+
+      When {+aagent+} is activated, |mms| manages {+mdbagent+} authentication.
+
+      To configure X.509 for {+mdbagent+} authentication, see
+      :ref:`enable-x509-for-project`.
+
+   .. selected-content::
+      :selections: x509, None, None, None, None, None, None, unmanaged, ldap
+
+      .. include:: /tutorial/configure-mongodb-agent-for-x509.txt
+         :start-after: start-include-content
+         :end-before: end-include-content
+
+      .. include:: /includes/fact-mdbagent-x509-subject-as-user.rst
+         :start-after: start-x509-unmanaged-intro
+         :end-before: end-x509-unmanaged-intro
+
+      .. include:: /includes/fact-mdbagent-x509-subject-as-user.rst
+         :start-after: start-x509-ldap-content
+         :end-before: end-x509-ldap-content
+
+   .. selected-content::
+      :selections: x509, None, None, None, None, None, None, unmanaged, no-ldap
+
+      .. include:: /tutorial/configure-mongodb-agent-for-x509.txt
+         :start-after: start-include-content
+         :end-before: end-include-content
+
+      .. include:: /includes/fact-mdbagent-x509-subject-as-user.rst
+         :start-after: start-x509-unmanaged-intro
+         :end-before: end-x509-unmanaged-intro
+
+      .. include:: /includes/fact-mdbagent-x509-subject-as-user.rst
+         :start-after: start-x509-no-ldap-content
+         :end-before: end-x509-no-ldap-content
+
 .. toctree::
    :titlesonly:
    :hidden:
-  
+
    SCRAM-SHA </tutorial/configure-mongodb-agent-for-scram>
    LDAP </tutorial/configure-mongodb-agent-for-ldap>
    Kerberos </tutorial/configure-mongodb-agent-for-kerberos>

@@ -2,6 +2,9 @@
 Configure MongoDB Agent for LDAP
 ================================
 
+.. meta::
+   :description: Configure MongoDB Agent for LDAP authentication, including setting up users with required roles in the `$external` database and managing TLS certificates.
+
 .. default-domain:: mongodb
 
 .. contents:: On this page
@@ -58,10 +61,16 @@ an existing host's configuration.
 Create and Configure User in MongoDB
 ------------------------------------
 
-.. tabs::
+.. end-include-content
 
-   .. tab:: Deployments Managed by {+aagent+}
-      :tabid: automation
+Select your deployment type to view the appropriate steps.
+
+.. composable-tutorial::
+   :options: ldap-deployment, ldap-function
+   :defaults: managed, None
+
+   .. selected-content::
+      :selections: managed, None
 
       To automate MongoDB instances that use |ldap| authentication, add
       a MongoDB user that possesses the required roles and privileges
@@ -76,7 +85,7 @@ Create and Configure User in MongoDB
          db.getSiblingDB("$external").createUser(
            {
              user : "<username>",
-             roles : [ 
+             roles : [
                { role : "clusterAdmin", db : "admin" },
                { role : "readWriteAnyDatabase", db : "admin" },
                { role : "userAdminAnyDatabase", db : "admin" },
@@ -90,57 +99,52 @@ Create and Configure User in MongoDB
       To learn more about the required access, see
       :doc:`/reference/required-access-mongodb-agent`.
 
-   .. tab:: Deployments Not Managed by {+aagent+}
-      :tabid: monitoring-backup-only
+   .. selected-content::
+      :selections: unmanaged, backup
 
-      .. tabs::
+      To back up MongoDB instances that use |ldap|
+      authentication, add a user that possess the required roles
+      to the ``$external`` database in MongoDB. The ``$external``
+      database stores credentials for external authentication and
+      authorization details.
 
-         .. tab:: {+bagent+}
-            :tabid: backup
+      Use the following {+mongosh+} command to create the user:
 
-            To back up MongoDB instances that use |ldap|
-            authentication, add a user that possess the required roles
-            to the ``$external`` database in MongoDB. The ``$external``
-            database stores credentials for external authentication and
-            authorization details.
+      .. code-block:: javascript
 
-            Use the following {+mongosh+} command to create the user:
+         db.getSiblingDB("$external").createUser(
+            {
+               user : "<username>",
+               roles: [ {
+                  role: "clusterAdmin", db: "admin"
+               } ]
+            }
+         )
 
-            .. code-block:: javascript
+      To learn more about the required access, see
+      :ref:`Required Access for MongoDB Agent Backup
+      <required-permissions-mms-backup>`.
 
-               db.getSiblingDB("$external").createUser(
-                  {
-                     user : "<username>",
-                     roles: [ {
-                        role: "clusterAdmin", db: "admin"
-                     } ]
-                  }
-               )
+   .. selected-content::
+      :selections: unmanaged, monitoring
 
-            To learn more about the required access, see
-            :ref:`Required Access for MongoDB Agent Backup
-            <required-permissions-mms-backup>`. 
+      To monitor MongoDB instances that use |ldap|
+      authentication, add a user to the ``$external`` database in
+      MongoDB. The ``$external`` database stores credentials for
+      external authentication and authorization details. Assign
+      this user the roles provided in the following example.
 
-         .. tab:: Monitoring
-            :tabid: monitoring
+      Use the following {+mongosh+} command to create the user:
 
-            To monitor MongoDB instances that use |ldap|
-            authentication, add a user to the ``$external`` database in
-            MongoDB. The ``$external`` database stores credentials for
-            external authentication and authorization details. Assign
-            this user the roles provided in the following example.
+      .. code-block:: javascript
 
-            Use the following {+mongosh+} command to create the user:
+         db.getSiblingDB("$external").createUser(
+             {
+               user : "<username>",
+               roles: [ { role: "clusterMonitor", db: "admin" } ]
+             }
+         )
 
-            .. code-block:: javascript
-
-               db.getSiblingDB("$external").createUser(
-                   {
-                     user : "<username>",
-                     roles: [ { role: "clusterMonitor", db: "admin" } ]
-                   }
-               )
-
-            To learn what roles this function requires, see
-            :ref:`Monitoring settings <mongodb-agent-monitoring-settings>`.
+      To learn what roles this function requires, see
+      :ref:`Monitoring settings <mongodb-agent-monitoring-settings>`.
 

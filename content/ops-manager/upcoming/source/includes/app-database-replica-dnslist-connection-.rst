@@ -5,8 +5,8 @@ your connection string that includes the hostname for the |dns| seedlist, includ
 replica set. The connection string uses the **mongodb+srv:**
 protocol, not the **mongodb:** protocol.
 
-This option requires a |dns-srv| record for the application database. 
-The |dns| entry uses the DNS seedlist string format. Make sure 
+This option requires a |dns-srv| record for the application database.
+The |dns| entry uses the DNS seedlist string format. Make sure
 |onprem| can connect to this application database.
 
 .. seealso::
