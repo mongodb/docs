@@ -7,6 +7,31 @@
   tables using the ``$iceberg`` aggregation stage. To learn more,
   see :ref:`$iceberg <atlas-sp-agg-iceberg>`.
 
+.. _atlas-sp-20260623:
+
+23 June 2026 Release
+--------------------
+
+- Adds support for regional failover. To learn more, see
+  :ref:`atlas-sp-architecture-failover`.
+
+.. _atlas-sp-20260618:
+
+18 June 2026 Release
+--------------------
+
+- Overhauls the UI experience for creating and editing a stream
+  processor. To learn more, see
+  :ref:`atlas-sp-manage-processor-create`.
+- Adds read-only access to the :guilabel:`Edit Connection` page for
+  in-use connections from a connection registry entry. A banner
+  indicates that you must stop processors using the connection before
+  making any changes. Previously, you had to stop processors using the
+  connection to view its details. To learn more, see
+  :ref:`atlas-sp-manage-connection-view`.
+- Improves error messaging when creating a pipeline in the
+  {+atlas-ui+}.
+
 .. _atlas-sp-20260615:
 
 15 June 2026 Release
