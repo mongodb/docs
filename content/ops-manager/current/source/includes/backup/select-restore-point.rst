@@ -22,6 +22,11 @@
 
        .. include:: /includes/fact-restore-doesnt-include-selected-time.rst
 
+       The restore dialog also shows the :guilabel:`restorable time
+       ranges` for the deployment. You can only choose a time that
+       falls within one of these ranges. If the time you want is not
+       available, an oplog gap exists for that period.
+
      - Select a :guilabel:`Date` and :guilabel:`Time`.
 
    * - :guilabel:`Oplog Timestamp`

@@ -721,11 +721,6 @@ export const toc: L1TocItem[] = [
                 url: '/docs/atlas/live-migration',
                 items: [
                   {
-                    label: 'Pull into Atlas',
-                    contentSite: 'cloud-docs',
-                    url: '/docs/atlas/import/c2c-pull-live-migration',
-                  },
-                  {
                     label: 'Push from Cloud Manager',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/import/c2c-push-live-migration',

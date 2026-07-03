@@ -1070,8 +1070,13 @@ Bug Fixes
 - Adds the ability to :ref:`transition between S3-compatible snapshot stores <transition-s3>`
   without terminating the previous backups.
 
-- Adds ability to see any potential oplog gaps in Point in Time Restore 
-  in the UI and API.
+- Adds :guilabel:`restorable time ranges` to the point-in-time restore
+  dialog so you can see which time periods have a complete oplog history
+  before submitting a restore request. You can also retrieve restorable
+  time ranges programmatically using the
+  :ref:`Get Restorable Time Ranges <get-restorable-time-ranges-for-one-cluster>`
+  API endpoint. To learn more, see
+  :ref:`restore-http-point`.
 
 - Fixes the following issues:
 

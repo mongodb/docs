@@ -2575,6 +2575,12 @@ const tocData: TocItem[] = [
                         url: '/docs/ops-manager/:version/reference/api/restorejobs/create-one-restore-job-for-one-cluster',
                       },
                       {
+                        label: 'Get Restorable Time Ranges (Cluster)',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/restorejobs/get-restorable-time-ranges-for-one-cluster',
+                        versions: { includes: ['current', 'upcoming'] },
+                      },
+                      {
                         label: 'Get All (Config Server)',
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/reference/api/restorejobs/get-all-restore-jobs-for-one-sccc-config-server',
