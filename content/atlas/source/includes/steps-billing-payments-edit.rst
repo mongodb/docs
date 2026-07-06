@@ -93,56 +93,69 @@
            - Type the ZIP (U.S.) or Postal Code (other countries) for your
              billing address.
       
-   .. step:: Click :guilabel:`Next`.
+   .. step:: Select your :guilabel:`Payment Method`.
 
-   .. step:: Update your :guilabel:`Payment Method` details as needed.
-      
-      a. Click the radio button for :guilabel:`Credit Card` or
-         :guilabel:`Paypal`.
-      
-         - If you selected :guilabel:`Credit Card`, type values for the
-           following fields:
-      
-           .. list-table::
-              :widths: 20 10 70
-              :header-rows: 1
-              :stub-columns: 1
-      
-              * - Field
-                - Necessity
-                - Action
-      
-              * - Name on Card
-                - Required
-                - Type the name that appears on your credit card.
-      
-              * - Card Number
-                - Required
-                - Type the 16-digit number that appears on your
-                  credit card. American Express uses a 15-digit number.
-      
-              * - Expiration Date
-                - Required
-                - Type the expiration date for your credit card in the
-                  two-digit month and two-digit year format.
-      
-              * - |cvc|
-                - Required
-                - Type the three-digit number on the back of your credit
-                  card. American Express uses a 4-digit number found on
-                  the front of the credit card.
-      
-         - If you selected :guilabel:`PayPal`:
-      
-           i.  Click :guilabel:`Pay with PayPal`.
-      
-           ii. Complete the actions on the PayPal website.
-      
-      All projects within your organization share the same billing
-      settings, including payment method.
-      
-   .. step:: Accept or decline your changes.
+      In the :guilabel:`Payment Method` section, select one of the
+      following options:
 
-      - To accept your changes, click :guilabel:`Submit`.
-      
-      - To decline your changes, click :guilabel:`Cancel`. 
+      - If you select :guilabel:`Card`, enter the following details:
+
+        .. list-table::
+           :widths: 20 10 70
+           :header-rows: 1
+           :stub-columns: 1
+
+           * - Field
+             - Necessity
+             - Action
+
+           * - Card Number
+             - Required
+             - Type your card number.
+
+           * - Expiration Date
+             - Required
+             - Type your card's expiration date in MM/YY format.
+
+           * - |cvc|
+             - Required
+             - Type the three-digit security code for your card.
+               For American Express, the security code is the 4-digit 
+               long code on the front of the card.
+
+      - If you select :guilabel:`Google Pay`, follow the on-screen
+        instructions to complete the payment setup. Google Pay is not
+        available in India.
+
+      - If you select :guilabel:`US bank account`, follow the
+        on-screen instructions to connect your bank account. This option
+        is available only in the United States.
+
+      - If you select :guilabel:`SEPA Direct Debit`, enter your
+        account details. This option is available only in the EEA.
+        SEPA Direct Debit charges are processed in EUR.
+
+      - If you select :guilabel:`Revolut Pay`, an additional step
+        appears to securely submit your payment information. This
+        option is available only in the UK and EEA. Revolut Pay
+        charges are processed in EUR.
+
+      - If you select :guilabel:`Link`, follow the on-screen
+        prompts to complete the payment setup.
+
+      - If you select :guilabel:`PayPal`:
+
+        i.  Click :guilabel:`Pay with PayPal`.
+
+        ii. Complete the actions on the PayPal website.
+
+      .. note::
+
+         All projects within your organization share the same
+         billing settings, including payment method.
+
+   .. step:: Save your payment method.
+
+      - To save your changes, click :guilabel:`Save Payment Method`.
+
+      - To discard your changes, click :guilabel:`Cancel`.
