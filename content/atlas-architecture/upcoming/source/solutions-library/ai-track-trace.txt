@@ -1,0 +1,311 @@
+.. _arch-center-is-ai-track-trace:
+
+============================================
+AI-Powered Track and Trace for Manufacturing
+============================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: track and trace software, supply chain traceability, DSCSA compliance, EU Battery Passport, data silos, data retrieval time, manufacturing, traceability systems
+   :description: Build a real-time manufacturing traceability system. Ingest unstructured operator logs, clean them with AI, and store structured, audit-ready events for global compliance standards. 
+   
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Transform unstructured factory floor data into audit-ready traceability
+records. Meet EPCIS 2.0 and EU Digital Product Passport requirements in
+real time.
+
+**Use cases:** `Agentic AI <https://www.mongodb.com/use-cases/artificial-intelligence>`__,
+`Single View <https://www.mongodb.com/solutions/use-cases/single-view>`__
+
+**Products:** `MongoDB Atlas <https://mongodb.com/atlas>`__,
+:ref:`Atlas Stream Processing <atlas-sp-overview>`
+
+**Partners:** `Amazon Web Services <https://cloud.mongodb.com/ecosystem/amazon-web-services>`__
+
+Solution Overview
+-----------------
+
+Track and trace is the practice of recording every event in a product's
+journey, from raw materials sourcing through manufacturing,
+distribution, and delivery, into a connected, auditable timeline. 
+
+The Pressure to Act Is Real
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The global track and trace market is projected to reach `$12 billion by
+2030
+<https://www.prnewswire.com/news-releases/track-and-trace-solutions-market-worth-us12-27-billion-by-2030-with-12-0-cagr--marketsandmarkets-302479982.html>`__.
+Three regulatory deadlines are forcing manufacturers to move: 
+
+- **US DSCSA**: Requires item-level drug serialization to trace every
+  prescription drug through the supply chain. 
+
+- **EU Battery Passport**: Requires manufacturers to document the full
+  lifecycle of EV and industrial batteries by February 2027. 
+
+- **EU Digital Product Passport:** Requires a verifiable digital record
+  for all products sold in the EU by 2030.
+
+Each of these mandates shares the same requirement: manufacturers must
+prove, at any point in time, exactly where a product has been and what
+happened to it. The cost of falling short is high. For example, medical
+device recalls rose 8.6% year over year in 2024, and a single pharma
+recall can cost `up to $600 million
+<https://www.ncbi.nlm.nih.gov/books/NBK570589/>`__. 
+
+
+The Data Exists: The Problem Is Accessing It
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Meeting these requirements depends on data, and most manufacturers
+already generate it. The problem is that `90% of it never gets used
+<https://www.iiot-world.com/industrial-iot/connected-industry/iot-data-manufacturing-waste-problem/>`__.
+It sits in fragmented silos: free-text operator logs, inconsistent
+timestamps, and mixed measurement units that traditional ETL pipelines
+cannot handle without rigid schemas and brittle parsing rules. By the
+time data gets cleaned and structured, the window to prevent a recall or
+meet a compliance deadline has already closed. 
+
+How This Solution Works
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The gap between fragmented factory data and compliance-ready records is
+an engineering problem. This solution closes it by connecting raw
+factory floor events to a structured, queryable product history using
+MongoDB Atlas and AWS Bedrock. 
+
+Raw factory floor events land in MongoDB as they arrive, then move
+through an AI cleaning pipeline powered by AWS Bedrock. The pipeline
+normalizes each event into a structured, `EPCIS 2.0-compliant
+<https://epcis.dev/docs/How-EPCIS-2.0-and-the-CBV-provide-real-time-data>`__
+record. The complete product journey lives in a single document, so a
+compliance auditor or supply chain manager retrieves the full chain of
+custody in one read, with no joins and no separate system to query.
+
+Regulated industries already run this architecture at scale: 
+
+- `McKesson
+  <https://www.mongodb.com/solutions/customer-case-studies/mckesson>`__
+  traces 1.2 billion pharmaceutical serial numbers per year and met its
+  DSCSA federal deadline on MongoDB Atlas. 
+
+- `GE HealthCare
+  <https://www.mongodb.com/company/blog/innovation/connected-devices-ge-healthcare-uses-mongodb-manage-iot-device-lifecycle>`__
+  cuts data retrieval time by 83% using :ref:`Change Streams
+  <changeStreams>` and :ref:`Atlas Search <atlas-search>`. 
+
+- `Bosch
+  <https://www.mongodb.com/solutions/customer-case-studies/bosch#introduction>`__
+  tracks 6 million fastening events per aircraft with a full
+  FAA-compliant audit trail.
+
+Reference Architectures
+-----------------------
+
+The proposed architecture relies on the following components: 
+
+- MongoDB Atlas serves as the unified data platform. 
+
+- AWS Bedrock handles AI reasoning. 
+
+- A Next.js web application surfaces the product journey in real time.
+
+.. figure:: /includes/images/industry-solutions/track-trace-architecture.svg
+   :figwidth: 1200px
+   :alt: Track and Trace solution architecture
+
+   Figure 1. Track and Trace solution architecture
+
+The workflow begins when factory floor events land in MongoDB with no
+validation or preprocessing. Next, Atlas Stream Processing routes each
+event to a processing queue. From there, a Change Stream triggers AWS
+Bedrock, which normalizes the unstructured raw text into a structured,
+EPCIS 2.0-compliant record. Finally, MongoDB stores the cleaned event
+and updates the product's journey document, completing the entire
+process within seconds. 
+
+The full product history lives in a single document. The web application
+retrieves the complete chain of custody in one query, with no joins.
+
+Data Model Approach
+-------------------
+
+A product document in MongoDB starts simple and grows with every
+manufacturing stage. The two documents below show that evolution.
+
+The Raw Event
+~~~~~~~~~~~~~
+
+Factory floor events arrive exactly as operators write them without
+validation and preprocessing.
+
+.. code-block:: json  
+   :copyable: true  
+
+   {
+      "text": "ALERT | BATCH-GM005-037 | ShenZhn WH | 06:15:00Z - rcvd \n  raw mat'ls from Tianhe Biosci. Qty: 1000u glucose oxidase. \n  Temp: 4.2C avg. Purity: 99.3%. 12 units MISSING — QA hold \n  ref#QH-2024-001.",
+      "stage": "Raw Materials Sourcing",
+      "_timestamp": "2025-01-15T06:15:00.000Z"
+   }
+
+The Product Document
+~~~~~~~~~~~~~~~~~~~~
+
+After processing, the cleaned event updates the product document. Every
+manufacturing stage appends a new entry to the ``journey`` array. The
+complete chain of custody lives in one place, as shown below.
+
+.. code-block:: json  
+   :copyable: true  
+
+   {
+      "_id": "GM-005",
+      "productName": "Continuous Glucose Monitor",
+      "status": "in_production",
+      "currentStage": "Enzyme Coating",
+      "journey": [
+         {
+            "stage": "Raw Materials Sourcing",
+            "status": "completed",
+            "location": "Shenzhen, CN",
+            "startTime": "2025-01-15T06:15:00.000Z",
+            "eventCount": 3
+         },
+         {
+            "stage": "Electrode Fabrication",
+            "status": "completed",
+            "location": "Penang, MY",
+            "startTime": "2025-01-16T07:00:00.000Z",
+            "eventCount": 4
+         },
+         {
+            "stage": "Enzyme Coating",
+            "status": "in_progress",
+            "location": "Penang, MY",
+            "startTime": "2025-01-17T08:00:00.000Z",
+            "eventCount": 1
+         }
+      ]
+   }
+
+Build the Solution
+------------------
+
+Follow the steps in the `GitHub repository's
+<https://github.com/mongodb-industry-solutions/track-and-trace>`_ README
+to replicate this solution.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Configure the prerequisites
+
+      Ensure you meet the following requirements:
+
+      - Node.js 18 or higher
+
+      - A MongoDB Atlas cluster (M10 or larger) with Stream Processing
+        enabled
+
+      - AWS account with Bedrock access (Claude Haiku enabled in your
+        region)
+
+   .. step:: Clone the repository and install the project
+
+      Use the following commands to set up your project:
+
+      .. code-block:: sh  
+         :copyable: true
+
+         git clone https://github.com/mongodb-industry-solutions/track-and-trace.git
+         cd track-and-trace
+         npm install
+
+   .. step:: Configure the environment
+
+      Copy the ``.env.example`` file to the ``.env`` file, then add your
+      credentials:
+
+      .. code-block:: javascript  
+         :copyable: true
+
+         MONGODB_URI=mongodb+srv://<user>:<password>@<cluster>.mongodb.net/
+         DATABASE_NAME=track-and-trace
+         AWS_ACCESS_KEY_ID=<your-access-key>
+         AWS_SECRET_ACCESS_KEY=<your-secret-key>
+         AWS_REGION=us-east-1
+         
+   .. step:: Deploy the Atlas Stream Processing pipeline
+
+      Follow the instructions in the repository to create a Stream
+      Processing instance, configure the Atlas source and sink
+      connections, and deploy the pipeline.
+
+   .. step:: Seed the database
+
+      Run the following command to populate the database:
+
+      .. code-block:: sh  
+         :copyable: true
+
+         npm run seed
+
+   .. step:: Run the application
+
+      Launch the application locally by running the following command:
+
+      .. code-block:: sh  
+         :copyable: true
+
+         npm run dev       
+
+      Navigate to http://localhost:8080 and click :guilabel:`Start
+      Simulation` to begin processing events through the pipeline.
+
+Key Learnings
+-------------
+
+- **Decouple ingestion from processing:** Raw events land in MongoDB
+  immediately, regardless of downstream load. Atlas Stream Processing
+  handles routing independently, keeping the ingestion layer fast and
+  simple.
+
+- **Use Change Streams to build reactive AI pipelines:** A Change Stream
+  triggers AI processing the moment each event arrives, removing the need
+  for polling or message queues with zero risk of missed events.
+
+- **Accept any schema at ingestion; enforce structure at output:** The
+  ingestion layer operates without validation; instead, structure is
+  enforced at the AI cleaning pipeline, where every event gets normalized
+  to EPCIS 2.0 before writing to the events collection.
+
+- **Embed the journey, not just the latest state:** Every stage, location,
+  and anomaly lives in a single product document, enabling compliance
+  auditors to retrieve the full chain of custody in one read, without
+  any joins.
+
+- **Transform messy data into usable information with AI:** An AI-driven
+  cleaning pipeline can handle abbreviations, typos, inconsistent units,
+  and missing fields. When standards change, you can update the prompt,
+  instead of rewriting complex ETL code.
+
+Authors
+-------
+
+- Humza Akthar, MongoDB
+- Javier Guajardo, MongoDB
+
+Learn More
+----------
+
+- :ref:`arch-center-is-manufacturing-event-driven-inventory`
+- :ref:`arch-center-inventory-optimization`
+- :ref:`arch-center-is-disruption-management`

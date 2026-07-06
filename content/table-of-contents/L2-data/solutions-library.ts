@@ -309,6 +309,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/inventory-optimization',
           },
           {
+            label: 'AI Powered Track and Trace',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/ai-track-trace',
+          },
+          {
             label: 'Event-Driven Inventory Management System',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-event-driven-inventory',
