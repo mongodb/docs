@@ -60,12 +60,12 @@ const tocData: TocItem[] = [
           {
             label: 'Assess Business Loan Risks',
             contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/assessing-business-loan-risks-with-generative-ai',
+            url: '/docs/atlas/architecture/:version/solutions-library/loan-risk-gen-ai',
           },
           {
             label: 'Credit Card Application',
             contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/credit-card-application-with-generative-ai',
+            url: '/docs/atlas/architecture/:version/solutions-library/credit-card-gen-ai',
           },
         ],
       },
@@ -257,7 +257,7 @@ const tocData: TocItem[] = [
           {
             label: 'Automotive Diagnostics',
             contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-automotive-diagnostics',
+            url: '/docs/atlas/architecture/:version/solutions-library/auto-diagnostics',
           },
           {
             label: 'Build an Automotive Diagnostics App',
@@ -353,7 +353,7 @@ const tocData: TocItem[] = [
           {
             label: 'Predictive Maintenance Excellence',
             contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-predictive-maintenance',
+            url: '/docs/atlas/architecture/:version/solutions-library/predictive-maintenance',
           },
           {
             label: 'Unified Namespace Data Integrity',
