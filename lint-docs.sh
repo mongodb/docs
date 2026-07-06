@@ -76,6 +76,19 @@ case "$CMD" in
     ;;
   404|links)
     npx tsx "$LINT_DIR/404-lint-cli.ts" "$@"
+    lint_exit=$?
+    if [ $lint_exit -ne 0 ] && [ ! -t 1 ]; then
+      echo ""
+      echo "⚠️  Broken links found."
+      echo "   The fix-404s skill can resolve these for you: it checks each URL"
+      echo "   for redirects, searches for live replacements, and confirms changes"
+      echo "   with you before applying them."
+      echo ""
+      echo "   How would you like to proceed?"
+      echo "   1. Fix now — invoke the fix-404s skill"
+      echo "   2. Skip — leave broken links for now and continue"
+    fi
+    exit $lint_exit
     ;;
   redirects|redirect)
     npx tsx "$LINT_DIR/redirect-lint-cli.ts" "$@"
@@ -100,7 +113,20 @@ case "$CMD" in
     npx tsx "$LINT_DIR/seo-lint-cli.ts" "$@" || exit_code=1
     echo ""
     echo "=== 404 Linter ==="
-    npx tsx "$LINT_DIR/404-lint-cli.ts" "$@" || exit_code=1
+    npx tsx "$LINT_DIR/404-lint-cli.ts" "$@"
+    link_exit=$?
+    if [ $link_exit -ne 0 ] && [ ! -t 1 ]; then
+      echo ""
+      echo "⚠️  Broken links found."
+      echo "   The fix-404s skill can resolve these for you: it checks each URL"
+      echo "   for redirects, searches for live replacements, and confirms changes"
+      echo "   with you before applying them."
+      echo ""
+      echo "   How would you like to proceed?"
+      echo "   1. Fix now — invoke the fix-404s skill"
+      echo "   2. Skip — leave broken links for now and continue"
+      exit_code=1
+    fi
     echo ""
     echo "=== Findability Linter ==="
     npx tsx "$LINT_DIR/findability-lint-cli.ts" "$@" || exit_code=1
