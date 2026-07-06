@@ -19,7 +19,7 @@ SECTIONS = [
         "Universal Skills",
         "Skills every writer should know, regardless of team.",
         ["jira", "open-pr", "staging-preview", "local-build-check",
-         "add-redirects", "unified-toc", "version-update",
+         "add-redirects", "dochub", "unified-toc", "version-update",
          "docs-drift", "source-explorer"],
     ),
     (

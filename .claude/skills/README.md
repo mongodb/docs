@@ -17,6 +17,7 @@ Skills every writer should know, regardless of team.
 | `/staging-preview` | Generate staging preview links for a MongoDB docs PR |
 | `/local-build-check` | Run local docs build checks on pending content/ changes before opening a PR |
 | `/add-redirects` | Add redirects when MongoDB documentation pages are renamed, moved, or deleted under content/ |
+| `/dochub` | Create or update a DocHub link (dochub.mongodb.org/core/<key>) so product UI and error messages point at docs through a stable vanity URL, or check whether a moved/renamed/deleted docs page has broken any DocHub link |
 | `/unified-toc` | Update the unified table of contents when pages are added, removed, or moved |
 | `/version-update` | Create a new version of any versioned MongoDB documentation docset — drivers, providers, or product docsets |
 | `/docs-drift` | Detect drift between a documentation property and its source code, classify each finding (Confirmed / Tracked / Upcoming / Intentional / Needs-eng- confirmation), and draft held DOCSP tickets for confirmed drift only |
