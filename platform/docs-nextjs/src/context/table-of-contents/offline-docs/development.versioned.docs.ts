@@ -2328,11 +2328,6 @@ export const toc: L1TocItem[] = [
                 url: '/docs/vector-search/tutorials/quick-start',
               },
               {
-                label: 'Compatibility & Limitations',
-                contentSite: 'vector-search',
-                url: '/docs/vector-search/deployment/compatibility-limitations',
-              },
-              {
                 label: 'Automated Embedding',
                 contentSite: 'vector-search',
                 collapsible: true,
