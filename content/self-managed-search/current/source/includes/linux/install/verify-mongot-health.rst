@@ -16,3 +16,5 @@
      of the indexes, which must be in ``Ready`` state to serve queries. 
 
    - ``NOT_SERVING``, if the ``mongot`` process isn't running
+
+   For additional details, see :ref:`mongot-verify-connection`.

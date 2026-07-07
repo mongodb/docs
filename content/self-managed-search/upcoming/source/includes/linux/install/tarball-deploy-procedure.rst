@@ -121,17 +121,17 @@
       
          To create a user with the ``searchCoordinator`` role:
 
-         - Replace ``<your-mongot-username>`` with a username for your ``mongot`` user
-         - Replace ``<your-mongot-password>`` with the password that you specified in
-           your ``passwordFile``
-         - Run the command
+         - Replace ``<mongot-username>`` with a username for your ``mongot`` user
+         - Replace ``<mongot-password>`` with the password that you specify in
+           your ``passwordFile`` in the next step
+         - Run the following command:
 
          .. code-block:: shell
 
             db.createUser(
                {
-                  user: <mongot_username>,
-                  pwd: <mongot_password>,
+                  user: <mongot-username>,
+                  pwd: <mongot-password>,
                   roles: [ "searchCoordinator"]
                }
             )
@@ -141,7 +141,7 @@
       Create a password file for ``mongot`` to connect to ``mongod``. 
 
       For example, select your operating system and replace
-      ``<mongot_password>`` with your password. Then, run the following command
+      ``<mongot-password>`` with your password. Then, run the following command
       to create a file called ``passwordFile``:
 
       .. tabs::
@@ -151,7 +151,7 @@
 
             .. code-block:: shell
 
-               echo -n "mongotPassword" > passwordFile
+               echo -n "<mongot-password>" > passwordFile
                chmod 400 passwordFile
 
             .. note::
@@ -172,7 +172,7 @@
                
                [System.IO.File]::WriteAllText("passwordFile", "mongotPassword")   
 
-   .. step:: Specify your ``mongot`` configuration options.
+   .. step:: Specify your mongot configuration options.
 
       You can configure ``mongot`` with a YAML configuration file. Use
       the included sample configuration file named ``config.default.yml`` or a
@@ -213,6 +213,10 @@
 
          The ``dataPath`` directory in your configuration file must be
          writable by the user that runs ``mongot``.
+
+      Use :setting:`logging.logPath` to specify the path of the log file that 
+      ``mongot`` writes to. If you do not specify a log file path, ``mongot``
+      logs to standard output.
 
    .. step:: Start the mongot process.
 
