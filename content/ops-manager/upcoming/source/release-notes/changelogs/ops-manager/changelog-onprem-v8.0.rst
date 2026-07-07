@@ -1,3 +1,90 @@
+.. _opsmgr-server-8.0.25:
+
+|onprem| Server 8.0.25
+~~~~~~~~~~~~~~~~~~~~~~
+
+*Released 2026-07-03*
+
+Improvements
+~~~~~~~~~~~~
+
+- Updates the {+mdbagent+} to
+  :ref:`108.0.25.9029-1 <mongodb-108.0.25.9029-1>`.
+- Adds HashiCorp Vault support, including key vault CRUD APIs,
+  UI-based key vault and S3 configuration, and secret caching
+  improvements.
+  To learn more, see :ref:`om-vault-snapshot-store-credentials`.
+- Deletes completed on-demand log collection jobs immediately,
+  freeing storage space.
+- Improves snapshot immutability logging by including additional
+  error code details when S3 error codes don't match the
+  configured regex.
+
+Bug Fixes
+~~~~~~~~~
+
+- Fixes a cross-tenant backup metadata vulnerability that let an
+  authenticated tenant read or modify another tenant's backup
+  sync record when the sync ID was known.
+- Fixes a cross-project backup state vulnerability by requiring
+  the requester's group ID to match the cluster's group ID
+  before allowing backup state changes.
+- Fixes an issue where the
+  ``wiredTiger.engineConfig.zstdCompressionLevel`` setting
+  didn't persist in the automation config.
+- Updates the Queryable Restore UI panels to reference
+  ``mongosh`` instead of ``mongo``.
+- Fixes an issue where retrying a failed log collection child
+  job silently failed because the cloned job inherited a
+  terminal status.
+- Enforces log collection storage quotas on the server side,
+  ensuring that oversized log requests through the public API
+  can't bypass configured storage limits.
+- Fixes a bug that caused incremental backup to write zero-byte
+  files for new files.
+- Fixes a documentation link in the |onprem| provisioning prep
+  page to point to the correct installation options URL.
+- Restores logging of HTTP access log entries in
+  ``mms-hosted-access.log`` after a logback upgrade.
+- Fixes a security issue where a project's agent API key could
+  send a ``POST`` request to ``/fileList`` with malicious path
+  components. |onprem| now validates input and write
+  destinations to prevent arbitrary file writes.
+- Fixes a pre-flight check failure that occurred when you
+  restarted |onprem| with a ``mongot`` deployment present.
+- Fixes the following |cve|\s:
+
+  - `CVE-2026-54512 <https://nvd.nist.gov/vuln/detail/CVE-2026-54512>`__
+  - `CVE-2026-54513 <https://nvd.nist.gov/vuln/detail/CVE-2026-54513>`__
+  - `CVE-2026-54514 <https://nvd.nist.gov/vuln/detail/CVE-2026-54514>`__
+  - `CVE-2026-54515 <https://nvd.nist.gov/vuln/detail/CVE-2026-54515>`__
+  - `CVE-2026-55602 <https://nvd.nist.gov/vuln/detail/CVE-2026-55602>`__
+  - `CVE-2026-45292 <https://nvd.nist.gov/vuln/detail/CVE-2026-45292>`__
+  - `CVE-2026-40181 <https://nvd.nist.gov/vuln/detail/CVE-2026-40181>`__
+  - `CVE-2026-44456 <https://nvd.nist.gov/vuln/detail/CVE-2026-44456>`__
+  - `CVE-2026-44457 <https://nvd.nist.gov/vuln/detail/CVE-2026-44457>`__
+  - `CVE-2026-44455 <https://nvd.nist.gov/vuln/detail/CVE-2026-44455>`__
+  - `CVE-2026-44458 <https://nvd.nist.gov/vuln/detail/CVE-2026-44458>`__
+  - `CVE-2026-44459 <https://nvd.nist.gov/vuln/detail/CVE-2026-44459>`__
+  - `CVE-2026-9277 <https://nvd.nist.gov/vuln/detail/CVE-2026-9277>`__
+  - `CVE-2026-53632 <https://nvd.nist.gov/vuln/detail/CVE-2026-53632>`__
+  - `CVE-2026-45205 <https://nvd.nist.gov/vuln/detail/CVE-2026-45205>`__
+  - `CVE-2026-41417 <https://nvd.nist.gov/vuln/detail/CVE-2026-41417>`__
+  - `CVE-2026-42587 <https://nvd.nist.gov/vuln/detail/CVE-2026-42587>`__
+  - `CVE-2026-42584 <https://nvd.nist.gov/vuln/detail/CVE-2026-42584>`__
+  - `CVE-2026-42585 <https://nvd.nist.gov/vuln/detail/CVE-2026-42585>`__
+  - `CVE-2026-42580 <https://nvd.nist.gov/vuln/detail/CVE-2026-42580>`__
+  - `CVE-2026-42581 <https://nvd.nist.gov/vuln/detail/CVE-2026-42581>`__
+  - `CVE-2026-50020 <https://nvd.nist.gov/vuln/detail/CVE-2026-50020>`__
+  - `CVE-2026-45416 <https://nvd.nist.gov/vuln/detail/CVE-2026-45416>`__
+  - `CVE-2026-44249 <https://nvd.nist.gov/vuln/detail/CVE-2026-44249>`__
+  - `CVE-2026-47244 <https://nvd.nist.gov/vuln/detail/CVE-2026-47244>`__
+  - `CVE-2026-53550 <https://nvd.nist.gov/vuln/detail/CVE-2026-53550>`__
+  - `CVE-2026-6402 <https://nvd.nist.gov/vuln/detail/CVE-2026-6402>`__
+  - `CVE-2026-12143 <https://nvd.nist.gov/vuln/detail/CVE-2026-12143>`__
+  - `CVE-2026-9828 <https://nvd.nist.gov/vuln/detail/CVE-2026-9828>`__
+  - `CVE-2026-55760 <https://guide.sonatype.com/vulnerability/CVE-2026-55760>`__
+
 .. _opsmgr-server-8.0.24:
 
 |onprem| Server 8.0.24
