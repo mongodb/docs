@@ -1393,7 +1393,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/tutorial/vault-snapshot-store-credentials',
                     versions: {
-                      includes: ['upcoming'],
+                      includes: ['current', 'upcoming'],
                     },
                   },
                   {
@@ -1401,7 +1401,7 @@ export const toc: L1TocItem[] = [
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/tutorial/configure-key-vault',
                     versions: {
-                      includes: ['upcoming'],
+                      includes: ['current', 'upcoming'],
                     },
                   },
                   {
@@ -3134,7 +3134,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/ops-manager/:version/reference/api/admin/backup/s3-blockstore-config-v2',
                         versions: {
-                          includes: ['upcoming'],
+                          includes: ['current', 'upcoming'],
                         },
                         items: [
                           {
@@ -3142,7 +3142,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/backup/snapshot/s3Configs-v2/get-one-s3-blockstore-configuration-by-id',
                             versions: {
-                              includes: ['upcoming'],
+                              includes: ['current', 'upcoming'],
                             },
                           },
                           {
@@ -3150,7 +3150,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/backup/snapshot/s3Configs-v2/get-all-s3-blockstore-configurations',
                             versions: {
-                              includes: ['upcoming'],
+                              includes: ['current', 'upcoming'],
                             },
                           },
                           {
@@ -3158,7 +3158,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/backup/snapshot/s3Configs-v2/create-one-s3-blockstore-configuration',
                             versions: {
-                              includes: ['upcoming'],
+                              includes: ['current', 'upcoming'],
                             },
                           },
                           {
@@ -3166,7 +3166,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/backup/snapshot/s3Configs-v2/update-one-s3-blockstore-configuration',
                             versions: {
-                              includes: ['upcoming'],
+                              includes: ['current', 'upcoming'],
                             },
                           },
                           {
@@ -3174,7 +3174,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/backup/snapshot/s3Configs-v2/delete-one-s3-blockstore-configuration',
                             versions: {
-                              includes: ['upcoming'],
+                              includes: ['current', 'upcoming'],
                             },
                           },
                         ],
@@ -3358,7 +3358,7 @@ export const toc: L1TocItem[] = [
                         collapsible: true,
                         url: '/docs/ops-manager/:version/reference/api/admin/keyVault-config',
                         versions: {
-                          includes: ['upcoming'],
+                          includes: ['current', 'upcoming'],
                         },
                         items: [
                           {
@@ -3366,7 +3366,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/keyVault/get-one-key-vault-configuration-by-id',
                             versions: {
-                              includes: ['upcoming'],
+                              includes: ['current', 'upcoming'],
                             },
                           },
                           {
@@ -3374,7 +3374,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/keyVault/get-all-key-vault-configurations',
                             versions: {
-                              includes: ['upcoming'],
+                              includes: ['current', 'upcoming'],
                             },
                           },
                           {
@@ -3382,7 +3382,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/keyVault/create-one-key-vault-configuration',
                             versions: {
-                              includes: ['upcoming'],
+                              includes: ['current', 'upcoming'],
                             },
                           },
                           {
@@ -3390,7 +3390,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/keyVault/update-one-key-vault-configuration',
                             versions: {
-                              includes: ['upcoming'],
+                              includes: ['current', 'upcoming'],
                             },
                           },
                           {
@@ -3398,7 +3398,7 @@ export const toc: L1TocItem[] = [
                             contentSite: 'ops-manager',
                             url: '/docs/ops-manager/:version/reference/api/admin/keyVault/delete-one-key-vault-configuration',
                             versions: {
-                              includes: ['upcoming'],
+                              includes: ['current', 'upcoming'],
                             },
                           },
                         ],
