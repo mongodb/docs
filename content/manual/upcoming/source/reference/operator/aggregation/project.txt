@@ -7,7 +7,7 @@ $project (aggregation stage)
    :values: shell
 
 .. meta::
-   :description: Use the ``$project`` aggregation stage to reshape documents for the next pipeline stage by specifying the fields to include, exclude, or compute in the output.
+   :description: Use the ``$project`` aggregation stage to reshape documents for the next pipeline stage by specifying the fields to include, exclude, or compute in the output. Passes documents with fields to next stage in pipeline.
 
 .. contents:: On this page
    :local:
@@ -20,9 +20,16 @@ Definition
 
 .. pipeline:: $project
 
-   Passes along the documents with the requested fields to the
+   Passes the documents with the requested fields to the
    next stage in the pipeline. The specified fields can be existing
-   fields from the input documents or newly computed fields.
+   fields from the input documents or new computed fields.
+
+   ``$project`` can:
+
+   - Include fields from the input documents.
+   - Suppress the ``_id`` field.
+   - Add new fields or reset the values of existing fields.
+   - Exclude fields from the input documents.
 
 Compatibility
 -------------
@@ -34,33 +41,28 @@ Compatibility
 Syntax
 ------
 
-The :pipeline:`$project` stage has the following prototype form:
+``$project`` has the following form:
 
 .. code-block:: javascript
 
    { $project: { <specification(s)> } }
 
-The :pipeline:`$project` takes a document that can specify the
-inclusion of fields, the suppression of the ``_id`` field,
-the addition of new fields, and the resetting of the values of existing
-fields. Alternatively, you may specify the *exclusion*
-of fields.
-
-The :pipeline:`$project` specifications have the following forms:
+The ``$project`` specifications have the following forms:
 
 .. list-table::
    :header-rows: 1
+   :widths: 30 70
 
    * - Form
      - Description
 
    * - ``<field>: <1 or true>``
 
-     - Specifies the inclusion of a field. Non-zero integers are also treated
+     - Specifies inclusion of a field. Non-zero integers are also treated
        as ``true``.
 
    * - ``_id: <0 or false>``
-     - Specifies the suppression of the ``_id`` field.
+     - Specifies suppression of the ``_id`` field.
 
        To exclude a field conditionally, use the :variable:`REMOVE`
        variable instead. For details, see :ref:`remove-var`.
@@ -74,15 +76,15 @@ The :pipeline:`$project` specifications have the following forms:
 
    * - ``<field>: <0 or false>``
 
-     - Specifies the exclusion of a field.
+     - Specifies exclusion of a field.
 
        To exclude a field conditionally, use the :variable:`REMOVE`
        variable instead. For details, see :ref:`remove-var`.
 
        If you specify the exclusion of a field other than ``_id``,
-       you **cannot** employ any other :pipeline:`$project`
-       specification forms. This restriction does not apply to
-       conditionally exclusion of a field using the :variable:`REMOVE`
+       you **cannot** use any other ``$project``
+       specification. This restriction does not apply to
+       conditional exclusion of a field using the :variable:`REMOVE`
        variable.
 
        To exclude fields, you can also use the
@@ -94,46 +96,45 @@ Behavior
 Include Fields
 ~~~~~~~~~~~~~~
 
-- The ``_id`` field is, by default, included in the output documents.
-  To include any other fields from the input documents in the output
-  documents, you must explicitly specify the inclusion in
-  :pipeline:`$project`.
+- By default, output documents include the ``_id`` field. To include
+  other fields from the input documents, specify them explicitly in
+  ``$project``.
 
 - If you specify an inclusion of a field that does not exist in the
-  document, :pipeline:`$project` ignores that field inclusion and
+  document, ``$project`` ignores that field inclusion and
   does not add the field to the document.
 
-``_id`` Field
-~~~~~~~~~~~~~
+_id Field
+~~~~~~~~~
 
 By default, the ``_id`` field is included in the output documents.
 To exclude the ``_id`` field from the output documents, you
-must explicitly specify the suppression of the ``_id`` field in
-:pipeline:`$project`.
+must explicitly suppress the ``_id`` field in
+``$project``.
 
 Exclude Fields
 ~~~~~~~~~~~~~~
 
-If you specify the exclusion of a field or fields, all other fields are
-returned in the output documents.
+If you exclude a field, all other fields appear in the output
+documents.
 
 .. code-block:: javascript
 
    { $project: { "<field1>": 0, "<field2>": 0, ... } } // Return all but the specified fields
 
-If you specify the exclusion of a field other than ``_id``, you cannot
-employ any other :pipeline:`$project` specification forms: i.e. if you
+If you exclude a field other than ``_id``, you cannot
+use other ``$project`` specification forms. If you
 exclude fields, you cannot also specify the inclusion of fields, reset
-the value of existing fields, or add new fields. This restriction does
-not apply to conditional exclusion of a field using the
+the value of existing fields, or add new fields. This restriction does not
+apply to conditional exclusion of a field using the
 :variable:`REMOVE` variable.
 
-See also the :pipeline:`$unset` stage to exclude fields.
+To exclude fields, you can also use :pipeline:`$unset`.
 
 .. _remove-var:
 
 Exclude Fields Conditionally
-````````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You can use the variable :variable:`REMOVE` in aggregation expressions
 to conditionally suppress a field. For an example, see
@@ -148,16 +149,15 @@ Add New Fields or Reset Existing Fields
    the documents.
 
 To add a new field or to reset the value of an existing field, specify
-the field name and set its value to some expression. For more
+the field name and set its value to an expression. For more
 information on expressions, see :ref:`aggregation-expressions`.
 
 Literal Values
 ``````````````
 
-To set a field value directly to a numeric or boolean literal, as
-opposed to setting the field to an expression that resolves to a
-literal, use the :expression:`$literal` operator. Otherwise,
-:pipeline:`$project` treats the numeric or boolean literal as a flag
+To set a field to a numeric or boolean literal rather than an
+expression that resolves to a literal, use the :expression:`$literal`
+operator. Otherwise, ``$project`` treats the literal as a flag
 for including or excluding the field.
 
 Field Rename
@@ -169,7 +169,7 @@ existing field, you can effectively rename a field.
 New Array Fields
 ````````````````
 
-The :pipeline:`$project` stage supports using the square brackets ``[]``
+The ``$project`` stage supports using the square brackets ``[]``
 to directly create new array fields. If you specify array fields that do
 not exist in a document, the operation substitutes ``null`` as the value
 for that field. For an example, see
@@ -180,30 +180,30 @@ for that field. For an example, see
 Embedded Document Fields
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-When projecting or adding/resetting a field within an embedded
-document, you can either use :term:`dot notation`, as in
+To project, add, or reset a field within an embedded
+document, you can use :term:`dot notation`:
 
 .. code-block:: javascript
 
    "contact.address.country": <1 or 0 or expression>
 
-Or you can nest the fields:
+You can also nest the fields:
 
 .. code-block:: javascript
 
    contact: { address: { country: <1 or 0 or expression> } }
 
-When nesting the fields, you *cannot* use dot notation inside the
-embedded document to specify the field, e.g. ``contact: {
+When you nest fields, you *cannot* use dot notation inside the
+embedded document to specify the field. For example, ``contact: {
 "address.country": <1 or 0 or expression> }`` is *invalid*.
 
 Path Collision Errors in Embedded Fields
-````````````````````````````````````````
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 You cannot specify both an embedded document and a field within that
 embedded document in the same projection.
 
-The following :pipeline:`$project` stage fails with a ``Path collision``
+The following ``$project`` stage fails with a ``Path collision``
 error because it attempts to project both the embedded ``contact``
 document and the ``contact.address.country`` field:
 
@@ -212,32 +212,29 @@ document and the ``contact.address.country`` field:
 
    { $project: { contact: 1, "contact.address.country": 1 } }
 
-The error occurs regardless of the order in which the parent document
-and embedded field are specified. The following :pipeline:`$project`
-fails with the same error:
+The error occurs regardless of the order in which you specify the
+parent and embedded field. The following ``$project`` fails
+with the same error:
 
 .. code-block:: javascript
    :copyable: false
 
    { $project: { "contact.address.country": 1, contact: 1 } }
 
-``$project`` Stage Placement
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+$project Stage Placement
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. |$project| replace:: ``$project``
 
 .. include:: /includes/aggregation/fact-project-stage-placement.rst
 
-Considerations
---------------
-
 Empty Specification
 ~~~~~~~~~~~~~~~~~~~
 
-MongoDB returns an error if the :pipeline:`$project` stage is passed an
+MongoDB returns an error if the ``$project`` stage is passed an
 empty document.
 
-For example, running the following pipeline produces an error:
+For example, the following pipeline returns an error:
 
 .. code-block:: javascript
 
@@ -263,7 +260,7 @@ Examples
       Include Specific Fields in Output Documents
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      The following :pipeline:`$project` stage includes only the
+      The following ``$project`` stage includes only the
       ``_id``, ``title``, and ``rated`` fields:
 
       .. io-code-block::
@@ -278,14 +275,14 @@ Examples
 
       .. _project-suppress-id-field:
       
-      Suppress ``_id`` Field in the Output Documents
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      Suppress _id Field in the Output Documents
+      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       MongoDB includes the ``_id`` field by default. To exclude the
-      ``_id`` field from the :pipeline:`$project` stage, set the
+      ``_id`` field from the ``$project`` stage, set the
       ``_id`` field to ``0`` in the projection document.
 
-      The following :pipeline:`$project` stage excludes the ``_id``
+      The following ``$project`` stage excludes the ``_id``
       field but includes the ``title`` and ``rated`` fields:
 
       .. io-code-block::
@@ -301,7 +298,7 @@ Examples
       Exclude Fields from Output Documents
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      The following :pipeline:`$project` stage excludes the ``rated``
+      The following ``$project`` stage excludes the ``rated``
       field from the output:
 
       .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/expressions/project/exclude-fields.snippet.exclude-fields.js
@@ -314,7 +311,7 @@ Examples
       Exclude Fields from Embedded Documents
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      The following :pipeline:`$project` stage excludes the ``imdb.id`` and ``type``
+      The following ``$project`` stage excludes the ``imdb.id`` and ``type``
       fields from the output:
 
       .. io-code-block::
@@ -351,7 +348,7 @@ Examples
       You can use the variable :variable:`REMOVE` in aggregation expressions
       to conditionally suppress a field.
 
-      The following :pipeline:`$project` stage uses the
+      The following ``$project`` stage uses the
       :variable:`REMOVE` variable to exclude the ``imdb.votes`` field
       if it equals ``null`` or is an empty string:
 
@@ -408,7 +405,7 @@ Examples
       Include Computed Fields
       ~~~~~~~~~~~~~~~~~~~~~~~
 
-      The following :pipeline:`$project` stage adds the
+      The following ``$project`` stage adds the
       ``leadActor`` and ``releaseYear`` fields:
 
       .. io-code-block::
@@ -443,7 +440,7 @@ Examples
       in a document, the operation substitutes ``null`` as the value
       for that field.
 
-      For example, given the same document as above, the following
+      For example, with the same document as above, the following
       operation projects the fields ``year``, ``runtime``, and a
       non-existing field ``$someField`` as elements in a new field
       ``myArray``:
@@ -464,18 +461,16 @@ Examples
 
       .. sharedinclude:: dbx/csharp/aggregation/rst-files/sample-data-mflix-intro.rst
 
-      To use the {+csharp-driver-full+} to add a ``$project`` stage to an aggregation
-      pipeline, call the ``Project()`` method on a ``PipelineDefinition`` object and
-      pass a ``ProjectionDefinitionBuilder<TDocument>`` object. ``TDocument``
-      is the class that represents the documents in your collection.
-
-      The following sections show the different ways that you can customize the output
-      documents of the ``$project`` stage.
+      To add a ``$project`` stage with the {+csharp-driver-full+}, call
+      the ``Project()`` method on a ``PipelineDefinition`` object and
+      pass a ``ProjectionDefinitionBuilder<TDocument>`` object.
+      ``TDocument`` is the class that represents the collection's
+      documents.
 
       Include Specific Fields in Output Documents
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      To include specific fields when using the .NET/C# driver, call the
+      To include specific fields when you use the .NET or C# driver, call the
       ``Include()`` method on the projection builder. You can chain ``Include()`` calls
       to include multiple fields.
 
@@ -496,7 +491,7 @@ Examples
       Exclude Fields from Output Documents
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      To exclude a field from the result documents when using the .NET/C# driver, call the
+      To exclude a field from the result documents when you use the .NET or C# driver, call the
       ``Exclude()`` method on the projection builder. You can chain ``Exclude()`` calls
       to exclude multiple fields.
 
@@ -513,9 +508,9 @@ Examples
             :language: json
             :visible: false
 
-      By default, result documents always include the ``_id`` field. The following code
-      example produces a document that excludes the ``_id`` field but includes the ``plot``
-      and ``title`` fields:
+      By default, result documents include the ``_id`` field. The
+      following example excludes ``_id`` but includes the ``plot`` and
+      ``title`` fields:
 
       .. io-code-block::
          :copyable: true
@@ -531,9 +526,10 @@ Examples
       Exclude Fields from Embedded Documents
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-      To exclude a field in an embedded document when using the .NET/C# driver, call the
-      ``Exclude()`` method on the projection builder and pass the path to the corresponding
-      class property. You can chain ``Exclude()`` calls to exclude multiple fields.
+      To exclude a field in an embedded document when using the .NET or
+      C# driver, call the ``Exclude()`` method on the projection builder
+      and pass the path to the corresponding class property. You can
+      chain ``Exclude()`` calls to exclude multiple fields.
 
       The following code example produces a document that excludes the ``imdb.id``
       and ``type`` fields:
@@ -573,16 +569,17 @@ Examples
 
       .. note:: No Builder for Conditional Exclusion
 
-         The preceding example uses ``BsonDocument`` objects because the .NET/C# driver
-         doesn't provide a builder to conditionally exclude fields. Other MongoDB
-         language drivers might support this feature. See the
-         `MongoDB driver documentation <https://www.mongodb.com/docs/drivers/>`__ for more
+         The preceding example uses ``BsonDocument`` objects because the
+         .NET/C# driver does not provide a builder to conditionally
+         exclude fields. Other MongoDB language drivers might support
+         this feature. See the `MongoDB driver documentation
+         <https://www.mongodb.com/docs/drivers/>`__ for more
          information.
 
       Include Computed Fields
       ~~~~~~~~~~~~~~~~~~~~~~~
 
-      To include computed fields in the result documents when using the .NET/C# driver,
+      To include computed fields in the result documents when you use the .NET or C# driver,
       call the ``Expression()`` method on the projection builder and pass an expression
       that includes the computed fields. For added type safety, you can define a model
       class for the result documents, like the following ``ProjectedMovie`` class:
@@ -608,7 +605,7 @@ Examples
       Project New Array Fields
       ~~~~~~~~~~~~~~~~~~~~~~~~
 
-      To project new array fields in the result documents when using the .NET/C# driver,
+      To project new array fields in the result documents when you use the .NET or C# driver,
       call the ``Expression()`` method on the projection builder and pass an expression
       that includes the new array fields. For added type safety, you can define a model
       class for the result documents, like the following ``ProjectedMovie`` class:
@@ -631,7 +628,7 @@ Examples
             :language: json
             :visible: false
 
-      If the array specification includes fields that are non-existent in a
+      If the array specification includes fields that do not exist in a
       document, the pipeline substitutes ``null`` as the value for that
       field. For example, the following code example projects the fields ``directors``, ``writers``,
       and a non-existent field, ``makeupArtists``, as elements in a new field named ``crew``:
@@ -649,8 +646,8 @@ Examples
 
       .. note:: Builders Class Prevents Missing Fields
 
-         The preceding example uses ``BsonDocument`` objects because the .NET/C# driver
-         raises a compile-time error if you try to use builders to add a missing field to
+         The preceding example uses ``BsonDocument`` objects because the .NET or C# driver
+         returns a compile-time error if you try to use builders to add a missing field to
          an array. Other MongoDB language drivers might support this feature. See the
          `MongoDB driver documentation <https://www.mongodb.com/docs/drivers/>`__ for more
          information.
@@ -707,7 +704,7 @@ Examples
          :start-after: //start projectExclude
          :end-before: //end projectExclude
 
-      By default, result documents always include the ``_id`` field. The
+      By default, result documents include the ``_id`` field. The
       following example returns documents that exclude the ``_id`` field
       but include the ``plot`` and ``title`` fields:
 
@@ -784,7 +781,7 @@ Examples
            imdb: { rating : 7.4000000000000004, id: 439, votes: 9847 }
          }
 
-      If a document doesn't contain the ``imdb.votes`` field, the pipeline
+      If a document does not contain the ``imdb.votes`` field, the pipeline
       returns documents that resemble the following example output:
 
       .. code-block:: javascript
@@ -806,22 +803,24 @@ Examples
       fields of the same name and computes the new field ``leadActor``. The
       example then returns documents that include these fields:
 
-      .. literalinclude:: /includes/driver-examples/node/projection/projectionExamples.js
-         :language: javascript
-         :dedent: 2
-         :start-after: //start projectComputed
-         :end-before: //end projectComputed
+      .. io-code-block::
+         :copyable: true
 
-      The output documents resemble the following example:
+         .. input:: /includes/driver-examples/node/projection/projectionExamples.js
+            :language: javascript
+            :dedent: 2
+            :start-after: //start projectComputed
+            :end-before: //end projectComputed
 
-      .. code-block:: javascript
-         :copyable: false
+         .. output::
+            :language: javascript
+            :visible: true
 
-         {
-           _id: new ObjectId('573a1390f29313caabcd42e8'),
-           title: 'The Great Train Robbery',
-           leadActor: 'A.C. Abadie'
-         }
+            {
+              _id: new ObjectId('573a1390f29313caabcd42e8'),
+              title: 'The Great Train Robbery',
+              leadActor: 'A.C. Abadie'
+            }
 
       Project New Array Fields
       ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -839,7 +838,7 @@ Examples
          :start-after: //start projectArrayFields
          :end-before: //end projectArrayFields
 
-      The output documents resemble the following example:
+      Example output:
 
       .. code-block:: javascript
          :copyable: false
@@ -851,7 +850,7 @@ Examples
            crew: ['Ronald Neame', 'John Michael Hayes (screenplay)', 'Enid Bagnold (from the play by)']
          }
 
-      If the array specification includes fields that aren't in a document, the
+      If the array specification includes fields that are not in a document, the
       pipeline substitutes ``null`` as the value for that field. For example,
       the following example projects the fields ``directors``, ``writers``,
       and a non-existent field, ``makeupArtists``, as elements in a new field
@@ -863,7 +862,7 @@ Examples
          :start-after: //start projectNull
          :end-before: //end projectNull
 
-      The output documents resemble the following example:
+      Example output:
 
       .. code-block:: javascript
          :copyable: false
@@ -876,10 +875,10 @@ Examples
 Learn More
 ----------
 
-For more information and detailed explanations of common aggregation tasks, see
-the :ref:`aggregation-complete-examples`.
+For more information about common aggregation tasks, see
+:ref:`aggregation-complete-examples`.
 
-To learn more about the methods on this page, see the following guides:
+To learn more about the expressions and variables on this page, see:
 
 - :expression:`$eq`
 - :expression:`$cond`

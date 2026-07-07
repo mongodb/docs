@@ -9,7 +9,7 @@ $sum (accumulator operator)
    :values: shell
 
 .. meta::
-   :description: Learn about the $sum aggregation operator, which calculates and return the collective sum of numeric values. $sum ignores non-numeric values.
+   :description: Learn how to use the MongoDB $sum aggregation operator to calculate the sum of numeric values across documents. $sum ignores non-numeric and non-existent fields.
 
 .. contents:: On this page
    :local:
@@ -27,7 +27,7 @@ Definition
 
 .. versionchanged:: 5.0
 
-Calculates and returns the collective sum of numeric values.
+Returns the sum of numeric values.
 :group:`$sum` ignores non-numeric values.
 
 .. include:: /includes/extracts/fact-aggregation-accumulator-sum.rst
@@ -43,14 +43,14 @@ Syntax
 ------
 
 When used as an :ref:`accumulator <agg-operators-group-accumulators>`,  
-:group:`$sum` has this syntax:
+``$sum`` has this syntax:
 
 .. code-block:: none
    :copyable: false
 
    { $sum: <expression> }
    
-When not used as an accumulator, :group:`$sum` has this syntax:
+When not used as an accumulator, ``$sum`` has this syntax:
 
 .. code-block:: none
    :copyable: false
@@ -75,7 +75,7 @@ If used on a field that contains both numeric and non-numeric values,
 :group:`$sum` ignores the non-numeric values and returns the sum of the
 numeric values.
 
-If used on a field that does not exist in any document in the collection,
+If used on a field that does not exist in any document,
 :group:`$sum` returns ``0`` for that field.
 
 If all operands are non-numeric, non-arrays, or contain ``null`` values,
@@ -106,8 +106,8 @@ Examples
 
 .. _sum-group-example:
 
-Use in ``$group`` Stage
-~~~~~~~~~~~~~~~~~~~~~~~
+Use in $group Stage
+~~~~~~~~~~~~~~~~~~~
 
 Consider a ``sales`` collection with the following documents:
 
@@ -122,10 +122,9 @@ Consider a ``sales`` collection with the following documents:
       { "_id" : 5, "item" : "xyz", "price" : 5, "quantity" : 10, "date" : ISODate("2014-02-15T09:05:00Z") }
    ] )
 
-
-Grouping the documents by the day and the year of the ``date`` field,
-the following operation uses the :group:`$sum` accumulator to compute the
-total amount and the count for each group of documents.
+The following operation groups documents by day and year of the
+``date`` field, then uses :group:`$sum` to compute the total amount
+and count for each group:
 
 .. code-block:: javascript
 
@@ -142,7 +141,7 @@ total amount and the count for each group of documents.
       ]
    )
 
-The operation returns the following results:
+The operation returns:
 
 .. code-block:: javascript
    :copyable: false
@@ -178,8 +177,8 @@ The operation returns:
    { "_id" : { "day" : 34, "year" : 2014 }, "totalAmount" : 0, "count" : 2 }
    { "_id" : { "day" : 1, "year" : 2014 }, "totalAmount" : 0, "count" : 1 }
 
-The :group:`$count` aggregation accumulator can be used in place of
-``{ $sum : 1 }`` in the :pipeline:`$group` stage. 
+You can use the :group:`$count` accumulator in place of
+``{ $sum : 1 }`` in the :pipeline:`$group` stage.
 
 .. seealso:: 
    
@@ -187,8 +186,8 @@ The :group:`$count` aggregation accumulator can be used in place of
 
 .. _sum-project-example:
 
-Use in ``$project`` Stage
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Use in $project Stage
+~~~~~~~~~~~~~~~~~~~~~
 
 A collection ``students`` contains the following documents:
 
@@ -198,9 +197,9 @@ A collection ``students`` contains the following documents:
    { "_id": 2, "quizzes": [ 9, 10 ], "labs": [ 8, 8 ], "final": 95, "midterm": 80 }
    { "_id": 3, "quizzes": [ 4, 5, 5 ], "labs": [ 6, 5 ], "final": 78, "midterm": 70 }
 
-The following example uses the :group:`$sum` in the
-:pipeline:`$project` stage to calculate the total quiz scores, the
-total lab scores, and the total of the final and the midterm:
+The following example uses :group:`$sum` in the
+:pipeline:`$project` stage to calculate total quiz scores,
+total lab scores, and the combined final and midterm score:
 
 .. code-block:: javascript
 
@@ -214,7 +213,7 @@ total lab scores, and the total of the final and the midterm:
       }
    ])
 
-The operation results in the following documents:
+The operation returns:
 
 .. code-block:: javascript
    :copyable: false
@@ -225,8 +224,8 @@ The operation results in the following documents:
 
 .. _sum-window-example:
 
-Use in ``$setWindowFields`` Stage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Use in $setWindowFields Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. versionadded:: 5.0
 
@@ -259,18 +258,13 @@ In the example:
 
 .. include:: /includes/setWindowFields-partition-sort-date.rst
 
-- ``output`` sets the ``sumQuantityForState`` field to the sum of the
-  ``quantity`` values using :group:`$sum` that is run in a
-  :ref:`documents <setWindowFields-documents>` window.
-  
-  The :ref:`window <setWindowFields-window>` contains documents between
-  an ``unbounded`` lower limit and the ``current`` document in the
-  output. This means :group:`$sum` returns the sum of the ``quantity``
-  values for the documents between the beginning of the partition and
-  the current document.
+- ``output`` sets ``sumQuantityForState`` to the sum of ``quantity``
+  values in a :ref:`documents <setWindowFields-documents>` window
+  that spans from the beginning of the partition (``unbounded``) to
+  the ``current`` document.
 
-In this output, the sum of the ``quantity`` values for ``CA`` and ``WA``
-is shown in the ``sumQuantityForState`` field:
+In this output, the ``sumQuantityForState`` field shows the running
+sum of ``quantity`` values for ``CA`` and ``WA``:
 
 .. code-block:: javascript
    :copyable: false
