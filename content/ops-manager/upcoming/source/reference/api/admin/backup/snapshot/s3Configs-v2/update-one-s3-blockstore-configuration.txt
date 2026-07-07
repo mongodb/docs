@@ -1,0 +1,153 @@
+.. _om-update-s3-blockstore-v2-api:
+
+=============================================
+Update One S3 Blockstore Configuration (v2.0)
+=============================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Update one S3 snapshot store configuration in Ops Manager with the v2.0 Administration API, including the keyVault object for HashiCorp Vault storage.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Updates one |s3| blockstore configuration. The v2.0 resource adds the
+``keyVault`` object. With this object, the |s3| blockstore reads its
+|aws| credentials from HashiCorp Vault. To learn more, see
+:ref:`om-vault-snapshot-store-credentials`.
+
+.. include:: /includes/api/base-admin-backup-api-v2-uri.rst
+
+Resource
+--------
+
+.. code-block:: http
+
+   PUT /snapshot/s3Configs/{S3-BLOCKSTORE-CONFIG-ID}
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - S3-BLOCKSTORE-CONFIG-ID
+     - string
+     - The unique name that labels this |s3| blockstore configuration.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-query-single-parameters.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/list-tables/admin-s3-blockstore-request-documents.rst
+
+.. note::
+
+   When ``s3AuthMethod`` is ``KEYS``, provide exactly one of the
+   following credential sources: the ``keyVault`` object, or both
+   ``awsAccessKey`` and ``awsSecretKey``. When ``s3AuthMethod`` is
+   ``IAM_ROLE``, don't provide the ``keyVault`` object. |onprem|
+   returns an error if you do, and ignores any ``awsAccessKey`` and
+   ``awsSecretKey`` values.
+
+The v2.0 resource adds the following key vault parameters:
+
+.. include:: /includes/api/list-tables/admin-s3-blockstore-keyvault-request-documents.rst
+
+Response
+--------
+
+.. include:: /includes/api/list-tables/admin-s3-blockstore-response-documents.rst
+
+The v2.0 resource adds the following key vault field:
+
+.. include:: /includes/api/list-tables/admin-s3-blockstore-keyvault-response-documents.rst
+
+Example Request
+---------------
+
+.. code-block:: sh
+
+   curl --user '{PUBLIC-KEY}:{PRIVATE-KEY}' --digest \
+        --header 'Accept: application/json' \
+        --header 'Content-Type: application/json' \
+        --include \
+        --request PUT 'https://{+opsmgr-url+}/api/public/v2.0/admin/backup/snapshot/s3Configs/{S3-BLOCKSTORE-CONFIG-ID}?pretty=true' \
+        --data '{
+          "assignmentEnabled": true,
+          "pathStyleAccessEnabled": false,
+          "acceptedTos": true,
+          "encryptedCredentials": false,
+          "loadFactor": 1,
+          "s3AuthMethod": "KEYS",
+          "s3BucketEndpoint": "s3.amazonaws.com",
+          "s3BucketName": "bucketname",
+          "s3MaxConnections": 50,
+          "sseEnabled": true,
+          "uri": "mongodb://127.0.0.1:27017",
+          "ssl": false,
+          "writeConcern": "ACKNOWLEDGED",
+          "keyVault": {
+            "vaultId": "{KEY-VAULT-ID}",
+            "awsAccessKeyPath": "path/to/awsAccessKey",
+            "awsSecretKeyPath": "path/to/awsSecretKey"
+          }
+        }'
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "acceptedTos": true,
+     "assignmentEnabled": true,
+     "encryptedCredentials": false,
+     "id": "{S3-BLOCKSTORE-CONFIG-ID}",
+     "keyVault": {
+       "vaultId": "{KEY-VAULT-ID}",
+       "awsAccessKeyPath": "path/to/awsAccessKey",
+       "awsSecretKeyPath": "path/to/awsSecretKey"
+     },
+     "links": [
+       {
+         "href": "https://{+opsmgr-url+}/api/public/v2.0/admin/backup/snapshot/s3Configs/{S3-BLOCKSTORE-CONFIG-ID}",
+         "rel": "self"
+       }
+     ],
+     "loadFactor": 1,
+     "pathStyleAccessEnabled": false,
+     "s3AuthMethod": "KEYS",
+     "s3BucketEndpoint": "s3.amazonaws.com",
+     "s3BucketName": "bucketname",
+     "s3MaxConnections": 50,
+     "sseEnabled": true,
+     "ssl": false,
+     "uri": "mongodb://127.0.0.1:27017",
+     "writeConcern": "ACKNOWLEDGED"
+   }

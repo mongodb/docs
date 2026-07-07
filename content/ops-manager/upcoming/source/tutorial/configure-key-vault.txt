@@ -1,0 +1,174 @@
+.. _om-configure-key-vault:
+
+=========================================
+Configure a Key Vault for Snapshot Stores
+=========================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: hashicorp, s3, AppDB, secret manager
+   :description: Configure a HashiCorp Vault key vault in Ops Manager so that S3 snapshot stores can read their AWS credentials from Vault, not the application database.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+A key vault configuration stores the connection and authentication
+details that |onprem| uses to read credentials from HashiCorp Vault.
+After you create a key vault, you can configure an |s3ss|
+to read its |aws| credentials from that key vault. To learn more, see
+:ref:`om-vault-snapshot-store-credentials`.
+
+Prerequisites
+-------------
+
+Before you configure a key vault, you must have:
+
+- A reachable HashiCorp Vault deployment.
+
+- Vault policies, roles, and secret paths that grant |onprem|
+  read-only access to the |aws| credentials.
+
+- Secure, reliable network connectivity between |onprem|, the
+  :term:`Backup Daemon`, and HashiCorp Vault.
+
+- The :authrole:`Global Owner` role in |onprem|.
+
+Procedure
+---------
+
+.. tabs::
+
+   .. tab:: Ops Manager Console
+      :tabid: ui
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Navigate to the :guilabel:`Key Vault` tab.
+
+            a. Click the :guilabel:`Admin` link in the upper right
+               corner of the console.
+
+            #. Click the :guilabel:`General` tab.
+
+            #. Click the :guilabel:`Key Vault` tab.
+
+         .. step:: Click :guilabel:`Add new configuration`.
+
+         .. step:: Provide the key vault details.
+
+            .. list-table::
+               :widths: 25 15 60
+               :header-rows: 1
+               :stub-columns: 1
+
+               * - Field
+                 - Necessity
+                 - Description
+
+               * - Key Vault Provider
+                 - Required
+                 - Select :guilabel:`HashiCorp Vault`.
+
+               * - Vault Address
+                 - Required
+                 - Enter the address of your HashiCorp Vault server,
+                   such as ``https://localhost:8200/``.
+
+               * - Vault Name
+                 - Required
+                 - Enter an identifier for this key vault
+                   configuration.
+
+               * - Authentication Method
+                 - Required
+                 - Select the method that |onprem| uses to
+                   authenticate to HashiCorp Vault:
+
+                   - Select :guilabel:`Token` to authenticate with a
+                     Vault token.
+                   - Select :guilabel:`JSON Web Tokens (JWT)` to
+                     authenticate with a |jwt|.
+
+               * - Vault Token
+                 - Conditional
+                 - Enter the Vault token. |onprem| displays this field
+                   when you set :guilabel:`Authentication Method` to
+                   :guilabel:`Token`.
+
+               * - JWT Private Key
+                 - Conditional
+                 - Enter the |pem|-formatted RSA private key that
+                   signs the |jwt|. |onprem| displays this field when
+                   you set :guilabel:`Authentication Method` to
+                   :guilabel:`JSON Web Tokens (JWT)`.
+
+               * - JWT Claims
+                 - Conditional
+                 - Enter the ``user`` and ``role`` claims that
+                   |onprem| sends when it requests a |jwt| login.
+                   |onprem| displays this field when you set
+                   :guilabel:`Authentication Method` to
+                   :guilabel:`JSON Web Tokens (JWT)`.
+
+               * - Custom CA Certificate (Optional)
+                 - Optional
+                 - Click :guilabel:`Select Certificate` to upload a
+                   custom |certauth| certificate, in |pem| format, for
+                   |tls| verification.
+
+         .. step:: Click :guilabel:`Save configuration`.
+
+            |onprem| verifies that it can connect to HashiCorp Vault
+            with the details that you provide. If the connection
+            fails, |onprem| displays an error and doesn't save the
+            configuration.
+
+   .. tab:: API
+      :tabid: api
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Send a request to the Key Vault endpoint.
+
+            Send a ``POST`` request to the
+            :ref:`Create One Key Vault Configuration
+            <om-create-key-vault-api>` endpoint. Specify the
+            ``friendlyName``, ``type``, ``url``, and ``auth`` fields.
+
+            .. code-block:: sh
+
+               curl --user '{PUBLIC-KEY}:{PRIVATE-KEY}' --digest \
+                    --header 'Accept: application/json' \
+                    --header 'Content-Type: application/json' \
+                    --include \
+                    --request POST 'https://{+opsmgr-url+}/api/public/v1.0/admin/keyVault?pretty=true' \
+                    --data '{
+                      "friendlyName": "myVault",
+                      "type": "HASHI_CORP",
+                      "url": "https://localhost:8200/",
+                      "auth": {
+                        "mechanism": "TOKEN",
+                        "secret": "<vault-token>"
+                      }
+                    }'
+
+         .. step:: Record the key vault identifier.
+
+            |onprem| returns the new key vault configuration with a
+            generated ``id``. Use this value as the ``vaultId`` when
+            you configure an |s3ss| to read credentials
+            from this key vault.
+
+Learn More
+----------
+
+- :ref:`om-vault-snapshot-store-credentials`
+- :ref:`om-key-vault-configurations`
+- :ref:`manage-s3-snapshot-store`
+- :ref:`om-s3-blockstore-configurations-v2`

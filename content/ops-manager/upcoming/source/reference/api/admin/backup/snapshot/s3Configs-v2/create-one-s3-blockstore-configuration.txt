@@ -1,0 +1,204 @@
+.. _om-create-s3-blockstore-v2-api:
+
+=============================================
+Create One S3 Blockstore Configuration (v2.0)
+=============================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Create one S3 snapshot store configuration in Ops Manager with the v2.0 Administration API, including the keyVault object for HashiCorp Vault storage.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Configures one new |s3| blockstore. The v2.0 resource adds the
+``keyVault`` object. With this object, the |s3| blockstore reads its
+|aws| credentials from HashiCorp Vault. To learn more, see
+:ref:`om-vault-snapshot-store-credentials`.
+
+.. include:: /includes/api/base-admin-backup-api-v2-uri.rst
+
+Resource
+--------
+
+.. code-block:: http
+
+   POST /snapshot/s3Configs
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-path-parameters.rst
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-query-single-parameters.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/list-tables/admin-s3-blockstore-create-request-documents.rst
+
+.. note::
+
+   When ``s3AuthMethod`` is ``KEYS``, provide exactly one of the
+   following credential sources: the ``keyVault`` object, or both
+   ``awsAccessKey`` and ``awsSecretKey``. When ``s3AuthMethod`` is
+   ``IAM_ROLE``, don't provide the ``keyVault`` object. |onprem|
+   returns an error if you do, and ignores any ``awsAccessKey`` and
+   ``awsSecretKey`` values.
+
+The v2.0 resource adds the following key vault parameters:
+
+.. include:: /includes/api/list-tables/admin-s3-blockstore-keyvault-request-documents.rst
+
+Response
+--------
+
+.. include:: /includes/api/list-tables/admin-s3-blockstore-response-documents.rst
+
+The v2.0 resource adds the following key vault field:
+
+.. include:: /includes/api/list-tables/admin-s3-blockstore-keyvault-response-documents.rst
+
+Example Request
+---------------
+
+.. tabs::
+
+   .. tab:: Key Vault
+      :tabid: keyvault
+
+      .. code-block:: sh
+
+         curl --user '{PUBLIC-KEY}:{PRIVATE-KEY}' --digest \
+              --header 'Accept: application/json' \
+              --header 'Content-Type: application/json' \
+              --include \
+              --request POST 'https://{+opsmgr-url+}/api/public/v2.0/admin/backup/snapshot/s3Configs?pretty=true' \
+              --data '{
+                "id": "{S3-BLOCKSTORE-CONFIG-ID}",
+                "assignmentEnabled": true,
+                "pathStyleAccessEnabled": false,
+                "acceptedTos": true,
+                "encryptedCredentials": false,
+                "loadFactor": 1,
+                "s3AuthMethod": "KEYS",
+                "s3BucketEndpoint": "s3.amazonaws.com",
+                "s3BucketName": "bucketname",
+                "s3MaxConnections": 50,
+                "sseEnabled": true,
+                "uri": "mongodb://127.0.0.1:27017",
+                "ssl": false,
+                "writeConcern": "ACKNOWLEDGED",
+                "keyVault": {
+                  "vaultId": "{KEY-VAULT-ID}",
+                  "awsAccessKeyPath": "path/to/awsAccessKey",
+                  "awsSecretKeyPath": "path/to/awsSecretKey"
+                }
+              }'
+
+   .. tab:: Keys Auth Method
+      :tabid: keys
+
+      .. code-block:: sh
+
+         curl --user '{PUBLIC-KEY}:{PRIVATE-KEY}' --digest \
+              --header 'Accept: application/json' \
+              --header 'Content-Type: application/json' \
+              --include \
+              --request POST 'https://{+opsmgr-url+}/api/public/v2.0/admin/backup/snapshot/s3Configs?pretty=true' \
+              --data '{
+                "id": "{S3-BLOCKSTORE-CONFIG-ID}",
+                "assignmentEnabled": true,
+                "pathStyleAccessEnabled": false,
+                "awsAccessKey": "<access>",
+                "awsSecretKey": "<secret>",
+                "acceptedTos": true,
+                "encryptedCredentials": false,
+                "loadFactor": 1,
+                "s3AuthMethod": "KEYS",
+                "s3BucketEndpoint": "s3.amazonaws.com",
+                "s3BucketName": "bucketname",
+                "s3MaxConnections": 50,
+                "sseEnabled": true,
+                "uri": "mongodb://127.0.0.1:27017",
+                "ssl": false,
+                "writeConcern": "ACKNOWLEDGED"
+              }'
+
+   .. tab:: IAM Role Auth Method
+      :tabid: iam
+
+      .. code-block:: sh
+
+         curl --user '{PUBLIC-KEY}:{PRIVATE-KEY}' --digest \
+              --header 'Accept: application/json' \
+              --header 'Content-Type: application/json' \
+              --include \
+              --request POST 'https://{+opsmgr-url+}/api/public/v2.0/admin/backup/snapshot/s3Configs?pretty=true' \
+              --data '{
+                "id": "{S3-BLOCKSTORE-CONFIG-ID}",
+                "assignmentEnabled": true,
+                "pathStyleAccessEnabled": false,
+                "acceptedTos": true,
+                "encryptedCredentials": false,
+                "loadFactor": 1,
+                "s3AuthMethod": "IAM_ROLE",
+                "s3BucketEndpoint": "s3.amazonaws.com",
+                "s3BucketName": "bucketname",
+                "s3MaxConnections": 50,
+                "sseEnabled": true,
+                "uri": "mongodb://127.0.0.1:27017",
+                "ssl": false,
+                "writeConcern": "ACKNOWLEDGED"
+              }'
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "acceptedTos": true,
+     "assignmentEnabled": true,
+     "encryptedCredentials": false,
+     "id": "{S3-BLOCKSTORE-CONFIG-ID}",
+     "keyVault": {
+       "vaultId": "{KEY-VAULT-ID}",
+       "awsAccessKeyPath": "path/to/awsAccessKey",
+       "awsSecretKeyPath": "path/to/awsSecretKey"
+     },
+     "links": [
+       {
+         "href": "https://{+opsmgr-url+}/api/public/v2.0/admin/backup/snapshot/s3Configs",
+         "rel": "self"
+       }
+     ],
+     "loadFactor": 1,
+     "pathStyleAccessEnabled": false,
+     "s3AuthMethod": "KEYS",
+     "s3BucketEndpoint": "s3.amazonaws.com",
+     "s3BucketName": "bucketname",
+     "s3MaxConnections": 50,
+     "sseEnabled": true,
+     "ssl": false,
+     "uri": "mongodb://127.0.0.1:27017",
+     "writeConcern": "ACKNOWLEDGED"
+   }
