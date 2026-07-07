@@ -1,7 +1,5 @@
 .. important:: 
 
-   Do not choose :guilabel:`Latest Version With Auto Upgrades`. 
-   This option auto upgrades your cluster to the latest minor release. 
-   Some minor releases, such as MongoDB version 8.2, may not support Live 
-   Migration or Mongosync. When :ref:`upgrading <major-version-upgrade-procedure>`,
-   choose a major version to ensure compatibility with Live Migration and Mongosync.
+   Live Migration and Mongosync are not supported on minor versions, and therefore won't work if your 
+   cluster uses :guilabel:`Latest Version With Auto Upgrades`. To migrate a cluster that is currently 
+   on a minor version, use :ref:`self-guided migration tools <self-managed-migration>` instead.
