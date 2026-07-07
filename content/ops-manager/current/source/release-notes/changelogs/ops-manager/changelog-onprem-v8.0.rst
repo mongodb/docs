@@ -156,6 +156,8 @@ Improvements in Public Preview
     state, trigger reason, and timestamps for each project, plus
     an explicit force-exit option for stuck states.
 
+  To learn more, see :ref:`back-up-ops-manager`.
+
 Bug Fixes
 ~~~~~~~~~
 
