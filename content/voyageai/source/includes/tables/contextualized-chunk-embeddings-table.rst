@@ -7,7 +7,7 @@
      - Dimensions
      - Description
 
-   * - **In preview**: ``voyage-context-4``
+   * - ``voyage-context-4``
      - 120,000 tokens *
      - 1024 (default), 256, 512, 2048
      - Contextualized chunk embeddings optimized for general-purpose
