@@ -181,7 +181,6 @@ const tocData: TocItem[] = [
   {
     label: 'Performance Benchmark',
     contentSite: 'vector-search',
-    url: '/docs/vector-search/benchmark/benchmark',
     collapsible: true,
     items: [
       {
