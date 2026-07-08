@@ -32,7 +32,7 @@ Non-Blocking Architecture
 FastAPI's asynchronous, non-blocking architecture allows it to handle thousands
 of concurrent requests without relying on multi-threading. It uses Python's
 ``asyncio`` event loop to manage concurrency through coroutines. This allows the
-application to suspend a request while waiting queries to return. This reduces
+application to suspend a request while waiting for queries to return. This reduces
 memory usage and can reduce latency. 
 
 Built-in Features and Integrations
@@ -64,7 +64,7 @@ Prerequisites
 Ensure you have the following components installed and set up before you start
 this tutorial:
 
-- Python v3.9 - 3.11
+- Python v3.9 or later
 - A MongoDB Atlas cluster.
   To learn how to set up a cluster, see
   the :ref:`Getting Started <pymongo-get-started>` guide for more information. 
@@ -77,7 +77,7 @@ Install dependencies, connect to MongoDB and start your FastAPI server:
 .. procedure::
    :style: connected
 
-   .. step::  Clone the example code example
+   .. step::  Clone the example code
 
       Run the following command in your terminal to clone the code from the
       :github:`mongodb-pymongo-fastapi
@@ -142,11 +142,10 @@ Use this code to perform the following actions:
 #. Create a pointer to the ``college`` database.
 #. Create a pointer to the ``students`` collection
 
-.. code-block:: python
-    
-   client = AsyncMongoClient(os.environ["MONGODB_URL"],server_api=pymongo.server_api.ServerApi(version="1", strict=True,deprecation_errors=True))
-   db = client.get_database("college")
-   student_collection = db.get_collection("students")
+.. literalinclude:: /includes/code-examples/tested/python/pymongo/integrations/fastapi/async_client_setup.snippet.async-client-setup.py
+   :language: python
+   :copyable: true
+   :category: usage example
 
 The ``AsyncMongoClient()`` call includes a ``server_api`` parameter to enable
 the Stable API feature on your connection. Make sure your deployment uses
@@ -179,7 +178,7 @@ maps correctly to MongoDB.
 
 The ``id`` field is of type ``PyObjectId``, a custom type annotated with a
 ``BeforeValidator`` that coerces the value into a string. This ensures that
-MongoDB's ``ObjectId`` can be accepted and serialized properly by the model. 
+the MongoDB ``ObjectId`` can be accepted and serialized properly by the model. 
 
 This setup requires the following ``model_config`` options:
 
@@ -242,7 +241,7 @@ The ``UpdateStudentModel`` has the following key differences from the
 -   The ``mongo_config`` variables includes ``json_encoders={ObjectId: str}`` 
 
 FastAPI encodes and decodes data as JSON strings, which do not support
-all the data types that MongoDB's BSON data type can store. BSON has
+all the data types that BSON can store. BSON has
 support for more non-JSON-native data types, including ``ObjectId``
 which is used for the default UUID attribute, ``_id``. Because of this,
 you must convert ``ObjectId`` objects to strings before storing them in
@@ -271,7 +270,7 @@ You can see the ``UpdateStudentModel`` definition in the following code in the `
                "example": {
                    "name": "Jane Doe",
                    "email": "jdoe@example.com",
-                   "course": "Experiments, Science, and Fashion in anophotonics",
+                   "course": "Experiments, Science, and Fashion in Nanophotonics",
                    "gpa": 3.0,
                }
            },
@@ -294,11 +293,11 @@ You can see the ``StudentCollection`` definition in the following code in the
 .. code-block:: python
 
    class StudentCollection(BaseModel):
-   """
-   A container holding a list of `StudentModel` instances
-   """
+       """
+       A container holding a list of `StudentModel` instances
+       """
 
-   students: List[StudentModel]
+       students: List[StudentModel]
 
 Review the Application Routes
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -395,7 +394,7 @@ You can see the ``list_students`` definition in the following code in the
        The response is unpaginated and limited to 1000 results.
        """
 
-   return StudentCollection(students=await student_collection.find().to_list(1000))
+       return StudentCollection(students=await student_collection.find().to_list(1000))
 
 .. note:: Results Pagination
 
@@ -430,7 +429,7 @@ You can see the ``show_students`` definition in the following code in the ``app.
        ) is not None:
            return student
 
-       raise HTTPException(status_code=404, detail="Student {id} not found")
+       raise HTTPException(status_code=404, detail=f"Student {id} not found")
 
 Update Route
 `````````````
@@ -620,7 +619,7 @@ events. This approach is more robust than initializing connections at the module
 level.
 
 Attach your MongoDB client to the FastAPI application object to make it
-accessible to all path operation functions throughout your codebase. This
+available to all path operation functions throughout your codebase. This
 eliminates the need for global variables and simplifies dependency management.
 
 Use FastAPI's lifespan events to handle connection management:
@@ -671,7 +670,7 @@ More Resources
 
 For more information about FastAPI integration, see the following resources:
 
-- MongoDB's Full Stack FastAPI App Generator
+- MongoDB Full Stack FastAPI App Generator
     - `Blog post: Introducing the Full Stack FastAPI App Generator for Python
       Developers
       <https://www.mongodb.com/blog/post/introducing-full-stack-fast-api-app-generator-for-python-developers>`__ 
