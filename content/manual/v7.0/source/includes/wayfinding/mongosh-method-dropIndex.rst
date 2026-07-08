@@ -25,7 +25,7 @@
    .. wayfinding-option:: https://mongodb.github.io/node-mongodb-native/3.6/api/Collection.html#dropIndex
       :id: nodejs
 
-   .. wayfinding-option:: https://pkg.go.dev/github.com/GabrielHCataldo/go-mongo-template/mongo/option#DropIndex
+   .. wayfinding-option:: https://pkg.go.dev/go.mongodb.org/mongo-driver@v1.17.0/mongo#IndexView.DropOne 
       :id: go
 
    .. wayfinding-option:: https://www.mongodb.com/docs/php-library/current/tutorial/indexes/#drop-indexes
