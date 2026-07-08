@@ -539,6 +539,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/backup/cloud-backup/restore-from-continuous',
           },
           {
+            label: 'Collection- and Database-Level Restores',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/backup/cloud-backup/restore-from-db-coll',
+          },
+          {
             label: 'Restore from Local Download',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/backup/cloud-backup/restore-from-local-file',
