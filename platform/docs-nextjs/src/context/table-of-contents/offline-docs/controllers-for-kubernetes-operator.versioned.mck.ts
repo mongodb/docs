@@ -12,7 +12,7 @@ export const toc: L1TocItem[] = [
         group: true,
         versionDropdown: true,
         versions: {
-          excludes: ['upcoming'],
+          excludes: ['upcoming', 'current'],
         },
         items: [
           {
@@ -900,7 +900,7 @@ export const toc: L1TocItem[] = [
         group: true,
         versionDropdown: true,
         versions: {
-          includes: ['upcoming'],
+          includes: ['upcoming', 'current'],
         },
         items: [
           {
@@ -913,9 +913,6 @@ export const toc: L1TocItem[] = [
             contentSite: 'mck',
             collapsible: true,
             url: '/docs/kubernetes/:version/tutorial/plan-k8s-op-architecture',
-            versions: {
-              includes: ['upcoming'],
-            },
             items: [
               {
                 label: 'MongoDB Custom Resource Architecture',
@@ -1153,9 +1150,6 @@ export const toc: L1TocItem[] = [
                 label: 'Use OIDC',
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/tutorial/secure-oidc-auth',
-                versions: {
-                  includes: ['current', 'upcoming'],
-                },
               },
               {
                 label: 'Configure Backups',
@@ -1241,9 +1235,6 @@ export const toc: L1TocItem[] = [
                 label: 'Use OIDC',
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/tutorial/manage-database-users-oidc',
-                versions: {
-                  includes: ['current', 'upcoming'],
-                },
               },
               {
                 label: 'Connect',
@@ -1267,51 +1258,31 @@ export const toc: L1TocItem[] = [
             contentSite: 'mck',
             collapsible: true,
             url: '/docs/kubernetes/:version/fts-vs-deployment',
-            versions: {
-              excludes: ['v1.1', 'v1.2', 'v1.3'],
-            },
             items: [
               {
                 label: 'Supported Topologies',
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/fts-vs/deployment/supported-topologies',
-                versions: {
-                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
-                },
               },
               {
                 label: 'Compatibility and Requirements',
                 contentSite: 'mck',
                 url: 'https://www.mongodb.com/docs/search/self-managed/current/deployment/compatibility-requirements',
-                versions: {
-                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
-                },
               },
               {
                 label: 'Resource Planning and Sizing',
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/fts-vs/deployment/resource-planning-sizing',
-                versions: {
-                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
-                },
               },
               {
                 label: 'Install with Community and Enterprise Edition',
                 contentSite: 'mck',
                 collapsible: true,
-                versions: {
-                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
-                },
                 items: [
                   {
                     label: 'Single-Cluster Installation',
                     contentSite: 'mck',
                     url: '/docs/kubernetes/:version/fts-vs/deployment/single-cluster-installation',
-                  },
-                  {
-                    label: 'Multi-Cluster Installation',
-                    contentSite: 'mck',
-                    url: '/docs/kubernetes/:version/fts-vs/deployment/multi-cluster-installation',
                   },
                   {
                     label: 'Verify Package Integrity',
@@ -1329,17 +1300,11 @@ export const toc: L1TocItem[] = [
                 label: 'Migrate from Public Preview to General Availability',
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/tutorial/migrate-fts-vs-preview-to-ga',
-                versions: {
-                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
-                },
               },
               {
                 label: 'Configuration and Maintenance',
                 contentSite: 'mck',
                 collapsible: true,
-                versions: {
-                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5'],
-                },
                 items: [
                   {
                     label: 'Configure mongot',
@@ -1352,14 +1317,14 @@ export const toc: L1TocItem[] = [
                     url: '/docs/kubernetes/:version/fts-vs/configuration/automated-embedding',
                   },
                   {
-                    label: 'Configure Authentication and Authorization',
+                    label: 'Configure Security: MongoDB to Search',
                     contentSite: 'mck',
-                    url: '/docs/kubernetes/:version/fts-vs/configuration/authentication-authorization',
+                    url: '/docs/kubernetes/:version/fts-vs/configuration/secure-connection-mongodb-to-search',
                   },
                   {
-                    label: 'Configure Security: TLS and Encryption',
+                    label: 'Configure Security: Search to MongoDB',
                     contentSite: 'mck',
-                    url: '/docs/kubernetes/:version/fts-vs/configuration/tls-encryption',
+                    url: '/docs/kubernetes/:version/fts-vs/configuration/secure-connection-search-to-mongodb',
                   },
                 ],
               },
@@ -1367,33 +1332,21 @@ export const toc: L1TocItem[] = [
                 label: 'Monitor Deployment',
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/fts-vs/deployment/monitor',
-                versions: {
-                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
-                },
               },
               {
                 label: 'Known Limitations',
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/fts-vs/limitations',
-                versions: {
-                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
-                },
               },
               {
                 label: 'Troubleshooting',
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/fts-vs/troubleshoot',
-                versions: {
-                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
-                },
               },
               {
                 label: 'FAQs',
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/fts-vs/faq',
-                versions: {
-                  excludes: ['v1.1', 'v1.2', 'v1.3', 'v1.4', 'v1.5', 'v1.6', 'v1.7', 'v1.8'],
-                },
               },
             ],
           },
@@ -1462,9 +1415,6 @@ export const toc: L1TocItem[] = [
                 label: 'Use OIDC',
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/tutorial/multi-cluster-secure-oidc-auth',
-                versions: {
-                  includes: ['current', 'upcoming'],
-                },
               },
               {
                 label: 'Access Resources',
@@ -1690,9 +1640,6 @@ export const toc: L1TocItem[] = [
                 label: 'MongoDBRole',
                 contentSite: 'mck',
                 url: '/docs/kubernetes/:version/reference/mongodb-role-specification',
-                versions: {
-                  includes: ['current', 'upcoming'],
-                },
               },
               {
                 label: 'MongoDB',

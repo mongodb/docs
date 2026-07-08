@@ -350,14 +350,22 @@ export const toc: L1TocItem[] = [
                     ],
                   },
                   {
-                    label: 'Upgrade Major MongoDB Version',
+                    label: 'MongoDB Versions in Atlas',
                     contentSite: 'cloud-docs',
-                    url: '/docs/atlas/tutorial/major-version-change',
-                  },
-                  {
-                    label: 'Downgrade Major MongoDB Version',
-                    contentSite: 'cloud-docs',
-                    url: '/docs/atlas/tutorial/major-version-downgrade',
+                    collapsible: true,
+                    url: '/docs/atlas/atlas-versions',
+                    items: [
+                      {
+                        label: 'Upgrade Major MongoDB Version',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/tutorial/major-version-change',
+                      },
+                      {
+                        label: 'Downgrade Major MongoDB Version',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/tutorial/major-version-downgrade',
+                      },
+                    ],
                   },
                   {
                     label: 'Maintenance Windows',
