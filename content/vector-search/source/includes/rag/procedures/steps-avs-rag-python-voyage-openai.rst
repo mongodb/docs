@@ -36,9 +36,10 @@
 
          .. include:: /includes/shared/facts/mdb-vs-voyage-model-description.rst
 
-         .. literalinclude:: /includes/rag/code-snippets/ingest/python/get-embeddings-voyage.py
+         .. literalinclude:: /code-examples/tested/python/pymongo/vector_search/rag/get_embeddings_voyage.snippet.get-embedding-voyage.py
             :language: python
-            :copyable:
+            :copyable: true
+            :category: usage example
             
       #. Load and split the data.
 
@@ -70,50 +71,37 @@
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=20)
             documents = text_splitter.split_documents(data)
 
-      #. Convert the data to vector embeddings.
-
-         Run this code to prepare the chunked documents for ingestion
-         by creating a list of documents with their corresponding vector embeddings.
-         You generate these embeddings by using the ``get_embedding()`` function that 
-         you just defined.
-
-         ..
-            NOTE: If you edit this Python code, also update the Jupyter Notebook
-            at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/rag.ipynb
-
-         .. code-block:: python
-
-            # Prepare documents for insertion
-            docs_to_insert = [{
-                "text": doc.page_content,
-                "embedding": get_embedding(doc.page_content)
-            } for doc in documents]
-
       #. Store the data and embeddings in MongoDB.
 
-         Run this code to insert the documents containing the embeddings 
-         into the ``rag_db.test`` collection. Before running the code, replace 
-         ``<connection-string>`` with your MongoDB connection string.
+         Run the following code to connect to your MongoDB deployment.
+         Before running the code, replace ``<connection-string>`` with
+         your MongoDB connection string.
 
-         ..
-            NOTE: If you edit this Python code, also update the Jupyter Notebook
-            at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/rag.ipynb
-         
          .. code-block:: python
-          
+
             from pymongo import MongoClient
 
             # Connect to your MongoDB deployment
             client = MongoClient("<connection-string>")
             collection = client["rag_db"]["test"]
 
-            # Insert documents into the collection
-            result = collection.insert_many(docs_to_insert)
+         Then, run the following code to prepare the chunked documents
+         and insert them into the ``rag_db.test`` collection:
 
-         .. tip:: 
+         ..
+            NOTE: If you edit this code, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/rag.ipynb
 
-            After you run the code, if you're using |service|, you can verify your vector embeddings
-            by navigating to the ``rag_db.test`` namespace
+         .. literalinclude:: /code-examples/tested/python/pymongo/vector_search/rag/rag_pipeline.snippet.ingest-documents.py
+            :language: python
+            :copyable: true
+            :category: usage example
+
+         .. tip::
+
+            After you run the code, if you're using |service|, you can
+            verify your vector embeddings by navigating to the
+            ``rag_db.test`` namespace
             :ref:`in the {+atlas-ui+} <atlas-ui-view-collections>`.
       
    .. step:: Use {+avs+} to retrieve documents.
@@ -131,41 +119,10 @@
 
          To learn more, see :ref:`avs-types-vector-search`.
 
-         .. code-block:: python
-
-            from pymongo.operations import SearchIndexModel
-            import time
-
-            # Create your index model, then create the search index
-            index_name="vector_index"
-            search_index_model = SearchIndexModel(
-              definition = {
-                "fields": [
-                  {
-                    "type": "vector",
-                    "numDimensions": 1024,
-                    "path": "embedding",
-                    "similarity": "cosine"
-                  }
-                ]
-              },
-              name = index_name,
-              type = "vectorSearch" 
-            )
-            collection.create_search_index(model=search_index_model)
-
-            # Wait for initial sync to complete
-            print("Polling to check if the index is ready. This may take up to a minute.")
-            predicate=None
-            if predicate is None:
-               predicate = lambda index: index.get("queryable") is True
-
-            while True:
-               indices = list(collection.list_search_indexes(index_name))
-               if len(indices) and predicate(indices[0]):
-                  break
-               time.sleep(5)
-            print(index_name + " is ready for querying.")
+         .. literalinclude:: /code-examples/tested/python/pymongo/vector_search/rag/rag_pipeline.snippet.create-search-index.py
+            :language: python
+            :copyable: true
+            :category: usage example
 
       #. Define a function to run vector search queries.
 
@@ -177,73 +134,10 @@
 
          To learn more, see :ref:`return-vector-search-results`.
 
-         .. io-code-block:: 
-            :copyable: true 
-
-            .. input:: 
-               :language: python
-               
-               # Define a function to run vector search queries
-               def get_query_results(query):
-                 """Gets results from a vector search query."""
-                 
-                 query_embedding = get_embedding(query, input_type="query")
-                 pipeline = [
-                     {
-                           "$vectorSearch": {
-                             "index": "vector_index",
-                             "queryVector": query_embedding,
-                             "path": "embedding",
-                             "exact": True,
-                             "limit": 5
-                           }
-                     }, {
-                           "$project": {
-                             "_id": 0,
-                             "text": 1
-                        }
-                     }
-                 ]
-
-                 results = collection.aggregate(pipeline)
-
-                 array_of_results = []
-                 for doc in results:
-                     array_of_results.append(doc)
-                 return array_of_results
-
-               # Test the function with a sample query
-               import pprint
-               pprint.pprint(get_query_results("AI technology"))
-
-            .. output::
-               :visible: false
-               
-               [{'text': 'more of our customers. We also see a tremendous opportunity to win '
-                         'more legacy workloads, as AI has now become a catalyst to modernize '
-                         'these\n'
-                         "applications. MongoDB's  document-based architecture is "
-                         'particularly well-suited for the variety and scale of data required '
-                         'by AI-powered applications.'},
-                {'text': 'artificial intelligence, in our offerings or partnerships; the '
-                         'growth and expansion of the market for database products and our '
-                         'ability to penetrate that\n'
-                         'market; our ability to integrate acquired businesses and '
-                         'technologies successfully or achieve the expected benefits of such '
-                         'acquisitions; our ability to'},
-                {'text': 'MongoDB  continues to expand its AI ecosystem with the announcement '
-                         'of the MongoDB AI Applications Program (MAAP),'},
-                {'text': 'which provides customers with reference architectures, pre-built '
-                         'partner integrations, and professional services to help\n'
-                         'them quickly build AI-powered applications. Accenture will '
-                         'establish a center of excellence focused on MongoDB  projects,\n'
-                         'and is the first global systems integrator to join MAAP.'},
-                {'text': 'Bendigo and Adelaide Bank partnered with MongoDB  to modernize '
-                         'their core banking technology. With the help of\n'
-                         'MongoDB Relational Migrator and generative AI-powered modernization '
-                         'tools, Bendigo and Adelaide Bank decomposed an\n'
-                         'outdated consumer-servicing application into microservices and '
-                         'migrated off its underlying legacy relational database'}]
+         .. literalinclude:: /code-examples/tested/python/pymongo/vector_search/rag/rag_pipeline.snippet.get-query-results.py
+            :language: python
+            :copyable: true
+            :category: usage example
 
    .. step:: Generate responses with the LLM.
 
@@ -258,37 +152,25 @@
       - Prompts the LLM about MongoDB's latest AI announcements. 
         The generated response might vary.
 
-      .. io-code-block:: 
-         :copyable: true 
+      Run the following code to specify a search query and retrieve
+      relevant documents:
 
-         .. input:: 
-            :language: python
+      .. code-block:: python
 
-            from openai import OpenAI
+         from openai import OpenAI
 
-            # Specify search query, retrieve relevant documents, and convert to string
-            query = "What are MongoDB's latest AI announcements?"
-            context_docs = get_query_results(query)
-            context_string = " ".join([doc["text"] for doc in context_docs])
+         # Specify search query and retrieve relevant documents
+         query = "What are MongoDB's latest AI announcements?"
+         context_docs = get_query_results(query)
 
-            # Construct prompt for the LLM using the retrieved documents as the context
-            prompt = f"""Use the following pieces of context to answer the question at the end.
-                {context_string}
-                Question: {query}
-            """
+      Then, run the following code to generate a response from the LLM:
 
-            openai_client = OpenAI()
+      .. literalinclude:: /code-examples/tested/python/pymongo/vector_search/rag/rag_pipeline.snippet.generate-response.py
+         :language: python
+         :copyable: true
+         :category: usage example
 
-            # OpenAI model to use
-            model_name = "gpt-4o"
-
-            completion = openai_client.chat.completions.create(
-            model=model_name,
-            messages=[{"role": "user",
-                "content": prompt
-              }]
-            )
-            print(completion.choices[0].message.content)
-
-         .. output:: /includes/rag/code-snippets/output/generate-responses-output-openai.sh
+      .. literalinclude:: /includes/rag/code-snippets/output/generate-responses-output-openai.sh
+         :language: none
+         :copyable: false
 
