@@ -103,6 +103,34 @@ sub_file_ml() {
     mv "$tmp" "$file"
 }
 
+# After copying <src>/ → <dest>/, rewrite snooty.toml constants in the new
+# directory that hardcode the source directory inside a path or URL (e.g.
+# csharp's `example` GitHub blob URL: .../content/csharp/upcoming/source/...).
+# Step 4 updates the version number, but not these path-bearing constants, so
+# the copy would otherwise leave the destination pointing back at the source
+# tree. Pass the same directory names used in the adjacent copy so the helper
+# makes no assumption about what those directories are called. No-op for
+# docsets that define no such constant.
+#
+# The replacement value contains "/", so it is passed to perl as a variable
+# ($n) rather than interpolated into the s/// literal — otherwise the slashes
+# would terminate the substitution delimiters.
+fix_copied_snooty_paths() {
+    local src_dir="$1" dest_dir="$2"
+    local snooty="$DOCSET_DIR/$dest_dir/snooty.toml"
+    [[ -f "$snooty" ]] || return 0
+    local old="content/$DOCSET/$src_dir/"
+    local new="content/$DOCSET/$dest_dir/"
+    grep -qF -- "$old" "$snooty" || return 0
+    if $DRY_RUN; then
+        printf "  [dry-run] rewrite %s/snooty.toml path constants: %s → %s\n" \
+            "$dest_dir" "$old" "$new"
+        return
+    fi
+    echo "  fix     $dest_dir/snooty.toml path constants: $src_dir/ → $dest_dir/"
+    perl -pi -e 'BEGIN{$o=shift;$n=shift} s/\Q$o\E/$n/g' "$old" "$new" "$snooty"
+}
+
 # ── Docset model lookup ───────────────────────────────────────────────────────
 #
 # Models:
@@ -364,6 +392,7 @@ else
             fi
             echo "  copy    upcoming/  →  current/"
             run cp -rP "$DOCSET_DIR/upcoming" "$DOCSET_DIR/current"
+            fix_copied_snooty_paths upcoming current
             ;;
         per_minor|atlas_cli)
             ARCHIVE_VER="$(archive_dir_version "$DOCSET" "$OLD_VERSION")"
@@ -373,6 +402,7 @@ else
             run mv "$DOCSET_DIR/current" "$ARCHIVE"
             echo "  copy    upcoming/  →  current/"
             run cp -rP "$DOCSET_DIR/upcoming" "$DOCSET_DIR/current"
+            fix_copied_snooty_paths upcoming current
             ;;
         mongosync)
             ARCHIVE="$DOCSET_DIR/v${OLD_VERSION}"
