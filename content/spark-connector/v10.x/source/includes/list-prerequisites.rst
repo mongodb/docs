@@ -1,8 +1,6 @@
 - Basic working knowledge of MongoDB and Apache Spark. Refer to the
-  :manual:`MongoDB documentation </>`, `Spark documentation
-  <https://spark.apache.org/docs/latest/>`_, and this 
-  `MongoDB white paper <https://www.mongodb.com/collateral/apache-spark-and-mongodb-turning-analytics-into-real-time-action>`__
-  for more details.
+  :manual:`MongoDB documentation </>` and `Spark documentation
+  <https://spark.apache.org/docs/latest/>`_ for more details.
 
 - MongoDB version 4.2 or later
 
