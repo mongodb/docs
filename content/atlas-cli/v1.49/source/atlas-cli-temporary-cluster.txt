@@ -1,0 +1,166 @@
+.. _atlas-cli-temporary-cluster:
+
+=====================================================
+Test Automations with Temporary Projects and Clusters
+=====================================================
+
+.. meta::
+   :description: Learn to create and delete temporary projects and clusters using the Atlas CLI for testing automation scripts in isolated environments.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This tutorial describes how to create and delete an |service| project
+and cluster to use as a temporary testing environment during automation
+script development. Use this workflow to validate scripts against a test
+cluster without leaving behind resources after you finish testing.
+
+Prerequisites
+-------------
+
+Before you begin, you must have the following: 
+
+- An |service| user account.
+- An |service| organization and its organization ID.  You can retrieve
+  the organization ID using the :ref:`atlas-organizations-list`
+  {+atlas-cli+} command.
+- The {+atlas-cli+} installed and configured. To learn more, see 
+  :ref:`install-atlas-cli` and :ref:`connect-atlas-cli`.
+
+Procedure
+---------
+
+.. procedure::
+   :style: normal
+
+   .. step:: Create a temporary project, cluster, and database user.
+
+      Run the following {+atlas-cli+} commands to create a testing
+      environment that you can delete when you are finished testing:
+
+      a. Run the :ref:`atlas-users-describe` command to return your
+         |service| user ID. Replace ``<userEmail>`` with the email
+         address that is associated with your |service| user account.
+
+         .. code-block::
+
+            atlas users describe --username <userEmail>
+
+      #. Run the :ref:`atlas-projects-create` command to create a new
+         project named ``myTempProject`` in your |service| organization.
+         Replace ``<orgId>`` with your organization ID and replace
+         ``<userId>`` with the |service| user ID that you retrieved in
+         the previous step.
+
+         .. code-block::
+
+            atlas projects create myTempProject --orgId <orgId> --ownerId <userId>
+
+      #. Retrieve the project ID for the project you created from the
+         response. In the following example response, the project ID is
+         ``64933bde48add154124e343f``.
+
+         .. code-block::
+
+            Project '64933bde48add154124e343f' created.
+
+         Alternatively, you can use the :ref:`atlas-projects-list`
+         command to find the project ID.
+
+      #. Run the :ref:`atlas-setup` command to create an |service|
+         cluster and database user in your new project. The following
+         command creates an ``M10`` cluster in the |aws| ``US_EAST_1``
+         region, with the temporary user ``myTempUser``.
+         
+         Replace ``<password>`` with a password for the database user
+         and replace ``<projectId>`` with the project ID for the project
+         you created.
+
+         .. important:: 
+            
+            An ``M10`` cluster is not free. The cluster you create will
+            incur hourly charges until you delete it. For more 
+            information about |service| cluster billing, see the
+            :ref:`cluster-config-costs` documentation.
+
+         .. code-block::
+
+            atlas setup --clusterName myTempCluster --provider AWS --region US_EAST_1 --tier M10 --username myTempUser --password <password> --currentIp --skipSampleData --projectId <projectId> --force
+
+         After |service| creates the cluster, the {+atlas-cli+} provides
+         the cluster :ref:`connection string
+         <connections-connection-options>` and connects to your cluster
+         through {+mongosh+}.
+   
+   .. step:: Set up programmatic authentication to the temporary project.
+      
+      To run {+atlas-cli+} commands from your automation scripts, you
+      need a way for your automation to authenticate to the |service|
+      control plane programmatically. One way to do this is to create
+      a service account for your project and add its credentials to your
+      environment:
+
+      a. Create a service account for the temporary project.
+      
+         Follow the instructions in :ref:`atlas-admin-api-access` to
+         create a service account for your temporary project. Save the
+         client ID and client secret values for the service account.
+
+      #. Add service account credentials to your test environment.
+         
+         To enable your script to run {+atlas-cli+} commands without
+         requiring interactive authentication, you must add the service
+         account credentials to your testing environment. You can do
+         this by setting the ``MONGODB_ATLAS_CLIENT_ID`` and
+         ``MONGODB_ATLAS_CLIENT_SECRET`` :ref:`environment variables
+         <atlas-cli-env-vars>`,  running ``atlas auth login`` in the
+         testing environment, or adding the credentials to a named
+         profile and appending ``--profile <profileName>`` to each
+         {+atlas-cli+} command in your script.
+
+   .. step:: Test your automations on the temporary project.
+      
+      Use the project and cluster you created in the previous steps to 
+      validate scripts that automate {+atlas-cli+} actions, such as 
+      creating, updating, pausing, or deleting |service| resources.
+
+   .. step:: Delete the temporary project, cluster, and database user.
+
+      Run the following {+atlas-cli+} commands to delete the testing
+      environment. This ensures that all resources you created for
+      testing are properly removed and stop incurring charges on your
+      |service| account:
+
+      a. Run the :ref:`atlas-clusters-delete` command to delete the
+         temporary cluster and its database users. Replace
+         ``<projectId>`` with the project ID for the temporary project.
+
+         .. code-block::
+
+            atlas clusters delete myTempCluster --projectId <projectId> --force
+
+      #. Run the :ref:`atlas-projects-delete` command to delete the
+         temporary project. Replace ``<projectId>`` with the project ID
+         for your temporary project.
+
+         .. code-block::
+
+            atlas projects delete <projectId> --force
+
+         .. note::
+
+            You can't delete the temporary project until the temporary
+            cluster finishes shutting down. If you get an error
+            stating ``CANNOT_CLOSE_GROUP_ACTIVE_ATLAS_CLUSTERS``, wait
+            five minutes, then run the ``atlas projects delete``
+            command again.
+
+      You can run the :ref:`atlas-projects-list` command to confirm
+      successful deletion of the temporary project and cluster. If
+      the temporary project is missing from the list, you successfully
+      deleted both the project and the cluster.
