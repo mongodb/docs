@@ -48,8 +48,7 @@ The ``roles`` array is optional and describes user-defined roles.
      - Roles and privileges that MongoDB has assigned to a cluster's
        user-defined roles. Each object describes a different
        user-defined role. Objects in this array contain the same fields
-       as documents in the :manual:`system roles collection
-       </reference/system-roles-collection>`, except for the **_id**
+       as documents in the :ref:`system roles collection <admin-system-roles-collection>`, except for the **_id**
        field.
 
    * - roles[n].role
@@ -78,7 +77,7 @@ The ``roles`` array is optional and describes user-defined roles.
      - Conditional
      - Actions permitted on the resource.
 
-       To learn more, see :manual:`Privilege Actions </reference/privilege-actions/>`.
+       To learn more, see :ref:`Privilege Actions <security-user-actions>`.
 
    * - roles[n].roles
      - array of documents

@@ -184,7 +184,7 @@ MongoDB Agent 12.0.10.7591
 
 .. include:: /includes/extracts/om6-warning-server-68925.rst
 
-- Supports :manual:`encryption at rest </core/security-encryption-at-rest/#encryption-at-rest>`
+- Supports :ref:`encryption at rest <security-encryption-at-rest>`
   for audit logs using
   :ref:`advanced configuration options <deployment-advanced-options-audit-log>`.
 

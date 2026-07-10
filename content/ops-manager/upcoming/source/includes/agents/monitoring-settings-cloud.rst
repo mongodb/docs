@@ -137,7 +137,7 @@ To learn more, see
    format. {+magent+} uses the client certificate to connect to any
    configured MongoDB deployment that uses |tls| and requires client
    certificates. (The deployment runs with the
-   :manual:`--tlsCAFile </reference/program/mongod/#std-option-mongod.--tlsCAFile>` setting.)
+   :option:`--tlsCAFile <mongod --tlsCAFile>` setting.)
 
    .. example::
 

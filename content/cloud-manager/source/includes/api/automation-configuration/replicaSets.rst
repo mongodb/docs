@@ -64,9 +64,8 @@ This field is required for deployments with replica sets.
      - array
      - Optional
      - Configuration of each
-       :manual:`replica set </reference/glossary/#std-term-replica-set>`. The {+mdbagent+} uses the values in this
-       array to create valid :manual:`replica set configuration
-       documents </reference/replica-configuration>`. The agent
+       :term:`replica set`. The {+mdbagent+} uses the values in this
+       array to create valid :ref:`replica set configuration documents <self-managed-replset-configuration>`. The agent
        regularly checks that replica sets are configured correctly.
        If a problem occurs, the agent reconfigures the replica set
        according to its configuration document. The array can
@@ -74,7 +73,7 @@ This field is required for deployments with replica sets.
        configuration document: **_id**; **version**; and
        **members**.
 
-       To learn more, see :manual:`replSetGetConfig </reference/command/replSetGetConfig>`.
+       To learn more, see :dbcommand:`replSetGetConfig`.
 
    * - replicaSets[n]._id
      - string
@@ -84,7 +83,7 @@ This field is required for deployments with replica sets.
    * - replicaSets[n].protocolVersion
      - string
      - Optional
-     - :manual:`Protocol version </reference/replica-set-protocol-versions>`
+     - :ref:`Protocol version <replica-set-protocol-version>`
        of the replica set.
 
    * - replicaSets[n].members
@@ -93,7 +92,7 @@ This field is required for deployments with replica sets.
      - Objects that define each member of the replica set. The
        **members.host** field must specify the host
 
-       To learn more, see :manual:`replSetGetConfig </reference/command/replSetGetConfig>` and :manual:`replSetGetConfig </reference/command/replSetGetConfig>`.
+       To learn more, see :dbcommand:`replSetGetConfig` and :dbcommand:`replSetGetConfig`.
 
    * - replicaSets[n].members[m]._id
      - integer

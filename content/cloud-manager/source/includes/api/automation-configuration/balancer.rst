@@ -27,5 +27,5 @@ The **balancer** object is optional and defines balancer settings for each clust
        cluster. The object uses the **stopped** and **activeWindow**
        parameters, as described in the procedure to schedule the
        balancing window in
-       :manual:`this tutorial </tutorial/manage-sharded-cluster-balancer>`
+       :ref:`this tutorial <sharded-cluster-balancer>`
        in the MongoDB manual.

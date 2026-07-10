@@ -13,5 +13,5 @@ stored.
    With the new Backup process, there are no longer initial syncs. As a
    result of not having initial syncs, |onprem| can support a wider
    array of customers such as those heavily using
-   :manual:`renameCollection </reference/command/renameCollection>`.
+   :dbcommand:`renameCollection`.
 

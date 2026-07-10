@@ -147,7 +147,7 @@ MongoDB Agent 12.11.0.7961
 - Supports changing runtime-settable MongoDB Server parameters without
   requiring a restart.
 - Fixes the processing of the :dbcommand:`collStats` and
-  :manual:`db.currentOp() </reference/method/db.currentOp>` commands
+  :method:`db.currentOp() <db.currentOp>` commands
   so that they use corresponding aggregation stages. To learn more,
   see :ref:`Database Commands Used by {+magent+} <db-commands-used-by-agent>`
   and :ref:`Real Time Metrics <real-time-metrics-status-tab>`.
@@ -693,7 +693,7 @@ MongoDB Agent 10.10.0.6122-1
   :doc:`log lines </tutorial/view-logs>`.
 
 - Supports concurrent
-  :manual:`draining </tutorial/remove-shards-from-cluster>`
+  :ref:`draining <remove-shards-from-cluster-tutorial>`
   of multiple shards for MongoDB 4.2.1+.
 
 - Allows automated restores to proceed if the target processes are
@@ -715,7 +715,7 @@ MongoDB Agent 10.9.0.6088-1
 
 - Significant memory management improvements for sharded clusters with
   very large tag sets for
-  :manual:`zoned sharding </core/zone-sharding>`.
+  :ref:`zoned sharding <shards-tag-sets>`.
 
 - Fixes issue with automated restores. They can proceed successfully if
   the target process is unresponsive before the restore begins.

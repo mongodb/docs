@@ -22,6 +22,6 @@
    .. step:: (Optional) To filter which events are audited, repeat steps 1-4 and add the ``auditLogFilter`` property.
       
       For information about how to create filters, see 
-      :manual:`Configure Audit Filters</tutorial/configure-audit-filters>`.
+      :ref:`Configure Audit Filters <audit-filter>`.
       
    .. step:: Click :guilabel:`Apply` to deploy your auditing configuration.

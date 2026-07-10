@@ -59,7 +59,7 @@
                 for more information.
       
             * - :guilabel:`Feature Compatibility` (Optional)
-              - Select the :manual:`feature compatibility set </reference/command/setFeatureCompatibilityVersion>`.
+              - Select the :dbcommand:`feature compatibility set <setFeatureCompatibilityVersion>`.
       
             * - :guilabel:`Version`
               - Select the MongoDB version for your replica set.
@@ -71,8 +71,8 @@
                 :gold:`IMPORTANT:` Make sure the new member's data directory *doesn't* 
                 contain data. The new member will copy the data from an existing member.
       
-                If the new member is in a :manual:`recovering </reference/glossary/#std-term-recovering>` 
-                state, it must exit and become a :manual:`secondary </reference/glossary/#std-term-secondary>` 
+                If the new member is in a :term:`recovering` 
+                state, it must exit and become a :term:`secondary` 
                 before MongoDB can copy all data as part of the replication process. 
                 This process doesn't require administrator intervention.
 

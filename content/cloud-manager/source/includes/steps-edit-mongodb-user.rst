@@ -23,8 +23,7 @@
       
          * - :guilabel:`Roles`
       
-           - Enter any available user-defined roles and :manual:`built-in
-             roles </reference/built-in-roles>` into this box. The combo 
+           - Enter any available user-defined roles and :ref:`built-in roles <built-in-roles>` into this box. The combo 
              box provides a list of existing roles when you click in it.
       
              To remove a role, click the ``x`` to the left of that role.

@@ -12,7 +12,7 @@ for an existing deployment. At minimum, the deployment must enable the
 authentication mechanism you want the agents to use.
 
 Adding an :term:`agent` as a MongoDB user requires configuring an
-:manual:`authentication </core/authentication>` mechanism. Agents can
+:ref:`authentication` mechanism. Agents can
 use any supported :doc:`authentication mechanism
 </tutorial/edit-host-authentication-credentials>`, but all agents must
 use the same mechanism.

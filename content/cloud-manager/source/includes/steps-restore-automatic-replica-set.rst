@@ -32,10 +32,10 @@
       
             * - :guilabel:`Project`
               - Select a :cloudmgr:`project </reference/glossary/#std-term-project>` to which you want to restore the
-                :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
+                :term:`snapshot`.
       
             * - :guilabel:`Cluster to Restore to`
-              - Select a :manual:`cluster </reference/glossary/#std-term-cluster>` to which you want to restore
+              - Select a :term:`cluster` to which you want to restore
                 the snapshot.
       
                 |mms| *must* manage the target replica set.

@@ -41,7 +41,7 @@ engine to the other if the host has adequate disk space. If disk space
 is insufficient, no backups are taken. |mms| *does not* delete the
 backup directories once the migration is complete. You can keep or
 delete the previous backup directories. The backup directories are
-located in  the :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>`'s data directory.
+located in  the :binary:`~bin.mongod`'s data directory.
 
 .. example::
 
@@ -49,7 +49,7 @@ located in  the :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.m
    ``/data/process.bak.UNIQUENAME``. The ``UNIQUENAME`` is a random
    string that |mms| generates.
 
-Before you can change the :manual:`storage engine </reference/glossary/#std-term-storage-engine>` for a standalone
+Before you can change the :term:`storage engine` for a standalone
 instance or replica set, you must give the {+aagent+} write access to
 the MongoDB :term:`data directory`'s *parent* directory. The agent
 creates a temporary backup of the data in the parent directory when
@@ -59,9 +59,9 @@ and :dbtools:`/mongorestore`. This disk space is then restored to the
 instance after the storage engine configuration change. |mms| *does not* 
 delete the backup directories. 
 
-You cannot change the storage engine on a :manual:`config server </reference/glossary/#std-term-config-server>`. For
+You cannot change the storage engine on a :term:`config server`. For
 more information on storage engines and the available options, see
-:manual:`Storage </core/storage>` in the MongoDB manual.
+:ref:`Storage <self-managed-storage>` in the MongoDB manual.
 
 Fixed Properties
 ~~~~~~~~~~~~~~~~
@@ -144,7 +144,7 @@ state in which a minority of its members are available.
 
 .. seealso::
 
-   :manual:`Reconfigure a Replica Set with Unavailable Members </tutorial/reconfigure-replica-set-with-unavailable-members/>` in the MongoDB Manual.
+   :ref:`Reconfigure a Replica Set with Unavailable Members <reconfigure-replica-set-with-unavailable-members>` in the MongoDB Manual.
 
 Removing a Shard
 ~~~~~~~~~~~~~~~~

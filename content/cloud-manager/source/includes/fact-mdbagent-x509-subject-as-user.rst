@@ -3,7 +3,7 @@
 For the MongoDB Agent to connect to your MongoDB deployment, you must create a MongoDB user on your deployment that corresponds to the ``subject`` value of your client certificate.
 
 Where you create the MongoDB user depends upon whether you are
-using :manual:`LDAP authorization </core/security-ldap-external>`.
+using :ref:`LDAP authorization <security-ldap-external>`.
 
 .. end-x509-unmanaged-intro
 
@@ -53,12 +53,10 @@ For the MongoDB user representing the {+mdbagent+}:
      :doc:`/reference/required-access-mongodb-agent`.
    - To map an |ldap| group and MongoDB role, see the
      :ref:`LDAP Roles section <security-ldap-external-roles>`
-     of the :manual:`LDAP authorization
-     </core/security-ldap-external>` page in the MongoDB
+     of the :ref:`LDAP authorization <security-ldap-external>` page in the MongoDB
      manual.
    - To configure |ldap| authorization without |mms| automation,
-     see the :manual:`LDAP Authorization
-     </core/security-ldap-external>` page in the MongoDB manual.
+     see the :ref:`LDAP Authorization <security-ldap-external>` page in the MongoDB manual.
 
 .. end-x509-ldap-content
 

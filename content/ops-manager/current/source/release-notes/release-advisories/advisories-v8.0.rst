@@ -53,5 +53,4 @@ Automation Support Changes
 .. note::
 
    :ref:`Queryable backups <restore-from-queryable-backup>` 
-   are not supported when you use :manual:`config shards 
-   </core/sharded-cluster-config-servers/#config-shards>`.
+   are not supported when you use :ref:`config shards <sharded-cluster-config-server-config-shards>`.

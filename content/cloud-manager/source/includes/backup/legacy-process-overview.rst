@@ -1,11 +1,11 @@
 This process works like
-:manual:`replica set data synchronization </core/replica-set-sync>`.
+:ref:`replica set data synchronization <replica-set-sync>`.
 
 The backup process:
 
 1. Performs an :cloudmgr:`inital sync </reference/glossary/#std-term-initial-sync>` to back up all of your existing
    data in its current state.
-   In :manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>`, this occurs on each
+   In :term:`sharded clusters <sharded cluster>`, this occurs on each
    shard and on the config servers.
 
    .. include:: /includes/backup/legacy-causes-of-initial-sync-restart.rst
@@ -24,7 +24,7 @@ The backup process:
 
    .. include:: /includes/admonitions/important/checkpoints-fcv-4-0-only.rst
 
-#. Monitors the :manual:`oplog </reference/glossary/#std-term-oplog>` constantly and adds new database
+#. Monitors the :term:`oplog` constantly and adds new database
    operations to the latest backup to keep the local |onprem| copy of
    the data current.
 

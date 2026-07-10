@@ -14,7 +14,7 @@ Backing Databases
 ~~~~~~~~~~~~~~~~~
 
 Consider converting your backing databases to use the
-:manual:`WiredTiger storage engine </core/wiredtiger>`. |onprem|
+:ref:`WiredTiger storage engine <storage-wiredtiger>`. |onprem|
 supports :ref:`MongoDB 4.0.x and 4.2.x <requirements-backing-db-replica-sets>`. MongoDB 4.2
 :manual:`removed the MMAPv1 storage engine </release-notes/4.2-compatibility#removal-of-mmapv1-storage-engine>`.
 

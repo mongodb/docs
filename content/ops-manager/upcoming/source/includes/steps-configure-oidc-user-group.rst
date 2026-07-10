@@ -56,7 +56,7 @@
               - Optional
               - Actions permitted on the resource.
 
-                To learn more, see :manual:`Privilege Actions </reference/privilege-actions/>`.
+                To learn more, see :ref:`Privilege Actions <security-user-actions>`.
 
       #. Click :guilabel:`Add Role`. 
 

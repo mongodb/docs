@@ -1,6 +1,6 @@
 When you remove a shard, any unsharded databases in that shard are 
 moved to a remaining shard using the 
-:manual:`movePrimary </reference/command/movePrimary/>` command.
+:dbcommand:`movePrimary` command.
 
 All sharded collections remain online and available during the shard 
 removal process. However, read and write operations sent to unsharded 
@@ -12,5 +12,4 @@ We recommend moving the primary shard for any databases containing
 unsharded collections before removing the shard.
 
 To learn more about removing shards, see 
-:manual:`Remove Shards from an Existing Sharded Cluster 
-</tutorial/remove-shards-from-cluster/>`.
+:ref:`Remove Shards from an Existing Sharded Cluster <remove-shards-from-cluster-tutorial>`.

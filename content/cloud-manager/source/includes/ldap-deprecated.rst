@@ -5,4 +5,4 @@
    without changes throughout the lifetime of MongoDB 8. |ldap| will be
    removed in a future major release.
 
-   For details, see :manual:`LDAP Deprecation </core/LDAP-deprecation>`.
+   For details, see :ref:`LDAP Deprecation <ldap-deprecation>`.

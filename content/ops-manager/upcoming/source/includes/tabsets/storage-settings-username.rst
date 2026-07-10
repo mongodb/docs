@@ -11,7 +11,7 @@
       .. include:: /includes/fact-configure-connections-to-app-db.rst
 
       To learn more about configuring SCRAM authentication, see 
-      :manual:`SCRAM </core/security-scram/#std-label-authentication-scram>`.
+      :ref:`SCRAM <authentication-scram>`.
 
    .. tab:: X.509
       :tabid: x509
@@ -22,7 +22,7 @@
       .. include:: /includes/fact-configure-connections-to-app-db.rst
 
       To learn more about configuring x.509 authentication, see 
-      :manual:`x.509 </tutorial/configure-x509-client-authentication>`.
+      :ref:`x.509 <x509-client-authentication>`.
 
    .. tab:: Kerberos
       :tabid: kerberos
@@ -32,7 +32,7 @@
       .. include:: /includes/fact-configure-connections-to-app-db.rst
 
       To learn more about configuring Kerberos authentication, see 
-      :manual:`Kerberos </core/kerberos>`.
+      :ref:`Kerberos <security-kerberos>`.
 
    .. tab:: LDAP
       :tabid: ldap
@@ -43,4 +43,4 @@
       .. include:: /includes/fact-configure-connections-to-app-db.rst
 
       To learn more about configuring LDAP authentication, see 
-      :manual:`LDAP </core/security-ldap>`.
+      :ref:`LDAP <security-ldap>`.

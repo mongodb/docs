@@ -25,10 +25,7 @@
 
      - Configures replica set members. By default, each member is a voting
        member that bears data. You can configure a member as an
-       :manual:`arbiter </core/replica-set-arbiter>`, :manual:`hidden
-       </core/replica-set-hidden-member>`, :manual:`delayed
-       </core/replica-set-delayed-member>`, or :manual:`having a certain
-       priority in an election </core/replica-set-priority-0-member>`.
+       :ref:`arbiter <replica-set-arbiter-configuration>`, :ref:`hidden <replica-set-hidden-configuration>`, :ref:`delayed <replica-set-delayed-configuration>`, or :ref:`having a certain priority in an election <replica-set-secondary-only-members>`.
 
    * - :guilabel:`Index Configuration`
 
@@ -47,7 +44,7 @@
           All members of a replica set do not need to use the same storage
           engine. You can deploy a replica set with members that use a mix of
           storage engines, including the 
-          :manual:`in-memory storage engine </core/inmemory>`. If a member 
+          :ref:`in-memory storage engine <storage-inmemory>`. If a member 
           using an in-memory storage engine fails or is shut down, it loses
           *all* of its data. When that member is restarted,
           it needs to :ref:`resychronize all of the data <replica-set-initial-sync>`

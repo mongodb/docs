@@ -10,12 +10,10 @@
 
    - Index key exceeds the :manual:`index key limit 
      </reference/limits/#mongodb-limit-Index-Key-Limit>`
-   - :manual:`Index name </indexes/#index-names>` already exists
-   - Index on :manual:`more than one array field 
-     </core/index-multikey/#compound-multikey-indexes>`
+   - :ref:`Index name <index-names>` already exists
+   - Index on :ref:`more than one array field <compound_multikey_indexes>`
    - Index on collection that has the 
-     :manual:`maximum number of text indexes 
-     </reference/limits/#mongodb-limit-Number-of-Indexes-per-Collection>`
+     :limit:`maximum number of text indexes <Number of Indexes per Collection>`
    - Text index on collection that has the
      :manual:`maximum number of text indexes 
      </core/index-text/#one-text-index-per-collection>`
@@ -26,10 +24,10 @@
    for standalone deployments.
 
 Building indexes in a rolling fashion reduces the performance impact of
-building indexes on :manual:`replica sets </reference/glossary/#std-term-replica-set>` and
-:manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>`. To maintain cluster
+building indexes on :term:`replica sets <replica set>` and
+:term:`sharded clusters <sharded cluster>`. To maintain cluster
 availability, |mms| removes one node from the cluster at a time
-starting with a :manual:`secondary </reference/glossary/#std-term-secondary>`.
+starting with a :term:`secondary`.
 
 |mms| automatically cancels rolling index builds 
 that don't succeed on all nodes. When a rolling index build completes 
@@ -46,26 +44,20 @@ with the following information:
 - Organization that contains the project
 - Link to the activity feed event
 
-To learn more about rebuilding indexes, see :manual:`Build Indexes on
-Replica Sets </tutorial/build-indexes-on-replica-sets>`.
+To learn more about rebuilding indexes, see :ref:`Build Indexes on Replica Sets <index-build-on-replica-sets>`.
 
 .. note::
 
-   The following :manual:`index options 
-   </reference/method/db.collection.createIndex#options>` are 
+   The following :ref:`index options <createIndex-options>` are 
    incompatible with building indexes in a rolling fashion:
 
-   - :manual:`unique
-     </reference/method/db.collection.createIndex#options-for-all-index-types>`
+   - :manual:`unique </reference/method/db.collection.createIndex/#options-for-all-index-types>`
 
-   - :manual:`storageEngine
-     </reference/method/db.collection.createIndex#options-for-all-index-types>`
+   - :manual:`storageEngine </reference/method/db.collection.createIndex/#options-for-all-index-types>`
 
-   - :manual:`textIndexVersion
-     </reference/method/db.collection.createIndex#options-for-text-indexes>`
+   - :manual:`textIndexVersion </reference/method/db.collection.createIndex/#options-for-text-indexes>`
 
-   - :manual:`2dsphereIndexVersion
-     </reference/method/db.collection.createIndex#options-for-2d-indexes>`
+   - :ref:`2dsphereIndexVersion <2d-index-options>`
 
    |mms| ignores these options if you specify them in the
    :guilabel:`Options` pane.

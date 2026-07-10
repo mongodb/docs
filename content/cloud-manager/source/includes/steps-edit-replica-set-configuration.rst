@@ -20,8 +20,7 @@
              deployment.
       
          * - :guilabel:`Feature Compatibility` (Optional)
-           - Select the :manual:`feature compatibility set
-             </reference/command/setFeatureCompatibilityVersion>`.
+           - Select the :dbcommand:`feature compatibility set <setFeatureCompatibilityVersion>`.
       
          * - :guilabel:`Version`
            - Select the MongoDB version for your replica set.

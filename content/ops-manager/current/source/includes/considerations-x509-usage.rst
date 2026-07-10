@@ -33,7 +33,7 @@ To enable x.509 Authentication for |mms|, you must:
 
 .. note::
 
-   See :manual:`Client x.509 Certificate </tutorial/configure-x509-client-authentication>` 
+   See :ref:`Client x.509 Certificate <x509-client-authentication>` 
    in the MongoDB Manual for certificate requirements.
 
 .. important::

@@ -17,6 +17,4 @@ them one at a time.
    and one non-voting member at the same time. This preserves the 
    majority of two out of three voting nodes.
 
-To learn more about voting, see :manual:`Replica Set High Availability
-</core/replica-set-high-availability>` and :manual:`Replica Set Elections
-</core/replica-set-elections>`.
+To learn more about voting, see :ref:`Replica Set High Availability <replica-set-failover-administration>` and :ref:`Replica Set Elections <replica-set-election-internals>`.

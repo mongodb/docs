@@ -67,7 +67,7 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
      - Optional
      - Language-specific rules to use when sorting and matching
        strings if the index uses
-       :manual:`collation </reference/collation>`.
+       :ref:`collation <manual-collation>`.
 
        If you include the **indexConfigs.collation** object, you must
        include the **indexConfigs.collation.locale** parameter. All
@@ -82,7 +82,7 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
      - Locale that the `ICU <http://site.icu-project.org/>`_ defines.
 
        The MongoDB Server Manual lists the supported locales in its
-       :manual:`Collation Locales and Default Parameters section </reference/collation-locales-defaults>`.
+       :ref:`Collation Locales and Default Parameters section <collation-languages-locales>`.
 
        To specify simple binary comparison, set this value to
        **simple**.
@@ -98,7 +98,7 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
        This parameter applies only if you set
        **indexConfigs.collation.strength** to **1** or **2**.
 
-       To learn more, see :manual:`Collation </reference/collation>`.
+       To learn more, see :ref:`Collation <manual-collation>`.
 
    * - indexConfigs.collation.caseFirst
      - string
@@ -140,7 +140,7 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
 
        The default is **false**.
 
-       To learn more, see :manual:`Collation </reference/collation>`.
+       To learn more, see :ref:`Collation <manual-collation>`.
 
    * - indexConfigs.collation.alternate
      - string
@@ -168,7 +168,7 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
        - Checks if text requires `normalization <http://userguide.icu-project.org/collation/concepts#TOC-Normalization>`_.
        - Performs normalization 
 
-       To learn more, see :manual:`Collation </reference/collation>`.
+       To learn more, see :ref:`Collation <manual-collation>`.
 
    * - indexConfigs.collation.backwards
      - boolean
@@ -176,7 +176,7 @@ The **indexConfigs** array is optional and defines indexes to be built for speci
      - Flag that indicates how the index should handle diacritic
        strings.
 
-       To learn more, see :manual:`Collation </reference/collation>`.
+       To learn more, see :ref:`Collation <manual-collation>`.
 
    * - indexConfigs.options
      - document

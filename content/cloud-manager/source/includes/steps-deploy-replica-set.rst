@@ -130,21 +130,19 @@
       using arbiters.
       
       From the :guilabel:`Default Read Concerns` section, you can set
-      :manual:`consistency and isolation properties for the data
-      read</reference/read-concern/>` from the cluster.
+      :ref:`consistency and isolation properties for the data read <read-concern>` from the cluster.
       
       Select the default read concern from the :guilabel:`Level` dropdown
       menu. You can choose from the following values:
       
-      - :manual:`local </reference/read-concern-local>`, the MongoDB 5.0 and
+      - :ref:`local <readconcern-local-txn>`, the MongoDB 5.0 and
         later default value,
       - :manual:`available </reference/read-concern-available>`, the
         MongoDB 4.4 default value, or
-      - :manual:`majority </reference/read-concern-majority>`.
+      - :ref:`majority <readconcern-majority-txn>`.
       
       From the :guilabel:`Default Write Concerns` section, you configure the
-      :manual:`default level of acknowledgment requested from MongoDB for
-      write operations </reference/write-concern/>` from the cluster. You
+      :ref:`default level of acknowledgment requested from MongoDB for write operations <write-operations-write-concern>` from the cluster. You
       can set three parameters:
       
       .. list-table::
@@ -158,7 +156,7 @@
          * - w Option
            - Desired number of |mongod| instances that must acknowledge a
              write operation. You can enter one of the
-             :manual:`following values </reference/write-concern/#w-option>`:
+             :ref:`following values <wc-w>`:
       
              - ``majority``, the MongoDB 6.0 and later default value, or
              - Any positive integer.
@@ -166,11 +164,10 @@
          * - j Option
            - Flag that indicates whether the write acknowledgement must be
              written to the
-             :manual:`on-disk journal </reference/write-concern/#j-option>`.
+             :ref:`on-disk journal <wc-j>`.
       
          * - w Timeout
-           - :manual:`Desired time limit for the write concern
-             </reference/write-concern/#wtimeout>` expressed in
+           - :ref:`Desired time limit for the write concern <wc-wtimeout>` expressed in
              milliseconds. Set this value when you set **w** to a value
              greater than ``1`` including ``majority``.
       

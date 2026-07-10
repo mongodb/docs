@@ -181,8 +181,7 @@
 - Automatically chooses the number of backup workers based on available
   CPU cores and memory. 
 - Adds additional snapshot metrics to the snapshot summary table.
-- Adds automation support for :manual:`at-rest encryption
-  </core/security-encryption-at-rest/#encryption-at-rest>` of
+- Adds automation support for :ref:`at-rest encryption <security-encryption-at-rest>` of
   :ref:`audit logs <deployment-advanced-options-audit-log>` in MongoDB
   6.0 and later versions.
 - Supports configuration of the ``net.tls.clusterCAFile`` parameter.
@@ -420,7 +419,7 @@
 
    To improve user experience, |onprem| server 6.0.13 updates the |onprem| systemd unit file from 
    ``after=network.target`` to ``after=network-online.target``. This prevents reboot failures caused 
-   by attempting to start :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` after 
+   by attempting to start :binary:`~bin.mongod` after 
    the network management stack has started, but before verifying that network connectivity has 
    been established.
 

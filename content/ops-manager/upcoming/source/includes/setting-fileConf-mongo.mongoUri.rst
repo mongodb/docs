@@ -3,7 +3,7 @@
    *Type*: string
 
 
-   :manual:`connection string </reference/connection-string/>` used
+   :ref:`connection string <mongodb-uri>` used
    to access the |application| Database. If applicable, the connection
    string **must** include the authentication credentials for the
    :parameter:`authentication mechanism <authenticationMechanisms>`

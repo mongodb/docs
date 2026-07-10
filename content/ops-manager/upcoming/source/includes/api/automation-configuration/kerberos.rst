@@ -31,4 +31,4 @@ name used in authentication.
        - The service name that the agents use to authenticate to a
          |mongod| or |mongos| through Kerberos.
        - The **saslServiceName** option in the
-         :manual:`MongoDB Server Parameters </reference/parameters/>`.
+         :ref:`MongoDB Server Parameters <server-parameters>`.

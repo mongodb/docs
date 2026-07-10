@@ -24,9 +24,9 @@
             * - :guilabel:`Snapshot`
       
               - Allows you to choose one
-                :manual:`stored snapshot </reference/glossary/#std-term-snapshot>`.
+                :term:`stored snapshot <snapshot>`.
       
-              - Select an existing :manual:`snapshot </reference/glossary/#std-term-snapshot>` to restore.
+              - Select an existing :term:`snapshot` to restore.
       
             * - :guilabel:`Point In Time`
       
@@ -82,10 +82,10 @@
       
             * - :guilabel:`Project`
               - Select a :cloudmgr:`project </reference/glossary/#std-term-project>` to which you want to restore the
-                :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
+                :term:`snapshot`.
       
             * - :guilabel:`Cluster to Restore to`
-              - Select a :manual:`cluster </reference/glossary/#std-term-cluster>` to which you want to restore the
+              - Select a :term:`cluster` to which you want to restore the
                 snapshot.
       
                 |mms| *must* manage the target sharded cluster.

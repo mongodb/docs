@@ -27,6 +27,5 @@ for each cluster.
        contains an object with the balancer settings for that
        cluster. The object uses the **stopped** and
        **activeWindow** parameters. To learn more, see
-       :manual:`Manage Sharded Cluster Balancer
-       </tutorial/manage-sharded-cluster-balancer>`
+       :ref:`Manage Sharded Cluster Balancer <sharded-cluster-balancer>`
        in the MongoDB manual.

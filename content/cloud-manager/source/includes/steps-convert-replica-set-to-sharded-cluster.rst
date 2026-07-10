@@ -7,7 +7,7 @@
       
    .. step:: Convert your desired replica set.
       
-      From the :icon:`ellipsis-h` menu on the desired :manual:`replica set </reference/glossary/#std-term-replica-set>`,
+      From the :icon:`ellipsis-h` menu on the desired :term:`replica set`,
       click :guilabel:`Convert to Sharded Cluster`.
       
    .. step:: Provide Details for your New Sharded Cluster.
@@ -16,7 +16,7 @@
       :guilabel:`Provide details for your new sharded cluster`
       modal:
       
-      a. Name your :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` components:
+      a. Name your :term:`sharded cluster` components:
       
          .. list-table::
             :widths: 20 80
@@ -98,7 +98,7 @@
               of the config server you want to remove.
       
       c. Set the following values for each :guilabel:`MongoS` process in
-         your :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`. All fields are required.
+         your :term:`sharded cluster`. All fields are required.
       
          .. note::
          
@@ -159,5 +159,5 @@
    .. step:: Change any Cluster-Wide Settings.
 
       If you want to make any further changes to the
-      :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`, see the :guilabel:`Sharded Cluster` tab on
+      :term:`sharded cluster`, see the :guilabel:`Sharded Cluster` tab on
       the :doc:`/tutorial/edit-deployment` page.

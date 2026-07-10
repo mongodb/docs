@@ -14,15 +14,15 @@
 
    * - ``checkpointId``
      - string
-     - Unique identifier for the :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` checkpoint
+     - Unique identifier for the :term:`sharded cluster` checkpoint
        that represents the point in time to which your data will be
        restored.
 
    * - ``clusterId``
      - string
-     - Unique identifier of the :manual:`cluster </reference/glossary/#std-term-cluster>` that the restore job
+     - Unique identifier of the :term:`cluster` that the restore job
        represents. Returned if snapshot was from a replica set or
-       :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`.
+       :term:`sharded cluster`.
 
    * - ``created``
      - string
@@ -30,7 +30,7 @@
 
    * - ``delivery``
      - object
-     - Method and details of how the restored :manual:`snapshot </reference/glossary/#std-term-snapshot>` data
+     - Method and details of how the restored :term:`snapshot` data
        is delivered.
 
    * - | ``delivery``
@@ -61,8 +61,8 @@
 
    * - ``hostId``
      - string
-     - Unique identifier of the :manual:`config server </reference/glossary/#std-term-config-server>` to which this
-       restore job belongs. Returned if  :manual:`config server </reference/glossary/#std-term-config-server>` was a
+     - Unique identifier of the :term:`config server` to which this
+       restore job belongs. Returned if  :term:`config server` was a
        |sccc|.
 
    * - ``id``
@@ -75,7 +75,7 @@
 
    * - ``masterKeyUUID``
      - string
-     - |kmip| master key ID used to encrypt the :manual:`snapshot </reference/glossary/#std-term-snapshot>` data.
+     - |kmip| master key ID used to encrypt the :term:`snapshot` data.
        Returned if ``"encryptionEnabled" : true``.
 
    * - ``pointInTime``

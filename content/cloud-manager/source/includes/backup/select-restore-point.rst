@@ -10,9 +10,9 @@
 
    * - :guilabel:`Snapshot`
 
-     - Allows you to choose one :manual:`stored snapshot </reference/glossary/#std-term-snapshot>`.
+     - Allows you to choose one :term:`stored snapshot <snapshot>`.
 
-     - Select an existing :manual:`snapshot </reference/glossary/#std-term-snapshot>` to restore.
+     - Select an existing :term:`snapshot` to restore.
 
    * - :guilabel:`Point In Time`
 
@@ -53,4 +53,4 @@
      - Type an Oplog :guilabel:`Timestamp` and :guilabel:`Increment`.
 
        Run a query against ``local.oplog.rs`` on your
-       :manual:`replica set </reference/glossary/#std-term-replica-set>` to find the desired timestamp.
+       :term:`replica set` to find the desired timestamp.

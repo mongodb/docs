@@ -701,8 +701,7 @@ Fixes the following issues:
   <automation-configuration-resource>` settings. 
 - Adds ability for backup to automatically configure an improved default
   blocksize for mongo blockstores.
-- Adds automation support for :manual:`at-rest encryption
-  </core/security-encryption-at-rest/#encryption-at-rest>` of
+- Adds automation support for :ref:`at-rest encryption <security-encryption-at-rest>` of
   :ref:`audit logs <deployment-advanced-options-audit-log>` in MongoDB
   6.0 and later versions.  
 - Enhances logging for MongoDB blockstores groom progress.
@@ -792,8 +791,7 @@ Fixes the following issues:
   to :ref:`107.0.0.8506-1 <mongodb-107.0.0.8506-1>`. You must 
   upgrade to this version of the {+mdbagent+} to allow clusters 
   using |oidc| to continue functioning after upgrading to MongoDB 7.0.5.
-- Fixes a bug where clusters on MongoDB 7.0.0 to 7.0.4 using :manual:`OpenID
-  Connect authentication </core/security-oidc/#std-label-authentication-oidc>` 
+- Fixes a bug where clusters on MongoDB 7.0.0 to 7.0.4 using :ref:`OpenID Connect authentication <authentication-oidc>` 
   fail to properly upgrade to MongoDB 7.0.5.
 
 .. _opsmgr-server-7.0.0:

@@ -10,7 +10,7 @@
    * - ``--host``
      - Required
      - Provide the hostname, |fqdn|, |ipv4| address, or |ipv6| address
-       for the host that serves the :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` to which the
+       for the host that serves the :binary:`~bin.mongod` to which the
        :cloudmgr:`oplog  </reference/glossary/#std-term-Oplog-Store-Database>` should be applied. If you
        copied the ``mongodb-backup-restore-util`` command provided in
        the |application|, this field is pre-configured.
@@ -19,14 +19,14 @@
    * - ``--port``
      - Required
      - Provide the port for the host that serves the |mongod| to which
-       the :manual:`oplog </reference/glossary/#std-term-oplog>` should be applied.
+       the :term:`oplog` should be applied.
      - :icon:`check-circle`
  
    * - ``--opStart``
      - Required
      - Provide the 
        :ref:`BSON timestamp <document-bson-type-timestamp>`
-       for the first :manual:`oplog </reference/glossary/#std-term-oplog>` entry
+       for the first :term:`oplog` entry
        you want to include in the restore. This information appears in
        the "Last Oplog Applied" entry in the ``restoreInfo.txt`` file
        provided with the downloaded snapshot.
@@ -40,7 +40,7 @@
      - Required
      - Provide the 
        :ref:`BSON timestamp <document-bson-type-timestamp>`
-       for the last :manual:`oplog </reference/glossary/#std-term-oplog>` entry
+       for the last :term:`oplog` entry
        you want to include in the restore.
 
        This value cannot be greater than the end of the oplog.
@@ -72,7 +72,7 @@
  
    * - ``--rsId``
      - Required
-     - Provide the :manual:`replica set </reference/glossary/#std-term-replica-set>` ID.
+     - Provide the :term:`replica set` ID.
      - :icon:`check-circle`
  
    * - ``--accessList``
@@ -90,7 +90,7 @@
    * - ``--seedReplSetMember``
      - Optional
      - Use if you need a replica set member to re-create the
-       :manual:`oplog </reference/glossary/#std-term-oplog>` collection and seed it with the correct
+       :term:`oplog` collection and seed it with the correct
        timestamp.
  
        Requires ``--oplogSizeMB`` and ``--seedTargetPort``.
@@ -98,15 +98,15 @@
  
    * - ``--oplogSizeMB``
      - Conditional
-     - Provide the :manual:`oplog </reference/glossary/#std-term-oplog>` size in MB.
+     - Provide the :term:`oplog` size in MB.
  
        Required if ``--seedReplSetMember`` is set.
      -
  
    * - ``--seedTargetPort``
      - Conditional
-     - Provide the port for the :manual:`replica set </reference/glossary/#std-term-replica-set>`'s
-       :manual:`primary </reference/glossary/#std-term-primary>`. This may be different from the `ephemeral
+     - Provide the port for the :term:`replica set`'s
+       :term:`primary`. This may be different from the `ephemeral
        port <https://en.wikipedia.org/wiki/Ephemeral_port?oldid=797306581>`_
        used.
  
@@ -115,7 +115,7 @@
  
    * - ``--ssl``
      - Conditional
-     - Use if you need |tls-ssl| to apply the :manual:`oplog </reference/glossary/#std-term-oplog>` to
+     - Use if you need |tls-ssl| to apply the :term:`oplog` to
        the |mongod|.
 
        Requires ``--sslCAFile`` and ``--sslPEMKeyFile``.

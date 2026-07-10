@@ -11,7 +11,7 @@
    * - ``checkpointId``
      - string
      - Conditional
-     - Unique identifier for the :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` checkpoint
+     - Unique identifier for the :term:`sharded cluster` checkpoint
        that represents the point in time to which your data will be
        restored.
 
@@ -28,7 +28,7 @@
    * - ``delivery``
      - object
      - Required
-     - Method and details of how the restored :manual:`snapshot </reference/glossary/#std-term-snapshot>` data
+     - Method and details of how the restored :term:`snapshot` data
        is delivered.
 
    * - | ``delivery``
@@ -109,12 +109,12 @@
    * - ``oplogTs``
      - string
      - Conditional
-     - Oplog :manual:`timestamp </reference/bson-types>` given as a
+     - Oplog :ref:`timestamp <bson-types>` given as a
        |epoch-time|. When paired with ``oplogInc``, they represent the
        point in time to which your data will be restored.
 
        Run a query against ``local.oplog.rs`` on your
-       :manual:`replica set </reference/glossary/#std-term-replica-set>` to find the desired timestamp.
+       :term:`replica set` to find the desired timestamp.
 
        ``"delivery.methodName" : "AUTOMATED_RESTORE"``
        *for Replica Sets Only.*
@@ -168,4 +168,4 @@
    * - ``snapshotId``
      - string
      - Conditional
-     - Unique identifier of the :manual:`snapshot </reference/glossary/#std-term-snapshot>` to restore.
+     - Unique identifier of the :term:`snapshot` to restore.

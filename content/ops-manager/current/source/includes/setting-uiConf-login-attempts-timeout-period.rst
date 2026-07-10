@@ -18,7 +18,7 @@
       The dropdown menu lists the only possible 
       values for this setting. Attempting to set a value
       in your ``conf-mms.properties`` file or 
-      :manual:`local database </reference/local-database>` 
+      :ref:`local database <replica-set-local-database>` 
       that is not listed in the dropdown causes an error 
       when restarting the |onprem| instance.
    

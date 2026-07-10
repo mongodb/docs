@@ -16,7 +16,7 @@ Host Measurements
 
      - Rate of asserts for a MongoDB process found in the 
        ``asserts`` document that the
-       :manual:`serverStatus </reference/command/serverStatus>`
+       :dbcommand:`serverStatus`
        command generates.
 
    * - - ``BACKGROUND_FLUSH_AVG``
@@ -30,17 +30,17 @@ Host Measurements
        - ``TICKETS_AVAILABLE_READS``
        - ``TICKETS_AVAILABLE_WRITE``
 
-     - Amount of bytes in the :manual:`WiredTiger </core/wiredtiger>`
+     - Amount of bytes in the :ref:`WiredTiger <storage-wiredtiger>`
        storage engine cache and tickets found in the
        ``wiredTiger.cache`` and
        ``wiredTiger.concurrentTransactions`` documents
        that the
-       :manual:`serverStatus </reference/command/serverStatus>`
+       :dbcommand:`serverStatus`
        command generates.
 
    * - - ``CACHE_FILL_RATIO``
 
-     - Measures how full the :manual:`WiredTiger </core/wiredtiger>` 
+     - Measures how full the :ref:`WiredTiger <storage-wiredtiger>` 
        cache is. The calculation divides the bytes currently in the 
        cache by the maximum bytes configured and returns a percentage. 
        A ratio close to 100% indicates that the query working set 
@@ -61,16 +61,16 @@ Host Measurements
 
      - Number of connections to a MongoDB process found in the
        ``connections`` document that the
-       :manual:`serverStatus </reference/command/serverStatus>`
+       :dbcommand:`serverStatus`
        command generates.
 
    * - - ``CURSORS_TOTAL_OPEN``
        - ``CURSORS_TOTAL_TIMED_OUT``
 
-     - Number of :manual:`cursors </core/cursors>` for a MongoDB
+     - Number of :ref:`cursors` for a MongoDB
        process found in the ``metrics.cursor`` document 
        that the 
-       :manual:`serverStatus </reference/command/serverStatus>`
+       :dbcommand:`serverStatus`
        command generates.
 
    * - - ``EXTRA_INFO_PAGE_FAULTS``
@@ -86,7 +86,7 @@ Host Measurements
 
      - Number of operations waiting on locks for the MongoDB process
        that the 
-       :manual:`serverStatus </reference/command/serverStatus>` 
+       :dbcommand:`serverStatus` 
        command generates. |mms| computes these values based on the
        type of storage engine.
 
@@ -110,7 +110,7 @@ Host Measurements
 
      - Amount of memory for a MongoDB process found in the
        ``mem`` document that the
-       :manual:`serverStatus </reference/command/serverStatus>` command collects.
+       :dbcommand:`serverStatus` command collects.
 
    * - - ``NETWORK_BYTES_IN``
        - ``NETWORK_BYTES_OUT``
@@ -118,7 +118,7 @@ Host Measurements
 
      - Amount of throughput for MongoDB process found in the
        ``network`` document that the 
-       :manual:`serverStatus </reference/command/serverStatus>` command collects.
+       :dbcommand:`serverStatus` command collects.
 
    * - - ``OPLOG_REPLICATION_LAG_TIME``
        - ``OPLOG_RATE_GB_PER_HOUR``
@@ -126,7 +126,7 @@ Host Measurements
        - ``OPLOG_MASTER_LAG_TIME_DIFF``
 
      - Durations and throughput of the MongoDB process'
-       :manual:`oplog </core/replica-set-oplog>`.
+       :ref:`oplog <replica-set-oplog>`.
        The ``OPLOG_SLAVE_LAG_MASTER_TIME`` metric is deprecated in the
        measurement API. Use the ``OPLOG_REPLICATION_LAG_TIME`` metric
        instead. It returns decimal values (seconds and milliseconds).
@@ -161,7 +161,7 @@ Host Measurements
 
      - Rate of database operations on a MongoDB process since the
        process last started found in the ``opcounters`` document that the 
-       :manual:`serverStatus </reference/command/serverStatus>` command collects.
+       :dbcommand:`serverStatus` command collects.
 
    * - - ``OPCOUNTER_REPL_CMD``
        - ``OPCOUNTER_REPL_UPDATE``
@@ -169,9 +169,9 @@ Host Measurements
        - ``OPCOUNTER_REPL_INSERT``
 
      - Rate of database operations on MongoDB
-       :manual:`secondaries </reference/glossary/#std-term-secondary>` found in the
+       :term:`secondaries <secondary>` found in the
        ``opcountersRepl`` document that the
-       :manual:`serverStatus </reference/command/serverStatus>`
+       :dbcommand:`serverStatus`
        command collects.
 
    * - - ``DOCUMENT_METRICS_RETURNED``

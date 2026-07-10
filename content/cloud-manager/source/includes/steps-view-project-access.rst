@@ -7,4 +7,4 @@
       
       Each tab lists the project's users, teams, or |api| Keys along with
       their :ref:`project roles <project-roles>` and corresponding
-      :manual:`actions </reference/privilege-actions/>`.
+      :ref:`actions <security-user-actions>`.

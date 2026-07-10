@@ -43,7 +43,7 @@
             * - :option:`tlsFIPSMode <mongod.--tlsFIPSMode>`
               - Optional
               - Select ``true`` if you want to
-                :manual:`enable FIPS mode </tutorial/configure-fips>`.
+                :ref:`enable FIPS mode <configure-mdb-for-fips>`.
       
       b. After adding each option, click :guilabel:`Add`.
       

@@ -69,7 +69,7 @@ clusters.
      - array of objects
      - Optional
      - Objects that define the configuration of each
-       :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`. Each object in the array contains the
+       :term:`sharded cluster`. Each object in the array contains the
        specifications for one cluster. The {+mdbagent+} regularly
        checks each cluster's state against the specifications. If the
        specification and cluster don't match, the agent will change the
@@ -80,8 +80,8 @@ clusters.
      - boolean
      - Conditional
      - Flag that indicates whether |mms| Automation manages all
-       :manual:`sharded collections </sharding>`
-       and :manual:`tags </core/zone-sharding>` in the deployment
+       :ref:`sharded collections <sharding-background>`
+       and :ref:`tags <shards-tag-sets>` in the deployment
 
    * - sharding.name
      - string
@@ -112,7 +112,7 @@ clusters.
      - array of objects
      - Conditional
      - Objects that define the sharded :term:`collections <collection>`
-       and their :manual:`shard keys  </reference/glossary/#std-term-shard-key>`.
+       and their :term:`shard keys <shard key>`.
 
    * - sharding.collections._id
      - string
@@ -124,7 +124,7 @@ clusters.
    * - sharding.collections.key
      - array of arrays
      - Conditional
-     - Collection's :manual:`shard keys  </reference/glossary/#std-term-shard-key>`. It contains:
+     - Collection's :term:`shard keys <shard key>`. It contains:
 
        - One array if your cluster uses one shard key.
        - Multiple arrays if your cluster uses a compound shard key.
@@ -133,12 +133,12 @@ clusters.
      - boolean
      - Conditional
      - Flag that indicates whether MongoDB
-       :manual:`enforces uniqueness for the shard key </reference/method/sh.shardCollection>`.
+       :method:`enforces uniqueness for the shard key <sh.shardCollection>`.
 
    * - sharding.shards
      - array of objects
      - Conditional
-     - Cluster's :manual:`shards  </reference/glossary/#std-term-shard>`.
+     - Cluster's :term:`shards <shard>`.
 
    * - sharding.shards._id
      - string
@@ -157,20 +157,20 @@ clusters.
      - Zones assigned to this shard.
 
        You can add this array parameter if you use
-       :manual:`zoned sharding </core/zone-sharding>`.
+       :ref:`zoned sharding <shards-tag-sets>`.
 
    * - sharding.tags
      - array of objects
      - Conditional
      - Definition of zones for
-       :manual:`zoned sharding </core/zone-sharding>`. Each object in
+       :ref:`zoned sharding <shards-tag-sets>`. Each object in
        this array defines a zone and configures the shard key range
        for that zone.
 
    * - sharding.tags.ns
      - string
      - Conditional
-     - :manual:`Namespace  </reference/glossary/#std-term-namespace>` of the collection that uses zoned
+     - :term:`Namespace` of the collection that uses zoned
        sharding. The namespace combines the database name and the name
        of the collection. For example: ``testdb.testcoll``.
 
@@ -191,7 +191,7 @@ clusters.
    * - sharding.tags.tag
      - string
      - Conditional
-     - Name of the :manual:`zone </core/zone-sharding>` associated
+     - Name of the :ref:`zone <shards-tag-sets>` associated
        with the shard key range specified by **sharding.tags.min** and
        **sharding.tags.max**.
 

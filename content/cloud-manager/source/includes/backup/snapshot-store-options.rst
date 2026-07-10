@@ -1,4 +1,4 @@
-|onprem| can back up MongoDB databases as :manual:`snapshots </reference/glossary/#std-term-snapshot>`
+|onprem| can back up MongoDB databases as :term:`snapshots <snapshot>`
 to one or more of the following storage options:
 
 - Another MongoDB database, called a :cloudmgr:`blockstore </reference/glossary/#std-term-backup-blockstore-database>`,

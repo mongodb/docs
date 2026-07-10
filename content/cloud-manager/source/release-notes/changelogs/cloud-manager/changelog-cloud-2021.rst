@@ -53,10 +53,7 @@
 - Adds metrics that report maximum observed values for all hardware 
   metrics. Your |mms| plan determines the :ref:`granularity 
   <monitoring-metrics-per-plan>` of these metrics.
-- Adds the ability to specify :manual:`Sort 
-  </reference/method/cursor.sort/>`, :manual:`Project
-  </tutorial/project-fields-from-query-results>`, and :manual:`Collation
-  </reference/collation/>` query options when you :ref:`query your data
+- Adds the ability to specify :method:`Sort <cursor.sort>`, :ref:`Project <read-operations-projection>`, and :ref:`Collation <manual-collation>` query options when you :ref:`query your data
   <de-view-documents>` using :guilabel:`Data Explorer`.
 - Updates {+mdbagent+} to :ref:`11.4.0.7057-1 <11.4.0.7057-1>`.
 

@@ -1,5 +1,5 @@
 The Performance Advisor cannot suggest indexes for MongoDB databases
-configured to use the :manual:`ctime timestamp format </reference/program/mongod/#cmdoption-mongod-timestampformat>`.
+configured to use the :option:`ctime timestamp format <mongod --timeStampFormat>`.
 As a workaround, set the timestamp format for such databases to either
-:manual:`iso8601-utc </reference/program/mongod/#cmdoption-mongod-timestampformat>`
-or :manual:`iso8601-local </reference/program/mongod/#cmdoption-mongod-timestampformat>`.
+:option:`iso8601-utc <mongod --timeStampFormat>`
+or :option:`iso8601-local <mongod --timeStampFormat>`.

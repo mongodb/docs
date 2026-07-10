@@ -1,4 +1,4 @@
-If you use a :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` for the database's
+If you use a :term:`sharded cluster` for the database's
 :doc:`backing instance </tutorial/prepare-backing-mongodb-instances>`,
 with a standard connection string, include all shards in
 the |uri|. If you omit the port number, |onprem| uses the default

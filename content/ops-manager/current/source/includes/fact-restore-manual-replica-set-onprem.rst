@@ -10,7 +10,7 @@
    * - ``--host``
      - Required
      - Provide the hostname, |fqdn|, |ipv4| address, or |ipv6| address
-       for the host that serves the :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` to which the
+       for the host that serves the :binary:`~bin.mongod` to which the
        :opsmgr:`oplog  </reference/glossary/#std-term-Oplog-Store-Database>` should be applied. If you
        copied the ``mongodb-backup-restore-util`` command provided in
        the |application|, this field is pre-configured.
@@ -72,7 +72,7 @@
 
    * - ``--rsId``
      - Required
-     - Provide the :manual:`replica set </reference/glossary/#std-term-replica-set>` ID.
+     - Provide the :term:`replica set` ID.
      - :icon:`check-circle`
 
    * - ``--whitelist``
@@ -105,8 +105,8 @@
 
    * - ``--seedTargetPort``
      - Conditional
-     - Provide the port for the :manual:`replica set </reference/glossary/#std-term-replica-set>`'s
-       :manual:`primary </reference/glossary/#std-term-primary>`. This may be different from the `ephemeral
+     - Provide the port for the :term:`replica set`'s
+       :term:`primary`. This may be different from the `ephemeral
        port <https://en.wikipedia.org/wiki/Ephemeral_port?oldid=797306581>`_
        used.
 

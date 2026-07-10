@@ -20,8 +20,8 @@
            - Select the host where this new BI Connector is installed.
       
          * - :guilabel:`Deployment Item`
-           - Select the deployment item (standalone, :manual:`replica set </reference/glossary/#std-term-replica-set>`, 
-             or :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`) to which this new BI connector 
+           - Select the deployment item (standalone, :term:`replica set`, 
+             or :term:`sharded cluster`) to which this new BI connector 
              connects.
       
          * - :guilabel:`Port to Listen On`
@@ -31,7 +31,7 @@
       
          * - :guilabel:`Read Preference`
            - Select how the BI connector routes read operations to the 
-             members of a :manual:`replica set </reference/glossary/#std-term-replica-set>`. Available values include:
+             members of a :term:`replica set`. Available values include:
       
              - :readmode:`Primary <primary>`
              - :readmode:`Primary Preferred <primaryPreferred>`

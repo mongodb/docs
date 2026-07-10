@@ -1424,7 +1424,7 @@ MongoDB Cluster Management
 
 - Supports managing, monitoring, and backing up MongoDB 8.0 deployments.
 - Supports MongoDB 8.0 as a deployment option.
-- Supports deployments that use :manual:`config shards </core/sharded-cluster-config-servers/#config-shards>`.
+- Supports deployments that use :ref:`config shards <sharded-cluster-config-server-config-shards>`.
   
   .. note::
 
@@ -1459,8 +1459,7 @@ Automation
   ``clusterAuthMode`` set to ``x509``. 
 - Adds ability to configure the :setting:`net.tls.clusterCAFile` parameter.
 - Adds API support for project-level MongoDB log rotation settings.
-- Adds automation support for :manual:`at-rest encryption
-  </core/security-encryption-at-rest/#encryption-at-rest>` of
+- Adds automation support for :ref:`at-rest encryption <security-encryption-at-rest>` of
   :ref:`audit logs <deployment-advanced-options-audit-log>` in MongoDB
   6.0 and later versions.
   

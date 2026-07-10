@@ -8,7 +8,7 @@
 
    * - clusterId
      - :ref:`objectId <document-bson-type-object-id>`
-     - ID of the cluster the :manual:`snapshot </reference/glossary/#std-term-snapshot>` represents.
+     - ID of the cluster the :term:`snapshot` represents.
 
    * - clusterName
      - string
@@ -16,7 +16,7 @@
 
    * - complete
      - boolean
-     - Indicator that the :manual:`snapshot </reference/glossary/#std-term-snapshot>` has been created. This is
+     - Indicator that the :term:`snapshot` has been created. This is
        ``false`` if the snapshot creation job is still in progress.
 
    * - created
@@ -31,13 +31,13 @@
 
    * - created.increment
      - integer
-     - The operation order in which this :manual:`snapshot </reference/glossary/#std-term-snapshot>` took place at
+     - The operation order in which this :term:`snapshot` took place at
        this exact point in time. To learn how timestamps work in
        MongoDB, see :ref:`document-bson-type-timestamp`.
 
    * - doNotDelete
      - boolean
-     - Indicator that the :manual:`snapshot </reference/glossary/#std-term-snapshot>` cannot be deleted.
+     - Indicator that the :term:`snapshot` cannot be deleted.
 
        If ``doNotDelete`` is set to ``true``, any value in ``expires``
        is ignored.
@@ -47,7 +47,7 @@
      - The date in `ISO 8601
        <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
        and time format at :abbr:`UTC (Coordinated Universal Time)` after
-       which this :manual:`snapshot </reference/glossary/#std-term-snapshot>` can be deleted.
+       which this :term:`snapshot` can be deleted.
 
        If ``doNotDelete`` is set to ``true``, any value in ``expires``
        is removed.
@@ -57,11 +57,11 @@
 
    * - groupId
      - objectId
-     - ID of the :opsmgr:`project </reference/glossary/#std-term-project>` that owns the :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
+     - ID of the :opsmgr:`project </reference/glossary/#std-term-project>` that owns the :term:`snapshot`.
 
    * - id
      - objectId
-     - ID of the :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
+     - ID of the :term:`snapshot`.
 
    * - lastOplogAppliedTimestamp
      - document
@@ -71,14 +71,14 @@
 
    * - lastOplogAppliedTimestamp.date
      - timestamp
-     - The exact point in time when the last :manual:`oplog </reference/glossary/#std-term-oplog>` was applied
+     - The exact point in time when the last :term:`oplog` was applied
        in `ISO 8601
        <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
        and time format at :abbr:`UTC (Coordinated Universal Time)`.
 
    * - lastOplogAppliedTimestamp.increment
      - integer
-     - The operation order in which last :manual:`oplog </reference/glossary/#std-term-oplog>` was applied at
+     - The operation order in which last :term:`oplog` was applied at
        this exact point in time. To learn how timestamps work in
        MongoDB, see :ref:`document-bson-type-timestamp`.
 
@@ -88,20 +88,20 @@
 
    * - namespaceFilterList
      - object array
-     - The :manual:`namespaces  </reference/glossary/#std-term-namespace>` that are included or excluded
-       from this :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
+     - The :term:`namespaces <namespace>` that are included or excluded
+       from this :term:`snapshot`.
 
    * - namespaceFilterList.filterList
      - string array
      - A comma-separated list of any combination of databases or
-       :manual:`namespaces  </reference/glossary/#std-term-namespace>` that are exclusively included or
+       :term:`namespaces <namespace>` that are exclusively included or
        explicitly excluded from the snapshot.
 
        The default value is an empty array (``[]``).
 
    * - namespaceFilterList.filterType
      - string
-     - A value that determines how :manual:`namespaces  </reference/glossary/#std-term-namespace>` are
+     - A value that determines how :term:`namespaces <namespace>` are
        filtered for this snapshot.
 
        - If this value is set to ``blacklist``, namespaces in
@@ -115,7 +115,7 @@
 
    * - parts
      - object array
-     - The individual parts that comprise the complete :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
+     - The individual parts that comprise the complete :term:`snapshot`.
        This array contains a single document.
 
    * - parts.completedTime
@@ -124,11 +124,11 @@
 
    * - parts.dataSizeBytes
      - number
-     - The total size of the data in the :manual:`snapshot </reference/glossary/#std-term-snapshot>` in bytes.
+     - The total size of the data in the :term:`snapshot` in bytes.
 
    * - parts.encryptionEnabled
      - boolean
-     - Indicator of the state of encryption of the :manual:`snapshot </reference/glossary/#std-term-snapshot>`
+     - Indicator of the state of encryption of the :term:`snapshot`
        data.
 
    * - parts.fcv
@@ -159,7 +159,7 @@
    * - parts.mongodVersion
      - string
      - The version of ``mongod`` that was running when the
-       :manual:`snapshot </reference/glossary/#std-term-snapshot>` was created.
+       :term:`snapshot` was created.
 
    * - parts.replicaState
      - string

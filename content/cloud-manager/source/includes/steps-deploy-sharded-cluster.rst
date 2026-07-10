@@ -47,7 +47,7 @@
    .. step:: Configure Each Shard in Your Cluster.
       
       From the :guilabel:`Member Configuration` section, click
-      :guilabel:`Shard Settings` to open the :manual:`shard </reference/glossary/#std-term-shard>` configuration
+      :guilabel:`Shard Settings` to open the :term:`shard` configuration
       options. |mms| lists each shard in the cluster and the
       :binary:`~bin.mongod` processes associated to that shard.
       Each shard process has the following options:

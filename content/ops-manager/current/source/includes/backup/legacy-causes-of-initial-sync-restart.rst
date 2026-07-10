@@ -8,9 +8,9 @@
 
    - Restarting, shutting down, or changing the version or
      |fcv| value of the source database.
-   - :manual:`Renaming the collection </reference/command/renameCollection>`
+   - :dbcommand:`Renaming the collection <renameCollection>`
      of the source database.
-   - Changing the :manual:`$out </reference/operator/aggregation/out>`
+   - Changing the :ref:`$out <agg-out>`
      value in the Aggregation Pipeline of the source database.
    - Restarting or shutting down |application| or Backup Daemon.
    - Restarting, shutting down, or upgrading the

@@ -42,52 +42,40 @@
        operation count.
  
    * - ``TOTAL_OPS_P50_VALUE``
-     - 50th percentile in the :manual:`latency histogram 
-       </reference/operator/aggregation/collStats/#latencystats-document>`.
+     - 50th percentile in the :ref:`latency histogram <latency-stats-document>`.
 
    * - ``READS_P50_VALUE``
-     - 50th percentile in the read :manual:`latency histogram 
-       </reference/operator/aggregation/collStats/#latencystats-document>`.
+     - 50th percentile in the read :ref:`latency histogram <latency-stats-document>`.
 
    * - ``WRITES_P50_VALUE``
-     - 50th percentile in the write :manual:`latency histogram 
-       </reference/operator/aggregation/collStats/#latencystats-document>`.
+     - 50th percentile in the write :ref:`latency histogram <latency-stats-document>`.
 
    * - ``COMMANDS_P50_VALUE``
-     - 50th percentile in the command :manual:`latency histogram 
-       </reference/operator/aggregation/collStats/#latencystats-document>`.
+     - 50th percentile in the command :ref:`latency histogram <latency-stats-document>`.
      
    * - ``TOTAL_OPS_P95_VALUE``
-     - 95th percentile in the :manual:`latency histogram 
-       </reference/operator/aggregation/collStats/#latencystats-document>`.
+     - 95th percentile in the :ref:`latency histogram <latency-stats-document>`.
 
    * - ``READS_P95_VALUE``
-     - 95th percentile in the read :manual:`latency histogram 
-       </reference/operator/aggregation/collStats/#latencystats-document>`.
+     - 95th percentile in the read :ref:`latency histogram <latency-stats-document>`.
 
    * - ``WRITES_P95_VALUE``
-     - 95th percentile in the write :manual:`latency histogram 
-       </reference/operator/aggregation/collStats/#latencystats-document>`.
+     - 95th percentile in the write :ref:`latency histogram <latency-stats-document>`.
 
    * - ``COMMANDS_P95_VALUE``
-     - 95th percentile in the command :manual:`latency histogram 
-       </reference/operator/aggregation/collStats/#latencystats-document>`.
+     - 95th percentile in the command :ref:`latency histogram <latency-stats-document>`.
        
    * - ``TOTAL_OPS_P99_VALUE``
-     - 99th percentile in the :manual:`latency histogram 
-       </reference/operator/aggregation/collStats/#latencystats-document>` across all operations.
+     - 99th percentile in the :ref:`latency histogram <latency-stats-document>` across all operations.
 
    * - ``READS_P99_VALUE``
-     - 99th percentile in the read :manual:`latency histogram 
-       </reference/operator/aggregation/collStats/#latencystats-document>`.
+     - 99th percentile in the read :ref:`latency histogram <latency-stats-document>`.
 
    * - ``WRITES_P99_VALUE``
-     - 99th percentile in the write :manual:`latency histogram 
-       </reference/operator/aggregation/collStats/#latencystats-document>`.
+     - 99th percentile in the write :ref:`latency histogram <latency-stats-document>`.
 
    * - ``COMMANDS_P99_VALUE``
-     - 99th percentile in the command :manual:`latency histogram 
-       </reference/operator/aggregation/collStats/#latencystats-document>`.
+     - 99th percentile in the command :ref:`latency histogram <latency-stats-document>`.
   
    * - ``TOTAL_OPS``
      - Rate that indicates the total number of operations 

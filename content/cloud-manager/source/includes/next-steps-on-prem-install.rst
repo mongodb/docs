@@ -5,4 +5,4 @@ on the hosts that will run your MongoDB deployments.
 You can install the {+mdbagent+} on hosts running existing MongoDB
 deployments or on hosts on which you will create new MongoDB
 deployments. Hosts that serve your MongoDB deployments must meet the
-:manual:`minimum MongoDB production requirements </administration/production-notes>`.
+:ref:`minimum MongoDB production requirements <production-notes>`.

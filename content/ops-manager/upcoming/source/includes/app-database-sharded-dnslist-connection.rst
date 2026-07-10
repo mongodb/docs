@@ -1,4 +1,4 @@
-If you use a :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`
+If you use a :term:`sharded cluster`
 for the database's :doc:`backing instance </tutorial/prepare-backing-mongodb-instances>`,
 your connection string that includes the hostname for the |dns| seedlist,include the
 |dns-srv| record that describes your database's backing instance
@@ -11,4 +11,4 @@ Make sure |mms| can connect to this application database.
 
 .. seealso::
 
-    :manual:`DNS Seedlist Connection Format </reference/connection-string/#dns-seedlist-connection-format>`
+    :ref:`DNS Seedlist Connection Format <dns-seed-list-connection-format>`
