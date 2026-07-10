@@ -5,7 +5,7 @@ getMore (database command)
 ==========================
 
 .. meta::
-   :description: Use the `getMore` command to retrieve additional batches of documents from a cursor in MongoDB.
+   :description: Use the getMore database command to retrieve the next batches of documents from a cursor. Includes syntax, command fields, output, and behavior for sessions and transactions.
 
 .. default-domain:: mongodb
 
@@ -20,9 +20,9 @@ Definition
 
 .. dbcommand:: getMore
 
-   Use in conjunction with commands that return a cursor. For example,
-   :dbcommand:`find` and :dbcommand:`aggregate`, to return subsequent
-   batches of documents currently pointed to by the cursor.
+   Use with commands that return a cursor, such as :dbcommand:`find`
+   and :dbcommand:`aggregate`, to return the next document batches
+   from a cursor.
 
 Compatibility
 -------------
@@ -75,27 +75,28 @@ The command accepts the following fields:
        
    * - ``batchSize``
      - positive integer
-     - Optional. The maximum number of documents that can be returned in each batch of a query result.
+     - Optional. The maximum number of documents returned for each batch.
 
-       If ``batchSize`` is not set, ``getMore`` returns up to 16 mebibytes (MiB) of data in all 
-       subsequent batches. If ``batchSize`` is set, ``getMore`` returns 
-       the lesser of ``batchSize`` documents or 16 MiB worth of documents.
+       If ``batchSize`` is not set, ``getMore`` returns up to 16
+       mebibytes (MiB) for each batch. If ``batchSize`` is set,
+       ``getMore`` returns the lesser of ``batchSize`` documents
+       or 16 MiB.
 
    * - ``maxTimeMS``
      - non-negative integer
      - Optional. 
 
-       Specifies the maximum time for the server to wait for new documents
-       that match a :ref:`tailable cursor <tailable-cursors-landing-page>`
-       query on a :ref:`capped collection <manual-capped-collection>`. 
-       ``maxTimeMS`` on a ``getMore`` for a tailable ``awaitData`` cursor is 
-       considered the same as :method:`~cursor.maxAwaitTimeMS()`.
-       Drivers will only set this value on ``getMore`` for a tailable 
-       cursor on a capped collection with ``awaitData`` set to ``true``. Otherwise, 
-       the command that creates the cursor sets ``maxTimeMS``, which 
-       is the maximum amount of time that the initial operation, and 
-       any subsequent ``getMore`` operations, can spend cumulatively executing 
-       the query. For tailable cursors with ``awaitData`` set to ``true``, 
+       Specifies how long the server waits for new documents matching a
+       :ref:`tailable cursor <tailable-cursors-landing-page>` query on
+       a :ref:`capped collection <manual-capped-collection>`.
+       ``maxTimeMS`` on a ``getMore`` for a tailable ``awaitData``
+       cursor is equivalent to :method:`~cursor.maxAwaitTimeMS()`.
+
+       Drivers set this value only for tailable cursors on capped
+       collections where ``awaitData`` is ``true``. Otherwise, the
+       command that creates the cursor sets ``maxTimeMS`` as the
+       cumulative time limit for the initial operation and all
+       subsequent ``getMore`` operations. For tailable cursors with ``awaitData`` set to ``true``, 
        the following is true:
        
        - If no value is provided, the wait time defaults to ``1`` (1000 milliseconds).
@@ -104,9 +105,9 @@ The command accepts the following fields:
          collection for that specific ``getMore`` command. 
        - ``maxTimeMS`` is set individually by the driver for each call to ``getMore``.     
 
-       MongoDB terminates operations that exceed their allotted time limit
-       using the same mechanism as :method:`db.killOp()`. MongoDB only
-       terminates an operation at one of its designated :term:`interrupt points <interrupt point>`.
+       MongoDB terminates operations that exceed their time limit using
+       the same mechanism as :method:`db.killOp()`, but only at
+       designated :term:`interrupt points <interrupt point>`.
 
        - You cannot set ``maxTimeMS`` when calling ``getMore`` on a
          non-tailable cursor. Instead, set it using
@@ -134,7 +135,7 @@ Output
 ------
 
 The command returns a document that contains the cursor information
-as well as the next batch. 
+and the next batch.
 
 For example, running ``getMore`` on a cursor created by a 
 :dbcommand:`find` operation on a sharded cluster returns a document 
@@ -177,7 +178,7 @@ similar to this output:
    * - ``cursor``
      
      - Contains the cursor information, including the
-       cursor ID as well as the ``nextBatch`` of documents.
+       cursor ID and the ``nextBatch`` of documents.
 
        .. include:: /includes/find-getmore-partialresults.rst
 
@@ -216,7 +217,7 @@ Sessions
 For cursors created inside a session, you cannot call
 ``getMore`` outside the session.
 
-Similarly, for cursors created outside of a session, you cannot call
+For cursors created outside a session, you cannot call
 ``getMore`` inside a session.
 
 Transactions
@@ -229,10 +230,9 @@ For :ref:`multi-document transactions <transactions>`:
 Errors
 ~~~~~~
 
-Starting in MongoDB 8.2, the cursor identifier must match the name of the cursor
-that operates on the specified ``collection``. If the ``collection`` does not
-have a cursor with the specified cursor identifier, ``getMore`` returns an
-error.  
+Starting in MongoDB 8.2, the cursor identifier must match the
+name of the cursor operating on the specified ``collection``.
+If no matching cursor exists, ``getMore`` returns an error.
 
 Slow Queries
 ~~~~~~~~~~~~
