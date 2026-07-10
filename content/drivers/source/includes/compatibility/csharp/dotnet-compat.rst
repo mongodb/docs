@@ -14,7 +14,7 @@ The following table shows compatibility between the .NET/C# driver and .NET:
      - .NET Core 3.X
      - .NET Core 2.X
 
-   * - 3.5.2 to 3.9
+   * - 3.5.2 to 3.10
      - ✓
      - ✓
      - ✓
