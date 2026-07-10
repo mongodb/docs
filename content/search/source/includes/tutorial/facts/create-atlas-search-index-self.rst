@@ -5,9 +5,9 @@ following steps:
 
 1. Deploy MongoDB Search in Docker.
 
-   For more details on deploying by using a tarball or as an image in
-   Docker, see :ref:`Install and Deploy MongoDB Search
-   <community-search-deploy>`.
+   For more details on deploying by using a tarball, see 
+   :ref:`Install and Deploy MongoDB Search on Linux 
+   <mongot-deployment-on-linux>`.
 
 #. Load sample data into a MongoDB cluster.
 
@@ -20,7 +20,8 @@ following steps:
 .. note::
 
    The resulting set up of this quick start is not secure. For more information
-   on securing your deployment, see :ref:`Security for Self-Managed Deployments <security-checklist>`.
+   on securing your deployment, see :ref:`Security for Self-Managed Deployments 
+   <security-checklist>`.
 
 Architecture
 ------------
@@ -43,20 +44,10 @@ Before You Begin
 
 Before you begin, you must complete the following prerequisites:
 
-- Download Docker v4.40 or higher
+- Download Docker v4.40 or later
 - Download Docker Compose
 - Download the ``curl`` command
 - Download ``mongosh`` locally or have access to it through Docker
-
-Set Up MongoDB Search in Docker
--------------------------------
-
-In this section, you set up |fts| in Docker.
-
-.. procedure::
-   :style: normal
-
-   .. include:: /includes/tutorial/procedures/steps-self-managed-quick-start-setup.rst
 
 .. |search-type| replace:: :guilabel:`MongoDB Search`
 .. |index-name| replace:: ``default``

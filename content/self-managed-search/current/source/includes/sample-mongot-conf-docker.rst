@@ -1,3 +1,5 @@
+.. :snippet-start: sample-mongot-conf-docker
+
 .. code-block:: yaml
 
    # mongot.conf
@@ -31,3 +33,5 @@
 
    logging:
       verbosity: INFO
+
+.. :snippet-end:

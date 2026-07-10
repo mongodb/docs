@@ -1,3 +1,5 @@
+.. :snippet-start: sample-mongod-conf-docker
+
 .. code-block:: yaml
 
    # MongoDB Configuration File
@@ -19,3 +21,5 @@
          skipAuthenticationToSearchIndexManagementServer: false
          useGrpcForSearch: true
          searchTLSMode: disabled
+
+.. :snippet-end:

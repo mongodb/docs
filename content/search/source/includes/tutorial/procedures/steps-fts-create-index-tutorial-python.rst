@@ -1,35 +1,38 @@
-a. Install the MongoDB Python Driver.
+.. procedure::
+   :style: normal
 
-   .. code-block:: sh
+   .. step:: Install the MongoDB Python Driver.
 
-      pip install pymongo
+      .. code-block:: sh
 
-   For detailed installation instructions, see 
-   :ref:`MongoDB Python Driver (PyMongo) <pymongo-get-started-download-and-install>`.
+         pip install pymongo
 
-#. Define the index.
+      For detailed installation instructions, see 
+      :ref:`MongoDB Python Driver (PyMongo) <pymongo-get-started-download-and-install>`.
 
-   Paste the following code into a file named ``create_index.py``.
-   
-   .. literalinclude:: /includes/tutorial/code-snippets/python/create-index-tutorial.py
-      :caption: create_index.py
-      :language: python
-      :emphasize-lines: 5
-      :copyable:
-      :linenos:
+   .. step:: Define the index.
 
-   .. include:: /includes/index/shared/facts/find-connection-string.rst
+      Paste the following code into a file named ``create_index.py``.
+      
+      .. literalinclude:: /includes/tutorial/code-snippets/python/create-index-tutorial.py
+         :caption: create_index.py
+         :language: python
+         :emphasize-lines: 5
+         :copyable:
+         :linenos:
 
-#. Create the index.
+      .. include:: /includes/index/shared/facts/find-connection-string.rst
 
-   .. io-code-block::
-      :copyable: true 
+   .. step:: Create the index.
 
-      .. input::
-         :language: shell
+      .. io-code-block::
+         :copyable: true 
 
-         python create_index.py
+         .. input::
+            :language: shell
 
-      .. output::
+            python create_index.py
 
-         default
+         .. output::
+
+            default

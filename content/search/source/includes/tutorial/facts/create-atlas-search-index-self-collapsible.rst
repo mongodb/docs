@@ -1,6 +1,3 @@
-Create a |fts| Index
----------------------
-
 .. collapsible::
    :heading: What is a Search Index?
    :expanded: false

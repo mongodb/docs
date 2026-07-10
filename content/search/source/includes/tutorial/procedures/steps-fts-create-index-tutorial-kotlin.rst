@@ -1,20 +1,23 @@
-a. Install the MongoDB Kotlin Coroutine Driver.
+.. procedure::
+   :style: normal
 
-   Create a new Kotlin project and install the
-   :ref:`MongoDB Kotlin Coroutine Driver documentation
-   <kotlin-quickstart>`.
+   .. step:: Install the MongoDB Kotlin Coroutine Driver.
 
-#. Define the index.
+      Create a new Kotlin project and install the
+      :ref:`MongoDB Kotlin Coroutine Driver documentation
+      <kotlin-quickstart>`.
 
-   Create a file named ``CreateIndex.kt``. Copy and paste the following
-   code into the file.
+   .. step:: Define the index.
 
-   .. literalinclude:: /includes/tutorial/code-snippets/kotlin/CreateIndex.kt
-      :language: kotlin
-      :caption: CreateIndex.kt
-      :emphasize-lines: 10
-      :linenos:
+      Create a file named ``CreateIndex.kt``. Copy and paste the following
+      code into the file.
 
-   .. include:: /includes/index/shared/facts/find-connection-string.rst
+      .. literalinclude:: /includes/tutorial/code-snippets/kotlin/CreateIndex.kt
+         :language: kotlin
+         :caption: CreateIndex.kt
+         :emphasize-lines: 10
+         :linenos:
 
-#. Run the ``CreateIndex.kt`` file in your IDE.
+      .. include:: /includes/index/shared/facts/find-connection-string.rst
+
+   .. step:: Run the ``CreateIndex.kt`` file in your IDE.

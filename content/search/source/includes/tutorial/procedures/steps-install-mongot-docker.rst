@@ -1,68 +1,3 @@
-.. _mongot-deployment-using-docker:
-
-======================================================================
-Install or Uninstall MongoDB Search on Community in a Docker Container
-======================================================================
-
-.. meta::
-   :description: Learn about configuring mongot for {+avs+} Automated Embedding.
-
-.. facet::
-   :name: genre
-   :values: tutorial
-
-.. contents:: On this page
-   :local:
-   :backlinks: none
-   :depth: 2
-   :class: singlecol
-
-You can install the search process, ``mongot``, in MongoDB Community Edition. The search 
-process is available for deployment as an image in Docker. The ``mongot`` process 
-supports full-text search and semantic search with your own embeddings or automated 
-embeddings.
-
-Install MongoDB Search and Vector Search with Docker
-----------------------------------------------------
-
-.. note::
-
-   To onboard more quickly with a deployment meant for experimentation, see the 
-   :ref:`mongot-deployment-using-atlas-local`.
-
-Before You Begin
-~~~~~~~~~~~~~~~~
-
-.. important::
-
-   ``mongot`` syncs data from ``mongod`` and requires a MongoDB replica
-   set. A standalone ``mongod`` deployment doesn't support ``mongot``.
-
-Before you deploy ``mongot``, complete the following steps:
-
-a. Install Docker and Docker Compose.
-
-#. .. include:: /includes/installation/auto-embed-shared-prereq.rst
-
-Procedure
-~~~~~~~~~
-
-.. warning::
-
-   This procedure provides a minimal and insecure default configuration that
-   does not enable access control. The steps create a deployment intended for
-   local experimentation only.
-   
-   Before exposing these containers and using your setup in production, see
-   the following resources to secure your deployment:
-
-   - :ref:`security-checklist`
-   - :ref:`enable-access-control`
-   - :ref:`security-enable-access-control-replica-set`
-   - :ref:`configure-mongod-mongos-for-tls-ssl`
-   - :ref:`network-config-hardening`
-
-.. :snippet-start: steps-install-mongot-docker
 
 .. procedure::
    :style: normal
@@ -134,7 +69,7 @@ Procedure
       To create your configuration file, save the following code to ``mongod.conf`` 
       or your preferred location.
 
-      .. include:: /includes/sample-mongod-conf-docker.rst
+      .. include:: /includes/tutorial/code-snippets/rst/sample-mongod-conf-docker.rst
 
    .. step:: Start your ``mongod``. 
 
@@ -221,7 +156,7 @@ Procedure
       For example, you can adapt the settings to your local 
       configuration as shown below:
 
-      .. include:: /includes/sample-mongot-conf-docker.rst
+      .. include:: /includes/tutorial/code-snippets/rst/sample-mongot-conf-docker.rst
 
       Save your file to ``mongot.config`` or your preferred file location.
 
@@ -259,43 +194,4 @@ Procedure
       - Starts the container on the ``search-community`` Docker
         network with a container named ``mongot-community``.
 
-   .. include:: /includes/verify-mongot-health.rst
-
-.. :snippet-end:
-
-Uninstall MongoDB Search and MongoDB Vector Search with Docker
---------------------------------------------------------------
-
-To completely remove MongoDB Search and MongoDB Vector Search from a
-system, remove the container image, the configuration files, and any
-data or log directories. The following section guides you through the
-necessary steps.
-
-.. procedure:: 
-   :style: normal
-
-   .. step:: Drop the ``mongot`` user.
-
-      .. include:: /includes/installation/uninstall/drop-mongotUser.rst
-
-   .. step:: Stop the ``mongot``.
-
-      To stop the ``mongot`` process, stop the container image running in Docker.
-
-   .. step:: Remove any configuration files.
-
-      .. include:: /includes/installation/uninstall/remove-mongot-configs.rst
-
-   .. step:: Remove the password file.
-
-      .. include:: /includes/installation/uninstall/remove-keyfile-passwordfile.rst
-
-   .. step:: Remove the data directory for ``mongot``.
-
-      .. include:: /includes/installation/uninstall/remove-mongot-data-directory.rst
-      
-Next Steps
-~~~~~~~~~~
-
-- Create :atlas:`MongoDB Search indexes </atlas-search/searching/>`
-- Create :atlas:`MongoDB Vector Search indexes </atlas-vector-search/vector-search-type/>`
+   .. include:: /includes/tutorial/procedures/step-verify-mongot-health.rst

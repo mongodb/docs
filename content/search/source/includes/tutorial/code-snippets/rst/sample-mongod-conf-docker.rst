@@ -1,4 +1,3 @@
-.. :snippet-start: sample-mongod-conf-docker
 
 .. code-block:: yaml
 
@@ -22,4 +21,3 @@
          useGrpcForSearch: true
          searchTLSMode: disabled
 
-.. :snippet-end:

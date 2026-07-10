@@ -1,4 +1,3 @@
-.. :snippet-start: sample-mongod-conf-docker
 
 .. code-block:: yaml
 
@@ -34,4 +33,3 @@
    logging:
       verbosity: INFO
 
-.. :snippet-end:

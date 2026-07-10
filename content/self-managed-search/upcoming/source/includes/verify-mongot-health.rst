@@ -1,3 +1,5 @@
+.. :snippet-start: verify-mongot-health
+
 .. step:: Verify the health of the ``mongot`` process.
 
    To verify, send a request by using a |http| client or ``curl`` to the
@@ -18,3 +20,5 @@
    - ``NOT_SERVING``, if the ``mongot`` process isn't running
 
    For more information, see :ref:`mongot-verify-connection`.
+
+.. :snippet-end:

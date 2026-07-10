@@ -1,4 +1,3 @@
-.. :snippet-start: verify-mongot-health
 
 .. step:: Verify the health of the ``mongot`` process.
 
@@ -21,4 +20,3 @@
 
    For more information, see :ref:`mongot-verify-connection`.
 
-.. :snippet-end:

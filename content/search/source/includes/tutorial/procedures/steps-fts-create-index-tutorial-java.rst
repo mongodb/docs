@@ -1,65 +1,69 @@
 .. Shares /includes/shared/code-snippets/java/create-index.java with
 .. steps-fts-create-index-java.rst
 
-a. Add the Java driver version 4.11 or higher as a dependency in your Java project.
-   Select one of the following tabs, depending on your package manager:
+.. procedure::
+   :style: normal
 
-   .. tabs::
+   .. step:: Add the Java driver version 4.11 or higher as a dependency in your Java project.
+   
+      Select one of the following tabs, depending on your package manager:
 
-      .. tab:: Maven
-         :tabid: maven
+      .. tabs::
 
-         If you are using Maven, add the following dependencies to the
-         ``dependencies`` array in your project's ``pom.xml`` file:
+         .. tab:: Maven
+            :tabid: maven
 
-         .. code-block:: xml
-            :caption: pom.xml
+            If you are using Maven, add the following dependencies to the
+            ``dependencies`` array in your project's ``pom.xml`` file:
 
-            <dependencies>
-               <!-- MongoDB Java Sync Driver v4.11.0 or later -->
-               <dependency>
-                  <groupId>org.mongodb</groupId>
-                  <artifactId>mongodb-driver-sync</artifactId>
-                  <version>[4.11.0,)</version>
-               </dependency>
-            </dependencies>
+            .. code-block:: xml
+               :caption: pom.xml
 
-      .. tab:: Gradle
-         :tabid: gradle
+               <dependencies>
+                  <!-- MongoDB Java Sync Driver v4.11.0 or later -->
+                  <dependency>
+                     <groupId>org.mongodb</groupId>
+                     <artifactId>mongodb-driver-sync</artifactId>
+                     <version>[4.11.0,)</version>
+                  </dependency>
+               </dependencies>
 
-         If you are using Gradle, add the following to the ``dependencies``
-         array in your project's ``build.gradle`` file:
+         .. tab:: Gradle
+            :tabid: gradle
 
-         .. code-block:: json
-            :caption: build.gradle
+            If you are using Gradle, add the following to the ``dependencies``
+            array in your project's ``build.gradle`` file:
 
-            dependencies {
-               // MongoDB Java Sync Driver v4.11.0 or later
-               implementation 'org.mongodb:mongodb-driver-sync:[4.11.0,)'
-            }
+            .. code-block:: json
+               :caption: build.gradle
 
-#. Run your package manager to install the dependencies to your project.
+               dependencies {
+                  // MongoDB Java Sync Driver v4.11.0 or later
+                  implementation 'org.mongodb:mongodb-driver-sync:[4.11.0,)'
+               }
 
-   For more detailed installation instructions and version compatibility, see
-   the :driver:`MongoDB Java Driver documentation
-   </java/sync/current/quick-start/#std-label-add-mongodb-dependency>`.
+   .. step:: Run your package manager to install the dependencies to your project.
 
-#. Define the index.
+      For more detailed installation instructions and version compatibility, see
+      the :driver:`MongoDB Java Driver documentation
+      </java/sync/current/quick-start/#std-label-add-mongodb-dependency>`.
 
-   Paste the following example into a file named ``CreateIndex.java``.
+   .. step:: Define the index.
 
-   .. literalinclude:: /includes/shared/code-snippets/java/create-index.java
-      :caption: CreateIndex.java
-      :language: java
-      :emphasize-lines: 10
-      :linenos:
-      :copyable:
+      Paste the following example into a file named ``CreateIndex.java``.
 
-   .. include:: /includes/index/shared/facts/find-connection-string.rst
+      .. literalinclude:: /includes/shared/code-snippets/java/create-index.java
+         :caption: CreateIndex.java
+         :language: java
+         :emphasize-lines: 10
+         :linenos:
+         :copyable:
 
-#. Compile and run the file to create the index.
+      .. include:: /includes/index/shared/facts/find-connection-string.rst
 
-   .. code-block:: shell
+   .. step:: Compile and run the file to create the index.
 
-      javac CreateIndex.java
-      java CreateIndex
+      .. code-block:: shell
+
+         javac CreateIndex.java
+         java CreateIndex
