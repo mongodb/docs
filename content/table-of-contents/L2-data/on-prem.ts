@@ -1493,6 +1493,33 @@ const tocData: TocItem[] = [
             collapsible: true,
             items: [
               {
+                label: 'Quickstart',
+                contentSite: 'docs',
+                collapsible: true,
+                items: [
+                  {
+                    label: 'Plan Your Configuration',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/tls/plan-tls-deployment',
+                  },
+                  {
+                    label: 'Obtain Certificates',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/tls/certificate-tutorial',
+                  },
+                  {
+                    label: 'Configure On Your Deployment',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/tls/configure-server-tls-tutorial',
+                  },
+                  {
+                    label: 'Connect Client',
+                    contentSite: 'docs',
+                    url: '/docs/:version/core/tls/configure-client-tls-tutorial',
+                  },
+                ],
+              },
+              {
                 label: 'Configure mongod & mongos',
                 contentSite: 'docs',
                 url: '/docs/:version/tutorial/configure-ssl',
