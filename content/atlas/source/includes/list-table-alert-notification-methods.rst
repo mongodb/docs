@@ -220,4 +220,11 @@
           secret, in the :guilabel:`Webhook Secret` field, specify the
           secret that |service| uses to generate the ``X-MMS-Signature``
           header for request verification.
+
+       #. (Optional) To customize the webhook request headers and body
+          content, use the :guilabel:`Webhook Headers Template` and
+          :guilabel:`Webhook Body Template` fields with FreeMarker
+          templates. When you view or edit an alert with configured
+          templates, the templates appear redacted with ``******`` and
+          can be overwritten.
   
