@@ -1,4 +1,4 @@
-.. Last updated: June 25, 2026 at 02:59 PM EDT
+.. Last updated: July 09, 2026 at 02:55 PM EDT
 
 .. list-table::
    :header-rows: 1
@@ -60,6 +60,12 @@
      - .. _atlas_event_admin_override_payment_method_expired:
 
        Admin Override payment method expired automatically
+     - no
+
+   * - ``AGENT_FORCE_RESTART_REQUESTED``
+     - .. _atlas_event_agent_force_restart_requested:
+
+       Operator requested force restart of automation agents for cluster
      - no
 
    * - ``AI_MODELS_APIS_API_KEY_CREATED``
@@ -252,6 +258,12 @@
      - .. _atlas_event_atlas_maintenance_deferred_by_admin:
 
        Admin deferred maintenance
+     - no
+
+   * - ``ATLAS_MAINTENANCE_FLEET_ACTIVE_WAVE_CLOSED_BY_ADMIN``
+     - .. _atlas_event_atlas_maintenance_fleet_active_wave_closed_by_admin:
+
+       Admin manually closed the active fleet maintenance wave for an org
      - no
 
    * - ``ATLAS_MAINTENANCE_PROTECTED_HOURS_CREATED``
@@ -2029,6 +2041,12 @@
 
        Too much time has passed since the last successful snapshot
      - yes
+
+   * - ``CPS_RESTORE_AUTH_AUDIT``
+     - .. _atlas_event_cps_restore_auth_audit:
+
+       A Cloud Backup collection-restore agent retrieved system cluster credentials
+     - no
 
    * - ``CPS_RESTORE_FAILED``
      - .. _atlas_event_cps_restore_failed:
@@ -4586,6 +4604,12 @@
        Online Archive up to date
      - no
 
+   * - ``OPERATIONS_CONTACT_MODIFIED``
+     - .. _atlas_event_operations_contact_modified:
+
+       Atlas Operations Contact was modified
+     - no
+
    * - ``OPLOG_BEHIND``
      - .. _atlas_event_oplog_behind:
 
@@ -6366,6 +6390,12 @@
      - .. _atlas_event_streams_audit_log_configuration_updated:
 
        Atlas Stream Processing Audit log configuration updated
+     - no
+
+   * - ``STREAM_PROCESSOR_STARTED``
+     - .. _atlas_event_stream_processor_started:
+
+       Stream Processor started
      - no
 
    * - ``STREAM_PROCESSOR_STATE_IS_FAILED``
