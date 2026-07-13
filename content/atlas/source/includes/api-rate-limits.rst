@@ -1,4 +1,4 @@
-.. Last updated: June 24, 2026 at 3:07 PM EDT
+.. Last updated: July 10, 2026 at 3:04 PM EDT
 
 .. _api-rate-limits-aws-clusters-dns:
 
@@ -202,6 +202,14 @@ Cloud Backups
 * **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/shardedCluster/{snapshotId}``
 * **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/shardedClusters``
 * **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}``
+* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases``
+* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases/{databaseName}``
+* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases/{databaseName}/collections``
+* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases/{databaseName}/collections/{collectionName}``
+* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs``
+* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}``
+* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}/collections``
+* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}/collections/{sourceNamespace}``
 * **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/restoreJobs``
 * **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/restoreJobs/{jobId}``
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/backup/exportBuckets/{exportBucketId}``
@@ -212,6 +220,7 @@ Cloud Backups
 * **POST** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/exports``
 * **POST** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs``
 * **POST** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots``
+* **POST** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs``
 * **POST** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/restoreJobs``
 * **PUT** ``/api/atlas/v2/groups/{groupId}/backupCompliancePolicy``
 
@@ -831,6 +840,22 @@ Online Archive
 * **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/onlineArchives/{archiveId}``
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/onlineArchives/{archiveId}``
 * **POST** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/onlineArchives``
+
+.. _api-rate-limits-organization-delegation-settings:
+
+Organization Delegation Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Scope:** ORGANIZATION
+
+**Capacity:** 500
+
+**Refill:** 250/60s
+
+**Endpoints:**
+
+* **GET** ``/api/atlas/v2/orgs/{orgId}/delegationSettings``
+* **PATCH** ``/api/atlas/v2/orgs/{orgId}/delegationSettings``
 
 .. _api-rate-limits-organization-settings:
 
