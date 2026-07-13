@@ -213,8 +213,7 @@ Introduces easier authorization management for S3 access:
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Redesigns the MongoDB Cloud navigation.
-- Introduces :doc:`schema suggestions </performance-advisor/schema-suggestions>`
-  in Performance Advisor and Data Explorer.
+- Introduces schema suggestions in Performance Advisor and Data Explorer.
 - Reduces the price of |nvme| storage for |aws| clusters.
 - Supports the following
   :ref:`advanced federation options <fed-auth-advanced>` for customers
