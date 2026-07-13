@@ -77,3 +77,10 @@ For writers reviewing or creating new Claude Code skills.
 | Skill | What it does |
 |---|---|
 | `/review-skill` | Review a proposed Agent Skill for structural validity and content quality before publishing |
+
+## Other Skills
+
+| Skill | What it does |
+|---|---|
+| `/fix-404s` | Detect and fix broken external links (404s) in MongoDB documentation files |
+| `/fix-nested-components` | Fix forbidden nested RST components flagged by the nested components linter — callouts inside callouts, callouts inside list-tables, examples inside callouts, examples inside list-tables, and procedures inside procedures |
