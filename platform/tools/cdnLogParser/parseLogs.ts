@@ -47,6 +47,17 @@ interface DailyReport {
     [agentName: string]: any;  // Per-agent data like "open_ai", "anthropic", etc.
 }
 
+interface MdDailyReport {
+    date: string;
+    overview: {
+        total_md_requests: number;
+        ai_md_requests: number;
+        human_md_requests: number;
+        unknown_md_requests: number;
+    };
+    [agentName: string]: any;  // Per-agent data
+}
+
 interface AgentPatternConfig {
     agent_id: string;
     agent_name: string;
@@ -522,20 +533,101 @@ class LogParser {
     }
 
     /**
-     * Process files in smaller batches to reduce memory usage
+     * Parse log content for .md file requests, capturing AI traffic
      */
-    async processFilesInBatches(files: LogFile[], batchSize: number = 3): Promise<{
-        totalPageViews: number;
-        aiPageViews: number;
-        humanPageViews: number;
-        aiReferrals: number;
+    async parseMdRequests(content: string): Promise<{
+        totalMdRequests: number;
+        aiMdRequests: number;
+        humanMdRequests: number;
+        unknownMdRequests: number;
         agentData: Map<string, AgentData>;
     }> {
+        const summary = {
+            totalMdRequests: 0,
+            aiMdRequests: 0,
+            humanMdRequests: 0,
+            unknownMdRequests: 0,
+            agentData: new Map<string, AgentData>(),
+        };
+
+        const lines = content.split('\n');
+
+        for (const line of lines) {
+            const entry = this.parseLogLine(line);
+            if (!entry) continue;
+
+            // Only .md file requests under /docs
+            if (!entry.requestPath.startsWith('/docs')) continue;
+            if (!entry.requestPath.toLowerCase().endsWith('.md')) continue;
+
+            // Only successful requests
+            if (entry.statusCode !== '200') continue;
+
+            summary.totalMdRequests++;
+
+            if (this.isRegularBrowser(entry.userAgent)) {
+                summary.humanMdRequests++;
+                continue;
+            }
+
+            if (entry.isAI && entry.aiType) {
+                summary.aiMdRequests++;
+
+                if (!summary.agentData.has(entry.aiType)) {
+                    summary.agentData.set(entry.aiType, {
+                        total_page_views: 0,
+                        total_referrals: 0,
+                        all_pages: new Map<string, number>(),
+                    });
+                }
+
+                const agentData = summary.agentData.get(entry.aiType)!;
+                agentData.total_page_views++;
+
+                const pathCount = agentData.all_pages.get(entry.requestPath) || 0;
+                agentData.all_pages.set(entry.requestPath, pathCount + 1);
+            } else {
+                summary.unknownMdRequests++;
+            }
+        }
+
+        return summary;
+    }
+
+    /**
+     * Process files in smaller batches to reduce memory usage.
+     * Runs both page-view and .md-request parsers on each file in a single S3 read.
+     * Pass mdOnly=true to skip page-view parsing entirely.
+     */
+    async processFilesInBatches(files: LogFile[], batchSize: number = 3, mdOnly: boolean = false): Promise<{
+        pageViews: {
+            totalPageViews: number;
+            aiPageViews: number;
+            humanPageViews: number;
+            aiReferrals: number;
+            agentData: Map<string, AgentData>;
+        };
+        mdRequests: {
+            totalMdRequests: number;
+            aiMdRequests: number;
+            humanMdRequests: number;
+            unknownMdRequests: number;
+            agentData: Map<string, AgentData>;
+        };
+    }> {
+        // Page-view aggregates
         let totalPageViews = 0;
         let aiPageViews = 0;
         let humanPageViews = 0;
         let aiReferrals = 0;
-        const agentData = new Map<string, AgentData>();
+        const pvAgentData = new Map<string, AgentData>();
+
+        // MD-request aggregates
+        let totalMdRequests = 0;
+        let aiMdRequests = 0;
+        let humanMdRequests = 0;
+        let unknownMdRequests = 0;
+        const mdAgentData = new Map<string, AgentData>();
 
         // Process files in batches
         for (let i = 0; i < files.length; i += batchSize) {
@@ -550,9 +642,14 @@ class LogParser {
                         console.log(`  Processing file ${fileIndex + 1}/${files.length}: ${file.key}`);
 
                         const content = await this.processLogFileStreaming(file.key);
-                        if (content) {
-                            return await this.parsePageViews(content);
-                        }
+                        if (!content) return null;
+
+                        const [pvResult, mdResult] = await Promise.all([
+                            mdOnly ? Promise.resolve(null) : this.parsePageViews(content),
+                            this.parseMdRequests(content),
+                        ]);
+
+                        return { pvResult, mdResult };
                     } catch (error) {
                         console.error(`Error processing file ${file.key}:`, error);
                     }
@@ -564,33 +661,59 @@ class LogParser {
             const batchResults = await Promise.all(batchPromises);
 
             // Aggregate results from this batch
-            for (const pageViewData of batchResults) {
-                if (!pageViewData) continue;
+            for (const result of batchResults) {
+                if (!result) continue;
 
-                // Aggregate overview data
-                totalPageViews += pageViewData.totalPageViews;
-                aiPageViews += pageViewData.aiPageViews;
-                humanPageViews += pageViewData.humanPageViews;
-                aiReferrals += pageViewData.aiReferrals;
+                const { pvResult, mdResult } = result;
 
-                // Aggregate per-agent data
-                for (const [agentType, data] of pageViewData.agentData) {
-                    if (!agentData.has(agentType)) {
-                        agentData.set(agentType, {
+                // Aggregate page-view data (skipped in mdOnly mode)
+                if (pvResult) {
+                    totalPageViews += pvResult.totalPageViews;
+                    aiPageViews += pvResult.aiPageViews;
+                    humanPageViews += pvResult.humanPageViews;
+                    aiReferrals += pvResult.aiReferrals;
+                }
+
+                for (const [agentType, data] of (pvResult?.agentData ?? new Map())) {
+                    if (!pvAgentData.has(agentType)) {
+                        pvAgentData.set(agentType, {
                             total_page_views: 0,
                             total_referrals: 0,
                             all_pages: new Map<string, number>(),
                         });
                     }
 
-                    const aggregatedData = agentData.get(agentType)!;
-                    aggregatedData.total_page_views += data.total_page_views;
-                    aggregatedData.total_referrals += data.total_referrals;
+                    const aggregated = pvAgentData.get(agentType)!;
+                    aggregated.total_page_views += data.total_page_views;
+                    aggregated.total_referrals += data.total_referrals;
 
-                    // Aggregate page paths
                     for (const [path, count] of data.all_pages) {
-                        const existingCount = aggregatedData.all_pages.get(path) || 0;
-                        aggregatedData.all_pages.set(path, existingCount + count);
+                        const existing = aggregated.all_pages.get(path) || 0;
+                        aggregated.all_pages.set(path, existing + count);
+                    }
+                }
+
+                // Aggregate MD-request data
+                totalMdRequests += mdResult.totalMdRequests;
+                aiMdRequests += mdResult.aiMdRequests;
+                humanMdRequests += mdResult.humanMdRequests;
+                unknownMdRequests += mdResult.unknownMdRequests;
+
+                for (const [agentType, data] of mdResult.agentData) {
+                    if (!mdAgentData.has(agentType)) {
+                        mdAgentData.set(agentType, {
+                            total_page_views: 0,
+                            total_referrals: 0,
+                            all_pages: new Map<string, number>(),
+                        });
+                    }
+
+                    const aggregated = mdAgentData.get(agentType)!;
+                    aggregated.total_page_views += data.total_page_views;
+
+                    for (const [path, count] of data.all_pages) {
+                        const existing = aggregated.all_pages.get(path) || 0;
+                        aggregated.all_pages.set(path, existing + count);
                     }
                 }
             }
@@ -606,11 +729,20 @@ class LogParser {
         }
 
         return {
-            totalPageViews,
-            aiPageViews,
-            humanPageViews,
-            aiReferrals,
-            agentData,
+            pageViews: {
+                totalPageViews,
+                aiPageViews,
+                humanPageViews,
+                aiReferrals,
+                agentData: pvAgentData,
+            },
+            mdRequests: {
+                totalMdRequests,
+                aiMdRequests,
+                humanMdRequests,
+                unknownMdRequests,
+                agentData: mdAgentData,
+            },
         };
     }
 
@@ -644,6 +776,36 @@ class LogParser {
             throw error;
         }
     }
+
+    /**
+     * Save MD daily report to the md_daily_reports collection
+     */
+    async saveMdReportToMongoDB(report: MdDailyReport): Promise<void> {
+        const dbName = process.env.MONGODB_DATABASE || 'cdn_analytics';
+        const collectionName = 'md_daily_reports';
+
+        try {
+            const client = await this.getMongoClient();
+            const db = client.db(dbName);
+            const collection = db.collection(collectionName);
+
+            const result = await collection.replaceOne(
+                { date: report.date },
+                report,
+                { upsert: true }
+            );
+
+            if (result.upsertedCount > 0) {
+                console.log(`✅ Inserted new MD report for ${report.date}`);
+            } else {
+                console.log(`✅ Updated existing MD report for ${report.date}`);
+            }
+
+        } catch (error) {
+            console.error('❌ Error saving MD report to MongoDB:', error);
+            throw error;
+        }
+    }
 }
 
 // Example usage
@@ -671,6 +833,11 @@ async function main() {
         console.log('💡 To specify a different start date, use: --start-date=2024-01-15');
     }
 
+    const mdOnly = process.argv.includes('--md-only');
+    if (mdOnly) {
+        console.log('🔵 MD-only mode: skipping standard page-view report');
+    }
+
     const parser = new LogParser();
 
     // Load AI agent patterns from MongoDB
@@ -688,25 +855,56 @@ async function main() {
             // Use batched processing to reduce memory usage
             const batchSize = 20; // Process 20 files at a time
 
-            const results = await parser.processFilesInBatches(files, batchSize);
+            const results = await parser.processFilesInBatches(files, batchSize, mdOnly);
+            const { pageViews, mdRequests } = results;
 
-            // Build JSON report structure
-            const report: DailyReport = {
+            // Build and save the standard page-view report (skipped in mdOnly mode)
+            if (!mdOnly) {
+                const report: DailyReport = {
+                    date: startDate.toISOString().split('T')[0],
+                    overview: {
+                        total_page_views: pageViews.totalPageViews,
+                        ai_page_views: pageViews.aiPageViews,
+                        human_page_views: pageViews.humanPageViews,
+                        ai_referrals: pageViews.aiReferrals,
+                        human_percentage: pageViews.totalPageViews > 0
+                            ? parseFloat(((pageViews.humanPageViews / pageViews.totalPageViews) * 100).toFixed(2))
+                            : 0,
+                    },
+                };
+
+                for (const [agentType, data] of pageViews.agentData) {
+                    const sortedPages = Array.from(data.all_pages.entries())
+                        .sort((a, b) => b[1] - a[1]);
+
+                    const pagesObject: { [key: string]: number } = {};
+                    for (const [path, count] of sortedPages) {
+                        pagesObject[path] = count;
+                    }
+
+                    report[agentType] = {
+                        total_page_views: data.total_page_views,
+                        total_referrals: data.total_referrals,
+                        all_pages: pagesObject,
+                    };
+                }
+
+                await parser.saveToMongoDB(report);
+                console.log(JSON.stringify(report, null, 2));
+            }
+
+            // Build and save the MD-request report
+            const mdReport: MdDailyReport = {
                 date: startDate.toISOString().split('T')[0],
                 overview: {
-                    total_page_views: results.totalPageViews,
-                    ai_page_views: results.aiPageViews,
-                    human_page_views: results.humanPageViews,
-                    ai_referrals: results.aiReferrals,
-                    human_percentage: results.totalPageViews > 0
-                        ? parseFloat(((results.humanPageViews / results.totalPageViews) * 100).toFixed(2))
-                        : 0,
+                    total_md_requests: mdRequests.totalMdRequests,
+                    ai_md_requests: mdRequests.aiMdRequests,
+                    human_md_requests: mdRequests.humanMdRequests,
+                    unknown_md_requests: mdRequests.unknownMdRequests,
                 },
             };
 
-            // Add per-agent data
-            for (const [agentType, data] of results.agentData) {
-                // Convert Map to plain object, sorted by page views descending
+            for (const [agentType, data] of mdRequests.agentData) {
                 const sortedPages = Array.from(data.all_pages.entries())
                     .sort((a, b) => b[1] - a[1]);
 
@@ -715,18 +913,14 @@ async function main() {
                     pagesObject[path] = count;
                 }
 
-                report[agentType] = {
-                    total_page_views: data.total_page_views,
-                    total_referrals: data.total_referrals,
+                mdReport[agentType] = {
+                    total_requests: data.total_page_views,
                     all_pages: pagesObject,
                 };
             }
 
-            // Save to MongoDB if configured
-            await parser.saveToMongoDB(report);
-
-            // Output JSON to stdout
-            console.log(JSON.stringify(report, null, 2));
+            await parser.saveMdReportToMongoDB(mdReport);
+            console.log(JSON.stringify(mdReport, null, 2));
 
         } else {
             console.warn('No files found for the specified date range.');
