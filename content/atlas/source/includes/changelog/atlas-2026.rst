@@ -1,13 +1,23 @@
+.. _atlas_2026_06:
+
+June 2026
+---------
+
+- Adds cross-region support for {+aws-pl+} when you
+  :ref:`export backup snapshots to Amazon S3 <cloud-provider-snapshot-export>`, 
+  so you can distribute snapshots to |s3| buckets in other 
+  |aws| regions while keeping all export
+  traffic on private endpoints and private |ipaddr|\s.
+
 .. _atlas_2026_05:
 
 May 2026
 --------
 
-- Adds support for {+aws-pl+} cross-region connectivity, enabling you
-  to configure which {+aws+} regions can connect to your private
-  endpoint service. Applications in different {+aws+} regions can now
-  connect to your {+service+} clusters through private endpoints. To
-  learn more, see :ref:`manage-accepted-endpoint-regions`.
+- Adds support for {+aws-pl+} cross-region connectivity. You can now
+  :ref:`configure which regions can connect to your private endpoint service <manage-accepted-endpoint-regions>`. 
+  Applications in different {+aws+} regions can now
+  connect to your {+service+} clusters through private endpoints.
 
 - Improves the performance of {+data-explorer+} connection experience.
 
@@ -53,6 +63,11 @@ May 2026
 - General Availability: Routes identical queries to the same search node
   using consistent hashing, which produces deterministic results, to improve
   the consistency of {+avs+} query results on search nodes.
+
+- Adds support for customer-managed key encryption on dedicated
+  {+fts+} nodes in {+azure+}, which enables you to use your own encryption
+  keys to protect search node data at rest. To learn more, see
+  :ref:`security-kms-encryption`.
 
 .. _atlas_2026_04:
 
@@ -272,4 +287,4 @@ January 2026
   with data exfiltration prevention policies enabled.
 
 
-.. last-run: 2026-05-27
+.. last-run: 2026-06-17

@@ -170,7 +170,7 @@ not wait for one to finish before starting the next.
 Each subagent receives only what it needs for its one feature:
 
 <subagent_inputs>
-- Model: `haiku`
+- Model: `sonnet`
 - Feature data (YAML, derived as below)
 - Skill: content of `.github/agents/atlas-release-notes/write-feature-entry.skill.md`
 - Terminology file: `/tmp/atlas-rn/terminology.txt`
