@@ -88,6 +88,14 @@ Additional considerations:
        db.system.preimages.totalSize()
        db.system.preimages.stats()
 
+    .. note::
+
+       You must have the :authaction:`collStats` privilege action on the
+       ``config.system.preimages`` collection to run these commands.
+
+       To run these commands on an {+atlas+} deployment, you must have
+       the :atlasrole:`atlasAdmin` role.
+
   - Pre-images are removed asynchronously by a background process.
 
 .. important:: Backward-Incompatible Feature
