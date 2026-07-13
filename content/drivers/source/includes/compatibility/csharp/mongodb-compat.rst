@@ -6,7 +6,6 @@ The following table shows compatibility between the .NET/C# driver and {+mdb-ser
    :class: compatibility-large
 
    * - .NET/C# Driver Version
-     - MongoDB 9.0
      - MongoDB 8.2 to 8.3
      - MongoDB 8.1
      - MongoDB 8.0
@@ -17,7 +16,6 @@ The following table shows compatibility between the .NET/C# driver and {+mdb-ser
      - MongoDB 4.2
 
    * - 3.10
-     - ⊛
      - ✓
      - ✓
      - ✓
@@ -28,7 +26,6 @@ The following table shows compatibility between the .NET/C# driver and {+mdb-ser
      -
 
    * - 3.8 to 3.9
-     -
      - ✓
      - ✓
      - ✓
@@ -39,7 +36,6 @@ The following table shows compatibility between the .NET/C# driver and {+mdb-ser
      - ✓
 
    * - 2.29 to 3.7
-     -
      - ⊛
      - ✓
      - ✓
@@ -50,7 +46,6 @@ The following table shows compatibility between the .NET/C# driver and {+mdb-ser
      - ✓
 
    * - 2.20 to 2.28
-     -
      - ⊛
      - ⊛
      - ⊛
@@ -61,7 +56,6 @@ The following table shows compatibility between the .NET/C# driver and {+mdb-ser
      - ✓
 
    * - 2.16 to 2.19
-     -
      - ⊛
      - ⊛
      - ⊛
@@ -72,7 +66,6 @@ The following table shows compatibility between the .NET/C# driver and {+mdb-ser
      - ✓
 
    * - 2.15
-     -
      - ⊛
      - ⊛
      - ⊛
@@ -83,7 +76,6 @@ The following table shows compatibility between the .NET/C# driver and {+mdb-ser
      - ✓
 
    * - 2.7 to 2.14
-     -
      - ✗ [#8.1-note]_
      - ✗ [#8.1-note]_
      - ⊛
@@ -94,8 +86,7 @@ The following table shows compatibility between the .NET/C# driver and {+mdb-ser
      - ✓
 
    * - 2.0 to 2.6
-     -
-     -
+     - ✗ [#8.1-note]_
      - ✗ [#8.1-note]_
      -
      -
