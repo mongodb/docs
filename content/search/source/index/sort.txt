@@ -1,0 +1,259 @@
+.. _index-sort-ref:
+
+============
+Sorted Index 
+============
+
+.. default-domain:: mongodb
+
+.. meta::
+   :description: Sort your MongoDB Search results by date, number, and string fields.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+|fts| allows you to configure sorting in your index to pre-sort documents 
+in ascending or descending order at index-time instead of sorting at query-time. 
+This is helpful when result sets are very large, making query-time sorting slow. 
+You can use the ``sort`` index option with the following {+fts+} field types: 
+
+- ``boolean``
+- ``date``
+- ``number`` (integer, float, and double values)
+- ``objectId``
+- ``token``
+- ``uuid`` 
+
+You can also configure how you want ``null`` or missing values to be sorted 
+using the ``noData`` option.
+
+Syntax 
+------
+
+The ``sort`` option has the following syntax: 
+
+.. code-block:: json
+   :emphasize-lines: 11
+   :linenos:
+
+   { 
+     "mappings": {
+       "dynamic": true|false,
+       "fields": {
+         "<field-name>": {
+           "type": "boolean" | "date" | "number" | "objectId" | "token" | "uuid"
+         }
+       }
+     },
+     "sort": { "<field-to-sort>": 1 | -1 } | { "<field-to-sort>": { "order": 1 | -1, "noData": "lowest" | "highest" } }
+   }
+
+Requirements 
+------------
+
+To use a sorted index, you must:
+
+- Configure the fields used for ``sort`` using :ref:`static mappings <fts-static-mappings>`. 
+
+  - ``boolean``
+  - ``date``
+  - ``number`` (integer, float, and double values)
+  - ``objectId``
+  - ``token`` (``string`` values)
+  - ``uuid`` 
+
+  {+fts+} supports fields that you index as multiple types for ``sort`` if 
+  at least one of the types is one of the supported types listed above. 
+
+- To sort on nested fields, configure all intermediate fields up to the root 
+  field as the ``document`` type. 
+
+.. note:: 
+
+   If you specify the ``sort`` option with fields that are indexed using 
+   dynamic mappings or ``typeSet``, the index build will fail.
+
+Behavior 
+--------
+
+A sorted index physically orders |fts| documents during index builds using 
+the configured top-level sort instead of sorting at query time. This improves 
+performance of queries whose ``$search.sort`` specification matches the index 
+sort or a prefix of it, especially when sorting over very large result sets 
+(such as more than one million documents in the results).
+
+Use the :ref:`explain <explain-ref>` output to verify whether a query uses the 
+index sort. Queries that benefit from the index sort include the field 
+``usesIndexSort: true``. A query benefits when its sort fields match 
+the index sort or from a prefix of the index sort.
+
+.. note:: 
+
+   You can't use the ``searchScore`` meta expression as part of the sorted 
+   index because score is only computed at query time.
+
+Array Support 
+~~~~~~~~~~~~~
+
+You can sort on array fields. {+fts+} flattens the array and uses one 
+representative value for comparison. For ascending sort, it uses the lowest 
+value in the array and for a descending sort, it uses the highest value in the 
+array.
+
+For mixed-type arrays, the sort order is based on the :ref:`MongoDB 
+BSON Comparison Order <bson-types-comparison-order>`. For an ascending sort, 
+|fts| uses the element with the lowest |bson| type. For a descending sort, 
+|fts| uses the element with the highest |bson| type.
+
+Embedded Documents Support
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can sort on child fields only if all the parent documents are statically 
+defined as the ``document`` type.
+
+Queries using :ref:`returnScope <fts-return-scope>` don't benefit from sorted 
+index because the sorted index definition doesn't support 
+:ref:`embeddedDocuments <bson-data-types-embedded-documents>` field type in 
+the index for sorting.
+
+Considerations   
+--------------
+
+- Indexes with ``sort`` specifications might experience slower index builds and 
+  replication. 
+- Queries with ``$search.sort`` specified as the reverse of the index sort might 
+  be slower compared to using a non-sorted index. Queries using other 
+  ``$search.sort`` specifications won't be impacted. 
+- {+fts+} supports only one ``sort`` specification per index. If you want to sort 
+  on different fields, choose the dominant sort order as the index sort.
+
+Examples 
+--------
+
+The following examples create a sorted index on the fields in 
+the ``sample_airbnb.listingsAndReviews`` collection. 
+
+.. collapsible::
+   :heading: Simple Sort Order
+   :expanded: false
+
+   The following index definition sorts the ``number_of_reviews`` and the 
+   ``last_reviewed`` fields in descending order.
+
+   .. code-block:: json 
+
+      {
+        "mappings": {
+          "dynamic": false,
+          "fields": {
+            "number_of_reviews": {
+              "type": "number"
+            },
+            "last_reviewed": {
+              "type": "date"
+            }
+          }
+        },
+       "sort": { "number_of_reviews": -1, "last_reviewed": -1 }
+     }
+
+.. collapsible::
+   :heading: Sort With Null and Missing Values
+   :expanded: false
+
+   The following index definition sorts the ``number_of_reviews``  and the 
+   ``last_reviewed`` fields in descending order. It places documents with null 
+   or missing values at the bottom of the results.
+
+   .. code-block:: json 
+
+      {
+        "mappings": {
+          "dynamic": false,
+          "fields": {
+            "number_of_reviews": {
+              "type": "number"
+            },
+            "last_reviewed": {
+              "type": "date"
+            }
+          }
+        },
+        "sort": { 
+          "number_of_reviews": { "order": -1, "noData": "lowest" }, 
+          "last_reviewed": { "order": -1, "noData": "lowest" }
+        }
+      }
+
+.. collapsible:: 
+   :heading: Sort on Child Embedded Document Fields
+   :expanded: false
+
+   The following index definition sorts on the ``date`` field in 
+   descending order. To sort on ``date`` field, it defines the 
+   ``reviews`` field as the ``embeddedDocuments`` type and the 
+   ``document`` type.
+
+   .. code-block:: json 
+
+      {
+        "mappings": {
+          "dynamic": false,
+          "fields": {
+            "reviews": [
+              {
+                "type": "embeddedDocuments",
+                "dynamic": true
+              },
+              {
+                "type": "document",
+                "dynamic": false,
+                "fields": {
+                  "date": {
+                    "type": "date"
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "sort": { "reviews.date": -1 }
+      }
+
+.. collapsible:: 
+   :heading: Sort on Mixed Field Types
+   :expanded: false
+
+   The following index definition sorts on the ``property_type`` field 
+   in ascending order with null and missing values appearing at the bottom 
+   of the results. The ``property_type`` field is defined as the 
+   ``string``, ``autocomplete``, and ``token`` types. The index uses 
+   only the ``token`` type for sorting. 
+
+   .. code-block:: json 
+
+      {
+        "mappings": {
+          "dynamic": false,
+          "fields": {
+            "property_type": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "autocomplete",
+                "tokenization": "edgeGram",
+                "minGrams": 2,
+                "maxGrams": 15
+              },
+              {
+                "type": "token"
+              }
+            ]
+          }
+        },
+        "sort": { "property_type": { "order": 1, "noData": "highest" } }
+      }

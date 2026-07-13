@@ -1948,6 +1948,11 @@ export const toc: L1TocItem[] = [
                         ],
                       },
                       {
+                        label: 'Sorted Index',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/search/index/sort',
+                      },
+                      {
                         label: 'Stored Source',
                         contentSite: 'search',
                         url: '/docs/search/index/stored-source-definition',
