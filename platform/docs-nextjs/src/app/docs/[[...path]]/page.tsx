@@ -93,6 +93,15 @@ export async function generateMetadata({ params }: PageProps) {
   const result = isIncludeOnlyPath(path) ? null : await loadMDX(path);
 
   if (!result || !result.frontmatter) {
+    // Mirror the page component's soft-redirect check. When a soft redirect
+    // matches, the page component issues the redirect, so metadata generation
+    // must not call notFound() here — doing so races the redirect and causes
+    // intermittent 404s for redirect-only paths. Return null and let the page
+    // component handle the redirect.
+    const urlPath = `/docs/${path.join('/')}/`;
+    if (findSoftRedirect(urlPath)) {
+      return null;
+    }
     return notFound();
   }
 
