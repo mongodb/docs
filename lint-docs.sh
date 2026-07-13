@@ -73,6 +73,17 @@ shift
 case "$CMD" in
   seo)
     npx tsx "$LINT_DIR/seo-lint-cli.ts" "$@"
+    seo_exit=$?
+    if [ $seo_exit -ne 0 ]; then
+      echo ""
+      echo "⚠️  SEO issues found. How would you like to proceed?"
+      echo "   1. Fix now — invoke the fix-seo skill (use the findings above as the"
+      echo "      working list; skip the linter re-run in Step 1)"
+      echo "   2. Skip — continue without fixing"
+      echo ""
+      echo "   Please choose an option before continuing."
+    fi
+    exit $seo_exit
     ;;
   404|links)
     npx tsx "$LINT_DIR/404-lint-cli.ts" "$@"
@@ -110,7 +121,18 @@ case "$CMD" in
   all|both)
     exit_code=0
     echo "=== SEO Linter ==="
-    npx tsx "$LINT_DIR/seo-lint-cli.ts" "$@" || exit_code=1
+    npx tsx "$LINT_DIR/seo-lint-cli.ts" "$@"
+    seo_exit=$?
+    if [ $seo_exit -ne 0 ]; then
+      echo ""
+      echo "⚠️  SEO issues found. How would you like to proceed?"
+      echo "   1. Fix now — invoke the fix-seo skill (use the findings above as the"
+      echo "      working list; skip the linter re-run in Step 1)"
+      echo "   2. Skip — continue without fixing"
+      echo ""
+      echo "   Please choose an option before continuing."
+      exit_code=1
+    fi
     echo ""
     echo "=== 404 Linter ==="
     npx tsx "$LINT_DIR/404-lint-cli.ts" "$@"
