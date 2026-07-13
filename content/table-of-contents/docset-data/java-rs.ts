@@ -430,7 +430,7 @@ const tocData: TocItem[] = [
       {
         label: 'API Documentation',
         isExternal: true,
-        url: 'https://mongodb.github.io/mongo-java-driver/5.8/apidocs/driver-reactive-streams/',
+        url: 'https://mongodb.github.io/mongo-java-driver/5.9/apidocs/driver-reactive-streams/',
       },
       {
         label: 'Issues & Help',

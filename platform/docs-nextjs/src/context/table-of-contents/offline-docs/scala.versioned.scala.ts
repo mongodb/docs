@@ -265,7 +265,7 @@ export const toc: L1TocItem[] = [
           {
             label: 'API Documentation',
             isExternal: true,
-            url: 'https://mongodb.github.io/mongo-java-driver/5.8/apidocs/driver-scala/index.html',
+            url: 'https://mongodb.github.io/mongo-java-driver/5.9/apidocs/driver-scala/index.html',
           },
         ],
       },
