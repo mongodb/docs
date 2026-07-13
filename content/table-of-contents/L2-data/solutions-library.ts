@@ -341,11 +341,6 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/iot-datahub-smart-manufacturing',
           },
           {
-            label: 'Framework for Rapid AI Agent Deployment',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-agentic-ai-framework',
-          },
-          {
             label: 'Multi-Agent Predictive Maintenance',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/multi-agent-predictive-maintenance',
