@@ -53,7 +53,7 @@ advantage of |aws| built-in split-horizon DNS across a VPC peering
 connection.
 
 |service| displays this setting only when you
-:doc:`enable network peering on AWS </security-vpc-peering>`.
+:ref:`enable network peering on AWS <vpc-peering>`.
 
 Multiple Regionalized Private Endpoints
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -73,7 +73,7 @@ Collect Database Specific Statistics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :guilabel:`Collect Database Specific Statistics` setting allows you to enable or
-disable the collection of database statistics in :doc:`cluster metrics </monitor-cluster-metrics>`.
+disable the collection of database statistics in :ref:`cluster metrics <monitor-cluster-metrics>`.
 
 Data Validation
 ~~~~~~~~~~~~~~~

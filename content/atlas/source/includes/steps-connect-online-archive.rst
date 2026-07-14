@@ -7,9 +7,9 @@
       
    .. step:: Choose your connection method.
 
-      You can connect through a :doc:`Driver </driver-connection>`, 
-      :doc:`Compass </compass-connection>`, and the :doc:`MongoDB Shell 
-      </mongo-shell-connection>`.
+      You can connect through a :ref:`Driver <connect-via-driver>`, 
+      :ref:`Compass <atlas-connect-via-compass>`, and the :ref:`MongoDB Shell 
+      <connect-mongo-shell>`.
       
    .. step:: Select :guilabel:`Connect to Online Archive` to get the connection string for connecting to your Online Archive.
 

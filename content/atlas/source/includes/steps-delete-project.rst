@@ -7,6 +7,6 @@
       
    .. step:: Click :guilabel:`Delete Project`.
       
-   .. step:: If :doc:`/security-multi-factor-authentication` is enabled, enter the verification code.
+   .. step:: If :ref:`atlas-enable-mfa` is enabled, enter the verification code.
 
       After verifying, click :guilabel:`Delete Project` again.

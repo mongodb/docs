@@ -95,8 +95,8 @@
        :oas-bump-atlas-op:`Alerts resource <listgroupalerts>`. 
         
        This option is available only if you have configured Webhook 
-       settings on the :doc:`Integrations 
-       </tutorial/third-party-service-integrations>` page.         
+       settings on the :ref:`Integrations 
+       <third-party-integrations>` page.         
 
        .. include:: /includes/fact-webhook-redacted.rst
 

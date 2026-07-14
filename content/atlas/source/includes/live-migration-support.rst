@@ -1,6 +1,6 @@
 If you have any questions regarding migration support beyond what is
 covered in this documentation, or if you encounter an error during
-migration, :doc:`request support </support>` through the
+migration, :ref:`request support <atlas-support>` through the
 {+atlas-ui+}.
 
 To file a support ticket:

@@ -83,7 +83,7 @@
   <mql-support-diagnostic-cmd>` performance and stability.
 - Adds support for the :pipeline:`$merge` aggregation pipeline stage.
 - Allows ``localField`` and ``foreignField`` with a more expressive
-  :doc:`$lookup </data-federation/supported-unsupported/pipeline/lookup-stage/>` aggregation
+  :ref:`$lookup <adf-lookup-stage>` aggregation
   pipeline stage syntax.
 - Implements the ``$count`` accumulator.
 

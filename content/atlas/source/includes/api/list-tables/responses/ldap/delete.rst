@@ -48,8 +48,8 @@
      - string
      - |fqdn| or IP address of the host that serves the |ldap|
        directory. This host must be visible to the internet or
-       connected to your |service| cluster with :doc:`VPC Peering
-       </security-vpc-peering>`.
+       connected to your |service| cluster with :ref:`VPC Peering
+       <vpc-peering>`.
 
    * - ldap.port
      - integer

@@ -15,5 +15,5 @@ management options:
     to the private endpoint-connected VNet. This enables 
     you to connect to |service| directly from your 
     on-premises data center without adding public IP 
-    addresses to the |service| :doc:`IP access list 
-    </security/ip-access-list>`.
+    addresses to the |service| :ref:`IP access list 
+    <add-to-access-list>`.

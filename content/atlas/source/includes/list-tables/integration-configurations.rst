@@ -51,7 +51,7 @@
        New Relic MongoDB plugin. You can also use Insights for New
        Relic to run analytics on the collected data. |service| sends
        New Relic the same metric data as displayed in |service|
-       :doc:`cluster metrics </monitor-cluster-metrics>`.
+       :ref:`cluster metrics <monitor-cluster-metrics>`.
 
        - If you have a New Relic account, enter the following
          information:
@@ -93,8 +93,8 @@
      - Sets a default service key for alert notifications sent to a
        `PagerDuty <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`_
        account. |service| enters the key by default when you add a
-       PagerDuty notification to an :doc:`alert configuration
-       </monitoring-alerts>`. If you add PagerDuty notifications and if
+       PagerDuty notification to an :ref:`alert configuration
+       <monitoring-alerts>`. If you add PagerDuty notifications and if
        the key used to send the notifications becomes invalid,
        |service| sends an email to the project owner and eventually
        removes the key.
@@ -162,7 +162,7 @@
 
        To send alert notifications to a Webhook, select the Webhook
        notification option when creating or editing an
-       :doc:`alert </monitoring-alerts>`. If you add a Webhook
+       :ref:`alert <monitoring-alerts>`. If you add a Webhook
        notification and the |url| or optional key becomes invalid,
        |service| sends an email to the project owner and eventually
        removes the Webhook settings.

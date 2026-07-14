@@ -78,37 +78,37 @@
 
 - Supports |azure| Private Link with |service| :oas-bump-atlas-tag:`Private 
   Endpoints <private-endpoint-services>`.
-- Improved filtering for the :doc:`Activity Feed </tutorial/activity-feed/>`.
-- Optimizes :doc:`slow query logging </performance-advisor/>` by automatically
+- Improved filtering for the :ref:`Activity Feed <activity-feed>`.
+- Optimizes :ref:`slow query logging <pa-slow-queries>` by automatically
   adjusting the slowMS threshold based on the workload to capture more
   slow queries.
-- Introduces a feedback button for Index Suggestions in the :doc:`Performance
-  Advisor </performance-advisor/>`.
+- Introduces a feedback button for Index Suggestions in the :ref:`Performance
+  Advisor <pa-slow-queries>`.
 
 .. _atlas_20200922:
 
 22 September 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supports the following |aws| :doc:`regions </reference/amazon-aws>`:
+- Supports the following |aws| :ref:`regions <amazon-aws>`:
 
   - ``af-south-1`` (Cape Town, South Africa)
   - ``eu-south-1`` (Milan, Italy)
 
-- Supports the following |gcp| :doc:`regions </reference/google-gcp>`:
+- Supports the following |gcp| :ref:`regions <google-gcp>`:
 
   - ``asia-southeast2`` (Jakarta, Indonesia)
   - ``uswest3`` (Las Vegas, NV, USA)
   - ``uswest4`` (Salt Lake City, UT, USA)
 
 - Supports the following |azure|
-  :doc:`regions </reference/microsoft-azure>`:
+  :ref:`regions <microsoft-azure>`:
 
   - ``westcentralus`` (Wyoming, USA)
   - ``germanynorth`` (Berlin, Germany)
 
 - Updates terminology for Atlas cluster firewall management. Introduces
-  :doc:`IP Access List </security/ip-access-list>` and deprecates "IP
+  :ref:`IP Access List <add-to-access-list>` and deprecates "IP
   Whitelist".
 
 - Introduces new host-level monitoring metrics for total memory, total
@@ -213,7 +213,8 @@ Introduces easier authorization management for S3 access:
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Redesigns the MongoDB Cloud navigation.
-- Introduces schema suggestions in Performance Advisor and Data Explorer.
+- Introduces :ref:`schema suggestions <schema-suggestions>`
+  in Performance Advisor and Data Explorer.
 - Reduces the price of |nvme| storage for |aws| clusters.
 - Supports the following
   :ref:`advanced federation options <fed-auth-advanced>` for customers
@@ -225,7 +226,7 @@ Introduces easier authorization management for S3 access:
 
 - Removes legacy Old Backups as an option for new |gcp|\- and
   |azure|\-backed clusters. New |gcp|\- and |azure|\-backed clusters
-  use :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>` for
+  use :ref:`{+Cloud-Backup+}s <backup-cloud-provider>` for
   backup.
 
 .. _atlas_20200331:
@@ -233,7 +234,7 @@ Introduces easier authorization management for S3 access:
 31 March 2020 Release
 ~~~~~~~~~~~~~~~~~~~~~
 
-- Supports :doc:`multiple connection strings </reference/faq/connection-changes>` to the same cluster:
+- Supports :ref:`multiple connection strings <conn-string-options>` to the same cluster:
 
   - Supports deploying a multi-region |service| cluster on |azure| and
     connecting to it using VNet peering.

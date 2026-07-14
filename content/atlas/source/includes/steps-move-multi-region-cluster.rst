@@ -18,7 +18,7 @@
       If you modify the :guilabel:`Preferred` region, the |service| 
       cluster calls for one or more elections to select a new 
       :term:`primary` in the selected region. See 
-      :doc:`/tutorial/test-resilience/test-primary-failover` for
+      :ref:`test-failover` for
       instructions on testing your application response to a replica set
       election before changing the :guilabel:`Preferred` cluster.
       

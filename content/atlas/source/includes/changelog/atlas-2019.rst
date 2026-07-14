@@ -25,15 +25,15 @@
 18 November 2019 Release
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Supports :doc:`Private Endpoints with AWS PrivateLink </security-private-endpoint>`.
+- Supports :ref:`Private Endpoints with AWS PrivateLink <private-endpoint-concepts>`.
 
 - Supports "Passwordless" X.509 authentication for database users. You
-  can :doc:`Configure Database Users </security-add-mongodb-users>`
+  can :ref:`Configure Database Users <mongodb-users>`
   to use Atlas-managed X.509 authentication, or you can
-  :doc:`Set up Self-Managed X.509 </security-self-managed-x509>`.
+  :ref:`Set up Self-Managed X.509 <self-managed-x509>`.
 
 - Enhancements to index recommendations in
-  :doc:`Performance Advisor </performance-advisor/index-ranking>`.
+  :ref:`Performance Advisor <pa-index-ranking>`.
 
 - Enables always-on database-level authentication
   :ref:`access auditing <access-tracking>` for {+dedicated-clusters+}.
@@ -53,9 +53,9 @@
 - Includes new guides for configuring |service| to authenticate and
   authorize users from third-party LDAP providers:
 
-  - :doc:`/security-ldaps-okta`
+  - :ref:`security-ldaps-okta`
 
-  - :doc:`/security-ldaps-onelogin`
+  - :ref:`security-ldaps-onelogin`
 
 - :ref:`Billing invoices <view-download-current-invoice>` now show
   usage by project in the :guilabel:`Summary by Project` section.
@@ -188,13 +188,13 @@
 
 - Introduces {+adf+} on-demand query service.
 
-- Supports :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>`
+- Supports :ref:`{+Cloud-Backup+}s <backup-cloud-provider>`
   for 4.2 replica sets.
 
 - Supports Encryption at Rest for snapshots.
 
 - Added :ref:`Aggregation Pipeline Builder <atlas-ui-agg-pipeline>` to the
-  :doc:`{+atlas-ui+} </atlas-ui>`.
+  :ref:`{+atlas-ui+} <atlas-ui>`.
 
 .. _atlas-v20190528:
 
@@ -210,11 +210,11 @@
 07 May 2019 Release
 ~~~~~~~~~~~~~~~~~~~
 
-- :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>` are now
+- :ref:`{+Cloud-Backup+}s <backup-cloud-provider>` are now
   available for |gcp|-backed clusters.
 
 - |service| clusters can now use
-  :doc:`Google Cloud KMS for encryption at rest </security-gcp-kms>`.
+  :ref:`Google Cloud KMS for encryption at rest <security-gcp-kms>`.
 
 - |service| clusters now have a new MongoDB configuration option that
   allows agents to continue connecting even if you have exceeded the
@@ -224,7 +224,7 @@
   Existing |service| clusters are affected the next time you request a
   configuration change to a cluster.
 
-- |service| projects may now use the :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>`
+- |service| projects may now use the :ref:`{+Cloud-Backup+}s <backup-cloud-provider>`
    backup method. An |service| project supports multiple backup types among
    clusters within that project. You must terminate the existing
    backup method before switching between backup methods for an
@@ -237,14 +237,14 @@
 16 April 2019 Release
 ~~~~~~~~~~~~~~~~~~~~~
 
-- Supports Microsoft Azure VNet :doc:`peering </security-vpc-peering>`.
+- Supports Microsoft Azure VNet :ref:`peering <vpc-peering>`.
 - Can load :ref:`sample data <load-sample-data>` into an
   |service| cluster.
 - Supports the :ref:`Microsoft Azure <microsoft-azure>` South Africa
   North region.
 - Supports the :ref:`Google Cloud Platform <google-gcp>` Zurich region.
 - Offers self-serve customers option to sign up for a
-  :doc:`support package </support>`.
+  :ref:`support package <atlas-support>`.
 
 .. _atlas-v20190326:
 
@@ -322,4 +322,4 @@
 - Provides more visibility to maintenance timing in the administration
   user interface.
 - Supports On-Demand
-  :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>`.
+  :ref:`{+Cloud-Backup+}s <backup-cloud-provider>`.

@@ -5,7 +5,7 @@
       .. note:: Options Display if Feature Enabled
       
          |service| displays the connection type options after you enable
-         :doc:`Private IP for Peering </security-vpc-peering>`,
+         :ref:`Private IP for Peering <vpc-peering>`,
          :ref:`Private Endpoint <atlas-configure-private-endpoint>`, or
          both. If you haven't enabled either feature, no buttons display
          and **Connection Type** defaults to **Standard**.

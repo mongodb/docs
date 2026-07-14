@@ -3,4 +3,4 @@
    Each |service| |api| has its own resources and requires initial
    setup.
 
-   To learn more, see :doc:`/api`.
+   To learn more, see :ref:`graphql-api-overview`.

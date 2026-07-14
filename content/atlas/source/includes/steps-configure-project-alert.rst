@@ -37,7 +37,7 @@ In addition, see:
       
       #. In the :guilabel:`Condition/Metric` drop-down menu, select the 
          condition. To learn more about alert conditions, see
-         :doc:`/reference/alert-conditions`.
+         :ref:`alert-conditions`.
 
       #. (Optional) In the :guilabel:`Severity` drop-down menu, select 
          a severity level for the alert that overrides the system 

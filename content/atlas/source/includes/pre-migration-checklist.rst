@@ -6,7 +6,7 @@ Before starting the live migration procedure:
 - If you don't already have a destination {+cluster+}, create a
   new |service| deployment and configure it as needed. For complete
   documentation on creating an |service| {+cluster+}, see
-  :doc:`/tutorial/create-new-cluster`.
+  :ref:`create-new-cluster`.
 
 - After your |service| {+cluster+} is deployed, ensure that you can connect
   to it from all client hardware where your applications run. Testing

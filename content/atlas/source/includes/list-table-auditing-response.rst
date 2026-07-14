@@ -31,4 +31,4 @@
    * - ``enabled``
      - boolean
      - Denotes whether or not the project associated with the ``{GROUP-ID}`` has
-       :doc:`database auditing </database-auditing>` enabled. 
+       :ref:`database auditing <set-up-database-auditing>` enabled. 

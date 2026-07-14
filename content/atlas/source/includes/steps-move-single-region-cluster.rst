@@ -16,8 +16,8 @@
       For {+Free-clusters+}:
 
       - You must also select a higher {+cluster+} tier. |service| supports
-        moving {+Free-clusters+} only when you :doc:`increase the
-        cluster tier </scale-cluster>`.
+        moving {+Free-clusters+} only when you :ref:`increase the
+        cluster tier <modify-cluster>`.
       - The available regions are a subset of the total supported regions for any
         given cloud service provider.
       

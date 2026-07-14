@@ -15,7 +15,7 @@
       to match your production cluster. You do not have to enable 
       backups for the staging cluster.
       
-      To learn how to create a new cluster, see :doc:`/tutorial/create-new-cluster`.
+      To learn how to create a new cluster, see :ref:`create-new-cluster`.
       
       .. important::
       
@@ -33,7 +33,7 @@
          You can skip this step if you already have an up-to-date |service|
          cluster as a staging environment.
       
-      If you have :doc:`backups enabled </backup-restore-cluster>` for the
+      If you have :ref:`backups enabled <backup-restore-cluster>` for the
       production cluster,
       :ref:`restore the most recent snapshot <restore-archive-snapshots>` and choose the
       staging cluster as the destination.
@@ -44,7 +44,7 @@
       Update your staging application to point at your
       staging cluster. For instructions on retrieving the MongoDB
       driver-friendly connection string for the staging
-      cluster, see :doc:`/driver-connection`.
+      cluster, see :ref:`connect-via-driver`.
       
       Confirm that your application can connect successfully to the
       staging cluster *and* that the application operates as expected.
@@ -55,7 +55,7 @@
       cluster's MongoDB version enables full access to the features
       provided by the newer MongoDB version. You may also find better
       performance or stability with newer driver versions. See
-      :doc:`/driver-connection` for documentation on the recommended
+      :ref:`connect-via-driver` for documentation on the recommended
       MongoDB driver for a given MongoDB version and connection
       examples. By using the :manual:`Stable API
       </reference/stable-api/>`, you can ensure that behavior
@@ -104,13 +104,13 @@
         The major version upgrade requires at least one replica set
         election. Use the staging cluster as an opportunity to test your
         application's resilience to primary failover. See
-        :doc:`/tutorial/test-resilience/test-primary-failover` for complete
+        :ref:`test-failover` for complete
         documentation. 
       
    .. step:: Upgrade your production cluster to the target MongoDB version.
 
       After you are confident in the performance and operation of your 
-      staging cluster, repeat the :doc:`upgrade </scale-cluster>` procedure 
+      staging cluster, repeat the :ref:`upgrade <modify-cluster>` procedure 
       for your production cluster:
 
       a. Upgrade your production application with newer MongoDB drivers and 

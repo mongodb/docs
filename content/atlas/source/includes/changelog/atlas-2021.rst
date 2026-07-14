@@ -17,7 +17,7 @@
   to a single database user.
 - Introduces a new specific privilege, :ref:`killOpSession <atlas-specific-privileges>`.
 - Adds the ability to
-  :doc:`revoke temporary infrastructure access to MongoDB Support </security-restrict-support-access/>`.
+  :ref:`revoke temporary infrastructure access to MongoDB Support <restrict-access>`.
 - Changes the :ref:`default recipients for billing alerts <atlas-billing-profile>`
   if you don't provide a billing email address.
 
@@ -27,9 +27,9 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Adds support for Google Private Service with
-  :doc:`Atlas Private Endpoints </security-private-endpoint/>`
+  :ref:`Atlas Private Endpoints <private-endpoint-concepts>`
   via the console.
-- Introduces the ability to :doc:`export backup snapshots </backup/cloud-backup/export/>`
+- Introduces the ability to :ref:`export backup snapshots <cloud-provider-snapshot-export>`
   to their own Amazon |s3| buckets on-demand via the |api|.
 - Adds support for  collections for Atlas Online Archive.
 

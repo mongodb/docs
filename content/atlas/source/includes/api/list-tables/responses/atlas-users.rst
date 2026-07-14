@@ -46,7 +46,7 @@
 
        You can't update the password after it has been created. The
        user must log into |service| to
-       :doc:`update their password </security/manage-your-mongodb-atlas-account>`.
+       :ref:`update their password <manage-your-mongodb-atlas-account>`.
 
    * - roles
      - array

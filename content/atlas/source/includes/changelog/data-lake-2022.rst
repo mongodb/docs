@@ -148,8 +148,8 @@
 ~~~~~~~~~~~~~~~~~~~~~
 
 - Improves performance and stability.
-- Imposes an upper :doc:`limit 
-  </data-federation/supported-unsupported/limitations>` on 
+- Imposes an upper :ref:`limit 
+  <df-limitations>` on 
   ``maxRowGroupSize``.
 
 .. _data-lake-v20220215:

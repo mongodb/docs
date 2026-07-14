@@ -13,8 +13,8 @@ table lists authentication mechanisms and how to configure them in |service|.
      - Configuration Method
 
    * - SCRAM
-     - :doc:`Create database users with SCRAM for password authentication 
-       </security-add-mongodb-users>`.
+     - :ref:`Create database users with SCRAM for password authentication 
+       <mongodb-users>`.
 
    * - |ldap|
      - :ref:`Set up LDAP <ldaps-authentication-authorization>`.

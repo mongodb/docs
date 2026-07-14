@@ -16,7 +16,7 @@
      - string
      - Name of the privilege action. For a complete list of actions
        available in the {+atlas-admin-api+}, see 
-       :doc:`/reference/custom-role-actions`.
+       :ref:`custom-role-api-enum`.
 
    * - ``actions.resources``
      - array
