@@ -1,4 +1,41 @@
-.. Last updated: July 10, 2026 at 3:04 PM EDT
+.. Last updated: July 14, 2026 at 2:53 PM EDT
+
+.. _api-rate-limits-ai-model-apis:
+
+AI Model APIs
+~~~~~~~~~~~~~
+
+**Scope:** GROUP
+
+**Capacity:** 1200
+
+**Refill:** 500/60s
+
+**Endpoints:**
+
+* **DELETE** ``/api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}``
+* **GET** ``/api/atlas/v2/groups/{groupId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits``
+* **GET** ``/api/atlas/v2/groups/{groupId}/aiModelApiKeys``
+* **GET** ``/api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}``
+* **GET** ``/api/atlas/v2/groups/{groupId}/aiModelApiRateLimits``
+* **PATCH** ``/api/atlas/v2/groups/{groupId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits``
+* **PATCH** ``/api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}``
+* **POST** ``/api/atlas/v2/groups/{groupId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits:reset``
+* **POST** ``/api/atlas/v2/groups/{groupId}/aiModelApiKeys``
+* **POST** ``/api/atlas/v2/groups/{groupId}/aiModelApiRateLimits:reset``
+
+**Scope:** ORGANIZATION
+
+**Capacity:** 500
+
+**Refill:** 250/60s
+
+**Endpoints:**
+
+* **GET** ``/api/atlas/v2/orgs/{orgId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits``
+* **GET** ``/api/atlas/v2/orgs/{orgId}/aiModelApiKeys``
+* **GET** ``/api/atlas/v2/orgs/{orgId}/aiModelApiKeys/{apiKeyId}``
+* **GET** ``/api/atlas/v2/orgs/{orgId}/aiModelApiRateLimits``
 
 .. _api-rate-limits-aws-clusters-dns:
 
@@ -1238,6 +1275,7 @@ Streams
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}``
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processors``
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}:downloadOperationalLogs``
+* **PATCH** ``/api/atlas/v2/groups/{groupId}/streams/privateLinkConnections/{connectionId}``
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}``
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}``
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections/{failoverConnectionId}``
