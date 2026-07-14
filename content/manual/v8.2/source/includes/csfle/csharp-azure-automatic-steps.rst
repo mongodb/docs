@@ -151,7 +151,7 @@
          
          .. tabs::
 
-            .. tab:: C# Driver v3.0+
+            .. tab:: .NET/C# Driver v3.0+
                :tabid: csharp-v3
 
                .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/azure/reader/CSFLE/InsertEncryptedDocument.cs
@@ -160,7 +160,7 @@
                   :language: csharp
                   :dedent:
             
-            .. tab:: C# Driver < v3.0
+            .. tab:: .NET/C# Driver < v3.0
                :tabid: csharp-v2
 
                .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/azure/reader/CSFLE/InsertEncryptedDocument.cs

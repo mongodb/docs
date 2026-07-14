@@ -43,7 +43,7 @@
             cd connect
             dotnet new console
       
-      #. Run the following command to add the .NET/C# Driver to your project 
+      #. Run the following command to add the .NET/C# driver to your project 
          as a dependency:
       
          .. code-block:: shell

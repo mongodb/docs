@@ -21,8 +21,8 @@ This example creates an aggregation pipeline that:
    .. output:: /code-examples/tested/csharp/driver/Aggregation/OutputFiles/AggregationOutput.txt
       :language: text
 
-For more information on running aggregations using the C# Driver, see
-:driver:`C# Driver Aggregations </csharp/sync/current/aggregation/>`.
+For more information on running aggregations using the .NET/C# driver, see
+:driver:`.NET/C# Driver Aggregations </csharp/sync/current/aggregation/>`.
 
 For more information on how to access data from a cursor, 
 see :driver:`Access Data From a Cursor </csharp/sync/current/crud/query-documents/cursor/>`.

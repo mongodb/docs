@@ -17,7 +17,7 @@ the ``_id`` field from the results. It returns a ``List<BsonDocument>``.
       :language: text
 
 For more information on querying your collection, see
-:driver:`MongoDB C# Driver documentation </csharp/sync/current/crud/query-documents/find/>`.
+:driver:`MongoDB .NET/C# Driver documentation </csharp/sync/current/crud/query-documents/find/>`.
 
 .. tip:: Optimize Query Performance
 

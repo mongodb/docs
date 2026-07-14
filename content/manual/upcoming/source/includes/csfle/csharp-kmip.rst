@@ -170,7 +170,7 @@ Create the Application
          
          .. tabs::
 
-            .. tab:: C# Driver v3.0+
+            .. tab:: .NET/C# Driver v3.0+
                :tabid: csharp-v3
 
                .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/InsertEncryptedDocument.cs
@@ -179,7 +179,7 @@ Create the Application
                   :language: csharp
                   :dedent:
 
-            .. tab:: C# Driver < v3.0
+            .. tab:: .NET/C# Driver < v3.0
                :tabid: csharp-v2
 
                .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/kmip/reader/CSFLE/InsertEncryptedDocument.cs

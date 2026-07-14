@@ -83,7 +83,7 @@
          Task named ``AddDocumentsAsync`` to add documents to MongoDB. This
          function uses the
          :ref:`Collection.InsertManyAsync() <csharp-insert-guide>`
-         C# Driver method to insert a list of the ``BsonDocument`` type. This
+         .NET/C# driver method to insert a list of the ``BsonDocument`` type. This
          code stores the embeddings alongside the chunked data in the
          ``rag_db.test`` collection.
 
@@ -144,7 +144,7 @@
 
       In this section, you set up {+avs+} to :ref:`retrieve <rag-retrieval>` 
       documents from your vector database. To create a {+avs+}
-      index for a collection using the :driver:`MongoDB C# driver v3.1.0 </csharp/current/quick-start/>`
+      index for a collection using the :driver:`MongoDB .NET/C# Driver v3.1.0 </csharp/current/quick-start/>`
       or later, perform the following steps:
       
       a. Define the {+avs+} index.

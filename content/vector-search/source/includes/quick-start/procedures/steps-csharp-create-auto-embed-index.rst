@@ -6,7 +6,7 @@
       To define a {+avs+} index: 
 
       a. In your shell, run the following commands to create a directory called
-         ``VectorSearch`` and initialize a .NET framework project for a new console
+         ``VectorSearch`` and initialize a .NET Framework project for a new console
          application:
 
          .. code-block:: shell 

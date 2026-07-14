@@ -15,7 +15,7 @@ Define the Index for the |fts-field-type| Type
          :copyable: true
 
       For more detailed installation instructions, see the 
-      :driver:`MongoDB C# Driver documentation </csharp/current/quick-start/>`.
+      :driver:`MongoDB .NET/C# Driver documentation </csharp/current/quick-start/>`.
    
    .. step:: Define the index.
    

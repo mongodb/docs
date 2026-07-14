@@ -29,7 +29,7 @@
 
       .. code-block:: csharp
 
-         // You are viewing the C# driver code examples.
+         // You are viewing the .NET/C# driver code examples.
          // Use the dropdown menu to select a different driver.
 
    .. tab::

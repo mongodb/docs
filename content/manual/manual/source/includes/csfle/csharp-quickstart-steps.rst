@@ -22,7 +22,7 @@ assign the required configuration variables.
    .. step:: Install the dependencies.
 
       From your ``CSharpCSFLE`` directory, run the following
-      commands to install the MongoDB C# Driver and the
+      commands to install the MongoDB .NET/C# Driver and the
       ``MongoDB.Driver.Encryption`` package:
 
       .. code-block:: bash

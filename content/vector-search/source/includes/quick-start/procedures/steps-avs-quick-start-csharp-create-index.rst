@@ -11,14 +11,14 @@
          cd query-quick-start
          dotnet new console
 
-   .. step:: Run the following command to add the .NET/C# Driver to your project as a dependency.
+   .. step:: Run the following command to add the .NET/C# driver to your project as a dependency.
 
       .. code-block:: bash
 
          dotnet add package MongoDB.Driver
 
       For more detailed installation instructions, see the 
-      :driver:`MongoDB C# Driver documentation </csharp/current/get-started>`.
+      :driver:`MongoDB .NET/C# Driver documentation </csharp/current/get-started>`.
 
    .. step:: Define the index.
 

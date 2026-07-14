@@ -1,4 +1,4 @@
-// Asynchronously retrieves documents that match a query filter by using the C# driver
+// Asynchronously retrieves documents that match a query filter by using the .NET/C# driver
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;

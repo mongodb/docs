@@ -1,4 +1,4 @@
-// Modifies a BSON document by using the C# driver
+// Modifies a BSON document by using the .NET/C# driver
 
 using MongoDB.Driver;
 
