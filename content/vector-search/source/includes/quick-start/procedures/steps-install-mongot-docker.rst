@@ -194,5 +194,5 @@
       - Starts the container on the ``search-community`` Docker
         network with a container named ``mongot-community``.
 
-   .. include:: /includes/verify-mongot-health.rst
+   .. include:: /includes/quick-start/procedures/step-verify-mongot-health.rst
 
