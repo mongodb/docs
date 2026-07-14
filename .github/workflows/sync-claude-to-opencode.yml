@@ -74,26 +74,56 @@ jobs:
         if: steps.check.outputs.has_changes == 'true'
         run: npm install -g opkg
 
-      - name: Run openpackage sync
+      - name: Sync .claude into .openpackage source tree
         if: steps.check.outputs.has_changes == 'true'
+        run: |
+          set -euo pipefail
+          rm -rf .openpackage/root/.claude
+          mkdir -p .openpackage/root
+          cp -R .claude .openpackage/root/.claude
+
+      - name: Check for .openpackage staging changes
+        if: steps.check.outputs.has_changes == 'true'
+        id: package_diff
+        run: |
+          set -euo pipefail
+          MODIFIED=$(git diff --name-only -- .openpackage/ | wc -l | tr -d ' ')
+          UNTRACKED=$(git ls-files --others --exclude-standard .openpackage/ | wc -l | tr -d ' ')
+          TOTAL=$(( MODIFIED + UNTRACKED ))
+          if [ "$TOTAL" -eq 0 ]; then
+            echo "has_package_diff=false" >> "$GITHUB_OUTPUT"
+            echo "No .openpackage/ changes after .claude sync."
+          else
+            echo "has_package_diff=true" >> "$GITHUB_OUTPUT"
+            echo "📝 ${TOTAL} file(s) changed in .openpackage/"
+          fi
+
+      - name: Run openpackage sync
+        if: steps.check.outputs.has_changes == 'true' && steps.package_diff.outputs.has_package_diff == 'true'
         run: openpackage sync --push
 
-      - name: Check for .opencode changes
+      - name: Check for .openpackage and .opencode changes
         if: steps.check.outputs.has_changes == 'true'
         id: diff
         run: |
           set -euo pipefail
 
-          MODIFIED=$(git diff --name-only -- .opencode/ | wc -l | tr -d ' ')
-          UNTRACKED=$(git ls-files --others --exclude-standard .opencode/ | wc -l | tr -d ' ')
+          MODIFIED=$(( \
+            $(git diff --name-only -- .openpackage/ | wc -l | tr -d ' ') + \
+            $(git diff --name-only -- .opencode/ | wc -l | tr -d ' ') \
+          ))
+          UNTRACKED=$(( \
+            $(git ls-files --others --exclude-standard .openpackage/ | wc -l | tr -d ' ') + \
+            $(git ls-files --others --exclude-standard .opencode/ | wc -l | tr -d ' ') \
+          ))
           TOTAL=$(( MODIFIED + UNTRACKED ))
 
           if [ "$TOTAL" -eq 0 ]; then
             echo "has_diff=false" >> "$GITHUB_OUTPUT"
-            echo "No .opencode/ changes after sync — already up to date."
+            echo "No .opencode/ changes after openpackage sync."
           else
             echo "has_diff=true" >> "$GITHUB_OUTPUT"
-            echo "📝 ${TOTAL} file(s) changed in .opencode/"
+            echo "📝 ${TOTAL} file(s) changed in .openpackage/ and/or .opencode/"
           fi
 
       - name: Build commit log
@@ -149,7 +179,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
           git checkout -b "${BRANCH}"
-          git add .opencode/
+          git add .openpackage/ .opencode/
           git commit -m "chore: sync .claude to .opencode (${SHORT})"
           git push origin "${BRANCH}"
 
