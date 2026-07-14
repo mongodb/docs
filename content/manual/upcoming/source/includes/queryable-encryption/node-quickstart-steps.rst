@@ -41,15 +41,7 @@ assign the required configuration variables.
          :end-before: AWS Credentials
          :dedent:
 
-      Replace the following placeholder values: 
-
-      - ``<Your MongoDB URI>``: Your MongoDB deployment connection URI.
-      - ``<Full path to your Automatic Encryption Shared Library>``: The full path to your
-        {+shared-library+}, which resembles the following paths:
-        
-        - **macOS**: ``/<crypt shared directory>/lib/mongo_crypt_v1.dylib``
-        - **Linux**: ``/<crypt shared directory>/lib/mongo_crypt_v1.so``
-        - **Windows**: ``C:\<crypt shared directory>\bin\mongo_crypt_v1.dll``
+      .. include:: /includes/queryable-encryption/quick-start/env-variables.rst
 
       For more information on setting up environment variables, see the 
       `README.md <{+sample-app-url-qe+}/node/README.md>`__  file included in the 
@@ -107,7 +99,34 @@ assign the required configuration variables.
          :language: javascript
          :dedent:
 
-      .. include:: /includes/qe-tutorials/quickstart-variables.rst
+      The following table describes each application variable in the code snippet:
+      
+      .. list-table::
+         :header-rows: 1
+         :widths: 30 70
+         
+         * - Variable
+           - Description
+         * - ``kmsProviderName``
+           - The KMS used to store your {+cmk-long+}. For this
+             tutorial, set this variable to ``"local"``.
+         * - ``uri``
+           - Your MongoDB connection URI. Set with the
+             ``MONGODB_URI`` environment variable.
+         * - ``keyVaultDatabaseName``
+           - The database where DEKs are stored. Set to ``"encryption"``.
+         * - ``keyVaultCollectionName``
+           - The collection where DEKs are stored. Set to ``"__keyVault"``.
+         * - ``keyVaultNamespace``
+           - The namespace in MongoDB where your DEKs are stored. Set this 
+             variable to the values of the ``keyVaultDatabaseName`` and
+             ``keyVaultCollectionName`` variables, separated by a period.
+         * - ``encryptedDatabaseName``
+           - The database where encrypted data is stored. Set to
+             ``"medicalRecords"``.
+         * - ``encryptedCollectionName``
+           - The collection where encrypted data is stored. Set to
+             ``"patients"``.
 
 .. _qe-quick-start-configure-nodejs:
 
