@@ -1,3 +1,15 @@
+.. _atlas-sp-20260709:
+
+9 July 2026 Release
+-------------------
+
+- Improves how Kafka source stream processors distribute processing
+  across partitions during periods of heavy load, resulting in more
+  even processing.
+- Adds stream processor CPU and memory usage to the
+  :guilabel:`Monitoring` tab in the {+atlas-ui+}. To learn more, see
+  :ref:`atlas-sp-monitoring-ui`.
+
 .. _atlas-sp-20260630:
 
 30 June 2026 Release
