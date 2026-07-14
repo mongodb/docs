@@ -1462,6 +1462,62 @@ describe('convertSnootyAstToMdast', () => {
     expect(refs?.refs['configure-api-access']).toBe('configure-api-access');
   });
 
+  it('strips the abbr expansion out of options.headings titles and recomputes matching ids', () => {
+    // Mirrors the shape Snooty produces for `### :abbr:`AWS (Amazon Web Services)` Kinesis Data Stream`,
+    // where the raw AST keeps the full "term (expansion)" text and a stale id derived from it.
+    const ast: SnootyNode = {
+      type: 'root',
+      options: {
+        headings: [
+          {
+            depth: 3,
+            id: 'aws--amazon-web-services--kinesis-data-stream',
+            selector_ids: {},
+            title: [
+              {
+                type: 'role',
+                name: 'abbr',
+                domain: '',
+                target: '',
+                children: [{ type: 'text', value: 'AWS (Amazon Web Services)' }],
+              },
+              { type: 'text', value: ' Kinesis Data Stream' },
+            ],
+          },
+        ],
+      },
+      children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Body' }] }],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    const frontmatter = yaml.parse(mdx.split('---')[1]);
+    const [heading] = frontmatter.options.headings;
+
+    // The heading title node no longer carries the parenthetical expansion...
+    expect(heading.title).toEqual([{ type: 'text', value: 'AWS' }, { type: 'text', value: ' Kinesis Data Stream' }]);
+    // ...and the id is derived from that corrected text, matching the rendered <Abbr> heading's anchor.
+    expect(heading.id).toBe('aws-kinesis-data-stream');
+  });
+
+  it('leaves options.headings without an abbr role completely untouched, ids included', () => {
+    const ast: SnootyNode = {
+      type: 'root',
+      options: {
+        headings: [
+          { depth: 2, id: 'anything', selector_ids: {}, title: [{ type: 'text', value: 'Overview' }] },
+          { depth: 2, id: 'anything-2', selector_ids: {}, title: [{ type: 'text', value: 'Overview' }] },
+        ],
+      },
+      children: [{ type: 'paragraph', children: [{ type: 'text', value: 'Body' }] }],
+    };
+    const { mdx } = convertSnootyAst({ ast });
+    const frontmatter = yaml.parse(mdx.split('---')[1]);
+    const [first, second] = frontmatter.options.headings;
+
+    // No abbr role present, so both headings pass through with their original ids as-is.
+    expect(first.id).toBe('anything');
+    expect(second.id).toBe('anything-2');
+  });
+
   it('injects tabs-selector-position: main into frontmatter when tabs-selector directive is present', () => {
     const ast: SnootyNode = {
       type: 'root',

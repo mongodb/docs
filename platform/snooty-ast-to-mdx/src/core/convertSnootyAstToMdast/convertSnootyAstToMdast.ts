@@ -21,6 +21,8 @@ import { convertDirectiveStep } from './convertDirectiveStep';
 import { parseSnootyArgument } from './parseSnootyArgument';
 import { computeComposableTutorialData, buildComposableOptionsFromNode } from './computeComposableTutorialData';
 import { extractInlineDisplayText } from './extractInlineDisplayText';
+import { parseAbbrText } from './parseAbbrText';
+import { normalizeHeadingOptions } from './normalizeHeadingOptions';
 import stableStringify from 'fast-json-stable-stringify';
 
 // Toctree is navigation structure only – not rendered in page content
@@ -1575,14 +1577,13 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       if (componentName === 'Abbr') {
         // Parse example, :abbr:`MQL (MongoDB Query Language)` to <Abbr tooltip="MongoDB Query Language">MQL</Abbr>
         const textContent = extractInlineDisplayText(node.children ?? []);
-        const match = textContent.match(/^(.+?)\s*\((.+)\)$/);
-        if (match) {
-          const [, abbr, tooltip] = match;
+        const { term, tooltip } = parseAbbrText(textContent);
+        if (tooltip) {
           return {
             type: 'mdxJsxTextElement',
             name: 'Abbr',
             attributes: [{ type: 'mdxJsxAttribute', name: 'tooltip', value: tooltip }],
-            children: [{ type: 'text', value: abbr }],
+            children: [{ type: 'text', value: term }],
           };
         }
       }
@@ -1803,14 +1804,13 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
       );
       if (abbrChild) {
         const textContent = extractInlineDisplayText(abbrChild.children ?? []);
-        const match = textContent.match(/^(.+?)\s*\((.+)\)$/);
-        if (match) {
-          const [, abbr, tooltip] = match;
+        const { term, tooltip } = parseAbbrText(textContent);
+        if (tooltip) {
           return {
             type: 'mdxJsxTextElement',
             name: 'Abbr',
             attributes: [{ type: 'mdxJsxAttribute', name: 'tooltip', value: tooltip }],
-            children: [{ type: 'text', value: abbr }],
+            children: [{ type: 'text', value: term }],
           };
         }
       }
@@ -2309,6 +2309,15 @@ export const convertSnootyAstToMdast = (root: SnootyNode, options?: ConvertSnoot
   // Promote `template` out of options so it always lives at the top level of frontmatter,
   // regardless of whether it came from root.options (e.g. product-landing) or a meta directive.
   const { template: pageTemplate, ...pageOptions } = (root as { options?: Record<string, unknown> }).options ?? {};
+
+  // Snooty's raw `headings` option (used to build the "On this page" ToC) can contain abbr
+  // roles whose text still includes the "(expansion)" — strip it and re-derive `id` so ToC
+  // links and heading anchors agree. See normalizeHeadingOptions for details.
+  if (Array.isArray(pageOptions.headings)) {
+    pageOptions.headings = normalizeHeadingOptions(
+      pageOptions.headings as Parameters<typeof normalizeHeadingOptions>[0],
+    );
+  }
 
   // If the page body contains a tabs-selector directive, mark the selector position as
   // "main" so the TabsSelector component renders inline in the content body.
