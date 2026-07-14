@@ -1,5 +1,5 @@
 - Use an M10 or larger cluster.
 
 - Use
-  :doc:`{+Cloud-Backup+}s </backup/cloud-backup/overview>`
+  :ref:`{+Cloud-Backup+}s <backup-cloud-provider>`
   to encrypt your backup snapshots.
