@@ -1,14 +1,15 @@
-.. tabs::
+.. composable-tutorial::
+   :options: auth-type
+   :defaults: challenge
 
-   .. tab:: SCRAM-SHA
-      :tabid: scramsha
+   .. selected-content::
+      :selections: challenge
 
-   .. tab:: LDAP
-      :tabid: ldap
+   .. selected-content::
+      :selections: ldap
 
-   .. tab:: Kerberos
-      :tabid: kerberos
+   .. selected-content::
+      :selections: kerberos
 
-
-   .. tab:: X.509
-      :tabid: x509
+   .. selected-content::
+      :selections: x509
