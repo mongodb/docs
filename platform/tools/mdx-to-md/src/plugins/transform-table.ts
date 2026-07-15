@@ -1,172 +1,199 @@
 import { visit } from "unist-util-visit";
-import type { Root } from "mdast";
+import type {
+  Root,
+  RootContent,
+  Html,
+  ListItem,
+  Parent,
+} from "mdast";
+import type { MdxJsxFlowElement, MdxJsxTextElement } from "mdast-util-mdx-jsx";
+
+type MdxJsxElement = MdxJsxFlowElement | MdxJsxTextElement;
 
 /**
- * Convert JSX table components into HTML <table> elements so that AI consumers
- * and markdown renderers that don't understand the custom JSX can still read
- * the tabular data.
+ * Convert <Table> JSX components into GFM markdown tables.
  *
  * The snooty-ast-to-mdx converter emits tables as nested JSX:
  *   <Table> → <TableHead>/<TableBody> → <TableRow> → <TableCell>/<TableHeaderCell>
  *
- * This plugin walks that structure and serialises each cell's mdast content
- * to an HTML string, then emits a single `html` mdast node containing the
- * complete <table>. Supported cell content:
- *   - plain text, inline code, strong, emphasis, links
- *   - paragraphs (joined with <br>)
- *   - fenced code blocks → <pre><code>
- *   - bullet/ordered lists → <ul>/<ol> with <li>
+ * Each cell's mdast content is flattened to a single-line markdown string so
+ * the result is a valid GFM pipe table. Complex cell content is handled:
+ *   - plain text, inline code, strong, emphasis, links → serialised to inline markdown
+ *   - paragraphs → children inlined
+ *   - bullet/ordered lists → items joined with "; "
+ *   - code blocks → rendered as inline backtick code
+ *   - <br> → collapsed to a space
+ *   - mdxJsxFlowElement/mdxJsxTextElement → children unwrapped
  *
- * This plugin runs before stripCustomMdx so the nested JSX structure is intact.
+ * Emits an `html` mdast node containing the GFM table string so remark-stringify
+ * passes it through verbatim.
+ *
+ * Runs before stripCustomMdx so the nested JSX structure is still intact.
  */
 
-/** Escape HTML special characters in text content */
-function escapeHtml(str: string): string {
-  return str
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+/** Escape characters that would break a GFM table cell on a single line. */
+function escapeCellText(text: string): string {
+  return text.replace(/\|/g, "\\|").replace(/\n/g, " ");
 }
 
-/** Recursively serialise an mdast node (or array of nodes) to an HTML string */
-function nodesToHtml(nodes: any[]): string {
-  return nodes.map(nodeToHtml).join("");
+/** Serialise an array of mdast nodes to a single-line markdown string. */
+function phrasingsToInlineMd(nodes: RootContent[]): string {
+  return nodes.map(phrasingToInlineMd).join("");
 }
 
-function nodeToHtml(node: any): string {
+function phrasingToInlineMd(node: RootContent): string {
   if (!node) return "";
 
   switch (node.type) {
     case "text":
-      return escapeHtml(String(node.value ?? ""));
+      return escapeCellText(String(node.value ?? ""));
 
     case "inlineCode":
-      return `<code>${escapeHtml(String(node.value ?? ""))}</code>`;
-
-    case "strong":
-      return `<strong>${nodesToHtml(node.children ?? [])}</strong>`;
-
-    case "emphasis":
-      return `<em>${nodesToHtml(node.children ?? [])}</em>`;
+      return `\`${String(node.value ?? "")}\``;
 
     case "link": {
-      const href = escapeHtml(String(node.url ?? ""));
-      return `<a href="${href}">${nodesToHtml(node.children ?? [])}</a>`;
+      const text = phrasingsToInlineMd(node.children);
+      const url = String(node.url ?? "");
+      return `[${text}](${url})`;
     }
 
-    case "paragraph":
-      return nodesToHtml(node.children ?? []);
+    case "strong":
+      return `**${phrasingsToInlineMd(node.children)}**`;
 
-    case "code": {
-      const lang = node.lang
-        ? ` class="language-${escapeHtml(node.lang)}"`
-        : "";
-      return `<pre><code${lang}>${escapeHtml(
-        String(node.value ?? "")
-      )}</code></pre>`;
-    }
-
-    case "list": {
-      const tag = node.ordered ? "ol" : "ul";
-      const items = (node.children ?? []).map(
-        (item: any) => `<li>${nodesToHtml(item.children ?? [])}</li>`
-      );
-      return `<${tag}>${items.join("")}</${tag}>`;
-    }
-
-    case "listItem":
-      return nodesToHtml(node.children ?? []);
+    case "emphasis":
+      return `*${phrasingsToInlineMd(node.children)}*`;
 
     case "break":
-      return "<br>";
+      return " ";
 
-    // mdxJsxTextElement / mdxJsxFlowElement — unwrap children
+    case "paragraph":
+      return phrasingsToInlineMd(node.children);
+
+    case "list": {
+      return node.children
+        .map((item: ListItem) => {
+          const content = item.children.flatMap((c) =>
+            c.type === "paragraph"
+              ? c.children
+              : ([c] as RootContent[])
+          );
+          return phrasingsToInlineMd(content);
+        })
+        .join("; ");
+    }
+
+    case "code":
+      return `\`${String(node.value ?? "")}\``;
+
     case "mdxJsxFlowElement":
     case "mdxJsxTextElement":
-      return nodesToHtml(node.children ?? []);
+      return phrasingsToInlineMd(node.children);
 
-    default:
-      // Fallback: recurse into children
-      if (Array.isArray(node.children) && node.children.length > 0) {
-        return nodesToHtml(node.children);
+    default: {
+      const parent = node as unknown as Parent;
+      if (Array.isArray(parent.children) && parent.children.length > 0) {
+        return phrasingsToInlineMd(parent.children);
       }
       return "";
+    }
   }
 }
 
+/** Convert a <TableCell> or <TableHeaderCell> JSX node to a cell string. */
+function cellToString(cellNode: MdxJsxElement): string {
+  const parts: string[] = [];
+
+  for (const child of cellNode.children) {
+    if (child.type === "paragraph") {
+      parts.push(phrasingsToInlineMd(child.children));
+    } else {
+      parts.push(phrasingToInlineMd(child));
+    }
+  }
+
+  // Join multiple paragraphs/blocks with a space; list items already use "; "
+  return parts
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .join(" ");
+}
+
+const CELL_NAMES = new Set(["TableHeaderCell", "ThCell", "TableCell", "TdCell"]);
+
 /**
- * Given the children of a <TableRow>, serialise each cell to an HTML string.
- * Returns an array of { html, isHeader } objects.
+ * Recursively collect all cell JSX nodes within a row node.
+ * MDX may wrap sibling JSX elements in a paragraph when they appear on
+ * consecutive lines, so we can't rely on cells being direct children.
  */
-function rowCells(rowNode: any): Array<{ html: string; isHeader: boolean }> {
-  return (rowNode.children ?? []).flatMap((child: any) => {
-    if (
-      child.type !== "mdxJsxFlowElement" &&
-      child.type !== "mdxJsxTextElement"
-    )
-      return [];
-    const isHeader =
-      child.name === "TableHeaderCell" || child.name === "ThCell";
-    const paragraphs: string[] = (child.children ?? [])
-      .map((c: any) => {
-        if (c.type === "paragraph") return nodesToHtml(c.children ?? []);
-        return nodeToHtml(c);
-      })
-      .filter(Boolean);
-    return [{ html: paragraphs.join("<br>"), isHeader }];
-  });
+function findCellsInRow(node: RootContent | MdxJsxElement): MdxJsxElement[] {
+  if (
+    (node.type === "mdxJsxFlowElement" || node.type === "mdxJsxTextElement") &&
+    CELL_NAMES.has(node.name ?? "")
+  ) {
+    return [node];
+  }
+  const parent = node as unknown as Parent;
+  if (Array.isArray(parent.children)) {
+    return parent.children.flatMap(findCellsInRow);
+  }
+  return [];
+}
+
+/** Build a GFM table row string: `| cell | cell |` */
+function buildRow(cells: string[]): string {
+  return "| " + cells.join(" | ") + " |";
+}
+
+/** Build the `| --- | --- |` separator row. */
+function buildSeparator(count: number): string {
+  return "| " + Array(count).fill("---").join(" | ") + " |";
 }
 
 export function transformTable() {
   return (tree: Root) => {
     const replacements: Array<{
-      parent: { children: any[] };
+      parent: Parent;
       index: number;
-      nodes: any[];
+      nodes: Html[];
     }> = [];
 
-    visit(tree, (node: any, index: number | undefined, parent: any) => {
+    visit(tree, (node, index, parent) => {
       if (!parent || index === undefined) return;
-      if (
-        (node.type !== "mdxJsxFlowElement" &&
-          node.type !== "mdxJsxTextElement") ||
-        node.name !== "Table"
-      )
-        return;
+      if (node.type !== "mdxJsxFlowElement" && node.type !== "mdxJsxTextElement") return;
+      const tableNode = node;
+      if (tableNode.name !== "Table") return;
 
-      const lines: string[] = ["<table>"];
+      const lines: string[] = [];
+      let separatorInserted = false;
 
-      for (const section of node.children ?? []) {
-        const sectionName: string = section.name ?? "";
-        const isHead = sectionName === "TableHead";
-        const isBody = sectionName === "TableBody";
-        if (!isHead && !isBody) continue;
+      for (const section of tableNode.children) {
+        const sectionEl = section;
+        if (sectionEl.type !== "mdxJsxFlowElement" && sectionEl.type !== "mdxJsxTextElement") continue;
+        const sectionName: string = sectionEl.name ?? "";
+        if (sectionName !== "TableHead" && sectionName !== "TableBody") continue;
 
-        lines.push(isHead ? "<thead>" : "<tbody>");
+        for (const rowNode of sectionEl.children) {
+          const rowEl = rowNode;
+          if (rowEl.type !== "mdxJsxFlowElement" && rowEl.type !== "mdxJsxTextElement") continue;
+          if (rowEl.name !== "TableRow") continue;
 
-        for (const rowNode of section.children ?? []) {
-          if (
-            (rowNode.type !== "mdxJsxFlowElement" &&
-              rowNode.type !== "mdxJsxTextElement") ||
-            rowNode.name !== "TableRow"
-          )
-            continue;
+          const cellStrings: string[] = findCellsInRow(rowEl).map(cellToString);
 
-          lines.push("<tr>");
-          for (const cell of rowCells(rowNode)) {
-            const tag = cell.isHeader || isHead ? "th" : "td";
-            lines.push(`<${tag}>${cell.html}</${tag}>`);
+          if (cellStrings.length === 0) continue;
+
+          lines.push(buildRow(cellStrings));
+
+          // Insert separator after the first (header) row
+          if (!separatorInserted) {
+            lines.push(buildSeparator(cellStrings.length));
+            separatorInserted = true;
           }
-          lines.push("</tr>");
         }
-
-        lines.push(isHead ? "</thead>" : "</tbody>");
       }
 
-      lines.push("</table>");
+      if (lines.length === 0) return;
 
-      const htmlNode: any = { type: "html", value: lines.join("\n") };
+      const htmlNode: Html = { type: "html", value: lines.join("\n") };
       replacements.push({ parent, index, nodes: [htmlNode] });
     });
 
