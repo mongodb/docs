@@ -315,14 +315,13 @@
                   specify using :manual:`dot notation 
                   </core/document/#dot-notation>`.
       
-                  The specified fields are used to partition your archived 
-                  data. Partitions are similar to folders. The order of 
-                  fields listed in the path is important in the same way as 
-                  it is in :manual:`Compound Indexes 
-                  </core/index-compound/>`. Data in the specified path is 
-                  partitioned first by the value of the first field, and 
-                  then by the value of the next field. |service| supports 
-                  queries on the specified fields using the partitions. 
+                  The specified fields are used to partition your archived
+                  data. Partitions are similar to folders. The order of
+                  fields listed in the path is important, as data in the
+                  specified path is partitioned first by the value of the
+                  first field, then by the value of the second field, and so on.
+                  |service| supports queries on the specified fields using
+                  the partitions.
       
                   For example, suppose you are configuring the online 
                   archive for the ``movies`` collection in the 
@@ -346,13 +345,15 @@
                   |service| can also use the partitions to support a query 
                   on the ``title`` field only. However, in this case,
                   |service| wouldn't be as efficient in supporting the 
-                  query as it would be if the query were on the ``genres`` 
-                  field only or the ``genres`` and ``title`` fields. 
-                  Partitions are parsed in order; if a query omits a 
-                  particular partition, |service| is less efficient in 
-                  making use of any partitions that follow that. Since a 
-                  query on ``title`` omits ``genres``, |service| doesn't 
-                  use the ``genres`` partition to support this query. 
+                  query as it would be if the query were on the ``genres``
+                  field only or the ``genres`` and ``title`` fields. To
+                  query the {+Online-Archive+} effectively, include all
+                  defined partition fields in the order in which they're
+                  defined. Querying all partition fields in order targets
+                  specific partitions and minimizes the amount of data
+                  scanned. Since a query on ``title`` omits ``genres``,
+                  |service| doesn't use the ``genres`` partition to
+                  support this query.
                   Also, |service| is less efficient in using the partitions 
                   to support a query on the ``title`` field followed by the 
                   ``genres`` field.
