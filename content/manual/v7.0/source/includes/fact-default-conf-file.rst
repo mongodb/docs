@@ -27,7 +27,7 @@
        - MSI Installer
        - ``<install directory>\bin\mongod.cfg``
 
-- If you :ref:`installed MongoDB <tutorial-installation>`
+- If you installed MongoDB
   through a downloaded ``TGZ`` or ``ZIP`` file, you must create
   your own configuration file. The :ref:`basic example
   configuration <base-config>` is a good place to start.
