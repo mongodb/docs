@@ -56,8 +56,27 @@ Agent
      - {+magent+} has the latest version
      - Project, Global
 
-   * - .. alert:: NEW_AGENT 
+   * - .. alert:: NEW_AGENT
      - New agent
+     - Project, Global
+
+.. _alerts-list-alerts:
+
+Alerts
+------
+
+.. list-table::
+   :widths: 40 40 20
+   :header-rows: 1
+
+   * - Alert Type
+     - Alert Message
+     - Scopes
+
+   * - .. alert:: WEBHOOK_TEMPLATE_RENDER_FAILED
+     - A webhook alert notification template failed to render, so the
+       default payload was sent instead. Review the webhook template
+       in your alert settings.
      - Project, Global
 
 .. _alerts-list-auto-config:

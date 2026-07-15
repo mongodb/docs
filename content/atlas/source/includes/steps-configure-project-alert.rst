@@ -50,6 +50,10 @@ In addition, see:
       If the options in the :guilabel:`Select Target` section are available, you can
       optionally filter the alert to apply only to a subset of the targets.
       
+      If you specify multiple conditions, the filter uses a logical
+      ``AND`` operator, so the alert applies only to targets that match
+      all of the specified conditions.
+
       The :guilabel:`matches` field can use regular expressions.
       
    .. step:: Select the alert recipient roles and delivery methods.

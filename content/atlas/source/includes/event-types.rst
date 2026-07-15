@@ -6980,6 +6980,13 @@
        Host has the latest version
      - no
 
+   * - ``WEBHOOK_TEMPLATE_RENDER_FAILED``
+     - .. _atlas_event_webhook_template_render_failed:
+
+       A webhook alert notification template failed to render, so the
+       default payload was sent instead
+     - no
+
    * - ``WEEKLY_BILLING_CHANGE_NORMAL``
      - .. _atlas_event_weekly_billing_change_normal:
 
