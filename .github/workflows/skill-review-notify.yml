@@ -1,0 +1,309 @@
+name: Skill Review Notifications
+
+on:
+  schedule:
+    # Runs every Monday at 9:00 AM Eastern (14:00 UTC)
+    - cron: '0 14 * * 1'
+  workflow_dispatch: {}
+
+jobs:
+  notify-stale-skills:
+    # Only run on main repo, not forks (forks inherit scheduled workflows)
+    if: github.repository == '10gen/docs-mongodb-internal'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect stale skills
+        id: detect
+        run: |
+          python3 - <<'PYEOF'
+          import yaml, json, datetime, os
+
+          with open('.claude/skills/OWNERS.yaml') as f:
+              manifest = yaml.safe_load(f)
+
+          today = datetime.date.today()
+          stale_by_dri = {}
+          # Every skill's *current* primary-DRI label, regardless of staleness.
+          # Used to detect Jira tickets whose DRI no longer owns anything
+          # (the DRI changed in OWNERS.yaml since the ticket was filed).
+          valid_dri_labels = sorted({
+              f"skill-review-{skill['dris'][0]}" for skill in manifest['skills']
+          })
+
+          for skill in manifest['skills']:
+              raw_last_reviewed = skill['last_reviewed']
+              if isinstance(raw_last_reviewed, datetime.date):
+                  last_reviewed = raw_last_reviewed
+              else:
+                  last_reviewed = datetime.date.fromisoformat(str(raw_last_reviewed))
+              cadence = skill['review_cadence_days']
+              days_overdue = (today - last_reviewed).days - cadence
+              if days_overdue < 0:
+                  continue
+              dri = skill['dris'][0]
+              stale_by_dri.setdefault(dri, []).append({
+                  'name': skill['name'],
+                  'path': skill['path'],
+                  'last_reviewed': last_reviewed.isoformat(),
+                  'review_cadence_days': cadence,
+                  'days_overdue': days_overdue,
+              })
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write(f"stale_by_dri={json.dumps(stale_by_dri)}\n")
+              out.write(f"has_stale={'true' if stale_by_dri else 'false'}\n")
+              out.write(f"valid_dri_labels={json.dumps(valid_dri_labels)}\n")
+
+          print(f"Found {sum(len(v) for v in stale_by_dri.values())} stale skill(s) across {len(stale_by_dri)} DRI(s)")
+          print(json.dumps(stale_by_dri, indent=2))
+          PYEOF
+
+      - name: Create Jira tickets per DRI
+        id: jira
+        if: steps.detect.outputs.has_stale == 'true'
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          STALE_BY_DRI: ${{ steps.detect.outputs.stale_by_dri }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, os, urllib.request, urllib.parse, urllib.error, sys
+
+          stale_by_dri = json.loads(os.environ['STALE_BY_DRI'])
+          base_url = os.environ['JIRA_BASE_URL'].rstrip('/')
+          headers = {
+              'Authorization': f"Bearer {os.environ['JIRA_API_TOKEN']}",
+              'Content-Type': 'application/json',
+          }
+
+          # dri -> Slack-formatted link to their ticket, e.g. "<https://.../browse/DOCSP-1|DOCSP-1>"
+          dri_tickets = {}
+
+          failed = False
+          for dri, skills in stale_by_dri.items():
+              summary = f"Skill review: {dri} — {len(skills)} skill(s) overdue"
+              bullet_lines = '\n'.join(
+                  f"* {s['name']} ({s['path']}) — last reviewed {s['last_reviewed']}, "
+                  f"cadence {s['review_cadence_days']}d, {s['days_overdue']}d overdue"
+                  for s in skills
+              )
+              description = (
+                  f"DRI *{dri}* has skill(s) past their review cadence, per "
+                  f".claude/skills/OWNERS.yaml:\n\n{bullet_lines}"
+              )
+              dri_label = f"skill-review-{dri}"
+
+              # Idempotency: if an open ticket for this DRI already exists,
+              # refresh its description with the current stale-skill list
+              # instead of filing a new ticket. Matched by exact label, not
+              # summary text search — Jira's `~` text search tokenizes on
+              # punctuation (e.g. "erabil-mdb" -> "erabil", "mdb"), which can
+              # both false-positive match unrelated tickets and fail to find
+              # the right one.
+              jql = (
+                  'project = DOCSP AND component = "Agent Skills" '
+                  f'AND labels = "{dri_label}" AND statusCategory != Done'
+              )
+              search_req = urllib.request.Request(
+                  f'{base_url}/rest/api/2/search?jql={urllib.parse.quote(jql)}&fields=key',
+                  headers=headers,
+              )
+              try:
+                  with urllib.request.urlopen(search_req) as resp:
+                      existing = json.loads(resp.read())
+              except urllib.error.HTTPError as e:
+                  print(f"Search failed for '{dri}': {e.code} {e.read().decode()}")
+                  failed = True
+                  continue
+
+              if existing.get('total', 0) > 0:
+                  key = existing['issues'][0]['key']
+                  update_payload = json.dumps({
+                      'fields': {'description': description}
+                  }).encode()
+                  update_req = urllib.request.Request(
+                      f'{base_url}/rest/api/2/issue/{key}',
+                      data=update_payload,
+                      headers=headers,
+                      method='PUT',
+                  )
+                  try:
+                      urllib.request.urlopen(update_req)
+                      print(f"Updated {key}: {summary} — {base_url}/browse/{key}")
+                      dri_tickets[dri] = f"<{base_url}/browse/{key}|{key}>"
+                  except urllib.error.HTTPError as e:
+                      print(f"Failed to update {key} for '{dri}': {e.code} {e.read().decode()}")
+                      failed = True
+                  continue
+
+              payload = json.dumps({
+                  'fields': {
+                      'project': {'key': 'DOCSP'},
+                      'summary': summary,
+                      'issuetype': {'name': 'Task'},
+                      'components': [{'name': 'Agent Skills'}],
+                      'description': description,
+                      'labels': [dri_label],
+                  }
+              }).encode()
+              req = urllib.request.Request(
+                  f'{base_url}/rest/api/2/issue', data=payload, headers=headers
+              )
+              try:
+                  with urllib.request.urlopen(req) as resp:
+                      key = json.loads(resp.read())['key']
+                      print(f"Created {key}: {summary} — {base_url}/browse/{key}")
+                      dri_tickets[dri] = f"<{base_url}/browse/{key}|{key}>"
+              except urllib.error.HTTPError as e:
+                  print(f"Failed for '{dri}': {e.code} {e.read().decode()}")
+                  failed = True
+
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+              out.write(f"dri_tickets={json.dumps(dri_tickets)}\n")
+
+          if failed:
+              sys.exit(1)
+          PYEOF
+
+      - name: Flag orphaned skill-review tickets
+        if: always()
+        env:
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          VALID_DRI_LABELS: ${{ steps.detect.outputs.valid_dri_labels }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, os, urllib.request, urllib.parse, urllib.error, sys
+
+          valid_labels = set(json.loads(os.environ['VALID_DRI_LABELS']))
+          base_url = os.environ['JIRA_BASE_URL'].rstrip('/')
+          headers = {
+              'Authorization': f"Bearer {os.environ['JIRA_API_TOKEN']}",
+              'Content-Type': 'application/json',
+          }
+
+          # Find open Agent Skills tickets whose skill-review-<dri> label no
+          # longer matches any skill's current primary DRI — i.e. the DRI in
+          # OWNERS.yaml changed (or the skill was removed) since the ticket
+          # was filed. Flag once via a comment + marker label rather than
+          # guessing a new owner, since we can't reliably infer intent.
+          jql = (
+              'project = DOCSP AND component = "Agent Skills" '
+              'AND labels is not EMPTY AND statusCategory != Done'
+          )
+          search_req = urllib.request.Request(
+              f'{base_url}/rest/api/2/search?jql={urllib.parse.quote(jql)}&fields=key,labels',
+              headers=headers,
+          )
+          try:
+              with urllib.request.urlopen(search_req) as resp:
+                  results = json.loads(resp.read())
+          except urllib.error.HTTPError as e:
+              print(f"Orphan search failed: {e.code} {e.read().decode()}")
+              sys.exit(1)
+
+          failed = False
+          for issue in results.get('issues', []):
+              key = issue['key']
+              labels = issue['fields']['labels']
+              review_labels = [l for l in labels if l.startswith('skill-review-')]
+              if not review_labels:
+                  continue
+              # Only the first skill-review-* label is inspected. Ticket
+              # creation only ever sets one, so this only matters if someone
+              # manually adds a second — in that case a stale second label
+              # could be missed if the first one is still valid.
+              review_label = review_labels[0]
+              if review_label in valid_labels or 'skill-review-orphaned' in labels:
+                  continue
+
+              old_dri = review_label[len('skill-review-'):]
+              comment_payload = json.dumps({
+                  'body': (
+                      f"This ticket was filed for DRI *{old_dri}*, who is no longer "
+                      "listed as the primary DRI for any skill in "
+                      ".claude/skills/OWNERS.yaml (ownership may have transferred, "
+                      "or they may have left the team). Please reassign this ticket "
+                      "to the current DRI, or close it if it's no longer relevant."
+                  )
+              }).encode()
+              comment_req = urllib.request.Request(
+                  f'{base_url}/rest/api/2/issue/{key}/comment',
+                  data=comment_payload, headers=headers,
+              )
+              try:
+                  urllib.request.urlopen(comment_req)
+              except urllib.error.HTTPError as e:
+                  print(f"Failed to comment on {key}: {e.code} {e.read().decode()}")
+                  failed = True
+                  continue
+
+              label_payload = json.dumps({
+                  'fields': {'labels': labels + ['skill-review-orphaned']}
+              }).encode()
+              label_req = urllib.request.Request(
+                  f'{base_url}/rest/api/2/issue/{key}',
+                  data=label_payload, headers=headers, method='PUT',
+              )
+              try:
+                  urllib.request.urlopen(label_req)
+                  print(f"Flagged {key} as orphaned (was: {old_dri})")
+              except urllib.error.HTTPError as e:
+                  print(f"Failed to label {key}: {e.code} {e.read().decode()}")
+                  failed = True
+
+          if failed:
+              sys.exit(1)
+          PYEOF
+
+      - name: Notify Slack
+        if: always() && steps.detect.outputs.has_stale == 'true'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.DOCS_WRITERS_SLACK_WEBHOOK }}
+          STALE_BY_DRI: ${{ steps.detect.outputs.stale_by_dri }}
+          DRI_TICKETS: ${{ steps.jira.outputs.dri_tickets }}
+        run: |
+          python3 - <<'PYEOF'
+          import json, os
+
+          # GitHub username (as used in OWNERS.yaml dris) -> Slack member ID.
+          # Update this alongside OWNERS.yaml when a skill's DRI changes.
+          slack_map = {
+              'erabil-mdb': 'U042MBH66Q3',
+              'ajhuh-mdb': 'U023HK3DMFF',
+              'norareidy': 'U03JB19AD4J',
+              'cbullinger': 'U0470DPNTB2',
+              'mcmorisi': 'U070SAN8G9G',
+              'ltran-mdb2': 'U03J9636YKD',
+              'jeff-allen-mongo': 'U5SCV9285',
+              'dacharyc': 'U01KHHL6VR7',
+              'mdb-ashley': 'U02UZB74K7W',
+              'amalhotra-mdb': 'U05A064A4BH',
+              'jwilliams-mongo': 'UN7S9QH54',
+          }
+
+          stale_by_dri = json.loads(os.environ['STALE_BY_DRI'])
+          dri_tickets = json.loads(os.environ.get('DRI_TICKETS') or '{}')
+
+          lines = [':warning: *Skill review reminder* — the following skills are past their review cadence:']
+          for dri, skills in stale_by_dri.items():
+              parts = [f"{s['name']} ({s['days_overdue']} day(s) overdue)" for s in skills]
+              ticket_link = dri_tickets.get(dri, '_ticket pending_')
+              mention = f"<@{slack_map[dri]}>" if dri in slack_map else f"*{dri}*"
+              lines.append(f"• {mention} — {', '.join(parts)} — {ticket_link}")
+
+          payload = json.dumps({'message': '\n'.join(lines)})
+          with open('slack_payload.json', 'w') as f:
+              f.write(payload)
+          PYEOF
+
+          echo "=== JSON BEING SENT TO SLACK ==="
+          cat slack_payload.json
+          echo "================================"
+
+          curl -sf -X POST -H "Content-Type: application/json" \
+            -d @slack_payload.json \
+            "$SLACK_WEBHOOK_URL"
