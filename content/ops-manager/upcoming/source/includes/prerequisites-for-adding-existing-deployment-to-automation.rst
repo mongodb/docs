@@ -1,4 +1,4 @@
-- If :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>` is enabled as a service on the deployment, 
+- If :binary:`~bin.mongod` is enabled as a service on the deployment, 
   a race condition might result where ``systemd`` starts ``mongod`` on reboot, 
   rather than the Automation. To prevent this issue, ensure the ``mongod`` 
   service is disabled before you add your deployment to Automation:
@@ -88,17 +88,15 @@
     .. include:: /includes/note-directShardOperations-role.rst
      
 - When you add a cluster under |mms|, |mms| automatically enables log
-  :manual:`rotation </tutorial/rotate-log-files/>`, which could collide
+  :manual:`rotation </tutorial/rotate-log-files>`, which could collide
   with your existing ``logRotate`` configuration for ``mongod`` or
   ``mongos`` logs. To prevent this collision, do the following:  
 
   - Disable your ``logRotate`` configuration for ``mongod`` or ``mongos``
     processes. 
   - Remove the ``systemLog.logRotate`` and ``systemLog.logAppend``
-    :manual:`options
-    </reference/configuration-options/#systemlog-options>` from the 
-    ``mongod`` or ``mongos`` process :manual:`configuration
-    </reference/configuration-options/#configuration-file>` to use the
+    :ref:`options <systemlog-options>` from the 
+    ``mongod`` or ``mongos`` process :ref:`configuration <configuration-file>` to use the
     default of |mms|. 
 
 - The import process requires that the authentication credentials and

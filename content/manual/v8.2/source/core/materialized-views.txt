@@ -119,142 +119,107 @@ steps:
 Example
 -------
 
-Assume near the end of January 2019, the collection ``bakesales``
-contains the sales information by items:
-
-.. code-block:: javascript
-
-   db.bakesales.insertMany( [
-      { date: ISODate("2018-12-01"), item: "Cake - Chocolate", quantity: 2, amount: Decimal128("60") },
-      { date: ISODate("2018-12-02"), item: "Cake - Peanut Butter", quantity: 5, amount: Decimal128("90") },
-      { date: ISODate("2018-12-02"), item: "Cake - Red Velvet", quantity: 10, amount: Decimal128("200") },
-      { date: ISODate("2018-12-04"), item: "Cookies - Chocolate Chip", quantity: 20, amount: Decimal128("80") },
-      { date: ISODate("2018-12-04"), item: "Cake - Peanut Butter", quantity: 1, amount: Decimal128("16") },
-      { date: ISODate("2018-12-05"), item: "Pie - Key Lime", quantity: 3, amount: Decimal128("60") },
-      { date: ISODate("2019-01-25"), item: "Cake - Chocolate", quantity: 2, amount: Decimal128("60") },
-      { date: ISODate("2019-01-25"), item: "Cake - Peanut Butter", quantity: 1, amount: Decimal128("16") },
-      { date: ISODate("2019-01-26"), item: "Cake - Red Velvet", quantity: 5, amount: Decimal128("100") },
-      { date: ISODate("2019-01-26"), item: "Cookies - Chocolate Chip", quantity: 12, amount: Decimal128("48") },
-      { date: ISODate("2019-01-26"), item: "Cake - Carrot", quantity: 2, amount: Decimal128("36") },
-      { date: ISODate("2019-01-26"), item: "Cake - Red Velvet", quantity: 5, amount: Decimal128("100") },
-      { date: ISODate("2019-01-27"), item: "Pie - Chocolate Cream", quantity: 1, amount: Decimal128("20") },
-      { date: ISODate("2019-01-27"), item: "Cake - Peanut Butter", quantity: 5, amount: Decimal128("80") },
-      { date: ISODate("2019-01-27"), item: "Tarts - Apple", quantity: 3, amount: Decimal128("12") },
-      { date: ISODate("2019-01-27"), item: "Cookies - Chocolate Chip", quantity: 12, amount: Decimal128("48") },
-      { date: ISODate("2019-01-27"), item: "Cake - Carrot", quantity: 5, amount: Decimal128("36") },
-      { date: ISODate("2019-01-27"), item: "Cake - Red Velvet", quantity: 5, amount: Decimal128("100") },
-      { date: ISODate("2019-01-28"), item: "Cookies - Chocolate Chip", quantity: 20, amount: Decimal128("80") },
-      { date: ISODate("2019-01-28"), item: "Pie - Key Lime", quantity: 3, amount: Decimal128("60") },
-      { date: ISODate("2019-01-28"), item: "Cake - Red Velvet", quantity: 5, amount: Decimal128("100") },
-   ] );
+The example uses the ``movies`` collection from the
+:atlas:`sample_mflix </sample-data/sample-mflix/>` dataset.
+To learn how to load sample data, see
+:atlas:`Load Sample Data </sample-data/#std-label-load-sample-data>`.
 
 1. Define the On-Demand Materialized View
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The following ``updateMonthlySales`` function defines a
-``monthlybakesales`` materialized view that contains the
-cumulative monthly sales information. The function accepts a
-date parameter to update sales starting from that date.
+The following ``updateMovieStats`` function defines a
+``movieYearStats`` materialized view that contains the
+count and average IMDb rating of movies by year. The function
+accepts a ``startYear`` parameter to update statistics for
+movies released from that year forward.
 
-.. code-block:: javascript
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/merge/materialized-view-define.snippet.define-update-function.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
-   updateMonthlySales = function(startDate) {
-      db.bakesales.aggregate( [
-         { $match: { date: { $gte: startDate } } },
-         { $group: { _id: { $dateToString: { format: "%Y-%m", date: "$date" } }, sales_quantity: { $sum: "$quantity"}, sales_amount: { $sum: "$amount" } } },
-         { $merge: { into: "monthlybakesales", whenMatched: "replace" } } 
-      ] );   
-   };
- 
-- The :pipeline:`$match` stage filters the data to process only those
-  sales greater than or equal to the ``startDate``.
+- The :pipeline:`$match` stage filters movies to process only
+  those with a ``year`` value greater than or equal to
+  ``startYear``.
 
-- The :pipeline:`$group` stage groups the sales information by the
-  year-month. The documents output by this stage have the form:
- 
+- The :pipeline:`$group` stage groups movies by ``year``. The
+  documents output by this stage have the form:
+
   .. code-block:: javascript
      :copyable: false
 
-     { "_id" : "<YYYY-mm>", "sales_quantity" : <num>, "sales_amount" : <NumberDecimal> }
+     { "_id" : <year>, "movieCount" : <num>, "avgRating" : <num> }
 
 - The :pipeline:`$merge` stage writes the output to the
-  ``monthlybakesales`` collection.
-  
-  Based :ref:`on <merge-on>` the ``_id`` field (the default for
-  unsharded output collections), the stage checks if the document in
-  the aggregation results :ref:`matches <merge-whenMatched>` an
-  existing document in the collection:
+  ``movieYearStats`` collection.
+
+  The stage matches :ref:`on <merge-on>` the ``_id`` field and
+  checks if each aggregation result
+  :ref:`matches <merge-whenMatched>` an existing document:
 
   - :ref:`When there is a match <merge-whenMatched>` (that is, a
-    document with the same year-month already exists in the
-    collection), the
-    stage :ref:`replaces the existing document
+    document with the same year already exists in the
+    collection), the stage :ref:`replaces the existing document
     <merge-whenMatched-replace>` with the document from the
     aggregation results.
-  
-  - :ref:`When there is not a match <merge-whenNotMatched>`, the stage
-    inserts the document from the aggregation results into the
-    collection (the default behavior when not matched).
 
+  - :ref:`When there isn't a match <merge-whenNotMatched>`, the
+    stage inserts the document from the aggregation results into
+    the collection (the default behavior when not matched).
 
 2. Perform Initial Run
 ~~~~~~~~~~~~~~~~~~~~~~
 
-For the initial run, you can pass in a date of ``new
-ISODate("1970-01-01")``:
+For the initial run, pass in a starting year to populate
+``movieYearStats`` with data from that year forward:
 
-.. code-block:: javascript
-
-   updateMonthlySales(new ISODate("1970-01-01"));
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/merge/materialized-view-initial-run.snippet.initial-run.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 After the initial run,
-``db.monthlybakesales.find().sort( { _id: 1 } )`` returns:
+``db.movieYearStats.find().sort( { _id: 1 } )`` returns
+documents like the following:
 
 .. code-block:: javascript
+   :copyable: false
 
-   { "_id" : "2018-12", "sales_quantity" : 41, "sales_amount" : Decimal128("506") }
-   { "_id" : "2019-01", "sales_quantity" : 86, "sales_amount" : Decimal128("896") }
+   { "_id" : 2015, "movieCount" : <num>, "avgRating" : <num> }
+   { "_id" : 2016, "movieCount" : <num>, "avgRating" : <num> }
+   { "_id" : 2017, "movieCount" : <num>, "avgRating" : <num> }
 
 3. Refresh Materialized View
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Assume that by the first week of February 2019, the
-``bakesales`` collection has additional January and
-February sales.
+Assume a new movie is added to the ``movies`` collection
+for 2016:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/merge/materialized-view-seed.snippet.add-movie.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
+
+To refresh ``movieYearStats`` for 2016 onward, run the
+function with a ``startYear`` of ``2016``:
+
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/merge/materialized-view-refresh-run.snippet.refresh-run.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
+
+The updated ``movieYearStats`` reflects the new movie in the
+``movies`` collection.
+``db.movieYearStats.find().sort( { _id: 1 } )`` returns:
 
 .. code-block:: javascript
+   :copyable: false
+   :emphasize-lines: 2
 
-   db.bakesales.insertMany( [
-      { date: ISODate("2019-01-28"), item: "Cake - Chocolate", quantity: 3, amount: Decimal128("90") },
-      { date: ISODate("2019-01-28"), item: "Cake - Peanut Butter", quantity: 2, amount: Decimal128("32") },
-      { date: ISODate("2019-01-30"), item: "Cake - Red Velvet", quantity: 1, amount: Decimal128("20") },
-      { date: ISODate("2019-01-30"), item: "Cookies - Chocolate Chip", quantity: 6, amount: Decimal128("24") },
-      { date: ISODate("2019-01-31"), item: "Pie - Key Lime", quantity: 2, amount: Decimal128("40") },
-      { date: ISODate("2019-01-31"), item: "Pie - Banana Cream", quantity: 2, amount: Decimal128("40") },
-      { date: ISODate("2019-02-01"), item: "Cake - Red Velvet", quantity: 5, amount: Decimal128("100") },
-      { date: ISODate("2019-02-01"), item: "Tarts - Apple", quantity: 2, amount: Decimal128("8") },
-      { date: ISODate("2019-02-02"), item: "Cake - Chocolate", quantity: 2, amount: Decimal128("60") },
-      { date: ISODate("2019-02-02"), item: "Cake - Peanut Butter", quantity: 1, amount: Decimal128("16") },
-      { date: ISODate("2019-02-03"), item: "Cake - Red Velvet", quantity: 5, amount: Decimal128("100") }
-   ] )
+   { "_id" : 2015, "movieCount" : <num>, "avgRating" : <num> }
+   { "_id" : 2016, "movieCount" : <num>, "avgRating" : <num> }
+   { "_id" : 2017, "movieCount" : <num>, "avgRating" : <num> }
 
-To refresh ``monthlybakesales`` for January and February, run
-the function with ``new ISODate("2019-01-01")``.
-
-.. code-block:: javascript
-
-   updateMonthlySales(new ISODate("2019-01-01"));
-
-The updated ``monthlybakesales`` reflects the most recent data
-in the ``bakesales`` collection.
-``db.monthlybakesales.find().sort( { _id: 1 } )`` returns:
-
-.. code-block:: javascript
-   :emphasize-lines: 2,3
-
-   { "_id" : "2018-12", "sales_quantity" : 41, "sales_amount" : Decimal128("506") }
-   { "_id" : "2019-01", "sales_quantity" : 102, "sales_amount" : Decimal128("1142") }
-   { "_id" : "2019-02", "sales_quantity" : 15, "sales_amount" : Decimal128("284") }
 
 Additional Information
 ----------------------

@@ -1,6 +1,6 @@
 Release "mongodb-kubernetes" does not exist. Installing it now.
 NAME: mongodb-kubernetes
-LAST DEPLOYED: Wed Apr  1 18:27:11 2026
+LAST DEPLOYED: Wed Jul  1 06:32:38 2026
 NAMESPACE: mongodb
 STATUS: deployed
 REVISION: 1
@@ -38,13 +38,13 @@ community:
     version: 4.4.0
 database:
   name: mongodb-kubernetes-database
-  version: 1.8.0
+  version: 1.9.0
 initDatabase:
   name: mongodb-kubernetes-init-database
-  version: 1.8.0
+  version: 1.9.0
 initOpsManager:
   name: mongodb-kubernetes-init-ops-manager
-  version: 1.8.0
+  version: 1.9.0
 managedSecurityContext: false
 mongodb:
   appdbAssumeOldFormat: false
@@ -54,10 +54,13 @@ multiCluster:
   clusterClientTimeout: 10
   clusters: []
   kubeConfigSecretName: mongodb-enterprise-operator-multi-cluster-kubeconfig
+  memberClusterRequiredHealthyStreak: 5
   performFailOver: true
 operator:
   additionalArguments: []
   affinity: {}
+  clusterIdentity:
+    clusterName: ""
   createOperatorServiceAccount: true
   createResourcesServiceAccountsAndRoles: true
   enableClusterMongoDBRoles: true
@@ -71,6 +74,8 @@ operator:
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 2000
+    seccompProfile:
+      type: RuntimeDefault
   replicas: 1
   resources:
     limits:
@@ -79,7 +84,11 @@ operator:
     requests:
       cpu: 500m
       memory: 200Mi
-  securityContext: {}
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
   telemetry:
     collection:
       clusters: {}
@@ -92,13 +101,14 @@ operator:
   vaultSecretBackend:
     enabled: false
     tlsSecretRef: ""
-  version: 1.8.0
+  version: 1.9.0
   watchedResources:
   - mongodb
   - opsmanagers
   - mongodbusers
   - mongodbcommunity
   - mongodbsearch
+  - voyageais
   webhook:
     installClusterRole: true
     name: ""
@@ -121,12 +131,15 @@ registry:
   versionUpgradeHook: quay.io/mongodb
 search:
   envoyImage: envoyproxy/envoy:v1.37-latest
+  metricsForwarderImage: otel/opentelemetry-collector-contrib:0.152.0
   name: mongodb-search
   repo: quay.io/mongodb
-  version: 0.64.0
+  version: 1.70.1
 versionUpgradeHook:
   name: mongodb-kubernetes-operator-version-upgrade-post-start-hook
   version: 1.0.10
+voyageai:
+  repo: quay.io/mongodb/voyageai
 
 HOOKS:
 MANIFEST:
@@ -373,6 +386,14 @@ rules:
       - opsmanagers/status
       - mongodbmulticluster/status
       - mongodbsearch/status
+  - apiGroups:
+      - ai.mongodb.com
+    verbs:
+      - '*'
+    resources:
+      - voyageais
+      - voyageais/finalizers
+      - voyageais/status
 ---
 # Source: mongodb-kubernetes/templates/operator-roles-pvc-resize.yaml
 kind: Role
@@ -457,14 +478,18 @@ spec:
         app.kubernetes.io/component: controller
         app.kubernetes.io/name: mongodb-kubernetes-operator
         app.kubernetes.io/instance: mongodb-kubernetes-operator
+      annotations:
+        mongodb.com/installation-method: "helm"
     spec:
       serviceAccountName: mongodb-kubernetes-operator
       securityContext:
         runAsNonRoot: true
         runAsUser: 2000
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: mongodb-kubernetes-operator
-          image: "quay.io/mongodb/mongodb-kubernetes:1.8.0"
+          image: "quay.io/mongodb/mongodb-kubernetes:1.9.0"
           imagePullPolicy: Always
           args:
             - -watch-resource=mongodb
@@ -472,6 +497,7 @@ spec:
             - -watch-resource=mongodbusers
             - -watch-resource=mongodbcommunity
             - -watch-resource=mongodbsearch
+            - -watch-resource=voyageais
             - -watch-resource=clustermongodbroles
           command:
             - /usr/local/bin/mongodb-kubernetes-operator
@@ -485,6 +511,11 @@ spec:
             requests:
               cpu: 500m
               memory: 200Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
           env:
             - name: OPERATOR_ENV
               value: prod
@@ -504,6 +535,8 @@ spec:
               value: "168h"
             - name: CLUSTER_CLIENT_TIMEOUT
               value: "10"
+            - name: MDB_MEMBER_CLUSTER_REQUIRED_HEALTHY_STREAK
+              value: "5"
             - name: IMAGE_PULL_POLICY
               value: Always
             # Database
@@ -512,16 +545,16 @@ spec:
             - name: INIT_DATABASE_IMAGE_REPOSITORY
               value: quay.io/mongodb/mongodb-kubernetes-init-database
             - name: INIT_DATABASE_VERSION
-              value: "1.8.0"
+              value: "1.9.0"
             - name: DATABASE_VERSION
-              value: "1.8.0"
+              value: "1.9.0"
             # Ops Manager
             - name: OPS_MANAGER_IMAGE_REPOSITORY
               value: quay.io/mongodb/mongodb-enterprise-ops-manager-ubi
             - name: INIT_OPS_MANAGER_IMAGE_REPOSITORY
               value: quay.io/mongodb/mongodb-kubernetes-init-ops-manager
             - name: INIT_OPS_MANAGER_VERSION
-              value: "1.8.0"
+              value: "1.9.0"
             - name: OPS_MANAGER_IMAGE_PULL_POLICY
               value: Always
             - name: AGENT_IMAGE
@@ -540,6 +573,10 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: MCK_INSTALLER
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.annotations['mongodb.com/installation-method']
             - name: OPERATOR_NAME
               value: mongodb-kubernetes-operator
             # Community Env Vars Start
@@ -561,9 +598,13 @@ spec:
             - name: MDB_SEARCH_NAME
               value: "mongodb-search"
             - name: MDB_SEARCH_VERSION
-              value: "0.64.0"
+              value: "1.70.1"
             - name: MDB_ENVOY_IMAGE
               value: "envoyproxy/envoy:v1.37-latest"
+            - name: MDB_SEARCH_METRICS_FORWARDER_IMAGE
+              value: "otel/opentelemetry-collector-contrib:0.152.0"
+            - name: MDB_VOYAGEAI_REPO_URL
+              value: "quay.io/mongodb/voyageai"
       volumes:
         - name: webhook-server-dir
           emptyDir: {}

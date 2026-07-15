@@ -13,7 +13,7 @@
    .. step:: Define the {+avs+} index.
 
       The following index definition indexes the
-      ``plot_embedding_voyage_3_large`` field as the {+avs+} field when
+      ``plot_embedding_voyage_4_large`` field as the {+avs+} field when
       querying the collection. 
 
       A. Create a file named ``vector-search-index.js``, and paste the following

@@ -12,7 +12,7 @@
      - boolean
      - Optional
      - Flag that indicates whether to enable statistics in 
-       :doc:`cluster metrics </monitor-cluster-metrics>` collection for 
+       :ref:`cluster metrics <monitor-cluster-metrics>` collection for 
        the project. 
 
    * - ``isDataExplorerEnabled``

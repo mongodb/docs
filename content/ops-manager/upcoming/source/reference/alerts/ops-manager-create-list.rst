@@ -13,6 +13,10 @@
 - :alert:`MONITORING_AGENT_VERSION_CURRENT`
 - :alert:`NEW_AGENT`
 
+**Alerts**
+
+- :alert:`WEBHOOK_TEMPLATE_RENDER_FAILED`
+
 **Automation Configuration**
 
 - :alert:`AUTOMATION_CONFIG_PUBLISHED_AUDIT`

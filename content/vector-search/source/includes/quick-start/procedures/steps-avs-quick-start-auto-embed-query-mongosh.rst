@@ -18,4 +18,8 @@
             :linenos:
             :visible: false
 
+      For details on all the {+avs+} query settings for Automated Embedding, see
+      :ref:`$vectorSearch syntax <vectorSearch-agg-pipeline-syntax>`.
+
       .. include:: /includes/quick-start/facts/fact-avs-auto-embed-quick-start-query-intro.rst
+

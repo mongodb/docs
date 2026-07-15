@@ -57,6 +57,10 @@ or monthly rate. These rates vary by region.
      - $0.098
      - $71.20
 
+   * - ``ap-northeast-2`` Seoul, South Korea
+     - $0.088
+     - $64.39
+
    * - ``ca-central-1`` Canada
      - $0.077
      - $54.82

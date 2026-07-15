@@ -1,0 +1,214 @@
+.. _configure-client-tls-tutorial:
+
+====================================
+Connect to a TLS-Enabled Replica Set
+====================================
+
+.. meta::
+   :description: Connect mongosh to a TLS-enabled self-managed MongoDB replica set by presenting a client certificate or without one, depending on your server configuration.
+
+.. contents:: On This Page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+This tutorial shows you how to connect {+mongosh+} to a |tls|-enabled
+self-managed replica set.
+
+Before You Begin
+----------------
+
+Before you start, verify that you have the following:
+
+- A replica set that you configured to use TLS using the steps 
+  in :ref:`configure-server-tls-tutorial`.
+
+- MongoDB access control enabled on your deployment and at least 
+  one admin user created. To set up access control, see 
+  :ref:`enable-access-control`. This user must have ``clusterMonitor`` 
+  privileges.
+
+- If you want to connect to your deployment using X.509 authentication, 
+  ensure that you have OpenSSL installed to generate a client certificate.
+
+- Access to {+mongosh+}.
+
+Steps
+-----
+
+.. tabs::
+
+   .. tab:: Without X.509 Client Authentication
+      :tabid: client-tls-no-cert
+
+      If you do not want to use mutual TLS or X.509 client authentication, 
+      follow this procedure. If you set :setting:`~net.tls.allowConnectionsWithoutCertificates` to
+      ``true`` in your server configuration, clients can connect
+      without presenting a certificate and authenticate with SCRAM
+      instead.
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Connect to your deployment with ``mongosh``
+
+            Connect ``mongosh`` to your replica set using the 
+            following options:
+
+            .. include:: /includes/tls/mongosh-connect-tls-no-cert.rst
+
+            Connecting without a client certificate establishes a TLS-encrypted
+            session but does not authenticate you. To run most commands, you
+            must authenticate with a mechanism such as 
+            :ref:`SCRAM <authentication-scram>`.
+
+         .. step:: Authenticate user
+
+            Use the :method:`db.auth()` method to authenticate with 
+            your admin username and password.
+            
+         .. step:: Verify your connection
+
+            .. include:: /includes/tls/configure-client-tls-tutorial/step-verify-connection.rst
+
+
+   .. tab:: With X.509 Client Authentication
+      :tabid: client-tls-with-cert
+
+      If you want to use mutual TLS and X.509 client authentication when connecting
+      to your deployment, follow this procedure to create and authenticate 
+      with a client certificate.
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Generate a client certificate
+
+            .. warning::
+
+               Do not use the same certificate as your server nodes.
+               You must generate a **new** client certificate for
+               X.509 authentication, even if your server certificates
+               are valid for client authentication.
+
+            Generate a client certificate using the process described
+            in :ref:`tls-certificate-tutorial`. Make the following
+            adjustments:
+
+            - In your configuration file, set
+              ``extendedKeyUsage = clientAuth`` instead of
+              ``serverAuth``.
+
+            - The CA that signed your node client-authentication certificates
+              must also sign your client certificate. Generally, this is ``ca.pem``.
+              However, if you obtained separate certificates for client authentication,
+              you might have a different CA for client certificates.
+
+            - Name your output files ``client.key``, ``client.crt``,
+              and ``client.pem`` instead of the node-specific names
+              used in the certificate tutorial.
+
+            After completing the process, copy ``client.pem`` to a
+            secure location on the machine where you run ``mongosh``:
+
+            .. code-block:: shell
+
+               cp client.pem /etc/ssl/mongodb/client.pem
+
+         .. step:: Identify your client subject
+
+            Identify the subject of your client certificate. You
+            need this value to confirm that you authenticated with the
+            expected client certificate after connecting.
+
+            To view the subject, run the following command:
+
+            .. code-block:: shell
+
+               openssl x509 -in /etc/ssl/mongodb/client.pem -noout -subject
+
+            Take note of the output, which looks similar to the following:
+
+            .. code:: text
+
+               subject=C=US, ST=New-York, L=New York City, O=MongoDB, CN=myUser
+
+            Save the subject name to use later in this tutorial. In this example, 
+            the subject name is ``C=US, ST=New-York, L=New York City, O=MongoDB,
+            CN=myUser``.
+
+         .. step:: Connect to your deployment with your client certificate
+
+            Connect ``mongosh`` to your replica set using the
+            following options:
+
+            .. code-block:: bash
+
+               mongosh "mongodb://mongo0.example.com:27017,mongo1.example.com:27017,mongo2.example.com:27017" \
+                   --tls \
+                   --tlsCAFile /etc/ssl/mongodb/ca.pem \
+                   --tlsCertificateKeyFile /etc/ssl/mongodb/client.pem
+
+            - :option:`--tls <mongosh --tls>` enables TLS encryption 
+              for the connection. 
+            - :option:`--tlsCAFile <mongosh --tlsCAFile>` is set to the CA
+              certificate that signed the server certificates so that ``mongosh``
+              can verify the server connection.
+            - :option:`--tlsCertificateKeyFile <mongosh --tlsCertificateKeyFile>` 
+              presents the client certificate and private key which the server
+              uses to authenticate your connection with X.509.
+
+            This connects you to your MongoDB deployment
+            over TLS.
+
+         .. step:: Authenticate as an admin user
+
+            Use the :method:`db.auth()` method to authenticate with 
+            your admin username and password.
+
+         .. step:: Create a user in the ``$external`` database
+
+            Create a user in the ``$external`` database
+            that corresponds to your client certificate's subject name with
+            the :method:`db.createUser()` method. Replace the username with the
+            subject of your client certificate that you identified previously:
+
+            .. code-block:: javascript
+
+               db.getSiblingDB("$external").runCommand({
+                  createUser: "C=US, ST=New-York, L=New York City, O=MongoDB, CN=myUser",
+                  roles: [
+                     { role: "readWriteAnyDatabase", db: "admin" }
+                  ]
+               })
+
+            After you create a user, use the :method:`db.auth()` method to 
+            authenticate to the ``$external`` database using X.509:
+
+            .. code-block:: javascript
+
+               db.getSiblingDB("$external").auth({
+                   mechanism: "MONGODB-X509",
+                   user: "C=US, ST=New-York, L=New York City, O=MongoDB, CN=myUser"
+               })
+
+         .. step:: Verify your connection
+
+            .. include:: /includes/tls/configure-client-tls-tutorial/step-verify-connection.rst
+
+Final Result
+------------
+
+After completing this tutorial, ``mongosh`` is connected to your
+replica set over an encrypted TLS connection, authenticated with
+either SCRAM or X.509.
+
+.. Next Steps
+   ----------
+
+.. You have completed the basic TLS server and client configuration process.
+
+.. To learn more about advanced configuration techniques, such as disallowing 
+   certain protocols or certificate rotation and revocation, continue to 
+   the next page.

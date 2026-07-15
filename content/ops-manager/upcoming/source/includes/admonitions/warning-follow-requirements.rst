@@ -5,7 +5,7 @@
    - |onprem| hosts per the :doc:`/core/requirements`.
 
    - MongoDB hosts per the
-     :manual:`Production Notes </administration/production-notes>` in
+     :ref:`Production Notes <production-notes>` in
      the MongoDB manual. MongoDB instances in |onprem| include:
 
      - The |onprem| Application Database,

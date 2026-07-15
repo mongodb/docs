@@ -65,12 +65,12 @@ export const toc: L1TocItem[] = [
                       {
                         label: 'Operational Data Layer',
                         contentSite: 'atlas-architecture',
-                        url: '/docs/atlas/architecture/:version/deployment-paradigms/reference-architectures/operational-data-layer',
+                        url: '/docs/atlas/architecture/:version/deployment-paradigms/reference-architectures/data-layer',
                       },
                       {
                         label: 'Fraud Detection',
                         contentSite: 'atlas-architecture',
-                        url: '/docs/atlas/architecture/:version/deployment-paradigms/reference-architectures/fraud-detection',
+                        url: '/docs/atlas/architecture/:version/deployment-paradigms/reference-architectures/fraud-detect',
                       },
                     ],
                   },
@@ -338,12 +338,12 @@ export const toc: L1TocItem[] = [
                   {
                     label: 'Assess Business Loan Risks',
                     contentSite: 'atlas-architecture',
-                    url: '/docs/atlas/architecture/:version/solutions-library/assessing-business-loan-risks-with-generative-ai',
+                    url: '/docs/atlas/architecture/:version/solutions-library/loan-risk-gen-ai',
                   },
                   {
                     label: 'Credit Card Application',
                     contentSite: 'atlas-architecture',
-                    url: '/docs/atlas/architecture/:version/solutions-library/credit-card-application-with-generative-ai',
+                    url: '/docs/atlas/architecture/:version/solutions-library/credit-card-gen-ai',
                   },
                 ],
               },
@@ -415,6 +415,11 @@ export const toc: L1TocItem[] = [
                 contentSite: 'atlas-architecture',
                 collapsible: true,
                 items: [
+                  {
+                    label: 'Clinical Decision Support',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/clinical-decision-support',
+                  },
                   {
                     label: 'Hybrid FHIR ODL',
                     contentSite: 'atlas-architecture',
@@ -530,7 +535,7 @@ export const toc: L1TocItem[] = [
                   {
                     label: 'Automotive Diagnostics',
                     contentSite: 'atlas-architecture',
-                    url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-automotive-diagnostics',
+                    url: '/docs/atlas/architecture/:version/solutions-library/auto-diagnostics',
                   },
                   {
                     label: 'Build an Automotive Diagnostics App',
@@ -582,6 +587,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/architecture/:version/solutions-library/inventory-optimization',
                   },
                   {
+                    label: 'AI Powered Track and Trace',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/ai-track-trace',
+                  },
+                  {
                     label: 'Event-Driven Inventory Management System',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-event-driven-inventory',
@@ -621,7 +631,7 @@ export const toc: L1TocItem[] = [
                   {
                     label: 'Predictive Maintenance Excellence',
                     contentSite: 'atlas-architecture',
-                    url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-predictive-maintenance',
+                    url: '/docs/atlas/architecture/:version/solutions-library/predictive-maintenance',
                   },
                   {
                     label: 'Unified Namespace Data Integrity',

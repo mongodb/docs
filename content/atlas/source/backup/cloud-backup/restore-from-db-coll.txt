@@ -1,0 +1,140 @@
+.. _restore-from-db-coll:
+
+================================================
+Restore from Selected Databases and Collections
+================================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: restore, backup, databases, collections, atlas ui, atlas cli
+   :description: Restore selected databases or collections from either snapshots or continuous cloud backup 
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+{+service+} lets you restore data from selected databases or
+collections from :ref:`Scheduled or On-Demand Snapshots
+<restore-from-snapshot>` and :ref:`Continuous Cloud Backups
+<restore-from-continuous>`.
+
+.. _restore-from-db-coll-considerations:
+
+Considerations
+~~~~~~~~~~~~~~
+
+{+service+} supports restoring from selected databases or collections
+captured by a given backup. This restore model enables the following:
+
+- Selectively restoring tenants in a multi-tenant database
+  architecture where each database or collection maps to a specific
+  tenant.
+- Targeted recovery of essential data
+- Selection of specific collections for analytics
+
+.. important::
+
+   {+Db-Coll-Restore+} jobs are not intended to reduce {+rto+} and
+   can take longer than full cluster restore jobs.
+
+{+service+} supports two write strategies for {+Db-Coll-Restore+}
+jobs. Choose the one best suited to your use case:
+
+- :guilabel:`Create as new` appends the selected databases or collections
+  to the existing data on the target cluster. If a selected database
+  or collection has the same name as one on the target cluster,
+  {+service+} renames them to avoid conflict. 
+- :guilabel:`Overwrite existing` overwrites all selected databases or
+  collections with matching names that already exist on the target
+  cluster. Any writes you make to these databases or collections
+  during the restore job will be lost.
+
+Restoring selected databases or collections temporarily increases disk
+usage. {+service+} blocks restore jobs from starting if there isn't
+enough disk space available. Consider scaling up cluster storage
+before starting a restore job.
+
+- *If disk auto-scaling is enabled*, {+service+} scales up storage
+  automatically as needed, then restarts in-progress collection
+  restores.
+- *If disk auto-scaling is disabled*, the restore job fails and rolls
+  back if disk usage reaches 95%.
+
+If one or more databases or collections fail to restore during a
+{+db-coll-restore+} operation, the entire
+operation fails.
+
+.. _restore-from-db-coll-limitations:
+
+Limitations
+~~~~~~~~~~~
+
+{+Db-Coll-Restore+} doesn't restore {+fts+} indexes. You must manually
+rebuild {+fts+} indexes after restore.
+
+{+service+} doesn't support restoring individual time-series
+collections.
+
+{+service+} doesn't support restoring individual queryable encryption
+collections.
+
+{+service+} doesn't support views for {+db-coll-restore+} jobs.
+
+You can't run multiple {+db-coll-restore+} jobs concurrently. You must
+wait for a running {+db-coll-restore+} job to finish before initiating
+another.
+
+{+service+} doesn't support {+db-coll-restore+} on NVMe clusters.
+
+During a {+db-coll-restore+} job, {+service+} transfers data over the
+public internet even if you have private endpoints configured.
+
+You can't perform {+db-coll-restore+} with :ref:`fallback snapshots
+<cps-fallback-snapshots>`.
+
+You can specify up to 100 databases and 100 collections per
+{+db-coll-restore+} request. Selecting a database restores all its
+collections without counting them against the 100 collection
+limit. This limit applies only to namespaces explicitly listed in the
+request body.
+
+Required Access
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/atlas-roles/restore-and-watch.rst
+
+.. _restore-from-db-coll-procedure:
+
+Procedure
+~~~~~~~~~
+
+.. composable-tutorial::
+   :options: interface, restore-type
+   :defaults: atlas-api, snapshot
+
+   .. selected-content::
+      :selections: atlas-api, snapshot
+
+      .. include:: /includes/backup/restore-snapshot-api-db-col.rst
+
+   .. selected-content::
+      :selections: atlas-api, continuous
+
+      .. include:: /includes/backup/restore-continuous-api-db-col.rst
+
+   .. selected-content::
+      :selections: atlas-ui, snapshot
+
+      .. include:: /includes/backup/restore-snapshot-ui-db-col.rst
+
+   .. selected-content::
+      :selections: atlas-ui, continuous
+
+      .. include:: /includes/backup/restore-continuous-ui-db-col.rst

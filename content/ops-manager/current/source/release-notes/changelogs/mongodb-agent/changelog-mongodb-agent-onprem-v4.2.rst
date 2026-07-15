@@ -57,7 +57,7 @@ MongoDB Agent 10.2.19.5989
 
 - Reduces number of connections per second.
 
-- Improves the Backup Module :manual:`oplog </reference/glossary/#std-term-oplog>` tail performance.
+- Improves the Backup Module :term:`oplog` tail performance.
 
 .. _mongodb-10.2.18.5978:
 

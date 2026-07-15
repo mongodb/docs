@@ -45,44 +45,67 @@
 
    .. step:: Run your |enn| query. 
 
-      .. example::
+      The following query uses the :pipeline:`$vectorSearch` stage to search
+      the ``plot_embedding_voyage_4_large`` field for movies. The query uses 
+      ``exact`` to perform an |enn| search and limits the results to ``10`` 
+      documents only. The query also specifies a :pipeline:`$project` stage to 
+      exclude all fields except ``plot``, ``title``, and ``genres`` from the 
+      documents in the results. It also adds a field named ``score`` that 
+      shows the vector search score of the documents in the results.
 
-         Copy and paste the following sample query into your terminal and
-         then run it using {+mongosh+}. {+mongosh+} might lag slightly when
-         you paste in the query due to the number of characters in the
-         vector embedding. 
+      .. io-code-block:: 
+         :copyable: true 
 
-         .. io-code-block:: 
-            :copyable: true 
+         .. input:: /includes/evaluate-results/code-snippets/enn-query-mongosh.sh
+            :language: shell 
+            :linenos:
 
-            .. input:: /includes/evaluate-results/code-snippets/enn-query-mongosh.sh
-               :language: shell 
-               :linenos:
+         .. output:: /includes/evaluate-results/code-snippets/enn-mongosh-results.sh 
+            :language: shell 
+            :visible: false
 
-            .. output:: /includes/evaluate-results/code-snippets/enn-mongosh-results.sh 
-               :language: shell 
-               :visible: false
-
-         .. include:: /includes/evaluate-results/facts/avs-evaluate-results-enn-query.rst
+      .. include:: /includes/evaluate-results/facts/avs-evaluate-results-enn-query.rst
 
    .. step:: Run your |ann| query. 
 
-      .. example:: 
+      The following query uses the :pipeline:`$vectorSearch` stage to search
+      the ``plot_embedding_voyage_4_large`` field for movies. The query uses 
+      ``numCandidates`` to perform an |ann| search and limits the results to 
+      ``10`` documents only. The query also specifies a :pipeline:`$project` 
+      stage to exclude all fields except ``plot``, ``title``, and ``genres`` 
+      from the documents in the results. It also adds a field named ``score`` 
+      that shows the vector search score of the documents in the results.
 
-         Copy and paste the following sample query into your terminal and
-         then run it using {+mongosh+}. {+mongosh+} might lag slightly when
-         you paste in the query due to the number of characters in the
-         vector embedding. 
+      .. io-code-block:: 
+         :copyable: true 
 
-         .. io-code-block:: 
-            :copyable: true 
+         .. input:: /includes/evaluate-results/code-snippets/ann-query-mongosh.sh
+            :language: shell 
+            :linenos:
 
-            .. input:: /includes/evaluate-results/code-snippets/ann-query-mongosh.sh
-               :language: shell 
-               :linenos:
+         .. output:: /includes/evaluate-results/code-snippets/ann-mongosh-results.sh
+            :language: shell 
+            :visible: false
 
-            .. output:: /includes/evaluate-results/code-snippets/ann-mongosh-results.sh
-               :language: shell 
-               :visible: false
+      .. include:: /includes/evaluate-results/facts/avs-evaluate-results-ann-query.rst
 
-         .. include:: /includes/evaluate-results/facts/avs-evaluate-results-ann-query.rst
+   .. step:: Rerank your |ann| results. 
+
+      The following query uses the :pipeline:`$vectorSearch` stage to search
+      the ``plot_embedding_voyage_4_large`` field for movies. The query passes 
+      up to ``50`` documents from the |ann| search to the :pipeline:`$rerank` 
+      stage to rerank the results by semantic relevance to the query. The query 
+      uses the ``rerank-2.5`` model to rerank the results. The query also adds 
+      a field named ``rerankScore`` that shows the rerank score of the documents 
+      in the results.
+
+      .. io-code-block:: 
+         :copyable: true 
+
+         .. input:: /includes/evaluate-results/code-snippets/rerank-query-mongosh.sh
+            :language: shell 
+            :linenos:
+
+         .. output:: /includes/evaluate-results/code-snippets/rerank-mongosh-results.sh
+            :language: shell 
+            :visible: false

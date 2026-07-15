@@ -546,7 +546,7 @@ const tocData: TocItem[] = [
       {
         label: 'API Documentation',
         isExternal: true,
-        url: 'https://mongodb.github.io/mongo-csharp-driver/3.9.0/api',
+        url: 'https://mongodb.github.io/mongo-csharp-driver/3.10.0/api',
         versions: { excludes: outdatedVersions },
       },
       {
@@ -947,7 +947,7 @@ const tocData: TocItem[] = [
       {
         label: 'API Documentation',
         isExternal: true,
-        url: 'https://mongodb.github.io/mongo-csharp-driver/3.5.0/api/index.html',
+        url: 'https://mongodb.github.io/mongo-csharp-driver/2.30.0/api/index.html',
         versions: { includes: outdatedVersions },
       },
       {

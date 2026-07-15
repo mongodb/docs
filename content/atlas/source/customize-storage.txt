@@ -418,43 +418,157 @@ You can't adjust the |iops| for your multi-cloud {+cluster+}.
 IOPS (AWS Only)
 ---------------
 
-AWS-backed ``M30+`` {+clusters+} offer the option to provision |iops|.
+``M30+`` clusters on |aws| offer different options for customizing the
+amount of |iops|:
 
-Provisioned IOPS vs Standard IOPS in AWS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- You can use :ref:`Provisioned |iops| or High Performance |iops| <provisioned-high-perf-iops>`
+  for Gen1 and :ref:`Gen2 Clusters <aws-gen2-clusters>`, respectively. 
+- You can use :ref:`{+extended-iops+} <extended-iops-gen2>` for
+  :ref:`Gen2 Clusters <aws-gen2-clusters>`.
 
-Provisioned |iops| let you customize the maximum |iops| rate for your
-{+cluster+}. They also:
+.. note::
 
-- Deliver their configured |iops| rate more consistently when compared 
-  to standard |iops|.
+   For Gen1 ``M40+`` tier clusters, you can customize |iops| only for
+   clusters in the :guilabel:`General` and :guilabel:`Low CPU` classes. You
+   cannot customize |iops| for Gen1 clusters in the :guilabel:`Local NVMe SSD`
+   class. 
+
+.. _provisioned-high-perf-iops:
+
+Provisioned IOPS and High Performance IOPS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Provisioned |iops| and High Performance |iops| let you customize the maximum
+|iops| rate for your {+cluster+} with additional performance benefits. 
+Provisioned |iops| and High Performance |iops| refer to the same concept, though
+Gen1 clusters use :guilabel:`Provision IOPS` in the {+atlas-ui+} and Gen2
+clusters use :guilabel:`High Performance` IOPS. For simplicity, we use
+**High Performance IOPS** to refer to both here.
+
+Compared to standard |iops|, High Performance |iops|:
+
+- Deliver their configured |iops| rate more consistently.
 - Lower your {+cluster+}'s p90 latency (measurement of the 
   server's response time). 90 percent of server requests have responses 
   faster than the p90 latency value, so a lower p90 latency value means 
   a generally faster response time.
 
-To learn more about the merits of using provisioned vs standard |iops|,
-see :aws:`Amazon EBS-optimized instances
-</AWSEC2/latest/UserGuide/ebs-optimized.html>`. See the following 
-summary:
+To learn more about the merits of using High Performance |iops| vs standard
+|iops|, see
+:aws:`Amazon EBS-optimized instances </AWSEC2/latest/UserGuide/ebs-optimized.html>`.
+See the following summary:
 
 - General Purpose SSD volumes are designed to deliver their baseline
   performance 99% of the time.
 
-- Provisioned IOPS SSD volumes are designed to deliver their provisioned
+- High Performance |iops| SSD volumes are designed to deliver their provisioned
   performance 99.9% of the time.
 
 .. note:: 
 
    Changes to |iops| provisioning affects characteristics, performance,
    and :ref:`cost <instance-storage-speed>`. When you select
-   :guilabel:`Provision IOPS`, the storage changes from
-   **General Purpose SSD** volumes to **Provisioned IOPS SSD** volumes.
+   :guilabel:`Provision IOPS` for your Gen1 cluster or
+   :guilabel:`High Performance` for your Gen2 cluster, the storage changes
+   from **General Purpose SSD** volumes to **High Performance IOPS SSD**
+   volumes.
+
+To learn more, see
+:ref:`Configure Provisioned IOPS and High Performance IOPS <config-provisioned-high-perf-iops>`.
+
+.. _extended-iops-gen2:
+
+Extended Standard |iops| for Gen2 {+Dedicated-clusters+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+gen-2-clusters+} offer {+extended-iops+}, allowing you to
+configure the cluster's standard |iops| and storage capacity independently of
+each other. As you increase {+extended-iops+}, the cluster’s available disk
+throughput also increases. For {+gen-2-clusters+}, the configurable maximum for
+|iops| is ``80k`` |iops|.
+
+{+service+} bills {+extended-iops+} separately from storage capacity for
+{+gen-2-clusters+}. This flexibility helps you optimize your cluster costs.
+
+To learn more, see:
+
+- :ref:`AWS Gen2 Dedicated Clusters <aws-gen2-clusters>`
+- :ref:`Configure Extended Standard IOPS for AWS Gen2 Clusters <config-ext-standard-gen2-iops>`
 
 Configure the IOPS Rate
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-.. include:: /includes/cluster-settings/provision-iops-note.rst
+.. _config-standard-gen1-iops:
+
+Standard IOPS for Gen1 Clusters
+```````````````````````````````
+
+If you want your |iops| rate to scale automatically with your cluster's storage
+capacity, don't select :guilabel:`Provision IOPS` when you create your
+Gen1 ``M30+`` tier {+cluster+}. The {+cluster+} uses standard |iops| by default.
+
+If you want to provision an exact |iops| value, select
+:guilabel:`Provision IOPS` when you create your Gen1 ``M30+`` tier {+cluster+} 
+or switch to a Gen2 cluster.
+
+The minimum standard |iops| for ``M30+`` tier {+clusters+} is 3000.
+The standard |iops| value remains at 3000 unless you set the {+cluster+} storage size
+to 1TB or more. If the storage for your ``M30+`` {+cluster+} meets or exceeds 1TB,
+|service| increases the standard |iops| rate using an |iops| to a storage
+ratio of 3:1, up to ``16k`` |iops| for |aws| network storage volumes.
+
+Gen1 Local |nvme| |ssd| class {+clusters+} must use standard |iops|.
+
+.. _config-ext-standard-gen2-iops:
+
+Extended Standard IOPS for Gen2 Clusters
+````````````````````````````````````````
+
+{+gen-2-clusters+} offer {+extended-iops+}, allowing you to
+configure the cluster's standard |iops| and storage capacity independently of
+each other. The configurable maximum for |iops| is ``80k`` |iops| for
+{+gen-2-clusters+}.
+
+To use {+extended-iops+} for your ``M30+`` tier {+gen-2-clusters+}, select
+:guilabel:`Standard` next to :guilabel:`IOPS` under the
+:guilabel:`Cluster Tier` section.
+
+Then, you can either:
+
+- Specify the exact |iops| rate in the text box, *or*
+
+- Move the slide bar below the |iops| options until the text box displays your
+  preferred |iops| rate.
+
+.. _config-provisioned-high-perf-iops:
+
+High Performance IOPS
+`````````````````````
+
+High Performance |iops| are supported only for ``M30+`` tier {+clusters+} on
+|aws|. To use High Performance |iops| for your ``M30+`` tier |aws| {+cluster+},
+next to :guilabel:`IOPS` under the :guilabel:`Cluster Tier` section, select
+one of the following options:
+
+- :guilabel:`Provision IOPS` if you are using Gen1 clusters.
+- :guilabel:`High Performance IOPS` if you are using Gen2 cluster.
+
+Then, you can either:
+
+- Specify the exact |iops| rate in the text box, *or*
+
+- Move the slide bar below the |iops| options until the text box displays
+  your preferred |iops| rate.
+
+.. note::
+
+   The available provisioned |iops| range for a Gen1 {+cluster+} relates to 
+   disk :ref:`storage capacity <storage-capacity-ui>`. Changing your
+   Gen1 cluster's storage capacity changes the range of available 
+   provisioned |iops|.
+
+   The available High Performance |iops| range for a Gen2 {+cluster+} is
+   unrelated to disk :ref:`storage capacity <storage-capacity-ui>`.
 
 .. _configuration-storage-considerations:
 

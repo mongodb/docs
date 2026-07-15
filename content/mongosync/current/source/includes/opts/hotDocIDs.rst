@@ -32,5 +32,12 @@ document identifiers from collections ``coll1`` and ``coll2``:
     --hotDocIDs '{"db":"db2","collection":"coll2","ids":[{"_id":{"$oid":"70023c249cef3cd958e43269"}},{"_id":{"$oid":"7aa23c249cef3cd958e43785"}}]}' \
     ... other CLI arguments ...
 
-Once started, you cannot remove a hot document identifer. If you set one 
-incorrectly, restart ``mongosync`` with the correct identifers.
+During an in-progress migration, you can add more hot document
+identifiers. To add identifiers, stop ``mongosync``, update the
+:option:`--hotDocIDs` option or :setting:`hotDocIDs` setting with
+the new identifiers, and resume the migration. ``mongosync`` retains
+all supplied identifiers across restarts.
+
+You cannot remove supplied hot document identifiers during a
+migration. To restart the migration from scratch and remove or
+correct supplied identifiers, see :ref:`mongosync-restart-migration`.

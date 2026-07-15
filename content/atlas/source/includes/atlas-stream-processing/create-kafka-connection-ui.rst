@@ -130,8 +130,6 @@ To add a Kafka connection to your {+spw+} through the
                   #. Scope - Scope of the access request to the broker specified by the Kafka clients.
                   #. SASL Extensions - Additional information to provide to the Kafka broker.
   
-               #. Click :guilabel:`+ Add Connection`.  
-  
             .. tab:: ``SSL``  
                :tabid: stream-connect-kafka-mtls-auth  
   
@@ -144,8 +142,21 @@ To add a Kafka connection to your {+spw+} through the
   
                #. **(Optional)** If your Client SSL Keyfile is password-protected,  
                   type your password into the :guilabel:`Client key password` field.  
-  
-               #. Click :guilabel:`+ Add Connection`.
+
+      #. **(Optional)** If you plan to use this connection to create a
+	 stream processor with :ref:`failover processor
+	 <atlas-sp-architecture-failover>` functionality, configure
+	 the :guilabel:`Failover region settings`. You can either
+	 configure a unique Kafka broker for the failover region
+	 according to the preceding steps, or you can toggle the
+	 :guilabel:`Copy Kafka broker settings from default region` to use
+	 your existing broker configuration.
+
+	 :gold:`IMPORTANT`: {+atlas-sp+} supports failover processors
+	 using Kafka connections only as sinks with the
+	 :ref:`$emit <atlas-sp-agg-emit>` stage.
+		  
+      #. Click :guilabel:`+ Add Connection`.
 
 .. important::
 

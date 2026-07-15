@@ -11,6 +11,9 @@
          :emphasize-lines: 22
          :caption: runQuery.java
 
+      For details on all the {+avs+} query settings for Automated Embedding, see 
+      :ref:`$vectorSearch syntax <vectorSearch-agg-pipeline-syntax>`.
+
    .. step:: Replace the ``<connectionString>``.
 
       Ensure that your connection string includes your database user's

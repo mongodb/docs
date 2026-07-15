@@ -27,9 +27,9 @@
 
        **See also:**
 
-       - :doc:`AWS regions </reference/amazon-aws>`
-       - :doc:`GCP regions </reference/google-gcp>`
-       - :doc:`Azure regions </reference/microsoft-azure>`
+       - :ref:`AWS regions <amazon-aws>`
+       - :ref:`GCP regions <google-gcp>`
+       - :ref:`Azure regions <microsoft-azure>`
 
    * - instanceSizes[n].name
      - string

@@ -44,12 +44,7 @@ The |fts| |fts-field-type| type takes the following parameters:
        search for terms longer than the ``maxGrams`` value, |fts| 
        truncates the tokens to the ``maxGrams`` length.
 
-       We recommend setting the ``maxGrams`` value to be less than
-       or equal to ``15`` to optimize performance. A higher value
-       increases the size of the index and can impact performance.
-       If you require more than ``15`` characters for autocompletion,
-       we recommend configuring :ref:`custom analyzer
-       <regex-to-search>` to avoid truncating queries.
+       For ``maxGrams`` best practices, see :ref:`autocomplete-maxgrams-config`.
 
      - ``15``
 
@@ -173,22 +168,8 @@ The |fts| |fts-field-type| type takes the following parameters:
              quick
              ...
 
-       Indexing a field for autocomplete with an ``edgeGram``, 
-       ``rightEdgeGram``, or ``nGram`` tokenization strategy is more
-       computationally expensive than indexing a string field. The 
-       index takes more space than an index with regular string
-       fields.
-
-       For the specified tokenization strategy, |fts| applies the
-       following process to concatenate sequential tokens before
-       emitting them. This process is sometimes referred to as
-       "shingling". |fts| emits tokens between ``minGrams`` and 
-       ``maxGrams`` characters in length:    
-
-       - Keeps tokens less than ``minGrams``.
-       - Joins tokens greater than ``minGrams`` but less than
-         ``maxGrams`` to subsequent tokens to create tokens up to the
-         specified maximum number of characters in length. 
+       For performance considerations, see
+       :ref:`autocomplete-tokenization-performance`.
 
      - ``edgeGram``
 

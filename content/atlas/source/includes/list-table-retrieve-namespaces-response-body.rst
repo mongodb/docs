@@ -17,8 +17,8 @@
 
    * - ``managedNamespaces``
      - array of documents
-     - Each document specifies a namespace for a :doc:`Global Cluster
-       </global-clusters>` managed by |service|.
+     - Each document specifies a namespace for a :ref:`Global Cluster
+       <global-clusters>` managed by |service|.
 
    * - ``managedNamespaces[n].collection``
      - string
@@ -26,8 +26,8 @@
        
    * - ``managedNamespaces[n].customShardKey``
      - string
-     - The custom shard key for the collection. :doc:`Global Clusters
-       </global-clusters>` require a compound shard key consisting of
+     - The custom shard key for the collection. :ref:`Global Clusters
+       <global-clusters>` require a compound shard key consisting of
        a ``location`` field and a user-selected second key, the custom
        shard key.
 

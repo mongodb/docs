@@ -26,9 +26,7 @@ jest.mock('../../src/services/connector', () => {
   };
 });
 
-// These tests are failing in GitHub Actions
-// TODO: Fix these tests and re-enable them.
-describe.skip('pages module', () => {
+describe('pages module', () => {
   beforeAll(async () => {
     [mockDb, connection] = await setMockDB();
   });
@@ -348,6 +346,8 @@ describe.skip('pages module', () => {
         page.ast.foo = 'change in one asset';
         const changedKey = '/images/changed-asset-name.svg';
         page.static_assets[1].key = changedKey;
+        // Ensure this update gets a distinct updated_at from the previous one
+        await new Promise((resolve) => setTimeout(resolve, 5));
         await _updatePages([page], collection, new ObjectId());
 
         // Make sure changed asset is different from original asset

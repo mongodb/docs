@@ -132,6 +132,16 @@ Configuration for the cloud provider where this Federated Database Instance is h
      - Configuration for running Data Federation in ``AWS``.
      - false
 
+   * -  ``azure``
+     - object
+     - Configuration for running Data Federation in Azure.
+     - false
+
+   * -  ``gcp``
+     - object
+     - Configuration for running Data Federation in ``GCP``.
+     - false
+
 .. _atlasdatafederation-spec-cloudproviderconfig-aws: 
 
 AtlasDataFederation.spec.cloudProviderConfig.aws
@@ -158,6 +168,48 @@ Configuration for running Data Federation in AWS.
      - Name of the ``S3`` data bucket that the provided role ``ID`` is authorized to access.Required if specifying ``cloudProviderConfig``.
      - false
 
+.. _atlasdatafederation-spec-cloudproviderconfig-azure: 
+
+AtlasDataFederation.spec.cloudProviderConfig.azure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Configuration for running Data Federation in Azure.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 65 10
+
+   * -  ``Name``
+     - Type
+     - Description
+     - Required
+
+   * -  ``roleId``
+     - string
+     - Unique identifier of the role that Data Federation can use to access the data stores.
+     - true
+
+.. _atlasdatafederation-spec-cloudproviderconfig-gcp: 
+
+AtlasDataFederation.spec.cloudProviderConfig.gcp
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Configuration for running Data Federation in GCP.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 65 10
+
+   * -  ``Name``
+     - Type
+     - Description
+     - Required
+
+   * -  ``roleId``
+     - string
+     - Unique identifier of the role that Data Federation can use to access the data stores.
+     - true
+
 .. _atlasdatafederation-spec-dataprocessregion: 
 
 AtlasDataFederation.spec.dataProcessRegion
@@ -175,15 +227,15 @@ Information about the cloud provider region to which the Federated Database Inst
      - Required
 
    * -  ``cloudProvider``
-     - enum
+     - string
      - Name of the cloud service that hosts the Federated Database Instance's infrastructure.
-       *Enum*: ``AWS``
+       see the list of available values here: `https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupdatafederation#operation-creategroupdatafederation-body-application-vnd-atlas-2023-01-01-json-dataprocessregion-cloudprovider <https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupdatafederation#operation-creategroupdatafederation-body-application-vnd-atlas-2023-01-01-json-dataprocessregion-cloudprovider>`__
      - false
 
    * -  ``region``
-     - enum
+     - string
      - Name of the ``region`` to which the data lake routes client connections.
-       *Enum*: ``SYDNEY_AUS``, ``MUMBAI_IND``, ``FRANKFURT_DEU``, ``DUBLIN_IRL``, ``LONDON_GBR``, ``VIRGINIA_USA``, ``OREGON_USA``, ``SAOPAULO_BRA``, ``SINGAPORE_SGP``
+       see the list of available values here: `https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupdatafederation#operation-creategroupdatafederation-body-application-vnd-atlas-2023-01-01-json-dataprocessregion-region <https://www.mongodb.com/docs/api/doc/atlas-admin-api-v2/operation/operation-creategroupdatafederation#operation-creategroupdatafederation-body-application-vnd-atlas-2023-01-01-json-dataprocessregion-region>`__
      - false
 
 .. _atlasdatafederation-spec-privateendpoints: 
@@ -429,6 +481,11 @@ Store is a group of settings that define where the data is stored.
        This label must exactly match the name of an ``S3`` ``bucket`` that the data lake can access with the configured ``AWS`` Identity and Access Management (``IAM``) credentials.
      - false
 
+   * -  ``clusterName``
+     - string
+     - Human-readable label of the Atlas cluster used as a data store (provider: atlas).
+     - false
+
    * -  ``delimiter``
      - string
      - The ``delimiter`` that separates path segments in the data store.
@@ -466,11 +523,102 @@ Store is a group of settings that define where the data is stored.
        If set to false, the configured ``AWS`` ``IAM`` role must include permissions to access the ``S3`` bucket.
      - false
 
+   * -  ``readConcern``
+     - object
+     - Read concern for Atlas cluster data stores (provider: atlas).
+     - false
+
+   * -  ``readPreference``
+     - object
+     - Read preference for Atlas cluster data stores (provider: atlas).
+     - false
+
    * -  ``region``
      - string
      - Physical location where ``MongoDB`` Cloud deploys your ``AWS``-hosted ``MongoDB`` cluster nodes. The ``region`` you choose can affect network latency for clients accessing your databases.
        When ``MongoDB`` Atlas deploys a dedicated cluster, it checks if a ``VPC`` or ``VPC`` connection exists for that provider and region. If not, ``MongoDB`` Atlas creates them as part of the deployment.
        To limit a new ``VPC`` peering connection to one ``CIDR`` block and region, create the connection first. Deploy the cluster after the connection starts.
+     - false
+
+.. _atlasdatafederation-spec-storage-stores-readconcern: 
+
+AtlasDataFederation.spec.storage.stores.readConcern
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Read concern for Atlas cluster data stores (provider: atlas).
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 65 10
+
+   * -  ``Name``
+     - Type
+     - Description
+     - Required
+
+   * -  ``level``
+     - string
+
+     -  
+     - false
+
+.. _atlasdatafederation-spec-storage-stores-readpreference: 
+
+AtlasDataFederation.spec.storage.stores.readPreference
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Read preference for Atlas cluster data stores (provider: atlas).
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 65 10
+
+   * -  ``Name``
+     - Type
+     - Description
+     - Required
+
+   * -  ``maxStalenessSeconds``
+     - integer
+     - Maximum replication lag in seconds for reads from secondaries.
+     - false
+
+   * -  ``mode``
+     - string
+     - Read preference mode.
+     - false
+
+   * -  ``tagSets``
+     - [][]object
+     - List of tag sets to route read requests to specific replica set members.
+     - false
+
+.. _atlasdatafederation-spec-storage-stores-readpreference-tagsets: 
+
+AtlasDataFederation.spec.storage.stores.readPreference.tagSets
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ReadPreferenceTag is a key-value pair used to route read requests.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 65 10
+
+   * -  ``Name``
+     - Type
+     - Description
+     - Required
+
+   * -  ``name``
+     - string
+
+     -  
+     - false
+
+   * -  ``value``
+     - string
+
+     -  
      - false
 
 .. _atlasdatafederation-status: 
@@ -493,6 +641,11 @@ DataFederationStatus defines the observed state of AtlasDataFederation.
      - []object
      - Conditions is the list of statuses showing the current state of the Atlas Custom Resource
      - true
+
+   * -  ``cloudProviderConfig``
+     - object
+     - ``CloudProviderConfig`` holds Atlas-assigned read-only fields for the cloud provider configuration.
+     - false
 
    * -  ``mongoDBVersion``
      - string
@@ -547,4 +700,118 @@ Condition describes the state of an Atlas Custom Resource at a certain point.
    * -  ``reason``
      - string
      - The ``reason`` for the condition's last transition.
+     - false
+
+.. _atlasdatafederation-status-cloudproviderconfig: 
+
+AtlasDataFederation.status.cloudProviderConfig
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+CloudProviderConfig holds Atlas-assigned read-only fields for the cloud provider configuration.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 65 10
+
+   * -  ``Name``
+     - Type
+     - Description
+     - Required
+
+   * -  ``aws``
+     - object
+     - ``AWS`` holds Atlas-assigned read-only fields for the ``AWS`` cloud provider config.
+     - false
+
+   * -  ``azure``
+     - object
+     - Azure holds Atlas-assigned read-only fields for the Azure cloud provider config.
+     - false
+
+   * -  ``gcp``
+     - object
+     - ``GCP`` holds Atlas-assigned read-only fields for the ``GCP`` cloud provider config.
+     - false
+
+.. _atlasdatafederation-status-cloudproviderconfig-aws: 
+
+AtlasDataFederation.status.cloudProviderConfig.aws
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+AWS holds Atlas-assigned read-only fields for the AWS cloud provider config.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 65 10
+
+   * -  ``Name``
+     - Type
+     - Description
+     - Required
+
+   * -  ``externalId``
+     - string
+     - ``ExternalID`` is the ``IAM`` role external ``ID`` assigned by Atlas.
+     - false
+
+   * -  ``iamAssumedRoleARN``
+     - string
+     - IAMAssumedRoleARN is the ``ARN`` of the ``IAM`` role Atlas assumes when accessing data stores.
+     - false
+
+   * -  ``iamUserARN``
+     - string
+     - IAMUserARN is the ``ARN`` of the ``IAM`` user Atlas assumes when accessing data stores.
+     - false
+
+.. _atlasdatafederation-status-cloudproviderconfig-azure: 
+
+AtlasDataFederation.status.cloudProviderConfig.azure
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Azure holds Atlas-assigned read-only fields for the Azure cloud provider config.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 65 10
+
+   * -  ``Name``
+     - Type
+     - Description
+     - Required
+
+   * -  ``atlasAppId``
+     - string
+     - ``AtlasAppID`` is the App ``ID`` generated by Atlas for the Service Principal's access policy.
+     - false
+
+   * -  ``servicePrincipalId``
+     - string
+     - ``ServicePrincipalID`` is the ``ID`` of the Service Principal Atlas uses to access Azure resources.
+     - false
+
+   * -  ``tenantId``
+     - string
+     - ``TenantID`` is the Azure Active Directory tenant ``ID`` of the Service Principal.
+     - false
+
+.. _atlasdatafederation-status-cloudproviderconfig-gcp: 
+
+AtlasDataFederation.status.cloudProviderConfig.gcp
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+GCP holds Atlas-assigned read-only fields for the GCP cloud provider config.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 65 10
+
+   * -  ``Name``
+     - Type
+     - Description
+     - Required
+
+   * -  ``gcpServiceAccount``
+     - string
+     - GCPServiceAccount is the email of the ``GCP`` service account created by Atlas.
      - false

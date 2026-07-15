@@ -21,6 +21,5 @@ export K8S_CLUSTER_2_NUMBER_OF_NODES=1
 export K8S_CLUSTER_2_MACHINE_TYPE="e2-standard-4"
 export K8S_CLUSTER_2_CONTEXT_NAME="gke_${MDB_GKE_PROJECT}_${K8S_CLUSTER_2_ZONE}_${K8S_CLUSTER_2}"
 
-# Comment out the following line so that the script does not create preemptible nodes.
-# DO NOT USE preemptible nodes in production.
-export GKE_SPOT_INSTANCES_SWITCH="--preemptible"
+# Preemptible nodes disabled — caused random mid-test evictions in CI.
+# export GKE_SPOT_INSTANCES_SWITCH="--preemptible"

@@ -1,6 +1,5 @@
 To enable authentication, configure the ``auth`` object. This object is
-optional and defines :manual:`authentication-related
-</core/authentication>` settings.
+optional and defines :ref:`authentication-related <authentication>` settings.
 
 .. code-block:: json
    :linenos:

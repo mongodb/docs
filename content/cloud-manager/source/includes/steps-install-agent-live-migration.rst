@@ -29,7 +29,7 @@
             * - :setting:`agentFeatureCloudMigrationEnabled`
               - ``true``
             * - :setting:`cloudMigrationOplogPath`
-              - Path to the :manual:`oplog </reference/glossary/#std-term-oplog>` files
+              - Path to the :term:`oplog` files
                 for the :doc:`live migration
                 </tutorial/migrate-to-atlas>` process. This key is optional
                 and if set, requires provisioning enough storage in the

@@ -36,7 +36,7 @@ clusters.
      - array of objects
      - Optional
      - Objects that define the configuration of each
-       :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`. Each object in the array contains the
+       :term:`sharded cluster`. Each object in the array contains the
        specifications for one cluster. The {+mdbagent+} regularly
        checks each cluster's state against the specifications. If the
        specification and cluster don't match, the agent will change the
@@ -47,8 +47,8 @@ clusters.
      - boolean
      - Optional
      - Flag that indicates whether |mms| Automation manages all
-       :manual:`sharded collections </sharding>`
-       and :manual:`tags </core/zone-sharding>` in the deployment.
+       :ref:`sharded collections <sharding-background>`
+       and :ref:`tags <shards-tag-sets>` in the deployment.
        Starting in |mms| version 7.0, this can be set only to ``false``.
 
    * - sharding.name
@@ -80,7 +80,7 @@ clusters.
    * - sharding.shards
      - array of objects
      - Conditional
-     - Cluster's :manual:`shards  </reference/glossary/#std-term-shard>`.
+     - Cluster's :term:`shards <shard>`.
 
    * - sharding.shards._id
      - string
@@ -99,4 +99,4 @@ clusters.
      - Zones assigned to this shard.
 
        You can add this array parameter if you use
-       :manual:`zoned sharding </core/zone-sharding>`.
+       :ref:`zoned sharding <shards-tag-sets>`.

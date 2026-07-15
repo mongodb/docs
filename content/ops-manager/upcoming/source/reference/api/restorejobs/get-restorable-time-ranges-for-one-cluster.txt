@@ -1,0 +1,170 @@
+.. _get-restorable-time-ranges-for-one-cluster:
+
+===========================================
+Get Restorable Time Ranges for One Cluster
+===========================================
+
+.. meta::
+   :description: Return the time ranges to which you can safely perform a point-in-time restore for a given backup-enabled cluster in Ops Manager.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. include:: /includes/api/base-api-uri.rst
+
+Resource
+--------
+
+.. code-block:: http
+
+   POST /groups/{PROJECT-ID}/clusters/{CLUSTER-ID}/restoreJobs/restorableTimeRanges
+
+Returns the restorable time ranges for a backup-enabled replica set or
+sharded cluster in a project. Each restorable time range represents a
+continuous window of oplog history to which |mms| can safely restore.
+
+Required Permissions
+--------------------
+
+You must have the :authrole:`Global Backup Admin`,
+:authrole:`Project Backup Admin`, or :authrole:`Global Read Only` role
+to call this endpoint.
+
+Request Parameters
+------------------
+
+Request Path Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``PROJECT-ID``
+     - string
+     - Unique 24-hexadecimal digit string that identifies the project
+       that owns the cluster.
+
+   * - ``CLUSTER-ID``
+     - string
+     - Unique 24-hexadecimal digit string that identifies the
+       backup-enabled cluster whose restorable time ranges you want
+       to return.
+
+Request Query Parameters
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-query-single-parameters.rst
+
+Request Body Parameters
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/no-body-parameters.rst
+
+Response
+--------
+
+The response body contains an array of restorable time ranges. For
+replica sets, each element contains the following fields:
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``start``
+     - BSON timestamp
+     - Earliest point in time in this restorable range. This value is
+       a BSON timestamp object with ``date`` and ``increment``
+       fields, which together uniquely identify an oplog entry.
+
+   * - ``end``
+     - BSON timestamp
+     - Latest point in time in this restorable range. |mms| can
+       safely restore to any time between ``start`` and ``end``,
+       inclusive, for this range.
+
+   * - ``snapshotId``
+     - string
+     - Unique 24-hexadecimal digit string that identifies the
+       snapshot or clustershot associated with this range.
+
+For sharded clusters, each element also includes:
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+   :stub-columns: 1
+
+   * - Name
+     - Type
+     - Description
+
+   * - ``shardCount``
+     - integer
+     - Number of shards that participate in this restorable time
+       range.
+
+   * - ``configServerType``
+     - string
+     - Human-readable label that indicates whether the sharded
+       cluster uses an Embedded or Dedicated config server
+       deployment.
+
+|mms| returns the restorable time ranges ordered from earliest to
+latest start time.
+
+Example Request
+---------------
+
+.. code-block:: sh
+
+   curl --user "{PUBLIC-KEY}:{PRIVATE-KEY}" --digest \
+        --header "Accept: application/json" \
+        --header "Content-Type: application/json" \
+        --include \
+        --request POST "https://{OPSMANAGER-HOST}:{PORT}/api/public/v1.0/groups/{PROJECT-ID}/clusters/{CLUSTER-ID}/restoreJobs/restorableTimeRanges?pretty=true"
+
+Example Response
+----------------
+
+Response Header
+~~~~~~~~~~~~~~~
+
+.. include:: /includes/api/api-headers/401.rst
+
+.. include:: /includes/api/api-headers/200.rst
+
+Response Body
+~~~~~~~~~~~~~
+
+.. code-block:: json
+   :copyable: false
+
+   [
+     {
+       "end" : {
+         "date" : "2021-07-17T19:00:00Z",
+         "increment" : 1
+       },
+       "snapshotId" : "{SNAPSHOT-ID}",
+       "start" : {
+         "date" : "2021-07-14T00:00:00Z",
+         "increment" : 1
+       }
+     }
+   ]

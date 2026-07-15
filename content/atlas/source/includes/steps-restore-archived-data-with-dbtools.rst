@@ -3,7 +3,7 @@
 
    .. step:: Identify your {+Online-Archive+} version.
 
-      Contact :doc:`Support </support>` for help with
+      Contact :ref:`Support <atlas-support>` for help with
       identifying your {+Online-Archive+} version. 
       
       .. tip::
@@ -17,7 +17,7 @@
       {+Online-Archive+} must be in one of the :ref:`Atlas Data
       Federation regions <atlas-data-federation-regions>`. If your
       archived data is currently not in any of the supported {+adf+}
-      regions, request help from :doc:`Support </support>` to migrate
+      regions, request help from :ref:`Support <atlas-support>` to migrate
       data to any of the supported regions. We recommend that you select
       a region that is close to your |service| {+cluster+} because any 
       latency during archiving and querying after the move is dependent

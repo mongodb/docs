@@ -1,4 +1,4 @@
-// Inserts a sample document describing a restaurant by using the C# driver
+// Inserts a sample document describing a restaurant by using the .NET/C# driver
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;

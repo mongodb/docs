@@ -130,6 +130,24 @@ const tocData: TocItem[] = [
     label: 'Network Peering',
     contentSite: 'cloud-docs',
     url: '/docs/atlas/security-vpc-peering',
+    collapsible: true,
+    items: [
+      {
+        label: 'Manage Network Peering',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/manage-vpc-peering',
+      },
+      {
+        label: 'Network Containers',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/network-containers',
+      },
+      {
+        label: 'Troubleshoot',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/troubleshoot-vpc',
+      },
+    ],
   },
   {
     label: 'Cloud Provider Access',

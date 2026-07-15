@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { productionStore as store } from './blob-store';
+import { getProductionStore } from './blob-store';
 import { getBlobKey } from './get-blob-key';
 import { MDX_EXTENSION, JSON_EXTENSION } from './get-blob-key';
 import { getRelativePath } from './blob-utils';
@@ -8,6 +8,7 @@ import { diskPathToBlobRelative } from './blob-path-remap';
 
 /** upload a file to the blob store */
 export const uploadFile = async (fullPath: string) => {
+  const store = getProductionStore();
   try {
     const diskRelative = getRelativePath(fullPath);
     const relativePath = await diskPathToBlobRelative(diskRelative);
@@ -36,6 +37,7 @@ export const uploadFile = async (fullPath: string) => {
 
 /** delete a file from the blob store */
 export const deleteFile = async (fullPath: string) => {
+  const store = getProductionStore();
   try {
     const diskRelative = getRelativePath(fullPath);
     const relativePath = await diskPathToBlobRelative(diskRelative);

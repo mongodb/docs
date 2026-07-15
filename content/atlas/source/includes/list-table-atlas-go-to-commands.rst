@@ -7,11 +7,11 @@
 
    * - ``access``
      - Go to the :ref:`access manager for the current project <manage-project-access>` 
-       or the :doc:`access manager for the current organization </access/manage-org-users/>`
+       or the :ref:`access manager for the current organization <atlas-org-users>`
        depending on your location.
        
    * - ``activity``
-     - Go to the :doc:`activity feed </tutorial/activity-feed/>` for
+     - Go to the :ref:`activity feed <activity-feed>` for
        the current project or organization depending on your
        location.
 
@@ -132,11 +132,11 @@
        <organization-settings>` for the current organization.
 
    * - ``org access``
-     - Go to the :doc:`access manager </access/manage-org-users/>` for the
+     - Go to the :ref:`access manager <atlas-org-users>` for the
        current organization.
 
    * - ``org activity``
-     - Go to the :doc:`activity feed </tutorial/activity-feed/>` for the current
+     - Go to the :ref:`activity feed <activity-feed>` for the current
        organization.
 
    * - ``org alerts``
@@ -149,11 +149,11 @@
      - Go to the projects list for the specified organization.
 
    * - ``orgs {orgName} access``
-     - the :doc:`access manager </access/manage-org-users/>`
+     - the :ref:`access manager <atlas-org-users>`
        for the specified organization.
 
    * - ``orgs {orgName} activity``
-     - Go to the :doc:`activity feed </tutorial/activity-feed/>` for
+     - Go to the :ref:`activity feed <activity-feed>` for
        the specified organization.
 
    * - ``orgs {orgName} alerts``

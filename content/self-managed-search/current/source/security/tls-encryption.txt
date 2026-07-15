@@ -1,0 +1,141 @@
+.. _mongot-tls-encryption:
+
+=======================================
+Configure TLS Encryption for ``mongot``
+=======================================
+
+.. meta::
+   :description: Configure TLS encryption for mongot in a self-managed MongoDB Search Community deployment. Encrypt sync source connections and Query Server connections between mongot and mongod.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+|text-search| and |vector-search| use two internal communication
+channels between ``mongot`` and ``mongod``:
+
+- **Sync source connections** (``mongot`` → ``mongod``/``mongos``):
+  ``mongot`` reads data and metadata from the replica set to build
+  and maintain search indexes. You can configure TLS for this connection
+  in the ``syncSource`` section of the ``mongot`` configuration file.
+
+- **Query Server connections** (``mongod`` → ``mongot``): ``mongod``
+  forwards |text-search| and |vector-search| queries and index
+  management commands to ``mongot`` over gRPC. You configure TLS
+  for this connection in the ``server.grpc.tls`` section of the
+  ``mongot`` configuration file.
+
+.. :snippet-start: configure-tls-sync-source
+
+Configure TLS for Sync Source Connections
+-----------------------------------------
+
+``mongot`` connects to the replica set as a MongoDB client to sync
+data for indexing. To encrypt this connection, configure the
+``scramAuth.tls`` block in the :setting:`syncSource.replicaSet`
+section of your ``mongot`` configuration file.
+
+.. code-block:: yaml
+   :caption: Example: Enable TLS for the sync source in the mongot configuration file
+   :emphasize-lines: 7-11
+
+   syncSource:
+      replicaset:
+         hostAndPort: "localhost:27017" #Replace with the mongod host and port.
+      scramAuth:
+         username: "mongot"
+         passwordFile: "/etc/mongot/secrets/passwordFile"
+         tls:
+            enabled: true
+            tlsCertificateKeyFile: "/path/to/mongot-client.pem"
+            tlsCertificateKeyFilePasswordFile: "etc"
+            caFile: "/path/to/ca.pem"
+
+If you don't specify ``caFile`` in the ``scramAuth.tls``
+configuration, ``mongot`` uses the system keystore to verify the
+server certificate. Specify a CA file to control the certificates
+that ``mongot`` trusts.
+
+If ``mongot`` connects to a sharded cluster through a ``mongos``
+router, you must also set :setting:`syncSource.router.tls` to
+``true``.
+
+.. :snippet-end:
+
+.. :snippet-start: configure-tls-query-server
+
+Configure TLS for the Query Server
+----------------------------------
+
+``mongod`` connects to ``mongot`` over gRPC to send |text-search| and
+|vector-search| queries. To encrypt this connection, configure
+:setting:`server.grpc.tls` in your ``mongot`` configuration file.
+
+The Query Server supports the following TLS modes:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Mode
+     - Description
+
+   * - ``"disabled"``
+     - Disable TLS. ``mongod`` connects to ``mongot`` without
+       encryption. This is the default value.
+
+   * - ``"TLS"``
+     - Enable TLS. ``mongot`` presents a server certificate
+       to ``mongod``. ``mongod`` validates the certificate using
+       the ``--tlsCAFile`` option.
+
+   * - ``"mTLS"``
+     - Enable Mutual TLS. Both ``mongot`` and ``mongod``
+       present certificates and authenticate each other before
+       any search traffic flows.
+
+Enable TLS on the Query Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To enable TLS on the Query Server, set :setting:`server.grpc.tls.mode`
+to ``"TLS"`` and specify the path to the ``mongot`` certificate and
+private key PEM file:
+
+.. code-block:: yaml
+   :emphasize-lines: 5
+
+   server:
+      grpc:
+         address: "<host>:<port>"
+         tls:
+            mode: "TLS"
+            certificateKeyFile: "/etc/mongot-tls/mongot-combined.pem"
+
+Enable mTLS on the Query Server
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To enable mutual TLS on the Query Server, set
+:setting:`server.grpc.tls.mode` to ``"mTLS"``. Specify the
+certificate key file and CA file so that ``mongot`` can authenticate
+to ``mongod``:
+
+.. code-block:: yaml
+
+   server:
+      grpc:
+         address: "<host>:<port>"
+         tls:
+            mode: "mTLS"
+            certificateKeyFile: "/etc/mongot-tls/mongot-combined.pem"
+            caFile: "/etc/mongot-tls/ca.pem"
+
+.. :snippet-end:

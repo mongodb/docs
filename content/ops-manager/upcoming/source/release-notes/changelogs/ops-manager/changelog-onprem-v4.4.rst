@@ -478,7 +478,7 @@
     You now see the :doc:`Profiler </tutorial/profile-database>`. |mms|
     sources the data points from your
     :ref:`slow query logs <pa-slow-queries>`. These
-    :manual:`data points </reference/configuration-options/#operationprofiling-options>` have
+    :ref:`data points <operation-profiling-configuration-options>` have
     been logged since |onprem| 4.2 through the
     :ref:`Performance Advisor <pa-slow-queries>`.
 

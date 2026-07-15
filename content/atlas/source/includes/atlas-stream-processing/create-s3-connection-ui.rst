@@ -13,6 +13,38 @@ To add an |s3| connection to your {+spw+} through
       Access
       <https://docs.mongodb.com/atlas/security/set-up-unified-aws-access/?interface=atlas-ui>`__.
 
+      Ensure that your IAM policy grants the necessary permissions for
+      your use case:
+
+      - Writing to an |s3| bucket with ``$emit``
+      - Writing to an {+iceberg+} table with the standard ``hadoop``
+	catalog type
+      - Writing to an {+iceberg+} table with the |aws| ``glue``
+	catalog type
+      
+      Use the following examples to guide your policy creation.
+
+      .. collapsible:: 
+	 :heading: $emit
+	 :sub_heading: IAM policy for standard S3 $emit
+	 :expanded: false
+
+	 .. include:: includes/atlas-stream-processing/atlas-sp-s3-emit-iam.rst	    
+		    
+      .. collapsible:: 
+	 :heading: $iceberg
+	 :sub_heading: IAM policy for standard $iceberg output
+	 :expanded: false
+
+	 .. include:: includes/atlas-stream-processing/atlas-sp-s3-iceberg-iam.rst         
+		    
+      .. collapsible:: 
+	 :heading: $iceberg with Glue
+	 :sub_heading: IAM policy for $iceberg with the Glue catalog type
+	 :expanded: false	      
+
+	 .. include:: includes/atlas-stream-processing/atlas-sp-s3-iceberg-glue-iam.rst       
+		    
       Ensure that you grant your IAM role ``ListAllMyBuckets`` and
       ``PutObject`` permissions.
 

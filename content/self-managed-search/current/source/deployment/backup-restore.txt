@@ -1,0 +1,100 @@
+.. _mongot-backup-restore:
+
+===============================
+Back Up and Restore mongot Data
+===============================
+
+.. meta::
+   :description: Learn how to back up and restore mongot index data using filesystem snapshots to minimize recovery time for self-managed MongoDB Search and Vector Search deployments.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can back up {+fts+} and {+avs+} index data using filesystem
+snapshots. A filesystem snapshot creates a point-in-time copy of
+the ``mongot`` data directory, which you can use to restore your
+indexes without rebuilding them from source data.
+
+Considerations
+--------------
+
+Index Recovery
+~~~~~~~~~~~~~~
+
+``mongot`` is not the primary data store for your data. If ``mongot`` data is
+corrupted or lost, MongoDB can rebuild {+fts+} and {+avs+} indexes from the
+source data in ``mongod``. However, index builds can be slow and in some cases
+can take days to complete. 
+
+If your application requires minimal recovery time, use regular filesystem snapshots.
+
+Backup Validity
+~~~~~~~~~~~~~~~
+
+``mongot`` replicates data from ``mongod`` through a :ref:`change stream
+<changeStreams>`. A ``mongot`` backup is only valid for the change-stream
+retention period. If you restore from a backup that is older than the retention
+period, ``mongot`` detects that it fell off the oplog and rebuilds indexes
+from the source data in ``mongod``. The restored snapshot data remains
+immediately queryable during the rebuild. Search results may reflect
+a point in time earlier than the current state of ``mongod`` until
+the rebuild completes.
+
+Back Up ``mongot``
+------------------
+
+To back up ``mongot``, stop your ``mongot`` instance and take a filesystem
+snapshot of the ``mongot`` data directory using the tool of your choice. For a
+complete example using LVM on Linux, see :ref:`lvm-backup-and-restore`.
+
+Restore ``mongot``
+------------------
+
+To restore ``mongot`` from a filesystem snapshot, use the tool of your choice to
+restore a backup snapshot to the ``mongot`` data directory. You also must delete
+the ``serverId.txt`` file from the ``mongot`` data directory before you restart
+``mongot`` to generate a new server identity.
+
+After you restore the snapshot and restart ``mongot``, MongoDB reads the
+restored index data and resumes replication from your ``mongod`` instance. For a complete
+example using LVM on Linux, see :ref:`backup-restore-snapshot`.
+
+|mck| Considerations
+-------------------------------------------------
+
+Retaining recent snapshots of ``mongot`` persistent volumes provides a faster
+recovery path for pod replacement, node maintenance, and storage recovery
+compared to rebuilding indexes from source data. |mck| doesn't automatically back
+up or restore ``mongot`` persistent volumes. Plan backups of the persistent
+volume that stores the ``mongot`` data directory using your storage platform's
+filesystem or volume snapshot capability.
+
+Rescheduled and Replaced Pods
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If |mck| reschedules or replaces a ``mongot`` pod, attach its existing
+persistent volume to the new pod to reuse local index data instead of rebuilding
+all indexes from source data. If you made changes to your deployment after you
+took the backup snapshot, ``mongot`` must catch up from ``mongod`` after
+startup. 
+
+Restoring ``mongot`` in Kubernetes 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+To restore ``mongot`` in Kubernetes, restore the backup snapshot to the
+persistent volume. Ensure that the replacement pod mounts that volume and that
+you delete the ``serverId.txt`` file before you restart ``mongot``.
+
+Learn More
+----------
+
+- :ref:`backup-restore-filesystem-snapshots`
+- :ref:`lvm-backup-and-restore`
+- :ref:`backup-restore-snapshot`

@@ -384,22 +384,22 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Kotlin Sync Driver',
                 isExternal: true,
-                url: 'https://mongodb.github.io/mongo-java-driver/5.8/apidocs/driver-kotlin-sync/index.html',
+                url: 'https://mongodb.github.io/mongo-java-driver/5.9/apidocs/driver-kotlin-sync/index.html',
               },
               {
                 label: 'BSON kotlinx.serialization',
                 isExternal: true,
-                url: 'https://mongodb.github.io/mongo-java-driver/5.8/apidocs/bson-kotlinx/index.html',
+                url: 'https://mongodb.github.io/mongo-java-driver/5.9/apidocs/bson-kotlinx/index.html',
               },
               {
                 label: 'Kotlin Driver Extensions',
                 isExternal: true,
-                url: 'https://mongodb.github.io/mongo-java-driver/5.8/apidocs/driver-kotlin-extensions/index.html',
+                url: 'https://mongodb.github.io/mongo-java-driver/5.9/apidocs/driver-kotlin-extensions/index.html',
               },
               {
                 label: 'Driver Core',
                 isExternal: true,
-                url: 'https://mongodb.github.io/mongo-java-driver/5.8/apidocs/driver-core/index.html',
+                url: 'https://mongodb.github.io/mongo-java-driver/5.9/apidocs/driver-core/index.html',
               },
             ],
           },

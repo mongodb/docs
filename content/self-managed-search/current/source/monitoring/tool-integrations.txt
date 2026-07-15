@@ -1,0 +1,372 @@
+.. _mongot-tool-integrations:
+
+============================
+Monitoring Tool Integrations
+============================
+
+.. meta::
+   :description: Learn how to configure and use monitoring tool integrations with mongot to observe and manage your self-managed MongoDB Search and Vector Search deployments.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+This page describes how to integrate ``mongot`` metrics and logs with
+common monitoring platforms. These instructions assume that you already
+run one of these tools and need the ``mongot``-specific configuration.
+This page does not teach Prometheus, Grafana, or another platform from
+scratch.
+
+This guidance targets site reliability engineers and platform teams
+who integrate ``mongot`` into an existing observability stack.
+
+Available Monitoring Surfaces
+-----------------------------
+
+The following table summarizes the surfaces that ``mongot`` exposes
+for monitoring:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 12 20 22 16 30
+
+   * - Surface
+     - Protocol
+     - Default endpoint
+     - Configured under
+     - Notes
+
+   * - Metrics
+     - HTTP, Prometheus text format
+     - ``localhost:9946/metrics``
+     - | ``metrics``
+       | ``.address``
+     - The included ``config.default.yml`` binds to ``localhost:9946``
+       only. Override it to ``0.0.0.0:9946`` for off-host scraping.
+       ``mongot`` applies no authentication by default. Protect the
+       endpoint at the network layer.
+
+   * - Liveness
+     - HTTP
+     - ``localhost:8080/health``
+     - | ``healthCheck``
+       | ``.address``
+     - Returns ``{"status":"SERVING"}`` after ``mongot`` binds its
+       services.
+
+   * - Readiness
+     - HTTP
+     - ``localhost:8080/ready``
+     - | ``healthCheck``
+       | ``.address``
+     - Returns ``{"status":"SERVING"}`` when ``mongot`` is ready to
+       receive traffic. This means replication is initialized and
+       catalog indexes are queryable. If no indexes exist, ``mongot``
+       reports ready.
+
+   * - Logs
+     - stdout and stderr, or a file
+     - Per logging configuration
+     - ``logging``
+     - JSON or text, depending on the configuration.
+
+   * - FTDC
+     - On-disk binary stream
+     - ``<storage.dataPath>/diagnostic.data/``
+     - ``advancedConfigs.ftdc``
+     - Enabled by default. Tune or disable with
+       ``advancedConfigs.ftdc``. To learn more, see
+       :ref:`mongot-logs-ftdc`.
+
+Prometheus and Grafana
+----------------------
+
+Prometheus with Grafana is the recommended monitoring stack for most
+self-managed deployments. The stack is free, widely supported, and
+works directly with the ``mongot`` metrics endpoint.
+
+Scrape Configuration
+~~~~~~~~~~~~~~~~~~~~~
+
+Add a scrape job to your Prometheus configuration:
+
+.. code-block:: yaml
+
+   scrape_configs:
+     - job_name: mongot
+       scrape_interval: 15s
+       scrape_timeout: 10s
+       static_configs:
+         - targets:
+             - mongot-host-1.internal:9946
+             - mongot-host-2.internal:9946
+           labels:
+             deployment: prod
+             edition: ce
+
+For {+k8s+} deployments that the {+k8s-op+} manages, use a
+``PodMonitor`` or ``ServiceMonitor`` resource with the Prometheus
+Operator. Target the pods labeled ``app=<resource-name>-search``:
+
+.. code-block:: yaml
+
+   apiVersion: monitoring.coreos.com/v1
+   kind: PodMonitor
+   metadata:
+     name: mongot
+     namespace: <mongot-namespace>
+   spec:
+     selector:
+       matchLabels:
+         app: <resource-name>-search
+     podMetricsEndpoints:
+       - port: metrics
+         interval: 15s
+
+Recording Rules
+~~~~~~~~~~~~~~~
+
+Recording rules reduce PromQL repetition and make Grafana queries
+faster. The following rules use the metric names that self-managed
+``mongot`` exposes:
+
+.. code-block:: yaml
+
+   groups:
+     - name: mongot_recording
+       interval: 30s
+       rules:
+         - record: mongot:search_latency_p99
+           expr: max(mongot_command_searchCommandTotalLatency_seconds{quantile="0.99"})
+
+         - record: mongot:vector_search_latency_p99
+           expr: max(mongot_command_vectorSearchCommandTotalLatency_seconds{quantile="0.99"})
+
+         - record: mongot:search_rate:rate5m
+           expr: sum(rate(mongot_command_searchCommandTotalLatency_seconds_count[5m]))
+
+         - record: mongot:search_failure_rate:rate5m
+           expr: sum(rate(mongot_command_searchCommandFailure_total[5m]))
+
+         - record: mongot:replication_lag_ms:max
+           expr: max(mongot_index_stats_indexing_replicationLagMs)
+
+         - record: mongot:heap_utilization_post_gc
+           expr: mongot_jvm_gc_live_data_size_bytes / mongot_jvm_gc_max_data_size_bytes
+
+         - record: mongot:gc_pause_worst
+           expr: max(mongot_jvm_gc_pause_seconds_max)
+
+Alert Rules
+~~~~~~~~~~~
+
+Translate the recommended alerts into Prometheus alert rules. For
+example:
+
+.. code-block:: yaml
+
+   groups:
+     - name: mongot_alerts
+       rules:
+         - alert: MongotDown
+           expr: up{job="mongot"} == 0
+           for: 1m
+           labels:
+             severity: page
+           annotations:
+             summary: "mongot is down ({{ $labels.instance }})"
+
+         - alert: MongotReplicationLagGrowing
+           expr: deriv(max(mongot_index_stats_indexing_replicationLagMs)[15m:1m]) > 500
+           for: 10m
+           labels:
+             severity: page
+
+         - alert: MongotHeapPressure
+           expr: mongot:heap_utilization_post_gc > 0.85
+           for: 5m
+           labels:
+             severity: page
+
+To translate the full set of alerts into PromQL, see
+:ref:`mongot-recommended-alerts`.
+
+Grafana Dashboard Skeleton
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A starter Grafana dashboard for ``mongot`` should include the
+following panel groups:
+
+- **Process**: uptime, restart count, CPU, and resident memory.
+- **JVM**: heap used compared to max, post-GC heap, GC pause time,
+  and threads.
+- **Replication**: current state, lag in milliseconds and rate, and
+  events applied per second.
+- **Indexing**: active builds, per-index status, indexing failures,
+  and merge backlog.
+- **Query**: rate by operator, latency p50, p95, and p99 by operator,
+  and error rate.
+- **Executors**: queue depth by pool and rejected tasks.
+- **Storage**: free bytes, IOPS, and page-fault rate.
+- **Embedding** (if enabled): request rate, latency, errors, and
+  token throughput.
+
+OpenTelemetry
+-------------
+
+If your organization standardizes on OpenTelemetry, the OpenTelemetry
+Collector can ingest ``mongot`` metrics from the Prometheus endpoint
+and forward them to any OTLP-compatible backend:
+
+.. code-block:: yaml
+
+   receivers:
+     prometheus:
+       config:
+         scrape_configs:
+           - job_name: mongot
+             scrape_interval: 15s
+             static_configs:
+               - targets:
+                   - localhost:9946
+
+   exporters:
+     otlphttp:
+       endpoint: https://<your-otel-backend>
+
+   service:
+     pipelines:
+       metrics:
+         receivers:
+           - prometheus
+         exporters:
+           - otlphttp
+
+This pattern is provider-neutral. The same collector configuration
+works for Honeycomb, Grafana Cloud, New Relic, and other backends.
+
+To forward logs, configure ``mongot`` to write JSON to stdout. The
+collector can then parse the structured fields and route the logs to
+your backend.
+
+Log Forwarding
+--------------
+
+``mongot`` writes structured JSON logs to stdout and stderr by default.
+Forward stdout to your centralized log platform and ingest the logs as
+JSON.
+
+Fluent Bit and Vector
+~~~~~~~~~~~~~~~~~~~~~
+
+Fluent Bit and Vector both work for ``mongot`` log collection. Treat the
+logs as a tagged stream. To learn which log patterns matter most, see
+:ref:`mongot-logs-ftdc`.
+
+CloudWatch Logs
+~~~~~~~~~~~~~~~
+
+For AWS-hosted deployments, the CloudWatch agent can tail the log
+file directly. Create a CloudWatch metric filter on key log
+patterns, such as ``Exception requiring resync``, to convert log
+events into metrics.
+
+Health Checks
+-------------
+
+``mongot`` exposes two HTTP endpoints on port ``8080`` by
+default:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 20 65
+
+   * - Endpoint
+     - Use For
+     - Meaning
+
+   * - ``/health``
+     - Liveness
+     - ``mongot`` has bound its services. Use this endpoint to detect
+       a crashed or hung process. It does not indicate that
+       ``mongot`` can serve queries.
+
+   * - ``/ready``
+     - Readiness
+     - ``mongot`` has finished initializing index replication. Use
+       this endpoint to gate traffic into a pod.
+
+Both endpoints return JSON with HTTP 200. Treat
+``{"status":"SERVING"}`` as healthy and ``{"status":"NOT_SERVING"}``
+as unhealthy. An invalid query parameter returns HTTP 400 with
+``{"error":"BAD_REQUEST"}``.
+
+Like the metrics endpoint, the ``/health`` and ``/ready`` endpoints
+are unauthenticated by default. Protect them at the network layer.
+
+In {+k8s+}, map the liveness probe to ``/health`` and the readiness
+probe to ``/ready``:
+
+.. code-block:: yaml
+
+   livenessProbe:
+     httpGet:
+       path: /health
+       port: 8080
+     initialDelaySeconds: 30
+     periodSeconds: 10
+     failureThreshold: 3
+
+   readinessProbe:
+     httpGet:
+       path: /ready
+       port: 8080
+     initialDelaySeconds: 5
+     periodSeconds: 5
+     failureThreshold: 3
+
+If you use ``/health`` for both probes, a pod can receive traffic
+before its indexes initialize, because ``/health`` returns
+``SERVING`` as soon as the services bind. The two-endpoint split
+exists to separate these signals.
+
+When the {+k8s-op+} manages more than one ``mongot`` pod, it
+provisions a default load balancer and routes traffic based on the
+``/ready`` endpoint for you. For self-managed deployments that run
+their own load balancer in front of multiple ``mongot`` instances,
+configure the load balancer to route traffic only to instances that
+return ``SERVING`` on ``/ready``.
+
+To keep a pod ready even when some indexes fail to initialize, set
+the readiness probe path to ``/ready?allowFailedIndexes=true``. This
+setting is a deliberate tradeoff, because failed indexes return empty
+results for queries that reach them.
+
+Multi-Instance Considerations
+-----------------------------
+
+If your deployment runs more than one ``mongot`` instance, each
+instance exposes its own metrics endpoint. Scrape each instance
+individually, then use Prometheus aggregations, such as ``sum``,
+``max``, and ``avg``, to see a combined view of the metrics.
+
+Track replication lag, executor queue depth, and query latency for
+each instance and in aggregate. A single saturated instance can
+degrade latency for the queries it serves, and fleet-wide averages
+can hide this degradation.
+
+For sharded clusters, label each scrape with the shard name so that
+you can roll the metrics up per shard.
+
+FTDC and Support Cases
+----------------------
+
+When you open a MongoDB Support case, attach the FTDC capture from the
+affected ``mongot`` instance. To learn the capture procedure, see
+:ref:`mongot-logs-ftdc`.

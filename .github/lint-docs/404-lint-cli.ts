@@ -151,13 +151,67 @@ function checkLycheeInstalled(): boolean {
 }
 
 /**
+ * Strip RST code block content before link-checking.
+ *
+ * URLs inside code blocks are example/placeholder values, not real links.
+ * This function replaces the body of every code block with blank lines so
+ * lychee never sees those URLs, while preserving line numbers for any
+ * findings in the surrounding prose.
+ *
+ * Handles: .. code-block::, .. code::, .. sourcecode::, .. literalinclude::
+ * and the shorthand double-colon (::) paragraph ending.
+ */
+function stripCodeBlocks(content: string): string {
+  const lines = content.split('\n');
+  const result: string[] = [];
+  let inCodeBlock = false;
+  let directiveIndent = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const trimmed = line.trim();
+    const lineIndent = line.length - line.trimStart().length;
+
+    if (!inCodeBlock) {
+      // Explicit code block directives
+      if (/^\s*\.\.\s+(code-block|code|sourcecode|literalinclude|testsetup|testcleanup|doctest|testoutput|io-code-block)::/i.test(line)) {
+        inCodeBlock = true;
+        directiveIndent = lineIndent;
+        result.push(line); // keep the directive line itself
+      // Shorthand :: at end of a paragraph line
+      } else if (/\S.*::\s*$/.test(line) && !line.trimStart().startsWith('..')) {
+        inCodeBlock = true;
+        directiveIndent = lineIndent;
+        result.push(line);
+      } else {
+        result.push(line);
+      }
+    } else {
+      if (trimmed === '') {
+        // Blank lines are allowed inside code blocks
+        result.push('');
+      } else if (lineIndent > directiveIndent) {
+        // Indented content (code body or directive options) — blank out
+        result.push('');
+      } else {
+        // Non-blank line back at or below directive indent — code block ended
+        inCodeBlock = false;
+        result.push(line);
+      }
+    }
+  }
+
+  return result.join('\n');
+}
+
+/**
  * Normalize RST content to join multi-line URLs
- * 
+ *
  * RST allows URLs to wrap across lines like:
  *   `link text
  *   <https://example.com/very/long/
  *   url/path>`__
- * 
+ *
  * This function joins those into single lines so lychee can parse them.
  */
 function normalizeMultiLineUrls(content: string): string {
@@ -334,7 +388,8 @@ function main(): void {
   try {
     for (const file of docFiles) {
       const content = readFileSync(file, 'utf-8');
-      const normalized = normalizeMultiLineUrls(content);
+      const stripped = stripCodeBlocks(content);
+      const normalized = normalizeMultiLineUrls(stripped);
       
       // Create temp file with same name structure
       const tempFile = join(tempDir, file.replace(/\//g, '_'));
@@ -367,9 +422,7 @@ function main(): void {
     console.log(`\n📄 Results written to: ${outputFile}`);
   }
   
-  // Exit with error code if there are broken links
-  // But we use exit code 0 anyway since pre-commit shouldn't block
-  process.exit(0);
+  process.exit(brokenLinks.length > 0 ? 1 : 0);
 }
 
 main();

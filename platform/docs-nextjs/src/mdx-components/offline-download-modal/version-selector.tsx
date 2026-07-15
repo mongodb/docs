@@ -35,12 +35,13 @@ const optionStyling = css`
 type VersionSelectProps = {
   offlineRepo: OfflineObject;
   versions: OfflineVersion[];
+  versionIndex: number;
   onSelect: (e: number) => void;
   tableRef: RefObject<HTMLDivElement>;
 };
 
-export const VersionSelect = ({ offlineRepo, versions, onSelect, tableRef }: VersionSelectProps) => {
-  const [selected, setSelected] = useState(() => 0);
+export const VersionSelect = ({ offlineRepo, versions, versionIndex, onSelect, tableRef }: VersionSelectProps) => {
+  const [selected, setSelected] = useState(() => versionIndex);
   useEffect(() => {
     onSelect(selected);
   }, [onSelect, selected]);

@@ -60,12 +60,12 @@ const tocData: TocItem[] = [
           {
             label: 'Assess Business Loan Risks',
             contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/assessing-business-loan-risks-with-generative-ai',
+            url: '/docs/atlas/architecture/:version/solutions-library/loan-risk-gen-ai',
           },
           {
             label: 'Credit Card Application',
             contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/credit-card-application-with-generative-ai',
+            url: '/docs/atlas/architecture/:version/solutions-library/credit-card-gen-ai',
           },
         ],
       },
@@ -137,6 +137,11 @@ const tocData: TocItem[] = [
         contentSite: 'atlas-architecture',
         collapsible: true,
         items: [
+          {
+            label: 'Clinical Decision Support',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/clinical-decision-support',
+          },
           {
             label: 'Hybrid FHIR ODL',
             contentSite: 'atlas-architecture',
@@ -252,7 +257,7 @@ const tocData: TocItem[] = [
           {
             label: 'Automotive Diagnostics',
             contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-automotive-diagnostics',
+            url: '/docs/atlas/architecture/:version/solutions-library/auto-diagnostics',
           },
           {
             label: 'Build an Automotive Diagnostics App',
@@ -304,6 +309,11 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/inventory-optimization',
           },
           {
+            label: 'AI Powered Track and Trace',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/ai-track-trace',
+          },
+          {
             label: 'Event-Driven Inventory Management System',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-event-driven-inventory',
@@ -331,11 +341,6 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/iot-datahub-smart-manufacturing',
           },
           {
-            label: 'Framework for Rapid AI Agent Deployment',
-            contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-agentic-ai-framework',
-          },
-          {
             label: 'Multi-Agent Predictive Maintenance',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/multi-agent-predictive-maintenance',
@@ -343,7 +348,7 @@ const tocData: TocItem[] = [
           {
             label: 'Predictive Maintenance Excellence',
             contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-asset-predictive-maintenance',
+            url: '/docs/atlas/architecture/:version/solutions-library/predictive-maintenance',
           },
           {
             label: 'Unified Namespace Data Integrity',

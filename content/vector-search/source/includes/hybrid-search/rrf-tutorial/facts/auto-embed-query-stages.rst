@@ -1,0 +1,46 @@
+The sample query uses the ``$rankFusion`` stage to execute the
+semantic and full text queries independently and then de-duplicate and
+combine the input query results into a final ranked results set. It
+returns a ranked set of documents based on the ranks that appear in
+their input pipelines and the pipeline weights. Specifically, this stage
+takes the following input pipelines:
+
+.. list-table:: 
+   :widths: 30 70 
+
+   * - ``vectorPipeline``  
+     - This pipeline contains the :pipeline:`$vectorSearch` query. It
+       searches the ``fullplot`` field for the string *charming animal*. 
+       The query uses the ``voyage-4`` embedding model from |voyage| to 
+       generate embeddings for the query text, which is the same model 
+       used for the generating embeddings in the ``fullplot`` field. The 
+       query also specifies a search for up to ``500`` nearest neighbors 
+       and limit the results to ``50`` documents only. This stage returns 
+       the sorted documents from the semantic search in the results.
+
+   * - ``fullTextPipeline``  
+     - This pipeline contains the following stages: 
+      
+       - :pipeline:`$search` to search for movies that contain the term
+         ``charming animal`` in the ``fullplot`` field. This stage returns 
+         the sorted documents from the full-text search in the results. 
+       - :pipeline:`$limit` to limit the output of :pipeline:`$search`
+         stage to ``50`` results only. 
+
+The sample query uses the following stages to combine the results of the
+semantic and text search and return a single ranked list of documents in
+the results:
+
+.. list-table:: 
+   :widths: 30 70 
+
+   * - :pipeline:`$project` 
+     - Includes only the following fields in the results:  
+
+       - ``_id`` 
+       - ``title`` 
+       - ``fullplot``
+       - ``scoreDetails``
+    
+   * - :pipeline:`$limit` 
+     - Limits the output to ``10`` results only.

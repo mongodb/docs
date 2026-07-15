@@ -95,7 +95,7 @@
 
       Click the name of the replica
       set to open the cluster view. Verify that the
-      :manual:`status </reference/replica-states>` for each
+      :ref:`status <replica-set-member-states>` for each
       new member is no longer in the ``Recovering`` state.
 
    .. include:: /includes/nav/steps-processes.rst
@@ -110,11 +110,11 @@
       
       .. important::
       
-         Removing the :manual:`primary </reference/glossary/#std-term-primary>` replica set member triggers
-         an :manual:`election </core/replica-set-elections/>`. The
+         Removing the :term:`primary` replica set member triggers
+         an :ref:`election <replica-set-election-internals>`. The
          replica set cannot process write operations until the election
          completes. For complete documentation on replica set elections,
-         see :manual:`Replica Set Elections </core/replica-set-elections>`.
+         see :ref:`Replica Set Elections <replica-set-election-internals>`.
       
       #. Click :guilabel:`Save`. 
       

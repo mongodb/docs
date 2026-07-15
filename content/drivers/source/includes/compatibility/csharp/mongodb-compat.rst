@@ -23,7 +23,7 @@ The following table shows compatibility between the .NET/C# driver and {+mdb-ser
      - ✓
      - ✓
      - ✓
-     - ✗
+     -
 
    * - 3.8 to 3.9
      - ✓
@@ -86,7 +86,7 @@ The following table shows compatibility between the .NET/C# driver and {+mdb-ser
      - ✓
 
    * - 2.0 to 2.6
-     -
+     - ✗ [#8.1-note]_
      - ✗ [#8.1-note]_
      -
      -

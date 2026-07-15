@@ -1948,6 +1948,11 @@ export const toc: L1TocItem[] = [
                         ],
                       },
                       {
+                        label: 'Sorted Index',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/search/index/sort',
+                      },
+                      {
                         label: 'Stored Source',
                         contentSite: 'search',
                         url: '/docs/search/index/stored-source-definition',
@@ -2206,6 +2211,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/search/tutorial/hybrid-search',
                   },
                   {
+                    label: 'Native Reranking',
+                    contentSite: 'docs',
+                    url: 'https://www.mongodb.com/docs/vector-search/query/native-reranking/quickstart',
+                  },
+                  {
                     label: 'Synonyms',
                     contentSite: 'search',
                     url: '/docs/search/tutorial/synonyms-tutorial',
@@ -2249,7 +2259,7 @@ export const toc: L1TocItem[] = [
                 ],
               },
               {
-                label: 'Monitor Atlas Search',
+                label: 'Monitor Search',
                 contentSite: 'search',
                 collapsible: true,
                 url: '/docs/search/deployment/monitoring',
@@ -2307,7 +2317,7 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Changelog',
                 isExternal: true,
-                url: 'https://www.mongodb.com/docs/search/changelog/',
+                url: 'https://www.mongodb.com/docs/atlas/search-changelog/',
               },
             ],
           },
@@ -2321,11 +2331,6 @@ export const toc: L1TocItem[] = [
                 label: 'Quick Start',
                 contentSite: 'vector-search',
                 url: '/docs/vector-search/tutorials/quick-start',
-              },
-              {
-                label: 'Compatibility & Limitations',
-                contentSite: 'vector-search',
-                url: '/docs/vector-search/deployment/compatibility-limitations',
               },
               {
                 label: 'Automated Embedding',
@@ -2387,6 +2392,33 @@ export const toc: L1TocItem[] = [
                     label: 'Use Compatible Views',
                     contentSite: 'vector-search',
                     url: '/docs/vector-search/query/view-support',
+                  },
+                ],
+              },
+              {
+                label: 'Native Reranking',
+                contentSite: 'vector-search',
+                collapsible: true,
+                items: [
+                  {
+                    label: '$rerank Aggregation Stage',
+                    contentSite: 'vector-search',
+                    url: '/docs/vector-search/query/aggregation-stages/rerank',
+                  },
+                  {
+                    label: 'Get Started',
+                    contentSite: 'vector-search',
+                    url: '/docs/vector-search/query/native-reranking/quickstart',
+                  },
+                  {
+                    label: 'Manage Native Reranking',
+                    contentSite: 'vector-search',
+                    url: '/docs/vector-search/query/native-reranking/managing',
+                  },
+                  {
+                    label: 'Manage Billing',
+                    contentSite: 'vector-search',
+                    url: '/docs/vector-search/query/native-reranking/billing',
                   },
                 ],
               },
@@ -2513,7 +2545,7 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Changelog',
                 isExternal: true,
-                url: 'https://www.mongodb.com/docs/vector-search/changelog/',
+                url: 'https://www.mongodb.com/docs/atlas/search-changelog/',
               },
             ],
           },
@@ -4201,7 +4233,6 @@ export const toc: L1TocItem[] = [
                     label: 'Query Plan Cache',
                     contentSite: 'docs',
                     collapsible: true,
-                    url: '/docs/:version/reference/command/nav-plan-cache',
                     items: [
                       {
                         label: 'planCacheClear',
@@ -4229,7 +4260,6 @@ export const toc: L1TocItem[] = [
                     label: 'Authentication',
                     contentSite: 'docs',
                     collapsible: true,
-                    url: '/docs/:version/reference/command/nav-authentication',
                     items: [
                       {
                         label: 'authenticate',
@@ -4247,7 +4277,6 @@ export const toc: L1TocItem[] = [
                     label: 'User Management',
                     contentSite: 'docs',
                     collapsible: true,
-                    url: '/docs/:version/reference/command/nav-user-management',
                     items: [
                       {
                         label: 'createUser',
@@ -4290,7 +4319,6 @@ export const toc: L1TocItem[] = [
                     label: 'Role Management',
                     contentSite: 'docs',
                     collapsible: true,
-                    url: '/docs/:version/reference/command/nav-role-management',
                     items: [
                       {
                         label: 'createRole',
@@ -4348,7 +4376,6 @@ export const toc: L1TocItem[] = [
                     label: 'Replication',
                     contentSite: 'docs',
                     collapsible: true,
-                    url: '/docs/:version/reference/command/nav-replication',
                     items: [
                       {
                         label: 'appendOplogNote',
@@ -4421,7 +4448,6 @@ export const toc: L1TocItem[] = [
                     label: 'Sharding',
                     contentSite: 'docs',
                     collapsible: true,
-                    url: '/docs/:version/reference/command/nav-sharding',
                     items: [
                       {
                         label: 'abortMoveCollection',
@@ -4720,7 +4746,6 @@ export const toc: L1TocItem[] = [
                     label: 'Sessions',
                     contentSite: 'docs',
                     collapsible: true,
-                    url: '/docs/:version/reference/command/nav-sessions',
                     items: [
                       {
                         label: 'abortTransaction',
@@ -4768,7 +4793,6 @@ export const toc: L1TocItem[] = [
                     label: 'Administration',
                     contentSite: 'docs',
                     collapsible: true,
-                    url: '/docs/:version/reference/command/nav-administration',
                     items: [
                       {
                         label: 'autoCompact',
@@ -4971,7 +4995,6 @@ export const toc: L1TocItem[] = [
                     label: 'Diagnostics',
                     contentSite: 'docs',
                     collapsible: true,
-                    url: '/docs/:version/reference/command/nav-diagnostic',
                     items: [
                       {
                         label: 'buildInfo',
@@ -5084,7 +5107,6 @@ export const toc: L1TocItem[] = [
                     label: 'Auditing',
                     contentSite: 'docs',
                     collapsible: true,
-                    url: '/docs/:version/reference/command/nav-auditing',
                     items: [
                       {
                         label: 'logApplicationMessage',
@@ -5097,7 +5119,6 @@ export const toc: L1TocItem[] = [
                     label: 'Atlas Search',
                     contentSite: 'docs',
                     collapsible: true,
-                    url: '/docs/:version/reference/command/nav-atlas-search',
                     items: [
                       {
                         label: 'createSearchIndexes',
@@ -5238,6 +5259,11 @@ export const toc: L1TocItem[] = [
                         label: 'sp.processor.drop',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/method/sp.processor.drop',
+                      },
+                      {
+                        label: 'sp.processor.modify',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/method/sp.processor.modify',
                       },
                       {
                         label: 'sp.processor.sample',
@@ -9194,6 +9220,11 @@ export const toc: L1TocItem[] = [
                         contentSite: 'cloud-docs',
                         url: '/docs/atlas/atlas-stream-processing/sp-agg-externalFunction',
                       },
+                      {
+                        label: '$iceberg',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/atlas-stream-processing/sp-agg-iceberg',
+                      },
                     ],
                   },
                 ],
@@ -9201,7 +9232,15 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Security',
                 contentSite: 'cloud-docs',
+                collapsible: true,
                 url: '/docs/atlas/atlas-stream-processing/security',
+                items: [
+                  {
+                    label: 'Stream Processing Privilege Actions',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/atlas-stream-processing/privilege-actions',
+                  },
+                ],
               },
               {
                 label: 'Monitoring',
@@ -9681,14 +9720,21 @@ export const toc: L1TocItem[] = [
             ],
           },
           {
-            label: 'Search Release Notes',
+            label: 'Search & Vector Search Release Notes',
             contentSite: 'cloud-docs',
-            url: '/docs/atlas/atlas-search/changelog',
-          },
-          {
-            label: 'Vector Search Release Notes',
-            contentSite: 'vector-search',
-            url: '/docs/vector-search/changelog',
+            collapsible: true,
+            items: [
+              {
+                label: 'Atlas',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/search-changelog',
+              },
+              {
+                label: 'Self-Managed',
+                contentSite: 'vector-search',
+                url: '/docs/search/self-managed/:version/release-notes',
+              },
+            ],
           },
         ],
       },

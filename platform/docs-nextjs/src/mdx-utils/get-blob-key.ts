@@ -16,8 +16,3 @@ export const getBlobKey = (relativePath: string): string => {
   const lowerPath = relativePath.toLowerCase();
   return `${getPrefix(lowerPath)}/${lowerPath}`;
 };
-
-/** Same as getBlobKey but preserves original casing — use as camelCase fallback during lowercase migration */
-export const getBlobKeyOriginalCase = (relativePath: string): string => {
-  return `${getPrefix(relativePath.toLowerCase())}/${relativePath}`;
-};

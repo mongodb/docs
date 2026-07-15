@@ -3,8 +3,8 @@ to execute than the value of
 :manual:`slowms </reference/command/profile/#command-fields>`.
 By default, this value is ``100`` milliseconds. You can change the
 threshold with either the
-:manual:`profile </reference/command/profile>`
-command or the :manual:`db.setProfilingLevel() </reference/method/db.setProfilingLevel>`
+:dbcommand:`profile`
+command or the :method:`db.setProfilingLevel() <db.setProfilingLevel>`
 {+mongosh+} method.
 
 .. example::
@@ -41,4 +41,4 @@ by specifying the ``sampleRate`` parameter.
    By default, the value of ``profile`` is ``0``. MongoDB recommends
    leaving this value unchanged since other values can negatively
    impact database performance. To learn more, see the
-   :manual:`profile </reference/command/profile>` command.
+   :dbcommand:`profile` command.

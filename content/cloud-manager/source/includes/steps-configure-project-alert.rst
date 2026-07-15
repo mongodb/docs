@@ -27,7 +27,9 @@
 
       If the options in the :guilabel:`For` section are available, you can
       optionally filter the alert to apply only to a subset of the targets. 
-      The filter uses a logical ``OR`` operator between each condition.
+      The filter uses a logical ``AND`` operator between conditions,
+      so the alert applies only to targets that match all of the
+      specified conditions.
       
       The :guilabel:`matches` field can use regular expressions.
       

@@ -11,7 +11,7 @@
    * - ``delivery``
      - object
      - Required
-     - Method and details of how the restored :manual:`snapshot </reference/glossary/#std-term-snapshot>` data
+     - Method and details of how the restored :term:`snapshot` data
        is delivered.
 
    * - | ``delivery``

@@ -5,13 +5,15 @@ import remarkGfm from 'remark-gfm';
 import type { MdastNode } from './convertSnootyAstToMdast/types';
 import type { Root } from 'mdast';
 
-// Matches `<` followed by anything that isn't a valid tag start or whitespace (e.g. `<=`, `<100`)
-const INVALID_TAG_OPENER = /<(?![a-zA-Z$_\s])/;
+// Escapes `<` in `text` nodes (always literal text; real JSX lives in mdxJsx* nodes). Catches
+// cases like `<T>` generics, `<=`, and `<100` that MDX would otherwise mis-parse. Skips only `<`
+// before whitespace (e.g. `a < b`), which MDX already treats as literal.
+const INVALID_TAG_OPENER = /<(?!\s)/;
 
 /** Splits a text string at invalid `<` openers, replacing each with an html node that emits `\<` verbatim. */
 function splitTextAtInvalidOpeners(value: string): Array<{ type: string; value: string }> {
   const parts: Array<{ type: string; value: string }> = [];
-  const re = /<(?![a-zA-Z$_\s])/g;
+  const re = /<(?!\s)/g;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
 

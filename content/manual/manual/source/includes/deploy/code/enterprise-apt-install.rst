@@ -4,12 +4,11 @@
    .. tab:: Latest Release
       :tabid: latest
 
-      To install the latest release of MongoDB Enterprise
-      Server, run the following command:
+      To install the latest stable version, run the following command:
 
       .. code-block:: bash
 
-         sudo apt install --only-upgrade {+package-name-enterprise+}
+         sudo apt install -y {+package-name-enterprise+}
 
    .. tab:: Specific Release
       :tabid: specific

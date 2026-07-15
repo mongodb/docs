@@ -1,0 +1,124 @@
+.. _javars-mongodb-vector-search:
+
+=====================
+MongoDB Vector Search
+=====================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: full text, text analyzer, meta, pipeline, scoring, Lucene, AI, artificial intelligence, code example, semantic, nearest
+   :description: Learn about how to use MongoDB Vector Search in the {+driver-long+}.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use the 
+:atlas:`{+vector-search+} </atlas-vector-search/vector-search-overview/>` 
+feature in the {+driver-short+}. The ``Aggregates`` builders class provides the
+``vectorSearch()`` helper method that you can use to
+create a :atlas:`$vectorSearch </atlas-vector-search/vector-search-stage/>`
+pipeline stage. This pipeline stage allows you to perform a **semantic
+search** on your documents. A semantic search is a type of search which
+locates information that is similar in meaning, but not necessarily
+identical, to your provided search term or phrase.
+
+.. important:: Feature Compatibility
+
+   {+vector-search+} supports approximate nearest neighbor (ANN) search on Atlas clusters running MongoDB
+   v6.0.11, v7.0.2, or later and exact nearest neighbor (ENN) search on clusters running
+   MongoDB v6.0.16, v7.0.10, v7.3.2, or later. You can also use {+vector-search+}
+   with :ref:`self-managed <install-mdb-community-edition>` or
+   :atlascli:`local Atlas deployments </atlas-cli-deploy-local>` that you
+   create with the Atlas CLI.
+
+Sample Data
+~~~~~~~~~~~
+
+The examples in this guide use the ``embedded_movies`` collection in the
+``sample_mflix`` database from the :ref:`Atlas sample datasets <available-sample-datasets>`.
+To learn how to create a free MongoDB Atlas cluster and load the sample datasets, see the
+:ref:`<java-rs-getting-started>` tutorial.
+
+Perform a Vector Search
+-----------------------
+
+To run vector search queries, you must create a vector search index and index your
+vector embeddings. To learn about how to programmatically create a
+vector search index, see the :ref:`java-rs-atlas-search-idx-mgmt` section in the
+Indexes guide. To learn more about vector embeddings, see
+:atlas:`How to Index Vector Embeddings for Vector Search
+</atlas-search/field-types/knn-vector/>` in the Atlas documentation.
+
+After you create a vector search index on your vector embeddings, you
+can reference this index in your pipeline stage, as shown in the
+following section.
+
+Vector Search Example
+~~~~~~~~~~~~~~~~~~~~~
+
+This example builds an aggregation pipeline that performs the following actions:
+
+- Runs an ENN search on the ``plot_embedding`` field
+- Limits results to 1 document
+- Matches documents where the ``year`` value is greater than or equal to ``2016``
+- Projects the vector search score into a field called ``vectorSearchScore``
+
+.. literalinclude:: /includes/MongoDBVectorSearch.java
+   :start-after: // begin vectorSearch
+   :end-before: // end vectorSearch
+   :language: java
+   :dedent:
+
+.. tip:: Query Vector Type
+
+   The preceding example creates an instance of ``BinaryVector`` to
+   serve as the query vector, but you can also create a ``List`` of
+   ``Double`` instances. However, we recommend that you use the
+   ``BinaryVector`` type to improve storage efficiency.
+
+The following example shows how you can run the aggregation and print
+the vector search meta-score from the result of the preceding
+aggregation pipeline:
+
+.. io-code-block::
+
+   .. input:: /includes/MongoDBVectorSearch.java
+      :start-after: // begin vectorSearch-output
+      :end-before: // end vectorSearch-output
+      :language: java
+      :dedent:
+
+   .. output::
+      :language: shell
+      :visible: false
+
+      vectorSearch score: 0.8821365833282471
+
+API Documentation
+-----------------
+
+To learn more about the methods and types mentioned in this
+guide, see the following API documentation:
+
+- `Aggregates.vectorSearch()
+  <{+core-api+}/client/model/Aggregates.html#vectorSearch(com.mongodb.client.model.search.FieldSearchPath,java.lang.Iterable,java.lang.String,long,com.mongodb.client.model.search.VectorSearchOptions)>`__
+
+- `FieldSearchPath
+  <{+core-api+}/client/model/search/FieldSearchPath.html>`__
+
+- `VectorSearchOptions
+  <{+core-api+}/client/model/search/VectorSearchOptions.html>`__
+
+- `Projections.metaVectorSearchScore()
+  <{+core-api+}/client/model/Projections.html#metaVectorSearchScore(java.lang.String)>`__
+
+- `BinaryVector <{+api-root+}/bson/org/bson/BinaryVector.html>`__

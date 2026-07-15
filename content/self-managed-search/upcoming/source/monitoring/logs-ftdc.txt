@@ -1,0 +1,426 @@
+.. _mongot-logs-ftdc:
+
+====================
+mongot Logs and FTDC
+====================
+
+.. meta::
+   :description: Learn how to use mongot log files and Full Time Diagnostic Data Capture (FTDC) to diagnose issues with MongoDB Search and Vector Search on self-managed deployments.
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 3
+   :class: singlecol
+
+``mongot`` exposes two on-host diagnostic surfaces that help you
+diagnose issues with {+fts+} and {+avs+}:
+
+- **Logs**: The human-readable record of ``mongot`` activity, including
+  warnings and errors.
+- **FTDC (Full Time Diagnostic Data Capture)**: The binary diagnostic
+  stream that captures detailed internal state every second, intended
+  for support handoff.
+
+Use logs to investigate incidents, and capture both surfaces when you
+prepare a MongoDB Support case.
+
+Logs
+----
+
+``mongot`` logs record process activity, including warnings and errors.
+Use logs to verify that startup completes, monitor steady-state health,
+and investigate failures.
+
+Log Destinations
+~~~~~~~~~~~~~~~~
+
+Where ``mongot`` writes logs depends on your deployment type:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Deployment Type
+     - Default Destination
+
+   * - Linux tarball
+     - ``stdout`` and ``stderr``, or a file if you set
+       ``logging.logPath`` in the ``mongot`` YAML configuration.
+
+   * - Container
+     - ``stdout`` and ``stderr``. Retrieve logs with
+       ``docker logs <container>``.
+
+   * - ``atlas-local``
+     - ``stdout`` and ``stderr`` inside the container. Retrieve logs
+       with ``docker logs``.
+
+   * - {+k8s-op-short+}
+     - ``stdout`` and ``stderr`` of the pod. Retrieve logs with
+       ``kubectl logs <pod>``, and forward them to your cluster log
+       platform.
+
+Log Verbosity
+~~~~~~~~~~~~~
+
+The ``logging.verbosity`` option specified in your ``mongot``
+configuration file accepts the following levels:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Level
+     - When to Use
+
+   * - ``DEBUG``
+     - When you investigate a specific failure. Keep this level on for
+       hours, not days.
+
+   * - ``ERROR``
+     - Rarely appropriate for production, because you lose context for
+       ``WARN`` issues.
+
+   * - ``INFO``
+     - Default. Appropriate for production.
+
+   * - ``TRACE``
+     - Engineering and support deep-dive only. Very verbose.
+
+   * - ``WARN``
+     - When you need to reduce log volume and have separate alerting on
+       errors.
+
+``mongot`` reads verbosity at startup. To change it, restart
+``mongot``.
+
+Log Format
+~~~~~~~~~~
+
+``mongot`` emits structured JSON logs, with one JSON object per line.
+This format aligns ``mongot`` logs with the ``mongod``
+structured-logging format.
+
+Each ``mongot`` log entry includes fields such as ``t``, ``s``, ``svc``,
+``ctx``, ``n``, ``msg``, and optional ``attr``. For example:
+
+.. code-block:: json
+
+   {"t":"2026-06-22T14:03:41.582+0000","s":"INFO","svc":"MONGOT","ctx":"indexing-lifecycle-0","n":"com.xgen.mongot.replication.mongodb.initialsync.BufferlessInitialSyncManager","msg":"Beginning initial sync.","attr":{"startTime":"2026-06-22T14:03:41.582+0000","indexGenerationId":"6857f3b6e4b04c2a9d1f0a12-f6-u0-a0"}}
+
+Each log object contains the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 85
+
+   * - Field
+     - Description
+
+   * - ``t``
+     - Timestamp, in UTC and ISO-8601 format.
+
+   * - ``s``
+     - Severity. One of ``TRACE``, ``DEBUG``, ``INFO``, ``WARN``, or
+       ``ERROR``.
+
+   * - ``svc``
+     - Service that emitted the entry, such as ``MONGOT``.
+
+   * - ``ctx``
+     - Execution context, such as the thread or task name.
+
+   * - ``n``
+     - Logger name.
+
+   * - ``msg``
+     - Human-readable message.
+
+   * - ``attr``
+     - Optional event-specific structured attributes, such as
+       ``startTime``, ``numQueued``, and ``indexGenerationId``.
+       ``mongot`` omits null and empty values.
+
+What to Look for at Startup
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A healthy ``mongot`` startup emits a sequence of identifiable events at
+the default ``INFO`` verbosity. Look for these events rather than
+specific literal strings:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Event
+     - Message Text
+
+   * - Initial sync begins for an index
+     - ``Beginning initial sync.`` from
+       ``BufferlessInitialSyncManager``, with ``attr.startTime`` and
+       ``attr.indexGenerationId``.
+
+   * - Initial sync queue activity
+     - ``Queued initial syncs.`` from ``InitialSyncQueue``, with
+       ``attr.numQueued``.
+
+   * - Disk-based restart check at startup
+     - ``Replication URIs unavailable, skipping disk-based restart
+       check`` from ``DefaultConfigManager``. Expected transiently while
+       replication is wiring up.
+
+   * - Shutdown
+     - ``Shutting down.`` from ``DefaultConfigManager``, on graceful
+       shutdown.
+
+Additional informational lines exist at startup. The preceding events
+are the load-bearing ones for verification.
+
+The following indicators show that startup did not complete:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 55 45
+
+   * - Indicator
+     - Action
+
+   * - No ``Beginning initial sync.`` event appears even though the
+       cluster has indexed collections. ``mongot`` has not reached the
+       initial-sync stage.
+     - Look earlier in the log for authentication or replication-URI
+       errors.
+
+   * - A ``Beginning initial sync.`` event is followed by an
+       ``Exception requiring resync`` or ``InitialSyncException``. Sync
+       started but failed.
+     - To remediate, see :ref:`mongot-troubleshooting`.
+
+   * - The ``Replication URIs unavailable, skipping disk-based restart
+       check`` message repeats beyond a few seconds. ``mongot`` is
+       waiting on ``mongod`` configuration.
+     - Check the ``mongod`` ``mongotHost`` parameter.
+
+What to Look for in Steady State
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In steady state, healthy logs are mostly silent. Expect periodic
+informational messages from background tasks, such as merges and
+FTDC ticks, and occasional ``WARN`` entries for transient client
+behavior. Do not expect ``ERROR`` or ``Exception`` entries.
+
+The following steady-state log patterns warrant attention:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - Pattern
+     - Meaning
+
+   * - ``Exception requiring resync occurred during steady state
+       replication`` (``SteadyStateException``)
+     - ``mongot`` lost its place in the oplog and is re-syncing. Either
+       the oplog rolled over, because the ``mongod`` oplog is too small or
+       ``mongot`` is too slow, or a downstream error occurred. Capture
+       the surrounding five minutes for support.
+
+   * - ``CollectionScan died due to position in capped collection being
+       deleted`` (``CappedPositionLost``, error 136)
+     - The oplog rolled over before ``mongot`` could catch up. Increase
+       the ``mongod`` oplog size, fix the upstream cause of slow
+       ``mongot``, or both.
+
+   * - ``Dropping all pooled connections to <host>:<port> due to
+       ShutdownInProgress``
+     - Normal during ``mongod`` restarts. Frequent, repeated occurrences
+       without a corresponding ``mongod`` restart indicate a
+       connection-pool issue.
+
+   * - Document mapping explosion
+     - An index encountered a document with too many fields, often
+       because dynamic mapping is on and a document has arbitrary keys.
+       The index might stall, or ``mongot`` might run out of memory.
+
+To map these patterns to remediation procedures, see
+:ref:`mongot-troubleshooting`.
+
+Search Logs
+~~~~~~~~~~~
+
+Because ``mongot`` logs are JSON, ``jq`` is the most natural tool to
+search them. The following examples show common queries:
+
+.. code-block:: bash
+
+   # All errors
+   jq 'select(.s == "ERROR")' mongot.log
+
+   # Initial sync activity
+   jq 'select(.msg | startswith("Beginning initial sync"))' mongot.log
+
+   # Replication or sync from specific loggers
+   jq 'select(.n | test("BufferlessInitialSyncManager|InitialSyncQueue|InitialSyncManager"))' mongot.log
+
+   # Resync events
+   jq 'select(.msg | test("requiring resync|InitialSyncException|SteadyStateException"))' mongot.log
+
+   # Connection-pool churn
+   jq 'select(.msg | test("Dropping all pooled connections|ShutdownInProgress"))' mongot.log
+
+   # Embedding-related entries
+   jq 'select(.msg | test("embedding|voyage"; "i"))' mongot.log
+
+Because the JSON is single-line, ``grep`` also works:
+
+.. code-block:: bash
+
+   grep '"s":"ERROR"' mongot.log
+   grep '"msg":"Beginning initial sync\.' mongot.log
+   grep -E '"n":"[^"]*(BufferlessInitialSyncManager|InitialSyncQueue)' mongot.log
+
+For log platforms such as Elasticsearch, Splunk, and Datadog, filter on
+``s:ERROR``, ``n:<logger>``, or ``attr.<key>`` rather than text. The
+fields are stable, but full-text patterns might move between releases.
+
+For deployments that run multiple ``mongot`` instances, include the
+instance identifier in the log-forwarding tags so that you can filter by
+instance.
+
+Log Analysis Tips
+~~~~~~~~~~~~~~~~~
+
+Keep the following points in mind when you analyze ``mongot`` logs:
+
+- Logs do not always include the index name in the message. For
+  indexing failures, the relevant log line might appear several lines
+  earlier or later in the same logger context. Capture a window, not a
+  single line.
+- Cross-reference ``mongot`` logs with ``mongod`` logs in the same time
+  window. Many ``mongot`` errors are downstream of ``mongod`` events.
+- If you open a MongoDB Support case, send the full log file, or a wide
+  time window, rather than a filtered set of ``ERROR`` lines.
+
+FTDC
+----
+
+:abbr:`FTDC (Full Time Diagnostic Data Capture)` is a binary diagnostic
+stream that captures detailed internal state every second to disk. FTDC
+is the canonical artifact that MongoDB Technical Services teams use to
+diagnose ``mongot`` issues.
+
+What FTDC Contains
+~~~~~~~~~~~~~~~~~~
+
+FTDC samples include data across the same categories as Prometheus
+metrics, plus internal state that ``mongot`` does not expose externally:
+
+- Process and JVM state, including heap, garbage collection, and
+  threads
+- Per-index indexing statistics
+- Per-operator query latencies
+- Replication state and oplog position
+- Executor pool state
+- Lucene merge and cache state
+- Configuration and lifecycle events
+- Connection-pool state
+
+FTDC File Location
+~~~~~~~~~~~~~~~~~~
+
+By default, ``mongot`` writes FTDC files to
+``<storage.dataPath>/diagnostic.data/``, the same convention that
+``mongod`` uses with ``<storage.dbPath>/diagnostic.data/``.
+
+For a ``mongot`` instance with ``storage.dataPath`` set to
+``/var/lib/mongot``, FTDC files are at
+``/var/lib/mongot/diagnostic.data/``.
+
+``mongot`` names files with timestamps and rotates them automatically.
+File sizes are typically:
+
+- A few hundred KB per file
+- Several files per hour under load
+- Approximately 1 GB per day per ``mongot`` instance, depending on load
+
+The total size of the FTDC archive directory on disk is bounded by
+``advancedConfigs.ftdc.directorySizeMb``.
+
+.. important::
+
+   ``mongot`` rotates FTDC files automatically. Do not delete FTDC files
+   manually during an incident. MongoDB Support teams request FTDC files
+   when diagnosing issues.
+
+Configure FTDC
+~~~~~~~~~~~~~~
+
+FTDC is enabled by default. To override the defaults, set the following
+options under the ``advancedConfigs.ftdc`` block in the ``mongot`` YAML
+configuration:
+
+.. include:: /includes/ftdc-advanced-settings.rst
+
+For most deployments, the defaults are appropriate. Override them only
+if you have a specific disk-usage requirement. To learn more about these
+settings, see :ref:`mongot-advanced-ftdc-settings`.
+
+Capture FTDC for Support
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you open a case with MongoDB Support, send the entire
+``diagnostic.data/`` directory for the affected ``mongot`` instance,
+covering the period of the issue. Bundle and compress the directory.
+
+For a Linux tarball deployment, bundle the directory:
+
+.. code-block:: bash
+
+   tar -czf mongot-ftdc-$(hostname)-$(date -u +%Y%m%dT%H%M%S).tar.gz <dataPath>/diagnostic.data/
+
+For a container deployment, copy the directory out of the container
+first:
+
+.. code-block:: bash
+
+   docker cp <container>:/<dataPath>/diagnostic.data ./mongot-ftdc
+   tar -czf mongot-ftdc.tar.gz ./mongot-ftdc
+
+For a {+k8s-op-short+} deployment, copy the directory out of the pod
+first:
+
+.. code-block:: bash
+
+   kubectl cp <namespace>/<pod>:<dataPath>/diagnostic.data ./mongot-ftdc
+   tar -czf mongot-ftdc.tar.gz ./mongot-ftdc
+
+Include the following in the support case:
+
+- The FTDC bundle.
+- The ``mongot`` log file covering the same time window, plus a buffer
+  of one hour before.
+- The ``mongod`` log file on the primary covering the same window.
+- The ``mongot`` version, ``mongod`` version, and {+k8s-op-short+}
+  version, if applicable.
+- A timestamp of when you first observed the issue.
+- A description of what changed in the deployment around that time, such
+  as configuration, traffic, or upgrades.
+
+Sensitive Data in FTDC
+~~~~~~~~~~~~~~~~~~~~~~
+
+FTDC contains operational metrics and internal state, not raw
+document data or user query strings. FTDC is generally safe to send
+to MongoDB Support without sanitization. If your compliance policy is
+stricter, review the captured fields with your security team before you
+send them.
+
+The same is not true of logs. Log lines might include query text,
+document identifiers, or other application-level data, depending on the
+log level. Review log files before you send them under restrictive
+compliance environments.

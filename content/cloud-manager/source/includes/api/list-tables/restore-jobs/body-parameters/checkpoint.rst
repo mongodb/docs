@@ -11,7 +11,7 @@
    * - ``checkpointId``
      - string
      - Required
-     - Unique identifier for the :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>` checkpoint
+     - Unique identifier for the :term:`sharded cluster` checkpoint
        that represents the point in time to which your data will be
        restored.
 
@@ -22,7 +22,7 @@
    * - ``delivery``
      - object
      - Required
-     - Method and details of how the restored :manual:`snapshot </reference/glossary/#std-term-snapshot>` data
+     - Method and details of how the restored :term:`snapshot` data
        is delivered.
 
    * - | ``delivery``

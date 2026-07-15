@@ -1,0 +1,684 @@
+.. _laravel-quick-start:
+.. _laravel-get-started:
+
+================================
+Get Started with {+odm-long+}
+================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to add the Laravel MongoDB integration to a new Laravel application, connect to MongoDB Atlas, and perform read and write operations on the sample data.
+   :keywords: php framework, odm, quick start, tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+Overview
+--------
+
+This guide shows you how to add {+odm-long+} to a new Laravel web
+application, connect to a MongoDB cluster hosted on MongoDB Atlas, and
+perform read and write operations on the data.
+
+.. tip::
+
+   If you prefer to connect to MongoDB by using the {+php-library+}
+   without Laravel, see `Connect to MongoDB
+   <https://www.mongodb.com/docs/php-library/current/connect/>`__
+   in the {+php-library+} documentation.
+
+The {+odm-short+} extends the Laravel Eloquent and Query Builder syntax
+to store and retrieve data from MongoDB.
+
+MongoDB Atlas is a fully managed cloud database service that hosts your
+MongoDB deployments. You can create your own free (no credit card
+required) MongoDB Atlas deployment by following the steps in this guide.
+
+.. tip::
+
+   You can download the complete web application project by cloning the
+   `laravel-quickstart
+   <https://github.com/mongodb-university/laravel-quickstart/>`__
+   GitHub repository.
+
+Prerequisites
+-------------
+
+To create the Get Started application, you need the following software
+installed in your development environment:
+
+- `PHP <https://www.php.net/downloads>`__
+- `Composer <https://getcomposer.org/doc/00-intro.md>`__
+- A terminal app and shell. For MacOS users, use Terminal or a similar
+  app. For Windows users, use PowerShell.
+
+.. _laravel-quick-start-download-and-install:
+
+Download and Install
+--------------------
+
+Complete the following steps to install and add the {+odm-short+}
+dependencies to a Laravel web application.
+
+.. tip::
+
+   As an alternative to the following installation steps, you can use
+   Laravel Herd to install MongoDB and configure a development
+   environment for {+odm-long+}. For more information about using
+   Laravel Herd with MongoDB, see `Installing MongoDB via Herd Pro
+   <https://herd.laravel.com/docs/1/herd-pro-services/mongodb>`__ in
+   the Herd documentation.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Install the {+php-extension+}
+
+      {+odm-long+} requires the {+php-extension+} to manage MongoDB
+      connections and commands. To learn how to install the
+      {+php-extension+}, see the `Install the MongoDB PHP extension
+      <https://www.mongodb.com/docs/php-library/current/get-started/#install-the-mongodb-php-extension>`__
+      step of the Get Started with the PHP Library guide.
+
+   .. step:: Install Laravel
+
+      Ensure that the version of Laravel you install is compatible with
+      the version of the {+odm-short+}. To learn which versions are
+      compatible, see the :driver:`Compatibility
+      </compatibility/?driver-language=php&php-driver-framework=laravel>`
+      page.
+
+      Run the following command to install Laravel:
+
+      .. code-block:: bash
+
+         composer global require laravel/installer
+
+      When the installation completes, the command outputs the following
+      message:
+
+      .. code-block:: none
+         :copyable: false
+
+         Using version ^<version number> for laravel/installer
+
+   .. step:: Create a Laravel application
+
+      Run the following command to generate a new Laravel web application
+      called ``{+quickstart-app-name+}``:
+
+      .. code-block:: bash
+
+         laravel new {+quickstart-app-name+}
+
+      When the installation completes, the command outputs the following
+      message:
+
+      .. code-block:: none
+         :copyable: false
+
+         INFO  Application ready in [{+quickstart-app-name+}]. You can
+         start your local development using:
+
+         ➜ cd {+quickstart-app-name+}
+         ➜ php artisan serve
+
+         New to Laravel? Check out our bootcamp and documentation.
+         Build something amazing!
+
+   .. step:: Add a Laravel application encryption key
+
+      Navigate to the application directory you created in the previous
+      step:
+
+      .. code-block:: bash
+
+         cd {+quickstart-app-name+}
+
+      Run the following command to add the Laravel application encryption
+      key, which is required to encrypt cookies:
+
+      .. code-block:: bash
+
+         php artisan key:generate
+
+   .. step:: Add {+odm-long+} to the dependencies
+
+      Run the following command to add the {+odm-long+} dependency to
+      your application:
+
+      .. code-block:: bash
+
+         composer require mongodb/laravel-mongodb:^{+package-version+}
+
+      When the installation completes, verify that the
+      ``composer.json`` file includes the following line in the
+      ``require`` object:
+
+      .. code-block:: json
+         :copyable: false
+
+         "mongodb/laravel-mongodb": "^{+package-version+}"
+
+      After completing these steps, you have a new Laravel project with
+      the {+odm-short+} dependencies installed.
+
+.. _laravel-quick-start-create-deployment:
+
+Create a MongoDB Deployment
+---------------------------
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a free MongoDB deployment on Atlas
+
+      Complete the `MongoDB Get Started
+      <https://www.mongodb.com/docs/get-started/?language=php>`__
+      guide to set up a new Atlas account and load sample data into a
+      new free tier MongoDB deployment. Follow the instructions in the
+      :guilabel:`Cloud Deployment` tabs to create your MongoDB Atlas
+      deployment in the cloud.
+
+   .. step:: Save your credentials
+
+      After you create your database user, save that user's username and
+      password to a safe location for use in an upcoming step.
+
+After completing these steps, you have a new free tier MongoDB
+deployment on Atlas, database user credentials, and sample data loaded
+into your database.
+
+.. _laravel-quick-start-connection-string:
+
+Create a Connection String
+--------------------------
+
+You can connect to your MongoDB deployment by providing a
+**connection URI**, also called a *connection string*, which instructs
+the driver on how to connect to a MongoDB deployment and how to behave
+while connected.
+
+The connection string includes the hostname or IP address and port of
+your deployment, the authentication mechanism, user credentials when
+applicable, and connection options.
+
+To connect to an instance or deployment not hosted on Atlas, see
+:manual:`Connection Strings </reference/connection-string/>` in the
+Server manual.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Find your MongoDB Atlas connection string.
+
+      To retrieve your connection string for the deployment that you
+      created in the :ref:`previous step
+      <laravel-quick-start-create-deployment>`, log in to your Atlas
+      account and navigate to the :guilabel:`Clusters` page under the
+      :guilabel:`Database` section. Click the :guilabel:`Connect` button
+      for your new deployment.
+
+      .. figure:: /includes/figures/atlas_connect_to_cluster.png
+         :alt: The connect button in the clusters section of the
+            Atlas UI
+         :figwidth: 1150px
+
+      If you do not already have a database user configured, MongoDB
+      will prompt you to create and configure a new user.
+
+      Click the :guilabel:`Drivers` button under
+      :guilabel:`Connect to your application` and select "PHP" from the
+      :guilabel:`Driver` selection menu and the version that best
+      matches the version you installed from the :guilabel:`Version`
+      selection menu.
+
+      Ensure the :guilabel:`View full code sample` option is deselected
+      to view only the connection string.
+
+   .. step:: Copy your connection string.
+
+      Click the copy icon on the right of the connection string to copy
+      it to your clipboard as shown in the following screenshot:
+
+      .. figure:: /includes/figures/atlas_copy_connection_string_php.png
+         :alt: The connection string copy button in the Atlas UI
+         :figwidth: 1520px
+
+   .. step:: Update the password placeholder.
+
+      Paste this connection string into a file in your preferred text
+      editor and replace the ``<db_password>`` placeholder with your
+      database user's password. The connection string is already
+      populated with your database user's username.
+
+      Save this file to a safe location for use in the next step.
+
+After completing these steps, you have a connection string that
+contains your database username and password.
+
+.. _laravel-quick-start-connect-to-mongodb:
+
+Configure Your MongoDB Connection
+----------------------------------
+
+.. procedure::
+   :style: connected
+
+   .. step:: Configure the application environment variable file
+
+      Copy the ``.env.example`` file to a file named ``.env`` in the
+      project root directory by running the following shell command:
+
+      .. code-block:: sh
+
+         cp .env.example .env
+
+      Open the ``.env`` file and add or edit the following variables
+      and values. Replace the ``<connection string>`` placeholder with
+      your connection string from the
+      :ref:`laravel-quick-start-connection-string` step:
+
+      .. code-block:: bash
+
+         DB_CONNECTION=mongodb
+         DB_URI="<connection string>"
+
+      For example, if your connection string is
+      ``"mongodb+srv://myUser:myPass123@mongo0.example.com/"``, your
+      ``DB_URI`` variable matches the following line:
+
+      .. code-block:: bash
+
+         DB_URI="mongodb+srv://myUser:myPass123@mongo0.example.com/"
+
+      .. note::
+
+         Make sure these variables in your ``.env`` file are undefined
+         in the shell in which you run your application. Environment
+         variables in the shell take precedence over the ones in the
+         ``.env`` file.
+
+   .. step:: Set the connection string in the database configuration
+
+      Open the ``database.php`` file in the ``config`` directory and
+      set the default database connection to the ``DB_CONNECTION``
+      environment variable as shown in the following line:
+
+      .. code-block:: php
+
+         'default' => env('DB_CONNECTION'),
+
+      Add the following highlighted ``mongodb`` entry to the
+      ``connections`` array in the same file:
+
+      .. code-block:: php
+         :emphasize-lines: 2-6
+
+         'connections' => [
+           'mongodb' => [
+             'driver' => 'mongodb',
+             'dsn' => env('DB_URI'),
+             'database' => 'sample_mflix',
+           ],
+         ],
+
+         // ...
+
+   .. step:: Add the {+odm-short+} provider
+
+      Open the ``providers.php`` file in the ``bootstrap`` directory
+      and add the following entry into the array:
+
+      .. code-block::
+
+         MongoDB\Laravel\MongoDBServiceProvider::class,
+
+      .. tip::
+
+         To learn how to register the provider in Laravel 10.x, see
+         `Registering Providers
+         <https://laravel.com/docs/10.x/providers#registering-providers>`__.
+
+After completing these steps, your Laravel web application is ready to
+connect to MongoDB.
+
+.. _laravel-quick-start-view-data:
+
+View MongoDB Data
+-----------------
+
+.. procedure::
+   :style: connected
+
+   .. step:: Create a model and controller
+
+      Create a model called ``Movie`` to represent data from the sample
+      ``movies`` collection in your MongoDB database and the
+      corresponding resource controller by running the following
+      command:
+
+      .. code-block:: bash
+
+         php artisan make:model Movie -cr
+
+      When the command completes, it outputs the following message:
+
+      .. code-block:: none
+         :copyable: false
+
+         INFO  Model [app/Models/Movie.php] created successfully.
+
+         INFO  Controller [app/Http/Controllers/MovieController.php]
+         created successfully.
+
+   .. step:: Edit the model to use the {+odm-short+}
+
+      Open the ``Movie.php`` model in your ``app/Models`` directory and
+      make the following edits:
+
+      - Replace the ``Illuminate\Database\Eloquent\Model`` import with
+        ``MongoDB\Laravel\Eloquent\Model``
+      - Specify ``"mongodb"`` in the ``$connection`` field
+
+      The edited ``Movie.php`` file contains the following code:
+
+      .. code-block:: php
+
+         <?php
+
+         namespace App\Models;
+
+         use MongoDB\Laravel\Eloquent\Model;
+
+         class Movie extends Model
+         {
+             protected $connection = 'mongodb';
+         }
+
+   .. step:: Add a controller function
+
+      Open the ``MovieController.php`` file in your
+      ``app/Http/Controllers`` directory. Replace the ``show()``
+      function with the following code to retrieve results that match a
+      database query and render it in the view:
+
+      .. code-block:: php
+
+         public function show()
+         {
+             return view('browse_movies', [
+                 'movies' => Movie::where('runtime', '<', 60)
+                     ->where('imdb.rating', '>', 8.5)
+                     ->orderBy('imdb.rating', 'desc')
+                     ->take(10)
+                     ->get()
+             ]);
+         }
+
+   .. step:: Add a web route
+
+      Open the ``web.php`` file in the ``routes`` directory. Add an
+      import for the ``MovieController`` and a route called
+      ``browse_movies`` as shown in the following code:
+
+      .. code-block:: php
+
+         <?php
+
+         // ...
+         use App\Http\Controllers\MovieController;
+
+         Route::get('/browse_movies/', [MovieController::class, 'show']);
+
+   .. step:: Generate a view
+
+      Run the following command from the application root directory to
+      create a view that displays movie data:
+
+      .. code-block:: bash
+
+         php artisan make:view browse_movies
+
+      After you run the command, it outputs the following message:
+
+      .. code-block:: none
+         :copyable: false
+
+         INFO  View [resources/views/browse_movies.blade.php] created
+         successfully.
+
+      Open the ``browse_movies.blade.php`` view file in the
+      ``resources/views`` directory. Replace the contents with the
+      following code and save the changes:
+
+      .. code-block:: html
+
+         <!DOCTYPE html>
+         <html>
+         <head>
+            <title>Browse Movies</title>
+         </head>
+         <body>
+         <h2>Movies</h2>
+
+         @forelse ($movies as $movie)
+           <p>
+             Title: {{ $movie->title }}<br>
+             Year: {{ $movie->year }}<br>
+             Runtime: {{ $movie->runtime }}<br>
+             IMDB Rating: {{ $movie->imdb['rating'] }}<br>
+             IMDB Votes: {{ $movie->imdb['votes'] }}<br>
+             Plot: {{ $movie->plot }}<br>
+           </p>
+         @empty
+             <p>No results</p>
+         @endforelse
+
+         </body>
+         </html>
+
+   .. _laravel-quick-start-json:
+
+   .. step:: Optionally, view your results as JSON documents
+
+      Rather than generating a view and editing the
+      ``browse_movies.blade.php`` file, you can use the ``toJson()``
+      method to display your results in JSON format.
+
+      Replace the ``show()`` function with the following code to
+      retrieve results and return them as JSON documents:
+
+      .. code-block:: php
+
+         public function show()
+         {
+             $results = Movie::where('runtime', '<', 60)
+                 ->where('imdb.rating', '>', 8.5)
+                 ->orderBy('imdb.rating', 'desc')
+                 ->take(10)
+                 ->get();
+
+             return $results->toJson();
+         }
+
+   .. step:: Start your Laravel application
+
+      Run the following command from the application root directory to
+      start your PHP built-in web server:
+
+      .. code-block:: bash
+
+         php artisan serve
+
+      After the server starts, it outputs the following message:
+
+      .. code-block:: none
+         :copyable: false
+
+         INFO  Server running on [http://127.0.0.1:8000].
+
+         Press Ctrl+C to stop the server
+
+   .. step:: View the movie data
+
+      Open the URL http://127.0.0.1:8000/browse_movies in your web
+      browser. The page shows a list of movies and details about each
+      of them.
+
+      .. tip::
+
+         You can run the ``php artisan route:list`` command from your
+         application root directory to view a list of available routes.
+
+.. _laravel-quick-start-write-data:
+
+Write Data to MongoDB
+---------------------
+
+.. procedure::
+   :style: connected
+
+   .. step:: Implement the function to insert data
+
+      Replace the ``store()`` method in the ``MovieController.php``
+      file, located in the ``app/Http/Controllers`` directory with the
+      following code:
+
+      .. code-block:: php
+
+         public function store(Request $request)
+         {
+             $data = $request->all();
+             $movie = new Movie();
+             $movie->fill($data);
+             $movie->save();
+         }
+
+   .. step:: Add an API route that calls the controller function
+
+      Generate an API route file by running the following command:
+
+      .. code-block:: bash
+
+         php artisan install:api
+
+      .. tip::
+
+         Skip this step if you are using Laravel 10.x because the file
+         that the command generates already exists.
+
+      Import the controller and add an API route that calls the
+      ``store()`` method in the ``routes/api.php`` file:
+
+      .. code-block:: php
+
+         use App\Http\Controllers\MovieController;
+
+         // ...
+
+         Route::resource('movies', MovieController::class)->only([
+             'store'
+         ]);
+
+   .. step:: Update the model fields
+
+      Update the ``Movie`` model in the ``app/Models`` directory to
+      specify the fields that the ``fill()`` method populates as shown
+      in the following code:
+
+      .. code-block:: php
+         :emphasize-lines: 4
+
+         class Movie extends Model
+         {
+              protected $connection = 'mongodb';
+              protected $fillable = ['title', 'year', 'runtime',
+                  'imdb', 'plot'];
+         }
+
+   .. step:: Post a request to the API
+
+      Create a file called ``movie.json`` and insert the following
+      data:
+
+      .. code-block:: json
+
+         {
+           "title": "The {+odm-long+} Quick Start",
+           "year": 2024,
+           "runtime": 15,
+           "imdb": {
+             "rating": 9.5,
+             "votes": 1
+           },
+           "plot": "This movie entry was created by running through
+               the {+odm-long+} Quick Start tutorial."
+         }
+
+      Send the JSON payload to the endpoint as a ``POST`` request by
+      running the following command in your shell:
+
+      .. code-block:: bash
+
+         curl -H "Content-Type: application/json" \
+           --data @movie.json \
+           http://localhost:8000/api/movies
+
+   .. step:: View the data
+
+      Open http://127.0.0.1:8000/browse_movies in your web browser to
+      view the movie information that you submitted. The inserted movie
+      appears at the top of the results.
+
+.. _laravel-quick-start-next-steps:
+
+Next Steps
+----------
+
+Congratulations on completing the Get Started guide!
+
+After you complete these steps, you have a Laravel web application that
+uses {+odm-long+} to connect to your MongoDB deployment, run a query on
+the sample data, and render a retrieved result.
+
+You can download the web application project by cloning the
+`laravel-quickstart
+<https://github.com/mongodb-university/laravel-quickstart>`__
+GitHub repository.
+
+.. tip:: Tutorials
+
+   Learn how to implement more CRUD functionality in a {+odm-long+}
+   application by following the :ref:`Build a Back End Service by Using
+   {+odm-long+} <laravel-tutorial-backend-service>` tutorial.
+
+   Learn how to build a full stack application that uses {+odm-long+}
+   by following along with the `Full Stack Instagram Clone with Laravel
+   and MongoDB <https://www.youtube.com/watch?v=VK-2j5CNsvM>`__
+   tutorial on YouTube.
+
+Further Learning
+~~~~~~~~~~~~~~~~
+
+Learn more about {+odm-long+} features from the following resources:
+
+- :ref:`Connect to MongoDB <laravel-fundamentals-connection>`: learn
+  how to configure your MongoDB connection.
+
+- :ref:`Interact with Data <laravel-fundamentals-insert-documents>`:
+  learn how to read and write your MongoDB data.
+
+- :ref:`Model Your Data <laravel-eloquent-model-class>`: use Eloquent
+  model classes to work with MongoDB data.
+
+- :ref:`laravel-query-builder`: use the query builder to specify
+  MongoDB queries and aggregations.
+
+.. include:: /includes/quick-start/troubleshoot.rst

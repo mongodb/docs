@@ -29,4 +29,7 @@
             :caption: vector_index
             :linenos:
 
+         For details on all the {+avs+} index settings for Automated Embedding, see 
+         :ref:`avs-types-vector-search-options`.
+
       #. Click :guilabel:`Create Search Index`.

@@ -2,7 +2,7 @@ After creating the Kerberos |upn|, create a user mapped to the agent's
 |upn| and grant it privileges on your MongoDB deployment.
 
 Where you create the user depends upon if you are using 
-:manual:`LDAP authorization </core/security-ldap-external>`: 
+:ref:`LDAP authorization <security-ldap-external>`: 
 
 - If you are using |ldap| authorization, you must create a user and
   group for the agent on the |ldap| server and map the |ldap| group to
@@ -58,11 +58,11 @@ For each MongoDB user representing an |mms| agent:
 
       * - Map an |ldap| group and MongoDB role
         - **LDAP Roles** section of the 
-          :manual:`LDAP authorization </core/security-ldap-external>` 
+          :ref:`LDAP authorization <security-ldap-external>` 
           page in the MongoDB manual.
 
       * - Configure |ldap| authorization without |mms| automation
-        - :manual:`LDAP Authorization </core/security-ldap-external>` 
+        - :ref:`LDAP Authorization <security-ldap-external>` 
           page in the MongoDB manual.
 
 Using MongoDB to Authorize the MongoDB Agent User

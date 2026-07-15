@@ -24,7 +24,7 @@ and collection, and loading the sample data into your collection.
          :copyable: true
 
       For more detailed installation instructions, see the 
-      :driver:`MongoDB C# Driver documentation </csharp/current/get-started>`.
+      :driver:`MongoDB .NET/C# Driver documentation </csharp/current/get-started>`.
 
    .. step:: Create and populate the collections.
 

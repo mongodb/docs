@@ -7,19 +7,10 @@ const mockBranchGet = jest.fn();
 let mockBranchStore: { get: jest.Mock } | null = { get: mockBranchGet };
 let mockBranchStoreName: string | null = 'test-branch-mdx-content';
 
-// Getters ensure mutations and const initializations are visible to blob-read.ts
-// on every call, not just at import/factory time. This also avoids TDZ errors
-// since ts-jest does not hoist mock variable initializations like babel-jest does.
 jest.mock('@/mdx-utils/blob-store', () => ({
-  get productionStore() {
-    return { get: mockProductionGet };
-  },
-  get branchSpecificStore() {
-    return mockBranchStore;
-  },
-  get branchSpecificStoreName() {
-    return mockBranchStoreName;
-  },
+  getProductionStore: () => ({ get: mockProductionGet }),
+  getBranchStore: () =>
+    mockBranchStore !== null ? { store: mockBranchStore, name: mockBranchStoreName } : null,
 }));
 
 describe('getFromStores', () => {

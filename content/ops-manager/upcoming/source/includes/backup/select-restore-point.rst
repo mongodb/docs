@@ -10,9 +10,9 @@
 
    * - :guilabel:`Snapshot`
 
-     - Allows you to choose one :manual:`stored snapshot </reference/glossary/#std-term-snapshot>`.
+     - Allows you to choose one :term:`stored snapshot <snapshot>`.
 
-     - Select an existing :manual:`snapshot </reference/glossary/#std-term-snapshot>` to restore.
+     - Select an existing :term:`snapshot` to restore.
 
    * - :guilabel:`Point In Time`
 
@@ -21,6 +21,11 @@
        stores 24 hours of data.
 
        .. include:: /includes/fact-restore-doesnt-include-selected-time.rst
+
+       The restore dialog also shows the :guilabel:`restorable time
+       ranges` for the deployment. You can only choose a time that
+       falls within one of these ranges. If the time you want is not
+       available, an oplog gap exists for that period.
 
      - Select a :guilabel:`Date` and :guilabel:`Time`.
 
@@ -42,4 +47,4 @@
      - Type an Oplog :guilabel:`Timestamp` and :guilabel:`Increment`.
 
        Run a query against ``local.oplog.rs`` on your
-       :manual:`replica set </reference/glossary/#std-term-replica-set>` to find the desired timestamp.
+       :term:`replica set` to find the desired timestamp.

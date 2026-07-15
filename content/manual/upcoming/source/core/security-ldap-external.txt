@@ -94,8 +94,12 @@ MongoDB supports LDAP authorization with the following authentication methods:
 - :ref:`security-kerberos`
 - :ref:`security-auth-x509`
 
-With this configuration, MongoDB uses LDAP, X.509, or Kerberos 
-authorization to authenticate client connections.
+.. note:: X.509 Authentication and LDAP Authorization
+
+   By default, MongoDB uses LDAP authorization for clients that
+   authenticate using LDAP, Kerberos, or X.509. Starting in MongoDB 9.0,
+   to use internal authorization for X.509-authenticated clients instead, 
+   set the :parameter:`useInternalAuthzForX509` parameter to ``true``.
 
 .. _ldap-connection-pool-behavior:
 
@@ -328,9 +332,12 @@ configuration file:
 
      - **NO**, unless client usernames require transformation into LDAP DNs.
 
-When you have configured LDAP authorization, restart :program:`mongod` or 
-:program:`mongos`. The server now uses LDAP authorization with 
-X.509, Kerberos, or LDAP to authenticate client connections.
+After you configure LDAP authorization, restart
+:program:`mongod` or :program:`mongos`. By default, the server uses
+LDAP authorization for clients that authenticate using LDAP,
+Kerberos, or X.509. To use internal authorization for
+X.509-authenticated clients instead, set the
+:parameter:`useInternalAuthzForX509` parameter to ``true``.
 
 LDAP Query Template
 ~~~~~~~~~~~~~~~~~~~
@@ -550,3 +557,43 @@ privileges to the user.
 
    MongoDB maps the group to a role on the ``admin`` database and, because no
    matching roles exist, grants the user no additional permissions.
+
+Use LDAP Authorization with Other Authentication Mechanisms
+-----------------------------------------------------------
+
+Starting in MongoDB 9.0, MongoDB can have different authorization behavior 
+based on your authentication mechanism.
+
+SCRAM Authentication
+~~~~~~~~~~~~~~~~~~~~
+
+LDAP authorization does not affect SCRAM-authenticated clients.
+MongoDB always uses internal authorization for SCRAM users.
+
+X.509 Authentication
+~~~~~~~~~~~~~~~~~~~~
+
+The :parameter:`useInternalAuthzForX509` parameter controls
+authorization for X.509-authenticated clients:
+
+- If the parameter is set to ``false`` (default), MongoDB uses LDAP authorization.
+- If the parameter is set to ``true``, MongoDB uses internal authorization based on the
+  user's roles in the ``$external`` database.
+
+Kerberos and LDAP Authentication
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+MongoDB always uses LDAP authorization for Kerberos- and
+LDAP-authenticated clients. 
+
+OIDC Authentication
+~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB |version|, MongoDB does not use LDAP authorization when authenticated
+with OIDC. :parameter:`oidcIdentityProviders.useAuthorizationClaim <oidcIdentityProviders>`
+controls authorization for clients authenticating with OIDC:
+
+- If the parameter is set to ``true`` (default), MongoDB uses the authorization claim in the
+  OIDC token.
+- If the parameter is set to ``false``, MongoDB uses internal authorization based on the
+  user's roles in the ``$external`` database.

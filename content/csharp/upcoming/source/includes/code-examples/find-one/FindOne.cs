@@ -1,4 +1,4 @@
-// Retrieves a document that match a query filter by using the C# driver
+// Retrieves a document that match a query filter by using the .NET/C# driver
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Conventions;

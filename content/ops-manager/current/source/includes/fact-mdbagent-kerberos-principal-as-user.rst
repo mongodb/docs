@@ -3,7 +3,7 @@ MongoDB user on your deployment that corresponds to the {+mdbagent+}'s
 |upn| and grant it privileges.
 
 Where you create the MongoDB user depends upon whether or not you are
-using :manual:`LDAP authorization </core/security-ldap-external>`.
+using :ref:`LDAP authorization <security-ldap-external>`.
 
 .. tabs::
 
@@ -64,13 +64,11 @@ using :manual:`LDAP authorization </core/security-ldap-external>`.
             * - Map an |ldap| group and MongoDB role
               - :ref:`LDAP Roles section
                 <security-ldap-external-roles>` of the
-                :manual:`LDAP authorization
-                </core/security-ldap-external>` page in the MongoDB
+                :ref:`LDAP authorization <security-ldap-external>` page in the MongoDB
                 manual.
 
             * - Configure |ldap| authorization without |mms| automation
-              - :manual:`LDAP Authorization
-                </core/security-ldap-external>` page in the MongoDB
+              - :ref:`LDAP Authorization <security-ldap-external>` page in the MongoDB
                 manual.
 
    .. tab:: No LDAP Authorization

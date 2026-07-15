@@ -205,6 +205,11 @@ const tocData: TocItem[] = [
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/atlas-stream-processing/sp-agg-externalFunction',
               },
+              {
+                label: '$iceberg',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/atlas-stream-processing/sp-agg-iceberg',
+              },
             ],
           },
         ],
@@ -213,6 +218,14 @@ const tocData: TocItem[] = [
         label: 'Security',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/atlas-stream-processing/security',
+        collapsible: true,
+        items: [
+          {
+            label: 'Stream Processing Privilege Actions',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/atlas-stream-processing/privilege-actions',
+          },
+        ],
       },
       {
         label: 'Monitoring',

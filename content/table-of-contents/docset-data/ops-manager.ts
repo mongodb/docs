@@ -112,6 +112,24 @@ const tocData: TocItem[] = [
                 url: '/docs/ops-manager/:version/tutorial/configure-backup-high-availability',
               },
               {
+                label: 'Back Up and Restore Ops Manager',
+                contentSite: 'ops-manager',
+                url: '/docs/ops-manager/:version/tutorial/nav/back-up-ops-manager',
+                collapsible: true,
+                items: [
+                  {
+                    label: 'Configure a Secondary Ops Manager',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/tutorial/configure-back-up-ops-manager',
+                  },
+                  {
+                    label: 'Restore from a Secondary Ops Manager',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/tutorial/restore-back-up-ops-manager',
+                  },
+                ],
+              },
+              {
                 label: 'Monitor Large Deployments',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/tutorial/monitoring-large-deployments',
@@ -1362,6 +1380,18 @@ const tocData: TocItem[] = [
                 url: '/docs/ops-manager/:version/tutorial/manage-s3-blockstore-storage',
               },
               {
+                label: 'HashiCorp Vault for Snapshot Store Credentials',
+                contentSite: 'ops-manager',
+                url: '/docs/ops-manager/:version/tutorial/vault-snapshot-store-credentials',
+                versions: { includes: ['current', 'upcoming'] },
+              },
+              {
+                label: 'Configure a Key Vault for Snapshot Stores',
+                contentSite: 'ops-manager',
+                url: '/docs/ops-manager/:version/tutorial/configure-key-vault',
+                versions: { includes: ['current', 'upcoming'] },
+              },
+              {
                 label: 'File System',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/tutorial/manage-filestore-storage',
@@ -2557,6 +2587,12 @@ const tocData: TocItem[] = [
                         url: '/docs/ops-manager/:version/reference/api/restorejobs/create-one-restore-job-for-one-cluster',
                       },
                       {
+                        label: 'Get Restorable Time Ranges (Cluster)',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/restorejobs/get-restorable-time-ranges-for-one-cluster',
+                        versions: { includes: ['current', 'upcoming'] },
+                      },
+                      {
                         label: 'Get All (Config Server)',
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/reference/api/restorejobs/get-all-restore-jobs-for-one-sccc-config-server',
@@ -3071,6 +3107,45 @@ const tocData: TocItem[] = [
                     ],
                   },
                   {
+                    label: 'S3-Compatible Blockstore (v2.0)',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/admin/backup/s3-blockstore-config-v2',
+                    collapsible: true,
+                    versions: { includes: ['current', 'upcoming'] },
+                    items: [
+                      {
+                        label: 'Get by ID',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/admin/backup/snapshot/s3Configs-v2/get-one-s3-blockstore-configuration-by-id',
+                        versions: { includes: ['current', 'upcoming'] },
+                      },
+                      {
+                        label: 'Get All',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/admin/backup/snapshot/s3Configs-v2/get-all-s3-blockstore-configurations',
+                        versions: { includes: ['current', 'upcoming'] },
+                      },
+                      {
+                        label: 'Create',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/admin/backup/snapshot/s3Configs-v2/create-one-s3-blockstore-configuration',
+                        versions: { includes: ['current', 'upcoming'] },
+                      },
+                      {
+                        label: 'Update',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/admin/backup/snapshot/s3Configs-v2/update-one-s3-blockstore-configuration',
+                        versions: { includes: ['current', 'upcoming'] },
+                      },
+                      {
+                        label: 'Delete',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/admin/backup/snapshot/s3Configs-v2/delete-one-s3-blockstore-configuration',
+                        versions: { includes: ['current', 'upcoming'] },
+                      },
+                    ],
+                  },
+                  {
                     label: 'Oplog Store',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/reference/api/admin/backup/oplog-store-config',
@@ -3240,6 +3315,45 @@ const tocData: TocItem[] = [
                         label: 'Rotate KMIP Master Key ID',
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/reference/api/kmip-keys/rotate-master-key',
+                      },
+                    ],
+                  },
+                  {
+                    label: 'Key Vault',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/admin/keyVault-config',
+                    collapsible: true,
+                    versions: { includes: ['current', 'upcoming'] },
+                    items: [
+                      {
+                        label: 'Get by ID',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/admin/keyVault/get-one-key-vault-configuration-by-id',
+                        versions: { includes: ['current', 'upcoming'] },
+                      },
+                      {
+                        label: 'Get All',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/admin/keyVault/get-all-key-vault-configurations',
+                        versions: { includes: ['current', 'upcoming'] },
+                      },
+                      {
+                        label: 'Create',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/admin/keyVault/create-one-key-vault-configuration',
+                        versions: { includes: ['current', 'upcoming'] },
+                      },
+                      {
+                        label: 'Update',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/admin/keyVault/update-one-key-vault-configuration',
+                        versions: { includes: ['current', 'upcoming'] },
+                      },
+                      {
+                        label: 'Delete',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/admin/keyVault/delete-one-key-vault-configuration',
+                        versions: { includes: ['current', 'upcoming'] },
                       },
                     ],
                   },

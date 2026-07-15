@@ -1,5 +1,5 @@
-Load the Sample Synonyms Source Collection with the C# Driver
--------------------------------------------------------------
+Load the Sample Synonyms Source Collection with the .NET/C# driver
+------------------------------------------------------------------
 
 Each document in the synonyms source collection describe how one or more
 words map to one or more synonyms of those words. To learn more about the
@@ -9,7 +9,7 @@ see :ref:`synonyms-coll-format`.
 To begin, you create the synonyms source collection and then add the
 collection to the database where you intend to use the synonyms source
 collection. In this section, you create one or two sample synonyms source
-collections in the ``sample_mflix`` database using the MongoDB C# driver, and then use 
+collections in the ``sample_mflix`` database using the MongoDB .NET/C# Driver, and then use 
 the synonyms source collections with an index of the ``movies`` collection in the same
 database.
 
@@ -26,7 +26,7 @@ database.
          :copyable: true
 
       For more detailed installation instructions, see the 
-      :driver:`MongoDB C# Driver documentation </csharp/current/get-started>`.
+      :driver:`MongoDB .NET/C# Driver documentation </csharp/current/get-started>`.
 
    .. step:: Create and populate the synonyms source collections.
 

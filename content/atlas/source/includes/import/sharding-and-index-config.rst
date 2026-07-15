@@ -3,7 +3,7 @@ If you are migrating a replica set to a sharded {+cluster+}:
 - If you'd like to shard collections, click the checkmark in
   :guilabel:`Include sharding parameters` and paste your sharding configuration
   JSON into the text box using the :ref:`sharding example <c2c-example-shards-live-migration>`.
-  Save this configuration in a file externally, in case you would like to
+  Save this configuration in a file externally, in case you need to
   refer to it later.
 
   The sharding configuration JSON defines the ``shardingEntries`` array,

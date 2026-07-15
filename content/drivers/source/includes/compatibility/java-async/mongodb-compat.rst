@@ -13,7 +13,7 @@ The following table shows compatibility between the Java Reactive Streams driver
      - MongoDB 7.0
      - MongoDB 6.0
 
-   * - 5.8
+   * - 5.8 to 5.9
      - ✓
      - ✓
      - ✓

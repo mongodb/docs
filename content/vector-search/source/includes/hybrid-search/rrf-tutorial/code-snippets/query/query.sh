@@ -7,10 +7,10 @@ db.embedded_movies.aggregate([
             {
               "$vectorSearch": {
                 "index": "hybrid-vector-search",
-                "path": "plot_embedding_voyage_3_large",
-                "queryVector": STAR_WARS_EMBEDDING,
-                "numCandidates": 100,
-                "limit": 20
+                "path": "plot_embedding_voyage_4_large",
+                "queryVector": CHARMING_ANIMAL_EMBEDDING,
+                "numCandidates": 500,
+                "limit": 50
               }
             }
           ],
@@ -18,13 +18,14 @@ db.embedded_movies.aggregate([
             {
               "$search": {
                 "index": "hybrid-full-text-search",
-                "phrase": {
-                  "query": "star wars",
-                  "path": "title"
+                "text": {
+                  "query": "charming animal",
+                  "path": "fullplot",
+                  "fuzzy": {}
                 }
               }
             },
-            { "$limit": 20 }
+            { "$limit": 50 }
           ]
         }
       },
@@ -41,7 +42,7 @@ db.embedded_movies.aggregate([
     "$project": {
       _id: 1,
       title: 1,
-      plot: 1,
+      fullplot: 1,
       scoreDetails: {"$meta": "scoreDetails"}
     }
   },

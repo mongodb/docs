@@ -252,7 +252,7 @@ a. Specify the {+key-vault-long-title+} Namespace
 
          .. tabs::
 
-            .. tab:: C# Driver v3.0+
+            .. tab:: .NET/C# Driver v3.0+
                :tabid: csharp-v3
 
                .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/local/reader/CSFLE/InsertEncryptedDocument.cs
@@ -261,7 +261,7 @@ a. Specify the {+key-vault-long-title+} Namespace
                   :language: csharp
                   :dedent:
             
-            .. tab:: C# Driver < v3.0
+            .. tab:: .NET/C# Driver < v3.0
                :tabid: csharp-v2
 
                .. literalinclude:: /includes/generated/in-use-encryption/csfle/dotnet/local/reader/CSFLE/InsertEncryptedDocument.cs

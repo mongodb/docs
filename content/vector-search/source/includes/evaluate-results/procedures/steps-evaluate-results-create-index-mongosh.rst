@@ -26,6 +26,16 @@
 
    .. step:: Run the ``db.collection.createSearchIndex()`` method to create the index.
 
+      .. example:: 
+
+         This index definition indexes the ``plot_embedding_voyage_4_large`` 
+         field as the ``vector`` type with automatic binary ``quantization`` 
+         enabled and the ``genres`` field as the ``filter`` type in a {+avs+}
+         index. The ``plot_embedding_voyage_4_large`` field contains embeddings 
+         created using |voyage|'s ``voyage-4-large`` embedding model. The
+         index definition specifies ``2048`` vector dimensions and measures
+         distance using ``dotProduct`` similarity function.
+
       .. io-code-block::
          :copyable: true
 
@@ -39,7 +49,7 @@
                   "fields": [
                     {
                       "numDimensions": 2048,
-                      "path": "plot_embedding_voyage_3_large",
+                      "path": "plot_embedding_voyage_4_large",
                       "similarity": "dotProduct",
                       "type": "vector",
                       "quantization": "binary"
@@ -50,7 +60,6 @@
                     }
                   ]
                 }
-              }
             )
 
          .. output::

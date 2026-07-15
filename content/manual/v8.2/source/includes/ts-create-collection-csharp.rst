@@ -58,7 +58,7 @@ Configure a Time Series Collection
       .. important:: Changing Time Series Intervals
 
          After creation, you can modify granularity or bucket definitions by
-         using the C# Driver ``RunCommand()`` method to run the 
+         using the .NET/C# driver ``RunCommand()`` method to run the 
          :dbcommand:`collMod` database command. However, you can only increase 
          the time span covered by each bucket.
 

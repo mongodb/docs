@@ -1,0 +1,131 @@
+.. _fts20251124:
+
+24 November 2025 Release 
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds preview support for lexical prefilters for Vector Search with the addition of 
+  the :ref:`vectorSearch operator <fts-vectorSearch-ref>` and the :ref:`vector index type <bson-data-types-vector>`. 
+  This allows you to filter documents by analyzed text capabilities such a fuzzy 
+  search, phrase matching, location filtering, wildcard pattern matching, and so 
+  on before performing vector similarity searches.
+
+.. _fts20251106:
+
+06 November 2025 Release 
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Deduplicate storage cost for string fields indexed with ``multi``.
+- Fixes an issue with ``token`` field types when faceting on high cardinality fields.
+- Supports :query:`$exists` operator in the  :pipeline:`$vectorSearch` pre-filter.
+
+.. _fts20251001:
+
+21 October 2025 Release 
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Supports :ref:`querying, filtering, and retrieving <fts-return-scope>`
+  objects within arrays as individual documents using
+  ``returnScope``.
+
+  - Adds :ref:`hasRoot <has-root-ref>` operator for querying root
+    document fields when using ``returnScope``. 
+  - Adds :ref:`hasAncestor <has-ancestor-ref>` operator for querying
+    higher-level or equal-level fields when using ``returnScope``. 
+  - Supports storing nested fields in :ref:`array of objects
+    <bson-data-types-embedded-documents>` using :ref:`storedSource
+    <fts-stored-source-definition>` for retrieval with 
+    :ref:`returnStoredSource <fts-return-stored-source-option>` for
+    queries using any operator. 
+
+.. _fts20250925:
+
+25 September 2025 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds support for configuring dynamic indexing with ``typeSets``. To learn more, see
+  :ref:`fts-configure-dynamic-mappings`.
+- Starting with :manual:`MongoDB 8.0.14 </release-notes/8.0/#8.0.14-changelog>`,
+  the ``returnStoredSource`` and ``scoreDetails`` options must be set to ``true`` or
+  ``false``. Queries that specify ``null`` for these options will fail.
+- Adds support for specifying the ``stableTfl`` or ``boolean``
+  similarity algorithms when indexing ``string`` fields as the |fts|
+  :ref:`string <bson-data-types-string>` and :ref:`autocomplete
+  <bson-data-types-autocomplete>` types. These algorithms are applied at
+  query time to calculate |fts| scores with the :ref:`text <text-ref>`,
+  :ref:`phrase <phrase-ref>`, :ref:`queryString <querystring-ref>`, and
+  :ref:`autocomplete <autocomplete-ref>` operators. To learn more, see
+  :ref:`Score Details <fts-similarity-algorithms>`.
+- Supports setting the :query:`$ne` operator to ``null`` in {+avs+} pre-filters.
+
+.. _fts20250922:
+
+22 September 2025 Release
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Improves highlight loading by always retrieving highlights from the base
+  string field.
+- Skips downloads of snapshots that exceed the configured age threshold.
+- Updates blobstore credential handling to use the new ``refreshDate`` field
+  instead of the deprecated ``expirationDate`` field.
+- Adds a required memory usage metric.
+
+.. _fts20250710:
+
+10 July 2025 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Adds support for new token filter types ``keywordRepeat`` and
+  ``removeDuplicates`` for :ref:`custom analyzers <custom-analyzers>`.
+- Removes support for deprecated ``kp`` and ``lovins`` stemmers for the
+  :ref:`snowballStemming <snowballstemming-tf-ref>` token filter type.
+- Changes the ``german`` stemmer's handling of umlauts, so that the
+  German letters ä, ö, and ü, are expanded to ae, oe, and ue,
+  respectively. 
+- The ``german2`` stemmer is now outdated.
+
+.. _fts20250625:
+.. _avs20250725:
+
+25 June 2025 Release 
+~~~~~~~~~~~~~~~~~~~~
+
+- :manual:`MongoDB v8.1 </release-notes/8.2/#support-for-search-index-commands-on-views>` supports: 
+  
+  - Creating search indexes on Views using :binary:`~bin.mongosh` and :driver:`Driver </>`
+    methods. 
+  - Running ``$search``, ``$searchMeta``, and ``$vectorSearch`` queries against standard Views.
+
+.. _ fts20250610:
+.. _ avs20250610:
+
+10 June 2025 Release
+~~~~~~~~~~~~~~~~~~~~
+
+- Introduces structured JSON :ref:`mongot logs <mongot-logs>`.
+- Adds the ability to facet on :ref:`token <bson-data-types-token>` 
+  types. :ref:`stringFacet <bson-data-types-string-facet>` is still supported but is now 
+  outdated.
+- Exposes the  |hnsw| graph construction parameters for 
+  a {+avs+} index definition.
+- Adds number of segments and per-segment statistics to {+avs+}
+  :ref:`explain <avs-explain-ref>` output. 
+
+.. _ avs20250330:
+
+30 March 2025 Release
+~~~~~~~~~~~~~~~~~~~~~
+
+- Increases the vector dimension limit to 8192.
+
+.. _fts20250124:
+.. _avs20250124:
+
+24 January 2025 Release
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Adds the ability to facet on :ref:`number <bson-data-types-number>` and
+  :ref:`date<bson-data-types-date>`. :ref:`numberFacet<bson-data-types-number-facet>` and
+  :ref:`dateFacet<bson-data-types-date-facet>` are still supported but are now outdated. 
+- Supports :ref:`fts-facet-ref` groupings on numbers and dates in arrays.
+- Supports :ref:`explain <avs-explain-ref>` results for 
+  ``int8`` and ``uint1`` vector search queries.

@@ -597,11 +597,26 @@ A document that reports metrics related to
         - Total number of deletion passes completed by the purging job. 
 
       * - ``docsDeleted``
-        - Cumulative number of pre-image documents deleted by the purging job.
+        - Cumulative number of pre-image documents deleted by the
+          purging job.
+
+          .. versionchanged:: 9.0
+
+          Starting in MongoDB 9.0, when size and count information is
+          not available for the ``config.system.preimages`` collection,
+          MongoDB reports this value as an estimate rather than an
+          exact count.
 
       * - ``bytesDeleted``
-        - Cumulative size in bytes of all deleted documents from all 
-          pre-image collections by the purging job. 
+        - Cumulative size in bytes of all deleted documents from all
+          pre-image collections by the purging job.
+
+          .. versionchanged:: 9.0
+
+          Starting in MongoDB 9.0, when size and count information is
+          not available for the ``config.system.preimages`` collection,
+          MongoDB reports this value as an estimate rather than an
+          exact size in bytes.
 
       * - ``scannedCollections``
         - Cumulative number of pre-image collections scanned by the purging job. 
@@ -1878,7 +1893,9 @@ metrics
       changeStreams: {
          largeEventsFailed: Long("<num>"),
          largeEventsSplit: Long("<num>"),
-         showExpandedEvents: Long("<num>")
+         option: {
+            showExpandedEvents: Long("<num>")
+         }
       },
       commands: {
          <command>: {
@@ -1970,6 +1987,8 @@ metrics
          scanAndOrder : Long("<num>"),
          totalTimeWaitingBeforeConnectionTimeoutMillis : Long("<num>"),  // Added in MongoDB 6.3
          unsendableCompletedResponses : Long("<num>"),  // Added in MongoDB 7.1
+         writeConflictRetryLimitHit : Long("<num>"),  // Added in MongoDB 9.0
+         writeConflictRetryWaiters : Long("<num>"),  // Added in MongoDB 9.0
          writeConflicts : Long("<num>")
       },
       operatorCounters : {
@@ -2358,18 +2377,21 @@ metrics
 
    .. versionadded:: 7.0 (*Also available in 6.0.9 and 5.0.19*)
 
-.. serverstatus:: metrics.changeStreams.showExpandedEvents
+.. serverstatus:: metrics.changeStreams.option.showExpandedEvents
 
-   The number of change stream cursors with the :ref:`showExpandedEvents 
+   The number of change stream cursors with the :ref:`showExpandedEvents
    <change-streams-expanded-events>` option set to ``true``.
 
-   The counter for ``showExpandedEvents`` increments when you: 
-   
+   The counter for ``showExpandedEvents`` increments when you:
+
    - Open a change stream cursor.
-   
+
    - Run the :dbcommand:`explain` command on a change stream cursor.
 
-   .. versionadded:: 7.1
+   .. versionchanged:: 9.0
+
+      Renamed from ``metrics.changeStreams.showExpandedEvents`` to
+      ``metrics.changeStreams.option.showExpandedEvents``.
 
 .. serverstatus:: metrics.commands
 
@@ -2774,6 +2796,20 @@ metrics
    Total number of operations that completed server-side but
    did not send their response to the client because 
    the connection between the client and server failed or disconnected.
+
+.. serverstatus:: metrics.operation.writeConflictRetryLimitHit
+
+   .. versionadded:: 9.0
+
+   Total number of operations that returned the
+   :error:`WriteConflictRetryLimitExceeded <512>` error after
+   exceeding the adaptive write conflict retry limit.
+
+.. serverstatus:: metrics.operation.writeConflictRetryWaiters
+
+   .. versionadded:: 9.0
+
+   Number of operations currently retrying because of write conflicts.
 
 .. serverstatus:: metrics.operation.writeConflicts
 
@@ -4675,7 +4711,8 @@ opcounters
       update : Long("<num>"),  
       delete : Long("<num>"),  
       getmore : Long("<num>"), 
-      command : Long("<num>"), 
+      command : Long("<num>"),
+      aggregate : Long("<num>"),
    },
 
 .. serverstatus:: opcounters
@@ -4699,23 +4736,22 @@ opcounters
 
 .. serverstatus:: opcounters.insert
 
-   The total number of insert operations received since the
+   The total number of :dbcommand:`insert` operations received since the
    :binary:`~bin.mongod` instance last started.
 
 .. serverstatus:: opcounters.query
 
    The total number of queries received since the :binary:`~bin.mongod`
-   instance last started. Starting in MongoDB 7.1, aggregations 
-   count as query operations and increment this value.
+   instance last started.
 
 .. serverstatus:: opcounters.update
 
-   The total number of update operations received since the
+   The total number of :dbcommand:`update` operations received since the
    :binary:`~bin.mongod` instance last started.
 
 .. serverstatus:: opcounters.delete
 
-   The total number of delete operations since the :binary:`~bin.mongod`
+   The total number of :dbcommand:`delete` operations since the :binary:`~bin.mongod`
    instance last started.
 
 .. serverstatus:: opcounters.getmore
@@ -4737,6 +4773,13 @@ opcounters
    - :dbcommand:`update`
    - :dbcommand:`delete`
    - :dbcommand:`aggregate`
+
+.. serverstatus:: opcounters.aggregate
+
+   .. versionadded:: 9.0
+
+   The total number of :dbcommand:`aggregate` operations since the 
+   :binary:`~bin.mongod` instance last started.
 
 .. serverstatus:: opcounters.deprecated
 
@@ -6675,6 +6718,7 @@ shardingStatistics
                    countSucceeded : Long("1"),
                    countFailed : Long("0"),
                    countCanceled : Long("0"),
+                   countSearchIndexAborts: Long("0"),
                    lastOpEndingChunkImbalance : Long("0"),
                    active : {
                            documentsCopied : Long("0"),
@@ -7185,6 +7229,14 @@ shardingStatistics
    *Only present when run on a shard or config server.*
 
    .. versionadded:: 5.0
+
+.. serverstatus:: shardingStatistics.resharding.countSearchIndexAborts
+
+   Number of :ref:`resharding operations <sharding-resharding>`
+   canceled due to the presence of a :ref:`search index
+   <atlas-search>`.
+
+   .. versionadded:: 9.0
 
 .. serverstatus:: shardingStatistics.resharding.active.documentsCopied
 

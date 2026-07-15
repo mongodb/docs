@@ -7,13 +7,14 @@
  * 
  * Usage (from any directory in the repo):
  *   npx tsx .github/lint-docs/seo-lint-cli.ts file1.txt file2.rst ...
+ *   npx tsx .github/lint-docs/seo-lint-cli.ts content/manual/source/
  *   npx tsx .github/lint-docs/seo-lint-cli.ts content/manual/source/*.txt
  * 
  * Options:
  *   -o, --output <file>  Write results to a file instead of just terminal
  */
 
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync, statSync } from 'fs';
 import { execSync } from 'child_process';
 import { resolve, isAbsolute } from 'path';
 import { lintContent, formatIssuesForTerminal, LintIssue } from './seo-lint-rules.js';
@@ -60,9 +61,23 @@ function resolveFilePath(file: string): string {
   return resolve(process.cwd(), file);
 }
 
+function expandPath(p: string): string[] {
+  try {
+    if (statSync(p).isDirectory()) {
+      return execSync(`find ${JSON.stringify(p)} \\( -name "*.txt" -o -name "*.rst" -o -name "*.md" -o -name "*.mdx" \\)`, { encoding: 'utf-8' })
+        .trim()
+        .split('\n')
+        .filter(Boolean);
+    }
+  } catch {
+    // not a directory or doesn't exist — fall through to normal file handling
+  }
+  return [p];
+}
+
 function main(): void {
   const { files: rawFiles, outputFile } = parseArgs(process.argv.slice(2));
-  const files = rawFiles.map(resolveFilePath);
+  const files = rawFiles.map(resolveFilePath).flatMap(expandPath);
   
   if (files.length === 0) {
     console.log('Usage: npx tsx seo-lint-cli.ts [options] <file1> [file2] ...');
@@ -72,6 +87,7 @@ function main(): void {
     console.log('');
     console.log('Example:');
     console.log('  npx tsx seo-lint-cli.ts content/manual/source/tutorial/install.txt');
+    console.log('  npx tsx seo-lint-cli.ts content/manual/source/');
     console.log('  npx tsx seo-lint-cli.ts -o results.txt content/**/*.txt');
     process.exit(0);
   }

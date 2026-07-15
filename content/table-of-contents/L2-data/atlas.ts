@@ -188,6 +188,11 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/tutorial/manage-project-settings',
       },
       {
+        label: 'Data Validation',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/data-validation',
+      },
+      {
         label: 'User-Defined Tags',
         contentSite: 'cloud-docs',
         url: '/docs/atlas/project-tags',
@@ -337,14 +342,22 @@ const tocData: TocItem[] = [
             ],
           },
           {
-            label: 'Upgrade Major MongoDB Version',
+            label: 'MongoDB Versions in Atlas',
             contentSite: 'cloud-docs',
-            url: '/docs/atlas/tutorial/major-version-change',
-          },
-          {
-            label: 'Downgrade Major MongoDB Version',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/tutorial/major-version-downgrade',
+            url: '/docs/atlas/atlas-versions',
+            collapsible: true,
+            items: [
+              {
+                label: 'Upgrade Major MongoDB Version',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/tutorial/major-version-change',
+              },
+              {
+                label: 'Downgrade Major MongoDB Version',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/tutorial/major-version-downgrade',
+              },
+            ],
           },
           {
             label: 'Maintenance Windows',
@@ -398,6 +411,11 @@ const tocData: TocItem[] = [
                 url: '/docs/atlas/tutorial/test-resilience/simulate-regional-outage',
               },
             ],
+          },
+          {
+            label: 'Replica Set Rollbacks',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/replica-set-rollbacks',
           },
         ],
       },
@@ -519,6 +537,11 @@ const tocData: TocItem[] = [
             label: 'Restore from Continuous Cloud Backup',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/backup/cloud-backup/restore-from-continuous',
+          },
+          {
+            label: 'Collection- and Database-Level Restores',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/backup/cloud-backup/restore-from-db-coll',
           },
           {
             label: 'Restore from Local Download',
@@ -702,11 +725,6 @@ const tocData: TocItem[] = [
         url: '/docs/atlas/live-migration',
         collapsible: true,
         items: [
-          {
-            label: 'Pull into Atlas',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/import/c2c-pull-live-migration',
-          },
           {
             label: 'Push from Cloud Manager',
             contentSite: 'cloud-docs',
@@ -958,6 +976,11 @@ const tocData: TocItem[] = [
             contentSite: 'cloud-docs',
             url: '/docs/atlas/tutorial/otel-integration',
           },
+          {
+            label: 'Webhooks',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/tutorial/webhook-integration',
+          },
         ],
       },
       {
@@ -1074,6 +1097,11 @@ const tocData: TocItem[] = [
       {
         label: 'Automated Embedding',
         url: 'https://www.mongodb.com/docs/vector-search/crud-embeddings/automated-embedding/billing',
+        isExternal: true,
+      },
+      {
+        label: 'Native Reranking',
+        url: 'https://www.mongodb.com/docs/vector-search/query/native-reranking/billing',
         isExternal: true,
       },
       {

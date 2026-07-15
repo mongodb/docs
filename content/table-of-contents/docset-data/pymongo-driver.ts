@@ -269,7 +269,6 @@ const tocData: TocItem[] = [
       {
         label: 'Security',
         contentSite: 'pymongo',
-        url: '/docs/languages/python/pymongo-driver/:version/security',
         collapsible: true,
         items: [
           {

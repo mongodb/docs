@@ -2,7 +2,7 @@
 
 Load this file when performing a minor or major release for a docset
 whose redirects are managed in the Next.js format
-(`platform/docs-nextjs/redirects/<slug>-redirects.json`). Skip this step
+(`platform/docs-nextjs/src/redirects/<slug>-redirects.json`). Skip this step
 entirely for patch releases.
 
 This file is the JSON counterpart to `netlify-toml-updates.md`. The
@@ -13,7 +13,7 @@ there. During the migration period a docset may have **both** a
 matching section from **both** reference files.
 
 The redirect file path is **outside `content/`**, under
-`platform/docs-nextjs/redirects/`. Editing it is an expected part of this
+`platform/docs-nextjs/src/redirects/`. Editing it is an expected part of this
 workflow (the `add-redirects` skill writes there too), but it is a
 `platform/` change — note it as such in the change summary.
 

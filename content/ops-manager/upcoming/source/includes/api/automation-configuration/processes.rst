@@ -2,7 +2,7 @@ The **processes** array determines the configuration of your MongoDB
 instances. Using this array, you can:
 
 - Restore an instance.
-- Start an :manual:`initial sync </core/replica-set-sync/#replica-set-initial-sync>`
+- Start an :ref:`initial sync <replica-set-initial-sync>`
   process on one or more MongoDB instances.
 
 
@@ -128,14 +128,14 @@ instances. Using this array, you can:
      - Optional
      - Flag that indicates whether the write acknowledgement must be
        written to the
-       :manual:`on-disk journal </reference/write-concern/#j-option>`.
+       :ref:`on-disk journal <wc-j>`.
 
    * - defaultRWConcern.defaultWriteConcern.w
      - string
      - Optional
      - Desired number of mongod instances that must acknowledge a write
        operation in a replica sets and replica set shards. |service| accepts the
-       :manual:`following values </reference/write-concern/#w-option>`:
+       :ref:`following values <wc-w>`:
 
        - Any number 0 or greater
        - "majority"
@@ -143,7 +143,7 @@ instances. Using this array, you can:
    * - defaultRWConcern.defaultWriteConcern.wtimeout
      - number
      - Optional
-     - :manual:`Desired time limit for the write concern </reference/write-concern/#wtimeout>`
+     - :ref:`Desired time limit for the write concern <wc-wtimeout>`
        expressed in milliseconds. Set this value when you set
        **defaultRWConcern.defaultWriteConcern.w** to a value greater
        than **1**.
@@ -169,15 +169,14 @@ instances. Using this array, you can:
          than the MongoDB version you deployed. To learn which of
          these parameter values is supported for each MongoDB version,
          and which features each of these values enable or disable,
-         see :manual:`setFeatureCompatibilityVersion
-         </reference/command/setFeatureCompatibilityVersion/>` in the
+         see :dbcommand:`setFeatureCompatibilityVersion` in the
          MongoDB Manual.
        - |mms| sets this parameter to match the MongoDB version for new
          deployments.
        - |mms| doesn't automatically increment this parameter when you
          upgrade a host from one MongoDB version to the next.
 
-       To learn more, see :manual:`setFeatureCompatibilityVersion </reference/command/setFeatureCompatibilityVersion/#dbcmd.setFeatureCompatibilityVersion>`.
+       To learn more, see :dbcommand:`setFeatureCompatibilityVersion`.
 
    * - processes[n].hostname
      - string
@@ -223,14 +222,14 @@ instances. Using this array, you can:
      - string
      - Optional
      - |iso8601-time| of the last
-       :manual:`initial sync </core/replica-set-sync/#replica-set-initial-sync>`
+       :ref:`initial sync <replica-set-initial-sync>`
        process that |mms| performed on the node.
        
        To trigger the init sync process on the node immediately, set
        this value to the current time as an |iso8601| timestamp.
 
        :red:`WARNING:` Use this parameter with caution. During
-       :manual:`initial sync </core/replica-set-sync/#replica-set-initial-sync>`, Automation removes the entire
+       :ref:`initial sync <replica-set-initial-sync>`, Automation removes the entire
        contents of the node's ``dbPath`` directory.
 
        If you set this parameter:
@@ -262,7 +261,7 @@ instances. Using this array, you can:
          :method:`rs.stepDown` method, and then starts init sync on
          this node.
 
-       To learn more, see :manual:`Initial Sync </core/replica-set-sync/#replica-set-initial-sync>`.
+       To learn more, see :ref:`Initial Sync <replica-set-initial-sync>`.
 
    * - processes[n].lastKmipMasterKeyRotation
      - string

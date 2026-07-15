@@ -292,8 +292,8 @@ Checks that the operator created the expected resources:
 | ConfigMap | `{name}-search-lb-0-config` | Envoy bootstrap configuration |
 | Deployment | `{name}-search-lb-0` | Envoy proxy pods |
 | Service | `{name}-search-0-proxy-svc` | Proxy service for mongod traffic (port 27028) |
-| StatefulSet | `{name}-search` | mongot pods |
-| Service (headless) | `{name}-search-svc` | Stable DNS for mongot pods |
+| StatefulSet | `{name}-search-0` | mongot pods |
+| Service (headless) | `{name}-search-0-svc` | Stable DNS for mongot pods |
 
 ```bash
 ./code_snippets/11_0326_verify_envoy_deployment.sh
@@ -339,7 +339,7 @@ kubectl logs -l app=${MDB_RESOURCE_NAME}-search-lb-0 -n ${MDB_NS}
 **Check:**
 ```bash
 kubectl get pods -n ${MDB_NS} | grep search
-kubectl logs ${MDB_RESOURCE_NAME}-search-0 -n ${MDB_NS}
+kubectl logs ${MDB_RESOURCE_NAME}-search-0-0 -n ${MDB_NS}
 ```
 
 **Common causes:**

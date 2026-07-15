@@ -1,0 +1,1611 @@
+.. _mongot-metrics-reference:
+
+============================
+Metrics Reference for mongot
+============================
+
+.. meta::
+   :description: Learn about the metrics exposed by mongot, the search process for self-managed MongoDB Search and Vector Search, including available metrics and their descriptions.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The ``mongot`` process exposes Prometheus metrics that describe its
+runtime health and performance across core areas of operation. This
+reference page describes key metrics that are relevant to day-to-day
+monitoring and troubleshooting. For the complete metric set, scrape the
+``mongot`` Prometheus metrics endpoint at
+``http://<mongot-host>:9946/metrics``.
+
+View Metrics
+------------
+
+To view the raw metrics that ``mongot`` exposes, send an HTTP ``GET``
+request to the following ``mongot`` Prometheus metrics endpoint: 
+
+.. code-block::
+
+   http://<mongot-host>:9946/metrics
+
+In this endpoint: 
+
+- ``<mongot-host>`` is the hostname or IP address of the ``mongot`` process.
+- ``9946`` is the default port for the metrics endpoint. To configure
+  the metrics endpoint port, see the ``metrics.address`` setting in the
+  ``mongot`` configuration file.
+- ``/metrics`` is the path for the metrics endpoint. 
+
+The ``/metrics`` endpoint returns metrics in plain Prometheus text
+format. To monitor ``mongot`` metrics over time, configure your
+Prometheus instance to scrape this endpoint.
+
+.. important:: 
+
+   The ``/metrics`` endpoint requires no authentication by default. For
+   production deployments, restrict access at the network layer.
+
+Metric Naming Conventions
+-------------------------
+
+``mongot`` metric names use a consistent naming pattern:
+
+- All metric names start with the ``mongot_`` prefix.
+- Metric names generally follow the pattern
+  ``mongot_<area>_<measurement>[_<unit>]``, where: 
+
+  - ``<area>`` indicates the subsystem or component the metric belongs
+    to, such as ``process``, ``jvm``, ``replication``, or ``index``.
+  - ``<measurement>`` indicates what is being measured, such as
+    ``cpu_usage``, ``heap_memory``, or ``index_size``.
+  - ``<unit>`` (optional) indicates the unit or counter semantics for
+    the metric. This optional suffix indicates either the unit that the
+    metric is measured in, such as ``seconds``, ``bytes``, or ``ms``, or
+    the type of counter the metric represents, such as ``total``,
+    ``events``, or ``operations``.
+
+    .. note::
+
+       Some metric name suffixes don't reflect the actual reported unit
+       for the metric. For example,
+       ``mongot_index_stats_query_latency_seconds`` has the suffix
+       ``_seconds``, but ``mongot`` reports the metric in milliseconds,
+       as indicated by the ``timeUnit=milliseconds`` label in the metric
+       output. To confirm the unit for each metric, check the
+       :guilabel:`Unit` value in the metric reference tables below.
+
+In addition to the metric name, ``mongot`` metrics can include labels
+(also called dimensions). Labels distinguish multiple time series that
+share the same base metric name. For example, a metric might use labels
+to identify a ``state``, ``status``, ``index type``, ``quantile``, or a
+specific ``index``.
+
+For some metrics, you must interpret the metric as the combination of
+the metric name and its labels, not by the metric name alone. For
+example, ``mongot_replication_mongodb_indexManagerState`` uses the
+``state`` label to expose one series for each replication state, such
+as ``STEADY_STATE`` or ``FAILED``. Exactly one of those labeled series
+has the value ``1`` at a time. Per-index metrics similarly use labels
+such as ``generationId_logString`` and ``indexId_logString`` to
+distinguish one index from another.
+
+For distribution metrics, the suffix of the metric name indicates the
+Prometheus series type: 
+
+- Histograms expose ``_bucket``, ``_count``, ``_sum``, and ``_max``.
+- Summaries expose ``_count``, ``_sum``, and ``_max``. Some summaries
+  also include quantile labels such as ``{quantile="0.5"}``.
+
+Common Metric Labels
+~~~~~~~~~~~~~~~~~~~~
+
+The following table describes common labels that appear in ``mongot``
+metrics.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 30 45
+
+   * - Label Name
+     - Metric Scope 
+     - Possible Values 
+   * - ``name``
+     - All executor pools
+     - ``executorMetrics``
+   * - ``Scope``
+     - Cross-cutting
+     - ``jvm``, ``replication``, ``lucene``
+   * - ``generationId_logString``, ``indexId_logString``
+     - Most ``mongot_index_stats_*`` series
+     - Internal opaque Ids (the per-index identifier that the logs use)
+   * - ``indexFeatureVersion``
+     - Many index metrics
+     - ``3``, ``5``, ``6`` (the on-disk index format)
+   * - ``indexType``
+     - Indexing and initial-sync metrics
+     - ``search``, ``vector_search``, ``vector_search_auto_embedding``
+       (only when you configure Automated Embedding)
+   * - ``numPartitions``
+     - Index size and document metrics
+     - ``1`` for self-managed
+   * - ``timeUnit``
+     - Latency summary metrics
+     - ``seconds``, ``milliseconds``, ``microseconds``
+   * - ``quantile``
+     - Summary metrics
+     - ``0.5``, ``0.75``, ``0.9``, ``0.99``
+   * - ``state``
+     - ``indexManagerState``
+     - ``STEADY_STATE``, ``INITIAL_SYNC``, ``INITIAL_SYNC_BACKOFF``,
+       ``INITIALIZING``, ``FAILED``, ``FAILED_EXCEEDED``, ``SHUT_DOWN``,
+       ``STEADY_STATE_SHUT_DOWN``
+   * - ``status``
+     - ``indexStatusCode``
+     - ``STEADY``, ``INITIAL_SYNC``, ``FAILED``,
+       ``RECOVERING_NON_TRANSIENT``, ``RECOVERING_TRANSIENT``,
+       ``STALE``, ``NOT_STARTED``, ``DOES_NOT_EXIST``, ``UNKNOWN``
+   * - ``clientName``
+     - ``mongot_mongoClient_connectionPool_*``
+     - ``mongot steady state sync``, ``mongot initial sync and session
+       refresh``, ``mongot metadata service``, ``mongot periodic optime
+       fetcher``, ``mongot database metadata resolver``, ``mongot server
+       info resolver``, ``mongot Lease Manager mongo client``, ``mongot
+       AutoEmbedding Materialized View Writer`` (only when Automated
+       Embedding is enabled)
+
+Key Metric Groups
+-----------------
+
+Process and JVM Metrics
+~~~~~~~~~~~~~~~~~~~~~~~
+
+Use process and :abbr:`JVM (Java Virtual Machine)` metrics to confirm
+that ``mongot`` is running normally and to identify heap or garbage
+collection pressure.
+
+Process
+```````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_process_uptime_seconds``
+     - gauge
+     - seconds
+     - The uptime of the Java Virtual Machine.
+   * - ``mongot_process_start_time_seconds``
+     - gauge
+     - unix seconds
+     - Start time of the process since unix epoch.
+   * - ``mongot_process_cpu_time_ns_total``
+     - counter
+     - nanoseconds
+     - The "cpu time" used by the Java Virtual Machine process. Use
+       ``rate()`` for instantaneous CPU consumption.
+   * - ``mongot_process_cpu_usage``
+     - gauge
+     - 0-1
+     - The "recent cpu usage" for the Java Virtual Machine process.
+
+JVM Memory
+``````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_jvm_memory_used_bytes``
+     - gauge
+     - bytes
+     - The amount of used memory. Labels:
+       ``area=heap|nonheap``,
+       ``id=<pool>`` (for example, G1 Eden Space,
+       G1 Old Gen, G1 Survivor Space, Metaspace).
+   * - ``mongot_jvm_memory_committed_bytes``
+     - gauge
+     - bytes
+     - The amount of memory committed for the Java virtual machine to
+       use.
+   * - ``mongot_jvm_memory_max_bytes``
+     - gauge
+     - bytes
+     - The maximum memory that can be used.
+       For heap, ``id="G1 Old Gen"`` carries
+       ``-Xmx``.
+   * - ``mongot_jvm_buffer_count_buffers``
+     - gauge
+     - count
+     - NIO buffer pool counts. Labels:
+       ``id=direct|mapped``.
+   * - ``mongot_jvm_buffer_memory_used_bytes``
+     - gauge
+     - bytes
+     - Memory the JVM uses for NIO buffer pools.
+   * - ``mongot_jvm_buffer_total_capacity_bytes``
+     - gauge
+     - bytes
+     - NIO buffer pool capacity.
+
+JVM Garbage Collection
+``````````````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_jvm_gc_pause_seconds``
+     - summary
+     - seconds
+     - Time spent in GC pause. No quantile labels. Use
+       ``mongot_jvm_gc_pause_seconds_max`` for the longest recent pause.
+   * - ``mongot_jvm_gc_concurrent_phase_time_seconds``
+     - summary
+     - seconds
+     - Time spent in concurrent GC phase.
+   * - ``mongot_jvm_gc_live_data_size_bytes``
+     - gauge
+     - bytes
+     - Size of long-lived heap memory pool after reclamation. The "live
+       heap" to watch for memory pressure.
+   * - ``mongot_jvm_gc_max_data_size_bytes``
+     - gauge
+     - bytes
+     - Max size of long-lived heap memory pool.
+   * - ``mongot_jvm_gc_memory_allocated_bytes_total``
+     - counter
+     - bytes
+     - Increase in young heap pool size between
+       GCs.
+   * - ``mongot_jvm_gc_memory_promoted_bytes_total``
+     - counter
+     - bytes
+     - Promotions from young into old generation.
+
+System Metrics
+~~~~~~~~~~~~~~
+
+Use system metrics to monitor host-level CPU, disk, memory, paging,
+and network conditions that can affect ``mongot``.
+
+CPU
+```
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_system_cpu_count``
+     - gauge
+     - count
+     - Processors available to the JVM.
+   * - ``mongot_system_cpu_usage``
+     - gauge
+     - 0–1
+     - Recent system CPU usage.
+   * - ``mongot_system_load_average_1m``
+     - gauge
+     - unitless
+     - OS 1-minute load average.
+
+Disk
+````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_system_disk_space_data_path_free_bytes``
+     - gauge
+     - bytes
+     - Free disk space on the ``mongot``
+       ``dataPath`` volume. Alert on this metric.
+   * - ``mongot_system_disk_space_data_path_total_bytes``
+     - gauge
+     - bytes
+     - Total disk space on the ``dataPath``
+       volume. Use to compute free %.
+   * - ``mongot_system_disk_space_free_bytes``,
+       ``mongot_system_disk_space_total_bytes``
+     - gauge
+     - bytes
+     - Free and total disk space across the
+       file system (different scope than
+       ``data_path``).
+   * - ``mongot_system_disk_readBytes_bytes``
+     - gauge
+     - bytes
+     - Bytes read from disk per device.
+       Label: ``name=<device>``
+       (e.g., ``/dev/vda``).
+   * - ``mongot_system_disk_writeBytes_bytes``
+     - gauge
+     - bytes
+     - Bytes written per device.
+   * - ``mongot_system_disk_reads_events``
+     - gauge
+     - count
+     - Read I/O count per device. Use
+       ``rate()`` for read IOPS.
+   * - ``mongot_system_disk_writes_events``
+     - gauge
+     - count
+     - Write I/O count per device.
+   * - ``mongot_system_disk_currentQueueLength_tasks``
+     - gauge
+     - count
+     - Disk queue length (I/Os in progress)
+       per device.
+   * - ``mongot_system_disk_transferTime_ms``
+     - gauge
+     - milliseconds
+     - Time spent reading or writing per device.
+
+Memory
+``````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_system_memory_phys_total_bytes``
+     - gauge
+     - bytes
+     - Total physical memory on the host.
+   * - ``mongot_system_memory_phys_available_bytes``
+     - gauge
+     - bytes
+     - Physical memory available.
+   * - ``mongot_system_memory_phys_inUse_bytes``
+     - gauge
+     - bytes
+     - Physical memory in use.
+   * - ``mongot_system_memory_virt_inUse_bytes``
+     - gauge
+     - bytes
+     - Total physical and virtual memory in use.
+   * - ``mongot_system_memory_virt_swap_inUse_bytes``,
+       ``mongot_system_memory_virt_swap_available_bytes``,
+       ``mongot_system_memory_virt_swap_total_bytes``
+     - gauge
+     - bytes
+     - Swap state.
+   * - ``mongot_system_memory_virt_swap_pagesIn_operations``,
+       ``mongot_system_memory_virt_swap_pagesOut_operations``
+     - gauge
+     - count
+     - Swap in/out activity.
+   * - ``mongot_system_memory_memoryMappings_objects``
+     - gauge
+     - count
+     - Number of memory mappings (relevant for
+       Lucene mmap counts).
+   * - ``mongot_system_memory_pageSize_bytes``
+     - gauge
+     - bytes
+     - System page size.
+
+Page Faults
+```````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_system_process_majorPageFaults_operations``
+     - gauge
+     - count
+     - Major page faults. Use this metric with the storage class
+       advisory threshold.
+   * - ``mongot_system_process_minorPageFaults_operations``
+     - gauge
+     - count
+     - Minor page faults.
+
+Network
+```````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_system_netstat_bytesRecv_bytes``,
+       ``mongot_system_netstat_bytesSent_bytes``
+     - gauge
+     - bytes
+     - Bytes received and sent per interface
+       (``name=eth0``).
+   * - ``mongot_system_netstat_packetsRecv_events``,
+       ``mongot_system_netstat_packetsSent_events``
+     - gauge
+     - count
+     - Packets received and sent.
+   * - ``mongot_system_netstat_inErrors_events``,
+       ``mongot_system_netstat_outErrors_events``,
+       ``mongot_system_netstat_inDrops_events``,
+       ``mongot_system_netstat_collisions_events``
+     - gauge
+     - count
+     - Error, drop, and collision counters.
+   * - ``mongot_system_netstat_speed``
+     - gauge
+     - bits/sec
+     - Negotiated interface speed.
+
+Replication Metrics
+~~~~~~~~~~~~~~~~~~~
+
+Use replication metrics to determine whether ``mongot`` is healthy,
+syncing normally, and staying caught up with ``mongod``.
+
+Overall State
+`````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_replication_manager``
+     - gauge
+     - 0/1
+     - ``1`` when the replication manager is active.
+   * - ``mongot_replication_mongodb_manager``
+     - gauge
+     - 0/1
+     - ``1`` when the MongoDB-backed replication manager is active.
+       Label: ``type=normal``.
+   * - ``mongot_replicationIndexManager_transitionState_total``
+     - counter
+     - count
+     - State transitions. Labels: ``fromState``, ``toState``. Use to
+       detect resyncs (``INITIALIZING`` to ``STEADY_STATE``
+       transitions).
+
+Session Refresher
+`````````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_replication_sessionRefresher_sessions``
+     - gauge
+     - count
+     - Active sessions.
+   * - ``mongot_replication_sessionRefresher_refreshes_total``
+     - counter
+     - count
+     - Total session refreshes.
+   * - ``mongot_replication_sessionRefresher_failedSessionRefreshes_total``
+     - counter
+     - count
+     - Failed refreshes.
+   * - ``mongot_replication_sessionRefresher_sessionRefreshDurations_seconds``
+     - summary
+     - seconds
+     - Refresh duration distribution.
+
+Optime Updater
+``````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_replicationOptimeUpdaterError_total``
+     - counter
+     - count
+     - Optime-update errors.
+   * - ``mongot_replicationOptimeUpdater_executor_*``
+     - various
+     - N/A
+     - Executor metrics for the optime updater.
+
+Per-index Metrics
+~~~~~~~~~~~~~~~~~
+
+``mongot`` emits the following metrics per index and includes
+``generationId_logString`` and ``indexId_logString`` labels to identify
+the specific index. Filter by those labels to inspect a specific index,
+or aggregate across labels to understand fleet-wide behavior.
+
+Index Status and Size
+`````````````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description   
+   * - ``mongot_index_stats_indexStatusCode``
+     - gauge
+     - 0/1
+     - Per-index status. One-hot encoded across the ``status`` label
+       values: ``STEADY``, ``INITIAL_SYNC``, ``FAILED``,
+       ``RECOVERING_NON_TRANSIENT``, ``RECOVERING_TRANSIENT``,
+       ``STALE``, ``NOT_STARTED``, ``DOES_NOT_EXIST``, ``UNKNOWN``.
+   * - ``mongot_index_stats_indexFeatureVersion``
+     - gauge
+     - number
+     - On-disk index format version. For example, ``3``. 
+   * - ``mongot_index_stats_indexSizeBytes``
+     - gauge
+     - bytes
+     - Total on-disk size of the index.
+   * - ``mongot_index_stats_largestIndexFileSizeBytes``
+     - gauge
+     - bytes
+     - Largest single file in the index.
+   * - ``mongot_index_stats_numFilesInIndex``
+     - gauge
+     - count
+     - Number of Lucene segment files.
+   * - ``mongot_index_stats_numLuceneDocs``
+     - gauge
+     - count
+     - Lucene documents in the index.
+   * - ``mongot_index_stats_numLuceneMaxDocs``
+     - gauge
+     - count
+     - Maximum Lucene document ID (includes deleted-not-merged).
+   * - ``mongot_index_stats_numLuceneFields``
+     - gauge
+     - count
+     - Number of indexed Lucene fields.
+   * - ``mongot_index_stats_segment_count``
+     - gauge
+     - count
+     - Number of Lucene segments.
+   * - ``mongot_index_stats_requiredMemoryBytes``
+     - gauge
+     - bytes
+     - Estimated required memory for the index.
+
+Indexing Metrics
+````````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 15 35
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_index_stats_indexing_replicationLagMs``
+     - gauge
+     - milliseconds
+     - Replication lag per index, in milliseconds. The unit is in the
+       metric name (``Ms``). Do not divide by 1000 in PromQL unless you
+       want to convert to seconds.
+   * - ``mongot_index_stats_indexing_replicationOpTime``
+     - gauge
+     - BSON Timestamp
+     - Last applied replication optime (numeric encoding).
+   * - ``mongot_index_stats_indexing_maxPossibleReplicationOpTime``
+     - gauge
+     - BSON Timestamp
+     - Cap on advance, set by ``mongod`` tip.
+   * - ``mongot_index_stats_indexing_insert_total``,
+       ``mongot_index_stats_indexing_update_total``,
+       ``mongot_index_stats_indexing_delete_total``
+     - counter
+     - count
+     - Indexing operation counts. Label: ``indexType=search``.
+   * - ``mongot_index_stats_indexing_totalBytesProcessed_total``
+     - counter
+     - bytes
+     - Total bytes processed by indexing.
+   * - ``mongot_index_stats_indexing_vectorFieldsIndexed_total``
+     - counter
+     - count
+     - Vector fields indexed.
+   * - ``mongot_index_stats_indexing_commitDurations_seconds``
+     - summary
+     - seconds (``timeUnit=milliseconds``)
+     - Per-index commit durations.
+   * - ``mongot_index_stats_indexing_indexingBatchDurations_seconds``
+     - summary
+     - seconds
+     - Batch duration distribution.
+   * - ``mongot_index_stats_indexing_largeChangeStreamEvents_total``
+     - counter
+     - count
+     - Oversized change-stream events. Label:
+       ``threshold=10MiB|12MiB|14MiB|15MiB``.
+   * - ``mongot_index_stats_indexing_invalidGeometryField_total``
+     - counter
+     - count
+     - Documents rejected for invalid geometry.
+   * - ``mongot_index_stats_indexing_sortableStringTruncated_total``
+     - counter
+     - count
+     - Truncated sortable strings.
+   * - ``mongot_index_stats_indexing_initialSyncExceptions_total``
+     - counter
+     - count
+     - Exceptions during initial sync.
+   * - ``mongot_index_stats_indexing_steadyStateExceptions_total``
+     - counter
+     - count
+     - Steady-state exceptions.
+   * - ``mongot_index_stats_indexing_consecutiveInitialSyncResyncExceptions``
+     - gauge
+     - count
+     - Consecutive initial-sync resync exceptions for this index.
+
+Query Metrics
+`````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 15 35
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_index_stats_query_totalQueries_total``
+     - counter
+     - count
+     - Total queries issued against the index.
+   * - ``mongot_index_stats_query_totalHitsCount_total``
+     - counter
+     - count
+     - Total hits returned.
+   * - ``mongot_index_stats_query_failedQueries_total``
+     - counter
+     - count
+     - Queries that failed.
+   * - ``mongot_index_stats_query_internallyFailedQueries_total``,
+       ``mongot_index_stats_query_invalidQueries_total``,
+       ``mongot_index_stats_query_npeQueries_total``,
+       ``mongot_index_stats_query_lenientFailures_total``
+     - counter
+     - count
+     - Specific failure-class counters.
+   * - ``mongot_index_stats_query_searchResultBatchLatencies_seconds``
+     - summary
+     - seconds (``timeUnit=milliseconds``)
+     - Search batch latency. This is the headline query-latency metric.
+   * - ``mongot_index_stats_query_luceneTopDocsSearchLatencies_seconds``
+     - summary
+     - seconds (``timeUnit=milliseconds``)
+     - Latency inside Lucene's TopDocs search. Use this metric to
+       distinguish Lucene-internal latency from total latency.
+   * - ``mongot_index_stats_query_vectorResultLatencies_seconds``
+     - summary
+     - seconds (``timeUnit=milliseconds``)
+     - Vector search result latency.
+   * - ``mongot_index_stats_query_vectorSearchInitialTopDocsLatencyTimer_seconds``,
+       ``mongot_index_stats_query_vectorSearchGetMoreTopDocsLatencyTimer_seconds``
+     - summary
+     - seconds (``timeUnit=milliseconds``)
+     - Vector search latency phases.
+   * - ``mongot_index_stats_query_tokenFacetsStateRefreshLatency_seconds``
+     - summary
+     - seconds (``timeUnit=milliseconds``)
+     - Facets state-refresh latency.
+   * - ``mongot_index_stats_query_batchDataSize``,
+       ``mongot_index_stats_query_batchDocumentCount``
+     - summary
+     - bytes / count
+     - Per-batch payload size and document
+       count.
+   * - ``mongot_index_stats_query_limitPerQuery``
+     - histogram
+     - count (``le=10|50|100|200|500|1000|+Inf``)
+     - Distribution of ``$search`` and ``$vectorSearch`` limits.
+   * - ``mongot_index_stats_query_numCandidatesPerQuery``
+     - histogram
+     - count
+     - Vector candidates per query, bucketed
+       by quantization.
+   * - ``mongot_index_stats_query_getMoreCommandCalls_total``,
+       ``mongot_index_stats_query_getMoreCommandCallsPerQuery``
+     - counter / summary
+     - count
+     - ``getMore`` call counts.
+   * - ``mongot_index_stats_query_batchWithTies_total``
+     - counter
+     - count
+     - Result batches with score ties.
+   * - ``mongot_index_stats_query_benefitFromIndexSortCount_total``
+     - counter
+     - count
+     - Queries that benefited from index sort
+       optimization.
+   * - ``mongot_index_stats_query_extractableLimitQueries_total``,
+       ``mongot_index_stats_query_extractableLimitSecondBatchQueries_total``
+     - counter
+     - count
+     - Limit-extraction optimizations triggered.
+   * - ``mongot_index_stats_query_phantomSearcherCleanupCount_total``
+     - counter
+     - count
+     - Phantom-searcher cleanups.
+   * - ``mongot_index_stats_query_orphanedDeletedDocsRatio``
+     - summary
+     - ratio
+     - Deleted-document ratio in returned
+       results.
+   * - ``mongot_index_stats_query_noProgressBatches_total``
+     - counter
+     - count
+     - Batches that made no forward progress.
+   * - ``mongot_index_stats_query_vectorCommandCalls_total``,
+       ``mongot_index_stats_query_vectorRescoringFailureCount_total``,
+       ``mongot_index_stats_query_vectorSearchQueriesOverSearchIndexes_total``
+     - counter
+     - count
+     - Vector-specific counters.
+   * - ``mongot_index_stats_query_feature_total``
+     - counter
+     - count
+     - Per-query-feature usage. Label: ``name=<feature>``. For example,
+       ``compound``, ``text``, ``phrase``, ``near``, ``vectorSearch``,
+       ``knnBeta``, ``autoEmbedding`` (only when Automated Embedding is
+       enabled).
+   * - ``mongot_index_stats_query_failedExplainQueryAggregate_total``
+     - counter
+     - count
+     - Failed ``$explain`` aggregates.
+
+Per-index Replication Breakdown
+```````````````````````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_replication_mongodb_indexManagerState``
+     - gauge
+     - 0/1
+     - The canonical replication-state signal. ``mongot`` one-hot
+       encodes this metric, meaning that exactly one ``state`` label is
+       ``1.0``. States: ``STEADY_STATE``, ``INITIAL_SYNC``,
+       ``INITIAL_SYNC_BACKOFF``, ``INITIALIZING``, ``FAILED``,
+       ``FAILED_EXCEEDED``, ``SHUT_DOWN``, ``STEADY_STATE_SHUT_DOWN``.         
+   * - ``mongot_index_stats_replication_steadyState_batchTotalApplicableBytes``,
+       ``mongot_index_stats_replication_steadyState_batchTotalApplicableDocuments``
+     - summary
+     - bytes / count
+     - Steady-state batch sizes.
+   * - ``mongot_index_stats_replication_steadyState_decodingBatchDurations_seconds``
+     - summary
+     - seconds
+     - Steady-state decoding duration.
+   * - ``mongot_index_stats_replication_steadyState_getMoreDurations_seconds``
+     - summary
+     - seconds
+     - Steady-state ``getMore`` duration.
+   * - ``mongot_index_stats_replication_initialSync_changeStream_*``
+     - summary
+     - —
+     - Initial-sync change-stream phase metrics (mirrors steady state).
+   * - ``mongot_index_stats_replication_initialSync_collScan_*``
+     - summary
+     - —
+     - Initial-sync collection-scan phase metrics.
+
+Lucene Refresh Latency
+``````````````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_index_stats_luceneIndexRefresher_refreshDurations_seconds``
+     - summary
+     - seconds (``timeUnit=milliseconds``)
+     - Lucene IndexReader refresh latency.
+
+Command Metrics
+~~~~~~~~~~~~~~~
+
+``mongot`` accepts the following set of named commands from ``mongod``:
+
+- ``buildinfo``
+- ``getMore``
+- ``hello``
+- ``isMaster``
+- ``ismaster``
+- ``killCursors``
+- ``manageSearchIndex``
+- ``ping``
+- ``planShardedSearch``
+- ``search``
+- ``vectorSearch``
+ 
+For each command, ``mongot`` exposes the following metrics, where
+``<name>`` is a placeholder for the command name: 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 15 35
+
+   * - Pattern
+     - Type
+     - Description
+   * - ``mongot_command_<name>CommandFailure_total``
+     - counter
+     - Failure count for the command.
+   * - ``mongot_command_<name>CommandTotalLatency_seconds``
+     - summary
+     - End-to-end latency including serialization.
+   * - ``mongot_command_<name>CommandSerializationLatency_seconds``
+     - summary
+     - Serialization latency (subset; not all commands).
+
+.. tip:: Monitor Search and Vector Search Latency Across Indexes
+  
+   ``mongot_command_searchCommandTotalLatency_seconds`` and 
+   ``mongot_command_vectorSearchCommandTotalLatency_seconds``
+   are the primary metrics to monitor for :pipeline:`$search` and 
+   :pipeline:`$vectorSearch` latency aggregates. These expose latency 
+   aggregates for all ``search`` and ``vectorSearch`` commands across 
+   all indexes.
+
+Indexing Scheduler and Dispatcher Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use indexing scheduler and dispatcher metrics to identify backlog,
+saturation, and slow work in replication and indexing pipelines.
+
+Steady-state Change-stream Pipeline
+```````````````````````````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_indexing_steadyStateChangeStream_batchesInProgressTotal``
+     - gauge
+     - count
+     - Batches currently being applied. Label:
+       ``indexType=search|vector_search| vector_search_auto_embedding``
+       (only when you enable Automated Embedding).
+   * - ``mongot_indexing_steadyStateChangeStream_batchesInProgressTotalDurations_seconds``
+     - summary
+     - seconds
+     - Duration distribution for in-flight
+       batches.
+   * - ``mongot_indexing_steadyStateChangeStream_getMoreDurations_seconds``
+     - summary
+     - seconds
+     - ``getMore`` round-trip distribution.
+   * - ``mongot_indexing_steadyStateChangeStream_getMoresInFlight``
+     - gauge
+     - count
+     - ``getMore`` requests in flight.
+   * - ``mongot_indexing_steadyStateChangeStream_getMoresScheduled``
+     - gauge
+     - count
+     - Scheduled ``getMore`` requests by ``indexType``.
+   * - ``mongot_indexing_steadyStateChangeStream_getMoresSchedulingDurations_seconds``
+     - summary
+     - seconds
+     - ``getMore`` scheduling latency.
+   * - ``mongot_indexing_steadyStateChangeStream_preprocessingBatchDurations_seconds``
+     - summary
+     - seconds
+     - Pre-processing duration per batch.
+   * - ``mongot_indexing_steadyStateChangeStream_witnessedChangeStreamUpdates_total``
+     - counter
+     - count
+     - Total change-stream events observed.
+       Label: ``Scope=replication``.
+   * - ``mongot_indexing_steadyStateChangeStream_applicableChangeStreamUpdates_total``
+     - counter
+     - count
+     - Events that ``mongot`` considered
+       applicable.
+   * - ``mongot_indexing_steadyStateChangeStream_dispatcher``
+     - gauge
+     - 0/1
+     - Dispatcher status. Labels: ``Scope=replication``,
+       ``client=synchronous-batch``.
+   * - ``mongot_indexing_steadyStateChangeStream_skippedChangeStreamDocumentsWithoutMetadataNamespace_total``
+     - counter
+     - count
+     - Events skipped due to missing metadata.
+   * - ``mongot_indexing_steadyStateChangeStream_unexpectedBatchFailures_total``
+     - counter
+     - count
+     - Unexpected batch failures.
+   * - ``mongot_indexing_steadyStateChangeStream_rescheduledEmbeddingGetMores_total``
+     - counter
+     - count
+     - Rescheduled embedding getMores. This metric is only available
+       when you configure Automated Embedding.
+   * - ``mongot_indexing_changeStreamModeSelector_failedSamplingAttemptsCounter_total``
+     - counter
+     - count
+     - Failed change-stream mode sampling
+       attempts.
+
+Indexing Work Scheduler
+```````````````````````
+
+Indexing work scheduler metrics monitor the queueing and execution of
+indexing batches.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_indexingWorkScheduler_queuedBatchesTotal``,
+       ``mongot_indexingWorkScheduler_queuedEventsTotal``
+     - gauge
+     - count
+     - Scheduler queue depth.
+   * - ``mongot_indexingWorkScheduler_enqueueCalls_total``,
+       ``mongot_indexingWorkScheduler_dequeueCalls_total``
+     - counter
+     - count
+     - Enqueue and dequeue counts.
+   * - ``mongot_indexingWorkScheduler_indexingBatchDistribution``
+     - summary
+     - count
+     - Distribution of batch sizes. Label: ``Scope=replication``.
+   * - ``mongot_indexingWorkScheduler_indexingBatchDurations_seconds``
+     - summary
+     - seconds
+     - Batch durations.
+   * - ``mongot_indexingWorkScheduler_indexingBatchSchedulingDurations_seconds``
+     - summary
+     - seconds
+     - Scheduling overhead.
+
+Decoding Work Scheduler
+```````````````````````
+
+Decoding work scheduler metrics monitor the queueing and execution of
+change-stream batch decoding.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_decodingWorkScheduler_queuedBatchesTotal``,
+       ``mongot_decodingWorkScheduler_queuedEventsTotal``
+     - gauge
+     - count
+     - Scheduler queue depth.
+   * - ``mongot_decodingWorkScheduler_enqueueCalls_total``,
+       ``mongot_decodingWorkScheduler_dequeueCalls_total``
+     - counter
+     - count
+     - Enqueue and dequeue counts.
+   * - ``mongot_decodingWorkScheduler_decodingBatchDistribution``
+     - summary
+     - count
+     - Distribution of batch sizes. Label: ``Scope=replication``.
+   * - ``mongot_decodingWorkScheduler_decodingBatchDurations_seconds``
+     - summary
+     - seconds
+     - Batch durations.
+   * - ``mongot_decodingWorkScheduler_decodingBatchSchedulingDurations_seconds``
+     - summary
+     - seconds
+     - Scheduling overhead.
+
+Initial Sync, Lifecycle, and Config Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use these metrics to track index startup work, recovery, and catalog
+state.
+
+Initial Sync
+````````````
+
+.. note::
+
+   Some ``mongot`` metrics are phase-specific and populate only when the
+   corresponding code path is active. For example, steady-state
+   replication metrics, such as
+   ``mongot_index_stats_indexing_replicationLagMs`` and the
+   ``mongot_index_stats_replication_steadyState_*`` series, do not
+   populate while an index is in initial sync. Conversely,
+   initial-sync-specific metrics, such as ``mongot_initialsync_*`` and
+   ``mongot_index_stats_replication_initialSync_*``, are only relevant
+   while initial sync is running or has run.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_initialsync_queue_queuedSyncs``
+     - gauge
+     - count
+     - Queued initial syncs. Label: ``indexType``.
+   * - ``mongot_initialsync_queue_requeuedEmbeddingInitialSyncs_total``
+     - counter
+     - count
+     - Embedding initial syncs that were requeued.  This metric is only
+       available when you configure Automated Embedding.
+   * - ``mongot_initialsync_dispatcher_inProgressSyncs``
+     - gauge
+     - count
+     - Initial syncs currently in progress. Label: ``indexType``.
+   * - ``mongot_initialsync_dispatcher_queuedSyncs``
+     - gauge
+     - count
+     - Initial syncs queued at the dispatcher.
+   * - ``mongot_initialsync_dispatcher_inProgressResumedSyncs``
+     - gauge
+     - count
+     - In-progress syncs that resumed from a
+       checkpoint.
+   * - ``mongot_initialsync_dispatcher_collectionScan``
+     - gauge
+     - 0/1
+     - Active collection-scan mode. Label:
+       ``scan_type=id_order|natural_order``.
+   * - ``mongot_initialsync_dispatcher_completedSyncDuration_seconds``
+     - summary
+     - seconds
+     - Completed sync duration distribution.
+   * - ``mongot_initialsync_dispatcher_syncDuration_seconds``
+     - summary
+     - seconds
+     - Ongoing sync duration.
+   * - ``mongot_initialsync_dispatcher_inProgressInitialSyncDurationMin_seconds``,
+       ``mongot_initialsync_dispatcher_inProgressInitialSyncDurationMax_seconds``,
+       ``mongot_initialsync_dispatcher_inProgressInitialSyncDurationSum_seconds``
+     - gauge
+     - seconds
+     - Min, max, and sum of in-progress initial sync durations.
+   * - ``mongot_initialsync_dispatcher_unreadableDroppedIndexes_total``
+     - counter
+     - count
+     - Dropped because their on-disk segments could not be read.
+   * - ``mongot_initialsync_dispatcher_unreadableIndexRecoveries_total``
+     - counter
+     - count
+     - Recovered after unreadable segments. Label:
+       ``unreadableIndexCause=corruptIndex|incompatibleCodec|
+       incompatibleIndexFormat``.
+
+Lifecycle
+`````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description   
+   * - ``mongot_lifecycle_indexesInInitializedState``
+     - gauge
+     - count
+     - Indexes currently in the initialized state.
+   * - ``mongot_lifecycle_indexInitializationDuration_seconds``
+     - summary
+     - seconds
+     - Initialization durations.
+   * - ``mongot_lifecycle_failedDownloadIndexes_total``
+     - counter
+     - count
+     - Index downloads that failed.
+   * - ``mongot_lifecycle_failedDropIndexes_total``
+     - counter
+     - count
+     - Index drops that failed.
+   * - ``mongot_lifecycle_failedInitializationIndexes_total``
+     - counter
+     - count
+     - Index initializations that failed.
+
+Config State
+````````````
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description     
+   * - ``mongot_configState_indexesInCatalog``
+     - gauge
+     - count
+     - Indexes currently in the catalog.
+       Labels: ``Scope=replication``,
+       ``indexFormatVersion``.
+   * - ``mongot_configState_indexesPhasingOut``
+     - gauge
+     - count
+     - Indexes being phased out.
+   * - ``mongot_configState_stagedIndexes``
+     - gauge
+     - count
+     - Staged but not yet active indexes.
+   * - ``mongot_configState_indexesInCatalogFeatureVersionFour``,
+       ``mongot_configState_indexesPhasingOutFeatureVersionFour``,
+       ``mongot_configState_stagedIndexesFeatureVersionFour``
+     - gauge
+     - count
+     - Feature-version-4-specific equivalents.
+
+Cursors and Index Factory
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use these metrics to monitor open cursor state and to detect indexes
+that ``mongot`` dropped or recovered because their on-disk segments
+were unreadable.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_cursorManager_trackedCursors``
+     - gauge
+     - count
+     - Currently tracked open cursors.
+   * - ``mongot_indexFactory_unreadableDroppedIndexes_total``
+     - counter
+     - count
+     - Indexes dropped because their segments were unreadable.
+   * - ``mongot_indexFactory_unreadableIndexRecoveries_total``
+     - counter
+     - count
+     - Recoveries after unreadable segments. Label:
+       ``unreadableIndexCause``.
+
+Lucene Merge
+~~~~~~~~~~~~
+
+Use these metrics to monitor Lucene segment merge activity, including
+the number and size of merges in progress, merge input and output
+sizes, merge durations, and merges discarded by the disk-utilization
+merge policy.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_mergeScheduler_currentlyRunningMerges``
+     - gauge
+     - count
+     - Active merges. Label: ``Scope=lucene``.
+   * - ``mongot_mergeScheduler_currentlyMergingDocs``
+     - gauge
+     - count
+     - Documents currently being merged.
+   * - ``mongot_mergeScheduler_numMerges_total``
+     - counter
+     - count
+     - Total merges executed since startup.
+   * - ``mongot_mergeScheduler_numSegmentsMerged_total``
+     - counter
+     - count
+     - Segments folded by merges.
+   * - ``mongot_mergeScheduler_mergeSize``
+     - summary
+     - bytes
+     - Distribution of merge input sizes.
+   * - ``mongot_mergeScheduler_mergeResultSize``
+     - summary
+     - bytes
+     - Distribution of merge output sizes.
+   * - ``mongot_mergeScheduler_mergedDocs``
+     - summary
+     - count
+     - Documents-per-merge distribution.
+   * - ``mongot_mergeScheduler_mergeTime_seconds``
+     - summary
+     - seconds
+     - Merge duration distribution.
+   * - ``mongot_diskUtilizationAwarenessMergePolicy_discardedMerge_total``
+     - counter
+     - count
+     - Merges discarded by the disk-utilization-aware policy.
+
+MongoDB Client Connection Pool Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``mongot`` opens multiple named connection pools to ``mongod``, and
+labels each pool with a ``clientName`` label that identifies the role of
+each pool. The following table lists possible ``clientName`` label
+values and their corresponding role: 
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 60
+
+   * - clientName
+     - Purpose
+   * - ``mongot steady state sync``
+     - Steady-state change-stream replication.
+   * - ``mongot initial sync and session refresh``
+     - Initial sync and session refresh. The ``appName`` seen in
+       ``mongod`` ``currentOp``.
+   * - ``mongot metadata service``
+     - Internal metadata service.
+   * - ``mongot periodic optime fetcher``
+     - Optime polling.
+   * - ``mongot database metadata resolver``
+     - Database metadata lookups.
+   * - ``mongot server info resolver``
+     - Server-info lookups.
+   * - ``mongot Lease Manager mongo client``
+     - Lease manager.
+   * - ``mongot AutoEmbedding Materialized View Writer``
+     - Automated embedding writes. This connection pool only appears
+       when you configure Automated Embedding.
+
+The following table lists the available metrics for ``mongot``
+connection pools:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_mongoClient_connectionPool_connections``
+     - gauge
+     - count
+     - Currently open connections in the pool.
+   * - ``mongot_mongoClient_connectionPool_connectionsCheckedOut``
+     - gauge
+     - count
+     - Connections currently checked out.
+   * - ``mongot_mongoClient_connectionPool_maxSize``
+     - gauge
+     - count
+     - Configured max pool size.
+   * - ``mongot_mongoClient_connectionPool_minSize``
+     - gauge
+     - count
+     - Configured min pool size.
+   * - ``mongot_mongoClientBuilder_successfulOpenSSLDynamicLinking_total``
+     - counter
+     - count
+     - Successful native OpenSSL link attempts.
+   * - ``mongot_mongoClientBuilder_failedOpenSSLDynamicLinking_total``
+     - counter
+     - count
+     - Failed native OpenSSL link attempts.
+
+Synonyms
+~~~~~~~~
+
+Use these metrics to monitor synonym synchronization activity,
+including collection scans, scan and sync durations, queue depth, and
+exceptions encountered during synonym sync.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_synonymSync_collScans_total``
+     - counter
+     - count
+     - Total collection scans performed for synonyms.
+   * - ``mongot_synonymSync_collScansTriggeredByChangeStream_total``
+     - counter
+     - count
+     - Synonym scans triggered by change-stream events.
+   * - ``mongot_synonymSync_collScanDurations_seconds``
+     - summary
+     - seconds
+     - Scan duration distribution.
+   * - ``mongot_synonymSync_syncDurations_seconds``
+     - summary
+     - seconds
+     - Sync duration distribution.
+   * - ``mongot_synonymSync_queueDepth``
+     - gauge
+     - count
+     - Current synonym sync queue depth.
+   * - ``mongot_synonymSync_exceptions_total``
+     - counter
+     - count
+     - Synonym sync exceptions.
+
+Executor Pools
+~~~~~~~~~~~~~~
+
+Use these metrics to monitor the named executor pools that ``mongot``
+uses to run background work. Each pool exposes the same set of
+sub-metrics, prefixed with the pool name, so you can track thread
+activity, pool sizing, queue depth, task throughput, and per-task
+execution time across all pools.
+
+The following table lists the sub-metrics that every executor pool
+exposes, where ``<pool>`` is the pool name prefix. All executor-pool
+sub-metrics carry the label ``name="executorMetrics"``.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 50
+
+   * - Sub-Metric Suffix
+     - Type
+     - Description
+   * - ``<pool>_active_threads``
+     - gauge
+     - Threads currently executing tasks.
+   * - ``<pool>_pool_core_threads``,
+       ``<pool>_pool_max_threads``,
+       ``<pool>_pool_size_threads``
+     - gauge
+     - Pool sizing.
+   * - ``<pool>_queued_tasks``
+     - gauge
+     - Tasks waiting for a thread — the saturation signal.
+   * - ``<pool>_queue_remaining_tasks``
+     - gauge
+     - Remaining queue capacity.
+   * - ``<pool>_completed_tasks_total``
+     - counter
+     - Tasks completed since startup.
+   * - ``<pool>_idle_seconds``
+     - summary
+     - Time threads spent idle between tasks.
+   * - ``<pool>_seconds``
+     - summary
+     - Per-task execution time.
+   * - ``<pool>_scheduled_once_total``,
+       ``<pool>_scheduled_repetitively_total``
+     - counter
+     - Scheduled task counts (for scheduling pools).
+
+The following table lists the prefixes for all available named executor
+pools and their respective purposes:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 45 55
+
+   * - Executor Pool Prefix
+     - What it runs
+   * - ``mongot_blobstore_lifecycle_executor``
+     - Blob-store lifecycle work.
+   * - ``mongot_blocking_server_worker_executor``
+     - Blocking gRPC server worker threads.
+   * - ``mongot_change_stream_mode_selector_executor``
+     - Change-stream mode selection.
+   * - ``mongot_change_stream_sync_dispatcher_executor``
+     - Change-stream sync dispatching (one of the busiest in
+       steady state).
+   * - ``mongot_config_monitor_executor``
+     - Config-monitor polling.
+   * - ``mongot_decoding_executor``
+     - Decoding pipeline workers.
+   * - ``mongot_disk_monitor_executor``
+     - Disk-monitor polling.
+   * - ``mongot_grpc_health_check_executor``
+     - gRPC health check timer.
+   * - ``mongot_idle_cursor_killer_executor``
+     - Idle cursor reaping.
+   * - ``mongot_index_commit_executor``
+     - Index commit operations.
+   * - ``mongot_index_lifecycle_executor``
+     - Per-index lifecycle work.
+   * - ``mongot_index_refresh_executor``
+     - Lucene IndexReader refreshes.
+   * - ``mongot_indexing_work_executor``
+     - Indexing pipeline workers (the busiest indexing pool in
+       steady state).
+   * - ``mongot_indexing_lifecycle_executor``
+     - Indexing-lifecycle work.
+   * - ``mongot_indexing_auto_embedding_executor``
+     - Automated-embedding indexing path.  This executor pool only
+       appears when you configure Automated Embedding.
+   * - ``mongot_init_lifecycle_executor``
+     - Init-time lifecycle work.
+   * - ``mongot_mat_view_commit_executor``,
+       ``mongot_mat_view_leader_heartbeat_executor``,
+       ``mongot_mat_view_optime_updater_executor``,
+       ``mongot_mat_view_status_refresh_executor``,
+       ``mongot_materialized_view_lifecycle_executor``
+     - Materialized-view tracking and lifecycle. These metrics are only
+       available when Automated Embedding or other
+       materialized-view-backed features are configured.
+   * - ``mongot_replicationOptimeUpdater_executor``
+     - Optime updater (background).
+   * - ``mongot_session_refresh_executor``
+     - Session refresher.
+   * - ``mongot_system_metrics_updater_executor``
+     - System metrics updater.
+
+.. tip:: Watch Saturation Across All Executor Pools
+
+   To monitor saturation across all executor pools, run the following
+   PromQL query:
+
+   .. code-block:: promql
+      :copyable: true
+
+      max by (pool) (  
+        label_replace(  
+          {__name__=~"mongot_.+_executor_queued_tasks"},  
+          "pool", "$1", "__name__", "mongot_(.+)_executor_queued_tasks"  
+        )  
+      )
+   
+   This query returns the queued-task count for each executor pool. 
+
+Prometheus Server Self-Metrics
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following metric is available for the embedded Prometheus server in
+``mongot``:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 10 10 40
+
+   * - Metric
+     - Type
+     - Unit
+     - Description
+   * - ``mongot_prometheus_server_scraping_timer_seconds``
+     - summary
+     - seconds (``timeUnit=milliseconds``)
+     - How long ``mongot`` takes to assemble a ``/metrics`` response.
+       Sustained growth here means metric exposition itself is slowing
+       down.
+
+Configuration-Specific Metrics
+------------------------------
+
+The following metric families appear in the ``/metrics`` output only
+when you enable specific features.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 35 35
+
+   * - Metric Family
+     - Description
+     - Availability in Self-Managed ``mongot``
+   * - ``mongot_*embedding*``
+     - Metrics related to Automated Embedding. For example,
+       ``mongot_initialsync_queue_requeuedEmbeddingInitialSyncs_total``,
+       ``mongot_materialized_view_lifecycle_executor``, and
+       connection-pool entries with ``clientName="mongot AutoEmbedding
+       Materialized View Writer"``. 
+     - Appear only when you configure Automated Embedding.
+   * - ``mongot_mongot_ftdc_executor_failure_total``
+     - Failure count for the FTDC executor.
+     - Appears only when you enable the
+       ``ftdcExecutorMetricsToPrometheus`` feature flag.
+
+PromQL Examples
+---------------
+
+Most latency metrics in this catalog are summaries, not histograms, so
+use their published ``quantile`` labels directly when they exist. A
+smaller number of metrics, such as
+``mongot_index_stats_query_limitPerQuery`` and
+``mongot_index_stats_query_numCandidatesPerQuery``, are histograms and
+expose ``_bucket`` series.
+
+.. code-block:: promql
+
+   # Replication state
+   max by (state) (mongot_replication_mongodb_indexManagerState == 1)
+
+   # Maximum replication lag across all indexes, converted to seconds
+   max(mongot_index_stats_indexing_replicationLagMs) / 1000
+
+   # Index count by status
+   count by (status) (mongot_index_stats_indexStatusCode == 1)
+
+   # Search query p99 latency across all indexes
+   max(mongot_index_stats_query_searchResultBatchLatencies_seconds{quantile="0.99"})
+
+   # Worst recent GC pause
+   max(mongot_jvm_gc_pause_seconds_max)
+
+   # Average GC pause over 5 minutes
+   rate(mongot_jvm_gc_pause_seconds_sum[5m]) / rate(mongot_jvm_gc_pause_seconds_count[5m])
+
+   # Free disk percentage on dataPath
+   mongot_system_disk_space_data_path_free_bytes
+     / mongot_system_disk_space_data_path_total_bytes
+
+   # Major page fault rate
+   rate(mongot_system_process_majorPageFaults_operations[5m])
+
+   # Steady-state and initial sync exceptions over 15 minutes
+   sum(rate(mongot_index_stats_indexing_steadyStateExceptions_total[15m]))
+   sum(rate(mongot_index_stats_indexing_initialSyncExceptions_total[15m]))

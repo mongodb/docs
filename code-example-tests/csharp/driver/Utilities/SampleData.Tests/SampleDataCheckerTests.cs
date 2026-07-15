@@ -10,6 +10,14 @@ public class SampleDataCheckerTests
     [TestFixture]
     public class CheckSampleDataAvailableAsyncTests
     {
+        [TearDown]
+        public void TearDown()
+        {
+            // Clear the cache between tests so that env-file manipulation and
+            // explicit connection-string tests don't observe each other's cached results.
+            SampleDataChecker.ClearCache();
+        }
+
         [Test]
         [Description(
             "Verifies that CheckSampleDataAvailableAsync returns false when CONNECTION_STRING is absent from the .env file and no connection string is passed explicitly. Skipped in CI environments where sample data is already loaded.")]
@@ -95,6 +103,24 @@ public class SampleDataCheckerTests
 
             Assert.That(isAvailable, Is.True);
             Assert.That(reason, Is.EqualTo("Sample data is available."));
+        }
+
+        [Test]
+        [Description(
+            "Verifies that a second call for the same database returns the cached Task instance, " +
+            "confirming that no new MongoDB connection is opened.")]
+        public async Task ShouldReturnCachedTask_OnSubsequentCallsForSameDatabase()
+        {
+            const string databaseName = "sample_mflix";
+
+            var task1 = SampleDataChecker.CheckSampleDataAvailableAsync(databaseName);
+            var task2 = SampleDataChecker.CheckSampleDataAvailableAsync(databaseName);
+
+            // Both calls must return the exact same Task object — no second connection.
+            Assert.That(task2, Is.SameAs(task1));
+
+            // Await to ensure the check completes cleanly.
+            await task1;
         }
     }
 

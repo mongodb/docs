@@ -1,4 +1,4 @@
-The Grove C# Driver test suite uses the `NUnit <https://nunit.org/>`__
+The Grove .NET/C# Driver test suite uses the `NUnit <https://nunit.org/>`__
 testing framework to verify that our code examples compile, run, and produce
 the expected output when executed.
 
@@ -408,7 +408,7 @@ Working with Your Own Data
 If your example uses your own data, you can use the ``[SetUp]``
 attribute to set up your MongoDB client and create any necessary databases before
 you run each test. You then use the ``[TearDown]`` attribute to drop
-the database after each test. The C# driver will automatically create a database
+the database after each test. The .NET/C# driver will automatically create a database
 when you first write data to it, so you don't need to create the database explicitly.
 
 The following example shows how to create your custom database before each test

@@ -19,7 +19,7 @@
          :gold:`IMPORTANT:` If your organization has no payment information stored,
          |service| prompts you to add it before continuing.
       
-   .. step:: Configure your private endpoint.
+   .. step:: Add an endpoint to your endpoint service.
 
       .. include:: /includes/fact-avoid-connection-interruptions.rst
       

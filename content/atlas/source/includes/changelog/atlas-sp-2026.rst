@@ -1,3 +1,70 @@
+.. _atlas-sp-20260709:
+
+9 July 2026 Release
+-------------------
+
+- Improves how Kafka source stream processors distribute processing
+  across partitions during periods of heavy load, resulting in more
+  even processing.
+- Adds stream processor CPU and memory usage to the
+  :guilabel:`Monitoring` tab in the {+atlas-ui+}. To learn more, see
+  :ref:`atlas-sp-monitoring-ui`.
+
+.. _atlas-sp-20260630:
+
+30 June 2026 Release
+---------------------
+
+- Adds general availability support for writing to {+iceberg+}
+  tables using the ``$iceberg`` aggregation stage. To learn more,
+  see :ref:`$iceberg <atlas-sp-agg-iceberg>`.
+
+.. _atlas-sp-20260623:
+
+23 June 2026 Release
+--------------------
+
+- Adds support for regional failover. To learn more, see
+  :ref:`atlas-sp-architecture-failover`.
+
+.. _atlas-sp-20260618:
+
+18 June 2026 Release
+--------------------
+
+- Overhauls the UI experience for creating and editing a stream
+  processor. To learn more, see
+  :ref:`atlas-sp-manage-processor-create`.
+- Adds read-only access to the :guilabel:`Edit Connection` page for
+  in-use connections from a connection registry entry. A banner
+  indicates that you must stop processors using the connection before
+  making any changes. Previously, you had to stop processors using the
+  connection to view its details. To learn more, see
+  :ref:`atlas-sp-manage-connection-view`.
+- Improves error messaging when creating a pipeline in the
+  {+atlas-ui+}.
+
+.. _atlas-sp-20260615:
+
+15 June 2026 Release
+---------------------
+
+- Adds support for multi-collection ``initialSync``. To learn more,
+  see :ref:`atlas-sp-agg-source-syntax-coll`.
+- Adds an ``addedParallelism`` field to
+  :method:`sp.processor.stats()` that reports the additional
+  parallelism the stream processor has configured, equal to the
+  :ref:`Max Parallelism <stream-processing-costs>` defined by its
+  stream processor tier.
+
+.. _atlas-sp-20260611:
+
+11 June 2026 Release
+--------------------
+
+- Adds the ability to change the tier of a stream processor in
+  {+mongosh+}. To learn more, see :method:`sp.processor.modify()`.
+
 .. _atlas-sp-20260605:
 
 5 June 2026 Release

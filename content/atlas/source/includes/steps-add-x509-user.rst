@@ -43,7 +43,7 @@
          24 hours. You can view and edit this alert from |service|'s
          :guilabel:`Alert Settings` page. For more information on
          configuring alerts, see
-         :doc:`Configure Alert Settings </configure-alerts>`.
+         :ref:`Configure Alert Settings <configure-alerts>`.
       
          .. important::
       

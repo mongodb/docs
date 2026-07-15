@@ -71,31 +71,69 @@ content: |
 
                 kubectl apply -f https://raw.githubusercontent.com/mongodb/mongodb-atlas-kubernetes/v<VERSION>/deploy/namespaced/namespaced-config.yaml
 
-        b. Create an |api| key with :authrole:`Organization Project Creator` or 
-           :authrole:`Project Owner` permissions by following the procedure in 
-           :ref:`create-org-api-key`.
+        b. Create credentials for |ak8so| to authenticate with |service|.
+           Choose one of the following:
+ 
+           - **API Key:** Create an |api| key with :authrole:`Organization Project Creator` or 
+             :authrole:`Project Owner` permissions by following the procedure in 
+             :ref:`create-org-api-key`.
+
+           - **Service Account:** Create a Service Account with the 
+             appropriate roles in your |service| organization or project. 
+             To learn more, see :atlas:`Service Accounts Overview 
+             </api/api-authentication/#service-accounts-overview>`.
 
 ---
 
 stepnum: 3
-title: "Create a secret with your API keys and organization ID."
-ref: create-ak8so-api-key-secret
+title: "Create a connection secret with your credentials."
+ref: create-ak8so-credentials-secret
 content: |
 
-  To create and label a |k8s-secret|, run the following commands with 
-  your API keys and organization ID:
+  Create and label a |k8s-secret| that |ak8so| uses to authenticate
+  with |service|. Choose the tab that matches your preferred
+  authentication method:
+
+  .. tabs::
+
+     .. tab:: API Keys
+        :tabid: api-keys
+
+        Run the following commands with your |api| keys and
+        organization ID:
   
-  .. code-block:: sh
+        .. code-block:: sh
 
-     kubectl create secret generic mongodb-atlas-operator-api-key \
-         --from-literal="orgId=<atlas_organization_id>" \
-         --from-literal="publicApiKey=<atlas_api_public_key>" \
-         --from-literal="privateApiKey=<atlas_api_private_key>" \
-         -n mongodb-atlas-system
+           kubectl create secret generic mongodb-atlas-operator-api-key \
+               --from-literal="orgId=<atlas_organization_id>" \
+               --from-literal="publicApiKey=<atlas_api_public_key>" \
+               --from-literal="privateApiKey=<atlas_api_private_key>" \
+               -n mongodb-atlas-system
 
-  .. code-block:: sh
+        .. code-block:: sh
 
-     kubectl label secret mongodb-atlas-operator-api-key atlas.mongodb.com/type=credentials -n mongodb-atlas-system
+           kubectl label secret mongodb-atlas-operator-api-key atlas.mongodb.com/type=credentials -n mongodb-atlas-system
+
+     .. tab:: Service Account
+        :tabid: service-account
+
+        Run the following commands with your Service Account
+        credentials and organization ID:
+
+        .. code-block:: sh
+
+           kubectl create secret generic mongodb-atlas-operator-service-account \
+               --from-literal="orgId=<atlas_organization_id>" \
+               --from-literal="clientId=<service_account_client_id>" \
+               --from-literal="clientSecret=<service_account_client_secret>" \
+               -n mongodb-atlas-system
+
+        .. code-block:: sh
+
+           kubectl label secret mongodb-atlas-operator-service-account atlas.mongodb.com/type=credentials -n mongodb-atlas-system
+
+        To learn more about creating a Service Account, see
+        :ref:`ak8so-service-accounts-ref`.
 
   .. include:: /includes/fact-use-secret-storage.rst
 
@@ -114,7 +152,7 @@ content: |
      The following example does not specify 
      :ref:`spec.connectionSecretRef.name <atlasproject-spec-connectionsecretref>`. If unspecified, |ak8so| 
      uses the default connection |k8s-secret| previously set with your 
-     API keys and organization ID.
+     credentials and organization ID.
 
   Deploy the |ak8so| custom resource.
   

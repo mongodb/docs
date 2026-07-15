@@ -1,0 +1,13 @@
+[
+  'Adventure',
+  'Animation',
+  'Comedy',
+  'Documentary',
+  'Drama',
+  'Family',
+  'Fantasy',
+  'Music',
+  'Romance',
+  'Short',
+  'Sport'
+]

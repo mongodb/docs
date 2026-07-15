@@ -10,11 +10,11 @@ on:
 env:
   STYLE_GUIDE_REVIEWER: 'emetozar'
   STYLE_GUIDE_PATH: 'content/meta/source/style-guide'
+  PR_REVIEWER: 'jwilliams-mongo'
 
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
-  issues: write
 
 jobs:
   check-for-drift:
@@ -84,46 +84,114 @@ jobs:
             echo "✅ style-guide-reference.md is in sync (${LATEST_SHA})"
           fi
 
-      - name: Open reminder issue
+      - name: Check for existing sync PR
         if: steps.check.outputs.has_updates == 'true'
+        id: existing-pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-
-          EXISTING=$(gh issue list \
+          EXISTING=$(gh pr list \
             --label "style-guide-sync" \
             --state open \
             --json number \
             --jq '.[0].number' || echo '')
-
           if [ -n "$EXISTING" ]; then
-            echo "Open issue #${EXISTING} already exists — skipping"
+            echo "Open PR #${EXISTING} already exists — skipping"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node.js
+        if: steps.check.outputs.has_updates == 'true' && steps.existing-pr.outputs.skip == 'false'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        if: steps.check.outputs.has_updates == 'true' && steps.existing-pr.outputs.skip == 'false'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        if: steps.check.outputs.has_updates == 'true' && steps.existing-pr.outputs.skip == 'false'
+        run: |
+          cd .github/ai-reviewer
+          pnpm install
+
+      - name: Update style guide reference via Claude
+        if: steps.check.outputs.has_updates == 'true' && steps.existing-pr.outputs.skip == 'false'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          STYLE_GUIDE_PATH: ${{ env.STYLE_GUIDE_PATH }}
+          CHANGED_FILES: ${{ steps.check.outputs.changed_files }}
+          LATEST_SHA: ${{ steps.check.outputs.latest_sha }}
+          GITHUB_WORKSPACE: ${{ github.workspace }}
+        run: |
+          npx tsx .github/ai-reviewer/scripts/sync-style-guide.ts
+
+      - name: Open PR
+        if: steps.check.outputs.has_updates == 'true' && steps.existing-pr.outputs.skip == 'false'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LATEST_SHA: ${{ steps.check.outputs.latest_sha }}
+          LATEST_DATE: ${{ steps.check.outputs.latest_date }}
+          LATEST_MESSAGE: ${{ steps.check.outputs.latest_message }}
+          CHANGE_COUNT: ${{ steps.check.outputs.change_count }}
+          CHANGED_FILES: ${{ steps.check.outputs.changed_files }}
+        run: |
+          set -euo pipefail
+
+          BRANCH="sync-style-guide-${LATEST_SHA:0:8}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$BRANCH"
+          git add .github/ai-reviewer/style-guide-reference.md .github/ai-reviewer/.style-guide-version
+
+          if git diff --cached --quiet; then
+            echo "No changes to commit — Claude returned identical content"
             exit 0
           fi
 
-          gh issue create \
-            --title "📚 Style guide updated — refresh style-guide-reference.md" \
-            --label "documentation" \
-            --label "style-guide-sync" \
-            --assignee "$STYLE_GUIDE_REVIEWER" \
-            --body "The style guide source at \`${STYLE_GUIDE_PATH}\` has changed since the last time \`.github/ai-reviewer/style-guide-reference.md\` was synced.
+          git commit -m "chore: sync style-guide-reference.md to ${LATEST_SHA:0:8}"
+          git push origin "$BRANCH"
 
-          **Latest commit:** \`${{ steps.check.outputs.latest_sha }}\`
-          **Date:** ${{ steps.check.outputs.latest_date }}
-          **Message:** ${{ steps.check.outputs.latest_message }}
-          **Files changed:** ${{ steps.check.outputs.change_count }}
+          cat > /tmp/pr-body.md << PREOF_DELIM
+          ## Style guide drift detected
+
+          The style guide source at \`${STYLE_GUIDE_PATH}\` has changed since \`style-guide-reference.md\` was last synced.
+
+          **Latest commit:** \`${LATEST_SHA}\`
+          **Date:** ${LATEST_DATE}
+          **Message:** ${LATEST_MESSAGE}
+          **Files changed:** ${CHANGE_COUNT}
 
           \`\`\`
-          ${{ steps.check.outputs.changed_files }}
+          ${CHANGED_FILES}
           \`\`\`
 
-          ### What to do
+          ## What Claude did
 
-          1. Review the changes above (or run \`git diff ${{ steps.check.outputs.last_known }}..${{ steps.check.outputs.latest_sha }} -- ${STYLE_GUIDE_PATH}\`)
-          2. Update \`.github/ai-reviewer/style-guide-reference.md\` if needed
-          3. Update \`.github/ai-reviewer/.style-guide-version\` with \`${{ steps.check.outputs.latest_sha }}\`
-          4. Close this issue
+          \`style-guide-reference.md\` has been automatically updated based on the changed files above. Please review the diff to make sure it accurately reflects the style guide changes before merging.
+
+          ## Reviewer checklist
+
+          - [ ] Review the \`style-guide-reference.md\` diff
+          - [ ] Adjust if anything is missing or incorrect
+          - [ ] Merge when satisfied
 
           ---
-          *Opened by the style guide sync workflow.*"
+          *Opened automatically by the style guide sync workflow.*
+          PREOF_DELIM
+
+          gh pr create \
+            --title "📚 Sync style-guide-reference.md to latest style guide" \
+            --base main \
+            --head "$BRANCH" \
+            --reviewer "$PR_REVIEWER" \
+            --assignee "$STYLE_GUIDE_REVIEWER" \
+            --label "style-guide-sync" \
+            --body-file /tmp/pr-body.md

@@ -14,40 +14,59 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Detect changed tests
+        id: detect
+        run: bash .github/scripts/detect-changed-tests.sh python
       - name: Verify comparison-kernel binaries are up to date
+        if: steps.detect.outputs.run_all == 'true' || steps.detect.outputs.test_filter != ''
         uses: ./.github/actions/verify-comparison-kernel
       - name: Install Atlas CLI
+        if: steps.detect.outputs.run_all == 'true' || steps.detect.outputs.test_filter != ''
         run: |
           curl https://fastdl.mongodb.org/mongocli/mongodb-atlas-cli_1.50.0_linux_x86_64.deb --output atlas-cli.deb
           sudo apt install ./atlas-cli.deb
       - name: Set up a local deployment using Atlas CLI
+        if: steps.detect.outputs.run_all == 'true' || steps.detect.outputs.test_filter != ''
         run: |
           atlas deployments setup myLocalRs1 --type local --port 27017 --force
       - name: Install MongoDB Database Tools to load sample data
+        if: steps.detect.outputs.run_all == 'true' || steps.detect.outputs.test_filter != ''
         run: |
           curl https://fastdl.mongodb.org/tools/db/mongodb-database-tools-ubuntu2204-x86_64-100.13.0.deb --output mdb-db-tools.deb
           sudo apt install ./mdb-db-tools.deb
       - name: Download sample data
+        if: steps.detect.outputs.run_all == 'true' || steps.detect.outputs.test_filter != ''
         run: curl  https://atlas-education.s3.amazonaws.com/sampledata.archive -o sampledata.archive
       - name: Add sample data to database
+        if: steps.detect.outputs.run_all == 'true' || steps.detect.outputs.test_filter != ''
         run: mongorestore --archive=sampledata.archive --port=27017
       - name: Setup Python
+        if: steps.detect.outputs.run_all == 'true' || steps.detect.outputs.test_filter != ''
         uses: actions/setup-python@v5
         with:
           python-version: '3.13'
       - name: Install dependencies
+        if: steps.detect.outputs.run_all == 'true' || steps.detect.outputs.test_filter != ''
         run: |
           cd code-example-tests/python/pymongo
           pip install -r requirements.txt
       - name: Create environment file with connection string
+        if: steps.detect.outputs.run_all == 'true' || steps.detect.outputs.test_filter != ''
         run: |
           cd code-example-tests/python/pymongo
           touch .env
           echo "CONNECTION_STRING=\"mongodb://localhost:27017/?directConnection=true\"" >> .env
       - name: Run tests
+        if: steps.detect.outputs.run_all == 'true' || steps.detect.outputs.test_filter != ''
         run: |
           cd code-example-tests/python/pymongo
-          python -m unittest discover tests_package -v
+          if [[ "${{ steps.detect.outputs.run_all }}" != "false" ]] || [[ -z "${{ steps.detect.outputs.test_filter }}" ]]; then
+            python -m unittest discover tests_package -v
+          else
+            python -m unittest ${{ steps.detect.outputs.test_filter }} -v
+          fi
 
       - name: Notify Slack on scheduled run failure
         if: failure() && github.event_name == 'schedule'

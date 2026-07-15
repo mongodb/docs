@@ -10,7 +10,7 @@ import { Body } from '@leafygreen-ui/typography';
 import { palette } from '@leafygreen-ui/palette';
 import { theme } from '@/styles/theme';
 import useScreenSize from '@/hooks/use-screen-size';
-import LinkComponent from '@/mdx-components/LegacyLink';
+import { Link } from '@/mdx-components/Link';
 import { useViewport } from '@/hooks/use-viewport';
 
 const sideNavItemBasePadding = css`
@@ -105,7 +105,7 @@ const DocsHomeButton = () => {
     () => (
       <SideNavItem
         className={cx(titleStyle, sideNavItemBasePadding, homeLinkStyle)}
-        as={(props) => <LinkComponent {...props} hideExternalIcon={true} />}
+        as={(props) => <Link {...props} hideExternalIcon={true} />}
         href="https://www.mongodb.com/docs/"
       >
         <Icon glyph="Home"></Icon>

@@ -40,9 +40,9 @@ const tocData: TocItem[] = [
         url: '/docs/voyageai/management/aws-marketplace',
       },
       {
-        label: 'Azure Marketplace',
+        label: 'Azure AI Foundry',
         contentSite: 'voyageai',
-        url: '/docs/voyageai/management/azure-marketplace',
+        url: '/docs/voyageai/management/azure-foundry',
       },
       {
         label: 'GCP Model Garden',

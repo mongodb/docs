@@ -245,11 +245,46 @@ Queries
 Generated Embeddings Collection 
 -------------------------------
 
-Automated Embedding uses a separate reserve database to store vector 
-embeddings. You can :ref:`find the generated embeddings collection for 
-an index <auto-embed-retrieve-materialized-views>` and :ref:`retrieve 
-the embeddings from the generated embeddings collection 
-<auto-embed-retrieve-embeddings>`. 
+Automated Embedding uses a separate reserve database to store vector
+embeddings. You can :ref:`find the generated embeddings collection for
+an index <auto-embed-retrieve-materialized-views>` and :ref:`retrieve
+the embeddings from the generated embeddings collection
+<auto-embed-retrieve-embeddings>`.
+
+.. note::
+
+   Starting with the June 30, 2026, release, {+avs+} changed the naming
+   format of the generated embeddings collection. When you upgrade a
+   self-managed Community or Enterprise Advanced deployment running the
+   Private Preview version of Automated Embedding, {+avs+} creates a new
+   generated embeddings collection in the new format for each existing
+   Automated Embedding index. Creating the new collection regenerates
+   the embeddings for the index. The previous generated embeddings
+   collection is orphaned and isn't cleaned up automatically. To reclaim
+   storage, drop the orphaned collection manually. To learn more, see
+   :ref:`auto-embed-remove-orphaned-collections`.
+
+Starting with the June 30, 2026, release, the generated embeddings
+collection name has the following format:
+
+.. code-block:: none
+
+   <index_id>-<index_definition_hash>-<mv_format_version>-<index_definition_version>
+
+The name includes the following components:
+
+- ``<index_id>`` is the ID of the Automated Embedding index.
+- ``<index_definition_hash>`` is a hex-encoded hash of the index
+  definition.
+- ``<mv_format_version>`` is the version of the generated embeddings
+  collection format.
+- ``<index_definition_version>`` is the version of the index
+  definition.
+
+In steady state, only one generated embeddings collection is prefixed
+by the index ID. You don't need to identify the hash or version
+components to find your collection. You can find the collection for an
+index by its index ID prefix.
 
 Embeddings Storage
   MongoDB stores the generated embeddings asynchronously and persists them in an 
@@ -806,6 +841,119 @@ validating cleanup after dropping or redefining an index.
 
       On sharded clusters, run this command on each shard and sum the
       results.
+
+.. _auto-embed-remove-orphaned-collections:
+
+Remove Orphaned Generated Embeddings Collections
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When you upgrade a self-managed Community or Enterprise Advanced
+deployment running the Private Preview version of Automated Embedding to
+the June 30, 2026, release, {+avs+} creates a new generated embeddings
+collection in the new naming format for each existing Automated
+Embedding index. The previous generated embeddings collection is
+orphaned and isn't cleaned up automatically. To reclaim storage, find
+and drop the orphaned collection manually.
+
+You can identify an orphaned collection by its name. The current
+generated embeddings collection name includes the index definition hash
+and version components, in the format
+``<index_id>-<index_definition_hash>-<mv_format_version>-<index_definition_version>``.
+An orphaned collection from the Private Preview version is named with
+the index ID only.
+
+.. include:: /includes/crud-embeddings/facts/reserved-internal-namespace-warning.rst
+
+.. collapsible::
+   :heading: Find and Remove Orphaned Generated Embeddings Collections
+   :sub_heading: Use mongosh to find and drop orphaned generated embeddings collections after upgrading.
+   :expanded: false
+
+   .. procedure::
+      :style: normal
+
+      .. step:: Connect to your MongoDB deployment using ``mongosh``.
+
+      .. step:: Get the ID of the index.
+
+         Run the following query after replacing the following placeholders:
+
+         - ``<database_name>`` - Name of the database that contains the Automated Embedding index.
+         - ``<collection_name>`` - Name of the collection that contains the Automated Embedding index.
+         - ``<index_name>`` - Name of the Automated Embedding index.
+
+         .. io-code-block::
+            :copyable: true
+            :caption: Example: Get the ID of the Automated Embedding index
+
+            .. input::
+               :language: javascript
+               :linenos:
+
+               use <database_name>
+               db.<collection_name>.aggregate( [ { $listSearchIndexes: { name: "<index_name>" } } ] )
+
+            .. output::
+               :language: javascript
+               :linenos:
+               :visible: false
+               :emphasize-lines: 3
+
+               [
+                  {
+                     id: '69f382ecd6fa583100184fe7',
+                     name: 'auto-embed-index',
+                     type: 'vectorSearch',
+                     status: 'READY',
+                     numDocs: 0,
+                     latestDefinition: { ... },
+                     statusDetail: [ ... ]
+                  }
+               ]
+
+      .. step:: Find the collections for the index.
+
+         Run the following query after replacing ``<index_id>`` with the
+         ID of the Automated Embedding index returned by the command in
+         the preceding step.
+
+         .. io-code-block::
+            :copyable: true
+            :caption: Example: List the collections for the index
+
+            .. input::
+               :language: javascript
+               :linenos:
+
+               use __mdb_internal_search
+               db.getCollectionNames().filter(n => n.startsWith("<index_id>"))
+
+            .. output::
+               :language: javascript
+               :visible: false
+
+               [
+                  '69f382ecd6fa583100184fe7',
+                  '69f382ecd6fa583100184fe7-96dad03b0a735a19fd9f1a22f9694efc-1-0'
+               ]
+
+         The collection named with the index ID only is the orphaned
+         collection from the Private Preview version. The collection
+         that also includes the hash and version components is the
+         current generated embeddings collection.
+
+      .. step:: Drop the orphaned collection.
+
+         Run the following query after replacing
+         ``<orphaned_collection_name>`` with the name of the orphaned
+         collection from the preceding step.
+
+         .. code-block:: javascript
+            :copyable: true
+            :caption: Example: Drop the orphaned collection
+
+            use __mdb_internal_search
+            db.getCollection("<orphaned_collection_name>").drop()
 
 .. _auto-embed-retrieve-embeddings:
 

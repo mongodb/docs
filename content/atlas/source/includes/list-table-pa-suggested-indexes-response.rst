@@ -45,8 +45,8 @@
      - array of documents
      - Documents containing the search criteria used by the query.
        Values in key-value pairs will be redacted in these predicates
-       unless the user has :doc:`Project Data Access Read Only
-       </reference/user-roles>` permissions or higher.
+       unless the user has :ref:`Project Data Access Read Only
+       <user-roles>` permissions or higher.
 
    * - ``shapes[n].operations[n].raw``
      - string

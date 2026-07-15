@@ -196,18 +196,15 @@ function checkTitle(content: string, filename: string): LintIssue[] {
   
   const len = title.length;
   
-  // Minimum is 15 chars because MongoDB appends ~18-35 chars of branding to titles
-  // (e.g., " | MongoDB Documentation"), making the final title longer in search results
-  // Example: "Install MongoDB" (15 chars) is perfectly valid
-  if (len < 15) {
+  if (len < 30) {
     issues.push({
       file: filename,
       line: line,
       rule: 'seo-title-length',
       severity: 'error',
-      message: `Title is ${len} characters (at least 15 required)`,
+      message: `Title is ${len} characters (at least 30 required)`,
       current: title,
-      suggestion: `Expand title to at least 15 characters`
+      suggestion: `Expand title to at least 30 characters`
     });
   } else if (len > 60) {
     issues.push({
@@ -264,9 +261,10 @@ function extractMetaDescription(content: string, filename: string): DescInfo | n
   const metaBlockMatch = content.match(/\.\.\s+meta::([\s\S]*?)(?=\n\S|\n\n\S|$)/);
   if (metaBlockMatch) {
     const metaBlock = metaBlockMatch[0];
-    const descMatch = metaBlock.match(/:description:\s*(.+)/);
+    const descMatch = metaBlock.match(/:description:\s*(.+(?:\n[ \t]+(?!:).+)*)/);
     if (descMatch) {
-      return { desc: descMatch[1].trim(), line: findLineNumber(content, ':description:'), format: 'meta-directive' };
+      const desc = descMatch[1].replace(/\n\s+/g, ' ').trim();
+      return { desc, line: findLineNumber(content, ':description:'), format: 'meta-directive' };
     }
   }
   
@@ -554,7 +552,7 @@ function checkImageAlt(content: string, filename: string): LintIssue[] {
           ? 'Add alt="Descriptive text" to the Image component'
           : 'Add alt text: ![Descriptive text](src)'
         : 'Add :alt: Descriptive text for the image';
-      
+
       issues.push({
         file: filename,
         line: img.line,
@@ -563,6 +561,16 @@ function checkImageAlt(content: string, filename: string): LintIssue[] {
         message: 'Image missing alt text (important for accessibility and SEO)',
         current: img.src,
         suggestion
+      });
+    } else if (img.alt.trim().length > 125) {
+      issues.push({
+        file: filename,
+        line: img.line,
+        rule: 'image-alt-length',
+        severity: 'warning',
+        message: `Alt text is ${img.alt.trim().length} characters (maximum 125 allowed)`,
+        current: img.alt.trim(),
+        suggestion: 'Shorten alt text to 125 characters or fewer'
       });
     }
   }
@@ -665,209 +673,6 @@ function checkSvgDimensions(content: string, filename: string): LintIssue[] {
   return issues;
 }
 
-// =============================================================================
-// STRUCTURE CHECKS
-// =============================================================================
-
-/**
- * Check for problematic nesting patterns.
- * 
- * "Container components" are directives that create visual boxes/sections:
- * - Callouts: note, tip, warning, important, caution, danger, seealso, admonition, example
- * - Tabs: tabs, tabs-pillbox, tabs-selector
- * - Tables: list-table, csv-table
- * 
- * Rule: Container components should not be nested inside other container components.
- * Exception: Tabs CAN contain callouts and tables (tabs are content organizers).
- * 
- * NOT flagged: Callouts inside composables like selected-content, procedure steps, etc.
- * These are content flow directives, not visual containers.
- */
-function checkNestedComponents(content: string, filename: string): LintIssue[] {
-  const issues: LintIssue[] = [];
-  const isMd = isMarkdown(filename);
-  
-  if (isMd) {
-    // MDX: Check for nested container components
-    const mdxContainers = ['Callout', 'Admonition', 'Note', 'Warning', 'Tip', 'Important', 'Caution', 'Example', 'Tabs', 'Table'];
-    const mdxPattern = mdxContainers.map(a => `<${a}[^>]*>`).join('|');
-    const mdxRegex = new RegExp(`(${mdxPattern})`, 'gi');
-    
-    const matches = [...content.matchAll(mdxRegex)];
-    for (const match of matches) {
-      const startIndex = match.index!;
-      
-      const tagName = match[0].match(/<(\w+)/)?.[1];
-      if (!tagName) continue;
-      
-      const closeTagRegex = new RegExp(`</${tagName}>`, 'i');
-      const afterOpen = content.substring(startIndex + match[0].length);
-      const closeMatch = afterOpen.match(closeTagRegex);
-      
-      if (closeMatch && closeMatch.index !== undefined) {
-        const innerContent = afterOpen.substring(0, closeMatch.index);
-        const innerMatch = innerContent.match(new RegExp(mdxPattern, 'i'));
-        if (innerMatch) {
-          const nestedIndex = startIndex + match[0].length + innerContent.indexOf(innerMatch[0]);
-          const nestedLineNum = lineNumberFromIndex(content, nestedIndex);
-          const nestedTagName = innerMatch[0].match(/<(\w+)/)?.[1] || 'component';
-          issues.push({
-            file: filename,
-            line: nestedLineNum,
-            rule: 'nested-component',
-            severity: 'error',
-            message: `${nestedTagName} nested inside ${tagName} (not allowed)`,
-            suggestion: 'Move the nested component outside or restructure content'
-          });
-        }
-      }
-    }
-    
-  } else {
-    // RST: Container component directives
-    const callouts = ['note', 'tip', 'warning', 'important', 'caution', 'danger', 'seealso', 'admonition', 'example'];
-    const tabDirectives = ['tabs', 'tabs-pillbox', 'tabs-selector'];
-    const tableDirectives = ['list-table', 'csv-table'];
-    
-    // All container types for detection
-    const allContainers = [...callouts, ...tabDirectives, ...tableDirectives];
-    
-    const lines = content.split('\n');
-    
-    // Track all container spans
-    interface ContainerSpan {
-      type: string;
-      category: 'callout' | 'tabs' | 'table';
-      startLine: number;
-      endLine: number;
-      indentLevel: number;
-    }
-    
-    const containerSpans: ContainerSpan[] = [];
-    
-    // Find all container directive spans
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      
-      // Match any container directive
-      const containerMatch = line.match(new RegExp(`^(\\s*)\\.\\. (${allContainers.join('|')})(::|-[a-z]*::)`, 'i'));
-      
-      if (containerMatch) {
-        const indentLevel = containerMatch[1].length;
-        const directiveType = containerMatch[2].toLowerCase();
-        
-        // Determine category
-        let category: 'callout' | 'tabs' | 'table';
-        if (callouts.includes(directiveType)) {
-          category = 'callout';
-        } else if (tabDirectives.includes(directiveType)) {
-          category = 'tabs';
-        } else {
-          category = 'table';
-        }
-        
-        // Find where this container ends
-        let endLine = i;
-        for (let j = i + 1; j < lines.length; j++) {
-          const nextLine = lines[j];
-          if (nextLine.trim() === '') {
-            endLine = j;
-            continue;
-          }
-          const nextIndent = nextLine.match(/^(\s*)/)?.[1].length ?? 0;
-          if (nextIndent <= indentLevel && nextLine.trim() !== '') {
-            break;
-          }
-          endLine = j;
-        }
-        
-        containerSpans.push({
-          type: directiveType,
-          category,
-          startLine: i + 1, // 1-indexed
-          endLine: endLine + 1,
-          indentLevel
-        });
-      }
-    }
-    
-    // Check for nested containers
-    for (const inner of containerSpans) {
-      for (const outer of containerSpans) {
-        if (inner === outer) continue;
-        
-        // Check if inner starts within outer's span
-        if (inner.startLine > outer.startLine && inner.startLine <= outer.endLine) {
-          // Exception: Tabs CAN contain callouts and tables (they're content organizers)
-          if (outer.category === 'tabs') {
-            continue;
-          }
-          
-          issues.push({
-            file: filename,
-            line: inner.startLine,
-            rule: 'nested-component',
-            severity: 'error',
-            message: `${inner.type} nested inside ${outer.type} (not allowed)`,
-            suggestion: 'Move the nested component outside or restructure content'
-          });
-          break; // Only report once per inner container
-        }
-      }
-    }
-  }
-  
-  return issues;
-}
-
-function checkMalformedRefs(content: string, filename: string): LintIssue[] {
-  const issues: LintIssue[] = [];
-  
-  // RST-specific check
-  if (isMarkdown(filename)) return issues;
-  
-  const malformedRefRegex = /:ref:`?<([^>]+)>`?/g;
-  let match;
-  
-  while ((match = malformedRefRegex.exec(content)) !== null) {
-    issues.push({
-      file: filename,
-      line: lineNumberFromIndex(content, match.index!),
-      rule: 'syntax-malformed-ref',
-      severity: 'error',
-      message: 'Malformed :ref: directive with angle brackets',
-      current: match[0],
-      suggestion: `Remove angle brackets: :ref:\`${match[1]}\``
-    });
-  }
-  
-  return issues;
-}
-
-function checkBrokenMdLinks(content: string, filename: string): LintIssue[] {
-  const issues: LintIssue[] = [];
-  
-  // MD/MDX-specific check for common link issues
-  if (!isMarkdown(filename)) return issues;
-  
-  // Check for empty links: []() or [text]()
-  const emptyLinkRegex = /\[([^\]]*)\]\(\s*\)/g;
-  let match;
-  
-  while ((match = emptyLinkRegex.exec(content)) !== null) {
-    issues.push({
-      file: filename,
-      line: lineNumberFromIndex(content, match.index!),
-      rule: 'syntax-empty-link',
-      severity: 'error',
-      message: 'Empty link URL',
-      current: match[0],
-      suggestion: 'Add a URL inside the parentheses'
-    });
-  }
-  
-  return issues;
-}
 
 function checkLowContent(content: string, filename: string): LintIssue[] {
   const issues: LintIssue[] = [];
@@ -893,16 +698,18 @@ function checkLowContent(content: string, filename: string): LintIssue[] {
       .trim();
   }
   
-  if (contentOnly.length < 100) {
+  const wordCount = contentOnly.split(/\s+/).filter(w => w.length > 0).length;
+
+  if (wordCount < 100) {
     issues.push({
       file: filename,
       line: 1,
       rule: 'seo-low-content',
       severity: 'warning',
-      message: `Low content page (${contentOnly.length} characters). Consider adding noindex or expanding content.`,
-      suggestion: isMd 
-        ? 'Add more content or add noindex: true to frontmatter'
-        : 'Add more content or add noindex directive'
+      message: `Low content page (${wordCount} words). Review and either expand content, fold into another page, make a drawer, or add noindex.`,
+      suggestion: isMd
+        ? 'Add more content, or add noindex: true to frontmatter if keeping the page short'
+        : 'Add more content, or add noindex directive if keeping the page short'
     });
   }
   
@@ -938,9 +745,6 @@ export function lintContent(content: string, filename: string): LintIssue[] {
   allIssues.push(...checkImageAlt(content, filename));
   allIssues.push(...checkPngFigwidth(content, filename));
   allIssues.push(...checkSvgDimensions(content, filename));
-  allIssues.push(...checkNestedComponents(content, filename));
-  allIssues.push(...checkMalformedRefs(content, filename));
-  allIssues.push(...checkBrokenMdLinks(content, filename));
   
   return allIssues;
 }

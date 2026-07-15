@@ -24,7 +24,7 @@ MongoDB live migration server to connect to the source {+clusters+}.
 ``````````````````````````````````````````````````````````````
 
 |service| allows connections to a {+cluster+} from hosts added to the
-project :doc:`IP access list </security/ip-access-list>`. Add the IP
+project :ref:`IP access list <add-to-access-list>`. Add the IP
 addresses or |cidr| blocks of your application hosts to the project IP
 access list. Do this before beginning the migration procedure.
 
@@ -34,4 +34,4 @@ you can't edit or delete this entry. |service| removes this entry once
 the procedure completes.
 
 To learn how to add entries to the |service| IP access list, see
-:doc:`/security/ip-access-list`.
+:ref:`add-to-access-list`.

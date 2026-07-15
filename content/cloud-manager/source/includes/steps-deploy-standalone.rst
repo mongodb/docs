@@ -28,8 +28,7 @@
              deployment.
       
          * - :guilabel:`Feature Compatibility` (Optional)
-           - Select the :manual:`feature compatibility set
-             </reference/command/setFeatureCompatibilityVersion>`.
+           - Select the :dbcommand:`feature compatibility set <setFeatureCompatibilityVersion>`.
       
          * - :guilabel:`Hostname`
            - Type the resolvable address for the host serving your MongoDB

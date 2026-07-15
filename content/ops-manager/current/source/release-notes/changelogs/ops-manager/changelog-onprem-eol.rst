@@ -301,11 +301,10 @@ Automation
 
 - Improved handling of adding members to replica sets: to avoid
   disrupting majority writes, new members are now added to
-  :manual:`replica sets </reference/glossary/#std-term-replica-set>` as ``priority=0``, ``votes=0``
+  :term:`replica sets <replica set>` as ``priority=0``, ``votes=0``
   until they reach secondary state, after which |mms| automatically
-  updates the configuration to match the :manual:`priority
-  </reference/replica-configuration/#rsconf.members[n].priority>` and
-  :manual:`votes </reference/replica-configuration/#rsconf.members[n].votes>`
+  updates the configuration to match the :rsconf:`priority <members[n].priority>` and
+  :rsconf:`votes <members[n].votes>`
   value specified in the deployment.
 
 - Added the ability to manage indexes from the |onprem| UI.
@@ -347,7 +346,7 @@ Backup
   in the :opsmgr:`oplog store  </reference/glossary/#std-term-Oplog-Store-Database>`.
 
 - Automated restores: added a new option to automatically restore a
-  backup to a running :manual:`replica set </reference/glossary/#std-term-replica-set>` or :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`.
+  backup to a running :term:`replica set` or :term:`sharded cluster`.
 
 - Added support for namespace whitelisting, which allows you to back up
   only a subset of your data.
@@ -444,7 +443,7 @@ for your operating system.
   processing is behind.
 
 - Fixed case where monitoring classified a Config Server as a
-  Standalone when there were no :manual:`mongos </reference/program/mongos/#mongodb-binary-bin.mongos>` services.
+  Standalone when there were no :binary:`~bin.mongos` services.
 
 .. _opsmgr-server-1.8.0:
 
@@ -632,7 +631,7 @@ Considerations for Upgrade (v1.8)
 - LDAP users are now periodically synced with the LDAP server to
   prevent communications after a user is removed from a group.
 
-- Fixed an issue with backups of MongoDB 3.0 :manual:`mongod </reference/program/mongod/#mongodb-binary-bin.mongod>`
+- Fixed an issue with backups of MongoDB 3.0 :binary:`~bin.mongod`
   instances running with the ``--setParameter failIndexKeyTooLong=0``
   option.
 
@@ -665,7 +664,7 @@ Considerations for Upgrade (v1.8)
   format in which a single collection grows from under 8 GB to over
   8 GB in size.
 
-- The time before an unreachable :manual:`mongos </reference/program/mongos/#mongodb-binary-bin.mongos>` process is
+- The time before an unreachable :binary:`~bin.mongos` process is
   deactivated is now configurable on a per group basis. See
   :ref:`admin-only-group-settings`.
 
@@ -808,7 +807,7 @@ MMS Onprem Server 1.5.4
 - Fixed an issue where a rollback occurring shortly after a terminate
   could step on the terminate.
 
-- The time before an unreachable :manual:`mongos </reference/program/mongos/#mongodb-binary-bin.mongos>` process is
+- The time before an unreachable :binary:`~bin.mongos` process is
   deactivated is now configurable on a per group basis. See
   :ref:`admin-only-group-settings`.
 

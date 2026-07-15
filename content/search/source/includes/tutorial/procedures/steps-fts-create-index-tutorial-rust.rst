@@ -1,48 +1,51 @@
-a. Initialize your Rust project.
+.. procedure::
+   :style: normal
 
-   .. code-block::
-    
-      # Create a new Rust project
-      cargo new atlas-search-quickstart && cd atlas-search-quickstart
+   .. step:: Initialize your Rust project.
 
-   Add the following dependencies to your ``Cargo.toml`` file:
+      .. code-block::
+      
+         # Create a new Rust project
+         cargo new atlas-search-quickstart && cd atlas-search-quickstart
 
-   .. code-block::
+      Add the following dependencies to your ``Cargo.toml`` file:
 
-      [dependencies]
-        serde = "1.0"
-        futures = "0.3"
-        tokio = {version = "1.0", features = ["full"]}
+      .. code-block::
 
-      [dependencies.mongodb]
-        version = "3.0"
+         [dependencies]
+         serde = "1.0"
+         futures = "0.3"
+         tokio = {version = "1.0", features = ["full"]}
 
-   For detailed installation instructions, see the
-   :ref:`MongoDB Rust Driver Download and Install <rust-quick-start-download-and-install>` guide.
+         [dependencies.mongodb]
+         version = "3.0"
 
-#. Define the index.
+      For detailed installation instructions, see the
+      :ref:`MongoDB Rust Driver Download and Install <rust-quick-start-download-and-install>` guide.
 
-   Paste the following code into ``src/main.rs``.
-   
-   .. literalinclude:: /includes/tutorial/code-snippets/rust/create-index-tutorial.rs
-      :caption: src/main.rs
-      :language: rust
-      :emphasize-lines: 8
-      :copyable:
-      :linenos:
+   .. step:: Define the index.
 
-   .. include:: /includes/index/shared/facts/find-connection-string.rst
+      Paste the following code into ``src/main.rs``.
+      
+      .. literalinclude:: /includes/tutorial/code-snippets/rust/create-index-tutorial.rs
+         :caption: src/main.rs
+         :language: rust
+         :emphasize-lines: 8
+         :copyable:
+         :linenos:
 
-#. Create the index.
+      .. include:: /includes/index/shared/facts/find-connection-string.rst
 
-   .. io-code-block::
-      :copyable: true
+   .. step:: Create the index.
 
-      .. input::
-         :language: shell
+      .. io-code-block::
+         :copyable: true
 
-         cargo run
+         .. input::
+            :language: shell
 
-      .. output::
+            cargo run
 
-         search_idx
+         .. output::
+
+            search_idx

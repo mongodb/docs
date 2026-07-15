@@ -96,7 +96,7 @@
          This page provides examples of |query_operations| using the
          :csharp-api:`MongoCollection.Find() <M_MongoDB_Driver_MongoCollection_1_Find>`
          method in the
-         `MongoDB C# Driver <https://mongodb.github.io/mongo-csharp-driver/>`_.
+         `MongoDB .NET/C# Driver <https://mongodb.github.io/mongo-csharp-driver/>`_.
 
          .. include:: /includes/driver-examples/examples-intro.rst
 

@@ -14,14 +14,14 @@
      - Average rate per second to scan index items during
        queries and query-plan evaluations found in the value of
        ``totalKeysExamined`` from the 
-       :manual:`explain </reference/command/explain>` command.
+       :dbcommand:`explain` command.
 
    * - - ``QUERY_EXECUTOR_SCANNED_OBJECTS``
 
      - Average rate of documents scanned per second during queries
        and query-plan evaluations found in the value of
        ``totalDocsExamined`` from the
-       :manual:`explain </reference/command/explain>` command.
+       :dbcommand:`explain` command.
 
    * - - ``QUERY_TARGETING_SCANNED_PER_RETURNED``
 

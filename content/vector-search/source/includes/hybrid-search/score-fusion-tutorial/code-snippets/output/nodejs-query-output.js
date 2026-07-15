@@ -1,100 +1,150 @@
 {
-  _id: new ObjectId('573a1397f29313caabce68f6'),
-  plot: "Luke Skywalker joins forces with a Jedi Knight, a cocky pilot, a wookiee and two droids to save the universe from the Empire's world-destroying battle-station, while also attempting to rescue Princess Leia from the evil Darth Vader.",
-  title: 'Star Wars: Episode IV - A New Hope',
+  title: 'Gauche the Cellist',
+  fullplot: 'A cellist in a small orchestra receives help from animals to help him practice his music.',
   scoreDetails: {
-    value: 0.01626123744050767,
-    description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+    value: 6.674989952910186,
+    description: 'the value calculated by combining the scores (either normalized or raw) across input pipelines from which this document is output from:',
+    normalization: 'sigmoid',
+    combination: {
+      method: 'custom expression',
+      expression: "{ string: { $sum: [ { $multiply: [ '$$searchOne', 10 ] }, '$$searchTwo' ] } }"
+    },
     details: [ [Object], [Object] ]
-  }
+  },
+  rerankScore: 0.5986876487731934
 }
 {
-  _id: new ObjectId('573a139af29313caabcf0f5f'),
-  plot: 'Two Jedi Knights escape a hostile blockade to find allies and come across a young boy who may bring balance to the Force, but the long dormant Sith resurface to reclaim their old glory.',
-  title: 'Star Wars: Episode I - The Phantom Menace',
+  title: "Bear's Kiss",
+  fullplot: 'A fairy tale-like love story between young circus artist Lola and the bear Misha, who one day transforms into a human.',
   scoreDetails: {
-    value: 0.015527202696196438,
-    description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+    value: 6.696091285390122,
+    description: 'the value calculated by combining the scores (either normalized or raw) across input pipelines from which this document is output from:',
+    normalization: 'sigmoid',
+    combination: {
+      method: 'custom expression',
+      expression: "{ string: { $sum: [ { $multiply: [ '$$searchOne', 10 ] }, '$$searchTwo' ] } }"
+    },
     details: [ [Object], [Object] ]
-  }
+  },
+  rerankScore: 0.5986876487731934
 }
 {
-  _id: new ObjectId('573a1397f29313caabce77d9'),
-  plot: 'After the rebels have been brutally overpowered by the Empire on their newly established base, Luke Skywalker takes advanced Jedi training with Master Yoda, while his friends are pursued by Darth Vader as part of his plan to capture Luke.',
-  title: 'Star Wars: Episode V - The Empire Strikes Back',
+  fullplot: "A boy finds an interesting egg. His curiosity leads him to protect it and want to figure out what will come out of it. He didn't realize that it would turn into something magical. The boy and the Water horse grow a strong relationship together in this wonderful story.",
+  title: 'The Water Horse',
   scoreDetails: {
-    value: 0.015504807692307693,
-    description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+    value: 6.661972545615498,
+    description: 'the value calculated by combining the scores (either normalized or raw) across input pipelines from which this document is output from:',
+    normalization: 'sigmoid',
+    combination: {
+      method: 'custom expression',
+      expression: "{ string: { $sum: [ { $multiply: [ '$$searchOne', 10 ] }, '$$searchTwo' ] } }"
+    },
     details: [ [Object], [Object] ]
-  }
+  },
+  rerankScore: 0.5986876487731934
 }
 {
-  _id: new ObjectId('573a1397f29313caabce8cdb'),
-  plot: 'After rescuing Han Solo from the palace of Jabba the Hutt, the rebels attempt to destroy the second Death Star, while Luke struggles to make Vader return from the dark side of the Force.',
-  title: 'Star Wars: Episode VI - Return of the Jedi',
+  title: 'Perri',
+  fullplot: 'This True Life Fantasy follows and shows how the life of a female squirrel, Perri, in the forest is filled with danger and fraught with peril. When not fleeing her natural enemy, the Marten, Perri finds time to fall in love with her prince-charming male squirrel.',
   scoreDetails: {
-    value: 0.015388257575757576,
-    description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+    value: 7.55219687040973,
+    description: 'the value calculated by combining the scores (either normalized or raw) across input pipelines from which this document is output from:',
+    normalization: 'sigmoid',
+    combination: {
+      method: 'custom expression',
+      expression: "{ string: { $sum: [ { $multiply: [ '$$searchOne', 10 ] }, '$$searchTwo' ] } }"
+    },
     details: [ [Object], [Object] ]
-  }
+  },
+  rerankScore: 0.5986876487731934
 }
 {
-  _id: new ObjectId('573a13c0f29313caabd62f62'),
-  plot: 'Anakin Skywalker and Ahsoka Tano must rescue the kidnapped son of Jabba the Hutt, but political intrigue complicates their mission.',
-  title: 'Star Wars: The Clone Wars',
+  title: 'Animals',
+  fullplot: "Pol is a teenager with a seemingly calm life. He lives with his brother, and is still in high school. However, Pol has a secret: Deerhoof, a cuddly teddy bear who thinks, moves around, and with whom he shares his best moments. Life goes on as normal until the arrival of Ikari, an enigmatic student who seems to be hiding something. Pol is fascinated by his new classmate and attracted to the dark side he harbors. An inexplicable death and a series of strange events will transform the meek student's routine into a fantastic adventure, which will take over their lives.",
   scoreDetails: {
-    value: 0.015141165755919854,
-    description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+    value: 6.674137957081891,
+    description: 'the value calculated by combining the scores (either normalized or raw) across input pipelines from which this document is output from:',
+    normalization: 'sigmoid',
+    combination: {
+      method: 'custom expression',
+      expression: "{ string: { $sum: [ { $multiply: [ '$$searchOne', 10 ] }, '$$searchTwo' ] } }"
+    },
     details: [ [Object], [Object] ]
-  }
+  },
+  rerankScore: 0.5986876487731934
 }
 {
-  _id: new ObjectId('573a139af29313caabcf124d'),
-  plot: 'As the Clone Wars near an end, the Sith Lord Darth Sidious steps out of the shadows, at which time Anakin succumbs to his emotions, becoming Darth Vader and putting his relationships with Obi-Wan and Padme at risk.',
-  title: 'Star Wars: Episode III - Revenge of the Sith',
+  fullplot: `Returning from a hunting trip in the forest, the Henderson family's car hits an animal in the road. At first they fear it was a man, but when they examine the "body" they find it's a "bigfoot". They think it's dead so they decide to take it home (there could be some money in this..). As you guessed, "it" isn't dead. Far from being the ferocious monster they fear "Harry" to be, he's a friendly giant. In their attempts to keep Harry a secret, the Henderson's have to hide him from the authorities and a man, who has made it his goal in life, to catch a "bigfoot".`,
+  title: 'Harry and the Hendersons',
   scoreDetails: {
-    value: 0.014854753521126762,
-    description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+    value: 7.500917322707863,
+    description: 'the value calculated by combining the scores (either normalized or raw) across input pipelines from which this document is output from:',
+    normalization: 'sigmoid',
+    combination: {
+      method: 'custom expression',
+      expression: "{ string: { $sum: [ { $multiply: [ '$$searchOne', 10 ] }, '$$searchTwo' ] } }"
+    },
     details: [ [Object], [Object] ]
-  }
+  },
+  rerankScore: 0.5986876487731934
 }
 {
-  _id: new ObjectId('573a139af29313caabcf1258'),
-  plot: 'Ten years after initially meeting, Anakin Skywalker shares a forbidden romance with Padmè, while Obi-Wan investigates an assassination attempt on the Senator and discovers a secret clone army crafted for the Jedi.',
-  title: 'Star Wars: Episode II - Attack of the Clones',
+  title: 'The Storyteller',
+  fullplot: "A variety of European folk tales are retold in nine new stories. A soldier captures Death in a magic sack. A fearless young man sets out to learn to shudder. A boy with a destiny that frightens a tyrant is sent on an impossible task that will see him wed the princess, or dead. A storyteller must spin tales to stay alive. A woman bears a hedgehog-child who grows up to live alone in a castle until he does a king a favor and gets the princess's hand in return. A princess must keep silent while she works to free her brothers from an evil spell. A princess runs away from wedding her father and disguises herself as an ugly forest creature. A young boy must overcome a heartless giant. A princess searches the earth for her stolen bridegroom.",
   scoreDetails: {
-    value: 0.014391447368421052,
-    description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+    value: 6.670683209915876,
+    description: 'the value calculated by combining the scores (either normalized or raw) across input pipelines from which this document is output from:',
+    normalization: 'sigmoid',
+    combination: {
+      method: 'custom expression',
+      expression: "{ string: { $sum: [ { $multiply: [ '$$searchOne', 10 ] }, '$$searchTwo' ] } }"
+    },
     details: [ [Object], [Object] ]
-  }
+  },
+  rerankScore: 0.5986876487731934
 }
 {
-  _id: new ObjectId('573a1398f29313caabce9091'),
-  plot: "A Duke's son leads desert warriors against the galactic emperor and his father's evil nemesis when they assassinate his father and free their desert world from the emperor's rule.",
-  title: 'Dune',
+  title: 'The Web of the Witch',
+  fullplot: "In a small North Indian village, Legend has it that a 100 years-old witch lives in an abandoned mansion on the village outskirts, and any person who goes inside is turned into an animal. In the same village a clever, naughty girl named Chunni (Shweta Prasad) lives with her widowed father, grandmother and her identical twin Munni, who is just the exact opposite of Chunni in mannerisms. But one day, Chunni's prank causes Munni enters the witch's mansion and the witch turns her into a hen. Chunni strikes a deal with Makdee (Shabana Azmi) that she will present Makdee with 100 hens in exchange for Munni in human form. How she manages this task forms the crux of the rest of this fun-filled children's movie.",
   scoreDetails: {
-    value: 0.008064516129032258,
-    description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+    value: 7.503994348185039,
+    description: 'the value calculated by combining the scores (either normalized or raw) across input pipelines from which this document is output from:',
+    normalization: 'sigmoid',
+    combination: {
+      method: 'custom expression',
+      expression: "{ string: { $sum: [ { $multiply: [ '$$searchOne', 10 ] }, '$$searchTwo' ] } }"
+    },
     details: [ [Object], [Object] ]
-  }
+  },
+  rerankScore: 0.5986876487731934
 }
 {
-  _id: new ObjectId('573a1397f29313caabce6f53'),
-  plot: 'In this Star Wars take-off, the peaceful planet of Jillucia has been nearly wiped out by the Gavanas, whose leader takes orders from his mother (played a comic actor in drag) rather than ...',
-  title: 'Message from Space',
+  fullplot: `Dr. John Dolittle has the world in his hands: A beautiful wife at his side, two adorable daughters and a career that could not go better. One night, he nearly runs over a dog with his car. The dog yells "bonehead" and disappears. From then on, his childhood ability is back: To communicate with animals. Unfortunately, the word of Dolittle's ability is spreading quickly. Soon, many animals from rat to horse flock to his place to get medical advice. But his colleagues suspect he's going mad, and as the clinic Dolittle used to work for is about to being taken over for a huge amount of money, many decisions have to be made. Believe him? Put him into a mental institution? Sell the clinic? But also his family is close to breaking apart. Until a circus tiger falls seriously ill.`,
+  title: 'Doctor Dolittle',
   scoreDetails: {
-    value: 0.007936507936507936,
-    description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+    value: 6.660537825936243,
+    description: 'the value calculated by combining the scores (either normalized or raw) across input pipelines from which this document is output from:',
+    normalization: 'sigmoid',
+    combination: {
+      method: 'custom expression',
+      expression: "{ string: { $sum: [ { $multiply: [ '$$searchOne', 10 ] }, '$$searchTwo' ] } }"
+    },
     details: [ [Object], [Object] ]
-  }
+  },
+  rerankScore: 0.5986876487731934
 }
 {
-  _id: new ObjectId('573a139df29313caabcfa90b'),
-  plot: 'In this Star Wars take-off, the peaceful planet of Jillucia has been nearly wiped out by the Gavanas, whose leader takes orders from his mother (played a comic actor in drag) rather than ...',
-  title: 'Message from Space',
+  title: 'Mighty Joe Young',
+  fullplot: `In Africa, the girl Jill Young trades a baby gorilla with two natives and raises the animal. Twelve years later, the talkative and persuasive promoter Max O'Hara organizes a safari to Africa with the Oklahoma cowboy Gregg to bring attractions to his new night-club in Hollywood. They capture several lions and out of blue, they see a huge gorilla nearby their camping and they try to capture the animal. However, the teenager Jill Young stops the men that intended to kill her gorilla. Max seduces Jill with a fancy life in Hollywood and she signs a contract with him where the gorilla Joseph "Joe" Young would be the lead attraction. Soon she realizes that her dream is a nightmare to Joe and she asks Max to return to Africa. However he persuades her to stay a little longer in the show business. But when three alcoholic costumers give booze to Joe, the gorilla destroys the spot and is sentenced by the justice to be sacrificed. Will Jill, Gregg and Max succeed in saving Joe?`,
   scoreDetails: {
-    value: 0.007936507936507936,
-    description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+    value: 7.5663241753251596,
+    description: 'the value calculated by combining the scores (either normalized or raw) across input pipelines from which this document is output from:',
+    normalization: 'sigmoid',
+    combination: {
+      method: 'custom expression',
+      expression: "{ string: { $sum: [ { $multiply: [ '$$searchOne', 10 ] }, '$$searchTwo' ] } }"
+    },
     details: [ [Object], [Object] ]
-  }
+  },
+  rerankScore: 0.5986876487731934
 }

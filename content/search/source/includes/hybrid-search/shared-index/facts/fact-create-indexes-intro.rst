@@ -1,0 +1,7 @@
+This section demonstrates how to create the following indexes on the
+fields in the ``sample_mflix.embedded_movies`` collection: 
+
+- A {+avs+} index on the ``plot_embedding_voyage_4_large`` field for
+  running vector queries against that field. 
+- A {+fts+} index that dynamically indexes all dynamically indexable 
+  fields for running full-text search against those fields.

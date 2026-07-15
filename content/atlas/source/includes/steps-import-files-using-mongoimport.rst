@@ -31,7 +31,7 @@
    .. step:: Update IP Access List.
 
       If the host where you will run |mongoimport| is not in the
-      :doc:`IP Access List </security/ip-access-list>`, update the list.
+      :ref:`IP Access List <add-to-access-list>`, update the list.
       You can specify either:
       
       - The public IP address of the server on which |mongoimport|

@@ -1,5 +1,5 @@
 
-If you use a :manual:`replica set </reference/glossary/#std-term-replica-set>` for the database's
+If you use a :term:`replica set` for the database's
 :doc:`backing instance </tutorial/prepare-backing-mongodb-instances>`,
 with a standard connection string, include all members
 of the replica set in the |uri|. If you omit the port number,

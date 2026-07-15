@@ -1,0 +1,162 @@
+.. _atlas-cli-pvt-registry-setup:
+
+==============================
+Deploy from a Private Registry
+==============================
+
+.. meta::
+   :description: Create a local Atlas deployment from a private registry.
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+The {+atlas-cli+} pulls a Docker image and creates a container in order
+to deploy the local cluster. By default, the {+atlas-cli+} pulls from
+the public Docker Hub `repository
+<https://hub.docker.com/r/mongodb/mongodb-atlas-local/tags>`__
+``mongodb/mongodb-atlas-local``. You can configure it to pull a specific
+image from an internal, typically private, registry.
+
+This page explains how to pull and re-tag the ``mongodb-atlas-local``
+container image, push it into a private registry, and then configure the
+{+atlas-cli+} to use the private images for :ref:`deploying local
+clusters <atlas-cli-deploy-local>`.
+
+Prerequisites 
+-------------
+
+Before you begin, ensure that you have the following: 
+
+- Docker command line tools
+- Private container registry for which you have write permission
+- A terminal
+- {+atlas-cli+}
+
+Procedure 
+---------
+
+.. procedure:: 
+   :style: normal 
+
+   .. step:: Pull and re-tag the MongoDB Local image for local deployment. 
+
+      To pull and re-tag, run the following command after replacing the following
+      placeholder values:
+
+      .. list-table:: 
+         :stub-columns: 1 
+
+         * - ``<tag>``
+           - The tag, which specifies the MongoDB version, that you want
+             to use in your deployment.
+
+         * - ``<container-registry-namespace>`` 
+           - The fully qualified path and name of the container registry
+             namespace for which you have write access.
+    
+      .. code-block:: shell 
+
+         docker tag mongodb/mongodb-atlas-local:<tag> <container-registry-namespace>/mongodb-atlas-local:<tag>
+
+      .. note:: 
+
+         {+atlas-cli+} supports deploying MongoDB version 7 and 8. In
+         order to support deploying either version from your registry
+         using the {+atlas-cli+}, you must repeat this step for 7.0 and
+         8.0 tags. For the list of available tags, see the `docker hub
+         repository <https://hub.docker.com/r/mongodb/mongodb-atlas-local/tags>`__.  
+ 
+   .. step:: Push the image on your machine to your container registry.
+
+      a. Run the following command after replacing the following
+         placeholder values to push the image to your container
+         registry: 
+
+         .. list-table:: 
+            :stub-columns: 1 
+
+            * - ``<tag>``
+              - The tag, which specifies the MongoDB version, that you want
+                to use in your deployment. 
+
+            * - ``<container-registry-namespace>`` 
+              - The fully qualified path and name of the container registry
+                namespace for which you have write access.
+
+         .. code-block:: shell
+
+            docker push <container-registry-namespace>/mongodb-atlas-local:<tag>
+
+         It might take a few minutes for this operation to complete.
+
+         .. note:: 
+
+            {+atlas-cli+} supports deploying MongoDB version 7 and 8. In
+            order to support deploying either version from your registry
+            using the {+atlas-cli+}, you must repeat this step for 7.0 and
+            8.0 tags.  
+
+      #. Verify that the image was successfully uploaded. 
+
+         You can verify in the following ways: 
+
+         - Log in to your container registry and verify that the image
+           was successfully uploaded. 
+         - Run the ``docker pull`` command to pull the image from your
+           registry to your machine. 
+
+   .. step:: Configure {+atlas-cli+} to use the image in the registry. 
+
+      a. Set the ``MONGODB_ATLAS_LOCAL_DEPLOYMENT_IMAGE`` environment
+         variable after replacing ``<container-registry-namespace>``
+         with the fully qualified path and name of the container
+         registry namespace that you created in step 2. 
+
+         .. code-block:: shell 
+
+            export MONGODB_ATLAS_LOCAL_DEPLOYMENT_IMAGE=<container-registry-namespace>/mongodb-atlas-local
+
+         .. note:: 
+
+            This method only sets the environment variable for the
+            current terminal session. To persist this setting across
+            terminal sessions, set this environment variable in your
+            :ref:`profile stored in the configuration file
+            <atlas-cli-profiles>`.  
+
+      #. Verify that the environment variable is set correctly. 
+
+         .. code-block:: shell 
+
+            echo $MONGODB_ATLAS_LOCAL_DEPLOYMENT_IMAGE
+
+      After you set the environment variable, {+atlas-cli+} uses the
+      value of the variable instead of the default location for all
+      deployments. 
+
+   .. step:: Deploy |service| with your image. 
+
+      a. Run the following command to start the deployment after
+         replacing the ``<deploymentName>`` with a name for the
+         deployment. 
+
+         .. code-block:: shell 
+
+            atlas deployments setup <deploymentName>
+
+      #. Enter ``local`` when prompted to specify the type of
+         deployment. 
+
+      #. Complete the deployment by selecting the appropriate settings 
+         when prompted.
+
+         To learn more, see :ref:`atlas-cli-deploy-local`.

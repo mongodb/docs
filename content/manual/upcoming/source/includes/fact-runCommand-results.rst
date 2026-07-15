@@ -28,9 +28,8 @@
          :readconcern:`"snapshot"`, and :readconcern:`"linearizable"`,
          the timestamp of the most recent entry in the oplog.
 
-       - For read concern :readconcern:`"majority"`, the timestamp of
-         the most recent :writeconcern:`majority-acknowledged
-         <"majority">` entry in the oplog.
+       - For read concern :readconcern:`"majority"`, the timestamp of the
+         snapshot used to fulfill the read.
 
        For operations associated with :ref:`causally consistent sessions
        <causal-consistency>`, the MongoDB drivers use the logical time

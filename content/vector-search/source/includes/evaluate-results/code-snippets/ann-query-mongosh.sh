@@ -2,7 +2,7 @@ db.embedded_movies.aggregate([
   {
     "$vectorSearch": {
       "index": "vector_index",
-      "path": "plot_embedding_voyage_3_large",
+      "path": "plot_embedding_voyage_4_large",
       "filter": {
         "$and": [
           {

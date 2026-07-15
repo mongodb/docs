@@ -8,7 +8,7 @@
      - Description
 
    * - ``voyage-context-3``
-     - 120,000 tokens
+     - 120,000 tokens *
      - 1024 (default), 256, 512, 2048
      - Contextualized chunk embeddings optimized for general-purpose
        and multilingual retrieval quality.

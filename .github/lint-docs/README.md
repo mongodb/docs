@@ -46,11 +46,11 @@ Checks for SEO issues: meta descriptions, titles, headings, image attributes.
 # Check a file
 npx tsx .github/lint-docs/seo-lint-cli.ts content/path/to/file.txt
 
-# Check multiple files
-npx tsx .github/lint-docs/seo-lint-cli.ts content/manual/source/tutorial/*.txt
+# Check a directory (expands to all .txt, .rst, .md, .mdx files recursively)
+npx tsx .github/lint-docs/seo-lint-cli.ts content/manual/source/
 
 # Export results to a file (for large scans)
-npx tsx .github/lint-docs/seo-lint-cli.ts -o results.txt content/**/*.txt
+npx tsx .github/lint-docs/seo-lint-cli.ts -o results.txt content/manual/source/
 ```
 
 ### 404 Linter
@@ -137,19 +137,17 @@ Open a PR to `docs-mongodb-internal` with the updated `facet-allowlist.json` aft
 | Rule | Severity | Description |
 |------|----------|-------------|
 | `seo-title-missing` | Error | No title found on content page |
-| `seo-title-length` | Error | Title not 15-60 characters |
+| `seo-title-length` | Error | Title not 30-60 characters |
 | `seo-meta-missing` | Error | No meta description found |
 | `seo-meta-length` | Error | Meta description not 150-200 characters |
 | `structure-h1-required` | Error | No H1 heading found |
 | `structure-h1-single` | Error | Multiple H1 headings |
 | `structure-h2-before-h1` | Error | H2 appears before H1 |
 | `image-alt-missing` | Warning | Image missing alt text |
+| `image-alt-length` | Warning | Alt text exceeds 125 characters |
 | `image-png-figwidth` | Error | PNG missing `:figwidth:` attribute |
 | `image-svg-dimensions` | Warning | SVG missing `:figwidth:` or `:width:` |
-| `nested-component` | Error | Nested container component (callouts, tabs, tables) |
-| `syntax-malformed-ref` | Error | Malformed `:ref:` with angle brackets |
-| `syntax-empty-link` | Error | Empty link URL `[text]()` |
-| `seo-low-content` | Warning | Page has < 100 characters |
+| `seo-low-content` | Warning | Page has < 100 words |
 
 ---
 
@@ -194,9 +192,9 @@ Uses [lychee](https://github.com/lycheeverse/lychee) to check external links.
    Fix: Add description via :description: directive or YAML frontmatter
 
 🔴 content/my-page.txt:4
-   [seo-title-length] Title is 10 characters (at least 15 required)
+   [seo-title-length] Title is 10 characters (at least 30 required)
    Current: My Short Title
-   Fix: Expand title to at least 15 characters
+   Fix: Expand title to at least 30 characters
 
 Found 2 error(s), 0 warning(s)
 ```

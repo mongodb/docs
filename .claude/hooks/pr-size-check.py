@@ -147,6 +147,23 @@ def git(args, cwd):
         return ""
 
 
+def find_diff_base(cwd):
+    """Return the most appropriate diff base for PR sizing.
+
+    For branches that track a non-main upstream (i.e., sub-branches of a
+    feature branch), diff against that upstream instead of origin/main so
+    only the changes unique to this branch are counted, not all accumulated
+    changes on the parent feature branch.
+    """
+    upstream = git(
+        ["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"], cwd
+    ).strip()
+    if upstream and upstream not in ("", "origin/main", "origin/HEAD"):
+        if git(["rev-parse", "--verify", "--quiet", upstream], cwd).strip():
+            return upstream
+    return "origin/main"
+
+
 def git_dir(cwd):
     out = git(["rev-parse", "--git-dir"], cwd).strip()
     if not out:
@@ -286,7 +303,7 @@ def branch_diff_stats(cwd, pending=None):
     entry is replaced with the size it *will* have once the pending edit is
     applied, so a single write that crosses a tier is gated before it lands.
     """
-    base = git(["merge-base", "origin/main", "HEAD"], cwd).strip()
+    base = git(["merge-base", find_diff_base(cwd), "HEAD"], cwd).strip()
     if not base:
         return []
     tracked = parse_numstat(git(["diff", "--numstat", "--no-renames", base], cwd))
@@ -381,14 +398,15 @@ def report(cwd):
     if not git(["rev-parse", "--verify", "--quiet", "origin/main"], cwd).strip():
         print("PR SIZE: cannot determine (no origin/main to diff against).")
         return
+    diff_base = find_diff_base(cwd)
     file_stats = branch_diff_stats(cwd)
     total_files = len(file_stats)
     total_lines = sum(a + d for _, a, d in file_stats)
     files, lines = content_size(file_stats)
-    subjects = git(["log", "origin/main..HEAD", "--pretty=%s"], cwd)
+    subjects = git(["log", f"{diff_base}..HEAD", "--pretty=%s"], cwd)
     change_type = classify_pr(file_stats, (current_branch(cwd) or "") + "\n" + subjects)
     print(f"PR SIZE: {total_files} files, {total_lines} changed lines vs "
-          f"origin/main ({files} files / {lines} lines hand-written content); "
+          f"{diff_base} ({files} files / {lines} lines hand-written content); "
           f"classified: {change_type}.")
     if change_type in ("backport", "version-cut"):
         print(f"VERDICT: exempt — {change_type} changes are not subject to the "
@@ -451,7 +469,8 @@ def evaluate(cwd, pending=None):
 
     # Subject signal for backport/version-cut detection: there is no PR title
     # mid-session, so use the branch name plus the branch's commit subjects.
-    subjects = git(["log", "origin/main..HEAD", "--pretty=%s"], cwd)
+    diff_base = find_diff_base(cwd)
+    subjects = git(["log", f"{diff_base}..HEAD", "--pretty=%s"], cwd)
     subject = branch + "\n" + subjects
 
     change_type = classify_pr(file_stats, subject)

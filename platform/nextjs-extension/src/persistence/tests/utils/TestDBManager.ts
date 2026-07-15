@@ -19,9 +19,10 @@ export class TestDBManager {
     this.server = new MongoMemoryServer({
       instance: {
         dbName: 'jest',
+        storageEngine: 'wiredTiger',
       },
       binary: {
-        version: '6.0.6',
+        version: '8.0.4',
       },
     });
     process.env.POOL_DB_NAME = 'jest';

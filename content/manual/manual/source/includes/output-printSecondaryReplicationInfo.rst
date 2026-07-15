@@ -4,11 +4,16 @@ members:
 .. code-block:: javascript
 
    source: m1.example.net:27002
-       syncedTo: Mon Mar 01 2021 16:30:50 GMT-0800 (PST)
-       0 secs (0 hrs) behind the primary
+   {
+     syncedTo: 'Mon Mar 01 2021 16:30:50 GMT-0800 (PST)',
+     replLag: '0 secs (0 hrs) behind the primary '
+   }
+   ---
    source: m2.example.net:27003
-       syncedTo: Mon Mar 01 2021 16:30:50 GMT-0800 (PST)
-       0 secs (0 hrs) behind the primary
+   {
+     syncedTo: 'Mon Mar 01 2021 16:30:50 GMT-0800 (PST)',
+     replLag: '0 secs (0 hrs) behind the primary '
+   }
 
 .. include:: /includes/note-method-does-not-return-json.rst
 

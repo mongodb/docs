@@ -13,35 +13,34 @@ const isDev = process.env.NODE_ENV === 'development';
 const isNetlifyBuild = process.env.NETLIFY === 'true';
 const useLocalFileStore = isOfflineBuild && !isNetlifyBuild;
 
-export const productionStore: Store = useLocalFileStore
-  ? createLocalFileStore()
-  : isDev
-    ? getStore(BLOB_STORE_NAME)
-    : getStore({
-        name: BLOB_STORE_NAME,
-        siteID: process.env.NETLIFY_SITE_ID,
-        token: process.env.NETLIFY_ACCESS_TOKEN,
-      });
+function getStoreForNextApp(name: string): Store {
+  try {
+    return getStore(name);
+  } catch {
+    console.error('Error getting store for Next.js app, using siteID and token from environment variables');
+    return getStore({
+      name,
+      siteID: process.env.NETLIFY_SITE_ID,
+      token: process.env.NETLIFY_ACCESS_TOKEN,
+    });
+  }
+}
 
-function initBranchSpecificStore(): { store: Store; name: string } | null {
+export function getProductionStore(): Store {
+  return useLocalFileStore
+    ? createLocalFileStore()
+    : getStoreForNextApp(BLOB_STORE_NAME);
+}
+
+export function getBranchStore(): { store: Store; name: string } | null {
   if (isOfflineBuild) return null;
   try {
     const branch = process.env.NEXT_PUBLIC_GIT_BRANCH || null;
     if (!branch || branch === 'main') return null;
     const storeName = `${branch}-mdx-content`;
-    const store = isDev
-      ? getStore(storeName)
-      : getStore({
-          name: storeName,
-          siteID: process.env.NETLIFY_SITE_ID,
-          token: process.env.NETLIFY_ACCESS_TOKEN,
-        });
+    const store = getStoreForNextApp(storeName);
     return { store, name: storeName };
   } catch {
     return null;
   }
 }
-
-const branchStoreResult = initBranchSpecificStore();
-export const branchSpecificStore: Store | null = branchStoreResult?.store ?? null;
-export const branchSpecificStoreName: string | null = branchStoreResult?.name ?? null;

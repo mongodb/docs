@@ -1,41 +1,41 @@
 db.embedded_movies.aggregate( [
    {
-      $scoreFusion: {
-         input: {
-            pipelines: {
-               searchOne: [
+      "$scoreFusion": {
+         "input": {
+            "pipelines": {
+               "searchOne": [
                   {
                      "$vectorSearch": {
                         "index": "hybrid-vector-search",
-                        "path": "plot_embedding_voyage_3_large",
-                        "queryVector": STAR_WARS_EMBEDDING,
-                        "numCandidates": 100,
-                        "limit": 20
+                        "path": "plot_embedding_voyage_4_large",
+                        "queryVector": CHARMING_ANIMAL_EMBEDDING,
+                        "numCandidates": 500,
+                        "limit": 50
                      }
                   }
                ],
-               searchTwo: [
+               "searchTwo": [
                   {
                      "$search": {
                         "index": "hybrid-full-text-search",
                         "text": {
-                           "query": "star wars",
-                           "path": "title"
+                           "query": "charming animal",
+                           "path": "fullplot"
                         }
                      }
                   },
                   {
-                     "$limit": 20
+                     "$limit": 50
                   }
                ]
             },
-            normalization: "sigmoid"
+            "normalization": "sigmoid"
          },
-         combination: {
-            method: "expression",
-            expression: {
-               $sum: [
-                 {$multiply: [ "$$searchOne", 10]}, "$$searchTwo"
+         "combination": {
+            "method": "expression",
+            "expression": {
+               "$sum": [
+                 {"$multiply": [ "$$searchOne", 10]}, "$$searchTwo"
                ]
             }
          },
@@ -44,11 +44,11 @@ db.embedded_movies.aggregate( [
    },
    {
       "$project": {
-         _id: 1,
-         title: 1,
-         plot: 1,
-         scoreDetails: {"$meta": "scoreDetails"}
+         "_id": 1,
+         "title": 1,
+         "fullplot": 1,
+         "scoreDetails": {"$meta": "scoreDetails"}
       }
    },
-   { $limit: 10 }
+   { "$limit": 10 }
 ] )

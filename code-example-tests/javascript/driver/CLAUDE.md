@@ -4,7 +4,7 @@
 
 - **ES modules** throughout (`"type": "module"` in package.json)
 - Node >= 24.4.1, npm >= 10.0.0
-- Key deps: `mongodb` 7.1.0, `jest` 30.x, `bluehawk` 1.6.x
+- Key deps: `mongodb` 7.5.0, `jest` 30.x, `bluehawk` 1.6.x
 - `.env` file required at this directory root: `CONNECTION_STRING="..."` and `TZ=UTC`
 - `jest.config.cjs` and `babel.config.cjs` are CJS files — do **not** convert to ESM
 

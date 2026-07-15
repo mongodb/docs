@@ -1,4 +1,4 @@
-|onprem| uses :manual:`backup cursors </reference/glossary/#std-term-backup-cursor>`
+|onprem| uses :term:`backup cursors <backup cursor>`
 and no longer uses :opsmgr:`head databases </reference/glossary/#std-term-head-database>`.
 To learn more, see
 :ref:`backup-daemon`.

@@ -45,6 +45,12 @@ public class LookupExample : IDisposable
             "Env variable not found. Verify you have a .env file with a valid connection string.");
         _client = new MongoClient(uri);
         _movies = _client.GetDatabase("sample_mflix").GetCollection<Movie>("movies");
+        // Index the foreign field so $lookup uses an index seek instead of a
+        // full collection scan per movie. Idempotent if the index exists.
+        _client.GetDatabase("sample_mflix")
+            .GetCollection<Comment>("comments")
+            .Indexes.CreateOne(new CreateIndexModel<Comment>(
+                Builders<Comment>.IndexKeys.Ascending(c => c.MovieId)));
     }
 
     public List<LookupResult> RunLookupPipeline()

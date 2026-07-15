@@ -1,5 +1,5 @@
 """
-Shared configuration for CSFLE example scripts.
+Configuration for CSFLE example scripts.
 """
 
 # MongoDB connection string

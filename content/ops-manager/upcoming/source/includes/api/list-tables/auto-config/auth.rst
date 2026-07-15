@@ -11,7 +11,7 @@
    * - auth
      - object
      - Optional
-     - Defines :manual:`authentication-related </core/authentication>`
+     - Defines :ref:`authentication-related <authentication>`
        settings.
 
        If you omit this parameter, skip the rest of this section.
@@ -73,13 +73,13 @@
             - Authentication Mechanism
 
           * - MONGODB-CR
-            - :manual:`SCRAM-SHA-1 </core/security-scram-sha-1>`
+            - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
 
           * - SCRAM-SHA-256
-            - :manual:`SCRAM-SHA-256 </core/security-scram>`
+            - :ref:`SCRAM-SHA-256 <authentication-scram>`
 
           * - MONGODB-X509
-            - :manual:`x.509 Client Certificate </core/security-x.509>`
+            - :ref:`x.509 Client Certificate <security-auth-x509>`
 
           * - PLAIN
             - :ref:`LDAP <security-auth-ldap>`
@@ -108,13 +108,13 @@
             - Authentication Mechanism
 
           * - MONGODB-CR
-            - :manual:`SCRAM-SHA-1 </core/security-scram-sha-1>`
+            - :ref:`SCRAM-SHA-1 <authentication-scram-sha-1>`
 
           * - SCRAM-SHA-256
-            - :manual:`SCRAM-SHA-256 </core/security-scram>`
+            - :ref:`SCRAM-SHA-256 <authentication-scram>`
 
           * - MONGODB-X509
-            - :manual:`x.509 Client Certificate </core/security-x.509>`
+            - :ref:`x.509 Client Certificate <security-auth-x509>`
 
           * - PLAIN
             - :ref:`LDAP <security-auth-ldap>`
@@ -209,7 +209,7 @@
    * - auth.usersWanted[n].roles
      - array
      - Conditional
-     - List of the :manual:`roles </reference/glossary/#std-term-role>` to be assigned to the user
+     - List of the :term:`roles <role>` to be assigned to the user
        from the user's database, which is specified in
        **auth.usersWanted[n].db**.
 

@@ -51,7 +51,6 @@ import { Footnote } from '@/mdx-components/footnote/Footnote';
 import { FootnoteReference } from '@/mdx-components/footnote/FootnoteReference';
 import { IoCodeBlock } from '@/mdx-components/IOCode';
 import { Output } from '@/mdx-components/IOCode/Output';
-import { OpenAPI } from '@/mdx-components/OpenAPI';
 import { OpenAPIChangelog } from '@/mdx-components/OpenAPIChangelog';
 import { Field } from '@/mdx-components/Field';
 import { FieldList } from '@/mdx-components/FieldList';
@@ -165,7 +164,6 @@ export const components = (injectedProps?: InjectedProps) =>
     code: ({ children }) => <Literal>{children}</Literal>,
     MultiColumn: ({ children }) => <MultiColumn>{children}</MultiColumn>,
     Output: ({ children, ...props }) => <Output {...props}>{children}</Output>,
-    OpenAPI: () => <OpenAPI />,
     OpenapiChangelog: () => <OpenAPIChangelog />,
     Procedure: ({ children, ...props }) => <Procedure {...props}>{children}</Procedure>,
     Step: ({ children, ...props }) => <Step {...props}>{children}</Step>,

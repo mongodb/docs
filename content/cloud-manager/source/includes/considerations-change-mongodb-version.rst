@@ -1,7 +1,7 @@
 - Check the following documents for any considerations or 
   compatibility issues before changing a deployment's MongoDB version:
 
-  - :manual:`The MongoDB Release Notes </release-notes>`
+  - :ref:`The MongoDB Release Notes <server-release-notes-landing>`
 
   - The documentation for your driver.
 
@@ -14,9 +14,9 @@
   production environment. This can help avoid compatibility issues 
   that may result in downtime for your production deployment.
 
-- Follow the :manual:`MongoDB release notes </release-notes>` when 
-  performing manual upgrades of :manual:`replica sets </reference/glossary/#std-term-replica-set>` and
-  :manual:`sharded clusters </reference/glossary/#std-term-sharded-cluster>`.
+- Follow the :ref:`MongoDB release notes <server-release-notes-landing>` when 
+  performing manual upgrades of :term:`replica sets <replica set>` and
+  :term:`sharded clusters <sharded cluster>`.
 
 
 .. note:: Downgrading Limitations

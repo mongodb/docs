@@ -1,0 +1,623 @@
+.. _mongot-recommended-alerts:
+
+=============================
+Recommended Alerts for mongot
+=============================
+
+.. meta::
+   :description: Recommended Prometheus alerts for self-managed mongot deployments. Start with the Page tier and tune thresholds to your workload.
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+This page provides a set of recommended Prometheus alerts for self-managed 
+``mongot`` deployments. The alert definitions are starting points. 
+You can copy, adapt, and tune these alert definitions to fit your workload. 
+
+Each alert entry includes the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Field
+     - Description
+
+   * - Severity
+     - For details, see :ref:`<alert-tiers-table>`.
+
+   * - What It Tells You
+     - Operational meaning of the alert.
+
+   * - PromQL
+     - Example expressions. Adapt the metric names to your environment.
+
+   * - Threshold Rationale
+     - Reason for the given threshold.
+
+   * - First response
+     - Actions the on-call engineer should take.
+
+Configure alerts for the Page tier first. Run these alerts for a 
+week and tune false-positive thresholds for the alerts. Later, add Ticket and 
+Watch alerts.
+
+.. _alert-tiers-table:
+
+Alert Tiers
+-----------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 80
+
+   * - Tier
+     - When to Alert
+
+   * - Page
+     - Customer-visible impact is or already occurring or about to occur.
+       Address this alert as soon as possible.
+
+   * - Ticket
+     - Operational degradation. Address within hours.
+
+   * - Watch
+     - Useful on dashboards or for trend analysis. No immediate action required.
+
+Page Tier
+---------
+
+The following alerts indicate customer-visible impact and require immediate
+attention.
+
+mongot Process Is Down
+~~~~~~~~~~~~~~~~~~~~~~
+
+``mongot`` is not responding to Prometheus metrics fetches. Search and vector
+search are not functioning properly.
+
+Use the following PromQL expression to alert on this condition:
+
+.. code-block:: text
+
+   up{job="mongot"} == 0
+
+Set the duration to one minute.
+
+A brief miss might be a transient network error. A sustained absence of longer
+than one minute is an outage.
+
+Respond to this alert by running one of the following commands depending on
+how you run your ``mongot``:
+
+- For deployments using Kubernetes, run ``kubectl get pods``.
+- For deployments using ``systemd``, run ``systemctl status mongot``.
+- For deployments using Docker, run ``docker ps``. 
+
+Check logs for the crash cause. For troubleshooting steps, see 
+:ref:`mongot-logs-ftdc`.
+
+Crash Loop
+~~~~~~~~~~
+
+The process is restarting repeatedly. The deployment is unstable.
+
+Use the following PromQL expression to alert on this condition:
+
+.. code-block:: text
+
+   changes(mongot_process_start_time_seconds[10m]) > 3
+
+More than three restarts in 10 minutes is a crash loop. Crash loops are not a
+temporary failure and need to be addressed.
+
+Respond to this alert by performing the following actions: 
+
+- Capture logs from the most recent crash window.
+- Suspend automated restarts so you can inspect a stopped pod or process.
+- Open an FTDC capture.
+
+Replication Lag Growing Unboundedly
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``mongot`` cannot keep up with ``mongod``. Search results become increasingly
+out-of-date. If replication lag is left uncorrected, the cursor falls off the
+oplog and forces a full re-sync.
+
+Use one of the following PromQL expressions to alert on this condition:
+
+.. code-block:: text
+
+   max(mongot_index_stats_indexing_replicationLagMs) > 60000
+
+Or, to catch a growing trend before the absolute threshold is reached, use:
+
+.. code-block:: text
+
+   deriv(max(mongot_index_stats_indexing_replicationLagMs)[15m:1m]) > 500
+
+This metric is per-index and in milliseconds. Do not divide the metric by 1000 
+in PromQL. Steady-state lag is below one second. One minute of lag is acceptable
+for catch-up scenarios. A steadily growing lag is the alarm condition.
+
+The ``mongot_index_stats_*`` family of metrics is only present once at least one
+search index exists. On a fresh deployment with no indexes, this alert
+does not appear because the series does not exist yet. This is expected behavior.
+
+Respond to this alert by performing the following actions: 
+
+- Check ``mongod`` write rate for a sudden spike.
+- Check ``mongot`` CPU and disk I/O for saturation. 
+
+For guidance, see :ref:`mongot-metrics-reference`.
+
+Sync Exceptions Occurring
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``mongot`` is encountering errors during sync. Repeated exceptions force a
+re-sync. Indexes are temporarily unavailable or stale during the re-sync.
+
+Use one of the following PromQL expressions to alert on this condition.
+
+To alert based on errors during sync, use:
+
+.. code-block:: text
+
+   increase(mongot_index_stats_indexing_steadyStateExceptions_total[10m]) > 0
+
+To catch initial sync exceptions, use:
+
+.. code-block:: text
+
+   increase(mongot_index_stats_indexing_initialSyncExceptions_total[10m]) > 0
+
+Any steady-state exception in production is a problem. Either the oplog rolled
+over, meaning that the ``mongod`` oplog is too small or ``mongot`` is too slow,
+or a downstream error occurred.
+
+Respond to this alert by performing the following actions: 
+
+- Capture ``mongot`` logs around the exception.
+- Check ``mongod`` oplog size. 
+- Open an FTDC capture immediately. It is harder to determine the root cause
+  after the fact.
+
+Heap Exhaustion Imminent
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+JVM heap is near its limit. An ``OutOfMemoryError`` is about to occur.
+
+Use the following PromQL expression to alert on this condition:
+
+.. code-block:: text
+
+   sum(mongot_jvm_memory_used_bytes{area="heap"})
+     / sum(mongot_jvm_memory_max_bytes{area="heap"} > 0) > 0.85
+
+Set the duration to five minutes.
+
+Sustained heap usage above 85% can cause issues. The next allocation spike
+can cause an out-of-memory error. ``mongot`` uses the Garbage-First (G1) Garbage
+Collection by default. The following expression is a more precise post-GC version
+of the above PromQL expression:
+
+.. code-block:: text
+
+   mongot_jvm_gc_live_data_size_bytes
+     / mongot_jvm_gc_max_data_size_bytes > 0.85
+
+Respond to this alert by checking active indexing operations and query load. If
+a large index is building, the condition may resolve when the build completes.
+Otherwise, increase the ``-Xmx`` heap setting or reduce the number of
+concurrent operations.
+
+Disk Fill and mongot Self-Protection Cascade
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``mongot`` enforces three thresholds on disk usage on the ``dataPath`` volume.
+These thresholds are enforced in the ``mongot`` binary itself. The thresholds
+take effect whether or not you are monitoring. Set alerts at all three
+thresholds so that the on-call engineer sees the cascade and can act before the
+final threshold is crossed.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 15 35 30 20
+
+   * - Disk Used
+     - What ``mongot`` Does
+     - Customer-Visible Impact
+     - Severity
+
+   * - 85% (15% free)
+     - ``mongot`` disables initial sync. New index builds remain in ``PENDING``.
+       Existing indexes keep operating.
+     - Only visible if a new index is created. Existing search and
+       vector search continue normally.
+     - Ticket
+
+   * - 90% (10% free)
+     - ``mongot`` disables steady-state replication. Existing indexes stop
+       receiving change events from ``mongod``. Search results grow
+       increasingly stale.
+     - Search results are out of date with ``mongod``. Users see
+       stale results for recently-written data.
+     - Page
+
+   * - 95% (5% free)
+     - ``mongot`` crashes. Recovery requires freeing disk before
+       ``mongot`` can restart cleanly.
+     - All search and vector search become unavailable.
+     - Page
+
+This alert has three rules. Severity escalates at each threshold.
+
+Use the following PromQL expressions to alert on these conditions:
+
+85% - Ticket Level:
+
+.. code-block:: text   
+
+   (1 - mongot_system_disk_space_data_path_free_bytes
+        / mongot_system_disk_space_data_path_total_bytes) >= 0.85
+
+90% — Page Level:
+
+.. code-block:: text
+
+   (1 - mongot_system_disk_space_data_path_free_bytes
+        / mongot_system_disk_space_data_path_total_bytes) >= 0.90
+
+95% — Page Level (Outage):
+
+.. code-block:: text
+
+   (1 - mongot_system_disk_space_data_path_free_bytes
+        / mongot_system_disk_space_data_path_total_bytes) >= 0.95
+
+The ``mongot`` ``/metrics`` endpoint exposes ``_free_bytes`` and
+``_total_bytes``. Compute used percentage as ``1 - free/total``.
+
+Respond to this alert by performing the following actions: 
+
+- At 85%: Audit and drop unused indexes through the search index
+  management API. Never delete files under ``dataPath`` manually.
+  New indexes do not build until disk usage drops below 85%.
+- At 90%: Alert your operations or SRE team that the cluster is in
+  replication-disabled state. Drop unused indexes or expand storage
+  to restore replication.
+- At 95%: This is an outage. Free disk space, then restart ``mongot``.
+  ``mongot`` refuses to restart cleanly until disk is freed.
+
+Ticket Tier
+-----------
+
+The following alerts indicate operational degradation and should be
+addressed within hours.
+
+Sustained Query Latency Degradation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Users are experiencing slow searches.
+
+Use one of the following PromQL expressions to alert on this condition:
+
+Cross-index:
+
+.. code-block:: text
+
+   max(mongot_command_searchCommandTotalLatency_seconds{quantile="0.99"})
+     > <your-SLO-threshold>
+
+Per-index breakdown:
+
+.. code-block:: text
+
+   max(mongot_index_stats_query_searchResultBatchLatencies_seconds{quantile="0.99"})
+     by (indexId_logString) > <your-SLO-threshold>
+
+The threshold depends on your Service-Level Objective. A common starting
+point is to have the 99th percentile in 500 milliseconds for ``$search`` and one
+second for ``$vectorSearch``. These series are summaries with pre-baked 
+``quantile`` labels, not histograms.
+
+Respond to this alert by investigating the following:
+
+- Executor queue depth.
+- JVM Garbage Collection pause time.
+- Storage IOPS to identify the bottleneck.
+
+Executor Pool Saturation
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Workers are saturated and tasks are queuing. Query latency is about to increase.
+
+Use the following PromQL expression to alert on this condition:
+
+.. code-block:: text
+
+   max({__name__=~"mongot_.+_executor_queued_tasks"}) > 10
+
+Set the duration to five minutes.
+
+A small, brief queue is normal under load spikes. A sustained queue means worker
+capacity is undersized. The common hotspot pools are:
+
+- ``mongot_decoding_executor``
+- ``mongot_change_stream_sync_dispatcher_executor``
+- ``mongot_indexing_work_executor``
+- ``mongot_indexing_lifecycle_executor``
+- ``mongot_index_commit_executor``
+
+The indexing work is split across several specialized pools. There is no
+combined ``mongot_indexing_executor``. 
+
+Respond to this alert by identifying which pool is queuing:
+
+.. code-block:: text
+
+   topk(5, sum by (__name__) ({__name__=~"mongot_.+_executor_queued_tasks"}))
+
+Scale up or increase the pool size. The queue depth ramp provides early warning
+before query latency rises.
+
+.. _storage-advisory-sustained-iops:
+
+Storage Advisory: Sustained IOPS
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The storage volume is approaching saturation. Lucene latency is increasingly
+disk-bound.
+
+Use the following PromQL expression to alert on this condition:
+
+.. code-block:: text
+
+   rate(mongot_system_disk_reads_events{name="<dataPath device>"}[5m]) > 1000
+
+Set the duration to 15 minutes.
+
+The 1,000 IOPS threshold is the storage class recommendation flag. However, it
+is not a strict limit. The right number depends on your device. Identify your
+``dataPath`` device with ``df`` or by inspecting ``mongot_system_disk_*`` label
+values.
+
+Respond to this alert by checking whether a merge or initial sync is in 
+progress. If the high IOPS level is sustained, the storage class is likely
+undersized. Revisit your storage configuration.
+
+Storage Advisory: Page Fault Rate
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The OS is repeatedly pulling index pages from disk because they have been
+evicted from cache. Memory is the constraint, not storage capacity.
+
+Use the following PromQL expression to alert on this condition:
+
+.. code-block:: text
+
+   rate(mongot_system_process_majorPageFaults_operations[5m]) > 1000
+
+1,000 major faults per second is the canonical threshold for memory pressure on
+the critical path. Together with sustained IOPS, this is the signal for memory
+shortage relative to the working set.
+
+Respond to this alert by adding memory because Lucene memory-maps index files.
+
+Indexing Failures Nonzero
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A specific index encountered a non-trivial indexing failure.
+
+Use one of the following PromQL expressions to alert on this condition:
+
+.. code-block:: text
+
+   increase(mongot_lifecycle_failedInitializationIndexes_total[10m]) > 0
+
+Or:
+
+.. code-block:: text
+
+   increase(mongot_indexing_steadyStateChangeStream_unexpectedBatchFailures_total[10m]) > 0
+
+Or:
+
+.. code-block:: text
+
+   increase(mongot_index_stats_indexing_invalidGeometryField_total[10m]) > 0
+
+These counters do not increment under normal load. An increase indicates a data
+issue such as:
+
+- A mapping explosion.
+- An oversized document.
+- An invalid document.
+
+An increase in these counters might also indicate a code-path problem.
+
+Respond to this alert by performing the following actions: 
+
+- Inspect labels for the affected index and reason.
+- Check ``mongot`` logs for the underlying exception.
+
+Embedding-Channel Disruption
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Automated embedding is encountering problems. The indexing process stalls for
+new documents on the affected indexes.
+
+Use one of the following PromQL expressions to alert on this condition:
+
+.. code-block:: text
+
+   increase(mongot_indexing_steadyStateChangeStream_rescheduledEmbeddingGetMores_total[10m]) > 0
+
+Or:
+
+.. code-block:: text
+
+   increase(mongot_initialsync_queue_requeuedEmbeddingInitialSyncs_total[10m]) > 0
+
+Sustained rescheduling or requeuing indicates the embedding path is not draining
+cleanly. The most common causes are: 
+
+- An invalid API key.
+- An unreachable network endpoint.
+- Voyage AI rate limiting.
+
+Respond to this alert by performing the following actions: 
+
+- Check ``mongot`` logs for the HTTP error against the embedding endpoint. 
+- Verify API key validity and connectivity. 
+- Check Voyage AI status.
+
+Forced Index Status Transition
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+One or more indexes transitioned out of ``STEADY`` state into a recovery, stale,
+or failed state.
+
+Use the following PromQL expression to alert on this condition:
+
+.. code-block:: text
+
+   count by (status) (mongot_index_stats_indexStatusCode{status!="STEADY"} == 1) > 0
+
+A single index in ``RECOVERING_TRANSIENT`` for a few seconds during deployment
+is normal. A sustained count greater than zero in any of the following states
+indicates a problem:
+
+- ``FAILED``.
+- ``RECOVERING_NON_TRANSIENT``.
+- ``STALE``.
+
+Respond to this alert by identifying the affected ``indexId_logString`` and 
+checking the corresponding ``mongot`` log lines.
+
+FTDC Executor Failure
+~~~~~~~~~~~~~~~~~~~~~
+
+The diagnostic capture pipeline is failing. ``mongot`` is otherwise
+healthy but you have lost observability for that node.
+
+.. note::
+
+   This metric is gated behind the ``ftdcExecutorMetricsToPrometheus``
+   feature flag. Confirm whether your deployment exposes this metric
+   before adding this alert. The metric is absent from default
+   ``mongodb/mongodb-community-search`` scrapes. By default, this flag is off
+   for self-managed deployments.
+
+Use the following PromQL expression to alert on this condition:
+
+.. code-block:: text
+
+   mongot_mongot_ftdc_executor_failure_total > 0
+
+Set the duration to five minutes.
+
+If your deployment exposes this metric, treat it as a serious signal that
+downstream observability is degraded.
+
+Respond to this alert by restarting ``mongot``.
+
+Watch Tier
+----------
+
+The following metrics are useful on dashboards for trend analysis.
+None of these metrics require paging.
+
+Heap Utilization (post-GC)
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This metric shows heap utilization after Garbage Collection over time.
+
+Use the following PromQL expression to alert on this condition:
+
+.. code-block:: text
+   
+   sum(mongot_jvm_gc_live_data_size_bytes) / sum(mongot_jvm_gc_max_data_size_bytes)
+
+Respond to this alert by investigating if the metric climbs over weeks.
+
+GC Pause Time
+~~~~~~~~~~~~~
+
+This metric shows the worst recent pause across collectors.
+
+Use the following PromQL expression to alert on this condition:
+
+.. code-block:: text
+  
+   max(mongot_jvm_gc_pause_seconds_max)
+
+Respond to this alert by investigating if this metric is sustained over 100 ms.
+
+Open File Descriptors
+~~~~~~~~~~~~~~~~~~~~~
+
+The metric shows the headroom against the soft limit for open file descriptors.
+
+Use the following PromQL expression to alert on this condition:
+
+.. code-block:: text
+  
+   mongot_process_*
+
+Respond to this alert by investigating if this metric is over 80%.
+
+Cursor Timeouts
+~~~~~~~~~~~~~~~
+
+This metric shows the number of clients holding cursors past timeout.
+
+Use the following PromQL expression to alert on this condition:
+
+.. code-block:: text
+ 
+   rate(mongot_cursorManager_trackedCursors[5m])
+
+No need to set an alert threshold for this metric. Purely informational.
+
+Connection Pool Wait
+~~~~~~~~~~~~~~~~~~~~
+
+This metric shows the number of threads waiting for a connection.
+
+Use the following PromQL expression to alert on this condition:
+
+.. code-block:: text
+
+   mongot_mongoClient_connectionPool_connectionsCheckedOut approaching _maxSize
+
+Respond to this alert by investigating if the metric is sustained and greater
+than zero.
+
+Disk Free Percentage
+~~~~~~~~~~~~~~~~~~~~
+
+This metric shows the storage capacity.
+
+Use the following PromQL expression to alert on this condition:
+
+.. code-block:: text
+ 
+   mongot_system_disk_space_data_path_free_bytes / mongot_system_disk_space_data_path_total_bytes
+
+If this metric drops below 30% free, consider having a planning conversation to
+increase storage.
+
+Learn More
+----------
+
+- :ref:`mongot-metrics-reference`
+- :ref:`mongot-logs-ftdc`
+- :ref:`mongot-setup-monitoring-new-deployment`

@@ -19,7 +19,7 @@ collection.
          :copyable: true
 
       For more detailed installation instructions, see the 
-      :driver:`MongoDB C# Driver documentation </csharp/current/get-started>`.
+      :driver:`MongoDB .NET/C# Driver documentation </csharp/current/get-started>`.
    
    .. step:: Define the index.
    

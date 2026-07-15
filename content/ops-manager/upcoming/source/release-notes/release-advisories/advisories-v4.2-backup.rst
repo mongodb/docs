@@ -103,11 +103,11 @@ with |fcv-link| 4.2 or later, you:
 - Must ensure the hostnames in your replica set configuration match 
   the hostnames that the {+mdbagent+} uses, or that your 
   :ref:`host mappings <host-map>` contain the correct hostnames. You 
-  can use :manual:`rs.conf() </reference/method/rs.conf>` to verify 
+  can use :method:`rs.conf() <rs.conf>` to verify 
   your replica set configuration. 
 
 - Can use namespace filter lists to define the
-  :manual:`namespaces  </reference/glossary/#std-term-namespace>` included in a backup only if you are
+  :term:`namespaces <namespace>` included in a backup only if you are
   running MongoDB 6.0 or later. Snapshots taken on versions MongoDB 4.2
   through 5.0 always include all namespaces.
 

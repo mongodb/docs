@@ -1,7 +1,7 @@
 .. note::
 
    |mms| restarts a node in a replica set or sharded cluster when you
-   change :manual:`configuraton file options </reference/configuration-options>`
+   change :ref:`configuraton file options <configuration-options>`
    for the MongoDB process running on the node. The following options trigger
    a restart only for the specified changes:
 
@@ -15,6 +15,5 @@
      do not.
 
    A restarted node triggers an election if the node was the primary.
-   In addition, modifying the :manual:`member settings 
-   </reference/replica-configuration/#members>`
+   In addition, modifying the :ref:`member settings <replica-set-configuration-buildIndexes>`
    of the current primary may trigger an election.

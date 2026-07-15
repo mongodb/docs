@@ -33,11 +33,15 @@ Before you upgrade, perform the following actions:
   your application connects to and the version of Laravel that your
   application runs on. See the :driver:`Compatibility </compatibility/?driver-language=php&php-driver-framework=laravel>`
   page for this information.
+
 - Address any breaking changes between the version of the {+odm-short+} that
   your application now uses and your planned upgrade version in the
   :ref:`<laravel-breaking-changes>` section of this guide.
 
-To upgrade your library version, run the following command in your application's 
+- Address any deprecation notices for your current version
+  in the :ref:`<laravel-deprecations>` section of this guide.
+
+To upgrade your library version, run the following command in your application's
 directory:
 
 .. code-block:: bash
@@ -229,3 +233,72 @@ This library version introduces the following breaking changes:
   - ``orWhereIntegerInRaw()``
   - ``whereIntegerNotInRaw()``
   - ``orWhereIntegerNotInRaw()``
+
+.. _laravel-deprecations:
+
+Deprecations
+------------
+
+A deprecation notice indicates that a feature is scheduled for
+removal in a future major version. Address deprecation notices
+in your application before upgrading to the next major version.
+
+- :ref:`laravel-deprecations-v5.8`
+
+.. _laravel-deprecations-v5.8:
+
+Version 5.8 Deprecations
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in {+odm-long+} v5.8, the ``array`` cast type for Eloquent model
+attributes is deprecated. Using ``array`` as a cast type stores attribute values
+as JSON-encoded strings in MongoDB, which is not the native BSON format. When
+you write to an attribute that uses the ``array`` cast, the library emits the
+following deprecation notice:
+
+.. code-block:: none
+
+   USER DEPRECATED  The "array" cast on attribute "<attribute>"
+   of model "<Model>" stores values as a JSON-encoded string in
+   MongoDB, which is not the native format. Remove the cast to
+   store native BSON arrays. If you must keep JSON string
+   storage, use the "json" cast explicitly.
+
+The deprecation notice includes the name of the affected
+attribute and model class.
+
+To migrate your model attributes for future versions, use one of the following options:
+
+- Remove the ``array`` cast (recommended). Without a cast type,
+  MongoDB natively stores and retrieves PHP arrays as BSON
+  arrays. The following code shows how to update your model:
+
+  .. code-block:: php
+
+     // Before (deprecated in v5.8)
+     protected $casts = [
+         'options' => 'array',
+     ];
+
+     // After: remove the cast to use native BSON storage
+     protected $casts = [
+         // other casts...
+     ];
+
+- Replace ``array`` with ``json`` to explicitly keep JSON
+  string storage:
+
+  .. code-block:: php
+
+     protected $casts = [
+         'options' => 'json',
+     ];
+
+If a field already holds a native BSON array and the model still uses the
+``array`` cast, the library reads it back correctly.
+
+.. important::
+
+   Before removing the ``array`` cast from a field, migrate any existing
+   JSON-encoded string values in the field to native BSON arrays. The library
+   doesn't automatically migrate existing data.

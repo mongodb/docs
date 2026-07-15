@@ -62,8 +62,8 @@
      - string
      - The type of MongoDB cluster. Values include:
 
-       - ``replica set``: :manual:`replica set </reference/glossary/#std-term-replica-set>`
-       - ``sharded cluster``: :manual:`sharded cluster </reference/glossary/#std-term-sharded-cluster>`
+       - ``replica set``: :term:`replica set`
+       - ``sharded cluster``: :term:`sharded cluster`
        - ``standalone``: :term:`standalone`
 
    * - ``clusters.[n].versions``

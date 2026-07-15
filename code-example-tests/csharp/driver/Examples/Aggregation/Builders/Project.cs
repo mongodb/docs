@@ -38,6 +38,7 @@ public class ProjectExample : IDisposable
         // :snippet-start: include
         var pipeline = new EmptyPipelineDefinition<Movie>()
             .Sort(Builders<Movie>.Sort.Ascending(m => m.Title)) // :remove:
+            .Limit(1) // :remove:
             .Project(
                 Builders<Movie>.Projection
                     .Include(m => m.Title)
@@ -53,6 +54,7 @@ public class ProjectExample : IDisposable
         // :snippet-start: exclude-fields
         var pipeline = new EmptyPipelineDefinition<Movie>()
             .Sort(Builders<Movie>.Sort.Ascending(m => m.Title)) // :remove:
+            .Limit(1) // :remove:
             .Project(
                 Builders<Movie>.Projection
                     .Exclude(m => m.Type)
@@ -67,6 +69,7 @@ public class ProjectExample : IDisposable
         // :snippet-start: exclude-id
         var pipeline = new EmptyPipelineDefinition<Movie>()
             .Sort(Builders<Movie>.Sort.Ascending(m => m.Title)) // :remove:
+            .Limit(1) // :remove:
             .Project(
                 Builders<Movie>.Projection
                     .Exclude(m => m.Id)
@@ -83,6 +86,7 @@ public class ProjectExample : IDisposable
         // :snippet-start: exclude-fields-embedded
         var pipeline = new EmptyPipelineDefinition<Movie>()
             .Sort(Builders<Movie>.Sort.Ascending(m => m.Title)) // :remove:
+            .Limit(1) // :remove:
             .Project(
                 Builders<Movie>.Projection
                     .Exclude("Imdb.id")
@@ -113,6 +117,7 @@ public class ProjectExample : IDisposable
 
         var pipeline = new EmptyPipelineDefinition<Movie>()
             .Sort(Builders<Movie>.Sort.Ascending(m => m.Title)) // :remove:
+            .Limit(1) // :remove:
             .Project(stage);
         // :snippet-end:
         var first = _movies.Aggregate(pipeline).FirstOrDefault();
@@ -126,6 +131,7 @@ public class ProjectExample : IDisposable
             // :remove-start:
             .Match(Builders<Movie>.Filter.SizeGt("cast", 0))
             .Sort(Builders<Movie>.Sort.Ascending(m => m.Title))
+            .Limit(1)
             // :remove-end:
             .Project(
                 Builders<Movie>
@@ -152,6 +158,7 @@ public class ProjectExample : IDisposable
                 Builders<Movie>.Filter.SizeGt("directors", 0),
                 Builders<Movie>.Filter.SizeGt("writers", 0)))
             .Sort(Builders<Movie>.Sort.Ascending(m => m.Title))
+            .Limit(1)
             // :remove-end:
             .Project(
                 Builders<Movie>
@@ -179,6 +186,7 @@ public class ProjectExample : IDisposable
 
         var pipeline = new EmptyPipelineDefinition<Movie>()
             .Sort(Builders<Movie>.Sort.Ascending(m => m.Title)) // :remove:
+            .Limit(1) // :remove:
             .Project(stage);
         // :snippet-end:
         var first = _movies.Aggregate(pipeline).FirstOrDefault();

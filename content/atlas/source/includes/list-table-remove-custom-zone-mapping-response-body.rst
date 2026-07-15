@@ -23,8 +23,8 @@
        
    * - ``managedNamespaces[n].customShardKey``
      - string
-     - The custom shard key for the collection. :doc:`Global Clusters
-       </global-clusters>` require a compound shard key consisting of
+     - The custom shard key for the collection. :ref:`Global Clusters
+       <global-clusters>` require a compound shard key consisting of
        a ``location`` field and a user-selected second key, the custom
        shard key.
 

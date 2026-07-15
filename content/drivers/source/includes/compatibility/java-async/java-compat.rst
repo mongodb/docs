@@ -1,7 +1,3 @@
-The following table shows compatibility between the Java Reactive Streams driver and Java.
-Beginning with Java 8, the table lists only LTS versions, but the driver supports all
-Java versions later than 8 because of the JVM backwards compatibility promise.
-
 .. list-table::
    :header-rows: 1
    :stub-columns: 1
@@ -15,7 +11,7 @@ Java versions later than 8 because of the JVM backwards compatibility promise.
      - Java 7
      - Java 6
 
-   * - 4.11 to 5.8
+   * - 4.11 to 5.9
      - ✓
      - ✓
      - ✓

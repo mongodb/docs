@@ -1,6 +1,3 @@
-The following compatibility table shows Scala language versions
-supported by each version of the Scala driver:
-
 .. list-table::
    :header-rows: 1
    :stub-columns: 1

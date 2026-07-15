@@ -1,0 +1,1 @@
+atlas api monitoringAndLogs getIndexMeasurements --version 2023-01-01 --collectionName mycoll --databaseName mydb --granularity PT1M --groupId 32b6e34b3d91647abb20e7b8 --indexName myindex --metrics [metrics] --period PT10H --processId my.host.name.com:27017

@@ -28,7 +28,7 @@
        
           Each {+cloud-backup+} can have one download at
           a time, and each
-          :doc:`project </tutorial/manage-projects/>` can have
+          :ref:`project <manage-projects>` can have
           a maximum of 20 downloads at a time.
 
    * - pointInTime

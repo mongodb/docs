@@ -1,0 +1,99 @@
+stepnum: 1
+title: "Create the |aws| |iam| role in |service|"
+level: 4
+ref: aws-unified-access
+content: |
+
+  1. Run the following {+atlas-cli+} command to create the new |aws| 
+     |iam| role in |service|. Replace the following placeholder with your value:
+
+     .. list-table::
+        :widths: 50 80
+        :header-rows: 1
+
+        * - Placeholder
+          - Description
+
+        * - ``PROJECT-ID``
+          - Unique 24-character hexadecimal string that identifies the 
+            |service| project to use.
+
+     .. code-block:: sh
+        
+        atlas cloudProviders accessRoles aws create --projectId <PROJECT-ID>
+
+  2. Note the returned field values ``RoleID``, ``Atlas AWS Account
+     ARN``, and ``Unique External ID``:
+
+     .. code-block:: sh
+        
+        AWS IAM role '<RoleID>' successfully created.
+        Atlas AWS Account ARN: <AtlasAWSAccountARN>
+        Unique External ID: <AtlasAssumedRoleExternalID>
+
+---
+
+stepnum: 2
+ref: modify-trust-policy-aws
+level: 4
+inherit:
+  ref: modify-trust-policy
+  file: steps-enable-unified-aws-access.yaml
+
+---
+
+stepnum: 3
+title: "Authorize the new IAM role"
+level: 4
+ref: aws-role-auth
+content: |
+
+  1. Run the following {+atlas-cli+} command to authorize the new |aws| 
+     |iam| role. Replace the following placeholders with your values:
+
+     .. list-table::
+        :widths: 50 80
+        :header-rows: 1
+
+        * - Placeholder
+          - Description
+
+        * - ``ROLE-ID``
+          - Unique ID of the role to authorize. This is the value
+            returned for ``RoleID`` in the previous step.
+
+        * - ``PROJECT-ID``
+          - Unique 24-character hexadecimal string that identifies the 
+            |service| project to use.
+
+     .. code-block:: sh
+        
+        atlas cloudProviders accessRoles aws authorize <ROLE-ID> --projectId <PROJECT-ID>
+
+stepnum: 4
+title: "Create the ``AtlasDataFederation`` custom resource."
+ref: create-atlasdatafederation
+content: |
+
+  Run the following command to create the 
+  :ref:`atlasdatafederation-custom-resource`. The ``roleId`` should
+  match the value returned for ``RoleID`` in the previous step and the
+  ``spec.projectRef.name`` should match the name of your
+  :ref:`atlasproject-custom-resource`:
+
+  .. literalinclude:: /includes/ak8so-data-federation-setup-example.yaml
+
+---
+stepnum: 5
+title: "Check the status of your {+fdi+}."
+ref: check-fdi-status
+content: |
+
+  Run the following command until you recieve a ``True`` response, 
+  which indicates the database user is ready:
+  
+  .. code-block:: sh
+
+     kubectl get atlasdatafederation my-federated-deployment -o=jsonpath='{.status.conditions[?(@.type=="Ready")].status}'
+
+...

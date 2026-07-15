@@ -20,7 +20,7 @@ export OPS_MANAGER_API_USER="<SET API USER>"
 export OPS_MANAGER_API_KEY="<SET API KEY>"
 export OPS_MANAGER_ORG_ID="<SET ORG ID>"
 
-export MDB_VERSION="8.2.6-ent"
+export MDB_VERSION="8.3.4-ent"
 
 # root admin user for convenience, not used here at all in this guide
 export MDB_ADMIN_USER_PASSWORD="admin-user-password-CHANGE-ME"

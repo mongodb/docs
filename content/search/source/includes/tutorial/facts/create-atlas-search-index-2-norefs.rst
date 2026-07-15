@@ -1,6 +1,3 @@
-Build a |fts| Query
---------------------
-
 .. collapsible::
    :heading: What are MongoDB Search queries?
    :expanded: false

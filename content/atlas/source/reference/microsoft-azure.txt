@@ -29,7 +29,7 @@ Availability Zones and Supported Regions
 While all of the following regions support {+dedicated-clusters+} (``M10+``), 
 some regions don't support {+Free-clusters+} (formerly known as ``M0``)
 or {+Flex-clusters+}.
-The |service| :doc:`API </api/>` uses the corresponding 
+The |service| :ref:`API <graphql-api-overview>` uses the corresponding 
 :guilabel:`Atlas Region`.
 
 .. note::
@@ -266,9 +266,9 @@ The |service| :doc:`API </api/>` uses the corresponding
               - Milan, Italy
               - ``ITALY_NORTH``
               -
-              - 
+              -
               - :icon:`check-square`
-              - 
+              - :icon:`check-square`
 
             * - ``germanywestcentral``
               - Frankfurt, Germany
@@ -698,10 +698,16 @@ following |azure| regions.
               - :icon:`check-square`
               - :icon:`check-square`
 
+            * - ``chilecentral``
+              - Santiago
+              - ``CHILE_CENTRAL``
+              -
+              -
+
             * - ``mexicocentral``
               - Querétaro State, Mexico
               - ``MEXICO_CENTRAL``
-              - 
+              -
               - :icon:`check-square`
 
      - id: europe
@@ -1075,7 +1081,7 @@ to deploy clusters across fault domains. For regions that have at least three
 fault domains (3FD), |service| deploys clusters across three fault domains. For regions 
 that only have two fault domains (2FD), |service| deploys clusters across two fault domains.
 
-The |service| :doc:`Add New Cluster </tutorial/create-new-cluster>` form marks regions
+The |service| :ref:`Add New Cluster <create-new-cluster>` form marks regions
 that support :abbr:`3FD (Three Fault Domain)` clusters as
 :guilabel:`Recommended`, as they provide higher availability.
 
@@ -1126,6 +1132,110 @@ may be preferred.
    For detailed documentation on |azure| storage
    options, see `High-performance Premium Storage and managed disks for VMs
    <https://docs.microsoft.com/en-us/azure/storage/storage-premium-storage>`_
+
+.. _adaptive-capacity:
+
+Adaptive Capacity
+-----------------
+
+.. banner::
+   :variant: info
+
+   |service| is rolling out adaptive capacity for |azure|
+   {+clusters+} in a phased approach. This feature might not be
+   available to your organization yet.
+
+Adaptive capacity is a feature of |azure| instances that |service|
+uses to help keep your {+cluster+} available when an |azure| region is
+temporarily out of capacity for the instance type that your
+{+cluster+} uses. |service| enables adaptive capacity by default for
+{+clusters+} on |azure| that have at least one node.
+
+.. note::
+
+   |azure| `capacity reservations
+   <https://learn.microsoft.com/en-us/azure/virtual-machines/capacity-reservation-overview>`__
+   are not the same as |service|'s use of |azure| adaptive capacity.
+   |service| respects |azure| capacity reservations and uses the logic
+   described in this section.
+
+When an |azure| region temporarily runs out of capacity for the
+instance type that your {+cluster+} uses, you might be unable to scale
+the {+cluster+}, and |service| might be unable to replace a node during
+automatic recovery. To keep your {+cluster+} available, |service|
+provisions an alternate instance type with available capacity and moves
+the {+cluster+} to it temporarily.
+
+How Adaptive Capacity Works
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When |service| detects that the |azure| instance type your {+cluster+}
+uses is out of capacity, |service| provisions an alternate instance
+type with available capacity and moves your {+cluster+} to it
+temporarily so the {+cluster+} can continue running. |service| selects
+the alternate instance type from the same :ref:`cluster class
+<storage-class-ui>` and doesn't move your data.
+
+|service| uses adaptive capacity only when you change a {+cluster+}'s
+compute resources, such as when you:
+
+- :ref:`Create a {+cluster+} <create-new-cluster>`
+- :ref:`Scale a {+cluster+} tier <scale-cluster>`
+
+|service| doesn't use adaptive capacity when you add nodes or shards.
+
+The alternate instance type keeps your {+cluster+} available, and the
+change causes no downtime. The alternate instance type might provide
+lower performance than the original instance type, so your application
+might experience higher CPU use, increased latency, or timeouts until
+|service| returns your {+cluster+} to its original instance type.
+
+When the original instance type returns to available capacity,
+|service| automatically returns your {+cluster+} to it. If you define a
+maintenance window, |service| respects that window.
+
+Supported Clusters
+~~~~~~~~~~~~~~~~~~
+
+On |azure|, |service| uses adaptive capacity for {+dedicated-clusters+}
+``M30`` and larger that have at least one node. Adaptive capacity is
+available for these {+clusters+} in all |azure| regions listed in
+:ref:`Supported Regions <microsoft-azure-supported-regions>`.
+|service| doesn't use adaptive capacity for ``M10`` or ``M20``
+{+clusters+}, {+Free-clusters+}, or {+Flex-clusters+}.
+
+If you select an ``M10`` or ``M20`` instance type that has no available
+capacity, |service| notifies you in the {+atlas-ui+}. To deploy your
+{+cluster+}, do one of the following:
+
+- Select a different |azure| region. To review available |azure|
+  regions, see :ref:`Supported Regions
+  <microsoft-azure-supported-regions>`.
+- Select a larger {+cluster+} tier (``M30`` or larger).
+- Wait for capacity to return.
+
+Capacity shortages are temporary. The instance type becomes available
+again when the cloud provider restores capacity in the region.
+
+|service| doesn't use adaptive capacity for {+clusters+} that use
+:ref:`NVMe storage <nvme-storage>` because |service| couples their
+storage to the instance type.
+
+|service| doesn't change your {+cluster+}'s price when it provisions an
+alternate instance type due to capacity constraints.
+
+Opt Out of Adaptive Capacity
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We recommend that you enable adaptive capacity to maintain the
+availability of your {+cluster+} during |azure| capacity shortages.
+|service| enables adaptive capacity by default. You can opt out of
+using adaptive capacity for an individual {+cluster+}. When you opt
+out, |service| keeps your {+cluster+} on its original instance type,
+and a capacity shortage might prevent you from scaling the {+cluster+}.
+
+To opt out of |service| adaptive capacity changes, see
+:ref:`adaptive-capacity-setting`.
 
 .. _microsoft-azure-search-nodes:
 
@@ -1264,8 +1374,8 @@ Networking Services
 Security and Identity Services
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- |azure-ad|: :doc:`Configure federated authentication to the MongoDB UI </security/federated-auth-azure-ad/>`
-- |azure-ad| Domain Services: :doc:`Configure database user authentication and authorization </security-ldaps-azure/>`
+- |azure-ad|: :ref:`Configure federated authentication to the MongoDB UI <federated-auth-azure-ad>`
+- |azure-ad| Domain Services: :ref:`Configure database user authentication and authorization <security-ldaps-azure>`
 
 Procurement
 ~~~~~~~~~~~
@@ -1286,5 +1396,5 @@ More Information
 For more information on how to use |azure| with |service| most effectively,
 review the following best practices, guides, and case studies:
 
-- Power BI Desktop: :doc:`Connect to Atlas from Power BI Desktop </tutorial/connect-bic-powerbi/>`
+- Power BI Desktop: :ref:`Connect to Atlas from Power BI Desktop <atlas-connect-bic-powerbi>`
 - Visual Studio (VS) Code: `Work with MongoDB from VS Code <https://code.visualstudio.com/docs/azure/mongodb>`__

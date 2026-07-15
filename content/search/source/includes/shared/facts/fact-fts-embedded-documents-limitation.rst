@@ -2,13 +2,14 @@
 
 The exact number of index objects can vary based on the rate of document
 changes and deletions. The :ref:`Search Max Number of Lucene Docs
-<review-atlas-search-metrics>` metric provides the upper bound of the
-current number of index objects across all indexes per replica set or
-shard. This metric indicates the largest count of Lucene documents in a 
-single search index within a replica set or shard. For example, if the 
-metric displays "1.5 billion", among all your search indexes, the index 
-with the highest number of Lucene documents contains about 1.5 billion 
-documents.
+<review-atlas-search-metrics>` metric shows the largest number of
+Lucene documents in a single partition of any search index within a
+replica set or shard.
+
+For example, suppose the metric displays "1,500,000,000." The index
+with the highest number of Lucene documents in a single partition has
+about 1,500,000,000 documents in that partition. If the index uses
+many partitions, it can contain more documents overall.
 
 You can approximate the expected number of index objects in a single
 index by doing the following steps: 

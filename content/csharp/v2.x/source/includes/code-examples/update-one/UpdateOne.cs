@@ -1,4 +1,4 @@
-// Updates the first document that matches a query filter by using the C# driver
+// Updates the first document that matches a query filter by using the .NET/C# driver
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;

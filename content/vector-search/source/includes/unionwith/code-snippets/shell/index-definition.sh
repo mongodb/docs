@@ -11,13 +11,13 @@ db.embedded_movies.createSearchIndex(
       },
       {
         "type": "vector",
-        "path": "plot_embedding_voyage_3_large",
+        "path": "plot_embedding_voyage_4_large",
         "numDimensions": 2048,
         "similarity": "dotProduct"
       },
       {
         "type": "vector",
-        "path": "title_voyageai_embedding",
+        "path": "title_embedding_voyage_4_large",
         "numDimensions": 2048,
         "similarity": "dotProduct"
       }

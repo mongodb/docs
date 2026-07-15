@@ -70,7 +70,6 @@ The monorepo is organized as follows:
   - Uses Remote MDX files from Netlify Blob Storage
 - `snooty-ast-to-mdx`: Converts Snooty rST to MDX
 - `tools/`: Contains various tools and utilities
-  - `ingest-mongodb-docs/`: Tool for ingesting MongoDB docs from Snooty Data API, check [README](/platform/tools/ingest-mongodb-docs/README.md) for more info
 
 ## Available Commands
 
@@ -143,10 +142,6 @@ The output is written to `platform/docs-nextjs/out/` and is ready to open direct
 - `pnpm blobs:seed`: Seed the local blob storage with the MDX content (requires dev server to be running)
 - `pnpm blobs:clear`: Clear the local blob storage (requires dev server to be running)
 - `pnpm blobs:watch`: Watch `content-mdx` for changes and upload them incrementally (runs automatically with `pnpm dev`)
-
-### Ingest Commands
-- `pnpm ingest:pages`: Update pages using the ingest tool
-- `pnpm ingest:all`: Run full ingestion process
 
 ## Pull Request Templates
 

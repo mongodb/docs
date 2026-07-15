@@ -20,7 +20,11 @@
 
       The selected tier dictates the memory, storage, vCPUs, and |iops|
       specification for each data-bearing server [#data-bearing]_ in the
-      cluster. 
+      cluster.
+      
+      For ``M30+`` {+Dedicated-clusters+} on |aws|, you can also
+      select your :term:`cluster's generation <cluster generation>`. To learn
+      more, see :ref:`AWS Gen2 Dedicated Clusters <aws-gen2-clusters>`.
       
       .. include:: /includes/fact-auto-scaling-brief.rst
       

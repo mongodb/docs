@@ -25,12 +25,22 @@ import { ensureBlockChildren } from "./plugins/ensure-block-children.js";
 import { preprocessTableRows } from "./plugins/preprocess-table-rows.js";
 import type { ResolveReferencesOptions } from "./plugins/resolve-references.js";
 
+interface MdxToMarkdownOptions extends ResolveReferencesOptions {
+  /**
+   * Stable `tabid` values to keep when converting tabs. When provided, only
+   * matching tabs are emitted; all others are dropped. Omit or leave empty
+   * to emit every tab (the default behavior).
+   */
+  tabFilters?: string[];
+}
+
 export async function mdxToMarkdown(
   source: string,
   contentMdxDir?: string,
   sourceFilePath?: string,
-  options: ResolveReferencesOptions = {}
+  options: MdxToMarkdownOptions = {}
 ) {
+  const { tabFilters, ...referenceOptions } = options;
   // Pre-process table rows before parsing
   source = preprocessTableRows()(source);
 
@@ -45,14 +55,14 @@ export async function mdxToMarkdown(
       resolveIncludes(contentMdxDir, sourceFilePath, undefined)
     );
     processor.use(
-      resolveReferences(contentMdxDir, sourceFilePath, options)
+      resolveReferences(contentMdxDir, sourceFilePath, referenceOptions)
     );
   }
 
   processor
     .use(transformImage)
     .use(transformHeading)
-    .use(transformTabs)
+    .use(transformTabs({ tabFilters }))
     .use(transformProcedure)
     .use(transformAbbr)
     .use(transformAdmonitions)

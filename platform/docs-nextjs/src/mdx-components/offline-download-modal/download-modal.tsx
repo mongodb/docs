@@ -157,9 +157,9 @@ export const DownloadModal = ({ open, setOpen }: ModalProps) => {
         size: 170,
         cell: (cellContext) => {
           const versions = (cellContext.getValue() ?? []) as OfflineVersion[];
-          const repoDisplayName = cellContext.row.original.displayName;
+          const { displayName: repoDisplayName, versionIndex } = cellContext.row.original;
           if (versions?.length < 2) {
-            selectedVersions.current[repoDisplayName] = versions[0];
+            selectedVersions.current[repoDisplayName] = versions[versionIndex];
             return;
           }
           return (
@@ -167,6 +167,7 @@ export const DownloadModal = ({ open, setOpen }: ModalProps) => {
               offlineRepo={cellContext.row.original}
               tableRef={tableRef}
               versions={versions}
+              versionIndex={versionIndex}
               onSelect={(index: number) => {
                 const version = versions[index];
                 if (version) {

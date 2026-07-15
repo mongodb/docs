@@ -53,7 +53,7 @@ advantage of |aws| built-in split-horizon DNS across a VPC peering
 connection.
 
 |service| displays this setting only when you
-:doc:`enable network peering on AWS </security-vpc-peering>`.
+:ref:`enable network peering on AWS <vpc-peering>`.
 
 Multiple Regionalized Private Endpoints
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -72,14 +72,27 @@ global sharded {+clusters+} using private endpoints.
 Collect Database Specific Statistics
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The :guilabel:`Collect Database Specific Statistics` setting allows you to enable or 
-disable the collection of database statistics in :doc:`cluster metrics </monitor-cluster-metrics>`.
+The :guilabel:`Collect Database Specific Statistics` setting allows you to enable or
+disable the collection of database statistics in :ref:`cluster metrics <monitor-cluster-metrics>`.
+
+Data Validation
+~~~~~~~~~~~~~~~
+
+The :guilabel:`Data Validation` setting controls automatic data validation
+for all clusters in the project.
+
+|service| validates data consistency across all clusters in a project by comparing data across replica set nodes. For clusters
+with encryption at rest using customer-managed keys, validation requires
+decrypting data with your key and stores inconsistency details for up to
+90 days and run metadata for up to 3 years.
+
+To learn more, see :ref:`data-validation`.
 
 Set Preferred Cluster Maintenance Start Time
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :guilabel:`Set Preferred Cluster Maintenance Start Time` setting allows you to set 
-which hour of the day that |service| should start weekly maintenance on your cluster.
+which hour of the day |service| starts weekly maintenance on your cluster.
 
 To learn more about {+cluster+} maintenance windows, see
 :ref:`configure-maintenance-window`.
@@ -106,7 +119,7 @@ Data Explorer
 ~~~~~~~~~~~~~
 
 The :guilabel:`Data Explorer` setting allows you to query your database with 
-an easy-to-use interface.
+a graphical interface.
 
 .. include:: /includes/fact-disable-de-limitations-nested.rst
 
@@ -149,6 +162,27 @@ Only {+clusters+} which meet the following criteria support extended storage:
 - The {+cluster+} is single-region.
 
 .. include:: /includes/fact-extended-storage.rst
+
+Native Reranking: $rerank Aggregation Stage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The :guilabel:`Native Reranking: $rerank Aggregation Stage` setting can 
+enable or disable the :ref:`$rerank aggregation stage 
+<rerank-agg-pipeline>`. To learn more, see :ref:`rerank-enable-disable`.
+
+If you enable Native Reranking, you can use the :pipeline:`$rerank` stage 
+in your aggregation pipelines to reorder input documents by using |voyage|'s 
+:website:`reranking models </docs/voyageai/models/rerankers/>`. This stage 
+returns those documents sorted by relevance to the query. To learn more 
+about ``$rerank``, see :ref:`$rerank <rerank-agg-pipeline>`.
+
+|service| uses |voyage| reranking models, which incur usage-based costs. 
+The model inference platform runs on MongoDB infrastructure in a |gcp| 
+cloud deployment in a US region. To learn more about billing for Native 
+Reranking, see :ref:`native-reranking-billing`.
+
+The :pipeline:`$rerank` stage is available only on clusters running 
+MongoDB 8.3 or later, and it is disabled by default.
 
 Delete Charts
 ~~~~~~~~~~~~~

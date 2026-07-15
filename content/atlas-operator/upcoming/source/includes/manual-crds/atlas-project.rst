@@ -164,6 +164,12 @@ AtlasProjectSpec defines the target state of Project in Atlas
        *Default*: ``NONE``
      - false
 
+   * -  ``regionalizedPrivateEndpoint``
+     - object
+     - ``RegionalizedPrivateEndpoint`` allows to enable regionalized private endpoints. See more at
+       `https://www.mongodb.com/docs/atlas/security-private-endpoint/ <https://www.mongodb.com/docs/atlas/security-private-endpoint/>`__
+     - false
+
    * -  ``settings``
      - object
      - Settings allows the configuration of the Project Settings.
@@ -1730,6 +1736,28 @@ at `https://www.mongodb.com/docs/atlas/operator/current/migrate-parameter-to-res
      - Entry using an ``IP`` address in this access list entry.
      - false
 
+.. _atlasproject-spec-regionalizedprivateendpoint: 
+
+AtlasProject.spec.regionalizedPrivateEndpoint
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+RegionalizedPrivateEndpoint allows to enable regionalized private endpoints. See more at
+`https://www.mongodb.com/docs/atlas/security-private-endpoint/ <https://www.mongodb.com/docs/atlas/security-private-endpoint/>`__
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 65 10
+
+   * -  ``Name``
+     - Type
+     - Description
+     - Required
+
+   * -  ``enabled``
+     - boolean
+     - Flag indicating whether regionalized private endpoint mode should be enabled.
+     - false
+
 .. _atlasproject-spec-settings: 
 
 AtlasProject.spec.settings
@@ -1930,6 +1958,11 @@ AtlasProjectStatus defines the observed state of AtlasProject
      - object
      - Prometheus contains the status for Prometheus integration
        including the ``prometheusDiscoveryURL``
+     - false
+
+   * -  ``regionalizedPrivateEndpoint``
+     - object
+     - Status of the multiple regionalized private endpoint setting ("Multiple Regionalized Private Endpoints" setting in the ``UI``)
      - false
 
    * -  ``teams``
@@ -2740,6 +2773,27 @@ including the prometheusDiscoveryURL
    * -  ``scheme``
      - string
      - Protocol ``scheme`` used for Prometheus requests.
+     - false
+
+.. _atlasproject-status-regionalizedprivateendpoint: 
+
+AtlasProject.status.regionalizedPrivateEndpoint
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Status of the multiple regionalized private endpoint setting ("Multiple Regionalized Private Endpoints" setting in the UI)
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 10 65 10
+
+   * -  ``Name``
+     - Type
+     - Description
+     - Required
+
+   * -  ``enabled``
+     - boolean
+     - Flag indicating whether regionalized private endpoint mode should be enabled.
      - false
 
 .. _atlasproject-status-teams: 

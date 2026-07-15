@@ -29,22 +29,22 @@
 
             * - light-hearted comedy with ghosts
               - COMEDY_INVOLVING_GHOSTS
-              - |voyage|'s ``voyage-3-large``
+              - |voyage|'s ``voyage-4-large``
               - 2048
 
             * - slapstick humor with paranormal events
               - HUMOR_INVOLVING_PARANORMAL
-              - |voyage|'s ``voyage-3-large``
+              - |voyage|'s ``voyage-4-large``
               - 2048
 
             * - battle between good and evil
               - BATTLE_GOOD_EVIL
-              - |voyage|'s ``voyage-3-large``
+              - |voyage|'s ``voyage-4-large``
               - 2048 
 
             * - journey across lands
               - JOURNEY_ACROSS_LANDS_VOYAGEAI
-              - |voyage|'s ``voyage-3-large``
+              - |voyage|'s ``voyage-4-large``
               - 2048
 
             * - journey across lands
@@ -123,7 +123,7 @@
                :language: shell 
                :linenos: 
 
-            .. output:: /includes/unionwith/code-snippets/shell/multiple-vectors-query-results.sh
+            .. output:: /includes/unionwith/code-snippets/output/multiple-vectors-query-results.sh
                :language: shell 
                :visible: false
 
@@ -135,7 +135,7 @@
              :widths: 20 80
 
             * - :pipeline:`$vectorSearch` 
-              - - Searches the ``plot_embedding_voyage_3_large`` field
+              - - Searches the ``plot_embedding_voyage_4_large`` field
                   for the phrase *light-hearted comedy with ghosts*,
                   specified in the ``queryVector`` field of the query
                   as vector embeddings by using the
@@ -147,7 +147,7 @@
 
             * - :pipeline:`$vectorSearch`
               - - Performs a sequential vector search on the
-                  ``plot_embedding_voyage_3_large`` field for the
+                  ``plot_embedding_voyage_4_large`` field for the
                   phrase *slapstick humor with paranormal events*,
                   specified in the ``queryVector`` field as vector
                   embeddings by using the
@@ -200,7 +200,7 @@
                :language: shell 
                :linenos: 
 
-            .. output:: /includes/unionwith/code-snippets/shell/same-term-vectors-query-results.sh
+            .. output:: /includes/unionwith/code-snippets/output/rerank-same-term-vectors-query-results.sh
                :language: shell 
                :visible: false
 
@@ -212,7 +212,7 @@
              :widths: 20 80
 
             * - :pipeline:`$vectorSearch` 
-              - - Searches the ``plot_embedding_voyage_3_large`` field
+              - - Searches the ``plot_embedding_voyage_4_large`` field
                   for the phrase *battle between good and evil*,
                   specified in the ``queryVector`` field of the query
                   as vector embeddings by using the
@@ -225,7 +225,7 @@
 
             * - :pipeline:`$vectorSearch`
               - - Performs a sequential vector search on the
-                  ``title_voyageai_embedding`` field for the string
+                  ``title_embedding_voyage_4_large`` field for the string
                   *battle between good and evil*, specified in the
                   ``queryVector`` field as vector embeddings by using
                   the ``BATTLE_GOOD_EVIL`` variable. 
@@ -282,7 +282,7 @@
                :language: shell 
                :linenos: 
 
-            .. output:: /includes/unionwith/code-snippets/shell/same-term-multiple-models-query-results.sh
+            .. output:: /includes/unionwith/code-snippets/output/same-term-multiple-models-query-results.sh
                :language: shell 
                :visible: false
 
@@ -307,7 +307,7 @@
 
             * - :pipeline:`$vectorSearch`
               - - Performs a sequential vector search on the
-                  ``plot_embedding_voyage_3_large`` field for the string
+                  ``plot_embedding_voyage_4_large`` field for the string
                   *journey across lands*, specified in the ``queryVector``
                   field as vector embeddings by using the
                   ``JOURNEY_ACROSS_LANDS_VOYAGEAI`` variable.  

@@ -8,7 +8,7 @@ Encryption at Rest using Customer Key Management
 
 .. meta::
    :keywords: encryption, keys, cloud provider credentials, aws kms, gcp kms, azure vault
-   :description: Enable encryption at rest in Atlas using your cloud provider's Key Management Service for added security.
+   :description: Enable encryption at rest in Atlas using your cloud provider's Key Management Service. Configure customer-managed keys with AWS KMS, Azure Key Vault, or Google Cloud KMS for enhanced security.
 
 .. contents:: On this page
    :local:
@@ -25,7 +25,7 @@ Encryption at Rest using Customer Key Management
 .. include:: /includes/fact-encryption-at-rest.rst
 
 Configuring Encryption at Rest using your Key Management incurs
-additional charges for the |service| project. To learn more, see
+extra charges for the |service| project. To learn more, see
 :ref:`advanced-security`.
 
 .. note::
@@ -36,7 +36,7 @@ To enforce that Customer-Managed Keys for encryption at rest are enabled
 on all clusters and dedicated search deployments in a project, use
 :ref:`Atlas Resource Policies <atlas-resource-policies-overview>`.
 You can use resource policies to require CMK before you create or
-modify clusters or search deployments.
+change clusters or search deployments.
 
 You can use one or more of the following customer key management
 providers when configuring Encryption at Rest for the |service| project:
@@ -48,7 +48,7 @@ providers when configuring Encryption at Rest for the |service| project:
 After configuring at least one key management provider for the
 |service| project, you can enable customer key management for each
 |service| cluster for which they require encryption. The key management
-provider does not have to match the cluster cloud service provider.
+provider doesn't have to match the cluster cloud service provider.
 
 .. note::
 
@@ -56,14 +56,14 @@ provider does not have to match the cluster cloud service provider.
    |service| performs an initial sync to re-encrypt your cluster data.
    It also rebuilds |fts| and {+avs+} indexes on the {+cluster+}.
 
-Alternatively, for projects with ``M10`` or higher |service|
+Alternatively, for projects with ``M10`` or larger |service|
 {+clusters+} deployed on only |azure| regions, you can use the 
 {+atlas-admin-api+} to automatically create {+az-pl+} in your |akv| that
 enables |service| to securely communicate with your |akv| over |azure|'s
 private network interfaces. To learn more, see
 :ref:`security-azure-kms`.
 
-|service| cannot rotate customer-managed encryption keys. Refer to your
+|service| can't rotate customer-managed encryption keys. See your
 key management provider's documentation for guidance on key rotation.
 When you set customer key management in a project, |service| creates a
 :ref:`90-day key rotation alert <alert-conditions-encryption-at-rest>`.
@@ -74,6 +74,13 @@ lack of a |kms| provider disables your cluster.
 
 To learn about recommendations for encryption, including data classification levels and the types of encryption to use, see
 :ref:`arch-center-data-encryption-recs` in the {+atlas-arch-center+}.
+
+.. note::
+
+   For clusters with encryption at rest using customer-managed keys,
+   |service| :ref:`data validation <data-validation>` requires
+   extra access to your |kms| to decrypt data.
+   To learn more, see :ref:`data-validation-kms-usage`.
 
 Required Access
 ---------------
@@ -86,7 +93,7 @@ Configure |service| with Customer Key Management
 ------------------------------------------------
 
 Encryption at Rest using Key Management requires valid key management
-provider credentials and an encryption key. To provide these details
+provider credentials and an encryption key. To give these details
 and enable Customer Key Management:
 
 .. include:: /includes/steps-configure-encryption-for-project.rst
@@ -96,7 +103,7 @@ and enable Customer Key Management:
 Allow Access From the |service| Control Plane
 ----------------------------------------------
       
-Depending on your Key Management Service configuration, you might have
+Depending on your |kms| configuration, you might have
 to add |service| control plane IP addresses to enable Encryption at Rest
 for your project so that |service| can communicate with your |kms|. 
 
@@ -110,7 +117,7 @@ Enable Customer Key Management for an |service| Cluster
 -------------------------------------------------------
 
 After you :ref:`atlas-configure-kms`, you must enable customer key
-management for each |service| cluster that contains data that you want
+management for each |service| cluster that has data that you want
 to encrypt.
 
 .. note::
@@ -180,10 +187,12 @@ scheduled validity check if one of the following conditions exist:
 - your key management provider credentials become invalid
 - someone deletes or disables your encryption key
 
-If |service| *can't connect* to your key management provider, |service|
-doesn't shut down your processes. The :alert:`Encryption at Rest KMS network access denied` 
-alert is enabled by default for all new projects to communicate any KMS network access failures. 
-You can :ref:`configure your alert settings <alerts>`.
+If |service| *can't connect* to your key management provider, or if
+|service| detects a probable false alarm, |service| doesn't shut down
+your processes. The :alert:`Encryption at Rest KMS network access
+denied` alert is enabled by default for all new projects to communicate
+any KMS network access failures. You can :ref:`configure your alert
+settings <alerts>`.
 
 If |service| shuts down your clusters, the following events occur:
 
@@ -191,7 +200,7 @@ If |service| shuts down your clusters, the following events occur:
   affected clusters.
 
 - The :guilabel:`Clusters` page reflects that |service|
-  disabled your clusters due to invalid Encryption at Rest settings.
+  disabled your clusters because of invalid Encryption at Rest settings.
 
 You can't read or write data on disabled clusters. You *can* submit
 updates to disabled clusters, such as disk and instance size changes.
@@ -203,7 +212,7 @@ patches. Disabled clusters retain all your data, so billing continues.
 
    While a cluster is disabled, |service| doesn't stop the Virtual 
    Machine (VM) the cluster is running on. |service| may perform 
-   patches that reboot the server, but VM power is not cycled.
+   patches that reboot the server, but VM power isn't cycled.
 
 To regain access to your data:
 
@@ -224,8 +233,8 @@ determines your configuration to be valid.
 
 .. warning::
 
-   If your key was deleted, restore that key to regain access to your 
-   clusters. You cannot change a key or disable Encryption at Rest 
+   If your key was deleted, restore that key to regain access to your
+   clusters. You can't change a key or disable Encryption at Rest
    using Customer Key Management without a valid key.
 
 .. _atlas-restore-deleted-kms-key:
@@ -240,6 +249,103 @@ documentation:
 - **Azure Key Vault:** `Recover deleted key <https://learn.microsoft.com/en-us/rest/api/keyvault/keys/recover-deleted-key/recover-deleted-key>`_
 - **GCP KMS:** :gcp:`Destroy and restore key versions </kms/docs/destroy-restore>`
 
+.. _data-validation-kms-usage:
+
+Data Validation KMS Usage
+--------------------------
+
+For clusters with encryption at rest using customer-managed keys,
+|service| :ref:`data validation <data-validation>` requires
+extra |kms| access to decrypt data during
+validation checks.
+
+Data validation is enabled by default for all projects. You can
+:ref:`opt out <data-validation-disable>` if the extra KMS costs,
+requests, or security considerations don't align with your
+requirements.
+
+Key Management Service Usage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When data validation is enabled, validation instances make more
+requests to your |kms| to decrypt data from encrypted
+clusters.
+
+**Request Volume:**
+
+|service| makes about one decrypt request per replica set
+member per hour during validation. A standard three-node replica set
+with a seven-day validation window generates about 500 more KMS
+requests.
+
+**Estimated Costs:**
+
+For most clusters, validation-related KMS costs are minimal. For
+current pricing, see your cloud provider's documentation.
+
+**Security Considerations:**
+
+- Validation instances appear as extra principals in your KMS
+  audit logs.
+
+- If you use IP allowlists for your |kms|, you might
+  need to add validation instance IP ranges to your allowlist.
+
+- Validation instances use the same customer-managed keys as your
+  cluster nodes.
+
+For the current list of validation instance IP ranges, contact
+|mdb-support|.
+
+.. _data-validation-ip-allowlists:
+
+IP Allowlist Configuration for Encrypted Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Most |kms| configurations don't require extra IP allowlist changes
+for data validation. However, if your |kms| uses
+IP-based access controls (for example, Azure Key Vault with firewall
+restrictions), you must add validation instance IP ranges to your
+allowlist. Otherwise, validation fails.
+
+To configure IP allowlists for your |kms|:
+
+.. tabs::
+
+   .. tab:: AWS KMS
+      :tabid: aws
+
+      |aws| |kms| typically allows access by IAM role. No additional
+      IP allowlist configuration is required for validation instances
+      if your IAM policy permits the |service| role.
+
+   .. tab:: Azure Key Vault
+      :tabid: azure
+
+      Azure Key Vault commonly uses strict IP allowlists. If validation
+      fails with KMS access errors, add the |service| validation IP ranges
+      to your Azure Key Vault network rules.
+
+      #. In the Azure portal, navigate to your Key Vault.
+
+      #. Select :guilabel:`Networking` from the left menu.
+
+      #. Under :guilabel:`Firewalls and virtual networks`, add the
+         |service| validation IP ranges.
+
+      #. Click :guilabel:`Save`.
+
+
+   .. tab:: Google Cloud KMS
+      :tabid: gcp
+
+      |gcp| |kms| typically allows access by service account. No
+      additional IP allowlist configuration is required for
+      validation instances if your IAM policy permits the |service|
+      service account.
+
+To learn more about data validation, see :ref:`data-validation`.
+
 Encrypted Backups
 -----------------
 
@@ -253,7 +359,7 @@ disk. Using your cloud provider's |kms|, you can:
   snapshot was taken.
 - Encrypt |pit| restore :term:`oplog` data.
 
-You cannot restore snapshots encrypted with keys that have become 
+You can't restore snapshots encrypted with keys that have become
 invalid.
 
 You can specify a :ref:`base snapshot schedule

@@ -30,4 +30,4 @@ The **kerberos** object is optional and defines a kerberos service name used in 
        - The service name that the agents use to authenticate to a
          |mongod| or |mongos| via Kerberos.
        - The **saslServiceName** option in the
-         :manual:`MongoDB Server Parameters </reference/parameters/>`.
+         :ref:`MongoDB Server Parameters <server-parameters>`.

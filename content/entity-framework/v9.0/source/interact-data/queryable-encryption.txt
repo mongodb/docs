@@ -1,0 +1,233 @@
+.. _entity-framework-queryable-encryption:
+
+==============================
+Configure Queryable Encryption
+==============================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: EF, EF Core, in-use encryption, schema, code example
+   :description: Learn how to configure Queryable Encryption in the MongoDB EF Core Provider to encrypt sensitive fields at the application layer before storing them in MongoDB.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+In this guide, you can learn how to use the {+provider-short+} to
+encrypt specific document fields by using **Queryable Encryption
+(QE)**.
+
+Overview
+--------
+
+Queryable Encryption encrypts sensitive document fields at the
+application layer before writing data to MongoDB, while still
+allowing your application to query those fields. Only applications
+that have access to your encryption keys can read the plaintext
+data. If an attacker gains access to the database, they can only
+see only ciphertext because they lack access to the encryption keys.
+
+For example, you can use Queryable Encryption to encrypt fields
+that contain:
+
+- Social Security numbers
+- Credit card numbers
+- Health or medical information
+- Financial information
+- Any other sensitive or personally identifiable information
+
+The {+provider-short+} supports Queryable Encryption through a
+fluent model API. You configure which entity properties to encrypt
+by using the ``OnModelCreating()`` method, and the provider handles
+encryption automatically when reading and writing data.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Before configuring Queryable Encryption with the
+{+provider-short+}, ensure that you have the following:
+
+- A MongoDB Enterprise or MongoDB Atlas cluster running MongoDB 7.0
+  or later.
+- Access to a Key Management Service (KMS). Supported KMS providers
+  include Amazon Web Services, Azure, Google Cloud Platform, the Key
+  Management Interoperability Protocol (KMIP), and local key
+  providers.
+- The Automatic Encryption Shared Library (``CRYPT_SHARED``) or
+  ``mongocryptd`` installed in your environment. To learn how to
+  install the shared library, see :manual:`Install a Query Analysis
+  Component </core/queryable-encryption/install-library/>` in the
+  {+mdb-server+} documentation.
+
+Enable Queryable Encryption
+---------------------------
+
+The following sections describe how to configure encryption
+options on your context and mark entity properties for encryption
+in your model:
+
+Configure Encryption Options
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Before you configure any context that uses Queryable Encryption, you must
+register the automatic encryption provider once for your
+application by running the following code:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/QueryableEncryption/QueryableEncryptionSetup.snippet.register-auto-encryption.cs
+   :language: csharp
+   :copyable: true
+   :category: usage example
+
+Then, create a ``MongoOptionsExtension`` instance and chain the
+following methods before passing the instance to the ``UseMongoDB()``
+method:
+
+- ``WithKmsProviders()`` — specifies your KMS provider and
+  credentials.
+- ``WithKeyVaultNamespace()`` — specifies the collection used to
+  store data encryption keys.
+- ``WithCryptProvider()`` — specifies the encryption library to use
+  and its path.
+
+The following example configures a local KMS provider for
+development use:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/QueryableEncryption/QueryableEncryptionSetup.snippet.configure-encryption-options.cs
+   :language: csharp
+   :copyable: true
+   :category: usage example
+
+To use ``mongocryptd`` instead of the shared library, pass
+``CryptProvider.Mongocryptd`` and the path to the ``mongocryptd``
+binary to the ``WithCryptProvider()`` method.
+
+.. warning::
+
+   Do not use a local KMS provider in production. Without a remote
+   KMS, you risk unauthorized access to the master key or permanent
+   loss of the key needed to decrypt your data.
+
+Mark Fields for Encryption
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In the ``OnModelCreating()`` method, call an encryption method on
+each property you want to encrypt. The method you choose controls which
+query types are available on that field:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 25 45
+
+   * - Method
+     - Query support
+     - Notes
+
+   * - ``IsEncrypted(dataKeyId)``
+     - None
+     - Encrypts the field without query support. Use for fields
+       you store but never filter on directly.
+
+   * - ``IsEncryptedForEquality(dataKeyId)``
+     - Equality (``==``)
+     - Not available for ``Decimal128``, ``Double``,
+       ``Document``, or ``Array`` BSON storage types.
+
+   * - ``IsEncryptedForRange(min, max, dataKeyId)``
+     - Range (``>``, ``<``, ``>=``, ``<=``)
+     - Supported only for ``DateTime``, ``Decimal128``, ``Double``,
+       ``Int32``, and ``Int64`` BSON storage types.
+
+To encrypt an owned entity rather than a scalar property, call
+``IsEncrypted(dataKeyId)`` on the ``OwnedNavigationBuilder`` or
+``OwnershipBuilder`` returned from ``OwnsOne()`` or ``OwnsMany()``.
+
+For a complete example that uses the preceding methods, see the
+:ref:`Example: Encrypt Patient Data <entity-framework-qe-example>`
+section.
+
+.. _entity-framework-qe-example:
+
+Example: Encrypt Patient Data
+-----------------------------
+
+The following ``Patient`` entity defines the document model, with
+the ``SSN`` and ``DateOfBirth`` fields to encrypt:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/QueryableEncryption/QueryableEncryption.snippet.patient-entity.cs
+   :language: csharp
+   :copyable: true
+   :category: usage example
+
+The following ``HospitalContext`` marks those fields for encryption
+in the ``OnModelCreating()`` method. ``SSN`` is encrypted without
+query support, and ``DateOfBirth`` is encrypted with range query
+support. The constructor accepts the IDs of two data encryption
+keys, which you create in your key vault before you initialize the
+context:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/QueryableEncryption/QueryableEncryption.snippet.hospital-context.cs
+   :language: csharp
+   :copyable: true
+   :category: usage example
+
+The following code configures the encryption options, instantiates
+the ``HospitalContext`` with the data key IDs, and inserts and
+queries a ``Patient`` document:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/QueryableEncryption/QueryableEncryption.snippet.insert-and-query.cs
+   :language: csharp
+   :copyable: true
+   :category: usage example
+
+Server-Side Schema Support
+--------------------------
+
+By default, the {+provider-short+} applies your field encryption
+configuration only to the client. Client-only encryption is
+appropriate during development, when your encryption schema may
+still be evolving.
+
+For production deployments, register the encryption schema on the
+server when you create the collection. Once the server holds the
+schema, it enforces encryption independently of the client
+configuration, protecting against accidental plaintext writes from
+misconfigured clients. After registering the schema on the server,
+you cannot change which fields are encrypted without recreating the
+collection.
+
+To create a collection with a server-side schema, pass your context's
+``Model`` to ``QueryableEncryptionSchemaGenerator.GenerateSchemas()``.
+Then, pass the result to the ``CreateCollection()`` method, as shown
+in the following example:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/QueryableEncryption/QueryableEncryption.snippet.create-encrypted-collection.cs
+   :language: csharp
+   :copyable: true
+   :category: usage example
+
+After the encrypted collection exists on the server, you can
+configure new context instances to use only the server schema. Set ``QueryableEncryptionSchemaMode.Ignore`` on the
+``MongoOptionsExtension``, as shown in the following example:
+
+.. literalinclude:: /code-examples/tested/csharp/driver/EfCore/QueryableEncryption/QueryableEncryption.snippet.ignore-mode-config.cs
+   :language: csharp
+   :copyable: true
+   :category: usage example
+
+In ``Ignore`` mode, any ``IsEncrypted`` configuration in the
+``OnModelCreating()`` method has no effect on encryption. The server
+schema controls which fields are encrypted.
+
+Additional Information
+----------------------
+
+To learn more about Queryable Encryption, see the :manual:`Queryable Encryption </core/queryable-encryption/>`
+and :manual:`Queryable Encryption Use Cases </core/queryable-encryption/use-cases/>` sections in the {+mdb-server+}
+manual.
+
+For complete implementation details, see the `{+provider-short+} API documentation <{+api-root+}>`__.

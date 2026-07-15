@@ -172,6 +172,74 @@ describe('Tabs Component', () => {
   });
 });
 
+describe('Tabs Component — tabFilters', () => {
+  const tabsMdx = `<Tabs>
+  <Tab tabid="cli" name="Atlas CLI">
+
+    CLI content here.
+
+  </Tab>
+  <Tab tabid="api" name="Atlas Administration API">
+
+    API content here.
+
+  </Tab>
+  <Tab tabid="ui" name="Atlas UI">
+
+    UI content here.
+
+  </Tab>
+</Tabs>`;
+
+  it('keeps only the requested tab and drops the others', async () => {
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    const result = await mdxToMarkdown(tabsMdx, undefined, undefined, { tabFilters: ['cli'] });
+    expect(result).toContain('### Atlas CLI');
+    expect(result).toContain('CLI content here');
+    expect(result).not.toContain('### Atlas Administration API');
+    expect(result).not.toContain('API content here');
+    expect(result).not.toContain('### Atlas UI');
+    expect(result).not.toContain('UI content here');
+  });
+
+  it('keeps multiple requested tabs and preserves document order', async () => {
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    // Request in reverse order; output must still follow source order.
+    const result = await mdxToMarkdown(tabsMdx, undefined, undefined, { tabFilters: ['ui', 'cli'] });
+    expect(result).toContain('### Atlas CLI');
+    expect(result).toContain('### Atlas UI');
+    expect(result).not.toContain('### Atlas Administration API');
+    expect(result.indexOf('### Atlas CLI')).toBeLessThan(result.indexOf('### Atlas UI'));
+  });
+
+  it('matches tabid case-insensitively and ignores surrounding whitespace', async () => {
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    const result = await mdxToMarkdown(tabsMdx, undefined, undefined, { tabFilters: ['  CLI  '] });
+    expect(result).toContain('### Atlas CLI');
+    expect(result).not.toContain('### Atlas UI');
+  });
+
+  it('drops all tabs when no tabid matches, without erroring, leaving surrounding content', async () => {
+    const wrapped = `Intro paragraph.\n\n${tabsMdx}\n\nOutro paragraph.`;
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    const result = await mdxToMarkdown(wrapped, undefined, undefined, { tabFilters: ['does-not-exist'] });
+    expect(result).not.toContain('### Atlas CLI');
+    expect(result).not.toContain('### Atlas Administration API');
+    expect(result).not.toContain('### Atlas UI');
+    // Non-tab content is untouched.
+    expect(result).toContain('Intro paragraph.');
+    expect(result).toContain('Outro paragraph.');
+  });
+
+  it('emits every tab when tabFilters is omitted (unchanged behavior)', async () => {
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    const result = await mdxToMarkdown(tabsMdx);
+    expect(result).toContain('### Atlas CLI');
+    expect(result).toContain('### Atlas Administration API');
+    expect(result).toContain('### Atlas UI');
+  });
+});
+
 describe('Procedure / Step Components', () => {
   it('should convert <Procedure>/<Step> with <StepHeading> to an ordered list', async () => {
     const mdx = `<Procedure style="normal">

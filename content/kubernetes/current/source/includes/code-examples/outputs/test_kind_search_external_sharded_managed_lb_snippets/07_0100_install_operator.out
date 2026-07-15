@@ -1,69 +1,17 @@
 Release "mongodb-kubernetes" does not exist. Installing it now.
 NAME: mongodb-kubernetes
-LAST DEPLOYED: Wed Apr  1 18:28:11 2026
+LAST DEPLOYED: Wed Jul  1 06:33:21 2026
 NAMESPACE: mongodb
 STATUS: deployed
 REVISION: 1
 TEST SUITE: None
 USER-SUPPLIED VALUES:
-agent:
-  version: 108.0.12.8846-1
-buildScenario: release
-community:
-  registry:
-    agent: quay.io/mongodb
-database:
-  name: mongodb-kubernetes-database
-  version: 1.8.0
-initDatabase:
-  version: 1.8.0
-initOpsManager:
-  version: 1.8.0
-managedSecurityContext: false
-mongodb:
-  name: mongodb-enterprise-server
-operator:
-  enablePVCResize: true
-  maxConcurrentReconciles: 10
-  mdbDefaultArchitecture: non-static
-  opentelemetry:
-    tracing:
-      collectorEndpoint: otel-collector.prod.corp.mongodb.com:443
-      enabled: true
-      parentID: 5637fae6b59a3b23
-      traceID: 4eb165d1e8f871dcebca06b28bd30581
-  telemetry:
-    collection:
-      frequency: 1m
-    send:
-      enabled: false
-  version: 1.8.0
-opsManager:
-  name: mongodb-enterprise-ops-manager-ubi
-readinessProbe:
-  version: 1.0.24
-registry:
-  agent: quay.io/mongodb
-  database: quay.io/mongodb
-  imagePullSecrets: image-registries-secret
-  initDatabase: quay.io/mongodb
-  initOpsManager: quay.io/mongodb
-  operator: quay.io/mongodb
-  opsManager: quay.io/mongodb
-  readinessProbe: quay.io/mongodb
-  versionUpgradeHook: quay.io/mongodb
-search:
-  name: staging/mongodb-search
-  repo: 268558157000.dkr.ecr.us-east-1.amazonaws.com
-  version: 1.64.0-66-g7b0f85e89c
-versionUpgradeHook:
-  version: 1.0.10
+{}
 
 COMPUTED VALUES:
 agent:
   name: mongodb-agent
   version: 108.0.12.8846-1
-buildScenario: release
 community:
   agent:
     name: mongodb-agent
@@ -90,13 +38,13 @@ community:
     version: 4.4.0
 database:
   name: mongodb-kubernetes-database
-  version: 1.8.0
+  version: 1.9.0
 initDatabase:
   name: mongodb-kubernetes-init-database
-  version: 1.8.0
+  version: 1.9.0
 initOpsManager:
   name: mongodb-kubernetes-init-ops-manager
-  version: 1.8.0
+  version: 1.9.0
 managedSecurityContext: false
 mongodb:
   appdbAssumeOldFormat: false
@@ -106,29 +54,28 @@ multiCluster:
   clusterClientTimeout: 10
   clusters: []
   kubeConfigSecretName: mongodb-enterprise-operator-multi-cluster-kubeconfig
+  memberClusterRequiredHealthyStreak: 5
   performFailOver: true
 operator:
   additionalArguments: []
   affinity: {}
+  clusterIdentity:
+    clusterName: ""
   createOperatorServiceAccount: true
   createResourcesServiceAccountsAndRoles: true
   enableClusterMongoDBRoles: true
   enablePVCResize: true
   env: prod
-  maxConcurrentReconciles: 10
+  maxConcurrentReconciles: 1
   mdbDefaultArchitecture: non-static
   name: mongodb-kubernetes-operator
   nodeSelector: {}
-  opentelemetry:
-    tracing:
-      collectorEndpoint: otel-collector.prod.corp.mongodb.com:443
-      enabled: true
-      parentID: 5637fae6b59a3b23
-      traceID: 4eb165d1e8f871dcebca06b28bd30581
   operator_image_name: mongodb-kubernetes
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 2000
+    seccompProfile:
+      type: RuntimeDefault
   replicas: 1
   resources:
     limits:
@@ -137,27 +84,31 @@ operator:
     requests:
       cpu: 500m
       memory: 200Mi
-  securityContext: {}
+  securityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
   telemetry:
     collection:
       clusters: {}
       deployments: {}
-      frequency: 1m
+      frequency: 1h
       operators: {}
     send:
-      enabled: false
       frequency: 168h
   tolerations: []
   vaultSecretBackend:
     enabled: false
     tlsSecretRef: ""
-  version: 1.8.0
+  version: 1.9.0
   watchedResources:
   - mongodb
   - opsmanagers
   - mongodbusers
   - mongodbcommunity
   - mongodbsearch
+  - voyageais
   webhook:
     installClusterRole: true
     name: ""
@@ -170,7 +121,7 @@ readinessProbe:
 registry:
   agent: quay.io/mongodb
   database: quay.io/mongodb
-  imagePullSecrets: image-registries-secret
+  imagePullSecrets: null
   initDatabase: quay.io/mongodb
   initOpsManager: quay.io/mongodb
   operator: quay.io/mongodb
@@ -180,12 +131,15 @@ registry:
   versionUpgradeHook: quay.io/mongodb
 search:
   envoyImage: envoyproxy/envoy:v1.37-latest
-  name: staging/mongodb-search
-  repo: 268558157000.dkr.ecr.us-east-1.amazonaws.com
-  version: 1.64.0-66-g7b0f85e89c
+  metricsForwarderImage: otel/opentelemetry-collector-contrib:0.152.0
+  name: mongodb-search
+  repo: quay.io/mongodb
+  version: 1.70.1
 versionUpgradeHook:
   name: mongodb-kubernetes-operator-version-upgrade-post-start-hook
   version: 1.0.10
+voyageai:
+  repo: quay.io/mongodb/voyageai
 
 HOOKS:
 MANIFEST:
@@ -196,8 +150,6 @@ kind: ServiceAccount
 metadata:
   name: mongodb-kubernetes-appdb
   namespace: mongodb
-imagePullSecrets:
-  - name: image-registries-secret
 ---
 # Source: mongodb-kubernetes/templates/database-roles.yaml
 apiVersion: v1
@@ -205,8 +157,6 @@ kind: ServiceAccount
 metadata:
   name: mongodb-kubernetes-database-pods
   namespace: mongodb
-imagePullSecrets:
-  - name: image-registries-secret
 ---
 # Source: mongodb-kubernetes/templates/database-roles.yaml
 apiVersion: v1
@@ -214,8 +164,6 @@ kind: ServiceAccount
 metadata:
   name: mongodb-kubernetes-ops-manager
   namespace: mongodb
-imagePullSecrets:
-  - name: image-registries-secret
 ---
 # Source: mongodb-kubernetes/templates/operator-sa.yaml
 apiVersion: v1
@@ -223,8 +171,6 @@ kind: ServiceAccount
 metadata:
   name: mongodb-kubernetes-operator
   namespace: mongodb
-imagePullSecrets:
-  - name: image-registries-secret
 ---
 # Source: mongodb-kubernetes/templates/operator-roles-clustermongodbroles.yaml
 kind: ClusterRole
@@ -440,6 +386,14 @@ rules:
       - opsmanagers/status
       - mongodbmulticluster/status
       - mongodbsearch/status
+  - apiGroups:
+      - ai.mongodb.com
+    verbs:
+      - '*'
+    resources:
+      - voyageais
+      - voyageais/finalizers
+      - voyageais/status
 ---
 # Source: mongodb-kubernetes/templates/operator-roles-pvc-resize.yaml
 kind: Role
@@ -524,16 +478,18 @@ spec:
         app.kubernetes.io/component: controller
         app.kubernetes.io/name: mongodb-kubernetes-operator
         app.kubernetes.io/instance: mongodb-kubernetes-operator
+      annotations:
+        mongodb.com/installation-method: "helm"
     spec:
       serviceAccountName: mongodb-kubernetes-operator
       securityContext:
         runAsNonRoot: true
         runAsUser: 2000
-      imagePullSecrets:
-        - name: image-registries-secret
+        seccompProfile:
+          type: RuntimeDefault
       containers:
         - name: mongodb-kubernetes-operator
-          image: "quay.io/mongodb/mongodb-kubernetes:1.8.0"
+          image: "quay.io/mongodb/mongodb-kubernetes:1.9.0"
           imagePullPolicy: Always
           args:
             - -watch-resource=mongodb
@@ -541,6 +497,7 @@ spec:
             - -watch-resource=mongodbusers
             - -watch-resource=mongodbcommunity
             - -watch-resource=mongodbsearch
+            - -watch-resource=voyageais
             - -watch-resource=clustermongodbroles
           command:
             - /usr/local/bin/mongodb-kubernetes-operator
@@ -554,6 +511,11 @@ spec:
             requests:
               cpu: 500m
               memory: 200Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
           env:
             - name: OPERATOR_ENV
               value: prod
@@ -563,24 +525,18 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
-            - name: OTEL_TRACE_ID
-              value: "4eb165d1e8f871dcebca06b28bd30581"
-            - name: OTEL_PARENT_ID
-              value: "5637fae6b59a3b23"
-            - name: OTEL_EXPORTER_OTLP_ENDPOINT
-              value: "otel-collector.prod.corp.mongodb.com:443"
             - name: WATCH_NAMESPACE
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace
             - name: MDB_OPERATOR_TELEMETRY_COLLECTION_FREQUENCY
-              value: "1m"
-            - name: MDB_OPERATOR_TELEMETRY_SEND_ENABLED
-              value: "false"
+              value: "1h"
             - name: MDB_OPERATOR_TELEMETRY_SEND_FREQUENCY
               value: "168h"
             - name: CLUSTER_CLIENT_TIMEOUT
               value: "10"
+            - name: MDB_MEMBER_CLUSTER_REQUIRED_HEALTHY_STREAK
+              value: "5"
             - name: IMAGE_PULL_POLICY
               value: Always
             # Database
@@ -589,16 +545,16 @@ spec:
             - name: INIT_DATABASE_IMAGE_REPOSITORY
               value: quay.io/mongodb/mongodb-kubernetes-init-database
             - name: INIT_DATABASE_VERSION
-              value: "1.8.0"
+              value: "1.9.0"
             - name: DATABASE_VERSION
-              value: "1.8.0"
+              value: "1.9.0"
             # Ops Manager
             - name: OPS_MANAGER_IMAGE_REPOSITORY
               value: quay.io/mongodb/mongodb-enterprise-ops-manager-ubi
             - name: INIT_OPS_MANAGER_IMAGE_REPOSITORY
               value: quay.io/mongodb/mongodb-kubernetes-init-ops-manager
             - name: INIT_OPS_MANAGER_VERSION
-              value: "1.8.0"
+              value: "1.9.0"
             - name: OPS_MANAGER_IMAGE_PULL_POLICY
               value: Always
             - name: AGENT_IMAGE
@@ -611,14 +567,16 @@ spec:
               value: quay.io/mongodb
             - name: PERFORM_FAILOVER
               value: 'true'
-            - name: IMAGE_PULL_SECRETS
-              value: image-registries-secret
             - name: MDB_MAX_CONCURRENT_RECONCILES
-              value: "10"
+              value: "1"
             - name: POD_NAME
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.name
+            - name: MCK_INSTALLER
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.annotations['mongodb.com/installation-method']
             - name: OPERATOR_NAME
               value: mongodb-kubernetes-operator
             # Community Env Vars Start
@@ -636,13 +594,17 @@ spec:
               value: "ubi8"
             # Community Env Vars End
             - name: MDB_SEARCH_REPO_URL
-              value: "268558157000.dkr.ecr.us-east-1.amazonaws.com"
+              value: "quay.io/mongodb"
             - name: MDB_SEARCH_NAME
-              value: "staging/mongodb-search"
+              value: "mongodb-search"
             - name: MDB_SEARCH_VERSION
-              value: "1.64.0-66-g7b0f85e89c"
+              value: "1.70.1"
             - name: MDB_ENVOY_IMAGE
               value: "envoyproxy/envoy:v1.37-latest"
+            - name: MDB_SEARCH_METRICS_FORWARDER_IMAGE
+              value: "otel/opentelemetry-collector-contrib:0.152.0"
+            - name: MDB_VOYAGEAI_REPO_URL
+              value: "quay.io/mongodb/voyageai"
       volumes:
         - name: webhook-server-dir
           emptyDir: {}

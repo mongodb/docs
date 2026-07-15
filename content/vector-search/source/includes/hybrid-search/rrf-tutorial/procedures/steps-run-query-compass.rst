@@ -8,8 +8,6 @@
 
    .. step:: Run a basic query.
       
-      .. include:: /includes/hybrid-search/rrf-tutorial/facts/fact-run-query-intro.rst
-      
       To run this query in |compass|:
 
       a. Click the :guilabel:`Aggregations` tab.

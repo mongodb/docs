@@ -1,5 +1,5 @@
 // Counts the number of documents in a collection and after
-// applying a filter by using the C# driver
+// applying a filter by using the .NET/C# driver
 
 using MongoDB.Bson.Serialization.Conventions;
 using MongoDB.Driver;

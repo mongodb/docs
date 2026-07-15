@@ -3,7 +3,7 @@
 
    .. step:: Install the .NET Framework.
 
-      The C# Driver test suite requires .NET version 10.0 or later.
+      The .NET/C# Driver test suite requires .NET version 10.0 or later.
 
       To learn how to install .NET, refer to
       `Install .NET on Windows, Linux, and macOS <https://learn.microsoft.com/en-us/dotnet/core/install/>`__

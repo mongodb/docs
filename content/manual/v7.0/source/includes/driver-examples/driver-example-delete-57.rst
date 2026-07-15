@@ -21,7 +21,7 @@
        content: |
 
          .. figure:: /images/compass-delete-filter.png
-            :alt: MongoDB Compass showing the Documents tab with the DELETE button highlighted with a filter of { status: "A" }.
+            :alt: MongoDB Compass Documents tab with the DELETE button highlighted.
        
      - id: python
        content: |

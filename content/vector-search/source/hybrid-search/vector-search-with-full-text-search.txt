@@ -43,6 +43,11 @@ whether full-text or semantic search results are most relevant and
 appropriate for a query, you can increase the weight for that search
 method per query. 
 
+You can reorder the documents in the results based on the relevance to 
+the query by using the :pipeline:`$rerank` stage after the 
+:pipeline:`$rankFusion` or :pipeline:`$scoreFusion` stage. The ``$rerank`` 
+stage reorders the documents based on a |voyage| reranker model.
+
 About the Tutorial 
 ------------------
 
@@ -51,17 +56,19 @@ and {+fts+} queries on the ``sample_mflix.embedded_movies`` collection,
 which contains details about movies, for unified search results.
 Specifically, this tutorial takes you through the following steps: 
 
-1. Create a {+avs+} index on the ``plot_embedding_voyage_3_large``
+1. Create a {+avs+} index on the ``plot_embedding_voyage_4_large``
    field. This field contains vector embeddings that represent the
    summary of a movie's plot. 
-#. Create a {+fts+} index on the ``title`` field in the
+#. Create a {+fts+} index on the ``fullplot`` field in the
    ``sample_mflix.embedded_movies`` collection. This field contains the 
    movie's name as a text string. 
 #. Run a query that uses :pipeline:`$rankFusion` or
    :pipeline:`$scoreFusion` to combine the results from a
    :pipeline:`$vectorSearch` query against the
-   ``plot_embedding_voyage_3_large`` field and a :pipeline:`$search` 
-   query against the ``title`` field.
+   ``plot_embedding_voyage_4_large`` field and a :pipeline:`$search` 
+   query against the ``fullplot`` field and then reorder the documents in 
+   the results based on the relevance to the query by using the
+   :pipeline:`$rerank` stage.
 
 Prerequisites 
 -------------
@@ -72,59 +79,139 @@ Procedures
 ----------
 
 .. composable-tutorial::
-   :options: pipeline-stage, interface, language
-   :defaults: rank-fusion, driver, nodejs
+   :options: embedding, pipeline-stage, interface, language
+   :defaults: auto, rank-fusion, driver, nodejs
 
    Create the {+avs+} and {+fts+} Indexes 
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-   .. include:: /includes/hybrid-search/shared-index/facts/fact-create-indexes-intro.rst
+   .. BYO Embeddings + $rankFusion
 
    .. selected-content:: 
-      :selections: rank-fusion, compass, None
+      :selections: byo, rank-fusion, compass, None
+
+      .. include:: /includes/hybrid-search/shared-index/facts/fact-create-indexes-intro.rst
 
       .. include:: /includes/hybrid-search/shared-index/procedures/steps-create-index-compass.rst
 
    .. selected-content:: 
-      :selections: rank-fusion, mongosh, None
+      :selections: byo, rank-fusion, mongosh, None
+
+      .. include:: /includes/hybrid-search/shared-index/facts/fact-create-indexes-intro.rst
 
       .. include:: /includes/hybrid-search/shared-index/procedures/steps-create-index-mongosh.rst
 
    .. selected-content:: 
-      :selections: rank-fusion, driver, nodejs
+      :selections: byo, rank-fusion, driver, nodejs
+
+      .. include:: /includes/hybrid-search/shared-index/facts/fact-create-indexes-intro.rst
 
       .. include:: /includes/hybrid-search/shared-index/procedures/steps-create-index-nodejs.rst
 
    .. selected-content:: 
-      :selections: rank-fusion, driver, python
+      :selections: byo, rank-fusion, driver, python
+
+      .. include:: /includes/hybrid-search/shared-index/facts/fact-create-indexes-intro.rst
 
       .. include:: /includes/hybrid-search/shared-index/procedures/steps-create-index-python.rst
 
+   .. BYO Embeddings + $scoreFusion
+
    .. selected-content:: 
-      :selections: score-fusion, compass, None
+      :selections: byo, score-fusion, compass, None
+
+      .. include:: /includes/hybrid-search/shared-index/facts/fact-create-indexes-intro.rst
 
       .. include:: /includes/hybrid-search/shared-index/procedures/steps-create-index-compass.rst
 
    .. selected-content:: 
-      :selections: score-fusion, mongosh, None
+      :selections: byo, score-fusion, mongosh, None
+
+      .. include:: /includes/hybrid-search/shared-index/facts/fact-create-indexes-intro.rst
 
       .. include:: /includes/hybrid-search/shared-index/procedures/steps-create-index-mongosh.rst
     
    .. selected-content:: 
-      :selections: score-fusion, driver, nodejs
+      :selections: byo, score-fusion, driver, nodejs
+
+      .. include:: /includes/hybrid-search/shared-index/facts/fact-create-indexes-intro.rst
 
       .. include:: /includes/hybrid-search/shared-index/procedures/steps-create-index-nodejs.rst
 
    .. selected-content:: 
-      :selections: score-fusion, driver, python
+      :selections: byo, score-fusion, driver, python
+
+      .. include:: /includes/hybrid-search/shared-index/facts/fact-create-indexes-intro.rst
 
       .. include:: /includes/hybrid-search/shared-index/procedures/steps-create-index-python.rst
+
+   .. Auto Embeddings + $rankFusion
+
+   .. selected-content:: 
+      :selections: auto, rank-fusion, compass, None
+
+      .. include:: /includes/hybrid-search/shared-index/facts/fact-create-auto-embed-indexes-intro.rst
+
+      .. include:: /includes/hybrid-search/shared-index/procedures/steps-create-auto-embed-index-compass.rst
+
+   .. selected-content:: 
+      :selections: auto, rank-fusion, mongosh, None
+
+      .. include:: /includes/hybrid-search/shared-index/facts/fact-create-auto-embed-indexes-intro.rst
+
+      .. include:: /includes/hybrid-search/shared-index/procedures/steps-create-auto-embed-index-mongosh.rst
+
+   .. selected-content:: 
+      :selections: auto, rank-fusion, driver, nodejs
+
+      .. include:: /includes/hybrid-search/shared-index/facts/fact-create-auto-embed-indexes-intro.rst
+
+      .. include:: /includes/hybrid-search/shared-index/procedures/steps-create-auto-embed-index-nodejs.rst
+
+   .. selected-content:: 
+      :selections: auto, rank-fusion, driver, python
+
+      .. include:: /includes/hybrid-search/shared-index/facts/fact-create-auto-embed-indexes-intro.rst
+
+      .. include:: /includes/hybrid-search/shared-index/procedures/steps-create-auto-embed-index-python.rst
+
+   .. Auto Embeddings + $scoreFusion
+
+   .. selected-content:: 
+      :selections: auto, score-fusion, compass, None
+
+      .. include:: /includes/hybrid-search/shared-index/facts/fact-create-auto-embed-indexes-intro.rst
+
+      .. include:: /includes/hybrid-search/shared-index/procedures/steps-create-auto-embed-index-compass.rst
+
+   .. selected-content:: 
+      :selections: auto, score-fusion, mongosh, None
+
+      .. include:: /includes/hybrid-search/shared-index/facts/fact-create-auto-embed-indexes-intro.rst
+
+      .. include:: /includes/hybrid-search/shared-index/procedures/steps-create-auto-embed-index-mongosh.rst
+
+   .. selected-content:: 
+      :selections: auto, score-fusion, driver, nodejs
+
+      .. include:: /includes/hybrid-search/shared-index/facts/fact-create-auto-embed-indexes-intro.rst
+
+      .. include:: /includes/hybrid-search/shared-index/procedures/steps-create-auto-embed-index-nodejs.rst
+
+   .. selected-content:: 
+      :selections: auto, score-fusion, driver, python
+
+      .. include:: /includes/hybrid-search/shared-index/facts/fact-create-auto-embed-indexes-intro.rst
+
+      .. include:: /includes/hybrid-search/shared-index/procedures/steps-create-auto-embed-index-python.rst
 
    Run a Combined {+avs+} and {+fts+} Query
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+   .. BYO Embeddings + $rankFusion
+
    .. selected-content:: 
-      :selections: rank-fusion, compass, None
+      :selections: byo, rank-fusion, compass, None
 
       .. include:: /includes/hybrid-search/rrf-tutorial/facts/fact-run-query-intro.rst
 
@@ -133,7 +220,7 @@ Procedures
       .. include:: /includes/hybrid-search/rrf-tutorial/facts/fact-query-details.rst
 
    .. selected-content:: 
-      :selections: rank-fusion, mongosh, None
+      :selections: byo, rank-fusion, mongosh, None
 
       .. include:: /includes/hybrid-search/rrf-tutorial/facts/fact-run-query-intro.rst
 
@@ -142,7 +229,7 @@ Procedures
       .. include:: /includes/hybrid-search/rrf-tutorial/facts/fact-query-details.rst
 
    .. selected-content:: 
-      :selections: rank-fusion, driver, nodejs
+      :selections: byo, rank-fusion, driver, nodejs
 
       .. include:: /includes/hybrid-search/rrf-tutorial/facts/fact-run-query-intro.rst
 
@@ -151,7 +238,7 @@ Procedures
       .. include:: /includes/hybrid-search/rrf-tutorial/facts/fact-query-details.rst
 
    .. selected-content:: 
-      :selections: rank-fusion, driver, python
+      :selections: byo, rank-fusion, driver, python
 
       .. include:: /includes/hybrid-search/rrf-tutorial/facts/fact-run-query-intro.rst
 
@@ -159,8 +246,10 @@ Procedures
 
       .. include:: /includes/hybrid-search/rrf-tutorial/facts/fact-query-details.rst
 
+   .. BYO Embeddings + $scoreFusion
+
    .. selected-content:: 
-      :selections: score-fusion, compass, None
+      :selections: byo, score-fusion, compass, None
 
       .. include:: /includes/hybrid-search/score-fusion-tutorial/facts/fact-run-query-intro.rst
 
@@ -169,7 +258,7 @@ Procedures
       .. include:: /includes/hybrid-search/score-fusion-tutorial/facts/fact-query-details.rst
 
    .. selected-content:: 
-      :selections: score-fusion, mongosh, None
+      :selections: byo, score-fusion, mongosh, None
 
       .. include:: /includes/hybrid-search/score-fusion-tutorial/facts/fact-run-query-intro.rst
 
@@ -178,7 +267,7 @@ Procedures
       .. include:: /includes/hybrid-search/score-fusion-tutorial/facts/fact-query-details.rst
     
    .. selected-content:: 
-      :selections: score-fusion, driver, nodejs
+      :selections: byo, score-fusion, driver, nodejs
 
       .. include:: /includes/hybrid-search/score-fusion-tutorial/facts/fact-run-query-intro.rst
 
@@ -187,10 +276,241 @@ Procedures
       .. include:: /includes/hybrid-search/score-fusion-tutorial/facts/fact-query-details.rst
 
    .. selected-content:: 
-      :selections: score-fusion, driver, python
+      :selections: byo, score-fusion, driver, python
 
       .. include:: /includes/hybrid-search/score-fusion-tutorial/facts/fact-run-query-intro.rst
 
       .. include:: /includes/hybrid-search/score-fusion-tutorial/procedures/steps-run-query-python.rst
 
       .. include:: /includes/hybrid-search/score-fusion-tutorial/facts/fact-query-details.rst
+
+   .. Auto Embeddings + $rankFusion
+
+   .. selected-content:: 
+      :selections: auto, rank-fusion, compass, None
+
+      .. include:: /includes/hybrid-search/rrf-tutorial/facts/fact-auto-embed-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rrf-tutorial/procedures/steps-auto-embed-query-compass.rst
+
+      .. include:: /includes/hybrid-search/rrf-tutorial/facts/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: auto, rank-fusion, mongosh, None
+
+      .. include:: /includes/hybrid-search/rrf-tutorial/facts/fact-auto-embed-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rrf-tutorial/procedures/steps-auto-embed-query-mongosh.rst
+
+      .. include:: /includes/hybrid-search/rrf-tutorial/facts/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: auto, rank-fusion, driver, nodejs
+
+      .. include:: /includes/hybrid-search/rrf-tutorial/facts/fact-auto-embed-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rrf-tutorial/procedures/steps-auto-embed-query-nodejs.rst
+
+      .. include:: /includes/hybrid-search/rrf-tutorial/facts/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: auto, rank-fusion, driver, python
+
+      .. include:: /includes/hybrid-search/rrf-tutorial/facts/fact-auto-embed-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rrf-tutorial/procedures/steps-auto-embed-query-python.rst
+
+      .. include:: /includes/hybrid-search/rrf-tutorial/facts/fact-query-details.rst
+
+   .. Auto Embeddings + $scoreFusion
+
+   .. selected-content:: 
+      :selections: auto, score-fusion, compass, None
+
+      .. include:: /includes/hybrid-search/score-fusion-tutorial/facts/fact-auto-embed-run-query-intro.rst
+
+      .. include:: /includes/hybrid-search/score-fusion-tutorial/procedures/steps-auto-embed-query-compass.rst
+
+      .. include:: /includes/hybrid-search/score-fusion-tutorial/facts/fact-auto-embed-query-details.rst
+
+   .. selected-content:: 
+      :selections: auto, score-fusion, mongosh, None
+
+      .. include:: /includes/hybrid-search/score-fusion-tutorial/facts/fact-auto-embed-run-query-intro.rst
+
+      .. include:: /includes/hybrid-search/score-fusion-tutorial/procedures/steps-auto-embed-mongosh-query.rst
+
+      .. include:: /includes/hybrid-search/score-fusion-tutorial/facts/fact-auto-embed-query-details.rst
+    
+   .. selected-content:: 
+      :selections: auto, score-fusion, driver, nodejs
+
+      .. include:: /includes/hybrid-search/score-fusion-tutorial/facts/fact-auto-embed-run-query-intro.rst
+
+      .. include:: /includes/hybrid-search/score-fusion-tutorial/procedures/steps-auto-embed-query-nodejs.rst
+
+      .. include:: /includes/hybrid-search/score-fusion-tutorial/facts/fact-auto-embed-query-details.rst
+
+   .. selected-content:: 
+      :selections: auto, score-fusion, driver, python
+
+      .. include:: /includes/hybrid-search/score-fusion-tutorial/facts/fact-run-query-intro.rst
+
+      .. include:: /includes/hybrid-search/score-fusion-tutorial/procedures/steps-auto-embed-query-python.rst
+
+      .. include:: /includes/hybrid-search/score-fusion-tutorial/facts/fact-auto-embed-query-details.rst
+
+   Reorder the Results of the Combined {+avs+} and {+fts+} Query
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   .. BYO Embeddings + $rankFusion Query with $rerank
+
+   .. selected-content:: 
+      :selections: byo, rank-fusion, compass, None
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/facts/fact-run-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/procedures/steps-run-query-compass.rst
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/facts/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: byo, rank-fusion, mongosh, None
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/facts/fact-run-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/procedures/steps-run-query-mongosh.rst
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/facts/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: byo, rank-fusion, driver, nodejs
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/facts/fact-run-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/procedures/steps-run-query-nodejs.rst
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/facts/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: byo, rank-fusion, driver, python
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/facts/fact-run-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/procedures/steps-run-query-python.rst
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/facts/fact-query-details.rst
+
+   .. BYO Embeddings + $scoreFusion Query with $rerank
+
+   .. selected-content:: 
+      :selections: byo, score-fusion, compass, None
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/facts/fact-run-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/procedures/steps-run-query-compass.rst
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/facts/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: byo, score-fusion, mongosh, None
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/facts/fact-run-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/procedures/steps-mongosh-query.rst
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/facts/fact-query-details.rst
+    
+   .. selected-content:: 
+      :selections: byo, score-fusion, driver, nodejs
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/facts/fact-run-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/procedures/steps-run-query-nodejs.rst
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/facts/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: byo, score-fusion, driver, python
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/facts/fact-run-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/procedures/steps-run-query-python.rst
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/facts/fact-query-details.rst
+
+   .. Auto Embeddings + $rankFusion Query with $rerank
+
+   .. selected-content:: 
+      :selections: auto, rank-fusion, compass, None
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/facts/fact-auto-embed-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/procedures/steps-auto-embed-query-compass.rst
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/facts/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: auto, rank-fusion, mongosh, None
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/facts/fact-auto-embed-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/procedures/steps-auto-embed-query-mongosh.rst
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/facts/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: auto, rank-fusion, driver, nodejs
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/facts/fact-auto-embed-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/procedures/steps-auto-embed-query-nodejs.rst
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/facts/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: auto, rank-fusion, driver, python
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/facts/fact-auto-embed-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/procedures/steps-auto-embed-query-python.rst
+
+      .. include:: /includes/hybrid-search/rerank/rank-fusion/facts/fact-query-details.rst
+
+   .. Auto Embeddings + $scoreFusion Query with $rerank
+
+   .. selected-content:: 
+      :selections: auto, score-fusion, compass, None
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/facts/fact-auto-embed-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/procedures/steps-auto-embed-query-compass.rst
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/facts/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: auto, score-fusion, mongosh, None
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/facts/fact-auto-embed-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/procedures/steps-auto-embed-mongosh-query.rst
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/facts/fact-query-details.rst
+    
+   .. selected-content:: 
+      :selections: auto, score-fusion, driver, nodejs
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/facts/fact-auto-embed-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/procedures/steps-auto-embed-query-nodejs.rst
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/facts/fact-query-details.rst
+
+   .. selected-content:: 
+      :selections: auto, score-fusion, driver, python
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/facts/fact-auto-embed-query-intro.rst
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/procedures/steps-auto-embed-query-python.rst
+
+      .. include:: /includes/hybrid-search/rerank/score-fusion/facts/fact-query-details.rst

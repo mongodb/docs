@@ -50,7 +50,7 @@
    * - hiddenSecondary
      - boolean
      - ``true`` if this host is a 
-       :manual:`hidden secondary </core/replica-set-hidden-member>`.
+       :ref:`hidden secondary <replica-set-hidden-configuration>`.
 
    * - hostEnabled
      - boolean
@@ -80,13 +80,13 @@
      - Uncompressed size of the host's databases on disk in
        bytes excluding indexes. ``lastDataSizeBytes`` *does not*
        include the data in the
-       :manual:`local </reference/local-database>` database.
+       :ref:`local <replica-set-local-database>` database.
 
    * - lastIndexSizeBytes
      - number
      - Uncompressed size of the host's database indexes on disk
        in bytes. This number *does not* include the size of the
-       index for the :manual:`local </reference/local-database>`
+       index for the :ref:`local <replica-set-local-database>`
        database.
 
    * - lastPing
@@ -136,7 +136,7 @@
      - string
      - Current state of this MongoDB process within a replica set.
        Only present if this process is part of a replica set. See
-       :manual:`Replica Set Member States </reference/replica-states>`
+       :ref:`Replica Set Member States <replica-set-member-states>`
        for possible values.
 
    * - shardName
@@ -146,11 +146,11 @@
 
    * - secondaryDelaySecs
      - number
-     - Number of seconds this :manual:`replica set </reference/glossary/#std-term-replica-set>` member's data 
-       trails the :manual:`primary </reference/glossary/#std-term-primary>`. If this value is set to ``0``, 
+     - Number of seconds this :term:`replica set` member's data 
+       trails the :term:`primary`. If this value is set to ``0``, 
        the member is not configured as a delayed member. 
        For additional details on secondary delays, see 
-       :manual:`Delayed Replica Set Members </core/replica-set-delayed-member>`
+       :ref:`Delayed Replica Set Members <replica-set-delayed-configuration>`
 
    * - sslEnabled
      - boolean

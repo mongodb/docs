@@ -160,7 +160,7 @@
 
    * - uri
      - string
-     - :manual:`Connection String </reference/connection-string/>`
+     - :ref:`Connection String <mongodb-uri>`
        that connects to the metadata database for this |s3| blockstore.
        This database stores the locations of the blocks in the |aws|
        |s3| bucket.
@@ -177,4 +177,4 @@
        - ``MAJORITY``
 
        To learn about write acknowledgement levels in MongoDB, see 
-       :manual:`Write Concern </reference/write-concern>`.
+       :ref:`Write Concern <write-operations-write-concern>`.

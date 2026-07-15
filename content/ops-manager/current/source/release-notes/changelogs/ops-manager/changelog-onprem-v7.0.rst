@@ -14,7 +14,7 @@ Improvements
 ~~~~~~~~~~~~
 
 - Updates the {+mdbagent+} to :ref:`107.0.23.8832-1 <mongodb-107.0.23.8832-1>`.
-- Supports :dbtools:`MongoDB Database Tools 100.14.1 </release-notes/database-tools-changelog/#100.14.1-changelog>`.
+- Supports :dbtools:`MongoDB Database Tools 100.14.1 </release-notes/dbtools-100.14.1-changelog/>`.
 - Updates JDK to `jdk-17.0.18+8 <https://adoptium.net/temurin/release-notes/?version=jdk-17.0.18+8>`__.
 - Adds support for `MongoDB Shell 2.6.0 <https://github.com/mongodb-js/mongosh/releases>`__.
 
@@ -351,7 +351,7 @@ Bug Fixes
 - Releases ``mongosh`` 2.4.0 to |mms|.
 - Adds support for |bic-full| 2.14.22.
 - Compatible with :dbtools:`MongoDB Database Tools 100.11.0
-  </release-notes/database-tools-changelog/#100.11.0-changelog>`.
+  </release-notes/dbtools-100.11.0-changelog/>`.
 - Upgrades Jetty library to 11.0.25.
 - Reduces the maximum session length (:setting:`mms.session.maxHours`)
   from two months to one week to improve security.
@@ -550,7 +550,7 @@ Fixes the following issues:
 - Updates the {+mdbagent+} to :ref:`107.0.11.8645-1 <mongodb-107.0.11.8645-1>`.
 - Adds support |bic-full| 2.14.15.
 - Compatible with :dbtools:`MongoDB Database Tools 100.10.0
-  </release-notes/database-tools-changelog/#100.10.0-changelog>`.
+  </release-notes/dbtools-100.10.0-changelog/>`.
 - Removes the {+mdbagent+} dependencies on the ``redhat-lsb-core`` 
   package for RHEL and ``lsb-release`` pacakge for Debian.  
 - Ensures that |onprem| retains at least one snapshot regardless of expiration schedule.
@@ -589,7 +589,7 @@ Fixes the following issues:
 - Updates the {+mdbagent+} to :ref:`107.0.9.8621-1 <mongodb-107.0.9.8621-1>`.
 - Adds support for |bic-full| 2.14.14.
 - Compatible with :dbtools:`MongoDB Database Tools 100.9.5
-  </release-notes/database-tools-changelog/#100.9.5-changelog>`.
+  </release-notes/dbtools-100.9.5-changelog/>`.
 - Improves validation for :ref:`regional backup <regional-backup>`
   configurations. 
 - Fixes the following |cve|\s:
@@ -703,8 +703,7 @@ Fixes the following issues:
   <automation-configuration-resource>` settings. 
 - Adds ability for backup to automatically configure an improved default
   blocksize for mongo blockstores.
-- Adds automation support for :manual:`at-rest encryption
-  </core/security-encryption-at-rest/#encryption-at-rest>` of
+- Adds automation support for :ref:`at-rest encryption <security-encryption-at-rest>` of
   :ref:`audit logs <deployment-advanced-options-audit-log>` in MongoDB
   6.0 and later versions.  
 - Enhances logging for MongoDB blockstores groom progress.
@@ -794,8 +793,7 @@ Fixes the following issues:
   to :ref:`107.0.0.8506-1 <mongodb-107.0.0.8506-1>`. You must 
   upgrade to this version of the {+mdbagent+} to allow clusters 
   using |oidc| to continue functioning after upgrading to MongoDB 7.0.5.
-- Fixes a bug where clusters on MongoDB 7.0.0 to 7.0.4 using :manual:`OpenID
-  Connect authentication </core/security-oidc/#std-label-authentication-oidc>` 
+- Fixes a bug where clusters on MongoDB 7.0.0 to 7.0.4 using :ref:`OpenID Connect authentication <authentication-oidc>` 
   fail to properly upgrade to MongoDB 7.0.5.
 
 .. _opsmgr-server-7.0.0:

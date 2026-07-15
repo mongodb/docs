@@ -1,0 +1,368 @@
+---
+ref: configure-kubectl-om
+stepnum: 1
+inherit:
+  file: steps-configure-kubectl-namespace.yaml
+  ref: configure-kubectl-namespace
+---
+title: "Delete the |k8s-statefulset| that manages your |onprem| Pods."
+stepnum: 2
+level: 4
+ref: delete-sts
+content: |
+
+  In this tutorial, you update the StatefulSet that manages the |onprem| 
+  Pods in your |k8s| cluster.
+
+  You must first delete the |onprem| StatefulSet so that |k8s| can apply
+  the updates that Local Mode requires.
+
+  a. Find the name of your |onprem| StatefulSet:
+
+     .. code-block:: sh
+
+        kubectl get statefulsets
+
+     The entry in the response that matches the 
+     :opsmgrkube:`metadata.name` of your 
+
+     Your |onprem| StatefulSet is the entry in the response that matches
+     the :opsmgrkube:`metadata.name` in your |onprem| resource 
+     definition.
+
+     .. code-block:: sh
+        :copyable: false
+        :emphasize-lines: 3
+
+        kubectl get statefulsets -n mongodb
+        NAME                       READY   AGE
+        ops-manager-localmode      2/2     2m31s
+        ops-manager-localmode-db   3/3     4m46s
+        
+  #. Delete the |onprem| StatefulSet:
+
+     .. warning::
+
+        Ensure that you include the ``--cascade=false`` flag when you
+        delete your |onprem| StatefulSet. If you don't include this
+        flag, |k8s| also deletes your |onprem| Pods.
+
+     .. code-block:: sh
+
+        kubectl delete statefulset --cascade=false <ops-manager-statefulset>
+
+---
+title: "Copy the fields of this |onprem| resource."
+stepnum: 3
+level: 4
+ref: copy-k8s-example
+content: |
+
+  Copy Lines 9-31 of this example to:
+
+  - Use the |onprem| configuration setting 
+    ``automation.versions.source: local`` in 
+    :opsmgrkube:`spec.configuration` to enable Local Mode.
+
+  - Define a |k8s-pv| for the |onprem| StatefulSet to store the 
+    MongoDB installation archive. {+mdbagent+}\'s running in MongoDB
+    database resource containers that you create with the |k8s-op-short|
+    download the installation archives from |onprem| instead of from the
+    Internet.
+
+  .. code-block:: yaml
+     :linenos:
+
+     apiVersion: mongodb.com/v1
+     kind: MongoDBOpsManager
+     metadata:
+      name: ops-manager-localmode
+     spec:
+      replicas: 2
+      version: "8.0.0"
+      adminCredentials: ops-manager-admin-secret
+      configuration:
+        # this enables local mode in Ops Manager
+        automation.versions.source: local
+      statefulSet:
+        spec:
+          # the Persistent Volume Claim will be created for each Ops Manager Pod
+          volumeClaimTemplates:
+           - metadata:
+               name: mongodb-versions
+             spec:
+               accessModes: [ "ReadWriteOnce" ]
+               resources:
+                 requests:
+                   storage: "20Gi"
+          template:
+            spec:
+              containers:
+                - name: mongodb-ops-manager
+                  volumeMounts:
+                  - name: mongodb-versions
+                    # this is the directory in each Pod where all MongoDB
+                    # archives must be put
+                    mountPath: /mongodb-ops-manager/mongodb-releases
+      backup:
+       enabled: false
+      applicationDatabase:
+       members: 3
+
+---
+title: "Paste the copied example section into your existing |onprem| resource."
+stepnum: 4
+level: 4
+ref: paste-k8s-example
+content: |
+
+  Open your preferred text editor and paste the |k8s-obj|
+  specification into the appropriate location in your resource file.
+---
+title: "Save your |onprem| config file."
+stepnum: 5
+level: 4
+ref: save-object-spec
+
+---
+title: "Apply changes to your |onprem| deployment."
+stepnum: 6
+level: 4
+ref: apply-changes-om-k8s
+content: |
+
+  a. Invoke the following ``kubectl`` command on the filename of the
+     |onprem| resource definition:
+
+     .. code-block:: sh
+
+        kubectl apply -f <opsmgr-resource>.yaml
+
+  #. |k8s| creates a new |onprem| StatefulSet when you apply the changes
+     to your |onprem| resource definition. Before proceeding to the next 
+     step, run the following command to ensure that the |onprem| StatefulSet
+     exists:
+
+     .. code-block:: sh
+
+        kubectl get statefulsets
+
+     The new |onprem| StatefulSet should show 0 members ready:
+
+     .. code-block:: sh
+        :copyable: false
+        :emphasize-lines: 3
+
+        kubectl get statefulsets -n mongodb
+        NAME                       READY   AGE         ops-manager-localmode      0/2     2m31s
+        ops-manager-localmode-db   3/3     4m46s
+
+---
+title: "In a rolling fashion, delete your old |onprem| Pods."
+stepnum: 7
+level: 4
+ref: delete-old-om-pods
+content: |
+
+  a. List the |onprem| Pods in your |k8s| cluster:
+
+     .. code-block:: sh
+
+        kubectl get pods
+
+  #. Delete one |onprem| Pod:
+   
+     .. code-block:: sh
+
+        kubectl delete pod <om-pod-0>
+
+  #. |k8s| recreates the |onprem| Pod you deleted. Continue to get the 
+     status of the new Pod until it is ready:
+   
+     .. code-block:: sh
+
+        kubectl get pods
+
+
+     When the new Pod is initializing, the output is similar to the
+     following example:
+
+     .. code-block:: sh
+        :copyable: false
+        :emphasize-lines: 3
+
+        NAME                                          READY   STATUS    RESTARTS   AGE
+        mongodb-kubernetes-operator-5648d4c86-k5brh   1/1     Running   0          5m24s
+        ops-manager-localmode-0                       0/1     Running   0          0m55s
+        ops-manager-localmode-1                       1/1     Running   0          5m45s
+        ops-manager-localmode-db-0                    1/1     Running   0          5m19s
+        ops-manager-localmode-db-1                    1/1     Running   0          4m54s
+        ops-manager-localmode-db-2                    1/1     Running   0          4m12s
+
+     When the new Pod is ready, the output is similar to the following example:
+
+     .. code-block:: sh
+        :copyable: false
+        :emphasize-lines: 4
+
+        NAME                                          READY   STATUS    RESTARTS   AGE
+        mongodb-kubernetes-operator-5648d4c86-k5brh   1/1     Running   0          5m24s
+        ops-manager-localmode-0                       1/1     Running   0          3m55s
+        ops-manager-localmode-1                       1/1     Running   0          5m45s
+        ops-manager-localmode-db-0                    1/1     Running   0          5m19s
+        ops-manager-localmode-db-1                    1/1     Running   0          4m54s
+        ops-manager-localmode-db-2                    1/1     Running   0          4m12s
+
+  #. Repeat Steps **b** and **c** until you've deleted all of your 
+     |onprem| Pods and confirmed that all of the new Pods are ready.
+
+---
+title: "Track the status of your |onprem| instance."
+stepnum: 8
+level: 4
+ref: track-k8s-instance
+content: |
+
+  To check the status of your |onprem| resource, invoke the following
+  command:
+
+  .. code-block:: sh
+
+     kubectl get om -o yaml -w
+
+  See :doc:`/reference/troubleshooting` for information about the
+  resource deployment statuses.
+
+  After the |onprem| resource completes the ``Pending`` phase, the 
+  command returns output similar to the following:
+
+  .. literalinclude:: /reference/k8s/example-status-om-running-local-mode.yaml
+     :language: yaml
+     :copyable: false
+     :linenos:
+
+  Copy the value of the ``status.opsManager.url`` field, which states 
+  the resource's connection |url|. You use this value when you create a
+  |k8s-configmap| later in the procedure.
+---
+title: "Download the MongoDB installation archive to your local machine."
+level: 4
+ref: download-mdb-archive
+stepnum: 9
+content: |
+
+  The installers that you download depend on the environment to which 
+  you deployed the operator:
+
+  .. note::
+
+     The following example includes a link that allows you to download
+     the specified version of MongoDB Community Edition.
+     To download any other version of MongoDB Community Edition, visit the :dl:`MongoDB Community Edition Download Center </download/community-edition>`.
+     To download MongoDB Enterprise Edition, visit the :dl:`MongoDB Enterprise Download Center </download/enterprise-advanced>`.
+
+  Download the RHEL installation tarball for the MongoDB Server version 
+  you want the |k8s-op-short| to deploy. For example, to download the 
+  ``8.0.0`` release:
+
+  .. code-block:: sh
+
+     curl -OL https://fastdl.mongodb.org/linux/mongodb-linux-x86_64-rhel80-8.0.0.tgz
+
+---
+
+title: "Copy the MongoDB archive to the |onprem| Persistent Volume."
+level: 4
+ref: copy-mdb-archive
+stepnum: 10
+content: |
+
+  Copy the MongoDB archive for each MongoDB version you intend to deploy
+  to the |onprem| Persistent Volume.
+  
+  The commands that you use depend on the environment to which you
+  deployed the |k8s-op-short|:
+
+  .. note::
+
+     If you deployed more than one |onprem|
+     :opsmgrkube:`replica <spec.replicas>`, copy only the MongoDB
+     installation ``tarball`` packages to ``Replica 1`` and
+     beyond.
+
+  .. tabs::
+
+     .. tab:: Vanilla Kubernetes
+        :tabid: k8s
+
+        To copy the MongoDB installation archive to the 
+        |onprem| PersistentVolume:
+
+        Copy the MongoDB Server installation tarball to the
+        |onprem| PersistentVolume. For example, to copy the ``8.0.0``
+        release:
+
+        | Replica 0:
+
+        .. code-block:: sh
+
+           kubectl cp mongodb-linux-x86_64-rhel80-8.0.0.tgz \ 
+           "ops-manager-localmode-0:/mongodb-ops-manager/mongodb-releases/mongodb-linux-x86_64-rhel80-8.0.0.tgz"
+
+        | Replica 1:
+
+        .. code-block:: sh
+
+           kubectl cp mongodb-linux-x86_64-rhel80-8.0.0.tgz \ 
+           "ops-manager-localmode-1:/mongodb-ops-manager/mongodb-releases/mongodb-linux-x86_64-rhel80-8.0.0.tgz"
+
+     .. tab:: OpenShift
+        :tabid: os
+
+        To copy the MongoDB installation archive to the 
+        |onprem| PersistentVolume, copy the MongoDB Server installation ``tarball`` to the 
+        |onprem| PersistentVolume. For example, to copy the ``8.0.0``
+        release:
+
+        | Replica 0:
+
+        .. code-block:: sh
+
+           oc rsync  "ops-manager-localmode-0:/mongodb-ops-manager/mongodb-releases/mongodb-linux-x86_64-rhel80-8.0.0.tgz" \ 
+           mongodb-linux-x86_64-rhel80-8.0.0.tgz
+
+        | Replica 1:
+
+        .. code-block:: sh
+
+           oc rsync  "ops-manager-localmode-1:/mongodb-ops-manager/mongodb-releases/mongodb-linux-x86_64-rhel80-8.0.0.tgz" \ 
+           mongodb-linux-x86_64-rhel80-8.0.0.tgz
+
+---
+title: "Deploy a MongoDB Database Resource."
+level: 4
+ref: deploy-mdb-resource
+stepnum: 11
+content: |
+
+  a. If you have not done so already, complete the following 
+     prerequisites:
+
+     - :doc:`/tutorial/create-operator-credentials`
+     - :doc:`/tutorial/create-project-using-configmap`
+
+  #. Deploy a :ref:`MongoDB database resource <k8s-deploy-mdb-resources>` 
+     in the same namespace to which you deployed |onprem|.
+     Ensure that you:
+
+     i. Match the ``spec.opsManager.configMapRef.name`` of the resource 
+        to the ``metadata.name`` of your ConfigMap.
+     #. Match the ``spec.credentials`` of the resource to the name of 
+        the secret you created that contains an |onprem| programmatic 
+        API key pair.
+
+  {+mdbagent+}\'s run in MongoDB database resource containers that
+  you create with the |k8s-op-short|. Download the installation archives
+  from |onprem| instead of downloading them from the Internet.
+
+...

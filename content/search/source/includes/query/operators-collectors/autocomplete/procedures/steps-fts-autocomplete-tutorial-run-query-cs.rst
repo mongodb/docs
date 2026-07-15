@@ -13,7 +13,7 @@
             cd basic-autocomplete-example
             dotnet new console
       
-      #. Add the .NET/C# Driver to your project as a dependency.
+      #. Add the .NET/C# driver to your project as a dependency.
       
          .. code-block:: bash
       

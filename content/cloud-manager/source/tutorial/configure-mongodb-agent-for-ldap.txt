@@ -15,8 +15,10 @@ Configure MongoDB Agent for LDAP
    :depth: 1
    :class: singlecol
 
+.. start-include-content
+
 .. include:: /includes/ldap-deprecated.rst
-   
+
 .. include:: /includes/extracts/intro-configure-mongodb-agent-ldap.rst
 
 .. include:: /includes/extracts/note-manage-mongodb-agent-auth-with-automation-ldap.rst
@@ -61,10 +63,18 @@ an existing host's configuration.
 Create and Configure User in MongoDB
 ------------------------------------
 
-.. tabs::
+.. end-include-content
 
-   .. tab:: Deployments Managed by {+aagent+}
-      :tabid: automation
+Select your deployment type to view the appropriate steps.
+
+.. composable-tutorial::
+   :options: ldap-deployment, ldap-function
+   :defaults: managed, None
+
+   .. selected-content::
+      :selections: managed, None
+
+      **Deployments Managed by {+aagent+}**
 
       To automate MongoDB instances that use |ldap| authentication, add
       a MongoDB user that possesses the required roles and privileges
@@ -79,7 +89,7 @@ Create and Configure User in MongoDB
          db.getSiblingDB("$external").createUser(
            {
              user : "<username>",
-             roles : [ 
+             roles : [
                { role : "clusterAdmin", db : "admin" },
                { role : "readWriteAnyDatabase", db : "admin" },
                { role : "userAdminAnyDatabase", db : "admin" },
@@ -93,75 +103,71 @@ Create and Configure User in MongoDB
       To learn more about the required access, see
       :doc:`/reference/required-access-mongodb-agent`.
 
-   .. tab:: Deployments Not Managed by {+aagent+}
-      :tabid: monitoring-backup-only
+   .. selected-content::
+      :selections: unmanaged, backup
 
-      .. tabs::
+      **Deployments Not Managed by {+aagent+}**
 
-         .. tab:: {+bagent+}
-            :tabid: backup
+      To back up MongoDB 4.0 or later instances that use |ldap|
+      authentication, add a user that possess the required roles
+      to the ``$external`` database in MongoDB. The ``$external``
+      database stores credentials for external authentication and
+      authorization details.
 
-            To back up MongoDB 4.0 or later instances that use |ldap|
-            authentication, add a user that possess the required roles
-            to the ``$external`` database in MongoDB. The ``$external``
-            database stores credentials for external authentication and
-            authorization details.
+      Use the following {+mongosh+} command to create the user
+      based on your |fcv-link|:
 
-            Use the following {+mongosh+} command to create the user:
+      **FCV 4.2 or later**
 
-            .. tabs::
+      .. code-block:: javascript
 
-               .. tab:: FCV 4.2 or later
-                  :tabid: backup-fcv4.2
+         db.getSiblingDB("$external").createUser(
+             {
+               user : "<username>",
+               roles: [ {
+                 role: "clusterAdmin", db: "admin"
+               } ]
+             }
+         )
 
-                  .. code-block:: javascript
+      **FCV 4.0 or earlier**
 
-                     db.getSiblingDB("$external").createUser(
-                         {
-                           user : "<username>",
-                           roles: [ {
-                             role: "clusterAdmin", db: "admin"
-                           } ]
-                         }
-                     )
+      .. code-block:: javascript
 
-               .. tab:: FCV 4.0 or earlier
-                  :tabid: backup-fcv4.0
+         db.getSiblingDB("$external").createUser(
+            {
+              user: "<username>",
+              roles: [ {
+                role: "backup", db: "admin"
+              } ]
+            }
+         )
 
-                  .. code-block:: javascript
-                     
-                     db.getSiblingDB("$external").createUser(
-                        {
-                          user: "<username>",
-                          roles: [ {
-                            role: "backup", db: "admin"
-                          } ]
-                        }
-                     )
+      To learn more about the required access, see
+      :ref:`Required Access for MongoDB Agent Backup
+      <required-permissions-mms-backup>`
 
-                  To learn more about the required access, see
-                  :ref:`Required Access for MongoDB Agent Backup <required-permissions-mms-backup>`
+   .. selected-content::
+      :selections: unmanaged, monitoring
 
-         .. tab:: Monitoring
-            :tabid: monitoring
+      **Deployments Not Managed by {+aagent+}**
 
-            To monitor MongoDB 4.0 or later instances that use |ldap|
-            authentication, add a user to the ``$external`` database in
-            MongoDB. The ``$external`` database stores credentials for
-            external authentication and authorization details. Assign
-            this user the roles provided in the following example.
+      To monitor MongoDB 4.0 or later instances that use |ldap|
+      authentication, add a user to the ``$external`` database in
+      MongoDB. The ``$external`` database stores credentials for
+      external authentication and authorization details. Assign
+      this user the roles provided in the following example.
 
-            Use the following {+mongosh+} command to create the user:
+      Use the following {+mongosh+} command to create the user:
 
-            .. code-block:: javascript
+      .. code-block:: javascript
 
-               db.getSiblingDB("$external").createUser(
-                   {
-                     user : "<username>",
-                     roles: [ { role: "clusterMonitor", db: "admin" } ]
-                   }
-               )
+         db.getSiblingDB("$external").createUser(
+             {
+               user : "<username>",
+               roles: [ { role: "clusterMonitor", db: "admin" } ]
+             }
+         )
 
-            To learn what roles this function requires, see
-            :ref:`Monitoring settings <mongodb-agent-monitoring-settings>`.
-
+      To learn what roles this function requires, see
+      :ref:`Monitoring settings <mongodb-agent-monitoring-settings>`.

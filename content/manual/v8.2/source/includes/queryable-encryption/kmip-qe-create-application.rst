@@ -553,7 +553,7 @@
 			using your connection URI and automatic encryption
 			options.
 
-			:gold:`IMPORTANT:` If you are using the .NET/C# Driver version 3.0 or later,
+			:gold:`IMPORTANT:` If you are using the .NET/C# driver version 3.0 or later,
 			you must add the following code to your application before
 			instantiating a new ``MongoClient``:
 

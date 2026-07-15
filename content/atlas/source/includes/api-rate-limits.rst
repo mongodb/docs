@@ -1,4 +1,41 @@
-.. Last updated: April 10, 2026 at 2:50 PM EDT
+.. Last updated: July 14, 2026 at 2:53 PM EDT
+
+.. _api-rate-limits-ai-model-apis:
+
+AI Model APIs
+~~~~~~~~~~~~~
+
+**Scope:** GROUP
+
+**Capacity:** 1200
+
+**Refill:** 500/60s
+
+**Endpoints:**
+
+* **DELETE** ``/api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}``
+* **GET** ``/api/atlas/v2/groups/{groupId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits``
+* **GET** ``/api/atlas/v2/groups/{groupId}/aiModelApiKeys``
+* **GET** ``/api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}``
+* **GET** ``/api/atlas/v2/groups/{groupId}/aiModelApiRateLimits``
+* **PATCH** ``/api/atlas/v2/groups/{groupId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits``
+* **PATCH** ``/api/atlas/v2/groups/{groupId}/aiModelApiKeys/{apiKeyId}``
+* **POST** ``/api/atlas/v2/groups/{groupId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits:reset``
+* **POST** ``/api/atlas/v2/groups/{groupId}/aiModelApiKeys``
+* **POST** ``/api/atlas/v2/groups/{groupId}/aiModelApiRateLimits:reset``
+
+**Scope:** ORGANIZATION
+
+**Capacity:** 500
+
+**Refill:** 250/60s
+
+**Endpoints:**
+
+* **GET** ``/api/atlas/v2/orgs/{orgId}/aiModelApiClouds/{cloud}/geographies/{geography}/modelGroupNames/{modelGroupName}/rateLimits``
+* **GET** ``/api/atlas/v2/orgs/{orgId}/aiModelApiKeys``
+* **GET** ``/api/atlas/v2/orgs/{orgId}/aiModelApiKeys/{apiKeyId}``
+* **GET** ``/api/atlas/v2/orgs/{orgId}/aiModelApiRateLimits``
 
 .. _api-rate-limits-aws-clusters-dns:
 
@@ -202,6 +239,14 @@ Cloud Backups
 * **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/shardedCluster/{snapshotId}``
 * **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/shardedClusters``
 * **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}``
+* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases``
+* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases/{databaseName}``
+* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases/{databaseName}/collections``
+* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots/{snapshotId}/databases/{databaseName}/collections/{collectionName}``
+* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs``
+* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}``
+* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}/collections``
+* **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs/{jobId}/collections/{sourceNamespace}``
 * **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/restoreJobs``
 * **GET** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/restoreJobs/{jobId}``
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/backup/exportBuckets/{exportBucketId}``
@@ -212,6 +257,7 @@ Cloud Backups
 * **POST** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/exports``
 * **POST** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/restoreJobs``
 * **POST** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/backup/snapshots``
+* **POST** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/collectionRestoreJobs``
 * **POST** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/restoreJobs``
 * **PUT** ``/api/atlas/v2/groups/{groupId}/backupCompliancePolicy``
 
@@ -320,6 +366,7 @@ Clusters
 * **GET** ``/api/atlas/v2/groups/{groupId}/sampleDatasetLoad/{sampleDatasetId}``
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}``
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/processArgs``
+* **POST** ``/api/atlas/v2/groups/{groupId}/clusterConfigurations:validate``
 * **POST** ``/api/atlas/v2/groups/{groupId}/clusters``
 * **POST** ``/api/atlas/v2/groups/{groupId}/clusters/tenantUpgrade``
 * **POST** ``/api/atlas/v2/groups/{groupId}/clusters/tenantUpgradeToServerless``
@@ -831,6 +878,22 @@ Online Archive
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/onlineArchives/{archiveId}``
 * **POST** ``/api/atlas/v2/groups/{groupId}/clusters/{clusterName}/onlineArchives``
 
+.. _api-rate-limits-organization-delegation-settings:
+
+Organization Delegation Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**Scope:** ORGANIZATION
+
+**Capacity:** 500
+
+**Refill:** 250/60s
+
+**Endpoints:**
+
+* **GET** ``/api/atlas/v2/orgs/{orgId}/delegationSettings``
+* **PATCH** ``/api/atlas/v2/orgs/{orgId}/delegationSettings``
+
 .. _api-rate-limits-organization-settings:
 
 Organization Settings
@@ -1195,6 +1258,7 @@ Streams
 * **DELETE** ``/api/atlas/v2/groups/{groupId}/streams/vpcPeeringConnections/{id}``
 * **DELETE** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}``
 * **DELETE** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}``
+* **DELETE** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections/{failoverConnectionId}``
 * **DELETE** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}``
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams``
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams/accountDetails``
@@ -1206,17 +1270,22 @@ Streams
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/auditLogs``
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections``
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}``
+* **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections``
+* **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections/{failoverConnectionId}``
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}``
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processors``
 * **GET** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}:downloadOperationalLogs``
+* **PATCH** ``/api/atlas/v2/groups/{groupId}/streams/privateLinkConnections/{connectionId}``
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}``
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}``
+* **PATCH** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections/{failoverConnectionId}``
 * **PATCH** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}``
 * **POST** ``/api/atlas/v2/groups/{groupId}/streams``
 * **POST** ``/api/atlas/v2/groups/{groupId}/streams/privateLinkConnections``
 * **POST** ``/api/atlas/v2/groups/{groupId}/streams/vpcPeeringConnections/{id}:accept``
 * **POST** ``/api/atlas/v2/groups/{groupId}/streams/vpcPeeringConnections/{id}:reject``
 * **POST** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections``
+* **POST** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/connections/{connectionName}/failoverConnections``
 * **POST** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor``
 * **POST** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}:start``
 * **POST** ``/api/atlas/v2/groups/{groupId}/streams/{tenantName}/processor/{processorName}:startWith``

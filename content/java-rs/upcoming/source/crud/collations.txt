@@ -1,0 +1,512 @@
+.. _java-rs-crud-collations:
+
+==========
+Collations
+==========
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: locale, string ordering, sort, code example
+
+Overview
+--------
+
+In this guide, you can learn how to use **collations** with MongoDB
+to order your query or aggregation operation results by string values.
+A collation is a set of character ordering and matching rules that
+apply to a specific language and locale.
+
+You can learn more about collations in the following sections of
+this guide:
+
+- :ref:`Collations in MongoDB <java-rs-collations-mongodb>`
+- :ref:`How to Specify Collations <java-rs-collations-specify>`
+- :ref:`Collation Options <java-rs-collations-options>`
+- :ref:`Collation Code Examples <java-rs-collations-examples>`
+
+.. include:: /includes/reactor-note.rst
+
+.. _java-rs-collations-mongodb:
+
+Collations in MongoDB
+---------------------
+
+MongoDB sorts strings using **binary collation** by default. The binary
+collation uses the :wikipedia:`ASCII standard <ASCII>` character values
+to compare and order strings. Certain languages and locales have
+specific character ordering conventions that differ from the ASCII
+character values.
+
+For example, in Canadian French, the right-most accented character
+(diacritic) determines the ordering for strings when all preceding
+characters are the same. Consider the following Canadian French words:
+
+- cote
+- coté
+- côte
+- côté
+
+When using binary collation, MongoDB sorts them in the following order:
+
+.. code-block:: none
+   :copyable: false
+
+   cote
+   coté
+   côte
+   côté
+
+When using the Canadian French collation, MongoDB sorts them in the
+following order:
+
+.. code-block:: none
+   :copyable: false
+
+   cote
+   côte
+   coté
+   côté
+
+.. _java-rs-collations-specify:
+
+How to Specify Collations
+-------------------------
+
+MongoDB supports collations on most CRUD operations and aggregations.
+For a complete list of supported operations, see
+:manual:`Operations that Support Collations
+</reference/collation/#operations-that-support-collation>` in the
+{+mdb-server+} manual.
+
+You can specify the locale code and optional variant in the following
+string format:
+
+.. code-block:: none
+   :copyable: false
+
+   "<locale code>@collation=<variant code>"
+
+The following example specifies the ``"de"`` locale code and ``"phonebook"``
+variant code:
+
+.. code-block:: none
+   :copyable: false
+
+   "de@collation=phonebook"
+
+If you do not specify a variant, use only the locale code.
+
+For a complete list of supported locales, see :manual:`Supported Languages and Locales
+</reference/collation-locales-defaults/#supported-languages-and-locales>` in the
+{+mdb-server+} manual.
+
+The following sections show different ways to apply collations in
+MongoDB:
+
+- :ref:`Collection <java-rs-collations-collection>`
+- :ref:`Index <java-rs-collations-index>`
+- :ref:`Operation <java-rs-collations-operation>`
+
+.. _java-rs-collations-collection:
+
+Collection
+~~~~~~~~~~
+
+You can only set a default collation to a collection during creation. However, you can
+specify a collation in a new index on an existing collection. All supported operations
+that scan the collection then apply the default collation. See the
+:ref:`Index <java-rs-collations-index>` section of this guide for
+more information.
+
+The following example shows how to specify the ``"en_US"`` locale
+collation when creating a new collection called ``items``:
+
+.. literalinclude:: /includes/crud/Collations.java
+   :language: java
+   :start-after: // start-create-collection-options
+   :end-before: // end-create-collection-options
+   :dedent:
+
+To check whether you created the collation successfully, retrieve a
+list of the indexes on that collection as follows:
+
+.. literalinclude:: /includes/crud/Collations.java
+   :language: java
+   :start-after: // start-list-indexes
+   :end-before: // end-list-indexes
+   :dedent:
+
+The output of the preceding code should contain the following:
+
+.. code-block:: none
+   :copyable: false
+
+   { ...
+     "collation": { "locale": "en_US", ... }
+     ...
+   }
+
+.. _java-rs-collations-index:
+
+Index
+~~~~~
+
+You can specify a collation when you create a new index on a
+collection. The index stores documents in the specified order,
+eliminating the need for in-memory sorting during queries. To use the index, the
+operation must use the same collation as specified in the index and be covered by that index.
+
+The following example shows how to create an index on the "name"
+field with the ``"en_US"`` locale collation in ascending order:
+
+.. literalinclude:: /includes/crud/Collations.java
+   :language: java
+   :start-after: // start-create-index
+   :end-before: // end-create-index
+   :dedent:
+
+To check whether you created the collation successfully, retrieve a
+list of the indexes on that collection as follows:
+
+.. literalinclude:: /includes/crud/Collations.java
+   :language: java
+   :start-after: // start-list-indexes
+   :end-before: // end-list-indexes
+   :dedent:
+
+The output of the preceding code should contain the following:
+
+.. code-block:: none
+   :copyable: false
+
+   { ...
+     "collation": { "locale": "en_US", ... }
+     ...
+   }
+
+The following example shows an operation that specifies the same
+collation and is covered by the index created in the preceding
+example:
+
+.. literalinclude:: /includes/crud/Collations.java
+   :language: java
+   :start-after: // start-index-operation
+   :end-before: // end-index-operation
+   :dedent:
+
+.. _java-rs-collations-operation:
+
+Operation
+~~~~~~~~~
+
+You can override the default collation by passing a new collation to
+a supported operation. However, without an index, your query performs
+in-memory sorting, which is slower than using an indexed collation. For more
+information about the disadvantages of sorting operations not covered by an index, see
+:manual:`Use Indexes to Sort Query Results
+</tutorial/sort-results-with-indexes/>` in the {+mdb-server+} manual.
+
+The following example shows a query operation with the following
+characteristics:
+
+- The referenced collection has a default ``"en_US"`` collation index,
+  similar to the one specified in the
+  :ref:`Collection <java-rs-collations-collection>` section.
+- The query specifies the Icelandic (``"is"``) collation. Because this
+  differs from the index collation, the query does not use the index and
+  performs an in-memory sort instead.
+
+.. literalinclude:: /includes/crud/Collations.java
+   :language: java
+   :start-after: // start-custom-collation-operation
+   :end-before: // end-custom-collation-operation
+   :dedent:
+
+Index Types That Do Not Support Collations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Most MongoDB index types support collation. However, the following
+types support only binary comparison and do not support collation:
+
+- :manual:`text </reference/method/db.collection.createIndex/#options-for-text-indexes>`
+- :manual:`2d </reference/method/db.collection.createIndex/#options-for-2dsphere-indexes>`
+
+.. _java-rs-collations-options:
+
+Collation Options
+-----------------
+
+This section covers various collation options and how to specify them
+to further refine the ordering and matching behavior.
+
+.. list-table::
+   :header-rows: 1
+   :stub-columns: 1
+   :widths: 25,75
+
+   * - Collation Option
+     - Description
+
+   * - Locale
+     - | **Required**. The ICU locale code for language and variant.
+       | `locale() <{+core-api+}/client/model/Collation.Builder.html#locale(java.lang.String)>`__
+
+   * - Backwards
+     - | Specifies whether to consider diacritics from the end of the string first.
+       | `backwards() <{+core-api+}/client/model/Collation.Builder.html#backwards(java.lang.Boolean)>`__
+
+   * - Case-sensitivity
+     - | Specifies whether to consider case (upper or lower) as different values.
+       | `caseLevel() <{+core-api+}/client/model/Collation.Builder.html#caseLevel(java.lang.Boolean)>`__
+
+   * - Alternate
+     - | Specifies whether to consider spaces and punctuation.
+       | `collationAlternate() <{+core-api+}/client/model/Collation.Builder.html#collationAlternate(com.mongodb.client.model.CollationAlternate)>`__
+
+   * - Case First
+     - | Specifies whether to consider uppercase or lowercase first.
+       | `collationCaseFirst() <{+core-api+}/client/model/Collation.Builder.html#collationCaseFirst(com.mongodb.client.model.CollationCaseFirst)>`__
+
+   * - Max Variable
+     - | Specifies whether to ignore whitespace or both whitespace and punctuation.
+         This setting is only valid when the alternate setting is
+         "shifted".
+       | `collationMaxVariable() <{+core-api+}/client/model/Collation.Builder.html#collationMaxVariable(com.mongodb.client.model.CollationMaxVariable)>`__
+
+   * - Strength
+     - | Specifies the ICU comparison level. The default value is "tertiary". For
+         more information about each level, see the
+         `ICU Comparison Levels <https://unicode-org.github.io/icu/userguide/collation/concepts.html#comparison-levels>`__.
+       | `collationStrength() <{+core-api+}/client/model/Collation.Builder.html#collationStrength(com.mongodb.client.model.CollationStrength)>`__
+
+   * - Normalization
+     - | Specifies whether to perform unicode normalization on the text as needed.
+         For more information about unicode normalization, see
+         `Unicode Normalization Forms <https://unicode.org/reports/tr15/>`__.
+       | `normalization() <{+core-api+}/client/model/Collation.Builder.html#normalization(java.lang.Boolean)>`__
+
+   * - Numeric Ordering
+     - | Specifies whether to order numbers according to numeric value rather than
+         collation order.
+       | `numericOrdering() <{+core-api+}/client/model/Collation.Builder.html#numericOrdering(java.lang.Boolean)>`__
+
+You can use the ``Collation.Builder`` class to specify values for the
+preceding collation options. Call the ``build()`` method to construct
+a ``Collation`` object as shown in the following example:
+
+.. literalinclude:: /includes/crud/Collations.java
+   :language: java
+   :start-after: // start-collation-builder
+   :end-before: // end-collation-builder
+   :dedent:
+
+For more information about the corresponding methods and parameters,
+see the API documentation for `Collation.Builder
+<{+core-api+}/client/model/Collation.Builder.html>`__.
+
+.. _java-rs-collations-examples:
+
+Collation Examples
+------------------
+
+This section contains examples of how to use MongoDB operations that
+support collations. For each example, assume that you start with the
+following collection of documents:
+
+.. _java-rs-collation-example-collection:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id" : 1, "first_name" : "Klara" }
+   { "_id" : 2, "first_name" : "Gunter" }
+   { "_id" : 3, "first_name" : "Günter" }
+   { "_id" : 4, "first_name" : "Jürgen" }
+   { "_id" : 5, "first_name" : "Hannah" }
+
+The following examples use the ``"de@collation=phonebook"``
+locale and variant collation. The ``"de"`` part of the collation specifies
+the German locale and the ``"collation=phonebook"`` part specifies a
+variant. The ``"de"`` locale collation contains rules for prioritizing
+proper nouns, identified by capitalization of the first letter. In
+the ``"collation=phonebook"`` variant, characters with umlauts are
+ordered before the same characters without them in an ascending sort.
+
+find() and sort() Example
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows how to apply a collation when
+retrieving sorted results from a collection. To perform this
+operation, call ``find()`` on the example collection and chain the
+``collation()`` and ``sort()`` methods to specify the order in which
+you want to receive the results.
+
+.. literalinclude:: /includes/crud/Collations.java
+   :language: java
+   :start-after: // start-find-and-sort
+   :end-before: // end-find-and-sort
+   :dedent:
+
+When you perform this operation on the
+:ref:`example collection <java-rs-collation-example-collection>`,
+the output resembles the following:
+
+.. code-block:: json
+   :copyable: false
+
+   {"_id": 3, "first_name": "Günter"}
+   {"_id": 2, "first_name": "Gunter"}
+   {"_id": 5, "first_name": "Hannah"}
+   {"_id": 4, "first_name": "Jürgen"}
+   {"_id": 1, "first_name": "Klara"}
+
+For more information about the methods and classes mentioned in this
+section, see the following API documentation:
+
+- `find() <{+driver-api+}/MongoCollection.html#find()>`__
+- `sort() <{+driver-api+}/FindPublisher.html#sort(org.bson.conversions.Bson)>`__
+- `Sorts <{+core-api+}/client/model/Sorts.html>`__
+
+findOneAndUpdate() Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example specifies a collation in a ``findOneAndUpdate()``
+operation by instantiating a ``FindOneAndUpdateOptions`` object and passing
+it as a parameter. The example performs the following operations:
+
+- Retrieves the first document in the
+  :ref:`example collection <java-rs-collation-example-collection>`
+  that precedes "Gunter" in ascending order.
+- Sets options for the operation, including the
+  ``"de@collation=phonebook"`` collation.
+- Adds a new field "verified" with the value "true".
+- Retrieves and prints the updated document.
+
+.. literalinclude:: /includes/crud/Collations.java
+   :language: java
+   :start-after: // start-find-one-and-update
+   :end-before: // end-find-one-and-update
+   :dedent:
+
+Since "Günter" is lexically before "Gunter" using the
+``de@collation=phonebook`` collation in ascending order, the preceding
+operation returns the following document:
+
+.. code-block:: none
+   :copyable: false
+
+   Updated document: {"_id": 3, "first_name": "Günter", "verified": true}
+
+For more information about the methods and classes mentioned in this
+section, see the following API documentation:
+
+- `findOneAndUpdate() <{+driver-api+}/MongoCollection.html#findOneAndUpdate(org.bson.conversions.Bson,org.bson.conversions.Bson,com.mongodb.client.model.FindOneAndUpdateOptions)>`__
+- `FindOneAndUpdateOptions <{+core-api+}/client/model/FindOneAndUpdateOptions.html>`__
+- `Filters <{+core-api+}/client/model/Filters.html>`__
+- `Updates <{+core-api+}/client/model/Updates.html>`__
+- `Sorts <{+core-api+}/client/model/Sorts.html>`__
+
+findOneAndDelete() Example
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example specifies a numeric ordering collation in a
+``findOneAndDelete()`` operation by instantiating a
+``FindOneAndDeleteOptions`` object and passing it as a parameter. The
+collection contains the following documents:
+
+.. code-block:: json
+   :copyable: false
+
+   { "_id" : 1, "a" : "16 apples" }
+   { "_id" : 2, "a" : "84 oranges" }
+   { "_id" : 3, "a" : "179 bananas" }
+
+The collation sets the ``locale`` option to ``"en"`` and the
+``numericOrdering`` option to "true" to sort strings based on their
+numerical value.
+
+.. literalinclude:: /includes/crud/Collations.java
+   :language: java
+   :start-after: // start-find-one-and-delete
+   :end-before: // end-find-one-and-delete
+   :dedent:
+
+After you run the preceding operation, your output resembles the
+following:
+
+.. code-block:: none
+   :copyable: false
+
+   Deleted document: {"_id": 3, "a": "179 bananas"}
+
+The numeric value of the string "179" is greater than 100, so the
+preceding document is the only match. Without numerical ordering, binary collation
+sorts "100" before "16", "84", and "179", so the filter matches all documents.
+
+For more information about the methods and classes mentioned in this
+section, see the following API documentation:
+
+- `findOneAndDelete() <{+driver-api+}/MongoCollection.html#findOneAndDelete(org.bson.conversions.Bson,com.mongodb.client.model.FindOneAndDeleteOptions)>`__
+- `FindOneAndDeleteOptions <{+core-api+}/client/model/FindOneAndDeleteOptions.html>`__
+- `Filters <{+core-api+}/client/model/Filters.html>`__
+- `Sorts <{+core-api+}/client/model/Sorts.html>`__
+
+Aggregation Example
+~~~~~~~~~~~~~~~~~~~
+
+The following example shows how to specify a collation in an
+aggregation operation. To perform an aggregation, call the
+``aggregate()`` method on a ``MongoCollection`` object.
+
+To specify a collation for an aggregation operation, call the
+``collation()`` method on the ``AggregatePublisher`` returned by the
+aggregation operation. Specify a sort aggregation stage
+in your pipeline to apply the collation.
+
+The following example constructs an aggregation pipeline on the
+:ref:`example collection <java-rs-collation-example-collection>`
+and applies a collation by specifying the following:
+
+- A group aggregation stage using ``Aggregates.group()`` to identify
+  each document by the ``first_name`` field and use that value as the
+  ``_id`` of the result.
+- An accumulator in the group stage to sum the number of instances of
+  matching values in the ``first_name`` field.
+- An ascending sort on the ``_id`` field of the output documents.
+- A collation object specifying the German locale and a collation
+  strength that ignores accents and umlauts.
+
+.. literalinclude:: /includes/crud/Collations.java
+   :language: java
+   :start-after: // start-aggregation-example
+   :end-before: // end-aggregation-example
+   :dedent:
+
+The preceding code outputs the following documents:
+
+.. code-block:: json
+   :copyable: false
+
+   {"_id": "Gunter", "nameCount": 2}
+   {"_id": "Hannah", "nameCount": 1}
+   {"_id": "Jürgen", "nameCount": 1}
+   {"_id": "Klara", "nameCount": 1}
+
+For more information about the methods and classes mentioned in this
+section, see the following API documentation:
+
+- `aggregate() <{+driver-api+}/MongoCollection.html#aggregate(java.util.List)>`__
+- `AggregatePublisher <{+driver-api+}/AggregatePublisher.html>`__
+- `CollationStrength <{+core-api+}/client/model/CollationStrength.html>`__
+- `Accumulators <{+core-api+}/client/model/Accumulators.html>`__
+- `Aggregates <{+core-api+}/client/model/Aggregates.html>`__
+- `Sorts <{+core-api+}/client/model/Sorts.html>`__

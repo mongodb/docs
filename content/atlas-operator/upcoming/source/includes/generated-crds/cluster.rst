@@ -165,6 +165,11 @@ The entry fields of the cluster resource spec. These fields can be set for creat
      - If reconfiguration is necessary to regain a primary due to a regional outage, submit this field alongside your topology reconfiguration to request a new regional outage resistant topology. Forced reconfigurations during an outage of the majority of electable nodes carry a risk of data loss if replicated writes (even majority committed writes) have not been replicated to the new primary node. ``MongoDB`` Atlas docs contain more information. To proceed with an operation which carries that risk, set ``acceptDataRisksAndForceReplicaSetReconfig`` to the current date. This parameter expresses its value in the ``ISO`` 8601 timestamp format in ``UTC``.
      - false
 
+   * -  ``adaptiveCapacity``
+     - string
+     - Governs adaptive capacity behavior of Azure nodes in single-cloud Azure clusters or multi-cloud clusters that include Azure nodes. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. ``ENABLED`` means the cluster explicitly opts in to adaptive capacity. ``DISABLED`` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. ``null`` means the field is unset; Azure clusters use adaptive capacity by default when the feature is enabled at the group level. Setting this field for single-cloud ``AWS`` or ``GCP`` clusters is a no-op.
+     - false
+
    * -  ``advancedConfiguration``
      - object
      - Group of settings that configures a subset of the advanced configuration details.
@@ -661,6 +666,11 @@ The current hardware specifications for read only nodes in the region.
        The maximum value for disk storage cannot exceed 50 times the maximum ``RAM`` for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.
      - false
 
+   * -  ``diskThroughput``
+     - integer
+     - Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (``GP3``) volume type.
+     - false
+
    * -  ``ebsVolumeType``
      - string
      - Type of storage you want to attach to your ``AWS``-provisioned cluster.
@@ -805,6 +815,11 @@ Hardware specifications for all electable nodes deployed in the region. Electabl
        The maximum value for disk storage cannot exceed 50 times the maximum ``RAM`` for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.
      - false
 
+   * -  ``diskThroughput``
+     - integer
+     - Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (``GP3``) volume type.
+     - false
+
    * -  ``ebsVolumeType``
      - string
      - Type of storage you want to attach to your ``AWS``-provisioned cluster.
@@ -866,6 +881,11 @@ The current hardware specifications for read only nodes in the region.
        If you specify a disk size below the minimum (10 ``GB``), this parameter defaults to the minimum disk size value.
        Storage charge calculations depend on whether you choose the default value or a custom value.
        The maximum value for disk storage cannot exceed 50 times the maximum ``RAM`` for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.
+     - false
+
+   * -  ``diskThroughput``
+     - integer
+     - Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (``GP3``) volume type.
      - false
 
    * -  ``ebsVolumeType``
@@ -1022,6 +1042,11 @@ The last observed Atlas state of the cluster resource for version v20250312.
      - Type
      - Description
      - Required
+
+   * -  ``adaptiveCapacity``
+     - string
+     - Governs adaptive capacity behavior of Azure nodes in single-cloud Azure clusters or multi-cloud clusters that include Azure nodes. Adaptive capacity enables fallback hardware selection when the primary instance family is unavailable. ``ENABLED`` means the cluster explicitly opts in to adaptive capacity. ``DISABLED`` means the cluster explicitly opts out; the cluster receives capacity errors instead of being placed on fallback hardware. ``null`` means the field is unset; Azure clusters use adaptive capacity by default when the feature is enabled at the group level. Setting this field for single-cloud ``AWS`` or ``GCP`` clusters is a no-op.
+     - false
 
    * -  ``advancedConfiguration``
      - object
@@ -1528,6 +1553,11 @@ The current hardware specifications for read only nodes in the region.
        The maximum value for disk storage cannot exceed 50 times the maximum ``RAM`` for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.
      - false
 
+   * -  ``diskThroughput``
+     - integer
+     - Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (``GP3``) volume type.
+     - false
+
    * -  ``ebsVolumeType``
      - string
      - Type of storage you want to attach to your ``AWS``-provisioned cluster.
@@ -1672,6 +1702,11 @@ The current hardware specifications for read only nodes in the region.
        The maximum value for disk storage cannot exceed 50 times the maximum ``RAM`` for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.
      - false
 
+   * -  ``diskThroughput``
+     - integer
+     - Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (``GP3``) volume type.
+     - false
+
    * -  ``ebsVolumeType``
      - string
      - Type of storage you want to attach to your ``AWS``-provisioned cluster.
@@ -1728,6 +1763,11 @@ The current hardware specifications for read only nodes in the region.
        If you specify a disk size below the minimum (10 ``GB``), this parameter defaults to the minimum disk size value.
        Storage charge calculations depend on whether you choose the default value or a custom value.
        The maximum value for disk storage cannot exceed 50 times the maximum ``RAM`` for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.
+     - false
+
+   * -  ``diskThroughput``
+     - integer
+     - Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (``GP3``) volume type.
      - false
 
    * -  ``ebsVolumeType``
@@ -1788,6 +1828,11 @@ The current hardware specifications for read only nodes in the region.
        The maximum value for disk storage cannot exceed 50 times the maximum ``RAM`` for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.
      - false
 
+   * -  ``diskThroughput``
+     - integer
+     - Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (``GP3``) volume type.
+     - false
+
    * -  ``ebsVolumeType``
      - string
      - Type of storage you want to attach to your ``AWS``-provisioned cluster.
@@ -1844,6 +1889,11 @@ Hardware specifications for all electable nodes deployed in the region. Electabl
        If you specify a disk size below the minimum (10 ``GB``), this parameter defaults to the minimum disk size value.
        Storage charge calculations depend on whether you choose the default value or a custom value.
        The maximum value for disk storage cannot exceed 50 times the maximum ``RAM`` for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.
+     - false
+
+   * -  ``diskThroughput``
+     - integer
+     - Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (``GP3``) volume type.
      - false
 
    * -  ``ebsVolumeType``
@@ -1907,6 +1957,11 @@ The current hardware specifications for read only nodes in the region.
        If you specify a disk size below the minimum (10 ``GB``), this parameter defaults to the minimum disk size value.
        Storage charge calculations depend on whether you choose the default value or a custom value.
        The maximum value for disk storage cannot exceed 50 times the maximum ``RAM`` for the selected cluster. If you require more storage space, consider upgrading your cluster to a higher tier.
+     - false
+
+   * -  ``diskThroughput``
+     - integer
+     - Target throughput desired for storage attached to this hardware. Only returned for Gen 2 instance sizes with Standard (``GP3``) volume type.
      - false
 
    * -  ``ebsVolumeType``

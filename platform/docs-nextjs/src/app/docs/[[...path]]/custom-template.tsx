@@ -7,15 +7,14 @@ import {
   ChangelogTemplate,
   DocumentTemplate,
   LandingTemplate,
-  OpenAPITemplate,
   InstruqtTemplate,
   BlankTemplate,
   DriversIndexTemplate,
   FeatureNotAvailableTemplate,
+  ProductLandingTemplate,
 } from '@/templates';
 import { ActionBar } from '@/mdx-components/ActionBar';
 import layoutStyles from '@/app/layout.module.scss';
-import ProductLandingTemplate from '@/templates/product-landing';
 import type { MDXFrontmatter, PageTemplateType } from '@/types/ast';
 import { Header } from '@/mdx-components/Header';
 import type { ServerSideChangelogData } from '@/types/openapi';
@@ -39,9 +38,6 @@ function getTemplate(templateOption: PageTemplateType): {
     case 'product-landing':
       renderSidenav = true;
       Template = ProductLandingTemplate;
-      break;
-    case 'openapi':
-      Template = OpenAPITemplate;
       break;
     case 'changelog':
       Template = ChangelogTemplate;

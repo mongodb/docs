@@ -41,19 +41,15 @@ spec:
 EOF
 kubectl --context "${K8S_CTX}" wait --for=condition=Ready clusterissuer "${MDB_TLS_CA_ISSUER}" --timeout=120s
 
-# 4. Extract CA cert (only ca.crt) and publish to ConfigMap & Secret
+# 4. Extract CA cert (only ca.crt) and publish to ConfigMap
 TMP_CA_CERT="$(mktemp)"; trap 'rm -f "${TMP_CA_CERT}"' EXIT
 ca_b64="$(kubectl --context "${K8S_CTX}" get secret "${MDB_TLS_CA_SECRET_NAME}" -n "${CERT_MANAGER_NAMESPACE}" -o jsonpath="{.data['ca\\.crt']}")"
 [[ -n "${ca_b64}" ]] || { echo "CA certificate key ca.crt missing in secret ${MDB_TLS_CA_SECRET_NAME}" >&2; exit 1; }
 printf '%s' "${ca_b64}" | base64 --decode > "${TMP_CA_CERT}"
 
-# Create ConfigMap (MongoDBCommunity) and Secret (external search source) containing CA
+# Create ConfigMap containing CA (used by both MongoDBCommunity and external search source)
 kubectl --context "${K8S_CTX}" create configmap "${MDB_TLS_CA_CONFIGMAP}" -n "${MDB_NS}" \
   --from-file=ca-pem="${TMP_CA_CERT}" --from-file=mms-ca.crt="${TMP_CA_CERT}" --from-file=ca.crt="${TMP_CA_CERT}" \
   --dry-run=client -o yaml | kubectl --context "${K8S_CTX}" apply -f -
 
-kubectl --context "${K8S_CTX}" create secret generic "${MDB_TLS_CA_SECRET_NAME}" -n "${MDB_NS}" \
-  --from-file=ca.crt="${TMP_CA_CERT}" \
-  --dry-run=client -o yaml | kubectl --context "${K8S_CTX}" apply -f -
-
-echo "CA issuer and artifacts prepared (ConfigMap: ${MDB_TLS_CA_CONFIGMAP}, Secret: ${MDB_TLS_CA_SECRET_NAME})."
+echo "CA issuer and artifacts prepared (ConfigMap: ${MDB_TLS_CA_CONFIGMAP})."

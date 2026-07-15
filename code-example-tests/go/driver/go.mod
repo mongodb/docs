@@ -4,11 +4,10 @@ go 1.24.5
 
 require (
 	github.com/joho/godotenv v1.5.1
-	go.mongodb.org/mongo-driver/v2 v2.6.0
+	go.mongodb.org/mongo-driver/v2 v2.7.0
 )
 
 require (
-	github.com/golang/snappy v1.0.0 // indirect
 	github.com/klauspost/compress v1.18.3 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.2.0 // indirect

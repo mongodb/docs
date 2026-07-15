@@ -21,9 +21,9 @@ You can deploy |text-search| and |vector-search| in your |k8s| cluster
 to build powerful search experiences directly within your applications.
 Using |text-search| and |vector-search|, you can build both traditional
 text search and AI-powered vector search capabilities that automatically
-sync with an on-premises MongoDB database. This eliminates the need to
-maintain separate systems in sync while providing advanced search
-features. To learn more, see: 
+sync with an on-premises MongoDB database. This approach eliminates the
+need to maintain separate systems in sync while providing advanced
+search features. To learn more, see: 
 
 - :ref:`atlas-search`
 - :ref:`avs-overview`
@@ -34,7 +34,7 @@ in on-prem deployments, you must deploy the |text-search| and
 database deployment (``mongod``). Deployment of ``mongot`` is optional
 and is needed only if you plan to use the search features it offers.
 
-The MongoDB Database processes (``mongod``) acts as the proxy for all
+The MongoDB Database process (``mongod``) acts as the proxy for all
 search queries for ``mongot``. The ``mongod`` forwards the query to
 ``mongot``, which processes the query. The ``mongot`` returns the query
 results to the ``mongod``, which then forwards the results to you. You
@@ -56,7 +56,7 @@ The ``mongot`` performs the following actions:
 - Sources the data from the database. 
   
   The ``mongot`` nodes establish permanent connections to the database
-  in order to update indexes from the database in real time. 
+  in real time. 
 
 - Processes search queries. 
   
@@ -78,16 +78,16 @@ directions:
 
 - ``mongot`` establishes connection to the replica set to source the data
   used to build indexes and run queries.
-- ``mongod`` connects to ``mongot`` to forward search related operations
+- ``mongod`` connects to ``mongot`` to forward search-related operations
   such as index management and querying the data.
 
-The ``spec.replicas`` field controls how many ``mongot`` instances
+The ``spec.clusters[].replicas`` field controls how many ``mongot`` instances
 the |k8s-op-short| deploys. For a replica set source,
-``spec.replicas`` sets the total number of ``mongot`` pods. For a
-sharded cluster source, ``spec.replicas`` sets the number of
+``spec.clusters[].replicas`` sets the total number of ``mongot`` pods. For a
+sharded cluster source, ``spec.clusters[].replicas`` sets the number of
 ``mongot`` pods **per shard**.
 
-If you set ``spec.replicas`` to a value greater than ``1``, you
+If you set ``spec.clusters[].replicas`` to a value greater than ``1``, you
 must place an L7 load balancer between ``mongod`` and the
 ``mongot`` pods. The ``mongod`` process opens a single long-lived
 TCP connection to ``mongot``, so an L4 load balancer cannot
@@ -101,8 +101,8 @@ query cursor.
 |text-search| and |vector-search| Deployment 
 --------------------------------------------
 
-There are not many differences between the search deployment
-architecture with or without the |k8s-op-short|. The |k8s-op-short|
+The search deployment architecture differs little with or without the
+|k8s-op-short|. The |k8s-op-short|
 simplifies the steps required to deploy fully functioning search nodes,
 especially when the database is also managed by the |k8s-op-short|.
 
@@ -156,9 +156,9 @@ Before you begin, consider the following:
 
    - Your database and search nodes must have enough CPU, memory, and
      disk space allocated because MongoDB database, and |text-search|
-     and |vector-search| workloads are resource-intensive. We recommend
-     using requests and limits in your Pod specs to avoid eviction or
-     throttling. 
+     and |vector-search| workloads are resource-intensive. MongoDB
+     recommends using requests and limits in your Pod specs to avoid
+     eviction or throttling. 
 
    - Your |k8s| version must be supported by the MongoDB operator or
      Helm chart you want to use. Some CRDs or APIs differ across
@@ -168,12 +168,12 @@ Before you begin, consider the following:
      Control)` roles and role bindings so that the |k8s-op-short| and
      processes running within the Pods can manage resources.
 
-   - If you want multiple ``mongot`` instances (``spec.replicas``
+   - If you want multiple ``mongot`` instances (``spec.clusters[].replicas``
      greater than ``1``), you need a load balancer. The
      |k8s-op-short| can deploy and manage an Envoy proxy
-     automatically (``spec.loadBalancer.managed: {}``), or
+     automatically (``spec.clusters[].loadBalancer.managed: {}``), or
      you can provide your own L7 load balancer
-     (``spec.loadBalancer.unmanaged``).
+     (``spec.clusters[].loadBalancer.unmanaged``).
 
    - If you want a sharded cluster with multiple ``mongot``
      instances, ensure that you have sufficient cluster resources
@@ -267,12 +267,12 @@ an external MongoDB deployment.
      - Not necessary
      - You
 
-   * - Configure managed load balancer (when ``spec.replicas``
+   * - Configure managed load balancer (when ``spec.clusters[].replicas``
        is greater than ``1``)
      - |k8s-op-short|
      - |k8s-op-short|
 
-   * - Configure unmanaged load balancer (when ``spec.replicas``
+   * - Configure unmanaged load balancer (when ``spec.clusters[].replicas``
        is greater than ``1``)
      - You
      - You
@@ -334,18 +334,17 @@ an external MongoDB deployment.
    #. Deploys |text-search| and |vector-search| stateful set named
       ``<MongoDBSearch.metadata.name>-search`` with storage and
       resource requirements configured according to the
-      ``spec.persistence`` and ``spec.resourceRequirements`` settings
+      ``spec.clusters[].persistence`` and ``spec.clusters[].resourceRequirements`` settings
       in the :abbr:`CR (Custom Resource)`. For sharded cluster
       sources, the |k8s-op-short| creates one StatefulSet per
       shard. Each StatefulSet uses the naming pattern
-      ``<name>-search-0-<shardName>`` and contains ``spec.replicas``
+      ``<name>-search-0-<shardName>`` and contains ``spec.clusters[].replicas``
       pods, which defaults to ``1``. The ``0`` in the naming
-      pattern reserves a cluster index for future multi-cluster
-      compatibility.
+      pattern is a reserved cluster index.
 
    #. Deploys a single Envoy proxy Deployment for the MongoDB
       cluster if you need a load balancer
-      (``spec.loadBalancer.managed``). The Envoy proxy handles
+      (``spec.clusters[].loadBalancer.managed``). The Envoy proxy handles
       L7 routing, mTLS termination, and gRPC stream pinning
       between ``mongod`` and
       ``mongot`` pods.
@@ -365,10 +364,10 @@ an external MongoDB deployment.
       resource. The ``mongot`` uses the credentials of this user to
       connect to the replica set to source the data:
 
-      - The user name is arbitrary (in the examples, we use
+      - The user name is arbitrary (the examples use
         ``search-sync-source-user``), but it must have the
         ``searchCoordinator`` role set.  
-      - The username and password of this user is passed in
+      - The username and password of this user are passed in
         ``MongoDBSearch.spec.source.username`` and
         ``MongoDBSearch.spec.source.passwordSecretRef`` respectively. 
         
@@ -404,10 +403,10 @@ an external MongoDB deployment.
       :lightbox:
 
    To use |text-search| and |vector-search| when you have your
-   MongoDB deployment outside of |k8s|, deploy ``mongot`` using the
+   MongoDB deployment outside |k8s|, deploy ``mongot`` using the
    |k8s-op-short| and perform some steps manually. The |k8s-op-short|
    handles configuration of the search pods. However, when the MongoDB
-   deployment is outside of |k8s|, you must reconfigure your MongoDB
+   deployment is outside |k8s|, you must reconfigure your MongoDB
    nodes and the networking.
    
    You are responsible for the following manual configurations:
@@ -431,7 +430,7 @@ an external MongoDB deployment.
 
       - For a single ``mongot`` instance (no load balancer),
         ``mongotHost`` points directly to the ``mongot`` service
-        hostname (``<name>-search-svc:27028``).
+        hostname (``<name>-search-0-svc:27028``).
       - For multiple ``mongot`` instances with a load balancer,
         ``mongotHost`` points to the load balancer endpoint
         instead.
@@ -441,8 +440,8 @@ an external MongoDB deployment.
       - For external MongoDB deployments, you must set
         ``mongotHost`` to the load balancer endpoint that you
         specified in
-        ``spec.loadBalancer.managed.externalHostname`` or
-        ``spec.loadBalancer.unmanaged.endpoint``.
+        ``spec.clusters[].loadBalancer.managed.externalHostname`` or
+        ``spec.clusters[].loadBalancer.unmanaged.endpoint``.
 
    #. Create a user in the external replica set for the search
       synchronization process. This user must have the ``searchCoordinator``
@@ -515,7 +514,7 @@ an external MongoDB deployment.
 
    If you use a managed load balancer with an external sharded
    cluster, specify
-   ``spec.loadBalancer.managed.externalHostname`` with a
+   ``spec.clusters[].loadBalancer.managed.externalHostname`` with a
    ``{shardName}`` placeholder (for example,
    ``{shardName}.search-lb.example.com``). Expose the Envoy
    service externally so that each shard's ``mongod`` nodes can
@@ -557,9 +556,9 @@ Security
 --------
 
 The following image illustrates the security configuration for the
-``mongot`` process. If the MongoDB server is inside of the |k8s|
+``mongot`` process. If the MongoDB deployment is inside the |k8s|
 cluster, the |k8s-op-short| automatically sets up keyfile authentication
-for |text-search| and |vector-search|. If the MongoDB server is
+for |text-search| and |vector-search|. If the MongoDB deployment is
 external, you must create a |k8s| Secret containing the replica set's
 keyfile credential and reference it in the MongoDBSearch :abbr:`CR
 (Custom Resource)`. 
@@ -573,7 +572,7 @@ Authentication
 ~~~~~~~~~~~~~~
 
 The ``mongot`` process authenticates ``mongod`` connections using mTLS.
-When you enable TLS, the ``mongot`` process uses the MongoDB server's
+When you enable TLS, the ``mongot`` process uses the MongoDB deployment's
 TLS certificate as the client certificate for authentication. This
 certificate is verified against the CA certificate that ``mongot`` is
 configured with. For authentication to work properly, you must configure
@@ -632,7 +631,7 @@ The |k8s-op-short| reads the following certificate secrets:
 Load Balancer Certificates
 ``````````````````````````
 
-If you set ``spec.loadBalancer.managed``, the load balancer
+If you set ``spec.clusters[].loadBalancer.managed``, the load balancer
 client certificate is
 ``[<certsSecretPrefix>-]<name>-search-lb-0-client-cert``.
 The following table shows the load balancer server
@@ -673,7 +672,7 @@ Without a load balancer, ``mongod`` connects directly to
 certificate, and ``mongot`` validates it against a trusted CA.
 
 If you configure a managed load balancer
-(``spec.loadBalancer.managed``), the Envoy proxy terminates the
+(``spec.clusters[].loadBalancer.managed``), the Envoy proxy terminates the
 mTLS connection from ``mongod`` and establishes a new mTLS
 connection to ``mongot``. Because the load balancer terminates
 and re-establishes the connection, it uses its own client
@@ -696,12 +695,51 @@ naming convention that ``spec.security.tls.certsSecretPrefix``
 defines. See :ref:`k8s-fts-vs-settings` for the full naming
 pattern.
 
+Diagnostic Data
+---------------
+
+Each ``mongot`` pod continuously writes :abbr:`FTDC (Full-Time
+Diagnostic Data Capture)` files to
+``/mongot/data/diagnostic.data/`` inside the pod. FTDC is a
+binary diagnostic stream that captures detailed ``mongot``
+internal state and is the primary artifact MongoDB Support
+uses to diagnose Search issues. FTDC is enabled by default. To
+learn how to copy FTDC files for a support case, see
+:ref:`k8s-fts-vs-troubleshoot`.
+
+The |k8s-op-short| mounts a ``PersistentVolumeClaim`` on each
+``mongot`` pod at ``/mongot/data`` using a ``volumeClaimTemplate``
+on the search StatefulSet, and ``mongot`` writes its FTDC files to
+``/mongot/data/diagnostic.data/`` on that volume. Because the data
+resides on a ``PersistentVolumeClaim``, it survives pod restarts
+and rescheduling: when the StatefulSet replaces a pod, it
+reattaches the same ``PersistentVolumeClaim``. You configure this
+volume with the :ref:`spec.clusters[].persistence
+<mdbsearch-spec-persistence-single>` setting on the MongoDBSearch
+resource.
+
 .. toctree::
    :titlesonly:
    :hidden:
    
-   Install Search and Vector Search with MongoDB Community </tutorial/install-fts-vs-with-community>
-   Install Search and Vector Search with MongoDB Enterprise </tutorial/install-fts-vs-with-enterprise>
-   Install and Use with External MongoDB Enterprise </tutorial/install-fts-vs-with-external-enterprise>
-   Migrate External MongoDB Enterprise to Use gRPC </tutorial/migrate-fts-vs-with-external-mongod-to-grpc>
-   Use Search and Vector Search </tutorial/fts-vs-quickstart>
+   /tutorial/install-fts-vs-with-community
+   /tutorial/install-fts-vs-with-enterprise
+   /tutorial/install-fts-vs-with-external-enterprise
+   /tutorial/migrate-fts-vs-with-external-mongod-to-grpc
+   /tutorial/migrate-fts-vs-preview-to-ga
+   /fts-vs/deployment/compatibility-requirements
+   /fts-vs/deployment/resource-planning-sizing
+   /fts-vs/deployment/single-cluster-installation
+   /fts-vs/deployment/connect-verify
+   /fts-vs/deployment/verify-mongot
+   /fts-vs/deployment/verify-package-integrity
+   /fts-vs/configuration/secure-connection-search-to-mongodb
+   /fts-vs/configuration/secure-connection-mongodb-to-search
+   /fts-vs/configuration/automated-embedding
+   /fts-vs/troubleshoot
+   /fts-vs/faq
+   /fts-vs/limitations
+   /fts-vs/deployment/upgrade-downgrade
+   /fts-vs/deployment/supported-topologies
+   /fts-vs/deployment/backup-restore
+   /fts-vs/deployment/monitor

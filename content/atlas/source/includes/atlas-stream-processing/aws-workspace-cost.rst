@@ -21,6 +21,12 @@ processor of a given tier in a given region.
      - $0.2450  
      - $0.5028  
      - $2.0113  
+   * - ap-northeast-2
+     - $0.0621
+     - $0.1242
+     - $0.2357
+     - $0.4838
+     - $1.9352
    * - ap-south-1  
      - $0.0550  
      - $0.1100  

@@ -67,6 +67,32 @@ from a wildcard IP (``0.0.0.0/0``):
    :start-after: # start-restrict-ip
    :end-before: # end-restrict-ip
 
+.. _tf-restrict-eras:
+
+Restrict Atlas Embedding and Reranking API Service for Projects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example restricts access to the
+:ref:`{+voyage-api-full+} <voyage-api-overview>`
+for all projects in an organization. This effectively prevents users from
+creating :ref:`model API keys <voyage-api-keys>` for any projects in the
+organization.
+
+.. literalinclude:: /includes/example-resource-policies-tf/example-resource-policies-terraform.tf
+   :language: terraform
+   :start-after: # start-restrict-eras
+   :end-before: # end-restrict-eras
+
+You can specify projects as exceptions using the policy's ``unless`` clause.
+The following example restricts access to the {+voyage-api+} for all
+projects in an organization *except* the project with ID
+``6217f7fff7957854e2d09179``:
+
+.. literalinclude:: /includes/example-resource-policies-tf/example-resource-policies-terraform.tf
+   :language: terraform
+   :start-after: # start-restrict-eras-except-project
+   :end-before: # end-restrict-eras-except-project
+
 .. _tf-require-database-auditing:
 
 Require Database Auditing
@@ -221,3 +247,19 @@ indexes.
    :language: terraform
    :start-after: # start-restrict-auto-embedding
    :end-before: # end-restrict-auto-embedding
+
+.. _tf-restrict-native-reranking:
+
+Restrict Native Reranking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example prevents users from enabling Native
+Reranking (the ``$rerank`` aggregation stage) for any project in
+the organization. This policy prevents projects from enabling
+Native Reranking, but does not disable projects that already have
+it enabled.
+
+.. literalinclude:: /includes/example-resource-policies-tf/example-resource-policies-terraform.tf
+   :language: terraform
+   :start-after: # start-restrict-native-reranking
+   :end-before: # end-restrict-native-reranking

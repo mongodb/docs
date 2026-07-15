@@ -9,8 +9,8 @@
       
       a. .. include:: /includes/nav/list-network-access.rst
          
-      #. In the :guilabel:`Peering` tab, click :icon-fa5:`plus`
-         :guilabel:`Add Peering Connection`.
+      #. In the :guilabel:`Peering` tab, click
+         :guilabel:`Add outbound connection`.
       
    .. step:: In |service|, configure your network peering connection.
       

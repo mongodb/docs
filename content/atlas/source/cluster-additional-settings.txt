@@ -23,57 +23,12 @@ Configure Additional Settings
 You can configure the following additional settings for your
 |service| {+cluster+}.
 
-.. _create-cluster-version:
-
 Select the MongoDB Version of the {+Cluster+}
 ---------------------------------------------
 
-.. include:: /includes/extracts/fact-mongodb-version.rst
-
-You can upgrade an existing |service| {+cluster+} to a newer major
-MongoDB version, if available, when you 
-:ref:`scale a cluster <scale-cluster-version>`. However, you 
-can't downgrade a {+cluster+} from one major version to a previous
-major version.
-
-.. include:: /includes/fact-upgrade-best-practices.rst
-
-.. important::
-
-   If your project contains a :ref:`custom role <mongodb-roles>`
-   that uses actions introduced in a specific MongoDB version, you
-   can't create a {+cluster+} with a MongoDB version less than that
-   version unless you delete the custom role.
-
-.. _release-cadence:
-
-Choosing a Release Cadence
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Starting with MongoDB 8.2, two release cadence options are available for
-{+service+} {+Dedicated-clusters+}:
-
-- Major Versions: You can choose to stay on a specific major version
-  such as MongoDB 8.0. Clusters on major versions receive bug fixes
-  and security patches. You must manually upgrade clusters before
-  their End of Life (EOL). Otherwise, {+service+} automatically upgrades
-  clusters to the latest supported major version after EOL.
-- Latest Version With Auto Upgrades: If you set your cluster to this
-  release option, it receives automatic upgrades to the latest available
-  MongoDB major or minor version and enables new features.
-
-  To learn more about manually upgrading your {+service+} cluster,
-  see :ref:`Upgrade a Cluster to a New MongoDB Version <upgrade-major-MongoDB-version>`.
-
-  .. include:: /includes/latest-release-reversion-restriction.rst
-
-.. note::
-
-   You cannot choose a release option for clusters on the Free and Flex
-   tiers as these clusters are automatically upgraded.
-
-To learn more about MongoDB versions, see :manual:`MongoDB Versioning
-</reference/versioning>`.
+To learn about available MongoDB versions, release cadence options,
+and how to select a version for your {+cluster+}, see
+:ref:`atlas-versions`.
 
 .. _create-cluster-backups:
 
@@ -376,17 +331,17 @@ You can configure the following sampling settings:
 
    * - Schema Sample Size
      - integer
-     - *Optional.* The number of documents that the BI Connector
-       samples for each database when it gathers schema information.
-       To learn more, see the
-       :bic:`BI Connector documentation
-       </reference/mongosqld/#cmdoption-mongosqld-samplesize>`.
+     - *Optional.* The number of documents that the BI Connector samples
+       for each database when it gathers schema information. To learn
+       more, see the :bic:`BI Connector documentation
+       </reference/mongosqld/#schema-options>`.
 
    * - Sample Refresh Interval
      - integer
-     - *Optional.* The frequency, in seconds, at which the BI
-       Connector re-samples data to recreate the schema.To learn more, 
-       see the :bic:`BI Connector documentation </reference/mongosqld/#cmdoption-mongosqld-samplerefreshintervalsecs>`.
+     - *Optional.* The frequency, in seconds, at which the BI Connector
+       re-samples data to recreate the schema. To learn more, see the
+       :bic:`BI Connector documentation
+       </reference/mongosqld/#schema-options>`.
 
 .. _create-cluster-enable-encryption:
 
@@ -421,7 +376,7 @@ Prerequisites
 - To switch from one Encryption at Rest provider on your
   {+cluster+} to another, you must first disable Encryption at Rest for
   your {+cluster+}, then re-enable it with your desired Encryption at
-  Rest provider. To learn more, see :doc:`/security-kms-encryption`.
+  Rest provider. To learn more, see :ref:`security-kms-encryption`.
 
 Procedure
 ~~~~~~~~~
@@ -490,43 +445,125 @@ To view and edit these settings:
 Enable Faster Cross-Region Initial Sync for AWS Clusters
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-{+service+} performs a :ref:`{+cis+} <cloud-based-initial-sync>` when
-you add or replace a node in a region that already contains a primary
-or secondary node, or when you add or replace a node in an |aws|
-cluster. {+cis+} leverages your cloud provider's native capabilities
-to create a snapshot of a source node's data and restore it to the
-new node.
+When you add a new node to an |aws| region, {+service+} performs a
+:ref:`{+cis+} <cloud-based-initial-sync>` to create a snapshot of a
+source node and restore it to the new node using {+aws+}'s native
+snapshot capabilities.
 
 When you enable this setting, {+service+} uses `AWS time-based snapshot
-copies
-<https://docs.aws.amazon.com/ebs/latest/userguide/time-based-copies.html>`__
+copies <https://docs.aws.amazon.com/ebs/latest/userguide/time-based-copies.html>`__
 to perform {+cis+}s for destination |aws| nodes that are in a different
 |aws| region than the source node. {+service+} prioritizes restoring
 from a primary node over secondary nodes to maximize data freshness.
 Time-based snapshot copy operations can achieve a maximum copy operation
-throughput of 500 MiB/s. {+service+} will always maximize the throughput
+throughput of 500 MiB/s. {+service+} always maximizes throughput
 by adjusting the copy operation completion time based on the size of the
 snapshot. 
 
-Cross-region {+cis+} is available for {+aws+} clusters only. For
-{+azure+} and {+gcp+} clusters, {+cis+} is only available when adding or
-replacing nodes in the same region as the source node. You can add or
-replace nodes in your cluster when you :ref:`edit the cluster
-configuration <edit-cluster-atlas>`.
+{+service+} supports cross-region {+cis+} for |aws| and |gcp| clusters
+only. For |azure| clusters, {+service+} performs a :ref:`logical initial
+sync <replica-set-initial-sync-logical>` to add a node to a new region.
+You can add or replace nodes in your cluster when you :ref:`edit the
+cluster configuration <edit-cluster-atlas>`.
 
-This setting can be enabled only for clusters that contain at least
-one |aws| node. All clusters are opted out by default. If you remain
-opted out, {+service+} will use {+aws+}'s native `non-time-based
-snapshot copy method
+This setting can be enabled only for clusters that contain at least one
+|aws| node. All clusters are opted out by default. If you remain opted
+out for an |aws| cluster, {+service+} uses {+aws+}'s native
+`non-time-based snapshot copy method
 <https://docs.aws.amazon.com/ebs/latest/userguide/ebs-copy-snapshot.html>`__
-to perform cross-region {+cis+}s for |aws| nodes.
-Non-time-based snapshot copies are likely to be much slower than
-time-based snapshot copies. 
+to perform cross-region {+cis+}s. Non-time-based
+snapshot copies are likely to be much slower than time-based snapshot
+copies. 
 
 Enabling faster time-based cross-region initial syncs incurs additional
 costs from |aws|. To learn more about |aws| snapshot pricing, see the
 `Amazon EBS pricing page
 <https://docs.aws.amazon.com/ebs/latest/userguide/time-based-copies.html#time-based-copies-pricing>`__. 
+
+.. _adaptive-capacity-setting:
+
+Adaptive Capacity for Azure Clusters
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. banner::
+   :variant: info
+
+   {+service+} is rolling out adaptive capacity for {+azure+}
+   {+clusters+} in a phased approach. This feature might not be
+   available to your organization yet.
+
+{+service+} enables :guilabel:`Adaptive Capacity` by default for
+{+clusters+} on {+azure+} that have at least one node. Adaptive
+capacity takes effect on ``M30`` and larger {+clusters+}. To learn
+more, see :ref:`adaptive-capacity`.
+
+To opt out of adaptive capacity for an individual {+cluster+}, or to
+re-enable it, use the {+atlas-ui+} or the {+atlas-admin-api+}:
+
+.. tabs::
+
+   .. tab:: {+atlas-ui+}
+      :tabid: ui
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Expand the cluster configuration options.
+
+            In the cluster form for a new or existing {+cluster+},
+            expand :guilabel:`More Configuration Options` under
+            :guilabel:`Additional Settings`.
+
+         .. step:: Toggle Adaptive Capacity.
+
+            Turn :guilabel:`Adaptive Capacity` on or off. When you
+            opt out, {+service+} keeps the {+cluster+} on its original
+            instance type, and a capacity shortage might prevent you
+            from creating or scaling the {+cluster+}.
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: api
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Send a request to the cluster endpoint.
+
+            To change this setting on an existing {+cluster+}, send a
+            ``PATCH`` request to the :oas-atlas-op:`Update One Cluster
+            </updateGroupCluster>` endpoint. To set this setting when
+            you provision a {+cluster+}, send a ``POST`` request to
+            the :oas-atlas-op:`Create One Cluster </createGroupCluster>`
+            endpoint instead. The ``adaptiveCapacity`` field is
+            available in {+atlas-admin-api+} version ``2024-08-05`` and
+            later.
+
+         .. step:: Set the ``adaptiveCapacity`` field.
+
+            In the request body, set the top-level ``adaptiveCapacity``
+            field to one of the following values:
+
+            .. list-table::
+               :header-rows: 1
+               :widths: 20 80
+
+               * - Value
+                 - Description
+
+               * - ``ENABLED``
+                 - {+service+} can provision the {+cluster+} on an
+                   alternate instance type with available capacity
+                   during a capacity shortage. {+service+} uses this
+                   value by default for {+azure+} {+clusters+}.
+
+               * - ``DISABLED``
+                 - {+service+} keeps the {+cluster+} on its original
+                   instance type.
+
+            If you omit the ``adaptiveCapacity`` field in an update
+            request, {+service+} doesn't change the current setting.
+            Setting ``adaptiveCapacity`` on a single-cloud {+aws+} or
+            {+gcp+} {+cluster+} has no effect.
 
 .. _set-oplog-min-window:
 
@@ -811,7 +848,7 @@ transitions the {+cluster+} to dedicated config servers.
 .. note::
 
    Embedded config servers or config shards are not supported on 
-   :doc:`Global Clusters </global-clusters>`.
+   :ref:`Global Clusters <global-clusters>`.
 
 .. _config-server-types:
 

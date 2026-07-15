@@ -1,6 +1,7 @@
 'use client';
 
 import NextLink from 'next/link';
+import { usePathname } from 'next/navigation';
 import { css, cx } from '@leafygreen-ui/emotion';
 import { useDarkMode } from '@leafygreen-ui/leafygreen-provider';
 import { palette } from '@leafygreen-ui/palette';
@@ -78,11 +79,37 @@ const linkStyling = (linkThemeStyle: LinkThemeStyle) => css`
  */
 function addOfflineIndexHtml(url: string): string {
   const hashIdx = url.indexOf('#');
-  if (hashIdx === -1) return url.replace(/\/?$/, '/index.html');
-  const path = url.slice(0, hashIdx);
-  const hash = url.slice(hashIdx).replace(/\/$/, '');
-  return path.replace(/\/?$/, '/index.html') + hash;
+  const rawPath = hashIdx === -1 ? url : url.slice(0, hashIdx);
+  const hash = hashIdx === -1 ? '' : url.slice(hashIdx).replace(/\/$/, '');
+  // Strip a trailing slash before checking so a path that already ends in
+  // index.html (e.g. links pre-processed by useProcessedUnifiedToc, then given a
+  // trailing slash by assertLeadingAndTrailingSlash) doesn't get a second one.
+  const path = rawPath.replace(/\/$/, '');
+  if (path.endsWith('/index.html')) return path + hash;
+  return path + '/index.html' + hash;
 }
+
+// Symlinks (absolute mongodb.com/docs URLs) render with a rotated ArrowRight glyph.
+const symLinkStyling = css`
+  padding-top: 6px;
+  padding-bottom: 6px;
+  svg {
+    transform: rotate(-45deg);
+    margin-left: 7px;
+    margin-bottom: -3px;
+    width: 13px;
+    height: 13px;
+    opacity: 1;
+  }
+`;
+
+// In the sidenav, the external-link icon should match the nav item text color
+// instead of LG's default icon color.
+const sidenavExternalIconStyling = css`
+  svg {
+    color: ${palette.gray.base};
+  }
+`;
 
 // DOP-3091: LG anchors are not inline by default
 const lgLinkStyling = css`
@@ -111,6 +138,7 @@ type LinkProps = {
   openInNewTab?: boolean;
   onClick?: () => void;
   url?: string;
+  isSidenav?: boolean;
 };
 
 export const Link = ({
@@ -122,9 +150,26 @@ export const Link = ({
   showExternalIcon,
   openInNewTab,
   onClick,
+  isSidenav,
   ...other
 }: LinkProps) => {
   if (!to) to = '';
+  const pathname = usePathname();
+
+  // If a link points to a section on the current page, strip it down to just the `#hash`.
+  // A full-path NextLink would reload the route, dropping the query string (e.g. composable
+  // `?deployment-type=...`) and skipping `hashchange`. A bare `#hash` anchor keeps the query
+  // and fires hashchange, so in-page selectors (composable tutorials, tabs) can react.
+  if (to && pathname && !isOfflineBuild) {
+    const hashIdx = to.indexOf('#');
+    if (hashIdx > 0) {
+      const stripTrailingSlash = (p: string) => p.replace(/\/+$/, '');
+      if (stripTrailingSlash(to.slice(0, hashIdx)) === stripTrailingSlash(pathname)) {
+        to = to.slice(hashIdx);
+      }
+    }
+  }
+
   const anchor = to.startsWith('#');
 
   const anchorProps = validateHTMAttributes('anchor', other);
@@ -142,6 +187,21 @@ export const Link = ({
   const strippedUrl = to?.replace(/(^https:\/\/)|(www\.)/g, '');
   const isMDBLink = strippedUrl.includes('mongodb.com');
   const showExtIcon = showExternalIcon ?? (!anchor && !isMDBLink && !hideExternalIcon);
+
+  // A symlink is an absolute mongodb.com/docs URL (e.g. a TOC entry pointing to
+  // another docs property). Relative TOC paths like /docs/atlas are not symlinks.
+  // Only the sidenav renders these with the rotated arrow; content links don't.
+  const isDocsSymlink = isSidenav && !!to && !anchor && !isRelativeUrl(to) && strippedUrl.includes('mongodb.com/docs');
+
+  if (isDocsSymlink) {
+    return (
+      <NextLink className={cx(symLinkStyling, className)} onClick={onClick} href={to} target="_self" {...anchorProps}>
+        {children}
+        {decoration}
+        <Icon glyph="ArrowRight" fill={palette.gray.base} />
+      </NextLink>
+    );
+  }
 
   if (to && isRelativeUrl(to) && !anchor) {
     to = assertLeadingAndTrailingSlash(to);
@@ -166,7 +226,7 @@ export const Link = ({
   return (
     <LGLink
       href={to}
-      className={cx(lgLinkStyling, className)}
+      className={cx(lgLinkStyling, isSidenav && sidenavExternalIconStyling, className)}
       hideExternalIcon={!showExtIcon}
       target={target}
       onClick={onClick}

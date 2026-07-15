@@ -1,5 +1,5 @@
 |mms| doesn't require the ``auth`` object. This object defines
-:manual:`authentication-related </core/authentication>` settings.
+:ref:`authentication-related <authentication>` settings.
 
 .. code-block:: json
    :linenos:

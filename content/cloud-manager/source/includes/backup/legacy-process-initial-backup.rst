@@ -22,7 +22,7 @@
    Oplog Store is created when the first :cloudmgr:`snapshot store </reference/glossary/#std-term-snapshot-store>` is
    created.
 
-#. While {+bagent+} is streaming the data, it tails the :manual:`oplog </reference/glossary/#std-term-oplog>`.
+#. While {+bagent+} is streaming the data, it tails the :term:`oplog`.
    This tailing collects any differences between the state of the
    deployment database when the backup began and the deployment
    database's current state. The oplog entries are sent in 10 MB

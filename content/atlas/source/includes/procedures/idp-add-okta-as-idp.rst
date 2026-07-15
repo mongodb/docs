@@ -220,7 +220,7 @@
             email address.
 
       #. (Optional) If you plan to use 
-         :doc:`role mapping </security/manage-role-mapping/>`, 
+         :ref:`role mapping <atlas-manage-fed-auth-roles>`, 
          scroll down to the 
          :guilabel:`Group Attribute Statements (optional)` section 
          and create an attribute with the following values:

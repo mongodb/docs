@@ -54,7 +54,7 @@
          .. input:: 
             :language: shell 
 
-            STAR_WARS_EMBEDDING.length
+            CHARMING_ANIMAL_EMBEDDING.length
 
          .. output::
             :language: shell

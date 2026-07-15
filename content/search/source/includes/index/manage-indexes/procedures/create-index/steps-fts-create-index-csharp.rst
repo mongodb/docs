@@ -36,7 +36,7 @@ To use the :driver:`.NET/C# Driver </csharp/current/>` to create a |fts| index:
 
             dotnet new console
 
-   .. step:: Add the .NET/C# Driver to your project as a dependency.
+   .. step:: Add the .NET/C# driver to your project as a dependency.
 
       Run the following command:
       

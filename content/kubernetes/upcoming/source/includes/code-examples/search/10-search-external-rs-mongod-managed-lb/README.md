@@ -168,8 +168,8 @@ Checks that the operator created the expected resources:
 | Deployment | `{name}-search-lb-0` | Envoy proxy pods |
 | ConfigMap | `{name}-search-lb-0-config` | Envoy routing configuration |
 | Service | `{name}-search-0-proxy-svc` | Proxy service (port 27028) |
-| StatefulSet | `{name}-search` | mongot pods |
-| Service | `{name}-search-svc` | Headless service for mongot pods |
+| StatefulSet | `{name}-search-0` | mongot pods |
+| Service | `{name}-search-0-svc` | Headless service for mongot pods |
 
 ```bash
 ./code_snippets/10_0326_verify_envoy_deployment.sh

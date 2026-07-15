@@ -37,6 +37,6 @@
                automatically created to send a notification 30 days before
                the CA expires, repeating every 24 hours. You can view and
                edit this alert from |service|'s :guilabel:`Alert Settings` page. For more information on configuring alerts, see 
-               :doc:`Configure Alert Settings </configure-alerts>`. 
+               :ref:`Configure Alert Settings <configure-alerts>`. 
       
    .. step:: Click :guilabel:`Save`.

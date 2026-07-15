@@ -1,12 +1,12 @@
-.. meta::
-   :keywords: atlas cli, atlas ui
-   :description: Configure the hour for Atlas to start weekly maintenance on your cluster, with additional options for protected hours and urgent maintenance considerations.
-
 .. _configure-maintenance-window:
 
-============================
-Configure Maintenance Window
-============================
+============================================================
+Configure Maintenance Windows, Sequence, and Protected Hours
+============================================================
+
+.. meta::
+   :keywords: atlas cli, atlas ui
+   :description: Configure the hour for Atlas to start weekly maintenance on your cluster, with additional options for protected hours, maintenance sequence waves, and urgent maintenance considerations.
 
 .. default-domain:: mongodb
 
@@ -20,31 +20,50 @@ Configure Maintenance Window
    :depth: 1
    :class: singlecol
 
-You can set the hour of the day when |service| should start weekly
-maintenance on your cluster. This setting is optional and is not
-required for most clusters. Configure maintenance windows from your
-:ref:`project settings <project-settings>`.
+You can manage how |service| rolls out maintenance for your projects by
+configuring:
 
-Typically, you don't need to manually configure a maintenance window.
-|service| performs maintenance automatically in a rolling manner to preserve 
-continuous availability for :ref:`resilient applications <resilient-application>`.
-You can use the :ref:`Test Failover <test-failover>` capability to ensure that 
-your application is resilient to replica set elections.
+- **Protected Hours**: Business-critical hours during which standard
+  updates can't occur.
+- **Maintenance Windows**: The time of day when |service| should start weekly
+  maintenance that requires replica set elections for clusters in a project.
+- **Maintenance Sequence**: The order in which projects in your organization
+  receive maintenance. You configure maintenance sequence in waves labelled
+  sequentially, from :guilabel:`Wave 1` to :guilabel:`Last Wave`.
 
-Configuring maintenance windows provides more control over the timing of 
-maintenance by allowing maintenance that requires replica set elections to occur
-at your preferred time of day, and other standard updates to occur outside of 
-business-critical hours.
+You can visualize how |service| rolls out maintenance to your projects given
+your maintenance window, protected hours, and maintenance sequence
+configuration using the
+:ref:`Projected Maintenance Calendar tool <projected-maint-cal-tool>`.
 
 .. important::
 
-   You configure maintenance windows at the project level and they apply only to
-   {+Dedicated-clusters+} (``M10`` and above). For {+Free-clusters+} and 
-   {+Flex-clusters+}, |service| manages their maintenance windows automatically
-   and you can't configure them manually.
+   Maintenance windows, protected hours, and maintenance sequence are
+   configured per project and they apply only to {+Dedicated-clusters+}
+   (``M10`` and above). For {+Free-clusters+} and {+Flex-clusters+}, |service|
+   manages their maintenance windows automatically and you can't configure them
+   manually.
 
-Maintenance Window Considerations
----------------------------------
+We recommend that you set maintenance windows, protected hours, and maintenance
+sequence, though all are optional. |service| performs maintenance automatically
+in a rolling manner to preserve continuous availability for 
+:ref:`resilient applications <resilient-application>`. To confirm that your
+application is resilient to replica set elections, 
+:ref:`test failover <test-failover>` in |service|.
+
+Maintenance Management Considerations
+-------------------------------------
+
+- **Protected hours**: In addition to configuring a maintenance window, you 
+  can set daily protected hours, which is a window of time during which 
+  |service| avoids performing standard updates. |service| automatically 
+  performs maintenance during the maintenance window. 
+  
+  However, |service| may perform standard updates that don't involve a cluster
+  restart or impact workload performance, outside of the maintenance window.
+  When you enable protected hours, |service| performs standard updates
+  outside of the protected hours window. The length of your protected hours
+  window can't exceed 18 hours.
 
 - **Urgent maintenance activities**: |service| may perform urgent maintenance
   activities (such as security patches for zero-day vulnerabilities) as soon
@@ -66,8 +85,8 @@ Maintenance Window Considerations
   :manual:`MongoDB Manual </tutorial/perform-maintence-on-replica-set-members/>`. 
   This procedure requires at least one :manual:`replica set election 
   </core/replica-set-elections>` during the maintenance window per replica 
-  set. Use the :ref:`Test Failover <test-failover>` capability to ensure 
-  that your application is resilient to replica set elections.
+  set. To confirm that your application is resilient to replica set elections,
+  :ref:`test failover <test-failover>` in |service|.
 
 - **Maintenance starts as close to the start of the window as possible**: 
   Maintenance always begins as close to the scheduled time as possible, but
@@ -80,33 +99,43 @@ Maintenance Window Considerations
   the WiredTiger storage engine. To learn more, see :manual:`Journaling and the WiredTiger
   Storage Engine </core/journaling/#journaling-wiredTiger>`.
 
-- **Protected hours**: In addition to configuring a maintenance window, you 
-  can set daily protected hours, which is a window of time during which 
-  |service| avoids performing standard updates. |service| automatically 
-  performs maintenance during the maintenance window. 
-  
-  However, |service| may perform standard updates that don't involve a cluster
-  restart or impact workload performance, outside of the maintenance window.
-  When you enable protected hours, |service| performs standard updates
-  outside of the protected hours window. The length of your protected hours
-  window can't exceed 18 hours.
+- **Default Maintenance Sequence**: |service| automatically assigns maintenance
+  waves to projects without explicit wave assignments using the following rules:
+
+  - |service| assigns projects **without** a configured maintenance window to
+    **Wave 1**. 
+
+  - |service| assigns projects **with** a configured maintenance window to
+    **Wave 2**.
+
+- **Maintenance sequence evaluation**: |service| evaluates the configured
+  maintenance sequence at the time a maintenance event first goes out.
+  If you make changes to the maintenance sequence between when a maintenance event
+  starts and is completed across all waves, |service| begins using the new
+  maintenance sequence at the start of the next maintenance event.
+
+- **Time between maintenance**: When you have maintenance sequence configured,
+  there is at least a 48-hour gap between when |service| rolls out maintenance
+  to one wave and the following wave. A maintenance must complete for all
+  projects assigned to a given wave before |service| proceeds to the next wave,
+  starting with :guilabel:`Wave 1`.
 
 Scheduled Maintenance Operation Types
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The :guilabel:`Scheduled Maintenance Operations` modal may display one or 
 more of the following maintenance types:
 
-- MongoDB Required Maintenance: Critical maintenance operations required 
+- **MongoDB Required Maintenance**: Critical maintenance operations required 
   for cluster health and stability.
 
-- MongoDB Version Update: Upgrades to MongoDB minor versions, patch versions,
+- **MongoDB Version Update**: Upgrades to MongoDB minor versions, patch versions,
   or maintenance releases.
 
-- OS Policy Version Update: Updates to the underlying operating system 
+- **OS Policy Version Update**: Updates to the underlying operating system 
   policies and security patches.
 
-- Other Maintenance Operation: Additional maintenance activities required 
+- **Other Maintenance Operation**: Additional maintenance activities required 
   for cluster management.
 
 Track Maintenance Completion
@@ -127,7 +156,11 @@ weekly, since the first week is automatically deferred each time. If needed,
 you can still manually defer maintenance an additional time.
 
 .. important::
-
+   
+   If you have maintenance sequence configured for projects in an organization,
+   you can't configure auto-deferring maintenance for projects in that
+   organization.
+   
    If you enable the :guilabel:`Automatically defer maintenance for one week`
    option, |service| configures automatic deferral for future maintenance windows.
    To defer currently scheduled maintenance, use the :guilabel:`Defer 1 Week`
@@ -136,13 +169,13 @@ you can still manually defer maintenance an additional time.
 
 Auto-defer allows you to:
 
-- Reduce maintenance frequency: Set up auto-defer once to space out
+- **Reduce maintenance frequency**: Set up auto-defer once to space out
   maintenance operations to occur every two weeks instead of weekly.
 
-- Batch updates: Consolidate maintenance operations into a single
+- **Batch updates**: Consolidate maintenance operations into a single
   maintenance window and reduce the total number of maintenance events.
 
-- Test in lower environments first: Set up auto-defer in production
+- **Test in lower environments first**: Set up auto-defer in production
   environments and allow  maintenance to run weekly in development or staging.
   This gives you time to validate updates before they reach production.
 
@@ -155,71 +188,259 @@ To manage maintenance windows, you must have
 :authrole:`Organization Owner` or :authrole:`Project Owner` access 
 to the project.
 
-Procedure
----------
-
-Open Your Project Settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/steps-view-modify-project-settings.rst
-
+.. _maintenance-window-config-proj-level:
 .. _maintenance-window-protected-hours:
 
-View and Configure Maintenance Window
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Configure Your Project's Maintenance Window and Sequence
+--------------------------------------------------------
+
+View and Configure Maintenance Window and Sequence
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. tabs::
 
    .. tab:: {+atlas-ui+}
       :tabid: ui
 
-      To view and configure the maintenance window using the 
-      {+atlas-ui+}:
+      You can configure a project's maintenance window, protected hours, and
+      maintenance sequence from your organization's settings or from that
+      project's settings.
 
-      1. Click the :guilabel:`Set Maintenance Window` button to display the maintenance window settings.
+      .. collapsible:: 
+         :heading: Organization Settings
+         :sub_heading: Configure maintenance windows, protected hours, and maintenance sequence through your organization's settings.
+         :expanded: false
 
-      #. Set the day and time that you want |service| to start
-         maintenance on your project.
+         .. procedure::
+            :style: normal
 
-      #. If you want |service| to automatically defer any scheduled
-         maintenance for one week, click
-         :guilabel:`Automatically defer maintenance for one week`.
+            .. include:: /includes/nav/steps-org-settings.rst
+
+         The :guilabel:`Maintenance Window and Sequence` section displays
+         the maintenance windows and sequence you have configured for the
+         projects in your organization. To configure maintenance sequence
+         waves from your organization's settings using the {+atlas-ui+}:
          
-         Enabling this option configures automatic deferral for future maintenance 
-         windows. To defer currently scheduled maintenance, use the :guilabel:`Defer 1 Week` button.
+         1. Click :guilabel:`Edit sequence for all projects`.
 
-      #. To set a range of protected hours in which |service| avoids performing
-         standard updates, toggle the :guilabel:`Turn on protected hours`
-         setting to :guilabel:`On`. You can set a maximum time range of 18 hours a day.
+         #. To manually assign maintenance waves to your projects, select
+            :guilabel:`Manual Assignment`.
+            
+            i. Use the dropdown next to each project to assign a maintenance
+               wave.
 
-      #. Click :guilabel:`Save` to keep your changes or click
-         :guilabel:`Cancel` to discard them.
+            #. If you have environment project tags set for your projects,
+               you can use the
+               :guilabel:`Generate sequences based on existing project tags`
+               option.
+
+               .. include:: /includes/list-tables/project-tags-maintenance-sequence.rst
+               
+               |service| **does not** automatically update these assignments if
+               you update a project's environment tag.
+            
+            If you have :guilabel:`Manual Assignment` selected, you can
+            also configure a project's maintenance sequence as you
+            configure its maintenance window.
+
+         #. To link your projects' maintenance waves to their environment
+            project tags, select
+            :guilabel:`Use Project Tags to auto-define sequence`.
+
+            .. include:: /includes/list-tables/project-tags-maintenance-sequence.rst
+
+            |service| automatically updates these assignments as you update
+            a project's environment tag.
+
+         #. Click :guilabel:`Save` to keep your changes or click
+            :guilabel:`Cancel` to discard them.
+      
+         To configure a project's maintenance window using the {+atlas-ui+}:
+
+         1. Select one or more projects whose maintenance window you
+            want to configure.
+
+            To edit the maintenance window of a single project, click the
+            :icon-fa5:`pencil-alt` next to the project to open the
+            :guilabel:`Edit Maintenance Window` page.
+
+            To edit the maintenance window of multiple projects, click
+            the checkbox next to the projects you want to select.
+            Then, click :guilabel:`Edit Maintenance Window`.
+
+         #. Set the day and time that you want |service| to start
+            maintenance on the projects you selected.
+
+         #. To set a range of protected hours in which |service| avoids
+            performing standard updates, toggle the
+            :guilabel:`Enable protected hours` setting to :guilabel:`On`.
+            You can set a maximum time range of 18 hours a day.
+
+         #. If you want |service| to automatically defer any scheduled
+            maintenance for one week, click
+            :guilabel:`Automatically defer maintenance for one week`.
+            
+            Enabling this option configures automatic deferral for future
+            maintenance windows. To defer currently scheduled maintenance,
+            use the :guilabel:`Defer 1 Week` button.
+
+            .. include:: /includes/admonitions/importants/maintenance-waves-auto-deferrals.rst
+
+         #. To set the maintenance sequence, use the dropdown under
+            :guilabel:`Sequence (per project)` to assign your project
+            or projects to a maintenance wave.
+
+            .. include:: /includes/admonitions/notes/maint-seq-with-proj-tags.rst
+
+         #. Click :guilabel:`Save` to keep your changes or click
+            :guilabel:`Cancel` to discard them.
+
+      .. collapsible:: 
+         :heading: Project Settings
+         :sub_heading: Configure maintenance window, protected hours, and maintenance sequence through your projects's settings.
+         :expanded: false
+
+         .. procedure::
+            :style: normal
+
+            .. include:: /includes/nav/steps-project-settings.rst
+
+         The :guilabel:`Maintenance Window and Sequence` section displays the
+         maintenance window and sequence you have configured for a project. To
+         configure maintenance sequence waves from a projects's settings
+         using the {+atlas-ui+}:
+
+         1. Click the :guilabel:`Edit` button to configure the maintenance
+            window or sequence.
+
+         #. Set the day and time that you want |service| to start
+            maintenance on your project.
+
+         #. To set a range of protected hours in which |service| avoids
+            performing standard updates, toggle the
+            :guilabel:`Enable protected hours` setting to :guilabel:`On`.
+            You can set a maximum time range of 18 hours a day.
+
+         #. If you want |service| to automatically defer any scheduled
+            maintenance for one week, click
+            :guilabel:`Automatically defer maintenance for one week`.
+            
+            Enabling this option configures automatic deferral for future
+            maintenance windows. To defer currently scheduled maintenance,
+            use the :guilabel:`Defer 1 Week` button.
+
+            .. include:: /includes/admonitions/importants/maintenance-waves-auto-deferrals.rst
+
+         #. To set the maintenance sequence, use the dropdown under
+            :guilabel:`Sequence (per project)` to assign your project
+            or projects to a maintenance wave.
+
+            .. include:: /includes/admonitions/notes/maint-seq-with-proj-tags.rst
+
+         #. Click :guilabel:`Save` to keep your changes or click
+            :guilabel:`Cancel` to discard them.
 
    .. tab:: {+atlas-cli+}
       :tabid: atlascli
 
       .. include:: /includes/extracts/atlas-maintenanceWindows-describe-and-update.rst
 
-Clear Your Maintenance Window Configuration Settings
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   .. tab:: {+atlas-admin-api+}
+      :tabid: atlasapi
 
-If you configured a preferred maintenance window start time, you can
-clear the settings using the {+atlas-cli+} or the {+atlas-ui+}. Clearing your maintenance window configuration restores the default
-maintenance window settings.
+      {+service+} provides the :oas-bump-atlas-op:`Update One
+      Maintenance Window for One Project endpoint
+      <updategroupmaintenancewindow>` and the :oas-bump-atlas-op:`Get One
+      Maintenance Window for One Project endpoint
+      <getgroupmaintenancewindow>`.
+
+      .. include:: /includes/fact-service-accounts-first.rst
+
+Delete Your Maintenance Window Configuration Settings
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you have maintenance windows, protected hours, or maintenance
+sequence configured, you can delete these settings using the {+atlas-ui+},
+{+atlas-cli+}, or the {+atlas-admin-api+}. Deleting your maintenance window
+configuration restores the default maintenance window settings.
 
 .. tabs::
 
    .. tab:: {+atlas-ui+}
       :tabid: ui
 
-      To clear the configured maintenance window using the
-      {+atlas-ui+}, toggle the :guilabel:`Set Maintenance Window`
-      setting to :guilabel:`Off`.
+      Organization Settings
+      `````````````````````
+
+      You can delete all configured maintenance sequence waves by clicking
+      :guilabel:`Delete sequence for all projects` in the
+      :guilabel:`Maintenance Window and Sequence` section.
+
+      To delete specific maintenance windows or sequence wave assignments:
+
+      .. procedure::
+         :style: normal
+
+         .. step:: If you have maintenance sequence waves configured, click the
+            tab corresponding to the wave of the project whose maintenance
+            window you want to delete.
+
+         .. step:: Under :guilabel:`Actions`, click the :icon-fa5:`trash-alt`
+            icon next to the maintenance window you want to delete. This
+            deletes the maintenance window and the assigned sequence wave.
+
+         .. step:: To delete an assigned maintenance sequence wave without
+            deleting the maintenance window:
+         
+            1. Select one or more projects whose maintenance sequence wave
+               you want to delete.
+
+               To delete the maintenance sequence wave of a single project, click
+               the :icon-fa5:`pencil-alt` next to the project to open the
+               :guilabel:`Edit Maintenance Window` page.
+
+               To delete the maintenance window of multiple projects, click the
+               checkbox next to the projects you want to select.
+               Then, click :guilabel:`Edit Maintenance Window`.
+
+            #. Select :guilabel:`None` using the dropdown under
+               :guilabel:`Sequence (per project)`.
+
+      Project Settings
+      ````````````````
+
+      To delete the configured maintenance window and sequence using the
+      {+atlas-ui+}, click the :icon-fa5:`trash-alt` icon in the 
+      :guilabel:`Maintenance Window and Sequence` section.
+
+      To delete an assigned maintenance sequence wave without deleting the
+      maintenance window:
+
+      .. procedure::
+         :style: normal
+      
+         .. step:: Click :guilabel:`Edit` in the
+            :guilabel:`Maintenance Window and Sequence` section.
+      
+         .. step:: Select :guilabel:`None` using the dropdown under
+            :guilabel:`Sequence (per project)`.
+
+         .. step:: Click :guilabel:`Save` to keep your changes or click
+            :guilabel:`Cancel` to discard them.
 
    .. tab:: {+atlas-cli+}
       :tabid: atlascli
 
       .. include:: /includes/extracts/atlas-maintenanceWindows-clear.rst
+
+   .. tab:: {+atlas-admin-api+}
+      :tabid: atlasapi
+
+      {+service+} provides the :oas-bump-atlas-op:`Update One
+      Maintenance Window for One Project endpoint
+      <updategroupmaintenancewindow>`.
+
+      .. include:: /includes/fact-service-accounts-first.rst
 
 Respond to Required Maintenance
 -------------------------------
@@ -258,10 +479,22 @@ Begin Maintenance Now
       .. procedure::
          :style: normal
 
+         .. include:: /includes/nav/steps-project-settings.rst
+
+         .. step:: Under the :guilabel:`Database` section in the left
+            navigation, click :guilabel:`Clusters`.
+
+         .. step:: In the maintenance banner, click :guilabel:`View Details` or
+            :guilabel:`View more scheduled maintenances`.
+            
+            A modal window titled :guilabel:`Scheduled Maintenance Operations`
+            appears, showing the scheduled date and time along with the types of
+            maintenance operations planned.
+
          .. step:: In the maintenance banner, click :guilabel:`Show Details`. 
             A modal window titled :guilabel:`Scheduled Maintenance Operations` 
             appears, showing the scheduled date and time along with the types of
-	    maintenance operations planned.
+            maintenance operations planned.
 
          .. step:: In the :guilabel:`Scheduled Maintenance Operations` modal, 
             click the :guilabel:`Begin Now` button. In the
@@ -314,6 +547,10 @@ Defer Maintenance
 Use the following procedure to defer currently scheduled maintenance by one week. 
 To automatically defer all future maintenance, enable :ref:`auto-defer <auto-defer-maintenance>`.
 
+.. note:: Deferring Maintenance with Maintenance Sequence Configured
+   
+   .. include:: /includes/admonitions/defer-maintenance-sequence.rst
+
 .. tabs::
 
    .. tab:: {+atlas-ui+}
@@ -326,7 +563,14 @@ To automatically defer all future maintenance, enable :ref:`auto-defer <auto-def
       .. procedure::
          :style: normal
 
-         .. step:: In the maintenance banner, click :guilabel:`Show Details`.
+         .. include:: /includes/nav/steps-project-settings.rst
+
+         .. step:: Under the :guilabel:`Database` section in the left
+            navigation, click :guilabel:`Clusters`.
+
+         .. step:: In the maintenance banner, click :guilabel:`View Details` or
+            :guilabel:`View more scheduled maintenances`.
+
             A modal window titled :guilabel:`Scheduled Maintenance Operations`
             appears, showing the scheduled date and time along with the types of
             maintenance operations planned.
@@ -351,3 +595,20 @@ To automatically defer all future maintenance, enable :ref:`auto-defer <auto-def
       <defergroupmaintenancewindow>`.
 
       .. include:: /includes/fact-defer-maintenance-max.rst
+
+.. _projected-maint-cal-tool:
+
+Projected Maintenance Calendar Tool
+-----------------------------------
+
+To visualize when a maintenance event will roll out to your projects, you can
+use the
+`Projected Maintenance Calendar tool <https://www.mongodb.com/docs/atlas/maintenance-waves-visualizer/>`__.
+This tool allows you to enter potential maintenance window and sequence
+settings and a maintenance release date. Given these settings and release date,
+the tool displays the date and time at which |service| would perform
+maintenance on the projects in each sequence wave.
+
+This tool **is not** linked to your |service| account. It can't read settings
+you have configured in |service| or configure settings for your projects or
+organizations.

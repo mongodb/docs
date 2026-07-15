@@ -8,6 +8,12 @@
      - |k8s| Version
      - OpenShift Version
 
+   * - 1.9.0
+     - June 30, 2026
+     - to be determined
+     - 1.34, 1.35, 1.36
+     - 4.21
+
    * - 1.8.1
      - May 20, 2026
      - to be determined

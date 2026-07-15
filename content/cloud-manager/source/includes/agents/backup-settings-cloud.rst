@@ -158,7 +158,7 @@ To learn more, see
    uses the client certificate when connecting to a MongoDB deployment
    that uses |tls| and requires client certificates. (The deployment
    runs with the
-   :manual:`--tlsCAFile </reference/program/mongod/#std-option-mongod.--tlsCAFile>` setting.)
+   :option:`--tlsCAFile <mongod --tlsCAFile>` setting.)
 
 .. bsetting:: sslClientCertificatePassword
 

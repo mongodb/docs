@@ -6,8 +6,8 @@
      - Description
 
    * - ``isCollectDatabaseSpecificsStatisticsEnabled``
-     - Flag that indicates whether statistics in :doc:`cluster metrics 
-       </monitor-cluster-metrics>` collection is enabled for the 
+     - Flag that indicates whether statistics in :ref:`cluster metrics 
+       <monitor-cluster-metrics>` collection is enabled for the 
        project. 
 
    * - ``isDataExplorerEnabled``

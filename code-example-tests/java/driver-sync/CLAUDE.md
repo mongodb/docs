@@ -4,7 +4,7 @@
 
 - Java 21 (Zulu JDK recommended), Maven build
 - Multi-module project: parent POM at `code-example-tests/java/pom.xml`
-- Key deps: `mongodb-driver-sync` 5.6.0, `jackson-databind` 2.20.0, JUnit 5.13.4
+- Key deps: `mongodb-driver-sync` 5.9.0, `jackson-databind` 2.20.0, JUnit 5.13.4
 - Connection string via environment variable: `export CONNECTION_STRING="..."`
 - First-time setup: run `mvn clean install -DskipTests` from the `java/` directory
 

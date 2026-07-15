@@ -1,6 +1,8 @@
 The following table describes add-on component version compatibility for
-the Node.js driver. Any other combination of packages might be
-unstable.
+the Node.js driver. The table uses `caret ranges
+<https://docs.npmjs.com/cli/v6/using-npm/semver#caret-ranges-123-025-004>`__
+(``^``) to denote compatible versions. If a cell is empty, the driver
+version isn't compatible with the component.
 
 .. list-table::
    :header-rows: 1
@@ -10,7 +12,7 @@ unstable.
 
    * - Node.js Driver Version
      - bson
-     - bson-ext
+     - bson-ext [1]_
      - @mongodb-js/kerberos
      - mongodb-client-encryption
      - @mongodb-js/zstd
@@ -67,3 +69,6 @@ unstable.
      -
      -
      -
+
+.. [1] Driver versions 5.x and later don't support ``bson-ext``. Use
+   ``bson`` instead.

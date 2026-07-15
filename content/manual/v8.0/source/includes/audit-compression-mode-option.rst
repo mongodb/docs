@@ -5,7 +5,7 @@ Specifies the compression mode for :ref:`audit log encryption
 encryption using either |audit-encryption-key-identifier-option| or
 |audit-local-keyfile-option|.
 
-|audit-compression-mode-option| can be set to one of these values:
+You can set this option to one of these values:
    
 .. list-table::
    :header-rows: 1

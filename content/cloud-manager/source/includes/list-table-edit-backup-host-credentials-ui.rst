@@ -3,7 +3,7 @@
 
    * - :guilabel:`Auth Mechanism`
 
-     - The :manual:`authentication mechanism </core/authentication>`
+     - The :ref:`authentication mechanism <authentication>`
        that the MongoDB host uses.
 
        MongoDB Community options include:

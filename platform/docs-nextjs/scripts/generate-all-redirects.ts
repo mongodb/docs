@@ -1,10 +1,11 @@
 /**
- * Generates two artifacts from all *-redirects.json files in src/redirects/:
+ * Generates all-redirects.ts from all *-redirects.json files in src/redirects/.
  *
- *   all-redirects.ts   — static-import barrel file for webpack bundling (Next.js app)
- *   all-redirects.json — flat merged array for next.config.mjs (replaces readdirSync)
+ * The generated file is a static-import barrel used by the Next.js app (webpack
+ * bundling). next.config.mjs uses readdirSync directly and does not depend on
+ * this file.
  *
- * Both files are committed. Run this script whenever a new *-redirects.json is added.
+ * Run this script whenever a new *-redirects.json is added.
  * It is chained automatically by: pnpm import:redirects
  */
 import fs from 'node:fs';
@@ -12,15 +13,12 @@ import path from 'node:path';
 
 const REDIRECTS_DIR = path.resolve(__dirname, '../src/redirects');
 const TS_OUTPUT = path.join(REDIRECTS_DIR, 'all-redirects.ts');
-const JSON_OUTPUT = path.join(REDIRECTS_DIR, 'all-redirects.json');
 
-// Discovers product redirect files; explicitly excludes the generated aggregate so
-// this script and migrate-redirects.ts do not pick up all-redirects.json.
 function discoverRedirectFiles(dir: string): string[] {
   if (!fs.existsSync(dir)) return [];
   return fs
     .readdirSync(dir)
-    .filter((f) => f.endsWith('-redirects.json') && f !== 'all-redirects.json')
+    .filter((f) => f.endsWith('-redirects.json'))
     .sort();
 }
 
@@ -58,24 +56,8 @@ export function generateTsFile(dir: string): string {
   ].join('\n');
 }
 
-export function generateJsonFile(dir: string): object[] {
-  const files = discoverRedirectFiles(dir);
-  if (files.length === 0) {
-    throw new Error(`No *-redirects.json files found in ${dir}`);
-  }
-
-  return files.flatMap((filename) => {
-    const raw = fs.readFileSync(path.join(dir, filename), 'utf-8');
-    return JSON.parse(raw) as object[];
-  });
-}
-
 if (require.main === module) {
   const tsContent = generateTsFile(REDIRECTS_DIR);
   fs.writeFileSync(TS_OUTPUT, tsContent, 'utf-8');
   console.log(`Generated ${path.relative(process.cwd(), TS_OUTPUT)}`);
-
-  const jsonEntries = generateJsonFile(REDIRECTS_DIR);
-  fs.writeFileSync(JSON_OUTPUT, JSON.stringify(jsonEntries, null, 2) + '\n', 'utf-8');
-  console.log(`Generated ${path.relative(process.cwd(), JSON_OUTPUT)} (${jsonEntries.length} entries)`);
 }

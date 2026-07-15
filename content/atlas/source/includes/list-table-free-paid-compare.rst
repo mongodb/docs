@@ -21,9 +21,9 @@
 
      - Limited
      - Limited
-     - :doc:`Full metrics </monitor-cluster-metrics>`, including the
+     - :ref:`Full metrics <monitor-cluster-metrics>`, including the
        :ref:`Real Time Performance Tab <real-time-metrics-status-tab>`,
-       and full :doc:`alert configuration options</configure-alerts>`.
+       and full :ref:`alert configuration options<configure-alerts>`.
 
    * - VPC Peering
      - No
@@ -34,16 +34,16 @@
      - A subset of regions in |aws|, |gcp|, and Azure.
      - A subset of regions in |aws|, |gcp|, and Azure.
      - |service| supports deploying clusters globally on
-       :doc:`Amazon Web Services </reference/amazon-aws>`,
-       :doc:`Google Cloud Platform </reference/google-gcp>`, and
-       :doc:`Microsoft Azure </reference/microsoft-azure>`.
+       :ref:`Amazon Web Services <amazon-aws>`,
+       :ref:`Google Cloud Platform <google-gcp>`, and
+       :ref:`Microsoft Azure <microsoft-azure>`.
 
    * - Cross-Region Deployments
      - No
      - No
      - Yes. Specify additional regions for high
-       availability or local reads when :doc:`creating </tutorial/create-new-cluster>`
-       or :doc:`scaling </scale-cluster>` a cluster.
+       availability or local reads when :ref:`creating <create-new-cluster>`
+       or :ref:`scaling <modify-cluster>` a cluster.
 
    * - Backups
      - No

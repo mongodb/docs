@@ -54,14 +54,14 @@
          .. input:: 
             :language: shell 
 
-            STAR_WARS_EMBEDDING.length
+            CHARMING_ANIMAL_EMBEDDING.length
 
          .. output::
             :language: shell
 
             2048
 
-   .. step:: Run the following {+fts+} queries against the ``embedded_movies`` collection.
+   .. step:: Run the following query against the ``embedded_movies`` collection.
 
       .. io-code-block:: 
          :copyable: true 

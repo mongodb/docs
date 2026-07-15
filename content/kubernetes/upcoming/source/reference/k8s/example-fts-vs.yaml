@@ -1,9 +1,11 @@
 
 spec:
   source:
+    # external takes precedence over mongodbResourceRef
     mongodbResourceRef:
       name: mdb
     external:
+      # hostAndPorts and shardedCluster are mutually exclusive
       hostAndPorts:
         - mdb-rs-external-0.example.com:27017
         - mdb-rs-external-1.example.com:27017
@@ -22,7 +24,11 @@ spec:
             hosts:
               - shard1-node1.example.com:27018
               - shard1-node2.example.com:27018
+      keyfileSecretRef:
+        name: mdb-keyfile
+        key: keyfile
       tls:
+        # ca references a ConfigMap that contains ca.crt
         ca:
           name: mdbc-rs-ca
     username: search-sync-source
@@ -30,61 +36,135 @@ spec:
       name: mdbc-rs-search-sync-source-password
       key: password
     # x509 authentication (mutually exclusive with
-    # username/passwordSecretRef)
+    # username/passwordSecretRef and source.tls)
     x509:
       clientCertificateSecretRef:
         name: mongot-x509-client-cert
-  replicas: 2
-  loadBalancer:
-    # Option 1: Operator-managed Envoy load balancer
-    managed:
-      externalHostname: "search.apps.example.com"
+      # Set only if the private key is encrypted
+      keyFilePasswordSecretRef:
+        name: mongot-x509-key-password
+    # TLS client certificate for SCRAM connections
+    # (mutually exclusive with x509):
+    # tls:
+    #   clientCertificateSecretRef:
+    #     name: mongot-scram-client-cert
+    #   keyFilePasswordSecretRef:
+    #     name: mongot-scram-key-password
+  security:
+    tls:
+      certificateKeySecretRef:
+        name: mdbs-tls-secret
+      certsSecretPrefix: my-prefix
+      # Set only if the private key is encrypted
+      keyFilePasswordSecretRef:
+        name: mdbs-tls-key-password
+  version: "1.70.1"
+  autoEmbedding:
+    embeddingModelAPIKeySecret:
+      name: embedding-model-api-query-key
+    providerEndpoint: https://ai.mongodb.com/v1/embeddings
+  featureFlags:
+    enableOverloadRetrySignal: true
+  logLevel: INFO
+  observability:
+    prometheus:
+      mode: enabled
+      port: 9946
+    metricsForwarder:
+      mode: auto
       resourceRequirements:
         requests:
-          cpu: "100m"
+          cpu: 100m
           memory: 128Mi
         limits:
-          cpu: "500m"
-          memory: 512Mi
+          cpu: 250m
+          memory: 256Mi
       deployment:
         spec:
           template:
             spec:
               nodeSelector:
                 kubernetes.io/os: linux
-    # Option 2: User-provided (BYO) load balancer
-    # (mutually exclusive with managed)
-    unmanaged:
-      endpoint: "search-lb.corp.example.com:443"
-  security:
-    tls:
-      certificateKeySecretRef:
-        name: mdbs-tls-secret
-      certsSecretPrefix: my-prefix
-  resourceRequirements:
-    limits:
-      cpu: "3"
-      memory: 5Gi
-    requests:
-      cpu: "2"
-      memory: 3Gi
-  persistence:
-    single:
-      storage: 16Gi
-      storageClass: standard
-  version: "0.64.0"
-  statefulSet:
-    spec:
-      template:
+      opsManager:
+        agentCredentials:
+          name: om-agent-api-key
+        projectConfigMapRef:
+          name: om-project-config
+  clusters:
+    - name: cluster-1
+      index: 0
+      replicas: 2
+      loadBalancer:
+        # Option 1: Operator-managed Envoy load balancer
+        managed:
+          externalHostname: "{shardName}.search.apps.example.com"
+          routerHostname: "search-router.apps.example.com:27028"
+          replicas: 2
+          resourceRequirements:
+            requests:
+              cpu: "100m"
+              memory: 128Mi
+            limits:
+              cpu: "500m"
+              memory: 512Mi
+          deployment:
+            spec:
+              template:
+                spec:
+                  nodeSelector:
+                    kubernetes.io/os: linux
+          retryPolicy:
+            numRetries: 2
+            perTryTimeout: "60s"
+          minMongotReadyReplicas: 1
+        # Option 2: User-provided (BYO) load balancer
+        # (mutually exclusive with managed)
+        unmanaged:
+          endpoint: "{shardName}-search-lb.corp.example.com:443"
+      resourceRequirements:
+        limits:
+          cpu: "3"
+          memory: 5Gi
+        requests:
+          cpu: "2"
+          memory: 4Gi
+      persistence:
+        single:
+          storage: 16G
+          storageClass: standard
+      statefulSet:
         spec:
-          nodeSelector:
-            kubernetes.io/os: linux
-  jvmFlags:
-    - -Xms2g
-    - -Xmx2g
-  autoEmbedding:
-    embeddingModelAPIKeySecret:
-      name: embedding-model-api-query-key
-    providerEndpoint: https://ai.mongodb.com/v1/embeddings
-  logLevel: INFO
-  prometheus: {}
+          template:
+            spec:
+              nodeSelector:
+                kubernetes.io/os: linux
+      jvmFlags:
+        - -Xms2g
+        - -Xmx2g
+      advancedMongotConfigs:
+        someAdvancedSetting: value
+      syncSourceSelector:
+        matchTagSets:
+          - region: us-east-1
+            workload: search
+          - {}
+      shardOverrides:
+        - shardNames:
+            - shard-0
+          replicas: 3
+          resourceRequirements:
+            requests:
+              cpu: "4"
+              memory: 8Gi
+          persistence:
+            single:
+              storage: 32G
+          jvmFlags:
+            - -Xms4g
+            - -Xmx4g
+          statefulSet:
+            spec:
+              template:
+                spec:
+                  nodeSelector:
+                    disktype: ssd

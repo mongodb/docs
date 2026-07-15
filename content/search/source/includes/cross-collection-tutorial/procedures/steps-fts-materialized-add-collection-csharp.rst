@@ -15,7 +15,7 @@
          dotnet add package MongoDB.Driver
 
       For more detailed installation instructions, see the 
-      :driver:`MongoDB C# Driver documentation </csharp/current/get-started>`.
+      :driver:`MongoDB .NET/C# Driver documentation </csharp/current/get-started>`.
    
    .. step:: Define the ``purchaseOrders`` collection documents.
    

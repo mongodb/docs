@@ -7,7 +7,7 @@
       paste the following code. This code defines an async Task named
       ``AddDocumentsAsync`` add documents to MongoDB. This function uses the
       :ref:`Collection.InsertManyAsync() <csharp-insert-guide>`
-      C# Driver method to insert a list of the ``BsonDocument`` type. Each
+      .NET/C# driver method to insert a list of the ``BsonDocument`` type. Each
       document contains:
 
       - A ``text`` field that contains the movie summary.

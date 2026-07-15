@@ -72,8 +72,7 @@ specification object in this array.
      - string
      - Required
      - Commit identifier that identifies the state of the code used
-       to build the MongoDB process. The MongoDB :manual:`buildInfo
-       </reference/command/buildInfo>` command returns the gitVersion
+       to build the MongoDB process. The MongoDB :dbcommand:`buildInfo` command returns the gitVersion
        identifier.
 
    * - mongoDbVersions[n].builds[k].modules

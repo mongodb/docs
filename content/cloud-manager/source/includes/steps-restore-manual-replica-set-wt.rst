@@ -51,7 +51,7 @@
       a. Click :guilabel:`Restore History`.
       
       b. When the restore job completes, click :guilabel:`(get link)`
-         for each :manual:`replica set </reference/glossary/#std-term-replica-set>` that appears.
+         for each :term:`replica set` that appears.
       
       c. Click:
       
@@ -97,7 +97,7 @@
              Server version. To check the MongoDB version, run ``mongod
              --version`` from a terminal or shell.
       
-      To learn more, see :manual:`installation </installation>`.
+      To learn more, see :ref:`installation <tutorials-installation>`.
       
    .. step:: Move the Snapshot Data Files to the Target Host.
 

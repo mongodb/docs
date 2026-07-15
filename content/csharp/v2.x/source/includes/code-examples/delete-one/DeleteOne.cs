@@ -1,4 +1,4 @@
-// Deletes a document from a collection by using the C# driver
+// Deletes a document from a collection by using the .NET/C# driver
 
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;

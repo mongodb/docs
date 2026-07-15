@@ -1,39 +1,42 @@
-a. Connect to the cluster using {+mongosh+}.
+.. procedure:: 
+   :style: normal
+   
+   .. step:: Connect to the cluster using {+mongosh+}.
 
-   Open {+mongosh+} in a terminal window and connect to your |service|
-   cluster. For detailed instructions on connecting, see
-   :ref:`Connect via mongosh <connect-mongo-shell>`.
+      Open {+mongosh+} in a terminal window and connect to your |service|
+      cluster. For detailed instructions on connecting, see
+      :ref:`Connect via mongosh <connect-mongo-shell>`.
 
-#. Switch to the database that contains the collection for which you want to create the index. 
+   .. step:: Switch to the database that contains the collection for which you want to create the index. 
 
-   .. example:: 
+      .. example:: 
 
-      .. io-code-block:: 
-         :copyable: true 
+         .. io-code-block:: 
+            :copyable: true 
 
-         .. input:: 
+            .. input:: 
+               :language: shell
+               
+               use sample_mflix 
+
+            .. output:: 
+               :language: shell 
+
+               switched to db sample_mflix
+
+   .. step:: Run the :method:`db.collection.createSearchIndex()` method to create the index.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
             :language: shell
-              
-            use sample_mflix 
 
-         .. output:: 
-            :language: shell 
+            db.movies.createSearchIndex(
+               "default",
+               { mappings: { dynamic: true } }
+            )
 
-            switched to db sample_mflix
+         .. output::
 
-#. Run the :method:`db.collection.createSearchIndex()` method to create the index.
-
-   .. io-code-block::
-      :copyable: true
-
-      .. input::
-         :language: shell
-
-         db.movies.createSearchIndex(
-            "default",
-            { mappings: { dynamic: true } }
-         )
-
-      .. output::
-
-         default
+            default

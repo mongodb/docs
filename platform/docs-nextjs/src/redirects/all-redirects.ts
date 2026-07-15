@@ -12,25 +12,37 @@ import cDriverRedirects from './c-driver-redirects.json';
 import chartsRedirects from './charts-redirects.json';
 import cloudManagerRedirects from './cloud-manager-redirects.json';
 import cppDriverRedirects from './cpp-driver-redirects.json';
+import csharpRedirects from './csharp-redirects.json';
 import djangoMongodbRedirects from './django-mongodb-redirects.json';
+import driversRedirects from './drivers-redirects.json';
 import entityFrameworkRedirects from './entity-framework-redirects.json';
+import golangRedirects from './golang-redirects.json';
+import javaRedirects from './java-redirects.json';
+import javaRsRedirects from './java-rs-redirects.json';
 import kafkaConnectorRedirects from './kafka-connector-redirects.json';
 import kotlinRedirects from './kotlin-redirects.json';
+import kotlinSyncRedirects from './kotlin-sync-redirects.json';
 import kubernetesOperatorRedirects from './kubernetes-operator-redirects.json';
 import kubernetesRedirects from './kubernetes-redirects.json';
 import landingRedirects from './landing-redirects.json';
 import laravelMongodbRedirects from './laravel-mongodb-redirects.json';
 import mongocliRedirects from './mongocli-redirects.json';
+import mongodbAnalyzerRedirects from './mongodb-analyzer-redirects.json';
 import mongoidRedirects from './mongoid-redirects.json';
 import nodeRedirects from './node-redirects.json';
 import opsManagerRedirects from './ops-manager-redirects.json';
 import phpLibraryRedirects from './php-library-redirects.json';
+import pymongoArrowDriverRedirects from './pymongo-arrow-driver-redirects.json';
 import pymongoDriverRedirects from './pymongo-driver-redirects.json';
 import realmRedirects from './realm-redirects.json';
+import rubyDriverRedirects from './ruby-driver-redirects.json';
 import rustRedirects from './rust-redirects.json';
+import scalaDriverRedirects from './scala-driver-redirects.json';
 import searchRedirects from './search-redirects.json';
+import selfManagedSearchRedirects from './self-managed-search-redirects.json';
 import sparkConnectorRedirects from './spark-connector-redirects.json';
 import sqlInterfaceRedirects from './sql-interface-redirects.json';
+import standbyClustersRedirects from './standby-clusters-redirects.json';
 import vectorSearchRedirects from './vector-search-redirects.json';
 import voyageaiRedirects from './voyageai-redirects.json';
 
@@ -46,25 +58,37 @@ export const allRedirects: RedirectEntry[] = [
   ...chartsRedirects,
   ...cloudManagerRedirects,
   ...cppDriverRedirects,
+  ...csharpRedirects,
   ...djangoMongodbRedirects,
+  ...driversRedirects,
   ...entityFrameworkRedirects,
+  ...golangRedirects,
+  ...javaRedirects,
+  ...javaRsRedirects,
   ...kafkaConnectorRedirects,
   ...kotlinRedirects,
+  ...kotlinSyncRedirects,
   ...kubernetesOperatorRedirects,
   ...kubernetesRedirects,
   ...landingRedirects,
   ...laravelMongodbRedirects,
   ...mongocliRedirects,
+  ...mongodbAnalyzerRedirects,
   ...mongoidRedirects,
   ...nodeRedirects,
   ...opsManagerRedirects,
   ...phpLibraryRedirects,
+  ...pymongoArrowDriverRedirects,
   ...pymongoDriverRedirects,
   ...realmRedirects,
+  ...rubyDriverRedirects,
   ...rustRedirects,
+  ...scalaDriverRedirects,
   ...searchRedirects,
+  ...selfManagedSearchRedirects,
   ...sparkConnectorRedirects,
   ...sqlInterfaceRedirects,
+  ...standbyClustersRedirects,
   ...vectorSearchRedirects,
   ...voyageaiRedirects,
 ] as RedirectEntry[];

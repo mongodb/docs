@@ -58,6 +58,23 @@ Agent
      - New agent
      - Project, Global
 
+Alerts
+------
+
+.. list-table::
+   :widths: 40 40 20
+   :header-rows: 1
+
+   * - Alert Type
+     - Alert Message
+     - Scopes
+
+   * - .. alert:: WEBHOOK_TEMPLATE_RENDER_FAILED
+     - A webhook alert notification template failed to render, so the
+       default payload was sent instead. Review the webhook template
+       in your alert settings.
+     - Project, Global
+
 Automation Configuration
 ------------------------
 

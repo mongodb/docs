@@ -3,7 +3,7 @@ import { mockLocation } from '../utils/mock-location';
 import { Paragraph } from '@/mdx-components/Paragraph';
 import { List } from '@/mdx-components/List';
 import { ListItem } from '@/mdx-components/ListItem';
-import Link from '@/mdx-components/LegacyLink';
+import { Link } from '@/mdx-components/Link';
 
 beforeAll(() => {
   mockLocation({ hash: '' });

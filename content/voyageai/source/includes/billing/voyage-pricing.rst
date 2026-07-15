@@ -95,6 +95,25 @@ the API key used for access. All models include a free tier. Get started with
            - $0.12
            - 200 million
 
+      .. collapsible::
+         :heading: Older Contextualized Chunk Embedding Models
+         :sub_heading: The following table shows the pricing for older contextualized chunk embedding models.
+         :expanded: false
+
+         .. list-table::
+            :header-rows: 1
+            :widths: 25 20 20 35
+
+            * - Model
+              - Price per 1K tokens
+              - Price per 1M tokens
+              - Free tokens
+
+            * - ``voyage-context-3``
+              - $0.00018
+              - $0.18
+              - 0
+
    .. tab:: Multimodal
       :tabid: multimodal
 

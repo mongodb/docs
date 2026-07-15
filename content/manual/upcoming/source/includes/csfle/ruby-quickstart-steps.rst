@@ -91,8 +91,8 @@ assign the required configuration variables.
         to your {+shared-library+}, which resembles
         ``/<crypt shared directory>/lib/mongo_crypt_v1.dylib``
         on macOS and
-        ``C:\<crypt shared directory>\bin\mongo_crypt_v1.dll``
-        on Windows
+        ``/<crypt shared directory>/lib/mongo_crypt_v1.so``
+        on Linux
 
       The ``config.rb`` file instructs your application to store
       data encryption keys in the ``encryption.__keyVault``

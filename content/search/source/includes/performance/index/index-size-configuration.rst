@@ -47,6 +47,8 @@ index. However, setting ``store`` to ``false`` prevents you from using
 the :ref:`highlight <highlight-ref>` option to adds fields to the result
 set that display search terms in their original context.
 
+.. _autocomplete-index-size:
+
 Autocomplete
 ````````````
 

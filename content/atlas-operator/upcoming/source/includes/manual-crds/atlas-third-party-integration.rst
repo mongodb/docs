@@ -211,6 +211,23 @@ Datadog contains the config fields for Datadog's Integration.
        *Default*: disabled
      - false
 
+   * -  ``sendQueryStatsMetrics``
+     - enum
+     - ``SendQueryStatsMetrics`` toggles sending query shape metrics that includes
+       query hash and metrics on latency, execution frequency, documents returned,
+       and timestamps.
+       *Enum*: enabled, disabled
+       *Default*: disabled
+     - false
+
+   * -  ``sendUserProvidedResourceTags``
+     - enum
+     - ``SendUserProvidedResourceTags`` toggles sending user-provided group and cluster
+       resource tags with the Datadog metrics.
+       *Enum*: enabled, disabled
+       *Default*: disabled
+     - false
+
 .. _atlasthirdpartyintegration-spec-datadog-apikeysecretref: 
 
 AtlasThirdPartyIntegration.spec.datadog.apiKeySecretRef

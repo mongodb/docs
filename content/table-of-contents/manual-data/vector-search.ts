@@ -7,11 +7,6 @@ const tocData: TocItem[] = [
     url: '/docs/vector-search/tutorials/quick-start',
   },
   {
-    label: 'Compatibility & Limitations',
-    contentSite: 'vector-search',
-    url: '/docs/vector-search/deployment/compatibility-limitations',
-  },
-  {
     label: 'Automated Embedding',
     contentSite: 'vector-search',
     url: '/docs/vector-search/crud-embeddings/automated-embedding',
@@ -71,6 +66,33 @@ const tocData: TocItem[] = [
         label: 'Use Compatible Views',
         contentSite: 'vector-search',
         url: '/docs/vector-search/query/view-support',
+      },
+    ],
+  },
+  {
+    label: 'Native Reranking',
+    contentSite: 'vector-search',
+    collapsible: true,
+    items: [
+      {
+        label: '$rerank Aggregation Stage',
+        contentSite: 'vector-search',
+        url: '/docs/vector-search/query/aggregation-stages/rerank',
+      },
+      {
+        label: 'Get Started',
+        contentSite: 'vector-search',
+        url: '/docs/vector-search/query/native-reranking/quickstart',
+      },
+      {
+        label: 'Manage Native Reranking',
+        contentSite: 'vector-search',
+        url: '/docs/vector-search/query/native-reranking/managing',
+      },
+      {
+        label: 'Manage Billing',
+        contentSite: 'vector-search',
+        url: '/docs/vector-search/query/native-reranking/billing',
       },
     ],
   },
@@ -159,7 +181,6 @@ const tocData: TocItem[] = [
   {
     label: 'Performance Benchmark',
     contentSite: 'vector-search',
-    url: '/docs/vector-search/benchmark/benchmark',
     collapsible: true,
     items: [
       {
@@ -197,7 +218,7 @@ const tocData: TocItem[] = [
   {
     label: 'Changelog',
     isExternal: true,
-    url: 'https://www.mongodb.com/docs/vector-search/changelog/',
+    url: 'https://www.mongodb.com/docs/atlas/search-changelog/',
   },
 ];
 

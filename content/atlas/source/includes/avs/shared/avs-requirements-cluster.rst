@@ -8,5 +8,6 @@ One of the following MongoDB cluster types:
 - A local |service| deployment created using the {+atlas-cli+}. 
   To learn more, see :atlascli:`Create a Local Atlas Deployment </atlas-cli-deploy-local>`. 
 
-- A MongoDB Community or Enterprise cluster with 
-  :ref:`Search and Vector Search <community-search-deploy>` installed.
+- A MongoDB Community cluster with 
+  :ref:`Search and Vector Search <mongot-deployment-on-linux>` 
+  installed.

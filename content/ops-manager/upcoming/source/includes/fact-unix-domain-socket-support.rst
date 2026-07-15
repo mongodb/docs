@@ -3,7 +3,7 @@
    |onprem| automation doesn't support or validate the following settings. Using them 
    could cause deployment failure or downtime.
 
-   - :manual:`net.unixDomainSocket </reference/configuration-options>` options such as 
+   - :ref:`net.unixDomainSocket <configuration-options>` options such as 
      :setting:`net.unixDomainSocket.enabled`, :setting:`net.unixDomainSocket.pathPrefix`, 
      and :setting:`net.unixDomainSocket.filePermissions`. 
 

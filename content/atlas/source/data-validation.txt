@@ -1,0 +1,136 @@
+.. _data-validation:
+
+=======================================
+Data Validation for Cluster Consistency
+=======================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: data validation, data consistency, encryption at rest, customer-managed keys
+   :description: Learn how Atlas automatically validates data consistency across replica set nodes, what data is stored during validation, and how to manage the feature for encrypted clusters.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+|service| automatically runs data validation to proactively detect data
+inconsistencies across all clusters in a project. Data validation helps
+identify silent data corruption before it impacts your applications.
+
+Silent data corruption occurs when data differs across replica set nodes
+without triggering errors or warnings. This can happen due to hardware
+failures, network issues, or other system-level problems. Examples include:
+
+- **Missing documents:** A document exists on some nodes, but is missing from others.
+- **Content differences:** A document exists on all nodes, but the content differs between them.
+- **Index inconsistencies:** Index entries differ across nodes.
+
+Without validation, these inconsistencies can remain undetected and cause
+application errors, data loss, or incorrect query results.
+
+How Data Validation Works
+--------------------------
+
+|service| validates data across replica set nodes to detect silent data corruption by comparing data across replica set nodes.
+
+The validation process involves the following steps:
+
+#. Creates temporary validation instances in the same cloud provider and region as your cluster.
+
+#. Restores node snapshots to the validation instances.
+
+#. Compares data across node snapshots to detect inconsistencies.
+
+#. Stores validation results in |service| systems (|aws| ``us-east-1``) when inconsistencies are detected.
+
+Data validation runs automatically on all clusters in your project.
+If you need to, you can disable validation at the project level.
+
+.. _data-validation-data-storage:
+
+Data Access and Storage
+--------------------------
+
+During validation, |service| reads database and collection data to
+compute hashes and detect inconsistencies. |service| does not modify
+your cluster data or store decrypted document content. Decrypted data
+exists only temporarily during the validation process and is not persisted.
+
+When validation detects inconsistencies, |service| stores only the
+following metadata:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 20 50
+
+   * - Data Type
+     - Retention Period
+     - Description
+
+   * - Run metadata
+     - 3 years
+     - Validation run status, timestamps, and inconsistency summary
+       including counts by database, collection, and inconsistency type.
+
+   * - Inconsistency details
+     - 90 days
+     - Database name, collection name, document IDs, and
+       inconsistency types for documents that failed validation.
+
+   * - Validation logs
+     - 90 days
+     - Detailed validation output stored in S3. Available through
+       the |service| UI for troubleshooting.
+
+   * - Drill-down results
+     - 21 days
+     - Intermediate hash results used during the validation process.
+
+|service| retains only inconsistency metadata for analysis and troubleshooting.
+
+.. _data-validation-encryption-at-rest:
+
+Data Validation with Encryption at Rest
+----------------------------------------
+
+For clusters with :ref:`encryption at rest <security-kms-encryption>`
+using customer-managed keys, validation requires additional access to
+your key management service.
+
+Validation instances must decrypt data using your customer-managed key
+to perform validation checks. This results in additional KMS API
+requests and associated costs.
+
+For detailed information about KMS usage, costs, security
+considerations, and IP allowlist configuration requirements, see
+:ref:`data-validation-kms-usage`.
+
+.. _data-validation-disable:
+
+Disable Data Validation
+------------------------
+
+You can disable data validation for all clusters in a project.
+
+.. important::
+
+   Disabling data validation means |service| cannot proactively detect
+   data inconsistencies in your clusters. Only disable validation if
+   you have specific requirements that prevent validation from running.
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-project-settings.rst
+
+   .. step:: Locate the :guilabel:`Data Validation` setting.
+
+   .. step:: Toggle :guilabel:`Enable data validation for all clusters` to :guilabel:`Off`.
+
+   .. step:: Click :guilabel:`Save Changes`.
+
+      Disabling validation affects all clusters in the project,
+      including both encrypted and non-encrypted clusters.

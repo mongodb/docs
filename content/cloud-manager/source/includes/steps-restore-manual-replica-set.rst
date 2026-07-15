@@ -53,7 +53,7 @@
       a. Click :guilabel:`Restore History`.
       
       b. When the restore job completes, click :guilabel:`(get link)`
-         for each :manual:`replica set </reference/glossary/#std-term-replica-set>` appears.
+         for each :term:`replica set` appears.
       
       c. Click:
       
@@ -133,7 +133,7 @@
    .. step:: Restore the Replica Set Manually.
       
       Follow the tutorial from the MongoDB Manual to
-      :manual:`restore the replica set </tutorial/restore-replica-set-from-backup>`.
+      :ref:`restore the replica set <restore-add-members>`.
       
    .. step:: Reimport the Replica Set.
       

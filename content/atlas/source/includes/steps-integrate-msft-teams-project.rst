@@ -66,7 +66,7 @@
 
       In the :guilabel:`Alert if` section, select the target component and
       the condition. To learn more about alert conditions, see
-      :doc:`/reference/alert-conditions`.
+      :ref:`alert-conditions`.
       
    .. step:: Apply the alert only to specific targets. (Optional)
 

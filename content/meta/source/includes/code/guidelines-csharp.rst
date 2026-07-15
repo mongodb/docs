@@ -16,7 +16,7 @@ Assumptions and Compatibility
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 - Target the latest C# and .NET Framework versions. This is already
   set in the Grove project configuration and is maintained regularly.
-- Target the latest C# driver version. This is also already set in 
+- Target the latest .NET/C# driver version. This is also already set in 
   the Grove project configuration and is maintained regularly.
 - Avoid third-party libraries unless the page is explicitly about
   that library (for example, a web framework tutorial).

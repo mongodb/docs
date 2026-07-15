@@ -44,7 +44,7 @@
 
          * - ``<documentType>``
            - Class that represents a document in the collection. To learn more,
-             see :driver:`POCOs </csharp/current/serialization/poco/>` in the C# driver
+             see :driver:`POCOs </csharp/current/serialization/poco/>` in the .NET/C# driver
              documentation.
 
          * - ``<fieldToIndex>``

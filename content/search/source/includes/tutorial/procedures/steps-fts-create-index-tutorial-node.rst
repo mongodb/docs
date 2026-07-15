@@ -1,42 +1,45 @@
-a. Initialize your Node.js project.
+.. procedure::
+   :style: normal
 
-   .. code-block::
-    
-      # Create a new directory and initialize the project
-      mkdir atlas-search-quickstart && cd atlas-search-quickstart
-      npm init -y
+   .. step:: Initialize your Node.js project.
 
-   .. code-block:: 
+      .. code-block::
+      
+         # Create a new directory and initialize the project
+         mkdir atlas-search-quickstart && cd atlas-search-quickstart
+         npm init -y
 
-      # Add the MongoDB Node.js Driver to your project
-      npm install mongodb
+      .. code-block:: 
 
-   For detailed installation instructions, see the
-   :driver:`MongoDB Node Driver documentation </node/current>`.
+         # Add the MongoDB Node.js Driver to your project
+         npm install mongodb
 
-#. Define the index.
+      For detailed installation instructions, see the
+      :driver:`MongoDB Node Driver documentation </node/current>`.
 
-   Paste the following code into a file named ``create-index.js``.
-   
-   .. literalinclude:: /includes/tutorial/code-snippets/javascript/create-index-tutorial.js
-      :caption: create-index.js
-      :language: javascript
-      :emphasize-lines: 5
-      :copyable:
-      :linenos:
+   .. step:: Define the index.
 
-   .. include:: /includes/index/shared/facts/find-connection-string.rst
+      Paste the following code into a file named ``create-index.js``.
+      
+      .. literalinclude:: /includes/tutorial/code-snippets/javascript/create-index-tutorial.js
+         :caption: create-index.js
+         :language: javascript
+         :emphasize-lines: 5
+         :copyable:
+         :linenos:
 
-#. Create the index.
+      .. include:: /includes/index/shared/facts/find-connection-string.rst
 
-   .. io-code-block::
-      :copyable: true
+   .. step:: Create the index.
 
-      .. input::
-         :language: shell
+      .. io-code-block::
+         :copyable: true
 
-         node create-index.js
+         .. input::
+            :language: shell
 
-      .. output::
+            node create-index.js
 
-         default
+         .. output::
+
+            default

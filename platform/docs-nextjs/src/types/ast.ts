@@ -16,7 +16,6 @@ export type PageTemplateType =
   | 'feature-not-avail'
   | 'instruqt'
   | 'landing'
-  | 'openapi'
   | 'changelog'
   | 'search'
   | 'guide'

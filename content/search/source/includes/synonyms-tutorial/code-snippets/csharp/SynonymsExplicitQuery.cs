@@ -9,7 +9,7 @@ class Program
     {
         try
         {
-            // Initialize the MongoDB C# driver
+            // Initialize the MongoDB .NET/C# Driver
             var connectionString = "<connection-string>";
             var client = new MongoClient(connectionString);
             

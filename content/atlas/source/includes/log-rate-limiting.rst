@@ -4,8 +4,8 @@ for a period of time.
 
 .. note::
 
-   Log analysis rate limits apply only to the Performance Advisor UI, 
-   the Query Insights UI, the Access Tracking UI, and the |fts| Query
-   Analytics UI. :oas-bump-atlas-op:`Downloadable log files 
-   <downloadgroupclusterlog>` are always 
+   Log analysis rate limits apply only to the Performance Advisor UI,
+   the Query Insights UI, and the Access Tracking UI.
+   :oas-bump-atlas-op:`Downloadable log files
+   <downloadgroupclusterlog>` are always
    complete.

@@ -51,7 +51,7 @@
        New Relic MongoDB plugin. You can also use Insights for New
        Relic to run analytics on the collected data. |service| sends
        New Relic the same metric data as displayed in |service|
-       :doc:`cluster metrics </monitor-cluster-metrics>`.
+       :ref:`cluster metrics <monitor-cluster-metrics>`.
 
        - If you have a New Relic account, enter the following
          information:
@@ -93,8 +93,8 @@
      - Sets a default service key for alert notifications sent to a
        `PagerDuty <http://www.pagerduty.com/?utm_source=mongodb&utm_medium=docs&utm_campaign=partner>`_
        account. |service| enters the key by default when you add a
-       PagerDuty notification to an :doc:`alert configuration
-       </monitoring-alerts>`. If you add PagerDuty notifications and if
+       PagerDuty notification to an :ref:`alert configuration
+       <monitoring-alerts>`. If you add PagerDuty notifications and if
        the key used to send the notifications becomes invalid,
        |service| sends an email to the project owner and eventually
        removes the key.
@@ -154,51 +154,15 @@
 
      - Adds a :guilabel:`Webhook URL` endpoint to which |service| can
        send alert notifications for programmatic processing. |service|
-       sends an alert notification as an |http| POST request. The
-       request body contains a |json| document that uses the same
-       format as the {+atlas-admin-api+} ``Alerts`` resource.
+       sends an alert notification as an |http| POST request.
 
-       |service| adds a request header called ``X-MMS-Event`` to
-       distinguish between various alert states. The possible values
-       for this header are:
-
-       .. list-table::
-          :widths: 30 70
-
-          * - ``alert.open``
-
-            - The alert was just opened.
-
-          * - ``alert.close``
-
-            - The alert was resolved.
-
-          * - ``alert.update``
-
-            - A previously opened alert is still open.
-
-          * - ``alert.acknowledge``
-
-            - The alert was acknowledged.
-
-          * - ``alert.cancel``
-
-            - The alert became invalid and was canceled.
-
-          * - ``alert.inform``
-
-            - Represents an informational alert, which is a
-              {+PIT-Restore+} event, such as "Primary Elected."
-
-       If you specify a key in the :guilabel:`Webhook Secret` field,
-       |service| adds the ``X-MMS-Signature`` request header. This
-       header contains the Base64-encoded |hmac|-SHA-1 signature of the
-       request body. |service| creates the signature using the provided
-       secret.
+       For detailed information about webhook request headers, request
+       body structure, authentication, and limitations, see
+       :ref:`webhook-integration`.
 
        To send alert notifications to a Webhook, select the Webhook
        notification option when creating or editing an
-       :doc:`alert </monitoring-alerts>`. If you add a Webhook
+       :ref:`alert <monitoring-alerts>`. If you add a Webhook
        notification and the |url| or optional key becomes invalid,
        |service| sends an email to the project owner and eventually
        removes the Webhook settings.

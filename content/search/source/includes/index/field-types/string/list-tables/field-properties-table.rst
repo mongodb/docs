@@ -51,20 +51,30 @@ The |fts| ``string`` type takes the following parameters:
 
    * - ``indexOptions``
      - string
-     - Optional 
-     - Amount of information to store for the indexed 
+     - Optional
+     - Amount of information to store for the indexed
        field. Value can be one of the following:
 
-       - ``docs`` - Only indexes documents. The frequency and position 
-         of the indexed term are ignored. Only a single occurence of 
+       - ``docs`` - Only indexes documents. The frequency and position
+         of the indexed term are ignored. Only a single occurence of
          the term is reflected in the :ref:`score <scoring-ref>`.
-       - ``freqs`` - Only indexes documents and term frequency. The 
-         position of the indexed term is ignored. 
-       - ``positions`` - Indexes documents, term frequency, and term 
-         positions. 
-       - ``offsets`` - (Default) Indexes documents, term frequency, 
-         term positions, and term offsets. This option is required for 
+       - ``freqs`` - Only indexes documents and term frequency. The
+         position of the indexed term is ignored. Use this value if you
+         only need TF-IDF based scoring and don't run
+         :ref:`phrase <phrase-ref>`, :ref:`span <span-ref>`, or
+         :ref:`highlight <highlight-ref>` queries.
+       - ``positions`` - Indexes documents, term frequency, and term
+         positions. This value is required for :ref:`phrase
+         <phrase-ref>` and :ref:`span <span-ref>` operations.
+       - ``offsets`` - (Default) Indexes documents, term frequency,
+         term positions, and term offsets. This value is required for
          :ref:`highlight <highlight-ref>`.
+
+       Each successive value stores more information and increases the
+       index size. If you choose ``offsets`` over
+       ``freqs``, your index size can increase by 2.5 to 3 
+       times because ``positions`` and ``offsets`` store an
+       integer for each token occurrence.
 
      - ``offsets``
 
@@ -76,8 +86,15 @@ The |fts| ``string`` type takes the following parameters:
        or ``false``. The value for this option must be ``true`` for 
        :ref:`highlight <highlight-ref>`.
 
-       To reduce the index size and performance footprint, we recommend setting ``store`` to ``false``\. 
+       To reduce the index size and performance footprint, we recommend setting ``store`` to ``false``\.
        To learn more, see :ref:`index-perf`.
+
+       When you set ``store`` to ``false``, you can't run
+       :ref:`highlight <highlight-ref>` queries, so you don't need
+       term offsets. In this case, set the ``indexOptions`` option to
+       ``positions`` instead of the default ``offsets`` to further
+       reduce the index size while still supporting :ref:`phrase
+       <phrase-ref>` and :ref:`span <span-ref>` queries.
 
      - ``true``
 

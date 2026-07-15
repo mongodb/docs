@@ -69,4 +69,4 @@
        - ``MAJORITY``
 
        To learn about write acknowledgement levels in MongoDB, see 
-       :manual:`Write Concern </reference/write-concern>`.
+       :ref:`Write Concern <write-operations-write-concern>`.

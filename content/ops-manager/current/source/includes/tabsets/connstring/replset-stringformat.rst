@@ -32,5 +32,5 @@
 
       .. seealso::
 
-         :manual:`DNS Seedlist Connection Format </reference/connection-string/#dns-seedlist-connection-format>`
+         :ref:`DNS Seedlist Connection Format <dns-seed-list-connection-format>`
 

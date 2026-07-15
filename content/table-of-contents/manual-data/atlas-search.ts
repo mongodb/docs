@@ -191,6 +191,11 @@ const tocData: TocItem[] = [
             ],
           },
           {
+            label: 'Sorted Index',
+            contentSite: 'cloud-docs',
+            url: '/docs/search/index/sort',
+          },
+          {
             label: 'Stored Source',
             contentSite: 'search',
             url: '/docs/search/index/stored-source-definition',
@@ -449,6 +454,11 @@ const tocData: TocItem[] = [
         url: '/docs/search/tutorial/hybrid-search',
       },
       {
+        label: 'Native Reranking',
+        contentSite: 'docs',
+        url: 'https://www.mongodb.com/docs/vector-search/query/native-reranking/quickstart',
+      },
+      {
         label: 'Synonyms',
         contentSite: 'search',
         url: '/docs/search/tutorial/synonyms-tutorial',
@@ -492,7 +502,7 @@ const tocData: TocItem[] = [
     ],
   },
   {
-    label: 'Monitor Atlas Search',
+    label: 'Monitor Search',
     contentSite: 'search',
     url: '/docs/search/deployment/monitoring',
     collapsible: true,
@@ -550,7 +560,7 @@ const tocData: TocItem[] = [
   {
     label: 'Changelog',
     isExternal: true,
-    url: 'https://www.mongodb.com/docs/search/changelog/',
+    url: 'https://www.mongodb.com/docs/atlas/search-changelog/',
   },
 ];
 

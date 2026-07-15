@@ -21,6 +21,9 @@
             :caption: vectorIndex.java
             :linenos:
 
+         For details on all the {+avs+} index settings for Automated Embedding, see 
+         :ref:`avs-types-vector-search-options`.
+
       #. Replace the ``<connectionString>`` in the index definition and
          save the file.
 

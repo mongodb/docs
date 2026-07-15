@@ -26,4 +26,4 @@ following form.
 
 To use a compound shard key, specify each field in a separate document, as
 shown in the example after this table. For more information on shard keys, see
-:manual:`Shard Keys </core/sharding-shard-key>` in the MongoDB manual.
+:ref:`Shard Keys <sharding-shard-key>` in the MongoDB manual.

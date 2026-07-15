@@ -129,4 +129,4 @@
        <https://en.wikipedia.org/wiki/ISO_8601?oldid=793821205>`_ date
        and time format in :abbr:`UTC (Coordinated Universal Time)` of
        the latest :opsmgr:`oplog  </reference/glossary/#std-term-Oplog-Store-Database>` entry in the
-       restored :manual:`snapshot </reference/glossary/#std-term-snapshot>`.
+       restored :term:`snapshot`.

@@ -50,7 +50,7 @@
 
       a. **Add required dependencies.**
 
-         In the C# Driver test project, add the required dependencies at the top 
+         In the .NET/C# driver test project, add the required dependencies at the top 
          of the file. You will likely need to import both the MongoDB.Driver and 
          MongoDB.Bson package. To do so, add the following lines to the top of 
          the file:

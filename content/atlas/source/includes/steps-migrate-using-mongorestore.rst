@@ -195,4 +195,4 @@
       
       You must update your applications to point to the |service| cluster
       before resuming write operations. To learn how to connect
-      applications to |service|, see :doc:`/driver-connection`.
+      applications to |service|, see :ref:`connect-via-driver`.

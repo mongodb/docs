@@ -57,6 +57,7 @@ const DocSitesTesting = [
   'voyageai',
   'vector-search',
   'sql-interface',
+  'self-managed-search',
   'landing',
 ];
 

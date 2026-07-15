@@ -1,8 +1,8 @@
 ===============================
-MongoDB C# Driver Documentation
+MongoDB .NET/C# Driver Documentation
 ===============================
 
-This repository contains documentation for the MongoDB C# Driver.
+This repository contains documentation for the MongoDB .NET/C# Driver.
 
 
 File JIRA Tickets

@@ -1,0 +1,431 @@
+.. _javars-codecs:
+
+============================
+Encode Data with Type Codecs
+============================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: java reactive streams, serialization, encode, data conversion, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn about **Codecs** and the supporting classes that
+handle the encoding and decoding of Java objects to and from BSON
+data in the {+driver-short+}. The ``Codec`` abstraction allows you to
+map any Java type to a corresponding BSON type. You can use this
+abstraction to map your domain objects directly to and from BSON
+instead of using an intermediate map-based object such as
+``Document`` or ``BsonDocument``.
+
+Learn how to specify custom encoding and decoding logic by using the
+``Codec`` abstraction in the following sections:
+
+- :ref:`Implement Codecs <java-rs-codecs-codec>`
+- :ref:`Use a CodecRegistry <java-rs-codecs-codecregistry>`
+- :ref:`Use a CodecProvider <java-rs-codecs-codecprovider>`
+- :ref:`Custom Codec Example <java-rs-codecs-custom-example>`
+
+To learn about customizing encoding and decoding logic for plain
+old Java objects (POJOs), see the
+:ref:`Use POJOs to Model Your Data <javars-pojo-qs>` guide.
+
+.. _java-rs-codecs-codec:
+
+Implement Codecs
+----------------
+
+The ``Codec`` interface contains abstract methods for serializing and
+deserializing Java objects to BSON data. Define your conversion logic
+between BSON and your Java object in your implementation of this
+interface.
+
+To implement the ``Codec`` interface, override the ``encode()``,
+``decode()``, and ``getEncoderClass()`` abstract methods.
+
+The ``encode()`` method requires the following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20
+
+   * - Parameter Type
+     - Description
+
+   * - ``writer``
+     - An instance of a class that implements ``BsonWriter``, an
+       interface type that exposes methods for writing a BSON
+       document. For example, the ``BsonBinaryWriter``
+       implementation writes to a binary stream of data. Use this
+       instance to write your BSON value by using the appropriate
+       write method.
+
+   * - ``value``
+     - The data that your implementation encodes. The type must match the type
+       variable assigned to your implementation.
+
+   * - ``encoderContext``
+     - Contains metadata about the Java object data that it encodes
+       to BSON including whether to store the current value in a
+       MongoDB collection.
+
+This method uses the ``BsonWriter`` instance to send the encoded
+value to MongoDB and does not return a value.
+
+The ``decode()`` method returns your Java object instance populated
+with the value from the BSON data. This method requires the
+following parameters:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 10 20
+
+   * - Parameter Type
+     - Description
+
+   * - ``bsonReader``
+     - An instance of a class that implements ``BsonReader``, an interface type
+       that exposes methods for reading a BSON document. For example, the
+       ``BsonBinaryReader`` implementation reads from a binary stream of data.
+
+   * - ``decoderContext``
+     - Contains information about the BSON data that it decodes to a Java
+       object.
+
+The ``getEncoderClass()`` method returns a class instance of the
+Java class because Java cannot infer the type due to type erasure.
+
+.. _java-rs-codecs-readstatus-codec:
+
+Example
+~~~~~~~
+
+The following code examples show how to implement a custom
+``Codec``.
+
+The ``ReadStatus`` enum contains the values ``READ`` and
+``UNREAD`` to represent whether a book has been read.
+
+.. literalinclude:: /includes/data-formats/codecs/ReadStatus.java
+   :start-after: start class
+   :end-before: end class
+   :language: java
+   :dedent:
+
+The ``ReadStatusCodec`` class implements ``Codec`` to convert the
+Java ``enum`` values to corresponding BSON boolean values. The
+``encode()`` method converts a ``ReadStatus`` to a BSON boolean, and
+the ``decode()`` method performs the conversion in the opposite
+direction.
+
+.. literalinclude:: /includes/data-formats/codecs/ReadStatusCodec.java
+   :start-after: start class
+   :end-before: end class
+   :language: java
+   :dedent:
+
+You can add an instance of the ``ReadStatusCodec`` to your
+``CodecRegistry``, which contains a mapping between your ``Codec``
+and the Java object type to which it applies. Continue to the
+:ref:`CodecRegistry <java-rs-codecs-codecregistry>` section of this
+page to see how to include your ``Codec``.
+
+For more information about the classes and interfaces in this
+section, see the following API documentation:
+
+- `Codec <{+api-root+}/bson/org/bson/codecs/Codec.html>`__
+- `BsonWriter <{+api-root+}/bson/org/bson/BsonWriter.html>`__
+- `BsonBinaryWriter <{+api-root+}/bson/org/bson/BsonBinaryWriter.html>`__
+- `EncoderContext <{+api-root+}/bson/org/bson/codecs/EncoderContext.html>`__
+- `BsonReader <{+api-root+}/bson/org/bson/BsonReader.html>`__
+- `DecoderContext <{+api-root+}/bson/org/bson/codecs/DecoderContext.html>`__
+- `BsonBinaryReader <{+api-root+}/bson/org/bson/BsonBinaryReader.html>`__
+
+.. _java-rs-codecs-codecregistry:
+
+Use a CodecRegistry
+-------------------
+
+A ``CodecRegistry`` is an immutable collection of ``Codec``
+instances that encode and decode the Java classes they specify. You
+can use any of the following ``CodecRegistries`` class static
+factory methods to construct a ``CodecRegistry`` from the ``Codec``
+instances contained in the associated types:
+
+- ``fromCodecs()``
+- ``fromProviders()``
+- ``fromRegistries()``
+
+The following code snippet shows how to construct a
+``CodecRegistry`` by using the ``fromCodecs()`` method:
+
+.. code-block:: java
+   :copyable: true
+
+   CodecRegistry codecRegistry = CodecRegistries.fromCodecs(new IntegerCodec(), new ReadStatusCodec());
+
+In the preceding example, the ``CodecRegistry`` includes the
+following ``Codec`` implementations:
+
+- ``IntegerCodec``, a ``Codec`` that converts ``Integers`` and is
+  part of the BSON package.
+- :ref:`ReadStatusCodec <java-rs-codecs-readstatus-codec>`, our
+  sample ``Codec`` that converts Java enum values to BSON
+  booleans.
+
+You can retrieve the ``Codec`` instances from the
+``CodecRegistry`` instance in the preceding example by using the
+following code:
+
+.. code-block:: java
+   :copyable: true
+
+   Codec<ReadStatus> readStatusCodec = codecRegistry.get(ReadStatus.class);
+   Codec<Integer> integerCodec = codecRegistry.get(Integer.class);
+
+If you attempt to retrieve a ``Codec`` instance for a class that is
+not registered, the ``get()`` method throws a
+``CodecConfigurationException``.
+
+For more information about the classes and interfaces in this
+section, see the following API documentation:
+
+- `CodecRegistries <{+api-root+}/bson/org/bson/codecs/configuration/CodecRegistries.html>`__
+- `IntegerCodec <{+api-root+}/bson/org/bson/codecs/IntegerCodec.html>`__
+
+.. _java-rs-codecs-codecprovider:
+
+Use a CodecProvider
+-------------------
+
+A ``CodecProvider`` is an interface that contains abstract methods
+that create ``Codec`` instances and assign them to a
+``CodecRegistry`` instance. Similar to the ``CodecRegistry``, the
+BSON library uses the ``Codec`` instances retrieved by the ``get()``
+method to convert between Java and BSON data types.
+
+However, if you add a class that contains fields that require
+corresponding ``Codec`` objects, you must instantiate the ``Codec``
+objects for the class fields before you instantiate the ``Codec``
+for the class. You can use the ``CodecRegistry`` parameter in the
+``get()`` method to pass any ``Codec`` instances that the ``Codec``
+relies on.
+
+The following code example shows how to implement
+``CodecProvider`` to pass the ``BookCodec`` any ``Codec``
+instances it needs in a ``CodecRegistry`` instance, such as the
+``ReadStatusCodec`` from the preceding example:
+
+.. literalinclude:: /includes/data-formats/codecs/BookCodecProvider.java
+   :start-after: start class
+   :end-before: end class
+   :language: java
+   :dedent:
+
+To see a runnable example that demonstrates read and write
+operations by using these ``Codec`` classes, see the
+:ref:`Custom Codec Example <java-rs-codecs-custom-example>`
+section of this guide.
+
+When working with POJOs, consider using the ``PojoCodecProvider``
+to minimize duplicate code when you convert commonly used data
+types and customize their behavior. See our
+:ref:`Use POJOs to Model Your Data <javars-pojo-qs>` guide for
+more information.
+
+.. _java-rs-codecs-default-codec-registry:
+
+Use the Default Codec Registry
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The default codec registry is a set of ``CodecProvider`` classes
+that specify conversion between commonly used Java and MongoDB
+types. The driver automatically uses the default codec registry
+unless you specify a different one.
+
+.. _java-rs-codecs-override:
+
+If you must override the behavior of one or more ``Codec`` classes,
+but keep the behavior from the default codec registry for the other
+classes, you can specify all the registries in order of precedence.
+For example, to override the default provider behavior of a
+``Codec`` for enum types with your custom ``MyEnumCodec``, add it
+to the registry list before the default codec registry, as shown in
+the following example:
+
+.. code-block:: java
+   :emphasize-lines: 2
+
+   CodecRegistry newRegistry = CodecRegistries.fromRegistries(
+       CodecRegistries.fromCodecs(new MyEnumCodec()),
+       MongoClientSettings.getDefaultCodecRegistry());
+
+For more information about the classes and interfaces in this
+section, see the following API documentation
+sections:
+
+- `CodecProvider <{+api-root+}/bson/org/bson/codecs/configuration/CodecProvider.html>`__
+- `Default codec registry <{+core-api+}/MongoClientSettings.html#getDefaultCodecRegistry()>`__
+
+Customize Type Mappings
+-----------------------
+
+The ``BsonTypeClassMap`` class contains a recommended mapping
+between BSON and Java types. You can use this class in your custom
+``Codec`` or ``CodecProvider`` to help manage which Java types
+decode your BSON types to container classes that implement
+``Iterable`` or ``Map`` such as the ``Document`` class.
+
+You can add or modify the ``BsonTypeClassMap`` default mapping by
+passing a ``Map`` that contains new or replacement entries.
+
+The following code snippet shows how to retrieve the Java class type
+that corresponds to the BSON type in the default
+``BsonTypeClassMap`` instance:
+
+.. code-block:: java
+   :copyable: true
+
+   BsonTypeClassMap bsonTypeClassMap = new BsonTypeClassMap();
+   Class<?> clazz = bsonTypeClassMap.get(BsonType.ARRAY);
+   System.out.println("Java type: " + clazz.getName());
+
+This code outputs the following:
+
+.. code-block:: none
+   :copyable: false
+
+   Java type: java.util.List
+
+You can modify these mappings in your instance by specifying
+replacements in the ``BsonTypeClassMap`` constructor. The
+following example shows how to replace the mapping for
+``ARRAY`` in your ``BsonTypeClassMap`` instance with the ``Set``
+class:
+
+.. code-block:: java
+   :copyable: true
+
+   Map<BsonType, Class<?>> replacements = new HashMap<BsonType, Class<?>>();
+   replacements.put(BsonType.ARRAY, Set.class);
+   BsonTypeClassMap bsonTypeClassMap = new BsonTypeClassMap(replacements);
+
+   Class<?> clazz = bsonTypeClassMap.get(BsonType.ARRAY);
+   System.out.println("Java type: " + clazz.getName());
+
+This code outputs the following:
+
+.. code-block:: none
+   :copyable: false
+
+   Java type: java.util.Set
+
+For a complete list of the default mappings, see the
+`BsonTypeClassMap <{+api-root+}/bson/org/bson/codecs/BsonTypeClassMap.html>`__
+API documentation.
+
+.. tip::
+
+   For examples of how the ``Document`` class uses
+   ``BsonTypeClassMap``, see the driver source code for the
+   :github:`DocumentCodecProvider <mongodb/mongo-java-driver/blob/master/bson/src/main/org/bson/codecs/DocumentCodecProvider.java>`
+   and :github:`DocumentCodec <mongodb/mongo-java-driver/blob/master/bson/src/main/org/bson/codecs/DocumentCodec.java>` classes.
+
+.. _java-rs-codecs-custom-example:
+
+Custom Codec Example
+--------------------
+
+This section shows how to implement ``Codec`` and
+``CodecProvider`` to define the encoding and decoding logic for a
+custom Java class. It also shows how to specify and use your custom
+implementations to perform insert and retrieve operations.
+
+The following example defines a custom class called
+``Book`` and its fields for storage and retrieval in a MongoDB
+collection:
+
+.. literalinclude:: /includes/data-formats/codecs/Book.java
+   :start-after: start class
+   :end-before: end class
+   :language: java
+   :dedent:
+
+This class contains the following fields, each of which requires a
+``Codec``:
+
+- ``title`` contains a ``String`` value for which the example uses
+  the ``StringCodec`` included in the BSON library.
+- ``readStatus`` describes whether a book has been read, for which
+  the example uses the custom
+  :ref:`ReadStatusCodec <java-rs-codecs-readstatus-codec>` that
+  converts enum values to BSON booleans.
+- ``pageCount`` contains an ``Integer`` value for which the example uses
+  the ``IntegerCodec`` included in the BSON library.
+
+The following code example shows how to implement a ``Codec`` for
+the ``Book`` class. Note that the constructor expects an instance
+of ``CodecRegistry`` from which it retrieves the ``Codec``
+instances it needs to encode and decode its fields:
+
+.. literalinclude:: /includes/data-formats/codecs/BookCodec.java
+   :start-after: start class
+   :end-before: end class
+   :language: java
+   :dedent:
+
+To make the ``Codec`` instances for the fields available for
+``Book``, implement a custom ``CodecProvider`` shown in the
+following code example:
+
+.. literalinclude:: /includes/data-formats/codecs/BookCodecProvider.java
+   :start-after: start class
+   :end-before: end class
+   :language: java
+   :dedent:
+
+After defining the conversion logic, you can perform the following operations:
+
+- Store data from instances of ``Book`` into MongoDB
+- Retrieve data from MongoDB into instances of ``Book``
+
+The following example class contains code that assigns the
+``BookCodecProvider`` to the ``MongoCollection`` instance by passing
+it to the ``withCodecRegistry()`` method. The example class also
+inserts and retrieves data by using the ``Book`` class and
+associated codecs:
+
+.. literalinclude:: /includes/data-formats/codecs/BookCodecExample.java
+   :start-after: start class
+   :end-before: end class
+   :language: java
+   :dedent:
+
+If you run the preceding example, the output resembles the
+following:
+
+.. code-block:: none
+   :copyable: false
+
+   Book [title=The Hobbit, readStatus=READ, pageCount=310]
+
+API Documentation
+-----------------
+
+For more information about the methods and classes mentioned in
+this guide, see the following API documentation:
+
+- `withCodecRegistry() <{+driver-api+}/MongoCollection.html#withCodecRegistry(org.bson.codecs.configuration.CodecRegistry)>`__
+- `MongoClientSettings.getDefaultCodecRegistry() <{+core-api+}/MongoClientSettings.html#getDefaultCodecRegistry()>`__
+- `Codec <{+api-root+}/bson/org/bson/codecs/Codec.html>`__
+- `CodecProvider <{+api-root+}/bson/org/bson/codecs/configuration/CodecProvider.html>`__

@@ -1,5 +1,5 @@
 Throughout the lifecycle of a backup, {+mdbagent+} tails the
-:manual:`oplog </reference/glossary/#std-term-oplog>` of each :manual:`replica set </reference/glossary/#std-term-replica-set>` and sends new oplog entries
+:term:`oplog` of each :term:`replica set` and sends new oplog entries
 to |onprem|. The Agent sends the oplog entries in compressed bundles of
 approximately 10 MB in size called :term:`oplog slices <oplog slice>`.
 These oplog slices are stored in one or more MongoDB databases called

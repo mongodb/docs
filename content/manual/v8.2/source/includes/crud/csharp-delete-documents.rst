@@ -1,4 +1,4 @@
-This page uses the following :driver:`MongoDB C# Driver </csharp/>`
+This page uses the following :driver:`MongoDB .NET/C# Driver </csharp/>`
 methods:
 
 - :csharp-api:`IMongoCollection.DeleteMany()

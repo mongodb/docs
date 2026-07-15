@@ -9,7 +9,7 @@
          cd date-number-to-string-query
          dotnet new console
 
-   .. step:: Add the .NET/C# Driver to your project as a dependency.
+   .. step:: Add the .NET/C# driver to your project as a dependency.
 
       .. code-block:: bash
 

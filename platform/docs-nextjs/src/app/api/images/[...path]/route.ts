@@ -1,6 +1,7 @@
 import path from 'path';
 import { NextResponse, type NextRequest } from 'next/server';
-import { getBlobWithFallback } from '@/mdx-utils/blob-read';
+import { getBlob } from '@/mdx-utils/blob-read';
+import { getBlobKey } from '@/mdx-utils/get-blob-key';
 import { detectImageContentType } from '@/utils/detect-image-content-type';
 
 /**
@@ -10,7 +11,7 @@ import { detectImageContentType } from '@/utils/detect-image-content-type';
 export async function GET(_req: NextRequest, { params }: { params: { path: string[] } }) {
   try {
     const imagePath = params.path.join('/');
-    const blob = await getBlobWithFallback(imagePath);
+    const blob = await getBlob(getBlobKey(imagePath));
 
     if (!blob) {
       return new NextResponse('Not Found', { status: 404 });

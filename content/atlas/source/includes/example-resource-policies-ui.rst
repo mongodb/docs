@@ -166,9 +166,8 @@ from a wildcard IP (``0.0.0.0/0``):
     ) 
     when { context.project.ipAccessList.contains(ip("0.0.0.0/0")) };
 
-The following example uses the ``unless`` clause to allow users to 
-edit projects *only* from the IP addresses ``1.2.3.4/32``, ``8.8.8.8/32``, 
-and ``4.4.4.4/32``:
+The following example uses the ``unless`` clause to allow connections *only*
+from the IP addresses ``1.2.3.4/32``, ``8.8.8.8/32``, and ``4.4.4.4/32``:
 
 .. code-block::
    :copyable: true 
@@ -214,6 +213,41 @@ provisioning or scaling  {+clusters+} to less than ``M30`` or greater than ``M60
       resource
     ) 
     when { (context.cluster has minGeneralClassInstanceSizeValue && context.cluster.minGeneralClassInstanceSizeValue < 30) || (context.cluster has maxGeneralClassInstanceSizeValue && context.cluster.maxGeneralClassInstanceSizeValue > 60) };
+
+.. _restrict-eras-ui:
+
+Restrict Atlas Embedding and Reranking API Service for Projects
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example restricts access to the
+:ref:`{+voyage-api-full+} <voyage-api-overview>`
+for all projects in an organization. This effectively prevents users from
+creating :ref:`model API keys <voyage-api-keys>` for any projects in the
+organization.
+
+.. code-block::
+   :copyable: true
+
+    forbid (
+      principal, 
+      action == ResourcePolicy::Action::"project.aiModelAPI.modify",
+      resource
+    );
+
+You can specify projects as exceptions using the policy's ``unless`` clause.
+The following example restricts access to the {+voyage-api+} for all
+projects in an organization *except* the project with ID
+``6217f7fff7957854e2d09179``:
+
+.. code-block::
+   :copyable: true
+
+    forbid (
+      principal, 
+      action == ResourcePolicy::Action::"project.aiModelAPI.modify",
+      resource
+    ) 
+    unless { resource in ResourcePolicy::Project::"6217f7fff7957854e2d09179" };
 
 .. _require-maintenance-window-ui:
 
@@ -694,3 +728,40 @@ on a {+cluster+} that has {+fts+} indexes:
        && !([ResourcePolicy::CloudProvider::"aws"].containsAll(
              context.cluster.cloudProviders))
      };
+
+.. _restrict-native-reranking-ui:
+
+Restrict Native Reranking
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example prevents users from enabling Native
+Reranking (the ``$rerank`` aggregation stage) for any project in
+the organization. This policy prevents projects from enabling
+Native Reranking, but does not disable ``$rerank`` for projects
+that already have it enabled. To disable Native Reranking for a
+project that already has it enabled, see
+:ref:`rerank-enable-disable`.
+
+.. code-block::
+   :copyable: true
+
+    forbid (
+      principal,
+      action == ResourcePolicy::Action::"project.rerank.modify",
+      resource
+    )
+    when { context.project.rerankEnabled == true };
+
+To allow Native Reranking for specific projects, use the
+``unless`` clause to exclude them:
+
+.. code-block::
+   :copyable: true
+
+    forbid (
+      principal,
+      action == ResourcePolicy::Action::"project.rerank.modify",
+      resource
+    )
+    when { context.project.rerankEnabled == true }
+    unless { resource in ResourcePolicy::Project::"<PROJECT-ID>" };

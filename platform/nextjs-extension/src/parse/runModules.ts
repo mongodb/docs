@@ -8,6 +8,7 @@ import type { StaticEnvVars } from "../util/assertDbEnvVars";
 import type { AllContentData } from "../contentMetadata/processContentMetadata";
 import type { AtlasProjectDocuments } from "../contentMetadata/fetchAndStoreAtlasData";
 import { getRepoPaths } from "../paths";
+import { MutError } from "../util/errorClasses";
 
 /** Get the desired parser version for the build environment
  * @param buildEnvironment - the build environment
@@ -57,6 +58,9 @@ export const runPrebuildModules = async ({
 	// iterate over each project and then iterate over each version to build
 	const contentPathsToBuild = allContentData.pathsToBuild;
 	const { parserDir, absoluteContentPath, absoluteBundlePath } = getRepoPaths();
+	// Parse failures collected here so the barrier can fail the build before
+	// the destructive blob/Mongo deletion runs.
+	const failedPaths: { contentPath: string; error: unknown }[] = [];
 	const buildPromises = contentPathsToBuild.map(async (contentPath: string) => {
 		const contentBundleData = allContentData.docsPaths[contentPath];
 		try {
@@ -85,6 +89,7 @@ export const runPrebuildModules = async ({
 			});
 			return `${contentPath}: Success \n${parserLogs} \n \n ${breakMessage} \n`;
 		} catch (e) {
+			failedPaths.push({ contentPath, error: e });
 			return `${contentPath}: Failed \n${e} \n \n ${breakMessage} \n `;
 		}
 	});
@@ -100,6 +105,18 @@ export const runPrebuildModules = async ({
 		numVersionsParsed: allContentData.pathsToBuild.length || 0,
 	});
 	await closeConnections();
+
+	// Any parse failure aborts the build (after logs are shown) so the
+	// destructive blob/Mongo deletion never runs on a bad parse.
+	if (failedPaths.length) {
+		const summary = failedPaths
+			.map(({ contentPath, error }) => `  - ${contentPath}: ${error}`)
+			.join("\n");
+		throw new MutError(
+			`Parse failed for ${failedPaths.length} content path(s). Aborting build to prevent deletion of published pages:\n${summary}`,
+		);
+	}
+
 	const endMs = Date.now();
 	const parseAndPersistDurationMs = endMs - startMs;
 	return parseAndPersistDurationMs;

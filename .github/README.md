@@ -33,7 +33,6 @@ The `.github/` folder contains documentation automation tools. Follow these conv
 │   ├── 404-lint-cli.ts
 │   ├── package.json
 │   └── tsconfig.json
-├── typo-fixer/         # Typo fixer bot
 ├── ai-reviewer/        # AI style reviewer
 ├── cspell/             # Spell checking config
 └── workflows/          # GitHub Actions

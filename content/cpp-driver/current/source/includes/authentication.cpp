@@ -103,6 +103,32 @@ auto uri = mongocxx::uri("mongodb://<kerberos_principal>@<hostname>:<port>/?"
 auto client = mongocxx::client(uri);
 // end-kerberos
 
+// start-azure-imds-connection-string
+auto instance = mongocxx::instance();
+auto uri = mongocxx::uri(
+    "mongodb+srv://<client_id>@<hostname>/"
+    "?authMechanism=MONGODB-OIDC"
+    "&authMechanismProperties=ENVIRONMENT:azure,"
+    "TOKEN_RESOURCE:<token-resource>");
+auto client = mongocxx::client(uri);
+// end-azure-imds-connection-string
+
+// start-azure-ase-callback
+auto instance = mongocxx::instance();
+auto uri = mongocxx::uri("mongodb+srv://<client_id>@<hostname>/"
+                         "?authMechanism=MONGODB-OIDC");
+auto opts = mongocxx::options::client{};
+opts.oidc_callback([](const mongocxx::oidc_callback_params &) {
+    Azure::Identity::DefaultAzureCredential credential;
+    Azure::Core::Credentials::TokenRequestContext token_request_ctx;
+    token_request_ctx.Scopes = {"<token-resource>/.default"};
+    auto access_token =
+        credential.GetToken(token_request_ctx, Azure::Core::Context{});
+    return mongocxx::oidc_credential(access_token.Token);
+});
+auto client = mongocxx::client(uri, opts);
+// end-azure-ase-callback
+
 // start-plain
 auto uri = mongocxx::uri("mongodb://<db_username>:<db_password>@<hostname>:<port>/?"
                          "authMechanism=PLAIN&tls=true");

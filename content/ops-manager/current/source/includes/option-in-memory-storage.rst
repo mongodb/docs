@@ -8,6 +8,5 @@
    from another member. You can use an in-memory storage engine for
    multiple members of a replica set or shard. 
 
-   For more information, see :manual:`In-Memory Storage Engine 
-   </core/inmemory>` in the MongoDB manual.
+   For more information, see :ref:`In-Memory Storage Engine <storage-inmemory>` in the MongoDB manual.
    

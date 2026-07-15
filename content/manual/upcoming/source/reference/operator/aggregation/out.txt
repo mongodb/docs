@@ -351,117 +351,96 @@ Examples
    .. tab::
       :tabid: shell
 
-      In the ``test`` database, create a collection ``books`` with the
-      following documents:
-
-      .. code-block:: javascript
-      
-         db.getSiblingDB("test").books.insertMany([
-            { "_id" : 8751, "title" : "The Banquet", "author" : "Dante", "copies" : 2 },
-            { "_id" : 8752, "title" : "Divine Comedy", "author" : "Dante", "copies" : 1 },
-            { "_id" : 8645, "title" : "Eclogues", "author" : "Dante", "copies" : 2 },
-            { "_id" : 7000, "title" : "The Odyssey", "author" : "Homer", "copies" : 10 },
-            { "_id" : 7020, "title" : "Iliad", "author" : "Homer", "copies" : 10 }
-         ])
-
-      If the ``test`` database does not already exist, the insert operation
-      creates the database as well as the ``books`` collection.
+      .. include:: /includes/sample-data-usage.rst
 
       Output to Same Database
       ~~~~~~~~~~~~~~~~~~~~~~~
 
-      The following aggregation operation pivots the data in the ``books``
-      collection in the ``test`` database to have titles grouped by authors and then writes
-      the results to the ``authors`` collection, also in the ``test`` database.
+      The following aggregation operation filters movies with a
+      runtime greater than 1000 minutes, groups them by release
+      year, and collects their title into an array. The pipeline
+      writes the results to the ``movies_by_year`` collection in
+      the ``sample_mflix`` database.
 
-      .. code-block:: javascript
-      
-         db.getSiblingDB("test").books.aggregate( [
-             { $group : { _id : "$author", books: { $push: "$title" } } },
-             { $out : "authors" }
-         ] )
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/out/out-same-db.snippet.out-same-db.js
+         :language: javascript
+         :category: usage example
 
-      First Stage (``$group``):
-         The :pipeline:`$group` stage groups by the ``authors`` and uses
-         :group:`$push` to add the titles to a ``books`` array field:
+      First Stage (``$match``):
+         The :pipeline:`$match` stage filters for movies with a
+         ``runtime`` greater than ``1000``.
 
-         .. code-block:: javascript
-            :copyable: false
+      Second Stage (``$group``):
+         The :pipeline:`$group` stage groups by the ``year`` field
+         and uses :group:`$push` to add the titles to a ``movies``
+         array field.
 
-            { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
-            { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
+      Third Stage (``$out``):
+         The ``$out`` stage outputs the documents to the
+         ``movies_by_year`` collection in the ``sample_mflix``
+         database.
 
-      Second Stage (``$out``):
-         The ``$out`` stage outputs the documents to the ``authors``
-         collection in the ``test`` database.
+      To view the documents in the output collection, run the
+      following operation:
 
-      To view the documents in the output collection, run the following
-      operation:
+      .. io-code-block::
+         :copyable: true
 
-      .. code-block:: javascript
-      
-         db.getSiblingDB("test").authors.find()
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/out/out-same-db-find.snippet.out-same-db-find.js
+            :language: javascript
+            :category: usage example
 
-      The collection contains the following documents:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
-         { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/out/out-same-db-find-output.sh
+            :language: javascript
 
       Output to a Different Database
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       .. note::
-      
+
          For a :ref:`replica set <replica-set>` or a standalone, if the
          output database does not exist, ``$out`` also creates
          the database.
 
 
-      ``$out`` can output to a collection in a database different from where the 
-      aggregation is run.
+      ``$out`` can output to a collection in a database different from
+      where you run the aggregation.
 
-      The following aggregation operation pivots the data in the ``books``
-      collection to have titles grouped by authors and then writes the
-      results to the ``authors`` collection in the ``reporting`` database:
+      The following aggregation operation filters movies with a
+      runtime greater than 1000 minutes, groups them by release
+      year, and collects their title into an array. The pipeline
+      writes the results to the ``movies_by_year`` collection in
+      the ``reporting`` database:
 
-      .. code-block:: javascript
-      
-         db.getSiblingDB("test").books.aggregate( [
-             { $group : { _id : "$author", books: { $push: "$title" } } },
-             { $out : { db: "reporting", coll: "authors" } }
-         ] )
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/out/out-different-db.snippet.out-different-db.js
+         :language: javascript
+         :category: usage example
 
-      First Stage (``$group``):
-         The :pipeline:`$group` stage groups by the ``authors`` and uses
-         :group:`$push` to add the titles to a ``books`` array field:
+      First Stage (``$match``):
+         The :pipeline:`$match` stage filters for movies with a
+         ``runtime`` greater than ``1000``.
 
-         .. code-block:: javascript
-            :copyable: false
+      Second Stage (``$group``):
+         The :pipeline:`$group` stage groups by the ``year`` field
+         and uses :group:`$push` to add the titles to a ``movies``
+         array field.
 
-            { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
-            { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
+      Third Stage (``$out``):
+         The ``$out`` stage outputs the documents to the
+         ``movies_by_year`` collection in the ``reporting`` database.
 
-      Second Stage (``$out``):
-         The ``$out`` stage outputs the documents to the ``authors``
-         collection in the ``reporting`` database.
+      To view the documents in the output collection, run the
+      following operation:
 
-      To view the documents in the output collection, run the following
-      operation:
+      .. io-code-block::
+         :copyable: true
 
-      .. code-block:: javascript
-      
-         db.getSiblingDB("reporting").authors.find()
+         .. input:: /code-examples/tested/command-line/mongosh/aggregation/stages/out/out-different-db-find.snippet.out-different-db-find.js
+            :language: javascript
+            :category: usage example
 
-      The collection contains the following documents:
-
-      .. code-block:: javascript
-         :copyable: false
-
-         { "_id" : "Homer", "books" : [ "The Odyssey", "Iliad" ] }
-         { "_id" : "Dante", "books" : [ "The Banquet", "Divine Comedy", "Eclogues" ] }
+         .. output:: /code-examples/tested/command-line/mongosh/aggregation/stages/out/out-different-db-find-output.sh
+            :language: javascript
 
    .. tab::
       :tabid: csharp
