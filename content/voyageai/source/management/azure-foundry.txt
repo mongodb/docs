@@ -1,0 +1,505 @@
+.. _voyage-azure-ai-foundry:
+
+====================================================
+Deploy {+voyage-full+} Models Using Azure AI Foundry
+====================================================
+
+.. meta::
+   :description: Deploy Voyage AI by MongoDB embedding and reranking models using Azure AI Foundry. Discover, configure, and manage model deployments through your Azure subscription and AI Foundry project.
+   :keywords: Voyage AI, Azure AI Foundry, Azure, model deployment,
+      embedding models, rerankers, Azure subscription
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+You can use Azure AI Foundry to discover and deploy
+{+voyage-full+} models in your Azure environment. Azure AI
+Foundry provides an Azure-native path for model discovery,
+deployment, billing, and access management.
+
+Using {+voyageai+} through Azure AI Foundry provides the
+following benefits:
+
+1. **Data flow and access control.** Azure AI Foundry supports
+   private networking and Azure-native access controls so you
+   can align model access with your Azure network and security
+   requirements. For private setups, validate the specific
+   deployment mode and networking configuration that your
+   Foundry project uses in the Azure portal.
+2. **Reliability and compliance backed by Azure.** Billing,
+   identity, and infrastructure controls are managed through
+   Azure.
+3. **Procurement and billing through Azure.** You can use your
+   Azure subscription, billing relationship, and applicable
+   credits instead of establishing a separate commercial
+   relationship for model hosting.
+
+Available Models
+----------------
+
+To see the {+voyage-full+} models currently available in
+Azure AI Foundry, open the `Voyage AI publisher page in
+Azure AI Foundry
+<https://ai.azure.com/catalog/publishers/voyage%20ai,voyageai>`__.
+
+Model availability can change over time. To learn more about
+{+voyageai+} model capabilities and recommended use cases, see
+:ref:`voyage-models`.
+
+Pricing
+-------
+
+Azure AI Foundry pricing depends on the deployment type that
+Azure uses for the selected {+voyageai+} model and the region
+in which you deploy it.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Pricing component
+     - What to expect
+
+   * - Azure subscription billing
+     - Charges are billed through your Azure subscription.
+
+   * - Model cost
+     - The Azure AI Foundry deployment UI shows the pricing
+       details for the selected model or deployment option
+       before you deploy.
+
+   * - Infrastructure cost
+     - Dedicated or managed compute deployments can include
+       hourly infrastructure charges that vary by accelerator
+       SKU and region.
+
+   * - Region sensitivity
+     - Total cost can vary by Azure region and deployment
+       configuration.
+
+Azure AI Foundry offers two deployment billing models:
+
+- **Standard Foundry deployments** are typically billed by
+  token usage or provisioned throughput, depending on the
+  deployment type.
+- **Managed compute deployments** are billed hourly per
+  accelerator SKU.
+
+The Azure portal or Azure AI Foundry deployment flow is the
+source of truth for the exact price shown at deployment time.
+For more information, see `Microsoft documentation for
+deployment options in Azure AI Foundry <https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/deployment-types>`__ and the `Azure pricing
+calculator <https://azure.microsoft.com/en-us/pricing/calculator/>`__.
+
+Prerequisites
+-------------
+
+Before you deploy a {+voyageai+} model through Azure AI
+Foundry, ensure that you have the following:
+
+- An active Azure subscription.
+- Permissions to create or use Azure AI Foundry resources in
+  the target subscription.
+- Access to an Azure AI Foundry project, or permission to
+  create one.
+- Sufficient quota in the target region for the deployment
+  type that Azure AI Foundry requires for the selected
+  {+voyageai+} model.
+- An Azure AI hub resource in the same region where you plan
+  to deploy the {+voyageai+} model through Azure AI Foundry.
+  For setup guidance, see `Microsoft documentation for
+  creating hubs and projects <https://learn.microsoft.com/en-us/azure/ai-foundry/how-to/create-projects>`__.
+- If your organization requires private networking, an
+  existing virtual network and the Azure permissions needed
+  to create and approve any required private endpoint
+  connections.
+
+Quota
+-----
+
+This section includes guidance on how to verify and request
+quota before deployment.
+
+The quota model in Azure AI Foundry depends on the deployment
+type:
+
+- Some deployment paths use Azure AI Foundry quotas rather
+  than Azure virtual machine quotas.
+- Other deployment paths might surface infrastructure-oriented
+  sizing and region availability choices in the deployment
+  flow.
+
+Because Azure AI Foundry can route different model families
+through different deployment modes, verify quota from the
+Azure portal and the Azure AI Foundry deployment UI before
+you begin.
+
+Check Quota
+~~~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Sign in to the portal.
+
+      Sign in to the Azure portal.
+
+   .. step:: Open your subscription.
+
+      Open the subscription that you plan to use.
+
+   .. step:: Review quota settings.
+
+      Review quota-related settings for the services and
+      regions involved in your Foundry deployment.
+
+   .. step:: Start the deployment flow.
+
+      In Azure AI Foundry, begin the deployment flow for the
+      {+voyageai+} model that you want to use, and review any
+      quota or capacity requirements shown in the UI.
+
+   .. step:: Confirm capacity.
+
+      Confirm that the target region has sufficient capacity
+      for the selected deployment option.
+
+For Azure AI Foundry quota guidance, see `Microsoft
+documentation on deployment options <https://learn.microsoft.com/en-us/azure/foundry/foundry-models/concepts/deployment-types>`__.
+
+Request Quota Increase
+~~~~~~~~~~~~~~~~~~~~~~
+
+If you don't have sufficient quota or capacity:
+
+- Use the Azure portal to request the relevant quota increase
+  for the required service or region.
+- If the deployment flow indicates Azure AI Foundry-specific
+  quota requirements, follow the quota workflow linked from
+  the Azure UI.
+- Retry the deployment after the increase is approved.
+
+Because Azure AI Foundry deployment types evolve, use the
+Azure portal and deployment workflow as the source of truth
+for the exact quota process.
+
+Prepare Networking
+------------------
+
+If your organization does not require private networking, you
+can use the default Azure AI Foundry networking options that
+the deployment supports.
+
+If your organization requires private connectivity, prepare
+your networking before deployment:
+
+- Identify the virtual network and subnet that your Azure AI
+  Foundry project or client applications will use.
+- Confirm that you have permission to create private endpoints
+  and approve private endpoint connections if your
+  organization uses them.
+- Confirm DNS resolution and routing requirements for private
+  access.
+- Validate any outbound access policies that your
+  applications, validation hosts, or agent tools require.
+
+For Azure AI Foundry private networking guidance, see
+Microsoft documentation on network isolation for Azure AI
+Foundry.
+
+.. _voyage-azure-ai-foundry-deploy:
+
+Deploy a Voyage AI Model in Azure AI Foundry
+--------------------------------------------
+
+In this section, you deploy a {+voyage-full+} model from
+Azure AI Foundry.
+
+Because {+voyageai+} is provided in Azure AI Foundry as a
+third-party managed compute offering, Azure uses a deployment
+wizard that provisions GPU-backed infrastructure and deploys
+the selected {+voyageai+} model on top of it.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Navigate to the portal.
+
+      Open the Azure AI Foundry portal.
+
+   .. step:: Turn off New Foundry.
+
+      Toggle :guilabel:`New Foundry` to the left (off
+      position).
+
+   .. step:: Open the model catalogue.
+
+      In the left sidebar, select :guilabel:`Model Catalogue`.
+
+   .. step:: See all models.
+
+      Click :guilabel:`See All Models`.
+
+   .. step:: Find the Voyage models.
+
+      Search for the Voyage series of models.
+
+   .. step:: Select a model.
+
+      Select the model card for your desired model.
+
+   .. step:: Use the model.
+
+      Click :guilabel:`Use this model`.
+
+   .. step:: Select a project.
+
+      Select the project in which you want to use the model.
+
+   .. step:: Create the deployment.
+
+      Click :guilabel:`Create`.
+
+   .. step:: Deploy the model.
+
+      Follow the instructions in the Deployment Wizard, then
+      click :guilabel:`Deploy`.
+
+The Azure AI Foundry portal selects the appropriate
+deployment path for the chosen model. Depending on the model
+and Azure's current integration for that listing, this can
+affect the fields you see during deployment and the way you
+connect to the deployed model.
+
+Deployment Settings
+~~~~~~~~~~~~~~~~~~~
+
+Review the following settings carefully during deployment:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Setting
+     - Guidance
+
+   * - Subscription
+     - Use the Azure subscription that should receive billing
+       for the deployment.
+
+   * - Project
+     - Use the Azure AI Foundry project that should own the
+       model deployment.
+
+   * - Region
+     - Choose a supported region with sufficient capacity and
+       the networking profile your organization requires.
+
+   * - Deployment type
+     - Use the deployment type offered by Azure for the
+       selected {+voyageai+} model.
+
+   * - Authentication
+     - Use the project keys that Azure AI Foundry provides for
+       the deployment.
+
+   * - Networking
+     - If required, apply private networking or private
+       endpoint settings supported by your Foundry resource
+       and project.
+
+Confirm Completion
+~~~~~~~~~~~~~~~~~~
+
+After the deployment succeeds:
+
+- Open the deployed model or deployment details page in
+  Azure AI Foundry.
+- Capture the endpoint information, deployment name,
+  authentication method, and any region or networking details
+  you need for clients.
+- Record whether the deployment uses the unified Azure AI
+  Foundry project endpoint or another Azure-managed
+  connection pattern exposed by the portal.
+
+Connection Details
+------------------
+
+Azure AI Foundry connection details depend on the deployment
+mode that Azure uses for the selected model. Use the
+deployment details page in Azure AI Foundry as the source of
+truth.
+
+After deployment, capture the following values from Azure AI
+Foundry:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 35 65
+
+   * - Value
+     - Why you need it
+
+   * - Project endpoint or model endpoint
+     - Your client uses this base URL to send inference
+       requests.
+
+   * - Deployment name
+     - Some SDKs and API routes require a deployment
+       identifier.
+
+   * - Authentication method
+     - You need the keys or tokens that Azure AI Foundry
+       provides for the deployment.
+
+   * - Region
+     - Useful for governance, troubleshooting, and latency
+       expectations.
+
+   * - Networking constraints
+     - Indicates whether clients must connect from approved
+       networks or through private access.
+
+Azure AI Foundry commonly exposes one of the following
+connection patterns:
+
+- **Unified Foundry project endpoint.** Some Azure AI Foundry
+  deployments are invoked through the project's unified
+  endpoint, with the deployment name supplied in the request
+  path or payload.
+- **Private or network-isolated access.** If your Foundry
+  project is configured for private access, clients must run
+  from approved networks and resolve Azure private endpoints
+  correctly.
+
+Authentication
+~~~~~~~~~~~~~~
+
+Use the authentication method shown in Azure AI Foundry for
+the deployed model. Voyage AI model deployments currently
+support key-based authentication only:
+
+- Azure AI Foundry project keys or other key-based
+  credentials that the deployment exposes.
+
+Verify Connectivity
+-------------------
+
+After deployment, verify that your application can connect to
+the deployed model.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the deployment page.
+
+      Open the deployment details page in Azure AI Foundry.
+
+   .. step:: Copy the connection details.
+
+      Copy the endpoint and authentication information.
+
+   .. step:: Send a test request.
+
+      Send a small test request using the Azure-provided
+      sample code, SDK example, or API playground shown for
+      the deployment, and confirm that the response succeeds
+      and that the returned model metadata matches the
+      deployment you created.
+
+If your deployment uses private networking, also do the
+following:
+
+- Run the test from a client inside the approved network
+  boundary.
+- Validate DNS resolution to the expected private endpoint,
+  if applicable.
+- Confirm that firewall, subnet, and private endpoint
+  settings allow the request.
+
+For private networking validation, see Microsoft
+documentation on network isolation for Azure AI Foundry.
+
+Example Validation Workflow
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Use the following workflow to validate the deployment end to
+end:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Deploy the model.
+
+      Deploy the model in Azure AI Foundry.
+
+   .. step:: Note the connection details.
+
+      Open the deployment page and note the endpoint,
+      deployment name, and authentication requirements.
+
+   .. step:: Run an embeddings request.
+
+      Run a single embeddings request with a small sample
+      string.
+
+   .. step:: Confirm the response.
+
+      Confirm that the request returns embeddings
+      successfully.
+
+   .. step:: Record the connection pattern.
+
+      Record the exact connection pattern that Azure exposed
+      so your production application can follow the same
+      path.
+
+Troubleshooting
+~~~~~~~~~~~~~~~
+
+If you can't connect to the deployment:
+
+- Confirm that the model deployment completed successfully.
+- Confirm that you are using the correct endpoint and
+  deployment name.
+- Confirm that your authentication method matches the one
+  shown in Azure AI Foundry.
+- If private networking is enabled, confirm DNS, private
+  endpoint approval, subnet routing, and firewall
+  configuration.
+- If the deployment failed before completion, review Azure
+  quota, region availability, and any capacity limits shown
+  in the deployment flow.
+
+Delete a Voyage AI Deployment
+-----------------------------
+
+To avoid ongoing charges, delete model deployments that you
+no longer need.
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open your project.
+
+      Open your Azure AI Foundry project.
+
+   .. step:: Find the deployment.
+
+      Find the deployed Voyage AI model.
+
+   .. step:: Delete the deployment.
+
+      Delete the deployment from the Azure UI and confirm
+      deletion.
+
+If your setup includes private endpoints or other supporting
+network resources that were created only for this deployment,
+review whether they should also be removed.
