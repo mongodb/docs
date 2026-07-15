@@ -143,7 +143,7 @@ fix_copied_snooty_paths() {
 
 get_model() {
     case "$1" in
-        csharp|golang|java|java-rs|kotlin|kotlin-sync|node|php-library|\
+        c-driver|csharp|golang|java|java-rs|kotlin|kotlin-sync|node|php-library|\
         pymongo-driver|ruby-driver|rust|scala-driver|cpp-driver|swift|\
         terraform|cloudformation|spark-connector)
             echo "standard_major" ;;

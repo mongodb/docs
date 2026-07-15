@@ -66,8 +66,9 @@ using the docset reference table below.
 | manual | `skip` | `version-dev`, `release`, `current-minor-release` | `upcoming/source/release-notes/` (per-version; do not edit) |
 | atlas-architecture | `skip` | — | — |
 
-[a] csharp, cpp-driver, golang, java, java-rs, kotlin, kotlin-sync, node,
-    php-library, pymongo-driver, ruby-driver, rust, scala-driver. The
+[a] c-driver, csharp, cpp-driver, golang, java, java-rs, kotlin,
+    kotlin-sync, node, php-library, pymongo-driver, ruby-driver, rust,
+    scala-driver. The
     docset table previously listed swift, terraform, and cloudformation
     here; those docsets are not in the monorepo.
 
@@ -76,8 +77,8 @@ using the docset reference table below.
     other drivers.
 
 [c] Release notes paths by driver:
-    - `upcoming/source/reference/release-notes.txt`: csharp, golang,
-      java, kotlin, node, pymongo-driver, ruby-driver, rust
+    - `upcoming/source/reference/release-notes.txt`: c-driver, csharp,
+      golang, java, kotlin, node, pymongo-driver, ruby-driver, rust
     - `upcoming/source/reference/whats-new.txt`: cpp-driver, kotlin-sync
     - `upcoming/source/whats-new.txt`: java-rs, scala-driver
     - `upcoming/source/references/release-notes.txt` (plural
