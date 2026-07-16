@@ -1,19 +1,23 @@
-When using :ref:`Stable API <stable-api>` V1:
+When using :ref:`Stable API <stable-api>` V1, all
+:dbcommand:`createIndexes` fields are available with the
+following exceptions:
 
-- You cannot specify any of the following fields in the |paramName|:
+- The following fields in the |paramName| are not available in
+  Stable API V1:
 
   - ``background``
   - ``bucketSize``
   - ``sparse``
   - ``storageEngine``
 
-- You cannot create :ref:`text <index-type-text>` indexes.
+- :ref:`Text <index-type-text>` indexes are not available in
+  Stable API V1.
 
-- The above unsupported index types are ignored by the 
-  :ref:`query planner<query-plans-query-optimization>` in 
-  :ref:`strict mode<stable-api-strict-client>`. For example, 
-  attempting to use a ``sparse`` index with :method:`cursor.hint()` 
-  will result in the following ``BadValue`` error:
+- The above unsupported index types are ignored by the
+  :ref:`query planner<query-plans-query-optimization>` in
+  :ref:`strict mode<stable-api-strict-client>`. For example,
+  attempting to use a ``sparse`` index with :method:`cursor.hint()`
+  results in the following ``BadValue`` error:
 
   .. code-block::
      :copyable: false
