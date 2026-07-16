@@ -88,6 +88,13 @@ export async function mdxToMarkdown(
   const file = await processor.process(source);
   let result = String(file);
 
+  // Post-process: Collapse whitespace inside link text
+  // Source MDX often has link text that spans a line break; remark-stringify
+  // preserves those newlines verbatim, producing invalid-looking markdown links.
+  result = result.replace(/\[([^\]]*?)\]\(([^)]+)\)/gs, (_, text: string, url: string) => {
+    return `[${text.replace(/\s+/g, " ").trim()}](${url})`;
+  });
+
   // Post-process: Trim trailing whitespace from table rows
   // This removes excessive spaces that can accumulate in table cells
   result = result.replace(

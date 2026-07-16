@@ -11,11 +11,13 @@
 #. Select |fts-tokenizer| from the dropdown.
 
 #. Expand :guilabel:`Token Filters` and click :icon-fa5:`plus-circle`
-   :guilabel:`Add token filter`.
+   :guilabel:`Add token filter` to add the following token filters 
+   from the dropdown.
 
-#. Select |fts-token-filter| from the dropdown.
+   - |fts-token-filter| 
+   - |fts-token-filter-a|
 
-#. Click :guilabel:`Add token filter` to add the token filter to your
+#. Click :guilabel:`Add token filter` to add the token filters to your
    custom analyzer.
 
 #. Click :guilabel:`Add` to create the custom analyzer.
@@ -33,3 +35,4 @@
    dropdowns.
 
 #. Click :guilabel:`Add`, then :guilabel:`Save Changes`.
+#. Click :guilabel:`Create Search Index`.

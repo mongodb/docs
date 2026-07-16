@@ -6,6 +6,8 @@
 - Supports :ref:`sorted index <index-sort-ref>` to pre-sort documents 
   in ascending or descending order at index-time instead of sorting at 
   query-time. 
+- Adds :ref:`englishMinimalStemming <englishMinimalStemming-tf-ref>` 
+  token filter.
 
 .. _fts20260630: 
 

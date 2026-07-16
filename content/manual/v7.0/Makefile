@@ -158,15 +158,7 @@ examples:
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-scala-driver/master/driver/src/it/scala/org/mongodb/scala/DocumentationExampleSpec.scala -o ${DRIVERS_PATH}/DocumentationExampleSpec.scala
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-scala-driver/master/driver/src/it/scala/org/mongodb/scala/DocumentationTransactionsExampleSpec.scala -o ${DRIVERS_PATH}/DocumentationTransactionsExampleSpec.scala
 
-# csharp
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/DocumentationExamples.cs -o ${DRIVERS_PATH}/DocumentationExamples.cs
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/ChangeStreamExamples.cs -o ${DRIVERS_PATH}/ChangeStreamExamples.cs
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/TransactionExamplesForDocs/RetryExample1.cs -o ${DRIVERS_PATH}/TransactionsRetryExample1.cs
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/TransactionExamplesForDocs/RetryExample2.cs -o ${DRIVERS_PATH}/TransactionsRetryExample2.cs
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/TransactionExamplesForDocs/RetryExample3.cs -o ${DRIVERS_PATH}/TransactionsRetryExample3.cs
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/CausalConsistencyExamples.cs  -o ${DRIVERS_PATH}/CausalConsistencyExamples.cs
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/TransactionExamplesForDocs/WithTransactionExample1.cs  -o ${DRIVERS_PATH}/withTxnExample1.cs
-	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-csharp-driver/master/tests/MongoDB.Driver.Examples/StableApiExamples.cs  -o ${DRIVERS_PATH}/VersionedApiExamples.cs
+# csharp examples migrated into source/driver-examples/ (removed from mongo-csharp-driver); tracked in this repo
 
 # c
 	curl -SfL https://raw.githubusercontent.com/mongodb/mongo-c-driver/master/src/libmongoc/tests/test-mongoc-sample-commands.c -o ${DRIVERS_PATH}/test-mongoc-sample-commands.c

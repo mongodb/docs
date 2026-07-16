@@ -326,6 +326,111 @@ describe('Procedure / Step Components', () => {
   });
 });
 
+describe('Table Component', () => {
+  it('should convert a simple table to a GFM markdown table', async () => {
+    const mdx = `<Table>
+  <TableHead>
+    <TableRow>
+      <TableHeaderCell>Role (UI)</TableHeaderCell>
+      <TableHeaderCell>Role (API)</TableHeaderCell>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    <TableRow>
+      <TableCell>Owner</TableCell>
+      <TableCell>ORG_OWNER</TableCell>
+    </TableRow>
+  </TableBody>
+</Table>`;
+    await testContains(mdx, ['| Role (UI) |', '| --- |', '| Owner |']);
+    await testNotContains(mdx, ['<Table', '<TableRow', '<TableCell', '<TableHead']);
+  });
+
+  it('should preserve inline code in cells', async () => {
+    const mdx = `<Table>
+  <TableHead>
+    <TableRow>
+      <TableHeaderCell>Name</TableHeaderCell>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    <TableRow>
+      <TableCell>\`ORG_OWNER\`</TableCell>
+    </TableRow>
+  </TableBody>
+</Table>`;
+    await testContains(mdx, '`ORG_OWNER`');
+    await testNotContains(mdx, '<TableCell');
+  });
+
+  it('should preserve links in cells', async () => {
+    const mdx = `<Table>
+  <TableHead>
+    <TableRow>
+      <TableHeaderCell>Resource</TableHeaderCell>
+    </TableRow>
+  </TableHead>
+  <TableBody>
+    <TableRow>
+      <TableCell>[Atlas Docs](/docs/atlas)</TableCell>
+    </TableRow>
+  </TableBody>
+</Table>`;
+    await testContains(mdx, '[Atlas Docs](/docs/atlas)');
+    await testNotContains(mdx, '<TableCell');
+  });
+
+  it('should flatten list content in cells with semicolon separators', async () => {
+    const mdx = `<Table>
+<TableHead>
+<TableRow>
+<TableHeaderCell>Description</TableHeaderCell>
+</TableRow>
+</TableHead>
+<TableBody>
+<TableRow>
+<TableCell>
+
+- Create projects.
+- Delete projects.
+- View projects.
+
+</TableCell>
+</TableRow>
+</TableBody>
+</Table>`;
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    const result = await mdxToMarkdown(mdx);
+    expect(result).toContain('Create projects.');
+    expect(result).toContain('Delete projects.');
+    expect(result).toContain('View projects.');
+    expect(result).toContain('; ');
+    expect(result).not.toContain('<TableCell');
+  });
+
+  it('should handle empty cells', async () => {
+    const mdx = `<Table>
+<TableHead>
+<TableRow>
+<TableHeaderCell>UI</TableHeaderCell>
+<TableHeaderCell>API</TableHeaderCell>
+</TableRow>
+</TableHead>
+<TableBody>
+<TableRow>
+<TableCell></TableCell>
+<TableCell>ORG\_OWNER</TableCell>
+</TableRow>
+</TableBody>
+</Table>`;
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    const result = await mdxToMarkdown(mdx);
+    expect(result).toContain('| UI | API |');
+    expect(result).toContain('ORG');
+    expect(result).not.toContain('<TableCell');
+  });
+});
+
 describe('Substitution References from _references.ts', () => {
   // Fixture project has _references.ts with "service": "Atlas", "product": "MongoDB"
   const contentMdxDir = join(getFixturesDir(), '..');

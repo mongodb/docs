@@ -28,4 +28,4 @@ does a full document lookup on the database for each document in the
 collection.
 
 To learn how to improve the performance of ``$lookup`` queries, see
-:ref:`embedded-documents-arrays-anti-pattern`.
+:ref:`embeddedDocuments <embedded-documents-arrays-anti-pattern>`.
