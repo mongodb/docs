@@ -246,7 +246,6 @@ export type DocSite =
   | 'docs-relational-migrator'
   | 'self-managed-search'
   | 'vector-search'
-  | 'magenta'
   | 'visual-studio-extension';
 
 export default TocItem;
