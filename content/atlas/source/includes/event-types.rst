@@ -1,4 +1,4 @@
-.. Last updated: July 09, 2026 at 02:55 PM EDT
+.. Last updated: July 16, 2026 at 02:41 PM EDT
 
 .. list-table::
    :header-rows: 1
@@ -6983,9 +6983,8 @@
    * - ``WEBHOOK_TEMPLATE_RENDER_FAILED``
      - .. _atlas_event_webhook_template_render_failed:
 
-       A webhook alert notification template failed to render, so the
-       default payload was sent instead
-     - no
+       A webhook alert notification template failed to render, so the default payload was sent instead. Review the webhook template in your alert settings.
+     - yes
 
    * - ``WEEKLY_BILLING_CHANGE_NORMAL``
      - .. _atlas_event_weekly_billing_change_normal:
