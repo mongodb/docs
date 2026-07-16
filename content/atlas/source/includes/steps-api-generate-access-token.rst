@@ -44,7 +44,4 @@ To generate an access token for a service account:
 
             {"access_token":"{accessToken}","expires_in":3600,"token_type":"Bearer"}%
 
-      .. important:: 
-
-         The access token is valid for 1 hour (3600 seconds). You can't refresh an access token.
-         When this access token expires, repeat this step to generate a new one.
+      .. include:: /includes/admonitions/tips/tip-service-account-token-best-practices.rst
