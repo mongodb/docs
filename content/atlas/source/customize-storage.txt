@@ -101,8 +101,8 @@ Oplog Size Behavior
 
 .. _change-storage-capacity-aws:
 
-Change Storage Capacity or |iops| on |aws|
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Change Storage Capacity or IOPS on |aws|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 |service| handles changes differently based on whether you want to 
 increase or decrease storage capacity or storage throughput
@@ -217,8 +217,8 @@ Decrease Capacity or Throughput
 
 .. _change-storage-capacity-azure:
 
-Change Storage Capacity and |iops| on |azure|
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Change Storage Capacity and IOPS on |azure|
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For :guilabel:`Low CPU` or :guilabel:`General` {+clusters+} deployed on |azure|,
 you can extend |iops| and the data volumes' storage capacity in the {+atlas-ui+}.
@@ -415,15 +415,15 @@ You can't adjust the |iops| for your multi-cloud {+cluster+}.
 
 .. _storage-iops-ui:
 
-IOPS (AWS Only)
----------------
+IOPS Types (AWS Only)
+---------------------
 
 ``M30+`` clusters on |aws| offer different options for customizing the
 amount of |iops|:
 
-- You can use :ref:`Provisioned |iops| or High Performance |iops| <provisioned-high-perf-iops>`
+- You can use :ref:`Provisioned IOPS or High Performance IOPS <provisioned-high-perf-iops>`
   for Gen1 and :ref:`Gen2 Clusters <aws-gen2-clusters>`, respectively. 
-- You can use :ref:`{+extended-iops+} <extended-iops-gen2>` for
+- You can use :ref:`Extended Standard IOPS <extended-iops-gen2>` for
   :ref:`Gen2 Clusters <aws-gen2-clusters>`.
 
 .. note::
@@ -445,6 +445,11 @@ Gen1 clusters use :guilabel:`Provision IOPS` in the {+atlas-ui+} and Gen2
 clusters use :guilabel:`High Performance` IOPS. For simplicity, we use
 **High Performance IOPS** to refer to both here.
 
+Standard |iops| use |aws| General Purpose SSD volumes, which are designed
+to deliver their baseline performance 99% of the time. High Performance |iops|
+use |aws| Provisioned IOPs SSD volumes, which are designed to deliver their
+provisioned performance 99.9% of the time.
+
 Compared to standard |iops|, High Performance |iops|:
 
 - Deliver their configured |iops| rate more consistently.
@@ -453,42 +458,51 @@ Compared to standard |iops|, High Performance |iops|:
   faster than the p90 latency value, so a lower p90 latency value means 
   a generally faster response time.
 
-To learn more about the merits of using High Performance |iops| vs standard
-|iops|, see
-:aws:`Amazon EBS-optimized instances </AWSEC2/latest/UserGuide/ebs-optimized.html>`.
-See the following summary:
+To learn more, see:
 
-- General Purpose SSD volumes are designed to deliver their baseline
-  performance 99% of the time.
-
-- High Performance |iops| SSD volumes are designed to deliver their provisioned
-  performance 99.9% of the time.
-
-.. note:: 
-
-   Changes to |iops| provisioning affects characteristics, performance,
-   and :ref:`cost <instance-storage-speed>`. When you select
-   :guilabel:`Provision IOPS` for your Gen1 cluster or
-   :guilabel:`High Performance` for your Gen2 cluster, the storage changes
-   from **General Purpose SSD** volumes to **High Performance IOPS SSD**
-   volumes.
-
-To learn more, see
-:ref:`Configure Provisioned IOPS and High Performance IOPS <config-provisioned-high-perf-iops>`.
+- :aws:`Amazon EBS volume types </ebs/latest/userguide/ebs-volume-types.html>`
+- :ref:`Configure Provisioned IOPS and High Performance IOPS <config-provisioned-high-perf-iops>`
 
 .. _extended-iops-gen2:
 
-Extended Standard |iops| for Gen2 {+Dedicated-clusters+}
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Extended Standard IOPS for Gen2 {+Dedicated-clusters+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-{+gen-2-clusters+} offer {+extended-iops+}, allowing you to
-configure the cluster's standard |iops| and storage capacity independently of
-each other. As you increase {+extended-iops+}, the cluster’s available disk
-throughput also increases. For {+gen-2-clusters+}, the configurable maximum for
-|iops| is ``80k`` |iops|.
+{+gen-2-clusters+} have a baseline minimum |iops|, on top of which you can 
+provision additional |iops|:
 
-{+service+} bills {+extended-iops+} separately from storage capacity for
-{+gen-2-clusters+}. This flexibility helps you optimize your cluster costs.
+- For clusters with disk storage under ``1000GB`` (``1TB``), this baseline is
+  ``3000`` |iops|.
+- For clusters with disk storage over ``1000GB``, this baseline scales with
+  storage at an |iops|-to-``GB`` ratio of 3:1.
+  
+The following table shows non-exhaustive examples of how this baseline scales
+with various disk sizes:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Disk Storage
+     - Baseline IOPS
+   * - ``500GB``
+     - ``3000``
+   * - ``1000GB``
+     - ``3000``
+   * - ``2000GB``
+     - ``6000``
+   * - ``4000GB``
+     - ``12000``
+
+{+gen-2-clusters+} offer {+extended-iops+}, allowing you to provision up to
+``80k`` standard |iops| for your cluster. As you increase |iops|, the cluster’s
+available disk throughput also increases.
+
+For {+gen-2-clusters+}, you provision {+extended-iops+} and scale storage
+capacity independently, so scaling one doesn't necessitate scaling the other.
+Because provisioning {+extended-iops+} and scaling storage capacity are
+independent, |service| bills for {+extended-iops+} separately from storage
+capacity.
 
 To learn more, see:
 
