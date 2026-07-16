@@ -117,7 +117,7 @@ The |fts| |fts-field-type| type takes the following parameters:
        value of ``16``, each node can have a maximum of sixteen outgoing
        edges at each layer of the |hnsw| graph.
 
-       A higher number improves :term:`recall` (accuracy of search
+       A higher number improves :recall (accuracy of search
        results) because the graph is better connected. However, this
        also increases query and indexing time by increasing the number
        of neighbors to evaluate per graph node, and requires more memory

@@ -80,7 +80,7 @@ The following limitations apply when indexing with the
     For an example, see the :ref:`embedded-documents-tutorial` tutorial.
   - :ref:`Sort <sort-ref>` the parent documents by a nested field. You
     must also index the fields that you want to use for sorting.
-  
+
 2,100,000,000 Index Objects Limit 
 `````````````````````````````````
 

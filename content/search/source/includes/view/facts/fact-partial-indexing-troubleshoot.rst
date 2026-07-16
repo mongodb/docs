@@ -38,7 +38,7 @@ Indexes change to the ``STALE`` status in the following scenarios:
   index will return to ``READY`` after you resolve the document or 
   change the view definition so that it doesn't fail anymore. When 
   ``STALE``, the index remains queryable. If the index falls off the 
-  :term:`oplog`, an index rebuild is triggered.
+  oplog, an index rebuild is triggered.
 
 - If the View definition causes an aggregation pipeline
   failure while the index is ``BUILDING``, the index build is stuck 

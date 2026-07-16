@@ -1,14 +1,14 @@
 .. _token-filters-ref:
 
-=============
-Token Filters
-=============
+===================================
+Token Filters for Custom Analyzers
+===================================
 
 .. default-domain:: mongodb
 
 .. meta::
-   :keywords: stemming, redaction, remove sensitive information, create tokens, tokenize, asciiFolding, convert characters, daitchMokotoffSoundex, edgeGram, icuFolding, character folding, icuNormalizer, normalize token, length, lowercase, nGram, configure token size, regex, regular expression, reverse string, shingle, token n grams, snowballStemming, stem tokens, stopword, remove words, trim, remove whitespace, kStemming, morphological suffixes, inflectional suffixes, porterStemming
-   :description: Use token filters in a MongoDB Search custom analyzer to modify tokens, such as by stemming, lowercasing, or redacting sensitive information.
+   :keywords: code example, stemming, redaction, remove sensitive information, create tokens, tokenize, asciiFolding, convert characters, daitchMokotoffSoundex, edgeGram, icuFolding, character folding, icuNormalizer, normalize token, length, lowercase, nGram, configure token size, regex, regular expression, reverse string, shingle, token n grams, snowballStemming, stem tokens, stopword, remove words, trim, remove whitespace, kStemming, morphological suffixes, inflectional suffixes, porterStemming
+   :description: Use token filters in a MongoDB Search custom analyzer to modify tokens, such as by stemming, lowercasing tokens, or redacting sensitive information from public documents.
 
 .. contents:: On this page
    :local:
@@ -44,6 +44,7 @@ Token Filter Types
 - :ref:`asciiFolding-tf-ref`
 - :ref:`daitchmokotoffsoundex-tf-ref`
 - :ref:`edgegram-tf-ref`
+- :ref:`englishMinimalStemming-tf-ref`
 - :ref:`englishPossessive-tf-ref`
 - :ref:`flattenGraph-tf-ref`
 - :ref:`icufolding-tf-ref`
@@ -117,7 +118,7 @@ It has the following attributes:
        - ``include`` - include the original tokens with the 
          converted tokens in the output of the token filter. We 
          recommend this value if you want to support queries on both 
-         the original tokens as well as the converted forms. 
+         the original tokens and the converted forms. 
        - ``omit`` - omit the original tokens and include only the 
          converted tokens in the output of the token filter. Use this 
          value if you want to query only on the converted forms of the 
@@ -539,8 +540,109 @@ then matches to the query term:
    * - ``"_id": 1`` 
      - ``The``, ``team``, ``weekly``, ``meeting``
 
-   * - ``"_id": 2`` 
+   * - ``"_id": 2``
      - ``The``, ``check``, ``in``, ``with``, ``sales``, ``team``
+
+.. _englishMinimalStemming-tf-ref:
+
+englishMinimalStemming
+----------------------
+
+The ``englishMinimalStemming`` token filter stems plural English
+words to their singular form. Unlike more aggressive stemming filters
+such as :ref:`kStemming <kStemming-tf-ref>`, :ref:`porterStemming
+<porterStemming-tf-ref>`, or :ref:`snowballStemming
+<snowballstemming-tf-ref>`, this filter only removes plural suffixes
+and doesn't stem other morphological variations. This preserves
+non-plural words in their original form, which helps when you
+need exact matches for non-plural terms while still matching singular
+and plural forms.
+
+Attributes
+~~~~~~~~~~
+
+It has the following attributes:
+
+.. list-table::
+   :widths: 12 12 11 55
+   :header-rows: 1
+
+   * - Name
+     - Type
+     - Required?
+     - Description
+
+   * - ``type``
+     - string
+     - yes
+     - Human-readable label that identifies this token filter type.
+       Value must be ``englishMinimalStemming``.
+
+Example
+~~~~~~~
+
+The following index definition indexes the ``text.en_US`` field in
+the :ref:`minutes <custom-analyzers-eg-coll>` collection using a
+custom analyzer named ``minimalStemmer``. The custom analyzer
+specifies the following:
+
+a. Apply the :ref:`standard <standard-tokenizer-ref>` tokenizer to
+   create tokens based on word break rules.
+#. Apply the following token filters on the tokens:
+
+   - :ref:`lowercase <lowercase-tf-ref>` token filter to convert the
+     tokens to lowercase.
+   - :ref:`englishMinimalStemming <englishMinimalStemming-tf-ref>`
+     token filter to stem plural words to their singular form without
+     stemming other word variations.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/token-filters/atlas-ui/englishminimalstemming_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. literalinclude:: /includes/index/analyzers/code-snippets/token-filters/mongosh/englishminimalstemming_mongosh.js
+         :language: javascript
+         :linenos:
+         :copyable: true
+
+The following query searches the ``text.en_US`` field in the
+:ref:`minutes <custom-analyzers-eg-coll>` collection for the term
+``meeting``.
+
+.. tabs-drivers::
+
+   .. tab::
+      :tabid: atlas-ui
+
+      .. include:: /includes/index/analyzers/code-snippets/token-filters/atlas-ui/englishminimalstemming_query_ui.rst
+
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/index/analyzers/code-snippets/token-filters/compass/englishminimalstemming_query.rst
+
+|fts| returns the document with ``_id: 1`` because the 
+:ref:`lowercase <lowercase-tf-ref>` token filter normalizes
+token text to lowercase and the ``englishMinimalStemming`` token
+filter stems the plural ``meetings`` to the singular ``meeting``,
+which |fts| matches to the query term. Specifically, |fts| creates
+the following tokens (searchable terms) for the document in the
+results, which it then matches to the query term ``meeting``:
+
+.. list-table::
+   :header-rows: 1
+
+   * - Document ID
+     - Output Tokens
+
+   * - ``_id: 1``
+     - ``head``, ``this``, ``page``, ``deal``, ``with``, ``department``, ``meeting``, ``head``
 
 .. _flattenGraph-tf-ref:
 
@@ -871,7 +973,7 @@ The ``keywordRepeat`` token filter emits each incoming token twice, as a
 keyword and as a non-keyword. You can stem the non-keyword token using
 subsequent token filters and preserve the keyword token. This can be
 used to boost exact matches and retrieve stemmed matches. This is
-typically used in conjunction with a stemming filter, such as 
+typically used with a stemming filter, such as 
 :ref:`porterStemming-tf-ref`, followed by :ref:`removeDuplicates-tf-ref`.
 
 Attributes 
@@ -1195,7 +1297,7 @@ document. Specifically, |fts| creates the following tokens
 
    forsaljningsavdelningen
 
-|fts| won't return any results for a search for any other term in the
+|fts| doesn't return any results for a search for any other term in the
 ``text.sv_FI`` field in the collection because all other terms in the
 field have less than 20 characters. 
 
@@ -2453,7 +2555,7 @@ a. Apply the :ref:`whitespace tokenizer <whitespace-tokenizer-ref>`
    to create tokens based on occurrences of whitespace between words.
 #. Apply the ``stopword`` token filter to remove the tokens that
    match the defined stop words ``is``, ``the``, and ``at``. The
-   token filter is case-insensitive and will remove all tokens that
+   token filter is case-insensitive and removes all tokens that
    match the specified stopwords. 
 
 .. tabs-drivers::

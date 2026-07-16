@@ -11,4 +11,4 @@ best practices:
 
 To learn more, see :manual:`Change Streams Production Recommendations
 </administration/change-streams-production-recommendations/>` and
-:ref:`reduce-document-size-anti-pattern`.
+:opsmgr:`Reduce the Size of Large Documents </schema-advisor/reduce-document-size/>`.
