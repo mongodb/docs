@@ -972,6 +972,13 @@ Database, Query, Search, and Stream Processing Metrics
      - |fts|
      - Total number of queries submitted to |fts|.
 
+   * - | ``SEARCH_PROCESS_OVERLOADED``
+       | (mongodb.atlas.search.process.overloaded)
+     - |fts|
+     - Rate per second of search queries that exceed the search node's
+       admission control queue threshold. When queued queries exceed this
+       threshold, this metric increments.
+
    * - | ``JVM_CURRENT_MEMORY``
        | (mongodb.atlas.search.jvm.current.memory)
      - |fts|

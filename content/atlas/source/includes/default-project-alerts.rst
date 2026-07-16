@@ -36,6 +36,7 @@ using :ref:`security-aws-kms`:
 - :alert:`Search Process: Ran out of memory <Search Process: Ran out of memory>`
 - :alert:`Atlas Search: Mongot paused initial sync <Atlas Search: Mongot paused initial sync>`
 - :alert:`Atlas Search: Mongot is approaching replication stop threshold`
+- :alert:`MongoDB Search: Search Process is Overloaded`
 
 For a full list of |fts| alerts, see :ref:`Alert Conditions for {+fts+} <alert-conditions-atlas-search>`.
 

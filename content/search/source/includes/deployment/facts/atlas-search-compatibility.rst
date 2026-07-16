@@ -12,9 +12,12 @@ specific MongoDB versions.
    * - |fts| Feature 
      - MongoDB Version for Feature 
 
-   * - :ref:`Create indexes on Views 
+   * - :ref:`Create indexes on Views
        <fts-transform-documents-collections>`
      - 8.0+
+
+   * - :pipeline:`$search` and :pipeline:`$searchMeta` on sharded views
+     - 8.2+
 
    * - :ref:`Facets <fts-facet-ref>`
      - 7.0+, 8.0+
@@ -48,10 +51,14 @@ specific MongoDB versions.
      - 7.0+, 8.0+
 
    * - :pipeline:`$search` ``searchAfter`` and ``searchBefore``
-       :ref:`options <fts-paginate-results>` 
+       :ref:`options <fts-paginate-results>`
      - 6.0.13+, 7.0.5+, 8.0+
 
-|fts| is not supported for :ref:`time series <manual-timeseries-landing>` collections.
+|fts| is not supported for :ref:`time series <manual-timeseries-landing>`
+collections. Starting in MongoDB 8.3, the :pipeline:`$search`,
+:pipeline:`$searchMeta`, and :pipeline:`$vectorSearch` stages fail with an
+error message when run on timeseries collections. Previously, these stages
+returned empty results.
 
 .. _atlas-fts-shared-tier-limitations:
 
