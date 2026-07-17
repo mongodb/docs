@@ -115,3 +115,6 @@
 
   2. Ensure at least one secondary node is in the same
      region as the endpoint. 
+
+- When you create a new {+gcp-psc+} endpoint, its name must
+  be unique within the group. 
