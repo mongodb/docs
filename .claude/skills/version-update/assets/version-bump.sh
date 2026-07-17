@@ -145,11 +145,11 @@ get_model() {
     case "$1" in
         c-driver|csharp|golang|java|java-rs|kotlin|kotlin-sync|node|php-library|\
         pymongo-driver|ruby-driver|rust|scala-driver|cpp-driver|swift|\
-        terraform|cloudformation|spark-connector)
+        terraform|cloudformation|spark-connector|laravel-mongodb)
             echo "standard_major" ;;
         kubernetes)
             echo "per_minor" ;;
-        entity-framework|atlas-operator|kafka-connector)
+        entity-framework|atlas-operator|kafka-connector|django-mongodb)
             echo "per_minor" ;;
         atlas-cli)
             echo "atlas_cli" ;;
@@ -172,6 +172,8 @@ get_version_field_override() {
         kafka-connector)  echo "connector_version" ;;
         spark-connector)  echo "current-version" ;;
         mongosync)        echo "version" ;;
+        laravel-mongodb)  echo "package-version" ;;
+        django-mongodb)   echo "django-version" ;;
         *)               echo "" ;;
     esac
 }
@@ -198,6 +200,7 @@ get_toc_file() {
         node)          echo "drivers/node-versions.ts" ;;
         rust)          echo "drivers/rust-versions.ts" ;;
         scala-driver)  echo "drivers/scala-versions.ts" ;;
+        laravel-mongodb) echo "drivers/laravel-versions.ts" ;;
         kafka-connector) echo "cloud-docs/kafka-connector.ts" ;;
         mongosync)     echo "server-docs/mongosync.ts" ;;
         *)             echo "" ;;

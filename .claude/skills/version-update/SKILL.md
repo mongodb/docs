@@ -56,8 +56,10 @@ using the docset reference table below.
 |---|---|---|---|
 | Standard drivers [a] | `standard_major` | auto-detect (`version-number` or `version`) [b] | varies by driver — see [c] |
 | spark-connector | `standard_major` | `current-version` | `upcoming/source/release-notes.txt` |
+| laravel-mongodb | `standard_major` | `package-version` | n/a — docs link out to the GitHub changelog, handled by `drivers-release-notes` |
 | MCK | `per_minor` | `version`, `dl-version` | `upcoming/source/release-notes.txt` |
 | entity-framework | `per_minor` | `version-number`, `full-version` | `upcoming/source/release-notes.txt` |
+| django-mongodb | `per_minor` | `django-version` | `upcoming/source/reference/release-notes.txt` |
 | atlas-operator | `per_minor` | (none — use latest archive dir) | `upcoming/source/ak8so-changelog.txt` |
 | kafka-connector | `per_minor` | `connector_version` | `upcoming/source/whats-new.txt` |
 | atlas-cli | `atlas_cli` | `atlas-cli-version` | `upcoming/source/atlas-cli-changelog.txt` [d] |
