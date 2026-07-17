@@ -979,6 +979,14 @@ Database, Query, Search, and Stream Processing Metrics
        admission control queue threshold. When queued queries exceed this
        threshold, this metric increments.
 
+   * - | ``SEARCH_PROCESS_THROTTLING``
+       | (mongodb.atlas.search.process.throttling)
+     - |fts|
+     - Average rate per second at which the search process exceeded
+       its queue threshold, indicating the search process is operating
+       beyond its intended capacity. Sustained non-zero values indicate
+       work is arriving faster than it can be admitted.
+
    * - | ``JVM_CURRENT_MEMORY``
        | (mongodb.atlas.search.jvm.current.memory)
      - |fts|
