@@ -5,12 +5,15 @@
 Jobs
 ====
 
+.. meta::
+   :description: Manage Backup jobs and resources in Ops Manager, including assigning projects to Backup Daemons, configuring WTCheckpoint settings, viewing job logs, and setting up KMIP.
+
 .. default-domain:: mongodb
 
 .. contents:: On this page
    :local:
    :backlinks: none
-   :depth: 2
+   :depth: 1
    :class: singlecol
 
 This page lets you manage Backup jobs and Backup resources for
@@ -89,6 +92,74 @@ From the :guilabel:`Jobs` page, you can do the following:
        See :setting:`mms.backup.journal.heads` for how to enable or
        disable journaling for all head databases in your project.
 
+.. _admin-configure-wtcheckpoint-settings:
+.. _configure-wtcheckpoint-settings:
+
+Configure WTCheckpoint Settings
+-------------------------------
+
+For each backup job, you can tune the WiredTiger checkpoint
+settings that control how the {+mdbagent+} streams data to
+|onprem|. These settings let you balance backup throughput against
+the memory and network resources that the {+mdbagent+} and |onprem|
+use.
+
+To open the settings for a job, use the following procedure:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Click the :guilabel:`Backup` tab, then click :guilabel:`Jobs`.
+
+   .. step:: Click the backup job link under :guilabel:`Replica Set ID`.
+
+   .. step:: In the :guilabel:`WTCheckpoint Config` section, click :guilabel:`Update Config`.
+
+   .. step:: Update the settings that you want to change, then click :guilabel:`Update WTCheckpoint Config`.
+
+The :guilabel:`Update Config` dialog displays the following settings:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Setting
+     - Description
+
+   * - :guilabel:`Maximum Number of workers`
+     - Upper limit for the number of files that a backup module
+       sends to the service concurrently, inclusive.
+
+   * - :guilabel:`Maximum Unit of Work Blocks`
+     - Maximum number of blocks to request in response to a unit of
+       work request.
+
+   * - :guilabel:`Block Batch Size`
+     - Batch size, in bytes, for each data block.
+
+   * - :guilabel:`Maximum Bandwidth`
+     - Maximum number of bytes per second for block transfer.
+
+   * - :guilabel:`Maximum Memory Footprint`
+     - Maximum amount of memory allowed to stream across all
+       workers.
+
+   * - :guilabel:`Maximum Block Stream Size`
+     - Maximum number of bytes per multipart stream. This value must
+       be at least 1 MB greater than the :guilabel:`Block Batch Size`.
+
+.. note::
+
+   The value that appears in each field is the default that
+   |onprem| auto-tunes for the specific host that runs the job. The
+   auto-tuned default varies based on the host's available
+   resources.
+
+If the job is a member of a sharded cluster, the dialog also
+displays an :guilabel:`Apply to all cluster members` checkbox.
+Select this checkbox to apply the settings to all member jobs in
+the cluster.
+
 .. _admin-manage-backup-resources:
 
 Manage Backup Resources
@@ -98,7 +169,7 @@ From the :guilabel:`Jobs` page, you can assign Backup resources to a
 particular :opsmgr:`project </reference/glossary/#std-term-project>`.
 
 You can make these changes for existing Backups, but only new
-:term:`backup jobs <backup job>` will follow the new rules. Making
+:term:`backup jobs <backup job>` follow the new rules. Making
 these changes does not affect existing deployments. For additional
 procedural information, see
 :doc:`/tutorial/move-jobs-to-new-backup-daemon`.
@@ -135,7 +206,7 @@ procedural information, see
           select multiple labels, the resource must meet all selected
           labels.
 
-          Keep in mind that the resource must also meet any other
+          Consider that the resource must also meet any other
           selected criteria on this page.
 
           For example: for a Daemon to match, it must also meet any
@@ -177,8 +248,8 @@ After you transition to another S3-compatible snapshot store, the
 existing snapshots remain in the previous store until they expire and 
 the :ref:`groom job <grooms-page>` removes them. All new snapshots are 
 stored on the newly selected store, starting with a full snapshot. If a 
-snapshot is in progress at the time of transition, it will complete on 
-the current store, and the transition will take effect with the next 
+snapshot is in progress at the time of transition, it completes on
+the current store, and the transition takes effect with the next
 scheduled snapshot.
 
 .. include:: /includes/steps/admin-transition-s3-blockstore.rst
