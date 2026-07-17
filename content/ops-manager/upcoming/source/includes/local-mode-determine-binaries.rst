@@ -58,10 +58,12 @@ for:
 MongoDB Database Tools
 ++++++++++++++++++++++
 
-Find the MongoDB Tools version that your |onprem| version requires.
-See the :ref:`mms-changelog` to find what MongoDB Tools version your
-|onprem| version requires. During |onprem| upgrades, verify that you
-have the latest version for your new |onprem| version.
+Find the Database Tools version that your |onprem| version requires
+in the :ref:`Database Tools Compatibility table
+<ops-manager-dbtools-compatibility>`. During |onprem| upgrades,
+install the version listed for your new |onprem| release, since
+newer Database Tools versions can break compatibility with your
+release.
 
 For each platform and version you must support, download the
 :dl:`MongoDB Database Tools <database-tools>` in the ``.tgz`` format
