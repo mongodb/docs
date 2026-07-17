@@ -5782,6 +5782,49 @@ Health Manager Parameters
 Storage Parameters
 ~~~~~~~~~~~~~~~~~~
 
+.. parameter:: changeStreamPreImagesSamplePointsPerUUID
+
+   |mongod-only|
+
+   .. versionadded:: 9.0
+
+   *Type*: integer
+
+   *Default*: 10
+
+   Controls the number of samples that MongoDB draws from each user
+   collection that has change stream pre-images enabled. The minimum
+   value is ``1``.
+
+   MongoDB uses these samples to build the initial truncation
+   information that governs pre-image removal. Sampling documents in
+   the pre-images collection can be I/O-intensive if the pre-image
+   data is not cached. The total number of document lookups
+   depends on the number of user collections with pre-images enabled:
+   for each collection with pre-images enabled, MongoDB draws up to
+   :parameter:`changeStreamPreImagesSamplePointsPerUUID` samples from
+   the pre-images collection.
+
+   Lower this value to reduce I/O usage if pre-image sampling
+   consumes too many I/O resources. Lowering the value also reduces
+   the accuracy of the initial truncation information, which means
+   that already-expired pre-images may be removed later than
+   expected. This applies only to pre-images that already exist at
+   the time of sampling. Pre-images inserted after sampling always
+   have accurate expiration information.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following example sets
+   :parameter:`changeStreamPreImagesSamplePointsPerUUID` to ``5``:
+
+   .. code-block:: javascript
+
+      db.adminCommand( {
+         setParameter: 1,
+         changeStreamPreImagesSamplePointsPerUUID: 5
+      } )
+
 .. parameter:: enableAutoCompaction
 
    |both|
