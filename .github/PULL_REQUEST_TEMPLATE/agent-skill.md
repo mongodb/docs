@@ -94,10 +94,10 @@ them here. See PR #19339 for an example format. Skip if not applicable. -->
       skill's `dris` (1-2 GitHub usernames or emails; first is primary,
       second is backup) and today's `last_reviewed` date. New skills must
       include at least one non-`TBD` entry in `dris` before merge.
-- [ ] If adding a new skill, confirmed it belongs in an existing section in
-      `.claude/skills/generate-readme.py`, or added it to the correct
-      `SECTIONS` list. Skills not listed in any section appear under
-      "Other Skills" and should be reviewed for proper placement.
+- [ ] Set `readme_section` in the skill's `OWNERS.yaml` entry to the
+      section it belongs in (e.g. "Universal Skills", "Grove & Code
+      Examples" — see existing entries for valid values). Omitting it
+      files the skill under "Other Skills" in the generated README.
 
 ## REVIEWER CHECKLIST
 
