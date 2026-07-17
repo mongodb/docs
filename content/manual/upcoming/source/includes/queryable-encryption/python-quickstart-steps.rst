@@ -74,7 +74,7 @@ assign the required configuration variables.
 
          # Paste client configuration code below
 
-         # Paste JSON schema below
+         # Paste schema below
 
          # Paste code to create an encrypted collection below
 
@@ -200,7 +200,7 @@ encryption key and configure your application for {+qe+}.
 
       To encrypt a field, add it to the {+enc-schema+}. To enable queries on a
       field, add the ``queries`` property. Paste the following code under the
-      ``# Paste JSON schema below`` comment:
+      ``# Paste schema below`` comment:
 
       .. literalinclude:: /includes/qe-tutorials/python/queryable_encryption_tutorial.py
          :start-after: start-encrypted-fields-map
