@@ -6,7 +6,12 @@
    * - Instance Size 
      - Default RAM
      - Default Storage
-     - Location 
+     - vCPU
+
+   * - S10
+     - 4 GiB
+     - 54 GiB
+     - 1
 
    * - S20
      - 4 GiB
