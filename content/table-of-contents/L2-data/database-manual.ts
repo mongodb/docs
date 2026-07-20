@@ -36,6 +36,69 @@ const tocData: TocItem[] = [
     items: DatabasesCollectionsData,
   },
   {
+    label: 'Sample Data',
+    contentSite: 'docs',
+    url: '/docs/:version/sample-data',
+    collapsible: true,
+    items: [
+      {
+        label: 'Load Sample Data',
+        contentSite: 'docs',
+        url: '/docs/:version/sample-data/load-sample-data-local/',
+      },
+      {
+        label: 'Sample Airbnb',
+        contentSite: 'docs',
+        url: '/docs/:version/sample-data/sample-airbnb/',
+      },
+      {
+        label: 'Sample Analytics',
+        contentSite: 'docs',
+        url: '/docs/:version/sample-data/sample-analytics/',
+      },
+      {
+        label: 'Sample Geospatial',
+        contentSite: 'docs',
+        url: '/docs/:version/sample-data/sample-geospatial/',
+      },
+      {
+        label: 'Sample Guides',
+        contentSite: 'docs',
+        url: '/docs/:version/sample-data/sample-guides/',
+      },
+      {
+        label: 'Sample Mflix',
+        contentSite: 'docs',
+        url: '/docs/:version/sample-data/sample-mflix/',
+      },
+      {
+        label: 'Sample Restaurants',
+        contentSite: 'docs',
+        url: '/docs/:version/sample-data/sample-restaurants/',
+      },
+      {
+        label: 'Sample Supplies',
+        contentSite: 'docs',
+        url: '/docs/:version/sample-data/sample-supplies/',
+      },
+      {
+        label: 'Sample Training',
+        contentSite: 'docs',
+        url: '/docs/:version/sample-data/sample-training/',
+      },
+      {
+        label: 'Sample Weather',
+        contentSite: 'docs',
+        url: '/docs/:version/sample-data/sample-weather/',
+      },
+      {
+        label: 'Synthetic Data',
+        contentSite: 'docs',
+        url: '/docs/atlas/synthetic-data/',
+      },
+    ],
+  },
+  {
     label: 'Client Libraries',
     isExternal: true,
     url: 'https://www.mongodb.com/docs/drivers/',
