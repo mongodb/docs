@@ -57,7 +57,17 @@ If this returns an error, the release notes might not exist. In that case, stop 
 
 Read the first 60 lines of `{RELEASE_NOTES_FILE}` to confirm the exact heading style, section labels, issue reference format, and changelog link format used by this product before drafting. 
 
-### 3. Draft the new release notes entry
+### 3. Check the changes for embargoed terms
+
+Use Glean to fetch the Embargoed Features List from the internal wiki (https://wiki.corp.mongodb.com/pages/viewpage.action?pageId=560136334) and return every embargoed feature name and its aliases. The page is internal to MongoDB, so instruct the subagent to read it with Glean.
+
+Scan the change list fetched in step 1 for any embargoed feature name or alias, matching case-insensitively and including aliases.
+
+If any change matches an embargoed term, **stop before drafting**: report the matching term and the affected changes to the writer, then ask how to proceed. Do not draft, include, or publish any release note that references an embargoed feature until the writer confirms the embargo is lifted.
+
+If no change matches, continue to the next step.
+
+### 4. Draft the new release notes entry
 
 Format the new entry to match the conventions observed in step 2 and the additional instructions listed for the driver in the driver reference file. Insert the entry in the correct version-sorted position (newest version first). Do not assume the new entry belongs at the top — scan the existing headings to find where `{VERSION}` falls relative to other versions and insert it there, with a blank line separating it from the entry above and below. For example, see the **Standard Entry Format** in `references/docs-templates.md`.
 
@@ -72,7 +82,7 @@ Format the new entry to match the conventions observed in step 2 and the additio
 - At the bottom of the section, add a link to the changelog in the driver source code by using the `{CHANGELOG_LINK}`. Use this syntax: "To learn more about this release, see the
 :github:`v{VERSION} Release Notes <{CHANGELOG_LINK}>` on GitHub."
 
-### 4. Document breaking changes
+### 5. Document breaking changes
 
 A breaking change is a modification in a convention or behavior in a specific version of the driver that might prevent an application from working properly if not addressed before upgrading. If a driver has breaking changes, document them in the upgrade guide and add a warning admonition to the release notes - unless the driver-specific reference file states otherwise.
 
@@ -93,7 +103,7 @@ Create a new section in the driver's upgrade guide under the Breaking Changes he
 - Do not duplicate entries from the release notes.
 - Read the first 60 lines of the upgrade guide to see the format of each section.
 
-### 5. Apply the changes to `current`
+### 6. Apply the changes to `current`
 
 After modifying the release notes in `upcoming`, ask the user if they also want to apply the changes to the `current` version directory. The `current` directory is a sibling of `upcoming` under the same product's `content/` folder (e.g., `content/c-driver/current/`).
 If yes, use `git diff` and `git apply` to make the same changes to `current`:
@@ -106,7 +116,7 @@ git diff HEAD -- {RELEASE_NOTES_FILE} | \
 
 If `git apply` fails, report the error output to the user and ask how to proceed. Verify the result by reading the patched file before reporting completion.
 
-### 6. Confirm completion
+### 7. Confirm completion
 
 Report the file(s) changed and ask the user if they are ready to commit. Remind the user to complete the documentation version update, providing a link to https://wiki.corp.mongodb.com/spaces/DE/pages/201983140/How+To+Implement+Changes+for+Driver+Version+Updates, and request a technical review before publishing.
 Remind the user that they can use the `version-update` command to update the documentation version if not already completed.

@@ -15,7 +15,7 @@ Follow the workflow defined in `.claude/skills/release-notes-base/SKILL.md`, sub
 | `{GITHUB_REPO}`          | `mongodb-js/mongodb-mcp-server`                                                                                                                                                                              |
 | `{RELEASE_NOTES_FILE}`   | `content/mcp-server/source/release-notes.txt`                                                                                                                                                               |
 | `{PRODUCT_SUBSTITUTION}` | bare version number only (e.g. `1.9.0`) — no substitution constant, no `v` prefix                                                                                                                           |
-| `{VERSION_KEY}`          | N/A — `content/mcp-server/snooty.toml` has no version key; skip step 4                                                                                                                                      |
+| `{VERSION_KEY}`          | N/A — `content/mcp-server/snooty.toml` has no version key; skip step 6                                                                                                                                      |
 | `{SNOOTY_TOML}`          | N/A                                                                                                                                                                                                          |
 | `{CHANGELOG_LINK}`       | Multi-line inline RST hyperlink — see format overrides below for the exact format |
 

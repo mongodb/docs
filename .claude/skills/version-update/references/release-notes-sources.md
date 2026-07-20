@@ -58,6 +58,18 @@ gh release view <tag> --repo <repo> --json tagName --jq '.tagName'
 If the command returns an error or an empty body, the release either
 does not exist or has no notes — fall back to the manual reminder path.
 
+## Check the Fetched Content for Embargoed Terms
+
+Before drafting any entry from a fetched release body, check it for embargoed terms.
+
+Use Glean to fetch the Embargoed Features List from the internal wiki (https://wiki.corp.mongodb.com/pages/viewpage.action?pageId=560136334) and return every embargoed feature name and its aliases. The page is internal to MongoDB, so instruct the subagent to read it with Glean.
+
+Scan the fetched release body for any embargoed feature name or alias, matching case-insensitively and including aliases.
+
+If any content matches an embargoed term, **stop before drafting**: report the matching term and the affected content to the writer, then ask how to proceed. Do not draft, include, or publish any release note that references an embargoed feature until the writer confirms the embargo is lifted.
+
+If no content matches, continue to formatting.
+
 ## Formatting the Output
 
 Release body content from GitHub is in Markdown. When inserting into an

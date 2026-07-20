@@ -173,6 +173,16 @@ grep -rn "^\.\. _" \
   > /tmp/om-rn/all-anchors.txt
 ```
 
+## Step 4b: Check the changes for embargoed terms
+
+Use Glean to fetch the Embargoed Features List from the internal wiki (https://wiki.corp.mongodb.com/pages/viewpage.action?pageId=560136334) and return every embargoed feature name and its aliases. The page is internal to MongoDB, so instruct the subagent to read it with Glean.
+
+Scan the fetched items (Aha! features from `features-slim.json` and the Jira results) for any embargoed feature name or alias, matching case-insensitively and including aliases.
+
+If any item matches an embargoed term, **stop before drafting**: report the matching term and the affected items to the writer, then ask how to proceed. Do not draft, include, or publish any release note that references an embargoed feature until the writer confirms the embargo is lifted.
+
+If no item matches, continue to the next step.
+
 ## Step 5: Process Entries in Parallel
 
 Classify all features from `features-slim.json` and split Jira results by type. Then spawn **one subagent per item simultaneously** — do not wait for one to finish before starting the next.
