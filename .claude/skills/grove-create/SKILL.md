@@ -1,12 +1,6 @@
 ---
 name: grove-create
-description: >
-  Create a new tested code example in the Grove platform. Use when the user asks
-  to "create a code example", "add a new example", "scaffold a Grove example",
-  "new tested example for docs", "create an example for [language]", or wants to
-  add a tested, snippeted code example for MongoDB documentation. Covers Python
-  (PyMongo), Go, Java (Sync Driver), JavaScript (Node.js Driver), C#, and
-  Mongosh (MongoDB Shell).
+description: "Create a new tested code example in the Grove platform. Use when the user asks to 'create a code example', 'add a new example', 'scaffold a Grove example', 'new tested example for docs', 'create an example for [language]', or wants to add a tested, snippeted code example for MongoDB documentation. Covers Python (PyMongo), Go, Java (Sync Driver), JavaScript (Node.js Driver), C#, and Mongosh (MongoDB Shell)."
 ---
 
 # Grove: Create a New Tested Code Example
@@ -15,9 +9,8 @@ description: >
 
 Begin your first response with: `[grove-create-9ccc4ec3]`
 
-Create a complete, tested code example in the Grove platform for use in MongoDB
-documentation. The output includes a code example source file, a test file, and
-optionally an expected output file.
+Create a complete, tested code example for MongoDB documentation. Output: a
+source file, a test file, and optionally an expected output file.
 
 **Do NOT use when:**
 - The user wants to fix or update an existing test → use `/grove-test`
@@ -66,28 +59,15 @@ base directories vary by language:
 | C# (EF Core) | `csharp/driver/Examples/EfCore/` | `csharp/driver/Tests/EfCore/` |
 | Mongosh | `command-line/mongosh/examples/` | `command-line/mongosh/tests/` |
 
-**Mongosh is fundamentally different** from driver suites — examples are shell
-commands (not driver code), tests run `mongosh` as a subprocess, and the Expect
-API uses `outputFromExampleFiles()` instead of `that()`. Read
-`command-line/mongosh/CLAUDE.md` for mongosh-specific conventions.
+**Mongosh** uses different conventions from driver suites — read
+`command-line/mongosh/CLAUDE.md`. **C# EF Core** uses different conventions from
+the C# driver — read `references/conventions-csharp-ef-core.md`.
 
-**C# EF Core is a separate suite** from the C# driver — it uses DbContext,
-LINQ queries, and entity configuration instead of aggregation pipelines.
-Read `references/conventions-csharp-ef-core.md` for EF Core-specific patterns.
+**Before doing any other work**, confirm the target language and base directories
+with the user. Wait for explicit confirmation before continuing.
 
-**Before doing any other work**, confirm the target language with the user.
-Present the resolved language and its base directories, and ask the user to
-confirm before proceeding. For example:
-
-> I'll create this example in the **JavaScript** test suite
-> (`code-example-tests/javascript/driver/`). Is that correct?
-
-Wait for explicit confirmation. If the user corrects the language, update all
-paths accordingly before continuing.
-
-Verify the base directories exist by reading the filesystem. If a base
-directory does not exist, stop and tell the user — do not create top-level
-language directories yourself, as they require build configuration.
+Verify the base directories exist by reading the filesystem. If missing, stop —
+do not create top-level language directories, as they require build configuration.
 
 ## Step 3: Load Conventions
 
@@ -97,10 +77,7 @@ formatting, etc.). Also read the root `code-example-tests/CLAUDE.md` for
 cross-language patterns (Bluehawk, Expect API, ellipsis patterns).
 
 This skill bundles per-language convention files at
-`references/conventions-{language}.md` (e.g., `references/conventions-csharp.md`,
-`references/conventions-go.md`, `references/conventions-java.md`,
-`references/conventions-javascript.md`, `references/conventions-mongosh.md`,
-`references/conventions-python.md`). Read the one matching the target language
+`references/conventions-{language}.md`. Read the one matching the target language
 for detailed file patterns, test patterns, and command references.
 
 If no CLAUDE.md exists for the target language, read 2-3 existing example and
@@ -121,21 +98,13 @@ If a related example exists, present options to the user:
 
 ## Step 5: Data Strategy — Sample Data or Custom?
 
-Ask the user whether the example should use an **existing MongoDB sample dataset**
-or **custom test data** created by the example itself.
+Ask the user whether to use an **existing MongoDB sample dataset** or **custom
+test data**. Skip if the user already specified (e.g., "using sample_mflix").
 
-Present the choice clearly:
-
-> **Data source for this example:**
-> 1. **Sample dataset** — Use a pre-loaded Atlas sample database (tests auto-skip
->    if data is unavailable). Best for read-heavy examples (queries, aggregation,
->    indexes).
-> 2. **Custom data** — The example creates its own data (insert, then operate on
->    it). Best for write-heavy examples (CRUD, transactions) or when you need
->    specific document shapes.
-
-If the user already specified this in their request (e.g., "using sample_mflix"
-or "inserts its own data"), skip the prompt.
+- **Sample dataset**: Pre-loaded Atlas data; tests auto-skip if unavailable.
+  Best for read-heavy examples (queries, aggregation, indexes).
+- **Custom data**: Example creates its own data. Best for write-heavy examples
+  (CRUD, transactions) or specific document shapes.
 
 ### If using a sample dataset:
 
@@ -185,12 +154,6 @@ Templates are at the root of each language's examples directory (e.g.,
 `examples/example-stub.js` for JS, `examples/example_stub.py` for Python,
 `examples/example_stub.go` for Go, `src/main/java/example/ExampleStub.java`
 for Java, `Examples/ExampleStub.cs` for C#).
-
-### Bluehawk Key Principles
-- The test file is the source of truth — it must run
-- Anything test-only or internal-only must be hidden via `:remove:` tags
-- Use `:uncomment:` sparingly — it means the snippet differs from what was tested
-- Check existing files in the target suite for the `:replace-start:` pattern
 
 ## Step 8: Create the Expected Output File (optional)
 
