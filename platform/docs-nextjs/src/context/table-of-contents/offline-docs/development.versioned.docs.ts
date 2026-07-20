@@ -250,7 +250,25 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Network Peering',
                 contentSite: 'cloud-docs',
+                collapsible: true,
                 url: '/docs/atlas/security-vpc-peering',
+                items: [
+                  {
+                    label: 'Manage Network Peering',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/manage-vpc-peering',
+                  },
+                  {
+                    label: 'Network Containers',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/network-containers',
+                  },
+                  {
+                    label: 'Troubleshoot',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/troubleshoot-vpc',
+                  },
+                ],
               },
               {
                 label: 'Cloud Provider Access',
@@ -2508,7 +2526,6 @@ export const toc: L1TocItem[] = [
                 label: 'Performance Benchmark',
                 contentSite: 'vector-search',
                 collapsible: true,
-                url: '/docs/vector-search/benchmark/benchmark',
                 items: [
                   {
                     label: 'Benchmark Overview',

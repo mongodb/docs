@@ -547,6 +547,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/backup/cloud-backup/restore-from-continuous',
                   },
                   {
+                    label: 'Collection- and Database-Level Restores',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/backup/cloud-backup/restore-from-db-coll',
+                  },
+                  {
                     label: 'Restore from Local Download',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/backup/cloud-backup/restore-from-local-file',
@@ -3318,6 +3323,33 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/:version/core/security-transport-encryption',
                     items: [
+                      {
+                        label: 'Quickstart',
+                        contentSite: 'docs',
+                        collapsible: true,
+                        items: [
+                          {
+                            label: 'Plan Your Configuration',
+                            contentSite: 'docs',
+                            url: '/docs/:version/core/tls/plan-tls-deployment',
+                          },
+                          {
+                            label: 'Obtain Certificates',
+                            contentSite: 'docs',
+                            url: '/docs/:version/core/tls/certificate-tutorial',
+                          },
+                          {
+                            label: 'Configure On Your Deployment',
+                            contentSite: 'docs',
+                            url: '/docs/:version/core/tls/configure-server-tls-tutorial',
+                          },
+                          {
+                            label: 'Connect Client',
+                            contentSite: 'docs',
+                            url: '/docs/:version/core/tls/configure-client-tls-tutorial',
+                          },
+                        ],
+                      },
                       {
                         label: 'Configure mongod & mongos',
                         contentSite: 'docs',

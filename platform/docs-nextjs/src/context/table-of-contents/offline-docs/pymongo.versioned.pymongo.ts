@@ -275,7 +275,6 @@ export const toc: L1TocItem[] = [
             label: 'Security',
             contentSite: 'pymongo',
             collapsible: true,
-            url: '/docs/languages/python/pymongo-driver/:version/security',
             items: [
               {
                 label: 'Authentication',

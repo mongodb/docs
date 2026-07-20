@@ -8213,6 +8213,11 @@ export const toc: L1TocItem[] = [
                 contentSite: 'atlas-cli',
                 url: '/docs/atlas/cli/:version/custom-output-cli',
               },
+              {
+                label: 'Test Automations',
+                contentSite: 'atlas-cli',
+                url: '/docs/atlas/cli/:version/atlas-cli-temporary-cluster',
+              },
             ],
           },
           {
@@ -8278,11 +8283,6 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/cli/:version/atlas-cli-deploy-fts',
                   },
                 ],
-              },
-              {
-                label: 'Test Automations',
-                contentSite: 'atlas-cli',
-                url: '/docs/atlas/cli/:version/atlas-cli-ephemeral-cluster',
               },
               {
                 label: 'Run Commands with Docker',
