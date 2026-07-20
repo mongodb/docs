@@ -208,11 +208,7 @@ encryption key and configure your application for {+qe+}.
          :language: python
          :dedent:
 
-      .. note::
-
-         In the previous code sample, both the ``ssn`` and ``billing`` fields
-         are encrypted. However, only the ``ssn`` field can be queried because
-         it contains the ``queries`` property.
+      .. include:: /includes/queryable-encryption/quick-start/encrypted-fields-query-note.rst
 
    .. step:: Create your encrypted collection.
 
