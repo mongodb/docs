@@ -55,14 +55,14 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
       tabFilters,
     });
 
-    // Return markdown with proper content type
     return withCORS(
       new NextResponse(markdown, {
         status: 200,
         headers: {
           'Content-Type': 'text/markdown; charset=utf-8',
           'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400, must-revalidate',
-          'Netlify-Vary': 'query=tabs',
+          Vary: 'Accept',
+          'Netlify-Vary': 'query=tabs|header=Accept',
         },
       }),
     );
