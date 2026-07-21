@@ -9,102 +9,81 @@ This monorepo contains the tools and infrastructure for managing MongoDB documen
 - Node.js >= 24
 - pnpm >= 10
 
-If you don't have Node.js installed on your machine, you can do so by using `nvm`:
+If you don't have Node.js installed, use `nvm`:
 ```bash
 brew install nvm
 nvm install 24
 ```
 
-Then, if you don't [configure automatic `nvm use` when changing directories](https://stackoverflow.com/a/77440721), you should run `nvm use` to select the proper version of Node.js before you `pnpm install`.
-
-If you don't have `pnpm` installed on your machine, you can do so by using `npm`:
+If you don't have `pnpm`, install it via `npm`:
 ```bash
 npm install -g pnpm
 ```
 
 ## Getting Started
 
-Ensure proper node version, then install dependencies:
+Ensure the correct Node version, then install dependencies:
 ```bash
 cd platform/
 nvm use
 pnpm i
 ```
 
-Copy `docs-nextjs/.env.sample` to `docs-nextjs/.env` and fill in the required values.
-
-`MONGODB_URI` can be obtained from Atlas.
-
-Before you start the dev server for the docs, you may want to seed the blob storage with local MDX files. To do this, you should first convert a Snooty rST project to MDX:
+Convert a Snooty rST project to MDX (required before building):
 ```bash
 pnpm convert:rst-to-mdx -- manual
 ```
 
-Start the dev server:
+Build the app for a project. Pages are statically generated from the local `content-mdx/` directory:
 ```bash
-pnpm dev
+# All versions of a project
+DOCS_PROJECT=manual pnpm build
+
+# A single version
+DOCS_PROJECT=manual/manual pnpm build
 ```
 
-> Starting the dev server automatically runs `blobs:watch`, which will upload any changes in `content-mdx` to the local blob store as you edit files.
-
-Then, in a separate terminal, seed the local blob storage with the entire `content-mdx` folder:
-
+Then start the server:
 ```bash
-pnpm blobs:seed
+cd docs-nextjs && pnpm start
 ```
 
-**NOTE:** `blobs:seed` and `blobs:clear` require the dev server to be running; they call the running server's API. Seeding may take a long time, so you might want to leave it running in a separate tab.
+Pages are served at `http://localhost:3000/docs/<branch>/<page-slug>/`.
 
 ### Troubleshooting
 
-In case your development setup stops working for some reason, first ensure that it's NOT an issue with your local node_modules or cached/built files. To quickly validate this, you can run the following command:
+If your development setup stops working, clean and reinstall all dependencies:
 ```bash
 pnpm install:clean
 ```
-This will clean out your local node_modules, cache files, build artifacts, and pnpm store. It will then re-install all dependencies. The first time you run this, you will need to ensure the script has permission to run: `chmod +x ./tools/clean-install.sh`
+The first time you run this, ensure the script has permission: `chmod +x ./tools/clean-install.sh`
 
 ## Workspace Structure
 
-The monorepo is organized as follows:
-- `docs-nextjs`: Contains the Next.js server for servering MDB docs
-  - Uses Remote MDX files from Netlify Blob Storage
-- `snooty-ast-to-mdx`: Converts Snooty rST to MDX
-- `tools/`: Contains various tools and utilities
+- `docs-nextjs/`: Next.js server for serving MDB docs — reads MDX content from the local `content-mdx/` directory
+- `snooty-ast-to-mdx/`: Converts Snooty rST to MDX
+- `tools/`: Various tools and utilities
 
 ## Available Commands
 
-Commands should generally be run from the root of the `platform` directory:
-- This allows `turborepo` to cache virtually any script or task (might require configuration if it produces arbitrary files, such as `.mdx`)
-- This allows `turborepo` to orchestrate tasks throughout the monorepo, such as ensuring the blob storage updated in `dev` mode when working with the MDX content.
-- This works by using `pnpm` scripts from the `platform/package.json` file, which in turn calls the appropriate `turborepo` tasks.
-- `turborepo` tasks cascade throughout the various `package.json` files of the projects specified in the `pnpm-workspace.yaml` file.
-  - for example: `turbo run dev` will run the `dev` script in each `package.json` in each project, as well as any other tasks specified in the `with` or `dependsOn` fields of the `dev` task within the `turbo.json` file.
+Commands should generally be run from the root of the `platform/` directory so that Turborepo can cache tasks and orchestrate dependencies.
 
 ### Build Commands
-- `pnpm dev`: Development mode for all packages
-- `pnpm build`: Build all packages
-- `pnpm typecheck`: Run type checking across all packages
+
+- `pnpm build`: Build the Next.js app for a specific project (set `DOCS_PROJECT` env var)
 
 ### Offline Build
 
 An offline build produces a fully self-contained static snapshot of a docs site that can be opened directly from the filesystem (e.g. via `file://` or distributed as a zip).
 
-Run the command from the `platform/docs-nextjs` directory:
-
-**Prerequisites:**
-1. The project content must already be converted to MDX and present in `content-mdx/`. See [MDX Conversion Commands](#mdx-conversion-commands) above.
-2. The local Netlify Blobs sandbox at `platform/docs-nextjs/.netlify/blobs-serve/` must contain the content. The easiest way to populate it is to run `pnpm dev` once and then `pnpm blobs:seed` in another terminal — those files persist across dev-server restarts.
+Run from the `platform/docs-nextjs` directory:
 
 ```bash
 pnpm build:offline -- --tocFile=<name> --version=<version>
 ```
 
-> When run locally, the offline build reads the seeded local sandbox directly from disk, so it does not need `pnpm dev` running and does not consult the remote (production) Netlify Blobs store. When the same script is invoked from the Netlify build extension (`NETLIFY=true`), it falls back to the remote production blob store via `NETLIFY_SITE_ID` / `NETLIFY_ACCESS_TOKEN` as before.
-
-- `--tocFile`: the name of a TOC file (without `.ts`) from `src/context/table-of-contents/offline-docs/`. For example, `ai-models` or `kafka-connector.versioned.kafka-connector`.
-- `--version`: the version string to build (e.g. `current`, `v1.12`). Use `main` for unversioned sites.
-
-The output of the offline build will be in `platform/docs-nextjs/out`
+- `--tocFile`: name of a TOC file (without `.ts`) from `src/context/table-of-contents/offline-docs/`
+- `--version`: version string to build (e.g. `current`, `v1.12`). Use `main` for unversioned sites.
 
 **Examples:**
 
@@ -116,7 +95,7 @@ pnpm build:offline -- --tocFile=ai-models --version=main
 pnpm build:offline -- --tocFile=kafka-connector.versioned.kafka-connector --version=current
 ```
 
-The output is written to `platform/docs-nextjs/out/` and is ready to open directly in a browser.
+Output is written to `platform/docs-nextjs/out/`.
 
 ### Linting
 - `pnpm lint`: Run linting across all packages
@@ -126,26 +105,22 @@ The output is written to `platform/docs-nextjs/out/` and is ready to open direct
 - `pnpm test`: Run tests across all packages
 - `pnpm test:coverage`: Generate test coverage report
 - `pnpm test:update`: Update test snapshots
-- `pnpm test:watch`: Watch for test changes and re-run tests
+- `pnpm test:watch`: Watch for test changes and re-run
 
 ### MDX Conversion Commands
-- `pnpm convert:rst-to-mdx`: Convert Snooty rST to MDX
-- `pnpm convert:rst-to-mdx -- <name_of_content_folder>`: Convert Snooty rST to MDX for a specific content folder
-  - For example: `pnpm convert:rst-to-mdx -- atlas` will convert the Snooty rST in the `content/atlas` folder to MDX.
+- `pnpm convert:rst-to-mdx`: Convert all Snooty rST projects to MDX
+- `pnpm convert:rst-to-mdx -- <name>`: Convert a specific project (e.g. `pnpm convert:rst-to-mdx -- atlas`)
 
 ### MDX Validation Commands
 - `pnpm validate:mdx-parse`: Validate all generated MDX files in `content-mdx/`
-- `pnpm validate:mdx-parse -- <name_of_content_folder>`: Validate a specific project
-  - For example: `pnpm validate:mdx-parse -- django-mongodb` will validate the MDX in `content-mdx/django-mongodb/`
+- `pnpm validate:mdx-parse -- <name>`: Validate a specific project (e.g. `pnpm validate:mdx-parse -- django-mongodb`)
 
-### Blob Storage Commands
-- `pnpm blobs:seed`: Seed the local blob storage with the MDX content (requires dev server to be running)
-- `pnpm blobs:clear`: Clear the local blob storage (requires dev server to be running)
-- `pnpm blobs:watch`: Watch `content-mdx` for changes and upload them incrementally (runs automatically with `pnpm dev`)
+### Type Checking
+- `pnpm typecheck`: Run type checking across all packages
 
 ## Pull Request Templates
 
-When creating a pull request, you can automatically populate the description with a template by adding a query parameter to the URL. For more instructions go to the [README](../README.md) in the root of the monorepo.
+When creating a pull request, you can automatically populate the description with a template by adding a query parameter to the URL. For more instructions, see the [README](../README.md) in the root of the monorepo.
 
 ## Package Management
 
@@ -153,12 +128,6 @@ This monorepo uses pnpm workspaces for package management. The workspace configu
 
 ## Build System
 
-Turborepo is used for build orchestration. The build configuration is defined in `turbo.json` and includes:
-- Caching for faster builds
-- Task dependencies
+Turborepo is used for build orchestration, defined in `turbo.json`. It provides caching and task dependency management across packages.
 
-For more information about the build system, refer to the [Turborepo documentation](https://turbo.build/repo/docs).
-
-## Turborepo Configuration
-
-The monorepo uses a base Turborepo configuration in `turbo.json` that defines common tasks and their dependencies.
+For more information, refer to the [Turborepo documentation](https://turbo.build/repo/docs).

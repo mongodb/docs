@@ -7,7 +7,6 @@
  *
  * Env overrides:
  *   MDX_TO_MD_FILE   — same as the CLI arg if you prefer not to use `--`
- *   CONTENT_MDX_DIR  — root of MDX tree (defaults to repo ../../content-mdx)
  *   MDX_TO_MD_BASE_URL — full docs base URL for relative refs in _references.json
  *                        (defaults to a small map by first path segment: atlas, manual, …)
  */
@@ -26,9 +25,7 @@ const relPath =
   process.env.MDX_TO_MD_FILE?.replace(/^\/+/, "") ||
   "atlas/access/orgs-create-view-edit-delete.mdx";
 
-const contentMdxDir =
-  process.env.CONTENT_MDX_DIR ??
-  join(__dirname, "..", "..", "..", "..", "content-mdx");
+const contentMdxDir = join(__dirname, "..", "..", "..", "..", "content-mdx");
 
 const mdxFilePath = join(contentMdxDir, relPath);
 

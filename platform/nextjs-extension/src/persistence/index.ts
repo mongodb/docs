@@ -17,7 +17,7 @@ import {
   metadataFromZip,
 } from './src/services/metadata';
 import { upsertAssets } from './src/services/assets';
-import type { DocsetsDocument } from '../databaseConnection/types';
+import type { DocsetsDocument } from '../util/databaseConnection/types';
 
 export const runPersistenceModule = async (
   path: string,

@@ -1,0 +1,27 @@
+import BlankTemplate from './blank';
+import type { ReactNode } from 'react';
+import DocumentTemplate from './document';
+import DriversIndexTemplate from './drivers-index';
+import InstruqtTemplate from './instruqt';
+import LandingTemplate from './landing';
+import FeatureNotAvailableTemplate from './feature-not-available';
+import type { Root } from '@/types/ast';
+import ProductLandingTemplate from './product-landing';
+import ChangelogTemplate from './changelog';
+
+export type BaseTemplateProps = {
+  children: ReactNode;
+  slug: string;
+  pageOptions?: Root['options'];
+};
+
+export {
+  BlankTemplate,
+  DocumentTemplate,
+  DriversIndexTemplate,
+  InstruqtTemplate,
+  LandingTemplate,
+  FeatureNotAvailableTemplate,
+  ProductLandingTemplate,
+  ChangelogTemplate,
+};

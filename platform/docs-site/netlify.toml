@@ -1,0 +1,77 @@
+# For handling Kanopy routing distinction between mongodb.com and products/updates _next/static request we needed to use 
+# assetPrefix to move products/updates _next/static under /docs allowing for request coming from Kanopy to be handled by B2k and NextJs
+# This redirect handles NextJs assuming _next/static to be under docs but when deployed in to our CDN the static folder sits at the root
+# See EPIC below for more context
+# https://jira.mongodb.org/browse/DOP-6064
+
+[build.environment]
+SECRETS_SCAN_ENABLED = "false"
+NEXTJS_EXTENSION_ENABLED = "false"
+NEXTJS_EXTENSION_ENABLED_STAGING = "false"
+NEXTJS_EXTENSION_ENABLED_STAGING_2 = "false"
+NEXTJS_SSG_EXTENSION_ENABLED = "true"
+POPULATE_METADATA_ENABLED = "false"
+
+[context.production.environment]
+ENV = "dotcomprd"
+
+[context.preprd.environment]
+ENV = "dotcomstg"
+
+[context.deploy-preview.environment]
+ENV = "prd"
+
+[context.branch-deploy.environment]
+ENV = "prd"
+
+[context.preview-server.environment]
+ENV = "prd"
+
+[context.dev.environment]
+ENV = "stg"
+
+# Standalone zone builds set assetPrefix to their own docset prefix (see
+# next.config.mjs getZoneAssetPrefix), so their HTML requests _next assets
+# under that prefix (e.g. /docs/languages/python/django-mongodb/_next/*). Like
+# the docs_static_nextjs rule above, map any such prefixed request back to the
+# real root /_next/* so the deploy serves the asset — directly and through b2k.
+#
+# Netlify has no multi-segment wildcard (only one trailing splat per rule), so
+# we enumerate prefix depths with single-segment placeholders; the trailing
+# splat carries the asset path. Docset prefixes are 1–3 segments today; depth 4
+# is a harmless pad for future zones. This covers every zone generically — no
+# per-zone rule needed.
+[[redirects]]
+from = "/docs/docs_static_nextjs/_next/*"
+to = "/_next/:splat"
+status = 200
+
+[[redirects]]
+from = "/docs/:p1/docs_static_nextjs/_next/*"
+to = "/_next/:splat"
+status = 200
+
+[[redirects]]
+from = "/docs/:p1/:p2/docs_static_nextjs/_next/*"
+to = "/_next/:splat"
+status = 200
+
+[[redirects]]
+from = "/docs/:p1/:p2/:p3/docs_static_nextjs/_next/*"
+to = "/_next/:splat"
+status = 200
+
+[[redirects]]
+from = "/docs/:p1/:p2/:p3/:p4/docs_static_nextjs/_next/*"
+to = "/_next/:splat"
+status = 200
+
+# Applies soft redirects on 404s (static build has no server). See src/redirects/README.md.
+[[edge_functions]]
+path = "/docs/*"
+function = "soft-redirects"
+
+[dev]
+framework = "next"
+command = "next dev"
+publish = ".next"

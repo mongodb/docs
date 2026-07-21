@@ -1,5 +1,4 @@
 import type { NetlifyPluginUtils } from '@netlify/build';
-import path from 'node:path';
 import { MutError } from '../errorClasses';
 
 export const buildUnifiedTOC = async ({
@@ -10,23 +9,23 @@ export const buildUnifiedTOC = async ({
   tableOfContentsCWD: string;
 }) => {
   try {
-    await run.command('npm install', {
+    await run.command('pnpm install', {
       cwd: tableOfContentsCWD,
     });
 
-    await run.command('npm run toc:clean', {
-      cwd: tableOfContentsCWD,
-      stdout: 'inherit',
-      stderr: 'inherit',
-    });
-
-    await run.command('npm run toc:build', {
+    await run.command('pnpm run toc:clean', {
       cwd: tableOfContentsCWD,
       stdout: 'inherit',
       stderr: 'inherit',
     });
 
-    await run.command('npm run toc:run', {
+    await run.command('pnpm run toc:build', {
+      cwd: tableOfContentsCWD,
+      stdout: 'inherit',
+      stderr: 'inherit',
+    });
+
+    await run.command('pnpm run toc:run', {
       cwd: tableOfContentsCWD,
       stdout: 'inherit',
       stderr: 'inherit',

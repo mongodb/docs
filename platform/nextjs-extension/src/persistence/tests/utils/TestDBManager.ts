@@ -15,11 +15,16 @@ export class TestDBManager {
   protected server: MongoMemoryServer;
 
   constructor() {
-    jest.setTimeout(60000);
+    // CI has no cache for the mongodb-memory-server binary, so a cold download of it
+    // (~95MB) plus starting mongod can exceed the default 60s hook timeout.
+    jest.setTimeout(120000);
     this.server = new MongoMemoryServer({
       instance: {
         dbName: 'jest',
         storageEngine: 'wiredTiger',
+        // CI runners can be slow/under contention, so mongod can take longer than
+        // the default 10s to finish starting up.
+        launchTimeout: 60000,
       },
       binary: {
         version: '8.0.4',
