@@ -87,7 +87,7 @@ After presenting the completion summary, wait for explicit user instruction befo
 - When editing YAML includes, maintain consistent ref naming and structure, and verify all ref anchors either already exist or are included in your suggested changes.
 
 - Do not create nested components: no admonitions inside admonitions or tables, no examples inside admonitions or tables, no procedures inside procedures, no tables inside tables. See .github/ai-reviewer/nested-components-guide.md for remediation patterns.
-- Wrap all RST content at 72 characters per line.
+- Wrap all RST content at 72 characters per line. This applies only to documentation content under `content/`. Do not wrap lines in `.claude/skills/*/SKILL.md` files or any other agent tooling under `.claude/`; keep each prose paragraph on a single line.
 - Scope changes to the version directory specified by the user or identified from the Jira ticket's fixVersion field.
 - Do not build locally. All previews are generated via cloud build for shared review.
 - When writing a new page: the page title must be 30–60 characters, each page must have exactly one H1 (unique across the docs site), and the meta description must be 150–200 characters and unique.
