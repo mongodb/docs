@@ -11,7 +11,9 @@ import { CONTENT_MDX_DIR } from '@/mdx-utils/content-constants';
  */
 export async function generateDocsStaticPaths(): Promise<Array<{ path: string[] }>> {
   const docsProject = process.env.DOCS_PROJECT;
-  if (!docsProject) return [];
+  // This should error if the DOCS_PROJECT is not set.
+  // Returning an empty array would result in all pages being 404.
+  if (!docsProject) throw new Error('DOCS_PROJECT is not set');
 
   const projectDir = nodePath.join(CONTENT_MDX_DIR, docsProject);
   const dirName = docsProject.split('/')[0];
