@@ -34,268 +34,149 @@ practices, see :ref:`vpc-peering`.
 
    .. sharedinclude:: cet/atlas/shared-responsibility-model-intro.rst
 
-Required Access
----------------
+.. composable-tutorial::
+   :options: interface, cloud-provider
+   :defaults: atlas-ui, aws
 
-To set up a network peering connection, you must have
-:authrole:`Organization Owner`, :authrole:`Project Owner`, or
-:authrole:`Project Network Access Manager` access to the project.
+   Required Access
+   ---------------
 
-Limitations
------------
+   To set up a network peering connection, you must have
+   :authrole:`Organization Owner`, :authrole:`Project Owner`, or
+   :authrole:`Project Network Access Manager` access to the project.
 
-.. include:: /includes/vpc-limitations.rst 
+   Limitations
+   -----------
 
-.. _create-network-peer-connection:
+   .. include:: /includes/vpc-limitations.rst
 
-Configure an |service| Network Peering Connection
--------------------------------------------------
+   .. _create-network-peer-connection:
 
-To configure |service| network peering for a cluster, perform the
-procedure on the tab corresponding to your cluster's cloud provider.
-You also configure the |service| |vpc| |cidr| during this procedure.
+   Configure an |service| Network Peering Connection
+   --------------------------------------------------
 
-.. tabs-cloud-providers::
+   To configure |service| network peering for a cluster, complete the
+   steps for your interface and your cluster's cloud provider. You also
+   configure the |service| |vpc| |cidr| during this procedure.
 
-   .. tab::
-      :tabid: aws
+   .. selected-content::
+      :selections: atlas-ui, aws
 
-      Considerations
-      ~~~~~~~~~~~~~~
+      .. include:: /includes/fact-peering-considerations-aws.rst
 
-      DNS Configuration
-      `````````````````
+      .. include:: /includes/steps-vpc-aws-atlas-ui.rst
 
-      |dns| resolves the cluster's hostnames to their public |ipaddr|
-      address rather than their internal |ipaddr| address if:
+      .. include:: /includes/fact-peering-connect-aws.rst
 
-      - :guilabel:`DNS hostnames` are disabled,
-      - :guilabel:`DNS resolution` is disabled, and
-      - The user accesses the |service| cluster from outside a peered
-        :ref:`VPC <security-vpc>`.
+   .. selected-content::
+      :selections: atlas-cli, aws
 
-      To learn more about how to enable these options, see
-      :aws:`Updating DNS Support for Your VPC </AmazonVPC/latest/UserGuide/vpc-dns.html#vpc-dns-updating>`.
+      .. include:: /includes/fact-peering-considerations-aws.rst
 
-      |aws| supports standard connection strings for configuring peering. 
-      Use a private connection string only if the applications  
-      within |aws| use custom |dns| services.
-      For more information, see :ref:`VPC <security-vpc>` and read
-      :ref:`the Connection Strings FAQ <atlas-faq-custom-dns>`.
+      .. include:: /includes/steps-vpc-aws-atlas-cli.rst
 
-      Deployments in Multiple Regions
-      ```````````````````````````````
+      .. include:: /includes/fact-peering-connect-aws.rst
 
-      |service| deployments in multiple regions must have a peering
-      connection for each |service| region.
+   .. selected-content::
+      :selections: atlas-ui, gcp
 
-      For example: If you have a |vpc| in Sydney and |service|
-      deployments in Sydney and Singapore, create two peering
-      connections.
+      .. include:: /includes/fact-peering-considerations-gcp.rst
 
-      AWS VPC Peering Prerequisites
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      .. include:: /includes/steps-vpc-gcp-atlas-ui.rst
 
-      .. include:: /includes/fact-aws-vpc-prereqs.rst
+      .. include:: /includes/fact-peering-rollback-gcp.rst
 
-      Configure Network Peering for an AWS-backed Cluster
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   .. selected-content::
+      :selections: atlas-cli, gcp
 
-      To configure |service| |vpc| peering for an |aws|\-backed
-      cluster:
+      .. include:: /includes/fact-peering-considerations-gcp.rst
 
-      .. include:: /includes/steps-vpc-aws.rst
+      .. include:: /includes/steps-vpc-gcp-atlas-cli.rst
 
-      Before your new |vpc| peer can connect to your |service| cluster, 
-      you must:
+      .. include:: /includes/fact-peering-rollback-gcp.rst
 
-      - Locate the |vpc| |cidr| block addresses (or subset), or the
-        Security Groups, associated with the |vpc| configured
-        in your project.
-      - Add at least one of these |cidr| blocks to the
-        :ref:`access list <access-list>`.
+   .. selected-content::
+      :selections: atlas-ui, azure
 
-      Connect to |service| from an Application Deployed in AWS
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      .. include:: /includes/fact-peering-considerations-azure.rst
 
-      After you have configured the VPC peering connection and added the 
-      appropriate |cidr| blocks to your access list, you can connect to 
-      your |service| cluster using the standard connection string. 
+      .. include:: /includes/steps-vpc-azure-atlas-ui.rst
 
-      .. procedure::
-         :style: normal
-            
-         .. step:: Get your connection string.
+      .. include:: /includes/fact-peering-cidr-note-azure.rst
 
-            a. In the |service| UI, select your {+cluster+}, and click :guilabel:`Connect`.
+   .. selected-content::
+      :selections: atlas-cli, azure
 
-            b. Select your preferred connection method.
+      .. include:: /includes/fact-peering-considerations-azure.rst
 
-            c. Copy your connection string.
+      .. include:: /includes/steps-vpc-azure-atlas-cli.rst
 
-         .. step:: Update your application running in |aws|.
-      
-            Add your connection string to your deployed application. The 
-            application automatically uses the peered VPC network when
-            connecting to |service|.
+      .. include:: /includes/fact-peering-cidr-note-azure.rst
 
-      .. seealso::
+   .. _view-network-peer-connection:
 
-         - To learn about changes to |aws| network peering, see
-           :ref:`atlas_20200331`.
+   View |service| Network Peering Connections
+   -------------------------------------------
 
-         - To learn more about private connection strings, see :ref:`atlas-faq-connstring-private`.
+   .. selected-content::
+      :selections: atlas-ui, aws
 
-   .. tab::
-      :tabid: gcp
+      .. include:: /includes/steps-view-network-peering-atlas-ui.rst
 
-      Considerations
-      ~~~~~~~~~~~~~~
-
-      |service| |vpc| peering connections have the following
-      limitations:
-
-      - Google Kubernetes Engine (GKE) supports two network modes: routes-based and VPC-native. While VPC-native GKE clusters 
-        can connect to |service| clusters, route-based GKE clusters can't connect to |service| clusters via peering because |service| 
-        doesn't accept custom routes when |vpc| peering connections are created. Consider using Public IP allow lists for 
-        route-based GKE clusters.
-      - Google App Engine (Standard), Cloud Functions, and Cloud Run can't connect to |service| clusters over |vpc| 
-        peering connections. To connect over |vpc| peering, these services require a serverless |vpc| Access connector.
-      - Clients can't connect to Atlas clusters with |gcp| VPN (Virtual Private Network) or Interconnect because 
-        |service| doesn't accept custom routes when |vpc| peering connections are created. Consider creating :ref:`private 
-        endpoints <private-endpoint>`.
-
-      Configure VPC Peering for a GCP-backed Cluster
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      To configure |service| |vpc| Peering for a |gcp|\-backed
-      cluster:
-
-      .. include:: /includes/steps-vpc-gcp.rst
-
-      You must add your |vpc| |cidr| block address (or subset)
-      associated with the peer |vpc| to the
-      :ref:`IP access list <access-list>` before your new |vpc| peer 
-      can connect to your |service| cluster. When connecting to your 
-      cluster, you must use the new :ref:`private connection strings 
-      <atlas-faq-connstring-private>` to utilize the peering.
-
-      .. seealso::
-
-         :gcp:`Auto mode IP ranges </vpc/docs/vpc#ip-ranges>`.
-
-      Rolling Back a |gcp| Container with a Restricted Set of Regions
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      After a |gcp| container with a restricted set of regions is generated, 
-      that project is locked into that set of regions. Any attempts to use other 
-      regions will generate an error message similar to what you find below:
-
-      .. code-block::
-         :copyable: false
-
-         There are no more regions supported with your existing configuration. Try changing to
-         a different cluster tier or changing your region configuration.
-
-      To resolve this error, follow this general process:
-
-      1. :ref:`Remove all clusters from the Google Cloud container <terminate-cluster>`.
-
-      #. Delete the |gcp| container using the {+atlas-admin-api+}. See :oas-bump-atlas-op:`Remove One 
-         Network Peering Container <deletepeeringcontainer>`.
-
-      #. Create a new |gcp| container without restricted regions with an Atlas CIDR block of 
-         at least ``/18`` using the {+atlas-admin-api+}. See :oas-bump-atlas-op:`Create a New Network 
-         Peering Container <createpeeringcontainer>`.
-
-   .. tab::
-      :tabid: azure
-
-      Considerations
-      ~~~~~~~~~~~~~~
-
-      .. note::
-
-         Effective March 31, 2020, |service| has removed the
-         **Peering-Only Mode** limitations for all existing and new
-         Azure clusters. To learn how to use these new features, see
-         the :ref:`FAQ on changes to Azure network peering
-         <atlas-faq-azure-gcp-peering-only>`.
-
-      Azure Roles Required to Configure a Network Peering Connection
-      ``````````````````````````````````````````````````````````````
-
-      To learn the |azure| roles that you need to create a Network
-      Peering connection, see the :azure:`Azure documentation
-      </virtual-network/virtual-network-manage-peering#permissions>`.
-
-      Configure Network Peering for an Azure-backed Cluster
-      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-      To configure network peering for an |azure|-backed cluster:
-
-      .. include:: /includes/steps-network-peering-azure.rst
-
-      You must add the |cidr| block address (or subset)
-      associated with the peer VNet to the
-      :ref:`whitelist <access-list>` before your network peer
-      can connect to your |service| cluster. When connecting to your 
-      cluster, you must use the new :ref:`private connection string 
-      <atlas-faq-connstring-private>` to utilize the peering.
-
-.. _view-network-peer-connection:
-
-View |service| Network Peering Connections
-------------------------------------------
-
-.. tabs::
-
-   .. tab:: {+atlas-cli+}
-      :tabid: atlascli
+   .. selected-content::
+      :selections: atlas-cli, aws
 
       .. include:: /includes/extracts/atlas-networking-peering-list.rst
 
-   .. tab:: {+atlas-ui+}
-      :tabid: ui
+   .. selected-content::
+      :selections: atlas-ui, gcp
 
-      To view your network peering connections using the {+atlas-ui+}:
+      .. include:: /includes/steps-view-network-peering-atlas-ui.rst
 
-      .. procedure::
-         :style: normal
+   .. selected-content::
+      :selections: atlas-cli, gcp
 
-         .. include:: /includes/nav/steps-network-access.rst
+      .. include:: /includes/extracts/atlas-networking-peering-list.rst
 
-         .. step:: Click the :guilabel:`Peering` tab.
-            
-            |service| displays your network peering connections.
+   .. selected-content::
+      :selections: atlas-ui, azure
 
-Remove an |service| Network Peering Connection
-----------------------------------------------
+      .. include:: /includes/steps-view-network-peering-atlas-ui.rst
 
-.. tabs::
+   .. selected-content::
+      :selections: atlas-cli, azure
 
-   .. tab:: {+atlas-cli+}
-      :tabid: atlascli
+      .. include:: /includes/extracts/atlas-networking-peering-list.rst
+
+   Remove an |service| Network Peering Connection
+   ----------------------------------------------
+
+   .. selected-content::
+      :selections: atlas-ui, aws
+
+      .. include:: /includes/steps-remove-network-peering-atlas-ui.rst
+
+   .. selected-content::
+      :selections: atlas-cli, aws
 
       .. include:: /includes/extracts/atlas-networking-peering-delete.rst
 
-   .. tab:: {+atlas-ui+}
-      :tabid: ui
+   .. selected-content::
+      :selections: atlas-ui, gcp
 
-      To remove your network peering connection using the {+atlas-ui+}:
+      .. include:: /includes/steps-remove-network-peering-atlas-ui.rst
 
-      .. procedure::
-         :style: normal
+   .. selected-content::
+      :selections: atlas-cli, gcp
 
-         .. include:: /includes/nav/steps-network-access.rst
+      .. include:: /includes/extracts/atlas-networking-peering-delete.rst
 
-         .. step:: Click the :guilabel:`Peering` tab.
-            
-            |service| displays your network peering connections.
+   .. selected-content::
+      :selections: atlas-ui, azure
 
-         .. step:: Remove the network peering connection.
+      .. include:: /includes/steps-remove-network-peering-atlas-ui.rst
 
-            a. Click :guilabel:`TERMINATE` next to the network peering 
-               connection that you want to remove.
-            
-            #. Click :guilabel:`Yes, Terminate` to confirm the removal.
+   .. selected-content::
+      :selections: atlas-cli, azure
+
+      .. include:: /includes/extracts/atlas-networking-peering-delete.rst

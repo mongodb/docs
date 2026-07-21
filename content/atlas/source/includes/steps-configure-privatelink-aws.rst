@@ -66,93 +66,85 @@
 
    .. step:: Create a new endpoint or connect an existing endpoint.
 
-      .. tabs::
+      To create a new endpoint:
 
-         .. tab:: Create New Endpoint
-            :tabid: create-new
+      a. Select :guilabel:`Create New Endpoint`.
 
-            To create a new endpoint:
+      #. Enter the following details about your |aws| |vpc|:
 
-            a. Select :guilabel:`Create New Endpoint`.
+         .. list-table::
+            :widths: 20 80
 
-            #. Enter the following details about your |aws| |vpc|:
+            * - :guilabel:`Your VPC ID`
+               - Unique identifier of the peer |aws| |vpc|. Find
+                  this value on the |vpc| dashboard in your |aws|
+                  account.
 
-               .. list-table::
-                  :widths: 20 80
+            * - :guilabel:`Your Subnet IDs`
+               - Unique identifiers of the subnets your |aws|
+                  |vpc| uses.
 
-                  * - :guilabel:`Your VPC ID`
-                    - Unique identifier of the peer |aws| |vpc|. Find
-                      this value on the |vpc| dashboard in your |aws|
-                      account.
+                  Find these values on the :guilabel:`Subnet`
+                  dashboard in your |aws| account.
 
-                  * - :guilabel:`Your Subnet IDs`
-                    - Unique identifiers of the subnets your |aws|
-                      |vpc| uses.
+                  You must specify at least one subnet. If you
+                  don't, |aws| won't provision an :term:`interface
+                  endpoint` in your |vpc|. An interface endpoint is
+                  required for clients in your |vpc| to send
+                  traffic to the private endpoint.
 
-                      Find these values on the :guilabel:`Subnet`
-                      dashboard in your |aws| account.
+            * - :guilabel:`Consumer Region`
+               - |aws| region where your consumer |vpc| is
+                  located. This region must be one of the accepted
+                  endpoint regions configured for the endpoint
+                  service.
 
-                      You must specify at least one subnet. If you
-                      don't, |aws| won't provision an :term:`interface
-                      endpoint` in your |vpc|. An interface endpoint is
-                      required for clients in your |vpc| to send
-                      traffic to the private endpoint.
+      #. Click :guilabel:`Create Endpoint`.
 
-                  * - :guilabel:`Consumer Region`
-                    - |aws| region where your consumer |vpc| is
-                      located. This region must be one of the accepted
-                      endpoint regions configured for the endpoint
-                      service.
+         |service| provides an |aws| CLI command pre-filled with
+         your configuration.
 
-            #. Click :guilabel:`Create Endpoint`.
+      #. Copy the |aws| CLI command and run it in your terminal.
 
-               |service| provides an |aws| CLI command pre-filled with
-               your configuration.
+         :gold:`IMPORTANT:` You must have the necessary |aws| permissions
+         to create interface endpoints. Ensure that the endpoint
+         is in the ``Pending Acceptance`` state in your |aws|
+         console before proceeding.
 
-            #. Copy the |aws| CLI command and run it in your terminal.
+         See :aws:`Creating an Interface Endpoint
+         </vpc/latest/userguide/vpce-interface.html#create-interface-endpoint>`
+         for more information.
 
-               :gold:`IMPORTANT:` You must have the necessary |aws| permissions
-               to create interface endpoints. Ensure that the endpoint
-               is in the ``Pending Acceptance`` state in your |aws|
-               console before proceeding.
+      #. After running the command, copy the resulting
+         :guilabel:`VPC Endpoint ID` from the |aws| CLI output.
+         This is a 22-character alphanumeric string (for example,
+         ``vpce-0123456789abcdef0``).
 
-               See :aws:`Creating an Interface Endpoint
-               </vpc/latest/userguide/vpce-interface.html#create-interface-endpoint>`
-               for more information.
+      #. Paste the :guilabel:`VPC Endpoint ID` into the modal and
+         click :guilabel:`Add Endpoint`.
 
-            #. After running the command, copy the resulting
-               :guilabel:`VPC Endpoint ID` from the |aws| CLI output.
-               This is a 22-character alphanumeric string (for example,
-               ``vpce-0123456789abcdef0``).
+         |service| accepts the endpoint connection. This process
+         typically takes a few minutes. When the endpoint is
+         ready, the endpoint status displays as
+         :guilabel:`Available`.
 
-            #. Paste the :guilabel:`VPC Endpoint ID` into the modal and
-               click :guilabel:`Add Endpoint`.
+      To connect an existing endpoint that you have already
+      created in |aws|:
 
-               |service| accepts the endpoint connection. This process
-               typically takes a few minutes. When the endpoint is
-               ready, the endpoint status displays as
-               :guilabel:`Available`.
+      a. Select :guilabel:`Connect Existing Endpoint`.
 
-         .. tab:: Connect Existing Endpoint
-            :tabid: connect-existing
+      #. Enter your :guilabel:`VPC Endpoint ID`. This is a
+         22-character alphanumeric string that identifies your
+         |aws| interface endpoint (for example,
+         ``vpce-0123456789abcdef0``).
 
-            To connect an existing endpoint that you have already
-            created in |aws|:
+         Find this value on the |aws| VPC Dashboard under
+         :guilabel:`Endpoints` > :guilabel:`VPC ID`.
 
-            a. Select :guilabel:`Connect Existing Endpoint`.
+      #. Click :guilabel:`Submit Endpoint`.
 
-            #. Enter your :guilabel:`VPC Endpoint ID`. This is a
-               22-character alphanumeric string that identifies your
-               |aws| interface endpoint (for example,
-               ``vpce-0123456789abcdef0``).
-
-               Find this value on the |aws| VPC Dashboard under
-               :guilabel:`Endpoints` > :guilabel:`VPC ID`.
-
-            #. Click :guilabel:`Submit Endpoint`.
-
-               |service| validates and links the endpoint to your
-               private endpoint service.
+         |service| validates and links the endpoint to your
+         private endpoint service.
       
    .. step:: Configure your resources' security groups to send traffic to and receive traffic from the :term:`interface endpoint`.
       
