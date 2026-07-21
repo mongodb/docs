@@ -32,5 +32,13 @@ document identifiers from collections ``coll1`` and ``coll2``:
     --hotDocIDs '{"db":"db2","collection":"coll2","ids":[{"_id":{"$oid":"70023c249cef3cd958e43269"}},{"_id":{"$oid":"7aa23c249cef3cd958e43785"}}]}' \
     ... other CLI arguments ...
 
-Once started, you cannot remove a hot document identifer. If you set one 
+Once started, you cannot remove a hot document identifer. If you set one
 incorrectly, restart ``mongosync`` with the correct identifers.
+
+.. note::
+
+   ``mongosync`` does not retain hot documents on a
+   :ref:`reverse <c2c-api-reverse>` sync. If replication lag occurs
+   due to hot documents during a reverse sync, restart the
+   ``mongosync`` process and specify the hot document identifiers
+   for the reverse direction. Do not restart the migration from scratch.
