@@ -1,0 +1,129 @@
+==========================================
+InconsistentShardCatalogCollectionMetadata
+==========================================
+
+.. meta::
+   :description: Identify inconsistencies between collection metadata stored in the config server and the shard catalog on a sharded cluster, and view the fields that differ between them.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |incon-type| replace:: ``InconsistentShardCatalogCollectionMetadata``
+
+Description
+-----------
+
+.. data:: InconsistentShardCatalogCollectionMetadata
+
+   .. include:: /includes/inconsistency-type/InconsistentShardCatalogCollectionMetadata
+
+Format
+------
+
+.. code-block:: json
+
+   {
+      type: "InconsistentShardCatalogCollectionMetadata",
+      description: "<string>",
+      details: {
+         namespace: "<string>",
+         collectionUUID: <UUID>,
+         details: <document>
+      }
+   }
+
+|incon-type| inconsistency documents contain the following fields:
+
+.. list-table::
+   :widths: 30 25 45
+   :header-rows: 1
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``type``
+     - string
+     - .. include:: /includes/inconsistency-type/type
+
+   * - ``description``
+     - string
+     - .. include:: /includes/inconsistency-type/descr
+
+   * - ``details``
+     - document
+     - .. include:: /includes/inconsistency-type/details
+
+   * - ``details.namespace``
+     - string
+     - .. include:: /includes/inconsistency-type/details.namespace
+
+   * - ``details.collectionUUID``
+     - UUID
+     - .. include:: /includes/inconsistency-type/details.collectionUUID
+
+   * - ``details.details``
+     - document
+     - Document that describes the fields that differ between the
+       config server and the shard catalog.
+
+Example
+-------
+
+Use the :method:`db.adminCommand` method to call the
+:dbcommand:`checkMetadataConsistency` command:
+
+.. code-block:: javascript
+
+   db.adminCommand( { checkMetadataConsistency: 1 } )
+
+The method returns a cursor with a batch of documents showing the
+inconsistencies found in the sharding metadata. The example below shows
+a cursor with a |incon-type| inconsistency document:
+
+.. code-block:: json
+   :emphasize-lines: 6-38
+   :copyable: false
+
+   {
+      cursor: {
+         id: Long("0"),
+         ns: "admin.$cmd.aggregate",
+         firstBatch: [
+            {
+               type: "InconsistentShardCatalogCollectionMetadata",
+               description: "Found inconsistencies between collection metadata in the global catalog and the shard catalog",
+               details: {
+                  namespace: "test.authors",
+                  collectionUUID: UUID("2153613e-f166-437b-99b1-b8711d1cc4ac"),
+                  details: {
+                     field: "shardCatalogEntry",
+                     source: "inMemoryShardCatalog",
+                     shardCatalog: {
+                        _id: "test.authors",
+                        lastmodEpoch: ObjectId("6a5a079ca93d70776b2e715c"),
+                        timestamp: Timestamp({ t: 1784285084, i: 36 }),
+                        uuid: UUID("baeb3cb1-d16f-4b8f-8342-544e52e56d9c"),
+                        key: { author: 1 },
+                        unique: false,
+                        lastmod: ISODate("2026-07-17T10:44:52.275Z")
+                     },
+                     globalCatalog: {
+                        _id: "test.authors",
+                        lastmodEpoch: ObjectId("6a5a079ca93d70776b2e715c"),
+                        timestamp: Timestamp({ t: 1784285084, i: 36 }),
+                        uuid: UUID("2153613e-f166-437b-99b1-b8711d1cc4ac"),
+                        key: { author: 1 },
+                        unique: false,
+                        lastmod: ISODate("2026-07-17T10:44:44.396Z")
+                     }
+                  }
+               }
+            }
+         ],
+      },
+      ok: 1
+   }
