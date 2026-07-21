@@ -65,6 +65,14 @@ const nextConfig = {
     return [];
   },
   images: {
+    // The /_next/image optimizer 500s on this deploy (sharp isn't bundled into
+    // the SSG-extension function), so we don't use it: unoptimized makes
+    // next/image emit a plain <img>. Content images are served as static files
+    // under _next/static/images (see the <Image> component and
+    // scripts/copy-images-to-next-static.ts), riding the existing
+    // /docs/docs_static_nextjs/_next/* rewrite + b2k strip — out of the /docs/*
+    // soft-redirect page path. Also clears the Icon/error-page next/image 500s.
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: 'https',

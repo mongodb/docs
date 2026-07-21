@@ -6,6 +6,7 @@ import remarkSectionize from 'remark-sectionize';
 import rehypeMdxCodeProps from 'rehype-mdx-code-props';
 import { remarkHowToSeoMetadata } from './remark-how-to-seo-metadata';
 import { remarkResolveImports } from './remark-resolve-imports';
+import { remarkImageDimensions } from './remark-image-dimensions';
 import { remarkStepNumbers } from './remark-step-numbers';
 import { components } from '@/mdx-components';
 import { findProjectPathAndSiteJson } from './load-metadata';
@@ -56,6 +57,7 @@ const compileMdxWithPlugins = async ({ mdxString, componentMapping, projectPath 
         mdxOptions: {
           remarkPlugins: [
             [remarkResolveImports, { projectPath }],
+            [remarkImageDimensions, { projectPath }],
             remarkGfm,
             remarkSectionize,
             remarkStepNumbers,

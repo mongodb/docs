@@ -4,13 +4,23 @@ import { cx, css } from '@leafygreen-ui/emotion';
 import { theme } from '@/styles/theme';
 import path from 'path';
 import { useState } from 'react';
+import NextImage from 'next/image';
 import { Lightbox } from './Lightbox';
 import { Caption } from './Caption';
-import { INTERNAL_IMAGE_API_PATH } from '@/constants';
+import { ASSET_PREFIX, INTERNAL_IMAGE_API_PATH } from '@/constants';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
-// Formats the image url to the api path
-// Strip any leading slash from imagePath to avoid double-slash when projectPath is empty (landing page)
-const formatImageUrl = (imagePath: string) => `${INTERNAL_IMAGE_API_PATH}${imagePath.replace(/^\//, '')}`;
+// Online: a static file under _next/static/images (copied there by
+// copy-images-to-next-static.ts), referenced via the asset prefix so it rides
+// the /docs/docs_static_nextjs/_next/* rewrite + b2k strip and stays out of the
+// /docs/* soft-redirect path — no optimizer. Offline (static export) has no
+// _next server, so use /docs/images/... which build-offline relativizes. Leading
+// slash stripped to avoid a double slash when projectPath is empty (landing page).
+const ONLINE_IMAGE_PREFIX = `${ASSET_PREFIX}/_next/static/images/`;
+const formatImageUrl = (imagePath: string) => {
+  const relativePath = imagePath.replace(/^\//, '');
+  return isOfflineBuild ? `${INTERNAL_IMAGE_API_PATH}${relativePath}` : `${ONLINE_IMAGE_PREFIX}${relativePath}`;
+};
 
 const figureStyle = (width?: string, maxHeight?: string, hasHeroImageClass?: boolean) => css`
   display: block;
@@ -37,6 +47,12 @@ export interface ImageProps {
   caption?: string;
   className?: string;
   height?: number;
+  // Intrinsic pixel dimensions injected at MDX compile time by
+  // remark-image-dimensions from image-dimensions.json. Required by next/image;
+  // when absent (e.g. an SVG with no intrinsic size), the component falls back
+  // to a plain <img>.
+  intrinsicWidth?: number | string;
+  intrinsicHeight?: number | string;
 }
 
 export const Image = ({
@@ -50,19 +66,25 @@ export const Image = ({
   lightbox,
   caption,
   className,
+  intrinsicWidth,
+  intrinsicHeight,
 }: ImageProps) => {
   const [_, setIsModalOpen] = useState(false);
   const openModal = () => setIsModalOpen(true);
 
   const fullPath = path.join(projectPath, src);
-  // Same URL scheme online and offline: build:images (copy-content-images.ts)
-  // copies content images to public/docs/images/<fullPath> unconditionally, so
-  // the offline static export always has a file there too (see
-  // scripts/build-offline.ts's flatten step, which turns out/docs/images/...
-  // into out/images/...). getSuitableIcon (card icons) already does the same
-  // — this used to diverge with its own "/docs/<fullPath>" offline path,
-  // which pointed one segment short of where build:images actually puts files.
+  // See formatImageUrl above: online → _next/static/images asset URL, offline → /docs/images.
   const imageUrl = formatImageUrl(fullPath);
+
+  // next/image requires numeric width+height. Use the injected intrinsic pixel
+  // dimensions; fall back to a plain <img> when they are unavailable.
+  const numericIntrinsicWidth = Number(intrinsicWidth);
+  const numericIntrinsicHeight = Number(intrinsicHeight);
+  const hasIntrinsicDimensions =
+    Number.isFinite(numericIntrinsicWidth) &&
+    numericIntrinsicWidth > 0 &&
+    Number.isFinite(numericIntrinsicHeight) &&
+    numericIntrinsicHeight > 0;
 
   // Prefer figwidth (the author's intended display width from `:figwidth:`) over
   // width, which Snooty auto-populates with the image's intrinsic pixel dimensions
@@ -84,16 +106,33 @@ export const Image = ({
   const showLightbox =
     lightbox || (typeof figwidth === 'number' && typeof width === 'number' && figwidth / width < 0.9);
 
+  // Images are unoptimized (see next.config.mjs), so next/image emits a plain
+  // <img>; the intrinsic width+height prevent layout shift and the emotion class
+  // controls displayed size. Without dimensions, render a bare <img>. All formats
+  // (incl. SVG) use the same _next/static URL — no optimizer, no SVG special case.
+  const renderImage = (imgClassName: string, onClick?: () => void) =>
+    hasIntrinsicDimensions ? (
+      <NextImage
+        src={imageUrl}
+        alt={alt}
+        width={numericIntrinsicWidth}
+        height={numericIntrinsicHeight}
+        className={imgClassName}
+        onClick={onClick}
+      />
+    ) : (
+      // Intentional fallback for images without intrinsic dimensions (e.g. SVGs);
+      // next/image requires numeric width+height, which we don't have here.
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={imageUrl} alt={alt} className={imgClassName} onClick={onClick} />
+    );
+
   if (showLightbox) {
     return (
       <Lightbox
-        figure={
-          <img
-            src={imageUrl}
-            alt={alt}
-            className={cx(figureStyle(normalizeWidth(), normalizeHeight(), hasHeroImageClass), border ? borderStyle : '')}
-          />
-        }
+        figure={renderImage(
+          cx(figureStyle(normalizeWidth(), normalizeHeight(), hasHeroImageClass), border ? borderStyle : ''),
+        )}
         caption={caption}
         figwidth={normalizeWidth()}
       />
@@ -102,12 +141,14 @@ export const Image = ({
 
   return (
     <>
-      <img
-        src={imageUrl}
-        alt={alt}
-        className={cx(figureStyle(normalizeWidth(), normalizeHeight(), hasHeroImageClass), border ? borderStyle : '', className)}
-        onClick={openModal}
-      />
+      {renderImage(
+        cx(
+          figureStyle(normalizeWidth(), normalizeHeight(), hasHeroImageClass),
+          border ? borderStyle : '',
+          className,
+        ),
+        openModal,
+      )}
       <Caption caption={caption} />
     </>
   );
