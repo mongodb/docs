@@ -62,7 +62,14 @@ const nextConfig = {
     return forceRedirects;
   },
   async rewrites() {
-    return [];
+    return [
+      // Serve the Markdown export of a page. The route is prerendered at build
+      // time (see src/app/api/markdown/[...path]/route.ts).
+      {
+        source: '/docs/:path*.md',
+        destination: '/api/markdown/:path*',
+      },
+    ];
   },
   images: {
     // The /_next/image optimizer 500s on this deploy (sharp isn't bundled into
