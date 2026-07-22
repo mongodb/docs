@@ -152,3 +152,57 @@ describe('remarkResolveImports replacement slots', () => {
     await expect(reparseMdx(resolved)).resolves.toBeDefined();
   });
 });
+
+describe('remarkResolveImports ref link path prefix', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetContentString.mockImplementation(async (rawPath: string) => {
+      if (rawPath.endsWith('_references.json')) {
+        return JSON.stringify({
+          substitutions: {},
+          refs: {
+            'django-get-started-create-deployment':
+              'get-started#std-label-django-get-started-create-deployment',
+          },
+        });
+      }
+      return null;
+    });
+  });
+
+  async function resolveWithPrefix(
+    pageMdx: string,
+    projectPath: string,
+    dirNameToPrefix: Record<string, string>,
+  ): Promise<string> {
+    const file = await remark()
+      .use(remarkFrontmatter, ['yaml'])
+      .use(remarkGfm)
+      .use(remarkMdx)
+      .use(remarkResolveImports, { projectPath, dirNameToPrefix })
+      .use(remarkStringify)
+      .process(pageMdx);
+    return String(file);
+  }
+
+  const refPage =
+    'See the <RefRole type="label" name="django-get-started-create-deployment">previous step</RefRole>.\n';
+
+  it('prefixes ref links with the project URL path prefix, not the disk directory name', async () => {
+    const resolved = await resolveWithPrefix(refPage, 'django-mongodb/current', {
+      'django-mongodb': 'docs/languages/python/django-mongodb',
+    });
+
+    expect(resolved).toContain(
+      '[previous step](/docs/languages/python/django-mongodb/current/get-started#std-label-django-get-started-create-deployment)',
+    );
+  });
+
+  it('falls back to the disk project path when no prefix mapping exists', async () => {
+    const resolved = await resolveWithPrefix(refPage, 'django-mongodb/current', {});
+
+    expect(resolved).toContain(
+      '[previous step](/docs/django-mongodb/current/get-started#std-label-django-get-started-create-deployment)',
+    );
+  });
+});

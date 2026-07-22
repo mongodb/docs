@@ -45,9 +45,15 @@ interface CompileMdxWithPluginsOptions {
   mdxString: string;
   componentMapping: MDXComponents;
   projectPath: string;
+  dirNameToPrefix: Record<string, string>;
 }
 
-const compileMdxWithPlugins = async ({ mdxString, componentMapping, projectPath }: CompileMdxWithPluginsOptions) => {
+const compileMdxWithPlugins = async ({
+  mdxString,
+  componentMapping,
+  projectPath,
+  dirNameToPrefix,
+}: CompileMdxWithPluginsOptions) => {
   try {
     return await compileMDX({
       source: mdxString,
@@ -56,7 +62,7 @@ const compileMdxWithPlugins = async ({ mdxString, componentMapping, projectPath 
         parseFrontmatter: true,
         mdxOptions: {
           remarkPlugins: [
-            [remarkResolveImports, { projectPath }],
+            [remarkResolveImports, { projectPath, dirNameToPrefix }],
             [remarkImageDimensions, { projectPath }],
             remarkGfm,
             remarkSectionize,
@@ -135,6 +141,7 @@ const loadOfflineMDX = async (urlPath: string[], replacements?: Record<string, R
       mdxString,
       componentMapping,
       projectPath,
+      dirNameToPrefix: prefixMap,
     });
 
     const result = {

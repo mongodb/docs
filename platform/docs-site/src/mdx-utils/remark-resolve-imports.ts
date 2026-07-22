@@ -7,6 +7,7 @@ import remarkMdx from 'remark-mdx';
 import remarkFrontmatter from 'remark-frontmatter';
 import remarkGfm from 'remark-gfm';
 import { getContentString } from './get-content-string';
+import { remapDiskRelativeToBlobRelative } from './blob-path-remap';
 
 type MdxJsxElement = MdxJsxFlowElement | MdxJsxTextElement;
 
@@ -31,15 +32,21 @@ const mdxProcessor = remark().use(remarkFrontmatter, ['yaml']).use(remarkGfm).us
  * Downstream plugins (e.g. remarkHowToSeoMetadata) then see a complete
  * tree where toString() returns meaningful text for every node.
  */
-export const remarkResolveImports = ({ projectPath }: { projectPath: string }) => {
+export const remarkResolveImports = ({
+  projectPath,
+  dirNameToPrefix = {},
+}: {
+  projectPath: string;
+  dirNameToPrefix?: Record<string, string>;
+}) => {
   return async (tree: Root) => {
     await resolveIncludes({ tree, projectPath });
 
     const loadedRefs = await loadReferences(projectPath);
     const refs: ReferencesData = loadedRefs ?? { substitutions: {}, refs: {} };
 
-    resolveSubstitutions({ tree, refs, projectPath });
-    resolveRefLinks({ tree, refs, projectPath });
+    resolveSubstitutions({ tree, refs, projectPath, dirNameToPrefix });
+    resolveRefLinks({ tree, refs, projectPath, dirNameToPrefix });
   };
 };
 
@@ -181,9 +188,31 @@ interface ResolveRefsArgs {
   tree: Root;
   refs: ReferencesData;
   projectPath?: string;
+  dirNameToPrefix?: Record<string, string>;
 }
 
-const resolveSubstitutions = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
+/**
+ * Build the `/docs/...` URL for a project-relative ref href.
+ *
+ * `_references.json` stores hrefs relative to the project source root (e.g.
+ * `get-started#some-label`), and `projectPath` is the on-disk project path
+ * (e.g. `django-mongodb/current`). The published URL prefix can differ from the
+ * disk directory name (e.g. `django-mongodb` → `languages/python/django-mongodb`),
+ * so remap the disk-relative path to its URL-relative form before prefixing
+ * `/docs/`. Without this remap the link drops the project path prefix.
+ */
+const buildDocsHref = (
+  href: string,
+  projectPath: string | undefined,
+  dirNameToPrefix: Record<string, string>,
+): string => {
+  if (href.startsWith('http')) return href;
+  const cleanedHref = href.replace(/^\/+/, '');
+  const diskRelative = projectPath ? `${projectPath}/${cleanedHref}` : cleanedHref;
+  return `/docs/${remapDiskRelativeToBlobRelative(diskRelative, dirNameToPrefix)}`;
+};
+
+const resolveSubstitutions = ({ tree, refs, projectPath, dirNameToPrefix = {} }: ResolveRefsArgs) => {
   const replacements: JsxReplacement[] = [];
 
   visit(tree, (node, index, parent) => {
@@ -226,7 +255,7 @@ const resolveSubstitutions = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
           : undefined;
 
       if (href && linkLabel !== undefined) {
-        const resolvedHref = href.startsWith('http') ? href : `/docs/${projectPath}/${href}`;
+        const resolvedHref = buildDocsHref(href, projectPath, dirNameToPrefix);
         replacements.push({ index, parent, replacement: createLinkNode(resolvedHref, linkLabel) });
         return;
       }
@@ -281,7 +310,7 @@ const resolveSubstitutions = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
   applyReplacements(replacements);
 };
 
-const resolveRefLinks = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
+const resolveRefLinks = ({ tree, refs, projectPath, dirNameToPrefix = {} }: ResolveRefsArgs) => {
   const replacements: JsxReplacement[] = [];
 
   visit(tree, (node, index, parent) => {
@@ -304,7 +333,7 @@ const resolveRefLinks = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
       }
 
       const title = getAttr(node, 'title') ?? key;
-      const resolvedHref = href.startsWith('http') ? href : `/docs/${projectPath}/${href}`;
+      const resolvedHref = buildDocsHref(href, projectPath, dirNameToPrefix);
       replacements.push({ index, parent, replacement: createLinkNode(resolvedHref, title) });
       return;
     }
@@ -338,7 +367,7 @@ const resolveRefLinks = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
         return;
       }
 
-      const resolvedHref = href.startsWith('http') ? href : `/docs/${projectPath}/${href}`;
+      const resolvedHref = buildDocsHref(href, projectPath, dirNameToPrefix);
 
       const linkNode: Link = {
         type: 'link',
