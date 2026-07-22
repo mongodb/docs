@@ -7,19 +7,18 @@ import { useState } from 'react';
 import NextImage from 'next/image';
 import { Lightbox } from './Lightbox';
 import { Caption } from './Caption';
-import { ASSET_PREFIX, INTERNAL_IMAGE_API_PATH } from '@/constants';
+import { INTERNAL_IMAGE_API_PATH, ONLINE_IMAGE_PREFIX } from '@/constants';
+import { isDevMode } from '@/utils/isDevBuild';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
-// Online: a static file under _next/static/images (copied there by
-// copy-images-to-next-static.ts), referenced via the asset prefix so it rides
-// the /docs/docs_static_nextjs/_next/* rewrite + b2k strip and stays out of the
-// /docs/* soft-redirect path — no optimizer. Offline (static export) has no
-// _next server, so use /docs/images/... which build-offline relativizes. Leading
-// slash stripped to avoid a double slash when projectPath is empty (landing page).
-const ONLINE_IMAGE_PREFIX = `${ASSET_PREFIX}/_next/static/images/`;
 const formatImageUrl = (imagePath: string) => {
   const relativePath = imagePath.replace(/^\//, '');
-  return isOfflineBuild ? `${INTERNAL_IMAGE_API_PATH}${relativePath}` : `${ONLINE_IMAGE_PREFIX}${relativePath}`;
+
+  if (isDevMode || isOfflineBuild) {
+    return `${INTERNAL_IMAGE_API_PATH}${relativePath}`;
+  } else {
+    return `${ONLINE_IMAGE_PREFIX}${relativePath}`;
+  }
 };
 
 const figureStyle = (width?: string, maxHeight?: string, hasHeroImageClass?: boolean) => css`

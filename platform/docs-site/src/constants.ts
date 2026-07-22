@@ -31,3 +31,10 @@ export const TEMPLATE_CONTAINER_ID = 'template-container';
 export const CONTENT_MAX_WIDTH = 1200;
 
 export const INTERNAL_IMAGE_API_PATH = '/docs/images/';
+// Online: a static file under _next/static/images (copied there by
+// copy-images-to-next-static.ts), referenced via the asset prefix so it rides
+// the /docs/docs_static_nextjs/_next/* rewrite + b2k strip and stays out of the
+// /docs/* soft-redirect path — no optimizer. Offline (static export) has no
+// _next server, so use /docs/images/... which build-offline relativizes. Leading
+// slash stripped to avoid a double slash when projectPath is empty (landing page).
+export const ONLINE_IMAGE_PREFIX = `${ASSET_PREFIX}/_next/static/images/`;
