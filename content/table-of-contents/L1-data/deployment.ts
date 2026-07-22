@@ -100,7 +100,7 @@ const tocData: TocItem[] = [
         url: 'https://www.mongodb.com/docs/manual/administration/install-enterprise',
       },
       {
-        label: 'Install Search and Vector Search',
+        label: 'Install Search and Vector Search in a Kubernetes Cluster',
         isExternal: true,
         url: 'https://www.mongodb.com/docs/kubernetes/current/fts-vs/deployment/single-cluster-installation/?cluster-topology=repl&deployment-type=k8s-managed&mdb-edition=enterprise&mongot-instances=single',
       },
@@ -122,8 +122,24 @@ const tocData: TocItem[] = [
       },
       {
         label: 'Install Search and Vector Search',
-        isExternal: true,
-        url: 'https://www.mongodb.com/docs/kubernetes/current/fts-vs/deployment/single-cluster-installation/?cluster-topology=repl&deployment-type=k8s-managed&mdb-edition=community&mongot-instances=single',
+        collapsible: true,
+        items: [
+          {
+            label: 'In a Kubernetes Cluster',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/kubernetes/current/fts-vs/deployment/single-cluster-installation/?cluster-topology=repl&deployment-type=k8s-managed&mdb-edition=community&mongot-instances=single',
+          },
+          {
+            label: 'On Linux',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/search/self-managed/current/installation/linux',
+          },
+          {
+            label: 'In Docker',
+            isExternal: true,
+            url: 'https://www.mongodb.com/docs/search/self-managed/current/installation/docker',
+          },
+        ],
       },
     ],
   },
