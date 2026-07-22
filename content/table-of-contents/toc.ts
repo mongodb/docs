@@ -1,5 +1,6 @@
 import AtlasArchData from './L1-data/atlas-architecture-center';
 import ClientLibData from './L1-data/client-libraries';
+import DeploymentData from './L1-data/deployment';
 import DevelopmentData from './L1-data/development';
 import GetStarted from './L1-data/get-started';
 import ManagementData from './L1-data/management';
@@ -14,6 +15,12 @@ export const toc: L1TocItem[] = [
     contentSite: 'landing',
     url: '/docs/get-started',
     items: GetStarted,
+  },
+  {
+    label: 'Deployment',
+    contentSite: 'landing',
+    url: '/docs/deployment',
+    items: DeploymentData,
   },
   {
     label: 'Development',
