@@ -121,3 +121,44 @@ Restaurant.remove_search_indexes
 #start list atlas search index
 Restaurant.search_indexes.each { |index| puts index }
 # end list atlas search index
+
+# start create vector search index
+class Movie
+  include Mongoid::Document
+
+  # Define `plot_embedding` as an Array field and create a vector search
+  # index on it with `dimensions` set to 1536.
+  vector_field :plot_embedding, dimensions: 1536
+end
+
+Movie.create_search_indexes
+# end create vector search index
+
+# start create vector search index separate
+class Movie
+  include Mongoid::Document
+
+  field :year, type: Integer
+  field :plot_embedding, type: Array
+
+  vector_search_index :plot_embedding_index,
+    fields: [
+      {
+        type: "vector",
+        path: "plot_embedding",
+        numDimensions: 1536,
+        similarity: "cosine"
+      },
+      {
+        type: "filter",
+        path: "_id"
+      },
+      {
+        type: "filter",
+        path: "year"
+      }
+    ]
+end
+
+Movie.create_search_indexes
+# end create vector search index separate
