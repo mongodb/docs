@@ -12,6 +12,10 @@ interface RouteContext {
   };
 }
 
+// Directive prepended to every markdown export so coding agents that discover a
+// `.md` page via webfetch also learn about the docs-wide llms.txt index.
+const LLMS_TXT_DIRECTIVE = '> For the complete MongoDB documentation index, see www.mongodb.com/docs/llms.txt';
+
 export async function OPTIONS() {
   return withCORS(new NextResponse(null, { status: 204 }));
 }
@@ -54,9 +58,10 @@ export async function GET(request: NextRequest, { params }: RouteContext) {
     const markdown = await mdxToMarkdown(resolvedMdx, undefined, undefined, {
       tabFilters,
     });
+    const markdownWithDirective = `${LLMS_TXT_DIRECTIVE}\n\n${markdown}`;
 
     return withCORS(
-      new NextResponse(markdown, {
+      new NextResponse(markdownWithDirective, {
         status: 200,
         headers: {
           'Content-Type': 'text/markdown; charset=utf-8',

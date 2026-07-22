@@ -17,6 +17,10 @@ import { generateDocsStaticPaths } from '@/utils/generate-docs-paths';
 export const dynamic = 'force-static';
 export const dynamicParams = false;
 
+// Directive prepended to every markdown export so coding agents that discover a
+// `.md` page via webfetch also learn about the docs-wide llms.txt index.
+const LLMS_TXT_DIRECTIVE = '> For the complete MongoDB documentation index, see www.mongodb.com/docs/llms.txt';
+
 interface RouteContext {
   params: {
     path: string[];
@@ -83,9 +87,10 @@ export async function GET(_request: Request, { params }: RouteContext) {
 
     // Omit contentMdxDir: includes/refs are already resolved above.
     const markdown = await mdxToMarkdown(resolvedMdx, undefined, undefined, {});
+    const markdownWithDirective = `${LLMS_TXT_DIRECTIVE}\n\n${markdown}`;
 
     return withCORS(
-      new NextResponse(markdown, {
+      new NextResponse(markdownWithDirective, {
         status: 200,
         headers: {
           'Content-Type': 'text/markdown; charset=utf-8',
