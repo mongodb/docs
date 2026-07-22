@@ -179,8 +179,8 @@ The following table describes the fields in the database object:
        - :datalakeconf-adl:`databases.[n].collections.[n].dataSources.[n].trimLevel`
 
        For wildcard collections, {+adf+} maps a dataset name to a 
-       collection name first by splitting the :manual:`namespace 
-       </reference/limits/#namespaces>` into a list of fields on the ``$`` 
+       collection name first by splitting the :ref:`namespace 
+       <faq-dev-namespace>` into a list of fields on the ``$`` 
        delimiter, then by trimming a number of fields from the left of the 
        list, and finally by combining the remaining fields using ``_``. 
 

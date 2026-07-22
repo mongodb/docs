@@ -368,9 +368,9 @@ The ``database`` object contains the following fields:
      - array
      - optional
      - Array of objects where each object represents an 
-       :manual:`aggregation pipeline </core/aggregation-pipeline/#id1>` on 
-       a collection. To learn more about views, see :manual:`Views 
-       </core/views/>`.
+       :ref:`aggregation pipeline <aggregation-pipeline>` on 
+       a collection. To learn more about views, see :ref:`Views 
+       <views-landing-page>`.
 
    * - .. datalakeconf-aws:: databases.[n].views.[n].name 
      - string
@@ -387,8 +387,8 @@ The ``database`` object contains the following fields:
    * - .. datalakeconf-aws:: databases.[n].views.[n].pipeline 
      - array
      - optional
-     - Array of :manual:`Aggregation pipeline stage(s) 
-       </core/aggregation-pipeline/#id1>` to apply to the 
+     - Array of :ref:`Aggregation pipeline stage(s) 
+       <aggregation-pipeline-operator-reference>` to apply to the 
        :datalakeconf-aws:`~databases.[n].views.[n].source` collection. You 
        can also create views using the :ref:`$sql <adf-sql-stage>` stage.
 
