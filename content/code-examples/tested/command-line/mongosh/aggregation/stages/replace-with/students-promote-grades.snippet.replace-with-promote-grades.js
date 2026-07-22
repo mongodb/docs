@@ -1,0 +1,5 @@
+db.students.aggregate( [
+   { $unwind: "$grades" },
+   { $match: { "grades.grade" : { $gte: 90 } } },
+   { $replaceWith: "$grades" }
+] )

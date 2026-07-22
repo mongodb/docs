@@ -1,0 +1,5 @@
+[
+  { test: 3, grade: 95, mean: 85, std: 6 },
+  { test: 1, grade: 90, mean: 75, std: 6 },
+  { test: 3, grade: 91, mean: 85, std: 4 }
+]

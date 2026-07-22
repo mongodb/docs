@@ -1,0 +1,17 @@
+[
+  { _id: 1, name: 'Fred', email: 'fred@example.net', cell: '', home: '' },
+  {
+    _id: 2,
+    name: 'Frank N. Stine',
+    email: '',
+    cell: '012-345-9999',
+    home: ''
+  },
+  {
+    _id: 3,
+    name: 'Gren Dell',
+    email: 'beo@example.net',
+    cell: '987-654-3210',
+    home: ''
+  }
+]
