@@ -81,5 +81,5 @@ for a KMIP compliant {+kms-long+}:
         If you do not set the ``delegated`` option to ``true``, your application
         directly accesses and transports your {+cmk-long+} from the KMIP provider.
 
-        :gold:`IMPORTANT:` The ``delegated`` option is not available in the
-        Ruby or Go drivers.
+        :gold:`IMPORTANT:` The Go driver does not support the ``delegated`` option,
+        and only versions 2.25 and later of the Ruby driver support the option.
