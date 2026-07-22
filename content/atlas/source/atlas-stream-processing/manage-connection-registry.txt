@@ -8,7 +8,7 @@ Manage Connections
 
 .. meta::
    :keywords: atlas stream processing, atlas stream processing overview, streaming data, data stream, real time, data processing, apache kafka, kafka
-   :description: Learn how to manage connections in your Stream Processing Workspace connection registry
+   :description: Learn how to manage connections in your Atlas Stream Processing Workspace connection registry, including supported integrations, connection types, and advanced networking options.
 
 .. facet::
    :name: genre
@@ -24,6 +24,111 @@ Each {+SPW+} stores every configured connection to a streaming data
 source or sink in its connection registry. The procedures on this page
 walk you through creating and configuring your {+atlas-sp+}
 connections.
+
+.. _atlas-sp-manage-connections-considerations:
+
+Supported Integrations
+----------------------
+
+When configuring {+atlas-sp+} connections, ensure you select a
+connection type suitable to your use case. {+atlas-sp+} supports the
+following providers:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 18 40 22 20
+
+   * - Provider (:ref:`See note <asp-limitations>`)
+     - Description
+     - Connection Types
+     - Advanced Networking
+
+   * - Kafka Broker
+     - Configurable server that receives and stores event streams,
+       organizing them into partitioned topics.
+     - :ref:`Source <atlas-sp-agg-source>` and
+       :ref:`Sink <atlas-sp-agg-emit>`
+     - :ref:`Private Link <atlas-sp-pl-kafka-add>` or
+       :ref:`VPC Peering <atlas-sp-manage-vpc-peering>`. Support depends
+       on your Kafka vendor.
+
+   * - {+service+} Clusters
+     - Cloud-hosted MongoDB server providing both permanent storage
+       and event-driven :ref:`Change Streams <changeStreams>`.
+     - :ref:`Source <atlas-sp-agg-source>` and
+       :ref:`Sink <atlas-sp-agg-merge>`
+     - |service| managed
+
+   * - {+service+} Clusters (time series collections)
+     - MongoDB :manual:`time series collection
+       </core/timeseries-collections>` used as a destination for
+       processed data.
+     - :ref:`Sink <atlas-sp-agg-emit>` only
+     - |service| managed
+
+   * - {+aws+} |s3|
+     - Object storage container hosted on {+aws+}.
+     - :ref:`Sink <atlas-sp-agg-emit>` only
+     - :ref:`Private Link <atlas-sp-pl-s3-add>`
+
+   * - {+aws+} Kinesis
+     - Cloud-hosted platform that receives and stores
+       event streams, providing various :aws:`integrated tools
+       <kinesis>`.
+     - :ref:`Source <atlas-sp-agg-source>` and
+       :ref:`Sink <atlas-sp-agg-emit>`
+     - :ref:`Private Link <atlas-sp-pl-kinesis-add>`
+
+   * - |azure| Blob Storage
+     - Object storage container hosted on |azure|.
+     - :ref:`Sink <atlas-sp-agg-emit>` only
+     - :ref:`Private Link <atlas-sp-pl-azure-blob-add>`
+
+   * - {+gcp+} Pub/Sub
+     - {+gcp+}-hosted service that supports asynchronous streaming.
+     - :ref:`Sink <atlas-sp-agg-emit>` only
+     - :ref:`Private Service Connect <atlas-sp-pl-gcp-pubsub-add>`
+
+   * - HTTPS
+     - HTTPS request to retrieve data through an API
+       endpoint each time a document passes through. {+atlas-sp+} then
+       uses this data to enrich the document that triggered the request.
+     - Supplementary Source; must follow a :pipeline:`$source` stage.
+     - Not supported
+
+
+   * - External Function Connections
+     - {+atlas-sp+} supports embedding calls to `AWS Lambda <https://docs.aws.amazon.com/lambda/>`__
+       resources within your {+atlas-sp+} pipeline. You can execute these calls
+       synchronously or asynchronously, and you can pass responses from synchronous calls
+       to subsequent stages in your pipeline.
+
+       To learn more, see the :ref:`{+atlas-sp+} External Functions <atlas-sp-agg-external-function>`
+       documentation.
+     - Trigger
+     - Not supported
+
+
+.. note::
+
+   {+aws+} Kinesis and |s3|, |azure| Blob Storage, and {+gcp+}
+   Pub/Sub connections require cloud provider access configuration
+   regardless of the network access method you choose:
+
+   - To set up Unified AWS Access for Kinesis and |s3|
+     connections, see :ref:`set-up-unified-aws-access`.
+   - To set up Azure Service Principal Access for Blob Storage
+     connections, see :ref:`manage-azure-access`.
+   - To set up GCP Service Account Access for Pub/Sub
+     connections, see :ref:`manage-gcp-access`.
+
+.. _asp-limitations:
+
+.. sharedinclude:: cet/atlas/asp-limitations.rst
+
+.. tip::
+
+   See :ref:`manual-timeseries-collection-limitations` for more information.
 
 .. _atlas-sp-manage-connection-prereqs:
 
@@ -71,88 +176,6 @@ To create a cross-project connection, you must have either:
 - ``Org Stream Processing Owner`` privileges.
 - ``Stream Processing Project Owner`` privileges in both {+service+}
   projects participating in the connection.
-
-.. _atlas-sp-manage-connections-considerations:
-
-Considerations
---------------
-
-When configuring {+atlas-sp+} connections, ensure you select a
-connection type suitable to your use case. {+atlas-sp+} supports the
-following providers:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 20 60 20
-
-   * - Provider (:ref:`See note <asp-limitations>`)
-     - Description
-     - Connection Types
-
-   * - Kafka Broker
-     - Configurable server that receives and stores event streams,
-       organizing them into partitioned topics.
-     - Sink and Source
-
-   * - {+service+} Clusters
-     - Cloud-hosted MongoDB server providing both permanent storage
-       and event-driven :ref:`Change Streams <changeStreams>`. 
-     - Sink and Source
-
-   * - {+aws+} |s3|
-     - Object storage container hosted on {+aws+}.
-     - Only Sink
-
-   * - {+aws+} Kinesis
-     - Cloud-hosted platform that receives and stores
-       event streams, providing various :aws:`integrated tools
-       <kinesis>`.
-     - Sink and Source
-
-   * - |azure| Blob Storage
-     - Object storage container hosted on |azure|.
-     - Only Sink
-
-   * - {+gcp+} Pub/Sub
-     - {+gcp+}-hosted service that supports asynchronous streaming.
-     - Only Sink
-
-   * - HTTPS
-     - HTTPS request to retrieve data through an API
-       endpoint each time a document passes through. {+atlas-sp+} then
-       uses this data to enrich the document that triggered the request.  
-     - Mid-pipeline Stage and Sink
-
-   * - External Function Connections
-     - {+atlas-sp+} supports embedding calls to `AWS Lambda <https://docs.aws.amazon.com/lambda/>`__ 
-       resources within your {+atlas-sp+} pipeline. You can execute these calls 
-       synchronously or asynchronously, and you can pass responses from synchronous calls 
-       to subsequent stages in your pipeline. 
-
-       To learn more, see the :ref:`{+atlas-sp+} External Functions <atlas-sp-agg-external-function>` 
-       documentation.
-     - Mid-pipeline Stage and Sink
-
-.. note::
-
-   {+aws+} Kinesis and |s3|, |azure| Blob Storage, and {+gcp+}
-   Pub/Sub connections require cloud provider access configuration
-   regardless of the network access method you choose:
-
-   - To set up Unified AWS Access for Kinesis and |s3|
-     connections, see :ref:`set-up-unified-aws-access`.
-   - To set up Azure Service Principal Access for Blob Storage
-     connections, see :ref:`manage-azure-access`.
-   - To set up GCP Service Account Access for Pub/Sub
-     connections, see :ref:`manage-gcp-access`.
-
-.. _asp-limitations:
-
-.. sharedinclude:: cet/atlas/asp-limitations.rst
-
-.. tip::
-
-   See :ref:`manual-timeseries-collection-limitations` for more information.
 
 .. _atlas-sp-manage-connection-add:
 
