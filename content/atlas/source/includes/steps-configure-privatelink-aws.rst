@@ -76,28 +76,28 @@
             :widths: 20 80
 
             * - :guilabel:`Your VPC ID`
-               - Unique identifier of the peer |aws| |vpc|. Find
-                  this value on the |vpc| dashboard in your |aws|
-                  account.
+              - Unique identifier of the peer |aws| |vpc|. Find
+                this value on the |vpc| dashboard in your |aws|
+                account.
 
             * - :guilabel:`Your Subnet IDs`
-               - Unique identifiers of the subnets your |aws|
-                  |vpc| uses.
+              - Unique identifiers of the subnets your |aws|
+                |vpc| uses.
 
-                  Find these values on the :guilabel:`Subnet`
-                  dashboard in your |aws| account.
+                Find these values on the :guilabel:`Subnet`
+                dashboard in your |aws| account.
 
-                  You must specify at least one subnet. If you
-                  don't, |aws| won't provision an :term:`interface
-                  endpoint` in your |vpc|. An interface endpoint is
-                  required for clients in your |vpc| to send
-                  traffic to the private endpoint.
+                You must specify at least one subnet. If you
+                don't, |aws| won't provision an :term:`interface
+                endpoint` in your |vpc|. An interface endpoint is
+                required for clients in your |vpc| to send
+                traffic to the private endpoint.
 
             * - :guilabel:`Consumer Region`
-               - |aws| region where your consumer |vpc| is
-                  located. This region must be one of the accepted
-                  endpoint regions configured for the endpoint
-                  service.
+              - |aws| region where your consumer |vpc| is
+                located. This region must be one of the accepted
+                endpoint regions configured for the endpoint
+                service.
 
       #. Click :guilabel:`Create Endpoint`.
 
