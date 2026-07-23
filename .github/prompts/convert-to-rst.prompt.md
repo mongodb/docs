@@ -140,6 +140,7 @@ Syntax:
       Content for tab 2
 
 ## Images and Figures:
+Do not use plus signs (+) in image file names; images whose names contain a + return 404 and render as broken. Use hyphens instead.
 Image: .. image:: <file-path>
 Required: :alt: <text>, :width: <value> px
 Optional: :scale: <xx%>, :align: <position>, :target: <url>
