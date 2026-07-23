@@ -43,7 +43,7 @@ async fn main() -> mongodb::error::Result<()> {
     encrypted_client.database(encrypted_database_name).collection::<Document>(encrypted_collection_name).drop().await?;
 
     // start-encrypted-fields-map
-    let encrypted_fields_map = doc! {
+    let encrypted_fields = doc! {
         "fields": [
             {
                 "path":     "patientRecord.ssn",
@@ -68,7 +68,7 @@ async fn main() -> mongodb::error::Result<()> {
         encrypted_collection_name,
         customer_master_key_credentials
     )
-    .encrypted_fields(encrypted_fields_map)
+    .encrypted_fields(encrypted_fields)
     .await
     .1?;
     // end-create-encrypted-collection

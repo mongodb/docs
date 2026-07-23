@@ -1,5 +1,5 @@
 // start-enable-range
-encryptedFieldsMap := bson.M{
+encryptedFields := bson.M{
 	"fields": []bson.M{
 		bson.M{
 			"keyId":    nil,

@@ -1,5 +1,5 @@
 // start-enable-range
-let encrypted_fields_map = doc! {
+let encrypted_fields = doc! {
     "fields": [
         {
             "path":     "patientRecord.ssn",
