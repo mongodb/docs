@@ -1,18 +1,27 @@
 /**
  * Generates per-project sitemaps and copies intersphinx inventory files from the
- * content-mdx directory into public/docs/<url-prefix>/ so they can be served as
- * static assets in the SSG build (no API route needed).
+ * content-mdx directory into .next/static/docs-metadata/<url-prefix>/, mirroring
+ * how content images are staged into .next/static/images (see
+ * copy-images-to-next-static.ts) — the online pipeline has no public/ dependency.
+ *
+ * The files serve as plain static assets at
+ * /_next/static/docs-metadata/<url-prefix>/..., and netlify.toml rewrites map the
+ * canonical /docs/<url-prefix>/{sitemap-*.xml,objects.inv} URLs onto them. That
+ * keeps their canonical locations (intersphinx hardcodes <base-url>/objects.inv;
+ * sitemaps are consumed at their /docs/<prefix>/ URLs) while riding the same
+ * _next asset path images use — out of the /docs/* soft-redirect page path.
  *
  * For every directory under content-mdx that contains a _site.json, this writes:
  *   - sitemap-0.xml      (page URLs from toctreeOrder + composable-page variants)
  *   - sitemap-index.xml  (points at sitemap-0.xml for the same project)
  *   - objects.inv        (copied verbatim, when present)
  *
- * Disk paths are remapped to their public docs URL prefix using the same
- * dir-name-to-prefix map the app uses at runtime, so the emitted files live at
- * their canonical URLs (e.g. content-mdx/manual/v8.2 -> /docs/v8.2/sitemap-0.xml).
+ * Disk paths are remapped to their docs URL prefix using the same
+ * dir-name-to-prefix map the app uses at runtime, so the emitted paths mirror the
+ * canonical URLs (e.g. content-mdx/manual/v8.2 -> /docs/v8.2/sitemap-0.xml).
  *
- * Run via: pnpm build:metadata
+ * Runs as postbuild (after next build), alongside copy-images-to-next-static.ts;
+ * the offline export doesn't need these. Run via: pnpm build:metadata
  */
 
 import fs from 'fs/promises';
@@ -21,7 +30,7 @@ import { CONTENT_MDX_DIR } from '../src/mdx-utils/content-constants';
 import { loadDirNameToPrefixMap, remapDiskRelativeToBlobRelative } from '../src/mdx-utils/blob-path-remap';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mongodb.com';
-const PUBLIC_DOCS_DIR = path.join(process.cwd(), 'public', 'docs');
+const METADATA_DEST_DIR = path.join(process.cwd(), '.next', 'static', 'docs-metadata');
 const INVENTORY_FILENAME = 'objects.inv';
 
 /** Minimal shape of _site.json needed to build a sitemap. */
@@ -145,6 +154,13 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
+  try {
+    await fs.access(path.join(process.cwd(), '.next'));
+  } catch {
+    console.error('.next output not found — run this after `next build`.');
+    process.exit(1);
+  }
+
   const prefixMap = await loadDirNameToPrefixMap();
   if (Object.keys(prefixMap).length === 0) {
     console.warn(
@@ -161,6 +177,9 @@ async function main(): Promise<void> {
     return;
   }
 
+  // Clean to avoid stale sitemaps/inventories from previous builds.
+  await fs.rm(METADATA_DEST_DIR, { recursive: true, force: true });
+
   let sitemapCount = 0;
   let inventoryCount = 0;
 
@@ -172,7 +191,7 @@ async function main(): Promise<void> {
     }
 
     const urlPrefix = remapDiskRelativeToBlobRelative(diskDir, prefixMap);
-    const destDir = path.join(PUBLIC_DOCS_DIR, urlPrefix);
+    const destDir = path.join(METADATA_DEST_DIR, urlPrefix);
     await fs.mkdir(destDir, { recursive: true });
 
     const baseDocUrl = `${SITE_URL}/docs/${urlPrefix}`;
@@ -192,7 +211,7 @@ async function main(): Promise<void> {
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(
     `Generated ${sitemapCount} sitemap(s) and copied ${inventoryCount} inventory file(s) ` +
-      `to public/docs/ in ${elapsed}s`,
+      `to .next/static/docs-metadata/ in ${elapsed}s`,
   );
 }
 
