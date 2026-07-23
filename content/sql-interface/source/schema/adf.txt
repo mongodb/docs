@@ -1,0 +1,793 @@
+.. _sql-schema-adf:
+
+=====================================
+{+adf+} Schema Commands
+=====================================
+
+.. meta::
+   :description: Reference for the Atlas Data Federation schema commands that generate, retrieve, set, and remove SQL Interface schemas through mongosh or the Atlas UI, with examples.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+In {+adf+}, you manage the schema that the
+{+sql-interface+} uses through three commands: ``sqlGenerateSchema``,
+``sqlGetSchema``, and ``sqlSetSchema``. You run these commands from
+``mongosh`` against a {+fdi+}, or you perform the
+equivalent actions in the {+atlas-ui+}. This page documents those
+commands and their UI equivalents.
+
+{+adf+} samples documents
+from your collections to generate the initial schema. For
+background on schema management and the other supported deployment
+types, see :ref:`sql-schema-management`.
+
+.. note::
+
+   The ``sqlGenerateSchema``, ``sqlGetSchema``, and ``sqlSetSchema``
+   commands and their {+atlas-ui+} equivalents apply only to the
+   {+adf+} deployment type. They don't apply to self-managed
+   {+ea+} deployments, which use the :ref:`sql-schema-builder-cli`,
+   or to queries against a standard {+service+} cluster that doesn't use
+   {+adf+}.
+
+.. _sqlgenerateschema-cmd:
+
+sqlGenerateSchema
+-----------------
+
+The ``sqlGenerateSchema`` command generates a {+sql-interface+} schema
+for the specified collections or views. {+adf+} samples
+documents from each namespace to derive the schema.
+
+.. _sqlgenerateschema-syntax:
+
+Syntax
+~~~~~~
+
+When you use the ``sampleNamespaces`` parameter, you must run
+the command against the ``admin`` database.
+
+.. code-block:: sh
+
+   use admin
+   db.runCommand({
+      sqlGenerateSchema: 1,
+      sampleNamespaces: [<namespace>],
+      sampleSize: <int>,
+      setSchemas: true|false
+   })
+
+.. _sqlgenerateschema-params:
+
+Parameters
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 50 15
+
+   * - Parameter
+     - Type
+     - Description
+     - Necessity
+
+   * - ``sampleNamespaces``
+     - array of strings
+     - Specifies the comma-separated list of namespaces for which to
+       generate schemas. A :manual:`namespace
+       </reference/limits/#namespaces>` includes the database name, a
+       dot (``.``) separator, and the collection or view name (that is,
+       ``<database>.<collection>|<view>``). To generate schemas for all
+       the collections in a database, specify ``*`` instead of the
+       collection or view name (that is, ``<database>.*``). If omitted,
+       {+adf+} generates schemas for all collections and
+       views in the current database.
+     - Optional
+
+   * - ``sampleSize``
+     - integer
+     - Specifies the number of documents to use as a sample to create
+       the schema. If omitted, defaults to ``1000``.
+     - Optional
+
+   * - ``setSchemas``
+     - boolean
+     - Specifies whether to store the generated schema for the
+       collection or view. Value can be one of the following:
+
+       - ``true`` to store the schema. If a schema already exists for
+         the collection or view, {+adf+} overwrites the
+         existing schema.
+       - ``false`` to not store the schema.
+
+       If omitted, defaults to ``false``.
+     - Optional
+
+.. _sqlgenerateschema-output:
+
+Output
+~~~~~~
+
+The command returns the following output if it succeeds:
+
+.. code-block:: json
+
+   {
+     "ok" : 1,
+     "schemas" : [
+       {
+         "databaseName" : "<database-name>",
+         "namespaces" : [
+           {
+             "name" : "<collection-name>",
+             "schema" : {
+               "version" : NumberLong(1),
+               "jsonSchema" : { ... }
+             }
+           }
+         ]
+       },
+       ...
+     ]
+   }
+
+.. include:: /includes/data-federation/sql-cmd-output-schemas-fields.rst
+
+If you set the schema for the collection or view with the
+``setSchemas`` option, you can verify that the command succeeded by
+running the ``sqlGetSchema`` command. The ``sqlGetSchema`` command
+``metadata.description`` field contains the following value:
+
+.. code-block:: json
+   :copyable: false
+
+   "set using sqlGenerateSchema with setSchemas = true"
+
+.. _sqlgenerateschema-errors:
+
+Errors
+~~~~~~
+
+The command returns the following error if it fails:
+
+.. code-block:: none
+   :copyable: false
+
+   "failedNamespaces": [
+     {
+       "namespace" : "<db.ns>",
+       "error" : "no documents found in sample namespace"
+     }
+   ]
+
+{+adf+} returns this error if the specified namespaces do
+not exist in the storage configuration or are empty. {+adf+} also returns this 
+error if it could not set the schema for a given namespace.
+
+.. _sqlgetschema-cmd:
+
+sqlGetSchema
+------------
+
+The ``sqlGetSchema`` command retrieves the schema stored for the
+specified collection or view.
+
+.. _sqlgetschema-syntax:
+
+Syntax
+~~~~~~
+
+.. code-block:: sh
+
+   db.getSiblingDB("<dbName>").runCommand({
+      sqlGetSchema: "<collection-name>|<view-name>"
+   })
+
+.. _sqlgetschema-params:
+
+Parameters
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 50 15
+
+   * - Parameter
+     - Type
+     - Description
+     - Necessity
+
+   * - ``<collection-name>``
+     - string
+     - Name of the collection for which to retrieve the schema. Provide
+       either the collection name or the view name.
+     - Conditional
+
+   * - ``<view-name>``
+     - string
+     - Name of the view for which to retrieve the schema. Provide
+       either the view name or the collection name.
+     - Conditional
+
+.. _sqlgetschema-output:
+
+Output
+~~~~~~
+
+The command returns the following output if the collection or view does
+not have a schema:
+
+.. code-block:: json
+
+   { "ok" : 1, "metadata" : { }, "schema" : { } }
+
+The command returns output similar to the following if the collection
+or view has a schema:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "ok": 1,
+     "metadata": {
+       "description": "<description>"
+     },
+     "schema": {
+       "version": NumberLong(1),
+       "jsonSchema": { ... }
+     }
+   }
+
+.. include:: /includes/data-federation/sql-cmd-output-metadata-field.rst
+
+The ``schema`` document contains the following fields:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 15 60
+
+   * - Parameter
+     - Type
+     - Description
+
+   * - ``schema.version``
+     - integer
+     - Format version of the schema. Value is always 1.
+
+   * - ``schema.jsonSchema``
+     - document
+     - |json| schema of the collection or view. The |json| schema can
+       contain the following :manual:`fields
+       </reference/operator/query/jsonSchema/#jsonschema-keywords>`:
+
+       - ``bsonType``
+       - ``properties``
+       - ``items``
+
+       To learn more about these fields, see :manual:`JSON Schema
+       Keywords
+       </reference/operator/query/jsonSchema/#jsonschema-keywords>`.
+
+.. _sqlsetschema-cmd:
+
+sqlSetSchema
+------------
+
+The ``sqlSetSchema`` command sets or removes the schema for a collection
+or view. The command applies the schema you provide directly. The
+command does not validate the provided schema against the data in the
+collection.
+
+.. _sqlsetschema-syntax:
+
+Syntax
+~~~~~~
+
+.. tabs::
+
+   .. tab:: Set Schema
+      :tabid: setschema
+
+      .. code-block:: sh
+
+         db.getSiblingDB("<dbName>").runCommand({
+            sqlSetSchema: "<collection-name>|<view-name>",
+            schema: {
+               "version": 1,
+               "jsonSchema": <jsonSchema>
+            }
+         })
+
+   .. tab:: Delete Schema
+      :tabid: deleteschema
+
+      .. code-block:: sh
+
+         db.getSiblingDB("<dbName>").runCommand({
+            sqlSetSchema: "<collection-name>|<view-name>",
+            schema: {}
+         })
+
+.. _sqlsetschema-params:
+
+Parameters
+~~~~~~~~~~
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 15 50 15
+
+   * - Parameter
+     - Type
+     - Description
+     - Necessity
+
+   * - ``<collection-name>``
+     - string
+     - Name of the collection for which to set the schema. Provide
+       either a collection name or a view name.
+     - Conditional
+
+   * - ``<view-name>``
+     - string
+     - Name of the view for which to set the schema. Provide either a
+       view name or a collection name.
+     - Conditional
+
+   * - ``schema``
+     - document
+     - The format version of the schema and either:
+
+       - the |json| schema for the collection or view
+       - an empty document to remove the schema for the collection or
+         view
+
+       You can provide a single document or an array of documents in
+       the ``items`` field. When you retrieve the schema, ``items``
+       shows the form that you used to set the schema.
+     - Required
+
+.. _sqlsetschema-output:
+
+Output
+~~~~~~
+
+The command returns the following output if it succeeds:
+
+.. code-block:: sh
+   :copyable: false
+
+   { "ok" : 1 }
+
+You can verify that the command succeeded by running the
+``sqlGetSchema`` command. The ``metadata.description`` field in the
+response contains the following value:
+
+.. code-block:: json
+   :copyable: false
+
+   "set using sqlSetSchema"
+
+.. _sql-schema-adf-examples:
+
+Examples
+--------
+
+.. include:: /includes/data-federation/command-example-collection.rst
+
+The following examples use the {+adf+} schema commands to
+generate, retrieve, set, and remove the schema for the preceding
+collection.
+
+.. _sqlgenerateschema-egs:
+
+Generate a Schema
+~~~~~~~~~~~~~~~~~
+
+The following command generates a schema for the collection named
+``sampleDB.egData`` in the storage configuration. The command uses two
+randomly selected documents from the collection to create the schema
+because ``sampleSize`` is ``2``. The command does not set the schema
+for the collection because the ``setSchemas`` option is not specified
+and defaults to ``false``.
+
+.. code-block:: sh
+
+   use admin
+   db.runCommand({
+      sqlGenerateSchema: 1,
+      sampleNamespaces: ["sampleDB.egData"],
+      sampleSize: 2
+   })
+
+The previous command returns the following output. To learn more about
+the fields in the output, see :ref:`sqlgenerateschema-output`.
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "ok" : 1,
+     "schemas" : [
+       {
+         "databaseName" : "sampleDB",
+         "namespaces" : [
+           {
+             "name" : "egData",
+             "schema" : {
+               "version" : NumberLong(1),
+               "jsonSchema" : {
+                 "bsonType" : [ "object" ],
+                 "properties" : {
+                   "a" : {
+                     "bsonType" : [ "object" ],
+                     "properties" : {
+                       "b" : {
+                         "bsonType" : [ "object" ],
+                         "properties" : {
+                           "c" : {
+                             "bsonType" : [ "array" ],
+                             "items" : {
+                               "bsonType" : [ "int" ]
+                             }
+                           }
+                         }
+                       }
+                     }
+                   },
+                   "s" : {
+                     "bsonType" : [ "int" ]
+                   }
+                 }
+               }
+             }
+           }
+         ]
+       }
+     ]
+   }
+
+Generate and Set a Schema
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following command generates a schema for the collection named
+``sampleDB.egData`` in the storage configuration. The command uses up
+to 1000 documents in the collection to create the schema because the
+``sampleSize`` option is not specified and defaults to ``1000``. The
+command sets the generated schema as the schema to use for the
+collection because ``setSchemas`` is ``true``.
+
+.. code-block:: sh
+
+   use admin
+   db.runCommand({
+      sqlGenerateSchema: 1,
+      sampleNamespaces: ["sampleDB.egData"],
+      setSchemas: true
+   })
+
+.. _sqlgetschema-egs:
+
+Retrieve a Schema
+~~~~~~~~~~~~~~~~~
+
+The following command retrieves the schema stored for the ``egData``
+collection:
+
+.. code-block:: sh
+
+   db.getSiblingDB("sampleDB").runCommand({
+      sqlGetSchema: "egData"
+   })
+
+The previous command returns the following output. To learn more about
+the fields in the output, see :ref:`sqlgetschema-output`.
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "ok" : 1,
+     "metadata" : {
+       "description" : "set using sqlGenerateSchema with setSchemas = true"
+     },
+     "schema" : {
+       "version" : NumberLong(1),
+       "jsonSchema" : {
+         "bsonType" : [ "object" ],
+         "properties" : {
+           "a" : {
+             "bsonType" : [ "object" ],
+             "properties" : {
+               "b" : {
+                 "bsonType" : [ "object", "array" ],
+                 "properties" : {
+                   "c" : {
+                     "bsonType" : [ "array", "string", "object", "null" ],
+                     "properties" : {
+                       "d" : {
+                         "bsonType" : [ "int" ]
+                       }
+                     },
+                     "items" : {
+                       "bsonType" : [ "int" ]
+                     }
+                   }
+                 },
+                 "items" : {
+                   "bsonType" : [ "int" ]
+                 }
+               }
+             }
+           },
+           "s" : {
+             "bsonType" : [ "int", "object" ]
+           }
+         }
+       }
+     }
+   }
+
+.. _sqlsetschema-egs:
+
+Set a Schema
+~~~~~~~~~~~~
+
+The following ``sqlSetSchema`` command sets the schema for the
+``egData`` collection:
+
+.. code-block:: sh
+
+   db.getSiblingDB("sampleDB").runCommand({
+      sqlSetSchema : "egData",
+      "schema" : {
+         "version" : NumberLong(1),
+         "jsonSchema" : {
+            "bsonType" : [ "object" ],
+            "properties" : {
+               "a" : {
+                  "bsonType" : [ "object" ],
+                  "properties" : {
+                     "b" : {
+                        "bsonType" : [ "object", "array" ],
+                        "properties" : {
+                           "c" : {
+                              "bsonType" : [ "array", "string", "object", "null" ],
+                              "properties" : {
+                                 "d" : {
+                                    "bsonType" : [ "int" ]
+                                 }
+                              },
+                              "items" : {
+                                 "bsonType" : [ "int" ]
+                              }
+                           }
+                        },
+                        "items" : {
+                           "bsonType" : [ "int" ]
+                        }
+                     }
+                  }
+               },
+               "s" : {
+                  "bsonType" : [ "int", "object" ]
+               }
+            }
+         }
+      }
+   })
+
+The previous command returns the following output:
+
+.. code-block:: json
+   :copyable: false
+
+   { "ok" : 1 }
+
+.. _sqlsetschema-delete-example:
+
+Remove a Schema
+~~~~~~~~~~~~~~~
+
+The following ``sqlSetSchema`` command removes the schema for the
+``egData`` collection by passing an empty ``schema`` document:
+
+.. code-block:: sh
+
+   db.getSiblingDB("sampleDB").runCommand({
+      sqlSetSchema: "egData",
+      schema: {}
+   })
+
+The previous command returns the following output:
+
+.. code-block:: json
+   :copyable: false
+
+   { "ok" : 1 }
+
+.. _sql-schema-adf-ui:
+
+Manage Schemas in the {+atlas-ui+}
+------------------------------
+
+You can perform the same schema actions in the {+atlas-ui+} from the
+:guilabel:`Manage SQL Schemas` page. The UI samples documents to
+generate schemas, the same as the ``sqlGenerateSchema`` command.
+
+Create a Schema
+~~~~~~~~~~~~~~~
+
+When you create a quick start connection, {+adf+}
+generates the schema automatically. To create a schema manually, use
+the following procedure.
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-data-federation.rst
+
+   .. step:: Navigate to the Manage SQL Schemas page.
+
+      From the :guilabel:`Federated Database Instances` section, click
+      the :icon-fa5:`ellipsis-h` icon to the right of the schema, and
+      then select :guilabel:`Manage SQL Schemas` from the dropdown.
+
+   .. step:: Create a schema.
+
+      On a collection that has an empty schema:
+
+      a. Click the :icon-fa4:`pencil`.
+      b. Click :guilabel:`Generate new schema from sample`, or provide
+         your own JSON.
+      c. Click :guilabel:`Save`.
+
+Regenerate a Schema
+~~~~~~~~~~~~~~~~~~~
+
+Regenerate a schema any time the shape of your underlying data
+changes, such as when you add fields or change field types, so that
+your SQL queries reflect the current data. To keep schemas current
+automatically instead, see :ref:`sql-schema-adf-schedule`.
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-data-federation.rst
+
+   .. step:: Navigate to the Manage SQL Schemas page.
+
+      From the :guilabel:`Federated Database Instances` section, click
+      the :icon-fa5:`ellipsis-h` icon to the right of the schema, and
+      then select :guilabel:`Manage SQL Schemas` from the dropdown.
+
+   .. step:: Regenerate the schema.
+
+      On a collection that already has a schema:
+
+      a. Click the :icon-fa4:`pencil`.
+      b. Click :guilabel:`Generate new schema from sample`.
+      c. Click :guilabel:`Save`.
+
+View a Schema
+~~~~~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-data-federation.rst
+
+   .. step:: Navigate to the Manage SQL Schemas page.
+
+      From the :guilabel:`Federated Database Instances` section, click
+      the :icon-fa5:`ellipsis-h` icon to the right of the schema, and
+      then select :guilabel:`Manage SQL Schemas` from the dropdown.
+
+      On this page, you can view all existing schemas. To view a
+      specific schema in JSON format, click the :icon-fa4:`pencil`.
+
+Edit a Schema
+~~~~~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-data-federation.rst
+
+   .. step:: Navigate to the Manage SQL Schemas page.
+
+      From the :guilabel:`Federated Database Instances` section, click
+      the :icon-fa5:`ellipsis-h` icon to the right of the schema, and
+      then select :guilabel:`Manage SQL Schemas` from the dropdown.
+
+   .. step:: Edit the schema.
+
+      a. Next to a schema, click the :icon-fa4:`pencil`.
+      b. Edit the JSON.
+      c. Click :guilabel:`Save`.
+
+Delete a Schema
+~~~~~~~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-data-federation.rst
+
+   .. step:: Navigate to the Manage SQL Schemas page.
+
+      From the :guilabel:`Federated Database Instances` section, click
+      the :icon-fa5:`ellipsis-h` icon to the right of the schema, and
+      then select :guilabel:`Manage SQL Schemas` from the dropdown.
+
+      On this page, you can view all existing schemas.
+
+   .. step:: Delete the schema.
+
+      a. For the schema that you want to delete, click the
+         :icon-mms:`ellipsis`.
+      b. Click :guilabel:`Clear...`.
+      c. Click :guilabel:`Clear schema` to confirm.
+
+Delete All Schemas
+~~~~~~~~~~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-data-federation.rst
+
+   .. step:: Navigate to the Manage SQL Schemas page.
+
+      From the :guilabel:`Federated Database Instances` section, click
+      the :icon-fa5:`ellipsis-h` icon to the right of the schema, and
+      then select :guilabel:`Manage SQL Schemas` from the dropdown.
+
+      On this page, you can view all existing schemas.
+
+   .. step:: Delete all schemas.
+
+      a. Click the :icon-fa5:`ellipsis-v` icon in the top-right corner.
+      b. Click :guilabel:`Clear all schemas`.
+      c. Click :guilabel:`Clear all schemas` again to confirm.
+
+.. _sql-schema-adf-schedule:
+
+Schedule Schema Updates
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Scheduled schema updates help you maintain schema accuracy over time.
+Scheduled schema updates sample each namespace and merge the new schema
+with the existing one. For example, scheduled schema updates allow
+{+adf+} to automatically pick up new fields added to
+collections.
+
+.. procedure::
+   :style: normal
+
+   .. include:: /includes/nav/steps-data-federation.rst
+
+   .. step:: Navigate to the Manage SQL Schemas page.
+
+      From the :guilabel:`Federated Database Instances` section, click
+      the :icon-fa5:`ellipsis-h` icon to the right of the schema, and
+      then select :guilabel:`Manage SQL Schemas` from the dropdown.
+
+   .. step:: Enable scheduled schema updates.
+
+      a. Click :guilabel:`Configure schema update schedule`.
+      b. Select a frequency.
+      c. Click :guilabel:`Save`.
+
+Learn More
+----------
+
+- :ref:`sql-schema-management`
+- :ref:`connect-with-sql-overview`
+- :ref:`query-with-sql`

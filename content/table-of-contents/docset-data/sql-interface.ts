@@ -45,6 +45,24 @@ const tocData: TocItem[] = [
         url: '/docs/sql-interface/query-with-asql-statements',
       },
       {
+        label: 'SQL Schema Management',
+        contentSite: 'sql-interface',
+        url: '/docs/sql-interface/schema-management',
+        collapsible: true,
+        items: [
+          {
+            label: 'MongoDB SQL Schema Builder CLI',
+            contentSite: 'sql-interface',
+            url: '/docs/sql-interface/schema/schema-builder-cli',
+          },
+          {
+            label: 'Atlas Data Federation Schema Commands',
+            contentSite: 'sql-interface',
+            url: '/docs/sql-interface/schema/adf',
+          },
+        ],
+      },
+      {
         label: 'SQL Tutorials',
         contentSite: 'sql-interface',
         url: '/docs/sql-interface/tutorials',
