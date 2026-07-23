@@ -33,7 +33,7 @@ drop_existing_collection(encrypted_client, encrypted_database_name)
 drop_existing_collection(encrypted_client, key_vault_database_name)
 
 # start-encrypted-fields-map
-encrypted_fields_map = {
+collection_opts = {
   encrypted_fields: {
     fields: [
       {
@@ -60,7 +60,7 @@ create_encrypted_collection(
   encrypted_database_name,
   encrypted_collection_name,
   kms_provider_name,
-  encrypted_fields_map,
+  collection_opts,
   customer_master_key_credentials
 )
 

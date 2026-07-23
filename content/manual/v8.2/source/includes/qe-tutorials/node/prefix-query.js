@@ -1,5 +1,5 @@
 // start-enable-prefix
-const encryptedFieldsMap = {
+const collectionOpts = {
   encryptedFields: {
     fields: [
       {

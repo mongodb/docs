@@ -67,7 +67,7 @@ public class QueryableEncryptionTutorial {
             encryptedClient.getDatabase(encryptedDatabaseName).getCollection(encryptedCollectionName).drop();
 
             // start-encrypted-fields-map
-            BsonDocument encryptedFieldsMap = new BsonDocument().append("fields",
+            BsonDocument encryptedFields = new BsonDocument().append("fields",
                     new BsonArray(Arrays.asList(
                             new BsonDocument()
                                     .append("keyId", new BsonNull())
@@ -93,7 +93,7 @@ public class QueryableEncryptionTutorial {
             // end-client-encryption
 
             // start-create-encrypted-collection
-            CreateCollectionOptions createCollectionOptions = new CreateCollectionOptions().encryptedFields(encryptedFieldsMap);
+            CreateCollectionOptions createCollectionOptions = new CreateCollectionOptions().encryptedFields(encryptedFields);
 
             CreateEncryptedCollectionParams encryptedCollectionParams = new CreateEncryptedCollectionParams(kmsProviderName);
             encryptedCollectionParams.masterKey(customerMasterKeyCredentials);
