@@ -673,11 +673,6 @@ const tocData: TocItem[] = [
             url: '/docs/:version/tutorial/sharding-segmenting-shards',
           },
           {
-            label: 'Distributed Local Writes for Insert-Only Workloads',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/sharding-high-availability-writes',
-          },
-          {
             label: 'Distribute Collections',
             contentSite: 'docs',
             url: '/docs/:version/tutorial/sharding-distribute-collections-with-zones',
