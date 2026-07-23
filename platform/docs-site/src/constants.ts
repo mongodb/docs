@@ -1,3 +1,5 @@
+import { parseBooleanEnv } from './utils/parse-boolean-env';
+
 export const REF_TARGETS = {
   'compass-index': 'https://www.mongodb.com/docs/compass/current/#compass-index',
   'document-dot-notation': 'https://www.mongodb.com/docs/manual/core/document/#document-dot-notation',
@@ -16,7 +18,7 @@ export const MARIAN_URL = process.env.NEXT_PUBLIC_MARIAN_URL || 'https://docs-se
 
 export const DATA_TOC_NODE = 'tocnode';
 
-export const DOTCOM_BASE_URL = process.env.ENV === 'dotcomstg'
+export const DOTCOM_BASE_URL = !parseBooleanEnv(process.env.NEXT_PUBLIC_IS_PROD)
   ? 'https://mongodbcom-cdn.staging.corp.mongodb.com'
   : 'https://www.mongodb.com';
 export const DOTCOM_BASE_PREFIX = `docs`;
