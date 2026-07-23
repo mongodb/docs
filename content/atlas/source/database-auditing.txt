@@ -194,6 +194,89 @@ Audit user creation and deletion events
    includes SCRAM user creation and modification operations that |service|
    performs directly in the ``admin`` database.
 
+.. _auditing-monitoring-agent-queries:
+
+Monitoring Agent Queries in Audit Logs
+---------------------------------------
+
+When you enable database auditing, you might observe queries from the
+``mms-monitoring-agent`` user in your audit logs. These queries are
+internal operations that |service| uses to collect metrics and
+performance data for monitoring features.
+
+The ``mms-monitoring-agent`` user has the :authrole:`clusterMonitor`
+and :authrole:`directShardOperations` roles and performs queries on
+behalf of the following |service| monitoring features:
+
+- :ref:`Query Insights <query-shape-insights>`: Collects query
+  performance statistics and shapes to help you identify slow queries.
+
+- :ref:`Namespace Insights <namespace-insights>`: Gathers
+  collection-level latency statistics using
+  :manual:`$collStats </reference/operator/aggregation/collStats/>`
+  aggregation pipelines with ``latencyStats`` histograms.
+
+- Other performance metrics: Retrieves database and cluster statistics
+  for monitoring dashboards.
+
+Example Audit Log Entry
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The following example shows an audit log entry for a Namespace Insights
+query. This query uses the :pipeline:`$collStats` stage to collect
+latency statistics for a collection:
+
+.. code-block:: json
+   :copyable: false
+
+   {
+     "atype": "authCheck",
+     "ts": {
+       "$date": "2025-11-20T13:44:20.201+00:00"
+     },
+     "users": [
+       {
+         "user": "mms-monitoring-agent",
+         "db": "admin"
+       }
+     ],
+     "roles": [
+       {
+         "role": "clusterMonitor",
+         "db": "admin"
+       },
+       {
+         "role": "directShardOperations",
+         "db": "admin"
+       }
+     ],
+     "param": {
+       "command": "aggregate",
+       "ns": "test_db.people_1234",
+       "args": {
+         "aggregate": "people_1234",
+         "pipeline": [
+           {
+             "$collStats": {
+               "latencyStats": {
+                 "histograms": true
+               }
+             }
+           }
+         ],
+         "$readPreference": {
+           "mode": "nearest"
+         }
+       }
+     },
+     "result": 0
+   }
+
+These queries are expected behavior and don't require action. If you
+want to exclude monitoring agent queries from your audit logs, you can
+create a custom audit filter. To learn more, see
+:ref:`auditing-custom-filter`.
+
 .. _auditing-atlas-cli:
 
 Manage Database Auditing with the Atlas CLI
