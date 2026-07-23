@@ -211,7 +211,7 @@ const tocData: TocItem[] = [
         url: '/docs/:version/administration/change-streams-production-recommendations',
       },
       {
-        label: 'Change Events',
+        label: 'Change Stream Events',
         contentSite: 'docs',
         url: '/docs/:version/reference/change-events',
         collapsible: true,
