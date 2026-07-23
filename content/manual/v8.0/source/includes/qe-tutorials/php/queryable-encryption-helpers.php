@@ -216,7 +216,7 @@ function createEncryptedCollection(
     string $encryptedDatabase,
     string $encryptedCollectionName,
     string $kmsProviderName,
-    array $encryptedFieldsMap,
+    array $collectionOpts,
     ?array $customerMasterKeyCredentials,
 ): void
 {
@@ -227,7 +227,7 @@ function createEncryptedCollection(
             $clientEncryption,
             $kmsProviderName,
             $customerMasterKeyCredentials,
-            $encryptedFieldsMap,
+            $collectionOpts,
         );
         // end-create-encrypted-collection
     } catch (Exception $e) {

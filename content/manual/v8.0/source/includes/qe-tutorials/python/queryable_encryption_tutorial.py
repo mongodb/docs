@@ -38,7 +38,7 @@ encrypted_client[key_vault_database_name][key_vault_collection_name].drop()
 encrypted_client[encrypted_database_name][encrypted_collection_name].drop()
 
 # start-encrypted-fields-map
-encrypted_fields_map = {
+encrypted_fields = {
     "fields": [
         {
             "path": "patientRecord.ssn",
@@ -65,7 +65,7 @@ try:
     client_encryption.create_encrypted_collection(
         encrypted_client[encrypted_database_name],
         encrypted_collection_name,
-        encrypted_fields_map,
+        encrypted_fields,
         kms_provider_name,
         customer_master_key_credentials,
     )

@@ -1,5 +1,5 @@
 # start-enable-range
-encrypted_fields_map = {
+encrypted_fields = {
     "fields": [
         {
             "path": "patientRecord.ssn",
