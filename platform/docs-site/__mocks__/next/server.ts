@@ -4,6 +4,8 @@
 
 export class NextResponse {
   readonly status: number;
+  // Set by NextResponse.rewrite() so tests can assert the rewrite target.
+  rewriteUrl?: unknown;
   private _body: string | null;
   private _headers: Map<string, string>;
 
@@ -24,6 +26,19 @@ export class NextResponse {
 
   get headers() {
     const map = this._headers;
-    return { get: (key: string) => map.get(key.toLowerCase()) ?? null };
+    return {
+      get: (key: string) => map.get(key.toLowerCase()) ?? null,
+      set: (key: string, value: string) => map.set(key.toLowerCase(), value),
+    };
+  }
+
+  static next(): NextResponse {
+    return new NextResponse(null, { status: 200 });
+  }
+
+  static rewrite(url: unknown): NextResponse {
+    const res = new NextResponse(null, { status: 200 });
+    res.rewriteUrl = url;
+    return res;
   }
 }

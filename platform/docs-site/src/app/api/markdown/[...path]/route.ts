@@ -32,9 +32,11 @@ export async function generateStaticParams() {
   return generateDocsStaticPaths();
 }
 
-export async function OPTIONS() {
-  return withCORS(new NextResponse(null, { status: 204 }));
-}
+// NOTE: Do not export an OPTIONS (or any non-GET) handler here. Exporting
+// another HTTP method opts the whole route out of static generation, so GET is
+// no longer prerendered at build time and instead runs per request — where the
+// on-disk content-mdx directory is not available, making every export 404.
+// CORS preflight is handled in middleware (see src/middleware.ts) instead.
 
 export async function GET(_request: Request, { params }: RouteContext) {
   try {
