@@ -25,7 +25,7 @@ async function runExample() {
   );
 
   // start-encrypted-fields-map
-  const encryptedFieldsMap = {
+  const collectionOpts = {
     encryptedFields: {
       fields: [
         {
@@ -60,7 +60,7 @@ async function runExample() {
       encryptedCollectionName,
       {
         provider: kmsProviderName,
-        createCollectionOptions: encryptedFieldsMap,
+        createCollectionOptions: collectionOpts,
         masterKey: customerMasterKeyCredentials,
       }
     );

@@ -1,5 +1,5 @@
 # start-enable-prefix
-encrypted_fields_map = {
+encrypted_fields = {
     "fields": [
         {
             "path": "patientRecord.ssn",

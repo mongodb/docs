@@ -1,5 +1,5 @@
 // start-enable-substring
-const encryptedFieldsMap = {
+const collectionOpts = {
   encryptedFields: {
     fields: [
       {
