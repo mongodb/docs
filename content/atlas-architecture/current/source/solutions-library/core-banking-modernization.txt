@@ -1,0 +1,591 @@
+:orphan:
+
+.. _arch-center-is-core-banking-modernization:
+
+=================================================
+Core Banking Modernization with MongoDB and BIAN
+=================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: modernization, Atlas, BIAN, core banking
+   :description: Learn how MongoDB and BIAN help you modernize core banking with clear domain boundaries, flexible data models, ACID transactions, and event-driven accounting.
+
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+**Use cases:** `Mainframe Modernization
+<https://www.mongodb.com/solutions/use-cases/mainframe-modernization>`__, `Operational Data Layer <https://www.mongodb.com/resources/solutions/use-cases/implementing-an-operational-data-layer>`__
+
+**Industries:** `Financial Services
+<https://www.mongodb.com/industries/financial-services>`__
+
+**MongoDB Products:** `MongoDB Atlas <http://mongodb.com/atlas>`__, `MongoDB Aggregation Pipeline <https://www.mongodb.com/docs/manual/core/aggregation-pipeline/>`__, `Change Streams <https://www.mongodb.com/docs/manual/changeStreams/>`__
+
+
+Solution Overview
+-----------------
+
+Core banking is the engine that runs the bank. It manages customers,
+accounts, balances, payments, and financial events, and every downstream
+channel, product, and reporting system depends on it.
+
+That centrality is what makes the core so hard to modernize. Many banks
+still rely on fragmented data, fixed schemas, batch windows, and
+point-to-point integrations. As new products, channels, and regulatory
+requirements emerge, complexity usually grows.
+
+The solution? Modernize core banking with the Banking Industry
+Architecture Network (BIAN) and MongoDB.
+
+**BIAN** defines the business architecture. **MongoDB** implements it as a
+composable, event-driven, domain-owned data platform.
+
+**BIAN: The target architecture**
+
+The Banking Industry Architecture Network (BIAN) defines the BIAN
+framework— a banking industry standard that models capabilities as
+service domains. 
+
+Defining banking operations as service domains gives each team a well-scoped
+set of responsibilities to own, which produces:
+
+- **Clearer bounded contexts:** each service domain has a defined scope
+  and purpose.
+
+- **Clearer data ownership:** one domain owns each business object and
+  its data.
+
+- **Clearer API boundaries:** domains interact through standard
+  contracts rather than shared database access.
+
+- **Less semantic drift:** a shared vocabulary keeps terms consistent
+  across teams and systems.
+
+**MongoDB: The implementation data platform**
+
+MongoDB implements the BIAN service-domain model in practice. Each
+banking need maps to a native MongoDB capability:
+
+- The document model fits hierarchical banking data, such as customer,
+  account, and nested KYC records.
+
+- Multi-document ACID transactions execute synchronous money movement in
+  a single commit.
+
+- Change streams propagate financial events in real time, without
+  polling.
+
+- Schema validators and aggregation pipelines enforce accounting rules
+  close to the data.
+
+This solution shows how to modernize core banking incrementally without
+disrupting delivery pipelines. 
+
+
+Reference Architectures
+-----------------------
+
+The solution is divided into three FastAPI backend services. Each service owns a distinct responsibility in the end-to-end money flow.
+
+- **Accounts service** owns customer and account state. It exposes
+  BIAN-aligned operations for party reference data and current-account
+  capabilities.
+
+- **Transactions service** owns payment initiation and payment
+  execution. It writes the operational payment outcome synchronously as
+  one MongoDB ACID transaction.
+
+- **Ledger service** owns the accounting pipeline. It reacts
+  asynchronously to executed transactions and derives the finance-side
+  records needed for sub-ledger and journal posting.
+
+This separation is central to the architecture. Payment execution, account state, and accounting truth are related, but they are not the same concern. The design keeps them connected through data lineage while allowing each service to evolve within its own boundary.
+
+.. figure:: /includes/images/industry-solutions/core-bkn-architecture.svg
+   :alt: Core Banking with BIAN and MongoDB. 
+   :lightbox:
+
+   Figure 1. High-level architecture: Core Banking with BIAN and MongoDB. 
+
+
+1. Channels enter through the application and service boundary.
+
+   Users interact with the solution through the web UI. The frontend
+   acts as the channel layer and routes requests to the relevant backend
+   service through path-based routing. The services expose
+   BIAN-style endpoints, so the interface layer stays aligned to
+   business capabilities instead of leaking database structure.
+
+#. The accounts service owns customer and account truth.
+
+   The accounts service reads and writes the ``customers`` and
+   ``accounts`` collections. It acts as the source of truth for customer
+   master data, KYC-related account context, balances, and account
+   lifecycle operations. This is the synchronous read path for account
+   and balance retrieval.
+
+#. The transactions service executes the payment synchronously.
+
+   When a payment is initiated, the transactions service processes it as
+   one MongoDB multi-document ACID transaction. In the solution, that
+   unit of work debits the source account balance, credits the
+   destination account balance, inserts the transaction record, updates
+   the payment status, and writes related notifications or status
+   changes in one commit.
+   
+   Operational account balances update immediately in the transactions
+   flow, while the ledger flow updates the general ledger
+   asynchronously. The general ledger is posted separately, in batch, at
+
+#. MongoDB becomes the event source for accounting propagation.
+
+   The ledger path does not poll for changes and does not rely on an
+   external message bus in the solution. Instead, the ledger service
+   watches the ``transactions`` collection through MongoDB change
+   streams. Every newly inserted transaction becomes the trigger for
+   asynchronous accounting processing.
+
+   This is the architectural handoff between operational execution and
+   finance processing.
+
+   .. figure:: /includes/images/industry-solutions/core-bkn-ledger.svg
+      :alt: Ledger Service
+      :lightbox: 
+   
+      Figure 2. The Ledger Service. 
+
+#. Stage 1 of the Ledger Service writes the accounting boundary object.
+
+   The first ledger worker consumes the transaction change stream and
+   writes one ``ledgerEvent`` document for each payment. That document
+   carries the accounting interpretation of the business event,
+   including the debit and credit legs and the posting context required
+   downstream. Before the event is written, the worker verifies that the
+   debit and credit legs are balanced.
+
+   This control matters because ``ledgerEvents`` is the first immutable
+   accounting collection in the flow. Data written here must be accurate
+   before it propagates downstream into ``subLedgerEntries`` and
+   ``journalEntries``.
+
+   Architecturally, ``ledgerEvents`` is the boundary collection between
+   the payment domain and the finance domain. It decouples payment speed
+   from accounting speed while preserving lineage back to the
+   originating payment.
+
+#. Stage 2 of the Ledger Service projects entity-level accounting entries.
+
+   The second ledger worker watches ``ledgerEvents`` and projects each
+   event into two ``subLedgerEntries``: one debit and one credit. It
+   writes those entries together in an ACID transaction and revalidates
+   that the event balances and that both GL accounts are valid posting
+   leaves in the chart of accounts.
+
+   This stage creates the entity-level accounting truth used for
+   customer statement and intraday position views.
+
+#. Stage 3 of the Ledger Service posts the general ledger.
+
+   A batch worker periodically reconciles the pending sub-ledger entries
+   and rolls them into balanced ``journalEntries``. If reconciliation
+   fails, the cycle skips posting. If it succeeds, the worker writes the
+   journal entries, stamps the resulting journal identifier back onto
+   the source records, and flips their posting status.
+
+   Even for real-time payments, the general ledger is posted in batch.
+   The sub-ledger, not the GL, is the accurate source for intraday
+   balances. The schema supports a REALTIME posting mode for
+   institutions that choose to post per-transaction, but this solution
+   uses batch GL posting, consistent with standard industry practice.
+
+#. The platform preserves traceability end to end, bi-directionally,
+   making the design auditable.
+
+   The data flow is fully traceable across the business and accounting
+   layers, in both directions. A payment moves from payments to
+   transactions, then to ``ledgerEvents``, then to ``subLedgerEntries``,
+   and finally to ``journalEntries``. Every journal entry can be traced
+   back through that same chain to the originating payment. That
+   bidirectional lineage supports the pipeline trace UI, auditability,
+   and architectural clarity for downstream consumers.
+
+
+Data Model Approach
+-------------------
+
+The data model follows the same architectural separation as the
+services. Each collection exists because it serves a distinct business
+or accounting purpose in the flow.
+
+**Operational Collections**
+
+- ``customers`` stores the customer master record and nested KYC
+  context.
+
+- ``accounts`` stores the current-account state and acts as the source
+  of truth for balances.
+
+- ``payments`` stores payment instructions and lifecycle state such as
+  PENDING and SETTLED.
+
+- ``transactions`` stores payment facts and becomes the event source for
+  the ledger pipeline.
+
+These collections support the operational side of the architecture. They
+serve customer and account workflows directly, and they are updated
+synchronously by the accounts and transactions services.
+
+**Accounting Collections**
+
+- ``glAccounts`` stores the chart of accounts and validates what can be
+  posted.
+
+- ``ledgerEvents`` stores one accounting boundary record per
+  transaction.
+
+- ``subLedgerEntries`` stores the entity-level debit and credit
+  postings.
+
+- ``journalEntries`` stores the balanced general ledger entries.
+
+Data Flow
+~~~~~~~~~
+
+The flow is deliberate, the following steps summarize how the collections participate in the process flow:
+
+1. A payment instruction lands in payments.
+
+#. Synchronous payment execution writes the resulting executed
+   transaction fact to ``transactions`` and updates operational account
+   balances.
+
+#. A change stream on transactions triggers the ledger pipeline.
+
+#. The ledger ingest stage writes one ``ledgerEvent`` per transaction.
+
+   A ledger event holds both legs and the posting mode that decides its downstream path.
+   
+   **Sample document: ledger event**
+   
+   .. code-block:: JSON
+   
+      {
+        "eventId": "LE-20260415-000042",
+        "idempotencyKey": "PAY-20260415-0042",
+        "groupId": "GRP-20260415-000042",
+        "eventType": "PAYMENT_PRINCIPAL",
+        "debitLeg": {
+          "glAccountCode": "1001",
+          "controlAccountCode": "1000",
+          "amount": {
+            "$numberLong": "100000"
+          },
+          "currency": "USD",
+          "entityReference": {
+            "entityType": "ACCOUNT",
+            "entityId": "ACC-001234"
+          }
+        },
+        "creditLeg": {
+          "glAccountCode": "2100",
+          "controlAccountCode": "2000",
+          "amount": {
+            "$numberLong": "100000"
+          },
+          "currency": "USD",
+          "entityReference": {
+            "entityType": "ACCOUNT",
+            "entityId": "ACC-001235"
+          }
+        },
+        "postingMode": {
+          "type": "BATCH"
+        },
+        "postingStatus": "PENDING",
+        "sourceReference": {
+          "sourceCollection": "transactions",
+          "sourceId": "PAY-20260415-0042",
+          "sourceSystem": "LEDGER_PIPELINE"
+        }
+      }
+   
+
+#. The projection stage writes two ``subLedgerEntries`` per event.
+
+   The projection worker fans one ``ledgerEvent`` into two
+   ``subLedgerEntries``, one per leg, written together in an ACID
+   transaction. Each stands alone as a complete posted leg;
+   ``journalEntryId`` carries the ``""`` sentinel until ``gl_batch`` stamps
+   the real ID.
+   
+   **Sample document: sub-ledger entry**
+   
+   .. code-block:: JSON
+      
+      {
+        "subLedgerId": "SLE-20260415-000042-D",
+        "idempotencyKey": "LE-20260415-000042:DEBIT",
+        "controlAccountCode": "1000",
+        "side": "DEBIT",
+        "amount": {
+          "$numberLong": "100000"
+        },
+        "currency": "USD",
+        "periodCode": "2026-04",
+        "status": "POSTED",
+        "journalEntryId": "",
+        "entityReference": {
+          "entityType": "ACCOUNT",
+          "entityId": "ACC-001234"
+        },
+        "sourceReference": {
+          "sourceCollection": "ledgerEvents",
+          "sourceId": "LE-20260415-000042",
+          "sourceSystem": "LEDGER_PIPELINE"
+        }
+      }
+   
+   Its balancing credit leg is a second document—same ``sourceId``,
+   opposite ``side`` and ``controlAccountCode``, ``entityId``:
+   ``ACC-001235``. The partial index on ``journalEntryId`` (``$gt: ""``)
+   excludes both until the batch (or, for ``REALTIME`` events, the inline
+   post) fills in the real journal ID.
+
+
+#. The batch or real-time posting path writes balanced
+   ``journalEntries``.
+
+
+   The batch aggregates sub-ledger entries into one journal whose balanced
+   lines live in an embedded array.
+   
+   **Example: journal entry**
+   
+   .. code-block:: JSON
+   
+      {
+        "journalId": "JNL-20260623-EOD-1001",
+        "idempotencyKey": "BATCH-20260623-EOD:1000:2026-06",
+        "periodCode": "2026-06",
+        "journalType": "LEDGER_EVENT_POSTING",
+        "status": "POSTED",
+        "totalAmount": {
+          "$numberLong": "1000000"
+        },
+        "entries": [
+          {
+            "lineNumber": 1,
+            "accountCode": "1000",
+            "side": "DEBIT",
+            "amount": {
+              "$numberLong": "1000000"
+            },
+            "currency": "USD"
+          },
+          {
+            "lineNumber": 2,
+            "accountCode": "2000",
+            "side": "CREDIT",
+            "amount": {
+              "$numberLong": "1000000"
+            },
+            "currency": "USD"
+          }
+        ]
+      }
+   
+#. Validators enforce the accounting invariants
+   
+   Three collection validators push the accounting rules into the database,
+   so a write that skips the service layer still cannot corrupt the books.
+   The ``ledgerEvents`` validator requires the business fields and locks
+   ``postingStatus`` to a known ``enum``.
+   
+   .. code-block:: python
+   
+      _LEDGER_EVENTS_VALIDATOR = {"$jsonSchema": {
+          "bsonType": "object",
+          "required": ["eventId", "idempotencyKey", "groupId", "occurredAt", "valueDate", "eventType", "debitLeg", "creditLeg", "postingStatus", "sourceReference", "mappingVersion"],
+          "properties": {
+              "postingStatus": {"bsonType": "string", "enum":["PENDING", "POSTED", "FAILED"]},
+              "debitLeg": _LEG_SCHEMA, "creditLeg": _LEG_SCHEMA,
+          },
+      }}
+   
+   The ``subLedgerEntries`` validator locks ``side`` to
+   ``DEBIT`` or ``CREDIT`` and ``status`` to ``POSTED`` or ``FAILED``, and
+   requires ``journalEntryId`` on every document — the ``""`` sentinel
+   satisfies this until ``gl_batch`` stamps the real ID, so an entry can
+   never sit outside that lifecycle.
+   
+   The ``journalEntries`` validator enforces the Pacioli balance invariant
+   directly: the sum of debit lines must equal the sum of credit lines,
+   checked with ``$expr`` on every write.
+   
+   .. code-block:: python
+   
+      _JOURNAL_BALANCE_VALIDATOR = {"$expr": {"$eq": [
+          {"$sum": {"$map": {"input": {"$filter": {"input": "$entries", "as": "e",
+              "cond": {"$eq": ["$$e.side", "DEBIT"]}}}, "as": "e", "in": "$$e.amount"}}},
+          {"$sum": {"$map": {"input": {"$filter": {"input": "$entries", "as": "e",
+              "cond": {"$eq": ["$$e.side", "CREDIT"]}}}, "as": "e", "in": "$$e.amount"}}},
+      ]}}
+   
+   The accounting collections support the finance side of the architecture. They are
+   derived from operational events, not written directly by the accounts or
+   transactions services.
+
+
+That chain gives you both operational speed and accounting control.
+Payment execution does not wait for full GL posting, but every payment
+still resolves into an auditable accounting trail.
+
+
+**Why is MongoDB a natural fit?**
+
+Customer and account data are hierarchical and evolve over time. Payment
+records carry variable metadata by rail and channel. Ledger entries
+group related accounting facts into single business documents. 
+
+In MongoDB you can store account state, lifecycle details, KYC context,
+payment facts, and embedded posting lines in shapes that match how
+services produce and consume data. You avoid the repeated flattening and
+reassembly that a relational model would require.
+
+
+Build the Solution
+------------------
+
+This section shows you how to implement BIAN using MongoDB, then how to
+replicate the Leafy Bank BIAN solution. For the full implementation
+guide, clone the repository and follow the setup instructions in the
+`GitHub README
+<https://github.com/mongodb-industry-solutions/leafy-bank-bian>`__.
+
+Implement BIAN with MongoDB
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Define the target implementation scope. 
+
+      Start with a small set of connected service domains that support one
+      business journey end to end. A typical bank's initial modernization
+      scope may also include onboarding and full current-account servicing. In
+      this solution, the scope is practical and narrow, and deliberately
+      reduced to:
+      
+      - Party and customer reference data 
+      - Current-account state and balances
+      - Payment initiation and execution 
+      - Financial accounting 
+      
+      This matters because the BIAN framework is most useful when it defines ownership
+      boundaries before implementation begins.
+
+   .. step:: Separate business execution from accounting execution.
+
+      Keep payment execution and finance posting as distinct concerns. Process
+      the payment as an operational event first, then derive the accounting
+      records asynchronously from the executed transaction stream.
+      
+      This lets payments and accounting each run at their own speed, while
+      keeping the accounting flow fully auditable in both directions, from
+      payment to journal entry and back.
+      
+
+   .. step:: Map service domains to owned collections.
+
+      Let each service own its collections and expose them through APIs,
+      not shared database access.
+      
+      - **Accounts** owns customer and account state.
+      
+      - **Transactions** owns payment initiation and execution records.
+      
+      - **Ledger** owns finance-side records such as ledger events, sub-ledger entries, and journal entries.
+      
+      Use references across domains where needed, but do not share write
+      ownership.
+
+
+   .. step:: Keep BIAN semantics at the contract layer.
+
+      Expose BIAN-aligned API names and service boundaries externally.
+      Internally, let developers work with plain, familiar field names:
+      the ``bianMappings`` registry holds the single source of truth
+      linking each internal field to its BIAN canonical name. This gives
+      you standards alignment without forcing developers to work with an
+      overly verbose persistence model.
+
+   .. step:: Enforce accounting rules in the data layer.
+
+      Do not leave financial integrity checks only to service code. Use
+      MongoDB transactions, validators, and indexes to enforce idempotency,
+      balanced postings, and journal immutability close to the data.
+      
+      This BIAN + MongoDB pattern is the context you need before you replicate
+      the repository itself.
+
+
+Replicate the Leafy Bank BIAN solution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Clone the repository and follow the setup instructions.
+   
+      Go to the `GitHub repository
+      <https://github.com/mongodb-industry-solutions/leafy-bank-bian>`__ and follow the instructions in the README to:
+
+      - Prepare the prerequisites
+      - Clone the repository and install dependencies
+      - Provision the MongoDB database
+      - Configure the backend services
+      - Configure the frontend proxy
+      - Create ledger indexes and validators
+      - Seed the sample data
+      - Start the services
+      - Validate the end-to-end flow
+      - Run the containerized path (if needed)
+
+   .. step:: Extend the reference implementation.
+   
+      After the base flow works, extend the solution the same way the
+      architecture is designed to evolve: domain by domain. Add new
+      BIAN-aligned services, collections, and APIs without breaking the
+      existing payment and ledger path.
+
+Key Learnings
+-------------
+In this solution library you learned how to:
+
+- **Use the BIAN framework to define the target architecture**: Service domains create clearer business boundaries, data ownership, and API contracts.
+
+- **Keep payment execution and ledger posting separate**: The architecture updates operational state synchronously and accounting state asynchronously.
+
+- **Use MongoDB across both flows**: ACID transactions, change streams, validators, and aggregation pipelines support the full pattern in one platform.
+
+- **Treat ledgerEvents as a control boundary**: Validate balanced accounting legs before data enters the immutable finance flow.
+
+- **Model collections around the process flow**: Each collection should support a distinct stage and preserve lineage across the architecture.
+
+- **Modernize incrementally**: Start with high-value domains and extend the platform without a full core replacement.
+
+
+Authors
+-------
+
+- Doina Brestoiu
+- Kiran Tulsulkar
+- Andrea Alaman Calderon
