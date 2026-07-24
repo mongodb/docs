@@ -27,6 +27,7 @@ import {
 } from "../../nextjs-extension/src/blobUploads/buildPrefixList";
 import { getDirNameToPrefix } from "../../nextjs-extension/src/blobUploads/mapFilesToUrlPaths";
 import { resolvePathsToBuild } from "../../nextjs-extension/src/util/resolvePathsToBuild";
+import { handleSearchManifests } from "../../nextjs-extension/src/searchManifests/index";
 import { handleOfflineDownloads } from "./offline-docs/index";
 
 import path from "node:path";
@@ -123,7 +124,7 @@ extension.addBuildEventHandler(
 				prId: configEnvironment.REVIEW_ID
 					? Number.parseInt(configEnvironment.REVIEW_ID, 10)
 					: undefined,
-				shouldRunPersistence: false,
+				shouldRunPersistence: ENVS_TO_RUN.includes(configEnvironment.ENV ?? ""),
 			});
 
 			const { mdxOutputDir: mdxOutputPath } = getRepoPaths(undefined, APP_DIR);
@@ -210,15 +211,15 @@ extension.addBuildEventHandler(
 			console.log(
 				`Generating search manifest for version ${JSON.stringify(
 					allContentData.pathsToBuild,
-				)} (from nextjs Netlify extension)`,
+				)} (from nextjs SSG Netlify extension)`,
 			);
 
-			// await handleSearchManifests({
-			// 	allContentData,
-			// 	run,
-			// 	dbEnvVars,
-			// 	configEnvironment,
-			// });
+			await handleSearchManifests({
+				allContentData,
+				run: utils.run,
+				dbEnvVars,
+				configEnvironment,
+			});
 		} else {
 			console.log(
 				"Skipping search manifest and offline docs generation for env ",
