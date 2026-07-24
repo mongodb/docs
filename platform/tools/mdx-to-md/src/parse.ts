@@ -9,6 +9,8 @@ import { resolveReferences } from "./plugins/resolve-references.js";
 import { transformImage } from "./plugins/transform-image.js";
 import { transformHeading } from "./plugins/transform-heading.js";
 import { transformTabs } from "./plugins/transform-tabs.js";
+import { collectTabInfo } from "./plugins/collect-tab-info.js";
+import type { TabInfoSink } from "./plugins/collect-tab-info.js";
 import { transformProcedure } from "./plugins/transform-procedure.js";
 import { transformAbbr } from "./plugins/transform-abbr.js";
 import { transformAdmonitions } from "./plugins/transform-admonitions.js";
@@ -32,6 +34,13 @@ interface MdxToMarkdownOptions extends ResolveReferencesOptions {
    * to emit every tab (the default behavior).
    */
   tabFilters?: string[];
+  /** When true, keep only one tab per <Tabs> (the default, else the first). */
+  defaultTabsOnly?: boolean;
+  /** Map of `tabset` name -> default `tabid`, used only in defaults mode. */
+  tabsetDefaults?: Record<string, string>;
+  /** Route-supplied preamble; when set and the page has tabs, the output is
+   *  prefixed with an HTML comment listing available tabs and this preamble. */
+  tabInfoComment?: string;
 }
 
 export async function mdxToMarkdown(
@@ -40,9 +49,11 @@ export async function mdxToMarkdown(
   sourceFilePath?: string,
   options: MdxToMarkdownOptions = {}
 ) {
-  const { tabFilters, ...referenceOptions } = options;
+  const { tabFilters, defaultTabsOnly, tabsetDefaults, tabInfoComment, ...referenceOptions } = options;
   // Pre-process table rows before parsing
   source = preprocessTableRows()(source);
+
+  const tabInfo: TabInfoSink = { groups: [] };
 
   const processor = remark()
     .use(remarkFrontmatter, ["yaml"])
@@ -62,7 +73,8 @@ export async function mdxToMarkdown(
   processor
     .use(transformImage)
     .use(transformHeading)
-    .use(transformTabs({ tabFilters }))
+    .use(collectTabInfo(tabInfo))
+    .use(transformTabs({ tabFilters, defaultTabsOnly, tabsetDefaults }))
     .use(transformProcedure)
     .use(transformAbbr)
     .use(transformAdmonitions)
@@ -115,6 +127,14 @@ export async function mdxToMarkdown(
     const normalized = Array(columnCount).fill(" --- ");
     return "|" + normalized.join("|") + "|";
   });
+
+  if (tabInfoComment && tabInfo.groups.length > 0) {
+    const list = tabInfo.groups
+      .map((g) => `  ${g.name}: ${g.ids.join(", ")}`)
+      .join("\n");
+    const comment = `<!--\n${tabInfoComment}\n\nAvailable tabs:\n${list}\n-->`;
+    result = `${comment}\n\n${result}`;
+  }
 
   return result;
 }

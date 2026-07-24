@@ -172,6 +172,126 @@ describe('Tabs Component', () => {
   });
 });
 
+describe('Tabs defaults mode', () => {
+  const driversTabs = `<Tabs tabset="drivers">
+  <Tab tabid="shell" name="MongoDB Shell">
+
+Shell content here.
+
+  </Tab>
+  <Tab tabid="nodejs" name="Node.js">
+
+Node content here.
+
+  </Tab>
+</Tabs>`;
+
+  const anonTabs = `<Tabs>
+  <Tab tabid="linux" name="Linux">
+
+Linux content here.
+
+  </Tab>
+  <Tab tabid="windows" name="Windows">
+
+Windows content here.
+
+  </Tab>
+</Tabs>`;
+
+  it('keeps only the mapped default tab for a selector-driven tabset', async () => {
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    const result = await mdxToMarkdown(driversTabs, undefined, undefined, {
+      defaultTabsOnly: true,
+      tabsetDefaults: { drivers: 'nodejs' },
+    });
+    expect(result).toContain('Node content here.');
+    expect(result).not.toContain('Shell content here.');
+  });
+
+  it('keeps the first tab for an anonymous tabset with no mapped default', async () => {
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    const result = await mdxToMarkdown(anonTabs, undefined, undefined, {
+      defaultTabsOnly: true,
+      tabsetDefaults: {},
+    });
+    expect(result).toContain('Linux content here.');
+    expect(result).not.toContain('Windows content here.');
+  });
+
+  it('emits every tab when defaultTabsOnly is not set', async () => {
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    const result = await mdxToMarkdown(driversTabs);
+    expect(result).toContain('Shell content here.');
+    expect(result).toContain('Node content here.');
+  });
+});
+
+describe('Tab info comment', () => {
+  const driversTabs = `<Tabs tabset="drivers">
+  <Tab tabid="shell" name="MongoDB Shell">
+
+Shell content.
+
+  </Tab>
+  <Tab tabid="nodejs" name="Node.js">
+
+Node content.
+
+  </Tab>
+</Tabs>`;
+
+  const noTabs = `# Just a heading\n\nSome prose.\n`;
+  const preamble = 'Tab options. Use ?tabs=<id> or ?allTabs=true.';
+
+  it('prepends an HTML comment listing available tabs grouped by tabset', async () => {
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    const result = await mdxToMarkdown(driversTabs, undefined, undefined, {
+      defaultTabsOnly: true,
+      tabsetDefaults: { drivers: 'nodejs' },
+      tabInfoComment: preamble,
+    });
+    expect(result.startsWith('<!--')).toBe(true);
+    expect(result).toContain('Available tabs:');
+    expect(result).toContain('drivers: shell, nodejs');
+    expect(result).toContain(preamble);
+    // Comment lists ALL tabs even though only the default survives in the body.
+    expect(result).toContain('Node content.');
+    expect(result).not.toContain('Shell content.');
+  });
+
+  it('emits no comment when tabInfoComment is not provided', async () => {
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    const result = await mdxToMarkdown(driversTabs);
+    expect(result.startsWith('<!--')).toBe(false);
+  });
+
+  it('emits no comment when the page has no tabs', async () => {
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    const result = await mdxToMarkdown(noTabs, undefined, undefined, { tabInfoComment: preamble });
+    expect(result).not.toContain('Available tabs:');
+  });
+
+  it('labels a tabset with no tabset attribute as "other tabs"', async () => {
+    const anon = `<Tabs>
+  <Tab tabid="deploy" name="Deploy">
+
+Deploy content.
+
+  </Tab>
+  <Tab tabid="secure" name="Secure">
+
+Secure content.
+
+  </Tab>
+</Tabs>`;
+    const { mdxToMarkdown } = await import('../src/parse.js');
+    const result = await mdxToMarkdown(anon, undefined, undefined, { tabInfoComment: preamble });
+    expect(result).toContain('other tabs: deploy, secure');
+    expect(result).not.toContain('(unnamed)');
+  });
+});
+
 describe('Tabs Component — tabFilters', () => {
   const tabsMdx = `<Tabs>
   <Tab tabid="cli" name="Atlas CLI">

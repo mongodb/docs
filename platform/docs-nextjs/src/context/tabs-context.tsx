@@ -11,6 +11,7 @@ import type { ReactNode } from 'react';
 import { createContext, useContext, useEffect, useReducer, useRef } from 'react';
 import { isEmpty } from 'lodash';
 import { getLocalValue, setLocalValue } from '@/utils/browser-storage';
+import { getDefaultTabs } from '@/utils/get-default-tabs';
 import type { DriverMap, IconComponent } from '@/mdx-components/Icons/DriverIconMap';
 import { DRIVER_ICON_MAP } from '@/mdx-components/Icons/DriverIconMap';
 import { ContentsContext } from '@/context/contents-context';
@@ -64,24 +65,6 @@ const reducer = (prevState: ActiveTabs, newState: Partial<ActiveTabs>): ActiveTa
     Object.entries({ ...prevState, ...newState }).filter(([_, value]) => value !== undefined),
   ) as ActiveTabs;
 };
-
-// Helper fn to get default tabs for fallback (when no local storage found).
-// For drivers tabs,
-// 1. return default tab if available
-// 2. return 'nodejs' if found
-// Otherwise, return first choice.
-const getDefaultTabs = (choicesPerSelector: ChoicesPerSelector, defaultTabs: ActiveTabs) =>
-  Object.keys(choicesPerSelector || {}).reduce<ActiveTabs>((res, selectorKey) => {
-    const defaultTabId = defaultTabs[selectorKey] ?? 'nodejs';
-    const defaultOptionIdx = choicesPerSelector[selectorKey].findIndex((tab) => tab.value === defaultTabId);
-    // NOTE: default tabs should be specified here
-    if (selectorKey === 'drivers' && defaultOptionIdx > -1) {
-      res[selectorKey] = defaultTabId;
-    } else {
-      res[selectorKey] = choicesPerSelector[selectorKey][0].value;
-    }
-    return res;
-  }, {});
 
 // Helper fn to extract tab values from local storage values
 // If drivers, verify this is part of selectors.

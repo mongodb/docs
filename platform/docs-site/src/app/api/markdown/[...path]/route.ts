@@ -4,6 +4,7 @@ import { withCORS } from '@/app/lib/with-cors';
 import { fetchMdxString } from '@/mdx-utils/fetch-mdx-string';
 import { findProjectPathAndSiteJson } from '@/mdx-utils/load-metadata';
 import { preResolveImportsForMarkdownExport } from '@/mdx-utils/remark-pre-resolve-imports-for-markdown';
+import { resolveTabDefaults } from '@/mdx-utils/resolve-tab-defaults';
 import { isVersionPlaceholder } from '@/mdx-utils/load-mdx';
 import { loadDirNameToPrefixMap, blobRelativeToDiskCandidates } from '@/mdx-utils/blob-path-remap';
 import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
@@ -16,6 +17,13 @@ import { generateDocsStaticPaths } from '@/utils/generate-docs-paths';
 // both routes emit the same set of paths.
 export const dynamic = 'force-static';
 export const dynamicParams = false;
+
+const TAB_INFO_PREAMBLE = [
+  'Tab options on this page. Append to the .md URL to filter:',
+  '  ?tabs=<id,...>   select specific tabs (e.g. ?tabs=nodejs,shell)',
+  '  ?allTabs=true    include every tab',
+  '  (no param)       default: one tab per tabset',
+].join('\n');
 
 // Directive prepended to every markdown export so coding agents that discover a
 // `.md` page via webfetch also learn about the docs-wide llms.txt index.
@@ -87,8 +95,16 @@ export async function GET(_request: Request, { params }: RouteContext) {
 
     const resolvedMdx = await preResolveImportsForMarkdownExport(mdxString, projectPath);
 
+    // docs-site is prerendered (force-static), so request-time query-param tab
+    // selection (?tabs / ?allTabs) is unavailable; emit the default tabs only
+    // -- one tab per tabset, mirroring the tab the rendered page shows on
+    // initial load.
     // Omit contentMdxDir: includes/refs are already resolved above.
-    const markdown = await mdxToMarkdown(resolvedMdx, undefined, undefined, {});
+    const markdown = await mdxToMarkdown(resolvedMdx, undefined, undefined, {
+      defaultTabsOnly: true,
+      tabsetDefaults: resolveTabDefaults(mdxString),
+      tabInfoComment: TAB_INFO_PREAMBLE,
+    });
     const markdownWithDirective = `${LLMS_TXT_DIRECTIVE}\n\n${markdown}`;
 
     return withCORS(
@@ -98,7 +114,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
           'Content-Type': 'text/markdown; charset=utf-8',
           'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400, must-revalidate',
           Vary: 'Accept',
-          'Netlify-Vary': 'header=Accept',
+          'Netlify-Vary': 'query=tabs|allTabs|header=Accept',
         },
       }),
     );
