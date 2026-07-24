@@ -100,7 +100,7 @@ The AI uses these files for context:
 ## Requirements
 
 - **GitHub Actions** (runs as a workflow)
-- **`ANTHROPIC_API_KEY`** repository secret
+- **`GROVE_AI_REVIEWER_API_KEY`** repository secret (Grove gateway API key)
 
 ---
 
