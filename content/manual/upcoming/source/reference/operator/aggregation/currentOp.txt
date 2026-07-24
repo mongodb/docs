@@ -218,10 +218,12 @@ When using :ref:`Queryable Encryption <qe-manual-feature-qe>`,
 Examples
 --------
 
-.. tabs-drivers::
+.. composable-tutorial::
+   :options: language-no-dependencies
+   :defaults: shell
 
-   .. tab:: Shell
-      :tabid: shell
+   .. selected-content::
+      :selections: shell
 
       Inactive Sessions 
       ~~~~~~~~~~~~~~~~~
@@ -259,290 +261,281 @@ Examples
 
       Both operations return documents of the following form:
 
-      .. tabs::
 
-         .. tab:: Replica Set
-            :tabid: currentOp-rs
+      When run on a :binary:`~bin.mongod` that is part of a replica set:
 
-            When run on a :binary:`~bin.mongod` that is part of a replica set:
+      .. code-block:: javascript
 
-            .. code-block:: javascript
-
-               {
-                  "type" : "idleSession",
-                  "host" : "example.mongodb.com:27017",
-                  "desc" : "inactive transaction",
-                  "client" : "198.51.100.1:50428",
-                  "connectionId" : Long(32),
-                  "appName" : "",
-                  "clientMetadata" : {
-                     "driver" : {
-                        "name" : "PyMongo",
-                        "version" : "3.9.0"
-                     },
-                     "os" : {
-                        "type" : "Darwin",
-                        "name" : "Darwin",
-                        "architecture" : "x86_64",
-                        "version" : "10.14.5"
-                     },
-                     "platform" : "CPython 3.7.1.final.0"
-                  },
-                  "lsid" : {
-                     "id" : UUID("ff21e1a9-a130-4fe0-942f-9e6b6c67ea3c"),
-                     "uid" : BinData(0,"3pxqkATNUYKV/soT7qqKE0zC0BFb0pBz1pk4xXcSHsI=")
-                  },
-                  "transaction" : {
-                     "parameters" : {
-                        "txnNumber" : Long(4),
-                        "autocommit" : false,
-                        "readConcern" : {
-                           "level" : "snapshot",
-                           "afterClusterTime" : Timestamp(1563892246, 1)
-                        }
-                     },
-                     "readTimestamp" : Timestamp(0, 0),
-                     "startWallClockTime" : "2019-07-23T10:30:49.461-04:00",
-                     "timeOpenMicros" : Long(1913590),
-                     "timeActiveMicros" : Long(55),
-                     "timeInactiveMicros" : Long(1913535),
-                     "expiryTime" : "2019-07-23T10:31:49.461-04:00"
-                  },
-                  "waitingForLock" : false,
-                  "active" : false,
-                  "locks" : {
-                     "ReplicationStateTransition" : "w",
-                     "Global" : "w",
-                     "Database" : "w",
-                     "Collection" : "w"
-                  },
-                  "lockStats" : {
-                     "ReplicationStateTransition" : {
-                        "acquireCount" : {
-                           "w" : Long(5)
-                        }
-                     },
-                     "Global" : {
-                        "acquireCount" : {
-                           "r" : Long(3),
-                           "w" : Long(1)
-                        }
-                     },
-                     "Database" : {
-                        "acquireCount" : {
-                           "r" : Long(2),
-                           "w" : Long(1)
-                        }
-                     },
-                     "Collection" : {
-                        "acquireCount" : {
-                           "w" : Long(1)
-                        }
-                     },
-                     "Mutex" : {
-                        "acquireCount" : {
-                           "r" : Long(3)
-                        }
-                     },
-                     "oplog" : {
-                        "acquireCount" : {
-                           "r" : Long(2)
-                        }
-                     }
-                  },
-                  "waitingForFlowControl" : false,
-                  "flowControlStats" : {},
-               }
-
-
-         .. tab:: Sharded Cluster (localOps: true)
-            :tabid: currentOp-mongos-localops
-
-            Running ``$currentOp`` with :ref:`localOps:true
-            <currentOp-stage-localOps>` provides a composite view of the
-            in-progress transactions run on that :binary:`~bin.mongos`, rather
-            than information on individual shards. 
-
-            .. code-block:: javascript
-
-               db.getSiblingDB("admin").aggregate( [ 
-                  { $currentOp : { allUsers: true, idleSessions: true, localOps: true } },
-                  { $match : { type: "idleSession" } }
-               ] );
-               
-               // or 
-
-               db.getSiblingDB("admin").aggregate( [
-                  { $currentOp : { allUsers: true, idleSessions: true, localOps: true } },
-                  { $match : { active: false, transaction : { $exists: true } } }
-               ] )
-            
-            .. code-block:: javascript
-            
-               {
-                  "type" : "idleSession",
-                  "host" : "example.mongodb.com:27017",
-                  "desc" : "inactive transaction",
-                  "client" : "198.51.100.1:49618",
-                  "connectionId" : Long(48),
-                  "appName" : "",
-                  "clientMetadata" : {
-                     "driver" : {
-                        "name" : "PyMongo",
-                        "version" : "3.9.0"
-                     },
-                     "os" : {
-                        "type" : "Darwin",
-                        "name" : "Darwin",
-                        "architecture" : "x86_64",
-                        "version" : "10.14.6"
-                     },
-                     "platform" : "CPython 3.7.1.final.0",
-                     "mongos" : {
-                        "host" : "example.mongodb.com:27017",
-                        "client" : "198.51.100.1:53268",
-                        "version" : "4.2.1"
-                     }
-                  },
-                  "lsid" : {
-                     "id" : UUID("2c9ce111-133e-45b7-a00f-a7871005cae1"),
-                     "uid" : BinData(0,"3pxqkATNUYKV/soT7qqKE0zC0BFb0pBz1pk4xXcSHsI=")
-                  },
-                  "active" : false,
-                  "transaction" : {
-                     "parameters" : {
-                        "txnNumber" : Long(2),
-                        "autocommit" : false,
-                        "readConcern" : {
-                           "level" : "snapshot",
-                           "afterClusterTime" : Timestamp(1571869019, 2)
-                        }
-                     },
-                     "globalReadTimestamp" : Timestamp(1571869019, 2),
-                     "startWallClockTime" : "2019-10-23T18:16:59.341-04:00",
-                     "timeOpenMicros" : Long(169244639),
-                     "timeActiveMicros" : Long(535),
-                     "timeInactiveMicros" : Long(169244104),
-                     "numParticipants" : 2,
-                     "participants" : [
-                        {
-                           "name" : "shardB",
-                           "coordinator" : true,
-                           "readOnly" : false
-                        },
-                        {
-                           "name" : "shardA",
-                           "coordinator" : false,
-                           "readOnly" : false
-                        }
-                     ],
-                     "numReadOnlyParticipants" : 0,
-                     "numNonReadOnlyParticipants" : 2
+         {
+            "type" : "idleSession",
+            "host" : "example.mongodb.com:27017",
+            "desc" : "inactive transaction",
+            "client" : "198.51.100.1:50428",
+            "connectionId" : Long(32),
+            "appName" : "",
+            "clientMetadata" : {
+               "driver" : {
+                  "name" : "PyMongo",
+                  "version" : "3.9.0"
+               },
+               "os" : {
+                  "type" : "Darwin",
+                  "name" : "Darwin",
+                  "architecture" : "x86_64",
+                  "version" : "10.14.5"
+               },
+               "platform" : "CPython 3.7.1.final.0"
+            },
+            "lsid" : {
+               "id" : UUID("ff21e1a9-a130-4fe0-942f-9e6b6c67ea3c"),
+               "uid" : BinData(0,"3pxqkATNUYKV/soT7qqKE0zC0BFb0pBz1pk4xXcSHsI=")
+            },
+            "transaction" : {
+               "parameters" : {
+                  "txnNumber" : Long(4),
+                  "autocommit" : false,
+                  "readConcern" : {
+                     "level" : "snapshot",
+                     "afterClusterTime" : Timestamp(1563892246, 1)
+                  }
+               },
+               "readTimestamp" : Timestamp(0, 0),
+               "startWallClockTime" : "2019-07-23T10:30:49.461-04:00",
+               "timeOpenMicros" : Long(1913590),
+               "timeActiveMicros" : Long(55),
+               "timeInactiveMicros" : Long(1913535),
+               "expiryTime" : "2019-07-23T10:31:49.461-04:00"
+            },
+            "waitingForLock" : false,
+            "active" : false,
+            "locks" : {
+               "ReplicationStateTransition" : "w",
+               "Global" : "w",
+               "Database" : "w",
+               "Collection" : "w"
+            },
+            "lockStats" : {
+               "ReplicationStateTransition" : {
+                  "acquireCount" : {
+                     "w" : Long(5)
+                  }
+               },
+               "Global" : {
+                  "acquireCount" : {
+                     "r" : Long(3),
+                     "w" : Long(1)
+                  }
+               },
+               "Database" : {
+                  "acquireCount" : {
+                     "r" : Long(2),
+                     "w" : Long(1)
+                  }
+               },
+               "Collection" : {
+                  "acquireCount" : {
+                     "w" : Long(1)
+                  }
+               },
+               "Mutex" : {
+                  "acquireCount" : {
+                     "r" : Long(3)
+                  }
+               },
+               "oplog" : {
+                  "acquireCount" : {
+                     "r" : Long(2)
                   }
                }
+            },
+            "waitingForFlowControl" : false,
+            "flowControlStats" : {},
+         }
 
-            When run without :ref:`localOps:true <currentOp-stage-localOps>` on
-            the :binary:`~bin.mongos`, the transaction information is per
-            shard.
 
-         .. tab:: Sharded Cluster
-            :tabid: currentOp-mongos
+      Running ``$currentOp`` with :ref:`localOps:true
+      <currentOp-stage-localOps>` provides a composite view of the
+      in-progress transactions run on that :binary:`~bin.mongos`, rather
+      than information on individual shards. 
 
-            When run on a :binary:`~bin.mongos` without :ref:`localOps:true
-            <currentOp-stage-localOps>`, the transaction information is per
-            shard.
+      .. code-block:: javascript
 
-            .. code-block:: javascript
+         db.getSiblingDB("admin").aggregate( [ 
+            { $currentOp : { allUsers: true, idleSessions: true, localOps: true } },
+            { $match : { type: "idleSession" } }
+         ] );
 
-               {
-                  "shard" : "shardB",
-                  "type" : "idleSession",
-                  "host" : "shardB.mongodb.com:27018",
-                  "desc" : "inactive transaction",
-                  "client_s" : "198.51.100.1:53961",
-                  "connectionId" : Long(63),
-                  "appName" : "",
-                  "clientMetadata" : {
-                     "driver" : {
-                        "name" : "PyMongo",
-                        "version" : "3.9.0"
-                     },
-                     "os" : {
-                        "type" : "Darwin",
-                        "name" : "Darwin",
-                        "architecture" : "x86_64",
-                        "version" : "10.14.6"
-                     },
-                     "platform" : "CPython 3.7.1.final.0",
-                     "mongos" : {
-                        "host" : "example.mongodb.com:27017",
-                        "client" : "198.51.100.1:53976",
-                        "version" : "4.2.0"
-                     }
+         // or 
+
+         db.getSiblingDB("admin").aggregate( [
+            { $currentOp : { allUsers: true, idleSessions: true, localOps: true } },
+            { $match : { active: false, transaction : { $exists: true } } }
+         ] )
+
+      .. code-block:: javascript
+
+         {
+            "type" : "idleSession",
+            "host" : "example.mongodb.com:27017",
+            "desc" : "inactive transaction",
+            "client" : "198.51.100.1:49618",
+            "connectionId" : Long(48),
+            "appName" : "",
+            "clientMetadata" : {
+               "driver" : {
+                  "name" : "PyMongo",
+                  "version" : "3.9.0"
+               },
+               "os" : {
+                  "type" : "Darwin",
+                  "name" : "Darwin",
+                  "architecture" : "x86_64",
+                  "version" : "10.14.6"
+               },
+               "platform" : "CPython 3.7.1.final.0",
+               "mongos" : {
+                  "host" : "example.mongodb.com:27017",
+                  "client" : "198.51.100.1:53268",
+                  "version" : "4.2.1"
+               }
+            },
+            "lsid" : {
+               "id" : UUID("2c9ce111-133e-45b7-a00f-a7871005cae1"),
+               "uid" : BinData(0,"3pxqkATNUYKV/soT7qqKE0zC0BFb0pBz1pk4xXcSHsI=")
+            },
+            "active" : false,
+            "transaction" : {
+               "parameters" : {
+                  "txnNumber" : Long(2),
+                  "autocommit" : false,
+                  "readConcern" : {
+                     "level" : "snapshot",
+                     "afterClusterTime" : Timestamp(1571869019, 2)
+                  }
+               },
+               "globalReadTimestamp" : Timestamp(1571869019, 2),
+               "startWallClockTime" : "2019-10-23T18:16:59.341-04:00",
+               "timeOpenMicros" : Long(169244639),
+               "timeActiveMicros" : Long(535),
+               "timeInactiveMicros" : Long(169244104),
+               "numParticipants" : 2,
+               "participants" : [
+                  {
+                     "name" : "shardB",
+                     "coordinator" : true,
+                     "readOnly" : false
                   },
-                  "lsid" : {
-                     "id" : UUID("720d403c-8daf-40bb-b61e-329e20b0493b"),
-                     "uid" : BinData(0,"3pxqkATNUYKV/soT7qqKE0zC0BFb0pBz1pk4xXcSHsI=")
-                  },
-                  "transaction" : {
-                     "parameters" : {
-                        "txnNumber" : Long(1),
-                        "autocommit" : false,
-                        "readConcern" : {
-                           "level" : "snapshot"
-                        }
-                     },
-                     "readTimestamp" : Timestamp(0, 0),
-                     "startWallClockTime" : "2019-10-21T18:31:12.192-04:00",
-                     "timeOpenMicros" : Long(24137008),
-                     "timeActiveMicros" : Long(52),
-                     "timeInactiveMicros" : Long(24136956),
-                     "expiryTime" : "2019-10-21T18:32:12.192-04:00"
-                  },
-                  "waitingForLock" : false,
-                  "active" : false,
-                  "locks" : {
-                     "ReplicationStateTransition" : "w",
-                     "Global" : "w",
-                     "Database" : "w",
-                     "Collection" : "w"
-                  },
-                  "lockStats" : {
-                     "ReplicationStateTransition" : {
-                        "acquireCount" : {
-                           "w" : Long(3)
-                        }
-                     },
-                     "Global" : {
-                        "acquireCount" : {
-                           "r" : Long(1),
-                           "w" : Long(1)
-                        }
-                     },
-                     "Database" : {
-                        "acquireCount" : {
-                           "r" : Long(1),
-                           "w" : Long(1)
-                        }
-                     },
-                     "Collection" : {
-                        "acquireCount" : {
-                           "r" : Long(1),
-                           "w" : Long(1)
-                        }
-                     },
-                     "Mutex" : {
-                        "acquireCount" : {
-                           "r" : Long(6)
-                        }
-                     }
+                  {
+                     "name" : "shardA",
+                     "coordinator" : false,
+                     "readOnly" : false
+                  }
+               ],
+               "numReadOnlyParticipants" : 0,
+               "numNonReadOnlyParticipants" : 2
+            }
+         }
+
+      When run without :ref:`localOps:true <currentOp-stage-localOps>` on
+      the :binary:`~bin.mongos`, the transaction information is per
+      shard.
+
+
+      When run on a :binary:`~bin.mongos` without :ref:`localOps:true
+      <currentOp-stage-localOps>`, the transaction information is per
+      shard.
+
+      .. code-block:: javascript
+
+         {
+            "shard" : "shardB",
+            "type" : "idleSession",
+            "host" : "shardB.mongodb.com:27018",
+            "desc" : "inactive transaction",
+            "client_s" : "198.51.100.1:53961",
+            "connectionId" : Long(63),
+            "appName" : "",
+            "clientMetadata" : {
+               "driver" : {
+                  "name" : "PyMongo",
+                  "version" : "3.9.0"
+               },
+               "os" : {
+                  "type" : "Darwin",
+                  "name" : "Darwin",
+                  "architecture" : "x86_64",
+                  "version" : "10.14.6"
+               },
+               "platform" : "CPython 3.7.1.final.0",
+               "mongos" : {
+                  "host" : "example.mongodb.com:27017",
+                  "client" : "198.51.100.1:53976",
+                  "version" : "4.2.0"
+               }
+            },
+            "lsid" : {
+               "id" : UUID("720d403c-8daf-40bb-b61e-329e20b0493b"),
+               "uid" : BinData(0,"3pxqkATNUYKV/soT7qqKE0zC0BFb0pBz1pk4xXcSHsI=")
+            },
+            "transaction" : {
+               "parameters" : {
+                  "txnNumber" : Long(1),
+                  "autocommit" : false,
+                  "readConcern" : {
+                     "level" : "snapshot"
+                  }
+               },
+               "readTimestamp" : Timestamp(0, 0),
+               "startWallClockTime" : "2019-10-21T18:31:12.192-04:00",
+               "timeOpenMicros" : Long(24137008),
+               "timeActiveMicros" : Long(52),
+               "timeInactiveMicros" : Long(24136956),
+               "expiryTime" : "2019-10-21T18:32:12.192-04:00"
+            },
+            "waitingForLock" : false,
+            "active" : false,
+            "locks" : {
+               "ReplicationStateTransition" : "w",
+               "Global" : "w",
+               "Database" : "w",
+               "Collection" : "w"
+            },
+            "lockStats" : {
+               "ReplicationStateTransition" : {
+                  "acquireCount" : {
+                     "w" : Long(3)
+                  }
+               },
+               "Global" : {
+                  "acquireCount" : {
+                     "r" : Long(1),
+                     "w" : Long(1)
+                  }
+               },
+               "Database" : {
+                  "acquireCount" : {
+                     "r" : Long(1),
+                     "w" : Long(1)
+                  }
+               },
+               "Collection" : {
+                  "acquireCount" : {
+                     "r" : Long(1),
+                     "w" : Long(1)
+                  }
+               },
+               "Mutex" : {
+                  "acquireCount" : {
+                     "r" : Long(6)
                   }
                }
-               {
-                  "shard" : "shardA",
-                  "type" : "idleSession",
-                  ...
-               }
+            }
+         }
+         {
+            "shard" : "shardA",
+            "type" : "idleSession",
+            ...
+         }
 
       .. _sampled-queries-currentOp-stage:
 
@@ -625,8 +618,8 @@ Examples
          }
          ]
 
-   .. tab:: Node.js
-      :tabid: nodejs
+   .. selected-content::
+      :selections: nodejs
 
       To use the {+node-driver-full+} to add a ``$currentOp`` stage to an
       aggregation pipeline, use the ``$currentOp`` operator in a pipeline

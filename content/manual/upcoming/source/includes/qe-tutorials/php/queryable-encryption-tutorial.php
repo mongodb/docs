@@ -39,7 +39,7 @@ dropExistingCollection($encryptedClient, $encryptedDatabaseName);
 dropExistingCollection($encryptedClient, $keyVaultDatabaseName);
 
 // start-encrypted-fields-map
-$encryptedFieldsMap = [
+$collectionOpts = [
     'encryptedFields' => [
         'fields' => [
             [
@@ -69,7 +69,7 @@ createEncryptedCollection(
     $encryptedDatabaseName,
     $encryptedCollectionName,
     $kmsProviderName,
-    $encryptedFieldsMap,
+    $collectionOpts,
     $customerMasterKeyCredentials
 );
 

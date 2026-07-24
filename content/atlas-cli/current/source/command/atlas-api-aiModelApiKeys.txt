@@ -54,22 +54,36 @@ Inherited Options
 Related Commands
 ----------------
 
-* :ref:`atlas-api-aiModelApiKeys-createModelApiKey` - Create a new AI model API key for the given group.
-* :ref:`atlas-api-aiModelApiKeys-deleteModelApiKey` - Delete an existing AI model API key in the given group.
+* :ref:`atlas-api-aiModelApiKeys-createGroupAiKey` - Create a new AI model API key for the given group.
+* :ref:`atlas-api-aiModelApiKeys-createGroupModelKey` - Create a new AI model API key for the given group.
+* :ref:`atlas-api-aiModelApiKeys-deleteGroupAiKey` - Delete an existing AI model API key in the given group.
+* :ref:`atlas-api-aiModelApiKeys-deleteGroupModelKey` - Delete an existing AI model API key in the given group.
+* :ref:`atlas-api-aiModelApiKeys-getGroupAiKey` - Retrieve a single AI model API key for the given group.
 * :ref:`atlas-api-aiModelApiKeys-getGroupModelKey` - Retrieve a single AI model API key for the given group.
+* :ref:`atlas-api-aiModelApiKeys-getOrgAiKey` - Retrieve a single AI model API key for the given organization.
 * :ref:`atlas-api-aiModelApiKeys-getOrgModelKey` - Retrieve a single AI model API key for the given organization.
+* :ref:`atlas-api-aiModelApiKeys-listGroupAiKeys` - Retrieve AI model API keys for the given group.
 * :ref:`atlas-api-aiModelApiKeys-listGroupModelKeys` - Retrieve AI model API keys for the given group.
+* :ref:`atlas-api-aiModelApiKeys-listOrgAiKeys` - Retrieve AI model API keys for the given organization.
 * :ref:`atlas-api-aiModelApiKeys-listOrgModelKeys` - Retrieve AI model API keys for the given organization.
-* :ref:`atlas-api-aiModelApiKeys-updateModelApiKey` - Update an existing AI model API key in the given group.
+* :ref:`atlas-api-aiModelApiKeys-updateGroupAiKey` - Update an existing AI model API key in the given group.
+* :ref:`atlas-api-aiModelApiKeys-updateGroupModelKey` - Update an existing AI model API key in the given group.
 
 
 .. toctree::
    :titlesonly:
 
-   createModelApiKey </command/atlas-api-aiModelApiKeys-createModelApiKey>
-   deleteModelApiKey </command/atlas-api-aiModelApiKeys-deleteModelApiKey>
+   createGroupAiKey </command/atlas-api-aiModelApiKeys-createGroupAiKey>
+   createGroupModelKey </command/atlas-api-aiModelApiKeys-createGroupModelKey>
+   deleteGroupAiKey </command/atlas-api-aiModelApiKeys-deleteGroupAiKey>
+   deleteGroupModelKey </command/atlas-api-aiModelApiKeys-deleteGroupModelKey>
+   getGroupAiKey </command/atlas-api-aiModelApiKeys-getGroupAiKey>
    getGroupModelKey </command/atlas-api-aiModelApiKeys-getGroupModelKey>
+   getOrgAiKey </command/atlas-api-aiModelApiKeys-getOrgAiKey>
    getOrgModelKey </command/atlas-api-aiModelApiKeys-getOrgModelKey>
+   listGroupAiKeys </command/atlas-api-aiModelApiKeys-listGroupAiKeys>
    listGroupModelKeys </command/atlas-api-aiModelApiKeys-listGroupModelKeys>
+   listOrgAiKeys </command/atlas-api-aiModelApiKeys-listOrgAiKeys>
    listOrgModelKeys </command/atlas-api-aiModelApiKeys-listOrgModelKeys>
-   updateModelApiKey </command/atlas-api-aiModelApiKeys-updateModelApiKey>
+   updateGroupAiKey </command/atlas-api-aiModelApiKeys-updateGroupAiKey>
+   updateGroupModelKey </command/atlas-api-aiModelApiKeys-updateGroupModelKey>

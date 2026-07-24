@@ -203,7 +203,7 @@ export async function createEncryptedCollection(
   encryptedDatabase,
   encryptedCollectionName,
   kmsProviderName,
-  encryptedFieldsMap,
+  collectionOpts,
   customerMasterKeyCredentials
 ) {
   try {
@@ -213,7 +213,7 @@ export async function createEncryptedCollection(
       encryptedCollectionName,
       {
         provider: kmsProviderName,
-        createCollectionOptions: encryptedFieldsMap,
+        createCollectionOptions: collectionOpts,
         masterKey: customerMasterKeyCredentials,
       }
     );

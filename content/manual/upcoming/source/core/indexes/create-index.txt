@@ -18,171 +18,410 @@ Create an Index
    :name: genre
    :values: tutorial
 
-If your application repeatedly runs queries on the same fields, create
-an index on those fields to improve performance.
+.. composable-tutorial::
+   :options: language-no-dependencies
+   :defaults: shell
 
-To create an index, use the :method:`~db.collection.createIndex()` shell
-method or equivalent method for your driver. This page shows examples
-for the MongoDB Shell and drivers.
+   If your application repeatedly runs queries on the same fields, create
+   an index on those fields to improve performance.
 
-About this Task
----------------
+   To create an index, use the :method:`~db.collection.createIndex()` shell
+   method or equivalent method for your driver. This page shows examples
+   for the MongoDB Shell and drivers.
 
-When you run a create index command in the MongoDB Shell or a driver,
-MongoDB only creates the index if an index of the same specification
-does not exist.
+   About this Task
+   ---------------
 
-Although indexes improve query performance, adding an index has negative
-performance impact for write operations. For collections with a high
-write-to-read ratio, indexes are expensive because each insert and
-update must also update any indexes.
+   When you run a create index command in the MongoDB Shell or a driver,
+   MongoDB only creates the index if an index of the same specification
+   does not exist.
 
-.. warning:: 
-   
-   .. include:: /includes/queryable-encryption/qe-index-performance-warning.rst
+   Although indexes improve query performance, adding an index has negative
+   performance impact for write operations. For collections with a high
+   write-to-read ratio, indexes are expensive because each insert and
+   update must also update any indexes.
 
-Procedure
----------
+   .. warning:: 
 
-----------
+      .. include:: /includes/queryable-encryption/qe-index-performance-warning.rst
 
-.. |arrow| unicode:: U+27A4
+   Procedure
+   ---------
 
-|arrow| To set the language of the examples on this page, use the
-**Select your language** drop-down menu in the right navigation pane.
 
-----------
+   .. selected-content::
+      :selections: shell
 
-.. tabs-selector:: drivers
+      To create an index in :binary:`mongosh`, use
+      :method:`db.collection.createIndex()`.
 
-.. include:: /includes/driver-examples/driver-procedure-indexes-1.rst
+      .. code-block:: javascript
 
-Example
--------
+         db.collection.createIndex( <key and index type specification>, <options> )
 
-.. include:: /includes/driver-examples/driver-example-indexes-1.rst
+   .. selected-content::
+      :selections: python
 
-Results
--------
+      To create an index using the
+      `Python driver <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/>`_,
+      use the `pymongo.collection.Collection.create_index
+      <https://www.mongodb.com/docs/languages/python/pymongo-driver/current/work-with-indexes/#create-an-index>`_
+      method:
 
-Use :binary:`mongosh` to monitor index creation.
+      .. code-block:: python
 
-To see what indexes exist on your collection, including indexes that
-are currently being built, run the
-:method:`db.collection.getIndexes()` method:
+         db.collection.create_index([(<key and index type specification>)], <options> )
 
-.. io-code-block::
-   :copyable: true
+   .. selected-content::
+      :selections: motor
 
-   .. input::
-      :language: javascript
+      To create an index using the
+      `Motor driver <https://motor.readthedocs.io/en/stable/>`_,
+      use
+      :py:meth:`motor.motor_asyncio.AsyncIOMotorCollection.create_index`.
 
-      db.collection.getIndexes()
+      .. code-block:: python
 
-   .. output::
-      :language: javascript
-      :visible: false
+         await db.collection.create_index([(<key and index type specification>)], <options> )
 
-      [
-         { v: 2, key: { _id: 1 }, name: '_id_' },
-         { v: 2, key: { name: -1 }, name: 'name_-1' }
-      ]    
+   .. selected-content::
+      :selections: java-sync
 
-To check whether your index is building, use :pipeline:`$currentOp`
-with :method:`db.aggregate()` on the ``admin`` database.
+      To create an index using the
+      `Java driver <https://mongodb.github.io/mongo-java-driver/>`_,
+      use
+      `com.mongodb.client.MongoCollection.createIndex <http://mongodb.github.io/mongo-java-driver/3.4/javadoc/?com/mongodb/client/MongoCollection.html#createIndex-org.bson.conversions.Bson->`_.
 
-The following aggregation pipeline uses the :pipeline:`$match` stage
-to show an active operation building a descending index on the
-``name`` field:
+      .. code-block:: java
 
-.. io-code-block::
-   :copyable: true
+         collection.createIndex(<key and index type specification>, <options>)
 
-   .. input:: 
-      :language: javascript
-   
-      db.getSiblingDB("admin").aggregate( [
-         { $currentOp : { idleConnections: true } },
-         { $match : {"command.createIndexes": { $exists: true } } }
-      ] )
-      
-   .. output:: 
-      :language: javascript 
-      :visible: false
-      :emphasize-lines: 12, 26-39
+   .. selected-content::
+      :selections: java-async
 
-      [
-         {
-            type: 'op',
-            host: 'mongodb.example.net:27017',
-            desc: 'conn584',
-            connectionId: 584,
-            client: '104.30.134.189:12077',
-            appName: 'mongosh 2.3.4',
-            clientMetadata: { 
-               ... 
-            },
-            active: true,
-            currentOpTime: '2024-12-05T16:13:35.571+00:00',
-            effectiveUsers: [ { user: jane-doe, db: 'admin' } ],
-            isFromUserConnection: true,
-            threaded: true,
-            opid: ...,
-            lsid: { 
-               ... 
-            },
-            secs_running: Long('3'),
-            microsecs_running: Long('3920881'),
-            op: 'command',
-            ns: 'example_db.collection',
-            redacted: false,
-            command: {
-               createIndexes: 'collection',
-               indexes: [ { name: 'name_-1', key: { name: -1 } } ],
-               apiVersion: '1',
-               lsid: { id: UUID('570931be-c692-4963-b9e2-1e279efd9702') },
-               '$clusterTime': {
-               clusterTime: Timestamp({ t: 1733415063, i: 32 }),
-               signature: {
-                  hash: Binary.createFromBase64('z0zaUHJ5SfhNQyvQLhocsKRFNbo=', 0),
-                  keyId: Long('7444956895695077380')
-               }
+      To create an index using the
+      `Async Java driver <http://mongodb.github.io/mongo-java-driver/3.0/driver-async/>`_,
+      use
+      `com.mongodb.async.client.MongoCollection.createIndex <http://mongodb.github.io/mongo-java-driver/3.4/javadoc/?com/mongodb/async/client/MongoCollection.html#createIndex-org.bson.conversions.Bson-com.mongodb.async.SingleResultCallback->`_.
+
+      .. code-block:: java
+
+         collection.createIndex( <key and index type specification>, <options>, <callbackFunction>)
+
+   .. selected-content::
+      :selections: kotlin-coroutine
+
+      To create an index by using the
+      :driver:`Kotlin Coroutine Driver </kotlin/coroutine/current/>`,
+      use the `MongoCollection.createIndex()
+      <{+java-api-docs+}/driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-mongo-collection/create-index.html>`__
+      method.
+
+      .. code-block:: kotlin
+
+         collection.createIndex(<key and index type specification>, <options>)
+
+   .. selected-content::
+      :selections: nodejs
+
+      To create an index using the
+      `Node.JS driver <https://www.mongodb.com/docs/drivers/node/current/>`_,
+      use ``createIndex()``.
+
+      .. code-block:: javascript
+
+         collection.createIndex( { <key and index type specification> }, function(err, result) {
+            console.log(result);
+            callback(result);
+         } )
+
+   .. selected-content::
+      :selections: php
+
+      To create an index using the
+      `PHP driver <https://www.mongodb.com/docs/php-library/current/>`_, use
+      :phpmethod:`MongoDB\\Collection::createIndex() <phpmethod.MongoDB\\Collection::createIndex()>`.
+
+      .. code-block:: php
+
+         $collection->createIndex(<key and index type specification>, <options>);
+
+   .. selected-content::
+      :selections: ruby
+
+      To create an index using the
+      `Ruby driver <https://www.mongodb.com/docs/ruby-driver/current/>`_, use
+      `Mongo::Index::View#create_one <http://www.rubydoc.info/github/mongodb/mongo-ruby-driver/Mongo%2FIndex%2FView%3Acreate_one>`_.
+
+      .. code-block:: ruby
+
+         client[:collection].indexes.create_one({ <key and index type specification> }, {options})
+
+   .. selected-content::
+      :selections: scala
+
+      To create an index using the
+      `Scala driver <http://mongodb.github.io/mongo-scala-driver/>`_,
+      use
+      `org.mongodb.scala.model.Indexes <https://mongodb.github.io/mongo-scala-driver/1.0/scaladoc/index.html#org.mongodb.scala.model.Indexes$>`_.
+
+      .. code-block:: scala
+
+         collection.createIndex(<key and index type specification>)
+
+   .. selected-content::
+      :selections: csharp
+
+      To create an index using the
+      `.NET driver <http://mongodb.github.io/mongo-csharp-driver/>`_,
+      use
+      `MongoCollection.CreateIndex <http://api.mongodb.com/csharp/current/html/Overload_MongoDB_Driver_MongoCollection_CreateIndex.htm>`_.
+
+      .. code-block:: csharp
+
+         collection.CreateIndex( IndexKeys<collection>.<key and index type specification>, <options> );
+
+
+   Example
+   -------
+
+   .. selected-content::
+      :selections: shell
+
+      This example creates a single key ascending index on the
+      ``name`` field:
+
+      .. code-block:: javascript
+
+         db.collection.createIndex( { name: 1 } )
+
+   .. selected-content::
+      :selections: python
+
+      This example creates a single key ascending index on the
+      ``name`` field:
+
+      .. code-block:: python
+
+         collection.create_index([("name", pymongo.ASCENDING)])
+
+   .. selected-content::
+      :selections: motor
+
+      This example creates a single key ascending index on the
+      ``name`` field:
+
+      .. code-block:: python
+
+         await collection.create_index([("name", pymongo.ASCENDING)])
+
+   .. selected-content::
+      :selections: java-sync
+
+      This example creates a single key ascending index on the
+      ``name`` field:
+
+      .. code-block:: java
+
+         collection.createIndex(Indexes.ascending("name"));
+
+   .. selected-content::
+      :selections: java-async
+
+      This example creates a single key ascending index on the
+      ``name`` field:
+
+      .. code-block:: java
+
+         collection.createIndex(Indexes.ascending("name"), someCallbackFunction());
+
+   .. selected-content::
+      :selections: kotlin-coroutine
+
+      This example creates a single key ascending index on the
+      ``name`` field:
+
+      .. literalinclude:: /driver-examples/kotlin_examples.kt
+         :language: kotlin
+         :dedent:
+         :start-after: Start Index Example 1
+         :end-before: End Index Example 1
+
+   .. selected-content::
+      :selections: nodejs
+
+      This example creates a single key ascending index on the
+      ``name`` field:
+
+      .. code-block:: javascript
+
+          collection.createIndex( { name : 1 }, function(err, result) {
+            console.log(result);
+            callback(result);
+         } )
+
+   .. selected-content::
+      :selections: php
+
+      This example creates a single key ascending index on the
+      ``name`` field:
+
+      .. code-block:: php
+
+         $collection->createIndex(['name' => 1]);
+
+   .. selected-content::
+      :selections: ruby
+
+      This example creates a single key ascending index on the
+      ``name`` field:
+
+      .. code-block:: ruby
+
+         client[:collection].indexes.create_one({ name: 1 })
+
+   .. selected-content::
+      :selections: scala
+
+      This example creates a single key ascending index on the
+      ``name`` field:
+
+      .. code-block:: scala
+
+         collection.createIndex(ascending("name"))
+
+   .. selected-content::
+      :selections: csharp
+
+      This example creates a single key ascending index on the
+      ``name`` field:
+
+      .. code-block:: csharp
+
+         collection.CreateIndex( IndexKeys<collection>.Ascending("name") );
+
+
+   Results
+   -------
+
+   Use :binary:`mongosh` to monitor index creation.
+
+   To see what indexes exist on your collection, including indexes that
+   are currently being built, run the
+   :method:`db.collection.getIndexes()` method:
+
+   .. io-code-block::
+      :copyable: true
+
+      .. input::
+         :language: javascript
+
+         db.collection.getIndexes()
+
+      .. output::
+         :language: javascript
+         :visible: false
+
+         [
+            { v: 2, key: { _id: 1 }, name: '_id_' },
+            { v: 2, key: { name: -1 }, name: 'name_-1' }
+         ]    
+
+   To check whether your index is building, use :pipeline:`$currentOp`
+   with :method:`db.aggregate()` on the ``admin`` database.
+
+   The following aggregation pipeline uses the :pipeline:`$match` stage
+   to show an active operation building a descending index on the
+   ``name`` field:
+
+   .. io-code-block::
+      :copyable: true
+
+      .. input:: 
+         :language: javascript
+
+         db.getSiblingDB("admin").aggregate( [
+            { $currentOp : { idleConnections: true } },
+            { $match : {"command.createIndexes": { $exists: true } } }
+         ] )
+
+      .. output:: 
+         :language: javascript 
+         :visible: false
+         :emphasize-lines: 12, 26-39
+
+         [
+            {
+               type: 'op',
+               host: 'mongodb.example.net:27017',
+               desc: 'conn584',
+               connectionId: 584,
+               client: '104.30.134.189:12077',
+               appName: 'mongosh 2.3.4',
+               clientMetadata: { 
+                  ... 
                },
-               '$db': 'example_db'
-            },
-            numYields: 0,
-            queues: {
-               ...
-            },
-            currentQueue: null,
-            locks: {},
-            waitingForLock: false,
-            lockStats: { ... },
-            waitingForFlowControl: false,
-            flowControlStats: { acquireCount: Long('3') }
-         }, ...
-      ]
+               active: true,
+               currentOpTime: '2024-12-05T16:13:35.571+00:00',
+               effectiveUsers: [ { user: jane-doe, db: 'admin' } ],
+               isFromUserConnection: true,
+               threaded: true,
+               opid: ...,
+               lsid: { 
+                  ... 
+               },
+               secs_running: Long('3'),
+               microsecs_running: Long('3920881'),
+               op: 'command',
+               ns: 'example_db.collection',
+               redacted: false,
+               command: {
+                  createIndexes: 'collection',
+                  indexes: [ { name: 'name_-1', key: { name: -1 } } ],
+                  apiVersion: '1',
+                  lsid: { id: UUID('570931be-c692-4963-b9e2-1e279efd9702') },
+                  '$clusterTime': {
+                  clusterTime: Timestamp({ t: 1733415063, i: 32 }),
+                  signature: {
+                     hash: Binary.createFromBase64('z0zaUHJ5SfhNQyvQLhocsKRFNbo=', 0),
+                     keyId: Long('7444956895695077380')
+                  }
+                  },
+                  '$db': 'example_db'
+               },
+               numYields: 0,
+               queues: {
+                  ...
+               },
+               currentQueue: null,
+               locks: {},
+               waitingForLock: false,
+               lockStats: { ... },
+               waitingForFlowControl: false,
+               flowControlStats: { acquireCount: Long('3') }
+            }, ...
+         ]
 
-MongoDB marks index builds in various stages, including waiting on
-commit quorum, as an idle connection by setting the ``active`` field
-to ``false``. The ``idleConnections: true`` setting includes these
-idle connections in the ``$currentOp`` output.
+   MongoDB marks index builds in various stages, including waiting on
+   commit quorum, as an idle connection by setting the ``active`` field
+   to ``false``. The ``idleConnections: true`` setting includes these
+   idle connections in the ``$currentOp`` output.
 
-To view information on existing indexes using a driver, refer to your
-:driver:`driver's documentation </>`.
+   To view information on existing indexes using a driver, refer to your
+   :driver:`driver's documentation </>`.
 
-Learn More
-----------
+   Learn More
+   ----------
 
-- To learn how to create indexes in |compass|, see :ref:`Manage Indexes
-  <compass-indexes>` in the Compass documentation.
+   - To learn how to create indexes in |compass|, see :ref:`Manage Indexes
+     <compass-indexes>` in the Compass documentation.
 
-- To see how often your indexes are used, see
-  :ref:`index-measure-index-use`.
+   - To see how often your indexes are used, see
+     :ref:`index-measure-index-use`.
 
-- To learn how to specify the name of your index, see :ref:`specify-index-name`.
+   - To learn how to specify the name of your index, see :ref:`specify-index-name`.
 
-- To learn how MongoDB builds indexes, see :ref:`index-build-process`.
+   - To learn how MongoDB builds indexes, see :ref:`index-build-process`.
 
 
 .. toctree::

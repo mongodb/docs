@@ -36,7 +36,7 @@ async function runExample() {
   await qeHelper.dropExistingCollection(encryptedClient, keyVaultDatabaseName);
 
   // start-encrypted-fields-map
-  const encryptedFieldsMap = {
+  const collectionOpts = {
     encryptedFields: {
       fields: [
         {
@@ -63,7 +63,7 @@ async function runExample() {
     encryptedClient.db(encryptedDatabaseName),
     encryptedCollectionName,
     kmsProviderName,
-    encryptedFieldsMap,
+    collectionOpts,
     customerMasterKeyCredentials
   );
 

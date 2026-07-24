@@ -25,19 +25,36 @@ fi
 
 # Check for git fetch origin && prefix
 if ! printf '%s' "$cmd" | grep -qE 'git[[:space:]]+fetch[[:space:]]+origin[[:space:]]+&&'; then
-  jq -n '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Blocked: Always fetch before creating a branch. Use: git fetch origin && git checkout -b <name> origin/<base>"}}'
+  jq -n '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Blocked: Always fetch before creating a branch. Use: git fetch origin && git checkout -b <name> origin/main"}}'
   exit 0
 fi
 
-# Check for unstaged or uncommitted changes
+# Detect worktree: git rev-parse --git-dir returns a path ending in
+# /worktrees/<name> when running inside a linked worktree.
+git_dir=$(git rev-parse --git-dir 2>/dev/null)
+in_worktree=false
+if [[ "$git_dir" == */worktrees/* ]]; then
+  in_worktree=true
+fi
+
+# Check for unstaged or uncommitted changes (safe in both worktrees and main tree)
 if [[ -n $(git status --porcelain 2>/dev/null) ]]; then
   jq -n '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Blocked: You have unstaged or uncommitted changes. Commit or stash them before creating a new branch."}}'
   exit 0
 fi
 
+# In a worktree, new DOCSP branches must be based on origin/main to avoid
+# accidentally forking off the worktree branch instead of main.
+if [[ "$in_worktree" == true ]]; then
+  if ! printf '%s' "$cmd" | grep -qE 'origin/main([[:space:]]|$)'; then
+    jq -n '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Blocked: You are inside a worktree. New DOCSP branches must be based on origin/main to avoid forking off the worktree branch. Use: git fetch origin && git checkout -b <name> origin/main (run from the main repo checkout, or add origin/main explicitly here)"}}'
+    exit 0
+  fi
+fi
+
 # Check for origin/<base> start point
 if ! printf '%s' "$cmd" | grep -qE 'origin/[^[:space:]]+'; then
-  jq -n '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Blocked: New branches must specify an origin/ base. Use: git fetch origin && git checkout -b <name> origin/<base>"}}'
+  jq -n '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"Blocked: New branches must specify an origin/ base. Use: git fetch origin && git checkout -b <name> origin/main"}}'
   exit 0
 fi
 

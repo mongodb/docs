@@ -70,6 +70,10 @@
      - :icon-fa5:`check`
      - :icon-fa5:`check` [#cross-region]_
 
+   * - Voyage AI
+     - :icon-fa5:`check`
+     - 
+
    * - Free and Flex clusters
      - :icon-fa5:`check`
      -

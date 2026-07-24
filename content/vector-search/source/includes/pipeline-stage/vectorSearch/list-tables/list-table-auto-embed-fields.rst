@@ -125,12 +125,24 @@
    * - ``queryVector``
      - Array of Numbers 
      - Optional 
-     - Array of vector embeddings or floating point numbers generated using 
-       a |voyage| embedding model to perform a semantic search. To retrieve 
-       correct results, you must use a |voyage| embedding model that is 
-       compatible with the |voyage| embeddings model specified in the index 
-       definition for the field that you want to query. 
-       
+     - Array of vector embeddings or floating point numbers generated using
+       a |voyage| embedding model to perform a semantic search. To retrieve
+       correct results, you must use a |voyage| embedding model that is
+       compatible with the |voyage| embeddings model specified in the index
+       definition for the field that you want to query.
+
+       The format of the ``queryVector`` must match the ``quantization``
+       type configured in the index definition. If the formats don't match,
+       {+avs+} returns empty results. Provide the ``queryVector`` in the
+       following format for each ``quantization`` type:
+
+       - ``scalar`` - Provide a scalar-quantized vector. Because ``scalar``
+         is the default, provide a scalar-quantized vector when you omit the
+         ``quantization`` field from the index definition.
+       - ``float`` - Provide a float vector.
+       - ``binary`` - Provide a float vector.
+       - ``binaryNoRescore`` - Provide a binary-quantized vector.
+
        This is mutually exclusive with ``model`` and ``query``.
 
    * - ``searchNodePreference``

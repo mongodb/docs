@@ -1,5 +1,5 @@
 // start-enable-range
-BsonDocument encryptedFieldsMap = new BsonDocument().append("fields",
+BsonDocument encryptedFields = new BsonDocument().append("fields",
 new BsonArray(Arrays.asList(
         new BsonDocument()
                 .append("keyId", new BsonNull())

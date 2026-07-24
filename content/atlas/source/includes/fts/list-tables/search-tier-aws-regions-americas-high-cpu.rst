@@ -8,6 +8,11 @@
      - Default Storage
      - vCPU 
 
+   * - S10
+     - 4 GiB
+     - 54 GiB
+     - 1
+
    * - S20
      - 4 GiB
      - 98 GiB

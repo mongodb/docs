@@ -1,7 +1,7 @@
 .. list-table::
    :header-rows: 1
    :widths: 20 40 20
-   
+
    * - Option
      - Authentication Method
      - Use Case
@@ -11,7 +11,7 @@
      - Best for non-programmatic use
 
    * - ``ServiceAccount``
-     - Service Account 
+     - Service Account
      - Best for programmatic use with a Service Account
 
    * - ``APIKeys``

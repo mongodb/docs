@@ -102,8 +102,20 @@ const tocData: TocItem[] = [
           {
             label: 'Django MongoDB Extensions',
             contentSite: 'django',
-            url: '/docs/languages/python/django-mongodb/:version/integrations/django-mongodb-extensions',
+            collapsible: true,
             versions: { excludes: ['v5.2'] },
+            items: [
+              {
+                label: 'Django Debug Toolbar',
+                contentSite: 'django',
+                url: '/docs/languages/python/django-mongodb/:version/integrations/debug-toolbar',
+              },
+              {
+                label: 'Django REST Framework',
+                contentSite: 'django',
+                url: '/docs/languages/python/django-mongodb/:version/integrations/rest-framework',
+              },
+            ],
           },
           {
             label: 'Migrate Djongo ODM Applications',

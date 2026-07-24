@@ -587,8 +587,50 @@ Run Vector Search Queries
 
    .. _vectorSearch-agg-pipeline-filter:
 
-   {+avs+} Pre-Filtering
+   {+avs+} Filtering
    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   {+avs+} supports data filtering. You can:
+   
+   - :ref:`Pre-filter <vector-search-pre-filter>` your data by using
+     the ``filter`` option in your {+avs+} query.
+   - :ref:`post-filter <vector-search-post-filter>` the results of your
+     {+avs+} query by using :pipeline:`$match` and other supported
+     :ref:`aggregation pipeline stages <aggregation-pipeline>`.
+
+   .. image:: /images/pipeline/avs-pre-post-filter.png
+      :alt: Atlas Vector Search Pre-Filter and Post-Filter 
+      :figwidth: 100%
+
+   {+avs+} performs pre-filter and post-filter operations independently on
+   segments of data. The HNSW graph for each segment is based on only the
+   vectors in that segment. {+avs+} applies the filters to each segment's
+   documents to eliminate documents that don't meet the filter criteria.
+   Pre-filtering ensures that documents are eliminated before {+avs+}
+   traverses the HNSW graph and post-filtering ensures that irrelevant
+   documents or fields in the documents are eliminated from the vector
+   search results.
+
+   .. _vector-search-pre-filter:
+
+   Pre-Filter Search Data 
+   ``````````````````````
+
+   You can pre-filter your data to narrow the scope of your semantic search
+   and ensure that only relevant vectors are considered for comparison. When you
+   pre-filter your data by using the ``filter`` option, {+avs+} performs the
+   semantic search on only a subset of your data, thereby reducing the
+   computational resources utilized by your {+avs+} query and improving
+   performance.  
+
+   Pre-filtering can be too restrictive, as the pre-filter may exclude data that doesn't exactly
+   match the pre-filter, but is semantically similar to the query you want to consider during
+   the vector search. To mitigate this, we recommend
+   setting a broad filter criteria to ensure your query does the following:  
+
+   - Includes as many relevant results as possible.
+   - Excludes irrelevant data from the results.
+   - Returns the requested number of documents in the results.
 
    .. include:: /includes/shared/facts/fact-avs-filter-performance.rst
 
@@ -596,11 +638,11 @@ Run Vector Search Queries
       :selections: atlas, byo, none, none
 
       Pre-Filter for Top-Level Embeddings
-      ```````````````````````````````````
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
       .. include:: /includes/pipeline-stage/vectorSearch/facts/about-filters.rst
 
       Pre-Filter for Nested Embeddings
-      ````````````````````````````````
+      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
       For nested embeddings, the :pipeline:`$vectorSearch` supports the ``filter`` 
       and ``parentFilter`` options to pre-filter the data. Use the: 
@@ -618,6 +660,27 @@ Run Vector Search Queries
 
       .. include:: /includes/pipeline-stage/vectorSearch/facts/about-filters.rst
 
+   .. _vector-search-post-filter:
+
+   Post-Filter Search Results  
+   ``````````````````````````
+
+   If your index size isn't optimal for pre-filtering or if you set broad
+   pre-filtering criteria, you can post-filter your vector search results to 
+   return only relevant data. To filter the results of your vector search, 
+   you can use any supported :ref:`aggregation pipeline stage <aggregation-pipeline>`,
+   such as the :pipeline:`$match` stage, after the 
+   :pipeline:`$vectorSearch` stage. To learn more, see 
+   :ref:`avs-performance-recommendations`.
+
+   To select the fields to return in the results, use the :pipeline:`$project` 
+   stage unless you need all the fields in the results. We recommend excluding 
+   the vector field in the :pipeline:`$project` stage to improve query performance.
+
+   For example, you can use the :pipeline:`$project` stage to include the
+   ``vectorSearchScore`` and then use the :pipeline:`$match` stage to
+   return only documents above a certain score threshold.
+   
    Filtering Considerations
    ````````````````````````
 

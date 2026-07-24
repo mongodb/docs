@@ -206,10 +206,12 @@ Examples
 .. TODO when $meta returns other data that requires documentation,
    subsection Examples section by keywords.
 
-.. tabs-drivers::
+.. composable-tutorial::
+   :options: language-no-dependencies
+   :defaults: shell
 
-   .. tab::
-      :tabid: shell
+   .. selected-content::
+      :selections: shell
 
       ``$meta: "textScore"``
       ~~~~~~~~~~~~~~~~~~~~~~
@@ -233,60 +235,54 @@ Examples
 
          db.articles.createIndex( { title: "text"} )
 
-      .. tabs::
 
-         .. tab:: Aggregation
-            :tabid: aggregation
+      The following aggregation operation performs a text search and uses the
+      :expression:`$meta` operator to group by the text search score:
 
-            The following aggregation operation performs a text search and uses the
-            :expression:`$meta` operator to group by the text search score:
+      .. code-block:: javascript
 
-            .. code-block:: javascript
+         db.articles.aggregate(
+            [
+              { $match: { $text: { $search: "cake" } } },
+              { $group: { _id: { $meta: "textScore" }, count: { $sum: 1 } } }
+            ]
+         )
 
-               db.articles.aggregate(
-                  [
-                    { $match: { $text: { $search: "cake" } } },
-                    { $group: { _id: { $meta: "textScore" }, count: { $sum: 1 } } }
-                  ]
-               )
+      The operation returns the following results:
 
-            The operation returns the following results:
+      .. code-block:: javascript
+         :copyable: false
 
-            .. code-block:: javascript
-               :copyable: false
+         { "_id" : 0.75, "count" : 1 }
+         { "_id" : 0.6666666666666666, "count" : 1 }
+         { "_id" : 1, "count" : 2 }
 
-               { "_id" : 0.75, "count" : 1 }
-               { "_id" : 0.6666666666666666, "count" : 1 }
-               { "_id" : 1, "count" : 2 }
+      For more examples, see :doc:`/tutorial/text-search-in-aggregation`.
 
-            For more examples, see :doc:`/tutorial/text-search-in-aggregation`.
 
-         .. tab:: Find and Project
-            :tabid: find
+      The following query performs a text search for the term ``cake`` and
+      uses the :expression:`$meta` operator in the projection document to
+      include the score assigned to each matching document:
 
-            The following query performs a text search for the term ``cake`` and
-            uses the :expression:`$meta` operator in the projection document to
-            include the score assigned to each matching document:
+      .. code-block:: javascript
 
-            .. code-block:: javascript
+         db.articles.find(
+            { $text: { $search: "cake" } },
+            { score: { $meta: "textScore" } }
+         )
 
-               db.articles.find(
-                  { $text: { $search: "cake" } },
-                  { score: { $meta: "textScore" } }
-               )
+      The operation returns the following documents with the text score:
 
-            The operation returns the following documents with the text score:
+      .. code-block:: javascript
+         :copyable: false
 
-            .. code-block:: javascript
-               :copyable: false
+         { "_id" : 4, "title" : "some cakes", "score" : 1 }
+         { "_id" : 1, "title" : "cakes and ale", "score" : 0.75 }
+         { "_id" : 5, "title" : "two cakes to go", "score" : 0.6666666666666666 }
+         { "_id" : 2, "title" : "more cakes", "score" : 1 }
 
-               { "_id" : 4, "title" : "some cakes", "score" : 1 }
-               { "_id" : 1, "title" : "cakes and ale", "score" : 0.75 }
-               { "_id" : 5, "title" : "two cakes to go", "score" : 0.6666666666666666 }
-               { "_id" : 2, "title" : "more cakes", "score" : 1 }
-
-            For additional examples of ``"textScore"`` projections and sorts,
-            see :ref:`ex-text-search-score`.
+      For additional examples of ``"textScore"`` projections and sorts,
+      see :ref:`ex-text-search-score`.
 
       ``$meta: "indexKey"``
       ~~~~~~~~~~~~~~~~~~~~~
@@ -320,36 +316,30 @@ Examples
 
          db.orders.createIndex( { type: 1, item: 1 } )
 
-      .. tabs::
 
-         .. tab:: Aggregation
-            :tabid: aggregation
+      The following aggregation operation finds all documents with ``type``
+      equal to ``apparel`` and uses the :expression:`$meta` operator to
+      include the index key value for the matching document if an index was
+      used:
 
-            The following aggregation operation finds all documents with ``type``
-            equal to ``apparel`` and uses the :expression:`$meta` operator to
-            include the index key value for the matching document if an index was
-            used:
+      .. code-block:: javascript
 
-            .. code-block:: javascript
+         db.orders.aggregate(
+            [
+              { $match: { type: "apparel" } },
+              { $addFields: { idxKey: { $meta: "indexKey" } } }
+            ]
+         )
 
-               db.orders.aggregate(
-                  [
-                    { $match: { type: "apparel" } },
-                    { $addFields: { idxKey: { $meta: "indexKey" } } }
-                  ]
-               )
 
-         .. tab:: Find and Project
-            :tabid: find
+      The following operation finds all documents with ``type``
+      equal to ``apparel`` and uses the :expression:`$meta` operator to
+      include the index key value for the matching document if an index was
+      used:
 
-            The following operation finds all documents with ``type``
-            equal to ``apparel`` and uses the :expression:`$meta` operator to
-            include the index key value for the matching document if an index was
-            used:
+      .. code-block:: javascript
 
-            .. code-block:: javascript
-
-               db.orders.find( { type: "apparel" }, { idxKey: { $meta: "indexKey" } } )
+         db.orders.find( { type: "apparel" }, { idxKey: { $meta: "indexKey" } } )
 
       The operation returns the matching documents with their
       corresponding index key:
@@ -379,37 +369,31 @@ Examples
       If :red:`no` index is used, the ``{ $meta: "indexKey" }`` does not
       return anything.
 
-      .. tabs::
 
-         .. tab:: Aggregation
-            :tabid: aggregation
+      For example, the following operation does not use
+      an index since no index exists on the ``price`` field to support the
+      match condition:
 
-            For example, the following operation does not use
-            an index since no index exists on the ``price`` field to support the
-            match condition:
+      .. code-block:: javascript
 
-            .. code-block:: javascript
+         db.orders.aggregate(
+            [
+            { $match: { price: { $gte: Decimal128("10") } } },
+            { $addFields: { idxKey: { $meta: "indexKey" } } }
+            ]
+         )
 
-               db.orders.aggregate(
-                  [
-                  { $match: { price: { $gte: Decimal128("10") } } },
-                  { $addFields: { idxKey: { $meta: "indexKey" } } }
-                  ]
-               )
 
-         .. tab:: Find and Project
-            :tabid: find
+      For example, the following operation does not use an index
+      since no index exists on the ``price`` field to support the
+      match condition:
 
-            For example, the following operation does not use an index
-            since no index exists on the ``price`` field to support the
-            match condition:
+      .. code-block:: javascript
 
-            .. code-block:: javascript
-
-               db.orders.find( 
-                  { price: { $gte: Decimal128("10") } }, 
-                  { idxKey: { $meta: "indexKey" } }
-               )
+         db.orders.find( 
+            { price: { $gte: Decimal128("10") } }, 
+            { idxKey: { $meta: "indexKey" } }
+         )
 
       The operation returns the matching documents without the ``idxKey``
       field:
@@ -439,8 +423,8 @@ Examples
             "type" : "apparel"
          }
 
-   .. tab::
-      :tabid: csharp
+   .. selected-content::
+      :selections: csharp
 
       .. include:: /includes/driver-examples/csharp/meta/sample-data-movie.rst
 

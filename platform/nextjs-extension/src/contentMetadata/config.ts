@@ -64,8 +64,12 @@ export const updateConfig = async ({
   configEnvironment.REPOSITORY_URL = process.env.REPOSITORY_URL;
   const rawBranch = process.env.HEAD ?? '';
   const sanitized = rawBranch.replace(/[^a-zA-Z0-9-_]/g, '-');
-  // Netlify blob store names must be ≤ 64 bytes; branch stores are named `{branch}-mdx-content` (12 chars)
-  const MAX_BRANCH_LENGTH = 52; // 64 - '-mdx-content'.length
+  // Netlify blob store names must be ≤ 64 bytes; branch stores are named
+  // `{branch}-mdx-content` (12 chars). Cap well under 64 — truncating to the
+  // exact limit has still produced BlobsInternalError 400s on long branches.
+  const STORE_NAME_SUFFIX = '-mdx-content';
+  const MAX_STORE_NAME_LENGTH = 56;
+  const MAX_BRANCH_LENGTH = MAX_STORE_NAME_LENGTH - STORE_NAME_SUFFIX.length; // 44
   const HASH_SUFFIX_LENGTH = 9; // '-' + 8 hex chars
   const sanitizedBranch =
     sanitized.length <= MAX_BRANCH_LENGTH

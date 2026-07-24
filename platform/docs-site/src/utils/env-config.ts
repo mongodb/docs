@@ -1,0 +1,51 @@
+const ENVIRONMENT_VALUES = ['production', 'dotcomprd', 'dotcomstg', 'dev', 'development'] as const;
+
+export type Environments = (typeof ENVIRONMENT_VALUES)[number];
+
+const REQUIRED_ENV_VARS = [
+  'MONGODB_URI',
+  'JIRA_USERNAME',
+  'JIRA_PASSWORD',
+  'SLACK_QUOKKA_OAUTH_ACCESS_TOKEN',
+];
+
+/**
+ * Validates the environment configuration.
+ * Throws an error if any required environment variables are missing or if DB_ENV is invalid.
+ */
+const validateEnvConfigs = () => {
+  const missingVars = REQUIRED_ENV_VARS.filter((key) => !process.env[key]);
+  if (missingVars.length > 0) {
+    throw new Error(`Missing required environment variables: ${missingVars.join(', ')}`);
+  }
+  const dbEnv = process.env.DB_ENV;
+  if (dbEnv && !ENVIRONMENT_VALUES.includes(dbEnv as Environments)) {
+    throw new Error(`Invalid DB_ENV value: ${dbEnv}. Must be one of: ${ENVIRONMENT_VALUES.join(', ')}`);
+  }
+};
+
+validateEnvConfigs();
+
+type GlobalEnvConfig = {
+  AWS_S3_ACCESS_KEY_ID: string;
+  AWS_S3_SECRET_ACCESS_KEY: string;
+  AWS_KEY_REGION: string;
+  DB_ENV: Environments;
+  MONGODB_URI: string;
+  JIRA_USERNAME: string;
+  JIRA_PASSWORD: string;
+  SLACK_QUOKKA_OAUTH_ACCESS_TOKEN: string;
+};
+
+const envConfig: GlobalEnvConfig = {
+  AWS_S3_ACCESS_KEY_ID: process.env.AWS_S3_ACCESS_KEY_ID ?? '',
+  AWS_S3_SECRET_ACCESS_KEY: process.env.AWS_S3_SECRET_ACCESS_KEY ?? '',
+  AWS_KEY_REGION: process.env.AWS_KEY_REGION ?? 'us-east-2',
+  DB_ENV: (process.env.DB_ENV ?? 'dev') as Environments,
+  MONGODB_URI: process.env.MONGODB_URI ?? '',
+  JIRA_USERNAME: process.env.JIRA_USERNAME ?? '',
+  JIRA_PASSWORD: process.env.JIRA_PASSWORD ?? '',
+  SLACK_QUOKKA_OAUTH_ACCESS_TOKEN: process.env.SLACK_QUOKKA_OAUTH_ACCESS_TOKEN ?? '',
+};
+
+export default envConfig;

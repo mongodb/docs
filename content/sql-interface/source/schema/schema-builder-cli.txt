@@ -1,0 +1,285 @@
+.. _sql-schema-builder-cli:
+
+==============================
+MongoDB SQL Schema Builder CLI
+==============================
+
+.. meta::
+   :description: Understand how the MongoDB SQL Schema Builder CLI generates schemas for the SQL Interface in Enterprise Advanced self-managed deployments, and learn which flags it accepts.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The {+schema-builder+} CLI is the schema-management tool for
+Enterprise Advanced (EA) self-managed deployments of the
+{+sql-interface+}. You download and run the CLI against your cluster
+to produce the JSON schema. The {+sql-interface+} uses that
+schema to translate SQL queries into MongoDB operations.
+
+This page explains what the tool is, what you need to run it, how you
+invoke it, and the flags it accepts. For the schema-management
+overview and the other supported deployment types, see
+:ref:`sql-schema-management`.
+
+Use Cases
+---------
+
+Use the {+schema-builder+} CLI when you run the {+sql-interface+} in
+an EA self-managed deployment and need to generate or update the
+schema for your collections. The CLI is the supported
+schema-management path for this deployment type.
+
+The CLI does not sample your data. Instead, it analyzes every
+document in each collection it processes, so the generated schema
+precisely reflects the exact data in the collections. Even fields
+that appear in only a small fraction of documents are included in the
+schema.
+
+Schema regeneration is always user-initiated. The CLI does not
+refresh a schema automatically or on a schedule. You should
+regenerate a schema whenever the shape of your underlying data
+changes, so that the {+sql-interface+} operates on the provided
+schema information.
+
+Prerequisites
+-------------
+
+Before you run the {+schema-builder+} CLI, ensure that you meet the
+following requirements:
+
+- Your deployment is a MongoDB Enterprise cluster. The CLI does not
+  support MongoDB Community clusters.
+
+- You can connect to the cluster from the machine where you run the
+  CLI, either with a connection string (``--uri``) or a
+  configuration file (``--file``).
+
+- The database user that the CLI authenticates as has, at minimum:
+
+  - The ``read`` privilege on each database that you want to
+    process. This privilege lets the CLI enumerate and analyze your
+    collections.
+
+  - The ``find``, ``insert``, and ``update`` privileges on the
+    ``__sql_schemas`` collection in each database that you process,
+    or the ``readWrite`` role on the database. The CLI writes each
+    schema with an upsert, so the ``update`` privilege is required
+    even on the first run.
+
+You can supply credentials with the ``--username`` and ``--password``
+flags or include them in the connection string. If you do not provide
+credentials, the CLI attempts to connect without authentication and
+logs a warning.
+
+Invoke the CLI
+--------------
+
+You run the {+schema-builder+} CLI from the command line against your
+cluster to generate or update a schema. The binary is named
+``mongodb-schema-manager``.
+
+The following example analyzes every collection in the ``sales``
+database and writes trace logs to a ``logs`` directory:
+
+.. code-block:: sh
+
+   mongodb-schema-manager \
+      --uri "mongodb://<host>:<port>" \
+      --ns-include "sales.*" \
+      --logpath ./logs \
+      --verbosity info
+
+When the run completes, the CLI prints the databases and namespaces
+for which it created or modified a schema. If any namespace has a
+level of polymorphism too great for meaningful use, it is deemed
+unstable. The CLI lists those namespaces. For more information, see
+:ref:`sql-schema-builder-unstable`.
+
+.. _sql-schema-builder-storage:
+
+How Schemas Are Stored
+----------------------
+
+The CLI writes one schema document per namespace to a
+``__sql_schemas`` collection in each database that it processes.
+
+.. important::
+
+   Treat the ``__sql_schemas`` collection as a reserved namespace for
+   the {+sql-interface+}. Do not modify it manually. Use the CLI to
+   create and update the schemas it contains.
+
+Inspect Stored Schemas
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+To review the schemas that the CLI generated, run an aggregation
+pipeline against the ``__sql_schemas`` collection in the database you
+want to inspect. Each document reports the following metadata:
+
+- ``lastUpdated``: The date and time of the most recent schema write.
+- ``unstable``: Whether the schema is unstable. For more information,
+  see :ref:`sql-schema-builder-unstable`.
+
+To list the status of every schema in a database without printing the
+full schema body, run the following pipeline in ``mongosh``:
+
+.. code-block:: javascript
+
+   db.__sql_schemas.aggregate([
+      { $project: { _id: 0, namespace: "$_id", type: 1, lastUpdated: 1, unstable: 1 } },
+      { $sort: { namespace: 1 } }
+   ])
+
+To view the full schema for a specific collection, match on its name:
+
+.. code-block:: javascript
+
+   db.__sql_schemas.aggregate([
+      { $match: { _id: "<collection-name>" } },
+      { $project: { _id: 0, namespace: "$_id", type: 1, lastUpdated: 1, unstable: 1, schema: 1 } }
+   ])
+
+By default, the CLI implicitly excludes any database or collection
+whose name begins with two underscores (``__``), including the
+``__sql_schemas`` collection itself. To include these namespaces, you
+must specify them explicitly with ``--ns-include``. For example,
+``--ns-include "*.__*"`` includes collections that begin with ``__``
+in databases that do not begin with ``__``.
+
+The CLI derives the schema of a view from the view pipeline and the
+schemas of the source collections that the pipeline references. Under
+normal conditions, the CLI does not sample views. To ensure that a
+view's derived schema is accurate, first generate up-to-date schemas
+for the source collections.
+
+If no schema exists for a source collection, or if the CLI cannot
+derive the schema from the available source collection schemas, the
+CLI falls back to executing the view and sampling its output
+documents.
+
+CLI Flag Reference
+------------------
+
+The {+schema-builder+} CLI accepts the following flags. You must
+provide either ``--uri`` or ``--file`` so that the CLI can connect to
+your cluster.
+
+``-f, --file <CONFIG_FILE>``
+  The path to a configuration file. Command-line arguments take
+  precedence over values in the configuration file.
+
+``--uri <URI>``
+  The connection string for your cluster.
+
+``-u, --username <USERNAME>``
+  The username for authentication. You can also specify the username
+  in the connection string.
+
+``-p, --password <PASSWORD>``
+  The password for authentication. You can also specify the password
+  in the connection string.
+
+``--ns-include <NS_INCLUDE>``
+  The databases and collections to include, in the format
+  ``<database_pattern>.<collection_pattern>``. Glob syntax is
+  supported, such as ``mydb.*``. Repeat the flag to specify multiple
+  patterns. If you omit this flag, the CLI includes all databases and
+  collections. Namespaces that begin with ``__`` are implicitly
+  excluded unless you specify them explicitly.
+
+``--ns-exclude <NS_EXCLUDE>``
+  The databases and collections to exclude, in the same format as
+  ``--ns-include``. Repeat the flag to specify multiple patterns.
+  This flag takes precedence over ``--ns-include``.
+
+``--quiet``
+  Enables quiet mode for less output. Default: ``false``.
+
+``-o, --logpath <LOGPATH>``
+  The directory where the CLI writes log files. Log files are named
+  ``mongodb-schema-manager.log.{date}``. If you omit this flag, the
+  CLI does not write log files.
+
+``-v, --verbosity <VERBOSITY>``
+  The logging level to capture in the log file. Requires
+  ``--logpath``. Accepts ``trace``, ``debug``, ``info``, ``warn``,
+  or ``error``. Default: ``warn``.
+
+``-a, --action <SCHEMA_ACTION>``
+  The action to perform on the schema. Default: ``merge``. Accepts
+  the following values:
+
+  - ``merge``: Merges the new schema with the existing schema. If no
+    schema exists, this action creates one. This action does not
+    update unstable schemas.
+  - ``overwrite``: Ignores and overwrites the existing schema. If no
+    schema exists, this action creates one. Use this action to
+    update an unstable schema.
+  - ``clear``: Removes the ``schema`` field from the existing schema
+    document. If no schema exists, this action captures only
+    metadata.
+
+``--dry-run``
+  Performs a dry run without analyzing schemas or writing to the
+  database. Use this flag to test your ``--ns-include`` and
+  ``--ns-exclude`` patterns. Default: ``false``.
+
+``--resolver <RESOLVER>``
+  The DNS resolver to use if DNS resolution fails or is slow.
+  Accepts ``cloudflare``, ``google``, or ``quad9``.
+
+``-j, --jobs <JOBS>``
+  The maximum number of concurrent schema-processing jobs. Must be
+  an integer greater than ``0``. Default: two times the number of
+  physical cores.
+
+.. _sql-schema-builder-unstable:
+
+Unstable Schemas
+----------------
+
+When a collection's documents vary widely in shape, such as
+collections that use field names as map keys, the CLI marks the
+derived schema as unstable. An unstable schema sets ``unstable`` to
+``true`` in the schema document, caps the number of captured fields,
+and sets ``additionalProperties`` to ``true``. An unstable schema may
+not fully represent the data in the namespace.
+
+When a run produces one or more unstable schemas, the CLI prints the
+affected namespaces:
+
+.. code-block:: text
+
+   The following namespaces have unstable schemas. They may not
+   fully represent the data in the namespace.
+   Unstable schemas are not updated by the schema-manager by
+   default. To update them, use the 'overwrite' action.
+
+The default ``merge`` action does not update an unstable schema. To
+update an unstable schema, run the CLI with ``--action overwrite``.
+
+When to Regenerate a Schema
+---------------------------
+
+Regenerate a schema when the shape of your underlying data changes,
+such as when you add fields, remove fields, or change the data type
+of an existing field. The CLI does not detect data-shape changes on
+its own, so regeneration is always user-initiated. An outdated schema
+can cause the {+sql-interface+} to map collections to the wrong
+tables and columns.
+
+Learn More
+----------
+
+- :ref:`sql-schema-management`
+- :ref:`install-sql-interface-landing`
+- :ref:`query-with-sql`
+- :ref:`connect-with-sql-overview`
+- `MongoDB Schema Manager Overview
+  <https://translators-connectors-releases.s3.amazonaws.com/mongodb-schema-manager/docs/MongoDB_Schema_Manager-overview.pdf>`__
+  (PDF): Complete technical reference for the {+schema-builder+}.

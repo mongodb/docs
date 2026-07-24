@@ -24,9 +24,9 @@ Procedure
 
    .. step:: Install the {+atlas-cli+}.
 
-      .. code-block:: shell
+.. code-block:: shell
 
-         choco install mongodb-atlas
+   choco install mongodb-atlas
 
    .. step:: When prompted, enter ``A`` to confirm installation.
 
@@ -44,8 +44,8 @@ To update the {+atlas-cli+} with Chocolatey, follow the steps below.
 
    .. step:: Update the {+atlas-cli+}.
 
-      .. code-block:: shell
+.. code-block:: shell
 
-         choco upgrade mongodb-atlas
+   choco upgrade mongodb-atlas
 
    .. include:: /includes/steps-verify-update-atlas-cli.rst

@@ -6,8 +6,9 @@
 
    set(CMAKE_CXX_STANDARD 17)
 
-   # Specify the minimum version for creating a vector index.
-   find_package(mongocxx 3.11.0 REQUIRED)
+   # You must use mongocxx driver version 3.11.0 or later to
+   # create a vector index.
+   find_package(mongocxx REQUIRED)
    find_package(bsoncxx REQUIRED)
 
    add_executable(query_quick_start

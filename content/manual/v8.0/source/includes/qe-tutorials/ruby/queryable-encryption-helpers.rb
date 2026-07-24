@@ -165,7 +165,7 @@ def create_encrypted_collection(
   encrypted_database_name,
   encrypted_collection_name,
   kms_provider_name,
-  encrypted_fields_map,
+  collection_opts,
   customer_master_key_credentials
 )
   begin
@@ -173,7 +173,7 @@ def create_encrypted_collection(
     client_encryption.create_encrypted_collection(
       encrypted_client.use(encrypted_database_name).database,
       encrypted_collection_name,
-      encrypted_fields_map,
+      collection_opts,
       kms_provider_name,
       customer_master_key_credentials
     )

@@ -122,6 +122,32 @@ full update procedure (one entry per archived version; `current` and
 
 ---
 
+## Framework Integrations (django-mongodb, laravel-mongodb, hibernate)
+
+Compatibility content lives in `content/drivers/source/compatibility.txt`
+under each docset's `selected-content` block, not the Standard Drivers
+table.
+
+- **django-mongodb** (`python, django`), two tables:
+  - `includes/compatibility/django/mongodb-compat.rst` — Backend version
+    against MongoDB Server version.
+  - `includes/compatibility/django/python-compat.rst` — Backend version
+    against Python version.
+  Backend major/minor tracks Django's own version 1:1.
+- **laravel-mongodb** (`php, laravel`), two tables:
+  - `includes/compatibility/laravel/laravel-compat.rst` — Laravel
+    MongoDB version against Laravel version.
+  - `includes/compatibility/laravel/php-driver-compat.rst` — Laravel
+    MongoDB version against PHP Library version.
+- **hibernate** (`java, hibernate`): inline in `compatibility.txt`, no
+  include file — separate short sections per compatible component
+  (Hibernate ORM, Server, Java, Java Driver versions).
+
+Ask the user for the compatibility delta before editing — do not guess
+supported version ranges.
+
+---
+
 ## Kafka Connector
 
 ### Version Constants

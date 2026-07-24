@@ -6,20 +6,27 @@
 input=$(cat)
 session_id=$(printf '%s' "$input" | jq -r '.session_id // empty' 2>/dev/null)
 
-repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
-repo_hash=$(printf '%s' "$repo_root" | cksum | awk '{print $1}')
+# Use the common git dir (works in both main checkout and linked worktrees:
+# --git-common-dir returns the main .git path even from inside a worktree).
+common_git_dir=$(git rev-parse --git-common-dir 2>/dev/null) || exit 0
+repo_hash=$(printf '%s' "$common_git_dir" | cksum | awk '{print $1}')
+
+# Include the current branch in the sentinel so each worktree branch gets its
+# own one-per-session check rather than sharing a single sentinel across all
+# worktrees that happen to live in the same repo.
+branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+branch_slug=$(printf '%s' "$branch" | tr '/' '-')
 
 if [[ -n "$session_id" ]]; then
-  sentinel="/tmp/branch-commit-check-${session_id}-${repo_hash}"
+  sentinel="/tmp/branch-commit-check-${session_id}-${repo_hash}-${branch_slug}"
 else
-  sentinel="/tmp/branch-commit-check-${repo_hash}"
+  sentinel="/tmp/branch-commit-check-${repo_hash}-${branch_slug}"
 fi
 
 [[ -f "$sentinel" ]] && exit 0
 touch "$sentinel"
 
 # Only act on DOCSP-NNNNN branches
-branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
 [[ "$branch" =~ ^DOCSP-([0-9]+) ]] || exit 0
 ticket_prefix="DOCSP-${BASH_REMATCH[1]}"
 

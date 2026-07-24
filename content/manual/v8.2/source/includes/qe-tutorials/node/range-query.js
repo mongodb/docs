@@ -1,5 +1,5 @@
 // start-enable-range
-const encryptedFieldsMap = {
+const collectionOpts = {
   encryptedFields: {
     fields: [
       {

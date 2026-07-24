@@ -63,7 +63,7 @@ func main() {
 	}
 
 	// start-encrypted-fields-map
-	encryptedFieldsMap := bson.M{
+	encryptedFields := bson.M{
 		"fields": []bson.M{
 			bson.M{
 				"keyId":    nil,
@@ -92,7 +92,7 @@ func main() {
 	)
 
 	// start-create-encrypted-collection
-	createCollectionOptions := options.CreateCollection().SetEncryptedFields(encryptedFieldsMap)
+	createCollectionOptions := options.CreateCollection().SetEncryptedFields(encryptedFields)
 	_, _, err =
 		clientEncryption.CreateEncryptedCollection(
 			context.TODO(),

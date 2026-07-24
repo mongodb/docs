@@ -1,0 +1,110 @@
+==========================================
+IncompatibleUniqueIndexOnShardedCollection
+==========================================
+
+.. meta::
+   :description: Identify unique indexes on a sharded collection that have incompatible index options, such as a non-simple collation or a shard key that is not a prefix of the index key.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. |incon-type| replace:: ``IncompatibleUniqueIndexOnShardedCollection``
+
+Description
+-----------
+
+.. data:: IncompatibleUniqueIndexOnShardedCollection
+
+   .. include:: /includes/inconsistency-type/IncompatibleUniqueIndexOnShardedCollection
+
+Format
+------
+
+.. code-block:: json
+
+   {
+      type: "IncompatibleUniqueIndexOnShardedCollection",
+      description: "<string>",
+      details: {
+         namespace: "<string>",
+         info: <document>
+      }
+   }
+
+|incon-type| inconsistency documents contain the following fields:
+
+.. list-table::
+   :widths: 30 25 45
+   :header-rows: 1
+
+   * - Field
+     - Type
+     - Description
+
+   * - ``type``
+     - string
+     - .. include:: /includes/inconsistency-type/type
+
+   * - ``description``
+     - string
+     - .. include:: /includes/inconsistency-type/descr
+
+   * - ``details``
+     - document
+     - .. include:: /includes/inconsistency-type/details
+
+   * - ``details.namespace``
+     - string
+     - .. include:: /includes/inconsistency-type/details.namespace
+
+   * - ``details.info``
+     - document
+     - Information on the incompatible unique index.
+
+Example
+-------
+
+Use the :method:`db.adminCommand` method to call the
+:dbcommand:`checkMetadataConsistency` command with the ``checkIndexes``
+flag set to ``1``:
+
+.. code-block:: javascript
+
+   db.adminCommand( {
+      checkMetadataConsistency: 1,
+      checkIndexes: 1
+   } )
+
+The method returns a cursor with a batch of documents showing the
+inconsistencies found in the sharding metadata. The example below shows
+a cursor with a |incon-type| inconsistency document:
+
+.. code-block:: json
+   :emphasize-lines: 6-18
+   :copyable: false
+
+   {
+      cursor: {
+         id: Long("0"),
+         ns: "test.$cmd.aggregate",
+         firstBatch: [
+            {
+               type: "IncompatibleUniqueIndexOnShardedCollection",
+               description: "Found incompatible index options with uniqueness in a sharded collection",
+               details: {
+                  namespace: "test.authors",
+                  info: {
+                     index: { v: 2, unique: true, key: { author: 1 }, name: "author_1" },
+                     shard: "test-rs1",
+                     issue: "Collation must be simple and the shard key must be a prefix of the index key if the index is unique in a sharded collection",
+                     shardKey: { author: 1 }
+                  }
+               }
+            }
+         ],
+      },
+      ok: 1
+   }

@@ -16,7 +16,15 @@ performance. |fts| automatically rebuilds the index only in the event
 of:
 
 - :ref:`Changes <ref-edit-index>` to the index definition :icon-fa5:`star`
-- |fts| version updates that include breaking changes
+- |fts| version updates that include breaking changes:
+
+  - Breaking changes are rare.
+  - |fts| provides backwards compatibility for existing indexes in
+    nearly all cases.
+  - When a breaking change does occur, the version update and the
+    resulting index rebuild typically occur during your cluster's
+    maintenance window.
+
 - Hardware-related problems such as index corruption
 
 .. note::

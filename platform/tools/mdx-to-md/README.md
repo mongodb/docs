@@ -55,7 +55,7 @@ pnpm dev -- atlas/access/orgs-create-view-edit-delete.mdx
 
 ### Dev command
 
-`pnpm dev` builds the package and runs a one-off conversion of a single MDX file. It reads from the repo’s `content-mdx` directory (override with `CONTENT_MDX_DIR`) and writes Markdown under `output/` in this package.
+`pnpm dev` builds the package and runs a one-off conversion of a single MDX file. It reads from the repo’s `content-mdx` directory and writes Markdown under `output/` in this package.
 
 Pass the file path relative to `content-mdx` (include the `.mdx` extension):
 

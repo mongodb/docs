@@ -1,0 +1,237 @@
+.. _mongoid-vector-search:
+
+=================================
+Run a MongoDB Vector Search Query
+=================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: code example, semantic, text, embeddings, search query
+   :description: Learn how to use the Mongoid ODM to perform MongoDB Vector Search queries and query documents based on their semantic meaning by using vector embeddings.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+Overview
+--------
+
+In this guide, you can learn how to use {+odm+} to run
+{+vector-search+} queries. {+vector-search+} allows you to query your
+documents based on their semantic meaning by using vector embeddings.
+
+{+odm+} provides the ``vector_search`` method, which builds and runs a
+``$vectorSearch`` aggregation stage for you. To learn more about the
+``$vectorSearch`` aggregation stage, see the :ref:`mongoid-aggregation` guide.
+
+.. note:: Deployment Compatibility
+
+   To use {+vector-search+}, you must connect to a MongoDB Atlas
+   cluster or a self-managed deployment running MongoDB 8.2 or later.
+
+To learn more about {+vector-search+}, see the :atlas:`{+vector-search+}
+Overview </atlas-vector-search/vector-search-overview/>` in the Atlas
+documentation.
+
+Prerequisites
+-------------
+
+Before you can run a {+vector-search+} query, you must define a vector
+field and a vector search index on your model, and then create the index on
+your collection. To learn how to declare and create vector search
+indexes, see the :ref:`mongoid-indexes-vector-search` section of the
+Indexes guide.
+
+The examples in this guide use the following ``Movie`` model, which maps
+to the ``embedded_movies`` collection in the ``sample_mflix`` database.
+The ``plot_embedding`` field stores vector embeddings of each movie's
+plot.
+
+.. literalinclude:: /includes/interact-data/vector-search.rb
+   :language: ruby
+   :start-after: start-model
+   :end-before: end-model
+
+.. tip:: Atlas Sample Data
+
+   To learn how to load the ``sample_mflix`` sample data, see the
+   :atlas:`Load Data into Atlas </sample-data/>` tutorial in the Atlas
+   documentation.
+
+Run a Vector Search Query
+-------------------------
+
+To run a {+vector-search+} query, call the ``vector_search`` class
+method on your model and pass a query vector as the first argument. The
+query vector is a vector embedding that represents your search input.
+
+The following code example runs a {+vector-search+} query on the
+``plot_embedding`` field and prints the title of each matching movie.
+Because the ``Movie`` model declares only one vector search index,
+{+odm+} automatically selects the index and vector field to use.
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/interact-data/vector-search.rb
+      :language: ruby
+      :start-after: start-basic-query
+      :end-before: end-basic-query
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Thrill Seekers
+      About Time
+      The Time Machine
+      Timecop
+      Crusade in Jeans
+
+The ``vector_search`` method returns an array of ``Movie`` documents.
+By default, it returns the 10 most similar documents. To change the
+number of results, set the ``limit`` option. The preceding example specifies a
+limit of ``5`` results.
+
+Vector Search Score
+~~~~~~~~~~~~~~~~~~~
+
+Each document that ``vector_search`` returns has a
+``vector_search_score`` attribute, which describes how well the document
+matches the query vector. A higher score indicates a closer match.
+
+The following code runs the same query as the preceding example, but
+prints the title and score of each matching movie:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/interact-data/vector-search.rb
+      :language: ruby
+      :start-after: start-score-query
+      :end-before: end-score-query
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Thrill Seekers: 0.9253387451171875
+      About Time: 0.9246978759765625
+      The Time Machine: 0.9229583740234375
+      Timecop: 0.9228057861328125
+      Crusade in Jeans: 0.9222259521484375
+
+Search for Similar Documents
+----------------------------
+
+You can also call the ``vector_search`` method on a document instance to
+find documents that are similar to that document. When you call
+``vector_search`` on a document, {+odm+} uses the document's own stored
+vector as the query vector and excludes the document itself from the
+results.
+
+The following code finds the five movies most similar to an existing
+``Movie`` document:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/interact-data/vector-search.rb
+      :language: ruby
+      :start-after: start-similar-query
+      :end-before: end-similar-query
+
+   .. output::
+      :language: none
+      :visible: false
+
+      Thrill Seekers
+      The Time Machine
+      Timecop
+      Crusade in Jeans
+      Frequency
+
+Vector Search Options
+---------------------
+
+You can pass the following keyword arguments to the ``vector_search``
+method to customize your query:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 20 40 20
+
+   * - Option
+     - Type
+     - Description
+     - Default Value
+
+   * - ``index``
+     - ``String`` or ``Symbol``
+     - Name of the vector search index to use. Required only if the
+       model declares more than one vector search index.
+     - Inferred from the model
+
+   * - ``path``
+     - ``String`` or ``Symbol``
+     - Field that contains the vector embeddings. Required only if the
+       vector field can't be inferred from the index definition.
+     - Inferred from the index
+
+   * - ``limit``
+     - ``Integer``
+     - Maximum number of documents to return.
+     - ``10``
+
+   * - ``num_candidates``
+     - ``Integer``
+     - Number of nearest neighbors to consider during the search.
+     - ``limit * 10``
+
+   * - ``filter``
+     - ``Hash``
+     - Query used to pre-filter documents before the search.
+     - No filtering
+
+   * - ``pipeline``
+     - ``Array``
+     - Additional aggregation stages to append after the vector search.
+     - No additional stages
+
+The following code runs a {+vector-search+} query that considers 150
+candidates and returns only movies released after the year 2000:
+
+.. literalinclude:: /includes/interact-data/vector-search.rb
+   :language: ruby
+   :start-after: start-options-query
+   :end-before: end-options-query
+
+To learn more about these options, see the :atlas:`Fields
+</atlas-vector-search/vector-search-stage/#fields>` section of the
+``$vectorSearch`` operator reference in the Atlas documentation.
+
+Additional Information
+----------------------
+
+To learn how to declare and create vector search indexes, see the
+:ref:`mongoid-indexes-vector-search` section of the Indexes guide.
+
+To learn more about the concepts mentioned in this guide, see the
+following pages in the Atlas documentation:
+
+- :atlas:`{+vector-search+} Overview </atlas-vector-search/vector-search-overview/>`
+- :atlas:`Run Vector Search Queries </atlas-vector-search/vector-search-stage/>`
+- :atlas:`How to Index Fields for Vector Search </atlas-vector-search/vector-search-type/>`
+
+API Documentation
+~~~~~~~~~~~~~~~~~
+
+To learn more about the methods mentioned in this guide, see the
+following API documentation:
+
+- `Mongoid::SearchIndexable::ClassMethods <{+api+}/Mongoid/SearchIndexable/ClassMethods.html>`__

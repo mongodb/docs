@@ -16,6 +16,11 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: 'Platform Support',
+            contentSite: 'docs',
+            url: '/docs/:version/administration/community-platform-support',
+          },
+          {
             label: 'Install on Linux',
             contentSite: 'docs',
             url: '/docs/:version/administration/install-on-linux',
@@ -668,11 +673,6 @@ const tocData: TocItem[] = [
             url: '/docs/:version/tutorial/sharding-segmenting-shards',
           },
           {
-            label: 'Distributed Local Writes for Insert-Only Workloads',
-            contentSite: 'docs',
-            url: '/docs/:version/tutorial/sharding-high-availability-writes',
-          },
-          {
             label: 'Distribute Collections',
             contentSite: 'docs',
             url: '/docs/:version/tutorial/sharding-distribute-collections-with-zones',
@@ -856,6 +856,11 @@ const tocData: TocItem[] = [
             collapsible: true,
             items: [
               {
+                label: 'AuthoritativeShardCatalogCollectionsPresent',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/AuthoritativeShardCatalogCollectionsPresent',
+              },
+              {
                 label: 'CollectionAuxiliaryMetadataMismatch',
                 contentSite: 'docs',
                 url: '/docs/:version/reference/inconsistency-type/CollectionAuxiliaryMetadataMismatch',
@@ -886,9 +891,24 @@ const tocData: TocItem[] = [
                 url: '/docs/:version/reference/inconsistency-type/HiddenShardedCollection',
               },
               {
+                label: 'IncompatibleUniqueIndexOnShardedCollection',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/IncompatibleUniqueIndexOnShardedCollection',
+              },
+              {
                 label: 'InconsistentIndex',
                 contentSite: 'docs',
                 url: '/docs/:version/reference/inconsistency-type/InconsistentIndex',
+              },
+              {
+                label: 'InconsistentShardCatalogCollectionMetadata',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/InconsistentShardCatalogCollectionMetadata',
+              },
+              {
+                label: 'LegacyShardCacheCollectionsPresent',
+                contentSite: 'docs',
+                url: '/docs/:version/reference/inconsistency-type/LegacyShardCacheCollectionsPresent',
               },
               {
                 label: 'MisplacedCollection',
@@ -939,7 +959,12 @@ const tocData: TocItem[] = [
                 label: 'ShardCatalogCacheCollectionMetadataMismatch',
                 contentSite: 'docs',
                 url: '/docs/:version/reference/inconsistency-type/ShardCatalogCacheCollectionMetadataMismatch/',
-                versions: { excludes: manualVersions.before('v8.2') },
+                versions: {
+                  excludes: [
+                    ...manualVersions.before('v8.2'),
+                    ...manualVersions.after('v8.3'),
+                  ],
+                },
               },
               {
                 label: 'ShardMissingCollectionRoutingInfo',

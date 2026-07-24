@@ -629,86 +629,16 @@ const tocData: TocItem[] = [
     ],
   },
   {
-    label: 'Sample Data',
-    contentSite: 'cloud-docs',
-    url: '/docs/atlas/sample-data',
-    collapsible: true,
-    items: [
-      {
-        label: 'Load Sample Data',
-        contentSite: 'cloud-docs',
-        collapsible: true,
-        items: [
-          {
-            label: 'Atlas',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/sample-data/load-sample-data/',
-          },
-          {
-            label: 'Self-Managed Deployments',
-            contentSite: 'cloud-docs',
-            url: '/docs/atlas/sample-data/load-sample-data-local/',
-          },
-        ],
-      },
-      {
-        label: 'Sample Airbnb',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/sample-data/sample-airbnb/',
-      },
-      {
-        label: 'Sample Analytics',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/sample-data/sample-analytics/',
-      },
-      {
-        label: 'Sample Geospatial',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/sample-data/sample-geospatial/',
-      },
-      {
-        label: 'Sample Guides',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/sample-data/sample-guides/',
-      },
-      {
-        label: 'Sample Mflix',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/sample-data/sample-mflix/',
-      },
-      {
-        label: 'Sample Restaurants',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/sample-data/sample-restaurants/',
-      },
-      {
-        label: 'Sample Supplies',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/sample-data/sample-supplies/',
-      },
-      {
-        label: 'Sample Training',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/sample-data/sample-training/',
-      },
-      {
-        label: 'Sample Weather',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/sample-data/sample-weather/',
-      },
-      {
-        label: 'Synthetic Data',
-        contentSite: 'cloud-docs',
-        url: '/docs/atlas/synthetic-data/',
-      },
-    ],
-  },
-  {
     label: 'Migrate or Import Data',
     contentSite: 'cloud-docs',
     url: '/docs/atlas/import',
     collapsible: true,
     items: [
+      {
+        label: 'Import Sample Data',
+        contentSite: 'cloud-docs',
+        url: '/docs/atlas/import/load-sample-data',
+      },
       {
         label: 'Monitor Migrations',
         contentSite: 'cloud-docs',

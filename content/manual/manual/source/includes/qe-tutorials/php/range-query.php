@@ -1,7 +1,7 @@
 <?php
 
 // start-enable-range
-$encryptedFieldsMap = [
+$collectionOpts = [
     'encryptedFields' => [
         'fields' => [
             [

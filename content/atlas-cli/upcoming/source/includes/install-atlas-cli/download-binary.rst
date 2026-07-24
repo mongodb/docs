@@ -42,10 +42,10 @@ Procedure
       The user then moves the executable file to a directory already in
       their ``PATH``:
 
-      .. code-block:: sh
+.. code-block:: sh
 
-         cd atlascli_{+atlas-cli-version+}-macOS_x86_64
-         mv atlas /usr/local/bin
+   cd atlascli_{+atlas-cli-version+}-macOS_x86_64
+   mv atlas /usr/local/bin
 
    .. include:: /includes/steps-verify-atlas-cli.rst
 

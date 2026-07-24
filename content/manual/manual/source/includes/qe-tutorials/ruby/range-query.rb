@@ -4,7 +4,7 @@
 # range queries with Queryable Encryption.
 
 # start-enable-range
-encrypted_fields_map = {
+collection_opts = {
   encrypted_fields: {
     fields: [
       {

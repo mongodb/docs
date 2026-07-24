@@ -22,7 +22,7 @@ MongoDB Change Streams
    :class: twocols
 
 .. meta::
-   :description: Use change streams to subscribe to real-time data changes in MongoDB. Includes driver code examples for opening, filtering, and resuming change streams across many languages.
+   :description: Change streams allow applications to subscribe to real-time data changes on a MongoDB collection, database, or deployment. Learn how to open, filter, modify output, and resume change streams.
    :keywords: database triggers, code example, node.js, motor, coroutine, java sync, swift sync, swift async, compass
 
 Change streams allow applications to access real-time data changes
@@ -119,10 +119,9 @@ You can open change streams against:
        (except ``system`` collections, or any collections in the
        ``admin``, ``local``, and ``config`` databases).
 
-       The examples on this page use the MongoDB drivers to open and
-       work with a change stream cursor for a single collection. See
-       also the :binary:`~bin.mongosh` method
-       :method:`db.collection.watch()`.
+       The examples on this page include both MongoDB driver and
+       :binary:`~bin.mongosh` examples for opening and working
+       with a change stream cursor for a single collection.
 
    * - A database
 
@@ -204,8 +203,21 @@ upper-right to set the language of the examples on this page.
 .. tabs-drivers::
 
    .. tab::
+      :tabid: shell
+
+      The following example assumes you are connected to a
+      MongoDB replica set in :binary:`~bin.mongosh` and have
+      accessed a database that contains an ``inventory``
+      collection.
+
+      .. code-block:: javascript
+
+         let cursor = db.inventory.watch();
+         cursor.next();
+
+   .. tab::
       :tabid: python
-         
+
       The Python examples below assume that you have :driver:`connected to a MongoDB replica set and have accessed a database
       </pymongo>` that contains an ``inventory`` collection.
 
@@ -419,7 +431,40 @@ upper-right to set the language of the examples on this page.
 
 .. tabs-drivers::
 
-   .. tab:: 
+   .. tab::
+      :tabid: shell
+
+      .. include:: /includes/fact-change-streams-modify-output.rst
+
+      .. code-block:: javascript
+
+         let pipeline = [
+            {
+               $match: {
+                  $or: [
+                     { "fullDocument.username": "alice" },
+                     { operationType: { $in: [ "delete" ] } }
+                  ]
+               }
+            }
+         ]
+
+         let cursor = db.inventory.watch( pipeline )
+         cursor.next()
+
+      The ``pipeline`` array includes a single :pipeline:`$match`
+      stage that filters for any operations that meet one or both
+      of the following criteria:
+
+      - ``username`` value is ``alice``
+      - ``operationType`` value is ``delete``
+
+      Passing the ``pipeline`` to the
+      :method:`db.collection.watch()` method directs the change
+      stream to return notifications after passing them through
+      the specified ``pipeline``.
+
+   .. tab::
       :tabid: python
 
       .. include:: /includes/fact-change-streams-modify-output.rst
@@ -646,6 +691,26 @@ upper-right to set the language of the examples on this page.
 ----------
 
 .. tabs-drivers::
+
+   .. tab::
+      :tabid: shell
+
+      To return the most current majority-committed version of the
+      updated document, pass ``fullDocument: "updateLookup"`` to
+      the :method:`db.collection.watch()` method.
+
+      In the example below, all update operation notifications
+      include a ``fullDocument`` field that represents the
+      *current* version of the document affected by the update
+      operation.
+
+      .. code-block:: javascript
+
+         let cursor = db.inventory.watch( [ ], { 
+            fullDocument: "updateLookup" 
+         } )
+
+         cursor.next()
 
    .. tab::
       :tabid: python
@@ -930,6 +995,26 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
    - .. include:: /includes/extracts/changestream-invalid-events.rst
 
 .. tabs-drivers::
+
+   .. tab::
+      :tabid: shell
+
+      You can use the ``resumeAfter`` option to resume
+      notifications after the operation specified in the resume
+      token. The ``resumeAfter`` option takes a value that must
+      resolve to a resume token, e.g. ``resumeToken`` in the
+      example below.
+
+      .. code-block:: javascript
+
+         let cursor = db.inventory.watch()
+         let resumeToken = cursor.next()._id
+
+         let resumedCursor = db.inventory.watch( [ ], { 
+            resumeAfter: resumeToken 
+         } )
+
+         resumedCursor.next()
 
    .. tab::
       :tabid: python

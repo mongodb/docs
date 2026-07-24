@@ -41,3 +41,11 @@ all supplied identifiers across restarts.
 You cannot remove supplied hot document identifiers during a
 migration. To restart the migration from scratch and remove or
 correct supplied identifiers, see :ref:`mongosync-restart-migration`.
+
+.. note::
+
+   ``mongosync`` does not retain hot documents on a
+   :ref:`reverse <c2c-api-reverse>` sync. If replication lag occurs
+   due to hot documents during a reverse sync, restart the
+   ``mongosync`` process and specify the hot document identifiers
+   for the reverse direction. Do not restart the migration from scratch.

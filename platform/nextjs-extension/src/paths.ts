@@ -18,6 +18,7 @@ export const getDocsMonorepoRoot = (fallbackRoot: string): string =>
 
 /** Canonical directory paths for the monorepo, computed from repo root.
  * Pass a custom repoRoot to override the default (useful in tests).
+ * Pass appDir to target a different Next.js app (e.g. "docs-site").
  *
  * Content paths throughout the build pipeline are stored relative to `contentDir`
  * (e.g. `atlas` or `c-driver/current`). Use `absoluteContentPath` and
@@ -25,31 +26,18 @@ export const getDocsMonorepoRoot = (fallbackRoot: string): string =>
  */
 export const getRepoPaths = (
 	repoRoot = getDocsMonorepoRoot(DOCS_MONOREPO_ROOT_FALLBACK),
+	appDir = "docs-nextjs",
 ) => {
 	const contentDir = path.join(repoRoot, CONTENT_DIR_NAME);
+	const appRoot = path.join(repoRoot, "platform", appDir);
 	return {
 		repoRoot,
 		contentDir,
-		docsNextjsDir: path.join(repoRoot, "platform", "docs-nextjs"),
-		tocDataDir: path.join(
-			repoRoot,
-			"platform",
-			"docs-nextjs",
-			"src",
-			"context",
-			"toc-data",
-		),
-		generatedDir: path.join(
-			repoRoot,
-			"platform",
-			"docs-nextjs",
-			"src",
-			"generated",
-		),
+		docsNextjsDir: appRoot,
+		tocDataDir: path.join(appRoot, "src", "context", "toc-data"),
+		generatedDir: path.join(appRoot, "src", "generated"),
 		offlineDocsDir: path.join(
-			repoRoot,
-			"platform",
-			"docs-nextjs",
+			appRoot,
 			"src",
 			"context",
 			"table-of-contents",

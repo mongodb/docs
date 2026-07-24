@@ -1,0 +1,44 @@
+# Drift-detection manifest for mongosync.
+# Conforms to manifests/SCHEMA.md. Fields are grouped by the pipeline stage
+# that consumes them. Source paths/markers below were verified against the
+# pinned snapshot (see source.repos[].ref).
+
+property: mongosync
+component: mongosync
+calibrated: true   # surface hints + intent markers confirmed against the adjudicated answer key
+
+docs:
+  path: content/mongosync/current
+  # baseline_version omitted on purpose: triage derives the released anchor at
+  # runtime (highest vN.N dir; source release state; eng fix versions). For the
+  # pinned 2026-03-23 fixture that resolves to 1.19 automatically.
+  # surface_pages omitted: consider all built pages.
+
+source:
+  repos:
+    - url: 10gen/mongosync
+      # Pinned to the 2026-03-23 accuracy-report snapshot for reproducible
+      # validation. For a live run, drop ref (or set to the default branch).
+      ref: 14bd4f5914f84d654c9f43996d0bc1c8fe5b17d8
+      language: go
+  surface_hints:
+    - "CLI flags and config-file options are defined in internal/mongosync/msoptions/flags.go (cli.Flag / altsrc.New*Flag definitions); flag name is the Name field."
+    - "Defaults and constants (including conditional defaults) are in internal/mongosync/constants/const.go."
+    - "The options struct mapping is internal/mongosync/msoptions/options.go."
+    - "Public HTTP API request/response shapes are in shared/publicapi/publicapi.go and internal/webserver/ (for example, start.go); accepted parameters and validation live alongside the handlers."
+    - "Replication states are in internal/mongosync/resumedata/state.go; /progress phase values are in internal/mongosync/resumedata/phase/phase.go; progress warnings are appended in internal/mongosync/progress.go."
+    - "Behavioral restrictions enforced at start time (for example, the restart-only restriction on disableVerification, which returns DisableVerificationOnStartError) are in internal/mongosync/mongosync_check_start.go; capture these as constraints on the affected flag."
+  hidden_surface:
+    - "Flags marked `Hidden: true` in internal/mongosync/msoptions/flags.go are intentionally undocumented."
+    - "The internal/mongosync/msoptions/hiddenflags package (HiddenFlagCLIDefinitions / HiddenFlagValues) defines deliberately hidden flags."
+
+triage:
+  eng_project: REP
+  intent_markers:
+    - "external-only"        # for example, INITIALIZING state (resumedata/state.go) — finding #2
+    - "backward compatibility"  # for example, destinationDataHandling (webserver/start.go) — finding #11
+    - "ALM environment"      # Atlas Live Migrate-only surface
+    - "internal"
+    - "not stable"
+  # hedge_phrases: rely on built-in defaults ("include", "for example",
+  # "such as", ...) — these cover findings #3 and #10. No override needed.

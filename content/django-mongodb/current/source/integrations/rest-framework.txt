@@ -1,0 +1,253 @@
+.. _django-extensions-rest-framework:
+
+=================================================
+Serialize MongoDB Data with {+drf+}
+=================================================
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :description: Learn how to use Django MongoDB Extensions serializers to represent MongoDB-specific fields, such as embedded models and polymorphic embedded models, in a Django REST Framework project.
+   :keywords: rest framework, serializer, embedded model, api, extensions
+
+Overview
+--------
+
+In this tutorial, you can learn how to use **{+drf+}**
+serializers from {+django-ext+} in your {+framework+}
+project.
+
+{+django-ext+} is a package that contains additional developer
+tools for {+django-odm+}. This tutorial shows you how to use the
+serializers in {+django-ext+} to represent MongoDB-specific
+fields in your {+drf+} API.
+
+.. note::
+
+   {+drf+} is available in {+django-ext+} v0.3.0 and
+   later.
+
+Serializers
+~~~~~~~~~~~
+
+{+django-ext+} provides the following serializers in the
+``django_mongodb_extensions.rest_framework`` module:
+
+- **MongoModelSerializer**: The top-level serializer for
+  {+framework+} models that contain MongoDB-specific fields. Use
+  this serializer instead of the {+drf+} ``ModelSerializer`` for
+  any model that uses ``ObjectIdAutoField``. ``MongoModelSerializer`` automatically
+  generates nested serializers for embedded fields.
+
+- **EmbeddedModelSerializer**: The serializer for ``EmbeddedModel``
+  classes. Because ``MongoModelSerializer`` handles embedded fields
+  automatically, define an ``EmbeddedModelSerializer`` only when
+  you want to customize how an embedded model is represented or when
+  you need to write embedded data. Assign the subclass as an
+  explicit field on the parent model's serializer.
+
+- **PolymorphicEmbeddedModelSerializer**: The serializer for
+  polymorphic embedded fields. ``MongoModelSerializer`` applies this
+  serializer automatically, so you don't reference it directly.
+  Polymorphic embedded fields are read-only.
+
+``MongoModelSerializer`` automatically generates the correct
+{+drf+} fields for the following MongoDB-specific field types:
+
+- ``ArrayField``
+- ``EmbeddedModelField``
+- ``EmbeddedModelArrayField``
+- ``PolymorphicEmbeddedModelField`` (read-only)
+- ``PolymorphicEmbeddedModelArrayField`` (read-only)
+- ``ObjectIdField``
+- ``ObjectIdAutoField``
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Before you begin this tutorial, create a {+framework+} project that
+uses {+django-odm+}. To create a project, see the :ref:`django-get-started`
+tutorial.
+
+Tutorial
+--------
+
+The following steps show how to install {+django-ext+} and use
+its serializers to model movie data from MongoDB in your
+{+drf+} API.
+
+.. procedure::
+   :style: connected
+
+   .. step:: Install {+django-ext+}.
+
+      Run the following command to install {+django-ext+} with the
+      ``rest_framework`` dependency:
+
+      .. code-block:: bash
+
+         pip install "django-mongodb-extensions[rest_framework]"
+
+   .. step:: Update your installed apps.
+
+      Navigate to your project's ``settings.py`` file. Then, add
+      ``"django_mongodb_extensions"`` and ``"rest_framework"`` to
+      the ``INSTALLED_APPS`` setting, as shown in the following example:
+
+      .. code-block:: python
+         :emphasize-lines: 2,3
+
+         INSTALLED_APPS = [
+             'django_mongodb_extensions',
+             'rest_framework',
+             # ... your other apps
+         ]
+
+   .. step:: Set up your files.
+
+      In the :ref:`Get Started <django-get-started>` tutorial, you created a
+      ``models.py`` file that includes the following code:
+
+      .. literalinclude:: /includes/get-started/models.py
+         :language: python
+         :copyable:
+
+      Ensure that your app directory contains this file.
+      Then, create a ``serializers.py`` file in the same directory as your
+      ``models.py`` file.
+
+   .. step:: Serialize a model.
+
+      To serialize a model that uses ``ObjectIdAutoField``, define
+      a serializer that extends ``MongoModelSerializer`` in your
+      ``serializers.py`` file. The following example defines a
+      serializer for the ``Viewer`` model:
+
+      .. code-block:: python
+         :caption: serializers.py
+
+         from django_mongodb_extensions.rest_framework import MongoModelSerializer
+
+         from .models import Viewer
+
+
+         class ViewerSerializer(MongoModelSerializer):
+             class Meta:
+                 model = Viewer
+                 fields = "__all__"
+
+   .. step:: Serialize an embedded model.
+
+      To serialize a field that stores an embedded model, define a
+      serializer that extends ``EmbeddedModelSerializer`` for the
+      embedded model, then reference it from the parent model's
+      serializer.
+
+      To serialize the ``Movie`` model and its embedded ``Award`` model,
+      update your ``serializers.py`` file to resemble the following:
+
+      .. literalinclude:: /includes/integrations/serializers.py
+         :language: python
+         :caption: serializers.py
+         :emphasize-lines: 3,8,9,19-30
+
+      .. note:: Embedded Model Serializer Behavior
+
+         When you serialize an embedded model, note the following
+         behavior:
+
+         - ``EmbeddedModelSerializer`` excludes primary key fields
+           unless you explicitly list them in ``Meta.fields``.
+         - The ``to_internal_value()`` method returns model instances
+           rather than dictionaries.
+         - You can't save embedded models directly. Save them through
+           their parent models instead.
+
+   .. step:: View the serialized output of a model.
+
+      After you define a serializer, you can use it to convert a
+      model instance into a dictionary of primitive data types
+      that {+drf+} can render as JSON.
+
+      Start a Python shell by running the following command:
+
+      .. code-block:: bash
+
+         python manage.py shell
+
+      Then, run the following code to query the
+      ``sample_mflix.users`` collection for a viewer and
+      serialize the result:
+
+      .. code-block:: python
+
+         from sample_mflix.models import Viewer
+         from sample_mflix.serializers import ViewerSerializer
+
+         viewer = Viewer.objects.get(email="jason_momoa@gameofthron.es")
+         serializer = ViewerSerializer(viewer)
+         serializer.data
+
+      The ``data`` attribute contains the serialized representation
+      of the viewer, which resembles the following output:
+
+      .. code-block:: python
+         :copyable: false
+
+         {'id': '...', 'name': 'Khal Drogo', 'email': 'jason_momoa@gameofthron.es'}
+
+   .. step:: View the serialized output of an embedded model.
+
+      When you serialize a model that contains an embedded model,
+      the serializer nests the embedded model's fields in the
+      output.
+
+      From your Python shell, run the following code to query the
+      ``sample_mflix.movies`` collection for a movie and serialize the result:
+
+      .. code-block:: python
+
+         from sample_mflix.models import Movie
+         from sample_mflix.serializers import MovieSerializer
+
+         movie = Movie.objects.first()
+         serializer = MovieSerializer(movie)
+         serializer.data
+
+      The serialized output nests the ``awards`` embedded model
+      inside the movie, which resembles the following:
+
+      .. code-block:: python
+         :copyable: false
+
+         {'id': '...',
+          'title': 'The Great Train Robbery',
+          'plot': 'A group of bandits stage a brazen train hold-up...',
+          'runtime': 11,
+          'released': '1903-12-01T00:00:00Z',
+          'awards': {'wins': 1, 'nominations': 0, 'text': '1 win.'},
+          'genres': ['Short', 'Western']}
+
+Next Steps
+----------
+
+Congratulations on completing the {+drf+} tutorial! You now have a
+{+framework+} application that uses {+django-ext+} serializers to
+represent MongoDB movie-related fields in a {+drf+} API.
+
+To learn more about {+drf+}, see the `{+drf+}
+<https://www.django-rest-framework.org/>`__ documentation.
+
+To learn more about the {+django-ext+} package, see
+`django-mongodb-extensions
+<https://pypi.org/project/django-mongodb-extensions/>`__ on PyPI and
+the :github:`django-mongodb-extensions
+<mongodb-labs/django-mongodb-extensions>` repository on GitHub.

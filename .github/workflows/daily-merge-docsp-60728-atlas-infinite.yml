@@ -1,0 +1,86 @@
+name: Daily merge main into aid feature branch
+
+on:
+  schedule:
+    - cron: "0 14 * * *" # 10am ET daily
+  workflow_dispatch: # allow manual trigger
+
+concurrency:
+  group: daily-merge-atlas-id
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout feature branch
+        uses: actions/checkout@v4
+        with:
+          ref: DOCSP-60728-atlas-infinite
+          fetch-depth: 0
+          token: ${{ secrets.GH_ACCESS_TOKEN }}
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Merge main into feature branch
+        id: merge
+        run: |
+          git fetch origin main
+          if git merge origin/main --no-edit; then
+            echo "merge_status=success" >> $GITHUB_OUTPUT
+          else
+            CONFLICTS=$(git diff --name-only --diff-filter=U)
+            echo "merge_status=conflict" >> $GITHUB_OUTPUT
+            echo "conflicts<<EOF" >> $GITHUB_OUTPUT
+            echo "$CONFLICTS" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+            git merge --abort
+          fi
+
+      - name: Push branch
+        if: steps.merge.outputs.merge_status == 'success'
+        run: git push origin DOCSP-60728-atlas-infinite
+
+      - name: Send Slack notification on success
+        if: steps.merge.outputs.merge_status == 'success'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_AID_MERGE }}
+        run: |
+          jq -n \
+            '{"text": "Daily merge of main into DOCSP-60728-atlas-infinite completed successfully."}' | \
+          curl -s -X POST "$SLACK_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d @-
+
+      - name: Send Slack notification on merge conflict
+        if: steps.merge.outputs.merge_status == 'conflict'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_AID_MERGE }}
+          CONFLICTS: ${{ steps.merge.outputs.conflicts }}
+        run: |
+          jq -n \
+            --arg run_url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --arg conflicts "$CONFLICTS" \
+            '{"text": ("Daily merge of main into DOCSP-60728-atlas-infinite hit a conflict and needs a manual merge. Conflicting files:\n" + $conflicts + "\n" + $run_url)}' | \
+          curl -s -X POST "$SLACK_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d @-
+
+      - name: Send Slack notification on workflow failure
+        if: failure()
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_AID_MERGE }}
+        run: |
+          jq -n \
+            --arg run_url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            '{"text": ("Daily merge workflow for DOCSP-60728-atlas-infinite failed. Check the run for details: " + $run_url)}' | \
+          curl -s -X POST "$SLACK_WEBHOOK_URL" \
+            -H "Content-Type: application/json" \
+            -d @-

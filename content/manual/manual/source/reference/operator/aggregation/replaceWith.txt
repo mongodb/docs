@@ -49,14 +49,10 @@ the document does not exist), :pipeline:`$replaceWith` errors and
 fails. For example, create a collection with the following
 documents:
 
-.. code-block:: javascript
-
-   db.collection.insertMany([
-      { "_id": 1, "name" : { "first" : "John", "last" : "Backus" } },
-      { "_id": 2, "name" : { "first" : "John", "last" : "McCarthy" } },
-      { "_id": 3, "name": { "first" : "Grace", "last" : "Hopper" } },
-      { "_id": 4, "firstname": "Ole-Johan", "lastname" : "Dahl" },
-   ])
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/behavior-insert.snippet.insert-collection.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 
 Then the following :pipeline:`$replaceWith` operation fails because one
@@ -71,32 +67,28 @@ of the document does not have the ``name`` field:
 To avoid the error, you can use :expression:`$mergeObjects` to merge
 the  ``name`` document with some default document; for example:
 
-.. code-block:: javascript
-
-   db.collection.aggregate([
-      { $replaceWith: { $mergeObjects: [ { _id: "$_id", first: "", last: "" }, "$name" ] } }
-   ])
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/behavior-merge-objects.snippet.replace-with-merge-name.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 Alternatively, you can skip the documents that are missing the ``name`` field by
 including a :pipeline:`$match` stage to check for existence of the
 document field before passing documents to the :pipeline:`$replaceWith`
 stage:
 
-.. code-block:: javascript
-
-   db.collection.aggregate([
-      { $match: { name : { $exists: true, $not: { $type: "array" }, $type: "object" } } },
-      { $replaceWith: "$name" }
-   ])
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/behavior-match.snippet.replace-with-match-name.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 Or, you can use :expression:`$ifNull` expression to specify some other
 document to be root; for example:
 
-.. code-block:: javascript
-
-   db.collection.aggregate([
-      { $replaceWith: { $ifNull: [ "$name", { _id: "$_id", missingName: true} ] } }
-   ])
+.. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/behavior-ifnull.snippet.replace-with-ifnull-name.js
+   :language: javascript
+   :copyable: true
+   :category: usage example
 
 Examples
 --------
@@ -113,13 +105,10 @@ Examples
 
       Create a collection named ``people`` with the following documents:
 
-      .. code-block:: javascript
-
-         db.people.insertMany([
-            { "_id" : 1, "name" : "Arlene", "age" : 34, "pets" : { "dogs" : 2, "cats" : 1 } },
-            { "_id" : 2, "name" : "Sam", "age" : 41, "pets" : { "cats" : 1, "fish" : 3 } },
-            { "_id" : 3, "name" : "Maria", "age" : 25 }
-         ])
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/people-insert.snippet.insert-people.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
 
       The following operation uses the :pipeline:`$replaceWith` stage to
       replace each input document with the result of a
@@ -127,65 +116,40 @@ Examples
       expression merges the specified default document with the ``pets``
       document.
 
-      .. code-block:: javascript
-
-         db.people.aggregate( [
-            { $replaceWith: { $mergeObjects:  [ { dogs: 0, cats: 0, birds: 0, fish: 0 }, "$pets" ] } }
-         ] )
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/people-merge-pets.snippet.replace-with-merge-pets.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
 
       The operation returns the following results:
 
-      .. code-block:: javascript
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/people-merge-pets-output.sh
+         :language: javascript
          :copyable: false
-
-         { "dogs" : 2, "cats" : 1, "birds" : 0, "fish" : 0 }
-         { "dogs" : 0, "cats" : 1, "birds" : 0, "fish" : 3 }
-         { "dogs" : 0, "cats" : 0, "birds" : 0, "fish" : 0 }
 
       ``$replaceWith`` a Document Nested in an Array
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       A collection named ``students`` contains the following documents:
 
-      .. code-block:: javascript
-
-         db.students.insertMany([
-            {
-               "_id" : 1,
-               "grades" : [
-                  { "test": 1, "grade" : 80, "mean" : 75, "std" : 6 },
-                  { "test": 2, "grade" : 85, "mean" : 90, "std" : 4 },
-                  { "test": 3, "grade" : 95, "mean" : 85, "std" : 6 }
-               ]
-            },
-            {
-               "_id" : 2,
-               "grades" : [
-                  { "test": 1, "grade" : 90, "mean" : 75, "std" : 6 },
-                  { "test": 2, "grade" : 87, "mean" : 90, "std" : 3 },
-                  { "test": 3, "grade" : 91, "mean" : 85, "std" : 4 }
-               ]
-            }
-         ])
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/students-insert.snippet.insert-students.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
 
       The following operation promotes the embedded document(s) with the
       ``grade`` field greater than or equal to ``90`` to the top level:
 
-      .. code-block:: javascript
-
-         db.students.aggregate( [
-            { $unwind: "$grades" },
-            { $match: { "grades.grade" : { $gte: 90 } } },
-            { $replaceWith: "$grades" }
-         ] )
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/students-promote-grades.snippet.replace-with-promote-grades.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
 
       The operation returns the following results:
 
-      .. code-block:: javascript
-
-         { "test" : 3, "grade" : 95, "mean" : 85, "std" : 6 }
-         { "test" : 1, "grade" : 90, "mean" : 75, "std" : 6 }
-         { "test" : 3, "grade" : 91, "mean" : 85, "std" : 4 }
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/students-promote-grades-output.sh
+         :language: javascript
+         :copyable: false
 
       .. _replacewith-new-doc:
 
@@ -198,14 +162,10 @@ Examples
       An example collection ``sales`` is populated with the following
       documents:
 
-      .. code-block:: javascript
-
-         db.sales.insertMany([
-            { "_id" : 1, "item" : "butter", "price" : 10, "quantity": 2, date: ISODate("2019-03-01T08:00:00Z"), status: "C" },
-            { "_id" : 2, "item" : "cream", "price" : 20, "quantity": 1, date: ISODate("2019-03-01T09:00:00Z"), status: "A" },
-            { "_id" : 3, "item" : "jam", "price" : 5, "quantity": 10, date: ISODate("2019-03-15T09:00:00Z"), status: "C" },
-            { "_id" : 4, "item" : "muffins", "price" : 5, "quantity": 10, date: ISODate("2019-03-15T09:00:00Z"), status: "C" }
-         ])
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/sales-insert.snippet.insert-sales.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
 
       Assume that for reporting purposes, you want to calculate for each
       completed sale, the total amount as of the current report run time. The
@@ -214,20 +174,16 @@ Examples
       :pipeline:`$replaceWith` calculates the total amount as well as uses
       the variable :variable:`NOW` to get the current time.
 
-      .. code-block:: javascript
-
-         db.sales.aggregate([
-            { $match: { status: "C" } },
-            { $replaceWith: { _id: "$_id", item: "$item", amount: { $multiply: [ "$price", "$quantity"]}, status: "Complete", asofDate: "$$NOW" } }
-         ])
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/sales-new-documents.snippet.replace-with-new-documents.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
 
       The operation returns the following documents:
 
-      .. code-block:: javascript
-
-         { "_id" : 1, "item" : "butter", "amount" : 20, "status" : "Complete", "asofDate" : ISODate("2019-06-03T22:47:54.812Z") }
-         { "_id" : 3, "item" : "jam", "amount" : 50, "status" : "Complete", "asofDate" : ISODate("2019-06-03T22:47:54.812Z") }
-         { "_id" : 4, "item" : "muffins", "amount" : 50, "status" : "Complete", "asofDate" : ISODate("2019-06-03T22:47:54.812Z") }
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/sales-new-documents-output.sh
+         :language: javascript
+         :copyable: false
 
 
       Example 2
@@ -236,16 +192,10 @@ Examples
       An example collection ``reportedsales`` is populated with the
       reported sales information by quarter and regions:
 
-      .. code-block:: javascript
-
-         db.reportedsales.insertMany( [
-            { _id: 1, quarter: "2019Q1", region: "A", qty: 400 },
-            { _id: 2, quarter: "2019Q1", region: "B", qty: 550 },
-            { _id: 3, quarter: "2019Q1", region: "C", qty: 1000 },
-            { _id: 4, quarter: "2019Q2", region: "A", qty: 660 },
-            { _id: 5, quarter: "2019Q2", region: "B", qty: 500 },
-            { _id: 6, quarter: "2019Q2", region: "C", qty: 1200 }
-         ] )
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/reportedsales-insert.snippet.insert-reportedsales.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
 
       Assume that for reporting purposes, you want to view the reported sales
       data by quarter; e.g.
@@ -258,14 +208,10 @@ Examples
       To view the data grouped by quarter, you can use the following
       aggregation pipeline:
 
-      .. code-block:: javascript
-
-         db.reportedsales.aggregate( [
-            { $addFields: { obj:  { k: "$region", v: "$qty" } } },
-            { $group: { _id: "$quarter", items: { $push: "$obj" } } },
-            { $project: { items2: { $concatArrays: [ [ { "k": "_id", "v": "$_id" } ], "$items" ] } } },
-            { $replaceWith: { $arrayToObject: "$items2" } }
-         ] )
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/reportedsales-group-by-quarter.snippet.replace-with-group-by-quarter.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
 
       First stage:
          The :pipeline:`$addFields` stage adds a new ``obj`` document
@@ -310,68 +256,34 @@ Examples
 
       The aggregation returns the following document:
 
-      .. code-block:: javascript
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/reportedsales-group-by-quarter-output.sh
+         :language: javascript
          :copyable: false
-
-         { "_id" : "2019Q1", "A" : 400, "B" : 550, "C" : 1000 }
-         { "_id" : "2019Q2", "A" : 660, "B" : 500, "C" : 1200 }
 
       ``$replaceWith`` a New Document Created from ``$$ROOT`` and a Default Document
       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
       Create a collection named ``contacts`` with the following documents:
 
-      .. code-block:: javascript
-
-         db.contacts.insertMany( [
-            { "_id" : 1, name: "Fred", email: "fred@example.net" },
-            { "_id" : 2, name: "Frank N. Stine", cell: "012-345-9999" },
-            { "_id" : 3, name: "Gren Dell", cell: "987-654-3210", email: "beo@example.net" }
-         ] )
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/contacts-insert.snippet.insert-contacts.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
 
       The following operation uses :pipeline:`$replaceWith` with
       :expression:`$mergeObjects` to output current documents with default
       values for missing fields:
 
-      .. code-block:: javascript
-
-         db.contacts.aggregate( [
-            { $replaceWith:
-               { $mergeObjects:
-                  [
-                     { _id: "", name: "", email: "", cell: "", home: "" },
-                     "$$ROOT"
-                  ]
-               }
-            }
-         ] )
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/contacts-defaults.snippet.replace-with-defaults.js
+         :language: javascript
+         :copyable: true
+         :category: usage example
 
       The aggregation returns the following documents:
 
-      .. code-block:: javascript
+      .. literalinclude:: /code-examples/tested/command-line/mongosh/aggregation/stages/replace-with/contacts-defaults-output.sh
+         :language: javascript
          :copyable: false
-
-         {
-           _id: 1,
-           name: 'Fred',
-           email: 'fred@example.net',
-           cell: '',
-           home: ''
-         },
-         {
-           _id: 2,
-           name: 'Frank N. Stine',
-           email: '',
-           cell: '012-345-9999',
-           home: ''
-         },
-         {
-           _id: 3,
-           name: 'Gren Dell',
-           email: 'beo@example.net',
-           cell: '',
-           home: '987-654-3210'
-         }
 
    .. tab::
       :tabid: csharp
@@ -443,11 +355,10 @@ Examples
 
          .. replacement:: more-method-description
 
-      .. literalinclude:: /includes/driver-examples/node/aggregation/examples.js
-         :start-after: //start replaceWith
-         :end-before: //end replaceWith
+      .. literalinclude:: /code-examples/tested/javascript/driver/aggregation/stages/replace-with/replace-with.snippet.replace-with.js
          :language: javascript
-         :dedent: 2
+         :copyable: true
+         :category: usage example
 
 Learn More
 ----------

@@ -12,13 +12,12 @@ Follow these steps to |action 2| with a configuration file:
       c. Click :guilabel:`Copy` to copy the sample request.
 
    .. step:: Create the configuration file.
-    
+
       a. Paste the sample request into a text editor and change
          the values to reflect your desired configuration.
       b. Save the file with a ``.json`` extension.
 
-   .. step:: Run the |atlas-cli command 2| command with 
+   .. step:: Run the |atlas-cli command 2| command with
       the ``--file`` option.
 
       Specify the path to the file you saved with the ``--file`` flag.
-

@@ -106,14 +106,14 @@ The following table describes the fields in the ``stores`` object:
    * - .. datalakeconf-atlas:: stores.[n].readPreference 
      - boolean
      - optional
-     - Cluster :manual:`read preference 
-       </core/read-preference/>`, which describes how to route read 
+     - Cluster :ref:`read preference 
+       <replica-set-read-preference>`, which describes how to route read 
        requests to the cluster.
 
        For example: 
 
-       The following ``readPreference`` setting specifies ``secondary`` :manual:`mode 
-       </core/read-preference/#std-label-read-pref-modes-summary>` and 
+       The following ``readPreference`` setting specifies ``secondary`` :ref:`mode 
+       <read-pref-modes-summary>` and 
        ``ANALYTICS`` :ref:`nodeType <repl-set-node-types>`.
 
        .. code-block:: json 
@@ -147,8 +147,8 @@ The following table describes the fields in the ``stores`` object:
    * - .. datalakeconf-atlas:: stores.[n].readPreference.mode 
      - string
      - optional
-     - :manual:`Read preference mode 
-       </core/read-preference/#read-preference-modes>` that specifies which 
+     - :ref:`Read preference mode 
+       <read-pref-modes-summary>` that specifies which 
        replica set member to route the read requests to. Value can be one 
        of the following: 
 
@@ -159,12 +159,12 @@ The following table describes the fields in the ``stores`` object:
    * - .. datalakeconf-atlas:: stores.[n].readPreference.tagSets
      - array
      - optional
-     - Arrays of :manual:`tag sets 
-       </core/read-preference-tags/>` or tag specification documents that 
+     - Arrays of :ref:`tag sets 
+       <replica-set-read-preference-tag-sets>` or tag specification documents that 
        contain name and value pairs for the replica set member. If 
        specified, {+adf+} routes read requests to replica set member or 
        members that are associated with the specified tags. To learn more, 
-       :manual:`Read Preference Tag Sets </core/read-preference-tags/>`.
+       :ref:`Read Preference Tag Sets <replica-set-read-preference-tag-sets>`.
 
        :gold:`IMPORTANT:` {+adf+} doesn't support ``tagSets`` for sharded 
        clusters.
@@ -174,14 +174,14 @@ The following table describes the fields in the ``stores`` object:
      - optional
      - Maximum replication lag, or "staleness", for reads from 
        secondaries. To learn more about ``maxStalenessSeconds``, see 
-       :manual:`Read Preference maxStalenessSeconds </core/read-preference-staleness/>`.
+       :ref:`Read Preference maxStalenessSeconds <replica-set-read-preference-max-staleness>`.
 
    * - .. datalakeconf-atlas:: stores.[n].readConcern
      - string
      - optional
      - Consistency and isolation properties of the data read 
-       from an |service| {+cluster+}. To learn more, see :manual:`Read Concern 
-       </reference/read-concern/>`. The value for the level of consistency
+       from an |service| {+cluster+}. To learn more, see :ref:`Read Concern 
+       <read-concern>`. The value for the level of consistency
        and availability can be one of the following: 
 
        .. include:: /includes/data-federation/fact-read-concern-levels.rst
@@ -427,9 +427,9 @@ The following table describes the fields in the ``databases`` object:
      - array
      - required
      - Array of objects where each object represents an 
-       :manual:`aggregation pipeline </core/aggregation-pipeline/#id1>` on 
-       a collection. To learn more about views, see :manual:`Views 
-       </core/views/>`.
+       :ref:`aggregation pipeline <aggregation-pipeline>` on 
+       a collection. To learn more about views, see :ref:`Views 
+       <views-landing-page>`.
 
    * - .. datalakeconf-atlas:: databases.[n].views.[n].name 
      - string
@@ -446,8 +446,8 @@ The following table describes the fields in the ``databases`` object:
    * - .. datalakeconf-atlas:: databases.[n].views.[n].pipeline 
      - string
      - required
-     - :manual:`Aggregation pipeline stage(s) 
-       </core/aggregation-pipeline/#id1>` to apply to the 
+     - :ref:`Aggregation pipeline stage(s) 
+       <aggregation-pipeline-operator-reference>` to apply to the 
        :datalakeconf-atlas:`~databases.[n].views.[n].source` collection. You 
        can also create views using the :ref:`$sql <adf-sql-stage>` stage.
 

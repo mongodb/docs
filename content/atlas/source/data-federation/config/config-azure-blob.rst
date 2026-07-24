@@ -383,9 +383,9 @@ The following table describes the fields in the databases object:
      - array
      - required
      - Array of objects where each object represents an 
-       :manual:`aggregation pipeline </core/aggregation-pipeline/#id1>` on 
-       a collection. To learn more about views, see :manual:`Views 
-       </core/views/>`.
+       :ref:`aggregation pipeline <aggregation-pipeline>` on 
+       a collection. To learn more about views, see :ref:`Views 
+       <views-landing-page>`.
 
    * - .. datalakeconf-azure:: databases.[n].views.[n].name 
      - string
@@ -402,8 +402,8 @@ The following table describes the fields in the databases object:
    * - .. datalakeconf-azure:: databases.[n].views.[n].pipeline 
      - array
      - optional
-     - :manual:`Aggregation pipeline stage(s) 
-       </core/aggregation-pipeline/#id1>` to apply to the 
+     - :ref:`Aggregation pipeline stage(s) 
+       <aggregation-pipeline-operator-reference>` to apply to the 
        :datalakeconf-azure:`~databases.[n].views.[n].source` collection. You 
        can also create views using the :ref:`$sql <adf-sql-stage>` stage.
 

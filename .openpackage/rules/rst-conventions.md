@@ -88,3 +88,17 @@ Header 3
     :ref:\`deploy-...\`"
   - Avoid: "See :ref:\`deploy-...\` to learn how to deploy a sharded
     cluster."
+
+## Glossary
+
+- Glossary terms live inside a single ``.. glossary::`` directive, which
+  is an RST definition list, not a series of standalone sections. Each
+  term and its indented definition is one list item.
+- Never add a manual ``.. _label:`` anchor target to a glossary term.
+  The ``.. glossary::`` directive auto-generates an anchor for every
+  term already. Inserting a manual target between entries breaks the
+  definition list's contiguity and can cascade into build errors across
+  every page that references glossary terms.
+- Always cross-reference a glossary term with ``:term:``, for example
+  :term:\`ISODate\` or :term:\`display text \<ISODate\>\`. Never
+  use ``:ref:`` for a glossary term.

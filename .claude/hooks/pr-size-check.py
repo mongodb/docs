@@ -1,23 +1,40 @@
 #!/usr/bin/env python3
 """
-PR-size hook (Edit | Write), PreToolUse only.
+PR-size hook (Bash / git push), PreToolUse only.
 
-Blocks edits that push hand-written content past a size tier until the user
-approves. Tiers are based on DOCSP-60729's audit: reviews degrade past ~10
-files/~300 lines and stall past ~20 files/~1,200 lines.
+Blocks a push when the branch's hand-written content has grown past a
+review-size tier, until the user authorizes that size. Tiers are based on
+DOCSP-60729's audit: reviews degrade past ~10 files/~300 lines and stall past
+~20 files/~1,200 lines.
 
-Before each Edit/Write the branch is sized including the pending change. If the
-projected total crosses an unapproved tier, the edit is blocked. To approve, run:
+The hook fires *before* `git push`. At push time everything that will land on
+the PR is already committed, so the branch is sized on committed history vs the
+origin/main merge-base -- the exact diff the reviewer sees on the PR. No
+staged/unstaged/untracked churn and no simulated pending edits are involved, so
+the count matches GitHub's own "Files changed" math.
+
+Stale-ref accuracy: origin/main is a local cached ref that only moves on
+fetch/pull/push. If it lags real main, a branch that has merged newer main into
+it is sized against too-old a base and the diff is inflated with commits that
+aren't the writer's -- the classic over-flag. To prevent that, the hook does a
+best-effort `git fetch origin main` before sizing (short timeout, credential
+prompts disabled, so it can never hang or block the push). If the fetch fails
+(offline/no remote), it falls back to the cached ref and notes in the block
+message that the size may be inflated.
+
+To authorize a blocked size and let the push through, run:
     python3 .claude/hooks/pr-size-check.py --approve-tier [soft|hard]
-Approval is stored in .git/pr-size-state.json (never committed).
+Approval is stored per-branch in .git/pr-size-state.json (never committed) and
+escalates: approving soft still gates if the branch later crosses hard.
 
-Mechanical work (version flips, backports, redirects/TOC, platform, lockfiles,
-code-example-tests) is exempt — sized on content lines only so mechanical diffs
-don't inflate or mask reviewable content. Backport/version-cut branches are
-skipped outright.
+Mechanical work is excluded from the count entirely: anything outside content/,
+any snooty.toml or netlify.toml, the central content/table-of-contents/ folder,
+and any per-project "*-toc" directory. Backport and version-cut branches, and
+any branch under feature/, are skipped outright.
+
+The open-pr skill calls `--report` for a read-only size summary at PR time.
 """
 
-import difflib
 import json
 import os
 import re
@@ -28,111 +45,65 @@ import sys
 SOFT_FILES, SOFT_LINES = 10, 300
 HARD_FILES, HARD_LINES = 20, 1200
 
-# New untracked files count toward size only if they are docs-source files, so
-# a freshly-written page registers immediately without sweeping in un-gitignored
-# build artifacts (which never have these extensions).
-DOC_SOURCE_EXTS = (".txt", ".rst", ".yaml", ".yml")
-
-# Build/cache directory segments. Untracked files anywhere under these are
-# generated artifacts (e.g. from running code-example tests) and never counted,
-# even if they happen to have a docs-source extension.
-BUILD_DIR_SEGMENTS = {
-    ".gradle", "build", "node_modules", "__pycache__", "dist", "target",
-    ".venv", "venv", ".next", ".pytest_cache", ".mypy_cache", ".tox",
-}
-
-# --- Classification (ported from pr-size-audit/collect_pr_data.py) -----------
-# Share of *changed lines* in mechanical paths above which a PR is mechanical.
-MECH_LINE_THRESHOLD = 0.80
-
-# Path categories that are generated/config/non-prose and therefore not the
-# kind of content a writer reviews line-by-line.
-MECHANICAL_CATEGORIES = {
-    "toc", "redirects", "platform", "lockfile", "config", "code-examples",
-}
+# Best-effort fetch budget. A push is already an online operation, so a few
+# seconds to refresh origin/main is cheap; the timeout guarantees the hook can
+# never hang the push if the network is slow or unavailable.
+FETCH_TIMEOUT = 8
 
 
-def categorize_path(path):
-    """Map a single changed file path to a category. 'content' is the default
-    (hand-written docs prose: .txt/.rst and YAML extracts under source/)."""
+def is_mechanical(path):
+    """True if a changed file is mechanical churn excluded from the size count.
+
+    Counted (reviewable) files are hand-written docs content: paths under
+    content/ that are not TOC files and not per-project config. Everything
+    else is mechanical:
+      - anything outside content/ (platform, .claude, code-example-tests,
+        .github, lockfiles, etc.)
+      - any snooty.toml or netlify.toml, wherever it lives
+      - the central content/table-of-contents/ folder
+      - any directory segment ending in "-toc" (per-project TOC folders)
+    """
     p = path.lower()
     segs = p.split("/")
-    base = segs[-1]
-    ext = "." + base.rsplit(".", 1)[-1] if "." in base else ""
-
-    if base in ("package-lock.json", "pnpm-lock.yaml", "yarn.lock"):
-        return "lockfile"
-    if base == "netlify.toml":
-        return "redirects"
-    if p.startswith("platform/"):
-        return "platform"
-    # Deliberate divergence from the audit's collect_pr_data.py, which treats
-    # code-example files as content: per project decision, code example work in
-    # code-example-tests/ is mechanical and exempt from the size warning.
-    if p.startswith("code-example-tests/"):
-        return "code-examples"
-    # Agent tooling/config (hooks, skills, settings under .claude/) -- not
-    # reviewed docs prose, so PRs that are mostly this work are mechanical.
-    if p.startswith(".claude/"):
-        return "config"
-    # TOC: the central folder, or any per-project "*-toc" directory segment
-    if "table-of-contents" in segs or any(s.endswith("-toc") for s in segs):
-        return "toc"
-    # config/tooling: snooty.toml, other .toml, JS/TS project config, CI
-    if base in ("snooty.toml", "package.json") or base.startswith("tsconfig") \
-            or ext == ".toml" or p.startswith(".github/"):
-        return "config"
-    return "content"
+    if segs[-1] in ("snooty.toml", "netlify.toml"):
+        return True
+    if not p.startswith("content/"):
+        return True
+    if p.startswith("content/table-of-contents/"):
+        return True
+    return any(s.endswith("-toc") for s in segs)
 
 
-def classify_pr(file_stats, subj):
-    """Deterministically label a PR. file_stats is a list of
-    (path, added, deleted). Returns one of:
-    backport | version-cut | mechanical | content.
+def classify_pr(subj):
+    """Deterministically label a PR from its title/subject signal. Returns one
+    of: backport | version-cut | content.
 
     Rules, in order:
-      1. Backport      -> already reviewed on the source branch (title signal).
-      2. Version cut   -> bulk directory duplication (title signal).
-      3. >=80% of changed *lines* live in mechanical paths -> mechanical.
-      4. Otherwise     -> content.
-    A pure-rename/empty diff (0 changed lines) falls back to the same 80% test
-    on the *count* of files.
+      1. Backport    -> already reviewed on the source branch (title signal).
+      2. Version cut -> bulk directory duplication (title signal).
+      3. Otherwise   -> content.
 
-    Note: only the title-signal verdicts (backport, version-cut) are stable for
-    a branch and safe for the caller to cache. The >=80% path-ratio verdict is
-    volatile (a PR can start 100% mechanical and drift below 80% as prose is
-    added), so the caller recomputes it every edit and never caches it."""
+    Per-file mechanical churn is excluded from the size itself by is_mechanical
+    (see content_size), so no line-share threshold is needed here: this only
+    identifies the two branch kinds that are exempt from the size gate outright.
+    """
     s = subj.lower()
     if "backport" in s or re.search(r"\(\d{4,6}\)\s*\(#\d+\)\s*$", subj):
         return "backport"
     if "flip" in s or ("version" in s and any(k in s for k in ("cut", "new version", "bump"))):
         return "version-cut"
-
-    total = sum(a + d for _, a, d in file_stats)
-    mech = sum(a + d for path, a, d in file_stats
-               if categorize_path(path) in MECHANICAL_CATEGORIES)
-    if total > 0:
-        return "mechanical" if mech / total >= MECH_LINE_THRESHOLD else "content"
-    # no line changes (renames / mode changes): fall back to file share
-    if file_stats:
-        mech_files = sum(1 for path, _, _ in file_stats
-                         if categorize_path(path) in MECHANICAL_CATEGORIES)
-        if mech_files / len(file_stats) >= MECH_LINE_THRESHOLD:
-            return "mechanical"
     return "content"
 
 
 def content_size(file_stats):
-    """Files and changed lines of *hand-written* content only -- paths whose
-    category is not mechanical. Mechanical churn (TOC/redirects/lockfiles/
-    config/platform/code-examples) is excluded so the reviewable surface is
-    measured on its own: a large content change is no longer masked when it
-    rides alongside a bigger generated diff (which would push the whole PR over
-    the >=80%-mechanical line and exempt it), nor is a small content change
-    inflated by mechanical lines bundled with it."""
+    """Files and changed lines of *hand-written* content only -- paths that are
+    not mechanical (see is_mechanical). Mechanical churn is excluded so the
+    reviewable surface is measured on its own: a large content change is not
+    masked when it rides alongside a bigger generated diff, nor is a small
+    content change inflated by mechanical lines bundled with it."""
     cf = cl = 0
     for path, a, d in file_stats:
-        if categorize_path(path) not in MECHANICAL_CATEGORIES:
+        if not is_mechanical(path):
             cf += 1
             cl += a + d
     return cf, cl
@@ -145,6 +116,26 @@ def git(args, cwd):
                               cwd=cwd, check=False).stdout
     except Exception:
         return ""
+
+
+def refresh_main(cwd):
+    """Best-effort refresh of the origin/main remote-tracking ref so the branch
+    is sized against real current main, not a stale cached snapshot. Returns
+    True if the fetch succeeded.
+
+    This is a fetch, never a pull: it only moves the origin/main bookmark and
+    downloads new objects. It does not touch the working tree, the current
+    branch, or any checked-out files, so it is safe to run from any branch mid
+    session. GIT_TERMINAL_PROMPT=0 stops git from blocking on a credential
+    prompt, and the timeout guarantees the push is never held up."""
+    env = dict(os.environ, GIT_TERMINAL_PROMPT="0")
+    try:
+        r = subprocess.run(["git", "fetch", "origin", "main"], cwd=cwd,
+                           env=env, capture_output=True, text=True,
+                           timeout=FETCH_TIMEOUT, check=False)
+        return r.returncode == 0
+    except Exception:
+        return False
 
 
 def find_diff_base(cwd):
@@ -189,138 +180,23 @@ def parse_numstat(text):
     return stats
 
 
-def is_build_artifact(path):
-    return any(seg in BUILD_DIR_SEGMENTS for seg in path.split("/"))
-
-
-def new_doc_untracked_stats(cwd):
-    """Count new (untracked) docs-source files so a freshly-written page
-    registers before it is staged. Reads each file's line count directly rather
-    than `git add -N`-ing it, so the user's index is never touched. Build
-    artifacts and non-docs files are skipped."""
-    out = git(["ls-files", "--others", "--exclude-standard"], cwd)
-    stats = []
-    for path in out.split("\n"):
-        if not path:
-            continue
-        low = path.lower()
-        if not low.endswith(DOC_SOURCE_EXTS) or is_build_artifact(low):
-            continue
-        try:
-            with open(os.path.join(cwd, path), encoding="utf-8", errors="ignore") as f:
-                added = sum(1 for _ in f)
-        except OSError:
-            continue
-        stats.append((path, added, 0))
-    return stats
-
-
-def rel_to_repo(path, cwd):
-    """Normalize a tool_input file_path to a repo-root-relative path matching the
-    paths git emits. Returns None for paths outside the repo (which the size
-    model does not track)."""
-    if not path:
-        return None
-    rel = os.path.relpath(path, cwd) if os.path.isabs(path) else path
-    rel = rel.replace(os.sep, "/")
-    if rel.startswith("../"):
-        return None
-    return rel
-
-
-def proposed_content(cwd, rel, tool_input):
-    """The full text the edited file will hold once the pending tool call is
-    applied. Write replaces the file wholesale; Edit substitutes new_string for
-    old_string in the file's current working-tree content (all occurrences when
-    replace_all is set, else the first). Returns None when the result cannot be
-    determined (so the caller leaves sizing unchanged)."""
-    tool = tool_input.get("_tool")
-    if tool == "Write":
-        return tool_input.get("content", "")
-    if tool == "Edit":
-        try:
-            with open(os.path.join(cwd, rel), encoding="utf-8",
-                      errors="ignore") as f:
-                cur = f.read()
-        except OSError:
-            cur = ""
-        old = tool_input.get("old_string", "")
-        new = tool_input.get("new_string", "")
-        if old == "":
-            return cur
-        return cur.replace(old, new) if tool_input.get("replace_all") \
-            else cur.replace(old, new, 1)
-    return None
-
-
-def numstat_text(base_text, new_text):
-    """Added/deleted line counts between two texts, matching `git diff --numstat`
-    closely enough for tier sizing (line-based, headers excluded)."""
-    a, b = base_text.splitlines(keepends=True), new_text.splitlines(keepends=True)
-    added = deleted = 0
-    for line in difflib.unified_diff(a, b, n=0):
-        if line.startswith("+") and not line.startswith("+++"):
-            added += 1
-        elif line.startswith("-") and not line.startswith("---"):
-            deleted += 1
-    return added, deleted
-
-
-def pending_file_stat(cwd, base, tool_input):
-    """Project the (path, added, deleted) the *pending* (not-yet-applied) edit
-    will produce vs the merge-base, so PreToolUse can size the branch as it will
-    be once this write lands -- gating the very edit that crosses a tier rather
-    than the next one. Returns None when projection is not possible."""
-    rel = rel_to_repo(tool_input.get("file_path"), cwd)
-    if rel is None:
-        return None
-    new_text = proposed_content(cwd, rel, tool_input)
-    if new_text is None:
-        return None
-    base_text = git(["show", f"{base}:{rel}"], cwd) if base else ""
-    added, deleted = numstat_text(base_text, new_text)
-    return rel, added, deleted
-
-
-def branch_diff_stats(cwd, pending=None):
-    """Whole-branch diff vs the origin/main merge-base: committed branch changes,
-    staged and unstaged edits to tracked files, and new untracked docs-source
-    files.
-
-    `git diff <merge-base>` compares the merge-base to the *working tree*, so a
-    file that is both committed and further edited is counted once at its full
-    size vs the base, not just its latest uncommitted delta. New pages are
-    untracked until staged, so they are added separately (see
-    new_doc_untracked_stats), limited to docs-source files outside build dirs so
-    un-gitignored build artifacts cannot inflate the count.
+def branch_diff_stats(cwd):
+    """Committed diff of every commit on the branch vs the origin/main
+    merge-base -- exactly the work that will land on the PR. Staged, unstaged,
+    and untracked changes are deliberately excluded: the hook fires before a
+    push, so everything that will land is already committed, and this measures
+    committed history only.
 
     --no-renames is required: with rename detection on, numstat collapses a
     rename into a single `dir/{old => new}` path, which is not a real path and
-    would defeat both categorize_path and the untracked-dedup `seen` set. With
-    it off, a rename decomposes into a delete + add of clean paths.
-
-    When `pending` is a tool_input dict (PreToolUse only), the edited file's
-    entry is replaced with the size it *will* have once the pending edit is
-    applied, so a single write that crosses a tier is gated before it lands.
+    would defeat is_mechanical. With it off, a rename decomposes into a delete
+    plus an add of clean paths.
     """
     base = git(["merge-base", find_diff_base(cwd), "HEAD"], cwd).strip()
     if not base:
         return []
-    tracked = parse_numstat(git(["diff", "--numstat", "--no-renames", base], cwd))
-    seen = {p for p, _, _ in tracked}
-    untracked = [s for s in new_doc_untracked_stats(cwd) if s[0] not in seen]
-    stats = tracked + untracked
-    if pending is not None:
-        proj = pending_file_stat(cwd, base, pending)
-        if proj is not None:
-            # Replace any existing entry for this file with the projection. A
-            # projection that nets to zero changes vs base (e.g. an edit that
-            # reverts the file, or an empty payload) drops the file rather than
-            # adding a phantom 0-line entry that would inflate the file count.
-            stats = [s for s in stats if s[0] != proj[0]]
-            if proj[1] or proj[2]:
-                stats.append(proj)
-    return stats
+    return parse_numstat(
+        git(["diff", "--numstat", "--no-renames", base, "HEAD"], cwd))
 
 
 # --- per-branch state (.git/pr-size-state.json, never committed) -------------
@@ -350,51 +226,61 @@ def tier_of(files, lines):
 
 TIER_RANK = {"none": 0, "soft": 1, "hard": 2}
 
-# Block-gate reasons (PreToolUse "block"). Addressed to Claude: the write has
+# Stale-ref caveat appended to a block message when the pre-size fetch failed,
+# so the writer knows an offline/failed refresh may have inflated the count.
+STALE_NOTE = (
+    "\n\nNOTE: could not refresh origin/main before sizing (offline or fetch "
+    "failed), so this count may be inflated if main has advanced since your "
+    "last fetch. Run `git fetch origin main` and push again to re-check before "
+    "authorizing."
+)
+
+# Block-gate reasons (PreToolUse "block"). Addressed to Claude: the push has
 # been stopped; Claude must ask the user and run --approve-tier to unlock.
 SOFT_ASK = (
     "PR SIZE GATE — SOFT LIMIT\n\n"
-    "This branch now spans {files} files / {lines} changed lines of "
-    "hand-written content, past the recommended PR size "
-    "(~{sf} files / ~{sl} lines). Reviews start getting harder past this "
-    "point. This edit has been blocked.\n\n"
+    "This branch spans {files} files / {lines} changed lines of hand-written "
+    "content, past the recommended PR size (~{sf} files / ~{sl} lines). "
+    "Reviews start getting harder past this point. This push has been "
+    "blocked.\n\n"
     "Stop and tell the user the PR has reached the soft size limit. Ask "
     "whether they want to:\n"
-    "  1. Authorize this size and continue — if yes, run:\n"
+    "  1. Authorize this size and push anyway — if yes, run:\n"
     "       python3 .claude/hooks/pr-size-check.py --approve-tier soft\n"
-    "     then retry the blocked edit.\n"
-    "  2. Wrap up the current scope as its own PR before continuing.\n\n"
-    "Do NOT retry the write until the user explicitly chooses option 1."
+    "     then retry the push.\n"
+    "  2. Wrap up the current scope as its own PR before adding more.\n\n"
+    "Do NOT retry the push until the user explicitly chooses option 1."
 )
 
 HARD_ASK = (
     "PR SIZE GATE — HARD LIMIT\n\n"
-    "This branch now spans {files} files / {lines} changed lines of "
-    "hand-written content, past the size where reviewers disengage and review "
-    "coverage is lost (~{hf} files / ~{hl} lines). This edit has been "
-    "blocked.\n\n"
+    "This branch spans {files} files / {lines} changed lines of hand-written "
+    "content, past the size where reviewers disengage and review coverage is "
+    "lost (~{hf} files / ~{hl} lines). This push has been blocked.\n\n"
     "Stop and tell the user the PR has reached the hard size limit. Ask "
     "whether they want to:\n"
-    "  1. Authorize this large PR — if yes, run:\n"
+    "  1. Authorize this large PR and push anyway — if yes, run:\n"
     "       python3 .claude/hooks/pr-size-check.py --approve-tier hard\n"
-    "     then retry the blocked edit.\n"
+    "     then retry the push.\n"
     "  2. Split this into separate, independently reviewable PRs.\n\n"
-    "Do NOT retry the write until the user explicitly chooses option 1."
+    "Do NOT retry the push until the user explicitly chooses option 1."
 )
 
 
 def block(message):
-    """Block the pending edit and surface the message to Claude. Claude must
-    then ask the user for authorization; if granted, Claude runs
-    --approve-tier to unlock the gate before retrying. Emitting nothing
-    leaves the edit allowed."""
+    """Block the pending push and surface the message to Claude. Claude must
+    then ask the user for authorization; if granted, Claude runs --approve-tier
+    to unlock the gate before retrying. Emitting nothing leaves the push
+    allowed."""
     json.dump({"decision": "block", "reason": message}, sys.stdout)
 
 
 def report(cwd):
     """Human-readable, read-only size report for the current branch. Used by
-    the open-pr skill as a final size gate at PR-creation time. Does not touch
-    the per-branch state or emit a hook payload."""
+    the open-pr skill as a size summary at PR-creation time. Refreshes
+    origin/main first so the numbers match the PR, but does not touch the
+    per-branch state or emit a hook payload."""
+    refresh_main(cwd)
     if not git(["rev-parse", "--verify", "--quiet", "origin/main"], cwd).strip():
         print("PR SIZE: cannot determine (no origin/main to diff against).")
         return
@@ -404,7 +290,7 @@ def report(cwd):
     total_lines = sum(a + d for _, a, d in file_stats)
     files, lines = content_size(file_stats)
     subjects = git(["log", f"{diff_base}..HEAD", "--pretty=%s"], cwd)
-    change_type = classify_pr(file_stats, (current_branch(cwd) or "") + "\n" + subjects)
+    change_type = classify_pr((current_branch(cwd) or "") + "\n" + subjects)
     print(f"PR SIZE: {total_files} files, {total_lines} changed lines vs "
           f"{diff_base} ({files} files / {lines} lines hand-written content); "
           f"classified: {change_type}.")
@@ -431,21 +317,23 @@ def report(cwd):
               f"/ ~{SOFT_LINES} lines).")
 
 
-def evaluate(cwd, pending=None):
-    """Size the branch. `pending` is the tool_input of the not-yet-applied edit;
-    when given, the branch is sized as it will be once that edit lands, so the
-    gate fires on the crossing edit itself. Returns
+def evaluate(cwd):
+    """Size the current branch's committed content. Returns
     (state_path, state, branch, entry, tier, files, lines), or None to bail out
-    (main/detached HEAD, no origin/main, no git dir, mechanically locked, or no
-    diff). Backport/version-cut branches are locked here on first sight so the
-    caller never has to re-classify them.
+    (main/detached HEAD, feature/* branch, no origin/main, no git dir,
+    backport/version-cut branch, or no diff). Backport/version-cut branches are
+    locked here on first sight so the branch is never re-classified.
 
-    'entry' is the mutable per-branch state record; callers mutate it and call
-    save_state. New fields default lazily via .get so pre-existing state files
-    (written before those fields existed) keep working."""
+    'entry' is the mutable per-branch state record; the caller mutates it and
+    calls save_state. New fields default lazily via .get so pre-existing state
+    files keep working."""
     branch = current_branch(cwd)
-    # Don't act on main/detached HEAD, or when there's no origin/main to diff.
+    # Don't act on main/detached HEAD, feature branches (an accepted
+    # exception -- always much larger than a normal PR), or when there's no
+    # origin/main to diff against.
     if not branch or branch in ("main", "HEAD"):
+        return None
+    if branch.startswith("feature/"):
         return None
     if not git(["rev-parse", "--verify", "--quiet", "origin/main"], cwd).strip():
         return None
@@ -456,14 +344,13 @@ def evaluate(cwd, pending=None):
     state_path = os.path.join(gdir, "pr-size-state.json")
     state = load_state(state_path)
     entry = state.get(branch, {"locked_mechanical": False,
-                               "approved_tier": "none",
-                               "pending_ask_tier": "none"})
+                               "approved_tier": "none"})
 
     # Stable mechanical lock (title/branch signal): skip forever.
     if entry.get("locked_mechanical"):
         return None
 
-    file_stats = branch_diff_stats(cwd, pending)
+    file_stats = branch_diff_stats(cwd)
     if not file_stats:
         return None
 
@@ -473,7 +360,7 @@ def evaluate(cwd, pending=None):
     subjects = git(["log", f"{diff_base}..HEAD", "--pretty=%s"], cwd)
     subject = branch + "\n" + subjects
 
-    change_type = classify_pr(file_stats, subject)
+    change_type = classify_pr(subject)
     if change_type in ("backport", "version-cut"):
         # Stable title signal: already-reviewed or bulk duplication. Cache and
         # never check this branch again.
@@ -482,99 +369,96 @@ def evaluate(cwd, pending=None):
         save_state(state_path, state)
         return None
 
-    # Size on hand-written content only. A purely mechanical PR has ~0 content
-    # lines and so never trips a tier; a content change is measured on its own
-    # whether or not mechanical churn rides alongside it. Always recomputed (we
-    # never cache a below-tier verdict), so no volatility concern.
+    # Size on hand-written content only. Mechanical churn never trips a tier.
     files, lines = content_size(file_stats)
     tier = tier_of(files, lines)
     return state_path, state, branch, entry, tier, files, lines
 
 
-def gate(cwd, tool_input):
-    """PreToolUse: block any edit that would push the branch's hand-written
-    content into a tier the user has not yet approved. Sizes the branch
-    *including the pending edit* so the crossing edit itself is blocked, not
-    the next one. Emits nothing -- leaving the edit allowed -- when the content
-    is already within an approved tier.
-
-    When a block fires, Claude must ask the user for authorization. If they
-    agree, Claude runs:
-        python3 .claude/hooks/pr-size-check.py --approve-tier [soft|hard]
-    which records approval in the per-branch state, then retries the edit."""
-    res = evaluate(cwd, pending=tool_input)
+def gate(cwd, fetched):
+    """PreToolUse (git push): if the branch's hand-written content is in a tier
+    the user has not authorized, block the push and tell Claude to ask. Once
+    the user authorizes a tier via --approve-tier, that tier (and lower) pass;
+    crossing into a higher tier gates again. Advisory limits, hard gate."""
+    res = evaluate(cwd)
     if not res:
         return
-    state_path, state, branch, entry, tier, files, lines = res
+    _, _, _, entry, tier, files, lines = res
 
+    if tier == "none":
+        return
     approved = entry.get("approved_tier", "none")
     if TIER_RANK[tier] <= TIER_RANK[approved]:
         return
 
+    note = "" if fetched else STALE_NOTE
     if tier == "hard":
         block(HARD_ASK.format(files=files, lines=lines,
-                              hf=HARD_FILES, hl=HARD_LINES))
+                              hf=HARD_FILES, hl=HARD_LINES) + note)
     elif tier == "soft":
         block(SOFT_ASK.format(files=files, lines=lines,
-                              sf=SOFT_FILES, sl=SOFT_LINES))
+                              sf=SOFT_FILES, sl=SOFT_LINES) + note)
 
 
-def approve(cwd, tier):
-    """Record explicit user authorization for the given size tier on the
-    current branch. Called by Claude (via Bash) after getting user consent,
-    before retrying a blocked write. Idempotent: re-approving the same or a
-    lower tier is a no-op."""
+def approve_tier(cwd, tier):
+    """Record user authorization for the given tier on the current branch, so
+    subsequent pushes at that size (or smaller) are not blocked. Escalating:
+    approving 'hard' also covers 'soft'; approving 'soft' still gates 'hard'."""
     if tier not in ("soft", "hard"):
-        print(f"Unknown tier '{tier}'. Use: soft or hard", file=sys.stderr)
-        sys.exit(1)
+        print("usage: --approve-tier [soft|hard]")
+        return
     branch = current_branch(cwd)
     if not branch or branch in ("main", "HEAD"):
-        print("Not on a feature branch; nothing to approve.", file=sys.stderr)
+        print("Not on a feature branch; nothing to approve.")
         return
     gdir = git_dir(cwd)
     if not gdir:
-        print("No git directory found.", file=sys.stderr)
+        print("No git dir found; cannot record approval.")
         return
     state_path = os.path.join(gdir, "pr-size-state.json")
     state = load_state(state_path)
     entry = state.get(branch, {"locked_mechanical": False,
                                "approved_tier": "none"})
-    if TIER_RANK[tier] > TIER_RANK[entry.get("approved_tier", "none")]:
+    current = entry.get("approved_tier", "none")
+    # Never downgrade an existing approval.
+    if TIER_RANK[tier] > TIER_RANK[current]:
         entry["approved_tier"] = tier
-        state[branch] = entry
-        save_state(state_path, state)
-        print(f"PR size tier '{tier}' approved for branch '{branch}'. "
-              "Retry the blocked write.")
-    else:
-        print(f"Tier '{tier}' already approved for branch '{branch}'. "
-              "Retry the blocked write.")
+    state[branch] = entry
+    save_state(state_path, state)
+    print(f"Approved '{entry['approved_tier']}' PR size for branch "
+          f"'{branch}'. Retry the push.")
 
 
 def main():
     cwd = os.environ.get("CLAUDE_PROJECT_DIR") or os.getcwd()
-    if "--report" in sys.argv[1:]:
+    args = sys.argv[1:]
+    if "--report" in args:
         report(cwd)
         return
-    if "--approve-tier" in sys.argv[1:]:
-        idx = sys.argv.index("--approve-tier")
-        tier = sys.argv[idx + 1] if idx + 1 < len(sys.argv) else ""
-        approve(cwd, tier)
+    if "--approve-tier" in args:
+        i = args.index("--approve-tier")
+        tier = args[i + 1] if i + 1 < len(args) else ""
+        approve_tier(cwd, tier)
         return
 
     try:
         payload = json.load(sys.stdin)
     except Exception:
         return
-    tool_name = payload.get("tool_name")
-    if tool_name not in ("Edit", "Write"):
+    if payload.get("tool_name") != "Bash":
+        return
+    cmd = (payload.get("tool_input") or {}).get("command", "")
+    # Act only on git push (PreToolUse: everything that will land is committed,
+    # so HEAD is the full PR). Matches `git push ...` anywhere in a compound
+    # command (e.g. `git add -A && git commit -m x && git push`).
+    if not re.search(r"\bgit\s+push\b", cmd):
         return
 
     cwd = payload.get("cwd") or cwd
-    # Carry the tool name alongside its input so the projection knows whether
-    # to treat content as a whole-file write or a string substitution.
-    tool_input = dict(payload.get("tool_input") or {})
-    tool_input["_tool"] = tool_name
-    gate(cwd, tool_input)
+    # Refresh origin/main before sizing so a stale cached ref cannot inflate
+    # the count. Best-effort: falls back to the cached ref if it fails.
+    fetched = refresh_main(cwd)
+    gate(cwd, fetched)
 
 
 if __name__ == "__main__":
