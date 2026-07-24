@@ -113,7 +113,7 @@ After presenting the completion summary, wait for explicit user instruction befo
 
 When searching for include file references, scope your search to the specific version's `source/` directory.
 
-For versioned projects, if the user does not specify a target version and no Jira ticket is provided, ask which version to target before making any changes.
+For versioned projects, if the user does not specify a target version and no Jira ticket is provided, default to `upcoming` if the docset has an upcoming version, and state this assumption to the user before proceeding. If the docset has no upcoming version, ask which version to target.
 
 # BACKPORTING
 
@@ -163,7 +163,7 @@ Pass the chosen template to `gh pr create` using the `--template` flag.
 
 When the user provides a Jira ticket URL:
 - Fetch ticket details using available Jira integration.
-- Work only on versions listed in the fixVersion field. If multiple versions are listed and the user has not specified a target, confirm which to target before making changes.
+- If the docset has an upcoming version, make the change in `upcoming/` and treat the fixVersion field as the oldest backport target rather than the edit location — the change must be backported to every version between `upcoming` and the fixVersion, inclusive, not just the fixVersion itself. State this to the user before proceeding. If the docset has no upcoming version, work directly in the version(s) listed in fixVersion. If multiple versions are listed and the user has not specified a target, confirm which to target before making changes. If fixVersion is empty and the docset has no upcoming version, ask the user which version to target before making any changes.
 - Extract filepath(s) from URL(s) in the ticket description/comments as a starting point for target files. Search the repo for related content that may also need editing — for example, pages that cover the same feature, include shared content, or cross-reference the target file. Confirm all target files with the user before making changes.
 - Use ticket content as context but make only user-specified changes.
 - Never update ticket status without explicit user permission.
