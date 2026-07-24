@@ -186,6 +186,10 @@ interface ResolveRefsArgs {
   projectPath?: string;
 }
 
+/** Join `/docs` + optional projectPath + href without producing `/docs//...` for landing. */
+const toDocsHref = (href: string, projectPath?: string) =>
+  href.startsWith('http') ? href : `/docs/${[projectPath, href].filter(Boolean).join('/')}`;
+
 const resolveSubstitutions = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
   const replacements: JsxReplacement[] = [];
 
@@ -229,7 +233,7 @@ const resolveSubstitutions = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
           : undefined;
 
       if (href && linkLabel !== undefined) {
-        const resolvedHref = href.startsWith('http') ? href : `/docs/${projectPath}/${href}`;
+        const resolvedHref = toDocsHref(href, projectPath);
         replacements.push({ index, parent, replacement: createLinkNode(resolvedHref, linkLabel) });
         return;
       }
@@ -307,7 +311,7 @@ const resolveRefLinks = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
       }
 
       const title = getAttr(node, 'title') ?? key;
-      const resolvedHref = href.startsWith('http') ? href : `/docs/${projectPath}/${href}`;
+      const resolvedHref = toDocsHref(href, projectPath);
       replacements.push({ index, parent, replacement: createLinkNode(resolvedHref, title) });
       return;
     }
@@ -341,7 +345,7 @@ const resolveRefLinks = ({ tree, refs, projectPath }: ResolveRefsArgs) => {
         return;
       }
 
-      const resolvedHref = href.startsWith('http') ? href : `/docs/${projectPath}/${href}`;
+      const resolvedHref = toDocsHref(href, projectPath);
 
       const linkNode: Link = {
         type: 'link',

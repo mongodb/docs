@@ -152,3 +152,34 @@ describe('remarkResolveImports replacement slots', () => {
     await expect(reparseMdx(resolved)).resolves.toBeDefined();
   });
 });
+
+describe('remarkResolveImports landing refs', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetBlob.mockImplementation(async (rawPath: string) => {
+      if (rawPath.endsWith('_references.json')) {
+        return JSON.stringify({
+          substitutions: {},
+          refs: {
+            'codex-plugin-install': 'codex#std-label-codex-plugin-install',
+          },
+        });
+      }
+      return null;
+    });
+  });
+
+  it('does not insert a double slash when projectPath is empty', async () => {
+    const file = await remark()
+      .use(remarkFrontmatter, ['yaml'])
+      .use(remarkGfm)
+      .use(remarkMdx)
+      .use(remarkResolveImports, { projectPath: '' })
+      .use(remarkStringify)
+      .process('See the <RefRole type="label" name="codex-plugin-install">Codex plugin</RefRole>.\n');
+
+    const resolved = String(file);
+    expect(resolved).toContain('[Codex plugin](/docs/codex#std-label-codex-plugin-install)');
+    expect(resolved).not.toContain('/docs//');
+  });
+});
