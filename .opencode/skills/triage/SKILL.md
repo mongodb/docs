@@ -148,7 +148,7 @@ For each ticket returned, read its summary, description, comments, and any direc
 | Component(s) | Team |
 |---|---|
 | Atlas, Cloud, Ops Manager, Cloud Manager, One Agent, BI Connector, Charts, Kubernetes Operator, Kubernetes Atlas, Atlas OSB, Style Guide, Data Lake, FTS, mcli, MongoDB Agent, mongomirror, Terraform, MEKO, Onboarding, OpenAPI, FedRAMP, Atlas CLI, IDE, Atlas DevOps Integrations, Atlas Streams, API, Atlas SDK, Atlas Search, Atlas Vector Search, Data Federation, kafka, Atlas Architecture Center, Online Archive, AI Integrations, VoyageAI | CET/Cloud |
-| Server, manual, mongosh, TOOLS, Compass, VSCode, C2C, mongosync, Migrator, IntelliJ, mcp-server | Server |
+| Server, manual, mongosh, TOOLS, Compass, VSCode, C2C, mongosync, Migrator, IntelliJ, mcp-server, AMP | Server |
 | Drivers, Kafka, Spark, Spark Connector, VSExt, Guides, CSFLE, Field Level Encryption, C, C++, C#/.NET, Golang, Java, Kotlin, Laravel, Node, PHP, Pymongo / Arrow / Django, Ruby / Mongoid, Rust, Scala, VS, Magenta | Drivers/DBX |
 
 If a ticket clearly belongs to a different team than the one being triaged, include it in the plan with the recommended component and a note that it belongs to the other team. Do not process it further in the team-specific steps (Step 4 onward) — it will surface in that team's triage once the component is applied.
@@ -171,6 +171,10 @@ Once approved, apply the recommended components to each ticket, then proceed to 
 ### Step 4: Knowledge Retrieval
 Use the `glean_mcp` tool to fetch and read each URL listed in the selected team module's Knowledge Sources section. From each source, extract only the routing rules, component-to-owner mappings, and label criteria. Do not retain full page content.
 
+Also fetch the Embargoed Features List: https://wiki.corp.mongodb.com/pages/viewpage.action?pageId=560136334
+
+Extract the feature names and their aliases from the table. Retain this list for use in Step 6.
+
 ### Step 5: Team-Specific Ticket Retrieval
 Use the `jira` skill to run the JQL query from the selected team module. List the **Ticket ID**, **Summary**, and **Creation Date** for all matching tickets.
 
@@ -178,6 +182,8 @@ Use the `jira` skill to run the JQL query from the selected team module. List th
 Before triaging, fetch the full details of each ticket (description, comments, and any directly linked tickets — one level only) using the `jira` skill. Then, for each ticket:
 
 **If triaging Server tickets:** Before applying any labels or routing for this ticket, check whether it meets the Close Criteria in the Server module (knowledge sources were loaded in Step 4, so priority and impact context is available). If it does, recommend closure and skip all other routing steps for that ticket.
+
+**Embargo check:** For every ticket, scan the summary, description, and comments for any embargoed feature name or alias from the list fetched in Step 4. If a match is found, include an **Embargoed Feature** flag in the triage recommendation and add the embargo comment from `assets/comment-templates.md` to the ticket when applying changes in Step 7.
 
 Cross-reference each ticket with the knowledge from Step 4 and all applicable rules from Parts 1–2 and the selected team module.
 

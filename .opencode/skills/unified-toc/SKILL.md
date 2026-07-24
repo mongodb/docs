@@ -45,7 +45,7 @@ All files live in `content/table-of-contents/`.
 
 **Versioning**: Some TocItems are scoped to specific product versions using the `versions` field. Use `{ includes: [...] }` or `{ excludes: [...] }` — never both.
 
-- **Adding a page**: Use `includes` scoped to the versions where the page exists. Start with `includes: ['upcoming']` if it is upcoming-only; extend the array as it gets backported to other versions; remove the `versions` field entirely once it exists in all versions.
+- **Adding a page**: If the page exists in all versions, omit the `versions` field. If the page exists from a known minimum version, use `excludes` with a Versions helper if one is imported in the target file (e.g. `excludes: productVersions.before('<version>')`). If the target file has no versions import, use a hardcoded array of the version strings to exclude (e.g. `excludes: ['v1.0', 'v1.1']`). If the minimum version cannot be inferred from the file structure, confirm with the user before proceeding.
 - **Removing a page from specific versions**: Use `excludes` with a Versions helper to identify the versions where the page no longer exists (e.g. `excludes: manualVersions.after('v8.0', { inclusive: true })`). This is self-maintaining — new versions are automatically excluded as they are added to the version array. Do not hardcode version strings in `excludes`.
 
 Version arrays live in `version-arrays/` and are organized by product:

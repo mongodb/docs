@@ -56,8 +56,10 @@ using the docset reference table below.
 |---|---|---|---|
 | Standard drivers [a] | `standard_major` | auto-detect (`version-number` or `version`) [b] | varies by driver — see [c] |
 | spark-connector | `standard_major` | `current-version` | `upcoming/source/release-notes.txt` |
+| laravel-mongodb | `standard_major` | `package-version` | n/a — docs link out to the GitHub changelog, handled by `drivers-release-notes` |
 | MCK | `per_minor` | `version`, `dl-version` | `upcoming/source/release-notes.txt` |
 | entity-framework | `per_minor` | `version-number`, `full-version` | `upcoming/source/release-notes.txt` |
+| django-mongodb | `per_minor` | `django-version` | `upcoming/source/reference/release-notes.txt` |
 | atlas-operator | `per_minor` | (none — use latest archive dir) | `upcoming/source/ak8so-changelog.txt` |
 | kafka-connector | `per_minor` | `connector_version` | `upcoming/source/whats-new.txt` |
 | atlas-cli | `atlas_cli` | `atlas-cli-version` | `upcoming/source/atlas-cli-changelog.txt` [d] |
@@ -66,8 +68,9 @@ using the docset reference table below.
 | manual | `skip` | `version-dev`, `release`, `current-minor-release` | `upcoming/source/release-notes/` (per-version; do not edit) |
 | atlas-architecture | `skip` | — | — |
 
-[a] csharp, cpp-driver, golang, java, java-rs, kotlin, kotlin-sync, node,
-    php-library, pymongo-driver, ruby-driver, rust, scala-driver. The
+[a] c-driver, csharp, cpp-driver, golang, java, java-rs, kotlin,
+    kotlin-sync, node, php-library, pymongo-driver, ruby-driver, rust,
+    scala-driver. The
     docset table previously listed swift, terraform, and cloudformation
     here; those docsets are not in the monorepo.
 
@@ -76,8 +79,8 @@ using the docset reference table below.
     other drivers.
 
 [c] Release notes paths by driver:
-    - `upcoming/source/reference/release-notes.txt`: csharp, golang,
-      java, kotlin, node, pymongo-driver, ruby-driver, rust
+    - `upcoming/source/reference/release-notes.txt`: c-driver, csharp,
+      golang, java, kotlin, node, pymongo-driver, ruby-driver, rust
     - `upcoming/source/reference/whats-new.txt`: cpp-driver, kotlin-sync
     - `upcoming/source/whats-new.txt`: java-rs, scala-driver
     - `upcoming/source/references/release-notes.txt` (plural
@@ -117,7 +120,7 @@ example Entity Framework uses `version-number = "10.0"` and
 **Entity Framework patch releases only**: confirm whether this patch targets
 the current stable line (`current`) or a backport to an archived version. If a
 backport, record the target directory as BACKPORT_DIR (for example, `v9.1`)
-and use it in place of `upcoming` throughout Steps 3, 4, and 7.
+and use it in place of `upcoming` throughout Steps 3, 4, 7A, and 7B.
 
 ## Step 3: Check for Release Notes
 
@@ -179,7 +182,7 @@ Continue to Step 4 without waiting for user input.
 
 **For all docsets except AKO, Server Manual, Atlas Architecture Center, and
 Entity Framework backport patches**, run `version-bump.sh` to automate
-Steps 4, 5, 6, and 7 in one pass, then skip directly to Step 8.
+Steps 4, 5, 6, and 7A (version arrays) in one pass.
 
 First do a dry run and show the output to the user:
 
@@ -193,13 +196,13 @@ First do a dry run and show the output to the user:
 ```
 
 Confirm the dry-run output looks correct, then run without `--dry-run` to
-apply. Review with `git diff`. Then skip to Step 8.
+apply. Review with `git diff`. Then skip to Step 7B.
 
 **AKO**: no `snooty.toml` version constant and no script support. Follow
 Steps 5 and 6 manually.
 
 **Entity Framework backport (BACKPORT_DIR set)**: skip the script. Substitute
-BACKPORT_DIR for `upcoming` throughout this step and Step 7.
+BACKPORT_DIR for `upcoming` throughout this step and Steps 7A and 7B.
 
 **Server Manual and Atlas Architecture Center**: skip this section entirely —
 those docsets have dedicated workflows (see Step 1).
@@ -265,11 +268,17 @@ to `targetDirectoryChoices` only; do not modify `sourceDirectoryChoices`.
 - **MongoCLI**: no update — no archives are created.
 - **Patch releases**: no update for any docset.
 
-## Step 7: Update ToC Files
+## Step 7A: Update Version Arrays
 
-Read `references/toc-updates.md` for version array and docset data file paths
-and update rules for this docset. Skip any file that does not exist for the
-docset and inform the user.
+Read the **Version Arrays** section of `references/toc-updates.md` and apply
+version array updates for this docset. Skip if no version array file exists
+for the docset and inform the user.
+
+## Step 7B: Update Docset Data Files
+
+Read the **Docset Data** section of `references/toc-updates.md` and apply
+docset data file updates for this docset. Skip any file that does not exist
+for the docset and inform the user.
 
 ## Step 8: Update Redirects
 
@@ -285,7 +294,7 @@ ls content/{DOCSET}/netlify.toml 2>/dev/null
 
 # Next.js format (flat JSON), keyed by URL slug — confirm the slug from an
 # existing entry; it is not always the docset directory name
-ls platform/docs-nextjs/redirects/*-redirects.json 2>/dev/null
+ls platform/docs-nextjs/src/redirects/*-redirects.json 2>/dev/null
 ```
 
 Routing:
@@ -298,7 +307,7 @@ Routing:
   → apply both, keeping the two files consistent.
 - Neither present → stop and ask the user; do not invent a redirect file.
 
-The Next.js redirect file lives under `platform/docs-nextjs/redirects/`,
+The Next.js redirect file lives under `platform/docs-nextjs/src/redirects/`,
 outside `content/`. Editing it is expected here, but flag it as a
 `platform/` change in the Step 11 change summary.
 

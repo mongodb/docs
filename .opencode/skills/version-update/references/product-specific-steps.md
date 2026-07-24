@@ -27,6 +27,31 @@ almost always requires an update. Read the existing table structure for
 the driver before making changes — some use version ranges per row
 (e.g., "5.2 to 5.7"), others use one row per version with footnotes.
 
+**Docset name does not always match the include directory name.** Look
+up the correct path before searching — do not glob or grep for the
+docset name directly, since most of these differ:
+
+| Docset name    | Compat include dir              |
+|-----------------|---------------------------------|
+| `csharp`        | `csharp`                        |
+| `cpp-driver`     | `cpp`                            |
+| `golang`        | `go`                             |
+| `java`          | `java-sync` (sync) / `java-async` (async) |
+| `java-rs`       | `java-async`                    |
+| `kotlin`        | `kotlin-coroutine` (coroutine/async driver) |
+| `kotlin-sync`   | `kotlin` (plain `kotlin` dir is the sync driver) |
+| `node`          | `nodejs`                        |
+| `php-library`   | `php`                            |
+| `pymongo-driver`| `python`                        |
+| `ruby-driver`   | `ruby`                           |
+| `rust`          | `rust`                           |
+| `scala-driver`  | `scala`                          |
+| `swift`, `terraform`, `cloudformation` | none — no entry in the shared compat table; skip this step for these docsets |
+
+Confirm the mapping against `content/drivers/source/compatibility.txt`
+(search for the docset's `:selections:` line) before editing, since this
+table can drift as includes are reorganized.
+
 - **No compatibility changes**: extend the upper bound of the top row
   (e.g., "5.2 to 5.7" → "5.2 to 5.8").
 - **Compatibility changes** (new Server version, new language version,
@@ -86,12 +111,40 @@ full update procedure (one entry per archived version; `current` and
 - Check whether `min-node-version` in
   `node/upcoming/snooty.toml` needs updating when the compatibility
   table changes for a new Node.js runtime version.
+- Compat table includes live under `nodejs/`, not `node/` — see the
+  mapping table above.
 
 #### Ruby Driver
 
 - For major and minor releases, publish the API docs following the
   process on the Ruby driver wiki:
   https://wiki.corp.mongodb.com/spaces/DE/pages/314415368
+
+---
+
+## Framework Integrations (django-mongodb, laravel-mongodb, hibernate)
+
+Compatibility content lives in `content/drivers/source/compatibility.txt`
+under each docset's `selected-content` block, not the Standard Drivers
+table.
+
+- **django-mongodb** (`python, django`), two tables:
+  - `includes/compatibility/django/mongodb-compat.rst` — Backend version
+    against MongoDB Server version.
+  - `includes/compatibility/django/python-compat.rst` — Backend version
+    against Python version.
+  Backend major/minor tracks Django's own version 1:1.
+- **laravel-mongodb** (`php, laravel`), two tables:
+  - `includes/compatibility/laravel/laravel-compat.rst` — Laravel
+    MongoDB version against Laravel version.
+  - `includes/compatibility/laravel/php-driver-compat.rst` — Laravel
+    MongoDB version against PHP Library version.
+- **hibernate** (`java, hibernate`): inline in `compatibility.txt`, no
+  include file — separate short sections per compatible component
+  (Hibernate ORM, Server, Java, Java Driver versions).
+
+Ask the user for the compatibility delta before editing — do not guess
+supported version ranges.
 
 ---
 

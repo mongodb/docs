@@ -3,7 +3,7 @@
 ## JQL Query
 
 ```
-project = DOCSP AND issuetype != Epic AND (resolutiondate > -7d OR resolutiondate is EMPTY) AND component in (Server, Manual, mongosh, TOOLS, Compass, VSCode, C2C, mongosync, Migrator, IntelliJ, "mcp-server") AND status = "Needs Triage" AND assignee is EMPTY ORDER BY created ASC
+project = DOCSP AND issuetype != Epic AND (resolutiondate > -7d OR resolutiondate is EMPTY) AND component in (Server, Manual, mongosh, TOOLS, Compass, VSCode, C2C, mongosync, Migrator, IntelliJ, "mcp-server", AMP) AND status = "Needs Triage" AND assignee is EMPTY ORDER BY created ASC
 ```
 
 ## Knowledge Sources
@@ -92,3 +92,8 @@ Start from the shared template in `assets/comment-templates.md`, then add the fo
 - If a ticket was filed by a MongoDB employee, thank the filer by name.
 - If closing a ticket, clearly explain the close reason.
 - Set expectations on timelines: Quick Wins vs. Ready for Work.
+- For tickets with a `feature` or `docs-rn` label, post a second internal comment after the main triage comment, directed at the writer who picks up the ticket:
+  "*Note for the writer:* Before you publish, please check the following:
+  - If the server feature is presented in any downstream product (Community, Enterprise Advanced with Ops Manager or Cloud Manager, Atlas), have you reached out to writers on those teams?
+  - Is there a public preview/GA requirement? If so, check the linked engineering ticket or ask the PM for the overall feature or database area and confirm publish timing before merging.
+  - For features gated by server version: check the linked engineering ticket or feature epic for the DRI list and confirm a DRI has reviewed the text."

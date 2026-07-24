@@ -20,15 +20,31 @@ Unified Jira skill for the DOCSP project. Supports both the `jira` CLI and `mcp-
 
 **On the first Jira operation in a session**, determine which tool to use:
 
-1. Run `which jira && jira me` (use a 5-second Bash timeout).
-2. If both succeed → **session-preferred = CLI**.
-3. If either fails (command not found, auth error, timeout) → **session-preferred = MCP**.
+1. Check auto-memory (MEMORY.md) for a Jira tool preference entry:
+   - "Jira CLI available" entry present → **session-preferred = CLI** — skip the probe.
+   - "Jira MCP preferred" entry present → **session-preferred = MCP** — skip the probe.
+2. If neither entry is present, run `which jira && jira me` (5-second Bash timeout).
+3. If both succeed → **session-preferred = CLI**. Write a memory entry (see below) so future sessions skip this probe.
+4. If either fails → **session-preferred = MCP**. Write a memory entry (see below) so future sessions skip this probe.
 
 **Session memory**: Once a tool is marked as session-preferred, use it for all subsequent operations without re-testing.
 
 **Quick-fail rule**: If the session-preferred tool fails on a specific operation, immediately try the other. Do not retry the failed tool more than once. If the fallback succeeds, switch session-preferred to the fallback. If both fail, report the error.
 
 **MCP tool names** are environment-specific (e.g., `jira_create_issue`, `jira_search`). Use whatever Jira MCP tools are available in the current session.
+
+### Writing Probe Results to Memory
+
+After a probe (step 3 or 4), write a `feedback` memory entry to the project's auto-memory directory (path shown in system instructions) so future sessions skip the probe.
+
+| Result | Filename | name slug | Body |
+|---|---|---|---|
+| CLI succeeded | `feedback_jira_cli_available.md` | `feedback-jira-cli-available` | "User has the Jira CLI installed. Skip probe and use CLI directly." |
+| CLI failed | `feedback_jira_mcp_preferred.md` | `feedback-jira-mcp-preferred` | "User does not have Jira CLI. Skip probe and use MCP directly." |
+
+Also add the corresponding line to `MEMORY.md`:
+- CLI: `- [Jira CLI available — skip availability check](feedback_jira_cli_available.md) — User has jira CLI installed; skip probe, go straight to CLI`
+- MCP: `- [Jira MCP preferred — skip probe](feedback_jira_mcp_preferred.md) — User has no jira CLI; skip probe, go straight to MCP tools`
 
 ---
 

@@ -1,0 +1,193 @@
+{
+  "fixture": {
+    "property": "mongosync",
+    "report": "mongosync Documentation Accuracy Report",
+    "report_date": "2026-03-23",
+    "docs_version_label": "current (v1.19)",
+    "docs_baseline_commit": "f0912dafd9975cc1219aff820bd5c49ac9e6807c",
+    "docs_baseline_date": "2026-03-20",
+    "source_repo": "10gen/mongosync",
+    "source_commit": "14bd4f5914f84d654c9f43996d0bc1c8fe5b17d8",
+    "source_commit_date": "2026-03-23",
+    "notes": "Snapshot pinned to the report date so the adjudication stays valid. Since-shipped items would otherwise reclassify (per DOCSP-61274 validation note)."
+  },
+  "label_definitions": {
+    "Confirmed": "Real, actionable drift. Eligible to become a held draft DOCSP ticket.",
+    "Tracked": "Real drift already covered by an open DOCSP ticket. Report names the ticket; no new ticket.",
+    "Upcoming": "Accurate vs source but tied to an unreleased version. In report, separated, never a ticket.",
+    "Intentional": "Hidden/internal/legacy/illustrative-by-design surface. In report, separated, never a ticket.",
+    "Needs-eng-confirmation": "Cannot be settled from source alone; flag for engineering. Never auto-becomes a ticket.",
+    "Not-drift": "Tool false positive. Must NOT surface as Confirmed. Tracks the prototype's known tool errors."
+  },
+  "expected_split": {
+    "Confirmed": 3,
+    "Needs-eng-confirmation": 3,
+    "Intentional": 4,
+    "Not-drift": 2,
+    "Tracked": 0,
+    "Upcoming": 0
+  },
+  "coverage_gaps": [
+    "No Upcoming finding in this fixture; cover Upcoming on a later pilot (the report excluded mongosync 1.20 items before they became findings).",
+    "No Tracked finding; #9 references DOCSP-55016 only partially and is adjudicated Not-drift."
+  ],
+  "findings": [
+    {
+      "id": 1,
+      "name": "metricsLogPath flag name",
+      "severity": "high",
+      "affected_files": ["reference/mongosync-binary.txt", "reference/configuration.txt"],
+      "docs_say": "Flag is --metricsLoggingFilepath; config setting is metricsLoggingFilepath.",
+      "source_say": "Flag/setting is metricsLogPath.",
+      "source_evidence": [
+        "internal/mongosync/constants/const.go: MetricsLogPath = \"metricsLogPath\"",
+        "internal/mongosync/msoptions/flags.go: flag name resolves to \"metricsLogPath\"",
+        "internal/mongosync/msoptions/options.go: field MetricsLogPath"
+      ],
+      "label": "Confirmed",
+      "becomes_ticket": true,
+      "rationale": "Documented name does not match source; straightforward incorrect-name drift."
+    },
+    {
+      "id": 2,
+      "name": "INITIALIZING state missing from states reference",
+      "severity": "medium",
+      "affected_files": ["reference/mongosync-states.txt"],
+      "docs_say": "States: IDLE, RUNNING, PAUSED, COMMITTING, COMMITTED, REVERSING.",
+      "source_say": "INITIALIZING is returned by /progress at startup; source comment marks it external-only (never stored in resumedata).",
+      "source_evidence": ["internal/mongosync/resumedata/state.go"],
+      "label": "Intentional",
+      "becomes_ticket": false,
+      "rationale": "Source marker 'external-only' indicates a deliberately non-stored, startup-transient state. Triage signal: in-source intentional marker.",
+      "detection_notes": "Triage must read the source comment marker, not just the symbol's existence."
+    },
+    {
+      "id": 3,
+      "name": "/progress info field documents 4 of 11 phase values",
+      "severity": "medium",
+      "affected_files": ["includes/api/tables/progress-response.rst"],
+      "docs_say": "Possible info values INCLUDE: collection copy, change event application, waiting for commit to complete, commit completed.",
+      "source_say": "phase.go defines 11 phase values.",
+      "source_evidence": ["internal/mongosync/resumedata/phase/phase.go"],
+      "label": "Intentional",
+      "becomes_ticket": false,
+      "rationale": "Docs use non-exhaustive language ('include'), which is technically correct. Consulting eng/product on whether to document all 11 is optional; adjudicator suspects no action needed.",
+      "detection_notes": "False-positive guard: diff must recognize hedged/illustrative phrasing ('include', 'for example') and NOT treat a subset list as a missing-values gap."
+    },
+    {
+      "id": 4,
+      "name": "/start verification.startAt undocumented",
+      "severity": "medium",
+      "affected_files": ["reference/api/start.txt"],
+      "docs_say": "verification object accepts only enabled.",
+      "source_say": "verification.startAt accepts 'initialSync' or 'cea'; validation error if set when enabled is false.",
+      "source_evidence": ["internal/webserver/start.go"],
+      "label": "Needs-eng-confirmation",
+      "becomes_ticket": false,
+      "rationale": "Public-looking surface, but whether it is intentionally undocumented (internal/feature-flagged) cannot be settled from source alone.",
+      "detection_notes": "No hidden/internal marker present, so triage cannot auto-classify Intentional; correct outcome is to defer to engineering."
+    },
+    {
+      "id": 5,
+      "name": "/start sharding.ignoreUnusedShardingEntries undocumented",
+      "severity": "medium",
+      "affected_files": ["reference/api/start.txt"],
+      "docs_say": "sharding object has createSupportingIndexes and shardingEntries.",
+      "source_say": "ShardingRequest also has IgnoreUnusedShardingEntries bool.",
+      "source_evidence": ["shared/publicapi/publicapi.go: type ShardingRequest"],
+      "label": "Needs-eng-confirmation",
+      "becomes_ticket": false,
+      "rationale": "Field is in a publicapi struct but no marker confirms intent; defer to engineering.",
+      "detection_notes": "Located in a 'publicapi' package — a weak public signal that conflicts with being undocumented; ambiguity → Needs-eng-confirmation."
+    },
+    {
+      "id": 6,
+      "name": "hotDocIDs type",
+      "severity": "medium",
+      "affected_files": ["reference/configuration.txt"],
+      "docs_say": "Type: string.",
+      "source_say": "Defined as NewStringSliceFlag, processed as StringSlice.",
+      "source_evidence": ["internal/mongosync/msoptions/flags.go"],
+      "label": "Not-drift",
+      "becomes_ticket": false,
+      "rationale": "Adjudicated a tool error ('Correct? No') in the prototype. Must NOT surface as Confirmed.",
+      "detection_notes": "Known prototype false positive. Skill should not emit this as Confirmed drift; treat as regression check on type-comparison precision."
+    },
+    {
+      "id": 7,
+      "name": "--enableCappedCollectionHandling undocumented public flag",
+      "severity": "medium",
+      "affected_files": ["reference/mongosync-binary.txt"],
+      "docs_say": "Flag does not appear in docs.",
+      "source_say": "Non-hidden public BoolFlag 'enableCappedCollectionHandling'.",
+      "source_evidence": ["internal/mongosync/msoptions/flags.go"],
+      "label": "Needs-eng-confirmation",
+      "becomes_ticket": false,
+      "rationale": "Non-hidden flag but possibly pending GA; intentional-vs-oversight cannot be settled from source alone.",
+      "detection_notes": "Non-hidden flag with no release/eng signal → defer to engineering rather than auto-Confirmed."
+    },
+    {
+      "id": 8,
+      "name": "loadLevel conditional default not noted",
+      "severity": "low",
+      "affected_files": ["includes/opts/loadLevel.rst"],
+      "docs_say": "Default is 3.",
+      "source_say": "DefaultLoadLevel = 3; DefaultLoadLevelWithPreExistingData = 2 (default becomes 2 when preExistingDestinationData is true).",
+      "source_evidence": ["internal/mongosync/constants/const.go"],
+      "label": "Confirmed",
+      "becomes_ticket": true,
+      "rationale": "Option reference omits a real conditional default; incorrect/incomplete default-constraint drift."
+    },
+    {
+      "id": 9,
+      "name": "createIndexesBatchSize missing Type line",
+      "severity": "low",
+      "affected_files": ["reference/configuration.txt"],
+      "docs_say": "No 'Type:' line for this setting (per raw source).",
+      "source_say": "Type is integer (validated IntInRange 1..64).",
+      "source_evidence": ["validation: IntInRange(\"createIndexesBatchSize\", 1, 64)"],
+      "label": "Not-drift",
+      "becomes_ticket": false,
+      "rationale": "Adjudicated a tool error: the type IS documented but in an include the prototype did not resolve. DOCSP-55016 partially relates.",
+      "detection_notes": "PRIMARY regression guard for DOCSP-61274. Resolving includes/shared content via the Snooty rendered AST must show the type as present → not a missing-type gap."
+    },
+    {
+      "id": 10,
+      "name": "source-writes-blocked warning undocumented in /progress",
+      "severity": "low",
+      "affected_files": ["includes/api/tables/progress-response.rst"],
+      "docs_say": "Only the oplog-size warning is documented in the warnings field.",
+      "source_say": "A srcWritesBlocked warning is appended during dual write-blocking mode after commit.",
+      "source_evidence": ["internal/mongosync/progress.go"],
+      "label": "Intentional",
+      "becomes_ticket": false,
+      "rationale": "The warnings field intentionally shows an illustrative example warning, not an exhaustive list. By design.",
+      "detection_notes": "Same non-exhaustive-by-design guard as #3: illustrative field must not be treated as a complete enumeration."
+    },
+    {
+      "id": 11,
+      "name": "destinationDataHandling absent from main /start parameter table",
+      "severity": "low",
+      "affected_files": ["reference/api/start.txt"],
+      "docs_say": "Referenced only in a legacy include (includes/destinationDataHandling-introduction.rst) with a 'beta 1.8' note.",
+      "source_say": "Still accepted ('dropAllNamespaces'), kept for backward compatibility; source comment notes ALM (Atlas Live Migrate) only.",
+      "source_evidence": ["internal/webserver/start.go"],
+      "label": "Intentional",
+      "becomes_ticket": false,
+      "rationale": "Source markers 'backward compatibility' and 'ALM only' indicate deliberately legacy/internal surface.",
+      "detection_notes": "Triage signal: in-source legacy/internal markers ('backward compatibility', environment-specific)."
+    },
+    {
+      "id": 12,
+      "name": "--disableVerification restart-only restriction needs prominence",
+      "severity": "low",
+      "affected_files": ["reference/mongosync-binary.txt"],
+      "docs_say": "Flag disables verification; added in v1.10. No restart-only restriction noted.",
+      "source_say": "Flag is only valid on restart; passing on initial start returns DisableVerificationOnStartError.",
+      "source_evidence": ["internal/mongosync/msoptions/flags.go"],
+      "label": "Confirmed",
+      "becomes_ticket": true,
+      "rationale": "Documented behavior omits a real usage constraint enforced by source; incorrect/incomplete constraint drift."
+    }
+  ]
+}

@@ -42,8 +42,20 @@ jobs:
             fi
           done
 
-      - name: Run openpackage sync
-        run: openpackage sync --push
+      - name: Run openpackage sync (source → .opencode)
+        run: openpackage sync --pull --platforms opencode
+
+      - name: Copy untracked skills to .opencode
+        run: |
+          set -euo pipefail
+          for skill_dir in .openpackage/skills/*/; do
+            skill=$(basename "${skill_dir}")
+            if ! grep -q "skills/${skill}/" .openpackage/openpackage.index.yml 2>/dev/null; then
+              echo "Copying untracked skill: ${skill}"
+              rm -rf ".opencode/skills/${skill}"
+              cp -R "${skill_dir}" ".opencode/skills/${skill}"
+            fi
+          done
 
       - name: Check for changes
         id: diff
