@@ -28,69 +28,69 @@ Procedure
       Replace ``{+mdbVersion+}`` with your
       edition of MongoDB.
 
-      .. code-block:: sh
+.. code-block:: sh
 
-         curl -fsSL https://pgp.mongodb.com/server-{+mdbVersion+}.asc | \
-            sudo gpg -o /usr/share/keyrings/mongodb-server-{+mdbVersion+}.gpg \
-            --dearmor
+   curl -fsSL https://pgp.mongodb.com/server-{+mdbVersion+}.asc | \
+   sudo gpg -o /usr/share/keyrings/mongodb-server-{+mdbVersion+}.gpg \
+   --dearmor
 
-      A successful command returns an ``OK``.
+   A successful command returns an ``OK``.
 
    .. step:: Create a list file for your version of Ubuntu.
 
-      Create the list file
-      ``/etc/apt/sources.list.d/mongodb-org-{+mdbVersion+}.list``
-      for your version of
-      Ubuntu. Replace ``{+mdbVersion+}`` with your
-      edition of MongoDB.
+   Create the list file
+   ``/etc/apt/sources.list.d/mongodb-org-{+mdbVersion+}.list``
+   for your version of
+   Ubuntu. Replace ``{+mdbVersion+}`` with your
+   edition of MongoDB.
 
-      .. tabs::
+   .. tabs::
 
-         .. tab:: Ubuntu 22.04 (Jammy)
-            :tabid: comm-jammy
+   .. tab:: Ubuntu 22.04 (Jammy)
+   :tabid: comm-jammy
 
-            .. code-block:: sh
+   .. code-block:: sh
 
-               echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-{+mdbVersion+}.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/{+mdbVersion+} multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-{+mdbVersion+}.list
+   echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-{+mdbVersion+}.gpg ] https://repo.mongodb.org/apt/ubuntu jammy/mongodb-org/{+mdbVersion+} multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-{+mdbVersion+}.list
 
-         .. tab:: Ubuntu 20.04 (Focal)
-            :tabid: comm-focal
+   .. tab:: Ubuntu 20.04 (Focal)
+   :tabid: comm-focal
 
-            .. code-block:: sh
+   .. code-block:: sh
 
-               echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-{+mdbVersion+}.gpg ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/{+mdbVersion+} multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-{+mdbVersion+}.list
+   echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-{+mdbVersion+}.gpg ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/{+mdbVersion+} multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-{+mdbVersion+}.list
 
-         .. tab:: Ubuntu 18.04 (Bionic)
-            :tabid: comm-bionic
+   .. tab:: Ubuntu 18.04 (Bionic)
+   :tabid: comm-bionic
 
-            .. code-block:: sh
+   .. code-block:: sh
 
-               echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-{+mdbVersion+}.gpg ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/{+mdbVersion+} multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-{+mdbVersion+}.list
+   echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-{+mdbVersion+}.gpg ] https://repo.mongodb.org/apt/ubuntu bionic/mongodb-org/{+mdbVersion+} multiverse" | sudo tee /etc/apt/sources.list.d/mongodb-org-{+mdbVersion+}.list
 
    .. step:: Refresh the package database.
 
-      Invoke the following ``apt`` command:
+   Invoke the following ``apt`` command:
 
-      .. code-block:: sh
+   .. code-block:: sh
 
-         sudo apt-get update
+   sudo apt-get update
 
    .. step:: Install the {+atlas-cli+} and {+mongosh+}.
 
-      Invoke the following ``apt`` command to install both the
-      {+atlas-cli+} and {+mongosh+}:
+   Invoke the following ``apt`` command to install both the
+   {+atlas-cli+} and {+mongosh+}:
 
-      .. code-block:: sh
+   .. code-block:: sh
 
-         sudo apt-get install -y mongodb-atlas
+   sudo apt-get install -y mongodb-atlas
 
-      If you don't want to install {+mongosh+}, invoke the
-      following ``apt`` command instead to install the
-      {+atlas-cli+} only:
+   If you don't want to install {+mongosh+}, invoke the
+   following ``apt`` command instead to install the
+   {+atlas-cli+} only:
 
-      .. code-block:: sh
+   .. code-block:: sh
 
-         sudo apt-get install -y mongodb-atlas-cli
+   sudo apt-get install -y mongodb-atlas-cli
 
    .. include:: /includes/steps-verify-atlas-cli.rst
 
@@ -108,16 +108,16 @@ To update the {+atlas-cli+} with Apt, follow the steps below.
       using the ``mongodb-atlas`` package, invoke the following
       ``apt`` command:
 
-      .. code-block:: sh
+.. code-block:: sh
 
-         sudo apt-get install --only-upgrade mongodb-atlas
+   sudo apt-get install --only-upgrade mongodb-atlas
 
-      If you installed the {+atlas-cli+} only using the
-      ``mongodb-atlas-cli`` package, invoke the following ``apt``
-      command:
+   If you installed the {+atlas-cli+} only using the
+   ``mongodb-atlas-cli`` package, invoke the following ``apt``
+   command:
 
-      .. code-block:: sh
+   .. code-block:: sh
 
-         sudo apt-get install --only-upgrade mongodb-atlas-cli
+   sudo apt-get install --only-upgrade mongodb-atlas-cli
 
    .. include:: /includes/steps-verify-update-atlas-cli.rst

@@ -699,6 +699,18 @@ export const toc: L1TocItem[] = [
             collapsible: true,
             items: [
               {
+                label: 'Agentic Commerce',
+                contentSite: 'atlas-architecture',
+                collapsible: true,
+                items: [
+                  {
+                    label: 'Mandate Ledger for Agentic Commerce',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/retail-agentic-commerce',
+                  },
+                ],
+              },
+              {
                 label: 'In-Store and Omnichannel',
                 contentSite: 'atlas-architecture',
                 collapsible: true,

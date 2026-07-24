@@ -73,7 +73,7 @@ Options
    * - --version
      - string
      - false
-     - API version to use when calling the Atlas API endpoints [options: "2023-01-01"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "2023-01-01".
+     - API version to use when calling the Atlas API endpoints [options: "2023-01-01", "preview"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "preview".
 
 Inherited Options
 -----------------
@@ -94,5 +94,5 @@ Inherited Options
 Examples
 --------
 
-.. literalinclude:: /includes/examples/atlas-api-maintenanceWindows-getMaintenanceWindow-2023-01-01-default.sh
+.. literalinclude:: /includes/examples/atlas-api-maintenanceWindows-getMaintenanceWindow-preview-default.sh
    :language: shell

@@ -73,7 +73,7 @@ Options
    * - --version
      - string
      - false
-     - API version to use when calling the Atlas API endpoints [options: "preview"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "preview".
+     - API version to use when calling the Atlas API endpoints [options: "2025-03-12"]. If not set by the user, defaults to the latest version or the profile's api_version config value if set. This value defaults to "2025-03-12".
 
 Inherited Options
 -----------------
@@ -94,5 +94,5 @@ Inherited Options
 Examples
 --------
 
-.. literalinclude:: /includes/examples/atlas-api-aiModelApiKeys-getOrgModelKey-preview-default.sh
+.. literalinclude:: /includes/examples/atlas-api-aiModelApiKeys-getOrgModelKey-2025-03-12-default.sh
    :language: shell

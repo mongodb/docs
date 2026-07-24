@@ -97,7 +97,7 @@ Options
    * - --series
      - &
      - false
-     - Query shape statistics data series to retrieve. A series represents a specific metric about query execution. To include multiple series, pass the parameter multiple times delimited with an ampersand (&) between each series. Omit this parameter to return results for all available series.
+     - Query shape statistics data series to retrieve. A series represents a specific metric about query execution. To include multiple series, pass the parameter multiple times delimited with an ampersand (&) between each series. Omit this parameter to return results for all available series. The ``P50_EXECUTION_TIME``, ``P90_EXECUTION_TIME``, and ``P99_EXECUTION_TIME`` series are deprecated as the values they report may be inaccurate. They will be removed in a future release.
    * - --since
      - int
      - false

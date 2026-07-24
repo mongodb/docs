@@ -2,8 +2,8 @@
 
    Run the ``atlas`` command from any directory:
 
-   .. code-block:: sh
+.. code-block:: sh
 
-       atlas
+   atlas
 
    The response includes available commands and options for the {+atlas-cli+}.

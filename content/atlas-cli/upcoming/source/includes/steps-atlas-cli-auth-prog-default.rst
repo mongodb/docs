@@ -2,6 +2,6 @@
 
    Run the ``atlas auth login`` command in your terminal.
 
-   .. code-block:: sh
+.. code-block:: sh
 
-      atlas auth login
+   atlas auth login

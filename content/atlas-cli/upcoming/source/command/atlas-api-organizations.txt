@@ -57,10 +57,12 @@ Related Commands
 * :ref:`atlas-api-organizations-createOrg` - Creates one organization in MongoDB Cloud and links it to the requesting Service Account's or API Key's organization.
 * :ref:`atlas-api-organizations-deleteOrg` - Removes one specified organization.
 * :ref:`atlas-api-organizations-getOrg` - Returns one organization to which the requesting Service Account or API Key has access.
+* :ref:`atlas-api-organizations-getOrgDelegationSettings` - Returns the delegation settings for the specified organization.
 * :ref:`atlas-api-organizations-getOrgGroups` - Returns multiple projects in the specified organization.
 * :ref:`atlas-api-organizations-getOrgSettings` - Returns details about the specified organization's settings.
 * :ref:`atlas-api-organizations-listOrgs` - Returns all organizations to which the requesting Service Account or API Key has access.
 * :ref:`atlas-api-organizations-updateOrg` - Updates one organization.
+* :ref:`atlas-api-organizations-updateOrgDelegationSettings` - Updates the delegation settings for the specified organization.
 * :ref:`atlas-api-organizations-updateOrgSettings` - Updates the organization's settings.
 
 
@@ -70,8 +72,10 @@ Related Commands
    createOrg </command/atlas-api-organizations-createOrg>
    deleteOrg </command/atlas-api-organizations-deleteOrg>
    getOrg </command/atlas-api-organizations-getOrg>
+   getOrgDelegationSettings </command/atlas-api-organizations-getOrgDelegationSettings>
    getOrgGroups </command/atlas-api-organizations-getOrgGroups>
    getOrgSettings </command/atlas-api-organizations-getOrgSettings>
    listOrgs </command/atlas-api-organizations-listOrgs>
    updateOrg </command/atlas-api-organizations-updateOrg>
+   updateOrgDelegationSettings </command/atlas-api-organizations-updateOrgDelegationSettings>
    updateOrgSettings </command/atlas-api-organizations-updateOrgSettings>

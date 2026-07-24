@@ -58,6 +58,7 @@ Related Commands
 * :ref:`atlas-api-cloudBackups-createBackupExport` - Exports one backup Snapshot for dedicated Atlas cluster using Cloud Backups to an Export Bucket.
 * :ref:`atlas-api-cloudBackups-createBackupPrivateEndpoint` - Creates a private endpoint in the specified region for secure, private connectivity between Atlas and cloud provider object storage services for backup operations.
 * :ref:`atlas-api-cloudBackups-createBackupRestoreJob` - Restores one snapshot of one cluster from the specified project.
+* :ref:`atlas-api-cloudBackups-createCollectionRestoreJob` - Creates one collection-level restore job for one cluster from the specified project.
 * :ref:`atlas-api-cloudBackups-createExportBucket` - Creates a Snapshot Export Bucket for an AWS S3 Bucket, Azure Blob Storage Container, or Google Cloud Storage Bucket.
 * :ref:`atlas-api-cloudBackups-deleteBackupPrivateEndpoint` - Deletes one private endpoint, identified by its ID, for object storage backup operations.
 * :ref:`atlas-api-cloudBackups-deleteBackupShardedCluster` - Removes one snapshot of one sharded cluster from the specified project.
@@ -70,15 +71,23 @@ Related Commands
 * :ref:`atlas-api-cloudBackups-getBackupRestoreJob` - Returns one cloud backup restore job for one cluster from the specified project.
 * :ref:`atlas-api-cloudBackups-getBackupSchedule` - Returns the cloud backup schedule for the specified cluster within the specified project.
 * :ref:`atlas-api-cloudBackups-getBackupShardedCluster` - Returns one snapshot of one sharded cluster from the specified project.
+* :ref:`atlas-api-cloudBackups-getBackupSnapshotDatabase` - Returns one database that exists in the specified snapshot.
 * :ref:`atlas-api-cloudBackups-getClusterBackupSnapshot` - Returns one snapshot from the specified cluster.
+* :ref:`atlas-api-cloudBackups-getCollectionRestoreJob` - Returns one collection restore job for one cluster from the specified project.
 * :ref:`atlas-api-cloudBackups-getCompliancePolicy` - Returns the Backup Compliance Policy settings with the specified project.
 * :ref:`atlas-api-cloudBackups-getExportBucket` - Returns one Export Bucket associated with the specified Project.
+* :ref:`atlas-api-cloudBackups-getRestoreJobCollection` - Returns one collection-level restore state for one collection restore job from the specified project.
+* :ref:`atlas-api-cloudBackups-getSnapshotDatabaseCollection` - Returns one collection that exists in the specified database in the snapshot.
 * :ref:`atlas-api-cloudBackups-listBackupExports` - Returns all Cloud Backup Snapshot Export Jobs associated with the specified Atlas cluster.
 * :ref:`atlas-api-cloudBackups-listBackupPrivateEndpoints` - Returns the private endpoints of the specified cloud provider for object storage backup operations.
 * :ref:`atlas-api-cloudBackups-listBackupRestoreJobs` - Returns all cloud backup restore jobs for one cluster from the specified project.
 * :ref:`atlas-api-cloudBackups-listBackupShardedClusters` - Returns all snapshots of one sharded cluster from the specified project.
+* :ref:`atlas-api-cloudBackups-listBackupSnapshotDatabases` - Returns the list of databases that exist in the specified snapshot.
 * :ref:`atlas-api-cloudBackups-listBackupSnapshots` - Returns all snapshots of one cluster from the specified project.
+* :ref:`atlas-api-cloudBackups-listCollectionRestoreJobs` - Returns all collection restore jobs for one cluster from the specified project.
 * :ref:`atlas-api-cloudBackups-listExportBuckets` - Returns all Export Buckets associated with the specified Project.
+* :ref:`atlas-api-cloudBackups-listRestoreJobCollections` - Returns all collection-level restore states for one collection restore job from the specified project.
+* :ref:`atlas-api-cloudBackups-listSnapshotDatabaseCollections` - Returns the list of collections in the specified database that exist in the snapshot.
 * :ref:`atlas-api-cloudBackups-takeSnapshots` - Takes one on-demand snapshot for the specified cluster.
 * :ref:`atlas-api-cloudBackups-updateBackupExportBucket` - Updates the private networking settings for one snapshot export bucket in the specified project.
 * :ref:`atlas-api-cloudBackups-updateBackupSchedule` - Updates the cloud backup schedule for one cluster within the specified project.
@@ -93,6 +102,7 @@ Related Commands
    createBackupExport </command/atlas-api-cloudBackups-createBackupExport>
    createBackupPrivateEndpoint </command/atlas-api-cloudBackups-createBackupPrivateEndpoint>
    createBackupRestoreJob </command/atlas-api-cloudBackups-createBackupRestoreJob>
+   createCollectionRestoreJob </command/atlas-api-cloudBackups-createCollectionRestoreJob>
    createExportBucket </command/atlas-api-cloudBackups-createExportBucket>
    deleteBackupPrivateEndpoint </command/atlas-api-cloudBackups-deleteBackupPrivateEndpoint>
    deleteBackupShardedCluster </command/atlas-api-cloudBackups-deleteBackupShardedCluster>
@@ -105,15 +115,23 @@ Related Commands
    getBackupRestoreJob </command/atlas-api-cloudBackups-getBackupRestoreJob>
    getBackupSchedule </command/atlas-api-cloudBackups-getBackupSchedule>
    getBackupShardedCluster </command/atlas-api-cloudBackups-getBackupShardedCluster>
+   getBackupSnapshotDatabase </command/atlas-api-cloudBackups-getBackupSnapshotDatabase>
    getClusterBackupSnapshot </command/atlas-api-cloudBackups-getClusterBackupSnapshot>
+   getCollectionRestoreJob </command/atlas-api-cloudBackups-getCollectionRestoreJob>
    getCompliancePolicy </command/atlas-api-cloudBackups-getCompliancePolicy>
    getExportBucket </command/atlas-api-cloudBackups-getExportBucket>
+   getRestoreJobCollection </command/atlas-api-cloudBackups-getRestoreJobCollection>
+   getSnapshotDatabaseCollection </command/atlas-api-cloudBackups-getSnapshotDatabaseCollection>
    listBackupExports </command/atlas-api-cloudBackups-listBackupExports>
    listBackupPrivateEndpoints </command/atlas-api-cloudBackups-listBackupPrivateEndpoints>
    listBackupRestoreJobs </command/atlas-api-cloudBackups-listBackupRestoreJobs>
    listBackupShardedClusters </command/atlas-api-cloudBackups-listBackupShardedClusters>
+   listBackupSnapshotDatabases </command/atlas-api-cloudBackups-listBackupSnapshotDatabases>
    listBackupSnapshots </command/atlas-api-cloudBackups-listBackupSnapshots>
+   listCollectionRestoreJobs </command/atlas-api-cloudBackups-listCollectionRestoreJobs>
    listExportBuckets </command/atlas-api-cloudBackups-listExportBuckets>
+   listRestoreJobCollections </command/atlas-api-cloudBackups-listRestoreJobCollections>
+   listSnapshotDatabaseCollections </command/atlas-api-cloudBackups-listSnapshotDatabaseCollections>
    takeSnapshots </command/atlas-api-cloudBackups-takeSnapshots>
    updateBackupExportBucket </command/atlas-api-cloudBackups-updateBackupExportBucket>
    updateBackupSchedule </command/atlas-api-cloudBackups-updateBackupSchedule>
