@@ -52,6 +52,88 @@ export const offlineStyling = css`
   }
 `;
 
+interface StyledInputProps {
+  sidenav?: boolean;
+  mobileSearchActive: boolean;
+}
+
+export const StyledInputContainer = styled.div<StyledInputProps>`
+  width: 100%;
+  max-width: 610px;
+  background: inherit;
+
+  div[role='searchbox'] {
+    background-color: var(--search-input-background-color);
+    width: 100%;
+  }
+
+  --search-input-background-color: ${palette.white};
+  .dark-theme & {
+    --search-input-background-color: ${palette.gray.dark4};
+  }
+
+  @media ${theme.screenSize.mediumAndUp} {
+    width: ${({ sidenav }) => (sidenav ? '70' : '100')}%;
+  }
+
+  ${(props) => {
+    return (
+      props.mobileSearchActive &&
+      `
+      display: flex !important;
+      position: absolute;
+      width: calc(100% - ${theme.size.medium} - ${theme.size.medium});
+      z-index: 40;
+      max-width: unset;
+      left: ${theme.size.medium};
+      column-gap: ${theme.size.medium};
+      align-items: center;
+
+      form {
+        width: 100%;
+        margin-right: ${theme.size.medium};
+      }
+    `
+    );
+  }}
+`;
+
+// Used to ensure dropdown is same width as input
+export const StyledSearchBoxRef = styled.div`
+  width: 100%;
+`;
+
+export const searchInputStyling = ({ mobileSearchActive }: StyledInputProps) => css`
+  ${!mobileSearchActive && displayNone.onMedium};
+
+  @media ${theme.screenSize.upToMedium} {
+    input[type='search'] {
+      font-size: ${theme.fontSize.default};
+    }
+  }
+
+  ${mobileSearchActive &&
+  `
+    display: flex !important;
+    width: calc(100% - ${theme.size.medium} - ${theme.size.medium});
+    z-index: 40;
+    max-width: unset;
+    background: var(--background-color-primary);
+    align-items: center;
+
+    > form {
+      width: 100%;
+      margin-right: ${theme.size.medium};
+    }
+  `}
+`;
+
+export const searchIconStyling = css`
+  ${displayNone.onLargerThanMedium};
+  float: right;
+  justify-content: right;
+`;
+
 const hideOnEnLang = `
   &:not(:lang(EN)) {
     display: none;

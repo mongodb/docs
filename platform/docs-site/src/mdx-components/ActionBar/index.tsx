@@ -2,7 +2,9 @@
 
 import type { PageTemplateType } from '@/types/ast';
 import actionBarStyling from '@/mdx-components/ActionBar/action-bar.module.scss';
+import { SearchInput } from '@/mdx-components/ActionBar/SearchInput';
 import { ActionsContainer } from '@/mdx-components/ActionBar/ActionsContainer';
+import { Suspense } from 'react';
 import { Overline } from '@leafygreen-ui/typography';
 import Icon from '@leafygreen-ui/icon';
 import { useSidenavContext } from '@/context/sidenav-context';
@@ -65,6 +67,9 @@ export const ActionBar = ({ template, sidenav, className }: ActionBarProps) => {
             Docs Menu
           </Overline>
         )}
+        <Suspense fallback={null}>
+          <SearchInput />
+        </Suspense>
       </div>
       {!isOfflineBuild && <ActionsContainer />}
     </div>
