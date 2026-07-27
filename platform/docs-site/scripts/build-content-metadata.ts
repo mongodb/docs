@@ -1,37 +1,44 @@
 /**
- * Generates per-project sitemaps and copies intersphinx inventory files from the
- * content-mdx directory into .next/static/docs-metadata/<url-prefix>/, mirroring
- * how content images are staged into .next/static/images (see
- * copy-images-to-next-static.ts) — the online pipeline has no public/ dependency.
+ * Generates per-docset sitemaps and copies intersphinx inventories from
+ * content-mdx into public/, so that with the app's per-project basePath
+ * (/docs/<docsetBase>) Next serves them at their canonical URLs with no rewrites.
  *
- * The files serve as plain static assets at
- * /_next/static/docs-metadata/<url-prefix>/..., and netlify.toml rewrites map the
- * canonical /docs/<url-prefix>/{sitemap-*.xml,objects.inv} URLs onto them. That
- * keeps their canonical locations (intersphinx hardcodes <base-url>/objects.inv;
- * sitemaps are consumed at their /docs/<prefix>/ URLs) while riding the same
- * _next asset path images use — out of the /docs/* soft-redirect page path.
+ * A file's canonical URL is /docs/<url-prefix>/FILE (intersphinx hardcodes
+ * <base-url>/objects.inv; sitemaps live at their /docs/<prefix>/ URLs). Relative
+ * to basePath that's <rest>/FILE (rest = version segment(s), or empty), so
+ * staging to public/<rest>/FILE serves it at <basePath>/<rest>/FILE = canonical.
  *
- * For every directory under content-mdx that contains a _site.json, this writes:
- *   - sitemap-0.xml      (page URLs from toctreeOrder + composable-page variants)
- *   - sitemap-index.xml  (points at sitemap-0.xml for the same project)
- *   - objects.inv        (copied verbatim, when present)
+ * public/ (not _next) because .xml/.inv can't ride the _next static path — Next's
+ * production static handler only serves image/asset extensions there. We stage
+ * only this deploy's docset; others live on their own deploys. Emits sitemap-0.xml,
+ * sitemap-index.xml, and objects.inv (when present) per _site.json dir.
  *
- * Disk paths are remapped to their docs URL prefix using the same
- * dir-name-to-prefix map the app uses at runtime, so the emitted paths mirror the
- * canonical URLs (e.g. content-mdx/manual/v8.2 -> /docs/v8.2/sitemap-0.xml).
- *
- * Runs as postbuild (after next build), alongside copy-images-to-next-static.ts;
- * the offline export doesn't need these. Run via: pnpm build:metadata
+ * Runs prebuild so files land in public/ before next build. Generated files are
+ * gitignored. Run via: pnpm build:metadata
  */
 
 import fs from 'fs/promises';
 import path from 'path';
 import { CONTENT_MDX_DIR } from '../src/mdx-utils/content-constants';
-import { loadDirNameToPrefixMap, remapDiskRelativeToBlobRelative } from '../src/mdx-utils/blob-path-remap';
+import {
+  loadDirNameToPrefixMap,
+  remapDiskRelativeToBlobRelative,
+  stripDocsPrefix,
+} from '../src/mdx-utils/blob-path-remap';
 
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://www.mongodb.com';
-const METADATA_DEST_DIR = path.join(process.cwd(), '.next', 'static', 'docs-metadata');
+const PUBLIC_DIR = path.join(process.cwd(), 'public');
+const GENERATED_FILENAMES = ['sitemap-0.xml', 'sitemap-index.xml', 'objects.inv'];
 const INVENTORY_FILENAME = 'objects.inv';
+
+/** This deploy's docset URL prefix (e.g. `languages/python/django-mongodb`, or
+ * '' for the empty-prefix landing/manual deploy). Mirrors next.config.mjs. */
+function getDocsetBase(dirNameToPrefix: Record<string, string>): string {
+  const docsProject = process.env.DOCS_PROJECT;
+  if (!docsProject) return '';
+  const rawPrefix = dirNameToPrefix[docsProject.split('/')[0]];
+  return rawPrefix ? stripDocsPrefix(rawPrefix) : '';
+}
 
 /** Minimal shape of _site.json needed to build a sitemap. */
 interface SiteMetadata {
@@ -154,13 +161,6 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  try {
-    await fs.access(path.join(process.cwd(), '.next'));
-  } catch {
-    console.error('.next output not found — run this after `next build`.');
-    process.exit(1);
-  }
-
   const prefixMap = await loadDirNameToPrefixMap();
   if (Object.keys(prefixMap).length === 0) {
     console.warn(
@@ -168,6 +168,8 @@ async function main(): Promise<void> {
         'run `pnpm build:prefix-map` first. Emitting files under raw disk paths.',
     );
   }
+
+  const docsetBase = getDocsetBase(prefixMap);
 
   const siteDirs: string[] = [];
   await findSiteMetadataDirs(CONTENT_MDX_DIR, CONTENT_MDX_DIR, siteDirs);
@@ -177,23 +179,39 @@ async function main(): Promise<void> {
     return;
   }
 
-  // Clean to avoid stale sitemaps/inventories from previous builds.
-  await fs.rm(METADATA_DEST_DIR, { recursive: true, force: true });
+  // Clean prior generated metadata from public/ to avoid stale files.
+  await removeGeneratedMetadata(PUBLIC_DIR);
 
   let sitemapCount = 0;
   let inventoryCount = 0;
 
   for (const diskDir of siteDirs) {
+    const urlPrefix = remapDiskRelativeToBlobRelative(diskDir, prefixMap);
+
+    // Only stage THIS deploy's docset; other docsets live on their own deploys.
+    // `rest` is the canonical path relative to basePath (the version segment(s),
+    // or '' for a non-versioned docset root).
+    let rest: string;
+    if (urlPrefix === docsetBase) {
+      rest = '';
+    } else if (docsetBase === '') {
+      rest = urlPrefix;
+    } else if (urlPrefix.startsWith(`${docsetBase}/`)) {
+      rest = urlPrefix.slice(docsetBase.length + 1);
+    } else {
+      continue;
+    }
+
     const siteMetadata = await readSiteMetadata(diskDir);
     if (!siteMetadata) {
       console.warn(`[build-content-metadata] skipping ${diskDir}: could not read _site.json`);
       continue;
     }
 
-    const urlPrefix = remapDiskRelativeToBlobRelative(diskDir, prefixMap);
-    const destDir = path.join(METADATA_DEST_DIR, urlPrefix);
+    const destDir = rest ? path.join(PUBLIC_DIR, rest) : PUBLIC_DIR;
     await fs.mkdir(destDir, { recursive: true });
 
+    // Sitemap page URLs use the full canonical prefix (unaffected by basePath).
     const baseDocUrl = `${SITE_URL}/docs/${urlPrefix}`;
     const urls = buildSitemapUrls(baseDocUrl, siteMetadata);
 
@@ -211,8 +229,27 @@ async function main(): Promise<void> {
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
   console.log(
     `Generated ${sitemapCount} sitemap(s) and copied ${inventoryCount} inventory file(s) ` +
-      `to .next/static/docs-metadata/ in ${elapsed}s`,
+      `to public/ in ${elapsed}s`,
   );
+}
+
+/** Recursively remove previously generated metadata files (fixed filenames) from
+ * public/, leaving committed assets untouched. */
+async function removeGeneratedMetadata(dir: string): Promise<void> {
+  let entries;
+  try {
+    entries = await fs.readdir(dir, { withFileTypes: true });
+  } catch {
+    return;
+  }
+  for (const entry of entries) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      await removeGeneratedMetadata(full);
+    } else if (GENERATED_FILENAMES.includes(entry.name)) {
+      await fs.rm(full, { force: true });
+    }
+  }
 }
 
 main().catch((err) => {

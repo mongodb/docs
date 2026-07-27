@@ -29,7 +29,7 @@ describe('middleware', () => {
   // Regression guard: the markdown export route must not carry its own OPTIONS
   // handler (that opts it out of static generation), so preflight is answered
   // here for both the /docs pages and the /api/markdown export route.
-  it.each(['/docs/manual/current/foo', '/api/markdown/manual/current/foo'])(
+  it.each(['/manual/current/foo', '/api/markdown/manual/current/foo'])(
     'answers CORS preflight for %s with 204 + CORS headers',
     (pathname) => {
       const res = middleware(fakeRequest({ method: 'OPTIONS', pathname })) as unknown as {
@@ -44,14 +44,14 @@ describe('middleware', () => {
 
   it('rewrites a /docs page to the markdown route when Accept prefers markdown', () => {
     const res = middleware(
-      fakeRequest({ pathname: '/docs/manual/current/foo/', accept: 'text/markdown' }),
+      fakeRequest({ pathname: '/manual/current/foo/', accept: 'text/markdown' }),
     ) as unknown as { rewriteUrl?: { pathname: string } };
     expect(res.rewriteUrl?.pathname).toBe('/api/markdown/manual/current/foo');
   });
 
   it('does not rewrite explicit .md URLs based on Accept (next.config handles them)', () => {
     const res = middleware(
-      fakeRequest({ pathname: '/docs/manual/current/foo.md', accept: 'text/markdown' }),
+      fakeRequest({ pathname: '/manual/current/foo.md', accept: 'text/markdown' }),
     ) as unknown as { rewriteUrl?: unknown; headers: { get: (k: string) => string | null } };
     expect(res.rewriteUrl).toBeUndefined();
     expect(res.headers.get('Vary')).toBe('Accept');
@@ -59,7 +59,7 @@ describe('middleware', () => {
 
   it('passes HTML requests through with a Vary: Accept header', () => {
     const res = middleware(
-      fakeRequest({ pathname: '/docs/manual/current/foo/', accept: 'text/html' }),
+      fakeRequest({ pathname: '/manual/current/foo/', accept: 'text/html' }),
     ) as unknown as { rewriteUrl?: unknown; headers: { get: (k: string) => string | null } };
     expect(res.rewriteUrl).toBeUndefined();
     expect(res.headers.get('Vary')).toBe('Accept');

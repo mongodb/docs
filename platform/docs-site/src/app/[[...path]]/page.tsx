@@ -11,11 +11,13 @@ import { getChangelogData } from '@/services/db/openapi';
 import { getAllDocsetsWithVersionsCached } from '@/services/db/docsets';
 import { generateDocsStaticPaths } from '@/utils/generate-docs-paths';
 import { getIndexRedirectTarget } from '@/utils/index-redirect';
+import { toFullUrlPath, getBasePath } from '@/utils/base-path';
 import { getPageMetadata } from '@/utils/seo';
 
-/** Normalize the optional catch-all segment to a concrete path array.
- * params.path is undefined at /docs/ (Next.js [[...path]] root match). */
-const normalizeUrlPath = (path?: string[]): string[] => path ?? ['index'];
+/** Route params are basePath-relative; re-prepend the docset-prefix segments so
+ * downstream loaders get the full urlPath. `undefined` params (the basePath
+ * root, [[...path]] optional match) map to the project index. */
+const normalizeUrlPath = (path?: string[]): string[] => toFullUrlPath(path ?? ['index']);
 
 /** Files under an `_includes/` segment are include-only fragments, not standalone
  * pages. The <Include> component fetches them through loadMDX, but they must not be
@@ -81,9 +83,11 @@ export default async function MDXPage({ params }: PageProps) {
 export async function generateStaticParams() {
   const prefixedPaths = await generateDocsStaticPaths();
 
-  // Debug index for local development
+  // Debug index for local development. Paths are basePath-relative, so prepend
+  // the basePath to build a clickable local URL.
+  const basePath = getBasePath();
   const links = prefixedPaths
-    .map(({ path: p }) => `  <li><a href="http://localhost:3000/docs/${p.join('/')}/">${p.join('/')}</a></li>`)
+    .map(({ path: p }) => `  <li><a href="http://localhost:3000${basePath}/${p.join('/')}/">${p.join('/')}</a></li>`)
     .join('\n');
   const html = `<!DOCTYPE html>
 <html lang="en">

@@ -11,6 +11,7 @@ import { Icon } from '@leafygreen-ui/icon';
 import { isRelativeUrl } from '@/utils/is-relative-url';
 import { assertLeadingAndTrailingSlash } from '@/utils/assert-leading-and-trailing-slash';
 import { isOfflineBuild } from '@/utils/isOfflineBuild';
+import { getBasePath, sameProjectHref } from '@/utils/base-path';
 
 type LinkThemeStyle = {
   color: string;
@@ -154,10 +155,13 @@ export const Link = ({
   ...other
 }: LinkProps) => {
   if (!to) to = '';
-  const pathname = usePathname();
+  // usePathname() is basePath-relative but `to` is a full `/docs/<prefix>/...`
+  // path, so re-add basePath before the same-page comparison below.
+  const relativePathname = usePathname();
+  const pathname = relativePathname ? `${getBasePath()}${relativePathname}` : relativePathname;
 
   // If a link points to a section on the current page, strip it down to just the `#hash`.
-  // A full-path NextLink would reload the route, dropping the query string (e.g. composable
+  // A full-path link would reload the route, dropping the query string (e.g. composable
   // `?deployment-type=...`) and skipping `hashchange`. A bare `#hash` anchor keeps the query
   // and fires hashchange, so in-page selectors (composable tutorials, tabs) can react.
   if (to && pathname && !isOfflineBuild) {
@@ -205,19 +209,36 @@ export const Link = ({
 
   if (to && isRelativeUrl(to) && !anchor) {
     to = assertLeadingAndTrailingSlash(to);
+
+    const linkClassName = cx(linkStyling(THEME_STYLES[siteTheme]), className);
+    const linkTarget = !showExtIcon ? '_self' : undefined;
+
+    // Same-deploy links navigate client-side via NextLink (sameProjectHref
+    // strips basePath; NextLink re-adds it). Cross-deploy links and offline use a
+    // plain <a> so Next doesn't prepend this basePath — b2k routes the full path.
+    const clientHref = isOfflineBuild ? null : sameProjectHref(to);
+    if (clientHref) {
+      return (
+        <NextLink
+          className={linkClassName}
+          onClick={onClick}
+          href={clientHref}
+          target={linkTarget}
+          {...anchorProps}
+        >
+          {children}
+          {decoration}
+        </NextLink>
+      );
+    }
+
     if (isOfflineBuild) to = addOfflineIndexHtml(to);
 
     return (
-      <NextLink
-        className={cx(linkStyling(THEME_STYLES[siteTheme]), className)}
-        onClick={onClick}
-        href={to}
-        target={!showExtIcon ? '_self' : undefined}
-        {...anchorProps}
-      >
+      <a className={linkClassName} onClick={onClick} href={to} target={linkTarget} {...anchorProps}>
         {children}
         {decoration}
-      </NextLink>
+      </a>
     );
   }
 

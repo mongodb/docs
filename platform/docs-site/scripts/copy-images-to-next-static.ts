@@ -1,7 +1,6 @@
 /**
  * Copies content images from content-mdx into .next/static/images/ so they serve
- * as static assets at /docs/docs_static_nextjs/_next/static/images/<rel> (via the
- * netlify.toml /docs/docs_static_nextjs/_next/* rewrite + b2k strip) — out of the
+ * as static assets at the root under /_next/static/images/<rel> — out of the
  * /docs/* soft-redirect path, without the (unusable) image optimizer.
  *
  * Sources content-mdx directly (not public/docs/images), so the online <Image>

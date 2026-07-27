@@ -5,6 +5,7 @@ import Badge from '@leafygreen-ui/badge';
 import { css, cx } from '@leafygreen-ui/emotion';
 import type { IconProps } from '@leafygreen-ui/icon';
 import { Icon as LeafyGreenIcon } from '@leafygreen-ui/icon';
+import { getBasePath } from '@/utils/base-path';
 
 const cloudSyncStyle = css`
   padding-right: 7px;
@@ -30,7 +31,7 @@ export const Icon = ({ target, name }: IconProps) => {
   if (target === 'sync-pill') {
     return (
       <Badge variant="lightgray" className={cx(syncPillStyle)}>
-        <Image src="/cloud.png" alt="Sync" className={cx(cloudSyncStyle)} width={16} height={16} />
+        <Image src={`${getBasePath()}/cloud.png`} alt="Sync" className={cx(cloudSyncStyle)} width={16} height={16} />
         APP SERVICES
       </Badge>
     );

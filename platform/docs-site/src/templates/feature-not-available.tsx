@@ -8,7 +8,7 @@ import { H2 } from '@leafygreen-ui/typography';
 import { theme } from '@/styles/theme';
 import Breadcrumbs from '@/mdx-components/Breadcrumbs';
 import { useRouter } from 'next/navigation';
-import { ASSET_PREFIX } from '@/constants';
+import { getBasePath } from '@/utils/base-path';
 
 const StyledMain = styled.main`
   max-width: 100vw;
@@ -48,7 +48,7 @@ const ImageContainer = styled.div`
 const FeatureNotAvailImage = () => {
   return (
     <ImageContainer>
-      <img src={`${ASSET_PREFIX}/feature-not-avail.svg`} alt="Feature not available" height={240} width={360} />
+      <img src={`${getBasePath()}/feature-not-avail.svg`} alt="Feature not available" height={240} width={360} />
     </ImageContainer>
   );
 };
@@ -95,7 +95,9 @@ const FeatureNotAvailable = () => {
     if (window.history.length > 1) {
       router.back();
     } else {
-      router.push('/docs');
+      // Full `/docs` path (the docs landing); use window.location so basePath
+      // isn't prepended.
+      window.location.assign('/docs');
     }
   };
 

@@ -61,7 +61,7 @@ At startup, Next.js loads all `*-redirects.json` files and registers entries wit
 
 ### Tier 2 — Soft redirects
 
-**Files:** `redirect-utils.ts`, `soft-redirects.ts`, `netlify/edge-functions/soft-redirects.ts`, `src/app/docs/[[...path]]/page.tsx`
+**Files:** `redirect-utils.ts`, `soft-redirects.ts`, `netlify/edge-functions/soft-redirects.ts`, `src/app/[[...path]]/page.tsx`
 
 Soft redirects only fire when a page is not found. Because the
 production build is a **static site** (no request-time server), soft
@@ -132,7 +132,7 @@ asset and `netlify/edge-functions/soft-redirects.ts` wrapping the 404.
 | `src/redirects/redirect-utils.ts` | URL matching logic |
 | `src/redirects/soft-redirects.ts` | Soft redirect aggregation |
 | `netlify/edge-functions/soft-redirects.ts` | Applies soft redirects on 404 at the CDN edge (static host) |
-| `src/app/docs/[[...path]]/page.tsx` | Request handler (renders pages / returns 404; soft redirects handled by the edge function) |
+| `src/app/[[...path]]/page.tsx` | Request handler (renders pages / returns 404; soft redirects handled by the edge function) |
 | `next.config.mjs` | Force redirect registration |
 | `src/tests/scripts/migrate-redirects.test.ts` | Migration tests |
 | `src/tests/redirects/redirect-utils.test.ts` | Matching tests |

@@ -15,6 +15,7 @@ import { useVersionContext } from '@/context/version-context';
 import { useChatbotModal } from '@/context/chatbot-context';
 import { reportAnalytics } from '@/utils/report-analytics';
 import { currentScrollPosition } from '@/utils/current-scroll-position';
+import { getBasePath } from '@/utils/base-path';
 
 type ToastOpen = {
   open: boolean;
@@ -48,7 +49,10 @@ const CopyPageMarkdownButton = ({ className, slug }: CopyPageMarkdownButtonProps
   // https://www.mongodb.com/docs/mcp-server/get-started.md
   const markdownPath = href?.split(/[?#]/)[0] || ''; // Looking to spit either at the ? or # to handle query params and fragment identifiers
   const urlWithoutTrailingSlash = removeTrailingSlash(markdownPath);
-  const markdownAddress = slug === '/' ? `${urlWithoutTrailingSlash}/index.md` : `${urlWithoutTrailingSlash}.md`;
+  // usePathname() is basePath-relative; prepend basePath so the `.md` fetch hits
+  // `<basePath>/....md` (the next.config rewrite → markdown export route).
+  const markdownRelative = slug === '/' ? `${urlWithoutTrailingSlash}/index.md` : `${urlWithoutTrailingSlash}.md`;
+  const markdownAddress = `${getBasePath()}${markdownRelative}`;
   const { setChatbotClicked, setText } = useChatbotModal();
 
   useEffect(() => {

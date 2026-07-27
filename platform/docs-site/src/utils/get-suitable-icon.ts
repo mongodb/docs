@@ -1,4 +1,6 @@
-import { ICONS_BASE_URL, INTERNAL_IMAGE_API_PATH } from '@/constants';
+import { ICONS_BASE_URL, INTERNAL_IMAGE_API_PATH, ONLINE_IMAGE_PREFIX } from '@/constants';
+import { isDevMode } from '@/utils/isDevBuild';
+import { isOfflineBuild } from '@/utils/isOfflineBuild';
 
 // Mirrors blob-path-remap.ts stripDocsPrefix (kept inline — that file uses fs, client-unsafe).
 function stripDocsPrefix(prefix: string): string {
@@ -23,7 +25,12 @@ export const getSuitableIcon = ({
       const selectedIcon = isDarkMode && iconDark ? iconDark : icon;
       const blobPrefix = stripDocsPrefix(siteBasePrefix);
       const imagePath = blobPrefix ? `${blobPrefix}${selectedIcon}` : selectedIcon.replace(/^\//, '');
-      return `${INTERNAL_IMAGE_API_PATH}${imagePath}`;
+      // Mirrors Image/index.tsx's formatImageUrl: dev/offline images are staged
+      // under public/ (INTERNAL_IMAGE_API_PATH); online, they're staged under
+      // _next/static/images (ONLINE_IMAGE_PREFIX) — the only location that
+      // actually exists in a production build.
+      const prefix = isDevMode || isOfflineBuild ? INTERNAL_IMAGE_API_PATH : ONLINE_IMAGE_PREFIX;
+      return `${prefix}${imagePath}`;
     }
 
     const getIcon = `${icon}${isDarkMode ? '_inverse' : ''}`;

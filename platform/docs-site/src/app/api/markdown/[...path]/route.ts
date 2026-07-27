@@ -9,6 +9,7 @@ import { isVersionPlaceholder } from '@/mdx-utils/load-mdx';
 import { loadDirNameToPrefixMap, blobRelativeToDiskCandidates } from '@/mdx-utils/blob-path-remap';
 import { getStaticVersion } from '@/utils/extract-mdx-routes-from-toc';
 import { generateDocsStaticPaths } from '@/utils/generate-docs-paths';
+import { toFullUrlPath } from '@/utils/base-path';
 
 // The markdown export is prerendered at build time from the on-disk content-mdx
 // directory (see content-constants). It cannot run as a request-time function
@@ -37,7 +38,13 @@ interface RouteContext {
 
 /** Same set of paths as the HTML page route, plus a `.md` counterpart. */
 export async function generateStaticParams() {
-  return generateDocsStaticPaths();
+  const paths = await generateDocsStaticPaths();
+  // A mandatory [...path] catch-all cannot represent a zero-segment export
+  // path. This only occurs for a non-versioned ("leaf") docset's own root/
+  // index page, once basePath-relative stripping removes its entire path —
+  // that page still renders fine via page.tsx's optional catch-all; it just
+  // has no .md export at the bare project root.
+  return paths.filter(({ path }) => path.length > 0);
 }
 
 // NOTE: Do not export an OPTIONS (or any non-GET) handler here. Exporting
@@ -48,7 +55,9 @@ export async function generateStaticParams() {
 
 export async function GET(_request: Request, { params }: RouteContext) {
   try {
-    const { path } = params;
+    // Route params are basePath-relative; re-prepend the docset-prefix segments
+    // to reconstruct the full urlPath before disk resolution.
+    const path = toFullUrlPath(params.path);
 
     if (!path || path.length === 0) {
       return withCORS(
