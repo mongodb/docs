@@ -76,14 +76,19 @@
       retention_value     = 7 # retain for 7 days
      }
      policy_item_weekly {
-       frequency_interval = 7 # every Sunday, accepted values = 1 to 7 -> every 1=Monday,2=Tuesday,3=Wednesday,4=Thursday,5=Friday,6=Saturday,7=Sunday day of the week
+       frequency_interval = 6 # every Saturday, accepted values = 1 to 7 -> every 1=Monday,2=Tuesday,3=Wednesday,4=Thursday,5=Friday,6=Saturday,7=Sunday day of the week
        retention_unit     = "weeks"
        retention_value    = 4 # retain for 4 weeks
      }
      policy_item_monthly {
-       frequency_interval = 28 # accepted values = 1 to 28 -> 1 to 28 every nth day of the month  
+       frequency_interval = 40 # last day of the month, accepted values = 1 to 28 -> nth day of the month, or 40 -> last day of the month
        retention_unit  = "months"
-       retention_value = 3 # retain for 3 months
+       retention_value = 12 # retain for 12 months
+     }
+     policy_item_yearly {
+       frequency_interval = 12 # every December, accepted values = 1 to 12 -> nth month of the year
+       retention_unit  = "years"
+       retention_value = 1 # retain for 1 year
      }
 
      depends_on = [
