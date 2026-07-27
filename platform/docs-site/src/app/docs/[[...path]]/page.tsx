@@ -4,13 +4,14 @@ import { notFound, permanentRedirect } from 'next/navigation';
 import { loadMDX } from '@/mdx-utils/load-mdx';
 import { loadSiteMetadata } from '@/mdx-utils/load-site-metadata';
 import envConfig from '@/utils/env-config';
-import type { RemoteMetadata } from '@/types/data';
+import type { Docset, RemoteMetadata } from '@/types/data';
 import { CustomTemplate } from './custom-template';
 import type { ServerSideChangelogData } from '@/types/openapi';
 import { getChangelogData } from '@/services/db/openapi';
 import { getAllDocsetsWithVersionsCached } from '@/services/db/docsets';
 import { generateDocsStaticPaths } from '@/utils/generate-docs-paths';
 import { getIndexRedirectTarget } from '@/utils/index-redirect';
+import { getPageMetadata } from '@/utils/seo';
 
 /** Normalize the optional catch-all segment to a concrete path array.
  * params.path is undefined at /docs/ (Next.js [[...path]] root match). */
@@ -112,8 +113,20 @@ export async function generateMetadata({ params }: PageProps) {
     return notFound();
   }
 
-  return {
-    title: result.frontmatter.title || path.join(' '),
-    description: result.frontmatter.description || '',
-  };
+  let siteMetadata: RemoteMetadata;
+  try {
+    ({ siteMetadata } = await loadSiteMetadata(path));
+  } catch (error) {
+    console.error('[page.tsx] Error loading metadata: ', error);
+    throw new Error('[page.tsx] Error loading metadata');
+  }
+
+  const docsets = await getAllDocsetsWithVersionsCached();
+  const docset = docsets.find((docset: Docset) => docset.project === siteMetadata.project);
+
+  let metadata = null;
+  if (docset) {
+    metadata = getPageMetadata({ frontmatter: result.frontmatter, snootyMetadata: siteMetadata, docset });
+  }
+  return metadata;
 }
