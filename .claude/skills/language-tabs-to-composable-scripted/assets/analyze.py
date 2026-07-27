@@ -33,7 +33,7 @@ LANGUAGE_IDS = {
     "swift": "swift",
     "swift-sync": "swift-sync",
     "swift-async": "swift-async",
-    "javascript": "nodejs",
+    "javascript": "nodejs", "typescript": "nodejs",
     # shell/mongosh in a pure-language context (Case A only)
     "shell": "shell",
     "mongosh": "shell",
