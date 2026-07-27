@@ -6,6 +6,7 @@ import sys
 from pathlib import Path
 
 SKILLS_DIR = Path(__file__).parent
+REPO_ROOT = SKILLS_DIR.parent.parent
 OWNERS_FILE = SKILLS_DIR / "OWNERS.yaml"
 README_FILE = SKILLS_DIR / "README.md"
 
@@ -35,16 +36,24 @@ SECTION_ORDER = [
 ]
 
 OTHER_SECTION = "Other Skills"
+
+# Entries that don't live under .claude/skills/ (hooks, agents) aren't
+# slash commands, so they get their own section and render without a
+# leading slash.
+TOOLS_SECTION = "Other Tools"
+
 KNOWN_SECTIONS = {name for name, _ in SECTION_ORDER}
 
 
 def parse_owners():
-    """Return ordered list of (skill name, readme_section) from OWNERS.yaml.
+    """Return ordered list of (name, readme_section, path, description).
 
-    A skill whose readme_section is missing, or set to a value that
+    An entry whose readme_section is missing, or set to a value that
     doesn't match a known heading in SECTION_ORDER (e.g. a typo), is
     normalized to OTHER_SECTION here rather than left to build_readme,
-    so nothing downstream needs to re-check validity.
+    so nothing downstream needs to re-check validity. An entry whose
+    path is outside .claude/skills/ is forced into TOOLS_SECTION
+    regardless of its readme_section, since it isn't a skill.
     """
     content = OWNERS_FILE.read_text()
     results = []
@@ -58,15 +67,38 @@ def parse_owners():
         section = section_m.group(1).strip() if section_m else None
         if section not in KNOWN_SECTIONS:
             section = OTHER_SECTION
-        results.append((name, section))
+        path_m = re.search(r"^\s+path:\s*(.+)$", body, re.MULTILINE)
+        path = path_m.group(1).strip() if path_m else f".claude/skills/{name}"
+        desc_m = re.search(
+            r'^\s+readme_description:\s*"?(.*?)"?\s*$', body, re.MULTILINE
+        )
+        description = desc_m.group(1).strip() if desc_m else ""
+        if not path.startswith(".claude/skills/"):
+            section = TOOLS_SECTION
+        results.append((name, section, path, description))
     return results
 
 
-def extract_description(skill_name):
-    """Extract and shorten the description from SKILL.md frontmatter."""
-    skill_md = SKILLS_DIR / skill_name / "SKILL.md"
+def extract_description(path):
+    """Extract and shorten a description from a SKILL.md or flow.md.
+
+    Skills carry theirs in SKILL.md frontmatter; agents carry theirs in
+    a <description> block in flow.md.
+    """
+    entry_dir = REPO_ROOT / path
+    skill_md = entry_dir / "SKILL.md"
     if not skill_md.exists():
-        return ""
+        flow_md = entry_dir / "flow.md"
+        if not flow_md.exists():
+            return ""
+        m = re.search(
+            r"<description>\s*(.*?)\s*</description>",
+            flow_md.read_text(),
+            re.DOTALL,
+        )
+        if not m:
+            return ""
+        return shorten(" ".join(m.group(1).split()))
     content = skill_md.read_text()
 
     # Quoted inline: description: "text"
@@ -88,7 +120,11 @@ def extract_description(skill_name):
             m = re.search(r"^description:\s*(.+)", content, re.MULTILINE)
             text = m.group(1).strip() if m else ""
 
-    # Shorten to first sentence
+    return shorten(text)
+
+
+def shorten(text):
+    """Trim a description to its first sentence."""
     idx = text.find(". ")
     if idx > 0:
         return text[:idx]
@@ -96,12 +132,12 @@ def extract_description(skill_name):
 
 
 def build_readme(skill_entries):
-    """skill_entries: ordered list of (skill name, readme_section)."""
+    """skill_entries: ordered list of (name, readme_section, path, description)."""
     by_section = {}
-    for name, section in skill_entries:
+    for name, section, path, description in skill_entries:
         if name in INTERNAL_SKILLS:
             continue
-        by_section.setdefault(section, []).append(name)
+        by_section.setdefault(section, []).append((name, path, description))
 
     lines = [
         "# Claude Skills Reference",
@@ -120,25 +156,29 @@ def build_readme(skill_entries):
     ]
 
     section_descriptions = dict(SECTION_ORDER)
-    ordered_sections = [name for name, _ in SECTION_ORDER] + [OTHER_SECTION]
+    ordered_sections = (
+        [name for name, _ in SECTION_ORDER] + [OTHER_SECTION, TOOLS_SECTION]
+    )
 
     for section_name in ordered_sections:
         section_skills = by_section.get(section_name)
         if not section_skills:
             continue
-        if section_name == OTHER_SECTION:
+        is_tools = section_name == TOOLS_SECTION
+        if section_name in (OTHER_SECTION, TOOLS_SECTION):
             section_skills = sorted(section_skills)
         section_desc = section_descriptions.get(section_name)
         lines += [f"## {section_name}", ""]
         if section_desc:
             lines += [section_desc, ""]
         lines += [
-            "| Skill | What it does |",
+            f"| {'Tool' if is_tools else 'Skill'} | What it does |",
             "|---|---|",
         ]
-        for skill_name in section_skills:
-            desc = extract_description(skill_name)
-            lines.append(f"| `/{skill_name}` | {desc} |")
+        for name, path, description in section_skills:
+            desc = description or extract_description(path)
+            label = f"`{name}`" if is_tools else f"`/{name}`"
+            lines.append(f"| {label} | {desc} |")
         lines.append("")
 
     return "\n".join(lines)
