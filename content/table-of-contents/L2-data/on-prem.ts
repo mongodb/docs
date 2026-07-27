@@ -16,11 +16,6 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
-            label: 'Platform Support',
-            contentSite: 'docs',
-            url: '/docs/:version/administration/community-platform-support',
-          },
-          {
             label: 'Install on Linux',
             contentSite: 'docs',
             url: '/docs/:version/administration/install-on-linux',
