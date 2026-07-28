@@ -491,18 +491,54 @@ cloud provider or cloud provider region for your |service| {+cluster+}.
 Multi-Region and Multi-Cloud {+Clusters+}
 +++++++++++++++++++++++++++++++++++++++++
 
-|service| supports deploying Search Nodes across multiple
-regions and cloud providers. When deploying Search Nodes 
-for multi-region or multi-cloud {+clusters+}, consider the following:
+|service| supports deploying Search Nodes across multiple regions and
+cloud providers. When deploying Search Nodes to a multi-region or
+multi-cloud cluster, consider the following:
 
-- All nodes across regions have the same :ref:`search tier 
-  <select-tiers-for-search-nodes>`.
-- You can deploy a minimum of 2 and maximum of 32 search nodes per region. 
-- If you use the :ref:`{+atlas-admin-api+} <atlas-admin-api>`
-  to add a new region to existing Search Nodes, |service| deploys
-  the same number of Search Nodes in the new region. However, if the
-  new region does not support the current search tier, the
-  request fails.
+- All Search Nodes across all regions must use the same :ref:`search
+  tier <select-tiers-for-search-nodes>` (``instanceSize``).
+- You can deploy a different number of Search Nodes to each region, but
+  each region must have a minimum of 2 and a maximum of 32 Search Nodes.
+- If you deploy Search Nodes in a multi-region cluster using the
+  :oas-bump-atlas-op:`{+atlas-admin-api+}
+  <creategroupclustersearchdeployment>`, |service| deploys Search Nodes
+  to every region in the cluster using the ``instanceSize`` that you
+  specify in the request body.
+
+  To set the number of Search Nodes in a specific region, add an object
+  to the ``specs`` array in the request body. In each object, specify
+  the ``nodeCount``, ``regionName``, ``cloudProvider``, and
+  ``instanceSize``. |service| deploys the specified number of Search
+  Nodes (``nodeCount``) to that region. To configure multiple regions,
+  add one object for each region. For any cluster region that you don't
+  specify in the ``specs`` array, |service| deploys the specified
+  default number of Search Nodes (``defaultNodeCount``), or ``2`` if you
+  don't set ``defaultNodeCount``.
+
+  For example, the following request body deploys 3 Search Nodes to
+  ``AWS`` ``US_EAST_1``, 4 Search Nodes to ``AZURE`` ``US_WEST_2``, and
+  2 Search Nodes to all other cluster regions:
+
+  .. code-block:: json
+     :caption: Example request body for deploying Search Nodes across multiple regions and cloud providers
+
+     {
+       "defaultNodeCount": 3,
+       "specs": [
+         {
+           "cloudProvider": "AWS",
+           "instanceSize": "S10_HIGHCPU",
+           "nodeCount": 3,
+           "regionName": "US_EAST_1"
+         },
+         {
+           "cloudProvider": "AZURE",
+           "instanceSize": "S10_HIGHCPU",
+           "nodeCount": 4,
+           "regionName": "US_WEST_2"
+         }
+       ]
+     }
 
 .. _sharded-cluster-search-nodes:
 
