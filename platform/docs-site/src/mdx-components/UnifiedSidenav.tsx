@@ -7,8 +7,7 @@ import { css as LeafyCSS, cx } from '@leafygreen-ui/emotion';
 import { isActiveTocNode, removeAnchor } from './UnifiedSidenav/UnifiedTocNavItems';
 import { usePageContext } from '@/context/page-context';
 import { theme } from '@/styles/theme';
-import { assertLeadingSlash } from '@/utils/assert-leading-slash';
-import { removeTrailingSlash } from '@/utils/remove-trailing-slash';
+import { isCurrentPage } from '@/utils/is-current-page';
 import useStickyTopValues from '@/hooks/use-sticky-top-values';
 import { isBrowser } from '@/utils/is-browser';
 import { SidenavContext } from '@/context/sidenav-context';
@@ -97,12 +96,6 @@ const SidenavContainer = ({ topLarge, topMedium, topSmall }: SidenavContainerPro
     }
 `;
 
-// Normalize for comparison so /path and /path/index.html match (e.g. offline .html links)
-const normalizeUrlForMatch = (url: string): string => {
-  const withSlash = assertLeadingSlash(removeTrailingSlash(removeAnchor(url)));
-  return withSlash.replace(/\/index\.html$/i, '') || '/';
-};
-
 const findPageParent = (tree: TocItem[], targetUrl: string): [boolean, TocItem | null] => {
   const path: TocItem[] = [];
 
@@ -110,7 +103,9 @@ const findPageParent = (tree: TocItem[], targetUrl: string): [boolean, TocItem |
   const dfs = (item: TocItem): [boolean, TocItem] | null => {
     path.push(item);
 
-    if (normalizeUrlForMatch(item.newUrl ?? '').toLowerCase() === normalizeUrlForMatch(targetUrl).toLowerCase()) {
+    // isCurrentPage handles the offline case, where the export has no basePath: the
+    // slug lacks the /docs prefix that TOC urls carry, and TOC urls end in /index.html.
+    if (isCurrentPage(removeAnchor(item.newUrl ?? ''), removeAnchor(targetUrl))) {
       for (let i = path.length - 1; i >= 0; i--) {
         if (path[i].showSubNav === true) {
           return [true, path[i]];
