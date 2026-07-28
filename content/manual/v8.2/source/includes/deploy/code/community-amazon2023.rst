@@ -2,7 +2,7 @@
       
    [mongodb-org-{+version+}]
    name=MongoDB Repository
-   baseurl=https://repo.mongodb.org/yum/amazon/2023/mongodb-org/{+version+}/x86_64/
+   baseurl=https://repo.mongodb.org/yum/amazon/2023/mongodb-org/{+version+}/$basearch/
    gpgcheck=1
    enabled=1
    gpgkey=https://pgp.mongodb.com/server-8.0.asc
@@ -12,4 +12,4 @@ You can also download the ``.rpm`` files directly from the
 Downloads are organized by Amazon Linux 2023 version (for
 example, ``2023``), then MongoDB :ref:`version
 <release-version-numbers>` (``{+version+}``), then
-architecture (``x86_64``). 
+architecture (``x86_64`` or ``aarch64``).
