@@ -1,0 +1,295 @@
+.. _crewai-memory-tutorial:
+
+=====================================
+Add Long-Term Memory to CrewAI Agents
+=====================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. facet::
+   :name: programming_language
+   :values: python
+
+.. meta::
+   :description: Give CrewAI agents durable long-term memory with MongoDB Vector Search, so a new crew can recall preferences a previous session stored.
+   :keywords: agentic, recall, vector database, vector search, Voyage AI, code example
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+In this tutorial, you use the ``crewai-mongodb-memory`` package to give a
+`CrewAI <https://docs.crewai.com/en/introduction>`__ agent durable
+long-term memory that persists in MongoDB Atlas. The agent stores user
+preferences as memory records and recalls them semantically with
+MongoDB Vector Search, so a brand-new crew in a later session can answer correctly by
+retrieving learnings from a previous session.
+
+To learn more about the MongoDB CrewAI integration, see :ref:`crewai`.
+
+Prerequisites
+-------------
+
+To complete this tutorial, you must have the following:
+
+- Python 3.10 or later.
+
+- .. include:: /includes/avs/shared/avs-requirements-cluster.rst
+
+- .. include:: /includes/avs/shared/avs-requirements-voyageai-api-key.rst
+
+- A large language model (LLM) API key, such as Anthropic or OpenAI, to power the agent's inference.
+
+How Agent Memory Works with MongoDB
+-----------------------------------
+
+The ``crewai-mongodb-memory`` backend implements CrewAI's
+``StorageBackend`` protocol. It stores each memory as a record in a
+MongoDB collection and uses MongoDB Vector Search to retrieve relevant records
+semantically. The backend uses the following components:
+
+- ``MongoDBStorageBackend``: Connects to your Atlas cluster, stores
+  memory records, and runs ``$vectorSearch`` queries to recall them.
+
+- ``MemoryRecord``: Represents a single memory, including its text
+  content, a hierarchical scope such as ``/users/alex/preferences``,
+  optional categories, and its vector embedding.
+
+- ``embed_text()``: Generates 1024-dimensional embeddings with the
+  Voyage AI ``voyage-4`` model for both stored documents and queries.
+
+Because the memory lives in Atlas instead of the crew's in-process
+context, any crew that connects to the same cluster and scope can
+recall the stored memories.
+
+.. collapsible::
+   :heading: Example memory record stored in MongoDB Atlas
+   :expanded: false
+
+   .. code-block:: json
+
+      {
+        "_id": "cff7db8d-aa2e-4d82-8234-e4b8f1ccccb6",
+        "content": "The user always prefers window seats on flights.",
+        "scope": "/users/alex/preferences",
+        "categories": [
+          "preference"
+        ],
+        "metadata": {},
+        "importance": 0.5,
+        "created_at": {
+          "$date": "2026-07-14T22:06:59.162Z"
+        },
+        "last_accessed": {
+          "$date": "2026-07-14T22:06:59.162Z"
+        },
+        "source": null,
+        "private": false,
+        "embedding": [
+          0.03147803992033005,
+          0.015906454995274544,
+          -0.007409059442579746,
+          0.028631621971726418,
+          ...
+        ],
+        "scope_ancestors": [
+          "/users",
+          "/users/alex",
+          "/users/alex/preferences"
+        ]
+      }
+
+Build and Run the Agent
+------------------------
+
+Complete the following steps to build and run an agent that stores and
+recalls user preferences:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Set up the environment.
+
+      a. Run the following commands in your terminal to create a new
+         directory named ``crewai-memory-project`` and install the
+         required dependencies:
+
+         .. code-block:: shell
+
+            mkdir crewai-memory-project
+            cd crewai-memory-project
+            pip install crewai-mongodb-memory crewai "crewai[google-genai]" voyageai python-dotenv
+
+      #. In your project, create a ``.env`` file and add the following
+         lines:
+
+         .. code-block:: text
+
+            ATLAS_URI="<connection-string>"
+            VOYAGE_API_KEY="<voyage-api-key>"
+            ANTHROPIC_API_KEY="<anthropic-api-key>"
+            MODEL="<anthropic-model>"
+
+         .. note::
+
+            .. include:: /includes/search-shared/find-connection-string.rst
+
+   .. step:: Build the agent.
+
+      Create a file named ``main.py`` in your project and paste the
+      following code:
+
+      .. literalinclude:: /includes/ai-integrations/crewai/agent-memory.py
+         :language: python
+         :copyable:
+
+      This script does the following:
+
+      - Connects to your Atlas cluster with ``MongoDBStorageBackend``
+        and ensures a MongoDB Vector Search index exists on the memory collection.
+      - Defines two `tools
+        <https://docs.crewai.com/en/concepts/tools>`__,
+        ``remember_preference`` and ``recall_preferences``, that the
+        agent calls to store and retrieve memories.
+      - Defines a CrewAI `agent
+        <https://docs.crewai.com/en/concepts/agents>`__ that uses the
+        memory tools, then runs one crew that stores the user's
+        preferences.
+      - Runs a second, brand-new crew that recalls the stored
+        preferences from Atlas and grounds its recommendation in them.
+
+   .. step:: Run the file.
+
+      Run the following command to execute the script:
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: sh
+
+            python main.py
+
+         .. output::
+            :language: text
+
+            ======================================================================
+            SESSION 1 - agent stores durable preferences in Atlas
+            ======================================================================
+              The user says: 'I'm vegetarian, I avoid dairy, and I always prefer
+                    window seats on flights.' Store each durable preference.
+            Crew 'crew' has started execution!
+            ╭────────────────────────────── 🤖 Agent Started ──────────────────────────────╮
+            │                                                                              │
+            │  Agent: Personal Concierge                                                   │
+            │                                                                              │
+            │  Task: The user says: 'I'm vegetarian, I avoid dairy, and I always prefer    │
+            │          window seats on flights.' Store each durable preference.            │
+            │                                                                              │
+            ╰──────────────────────────────────────────────────────────────────────────────╯
+
+            Tool remember_preference executed with result: Stored preference: The user is vegetarian....
+            Tool remember_preference executed with result: Stored preference: The user avoids dairy....
+            Tool remember_preference executed with result: Stored preference: The user always prefers window seats on flights....
+            [Finalize] todos_count=0, todos_with_results=0
+            ╭─────────────────────────── ✅ Agent Final Answer ────────────────────────────╮
+            │                                                                              │
+            │  Agent: Personal Concierge                                                   │
+            │                                                                              │
+            │  Final Answer:                                                               │
+            │  Stored:                                                                     │
+            │  - The user is vegetarian.                                                   │
+            │  - The user avoids dairy.                                                    │
+            │  - The user always prefers window seats on flights.                          │
+            │                                                                              │
+            ╰──────────────────────────────────────────────────────────────────────────────╯
+
+            Agent 'Personal Concierge' completed task
+            Output: Stored:
+            - The user is vegetarian.
+            - The user avoids dairy.
+            - The user always prefers window seats on flights.
+            Crew 'crew' has completed execution!
+            Output: Stored:
+            - The user is vegetarian.
+            - The user avoids dairy.
+            - The user always prefers window seats on flights.
+
+            Agent (session 1): Stored:
+            - The user is vegetarian.
+            - The user avoids dairy.
+            - The user always prefers window seats on flights.
+
+            Waiting for Atlas to index the new memories...
+            Memories searchable.
+
+            ======================================================================
+            SESSION 2 - fresh crew answers via recall_preferences
+            ======================================================================
+              The user is booking a long flight and pre-ordering an in-flight meal.  
+                    Recommend a seat and a meal that fit their preferences.
+            Crew 'crew' has started execution!
+            ╭────────────────────────────── 🤖 Agent Started ──────────────────────────────╮
+            │                                                                              │
+            │  Agent: Personal Concierge                                                   │
+            │                                                                              │
+            │  Task: The user is booking a long flight and pre-ordering an in-flight       │
+            │  meal.                                                                       │
+            │          Recommend a seat and a meal that fit their preferences.             │
+            │                                                                              │
+            ╰──────────────────────────────────────────────────────────────────────────────╯
+
+              - [0.794] The user always prefers window seats on flights.
+              - [0.748] The user is vegetarian.
+              - [0.739] The user avoids dairy.
+            Tool recall_preferences executed with result: - The user always prefers window seats on flights. (score=0.794)
+            - The user is vegetarian. (score=0.748)
+            - The user avoids dairy. (score=0.739)...
+            [Finalize] todos_count=0, todos_with_results=0
+            ╭─────────────────────────── ✅ Agent Final Answer ────────────────────────────╮
+            │                                                                              │
+            │  Agent: Personal Concierge                                                   │
+            │                                                                              │
+            │  Final Answer:                                                               │
+            │  I recommend booking a **window seat** for the long flight, since you        │
+            │  prefer window seats.                                                        │
+            │                                                                              │
+            │  For your in-flight meal, choose a **vegetarian dairy-free meal**. If the    │
+            │  airline offers specific meal codes, look for something like **VGML / vegan  │
+            │  meal**, since that will typically meet both preferences: vegetarian and no  │
+            │  dairy.                                                                      │
+            │                                                                              │
+            ╰──────────────────────────────────────────────────────────────────────────────╯
+
+            Agent 'Personal Concierge' completed task
+            Output: I recommend booking a **window seat** for the long flight, since you prefer window seats.
+
+            For your in-flight meal, choose a **vegetarian dairy-free meal**. If the airline offers specific meal codes, look for something like **VGML / vegan meal**, since that will typically meet both preferences: vegetarian and no dairy.
+            Crew 'crew' has completed execution!
+            Output: I recommend booking a **window seat** for the long flight, since you prefer window seats.
+
+            For your in-flight meal, choose a **vegetarian dairy-free meal**. If the airline offers specific meal codes, look for something like **VGML / vegan meal**, since that will typically meet both preferences: vegetarian and no dairy.
+
+            Agent (session 2, brand-new crew): I recommend booking a **window seat** for the long flight, since you prefer window seats.
+
+            For your in-flight meal, choose a **vegetarian dairy-free meal**. If the airline offers specific meal codes, look for something like **VGML / vegan meal**, since that will typically meet both preferences: vegetarian and no dairy.
+
+            ======================================================================
+            Proof: direct $vectorSearch recall over stored preferences
+            ======================================================================
+              - [0.770] The user always prefers window seats on flights.
+              - [0.768] The user is vegetarian.
+              - [0.754] The user avoids dairy.
+
+            Done - CrewAI stored and recalled preferences via MongoDB Vector Search.
+
+      .. note::
+
+         Your output might differ, as LLM responses and vector search
+         scores can vary between runs.

@@ -171,6 +171,11 @@ const tocData: TocItem[] = [
                 contentSite: 'cloud-docs',
                 url: '/docs/atlas/ai-integrations/crewai/build-agents',
               },
+              {
+                label: 'Add Long-Term Memory',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/ai-integrations/crewai/agent-memory',
+              },
             ],
           },
           {
