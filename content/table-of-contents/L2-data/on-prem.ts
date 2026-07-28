@@ -1131,9 +1131,14 @@ const tocData: TocItem[] = [
             url: '/docs/:version/tutorial/schedule-backup-window-for-sharded-clusters',
           },
           {
-            label: 'Restore a Sharded Cluster',
+            label: 'Restore a Sharded Cluster from File System Snapshots',
             contentSite: 'docs',
             url: '/docs/:version/tutorial/restore-sharded-cluster',
+          },
+          {
+            label: 'Restore a Sharded Cluster from Database Dumps',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/restore-sharded-cluster-with-database-dumps',
           },
         ],
       },
