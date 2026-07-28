@@ -2948,8 +2948,24 @@ export const toc: L1TocItem[] = [
                   },
                   {
                     label: 'Run Queries',
-                    contentSite: 'cloud-docs',
-                    url: '/docs/atlas/data-federation/tutorial/run-queries',
+                    collapsible: true,
+                    items: [
+                      {
+                        label: 'Feed Downstream Systems',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/data-federation/tutorial/run-queries-downstream',
+                      },
+                      {
+                        label: 'Explore with Sample Data',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/data-federation/tutorial/run-queries-sample-data',
+                      },
+                      {
+                        label: 'Query Data Across Clusters',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/data-federation/tutorial/run-queries-across-clusters',
+                      },
+                    ],
                   },
                 ],
               },

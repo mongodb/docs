@@ -720,8 +720,8 @@ export const toc: TocItem[] = [
               },
               {
                 label: 'Data API OpenAPI Reference',
-                contentSite: 'atlas-app-services',
-                url: '/docs/atlas/app-services/data-api/openapi',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/api/doc/atlas-data-api-v1/',
               },
             ],
           },
@@ -821,8 +821,8 @@ export const toc: TocItem[] = [
               },
               {
                 label: 'App Services Admin API',
-                contentSite: 'atlas-app-services',
-                url: '/docs/atlas/app-services/admin/api/v3',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/api/doc/atlas-app-services-admin-api-v3/',
               },
               {
                 label: '|cli|',
