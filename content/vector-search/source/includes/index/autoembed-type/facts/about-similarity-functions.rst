@@ -2,14 +2,18 @@
 
 - ``euclidean`` - measures the distance between ends of vectors. This
   value allows you to measure similarity based on varying dimensions. To
-  learn more, see :wikipedia:`Euclidean <Euclidean_distance>`.  
-- ``cosine`` - measures similarity based on the angle between  vectors.
+  learn more, see :wikipedia:`Euclidean <Euclidean_distance>`. This is
+  the recommended option when using ``binary`` or ``binaryNoRescore``
+  quantization in Automated Embedding.
+- ``cosine`` - measures similarity based on the angle between vectors.
   This value allows you to measure similarity that isn't scaled by
-  magnitude.  
+  magnitude. This is the recommended option when using ``scalar``
+  quantization in Automated Embedding.
 - ``dotProduct`` - measures similarity like ``cosine``, but takes into
-  account the magnitude of the vector. The output of the embedding models 
-  used for Automated Embedding are normalized to unit length. Therefore, 
-  ``cosine`` and ``dotProduct`` are identical in measuring similarity. 
+  account the magnitude of the vector. When the output of the embedding
+  models is normalized to unit length, ``cosine`` and ``dotProduct`` are
+  identical in measuring similarity. This is the recommended option when
+  using ``float`` quantization in Automated Embedding.
 
 The formula for each similarity function is as follows: 
 
@@ -66,9 +70,3 @@ The formula for each similarity function is as follows:
         vector (``v2``), which has the range [``0``, ``∞``]. {+avs+} then transforms 
         the distance to a similarity score by adding ``1`` to the distance and then 
         divides ``1`` by the result to ensure a value between ``0`` and ``1``.
-
-To get started, we recommend using ``scalar`` quantization and setting 
-``fields.similarity`` to the ``dotProduct`` value. ``dotProduct`` consumes 
-less computational resources than ``cosine`` and is efficient when vectors 
-are of unit length. When using ``binary`` or ``binaryNoRescore`` quantization, 
-we recommend using ``euclidean`` similarity.
