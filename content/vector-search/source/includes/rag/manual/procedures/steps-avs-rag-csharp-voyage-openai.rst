@@ -48,7 +48,7 @@
       of given string inputs. This function uses |voyage|'s
       ``voyage-3-large`` model to generate an embedding for a given input.
 
-      .. literalinclude:: /includes/rag/code-snippets/ingest/csharp/AIService-GetEmbeddingsAsync-VoyageAI-RAG.cs
+      .. literalinclude:: /includes/rag/manual/code-snippets/ingest/csharp/AIService-GetEmbeddingsAsync-VoyageAI-RAG.cs
          :language: csharp
          :copyable:
          :caption: AIService.cs
@@ -71,7 +71,7 @@
            (number of characters) and chunk overlap (number of overlapping
            characters between consecutive chunks).
 
-         .. literalinclude:: /includes/rag/code-snippets/ingest/csharp/PdfIngester.cs
+         .. literalinclude:: /includes/rag/manual/code-snippets/ingest/csharp/PdfIngester.cs
             :language: csharp
             :copyable:
             :caption: PdfIngester.cs
@@ -87,7 +87,7 @@
          code stores the embeddings alongside the chunked data in the
          ``rag_db.test`` collection.
 
-         .. literalinclude:: /includes/rag/code-snippets/ingest/csharp/MongoDBDataService-AddDocumentsAsync.cs
+         .. literalinclude:: /includes/rag/manual/code-snippets/ingest/csharp/MongoDBDataService-AddDocumentsAsync.cs
             :language: csharp
             :copyable:
             :caption: MongoDBDataService.cs
@@ -100,7 +100,7 @@
          corresponding vector embeddings. You generate these embeddings 
          using the ``GetEmbeddingsAsync()`` function that you defined earlier.
 
-         .. literalinclude:: /includes/rag/code-snippets/ingest/csharp/EmbeddingGenerator.cs
+         .. literalinclude:: /includes/rag/manual/code-snippets/ingest/csharp/EmbeddingGenerator.cs
             :language: csharp
             :copyable:
             :caption: EmbeddingGenerator.cs
@@ -109,7 +109,7 @@
 
          Paste this code in your ``Program.cs``:
 
-         .. literalinclude:: /includes/rag/code-snippets/ingest/csharp/Program-CreateEmbeddings.cs
+         .. literalinclude:: /includes/rag/manual/code-snippets/ingest/csharp/Program-CreateEmbeddings.cs
             :language: csharp
             :copyable:
             :caption: Program.cs
@@ -136,7 +136,7 @@
 
                dotnet run MyCompany.RAG.csproj
 
-            .. output:: /includes/rag/code-snippets/output/ingest-data-output-csharp.sh
+            .. output:: /includes/rag/manual/code-snippets/output/ingest-data-output-csharp.sh
                :language: shell
                :visible: false
    
@@ -152,7 +152,7 @@
          In the ``MongoDBDataService`` class, add the following code to define
          a {+avs+} index on the ``embedding`` field:
 
-         .. literalinclude:: /includes/rag/code-snippets/index/MongoDBDataService-CreateIndex.cs
+         .. literalinclude:: /includes/rag/manual/code-snippets/index/MongoDBDataService-CreateIndex.cs
             :language: csharp
             :copyable:
 
@@ -161,7 +161,7 @@
          In the ``Program.cs`` file, replace the existing code with the
          following code to create the index:
 
-         .. literalinclude:: /includes/rag/code-snippets/index/Program-CreateIndex.cs
+         .. literalinclude:: /includes/rag/manual/code-snippets/index/Program-CreateIndex.cs
             :language: csharp
             :copyable:
             :caption: Program.cs
@@ -182,7 +182,7 @@
 
          To learn more, refer to :ref:`return-vector-search-results`.
 
-         .. literalinclude:: /includes/rag/code-snippets/retrieve/MongoDBDataService-PerformVectorQuery.cs
+         .. literalinclude:: /includes/rag/manual/code-snippets/retrieve/MongoDBDataService-PerformVectorQuery.cs
             :language: csharp
             :copyable:
 
@@ -191,7 +191,7 @@
          In the ``Program.cs`` file, replace the existing code with the
          following code to test the retrieval function:
 
-         .. literalinclude:: /includes/rag/code-snippets/retrieve/Program-TestQuery.cs
+         .. literalinclude:: /includes/rag/manual/code-snippets/retrieve/Program-TestQuery.cs
             :language: csharp
             :copyable:
             :caption: Program.cs
@@ -206,7 +206,7 @@
 
                dotnet run MyCompany.RAG.csproj
 
-            .. output:: /includes/rag/code-snippets/output/retrieve-data-output.sh
+            .. output:: /includes/rag/manual/code-snippets/output/retrieve-data-output.sh
                :language: shell
                :visible: false
 
@@ -220,7 +220,7 @@
          function that prompts the LLM to use the retrieved documents as
          context:
 
-         .. literalinclude:: /includes/rag/code-snippets/generate/OpenAIService-GenerateAnswer.cs
+         .. literalinclude:: /includes/rag/manual/code-snippets/generate/OpenAIService-GenerateAnswer.cs
             :language: csharp
             :copyable:
 
@@ -233,7 +233,7 @@
            documents in the prompt.
          - Prompts the LLM about MongoDB's latest AI announcements.
 
-         .. literalinclude:: /includes/rag/code-snippets/generate/Program-RAGPipeline.cs
+         .. literalinclude:: /includes/rag/manual/code-snippets/generate/Program-RAGPipeline.cs
             :language: csharp
             :copyable:
             :caption: Program.cs

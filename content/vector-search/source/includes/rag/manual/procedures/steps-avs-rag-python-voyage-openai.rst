@@ -170,7 +170,7 @@
          :copyable: true
          :category: usage example
 
-      .. literalinclude:: /includes/rag/code-snippets/output/generate-responses-output-openai.sh
+      .. literalinclude:: /includes/rag/manual/code-snippets/output/generate-responses-output-openai.sh
          :language: none
          :copyable: false
 

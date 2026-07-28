@@ -35,7 +35,7 @@
       of given string inputs. This function uses OpenAI's
       ``text-embedding-3-small`` model to generate an embedding for a given input.
 
-      .. literalinclude:: /includes/rag/code-snippets/ingest/csharp/AIService-GetEmbeddingsAsync-OpenAI.cs
+      .. literalinclude:: /includes/rag/manual/code-snippets/ingest/csharp/AIService-GetEmbeddingsAsync-OpenAI.cs
          :language: csharp
          :copyable:
          :caption: AIService.cs

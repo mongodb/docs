@@ -133,7 +133,7 @@
         and *chunk overlap* (number of overlapping characters between
         consecutive chunks). The method returns a list of text segments.
 
-      .. literalinclude:: /includes/rag/code-snippets/ingest/java/PDFProcessor.java
+      .. literalinclude:: /includes/rag/manual/code-snippets/ingest/java/PDFProcessor.java
          :language: java
          :caption: PDFProcessor.java
 
@@ -177,7 +177,7 @@
       - Stores these embeddings alongside the chunked data in the
         ``rag_db.test`` collection.
 
-      .. literalinclude:: /includes/rag/code-snippets/ingest/java/DataIngest.java
+      .. literalinclude:: /includes/rag/manual/code-snippets/ingest/java/DataIngest.java
          :language: java
          :caption: IngestData.java
 
@@ -197,7 +197,7 @@
          creates an index of the :ref:`vectorSearch <avs-types-vector-search>`
          type on the ``rag_db.test`` collection.
 
-         .. literalinclude:: /includes/rag/code-snippets/index/VectorIndex.java
+         .. literalinclude:: /includes/rag/manual/code-snippets/index/VectorIndex.java
             :language: java
             :caption: CreateVectorSearchIndex.java
 
@@ -236,7 +236,7 @@
         documents in the prompt.
       - Prompts the LLM about MongoDB's latest AI announcements.
 
-      .. literalinclude:: /includes/rag/code-snippets/generate/LLMPrompt.java
+      .. literalinclude:: /includes/rag/manual/code-snippets/generate/LLMPrompt.java
          :language: java
          :caption: GenerateResponses.java
 

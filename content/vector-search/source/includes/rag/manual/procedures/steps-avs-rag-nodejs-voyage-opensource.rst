@@ -21,7 +21,7 @@
 
          .. code-block::
 
-            npm install mongodb @xenova/transformers openai langchain @langchain/community pdf-parse@1
+            npm install mongodb voyageai @huggingface/inference langchain @langchain/community pdf-parse@1
 
       #. Update your ``package.json`` file.
 
@@ -45,7 +45,8 @@
          .. code-block::
 
             MONGODB_URI = "<connection-string>"
-            OPENAI_API_KEY = "<openai-api-key>"
+            VOYAGE_API_KEY = "<voyage-api-key>"
+            HUGGING_FACE_ACCESS_TOKEN = "<hf-token>"
 
          .. include:: /includes/shared/facts/find-connection-string.rst
 
@@ -56,12 +57,18 @@
       In your project, create a file called ``get-embeddings.js`` and paste
       the following code:
 
-      .. literalinclude:: /includes/rag/code-snippets/ingest/nodejs/get-embeddings.js
+      .. literalinclude:: /includes/rag/manual/code-snippets/ingest/nodejs/get-embeddings-voyage.js
          :language: javascript
+         :copyable:
 
       The ``getEmbedding()`` function generates vector embeddings by 
-      using the `nomic-embed-text-v1 <https://huggingface.co/nomic-ai/nomic-embed-text-v1>`__ embedding model
-      from `Sentence Transformers <https://huggingface.co/sentence-transformers>`__.
+      using the ``voyage-3-large`` embedding model
+      from :ref:`Voyage AI <voyage-landing>`.
+
+      .. tip::
+
+         To learn more, see `Voyage AI Typescript Library 
+         <https://www.npmjs.com/package/voyageai>`__.
 
    .. step:: Ingest data into your MongoDB deployment.
 
@@ -84,7 +91,7 @@
       Create a file called ``ingest-data.js`` in your project, and paste the
       following code:
 
-      .. literalinclude:: /includes/rag/code-snippets/ingest/nodejs/ingest-data.js
+      .. literalinclude:: /includes/rag/manual/code-snippets/ingest/nodejs/ingest-data.js
          :language: javascript
 
       Then, run the following command to execute the code:
@@ -119,9 +126,9 @@
          Create a new file named ``rag-vector-index.js`` and paste the following code. 
          This code connects to your MongoDB deployment and creates an 
          index of the :ref:`vectorSearch <avs-types-vector-search>` type on 
-         the ``rag_db.test`` collection with 768 dimensions for the open-source embedding model.
+         the ``rag_db.test`` collection with 1024 dimensions for the |voyage| model.
 
-         .. literalinclude:: /includes/rag/code-snippets/index/create-index.js
+         .. literalinclude:: /includes/rag/manual/code-snippets/index/create-index.js
             :language: javascript
 
          Then, run the following command to execute the code:
@@ -144,7 +151,7 @@
 
          Paste this code into your file:
 
-         .. literalinclude:: /includes/rag/code-snippets/retrieve/retrieve-documents.js
+         .. literalinclude:: /includes/rag/manual/code-snippets/retrieve/retrieve-documents.js
             :language: javascript
 
       #. Test retrieving the data.
@@ -154,11 +161,11 @@
          
          Paste this code into your file:
 
-         .. literalinclude:: /includes/rag/code-snippets/retrieve/retrieve-documents-test.js
+         .. literalinclude:: /includes/rag/manual/code-snippets/retrieve/retrieve-documents-test.js
             :language: javascript
 
          Then, run the following command to execute the code.
-         Your results might vary depending on the embedding model you use.
+         Your results might vary.
 
          .. io-code-block:: 
             :copyable: true
@@ -168,7 +175,7 @@
 
                node --env-file=.env retrieve-documents-test.js
 
-            .. output:: /includes/rag/code-snippets/output/retrieve-data-output.sh
+            .. output:: /includes/rag/manual/code-snippets/output/retrieve-data-output.sh
                :language: console
                :visible: false
 
@@ -187,7 +194,7 @@
       Create a new file called ``generate-responses.js``, and paste the following
       code into it:
 
-      .. literalinclude:: /includes/rag/code-snippets/generate/generate-responses-openai.js
+      .. literalinclude:: /includes/rag/manual/code-snippets/generate/generate-responses-hf.js
          :language: javascript
 
       Then, run this command to execute the code. The generated response might
@@ -203,14 +210,12 @@
 
          .. output:: 
             
-            MongoDB's latest AI announcements include the launch of the MongoDB
-            AI Applications Program (MAAP), which provides customers with
-            reference architectures, pre-built partner integrations, and
-            professional services to help them build AI-powered applications
-            quickly. Accenture has joined MAAP as the first global systems
-            integrator, establishing a center of excellence focused on MongoDB
-            projects. Additionally, Bendigo and Adelaide Bank have partnered
-            with MongoDB to modernize their core banking technology using
-            MongoDB's Relational Migrator and generative AI-powered
-            modernization tools.
+            MongoDB's latest AI announcements include the MongoDB AI Applications
+            Program (MAAP), which provides customers with reference architectures,
+            pre-built partner integrations, and professional services to help them
+            quickly build AI-powered applications. Accenture will establish a
+            center of excellence focused on MongoDB projects and is the first
+            global systems integrator to join MAAP. Additionally, MongoDB has
+            announced significant performance improvements in MongoDB 8.0,
+            featuring faster reads, updates, bulk inserts, and time series queries.
 

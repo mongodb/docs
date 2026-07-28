@@ -14,7 +14,7 @@
 
       .. code-block:: shell
 
-         pip install --quiet --upgrade pymongo voyageai huggingface_hub einops langchain langchain_community pypdf
+         pip install --quiet --upgrade pymongo sentence_transformers huggingface_hub einops langchain langchain_community pypdf
       
       Then, run the following code to set the environment variables
       for this tutorial, replacing the placeholders with your API keys.
@@ -23,7 +23,6 @@
         
          import os
 
-         os.environ["VOYAGE_API_KEY"] = "<voyage-api-key>"
          os.environ["HF_TOKEN"] = "<hf-token>"
 
    .. step:: Ingest data into your MongoDB deployment.
@@ -34,9 +33,16 @@
 
       a. Define a function to generate vector embeddings.
 
-         .. include:: /includes/shared/facts/mdb-vs-voyage-model-description.rst
+         Paste and run the following code in your notebook to create
+         a function named ``get_embedding()`` that generates vector embeddings by 
+         using the `nomic-embed-text-v1 <https://huggingface.co/nomic-ai/nomic-embed-text-v1>`__ embedding model
+         from `Sentence Transformers <https://huggingface.co/sentence-transformers>`__.
+         
+         ..
+            NOTE: If you edit this Python file, also update the Jupyter Notebook
+            at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/rag.ipynb
 
-         .. literalinclude:: /includes/rag/code-snippets/ingest/python/get-embeddings-voyage.py
+         .. literalinclude:: /includes/rag/manual/code-snippets/ingest/python/get-embeddings.py
             :language: python
             :copyable:
             
@@ -143,7 +149,7 @@
                 "fields": [
                   {
                     "type": "vector",
-                    "numDimensions": 1024,
+                    "numDimensions": 768,
                     "path": "embedding",
                     "similarity": "cosine"
                   }
@@ -173,7 +179,7 @@
          ``get_query_results()`` that runs a basic vector search query.
          It uses the ``get_embedding()`` function to create embeddings from the
          search query. Then, it runs the query to return semantically similar
-         documents.
+         documents. Your results might vary depending on the embedding model you use.
 
          To learn more, see :ref:`return-vector-search-results`.
 
@@ -187,7 +193,7 @@
                def get_query_results(query):
                  """Gets results from a vector search query."""
                  
-                 query_embedding = get_embedding(query, input_type="query")
+                 query_embedding = get_embedding(query)
                  pipeline = [
                      {
                            "$vectorSearch": {

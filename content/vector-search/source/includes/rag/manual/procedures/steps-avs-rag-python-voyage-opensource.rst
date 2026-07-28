@@ -14,7 +14,7 @@
 
       .. code-block:: shell
 
-         pip install --quiet --upgrade pymongo sentence_transformers openai einops langchain langchain_community pypdf
+         pip install --quiet --upgrade pymongo voyageai huggingface_hub einops langchain langchain_community pypdf
       
       Then, run the following code to set the environment variables
       for this tutorial, replacing the placeholders with your API keys.
@@ -23,7 +23,8 @@
         
          import os
 
-         os.environ["OPENAI_API_KEY"] = "<openai-api-key>"
+         os.environ["VOYAGE_API_KEY"] = "<voyage-api-key>"
+         os.environ["HF_TOKEN"] = "<hf-token>"
 
    .. step:: Ingest data into your MongoDB deployment.
 
@@ -33,16 +34,9 @@
 
       a. Define a function to generate vector embeddings.
 
-         Paste and run the following code in your notebook to create
-         a function named ``get_embedding()`` that generates vector embeddings by 
-         using the `nomic-embed-text-v1 <https://huggingface.co/nomic-ai/nomic-embed-text-v1>`__ embedding model
-         from `Sentence Transformers <https://huggingface.co/sentence-transformers>`__.
-         
-         ..
-            NOTE: If you edit this Python file, also update the Jupyter Notebook
-            at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/rag.ipynb
+         .. include:: /includes/shared/facts/mdb-vs-voyage-model-description.rst
 
-         .. literalinclude:: /includes/rag/code-snippets/ingest/python/get-embeddings.py
+         .. literalinclude:: /includes/rag/manual/code-snippets/ingest/python/get-embeddings-voyage.py
             :language: python
             :copyable:
             
@@ -149,7 +143,7 @@
                 "fields": [
                   {
                     "type": "vector",
-                    "numDimensions": 768,
+                    "numDimensions": 1024,
                     "path": "embedding",
                     "similarity": "cosine"
                   }
@@ -179,7 +173,7 @@
          ``get_query_results()`` that runs a basic vector search query.
          It uses the ``get_embedding()`` function to create embeddings from the
          search query. Then, it runs the query to return semantically similar
-         documents. Your results might vary depending on the embedding model you use.
+         documents.
 
          To learn more, see :ref:`return-vector-search-results`.
 
@@ -193,7 +187,7 @@
                def get_query_results(query):
                  """Gets results from a vector search query."""
                  
-                 query_embedding = get_embedding(query)
+                 query_embedding = get_embedding(query, input_type="query")
                  pipeline = [
                      {
                            "$vectorSearch": {
@@ -270,7 +264,7 @@
          .. input:: 
             :language: python
 
-            from openai import OpenAI
+            from huggingface_hub import InferenceClient
 
             # Specify search query, retrieve relevant documents, and convert to string
             query = "What are MongoDB's latest AI announcements?"
@@ -283,18 +277,27 @@
                 Question: {query}
             """
 
-            openai_client = OpenAI()
+            # Use a model from Hugging Face
+            llm = InferenceClient(
+                "mistralai/Mixtral-8x22B-Instruct-v0.1",
+                provider = "fireworks-ai",
+                token = os.getenv("HF_TOKEN"))
 
-            # OpenAI model to use
-            model_name = "gpt-4o"
-
-            completion = openai_client.chat.completions.create(
-            model=model_name,
-            messages=[{"role": "user",
-                "content": prompt
-              }]
+            # Prompt the LLM (this code varies depending on the model you use)
+            output = llm.chat_completion(
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=150
             )
-            print(completion.choices[0].message.content)
+            print(output.choices[0].message.content)
 
-         .. output:: /includes/rag/code-snippets/output/generate-responses-output-openai.sh
+         .. output:: 
+            
+            MongoDB's latest AI announcements include the 
+            MongoDB AI Applications Program (MAAP), a program designed 
+            to help customers build AI-powered applications more efficiently. 
+            Additionally, they have announced significant performance 
+            improvements in MongoDB 8.0, featuring faster reads, updates, 
+            bulk inserts, and time series queries. Another announcement is the 
+            general availability of Atlas Stream Processing to build sophisticated, 
+            event-driven applications with real-time data.
 

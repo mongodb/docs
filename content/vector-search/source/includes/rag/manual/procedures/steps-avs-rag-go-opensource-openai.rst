@@ -70,7 +70,7 @@
       #. Create a file called ``process-file.go`` in the ``common`` directory,
          and paste the following code into it:
 
-         .. literalinclude:: /includes/rag/code-snippets/ingest/go/process-file.go
+         .. literalinclude:: /includes/rag/manual/code-snippets/ingest/go/process-file.go
             :language: go
             :caption: process-file.go
 
@@ -101,7 +101,7 @@
          <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__
          embedding model from Hugging Face to generate vector embeddings.
 
-         .. literalinclude:: /includes/rag/code-snippets/ingest/go/ingest-data-hf.go
+         .. literalinclude:: /includes/rag/manual/code-snippets/ingest/go/ingest-data-hf.go
             :language: go
             :caption: ingest-data.go
 
@@ -115,7 +115,7 @@
 
                go run ingest-data.go
 
-            .. output:: /includes/rag/code-snippets/output/ingest-data-output-go.sh
+            .. output:: /includes/rag/manual/code-snippets/output/ingest-data-output-go.sh
                :language: console
                :visible: false
    
@@ -131,7 +131,7 @@
          creates an index of the :ref:`vectorSearch <avs-types-vector-search>`
          type on the ``rag_db.test`` collection.
 
-         .. literalinclude:: /includes/rag/code-snippets/index/create-index.go
+         .. literalinclude:: /includes/rag/manual/code-snippets/index/create-index.go
             :language: go
             :caption: rag-vector-index.go
 
@@ -158,7 +158,7 @@
          <https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1>`__
          embedding model from Hugging Face to generate vector embeddings.
 
-         .. literalinclude:: /includes/rag/code-snippets/retrieve/get-query-results-hf.go
+         .. literalinclude:: /includes/rag/manual/code-snippets/retrieve/get-query-results-hf.go
             :language: go
             :caption: get-query-results.go
 
@@ -169,7 +169,7 @@
 
          #. Paste this code into your file:
 
-            .. literalinclude:: /includes/rag/code-snippets/retrieve/retrieve-documents-test.go
+            .. literalinclude:: /includes/rag/manual/code-snippets/retrieve/retrieve-documents-test.go
                :language: go
                :caption: retrieve-documents-test.go
 
@@ -184,7 +184,7 @@
 
                   go run retrieve-documents-test.go
 
-               .. output:: /includes/rag/code-snippets/output/retrieve-data-output.sh
+               .. output:: /includes/rag/manual/code-snippets/output/retrieve-data-output.sh
                   :language: console
                   :visible: false
 
@@ -203,7 +203,7 @@
       a. In the ``rag-mongodb`` project directory, create a new file called ``generate-responses.go``, and paste the following
          code into it:
 
-         .. literalinclude:: /includes/rag/code-snippets/generate/generate-responses.go
+         .. literalinclude:: /includes/rag/manual/code-snippets/generate/generate-responses.go
             :language: go
             :caption: generate-responses.go
 

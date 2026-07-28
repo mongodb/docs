@@ -14,7 +14,7 @@
 
       .. code-block:: shell
 
-         pip install --quiet --upgrade pymongo sentence_transformers huggingface_hub einops langchain langchain_community pypdf
+         pip install --quiet --upgrade pymongo sentence_transformers openai einops langchain langchain_community pypdf
       
       Then, run the following code to set the environment variables
       for this tutorial, replacing the placeholders with your API keys.
@@ -23,7 +23,7 @@
         
          import os
 
-         os.environ["HF_TOKEN"] = "<hf-token>"
+         os.environ["OPENAI_API_KEY"] = "<openai-api-key>"
 
    .. step:: Ingest data into your MongoDB deployment.
 
@@ -42,7 +42,7 @@
             NOTE: If you edit this Python file, also update the Jupyter Notebook
             at https://github.com/mongodb/docs-notebooks/blob/main/use-cases/rag.ipynb
 
-         .. literalinclude:: /includes/rag/code-snippets/ingest/python/get-embeddings.py
+         .. literalinclude:: /includes/rag/manual/code-snippets/ingest/python/get-embeddings.py
             :language: python
             :copyable:
             
@@ -270,7 +270,7 @@
          .. input:: 
             :language: python
 
-            from huggingface_hub import InferenceClient
+            from openai import OpenAI
 
             # Specify search query, retrieve relevant documents, and convert to string
             query = "What are MongoDB's latest AI announcements?"
@@ -283,27 +283,18 @@
                 Question: {query}
             """
 
-            # Use a model from Hugging Face
-            llm = InferenceClient(
-                "mistralai/Mixtral-8x22B-Instruct-v0.1",
-                provider = "fireworks-ai",
-                token = os.getenv("HF_TOKEN"))
+            openai_client = OpenAI()
 
-            # Prompt the LLM (this code varies depending on the model you use)
-            output = llm.chat_completion(
-                messages=[{"role": "user", "content": prompt}],
-                max_tokens=150
+            # OpenAI model to use
+            model_name = "gpt-4o"
+
+            completion = openai_client.chat.completions.create(
+            model=model_name,
+            messages=[{"role": "user",
+                "content": prompt
+              }]
             )
-            print(output.choices[0].message.content)
+            print(completion.choices[0].message.content)
 
-         .. output:: 
-            
-            MongoDB's latest AI announcements include the 
-            MongoDB AI Applications Program (MAAP), a program designed 
-            to help customers build AI-powered applications more efficiently. 
-            Additionally, they have announced significant performance 
-            improvements in MongoDB 8.0, featuring faster reads, updates, 
-            bulk inserts, and time series queries. Another announcement is the 
-            general availability of Atlas Stream Processing to build sophisticated, 
-            event-driven applications with real-time data.
+         .. output:: /includes/rag/manual/code-snippets/output/generate-responses-output-openai.sh
 
