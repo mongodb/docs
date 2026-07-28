@@ -3002,6 +3002,24 @@ const tocData: TocItem[] = [
                 ],
               },
               {
+                label: 'Global App Settings',
+                contentSite: 'ops-manager',
+                url: '/docs/ops-manager/:version/reference/api/admin/settings',
+                collapsible: true,
+                items: [
+                  {
+                    label: 'Get Settings',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/admin/settings/get-global-app-settings',
+                  },
+                  {
+                    label: 'Update Settings',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/admin/settings/update-global-app-settings',
+                  },
+                ],
+              },
+              {
                 label: 'Backup Administration',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/reference/api/nav/administration-backup',
