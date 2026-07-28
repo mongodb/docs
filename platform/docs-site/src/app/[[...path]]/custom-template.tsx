@@ -1,7 +1,7 @@
 import { Providers } from './Providers';
 import { UnifiedSidenav } from '@/mdx-components/UnifiedSidenav';
 import type { BaseTemplateProps } from '@/templates';
-import type { RemoteMetadata, Docset } from '@/types/data';
+import type { RemoteMetadata, ClientSiteMetadata, Docset } from '@/types/data';
 import type { Environments } from '@/utils/env-config';
 import {
   ChangelogTemplate,
@@ -74,6 +74,23 @@ function getTemplate(templateOption: PageTemplateType): {
   return { Template, renderSidenav };
 }
 
+// lookupKeys covers both slugToTitle key variants used across consumers (fileId-derived and page-context-slug-derived).
+const selectClientMetadata = (metadata: RemoteMetadata, lookupKeys: string[]): ClientSiteMetadata => {
+  const slugToTitle: RemoteMetadata['slugToTitle'] = {};
+  for (const key of lookupKeys) {
+    if (metadata.slugToTitle?.[key]) {
+      slugToTitle[key] = metadata.slugToTitle[key];
+    }
+  }
+  return {
+    project: metadata.project,
+    branch: metadata.branch,
+    eol: metadata.eol,
+    openapi_pages: metadata.openapi_pages,
+    slugToTitle,
+  };
+};
+
 interface CustomTemplateProps {
   content: React.ReactNode;
   frontmatter: MDXFrontmatter;
@@ -114,11 +131,17 @@ export const CustomTemplate = ({
     ...(frontmatter.options || {}),
   };
 
+  const fileIdSlug = (frontmatter.fileId ?? '').split('.')[0];
+  const clientMetadata = selectClientMetadata(metadata, [
+    fileIdSlug === '/' ? 'index' : fileIdSlug,
+    slug === '/' ? 'index' : slug,
+  ]);
+
   return (
     <>
       <LocaleHreflangScript slug={slug} />
       <Providers
-        metadata={metadata}
+        metadata={clientMetadata}
         frontmatter={frontmatter}
         slug={slug}
         template={template}

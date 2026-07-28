@@ -3,7 +3,7 @@
 import { ChatbotProvider } from '@/context/chatbot-context';
 import { MetadataProvider } from '@/utils/use-snooty-metadata';
 import { HeadingContextProvider } from '@/context/heading-context';
-import type { RemoteMetadata, Docset } from '@/types/data';
+import type { ClientSiteMetadata, Docset } from '@/types/data';
 import { UnifiedTocProvider } from '@/context/unified-toc-context';
 import { ContentsProvider } from '@/context/contents-context';
 import type { MDXFrontmatter } from '@/types/ast';
@@ -21,7 +21,7 @@ type Template = NonNullable<MDXFrontmatter['template']>;
 
 interface ProvidersProps {
   children: React.ReactNode;
-  metadata: RemoteMetadata;
+  metadata: ClientSiteMetadata;
   frontmatter: MDXFrontmatter;
   slug: string;
   template: Template | null;

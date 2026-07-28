@@ -129,6 +129,9 @@ type RemoteMetadata = {
 type SlugToTitle = RemoteMetadata['slugToTitle'];
 type SlugToBreadcrumbLabel = RemoteMetadata['slugToBreadcrumbLabel'];
 
+// Subset of RemoteMetadata actually read by client components; keeps whole-project maps like toctree/parentPaths out of every page's RSC payload.
+type ClientSiteMetadata = Pick<RemoteMetadata, 'project' | 'branch' | 'eol' | 'openapi_pages' | 'slugToTitle'>;
+
 type BreadcrumbType = {
   title: string;
   path: string;
@@ -218,6 +221,7 @@ export type {
   AppData,
   BranchData,
   BreadcrumbType,
+  ClientSiteMetadata,
   Docset,
   DocsetDocument,
   EOLType,
