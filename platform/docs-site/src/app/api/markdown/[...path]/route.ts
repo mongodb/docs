@@ -123,7 +123,7 @@ export async function GET(_request: Request, { params }: RouteContext) {
           'Content-Type': 'text/markdown; charset=utf-8',
           'Cache-Control': 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400, must-revalidate',
           Vary: 'Accept',
-          'Netlify-Vary': 'query=tabs|allTabs|header=Accept',
+          'Netlify-Vary': 'query=tabs|allTabs,header=Accept',
         },
       }),
     );
