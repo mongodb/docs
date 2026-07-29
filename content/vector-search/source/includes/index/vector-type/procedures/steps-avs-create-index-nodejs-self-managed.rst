@@ -35,65 +35,67 @@
          * - ``<fieldToIndex>``
            - Vector and filter fields to index.
 
-      .. example:: 
+      For example, copy and paste the following into the ``vector-index.js`` file
+      and replace the ``<connectionString>`` placeholder value. 
 
-         Copy and paste the following into the ``vector-index.js`` file
-         and replace the ``<connectionString>`` placeholder value. The
-         following index definition indexes the
-         ``plot_embedding_voyage_3_large`` field as the ``vector`` type
-         and the ``genres`` and ``year`` fields as the ``filter`` type
-         in a {+avs+} index. The ``plot_embedding_voyage_3_large``
-         field contains embeddings created using |voyage|'s
-         ``voyage-3-large`` embedding model. The index definition
-         specifies ``2048`` vector dimensions and measures similarity
-         using ``dotProduct`` function.
+      .. collapsible:: 
+         :heading: Basic Example
+         :expanded: false
 
-         .. tabs:: 
+         The following index definition indexes only the vector
+         embeddings field (``plot_embedding_voyage_3_large``) 
+         using the default indexing method, |hnsw|, for
+         performing vector search.  
 
-            .. tab:: Basic Example
-               :tabid: basic
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/nodejs/basic-example.js
+            :language: js
+            :copyable: true 
+            :linenos:
 
-               The following index definition indexes only the vector
-               embeddings field (``plot_embedding_voyage_3_large``) 
-               using the default indexing method, |hnsw|, for
-               performing vector search.  
+      .. collapsible:: 
+         :heading: Filter Example 
+         :expanded: false
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/nodejs/basic-example.js
-                  :language: js
-                  :copyable: true 
-                  :linenos:
+         This index definition indexes the following fields: 
 
-            .. tab:: Filter Example 
-               :tabid: advanced
+         - A string field (``genres``) and a numeric field (``year``)
+            for pre-filtering the data. 
+         - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+            using the |hnsw| indexing method for performing vector search 
+            against pre-filtered data. 
 
-               This index definition indexes the following fields: 
-      
-               - A string field (``genres``) and a numeric field (``year``)
-                 for pre-filtering the data. 
-               - The vector embeddings field (``plot_embedding_voyage_3_large``) 
-                 using the |hnsw| indexing method for performing vector search 
-                 against pre-filtered data. 
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/nodejs/filter-example.js
+            :language: js
+            :copyable: true 
+            :linenos:
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/nodejs/filter-example.js
-                  :language: js
-                  :copyable: true 
-                  :linenos:
+      .. collapsible:: 
+         :heading: Flat Example 
+         :expanded: false
 
-            .. tab:: Flat Example 
-               :tabid: flat
+         This index definition indexes the following fields: 
 
-               This index definition indexes the following fields: 
-      
-               - A string field (``genres``) and a numeric field (``year``)
-                 for pre-filtering the data. 
-               - The vector embeddings field (``plot_embedding_voyage_3_large``) 
-                 using the ``flat`` indexing method for performing vector 
-                 search against pre-filtered data. 
+         - A string field (``genres``) and a numeric field (``year``)
+            for pre-filtering the data. 
+         - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+            using the ``flat`` indexing method for performing vector 
+            search against pre-filtered data. 
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/nodejs/flat-example.js
-                  :language: js
-                  :copyable: true 
-                  :linenos:
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/nodejs/flat-example.js
+            :language: js
+            :copyable: true 
+            :linenos:
+
+      .. collapsible:: 
+         :heading: Multiple Vector Fields Example
+         :expanded: false
+
+         .. include:: /includes/index/vector-type/facts/avs-create-index-multiple-fields-eg.rst
+
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/nodejs/multi-vector-example.js
+            :language: js
+            :copyable: true 
+            :linenos:
 
    .. step:: Run the following command to create the index.
 

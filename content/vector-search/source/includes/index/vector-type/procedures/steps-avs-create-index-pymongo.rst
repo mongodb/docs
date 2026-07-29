@@ -55,141 +55,153 @@
          * - ``<fieldToIndex>``
            - Vector and filter fields to index.
 
-      .. example:: 
+      For example, copy and paste the following into the ``vector-index.py`` 
+      and replace the ``<connectionString>`` placeholder value. 
 
-         Copy and paste the following into the ``vector-index.py`` and
-         replace the ``<connectionString>`` placeholder value. 
+      .. collapsible:: 
+         :heading: Basic Example
+         :expanded: false
 
-         .. tabs:: 
+         .. cta-banner::
+            :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-basic.ipynb
+            :icon: Code
 
-            .. tab:: Basic Example
-               :tabid: basic
+            Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-basic.ipynb>`.
 
-               .. cta-banner::
-                  :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-basic.ipynb
-                  :icon: Code
+         The following index definition on the ``sample_mflix.embedded_movies`` 
+         collection indexes only the ``plot_embedding_voyage_3_large``
+         field as the ``vector`` type using the default indexing method, 
+         |hnsw|, for performing vector search.
 
-                  Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-basic.ipynb>`.
+         .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-basic.ipynb
 
-               The following index definition on the ``sample_mflix.embedded_movies`` 
-               collection indexes only the ``plot_embedding_voyage_3_large``
-               field as the ``vector`` type using the default indexing method, 
-               |hnsw|, for performing vector search.
+         .. literalinclude:: /includes/quick-start/code-snippets/vector/python/basic-example.py
+            :language: python
+            :copyable: true 
+            :linenos:
 
-               .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-basic.ipynb
+      .. collapsible:: 
+         :heading: Filter Example 
+         :expanded: false
 
-               .. literalinclude:: /includes/quick-start/code-snippets/vector/python/basic-example.py
-                  :language: python
-                  :copyable: true 
-                  :linenos:
+         .. cta-banner::
+            :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb
+            :icon: Code
 
-            .. tab:: Filter Example 
-               :tabid: advanced
+            Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb>`.
 
-               .. cta-banner::
-                  :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb
-                  :icon: Code
+         The following index definition on the ``sample_mflix.embedded_movies`` 
+         collection indexes the following fields: 
 
-                  Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb>`.
+         - A string field (``genres``) and a numeric field (``year``)
+           for pre-filtering the data. 
+         - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+           using the |hnsw| indexing method for
+           performing vector search against pre-filtered data.
 
-               The following index definition on the ``sample_mflix.embedded_movies`` 
-               collection indexes the following fields: 
-      
-               - A string field (``genres``) and a numeric field (``year``)
-                 for pre-filtering the data. 
-               - The vector embeddings field (``plot_embedding_voyage_3_large``) 
-                 using the |hnsw| indexing method for
-                 performing vector search against pre-filtered data.
+         .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb
 
-               .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/python/filter-example.py
+            :language: python
+            :copyable: true
+            :linenos:
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/python/filter-example.py
-                  :language: python
-                  :copyable: true 
-                  :linenos:
+      .. collapsible:: 
+         :heading: Multiple Vector Fields Example
+         :expanded: false
 
-            .. tab:: Flat Example 
-               :tabid: flat
+         .. include:: /includes/index/vector-type/facts/avs-create-index-multiple-fields-eg.rst
 
-               .. cta-banner::
-                  :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb
-                  :icon: Code
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/python/multi-vector-example.py
+            :language: python
+            :copyable: true
+            :linenos:
 
-                  Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb>`.
+      .. collapsible:: 
+         :heading: Flat Example
+         :expanded: false
 
-               The following index definition on the ``sample_mflix.embedded_movies`` 
-               collection indexes the following fields: 
-      
-               - A string field (``genres``) and a numeric field (``year``)
-                 for pre-filtering the data. 
-               - The vector embeddings field (``plot_embedding_voyage_3_large``) 
-                 using the ``flat`` indexing method for
-                 performing vector search against pre-filtered data.
+         .. cta-banner::
+            :url: https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb
+            :icon: Code
 
-               .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb
+            Work with a runnable version of this example as a :github:`Python notebook <mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb>`.
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/python/flat-example.py
-                  :language: python
-                  :copyable: true
-                  :linenos:
+         The following index definition on the ``sample_mflix.embedded_movies`` 
+         collection indexes the following fields: 
 
-            .. tab:: Stored Source Example
-               :tabid: storedSource
+         - A string field (``genres``) and a numeric field (``year``)
+           for pre-filtering the data. 
+         - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+           using the ``flat`` indexing method for
+           performing vector search against pre-filtered data.
 
-               .. include:: /includes/index/vector-type/facts/stored-source-example.rst
+         .. NOTE: If you edit this Python file, also update the Jupyter Notebook at https://github.com/mongodb/docs-notebooks/blob/main/manage-indexes/create-indexes-filter.ipynb
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/python/stored-source-example.py
-                  :language: python
-                  :copyable: true
-                  :linenos:
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/python/flat-example.py
+            :language: python
+            :copyable: true
+            :linenos:
 
-            .. tab:: Nested Field Example 
-               :tabid: nested
+      .. collapsible:: 
+         :heading: Stored Source Example
+         :expanded: false
 
-               Run the following Python script to create nested embeddings for the 
-               ``reviews.comments`` field in the ``sample_airbnb.listingsAndReviews`` 
-               collection after replacing following placeholder values:
+         .. include:: /includes/index/vector-type/facts/stored-source-example.rst
 
-               .. list-table:: 
-                  :widths: 30 70 
-                  :header-rows: 1
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/python/stored-source-example.py
+            :language: python
+            :copyable: true
+            :linenos:
 
-                  * - Placeholder 
-                    - Valid Value 
+      .. collapsible:: 
+         :heading: Nested Field Example 
+         :expanded: false
 
-                  * - ``<CONNECTION-STRING>``
-                    - Cluster connection string. To learn more, see
-                      :ref:`connect-via-driver`.
+         Run the following Python script to create nested embeddings for the 
+         ``reviews.comments`` field in the ``sample_airbnb.listingsAndReviews`` 
+         collection after replacing following placeholder values:
 
-                  * - ``<API-KEY>``
-                    - Voyage AI API key. To learn more, see
-                      :ref:`Voyage AI API Keys <voyage-api-keys>`.
+         .. list-table:: 
+            :widths: 30 70 
+            :header-rows: 1
 
-               The script creates 1024-dimension embeddings using the 
-               ``voyage-4-large`` model for the ``reviews.comments`` field in the 
-               ``reviews`` array. It adds the embeddings to the ``reviews`` array 
-               as a new field named ``comments_embedding``.
+            * - Placeholder 
+              - Valid Value 
 
-               .. literalinclude:: /includes/pipeline-stage/vectorSearch/code-snippets/python/add-nested-embeddings.py
-                  :language: python
-                  :linenos:
-                  :copyable: true
+            * - ``<CONNECTION-STRING>``
+              - Cluster connection string. To learn more, see
+                :ref:`connect-via-driver`.
 
-               The following index definition on the ``sample_airbnb.listingsAndReviews`` 
-               collection indexes the following fields: 
+            * - ``<API-KEY>``
+              - Voyage AI API key. To learn more, see
+                :ref:`Voyage AI API Keys <voyage-api-keys>`.
 
-               - The string fields (``address.country`` and ``property_type``), a 
-                 numeric field (``bedrooms``), and a date field (``reviews.date``)
-                 for pre-filtering the data. 
-               - The vector embeddings field (``reviews.comments_embedding``) for 
-                 performing vector search against pre-filtered data.
-               - The ``reviews`` array field as the ``nestedRoot`` field for indexing 
-                 nested vector fields.
+         The script creates 1024-dimension embeddings using the 
+         ``voyage-4-large`` model for the ``reviews.comments`` field in the 
+         ``reviews`` array. It adds the embeddings to the ``reviews`` array 
+         as a new field named ``comments_embedding``.
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/python/nested-field-example.py
-                  :language: python
-                  :copyable: true 
-                  :linenos:
+         .. literalinclude:: /includes/pipeline-stage/vectorSearch/code-snippets/python/add-nested-embeddings.py
+            :language: python
+            :linenos:
+            :copyable: true
+
+         The following index definition on the ``sample_airbnb.listingsAndReviews`` 
+         collection indexes the following fields: 
+
+         - The string fields (``address.country`` and ``property_type``), a 
+           numeric field (``bedrooms``), and a date field (``reviews.date``)
+           for pre-filtering the data. 
+         - The vector embeddings field (``reviews.comments_embedding``) for 
+           performing vector search against pre-filtered data.
+         - The ``reviews`` array field as the ``nestedRoot`` field for indexing 
+           nested vector fields.
+
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/python/nested-field-example.py
+            :language: python
+            :copyable: true 
+            :linenos:
 
    .. step:: Run the following command to create the index.
 

@@ -36,47 +36,44 @@
          * - ``<fieldToIndex>``
            - Vector and filter fields to index.
 
-      .. example::
+      For example, copy and paste the following into the ``create-index.go`` file
+      and replace the ``<connectionString>`` placeholder value. 
 
-         Copy and paste the following into the ``create-index.go`` file
-         and replace the ``<connectionString>`` placeholder value. The
-         following index definition indexes the ``plot_embedding_voyage_3_large```` field
-         as the ``vector`` type and the ``genres`` and ``year`` fields
-         as the ``filter`` type in a {+avs+} index. The
-         ``plot_embedding_voyage_3_large```` field contains embeddings created using
-         |voyage|'s ``voyage-3-large`` embedding model. The index 
-         definition specifies ``2048`` vector dimensions and measures
-         similarity using ``dotProduct`` function. 
+      .. collapsible:: 
+         :heading: Basic Example
+         :expanded: false
 
-         .. tabs:: 
+         .. include:: /includes/index/vector-type/facts/avs-create-index-basic-eg.rst
 
-            .. tab:: Basic Example
-               :tabid: basic
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/go/basic-example.go
+            :language: go
+            :copyable: true
+            :emphasize-lines: 47-57
+            :linenos:
 
-               The following index definition indexes only the vector
-               embeddings field (``plot_embedding_voyage_3_large````) for performing vector search. 
+      .. collapsible:: 
+         :heading: Filter Example 
+         :expanded: false
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/go/basic-example.go
-                  :language: go
-                  :copyable: true
-                  :emphasize-lines: 47-57
-                  :linenos:
+         .. include:: /includes/index/vector-type/facts/avs-create-index-filter-eg.rst
 
-            .. tab:: Filter Example 
-               :tabid: advanced
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/go/filter-example.go
+            :language: go
+            :copyable: true
+            :emphasize-lines: 50-57
+            :linenos:
 
-               This index definition indexes the following fields: 
-      
-               - A string field (``genres``) and a numeric field (``year``)
-                 for pre-filtering the data.
-               - The vector embeddings field (``plot_embedding_voyage_3_large````) for
-                 performing vector search against pre-filtered data.
+      .. collapsible:: 
+         :heading: Multiple Vector Fields Example
+         :expanded: false
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/go/filter-example.go
-                  :language: go
-                  :copyable: true
-                  :emphasize-lines: 50-57
-                  :linenos:
+         .. include:: /includes/index/vector-type/facts/avs-create-index-multiple-fields-eg.rst
+
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/go/multi-vector-example.go
+            :language: go
+            :copyable: true
+            :emphasize-lines: 49-62
+            :linenos:
 
    .. step:: Run the following command to create the index.
 
