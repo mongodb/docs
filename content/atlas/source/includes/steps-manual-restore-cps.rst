@@ -11,8 +11,9 @@
          :guilabel:`Download` for the snapshot that you want to download.
       
          |service| generates a one-time use download link that expires
-         within 1 hour after its creation. For |aws| or |azure|,
-         |service| also generates a one-time-use download link for any
+         within 1 hour after its creation. For |aws|, |azure|, or
+         |gcp|, |service| also generates a one-time-use download link
+         for any
          :ref:`configured private endpoints
          <cluster-private-endpoint>` in the same region as the
          snapshot.
