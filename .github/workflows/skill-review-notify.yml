@@ -79,6 +79,26 @@ jobs:
               'Content-Type': 'application/json',
           }
 
+          # GitHub username (as used in OWNERS.yaml dris) -> Jira username.
+          # Update this alongside OWNERS.yaml when a skill's DRI changes.
+          # A dri already given as an email address in OWNERS.yaml (Jira's
+          # username format on this instance) needs an entry here too,
+          # since ticket creation always looks up dri in this map.
+          jira_map = {
+              'erabil-mdb': 'evelyn.rabil@mongodb.com',
+              'ajhuh-mdb': 'alison.huh@mongodb.com',
+              'norareidy': 'nora.reidy@mongodb.com',
+              'cbullinger': 'cory.bullinger@mongodb.com',
+              'mcmorisi': 'michael.morisi@mongodb.com',
+              'ltran-mdb2': 'lauren.tran@mongodb.com',
+              'jeff-allen-mongo': 'jeffrey.allen@mongodb.com',
+              'mdb-ashley': 'ashley.brown@mongodb.com',
+              'amalhotra-mdb': 'anika.malhotra@mongodb.com',
+              'jwilliams-mongo': 'john.williams@mongodb.com',
+              'kyle.rollins@mongodb.com': 'kyle.rollins@mongodb.com',
+              'melissa.mahoney@mongodb.com': 'melissa.mahoney@mongodb.com',
+          }
+
           # dri -> Slack-formatted link to their ticket, e.g. "<https://.../browse/DOCSP-1|DOCSP-1>"
           dri_tickets = {}
 
@@ -121,9 +141,10 @@ jobs:
 
               if existing.get('total', 0) > 0:
                   key = existing['issues'][0]['key']
-                  update_payload = json.dumps({
-                      'fields': {'description': description}
-                  }).encode()
+                  update_fields = {'description': description}
+                  if dri in jira_map:
+                      update_fields['assignee'] = {'name': jira_map[dri]}
+                  update_payload = json.dumps({'fields': update_fields}).encode()
                   update_req = urllib.request.Request(
                       f'{base_url}/rest/api/2/issue/{key}',
                       data=update_payload,
@@ -139,16 +160,17 @@ jobs:
                       failed = True
                   continue
 
-              payload = json.dumps({
-                  'fields': {
-                      'project': {'key': 'DOCSP'},
-                      'summary': summary,
-                      'issuetype': {'name': 'Task'},
-                      'components': [{'name': 'Agent Skills'}],
-                      'description': description,
-                      'labels': [dri_label],
-                  }
-              }).encode()
+              create_fields = {
+                  'project': {'key': 'DOCSP'},
+                  'summary': summary,
+                  'issuetype': {'name': 'Task'},
+                  'components': [{'name': 'Agent Skills'}],
+                  'description': description,
+                  'labels': [dri_label],
+              }
+              if dri in jira_map:
+                  create_fields['assignee'] = {'name': jira_map[dri]}
+              payload = json.dumps({'fields': create_fields}).encode()
               req = urllib.request.Request(
                   f'{base_url}/rest/api/2/issue', data=payload, headers=headers
               )
@@ -279,7 +301,8 @@ jobs:
               'mcmorisi': 'U070SAN8G9G',
               'ltran-mdb2': 'U03J9636YKD',
               'jeff-allen-mongo': 'U5SCV9285',
-              'dacharyc': 'U01KHHL6VR7',
+              'kyle.rollins@mongodb.com': 'U0453T5AFMM',
+              'melissa.mahoney@mongodb.com': 'UGG3M6A20',
               'mdb-ashley': 'U02UZB74K7W',
               'amalhotra-mdb': 'U05A064A4BH',
               'jwilliams-mongo': 'UN7S9QH54',
@@ -295,7 +318,15 @@ jobs:
               mention = f"<@{slack_map[dri]}>" if dri in slack_map else f"*{dri}*"
               lines.append(f"• {mention} — {', '.join(parts)} — {ticket_link}")
 
-          payload = json.dumps({'message': '\n'.join(lines)})
+          # DOCS_WRITERS_SLACK_WEBHOOK must be a classic Incoming Webhook
+          # (api.slack.com/apps -> Incoming Webhooks), not a Workflow
+          # Builder webhook trigger. Workflow Builder pastes trigger
+          # variables in as literal text and does not parse mrkdwn syntax
+          # (bold, links, <@USERID> mentions) embedded inside them, which
+          # is why prior runs showed raw "*text*" and "<@U...>" instead of
+          # rendered formatting. Incoming Webhooks parse the "text" field
+          # as full mrkdwn, matching the syntax built above.
+          payload = json.dumps({'text': '\n'.join(lines)})
           with open('slack_payload.json', 'w') as f:
               f.write(payload)
           PYEOF
