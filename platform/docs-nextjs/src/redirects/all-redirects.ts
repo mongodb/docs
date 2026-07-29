@@ -13,7 +13,6 @@ import chartsRedirects from './charts-redirects.json';
 import cloudManagerRedirects from './cloud-manager-redirects.json';
 import cppDriverRedirects from './cpp-driver-redirects.json';
 import csharpRedirects from './csharp-redirects.json';
-import djangoMongodbRedirects from './django-mongodb-redirects.json';
 import driversRedirects from './drivers-redirects.json';
 import entityFrameworkRedirects from './entity-framework-redirects.json';
 import golangRedirects from './golang-redirects.json';
@@ -59,7 +58,6 @@ export const allRedirects: RedirectEntry[] = [
   ...cloudManagerRedirects,
   ...cppDriverRedirects,
   ...csharpRedirects,
-  ...djangoMongodbRedirects,
   ...driversRedirects,
   ...entityFrameworkRedirects,
   ...golangRedirects,
