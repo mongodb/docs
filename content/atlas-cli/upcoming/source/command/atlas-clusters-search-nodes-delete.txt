@@ -16,6 +16,16 @@ Delete a search node for a cluster.
 
 To use this command, you must authenticate with a user account, a service account, or an API key with the Organization Owner or Project Owner role.
 
+.. warning:: Deleting Search Indexes and Clusters Is Irreversible
+
+   Deleting Search indexes and associated clusters is a permanent
+   action. MongoDB doesn't provide support for recovering deleted Search
+   indexes or data. Ensure that you have taken appropriate measures,
+   such as creating backups, to avoid data loss before proceeding.
+
+   MongoDB doesn't support requests to recover deleted Search indexes or
+   data. You are responsible for data integrity and configurations.
+
 Syntax
 ------
 
