@@ -1004,11 +1004,6 @@ export const toc: L1TocItem[] = [
                 url: '/docs/cloud-manager/core/multi-factor-authentication',
               },
               {
-                label: 'Use Two-Factor Authentication',
-                contentSite: 'cloud-manager',
-                url: '/docs/cloud-manager/core/two-factor-authentication',
-              },
-              {
                 label: 'Process Payment',
                 contentSite: 'cloud-manager',
                 collapsible: true,

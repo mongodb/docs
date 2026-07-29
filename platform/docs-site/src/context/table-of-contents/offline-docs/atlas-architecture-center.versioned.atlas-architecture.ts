@@ -311,6 +311,11 @@ export const toc: L1TocItem[] = [
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/ai-driven-interactive-banking',
                   },
+                  {
+                    label: 'Core Banking Modernization',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/core-banking-modernization',
+                  },
                 ],
               },
               {
@@ -619,11 +624,6 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/architecture/:version/solutions-library/iot-datahub-smart-manufacturing',
                   },
                   {
-                    label: 'Framework for Rapid AI Agent Deployment',
-                    contentSite: 'atlas-architecture',
-                    url: '/docs/atlas/architecture/:version/solutions-library/manufacturing-agentic-ai-framework',
-                  },
-                  {
                     label: 'Multi-Agent Predictive Maintenance',
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/multi-agent-predictive-maintenance',
@@ -703,6 +703,18 @@ export const toc: L1TocItem[] = [
             contentSite: 'atlas-architecture',
             collapsible: true,
             items: [
+              {
+                label: 'Agentic Commerce',
+                contentSite: 'atlas-architecture',
+                collapsible: true,
+                items: [
+                  {
+                    label: 'Mandate Ledger for Agentic Commerce',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/retail-agentic-commerce',
+                  },
+                ],
+              },
               {
                 label: 'In-Store and Omnichannel',
                 contentSite: 'atlas-architecture',
