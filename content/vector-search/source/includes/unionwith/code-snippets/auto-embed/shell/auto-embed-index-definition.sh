@@ -1,0 +1,22 @@
+db.embedded_movies.createSearchIndex(
+  "multiple-auto-embed-search",
+  "vectorSearch",
+  {
+    "fields": [
+      {
+        "type": "autoEmbed",
+        "modality": "text",
+        "path": "fullplot",
+        "model": "voyage-4",
+        "numDimensions": 2048
+      },
+      {
+        "type": "autoEmbed",
+        "modality": "text",
+        "path": "title",
+        "model": "voyage-4",
+        "numDimensions": 2048
+      }
+    ]
+  }
+);

@@ -1,0 +1,53 @@
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
+
+import java.util.Arrays;
+import java.util.List;
+
+public class AutoEmbedQuery {
+
+    public static void main(String[] args) {
+
+        // Replace the placeholder with your connection string
+        String uri = "<connectionString>";
+
+        try (MongoClient mongoClient = MongoClients.create(uri)) {
+            MongoDatabase database = mongoClient.getDatabase("sample_mflix");
+            MongoCollection<Document> collection = database.getCollection("embedded_movies");
+
+            List<Document> pipeline = Arrays.asList(
+                new Document("$rankFusion", new Document()
+                    .append("input", new Document("pipelines", new Document()
+                        .append("vectorPipeline1", Arrays.asList(
+                            new Document("$vectorSearch", new Document()
+                                .append("index", "multiple-auto-embed-search")
+                                .append("path", "fullplot")
+                                .append("query", new Document("text", "light-hearted comedy with ghosts"))
+                                .append("numCandidates", 2000)
+                                .append("limit", 50))))
+                        .append("vectorPipeline2", Arrays.asList(
+                            new Document("$vectorSearch", new Document()
+                                .append("index", "multiple-auto-embed-search")
+                                .append("path", "fullplot")
+                                .append("query", new Document("text", "slapstick humor with paranormal events"))
+                                .append("numCandidates", 2000)
+                                .append("limit", 50))))))
+                    .append("combination", new Document("weights", new Document()
+                        .append("vectorPipeline1", 0.5)
+                        .append("vectorPipeline2", 0.5)))
+                    .append("scoreDetails", true)),
+                new Document("$project", new Document()
+                    .append("_id", 1)
+                    .append("title", 1)
+                    .append("fullplot", 1)
+                    .append("scoreDetails", new Document("$meta", "scoreDetails"))),
+                new Document("$limit", 20)
+            );
+
+            collection.aggregate(pipeline).forEach(doc -> System.out.println(doc.toJson()));
+        }
+    }
+}
