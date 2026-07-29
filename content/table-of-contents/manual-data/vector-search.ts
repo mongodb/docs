@@ -206,6 +206,11 @@ const tocData: TocItem[] = [
     url: '/docs/vector-search/deployment/multi-tenant-architecture',
   },
   {
+    label: 'Compatibility & Limitations',
+    contentSite: 'vector-search',
+    url: '/docs/vector-search/deployment/compatibility-limitations',
+  },
+  {
     label: 'AI Integrations',
     isExternal: true,
     url: 'https://www.mongodb.com/docs/atlas/ai-integrations/',

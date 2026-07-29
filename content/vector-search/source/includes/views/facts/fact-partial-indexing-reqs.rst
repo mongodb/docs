@@ -10,16 +10,23 @@ You must use MongoDB 8.0 or higher.
 
   - Run the |product-name| queries against the source collection. Reference the |product-name| index that was created on the View. These queries return the original documents as they appear in the source collection.
 
-- On MongoDB v8.1+, you can additionally: 
+- On MongoDB v8.1+, you can additionally:
 
   - Use {+mongosh+} and :driver:`Driver </>` methods,
     :method:`db.collection.createSearchIndex()`,
-    :method:`db.collection.updateSearchIndex()`, 
+    :method:`db.collection.updateSearchIndex()`,
     :method:`db.collection.dropSearchIndex()`, and
-    :pipeline:`$listSearchIndexes` to create and manage |product-name| 
-    indexes on Views. 
+    :pipeline:`$listSearchIndexes` to create and manage |product-name|
+    indexes on Views.
 
   - Run the |product-name| queries against the View.
+
+- On MongoDB v8.2+, you can additionally:
+
+  - Use :pipeline:`$rankFusion` in aggregation pipelines on Views.
+
+  - Query Views that include sharded sub-pipelines with :pipeline:`$lookup`
+    and :pipeline:`$unionWith`.
  
 To edit a View, you must have a :ref:`User Admin <create-user-admin>` 
 role and use the :dbcommand:`collMod` database command.
