@@ -140,7 +140,9 @@ export const UnifiedSidenav = () => {
   const { slug: pageSlug } = usePageContext();
   const { siteBasePrefixWithVersion } = useVersionContext();
   const pathname = usePathname();
-  const slug = isOfflineBuild ? pathname ?? '' : getFullSlug(pageSlug, siteBasePrefixWithVersion);
+  // Strip trailing /index so project base paths match TOC urls 
+  const rawSlug = isOfflineBuild ? pathname ?? '' : getFullSlug(pageSlug, siteBasePrefixWithVersion);
+  const slug = rawSlug.replace(/(^|\/)index\/?$/, '')
 
   const { hasBanner } = useSiteBanner();
   const topValues = useStickyTopValues({ eol: false, isAbsolute: true, hasBanner });
