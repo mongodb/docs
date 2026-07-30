@@ -7,7 +7,7 @@ const collectionOpts = {
         path: "patientRecord.ssn",
         bsonType: "string",
         queries: { 
-          queryType: "prefixPreview",
+          queryType: "prefix",
           strMinQueryLength: 3,
           strMaxQueryLength: 10,
           caseSensitive: true,
