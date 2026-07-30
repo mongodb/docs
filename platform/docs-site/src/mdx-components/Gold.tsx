@@ -1,3 +1,5 @@
+'use client';
+
 import { css, cx } from '@leafygreen-ui/emotion';
 import { palette } from '@leafygreen-ui/palette';
 
