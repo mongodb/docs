@@ -120,16 +120,15 @@ application stack to support |tls| 1.2.
 Which certificate authority signs MongoDB Atlas TLS certificates?
 -----------------------------------------------------------------
 
-With the inclusion of Google Trust Services as an additional certificate authority, |service|
-cluster nodes' TLS certificates are now signed by either Google Trust Services or Let's Encrypt
-to improve high availability. Atlas uses both certificate authorities concurrently. You must
-add CA certificates for the
-:guilabel:`GTS Root R1`, :guilabel:`GTS Root R2`, :guilabel:`GTS Root R3`, and :guilabel:`GTS Root R4` 
-root |certauth| from Google Trust Services to your clients' trusted certificate stores, in addition 
-to the ISRG Root X1 root |certauth| from Let's Encrypt to ensure seamless service continuity.
+|service| cluster nodes' TLS certificates are signed by either Google Trust Services or
+Let's Encrypt to improve high availability. Atlas uses both certificate authorities concurrently.
+You must add CA certificates for the :guilabel:`GTS Root R1`, :guilabel:`GTS Root R2`,
+:guilabel:`GTS Root R3`, and :guilabel:`GTS Root R4` root |certauth| from Google Trust Services
+to your clients' trusted certificate stores, in addition to the ISRG Root X1 root |certauth|
+from Let's Encrypt to ensure seamless service continuity.
 
-|service| will use the :guilabel:`GTS Root R3` and :guilabel:`GTS Root R4` root CA certificates 
-for TLS 1.3 support in the future.
+|service| uses the :guilabel:`GTS Root R3` and :guilabel:`GTS Root R4` root CA certificates
+for TLS 1.3 support.
 
 .. note:: 
    
@@ -226,3 +225,65 @@ Everyone Else
 
 This change shouldn't impact you if you use a recent programming
 language and operating system version.
+
+Why did my TLS configuration change fail with an ``UNSAFE_TLS_TRANSITION error?``
+--------------------------------------------------------------------------------------------------------
+
+|service| prevents TLS configuration changes that could break 
+communication between cluster nodes during a rolling update.
+
+When you update TLS settings, |service| applies the changes one node at 
+a time. During this process, nodes running the old configuration must 
+still be able to connect to nodes running the new configuration. If 
+your proposed changes remove all shared TLS versions or cipher suites, 
+the nodes can't communicate, which leads to a partitioned cluster and 
+potential downtime.
+
+To protect cluster availability, |service| blocks these unsafe 
+transitions and returns the ``UNSAFE_TLS_TRANSITION`` error.
+
+``UNSAFE_TLS_TRANSITION`` Error Causes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This error typically occurs in the following scenarios when there is no 
+overlap between the current and proposed TLS configurations:
+
+- TLS version mismatch.
+
+  - Example: Switching directly from TLS 1.2-only to TLS 1.3-only.
+
+  - Result: Nodes using TLS 1.2 cannot connect to nodes requiring TLS 
+    1.3.
+
+- Cipher suite mismatch.
+
+  - Example: Replacing all existing cipher suites with a completely 
+    different set.
+
+  - Result: Nodes have no shared cipher to negotiate a connection
+
+``UNSAFE_TLS_TRANSITION`` Error Solution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Make your TLS changes in phases, and ensure overlap between old and new 
+settings:
+
+For TLS versions:
+
+1. Enable both TLS 1.2 and TLS 1.3.
+
+#. Apply the change and allow the update to complete.
+
+#. Remove TLS 1.2 in a follow-up update (if desired).
+
+For cipher suites:
+
+- Ensure at least one cipher suite is shared between the current and 
+  new configurations during the transition.
+
+``UNSAFE_TLS_TRANSITION`` Error Key Takeaway
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Avoid "all-at-once" TLS changes. Always maintain temporary 
+compatibility between old and new configurations to ensure a safe 
+rolling update.
