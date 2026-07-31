@@ -1,0 +1,820 @@
+.. _atlas-sp-materialized-views:
+
+==================================
+Build Streaming Materialized Views
+==================================
+
+.. default-domain:: mongodb
+
+.. meta::
+   :keywords: stream processing, materialized view, aggregation, real time, code example
+   :description: Compare on-demand and streaming materialized views in Atlas Stream Processing, and build a streaming materialized view in the Atlas UI that stays continuously current.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+A streaming materialized view is a collection that an {+atlas-sp+}
+stream processor keeps current. To achieve this, a stream processor
+reads each change to a source collection, computes the effect of that
+change, and applies the result to the view. The view reflects the
+current state of the source data without a manual or scheduled refresh.
+
+Streaming materialized views suit workloads that read a computed result
+more often than the source data changes, such as dashboards, running
+totals, and open-item counts. The view updates as data arrives, so
+reads return current results with low latency.
+
+Comparison With On-Demand Materialized Views
+--------------------------------------------
+
+MongoDB supports two approaches to materialized views: 
+
+- An :manual:`on-demand materialized view </core/materialized-views/>`
+  stores the result of an aggregation pipeline that you run manually or
+  on a schedule. 
+
+- A streaming materialized view stores the result of a continuously
+  running {+atlas-sp+} stream processor.
+
+Both approaches store computed results on disk and serve reads directly
+from the view. They differ in how and when the view updates.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 20 40 40
+
+   * - Characteristic
+     - On-Demand Materialized View
+     - Streaming Materialized View
+
+   * - Update trigger
+     - Manual or scheduled
+     - Change-driven, continuous
+
+   * - Latency
+     - Minutes to days
+     - Sub-second to low-second
+
+   * - Data freshness
+     - Point-in-time snapshot
+     - Perpetually synchronized
+
+   * - Compute model
+     - Recomputes full result
+     - Computes incremental effect
+
+   * - Best fit
+     - Batch reporting, periodic aggregation
+     - Live dashboards, operational analytics
+
+Traits of a Streaming Materialized View Processor
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Maintaining a streaming materialized view is a pattern that you
+assemble from standard {+atlas-sp+} aggregation stages. A stream
+processor that implements this pattern can have the following traits:
+
+- **Reads a change stream source.** The :pipeline:`$source` stage reads
+  from the source collection with ``fullDocument`` and
+  ``fullDocumentBeforeChange`` set to ``required`` so that the pipeline
+  can compare the state of each document before and after a change.
+
+- **Computes a signed delta per event.** An :pipeline:`$addFields`
+  stage can use a ``$switch`` expression to assign a positive or
+  negative value to each insert, update, or delete based on how the
+  change affects the computed result.
+
+- **Groups results in a window.** Because a stream processor operates on
+  an unbounded stream, every :pipeline:`$group` stage must run inside a
+  window stage. The windowed ``$group`` sums the deltas for each key
+  over the window interval. The window interval also acts as a refresh
+  interval for the view, so it determines how fresh the view is. The
+  smallest interval you can set is one millisecond.
+
+- **Applies results additively.** The :pipeline:`$merge` stage can use a
+  ``whenMatched`` pipeline that adds each window's result to the running
+  total in the view rather than replacing it.
+
+- **Ends in a sink stage.** A stream processor pipeline must end in a
+  sink stage. Use :pipeline:`$merge` to write to an {+service+}
+  collection.
+
+Only incremental aggregations translate to a streaming materialized
+view. Aggregations that require a full collection scan do not qualify.
+
+Behavior Differences to Consider
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A streaming materialized view behaves differently from a batch
+aggregation in ways that affect downstream consumers:
+
+- **The view starts from zero.** By default, the processor doesn't read
+  pre-existing documents, so seed the view before you start the
+  processor or enable ``initialSync`` on the :pipeline:`$source` stage.
+
+- **Only source changes drive updates.** If the pipeline uses a
+  :pipeline:`$lookup` stage, later changes to the reference collection
+  do not update documents that the view already wrote.
+
+Create a Streaming Materialized View in the Atlas UI
+----------------------------------------------------
+
+The following procedure creates a streaming materialized view that
+maintains a count of completed sales by purchase method. The stream
+processor reads the change stream of the ``sample_supplies.sales``
+collection and writes to the ``sample_supplies.sales_by_channel``
+collection.
+
+.. note::
+
+   A stream processor can also read from a {+kafka+} topic and write to
+   {+iceberg+} tables on {+aws+} |s3|. To learn more, see
+   :ref:`atlas-sp-agg-source-syntax-kafka` and
+   :ref:`atlas-sp-agg-iceberg`.
+
+Prerequisites
+~~~~~~~~~~~~~
+
+Before you create the stream processor, you must have a
+:ref:`{+spw+} <atlas-sp-manage-spi>` with an {+service+} connection to
+the cluster that holds the source data. To add a connection, see
+:ref:`atlas-sp-manage-connections`.
+
+Complete the following steps to prepare the source collection and seed
+the view:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Load the sample dataset.
+
+      This procedure uses the ``sales`` collection from the
+      :ref:`sample_supplies <sample-supplies>` dataset. To learn how to
+      load sample data, see :ref:`load-sample-data`.
+
+   .. step:: Add a status field to the sales collection.
+
+      Add a ``status`` field so the stream processor can detect
+      completed and returned sales. Run the following command against
+      the cluster:
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: javascript
+
+            db.sales.updateMany(
+               { status: { $exists: false } },
+               { $set: { status: "completed" } }
+            )
+
+         .. output::
+            :language: javascript
+            :visible: false
+
+            {
+              acknowledged: true,
+              insertedId: null,
+              matchedCount: 5000,
+              modifiedCount: 5000,
+              upsertedCount: 0
+            }
+
+   .. step:: Enable change stream pre- and post-images.
+
+      Enable pre- and post-images on the source collection so that the
+      stream processor can compute the effect of each change. Run the
+      following command against the cluster:
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: javascript
+
+            db.getSiblingDB("sample_supplies").runCommand({
+               collMod: "sales",
+               changeStreamPreAndPostImages: { enabled: true }
+            })
+
+         .. output::
+            :language: javascript
+            :visible: false
+
+            { ok: 1, ... }
+
+   .. step:: Seed the view with the current result.
+
+      Run the following batch aggregation against the cluster to
+      populate the view with the current counts:
+
+      .. code-block:: javascript
+
+         db.sales.aggregate([
+            { $match: { status: "completed" } },
+            { $group: { _id: "$purchaseMethod", active_count: { $sum: 1 } } },
+            { $merge: {
+               into: "sales_by_channel",
+               whenMatched: "replace",
+               whenNotMatched: "insert"
+            } }
+         ])
+
+      To confirm the seeded counts, query the view. The
+      ``sales_by_channel`` collection contains one document per purchase
+      method:
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language: javascript
+
+            db.sales_by_channel.find()
+
+         .. output::
+            :language: javascript
+            :visible: false
+
+            [
+              { _id: 'Phone', active_count: 596 },
+              { _id: 'Online', active_count: 1585 },
+              { _id: 'In store', active_count: 2819 }
+            ]
+
+      This seed aggregation is itself an :manual:`on-demand
+      materialized view </core/materialized-views/>`. The two view
+      types are complementary: you can initialize an on-demand
+      materialized view with a batch aggregation, then start a stream
+      processor that keeps the same collection current. The on-demand
+      view becomes a streaming materialized view.
+
+      .. note::
+      
+         If your pipeline doesn't use a window stage, you can seed the
+         view with ``initialSync`` instead. In this case, the stream
+         processor first ingests every existing document in the source
+         collection as an insert event, then processes new change
+         events. To learn about the ``$source`` option ``initialSync``,
+         see :ref:`atlas-sp-agg-source-syntax-coll`.
+
+Procedure
+~~~~~~~~~
+
+.. procedure::
+   :style: normal
+
+   .. step:: Go to the Stream Processing page for your project.
+
+      a. In the {+atlas-ui+}, go to the :guilabel:`Stream Processing`
+         page for your {+service+} project. 
+
+      #. Click :guilabel:`Manage` in the pane of your {+spw+} that
+         holds your {+service+} connection to the source cluster.
+
+   .. step:: Open the Visual Builder.
+
+      a. Click :guilabel:`Create stream processor`. 
+      
+      #. Select the :guilabel:`Visual Builder`.
+
+   .. step:: Configure the source.
+
+      a. In the :guilabel:`Source` field, select your {+service+}
+         connection to the source cluster from the
+         :guilabel:`Connection` drop-down list. 
+      
+      #. In the |json| text box, configure the :pipeline:`$source`
+         stage to read the ``sales`` collection with pre- and post-images:
+
+      .. code-block:: json
+         :copyable: true
+
+         {
+           "$source": {
+             "connectionName": "<connection-name>",
+             "db": "sample_supplies",
+             "coll": "sales",
+             "config": {
+               "fullDocument": "required",
+               "fullDocumentBeforeChange": "required"
+             }
+           }
+         }
+
+   .. step:: Add a stage that computes the change delta for each event.
+
+      a. In the :guilabel:`Start building your pipeline` pane, click
+         :guilabel:`+ Custom stage`. 
+      
+      #. In the |json| text box, add an :pipeline:`$addFields` stage
+         that assigns a signed delta to each insert, update, or delete
+         and captures the purchase method:
+
+      .. code-block:: json
+         :copyable: true
+
+         {
+           "$addFields": {
+             "_delta": {
+               "$switch": {
+                 "branches": [
+                   {
+                     "case": {
+                       "$and": [
+                         { "$eq": ["$operationType", "insert"] },
+                         { "$eq": ["$fullDocument.status", "completed"] }
+                       ]
+                     },
+                     "then": 1
+                   },
+                   {
+                     "case": {
+                       "$and": [
+                         { "$eq": ["$operationType", "update"] },
+                         { "$eq": ["$fullDocumentBeforeChange.status", "completed"] },
+                         { "$eq": ["$fullDocument.status", "returned"] }
+                       ]
+                     },
+                     "then": -1
+                   },
+                   {
+                     "case": {
+                       "$and": [
+                         { "$eq": ["$operationType", "delete"] },
+                         { "$eq": ["$fullDocumentBeforeChange.status", "completed"] }
+                       ]
+                     },
+                     "then": -1
+                   }
+                 ],
+                 "default": 0
+               }
+             },
+             "_channel": {
+               "$ifNull": [
+                 "$fullDocument.purchaseMethod",
+                 "$fullDocumentBeforeChange.purchaseMethod"
+               ]
+             }
+           }
+         }
+
+   .. step:: Add a stage that drops events with no effect.
+
+      a. Click :guilabel:`+`, then select :guilabel:`Custom stage`.
+
+      #. In the |json| text box, add a :pipeline:`$match` stage that
+         removes events with a delta of zero:
+
+      .. code-block:: json
+         :copyable: true
+
+         {
+           "$match": { "_delta": { "$ne": 0 } }
+         }
+
+   .. step:: Add a windowed group stage.
+
+      a. Click :guilabel:`+`, then select :guilabel:`Custom stage`.
+
+      #. In the |json| text box, add a :pipeline:`$tumblingWindow`
+         stage that sums the deltas by purchase method over one-second
+         intervals:
+
+      .. code-block:: json
+         :copyable: true
+
+         {
+           "$tumblingWindow": {
+             "boundary": "processingTime",
+             "interval": { "size": 1, "unit": "second" },
+             "pipeline": [
+               {
+                 "$group": {
+                   "_id": "$_channel",
+                   "active_count": { "$sum": "$_delta" },
+                   "windowStart": {
+                     "$first": { "$meta": "stream.window.start" }
+                   }
+                 }
+               }
+             ]
+           }
+         }
+
+      .. important:: 
+         
+         A stream processor requires every :pipeline:`$group` stage to
+         run inside a window stage.
+
+   .. step:: Configure the sink.
+
+      a. In the :guilabel:`Sink` field, select your {+service+}
+         connection from the :guilabel:`Connection` drop-down list. 
+      
+      #. In the |json| text box, configure the :pipeline:`$merge` stage
+         to add each window's result to the running total in
+         ``sales_by_channel``:
+
+      .. code-block:: json
+         :copyable: true
+
+         {
+           "$merge": {
+             "into": {
+               "connectionName": "<connection-name>",
+               "db": "sample_supplies",
+               "coll": "sales_by_channel"
+             },
+             "whenMatched": [
+               {
+                 "$set": {
+                   "active_count": {
+                     "$cond": [
+                       { "$gt": ["$$new.windowStart", { "$ifNull": ["$lastWindowStart", { "$toDate": 0 }] }] },
+                       { "$add": ["$active_count", "$$new.active_count"] },
+                       "$active_count"
+                     ]
+                   },
+                   "lastWindowStart": {
+                     "$max": [
+                       { "$ifNull": ["$lastWindowStart", { "$toDate": 0 }] },
+                       "$$new.windowStart"
+                     ]
+                   }
+                 }
+               }
+             ],
+             "whenNotMatched": "insert"
+           }
+         }
+
+      .. note::
+
+         The ``lastWindowStart`` high-water mark prevents a replayed
+         window from double-counting
+
+   .. step:: Enter processor details.
+
+      a. In the :guilabel:`Stream processor name` field, enter
+         ``sales_stats_sp``.
+
+      #. Select the tier for the stream processor. To choose a tier for
+         your workload, see :ref:`atlas-sp-tier-guide`.
+
+   .. step:: Create the stream processor.
+
+      Click :guilabel:`Create stream processor`.
+
+   .. step:: Start the stream processor.
+
+      On the :guilabel:`Stream Processors` tab, select
+      ``sales_stats_sp`` and click :guilabel:`Start`.
+
+      The processor now maintains ``sales_by_channel`` continuously. To
+      learn more about starting, stopping, and monitoring stream
+      processors, see :ref:`atlas-sp-manage-processor`.
+
+Verify the View Stays Current
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+After you start the processor, changes to the ``sales`` collection
+update ``sales_by_channel`` within seconds. To confirm this, insert a
+new completed online sale:
+
+.. code-block:: javascript
+
+   db.sales.insertOne({
+      saleDate: new Date(),
+      purchaseMethod: "Online",
+      status: "completed",
+      items: [],
+      customer: {},
+      couponUsed: false
+   })
+
+The processor increments the ``Online`` count and records the window
+boundary in ``lastWindowStart``:
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      db.sales_by_channel.find()
+
+   .. output::
+      :language: javascript
+      :emphasize-lines: 5
+
+      [
+        { _id: 'Phone', active_count: 596 },
+        {
+          _id: 'Online',
+          active_count: 1586,
+          lastWindowStart: ISODate('2026-07-23T15:18:01.000Z')
+        },
+        { _id: 'In store', active_count: 2819 }
+      ]
+
+When a customer returns that sale, the ``Online`` count returns to its
+seeded value:
+
+.. code-block:: javascript
+
+   db.sales.updateOne(
+      { purchaseMethod: "Online", status: "completed" },
+      { $set: { status: "returned" } }
+   )
+
+.. io-code-block::
+   :copyable: true
+
+   .. input::
+      :language: javascript
+
+      db.sales_by_channel.find()
+
+   .. output::
+      :language: javascript
+      :emphasize-lines: 5
+
+      [
+        { _id: 'Phone', active_count: 596 },
+        {
+          _id: 'Online',
+          active_count: 1585,
+          lastWindowStart: ISODate('2026-07-23T15:18:13.000Z')
+        },
+        { _id: 'In store', active_count: 2819 }
+      ]
+
+Examples
+--------
+
+These examples walk through the `smv example
+<https://github.com/mongodb/ASP_example/tree/main/example_processors/smv>`__
+in the {+atlas-sp+} example repository. It maintains a ``queue_stats``
+collection that holds a running count of open support tickets, with one
+document per priority level. The stream processor reads the
+``support_tickets`` change stream and updates each count as tickets are
+opened, resolved, and deleted.
+
+.. collapsible::
+   :heading: Count open tickets by priority
+   :sub_heading: Compute a signed delta per event and add it to the count for each priority.
+   :expanded: false
+
+   The pipeline adjusts the count for a ticket's priority by ``+1`` when
+   a ticket opens and ``-1`` when a ticket is resolved or deleted. The
+   aggregation has five stages:
+
+   1. The :pipeline:`$source` stage reads the ``support_tickets`` change
+      stream with pre- and post-images.
+
+   #. The :pipeline:`$addFields` stage uses a ``$switch`` on
+      ``operationType`` to compute ``_delta`` and extract ``_priority``
+      as the group key.
+
+   #. The :pipeline:`$match` stage drops events with a delta of zero.
+
+   #. The :pipeline:`$tumblingWindow` stage sums the deltas by priority
+      within each one-second window.
+
+   #. The :pipeline:`$merge` stage adds each window's delta to the
+      running total, using ``lastWindowStart`` as a high-water mark to
+      avoid double-counting on replay.
+
+   .. code-block:: json
+      :copyable: true
+
+      [
+        {
+          "$source": {
+            "connectionName": "<connection-name>",
+            "db": "support",
+            "coll": "support_tickets",
+            "config": {
+              "fullDocument": "required",
+              "fullDocumentBeforeChange": "required"
+            }
+          }
+        },
+        {
+          "$addFields": {
+            "_delta": {
+              "$switch": {
+                "branches": [
+                  {
+                    "case": {
+                      "$and": [
+                        { "$eq": ["$operationType", "insert"] },
+                        { "$eq": ["$fullDocument.status", "open"] }
+                      ]
+                    },
+                    "then": 1
+                  },
+                  {
+                    "case": {
+                      "$and": [
+                        { "$eq": ["$operationType", "update"] },
+                        { "$eq": ["$fullDocumentBeforeChange.status", "open"] },
+                        { "$eq": ["$fullDocument.status", "resolved"] }
+                      ]
+                    },
+                    "then": -1
+                  },
+                  {
+                    "case": {
+                      "$and": [
+                        { "$eq": ["$operationType", "delete"] },
+                        { "$eq": ["$fullDocumentBeforeChange.status", "open"] }
+                      ]
+                    },
+                    "then": -1
+                  }
+                ],
+                "default": 0
+              }
+            },
+            "_priority": {
+              "$ifNull": [
+                "$fullDocument.priority",
+                "$fullDocumentBeforeChange.priority"
+              ]
+            }
+          }
+        },
+        { "$match": { "_delta": { "$ne": 0 } } },
+        {
+          "$tumblingWindow": {
+            "boundary": "processingTime",
+            "interval": { "size": 1, "unit": "second" },
+            "pipeline": [
+              {
+                "$group": {
+                  "_id": "$_priority",
+                  "open_count": { "$sum": "$_delta" },
+                  "windowStart": {
+                    "$first": { "$meta": "stream.window.start" }
+                  }
+                }
+              }
+            ]
+          }
+        },
+        {
+          "$merge": {
+            "into": {
+              "connectionName": "<connection-name>",
+              "db": "support",
+              "coll": "queue_stats"
+            },
+            "whenMatched": [
+              {
+                "$set": {
+                  "open_count": {
+                    "$cond": [
+                      { "$gt": ["$$new.windowStart", { "$ifNull": ["$lastWindowStart", { "$toDate": 0 }] }] },
+                      { "$add": ["$open_count", "$$new.open_count"] },
+                      "$open_count"
+                    ]
+                  },
+                  "lastWindowStart": {
+                    "$max": [
+                      { "$ifNull": ["$lastWindowStart", { "$toDate": 0 }] },
+                      "$$new.windowStart"
+                    ]
+                  }
+                }
+              }
+            ],
+            "whenNotMatched": "insert"
+          }
+        }
+      ]
+
+   Each document in the ``queue_stats`` collection resembles the
+   following:
+
+   .. code-block:: javascript
+      :copyable: false
+
+      { _id: "P1", open_count: <num>, lastWindowStart: <timestamp> }
+
+.. collapsible::
+   :heading: Adjust multiple group keys from a single event
+   :sub_heading: Fan a single event out into one adjustment per affected group key.
+   :expanded: false
+
+   When one event must adjust two group keys, replace the scalar
+   ``_delta`` with an ``_adjustments`` array and fan the array out into
+   one document per adjustment. Modify the single-key pipeline as
+   follows:
+
+   1. Replace the :pipeline:`$addFields` stage so that each ``$switch``
+      branch returns an ``_adjustments`` array with one element per
+      affected group key. An escalation returns two elements.
+
+   #. Add an :pipeline:`$unwind` stage and a :pipeline:`$set` stage
+      after ``$addFields``. The ``$unwind`` stage splits each event into
+      one document per adjustment and drops empty arrays, which replaces
+      the ``$match`` stage. The ``$set`` stage promotes the
+      ``_adjustments`` fields to top-level ``_priority`` and ``_delta``
+      so that the remaining stages work unchanged.
+
+   Replace stages 2 and 3 of the single-key pipeline with the following:
+
+   .. code-block:: javascript
+      :copyable: true
+
+      // Stage 2 (replacement): Compute an _adjustments array.
+      {
+        $addFields: {
+          _adjustments: {
+            $switch: {
+              branches: [
+                {
+                  case: { $and: [
+                    { $eq: ["$operationType", "insert"] },
+                    { $eq: ["$fullDocument.status", "open"] }
+                  ]},
+                  then: [{ _priority: "$fullDocument.priority", _delta: 1 }]
+                },
+                {
+                  case: { $and: [
+                    { $eq: ["$operationType", "update"] },
+                    { $eq: ["$fullDocumentBeforeChange.status", "open"] },
+                    { $eq: ["$fullDocument.status", "resolved"] }
+                  ]},
+                  then: [{ _priority: "$fullDocumentBeforeChange.priority",
+                    _delta: -1 }]
+                },
+                {
+                  case: { $and: [
+                    { $eq: ["$operationType", "update"] },
+                    { $eq: ["$fullDocument.status", "open"] },
+                    { $ne: ["$fullDocument.priority",
+                      "$fullDocumentBeforeChange.priority"] }
+                  ]},
+                  then: [
+                    { _priority: "$fullDocumentBeforeChange.priority",
+                      _delta: -1 },
+                    { _priority: "$fullDocument.priority", _delta:  1 }
+                  ]
+                },
+                {
+                  case: { $and: [
+                    { $eq: ["$operationType", "delete"] },
+                    { $eq: ["$fullDocumentBeforeChange.status", "open"] }
+                  ]},
+                  then: [{ _priority: "$fullDocumentBeforeChange.priority",
+                    _delta: -1 }]
+                }
+              ],
+              default: []
+            }
+          }
+        }
+      },
+
+      // Stage 3 (replacement): Fan out into one document per adjustment,
+      // then lift the adjustment fields back to the top level.
+      { $unwind: "$_adjustments" },
+      {
+        $set: {
+          _priority: "$_adjustments._priority",
+          _delta: "$_adjustments._delta"
+        }
+      }
+
+Additional Information
+----------------------
+
+To learn more about the stages and concepts in this guide, see the
+following resources:
+
+- To learn how to create, start, stop, and monitor stream processors,
+  see :ref:`atlas-sp-manage-processor`.
+
+- To learn about the aggregation stages that {+atlas-sp+} supports, see
+  :ref:`atlas-sp-aggregation`.
+
+- To learn about the sources that a stream processor can read, see
+  :ref:`atlas-sp-agg-source`.
+
+- To learn about window stages, see :ref:`atlas-sp-windows`.
+
+- To learn about on-demand materialized views, see
+  :manual:`On-Demand Materialized Views </core/materialized-views/>`.
