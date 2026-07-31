@@ -33,3 +33,24 @@ function = "soft-redirects"
 framework = "next"
 command = "next dev"
 publish = ".next"
+
+[build]
+# Literal multiline TOML (''') so shell "$VARS" and node -e '...' quoting stay valid.
+# Mints CodeArtifact auth when NPM_AWS_KEY is set (e.g. Deploy Previews); otherwise skips.
+command = '''
+set -euo pipefail
+if [ -n "${NPM_AWS_KEY:-}" ]; then
+  export AWS_ACCESS_KEY_ID="$NPM_AWS_KEY"
+  export AWS_SECRET_ACCESS_KEY="$NPM_AWS_SECRET"
+  export AWS_DEFAULT_REGION=us-east-1
+  AUTH_DIR=$(mktemp -d)
+  npm install --prefix "$AUTH_DIR" --silent @aws-sdk/client-codeartifact@3
+  NPM_AWS_AUTH="$(NODE_PATH="$AUTH_DIR/node_modules" node -e 'const { CodeartifactClient, GetAuthorizationTokenCommand } = require("@aws-sdk/client-codeartifact"); (async () => { const client = new CodeartifactClient({ region: "us-east-1" }); const out = await client.send(new GetAuthorizationTokenCommand({ domain: "mongodb", domainOwner: "271346171620" })); if (!out.authorizationToken) throw new Error("empty CodeArtifact token"); process.stdout.write(out.authorizationToken); })().catch((e) => { console.error(e); process.exit(1); });')"
+  export NPM_AWS_AUTH
+  [ -n "$NPM_AWS_AUTH" ] || { echo "CodeArtifact token fetch returned empty"; exit 1; }
+  echo "NPM_AWS_AUTH length=${#NPM_AWS_AUTH}"
+fi
+cd platform/docs-site
+pnpm install --filter='!docs-comparison'
+pnpm run build
+'''

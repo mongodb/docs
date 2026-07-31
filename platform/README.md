@@ -22,7 +22,22 @@ npm install -g pnpm
 
 ## Getting Started
 
+Private `@mdb/*` packages (for example `@mdb/flora` and `@mdb/consistent-nav`) are served from [AWS CodeArtifact](https://aws.amazon.com/codeartifact/). Authenticate before installing.
+
+Log in with your AWS SSO profile (ask whoever manages CodeArtifact access if you do not have a profile configured), then export a token:
+
+```bash
+aws sso login --profile YOUR_CODEARTIFACT_PROFILE
+export NPM_AWS_AUTH=$(aws codeartifact get-authorization-token \
+  --domain mongodb --domain-owner 271346171620 --region us-east-1 \
+  --profile YOUR_CODEARTIFACT_PROFILE \
+  --query authorizationToken --output text)
+```
+
+Replace `YOUR_CODEARTIFACT_PROFILE` with your local AWS SSO profile name (for example `codeartifact-docs-platform`). The token expires after 12 hours by default, so re-run the `export` in any new shell once it expires.
+
 Ensure the correct Node version, then install dependencies:
+
 ```bash
 cd platform/
 nvm use
@@ -52,7 +67,8 @@ Pages are served at `http://localhost:3000/docs/<branch>/<page-slug>/`.
 
 ### Troubleshooting
 
-If your development setup stops working, clean and reinstall all dependencies:
+If your development setup stops working, clean and reinstall all dependencies (ensure `NPM_AWS_AUTH` is still set in your shell first):
+
 ```bash
 pnpm install:clean
 ```

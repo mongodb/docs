@@ -31,7 +31,7 @@ const config = {
     // unist/vfile ecosystem is pure ESM and is exercised by remark-resolve-imports tests. The pattern
     // requires the `.pnpm/<name>@` segment so the package's nested `node_modules/<name>/` re-export
     // path does not get spuriously ignored.
-    'node_modules/\\.pnpm/(?!(react-children-utilities|github-slugger|unified|bail|trough|is-plain-obj|extend|vfile|vfile-message|remark|remark-parse|remark-stringify|remark-mdx|remark-frontmatter|remark-gfm|mdast-util-[^@]+|micromark[^@]*|unist-util-[^@]+|decode-named-character-reference|character-entities[^@]*|character-reference-invalid|ccount|escape-string-regexp|longest-streak|markdown-table|zwitch|estree-util-[^@]+|devlop|parse-entities|stringify-entities|space-separated-tokens|comma-separated-tokens|html-void-elements|property-information|hast-util-[^@]+|is-decimal|is-hexadecimal|is-alphanumerical|is-alphabetical|fault|format)@)',
+    'node_modules/\\.pnpm/(?!(react-children-utilities|github-slugger|unified|bail|trough|is-plain-obj|extend|vfile|vfile-message|remark|remark-parse|remark-stringify|remark-mdx|remark-frontmatter|remark-gfm|mdast-util-[^@]+|micromark[^@]*|unist-util-[^@]+|decode-named-character-reference|character-entities[^@]*|character-reference-invalid|ccount|escape-string-regexp|longest-streak|markdown-table|zwitch|estree-util-[^@]+|devlop|parse-entities|stringify-entities|space-separated-tokens|comma-separated-tokens|html-void-elements|property-information|hast-util-[^@]+|is-decimal|is-hexadecimal|is-alphanumerical|is-alphabetical|fault|format|htmlparser2|entities|domelementtype|domhandler|domutils|dom-serializer)@)',
   ],
 
   transform: {

@@ -50,9 +50,6 @@ jobs:
     defaults:
       run:
         working-directory: platform
-    env:
-      NPM_BASE_64_AUTH: ${{ secrets.NPM_BASE_64_AUTH }}
-      NPM_EMAIL: ${{ secrets.NPM_EMAIL }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -66,6 +63,21 @@ jobs:
           node-version: 22
           cache: 'pnpm'
           cache-dependency-path: platform/pnpm-lock.yaml
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        with:
+          aws-access-key-id: ${{ secrets.NPM_AWS_KEY }}
+          aws-secret-access-key: ${{ secrets.NPM_AWS_SECRET }}
+          aws-region: us-east-1
+
+      - name: Authenticate with CodeArtifact
+        run: |
+          CODEARTIFACT_TOKEN=$(aws codeartifact get-authorization-token \
+            --domain mongodb --domain-owner 271346171620 --region us-east-1 \
+            --query authorizationToken --output text)
+          echo "::add-mask::$CODEARTIFACT_TOKEN"
+          echo "NPM_AWS_AUTH=$CODEARTIFACT_TOKEN" >> "$GITHUB_ENV"
 
       - name: Cache mongodb-memory-server binaries
         uses: actions/cache@v4
