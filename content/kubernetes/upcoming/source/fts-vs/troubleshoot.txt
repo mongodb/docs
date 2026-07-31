@@ -75,6 +75,113 @@ container instance to capture the error that caused the restart:
    kubectl logs statefulset/${MDB_RESOURCE_NAME}-search-0 \
      -n ${MDB_NS} --context ${K8S_CTX} --previous
 
+.. _k8s-fts-vs-localize-with-status:
+
+Localize a Problem Using the Resource Status
+--------------------------------------------
+
+A ``MongoDBSearch`` resource runs several independent components: 
+
+- One or more ``mongot`` StatefulSets 
+- An optional |k8s-op-short|-managed Envoy load balancer
+- An optional |com| metrics forwarder. 
+
+In a multi-cluster deployment, each of these runs *per member cluster*.
+When search does not behave as expected, use the resource status to
+localize the problem to a specific cluster and component before you
+inspect Pods or logs.
+
+To read the status:
+
+.. code-block:: shell
+
+   kubectl get mongodbsearch ${MDB_RESOURCE_NAME} \
+     -n ${MDB_NS} --context ${K8S_CTX} -o yaml
+
+Start with the top-level fields, then narrow down using
+``status.clusters``:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 30 70
+
+   * - Field
+     - What it tells you
+
+   * - ``status.phase``
+     - The overall resource phase. This reflects both ``mongot``
+       StatefulSet readiness across all clusters (worst-of) and the
+       managed load balancer's readiness. The resource is in the 
+       ``Pending`` phase if any cluster's ``mongot`` or  the 
+       |k8s-op-short|-managed load balancer is not ready. The metrics
+       forwarder does **not** affect this phase.
+
+   * - ``status.loadBalancer``
+     - The aggregated managed Envoy load balancer phase across all
+       clusters. This is only populated when
+       ``spec.clusters[].loadBalancer.managed`` is set.
+
+   * - ``status.metricsForwarder``
+     - The aggregated Ops Manager metrics forwarder phase across all
+       clusters. This is only populated when the metrics forwarder is enabled.
+
+   * - ``status.clusters[]``
+     - One entry per member cluster, each with its own ``name`` and
+       ``index`` and independent sub-phases for ``search``,
+       ``loadBalancer``, and ``metricsForwarder``. Each sub-phase has a
+       matching ``*Message`` field (for example ``searchMessage``) that
+       explains the reason when the sub-phase is not ``Running``.
+
+.. tip::
+
+   A ``MongoDBSearch`` resource can be ``Pending`` even when every
+   cluster's ``search`` sub-phase is ``Running`` — a degraded managed
+   ``loadBalancer`` on any cluster can hold the whole resource in the
+   ``Pending`` phase. Read the per-cluster sub-phases to identify which
+   cluster and component is responsible.
+
+The following example shows a two-cluster deployment where the second
+cluster's Envoy load balancer is stuck mid-rollout. The resource is
+``Pending`` even though ``mongot`` on both clusters is healthy because
+the managed load balancer's readiness affects the overall phase.
+
+.. code-block:: yaml
+   :copyable: false
+   :caption: Example: Pending Phase
+
+   status:
+     phase: Pending
+     message: "Waiting for managed load balancer to be ready"
+     clusters:
+       - name: member-cluster-1
+         index: 0
+         search: Running
+         loadBalancer: Running
+       - name: member-cluster-2
+         index: 1
+         search: Running
+         loadBalancer: Pending
+         loadBalancerMessage: "Load balancer deployment mdb-search-search-lb-1
+           rollout in progress: 1 unavailable replica(s)"
+
+Use the ``name`` and ``index`` of the affected cluster to inspect the
+corresponding component:
+
+- For a ``search`` sub-phase that is not ``Running``, inspect that
+  cluster's ``mongot`` StatefulSet and Pods. The ``searchMessage``
+  typically reports which StatefulSet is not ready. See
+  :ref:`The mongot Pod Fails to Start <k8s-fts-vs-mongot-pod-fails>`.
+- For a ``loadBalancer`` sub-phase that is not ``Running``, inspect that
+  cluster's Envoy Deployment. Messages such as ``rollout in progress``
+  or ``unavailable replica(s)`` indicate the new Envoy Pods are not
+  scheduling or becoming ready.
+- For a ``metricsForwarder`` sub-phase that is not ``Running``, inspect
+  that cluster's metrics forwarder Deployment.
+
+To collect the Pod state, logs, and events for the identified
+component, see :ref:`Gather Diagnostic Information
+<k8s-fts-vs-gather-diagnostics>`.
+
 .. _k8s-fts-vs-mongot-pod-fails:
 
 The ``mongot`` Pod Fails to Start

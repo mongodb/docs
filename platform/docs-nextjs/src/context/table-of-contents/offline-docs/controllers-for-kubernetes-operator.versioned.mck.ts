@@ -12,7 +12,7 @@ export const toc: L1TocItem[] = [
         group: true,
         versionDropdown: true,
         versions: {
-          excludes: ['upcoming', 'current'],
+          excludes: ['upcoming', 'current', 'v1.9'],
         },
         items: [
           {
@@ -900,7 +900,7 @@ export const toc: L1TocItem[] = [
         group: true,
         versionDropdown: true,
         versions: {
-          includes: ['upcoming', 'current'],
+          includes: ['upcoming', 'current', 'v1.9'],
         },
         items: [
           {
@@ -1293,6 +1293,14 @@ export const toc: L1TocItem[] = [
                     label: 'Connect and Verify',
                     contentSite: 'mck',
                     url: '/docs/kubernetes/:version/fts-vs/deployment/connect-verify',
+                  },
+                  {
+                    label: 'Upgrade or Downgrade',
+                    contentSite: 'mck',
+                    url: '/docs/kubernetes/:version/fts-vs/deployment/upgrade-downgrade',
+                    versions: {
+                      excludes: ['v1.9'],
+                    },
                   },
                 ],
               },
