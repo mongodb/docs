@@ -53,6 +53,7 @@ The command has the following syntax:
         pipeline: [ <stage>, <...> ],
         explain: <boolean>,
         allowDiskUse: <boolean>,
+        allowPartialResults: <boolean>,
         cursor: <document>,
         maxTimeMS: <int>,
         bypassDocumentValidation: <boolean>,
@@ -118,7 +119,42 @@ arguments:
 
        .. include:: /includes/extracts/4.2-changes-usedDisk.rst
 
+   * - .. _cmd-aggregate-allowPartialResults:
 
+       ``allowPartialResults``
+
+     - boolean
+
+     - Optional. For aggregations that run through a
+       :binary:`~bin.mongos` against a sharded collection, the command
+       can return partial results instead of an error when one or more
+       queried shards are unavailable. Subsequent :dbcommand:`getMore`
+       commands can also return partial results. Defaults to ``false``,
+       which returns an error if a queried shard is unavailable.
+
+       Set ``allowPartialResults`` on the initial
+       :dbcommand:`aggregate` command only. You cannot set it on
+       :dbcommand:`getMore`, but each :dbcommand:`getMore` inherits the
+       setting from the cursor.
+
+       Since a shard can become unavailable at any point, partial
+       results can appear in the initial :dbcommand:`aggregate`
+       response, in a later :dbcommand:`getMore` response, or both.
+       When a batch omits results from unavailable shards, that batch's
+       response includes a ``partialResultsReturned: true`` field. When
+       all queried shards are available for a batch, the response omits
+       ``partialResultsReturned``. ``partialResultsReturned`` can 
+       contain only documents from available shards. Do not assume the 
+       result set is complete when ``partialResultsReturned`` is true.
+
+       The command returns an ``InvalidOptions`` error if the
+       pipeline:
+
+       - Ends in a write stage, such as :pipeline:`$out` or
+         :pipeline:`$merge`.
+       - Is a :ref:`change stream <changeStreams>` aggregation.
+       - Contains an Atlas Search stage, such as ``$search``,
+         ``$vectorSearch``, ``$rankFusion``, or ``$scoreFusion``.
 
    * - ``cursor``
 
