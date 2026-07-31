@@ -39,7 +39,7 @@
    },
    {
       "resource": { "db": "admin", "collection": "system.version" },
-      "actions": [ "find" ]
+      "actions": [ "find", "collStats" ]
    },
    {
       "resource": { "db": "", "collection": "system.js" },
