@@ -102,9 +102,13 @@ Update the condensed reference to incorporate any important new or changed guide
   ],
 });
 
-const updated = response.content[0].type === 'text' ? response.content[0].text : null;
+// Find the text block rather than assuming it's first — on models that think by
+// default, content[0] is a thinking block and this would silently read as empty.
+const textBlock = response.content.find(block => block.type === 'text');
+const updated = textBlock?.type === 'text' ? textBlock.text : null;
 if (!updated) {
-  console.error('Empty response from Claude');
+  const types = response.content.map(b => b.type).join(', ') || 'empty';
+  console.error(`No text block in response from Claude. Content types: ${types}`);
   process.exit(1);
 }
 

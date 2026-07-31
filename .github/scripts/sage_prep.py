@@ -16,14 +16,18 @@ Required env vars:
 
 import base64
 import os
+import re
 import time
 import json
 import requests
 import anthropic
 
 REPO = "10gen/docs-mongodb-internal"
-JIRA_BASE = os.environ["JIRA_BASE_URL"]
+# Tolerate a trailing slash in the secret: "https://host/" + "/rest/api/2" would
+# otherwise produce a double slash, which Jira answers with a 404.
+JIRA_BASE = os.environ["JIRA_BASE_URL"].rstrip("/")
 ISSUE_KEY = os.environ["ISSUE_KEY"]
+PROJECT_KEY = ISSUE_KEY.split("-")[0]
 
 # Grove is MongoDB's internal LLM gateway. Its Anthropic endpoint is
 # API-compatible with the anthropic SDK: the SDK appends "/v1/messages" to
@@ -175,11 +179,20 @@ Return only the JSON object, no other text."""
 
     message = client.messages.create(
         model="claude-sonnet-5",
-        max_tokens=1024,
+        # Thinking is on by default on this model and thinking tokens count
+        # against max_tokens, so leave headroom for both or the JSON gets cut off.
+        max_tokens=4096,
         messages=[{"role": "user", "content": prompt}],
     )
 
-    raw = message.content[0].text if message.content else ""
+    if message.stop_reason == "max_tokens":
+        raise RuntimeError(
+            "Claude response hit max_tokens; the JSON is truncated. Raise max_tokens."
+        )
+
+    # content is a list of blocks and the first one is not necessarily the text:
+    # with thinking enabled it's a ThinkingBlock, which has no .text.
+    raw = next((b.text for b in message.content if b.type == "text"), "")
     # Strip markdown code fence if present
     if raw.startswith("```"):
         raw = raw.split("\n", 1)[1].rsplit("```", 1)[0].strip()
@@ -187,6 +200,49 @@ Return only the JSON object, no other text."""
         return json.loads(raw)
     except json.JSONDecodeError as e:
         raise RuntimeError(f"Claude returned non-JSON output: {e}\nRaw: {raw[:500]}")
+
+
+# JIP Quick Create appends a provenance line to the description naming the person
+# who reacted in Slack, e.g.:
+#   Created with [Jira Integration+](https://mongodb.slack.com/...) for jane.doe (jane.doe@mongodb.com)
+# The reporter on these tickets is always the edu.bot service account, so this
+# line is the only record of who actually asked for the work.
+REQUESTER_RE = re.compile(r"Created with .*?for\s+(\S+)\s+\(([^)\s]+@[^)\s]+)\)")
+
+
+def assignable_name(username):
+    """Return the Jira username if it can be assigned issues in this project."""
+    if not username:
+        return None
+    r = requests.get(
+        f"{JIRA_BASE}/rest/api/2/user/assignable/search",
+        headers=jira_headers,
+        params={"project": PROJECT_KEY, "username": username},
+        timeout=TIMEOUT,
+    )
+    if r.status_code != 200:
+        return None
+    users = r.json()
+    return users[0]["name"] if users else None
+
+
+def resolve_requester(description):
+    """Resolve the Slack requester from the description's JIP provenance line.
+
+    Returns (assignee_name, display) where assignee_name is a username validated
+    as assignable in this project, or None if it could not be resolved.
+    """
+    match = REQUESTER_RE.search(description or "")
+    if not match:
+        return None, None
+    username, email = match.group(1), match.group(2)
+    # The username in the stamp is sometimes the short name and sometimes the
+    # full email, and the two are not interchangeable as assignee values.
+    for candidate in (username, email):
+        resolved = assignable_name(candidate)
+        if resolved:
+            return resolved, email
+    return None, email
 
 
 def add_label(issue_key, new_label):
@@ -206,7 +262,17 @@ def main():
     # API v2 returns description as plain text (not ADF)
     description_text = fields.get("description") or ""
 
-    reporter_name = fields["reporter"]["name"]
+    # Resolve the requester before enrich() replaces the description — the JIP
+    # provenance line is the only place the reacting user is recorded, and the
+    # rewrite discards it.
+    requester_name, requester_email = resolve_requester(description_text)
+    if requester_name:
+        print(f"  Requester: {requester_name}")
+    else:
+        print(
+            "  Requester: could not resolve from description; "
+            "leaving assignee unchanged"
+        )
 
     print("Enriching ticket...")
     enriched = enrich(summary, description_text.strip())
@@ -240,20 +306,20 @@ def main():
     if target_files:
         lines += ["", "*Likely target files:*"]
         lines += [f"* {p}" for p in target_files]
+    if requester_email:
+        # Carry the provenance forward; the rewrite drops JIP's original line.
+        lines += ["", f"*Requested by:* {requester_email}"]
 
     full_description = "\n".join(lines)
 
     print("Updating ticket...")
-    jira_put(
-        f"/issue/{ISSUE_KEY}",
-        {
-            "fields": {
-                "summary": title,
-                "description": full_description,
-                "assignee": {"name": reporter_name},
-            }
-        },
-    )
+    update_fields = {
+        "summary": title,
+        "description": full_description,
+    }
+    if requester_name:
+        update_fields["assignee"] = {"name": requester_name}
+    jira_put(f"/issue/{ISSUE_KEY}", {"fields": update_fields})
 
     print("Applying repo label...")
     add_label(ISSUE_KEY, "repo:10gen/docs-mongodb-internal")
