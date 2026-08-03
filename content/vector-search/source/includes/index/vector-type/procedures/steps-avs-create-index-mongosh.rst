@@ -93,6 +93,18 @@
             :linenos:
 
       .. collapsible::
+         :heading: Multiple Vector Fields Example
+         :sub_heading: Index multiple vector embeddings fields.
+         :expanded: false
+
+         .. include:: /includes/index/vector-type/facts/avs-create-index-multiple-fields-eg.rst
+
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/shell/multi-vector-example-mongosh.sh
+            :language: shell
+            :copyable: true
+            :linenos:
+
+      .. collapsible::
          :heading: Flat Example
          :sub_heading: Index the vector embeddings field with the ``flat`` indexing method.
          :expanded: false

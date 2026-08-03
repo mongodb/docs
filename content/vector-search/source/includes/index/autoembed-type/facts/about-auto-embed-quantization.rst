@@ -17,10 +17,11 @@ RAM costs. By default, Automated Embedding uses
 The ``scalar`` quantization type in Automated Embedding builds 
 index with **scalar/int8 (1 byte) vectors**, which are provided by the 
 embedding model. For Automated Embedding, this quantization 
-reduces the vector embedding's storage and RAM cost to about one 
-fourth compared the ``float`` quantization. By default, Automated Embedding uses 
-``dotProduct`` as the similarity function for this quantization type.
-This is the default quantization type for Automated Embedding.
+reduces the vector embedding's storage and RAM cost to about one
+fourth compared the ``float`` quantization. By default, Automated
+Embedding uses ``cosine`` as the similarity function for this
+quantization type. This is the default quantization type for
+Automated Embedding.
 
 .. _mdb-vs-binary-quantization:
 

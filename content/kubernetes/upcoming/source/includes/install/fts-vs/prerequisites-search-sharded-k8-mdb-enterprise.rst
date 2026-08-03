@@ -6,3 +6,6 @@ following:
 - ``cert-manager`` installed (for TLS certificates)
 - MongoDB |k8s-op-short| installed
 - |mms-full| or |cloud| access
+- An operating system and architecture that are
+  :ref:`supported for MongoDB Enterprise
+  <landing-enterprise-platform-support>`.

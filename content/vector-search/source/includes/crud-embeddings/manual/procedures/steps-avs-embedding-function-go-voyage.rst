@@ -40,7 +40,7 @@
          that uses |voyage|'s ``voyage-3-large`` model to generate an 
          embedding for a given input.
 
-         .. literalinclude:: /includes/rag/code-snippets/ingest/go/get-embeddings-voyage.go
+         .. literalinclude:: /includes/rag/manual/code-snippets/ingest/go/get-embeddings-voyage.go
             :language: go
             :copyable:
             :caption: get-embeddings.go

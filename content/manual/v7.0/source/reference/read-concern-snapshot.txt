@@ -81,14 +81,22 @@ Multi-document transactions support read concern
 Read Concern and ``atClusterTime``
 ----------------------------------
 
-.. versionadded:: 5.0
-
 Outside of multi-document transactions, reads with read concern
 :readconcern:`"snapshot"` support the optional parameter
 ``atClusterTime``. The parameter ``atClusterTime`` allows you to specify
 the timestamp for the read. To satisfy a read request with a specified
 ``atClusterTime`` of T, the :binary:`~bin.mongod` performs the request
-based on the data available at time T.
+based on the data available at time T. If the :binary:`~bin.mongod`
+has not yet reached time T in its oplog, it waits to service the
+request.
+
+.. tip::
+
+   If you have reads directed at lagging replica set members, you can
+   use ``maxTimeMS`` to bound the wait time for reads with a specified
+   ``atClusterTime``. ``maxTimeMS`` ensures that the operation does not
+   block indefinitely and instead returns an error if the ``mongod``
+   does not reach the specified ``atClusterTime`` in time.
 
 You can obtain the ``operationTime`` or ``clusterTime`` of an operation
 from the response of :method:`db.runCommand()` or from the 
@@ -131,8 +139,11 @@ guaranteed to read from majority-committed data.
   an error.
 
 - If you perform a read operation with :readconcern:`"snapshot"`
-  against a delayed replica set member, the returned majority-committed
-  data could be stale.
+  without specifying ``atClusterTime`` against a delayed replica set
+  member, the returned majority-committed data could be stale. If you
+  specify ``atClusterTime``, the :binary:`~bin.mongod` waits for the
+  specified timestamp instead of returning stale data, though the read
+  may block or time out.
 
 - It is not possible to specify ``atClusterTime`` for
   :readconcern:`"snapshot"` inside of :ref:`causally consistent

@@ -453,12 +453,12 @@ export const toc: L1TocItem[] = [
             url: '/docs/:version/crud',
             items: [
               {
-                label: 'Insert',
+                label: 'Create',
                 contentSite: 'docs',
                 url: '/docs/:version/tutorial/insert-documents',
               },
               {
-                label: 'Query',
+                label: 'Read',
                 contentSite: 'docs',
                 collapsible: true,
                 url: '/docs/:version/tutorial/query-documents',
@@ -524,7 +524,7 @@ export const toc: L1TocItem[] = [
                 ],
               },
               {
-                label: 'Remove',
+                label: 'Delete',
                 contentSite: 'docs',
                 url: '/docs/:version/tutorial/remove-documents',
               },
@@ -2613,6 +2613,11 @@ export const toc: L1TocItem[] = [
                 url: '/docs/vector-search/deployment/multi-tenant-architecture',
               },
               {
+                label: 'Compatibility & Limitations',
+                contentSite: 'vector-search',
+                url: '/docs/vector-search/deployment/compatibility-limitations',
+              },
+              {
                 label: 'AI Integrations',
                 isExternal: true,
                 url: 'https://www.mongodb.com/docs/atlas/ai-integrations/',
@@ -2948,8 +2953,24 @@ export const toc: L1TocItem[] = [
                   },
                   {
                     label: 'Run Queries',
-                    contentSite: 'cloud-docs',
-                    url: '/docs/atlas/data-federation/tutorial/run-queries',
+                    collapsible: true,
+                    items: [
+                      {
+                        label: 'Feed Downstream Systems',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/data-federation/tutorial/run-queries-downstream',
+                      },
+                      {
+                        label: 'Explore with Sample Data',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/data-federation/tutorial/run-queries-sample-data',
+                      },
+                      {
+                        label: 'Query Data Across Clusters',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/data-federation/tutorial/run-queries-across-clusters',
+                      },
+                    ],
                   },
                 ],
               },

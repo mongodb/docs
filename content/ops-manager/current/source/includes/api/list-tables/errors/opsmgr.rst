@@ -525,6 +525,12 @@
      - `400`_
      - Role ``<role>`` is invalid for group ``<group>``.
 
+   * - .. apierror:: INVALID_SETTINGS_EXCEPTION
+     - `400`_
+     - One or more of the supplied application settings
+       failed validation. The ``detail`` field in the
+       response describes the specific validation error.
+
    * - .. apierror:: INVALID_SNAPSHOT_ID
      - `404`_
      - An invalid snapshot ID ``<ID>`` was specified.

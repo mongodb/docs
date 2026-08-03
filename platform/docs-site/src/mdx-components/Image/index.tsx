@@ -72,7 +72,7 @@ export const Image = ({
   const openModal = () => setIsModalOpen(true);
 
   const fullPath = path.join(projectPath, src);
-  // See formatImageUrl above: online → _next/static/images asset URL, offline → /docs/images.
+  // See formatImageUrl above: online → /_next/static/images asset URL, offline → /docs/images.
   const imageUrl = formatImageUrl(fullPath);
 
   // next/image requires numeric width+height. Use the injected intrinsic pixel

@@ -5,7 +5,7 @@ export const ALL_VERSIONS = 'ALL_VERSIONS';
 export const COMPARE_VERSIONS = 'COMPARE_VERSIONS';
 
 export const getDownloadChangelogUrl = (env: Environments) => {
-  const branch = env === 'dev' || env === 'development' ? 'qa' : 'main';
+  const branch = env === 'dotcomstg' ? 'qa' : 'main';
   return `https://raw.githubusercontent.com/mongodb/openapi/${branch}/changelog/changelog.json`;
 };
 

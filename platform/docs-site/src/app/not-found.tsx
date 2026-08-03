@@ -5,13 +5,15 @@ import { Body } from '@leafygreen-ui/typography';
 import { Link } from '@/mdx-components/Link';
 
 import { DOTCOM_BASE_URL } from '@/constants';
+import { getBasePath } from '@/utils/base-path';
 import { ErrorPage } from '@/templates/error-template';
 import { TrackJS } from 'trackjs';
 import { useEffect } from 'react';
 
 const NotFoundBody = () => {
   const pathname = usePathname();
-  const fromURL = `${DOTCOM_BASE_URL}${pathname}`;
+  // usePathname() is basePath-relative; prepend basePath to show the full URL.
+  const fromURL = `${DOTCOM_BASE_URL}${getBasePath()}${pathname}`;
 
   useEffect(() => {
     TrackJS.track(`page_not_found - fromURL: ${fromURL}`);
@@ -29,7 +31,7 @@ const NotFoundBody = () => {
 
 export default function NotFound() {
   return (
-    <ErrorPage imageSrc="/404.png" imageAlt="Page not found" title="Sorry, we can't find that page.">
+    <ErrorPage imageSrc={`${getBasePath()}/404.png`} imageAlt="Page not found" title="Sorry, we can't find that page.">
       <NotFoundBody />
     </ErrorPage>
   );

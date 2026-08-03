@@ -34,122 +34,126 @@
          * - ``<field-to-index>``
            - Vector and filter fields to index.
 
-      .. example:: 
+      For example, copy and paste the following example index definitions into the
+      ``vector-index.json`` file. 
 
-         Copy and paste the following index definition into the
-         ``vector-index.json`` file. The following index definition
-         indexes the ``plot_embedding_voyage_3_large`` field as the
-         ``vector`` type and the ``genres`` and ``year`` fields as the
-         ``filter`` type in a {+avs+} index. The
-         ``plot_embedding_voyage_3_large`` field contains ``2048``
-         vector dimension embeddings created using |voyage|'s
-         ``voyage-3-large`` embedding model. The index specifies
-         similarity measurement using ``dotProduct`` function.
+      .. collapsible:: 
+         :heading: Basic Example
+         :expanded: false
 
-         .. tabs:: 
+         The following index definition indexes only the vector
+         embeddings field using the default indexing method, |hnsw|,
+         for performing vector search.
+            
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/basic-example-acli.json
+            :language: json
+            :copyable:
+            :linenos:
 
-            .. tab:: Basic Example
-               :tabid: basic
+      .. collapsible:: 
+         :heading: Filter Example 
+         :expanded: false
 
-               The following index definition indexes only the vector
-               embeddings field using the default indexing method, |hnsw|,
-               for performing vector search.
-                  
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/basic-example-acli.json
-                  :language: json
-                  :copyable:
-                  :linenos:
+         This index definition indexes the following fields: 
+    
+         - A string field (``genres``) and a numeric field (``year``)
+           for pre-filtering the data. 
+         - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+           using the |hnsw| indexing method for performing vector search 
+           against pre-filtered data.
 
-            .. tab:: Filter Example 
-               :tabid: advanced
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/filter-example-acli.json
+            :language: json
+            :copyable:
+            :linenos:
 
-               This index definition indexes the following fields: 
-         
-               - A string field (``genres``) and a numeric field (``year``)
-                 for pre-filtering the data. 
-               - The vector embeddings field (``plot_embedding_voyage_3_large``) 
-                 using the |hnsw| indexing method for performing vector search 
-                 against pre-filtered data.
+      .. collapsible:: 
+         :heading: Multiple Vector Fields Example
+         :expanded: false
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/filter-example-acli.json
-                  :language: json
-                  :copyable:
-                  :linenos:
+         .. include:: /includes/index/vector-type/facts/avs-create-index-multiple-fields-eg.rst
 
-            .. tab:: Flat Example 
-               :tabid: flat
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/multi-vector-example-acli.json
+            :language: json
+            :copyable:
+            :linenos:
 
-               This index definition indexes the following fields: 
-         
-               - A string field (``genres``) and a numeric field (``year``)
-                 for pre-filtering the data. 
-               - The vector embeddings field (``plot_embedding_voyage_3_large``) 
-                 using the ``flat`` indexing method for performing vector search 
-                 against pre-filtered data.
+      .. collapsible:: 
+         :heading: Flat Example
+         :expanded: false
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/flat-example-acli.json
-                  :language: json
-                  :copyable:
-                  :linenos:
+         This index definition indexes the following fields: 
+    
+         - A string field (``genres``) and a numeric field (``year``)
+           for pre-filtering the data. 
+         - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+           using the ``flat`` indexing method for performing vector search 
+           against pre-filtered data.
 
-            .. tab:: Stored Source Example
-               :tabid: storedSource
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/flat-example-acli.json
+            :language: json
+            :copyable:
+            :linenos:
 
-               .. include:: /includes/index/vector-type/facts/stored-source-example.rst
+      .. collapsible:: 
+         :heading: Stored Source Example
+         :expanded: false
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/stored-source-example-acli.json
-                  :language: json
-                  :copyable:
-                  :linenos:
+         .. include:: /includes/index/vector-type/facts/stored-source-example.rst
 
-            .. tab:: Nested Field 
-               :tabid: nested
-               
-               Run the following Python script to create nested embeddings for the 
-               ``reviews.comments`` field in the ``sample_airbnb.listingsAndReviews`` 
-               collection after replacing the following placeholder values:
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/stored-source-example-acli.json
+            :language: json
+            :copyable:
+            :linenos:
 
-               .. list-table:: 
-                  :widths: 30 70 
-                  :header-rows: 1
+      .. collapsible:: 
+         :heading: Nested Field 
+         :expanded: false
+          
+         Run the following Python script to create nested embeddings for the 
+         ``reviews.comments`` field in the ``sample_airbnb.listingsAndReviews`` 
+         collection after replacing the following placeholder values:
 
-                  * - Placeholder 
-                    - Valid Value 
+         .. list-table:: 
+            :widths: 30 70 
+            :header-rows: 1
 
-                  * - ``<CONNECTION-STRING>``
-                    - Cluster connection string. To learn more, see
-                      :ref:`connect-via-driver`.
+            * - Placeholder 
+              - Valid Value 
 
-                  * - ``<API-KEY>``
-                    - Voyage AI API key. To learn more, see
-                      :ref:`Voyage AI API Keys <voyage-api-keys>`.
+            * - ``<CONNECTION-STRING>``
+              - Cluster connection string. To learn more, see
+                :ref:`connect-via-driver`.
 
-               The script creates 1024-dimension embeddings using the 
-               ``voyage-4-large`` model for the ``reviews.comments`` field in the 
-               ``reviews`` array. It adds the embeddings to the ``reviews`` array 
-               as a new field named ``comments_embedding``.
+            * - ``<API-KEY>``
+              - Voyage AI API key. To learn more, see
+                :ref:`Voyage AI API Keys <voyage-api-keys>`.
 
-               .. literalinclude:: /includes/pipeline-stage/vectorSearch/code-snippets/python/add-nested-embeddings.py
-                  :language: python
-                  :linenos:
-                  :copyable: true
+         The script creates 1024-dimension embeddings using the 
+         ``voyage-4-large`` model for the ``reviews.comments`` field in the 
+         ``reviews`` array. It adds the embeddings to the ``reviews`` array 
+         as a new field named ``comments_embedding``.
 
-               The following index definition on the ``sample_airbnb.listingsAndReviews`` 
-               collection indexes the following fields: 
+         .. literalinclude:: /includes/pipeline-stage/vectorSearch/code-snippets/python/add-nested-embeddings.py
+            :language: python
+            :linenos:
+            :copyable: true
 
-               - The string fields (``address.country`` and ``property_type``), a 
-                 numeric field (``bedrooms``), and a date field (``reviews.date``)
-                 for pre-filtering the data. 
-               - The vector embeddings field (``reviews.comments_embedding``) for
-                 performing vector search against pre-filtered data.
-               - The ``reviews`` array field as the ``nestedRoot`` field for indexing 
-                 nested vector fields.
+         The following index definition on the ``sample_airbnb.listingsAndReviews`` 
+         collection indexes the following fields: 
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/nested-embedding-example-acli.json
-                  :language: json
-                  :copyable:
-                  :linenos:
+         - The string fields (``address.country`` and ``property_type``), a 
+           numeric field (``bedrooms``), and a date field (``reviews.date``)
+           for pre-filtering the data. 
+         - The vector embeddings field (``reviews.comments_embedding``) for
+           performing vector search against pre-filtered data.
+         - The ``reviews`` array field as the ``nestedRoot`` field for indexing 
+           nested vector fields.
 
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/json/nested-embedding-example-acli.json
+            :language: json
+            :copyable:
+            :linenos:
 
    .. step:: Run the following command to create the index.
 

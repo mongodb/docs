@@ -1,8 +1,8 @@
 .. _profile-databases:
 
-=================
-Profile Databases
-=================
+====================
+Profile Slow Queries
+====================
 
 .. default-domain:: mongodb
 
@@ -22,29 +22,45 @@ Profile Databases
    :depth: 1
    :class: singlecol
 
-A :ref:`database profiler <database-profiler>`
-gathers statistics about writes, cursors, and commands on one running
-|mongod| instance.
+The |mms| :guilabel:`Profiler` page displays profiling data for slow
+queries on your databases. The Profiler recognizes a query
+as slow if it takes longer to execute than the :ref:`slow query
+threshold <slow-queries>` set for your |mongod| instance. 
 
-|mms| can collect and display statistics from any of your |mongod|
-instances. The Query Profiler identifies slow queries based on 
-:ref:`log data <mongodb-logs>` from your ``mongod`` instances. 
-|mms| displays this data on an instance's :guilabel:`Profiler` page. 
-To access an instance's metrics, click the :guilabel:`Metrics` button 
-for that instance.
+The |mms| Profiler identifies slow queries by tailing slow query 
+:ref:`log data <mongodb-logs>` from your |mongod| instances. |mms|
+displays this data on a process's :guilabel:`Profiler` page. To view the
+:guilabel:`Profiler` page for a process, click the process in the
+:guilabel:`Deployment` view and then click the :guilabel:`Profiler` tab. 
 
-The :guilabel:`Profiler` displays one aspect, like *Operation Execution
-Time*, that could slow database operations over a set time frame. It
-displays this data in both a chart and a table that each can filter on
-aspect and time frame. The Profiler suggests indexes for your databases
-to improve the performance of slow operations.
+The :guilabel:`Profiler` page displays a chart and a table that describe
+metrics for the profiled database operations. To improve the performance
+of slow operations, you can use the :ref:`Performance Advisor
+<performance-advisor>` to suggest indexes for your databases.
+
+.. note:: 
+
+   The |mms| Profiler is different than the MongoDB :ref:`database
+   profiler <database-profiling>`, which collects data about
+   :ref:`database commands <database-commands>` executed against a
+   running |mongod| instance and writes data to the
+   :data:`system.profile <<database>.system.profile>` collection. 
+   
+   The |mms| Profiler is controlled by a :ref:`project-level setting
+   <enable-profiling-manually>`, which determines whether |mms| agents
+   tail the slow query and send them to |mms|, and whether the
+   :guilabel:`Performance Advisor` and :guilabel:`Profiler` pages are
+   available for that project. The |mms| Profiler does not write to the
+   :data:`system.profile <<database>.system.profile>` collection.
 
 .. _considerations-profile-database:
 
 Considerations
 --------------
 
-.. important:: Please read the following considerations before you enable profiling.
+.. important:: 
+ 
+   Read the following considerations before you enable |mms| Profiling.
 
 Security
 ~~~~~~~~
@@ -56,7 +72,7 @@ with your information security practices.
 Data Display Limitations
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The Query Profiler displays up to the limit that it reaches first:
+The |mms| Profiler displays up to the limit that it reaches first:
 
 - The most recent 10,000 operations, or
 - The most recent 10MB of logs.
@@ -65,9 +81,11 @@ Monitoring tries to minimize its effect on the monitored systems.
 If polling profile data slows database performance, |mms| throttles how
 often it collects data.
 
-|mms| displays no more than 10,000 data points in the :guilabel:`Profiler` charts.
+|mms| displays no more than 10,000 data points in the
+:guilabel:`Profiler` charts.
 
-Log data is processed in batches. Data can be delayed up to five minutes from real time.
+Log data is processed in batches. Data can be delayed up to five minutes
+from real time.
 
 Time to Propagate Changes to the {+mdbagent+}
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -76,44 +94,51 @@ With profiling enabled, configuration changes made in |mms| can
 take up to 2 minutes to propagate to the agent and 1 more minute before
 profiling data appears in the |mms| interface.
 
-Rolling Restart of ``mongod`` Processes
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/fact-profiling-restart-mongods.rst
-
 .. _enable-profiling-through-automation:
 .. _enable-profiling-manually:
 
 Enable Profiling
 ----------------
 
-As of |mms| version 4.4, |mms| always enables profiling. Your
-|mongod| instance collects profile data for operations longer than
-the :ref:`slow operation threshold <slow-queries>` and
-reports them to |mms|. The threshold for slow operations applies to the entire |mongod| instance. |mms| defaults this threshold to 100 ms.
+As of |mms| version 4.4, |mms| enables the |mms| Profiler by default.
+Your |mongod| instance collects profile data for operations longer than
+the :ref:`slow operation threshold <slow-queries>` and reports them to
+|mms|. The threshold for slow operations applies to the entire |mongod|
+instance. |mms| defaults this threshold to 100 ms. To change the
+threshold, see :ref:`slow-queries`.
+
+To disable the |mms| Profiler for an |mms| project, navigate to the
+:ref:`project settings <manage-group-settings>` and toggle the
+:guilabel:`Performance Advisor and Profiler` setting to :guilabel:`On`
+or :guilabel:`Off`. This stops |mms| from tailing the |mongod| logs for
+slow query data, and disables the :guilabel:`Performance Advisor` and
+:guilabel:`Profiler` pages for that project. 
+
+The :guilabel:`Performance Advisor and Profiler` setting doesn't affect
+whether the :ref:`MongoDB database profiler <database-profiling>` is
+enabled on a given |mongod| process, only whether |mms| collects and
+displays profiling data for slow queries.
 
 .. _profiler-interface:
 
 Profiler Interface
 ------------------
 
-The Profiler has two sections to the page that display database profile
-information: a chart and a table. Each can display different data.
+The |mms| :guilabel:`Profiler` page contains two displays for database
+profile information: a chart and a table. The following sections
+describe how to filter the data in each display. 
 
 .. _profiler-chart:
-
-Profiling Chart
-~~~~~~~~~~~~~~~
-
 .. _profiler-chart-set-filter:
 
-Set Chart Filters
-`````````````````
+Filter the Profiler Chart
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Above the chart, select the metric and time period you want to see.
+You can filter the Profiler chart by metric and time period. To filter
+the chart: 
 
-1. Select the metric from the :guilabel:`Display` menu. Accepted
-   options are:
+1. From the :guilabel:`Display` drop-down menu, select the metric
+   you want to view in the chart. Available options are:
 
    - Operation Execution Time (default)
    - Keys Examined
@@ -121,9 +146,9 @@ Above the chart, select the metric and time period you want to see.
    - Examined:Returned Ratio
    - Num Yields
    - Response Length
-
-#. Select the time period from the :guilabel:`View Last` menu.
-   Accepted options are:
+   
+#. From the :guilabel:`View Last` drop-down menu, select the time
+   period you want to view in the chart. Available options are:
 
    - 24 hr (default)
    - 12 hr
@@ -134,20 +159,20 @@ Above the chart, select the metric and time period you want to see.
 .. _profiler-table:
 .. _profiler-table-set-filter:
 
-Profiling Table
-~~~~~~~~~~~~~~~
+Filter the Profiler Table
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Above the table, select the namespace, operation type, and metric you
-wish to profile:
+You can filter the Profiler table by namespace, operation type, and
+metric. To filter the table: 
 
-1. Click :guilabel:`All Namespaces` to change which combination of
-   databases and collections to profile.
+1. From the :guilabel:`All Namespaces` drop-down, choose which database
+   and collections to profile in the table. 
 
-#. Click :guilabel:`All Operations` to change which operations you want
-   to profile.
+#. From the :guilabel:`All Operations` drop-down, choose which operation
+   types to profile. 
 
-#. Click :guilabel:`Operation Execution Time` to change which metric
-   you want to profile. Accepted options are:
+#. From the :guilabel:`Operation Execution Time` drop-down, choose which
+   metric you want to profile. Available options are:
 
    - Operation Execution Time (default)
    - Keys Examined

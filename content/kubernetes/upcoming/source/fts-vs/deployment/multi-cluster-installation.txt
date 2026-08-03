@@ -1,0 +1,1107 @@
+.. _k8s-fts-vs-multi-cluster-install:
+
+==============================================================
+Install |text-search| and |vector-search| on multiple Clusters
+==============================================================
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: vector search, mongodb search, mongot, multi-cluster,
+      kubernetes, install, replica set, sharded cluster, external
+   :description: Deploy MongoDB Search and Vector Search across many Kubernetes clusters with the MongoDB Controllers for Kubernetes Operator against an external MongoDB deployment.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+You can use the |k8s-op-short| to deploy |text-search| and
+|vector-search| across multiple |k8s| clusters for an external
+MongoDB deployment. In this case the |k8s-op-short| just manages 
+``mongot``, not the external MongoDB deployment. Your MongoDB 
+deployment is external to the |k8s-op-short|. It can run: 
+
+- Outside |k8s|, such as on virtual machines
+- In |k8s| clusters, but not managed by the |k8s-op-short|
+
+The |k8s-op-short| runs in a single, central cluster and deploys 
+a ``mongot`` group into each |k8s| cluster that you list in the
+``spec.clusters`` field of the ``MongoDBSearch`` custom resource.
+Each ``mongot`` group syncs only from the MongoDB members that you
+map to it. You control this mapping with member tags, which you set 
+later in this procedure.
+
+Select your configuration to filter the installation procedure
+for your deployment.
+
+.. note::
+
+   Multi-cluster deployments require MongoDB Enterprise Edition and
+   an external MongoDB deployment. Multi-cluster deployments in which 
+   the |k8s-op-short| manages the MongoDB deployment aren't currently 
+   supported as source to the multi-cluster Search deployment. See the
+   :ref:`Supported Topologies <k8s-fts-vs-supported-topologies>`.
+
+.. composable-tutorial::
+   :options: deployment-type, cluster-topology
+   :defaults: external, repl
+
+   Overview
+   --------
+
+   .. selected-content::
+      :selections: external, repl
+
+      The ``MongoDBSearch`` resource uses ``spec.source.external``
+      to connect to your existing external replica set. Each
+      ``mongot`` group syncs from a specific subset of your replica
+      set members. To map each ``mongot`` group to the members it
+      should sync from, you tag your replica set members and set
+      ``syncSourceSelector.matchTagSets`` on each cluster entry, in
+      ``MongoDBSearch`` resource, to match those tags. This mapping 
+      ensures that each ``mongot`` group syncs only from its 
+      intended members instead of arbitrary members.
+
+      .. image:: /images/mongodb-k8s-multi-cluster-replicaset-search-arch.svg
+         :width: 740px
+         :alt: Architecture diagram showing the high-level architecture of a multi-cluster-Kubernetes
+               deployment for an external replica set using the
+               MongoDB Controllers for Kubernetes Operator.
+
+   .. selected-content::
+      :selections: external, shard
+
+      The ``MongoDBSearch`` resource uses
+      ``spec.source.external.shardedCluster`` to connect to your
+      existing external sharded cluster. Each ``mongot`` group syncs
+      from a specific shard of the MongoDB deployment. To map each
+      ``mongot`` group to the members it should sync from, you tag
+      your shard members and set ``syncSourceSelector.matchTagSets`` on
+      each cluster entry, in the ``MongoDBSearch`` resource, to match
+      those tags. This mapping ensures that each ``mongot`` group
+      syncs only from its intended shard.
+
+      Search queries for a shard must always target that shard's
+      ``mongot`` group. The per-shard ``externalHostname`` that you
+      set on each cluster entry and the managed Envoy load balancer
+      that the |k8s-op-short| deploys enable this routing: Envoy uses
+      |tls| |sni| to send each shard's traffic to the ``mongot``
+      group for that shard, so search queries never cross shard
+      boundaries.
+
+      .. image:: /images/mongodb-k8s-multi-cluster-sharded-search-arch.svg
+         :width: 740px
+         :alt: Architecture diagram showing the high-level architecture of a multi-cluster-Kubernetes
+               deployment for an external sharded cluster using the
+               MongoDB Controllers for Kubernetes Operator.
+
+   Prerequisites
+   -------------
+
+   .. selected-content::
+      :selections: external, repl
+
+      Before you deploy |text-search| and |vector-search| across
+      many clusters for an external replica set, complete the
+      following:
+
+      - Deploy a MongoDB Enterprise Edition replica set running
+        version 8.3.4 or later, externally to the |k8s-op-short|.
+        The deployment must require |tls| connections, and every 
+        replica set member must be reachable from each |k8s| 
+        cluster where the |k8s-op-short| deploys ``mongot``.
+      - Verify that your ``mongot`` and MongoDB Server versions are
+        compatible. See
+        :ref:`k8s-fts-vs-compatibility-requirements`.
+      - Confirm that the |k8s| API server in each member cluster is
+        reachable from the central cluster. The |k8s-op-short| must
+        be able to create and reconcile ``mongot`` resources in all
+        member clusters.
+
+   .. selected-content::
+      :selections: external, shard
+
+      Before you deploy |text-search| and |vector-search| across
+      many clusters for an external sharded cluster, complete the
+      following:
+
+      - Deploy a MongoDB Enterprise Edition sharded cluster running
+        version 8.3.4 or later, externally to the |k8s-op-short|.
+        The deployment must require |tls| connections, and every 
+        |mongos| router and shard member must be reachable from each 
+        |k8s| cluster where the |k8s-op-short| deploys ``mongot``.
+      - Verify that your ``mongot`` and MongoDB Server versions are
+        compatible. See
+        :ref:`k8s-fts-vs-compatibility-requirements`.
+      - Confirm that the |k8s| API server in each member cluster is
+        reachable from the central cluster. The |k8s-op-short| must
+        be able to create and reconcile ``mongot`` resources in all
+        member clusters.
+
+      .. important::
+
+         Shard names must follow RFC 1123 DNS label rules, which
+         allow lowercase alphanumeric characters or hyphens (``-``)
+         and require starting with a letter and ending with an
+         alphanumeric character. Underscores aren't allowed. The
+         combined length of the resource name and shard name must be
+         less than 50 characters.
+
+   Before You Begin
+   ----------------
+
+   Before you install |text-search| and |vector-search| using the
+   |k8s-op-short|, complete the following tasks.
+
+   .. collapsible::
+      :heading: Set Up Your Environment
+      :expanded: false
+
+      Before you install |text-search| and |vector-search| using the
+      |k8s-op-short|, complete the steps in the following sections:
+
+      .. selected-content::
+         :selections: external, repl
+
+         .. procedure::
+            :style: normal
+
+            .. step:: Required. Set the environment variables.
+
+               Copy the following code snippet and run the commands
+               in your terminal to set your environment variables.
+               Set ``MDB_MONGOT_REPLICAS_PER_CLUSTER`` to the number
+               of ``mongot`` pods you want in each member cluster:
+
+               .. literalinclude:: /includes/code-examples/search/12-search-rs-multi-cluster/env_variables.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+            .. step:: Optional. Validate environment variables.
+
+               Check that all required environment variables are set
+               and the |k8s| contexts exist:
+
+               .. literalinclude:: /includes/code-examples/search/12-search-rs-multi-cluster/code_snippets/12_0040_validate_env.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+      .. selected-content::
+         :selections: external, shard
+
+         .. procedure::
+            :style: normal
+
+            .. step:: Required. Set the environment variables.
+
+               Copy the following code snippet and run the commands
+               in your terminal to set your environment variables.
+               Set ``MDB_MONGOT_REPLICAS_PER_CLUSTER`` to the number
+               of ``mongot`` pods you want per shard per member
+               cluster:
+
+               .. literalinclude:: /includes/code-examples/search/13-search-sharded-multi-cluster/env_variables.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+            .. step:: Optional. Validate environment variables.
+
+               Check that all required environment variables are set
+               and the |k8s| contexts exist:
+
+               .. literalinclude:: /includes/code-examples/search/13-search-sharded-multi-cluster/code_snippets/13_0040_validate_env.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+   .. collapsible::
+      :heading: Set Up Kubernetes and the Operator
+      :expanded: false
+
+      .. selected-content::
+         :selections: external, repl
+
+         .. procedure::
+            :style: normal
+
+            .. step:: Required. Create Kubernetes namespaces.
+
+               The |k8s-op-short| uses the ``mongodb`` namespace by
+               default. Create the namespace in each member cluster:
+
+               .. literalinclude:: /includes/code-examples/search/12-search-rs-multi-cluster/code_snippets/12_0045_create_namespaces.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+            .. step:: Required. Install the |k8s-op| in
+               multi-cluster mode.
+
+               If you already installed the |k8s-op| in multi-cluster
+               mode, skip this step. Otherwise, run the following to
+               set up inter-cluster |rbac| and install the operator:
+
+               .. literalinclude:: /includes/code-examples/search/12-search-rs-multi-cluster/code_snippets/12_0100_install_operator.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+      .. selected-content::
+         :selections: external, shard
+
+         .. procedure::
+            :style: normal
+
+            .. step:: Required. Create Kubernetes namespaces.
+
+               Create the namespace in each member cluster:
+
+               .. literalinclude:: /includes/code-examples/search/13-search-sharded-multi-cluster/code_snippets/13_0045_create_namespaces.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+            .. step:: Required. Install the |k8s-op| in
+               multi-cluster mode.
+
+               If you already installed the |k8s-op| in multi-cluster
+               mode, skip this step. Otherwise, run the following to
+               set up inter-cluster |rbac| and install the operator:
+
+               .. literalinclude:: /includes/code-examples/search/13-search-sharded-multi-cluster/code_snippets/13_0100_install_operator.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+   .. collapsible::
+      :heading: Configure a User for MongoDB Search and Vector Search
+      :expanded: false
+
+      You must create a user with the :authrole:`searchCoordinator`
+      role. In MongoDB versions 8.2 and later, :authrole:`searchCoordinator` 
+      is a built-in role.
+
+      To create the user and assign them the built-in ``searchCoordinator`` 
+      role, complete the following steps using either the |com| UI or the 
+      |mongosh|:
+
+      .. tabs::
+
+         .. tab:: UI
+            :tabid: ui
+
+            .. procedure::
+               :style: normal
+
+               .. step:: Go to the :guilabel:`Users` page.
+
+                  a. Log in to |com| UI.
+                  #. Go to the :guilabel:`Security` tab and click
+                     :guilabel:`Users`.
+
+               .. step:: Click :guilabel:`Add New User`.
+
+               .. step:: Set the credentials for the user.
+
+                  .. list-table::
+                     :stub-columns: 1
+
+                     * - :guilabel:`Username`
+                       - Enter ``search-sync-source``.
+
+                     * - :guilabel:`Password`
+                       - Set a strong, secure password.
+
+                     * - :guilabel:`Authentication Database`
+                       - Choose the ``admin`` database.
+
+               .. step:: Assign the ``searchCoordinator`` role to the user.
+
+                  In the :guilabel:`Assign Roles` section, select the built-in
+                  ``searchCoordinator`` role from the dropdown for the
+                  ``admin`` database.
+
+               .. step:: Click :guilabel:`Add User` to create the user with the ``searchCoordinator`` role.
+
+         .. tab:: mongosh
+            :tabid: mongosh
+
+            In |mongosh|, run the following commands:
+
+            .. procedure::
+               :style: normal
+
+               .. step:: Switch to the ``admin`` database.
+
+                  .. code-block:: javascript
+
+                     use admin;
+
+               .. step:: Run the following command after replacing the password with a secure password to create the user.
+
+                  .. code-block:: javascript
+
+                     db.createUser({
+                        user: "search-sync-source",
+                        pwd: "<PASSWORD>", // Replace with your actual password
+                        roles: [
+                           { role: "searchCoordinator", db: "admin" }
+                        ]
+                     });
+
+   .. collapsible::
+      :heading: Configure TLS Certificates
+      :expanded: false
+
+      .. selected-content::
+         :selections: external, repl
+
+         .. procedure::
+            :style: normal
+
+            .. step:: Conditional. Install cert-manager.
+
+               ``cert-manager`` is required for managing |tls|
+               certificates. If you already have ``cert-manager``
+               installed in the central cluster, skip this step.
+               Otherwise, install ``cert-manager``:
+
+               .. literalinclude:: /includes/code-examples/search/12-search-rs-multi-cluster/code_snippets/12_0301_install_cert_manager.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+            .. step:: Required. Configure TLS prerequisites.
+
+               Create the ``cert-manager`` bootstrap chain:
+
+               .. literalinclude:: /includes/code-examples/search/12-search-rs-multi-cluster/code_snippets/12_0302_configure_tls_prerequisites.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+            .. step:: Required. Distribute the CA certificate for
+               mongot.
+
+               ``MongoDBSearch`` expects the CA in a Secret with
+               key ``ca.crt``. The following commands extract the CA
+               from the ``cert-manager`` namespace and create the
+               Secret in each member cluster:
+
+               .. literalinclude:: /includes/code-examples/search/12-search-rs-multi-cluster/code_snippets/12_0302b_configure_tls_prerequisites_mongot.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+            .. step:: Required. Create the mongot TLS certificate.
+
+               Create a shared TLS certificate for the ``mongot``
+               pods using a wildcard SAN:
+
+               .. literalinclude:: /includes/code-examples/search/12-search-rs-multi-cluster/code_snippets/12_0316a_create_mongot_tls_certificates.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+            .. step:: Required. Create the load balancer TLS
+               certificates.
+
+               Create the Envoy load balancer server certificate and
+               the client certificate the load balancer uses to
+               authenticate to ``mongot``:
+
+               .. literalinclude:: /includes/code-examples/search/12-search-rs-multi-cluster/code_snippets/12_0316b_create_lb_tls_certificates.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+      .. selected-content::
+         :selections: external, shard
+
+         .. procedure::
+            :style: normal
+
+            .. step:: Conditional. Install cert-manager.
+
+               If you already have ``cert-manager`` installed in the
+               central cluster, skip this step. Otherwise, install
+               ``cert-manager``:
+
+               .. literalinclude:: /includes/code-examples/search/13-search-sharded-multi-cluster/code_snippets/13_0301_install_cert_manager.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+            .. step:: Required. Configure TLS prerequisites.
+
+               Create the ``cert-manager`` bootstrap chain:
+
+               .. literalinclude:: /includes/code-examples/search/13-search-sharded-multi-cluster/code_snippets/13_0302_configure_tls_prerequisites.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+            .. step:: Required. Distribute the CA certificate for
+               mongot.
+
+               Extract the CA from the ``cert-manager`` namespace
+               and create the Secret in each member cluster:
+
+               .. literalinclude:: /includes/code-examples/search/13-search-sharded-multi-cluster/code_snippets/13_0302b_configure_tls_prerequisites_mongot.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+            .. step:: Required. Create per-(cluster, shard) mongot
+               TLS certificates.
+
+               For a sharded cluster, each (cluster, shard)
+               combination requires its own ``mongot`` TLS
+               certificate. Create certificates for each shard in
+               each member cluster:
+
+               .. literalinclude:: /includes/code-examples/search/13-search-sharded-multi-cluster/code_snippets/13_0316a_create_mongot_tls_certificates.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+            .. step:: Required. Create the load balancer TLS
+               certificates.
+
+               Create the Envoy load balancer server certificate and
+               the client certificate:
+
+               .. literalinclude:: /includes/code-examples/search/13-search-sharded-multi-cluster/code_snippets/13_0316b_create_lb_tls_certificates.sh
+                  :language: shell
+                  :copyable: true
+                  :linenos:
+
+   .. collapsible::
+      :heading: Optional. Tag external replica set members. 
+      :expanded: false
+
+      .. selected-content::
+         :selections: external, repl
+
+         .. procedure::
+            :style: normal
+
+            .. step:: Tag your external replica set members by cluster.
+
+               Each ``mongot`` group syncs from a specific subset of
+               your replica set members. To map each ``mongot`` group to
+               the members it should sync from, you tag your replica set
+               members and reference those tags in the
+               ``syncSourceSelector.matchTagSets`` field of the
+               ``MongoDBSearch`` resource.
+
+               On your external replica set, add a member tag to each
+               ``mongod`` member that identifies the ``mongot`` group
+               that should sync from it. A member tag is a key-value
+               pair in the member's replica set configuration, such as
+               ``{ "vm-zone": "us-west-1" }``. Give every member that
+               you want a given ``mongot`` group to sync from the same
+               tag value, and use a distinct value for each ``mongot``
+               group. To learn how to set member tags, see
+               :ref:`replica set tag sets
+               <replica-set-configuration-tag-sets>`.
+
+               In a later step, you set ``syncSourceSelector.matchTagSets``
+               on each ``spec.clusters`` entry to the tag value for that
+               cluster's ``mongot`` group. The |k8s-op-short| passes the
+               tag to ``mongot`` as a ``readPreferenceTags`` filter, so
+               each ``mongot`` group syncs only from the replica set
+               members that carry the matching tag. Record the tag value
+               that you assign to each ``mongot`` group so that the
+               ``matchTagSets`` values match exactly.
+
+      .. selected-content::
+         :selections: external, shard
+
+         .. procedure::
+            :style: normal
+
+            .. step:: Tag your external replica set members by cluster.
+
+               Each ``mongot`` group syncs from a specific subset of
+               your replica set members. To map each ``mongot`` group to
+               the members it should sync from, you tag your replica set
+               members and reference those tags in the
+               ``syncSourceSelector.matchTagSets`` field of the
+               ``MongoDBSearch`` resource.
+
+               On your external replica set, add a member tag to each
+               ``mongod`` member that identifies the ``mongot`` group
+               that should sync from it. A member tag is a key-value
+               pair in the member's replica set configuration, such as
+               ``{ "vm-zone": "us-west-1" }``. Give every member that
+               you want a given ``mongot`` group to sync from the same
+               tag value, and use a distinct value for each ``mongot``
+               group. To learn how to set member tags, see
+               :ref:`replica set tag sets
+               <replica-set-configuration-tag-sets>`.
+
+               In a later step, you set ``syncSourceSelector.matchTagSets``
+               on each ``spec.clusters`` entry to the tag value for that
+               cluster's ``mongot`` group. The |k8s-op-short| passes the
+               tag to ``mongot`` as a ``readPreferenceTags`` filter, so
+               each ``mongot`` group syncs only from the replica set
+               members that carry the matching tag. Record the tag value
+               that you assign to each ``mongot`` group so that the
+               ``matchTagSets`` values match exactly.
+
+   .. collapsible::
+      :heading: Configure the MongoDB Deployment in Cloud Manager or Ops Manager
+      :expanded: false
+
+      In the |com| UI, configure the following settings. To learn more 
+      about these parameters, see :ref:`k8s-fts-vs-settings`.
+
+      .. selected-content::
+         :selections: external, repl
+
+         Set the search ``setParameter`` values on every ``mongod``
+         member of your external replica set. Point ``mongotHost`` and
+         ``searchIndexManagementHostAndPort`` at the Envoy load
+         balancer endpoint for the ``mongot`` group that the member is
+         mapped to. Use the externally resolvable hostname that
+         resolves from your
+         ``spec.clusters[].loadBalancer.managed.externalHostname``
+         template.
+
+         .. procedure::
+            :style: normal
+
+            .. step:: Go to your |com| :guilabel:`Deployment` page.
+
+               a. Log in to MongoDB |com|.
+               #. Click the :guilabel:`Deployment` tab.
+               #. Select the cluster that you want to modify.
+
+            .. step:: Modify your |com| deployment configuration.
+
+               a. Click the :guilabel:`Modify` button to open the
+                  deployment configuration editor.
+               #. Click :guilabel:`Advanced Configuration Options`
+                  under the :guilabel:`Process Configuration` section.
+               #. Click the :guilabel:`Add Option` button and select
+                  :guilabel:`setParameter Startup Option` from the
+                  dropdown.
+               #. Add the following parameters to every ``mongod``
+                  member, one by one, by clicking :guilabel:`Add` after
+                  adding the name and value:
+
+                  .. list-table::
+                     :widths: 40 60
+                     :header-rows: 1
+
+                     * - Parameter
+                       - Value
+
+                     * - ``mongotHost``
+                       - That member's Envoy load balancer endpoint.
+
+                     * - ``searchIndexManagementHostAndPort``
+                       - Same value as ``mongotHost``.
+
+                     * - ``searchTLSMode``
+                       - ``requireTLS``
+
+                     * - ``useGrpcForSearch``
+                       - ``true``
+
+                     * - ``skipAuthenticationToMongot``
+                       - ``false``
+
+                     * - ``skipAuthenticationToSearchIndexManagementServer``
+                       - ``false``
+
+            .. step:: Review and deploy your changes.
+
+               a. Click the :guilabel:`Review & Deploy` button.
+               #. Review and confirm to apply the changes.
+
+                  |com| performs a rolling restart of your replica set
+                  to apply the new configuration.
+
+      .. selected-content::
+         :selections: external, shard
+
+         Set the search ``setParameter`` values on your external
+         sharded cluster. For a sharded cluster, you set parameters at
+         three levels: cluster-wide, per-shard, and on |mongos|. Don't
+         set search parameters on the config servers.
+
+         On each shard's ``mongod`` members, point ``mongotHost`` and
+         ``searchIndexManagementHostAndPort`` at that shard's Envoy
+         load balancer endpoint, which resolves from your
+         ``spec.clusters[].loadBalancer.managed.externalHostname``
+         template. On each |mongos|, point the same parameters at the
+         cluster-level endpoint that you set on
+         ``spec.clusters[].loadBalancer.managed.routerHostname``.
+
+         .. procedure::
+            :style: normal
+
+            .. step:: Go to your |com| :guilabel:`Deployment` page.
+
+               a. Log in to MongoDB |com|.
+               #. Click the :guilabel:`Deployment` tab.
+               #. Select the cluster that you want to modify.
+
+            .. step:: Modify your |com| deployment configuration.
+
+               a. Click the :guilabel:`Modify` button to open the
+                  deployment configuration editor.
+               #. Click :guilabel:`Advanced Configuration Options`
+                  under the :guilabel:`Process Configuration` section.
+               #. Click the :guilabel:`Add Option` button and select
+                  :guilabel:`setParameter Startup Option` from the
+                  dropdown.
+               #. Add the following parameters, one by one, by clicking
+                  :guilabel:`Add` after adding the name and value.
+                  Don't add these parameters to the config server
+                  processes:
+
+                  **Cluster level** (applies to all shards and
+                  |mongos|):
+
+                  .. list-table::
+                     :widths: 40 60
+                     :header-rows: 1
+
+                     * - Parameter
+                       - Value
+
+                     * - ``searchTLSMode``
+                       - ``requireTLS``
+
+                     * - ``useGrpcForSearch``
+                       - ``true``
+
+                     * - ``skipAuthenticationToMongot``
+                       - ``false``
+
+                     * - ``skipAuthenticationToSearchIndexManagementServer``
+                       - ``false``
+
+                  **Each shard** (set on shard-0, shard-1, and so on):
+
+                  .. list-table::
+                     :widths: 40 60
+                     :header-rows: 1
+
+                     * - Parameter
+                       - Value
+
+                     * - ``mongotHost``
+                       - That shard's Envoy load balancer endpoint.
+
+                     * - ``searchIndexManagementHostAndPort``
+                       - Same value as ``mongotHost`` for this shard.
+
+                  **mongos**
+
+                  .. list-table::
+                     :widths: 40 60
+                     :header-rows: 1
+
+                     * - Parameter
+                       - Value
+
+                     * - ``mongotHost``
+                       - The cluster-level router hostname you set in
+                         ``spec.clusters[].loadBalancer.managed.routerHostname``.
+
+                     * - ``searchIndexManagementHostAndPort``
+                       - Same value as ``mongotHost``.
+
+            .. step:: Review and deploy your changes.
+
+               a. Click the :guilabel:`Review & Deploy` button.
+               #. Review and confirm to apply the changes.
+
+                  |com| performs a rolling restart of your sharded
+                  cluster to apply the new configuration.
+
+   Install |text-search| and |vector-search|
+   ------------------------------------------
+
+   Procedure
+   ~~~~~~~~~
+
+   .. selected-content::
+      :selections: external, repl
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Create the search sync user Secret.
+
+            Create a |k8s| Secret that stores the password for the
+            ``search-sync-source`` user. The ``mongot`` process uses
+            this credential to connect to your external replica set
+            and build search indexes:
+
+            .. code-block:: shell
+
+               kubectl create secret generic \
+                 "${MDB_SEARCH_RESOURCE_NAME}-search-sync-source-password" \
+                 --from-literal=password="${MDB_SEARCH_SYNC_USER_PASSWORD}" \
+                 -n "${MDB_NS}" \
+                 --context "${K8S_CTX_0}"
+
+         .. step:: Replicate Search Secrets to member clusters.
+
+            The |k8s-op-short| doesn't automatically replicate
+            Secrets with the ``Search`` prefix to member clusters.
+            Copy the TLS certificates and sync password from the
+            central cluster to each additional member cluster:
+
+            .. literalinclude:: /includes/code-examples/search/12-search-rs-multi-cluster/code_snippets/12_0317_replicate_search_secrets.sh
+               :language: shell
+               :copyable: true
+               :linenos:
+
+         .. step:: Create and deploy the MongoDBSearch resource.
+
+            Apply the ``MongoDBSearch`` custom resource. Configure
+            the resource for your external multi-cluster replica set:
+
+            - Set ``spec.source.external`` with the ``hostAndPorts``
+              seed list, ``username``, and ``passwordSecretRef`` for
+              your external replica set, and the CA under
+              ``spec.source.external.tls.ca``.
+            - Add one entry to ``spec.clusters`` per member cluster,
+              each with a unique ``name`` and ``index``, the number of
+              ``replicas`` (the number of ``mongot`` instances the
+              |k8s-op-short| runs in that cluster), and
+              ``syncSourceSelector.matchTagSets`` that match the cluster
+              tags on your replica set members.
+            - Set
+              ``spec.clusters[].loadBalancer.managed.externalHostname``
+              on each ``spec.clusters`` entry to a distinct hostname
+              so that each member cluster's Envoy load balancer has
+              its own hostname. For replica set sources, don't use
+              the ``{shardName}`` placeholder. Because your
+              MongoDB deployment is external, you must expose each
+              operator-managed Envoy load balancer outside its
+              cluster so that your MongoDB members can reach it, for
+              example, through a |k8s| Service of type
+              ``LoadBalancer`` or an OpenShift Route. Set each
+              ``externalHostname`` to a hostname that resolves to
+              that external endpoint. When you expose the Envoy load
+              balancer externally, it's recommended to just expose the ``mongot-grpc`` (27028) port.
+
+            .. note:: ``externalHostname`` Depends on Your MongoDB Deployment
+
+               You set ``externalHostname`` because your MongoDB
+               deployment isn't managed by the same |k8s-op-short|
+               that manages ``mongot``. Its value must be an
+               externally resolvable hostname that your ``mongod``
+               members use to reach the Envoy load balancer. 
+
+            The |k8s-op-short| reads each entry in ``spec.clusters``,
+            creates a ``mongot`` StatefulSet in the corresponding
+            member cluster, and deploys an Envoy load balancer to route
+            traffic to the local ``mongot`` pods. To learn more about
+            ``MongoDBSearch`` settings, see
+            :ref:`k8s-fts-vs-settings`:
+
+            .. literalinclude:: /includes/code-examples/search/12-search-rs-multi-cluster/code_snippets/12_0320_create_mongodb_search_resource.sh
+               :language: shell
+               :copyable: true
+               :linenos:
+
+         .. step:: Configure search parameters on your external
+            replica set.
+
+            You must set the search ``setParameter`` values on each
+            ``mongod`` member because your replica set is external.
+            Point ``mongotHost`` and
+            ``searchIndexManagementHostAndPort`` at the Envoy load
+            balancer endpoint for the ``mongot`` group that the
+            member is mapped to. Use the externally resolvable
+            hostname that exposes the Envoy load balancer, which
+            resolves from your
+            ``spec.clusters[].loadBalancer.managed.externalHostname``
+            template.
+
+            .. note:: ``mongotHost`` Depends on Your MongoDB Deployment
+
+               Point the ``mongotHost`` and ``searchIndexManagementHostAndPort``
+               in the ``mongod`` settings to the operator-managed Envoy 
+               load balancer. Set them to an externally resolvable URL 
+               because these ``mongod`` members are outside the |k8s| 
+               cluster. 
+
+            Set ``searchTLSMode`` to ``requireTLS`` and
+            ``useGrpcForSearch`` to ``true``. To learn more about
+            these parameters, see :ref:`k8s-fts-vs-settings`.
+
+            You can set these parameters directly on each ``mongod``
+            member or through the |com| UI. To use the |com| UI,
+            follow the steps in
+            :ref:`k8s-search-set-parameters-repl-multiple`, and set
+            ``mongotHost`` and ``searchIndexManagementHostAndPort`` to
+            the per-cluster Envoy load balancer endpoint for each
+            member's ``mongot`` group.
+
+         .. step:: Wait for the MongoDBSearch resource to reach
+            Running status.
+
+            After you apply the ``MongoDBSearch`` resource, the
+            |k8s-op-short| begins deploying ``mongot`` pods in each
+            member cluster. Wait until the resource reaches
+            ``Running`` status before proceeding:
+
+            .. literalinclude:: /includes/code-examples/search/12-search-rs-multi-cluster/code_snippets/12_0325_wait_for_search_resource.sh
+               :language: shell
+               :copyable: true
+               :linenos:
+
+         .. step:: Verify the deployment.
+
+            Confirm that ``mongot`` pods are running in each member
+            cluster and that the ``MongoDBSearch`` resource reflects
+            the expected replica count:
+
+            .. literalinclude:: /includes/code-examples/search/12-search-rs-multi-cluster/code_snippets/12_0330_show_running_pods.sh
+               :language: shell
+               :copyable: true
+               :linenos:
+
+   .. selected-content::
+      :selections: external, shard
+
+      .. procedure::
+         :style: normal
+
+         .. step:: Create the search sync user Secret.
+
+            Create a |k8s| Secret that stores the password for the
+            ``search-sync-source`` user. The ``mongot`` process uses
+            this credential to connect to your external sharded
+            cluster and build search indexes:
+
+            .. code-block:: shell
+
+               kubectl create secret generic \
+                 "${MDB_SEARCH_RESOURCE_NAME}-search-sync-source-password" \
+                 --from-literal=password="${MDB_SEARCH_SYNC_USER_PASSWORD}" \
+                 -n "${MDB_NS}" \
+                 --context "${K8S_CTX_0}"
+
+         .. step:: Tag your external shards by cluster.
+
+            Each ``mongot`` group syncs from a specific shard. To map each ``mongot`` group to the
+            members it should sync from, you tag your shards
+            and reference those tags in
+            ``syncSourceSelector.matchTagSets``.
+
+            On your external sharded cluster, add a member tag to
+            each shard's ``mongod`` members that identifies the
+            ``mongot`` group that should sync from it. A member tag
+            is a key-value pair in the member's replica set
+            configuration, such as ``{ "vm-zone": "us-west-1" }``.
+            Give every member that you want a given ``mongot`` group
+            to sync from the same tag value, and use a distinct value
+            for each ``mongot`` group. Apply the tags to the members
+            of each shard independently. To learn how to set member
+            tags, see :ref:`replica set tag sets
+            <replica-set-configuration-tag-sets>`.
+
+            In a later step, you set ``syncSourceSelector.matchTagSets``
+            on each ``spec.clusters`` entry to the tag value for that
+            cluster's ``mongot`` group. The |k8s-op-short| passes the
+            tag to ``mongot`` as a ``readPreferenceTags`` filter, so
+            each ``mongot`` group syncs only from the shard members
+            that carry the matching tag. Record the tag value that
+            you assign to each ``mongot`` group so that the
+            ``matchTagSets`` values match exactly.
+
+         .. step:: Replicate Search Secrets to member clusters.
+
+            The |k8s-op-short| doesn't automatically replicate
+            Secrets with the ``Search`` prefix to member clusters.
+            Copy the per-(cluster, shard) TLS certificates, the LB
+            certificates, and the sync password from the central
+            cluster to each additional member cluster:
+
+            .. literalinclude:: /includes/code-examples/search/13-search-sharded-multi-cluster/code_snippets/13_0317_replicate_search_secrets.sh
+               :language: shell
+               :copyable: true
+               :linenos:
+
+         .. step:: Create and deploy the MongoDBSearch resource.
+
+            Apply the ``MongoDBSearch`` custom resource. Configure
+            the resource for your external multi-cluster sharded
+            cluster:
+
+            - Set ``spec.source.external.shardedCluster`` with the
+              ``router.hosts`` for your |mongos| routers and a
+              ``shards`` entry for each shard that lists its
+              ``shardName`` and member ``hosts``, and set the CA
+              under ``spec.source.external.tls.ca``.
+            - Add one entry to ``spec.clusters`` per member cluster,
+              each with a unique ``name`` and ``index``, the number of
+              ``replicas`` per shard, and
+              ``syncSourceSelector.matchTagSets`` that match the cluster
+              tags on your shard members.
+            - Set
+              ``spec.clusters[].loadBalancer.managed.externalHostname``
+              on each ``spec.clusters`` entry to a distinct template
+              that contains a ``{shardName}`` placeholder. The
+              |k8s-op-short| expands this
+              template per shard, and Envoy uses |tls| |sni| to route
+              each shard's traffic to the ``mongot`` group for that
+              shard. This is the endpoint that each shard's ``mongod``
+              members use for ``mongotHost`` and
+              ``searchIndexManagementHostAndPort``. Because your
+              sharded cluster is external, you must expose each
+              operator-managed Envoy load balancer outside its
+              cluster so that your shard members can reach it, for
+              example, through a |k8s| Service of type
+              ``LoadBalancer`` or an OpenShift Route. Set each
+              ``externalHostname`` to a hostname that resolves to
+              that external endpoint. When you expose the Envoy load
+              balancer externally, it's recommended to just expose the ``mongot-grpc`` (27028) port.
+
+              You can set these parameters directly on each ``mongod``
+              member or through the |com| UI. To use the |com| UI,
+              follow the steps in
+              :ref:`k8s-search-set-parameters-repl-multiple`, and set
+              ``mongotHost`` and ``searchIndexManagementHostAndPort``.
+
+            - Set
+              ``spec.clusters[].loadBalancer.managed.routerHostname``
+              to the shard-agnostic, cluster-level endpoint that your
+              |mongos| routers use to reach that cluster's ``mongot``
+              instances. Unlike ``externalHostname``, the
+              |k8s-op-short| uses this value verbatim, so it must not
+              contain a ``{shardName}`` placeholder. This is the
+              endpoint that you later set on each |mongos|.
+            - Set ``spec.security.tls.certsSecretPrefix``. |tls| is
+              required for a sharded cluster with a managed load
+              balancer.
+
+            .. note:: ``externalHostname`` Depends on Your MongoDB Deployment
+
+               You set ``externalHostname`` because your sharded
+               cluster isn't managed by the same |k8s-op-short| that
+               manages ``mongot``. Its value must be an externally
+               resolvable hostname template that your shard ``mongod``
+               members use to reach the Envoy load balancer. 
+
+            The |k8s-op-short| creates a ``mongot`` StatefulSet for
+            each shard in every member cluster and deploys an Envoy
+            proxy for per-shard |sni| routing. To learn more about
+            ``MongoDBSearch`` settings, see
+            :ref:`k8s-fts-vs-settings`:
+
+            .. literalinclude:: /includes/code-examples/search/13-search-sharded-multi-cluster/code_snippets/13_0320_create_mongodb_search_resource.sh
+               :language: shell
+               :copyable: true
+               :linenos:
+
+         .. step:: Configure search parameters on your external
+            sharded cluster.
+
+            You must set the search ``setParameter`` values yourself
+            because your sharded cluster is external.
+
+            On each shard's ``mongod`` members, point ``mongotHost``
+            and ``searchIndexManagementHostAndPort`` at that shard's
+            Envoy load balancer endpoint for the ``mongot`` group that
+            the member is mapped to. This value is your
+            ``spec.clusters[].loadBalancer.managed.externalHostname``
+            template with the ``{shardName}`` placeholder resolved.
+            Because each ``spec.clusters`` entry has its own
+            ``externalHostname``, write a cluster-specific literal
+            into each template. For example, if cluster
+            ``clusterOne`` uses the template
+            ``{shardName}.clusterOne.example.com``, the value for
+            shard ``shardOne`` is ``shardOne.clusterOne.example.com``.
+
+            On each |mongos|, point the same parameters at the
+            cluster-level endpoint that you set on
+            ``spec.clusters[].loadBalancer.managed.routerHostname``
+            for that cluster. Unlike ``externalHostname``, this value
+            has no ``{shardName}`` placeholder to resolve.
+
+            .. note:: ``mongotHost`` Depends on Your MongoDB Deployment
+
+               ``mongotHost`` and ``searchIndexManagementHostAndPort``
+               are the ``mongod`` settings that must point to the
+               operator-managed Envoy load balancer. Because your
+               sharded cluster is external, set them to an externally
+               resolvable URL. If your sharded cluster ran inside the
+               same |k8s| cluster, you could instead use the |k8s|
+               Service name of the Envoy load balancer.
+
+            Set ``searchTLSMode`` to ``requireTLS`` and
+            ``useGrpcForSearch`` to ``true``. To learn more about
+            these parameters, see :ref:`k8s-fts-vs-settings`.
+
+            You can set these parameters directly on each ``mongod``
+            and |mongos| member or through the |com| UI. To use the
+            |com| UI, follow the steps in
+            :ref:`k8s-search-set-parameters-shard-multiple`, and set
+            ``mongotHost`` and ``searchIndexManagementHostAndPort`` to
+            the endpoints described earlier in this step.
+
+            .. note:: Per-Shard Query Routing
+
+               A search query for a shard must always reach the
+               ``mongot`` group that syncs from that shard. The setup
+               in this procedure is what enables this routing: the
+               per-shard ``externalHostname`` gives each shard's
+               ``mongod`` members a distinct endpoint, and the
+               operator-managed Envoy load balancer uses |tls| |sni|
+               to direct each shard's traffic to the matching
+               ``mongot`` group. As a result, search queries never
+               cross shard boundaries.
+
+         .. step:: Wait for the MongoDBSearch resource to reach
+            Running status.
+
+            Wait until the ``MongoDBSearch`` resource reaches
+            ``Running`` status across all member clusters before
+            proceeding:
+
+            .. literalinclude:: /includes/code-examples/search/13-search-sharded-multi-cluster/code_snippets/13_0325_wait_for_search_resource.sh
+               :language: shell
+               :copyable: true
+               :linenos:
+
+         .. step:: Verify the deployment.
+
+            Confirm that ``mongot`` pods are running in each member
+            cluster for every shard, and that the ``MongoDBSearch``
+            resource reflects the expected pod counts:
+
+            .. literalinclude:: /includes/code-examples/search/13-search-sharded-multi-cluster/code_snippets/13_0330_show_running_pods.sh
+               :language: shell
+               :copyable: true
+               :linenos:
+
+Next Steps
+----------
+
+After ``mongot`` pods are running across all member clusters, you
+can:
+
+- Connect to |text-search| and |vector-search| and run queries.
+  See :ref:`k8s-use-fts-vs`.
+- Review ``MongoDBSearch`` configuration options. See
+  :ref:`k8s-fts-vs-settings`.

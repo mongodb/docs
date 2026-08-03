@@ -1,0 +1,432 @@
+[
+  {
+    plot: 'A glowing orb terrorizes a young girl with a collection of stories of dark fantasy, eroticism and horror.',
+    title: 'Heavy Metal',
+    fullplot: 'A sweeping story of the battle of good against evil is told through an anthology of short animated films about a glowing green orb (the Loc-Nar) that is the personification of ultimate evil in the universe. Based loosely on the American magazine "Heavy Metal," and the French magazine "Mètal Hurlant".',
+    scoreDetails: {
+      value: 0.007936507936507936,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 3,
+          weight: 0.5,
+          value: 0.5041101574897766,
+          details: []
+        },
+        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+      ]
+    },
+    rerankScore: 0.7578125
+  },
+  {
+    plot: 'In a surreal, parallel universe, Thessaloniki has its very own superhero: Super Demetrios. Posing as Dimitris Christoforidis, journalist for the Golden Jerusalem magazine, he fights for ...',
+    title: 'Super Demetrios',
+    fullplot: "In a surreal, parallel universe, Thessaloniki has its very own superhero: Super Demetrios. Posing as Dimitris Christoforidis, journalist for the Golden Jerusalem magazine, he fights for truth, justice and the Greco-Christian ideal. In the dark of the night, the city's worst nightmare returns. Captain F.ROM is back, determined to meet his long-awaited goal: claiming his true name. A name he's entitled to. A name that becomes him. The two protagonists are drawn into a conflict that toys with the viewer's patience until the very climax of the film, in an archetypal battle between good and evil.",
+    scoreDetails: {
+      value: 0.007462686567164179,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 7,
+          weight: 0.5,
+          value: 0.5038930773735046,
+          details: []
+        },
+        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+      ]
+    },
+    rerankScore: 0.75390625
+  },
+  {
+    plot: 'Kurukshetra is a story of war between evil and truth. The D.S.P Prithvi Raj Singh(Sanjay Dutt) is an honest and brave police officer.All dishonest police officers , rogues, criminals and ...',
+    title: 'Kurukshetra',
+    fullplot: `Kurukshetra is a story of war between evil and truth. The D.S.P Prithvi Raj Singh(Sanjay Dutt) is an honest and brave police officer.All dishonest police officers , rogues, criminals and corrupt politicians are scared of him. The day he joins duty in Mumbai city, he destroys all the illegal business of Iqbal Pasina(Mukesh Rishi). From that day onwards, Iqbal Pasina starts admiring DSP Prithvi Raj Singh.Prithvi Raj Singh with his wife, Anjali (Mahima Chaudhary) and sister, Aarti is living a happy life. Aarti is in love with Sub-Inspector Avinash. Anjali is sad because she lost her \\"Prithvi \\" who used to love her. \\"D.S.P Prithvi\\" is a totally different man, a man of law and duties. She lost her lover behind the uniform. One day C.M. Babu Rao Deshmukh's son Ambar and his friend Rohit, traps a girl called Gita in a hotel room and both of them rape her. This brutal incident evokes into the battle of \\"Kurukshetra\\". The battle is fought between the C.M.Babu Rao Deshmukh and D.S.P Prithvi Raj Singh. The C.M. Babu Rao Deshmukh has money,power and government infrastructure and on the other side, D.S.P Prithvi Raj Singh gets the support from opposition leader Sambhaji Yadav, Iqbal Pasina and their families. In this battle of crime and justice, who wins the battle and who loses? This is \\"Kurukshetra\\".`,
+    scoreDetails: {
+      value: 0.003246753246753247,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 94,
+          weight: 0.5,
+          value: 0.5031611919403076,
+          details: []
+        },
+        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+      ]
+    },
+    rerankScore: 0.75390625
+  },
+  {
+    fullplot: "An assassin named Al Simmons is double-crossed and murdered by his evil boss Jason Wynn. Al makes a deal with the devil and returns to earth as Spawn to see his wife. He is ordered by the devil's minion, The Clown, to kill Wynn. Wynn has made a deal with the clown too and is suppose to destroy the world with a deadly virus that will help start Armageddon and allow Hell to attack Heaven. Spawn must choose between Good & Evil.",
+    plot: 'A mercenary is killed, but comes back from Hell as a reluctant soldier of the Devil.',
+    title: 'Spawn',
+    scoreDetails: {
+      value: 0.004310344827586207,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 56,
+          weight: 0.5,
+          value: 0.5033761262893677,
+          details: []
+        },
+        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+      ]
+    },
+    rerankScore: 0.734375
+  },
+  {
+    plot: 'Elektra the warrior survives a near-death experience, becomes an assassin-for-hire, and tries to protect her two latest targets, a single father and his young daughter, from a group of supernatural assassins.',
+    title: 'Elektra',
+    fullplot: `In the ultimate battle between good and evil stands a warrior who makes the choice that tips the balance. A strong, mysterious and a deadly sexy action heroine - a lethal synthesis of grace and power. Not long after recovering from seemingly mortal wounds, Elektra has severed all ties with the world, living only for her next assignment. But in an unexpected turn of events, she is forced to make a decision that can take her life in a new direction - or destroy her. Key players in Elektra's journey are Stick, a blind martial arts master responsible for Elektra's "resurrection," and Mark Miller and Abby Miller, a father and daughter on the run from The Hand, a powerful syndicate whose members practice the dark version of the martial art Kimagure.`,
+    scoreDetails: {
+      value: 0.005319148936170213,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 34,
+          weight: 0.5,
+          value: 0.5034788846969604,
+          details: []
+        },
+        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+      ]
+    },
+    rerankScore: 0.7265625
+  },
+  {
+    fullplot: `In the ultimate battle between good and evil stands a warrior who makes the choice that tips the balance. A strong, mysterious and a deadly sexy action heroine - a lethal synthesis of grace and power. Not long after recovering from seemingly mortal wounds, Elektra has severed all ties with the world, living only for her next assignment. But in an unexpected turn of events, she is forced to make a decision that can take her life in a new direction - or destroy her. Key players in Elektra's journey are Stick, a blind martial arts master responsible for Elektra's "resurrection," and Mark Miller and Abby Miller, a father and daughter on the run from The Hand, a powerful syndicate whose members practice the dark version of the martial art Kimagure.`,
+    plot: 'Elektra the warrior survives a near-death experience, becomes an assassin-for-hire, and tries to protect her two latest targets, a single father and his young daughter, from a group of supernatural assassins.',
+    title: 'Elektra',
+    scoreDetails: {
+      value: 0.005319148936170213,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 34,
+          weight: 0.5,
+          value: 0.5034788846969604,
+          details: []
+        },
+        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+      ]
+    },
+    rerankScore: 0.7265625
+  },
+  {
+    plot: 'The Autobots must stop a colossal planet consuming robot who goes after the Autobot Matrix of Leadership. At the same time, they must defend themselves against an all-out attack from the Decepticons.',
+    title: 'The Transformers: The Movie',
+    fullplot: "It is the year 2005. And the battle between the heroic Autobots led by Optimus Prime and the evil Decepticons led by Megatron. Two warring factions of transforming robots from the planet Cybertron. The Autobots must save their homeworld from an evil entity known as Unicron, who's ready to consume anything that stands in its way. At the same time, they must defend themselves against an all-out attack from the Decepticons. Along the way, lives are lost, battles are fought, and a new Autobot leader is born as another dies.",
+    scoreDetails: {
+      value: 0.00625,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 20,
+          weight: 0.5,
+          value: 0.5035688281059265,
+          details: []
+        },
+        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+      ]
+    },
+    rerankScore: 0.71484375
+  },
+  {
+    plot: 'Paul Wesley (The Vampire Diaries) stars as Aaron Corbett, a high school jock with a promising future. But on his 18th birthday, his life forever changes when his incredible powers emerge, ...',
+    title: 'Fallen',
+    fullplot: "Paul Wesley (The Vampire Diaries) stars as Aaron Corbett, a high school jock with a promising future. But on his 18th birthday, his life forever changes when his incredible powers emerge, revealing the terrifying truth of his identity. As The Redeemer, a half-angel, half-man who can return fallen angels to heaven, Aaron holds the entire world's destiny in his young hands. He must battle warrior seraphs and confront the fallen angel who has sparked his nightmares (Bryan Cranston, Breaking Bad). But can he save himself and the girl he loves? Based on the bestselling book series, Fallen soars to new levels in the battle between good and evil.",
+    scoreDetails: {
+      value: 0.005025818418809846,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 123,
+          weight: 0.5,
+          value: 0.5030934810638428,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 158,
+          weight: 0.5,
+          value: 0.503337025642395,
+          details: []
+        }
+      ]
+    },
+    rerankScore: 0.703125
+  },
+  {
+    plot: 'Paul Wesley (The Vampire Diaries) stars as Aaron Corbett, a high school jock with a promising future. But on his 18th birthday, his life forever changes when his incredible powers emerge, ...',
+    title: 'Fallen',
+    fullplot: "Paul Wesley (The Vampire Diaries) stars as Aaron Corbett, a high school jock with a promising future. But on his 18th birthday, his life forever changes when his incredible powers emerge, revealing the terrifying truth of his identity. As The Redeemer, a half-angel, half-man who can return fallen angels to heaven, Aaron holds the entire world's destiny in his young hands. He must battle warrior seraphs and confront the fallen angel who has sparked his nightmares (Bryan Cranston, Breaking Bad). But can he save himself and the girl he loves? Based on the bestselling book series, Fallen soars to new levels in the battle between good and evil.",
+    scoreDetails: {
+      value: 0.005025818418809846,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 123,
+          weight: 0.5,
+          value: 0.5030934810638428,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 158,
+          weight: 0.5,
+          value: 0.503337025642395,
+          details: []
+        }
+      ]
+    },
+    rerankScore: 0.703125
+  },
+  {
+    plot: 'The Son of Satan attempts to bring his father to Earth with the aid of some mystic stones.',
+    title: 'Warlock: The Armageddon',
+    fullplot: 'Every six hundred years, a great evil has the opportunity to escape and unleash Armageddon. A group of five stones has the power to either free the evil, or banish it for another six hundred years. An order of Druids battles with a Warlock determined to unleash his father upon the world.',
+    scoreDetails: {
+      value: 0.014294282287085167,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 1,
+          weight: 0.5,
+          value: 0.504266619682312,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 22,
+          weight: 0.5,
+          value: 0.5038332939147949,
+          details: []
+        }
+      ]
+    },
+    rerankScore: 0.68359375
+  },
+  {
+    fullplot: `Among normal humans live the "Others" possessing various supernatural powers. They are divided up into the forces of light and the forces of the dark, who signed a truce several centuries ago to end a devastating battle. Ever since, the forces of light govern the day while the night belongs to their dark opponents. In modern day Moscow the dark Others actually roam the night as vampires while a "Night Watch" of light forces, among them Anton, the movie's protagonist, try to control them and limit their outrage.`,
+    plot: 'A fantasy-thriller set in present-day Moscow where the respective forces that control daytime and nighttime do battle.',
+    title: 'Night Watch',
+    scoreDetails: {
+      value: 0.005208333333333333,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 36,
+          weight: 0.5,
+          value: 0.5034663677215576,
+          details: []
+        },
+        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+      ]
+    },
+    rerankScore: 0.68359375
+  },
+  {
+    plot: 'A shape-shifting mountain man and a group of children team up to protect an enchanted forest from evil lumberjacks.',
+    title: 'Forest Warrior',
+    fullplot: 'John McKenna is a spiritual being who is able to transform into bear, wolf or eagle. He lives in the forests of Tanglewood and has dedicated his life to protect them. One day a gang of evil lumberjacks led by Travis Thorne arrive Tanglewood to chop the forest down. McKenna cannot let this happen, and together with his new friends - Lords of the Tanglewood, a band of children who love to play in the forest - he battles against Thorne and his evil gang.',
+    scoreDetails: {
+      value: 0.0030864197530864196,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 102,
+          weight: 0.5,
+          value: 0.5034695863723755,
+          details: []
+        }
+      ]
+    },
+    rerankScore: 0.6796875
+  },
+  {
+    plot: 'A shape-shifting mountain man and a group of children team up to protect an enchanted forest from evil lumberjacks.',
+    title: 'Forest Warrior',
+    fullplot: 'John McKenna is a spiritual being who is able to transform into bear, wolf or eagle. He lives in the forests of Tanglewood and has dedicated his life to protect them. One day a gang of evil lumberjacks led by Travis Thorne arrive Tanglewood to chop the forest down. McKenna cannot let this happen, and together with his new friends - Lords of the Tanglewood, a band of children who love to play in the forest - he battles against Thorne and his evil gang.',
+    scoreDetails: {
+      value: 0.0030864197530864196,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        { inputPipelineName: 'vectorPipeline1', rank: 'NA' },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 102,
+          weight: 0.5,
+          value: 0.5034695863723755,
+          details: []
+        }
+      ]
+    },
+    rerankScore: 0.6796875
+  },
+  {
+    plot: 'George Burns is back as God, but oops, here he is as Satan, too. A young rock star is ready to sell his soul to Satan, and Satan is all too happy to oblige. Oops! Seems the fellow was ...',
+    title: 'Oh, God! You Devil',
+    fullplot: 'George Burns is back as God, but oops, here he is as Satan, too. A young rock star is ready to sell his soul to Satan, and Satan is all too happy to oblige. Oops! Seems the fellow was watched over by God as a baby, so now the almighty and his nemesis have to duke it out over the soul.',
+    scoreDetails: {
+      value: 0.009109311740890687,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 70,
+          weight: 0.5,
+          value: 0.5032550692558289,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 35,
+          weight: 0.5,
+          value: 0.503754198551178,
+          details: []
+        }
+      ]
+    },
+    rerankScore: 0.671875
+  },
+  {
+    plot: "A mysterious creature, known as Ink, steals a child's soul in hopes of using it as a bargaining chip to join the Incubi - the group of supernatural beings responsible for creating nightmares.",
+    title: 'Ink',
+    fullplot: "As the light fades and the city goes to sleep, two forces emerge. They are invisible except for the power they exert over us in our sleep, battling for our souls through dreams. One force delivers hope and strength through good dreams; the other infuses the subconscious with desperation through nightmares. John and Emma, Father and Daughter are wrenched into this fantastical dream world battle, forced to fight for John's soul and to save Emma from an eternal nightmare. Separate in their journey, they encounter unusual characters that exist only in their subconscious. Or do they?",
+    scoreDetails: {
+      value: 0.0048543689320388345,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 43,
+          weight: 0.5,
+          value: 0.503446102142334,
+          details: []
+        },
+        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+      ]
+    },
+    rerankScore: 0.671875
+  },
+  {
+    plot: 'A man on the run is hunted by a demon known as the Collector.',
+    title: 'Tales from the Crypt: Demon Knight',
+    fullplot: 'Brayker is a man who carries the last of seven keys, special containers which held the blood of Christ and were scattered across the universe to prevent the forces of evil from taking over. If The Collector gets the last key, the universe will fall into Chaos, and he has been tracking Brayker all the way to a small inn in a nowhere town. And now the final battle for the universe begins......',
+    scoreDetails: {
+      value: 0.00510204081632653,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 38,
+          weight: 0.5,
+          value: 0.5034632086753845,
+          details: []
+        },
+        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+      ]
+    },
+    rerankScore: 0.66796875
+  },
+  {
+    plot: "Harry Griswald is a NYPD cop who is possessed with the spirit of a great Kabuki master. This has made him 'the chosen one' to do battle with 'the evil one'. He is also out to do good deeds ...",
+    title: 'Sgt. Kabukiman N.Y.P.D.',
+    fullplot: "Harry Griswald is a NYPD cop who is possessed with the spirit of a great Kabuki master. This has made him 'the chosen one' to do battle with 'the evil one'. He is also out to do good deeds and fight crime in the name of the law. The only problem is that a number of corrupt people in the community and their henchmen want him dead so that they can gain power when 'the evil one' come to take over the world. Sgt. Kabukiman must use his special superpowers to outsmart and out-fight the bad guys.",
+    scoreDetails: {
+      value: 0.0040650406504065045,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 63,
+          weight: 0.5,
+          value: 0.5033379197120667,
+          details: []
+        },
+        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+      ]
+    },
+    rerankScore: 0.66796875
+  },
+  {
+    fullplot: 'While Frodo and Sam, now accompanied by a new guide, continue their hopeless journey towards the land of shadow to destroy the One Ring, each member of the broken fellowship plays their part in the battle against the evil wizard Saruman and his armies of Isengard.',
+    plot: "While Frodo and Sam edge closer to Mordor with the help of the shifty Gollum, the divided fellowship makes a stand against Sauron's new ally, Saruman, and his hordes of Isengard.",
+    title: 'The Lord of the Rings: The Two Towers',
+    scoreDetails: {
+      value: 0.0045045045045045045,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 51,
+          weight: 0.5,
+          value: 0.5033935308456421,
+          details: []
+        },
+        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+      ]
+    },
+    rerankScore: 0.6640625
+  },
+  {
+    plot: 'A young father and his infant son are beset by forces of evil and corruption. They wander China, upholding their sense of honor and protecting the weak. When they are forced into combat, ...',
+    title: 'The New Legend of Shaolin',
+    fullplot: 'A young father and his infant son are beset by forces of evil and corruption. They wander China, upholding their sense of honor and protecting the weak. When they are forced into combat, spectacular and hilarious fast-motion kung fu sequences follow. In the end, they must call on all of their abilities in a battle royale, to attempt to vanquish a supernatural man-monster or die trying.',
+    scoreDetails: {
+      value: 0.00684931506849315,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 13,
+          weight: 0.5,
+          value: 0.5036487579345703,
+          details: []
+        },
+        { inputPipelineName: 'vectorPipeline2', rank: 'NA' }
+      ]
+    },
+    rerankScore: 0.65234375
+  },
+  {
+    plot: 'A man is accidentally transported to 1300 A.D., where he must battle an army of the dead and retrieve the Necronomicon so he can return home.',
+    title: 'Army of Darkness',
+    fullplot: `In this sequel to the Evil Dead films, a discount-store employee ("Name's Ash. Housewares.") is time-warped to a medieval castle beset by monstrous forces. Initially mistaken for an enemy, he is soon revealed as the prophecised savior who can quest for the Necronomicon, a book which can dispel the evil. Unfortunately, he screws up the magic words while collecting the tome, and releases an army of skeletons, led by his own Deadite counterpart. What follows is a thrilling, yet tongue-in-cheek battle between Ash's 20th Century tactics and the minions of darkness.`,
+    scoreDetails: {
+      value: 0.006476368361214877,
+      description: 'value output by reciprocal rank fusion algorithm, computed as sum of (weight * (1 / (60 + rank))) across input pipelines from which this document is output, from:',
+      details: [
+        {
+          inputPipelineName: 'vectorPipeline1',
+          rank: 71,
+          weight: 0.5,
+          value: 0.503246009349823,
+          details: []
+        },
+        {
+          inputPipelineName: 'vectorPipeline2',
+          rank: 128,
+          weight: 0.5,
+          value: 0.503400444984436,
+          details: []
+        }
+      ]
+    },
+    rerankScore: 0.65234375
+  }
+]

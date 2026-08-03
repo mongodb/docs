@@ -16,11 +16,6 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
-            label: 'Platform Support',
-            contentSite: 'docs',
-            url: '/docs/:version/administration/community-platform-support',
-          },
-          {
             label: 'Install on Linux',
             contentSite: 'docs',
             url: '/docs/:version/administration/install-on-linux',
@@ -1136,9 +1131,14 @@ const tocData: TocItem[] = [
             url: '/docs/:version/tutorial/schedule-backup-window-for-sharded-clusters',
           },
           {
-            label: 'Restore a Sharded Cluster',
+            label: 'Restore a Sharded Cluster from File System Snapshots',
             contentSite: 'docs',
             url: '/docs/:version/tutorial/restore-sharded-cluster',
+          },
+          {
+            label: 'Restore a Sharded Cluster from Database Dumps',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/restore-sharded-cluster-with-database-dumps',
           },
         ],
       },
@@ -1482,7 +1482,7 @@ const tocData: TocItem[] = [
                 url: '/docs/:version/core/security-ldap-external',
               },
               {
-                label: 'LDAP Deprecation',
+                label: 'LDAP Alternatives',
                 contentSite: 'docs',
                 url: '/docs/:version/core/LDAP-deprecation',
               },

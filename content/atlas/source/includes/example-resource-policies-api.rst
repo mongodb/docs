@@ -548,20 +548,21 @@ Restrict |tls| Protocol and Cipher Suites
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following example restricts the minimum |tls| version that your {+cluster+}
-accepts for incoming connections to |tls| 1.2. 
+accepts for incoming connections to |tls| 1.3. 
 
 Possible values for ``minTLSVersion`` include:
 
 * **TLS 1.0**: ``ResourcePolicy::TLSVersion::\"tls1_0\"``
 * **TLS 1.1**: ``ResourcePolicy::TLSVersion::\"tls1_1\"``
 * **TLS 1.2**: ``ResourcePolicy::TLSVersion::\"tls1_2\"``
+* **TLS 1.3**: ``ResourcePolicy::TLSVersion::\"tls1_3\"``
 
 .. code-block::
    :copyable: true
    :emphasize-lines: 5
 
    {
-      "name": "Policy Restricting Cluster Connections to Minimum TLS 1.2",
+      "name": "Policy Restricting Cluster Connections to Minimum TLS 1.3",
       "policies": [
          {
             "body": "forbid (principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) unless {context.cluster.minTLSVersion == ResourcePolicy::TLSVersion::\"tls1_2\"};"
@@ -570,12 +571,16 @@ Possible values for ``minTLSVersion`` include:
    } 
 
 The following example requires that {+clusters+} use the custom |tls| cipher suite configuration 
-``TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384`` by setting ``ResourcePolicy::CipherConfigMode::\"custom\"``.
+``TLS_AES_256_GCM_SHA384\`` by setting ``ResourcePolicy::CipherConfigMode::\"custom\"``.
 
 Possible values for custom |tls| cipher suite configurations are:
 
 * ``ResourcePolicy::CipherSuite::\"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384\"``
 * ``ResourcePolicy::CipherSuite::\"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256\"``
+* ``ResourcePolicy::CipherSuite::\"TLS_AES_256_GCM_SHA384\"``
+* ``ResourcePolicy::CipherSuite::\"TLS_CHACHA20_POLY1305_SHA256\"``
+* ``ResourcePolicy::CipherSuite::\"TLS_AES_128_GCM_SHA256\"``
+* ``ResourcePolicy::CipherSuite::\"TLS_AES_128_CCM_SHA256\"``
 
 .. code-block::
    :copyable: true
@@ -585,7 +590,7 @@ Possible values for custom |tls| cipher suite configurations are:
       "name": "Policy Requiring Specific TLS Cipher Suite",
       "policies": [
          {
-            "body": "forbid (principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) unless {context.cluster.cipherConfigMode == ResourcePolicy::CipherConfigMode::\"custom\" && context.cluster.cipherSuites == [ResourcePolicy::CipherSuite::\"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384\"]};"
+            "body": "forbid (principal, action == ResourcePolicy::Action::\"cluster.modify\", resource) unless {context.cluster.cipherConfigMode == ResourcePolicy::CipherConfigMode::\"custom\" && context.cluster.cipherSuites == [ResourcePolicy::CipherSuite::\"TLS_AES_256_GCM_SHA384\"]};"
          }
       ]  
    } 

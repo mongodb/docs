@@ -31,63 +31,67 @@
          * - ``<fieldToIndex>``
            - Vector and filter fields to index.
 
-      The following example index definitions:
+      The following example index definitions index the vector and filter 
+      fields in the sample data.
 
-      - Index the ``plot_embedding_voyage_3_large`` field as the
-        ``vector`` type using the default indexing method, |hnsw|, and 
-        the ``genres`` and ``year`` fields as the ``filter`` type in a 
-        {+avs+} index.
-      - Specifies the ``plot_embedding_voyage_3_large`` field as the
-        vector embeddings field, which contains embeddings created using
-        |voyage|'s ``voyage-3-large`` embedding model. 
-      - Specifies ``2048`` vector dimensions and measures similarity
-        using ``dotProduct`` function. 
+      .. collapsible:: 
+         :heading: Basic Example
+         :expanded: false
 
-      .. tabs::
+         .. include:: /includes/index/vector-type/facts/avs-create-index-basic-eg.rst
 
-         .. tab:: Basic Example
-            :tabid: basic
+         Copy and paste the following into the file you created, and
+         replace the ``<connectionString>`` placeholder value. 
 
-            This index definition indexes only the vector embeddings
-            field (``plot_embedding_voyage_3_large``) for performing
-            vector search. 
+         .. literalinclude:: /includes/quick-start/code-snippets/vector/java/basic-example.java
+            :language: java
+            :copyable: true
+            :linenos:
 
-            Copy and paste the following into the file you created, and
-            replace the ``<connectionString>`` placeholder value. 
+      .. collapsible:: 
+         :heading: Filter Example
+         :expanded: false
 
-            .. literalinclude:: /includes/quick-start/code-snippets/vector/java/basic-example.java
-               :language: java
-               :copyable: true
-               :linenos:
+         This index definition indexes the following fields:
 
-         .. tab:: Filter Example
-            :tabid: advanced
+         - A string field (``genres``) and a numeric field (``year``)
+           for pre-filtering the data.
+         - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+           using the default indexing method, |hnsw|, for performing vector 
+           search against pre-filtered data.
 
-            This index definition indexes the following fields:
+         Copy and paste the following into the file you created, and replace
+         the ``<connectionString>`` placeholder value.
 
-            - A string field (``genres``) and a numeric field (``year``)
-              for pre-filtering the data.
-            - The vector embeddings field (``plot_embedding_voyage_3_large``) 
-              using the default indexing method, |hnsw|, for performing vector 
-              search against pre-filtered data.
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/java/filter-example.java
+            :language: java
+            :copyable: true
+            :linenos:
 
-            Copy and paste the following into the file you created, and replace
-            the ``<connectionString>`` placeholder value.
+      .. collapsible:: 
+         :heading: Stored Source Example
+         :expanded: false
 
-            .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/java/filter-example.java
-               :language: java
-               :copyable: true
-               :linenos:
+         .. include:: /includes/index/vector-type/facts/stored-source-example.rst
 
-         .. tab:: Stored Source Example
-            :tabid: storedSource
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/java/stored-source-example.java
+            :language: java
+            :copyable: true
+            :linenos:
 
-            .. include:: /includes/index/vector-type/facts/stored-source-example.rst
+      .. collapsible:: 
+         :heading: Multiple Vector Fields Example
+         :expanded: false
 
-            .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/java/stored-source-example.java
-               :language: java
-               :copyable: true
-               :linenos:
+         .. include:: /includes/index/vector-type/facts/avs-create-index-multiple-fields-eg.rst
+
+         Copy and paste the following into the file you created, and replace
+         the ``<connectionString>`` placeholder value.
+
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/java/multi-vector-example.java
+            :language: java
+            :copyable: true
+            :linenos:
 
    .. step:: Execute the code to create the index.
 

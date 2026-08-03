@@ -12,8 +12,7 @@
        - :guilabel:`Bring your own embeddings` if you have already 
          generated vector embeddings for your data.
 
-   * - :guilabel:`How do you want to set up your vector data?`
-     - Choose |embeddings|.
+       Choose |embeddings|.
 
    * - :guilabel:`Index Name and Data Source`
      - Specify the following information:

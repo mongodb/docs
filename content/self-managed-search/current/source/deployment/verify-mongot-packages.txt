@@ -6,7 +6,7 @@ Verify Integrity of mongot Packages
 
 .. meta::
    :keywords: on-prem
-   :description: Verify mongot package integrity using PEM files with Cosign or PGP signatures.
+   :description: Verify mongot package integrity before installation by validating the Docker container image with Cosign or the tarball with a PGP signature for self-managed search.
 
 .. contents:: On this page
    :local:
@@ -25,6 +25,19 @@ Verify Docker Container Image
 .. procedure::
    :style: normal
 
+   .. step:: Install Cosign.
+
+      If you don't already have Cosign installed, follow the
+      `cosign installation instructions
+      <https://docs.sigstore.dev/cosign/system_config/installation/>`__.
+
+      On macOS with Homebrew, run the following command:
+
+      .. code-block:: bash
+         :copyable: true
+
+         brew install cosign
+
    .. step:: Download the PEM file
 
       Run the following command to save the PEM file as ``mongodb-search-community.pem``:
@@ -36,15 +49,15 @@ Verify Docker Container Image
       
    .. step:: Verify the container image
 
-      Replace ``{VERSION_NUMBER}`` with the version of ``mongot`` that you
-      downloaded from the `MongoDB Search in Community Download Center
-      <https://www.mongodb.com/try/download/search-in-community>`__ and run
-      the following command to verify the container image:
+      Replace ``{VERSION_NUMBER}`` with the version of the ``mongot``
+      container image from `Docker Hub
+      <https://hub.docker.com/r/mongodb/mongodb-community-search>`__ and
+      run the following command to verify the container image:
 
       .. code-block:: bash
          :copyable: true
 
-         COSIGN_REPOSITORY=docker.io/mongodb/signatures cosign verify  --private-infrastructure --key=./mongodb-search-community.pem "docker.io/mongodb/mongodb-community-search:{VERSION_NUMBER}"
+         COSIGN_REPOSITORY=docker.io/mongodb/signatures cosign verify --insecure-ignore-tlog --key=./mongodb-search-community.pem "docker.io/mongodb/mongodb-community-search:{VERSION_NUMBER}"
 
       The output should be similar to the following:
 
@@ -74,7 +87,7 @@ Verify Tarball
       .. code-block:: bash
          :copyable: true
 
-         wget https://pgp.mongodb.com/atlas-search.asc
+         curl -fsSL https://pgp.mongodb.com/atlas-search.asc -o atlas-search.asc
 
    .. step:: Add the key to your keyring
 
@@ -83,23 +96,22 @@ Verify Tarball
 
          gpg --import atlas-search.asc
 
-   .. step:: Download the tarball signature
+   .. step:: Download the tarball and its signature
 
-      Replace ``{VERSION_NUMBER}`` with the version of ``mongot`` that you
-      downloaded from the `MongoDB Search in Community Download Center
-      <https://www.mongodb.com/try/download/search-in-community>`__ and run the
-      following command to download the tarball signature for the system
-      architecture and version.
+      Replace ``{VERSION_NUMBER}`` with the version of ``mongot`` that
+      you want to verify and run the following commands to download both
+      the tarball and its signature for your system architecture.
 
       .. tabs::
-      
+
          .. tab:: ARM Architectures
             :tabid: arm-arch
 
             .. code-block:: bash
                :copyable: true
 
-               wget https://downloads.mongodb.org/mongodb-search-community/{VERSION_NUMBER}/mongot_community_{VERSION_NUMBER}_linux_aarch64.tgz.sig
+               curl -fsSL https://downloads.mongodb.org/mongodb-search-community/{VERSION_NUMBER}/mongot_community_{VERSION_NUMBER}_linux_aarch64.tgz -o mongot_community_{VERSION_NUMBER}_linux_aarch64.tgz
+               curl -fsSL https://downloads.mongodb.org/mongodb-search-community/{VERSION_NUMBER}/mongot_community_{VERSION_NUMBER}_linux_aarch64.tgz.sig -o mongot_community_{VERSION_NUMBER}_linux_aarch64.tgz.sig
 
          .. tab:: AMD x86_64 Architectures
             :tabid: amd-arch
@@ -107,14 +119,10 @@ Verify Tarball
             .. code-block:: bash
                :copyable: true
 
-               wget https://downloads.mongodb.org/mongodb-search-community/{VERSION_NUMBER}/mongot_community_{VERSION_NUMBER}_linux_x86_64.tgz.sig
+               curl -fsSL https://downloads.mongodb.org/mongodb-search-community/{VERSION_NUMBER}/mongot_community_{VERSION_NUMBER}_linux_x86_64.tgz -o mongot_community_{VERSION_NUMBER}_linux_x86_64.tgz
+               curl -fsSL https://downloads.mongodb.org/mongodb-search-community/{VERSION_NUMBER}/mongot_community_{VERSION_NUMBER}_linux_x86_64.tgz.sig -o mongot_community_{VERSION_NUMBER}_linux_x86_64.tgz.sig
 
       To download a different version, replace instances of ``{VERSION_NUMBER}`` with the desired version number.
-
-   .. step:: Download the tarball
-
-      Download the MongoDB Search in Community tarball from the `MongoDB Download
-      Center <https://www.mongodb.com/try/download/search-in-community>`__. 
 
    .. step:: Verify the tarball
 

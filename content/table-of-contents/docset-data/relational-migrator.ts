@@ -633,8 +633,8 @@ const tocData: TocItem[] = [
             items: [
               {
                 label: 'Endpoints',
-                contentSite: 'docs-relational-migrator',
-                url: '/docs/relational-migrator/api-docs/rest-api-spec',
+                isExternal: true,
+                url: 'https://www.mongodb.com/docs/api/doc/mongodb-relational-migrator-rest-api/',
               },
             ],
           },

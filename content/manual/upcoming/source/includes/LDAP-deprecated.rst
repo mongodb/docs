@@ -2,4 +2,5 @@
  
    .. include:: /includes/LDAP-deprecated-introduction.rst
 
-   For details, see :ref:`LDAP Deprecation <ldap-deprecation>`.
+   To learn about alternative authentication methods, see
+   :ref:`ldap-deprecation`.

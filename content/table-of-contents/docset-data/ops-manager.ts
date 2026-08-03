@@ -628,6 +628,11 @@ const tocData: TocItem[] = [
                 url: '/docs/ops-manager/:version/view-mongodb-process-metrics',
               },
               {
+                label: 'Search Node Performance Metrics',
+                contentSite: 'ops-manager',
+                url: '/docs/ops-manager/:version/view-search-node-metrics',
+              },
+              {
                 label: 'Real Time Metrics',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/view-real-time-metrics',
@@ -2998,6 +3003,24 @@ const tocData: TocItem[] = [
                     label: 'Retrieve All',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/reference/api/controlled-features/get-all-feature-control-policies',
+                  },
+                ],
+              },
+              {
+                label: 'Global App Settings',
+                contentSite: 'ops-manager',
+                url: '/docs/ops-manager/:version/reference/api/admin/settings',
+                collapsible: true,
+                items: [
+                  {
+                    label: 'Get Settings',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/admin/settings/get-global-app-settings',
+                  },
+                  {
+                    label: 'Update Settings',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/reference/api/admin/settings/update-global-app-settings',
                   },
                 ],
               },

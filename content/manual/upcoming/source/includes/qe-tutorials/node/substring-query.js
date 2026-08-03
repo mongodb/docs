@@ -7,10 +7,10 @@ const collectionOpts = {
         path: "patientRecord.ssn",
         bsonType: "string",
         queries: { 
-          queryType: "substringPreview",
+          queryType: "substring",
           strMaxLength: 12,
           strMinQueryLength: 3,
-          strMaxQueryLength: 10,
+          strMaxQueryLength: 6,
           caseSensitive: true,
           diacriticSensitive: true,
         },
@@ -23,7 +23,7 @@ const collectionOpts = {
 // start-query-substring
 const findResult = await encryptedCollection.findOne(
   { $expr: { $encStrContains: 
-    { input: "$patientRecord.ssn", substring: "-65-432" } 
+    { input: "$patientRecord.ssn", substring: "-65-4" } 
   } 
 })
 // end-query-substring

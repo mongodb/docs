@@ -85,9 +85,9 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/architecture/:version/solutions-library/open-finance-data-store',
           },
           {
-            label: 'Open Finance for Credit Portability',
+            label: 'Open Banking: Secure Data Sharing',
             contentSite: 'atlas-architecture',
-            url: '/docs/atlas/architecture/:version/solutions-library/open-finance',
+            url: '/docs/atlas/architecture/:version/solutions-library/open-banking',
           },
         ],
       },

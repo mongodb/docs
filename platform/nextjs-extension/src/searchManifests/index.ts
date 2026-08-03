@@ -22,8 +22,7 @@ import type { AllContentData } from '../contentMetadata/processContentMetadata';
 import { getRepoPaths } from '../paths';
 
 const EXTENSION_NAME = 'search-manifest';
-// put back dotcomstg
-export const ENVS_TO_RUN = ['dotcomprd'];
+export const ENVS_TO_RUN = ['dotcomprd', 'dotcomstg'];
 
 const generateAndUploadManifests = async ({
   configEnvironment,

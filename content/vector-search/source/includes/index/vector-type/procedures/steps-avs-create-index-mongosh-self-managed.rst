@@ -57,52 +57,62 @@
            }
          );
          
-      .. example:: 
+      .. include:: /includes/index/vector-type/facts/avs-voyageai-index-description.rst
 
-         .. include:: /includes/index/vector-type/facts/avs-voyageai-index-description.rst
+      .. collapsible:: 
+         :heading: Basic Example
+         :expanded: false
 
-         .. tabs:: 
+         The following index definition indexes only the vector
+         embeddings field using the default |hnsw| indexing method for 
+         performing vector search.  
 
-            .. tab:: Basic Example
-               :tabid: basic
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/shell/basic-example-mongosh.sh  
+            :language: shell
+            :copyable: true 
+            :linenos:
 
-               The following index definition indexes only the vector
-               embeddings field using the default |hnsw| indexing method for 
-               performing vector search.  
+      .. collapsible:: 
+         :heading: Filter Example 
+         :expanded: false
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/shell/basic-example-mongosh.sh  
-                  :language: shell
-                  :copyable: true 
-                  :linenos:
+         This index definition indexes the following fields: 
 
-            .. tab:: Filter Example 
-               :tabid: advanced
+         - A string field (``genres``) and a numeric field (``year``)
+           for pre-filtering the data. 
+         - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+           using the |hnsw| ``indexingMethod`` for performing vector 
+           search against pre-filtered data.
 
-               This index definition indexes the following fields: 
-      
-               - A string field (``genres``) and a numeric field (``year``)
-                 for pre-filtering the data. 
-               - The vector embeddings field (``plot_embedding_voyage_3_large``) 
-                 using the |hnsw| ``indexingMethod`` for performing vector 
-                 search against pre-filtered data.
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/shell/filter-example-mongosh.sh  
+            :language: shell
+            :copyable: true 
+            :linenos:
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/shell/filter-example-mongosh.sh  
-                  :language: shell
-                  :copyable: true 
-                  :linenos:
+      .. collapsible:: 
+         :heading: Multiple Vector Fields Example
+         :expanded: false
 
-            .. tab:: Flat Example 
-               :tabid: flat
+         .. include:: /includes/index/vector-type/facts/avs-create-index-multiple-fields-eg.rst
 
-               This index definition indexes the following fields: 
-      
-               - A string field (``genres``) and a numeric field (``year``)
-                 for pre-filtering the data. 
-               - The vector embeddings field (``plot_embedding_voyage_3_large``) 
-                 using the ``flat`` indexing method for performing vector 
-                 search against pre-filtered data.
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/shell/multi-vector-example-mongosh.sh
+            :language: shell
+            :copyable: true 
+            :linenos:
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/shell/flat-example-mongosh.sh  
-                  :language: shell
-                  :copyable: true 
-                  :linenos:
+      .. collapsible:: 
+         :heading: Flat Example 
+         :expanded: false
+
+         This index definition indexes the following fields: 
+
+         - A string field (``genres``) and a numeric field (``year``)
+           for pre-filtering the data. 
+         - The vector embeddings field (``plot_embedding_voyage_3_large``) 
+           using the ``flat`` indexing method for performing vector 
+           search against pre-filtered data.
+
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/shell/flat-example-mongosh.sh  
+            :language: shell
+            :copyable: true 
+            :linenos:

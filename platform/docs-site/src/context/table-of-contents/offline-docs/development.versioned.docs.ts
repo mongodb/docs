@@ -112,6 +112,69 @@ export const toc: L1TocItem[] = [
             ],
           },
           {
+            label: 'Sample Data',
+            contentSite: 'docs',
+            collapsible: true,
+            url: '/docs/:version/sample-data',
+            items: [
+              {
+                label: 'Load Sample Data',
+                contentSite: 'docs',
+                url: '/docs/:version/sample-data/load-sample-data-local/',
+              },
+              {
+                label: 'Sample Airbnb',
+                contentSite: 'docs',
+                url: '/docs/:version/sample-data/sample-airbnb/',
+              },
+              {
+                label: 'Sample Analytics',
+                contentSite: 'docs',
+                url: '/docs/:version/sample-data/sample-analytics/',
+              },
+              {
+                label: 'Sample Geospatial',
+                contentSite: 'docs',
+                url: '/docs/:version/sample-data/sample-geospatial/',
+              },
+              {
+                label: 'Sample Guides',
+                contentSite: 'docs',
+                url: '/docs/:version/sample-data/sample-guides/',
+              },
+              {
+                label: 'Sample Mflix',
+                contentSite: 'docs',
+                url: '/docs/:version/sample-data/sample-mflix/',
+              },
+              {
+                label: 'Sample Restaurants',
+                contentSite: 'docs',
+                url: '/docs/:version/sample-data/sample-restaurants/',
+              },
+              {
+                label: 'Sample Supplies',
+                contentSite: 'docs',
+                url: '/docs/:version/sample-data/sample-supplies/',
+              },
+              {
+                label: 'Sample Training',
+                contentSite: 'docs',
+                url: '/docs/:version/sample-data/sample-training/',
+              },
+              {
+                label: 'Sample Weather',
+                contentSite: 'docs',
+                url: '/docs/:version/sample-data/sample-weather/',
+              },
+              {
+                label: 'Synthetic Data',
+                contentSite: 'docs',
+                url: '/docs/atlas/synthetic-data/',
+              },
+            ],
+          },
+          {
             label: 'Client Libraries',
             isExternal: true,
             url: 'https://www.mongodb.com/docs/drivers/',
@@ -250,7 +313,25 @@ export const toc: L1TocItem[] = [
               {
                 label: 'Network Peering',
                 contentSite: 'cloud-docs',
+                collapsible: true,
                 url: '/docs/atlas/security-vpc-peering',
+                items: [
+                  {
+                    label: 'Manage Network Peering',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/manage-vpc-peering',
+                  },
+                  {
+                    label: 'Network Containers',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/network-containers',
+                  },
+                  {
+                    label: 'Troubleshoot',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/troubleshoot-vpc',
+                  },
+                ],
               },
               {
                 label: 'Cloud Provider Access',
@@ -1948,6 +2029,11 @@ export const toc: L1TocItem[] = [
                         ],
                       },
                       {
+                        label: 'Sorted Index',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/search/index/sort',
+                      },
+                      {
                         label: 'Stored Source',
                         contentSite: 'search',
                         url: '/docs/search/index/stored-source-definition',
@@ -2503,7 +2589,6 @@ export const toc: L1TocItem[] = [
                 label: 'Performance Benchmark',
                 contentSite: 'vector-search',
                 collapsible: true,
-                url: '/docs/vector-search/benchmark/benchmark',
                 items: [
                   {
                     label: 'Benchmark Overview',
@@ -2676,7 +2761,7 @@ export const toc: L1TocItem[] = [
                 url: '/docs/:version/administration/change-streams-production-recommendations',
               },
               {
-                label: 'Change Events',
+                label: 'Change Stream Events',
                 contentSite: 'docs',
                 collapsible: true,
                 url: '/docs/:version/reference/change-events',
@@ -2863,8 +2948,24 @@ export const toc: L1TocItem[] = [
                   },
                   {
                     label: 'Run Queries',
-                    contentSite: 'cloud-docs',
-                    url: '/docs/atlas/data-federation/tutorial/run-queries',
+                    collapsible: true,
+                    items: [
+                      {
+                        label: 'Feed Downstream Systems',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/data-federation/tutorial/run-queries-downstream',
+                      },
+                      {
+                        label: 'Explore with Sample Data',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/data-federation/tutorial/run-queries-sample-data',
+                      },
+                      {
+                        label: 'Query Data Across Clusters',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/data-federation/tutorial/run-queries-across-clusters',
+                      },
+                    ],
                   },
                 ],
               },
@@ -8859,16 +8960,9 @@ export const toc: L1TocItem[] = [
                     ],
                   },
                   {
-                    label: 'Community-Maintained',
+                    label: 'Mastra',
                     contentSite: 'cloud-docs',
-                    collapsible: true,
-                    items: [
-                      {
-                        label: 'Mastra',
-                        contentSite: 'cloud-docs',
-                        url: '/docs/atlas/ai-integrations/mastra',
-                      },
-                    ],
+                    url: '/docs/atlas/ai-integrations/mastra',
                   },
                 ],
               },

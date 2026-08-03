@@ -1,5 +1,26 @@
 name: Create Jira ticket on EOL
 
+# Detects docs versions newly marked end-of-life and asks Jira to file a
+# TSWRITING ticket so the matching KB article gets reviewed.
+#
+# HOW THE JIRA SIDE WORKS
+#   This workflow does NOT talk to the Jira REST API and holds no Jira
+#   credential. It POSTs to an Automation for Jira incoming webhook, and the
+#   rule on the other end creates the issue.
+#
+#     Rule name : "EOL: create KB review ticket"   (Automation for Jira)
+#     Project   : TSWRITING
+#     Secret    : JIRA_EOL_WEBHOOK_URL  (repo secret; the URL embeds its own token)
+#     Contract  : .github/jira-automation/README.md
+#
+#   The rule is deliberately dumb: every field it sets comes straight from the
+#   payload below, so the ticket's shape stays defined here, in version control,
+#   rather than in the automation UI. If you change the payload, update the
+#   contract doc and the rule together.
+#
+#   To exercise the rule without waiting for a real EOL commit, run this
+#   workflow manually with send_test_payload = true.
+
 on:
   push:
     branches:
@@ -8,7 +29,16 @@ on:
     # Also add the new glob to .github/eol-detection.yml.
     paths:
       - "content/**/snooty.toml"
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      send_test_payload:
+        description: "Send one synthetic product to the webhook (tests the Jira rule end to end)"
+        type: boolean
+        default: false
+
+# Reads the repo to diff config files; talks to no other GitHub API.
+permissions:
+  contents: read
 
 jobs:
   detect-and-ticket:
@@ -21,9 +51,25 @@ jobs:
 
       - name: Detect newly EOL'd products
         id: detect
+        env:
+          SEND_TEST_PAYLOAD: ${{ inputs.send_test_payload }}
         run: |
           python3 - <<'PYEOF'
           import yaml, subprocess, glob as glob_module, re, json, os
+
+          # Manual test path: skip detection and emit one obviously-fake product
+          # so the Jira rule can be exercised without an EOL commit.
+          if os.environ.get('SEND_TEST_PAYLOAD') == 'true':
+              test_product = {
+                  'file': 'content/TEST/snooty.toml',
+                  'name': 'test-product',
+                  'title': 'TEST — ignore, webhook test',
+                  'version': 'v0.0',
+              }
+              with open(os.environ['GITHUB_OUTPUT'], 'a') as out:
+                  out.write(f"eol_products={json.dumps([test_product])}\n")
+              print("send_test_payload=true — emitting one synthetic product, detection skipped.")
+              raise SystemExit(0)
 
           with open('.github/eol-detection.yml') as f:
               config = yaml.safe_load(f)
@@ -63,23 +109,77 @@ jobs:
           print(f"Detected {len(newly_eol)} newly EOL'd product(s): {newly_eol}")
           PYEOF
 
-      - name: Create Jira tickets
+      - name: Request Jira tickets via automation webhook
         if: steps.detect.outputs.eol_products != '[]'
         env:
-          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
-          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          JIRA_EOL_WEBHOOK_URL: ${{ secrets.JIRA_EOL_WEBHOOK_URL }}
           EOL_PRODUCTS: ${{ steps.detect.outputs.eol_products }}
+          # head_commit is null on workflow_dispatch, so fall back to the run URL
+          # rather than putting an empty "Commit:" line in the ticket.
           COMMIT_URL: ${{ github.event.head_commit.url }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           python3 - <<'PYEOF'
-          import json, os, urllib.request, urllib.error, sys
+          import json, os, re, sys, time, urllib.error, urllib.request
+
+
+          def dedupe_key(product):
+              """Stable per-product key, used as a Jira label to prevent duplicates.
+
+              The rule looks this up before creating anything, so a re-run over the
+              same commit -- or a retry that lands after Jira already accepted the
+              first POST -- finds the open ticket and skips. Built from `name`
+              rather than `title` because name is the machine identifier in
+              snooty.toml and far less likely to be reworded.
+              """
+              raw = f"{product['name']}-{product['version'] or 'all'}".lower()
+              # Jira labels cannot contain spaces; dots and hyphens are fine, and
+              # keeping dots means v5.0 stays readable.
+              slug = re.sub(r'[^a-z0-9.]+', '-', raw).strip('-')
+              return f"eol-{slug}"
+
+
+          def post_with_retry(url, body, attempts=3):
+              """POST the payload, retrying transient failures.
+
+              A dropped POST is unrecoverable in practice: detection is a
+              HEAD~1..HEAD diff, so re-running later won't see this commit's
+              eol=true line again and the ticket is simply never filed. Retrying
+              5xx and connection errors is cheap insurance. 4xx is not retried —
+              a bad payload or a wrong URL will fail identically every time.
+              """
+              last = None
+              for attempt in range(1, attempts + 1):
+                  req = urllib.request.Request(
+                      url,
+                      data=json.dumps(body).encode(),
+                      headers={'Content-Type': 'application/json'},
+                      method='POST',
+                  )
+                  try:
+                      with urllib.request.urlopen(req, timeout=30) as resp:
+                          return True, f"HTTP {resp.status}"
+                  except urllib.error.HTTPError as e:
+                      detail = f"HTTP {e.code} {e.read().decode(errors='replace')[:300]}"
+                      if e.code < 500:
+                          return False, detail
+                      last = detail
+                  except urllib.error.URLError as e:
+                      last = str(e.reason)
+                  if attempt < attempts:
+                      delay = 2 ** attempt
+                      print(f"  attempt {attempt} failed ({last}); retrying in {delay}s")
+                      time.sleep(delay)
+              return False, f"{last} (after {attempts} attempts)"
+
+
+          webhook_url = os.environ.get('JIRA_EOL_WEBHOOK_URL')
+          if not webhook_url:
+              print("JIRA_EOL_WEBHOOK_URL is not set; cannot request tickets.")
+              sys.exit(1)
 
           products = json.loads(os.environ['EOL_PRODUCTS'])
-          base_url = os.environ['JIRA_BASE_URL'].rstrip('/')
-          headers = {
-              'Authorization': f"Bearer {os.environ['JIRA_API_TOKEN']}",
-              'Content-Type': 'application/json',
-          }
+          source_url = os.environ.get('COMMIT_URL') or os.environ['RUN_URL']
 
           failed = False
           for p in products:
@@ -90,26 +190,44 @@ jobs:
                   f"*Product:* {p['title']}\n"
                   f"*Version:* {p['version'] or 'N/A'}\n"
                   f"*Config file:* {{code}}{p['file']}{{code}}\n"
-                  f"*Commit:* {os.environ['COMMIT_URL']}"
+                  f"*Source:* {source_url}"
               )
-              payload = json.dumps({
-                  'fields': {
-                      'project': {'key': 'TSWRITING'},
-                      'summary': summary,
-                      'issuetype': {'name': 'Task'},
-                      'components': [{'name': 'KB Articles'}],
-                      'description': description,
-                  }
-              }).encode()
-              req = urllib.request.Request(
-                  f'{base_url}/rest/api/2/issue', data=payload, headers=headers
-              )
-              try:
-                  with urllib.request.urlopen(req) as resp:
-                      key = json.loads(resp.read())['key']
-                      print(f"Created {key}: {summary} — {base_url}/browse/{key}")
-              except urllib.error.HTTPError as e:
-                  print(f"Failed for '{summary}': {e.code} {e.read().decode()}")
+
+              # Flat keys so the Jira rule can read them as {{webhookData.<key>}}.
+              # The rule sets nothing that isn't in here — see the contract doc.
+              body = {
+                  'project': 'TSWRITING',
+                  'issuetype': 'Task',
+                  'component': 'KB Articles',
+                  'summary': summary,
+                  'description': description,
+                  # The rule sets this as a label AND looks it up beforehand; if
+                  # an open ticket already carries it, the rule skips the create.
+                  'dedupe_key': dedupe_key(p),
+                  # Individual fields as well, so the rule can be reworked
+                  # without the workflow having to change its payload.
+                  'product': p['title'],
+                  'version': p['version'] or 'N/A',
+                  'config_file': p['file'],
+                  'source_url': source_url,
+              }
+
+              # Safe to log: the payload carries no credentials, and having it in
+              # the run log means a failed rule can be replayed by hand with curl.
+              print(f"POST payload: {json.dumps(body)}")
+
+              ok, detail = post_with_retry(webhook_url, body)
+              if ok:
+                  # A 2xx means Jira ACCEPTED the payload, not that the rule
+                  # succeeded — automation runs asynchronously. The rule has
+                  # "Notify on error" enabled so a rule-side failure reaches its
+                  # owner; check the rule's audit log if a ticket never appears
+                  # despite a 2xx here.
+                  print(f"  accepted for '{summary}' ({detail})")
+              else:
+                  print(f"  FAILED for '{summary}': {detail}")
+                  print("  Replay by hand with the payload logged above; see "
+                        ".github/jira-automation/README.md")
                   failed = True
 
           if failed:

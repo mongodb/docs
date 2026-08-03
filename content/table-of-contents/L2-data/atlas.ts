@@ -1406,7 +1406,7 @@ const tocData: TocItem[] = [
             url: '/docs/atlas/reference/amazon-aws',
           },
           {
-            label: 'Google Cloud Platform',
+            label: 'Google Cloud',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/reference/google-gcp',
           },

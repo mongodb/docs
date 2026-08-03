@@ -37,9 +37,9 @@
    * - minimumEnabledTlsProtocol
      - string
      - Minimum Transport Layer Security (TLS) version that the cluster
-       accepts for incoming connections. Clusters using |tls| 1.0 or
-       1.1 should consider setting |tls| 1.2 as the minimum |tls|
-       protocol version.
+       accepts for incoming connections. Clusters using |tls| 1.0,
+       or 1.1, should consider setting |tls| 1.2 or higher as the 
+       minimum |tls| protocol version.
 
        :gold:`IMPORTANT:` Beginning July 31st, 2025, |service| will
        no longer support |tls| 1.0 or 1.1 under any circumstance.

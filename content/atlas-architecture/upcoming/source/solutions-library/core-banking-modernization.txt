@@ -141,9 +141,11 @@ This separation is central to the architecture. Payment execution, account state
    the payment status, and writes related notifications or status
    changes in one commit.
    
+
    Operational account balances update immediately in the transactions
    flow, while the ledger flow updates the general ledger
    asynchronously. The general ledger is posted separately, in batch, at
+   at the end of the posting window.
 
 #. MongoDB becomes the event source for accounting propagation.
 
@@ -152,6 +154,7 @@ This separation is central to the architecture. Payment execution, account state
    watches the ``transactions`` collection through MongoDB change
    streams. Every newly inserted transaction becomes the trigger for
    asynchronous accounting processing.
+
 
    This is the architectural handoff between operational execution and
    finance processing.
@@ -171,10 +174,12 @@ This separation is central to the architecture. Payment execution, account state
    downstream. Before the event is written, the worker verifies that the
    debit and credit legs are balanced.
 
+
    This control matters because ``ledgerEvents`` is the first immutable
    accounting collection in the flow. Data written here must be accurate
    before it propagates downstream into ``subLedgerEntries`` and
    ``journalEntries``.
+
 
    Architecturally, ``ledgerEvents`` is the boundary collection between
    the payment domain and the finance domain. It decouples payment speed
@@ -189,6 +194,7 @@ This separation is central to the architecture. Payment execution, account state
    that the event balances and that both GL accounts are valid posting
    leaves in the chart of accounts.
 
+
    This stage creates the entity-level accounting truth used for
    customer statement and intraday position views.
 
@@ -199,6 +205,7 @@ This separation is central to the architecture. Payment execution, account state
    fails, the cycle skips posting. If it succeeds, the worker writes the
    journal entries, stamps the resulting journal identifier back onto
    the source records, and flips their posting status.
+
 
    Even for real-time payments, the general ledger is posted in batch.
    The sub-ledger, not the GL, is the accurate source for intraday
@@ -273,6 +280,7 @@ The flow is deliberate, the following steps summarize how the collections partic
 
    A ledger event holds both legs and the posting mode that decides its downstream path.
    
+
    **Sample document: ledger event**
    
    .. code-block:: JSON
@@ -326,6 +334,7 @@ The flow is deliberate, the following steps summarize how the collections partic
    ``journalEntryId`` carries the ``""`` sentinel until ``gl_batch`` stamps
    the real ID.
    
+
    **Sample document: sub-ledger entry**
    
    .. code-block:: JSON
@@ -356,18 +365,17 @@ The flow is deliberate, the following steps summarize how the collections partic
    Its balancing credit leg is a second document—same ``sourceId``,
    opposite ``side`` and ``controlAccountCode``, ``entityId``:
    ``ACC-001235``. The partial index on ``journalEntryId`` (``$gt: ""``)
-   excludes both until the batch (or, for ``REALTIME`` events, the inline
-   post) fills in the real journal ID.
+   excludes both until the batch fills in the real journal ID.
 
 
-#. The batch or real-time posting path writes balanced
-   ``journalEntries``.
+#. The batch path writes balanced ``journalEntries``.
 
 
    The batch aggregates sub-ledger entries into one journal whose balanced
    lines live in an embedded array.
    
-   **Example: journal entry**
+
+   **Sample document: journal entry**
    
    .. code-block:: JSON
    
@@ -588,4 +596,5 @@ Authors
 
 - Doina Brestoiu
 - Kiran Tulsulkar
+- Ainhoa Mugica
 - Andrea Alaman Calderon

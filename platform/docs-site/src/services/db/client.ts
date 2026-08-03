@@ -35,7 +35,6 @@ export const getFeedbackDbName = (env: SnootyEnv) => {
 
 export const getPoolDbName = (env: Environments) => {
   switch (env) {
-    case 'production':
     case 'dotcomprd':
       return 'pool';
     case 'dotcomstg':

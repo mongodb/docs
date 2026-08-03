@@ -19,7 +19,8 @@ You can implement multi-tenancy with {+avs+} so that a
 single instance of an application serves multiple tenants.
 This page describes design recommendations that apply 
 specifically to {+avs+}. These recommendations differ from our
-:ref:`multi-tenancy recommendations for {+service+} <build-multi-tenant-arch>`.
+:ref:`multi-tenancy recommendations for {+service+}
+<build-multi-tenant-arch>`.
 
 .. _avs-multi-tenancy-recommendations:
 
@@ -38,43 +39,51 @@ multi-tenant architecture for {+avs+}.
 
 .. _avs-multi-tenancy-one-collection:
 
-One Collection for all Tenants
+One Collection for All Tenants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We recommend storing **all tenant data in a single collection**,
-as well as in a single database and cluster. You can distinguish between 
-tenants by including a ``tenant_id`` field within each document. This field
-can be any unique identifier for the tenant, such as a UUID or
-a tenant name. You can use this field as a :ref:`pre-filter 
-<vectorSearch-agg-pipeline-filter>` in your {+avs+} indexes and queries.
+We recommend storing **all tenant data in a single
+collection**, and in a single database and cluster. You can
+distinguish between tenants by including a ``tenant_id``
+field within each document. This field can be any unique
+identifier for the tenant, such as a UUID or a tenant name.
+You can use this field as a :ref:`pre-filter
+<vectorSearch-agg-pipeline-filter>` in your {+avs+} indexes
+and queries.
 
 This centralized approach offers the following benefits:
 
-- Easy to model and scale.
+- Straightforward to model and scale.
 - Simplifies maintenance operations.
-- Efficient query routing through pre-filtering by ``tenant_id``. 
+- Efficient query routing through pre-filtering by ``tenant_id``.
 
   .. note::
 
-     You are guaranteed to not serve tenants that do not match this filter.
+     This filter guarantees that queries return data only for
+     tenants that match this filter.
 
 One Collection per Tenant or One Database per Tenant
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We do **not** recommend storing each tenant in a separate collection or 
-database for the following reasons:
+We do **not** recommend storing each tenant in a separate
+collection or database for the following reasons:
 
-- **Performance Impact**: This approach can lead to varying :ref:`change stream <changeStreams>` loads
-  depending on the number of collections, which might negatively impact performance and
-  monitoring capabilities.
+- **Performance Impact**: This approach can lead to
+  varying :ref:`change stream <changeStreams>` loads
+  depending on the number of collections, which might
+  negatively impact performance and monitoring
+  capabilities.
 
-- **No Additional Isolation**: Data isolation guarantees in |service| apply
-  at the database level. Using separate collections within the same database provides no
-  additional data isolation benefit. Using separate databases introduces operational
-  complexity without meaningful security advantages for most use cases.
+- **No Additional Isolation**: Data isolation guarantees
+  in |service| apply at the database level. Using separate
+  collections within the same database provides no
+  additional data isolation benefit. Using separate
+  databases introduces operational complexity without
+  meaningful security advantages for most use cases.
 
-Instead, use :ref:`one collection for all tenants <avs-multi-tenancy-one-collection>`.
-For an example of how to migrate from a collection-per-tenant model to a single
+Instead, use :ref:`one collection for all tenants
+<avs-multi-tenancy-one-collection>`. For an example of how
+to migrate from a collection-per-tenant model to a single
 collection model, see :ref:`multi-tenancy-migrate`.
 
 Considerations
@@ -87,7 +96,7 @@ potential performance issues with the
 Tenant Size Discrepancies
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you have many tenants with relatively few vectors each,
+If you have many tenants with relatively few documents each,
 or if you experience performance issues due to unequal
 distribution of data (some large tenants and many small
 tenants), consider the following strategies.
@@ -98,12 +107,12 @@ Use Flat Indexes for Many Small Tenants
 ```````````````````````````````````````
 
 If you have many tenants (up to 1 million) and each tenant
-has relatively few vectors (fewer than 10,000 vectors each),
+has relatively few documents (fewer than 10,000 documents each),
 use a ``flat`` index instead of the default |hnsw| index. To
 create a flat index, set the ``indexingMethod`` field to
 ``flat`` in your :ref:`index definition <avs-index-definition>`.
 
-When each tenant has a small number of vectors, queries
+When each tenant has a small number of documents, queries
 filtered to a specific tenant are already searched
 exhaustively. In these cases, the |hnsw| graph provides no
 benefit but adds memory and maintenance overhead. Flat
@@ -113,7 +122,7 @@ Flat indexes offer the following benefits for multi-tenant
 workloads:
 
 - **Optimized for selective filters**: For highly selective
-  queries where each tenant has a small number of vectors,
+  queries where each tenant has a small number of documents,
   exhaustive scan is already the fastest path. Flat indexes
   support this directly, improving both latency and recall.
 
@@ -125,35 +134,66 @@ workloads:
   and maintenance overhead associated with building |hnsw|
   graphs.
 
-.. example::
+For example, the following index definitions create a flat
+index with a ``tenant_id`` filter field. Select the
+``autoEmbed`` type if you want {+avs+} to automatically
+generate embeddings using |voyage| models, or the ``vector``
+type if you already have embeddings:
 
-   The following index definition creates a flat index with
-   a ``tenant_id`` filter field:
+.. tabs:: 
 
-   .. code-block:: json
+   .. tab:: autoEmbed Type
+      :tabid: auto-embed
 
-      {
-        "fields": [
-          {
-            "type": "vector",
-            "path": "<fieldToIndex>",
-            "numDimensions": <numberOfDimensions>,
-            "similarity": "euclidean | cosine | dotProduct",
-            "indexingMethod": "flat"
-          },
-          {
-            "type": "filter",
-            "path": "tenant_id"
-          }
-        ]
-      }
+      .. code-block:: json
+         :caption: Example: Automated Embedding Index
+
+         {
+           "fields": [
+             {
+               "type": "autoEmbed",
+               "modality": "text",
+               "path": "<fieldToIndex>",
+               "model": "<embeddingModel>",
+               "indexingMethod": "flat"
+             },
+             {
+               "type": "filter",
+               "path": "tenant_id"
+             }
+           ]
+         }
+
+   .. tab:: vector Type
+      :tabid: vector
+
+      .. code-block:: json
+         :caption: Example: Vector Index
+
+         {
+           "fields": [
+             {
+               "type": "vector",
+               "path": "<fieldToIndex>",
+               "numDimensions": <numberOfDimensions>,
+               "similarity": "euclidean | cosine | dotProduct",
+               "indexingMethod": "flat"
+             },
+             {
+               "type": "filter",
+               "path": "tenant_id"
+             }
+           ]
+         }
 
 .. note::
 
    Flat indexes are compatible with
    :ref:`scalar and binary quantization
-   <avs-types-vector-search-options>`. Always include the
-   ``tenant_id`` field as a :ref:`pre-filter
+   <avs-types-vector-search-options>`, whether you use
+   Automated Embedding with the ``autoEmbed`` type or use 
+   existing embeddings with the ``vector`` type. Always
+   include the ``tenant_id`` field as a :ref:`pre-filter
    <vectorSearch-agg-pipeline-filter>` in your queries when
    using flat indexes.
 
@@ -162,7 +202,7 @@ workloads:
 Use HNSW Indexes on Views for Larger Tenants
 ````````````````````````````````````````````
 
-For larger tenants that have more than 10,000 vectors each,
+For larger tenants that have more than 10,000 documents each,
 use |hnsw| indexes on :ref:`MongoDB Views
 <avs-transform-documents-collections>` to separate large
 tenants from smaller tenants:
@@ -253,14 +293,14 @@ page for instructions on creating indexes.
 Many Large Tenants
 ~~~~~~~~~~~~~~~~~~
 
-If you have many tenants that each have a large number of vectors, 
-consider using a partition-based system by distributing data 
-across :ref:`shards <shards-concepts>`.
+If you have many tenants that each have a large number of
+documents, consider using a partition-based system by
+distributing data across :ref:`shards <shards-concepts>`.
 
-You can use the ``tenant_id`` field as a 
+You can use the ``tenant_id`` field as a
 :ref:`shard key <sharding-shard-key>`
 to distribute the data across specific ranges
-based on the tenant ID. For more information, 
+based on the tenant ID. For more information,
 see :ref:`Ranged Sharding <sharding-ranged>`.
 
 .. _multi-tenancy-migrate:
@@ -277,9 +317,10 @@ insert the documents into a new collection.
    :sub_heading: Sample Script for Migrating Data
    :expanded: false
    
-   For example, the following script uses the :driver:`Node.js driver </node/>`
-   to migrate your data from a collection-per-tenant model to a single collection model.
-   The script also includes a ``tenant_id`` field 
+   For example, the following script uses the
+   :driver:`Node.js driver </node/>` to migrate your data
+   from a collection-per-tenant model to a single collection
+   model. The script also includes a ``tenant_id`` field
    for each document based on the source collection's name.
 
    .. literalinclude:: /includes/deployment/code-snippets/migrate-collections.js

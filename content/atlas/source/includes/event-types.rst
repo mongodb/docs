@@ -1,12 +1,15 @@
 .. Last updated: July 16, 2026 at 02:41 PM EDT
 
+Account Event Types
+-------------------
+
 .. list-table::
    :header-rows: 1
    :widths: 40 35 10
 
    * - Event Type
      - Description
-     - Alertable? 
+     - Alertable?
 
    * - ``ACCOUNT_DOWNGRADED``
      - .. _atlas_event_account_downgraded:
@@ -26,47 +29,40 @@
        Account upgraded
      - no
 
-   * - ``ACTIVE_LEGACY_TLS_CONNECTIONS``
-     - .. _atlas_event_active_legacy_tls_connections:
+   * - ``GLOBAL_SERVICE_ACCOUNT_SECRETS_EXPIRED``
+     - .. _atlas_event_global_service_account_secrets_expired:
 
-       Clusters with minimum TLS version set to TLS 1.0 or TLS 1.1 detected
+       Global Service Account Secrets have expired
      - yes
 
-   * - ``ADD_HOST_AUDIT``
-     - .. _atlas_event_add_host_audit:
+   * - ``GLOBAL_SERVICE_ACCOUNT_SECRETS_EXPIRING``
+     - .. _atlas_event_global_service_account_secrets_expiring:
 
-       Host added
+       Global Service Account Secrets are expiring
      - yes
 
-   * - ``ADD_HOST_TO_REPLICA_SET_AUDIT``
-     - .. _atlas_event_add_host_to_replica_set_audit:
+   * - ``GLOBAL_SERVICE_ACCOUNT_SECRETS_NO_LONGER_EXPIRED``
+     - .. _atlas_event_global_service_account_secrets_no_longer_expired:
 
-       Mongo process is being monitored
-     - yes
-
-   * - ``ADMIN_CLUSTER_LOCK_UPDATED``
-     - .. _atlas_event_admin_cluster_lock_updated:
-
-       Admin updated admin cluster lock
+       Global Service Account Secrets are no longer expired
      - no
 
-   * - ``ADMIN_OVERRIDE_PAYMENT_METHOD_DELETED``
-     - .. _atlas_event_admin_override_payment_method_deleted:
+   * - ``GLOBAL_SERVICE_ACCOUNT_SECRETS_NO_LONGER_EXPIRING``
+     - .. _atlas_event_global_service_account_secrets_no_longer_expiring:
 
-       Admin Override payment method deleted
+       Global Service Account Secrets are no longer expiring
      - no
 
-   * - ``ADMIN_OVERRIDE_PAYMENT_METHOD_EXPIRED``
-     - .. _atlas_event_admin_override_payment_method_expired:
+AI Event Types
+--------------
 
-       Admin Override payment method expired automatically
-     - no
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``AGENT_FORCE_RESTART_REQUESTED``
-     - .. _atlas_event_agent_force_restart_requested:
-
-       Operator requested force restart of automation agents for cluster
-     - no
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``AI_MODELS_APIS_API_KEY_CREATED``
      - .. _atlas_event_ai_models_apis_api_key_created:
@@ -116,65 +112,16 @@
        Usage tier has been updated
      - no
 
-   * - ``ALERT_ACKNOWLEDGED_AUDIT``
-     - .. _atlas_event_alert_acknowledged_audit:
+API Event Types
+---------------
 
-       Alert acknowledged
-     - no
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``ALERT_CONFIG_ADDED_AUDIT``
-     - .. _atlas_event_alert_config_added_audit:
-
-       Alert configuration added
-     - no
-
-   * - ``ALERT_CONFIG_CHANGED_AUDIT``
-     - .. _atlas_event_alert_config_changed_audit:
-
-       Alert configuration changed
-     - no
-
-   * - ``ALERT_CONFIG_DELETED_AUDIT``
-     - .. _atlas_event_alert_config_deleted_audit:
-
-       Alert configuration deleted
-     - no
-
-   * - ``ALERT_CONFIG_DISABLED_AUDIT``
-     - .. _atlas_event_alert_config_disabled_audit:
-
-       Alert configuration disabled
-     - no
-
-   * - ``ALERT_CONFIG_ENABLED_AUDIT``
-     - .. _atlas_event_alert_config_enabled_audit:
-
-       Alert configuration enabled
-     - no
-
-   * - ``ALERT_HOST_SSH_SESSION_STARTED``
-     - .. _atlas_event_alert_host_ssh_session_started:
-
-       A MongoDB employee started an SSH session started for a host in this Atlas project.
-     - yes
-
-   * - ``ALERT_UNACKNOWLEDGED_AUDIT``
-     - .. _atlas_event_alert_unacknowledged_audit:
-
-       Alert unacknowledged
-     - no
-
-   * - ``ALL_ORG_USERS_HAVE_MFA``
-     - .. _atlas_event_all_org_users_have_mfa:
-
-       All organization users have MFA enabled
-     - no
-
-   * - ``ALL_USERS_HAVE_MULTI_FACTOR_AUTH``
-     - .. _atlas_event_all_users_have_multi_factor_auth:
-
-       All users have multi-factor authentication enabled
-     - no
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``API_KEY_ACCESS_LIST_ENTRY_ADDED``
      - .. _atlas_event_api_key_access_list_entry_added:
@@ -235,6 +182,17 @@
 
        UI IP access list inheritance enabled
      - no
+
+Atlas Event Types
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``ATLAS_MAINTENANCE_AUTO_DEFER_DISABLED``
      - .. _atlas_event_atlas_maintenance_auto_defer_disabled:
@@ -338,6 +296,71 @@
        Atlas SQL Scheduled Schema Update removed
      - no
 
+Audit Event Types
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
+
+   * - ``ADD_HOST_AUDIT``
+     - .. _atlas_event_add_host_audit:
+
+       Host added
+     - yes
+
+   * - ``ADD_HOST_TO_REPLICA_SET_AUDIT``
+     - .. _atlas_event_add_host_to_replica_set_audit:
+
+       Mongo process is being monitored
+     - yes
+
+   * - ``ALERT_ACKNOWLEDGED_AUDIT``
+     - .. _atlas_event_alert_acknowledged_audit:
+
+       Alert acknowledged
+     - no
+
+   * - ``ALERT_CONFIG_ADDED_AUDIT``
+     - .. _atlas_event_alert_config_added_audit:
+
+       Alert configuration added
+     - no
+
+   * - ``ALERT_CONFIG_CHANGED_AUDIT``
+     - .. _atlas_event_alert_config_changed_audit:
+
+       Alert configuration changed
+     - no
+
+   * - ``ALERT_CONFIG_DELETED_AUDIT``
+     - .. _atlas_event_alert_config_deleted_audit:
+
+       Alert configuration deleted
+     - no
+
+   * - ``ALERT_CONFIG_DISABLED_AUDIT``
+     - .. _atlas_event_alert_config_disabled_audit:
+
+       Alert configuration disabled
+     - no
+
+   * - ``ALERT_CONFIG_ENABLED_AUDIT``
+     - .. _atlas_event_alert_config_enabled_audit:
+
+       Alert configuration enabled
+     - no
+
+   * - ``ALERT_UNACKNOWLEDGED_AUDIT``
+     - .. _atlas_event_alert_unacknowledged_audit:
+
+       Alert unacknowledged
+     - no
+
    * - ``ATTEMPT_KILLOP_AUDIT``
      - .. _atlas_event_attempt_killop_audit:
 
@@ -356,23 +379,394 @@
        Audit log configuration updated
      - no
 
-   * - ``AUTOMATION_AGENT_DOWN``
-     - .. _atlas_event_automation_agent_down:
-
-       MongoDB Agent/Automation Module is down
-     - yes
-
-   * - ``AUTOMATION_AGENT_UP``
-     - .. _atlas_event_automation_agent_up:
-
-       MongoDB Agent/Automation Module is up
-     - no
-
    * - ``AUTOMATION_CONFIG_PUBLISHED_AUDIT``
      - .. _atlas_event_automation_config_published_audit:
 
        Deployment configuration published
      - no
+
+   * - ``BUCKET_CREATED_AUDIT``
+     - .. _atlas_event_bucket_created_audit:
+
+       A new export bucket has been added
+     - no
+
+   * - ``BUCKET_DELETED_AUDIT``
+     - .. _atlas_event_bucket_deleted_audit:
+
+       A export bucket has been deleted
+     - no
+
+   * - ``CLUSTERSHOT_DELETED_AUDIT``
+     - .. _atlas_event_clustershot_deleted_audit:
+
+       Cluster snapshot has been deleted
+     - no
+
+   * - ``CLUSTERSHOT_EXPIRY_UPDATED_AUDIT``
+     - .. _atlas_event_clustershot_expiry_updated_audit:
+
+       Clustershot expiry has been updated.
+     - no
+
+   * - ``CLUSTER_BLACKLIST_UPDATED_AUDIT``
+     - .. _atlas_event_cluster_blacklist_updated_audit:
+
+       Excluded namespaces were modified for cluster
+     - no
+
+   * - ``CLUSTER_CHECKPOINT_UPDATED_AUDIT``
+     - .. _atlas_event_cluster_checkpoint_updated_audit:
+
+       Checkpoint interval updated for cluster
+     - no
+
+   * - ``CLUSTER_CREDENTIAL_UPDATED_AUDIT``
+     - .. _atlas_event_cluster_credential_updated_audit:
+
+       Backup authentication credentials updated for cluster
+     - no
+
+   * - ``CLUSTER_DENYLIST_UPDATED_AUDIT``
+     - .. _atlas_event_cluster_denylist_updated_audit:
+
+       Excluded namespaces were modified for cluster
+     - no
+
+   * - ``CLUSTER_SNAPSHOT_SCHEDULE_UPDATED_AUDIT``
+     - .. _atlas_event_cluster_snapshot_schedule_updated_audit:
+
+       Snapshot schedule updated for cluster
+     - no
+
+   * - ``CLUSTER_STATE_CHANGED_AUDIT``
+     - .. _atlas_event_cluster_state_changed_audit:
+
+       Cluster backup state is now
+     - no
+
+   * - ``CLUSTER_STORAGE_ENGINE_UPDATED_AUDIT``
+     - .. _atlas_event_cluster_storage_engine_updated_audit:
+
+       Cluster storage engine has been updated
+     - no
+
+   * - ``CPS_OPLOG_BEHIND_AUDIT``
+     - .. _atlas_event_cps_oplog_behind_audit:
+
+       CPS oplogs have fallen behind by more than 10 min
+     - no
+
+   * - ``CPS_OPLOG_CAUGHT_UP_AUDIT``
+     - .. _atlas_event_cps_oplog_caught_up_audit:
+
+       CPS oplogs are caught up within 10 min
+     - no
+
+   * - ``CPS_RESTORE_AUTH_AUDIT``
+     - .. _atlas_event_cps_restore_auth_audit:
+
+       A Cloud Backup collection-restore agent retrieved system cluster credentials
+     - no
+
+   * - ``CPS_RESTORE_REQUESTED_AUDIT``
+     - .. _atlas_event_cps_restore_requested_audit:
+
+       A Cloud Backup restore has been requested
+     - no
+
+   * - ``CPS_SNAPSHOT_COMPLETED_AUDIT``
+     - .. _atlas_event_cps_snapshot_completed_audit:
+
+       Cloud Backup snapshot has completed
+     - no
+
+   * - ``CPS_SNAPSHOT_DELETED_AUDIT``
+     - .. _atlas_event_cps_snapshot_deleted_audit:
+
+       Cloud Backup snapshot has been deleted
+     - no
+
+   * - ``CPS_SNAPSHOT_FASTER_RESTORES_FAILED_AUDIT``
+     - .. _atlas_event_cps_snapshot_faster_restores_failed_audit:
+
+       Migration to faster cross-project restores has failed
+     - no
+
+   * - ``CPS_SNAPSHOT_FASTER_RESTORES_START_AUDIT``
+     - .. _atlas_event_cps_snapshot_faster_restores_start_audit:
+
+       Migration to faster cross-project restores has started
+     - no
+
+   * - ``CPS_SNAPSHOT_FASTER_RESTORES_SUCCESS_AUDIT``
+     - .. _atlas_event_cps_snapshot_faster_restores_success_audit:
+
+       Migration to faster cross-project restores has succeeded
+     - no
+
+   * - ``CPS_SNAPSHOT_IN_PROGRESS_AUDIT``
+     - .. _atlas_event_cps_snapshot_in_progress_audit:
+
+       Cloud Backup snapshot has started
+     - no
+
+   * - ``CPS_SNAPSHOT_RETENTION_MODIFIED_AUDIT``
+     - .. _atlas_event_cps_snapshot_retention_modified_audit:
+
+       Cloud Backup snapshot's retention has been edited
+     - no
+
+   * - ``CPS_SNAPSHOT_SCHEDULE_UPDATED_AUDIT``
+     - .. _atlas_event_cps_snapshot_schedule_updated_audit:
+
+       Cloud Backup schedule updated
+     - no
+
+   * - ``DB_PROFILER_DISABLE_AUDIT``
+     - .. _atlas_event_db_profiler_disable_audit:
+
+       Database profiling disabled
+     - no
+
+   * - ``DB_PROFILER_ENABLE_AUDIT``
+     - .. _atlas_event_db_profiler_enable_audit:
+
+       Database profiling enabled
+     - no
+
+   * - ``DELETE_HOST_AUDIT``
+     - .. _atlas_event_delete_host_audit:
+
+       Host removed
+     - yes
+
+   * - ``DISABLE_HOST_AUDIT``
+     - .. _atlas_event_disable_host_audit:
+
+       Monitoring for host disabled
+     - no
+
+   * - ``HIDE_AND_DISABLE_HOST_AUDIT``
+     - .. _atlas_event_hide_and_disable_host_audit:
+
+       Monitoring for host disabled and hidden
+     - no
+
+   * - ``HIDE_HOST_AUDIT``
+     - .. _atlas_event_hide_host_audit:
+
+       Monitoring for host hidden
+     - no
+
+   * - ``INITIAL_SYNC_FINISHED_AUDIT``
+     - .. _atlas_event_initial_sync_finished_audit:
+
+       Backup initial sync finished
+     - no
+
+   * - ``INITIAL_SYNC_STARTED_AUDIT``
+     - .. _atlas_event_initial_sync_started_audit:
+
+       Backup initial sync started
+     - no
+
+   * - ``JOIN_GROUP_REQUEST_APPROVED_AUDIT``
+     - .. _atlas_event_join_group_request_approved_audit:
+
+       Request to join project was approved
+     - no
+
+   * - ``JOIN_GROUP_REQUEST_DENIED_AUDIT``
+     - .. _atlas_event_join_group_request_denied_audit:
+
+       Request to join project was denied
+     - no
+
+   * - ``MAINTENANCE_WINDOW_ADDED_AUDIT``
+     - .. _atlas_event_maintenance_window_added_audit:
+
+       Maintenance window configuration added
+     - no
+
+   * - ``MAINTENANCE_WINDOW_CHANGED_AUDIT``
+     - .. _atlas_event_maintenance_window_changed_audit:
+
+       Maintenance window configuration changed
+     - no
+
+   * - ``MAINTENANCE_WINDOW_DELETED_AUDIT``
+     - .. _atlas_event_maintenance_window_deleted_audit:
+
+       Maintenance window configuration deleted
+     - no
+
+   * - ``PAUSE_HOST_AUDIT``
+     - .. _atlas_event_pause_host_audit:
+
+       Monitoring for host paused
+     - no
+
+   * - ``REMOVE_HOST_FROM_REPLICA_SET_AUDIT``
+     - .. _atlas_event_remove_host_from_replica_set_audit:
+
+       Mongo process is not being monitored as it has been unresponsive for a period of time
+     - yes
+
+   * - ``RESTORE_REQUESTED_AUDIT``
+     - .. _atlas_event_restore_requested_audit:
+
+       A restore has been requested
+     - no
+
+   * - ``RESUME_HOST_AUDIT``
+     - .. _atlas_event_resume_host_audit:
+
+       Monitoring for host resumed
+     - no
+
+   * - ``RS_BLACKLIST_UPDATED_AUDIT``
+     - .. _atlas_event_rs_blacklist_updated_audit:
+
+       Excluded namespaces were modified for replica set
+     - no
+
+   * - ``RS_CREDENTIAL_UPDATED_AUDIT``
+     - .. _atlas_event_rs_credential_updated_audit:
+
+       Backup authentication credentials updated for replica set
+     - no
+
+   * - ``RS_DENYLIST_UPDATED_AUDIT``
+     - .. _atlas_event_rs_denylist_updated_audit:
+
+       Excluded namespaces were modified for replica set
+     - no
+
+   * - ``RS_ROTATE_MASTER_KEY_AUDIT``
+     - .. _atlas_event_rs_rotate_master_key_audit:
+
+       A master key rotation has been requested for a replica set.
+     - no
+
+   * - ``RS_SNAPSHOT_SCHEDULE_UPDATED_AUDIT``
+     - .. _atlas_event_rs_snapshot_schedule_updated_audit:
+
+       Snapshot schedule updated for replica set
+     - no
+
+   * - ``RS_STATE_CHANGED_AUDIT``
+     - .. _atlas_event_rs_state_changed_audit:
+
+       Replica set backup state is now
+     - no
+
+   * - ``RS_STORAGE_ENGINE_UPDATED_AUDIT``
+     - .. _atlas_event_rs_storage_engine_updated_audit:
+
+       Replica set storage engine has been updated
+     - no
+
+   * - ``SNAPSHOT_DELETED_AUDIT``
+     - .. _atlas_event_snapshot_deleted_audit:
+
+       Snapshot has been deleted
+     - no
+
+   * - ``SNAPSHOT_EXPIRY_UPDATED_AUDIT``
+     - .. _atlas_event_snapshot_expiry_updated_audit:
+
+       Snapshot expiry has been updated.
+     - no
+
+   * - ``STREAMS_AUDIT_LOG_CONFIGURATION_UPDATED``
+     - .. _atlas_event_streams_audit_log_configuration_updated:
+
+       Atlas Stream Processing Audit log configuration updated
+     - no
+
+   * - ``STREAM_TENANT_AUDIT_LOGS``
+     - .. _atlas_event_stream_tenant_audit_logs:
+
+       Stream Processing Workspace audit logs downloaded
+     - no
+
+   * - ``STREAM_TENANT_AUDIT_LOGS_DELETED``
+     - .. _atlas_event_stream_tenant_audit_logs_deleted:
+
+       Stream Processing Workspace audit logs deleted
+     - no
+
+   * - ``SYNC_PENDING_AUDIT``
+     - .. _atlas_event_sync_pending_audit:
+
+       Backup sync is pending
+     - no
+
+   * - ``SYNC_REQUIRED_AUDIT``
+     - .. _atlas_event_sync_required_audit:
+
+       Backup sync has been initiated
+     - no
+
+   * - ``TENANT_RESTORE_COMPLETED_AUDIT``
+     - .. _atlas_event_tenant_restore_completed_audit:
+
+       A tenant restore has completed
+     - no
+
+   * - ``TENANT_RESTORE_REQUESTED_AUDIT``
+     - .. _atlas_event_tenant_restore_requested_audit:
+
+       A tenant restore has been requested
+     - no
+
+   * - ``TENANT_SNAPSHOT_COMPLETED_AUDIT``
+     - .. _atlas_event_tenant_snapshot_completed_audit:
+
+       A tenant snapshot has completed
+     - no
+
+   * - ``TENANT_SNAPSHOT_DELETED_AUDIT``
+     - .. _atlas_event_tenant_snapshot_deleted_audit:
+
+       A tenant snapshot has been deleted
+     - no
+
+   * - ``TENANT_SNAPSHOT_DOWNLOAD_REQUESTED_AUDIT``
+     - .. _atlas_event_tenant_snapshot_download_requested_audit:
+
+       A tenant snapshot download has been requested
+     - no
+
+   * - ``TENANT_SNAPSHOT_STARTED_AUDIT``
+     - .. _atlas_event_tenant_snapshot_started_audit:
+
+       A tenant snapshot has started
+     - no
+
+   * - ``UNDELETE_HOST_AUDIT``
+     - .. _atlas_event_undelete_host_audit:
+
+       Host undeleted
+     - no
+
+   * - ``USER_ROLES_CHANGED_AUDIT``
+     - .. _atlas_event_user_roles_changed_audit:
+
+       User had their role changed
+     - yes
+
+Auto Healing Event Types
+------------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``AUTO_HEALING_ACTION``
      - .. _atlas_event_auto_healing_action:
@@ -397,6 +791,17 @@
 
        Atlas auto-healing requested node resync
      - no
+
+Auto Indexing Event Types
+-------------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``AUTO_INDEXING_COMPLETED_INDEX_BUILD``
      - .. _atlas_event_auto_indexing_completed_index_build:
@@ -445,6 +850,17 @@
 
        Auto-created index build started
      - no
+
+AWS Event Types
+---------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``AWS_AVAILABILITY_ZONE_DOWN``
      - .. _atlas_event_aws_availability_zone_down:
@@ -523,6 +939,59 @@
 
        AWS Usage Reported
      - no
+
+   * - ``LOW_S3_BLOCKSTORE_METADATA_DB_FREE_SPACE_PERCENT``
+     - .. _atlas_event_low_s3_blockstore_metadata_db_free_space_percent:
+
+       S3 Blockstore metadata DB has low free disk space percentage
+     - yes
+
+   * - ``LOW_S3_OPLOGSTORE_METADATA_DB_FREE_SPACE_PERCENT``
+     - .. _atlas_event_low_s3_oplogstore_metadata_db_free_space_percent:
+
+       S3 Oplogstore metadata DB has low free disk space percentage
+     - yes
+
+   * - ``S3_LOG_STREAMING_CONFIGURATION_UPDATED``
+     - .. _atlas_event_s3_log_streaming_configuration_updated:
+
+       S3 Log Streaming configuration updated
+     - no
+
+   * - ``S3_LOG_STREAMING_DISABLED``
+     - .. _atlas_event_s3_log_streaming_disabled:
+
+       S3 Log Streaming disabled
+     - no
+
+   * - ``S3_LOG_STREAMING_ENABLED``
+     - .. _atlas_event_s3_log_streaming_enabled:
+
+       S3 Log Streaming enabled
+     - no
+
+   * - ``SUFFICIENT_S3_BLOCKSTORE_METADATA_DB_FREE_SPACE``
+     - .. _atlas_event_sufficient_s3_blockstore_metadata_db_free_space:
+
+       S3 Blockstore metadata DB has sufficient free disk space
+     - no
+
+   * - ``SUFFICIENT_S3_OPLOGSTORE_METADATA_DB_FREE_SPACE``
+     - .. _atlas_event_sufficient_s3_oplogstore_metadata_db_free_space:
+
+       S3 Oplogstore metadata DB has sufficient free disk space
+     - no
+
+Azure Event Types
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``AZURE_BILLING_ACCOUNT_CREDIT_ISSUED``
      - .. _atlas_event_azure_billing_account_credit_issued:
@@ -644,47 +1113,16 @@
        Azure Usage Reported
      - no
 
-   * - ``AZ_BALANCING_OVERRIDE_MODIFIED``
-     - .. _atlas_event_az_balancing_override_modified:
+Backup Event Types
+------------------
 
-       AZ Balancing Group Override setting updated
-     - no
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``BACKINGDB_DEFAULTRW_CONCERN_VERIFICATION_FAILED``
-     - .. _atlas_event_backingdb_defaultrw_concern_verification_failed:
-
-       AppDB default Read/Write concerns are not set to recommended values
-     - yes
-
-   * - ``BACKINGDB_DEFAULTRW_CONCERN_VERIFICATION_PASSED``
-     - .. _atlas_event_backingdb_defaultrw_concern_verification_passed:
-
-       AppDB default Read/Write concerns are set to recommended values
-     - no
-
-   * - ``BACKING_DATABASE_PROCESS_DOWN``
-     - .. _atlas_event_backing_database_process_down:
-
-       Detected a problem connecting to a database backing the system
-     - yes
-
-   * - ``BACKING_DATABASE_PROCESS_NO_STARTUP_WARNINGS``
-     - .. _atlas_event_backing_database_process_no_startup_warnings:
-
-       Detected no startup warnings on the databases backing the system
-     - no
-
-   * - ``BACKING_DATABASE_PROCESS_STARTUP_WARNINGS``
-     - .. _atlas_event_backing_database_process_startup_warnings:
-
-       Detected startup warnings on a database backing the system
-     - yes
-
-   * - ``BACKING_DATABASE_PROCESS_UP``
-     - .. _atlas_event_backing_database_process_up:
-
-       Successfully connected to a database backing the system
-     - no
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``BACKUP_AGENT_DOWN``
      - .. _atlas_event_backup_agent_down:
@@ -752,35 +1190,16 @@
        Backups are not supported
      - yes
 
-   * - ``BAD_CLUSTERSHOTS``
-     - .. _atlas_event_bad_clustershots:
+Billing Event Types
+-------------------
 
-       Backup has possibly inconsistent cluster snapshots
-     - yes
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``BALANCER_OFF``
-     - .. _atlas_event_balancer_off:
-
-       Blockstore does not have a running balancer
-     - no
-
-   * - ``BALANCER_ON``
-     - .. _atlas_event_balancer_on:
-
-       Blockstore has a running balancer
-     - yes
-
-   * - ``BECAME_LINKED_ORG``
-     - .. _atlas_event_became_linked_org:
-
-       Organization has become a linked organization
-     - no
-
-   * - ``BECAME_PAYING_ORG``
-     - .. _atlas_event_became_paying_org:
-
-       Organization has become a paying organization
-     - no
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``BILLING_AUDITOR_ON_ALERT``
      - .. _atlas_event_billing_auditor_on_alert:
@@ -812,131 +1231,130 @@
        Billing email address removed
      - no
 
-   * - ``BI_CONNECTOR_DOWN``
-     - .. _atlas_event_bi_connector_down:
+   * - ``CREDIT_TOTAL_BILLED_CENTS_MODIFIED``
+     - .. _atlas_event_credit_total_billed_cents_modified:
 
-       BI Connector is down
+       Credit Total Billed Cents Modified
+     - no
+
+   * - ``DAILY_BILLING_CHANGE_NORMAL``
+     - .. _atlas_event_daily_billing_change_normal:
+
+       Project daily billing percentage change is below threshold
+     - no
+
+   * - ``DAILY_BILLING_CHANGE_OVER_THRESHOLD``
+     - .. _atlas_event_daily_billing_change_over_threshold:
+
+       Project daily billing has increased by more than the threshold percent
      - yes
 
-   * - ``BI_CONNECTOR_UP``
-     - .. _atlas_event_bi_connector_up:
+   * - ``DAILY_BILL_OVER_THRESHOLD``
+     - .. _atlas_event_daily_bill_over_threshold:
 
-       BI Connector is up
-     - no
-
-   * - ``BRAINTREE_CHARGE_FAILED``
-     - .. _atlas_event_braintree_charge_failed:
-
-       PayPal charge has failed
-     - no
-
-   * - ``BREAK_JOB``
-     - .. _atlas_event_break_job:
-
-       Break job
-     - no
-
-   * - ``BUCKET_CREATED_AUDIT``
-     - .. _atlas_event_bucket_created_audit:
-
-       A new export bucket has been added
-     - no
-
-   * - ``BUCKET_DELETED_AUDIT``
-     - .. _atlas_event_bucket_deleted_audit:
-
-       A export bucket has been deleted
-     - no
-
-   * - ``BULK_HEAD_MOVE``
-     - .. _atlas_event_bulk_head_move:
-
-       Bulk head move
-     - no
-
-   * - ``BUMPER_FILE_REMOVAL_NODE_NOT_REINFLATED_FOR_TWO_DAYS``
-     - .. _atlas_event_bumper_file_removal_node_not_reinflated_for_two_days:
-
-       A node's bumper files have not been re-inflated for more than 48 hours
+       Daily amount billed ($) is above threshold
      - yes
 
-   * - ``BUMPER_FILE_REMOVAL_NODE_REINFLATED``
-     - .. _atlas_event_bumper_file_removal_node_reinflated:
+   * - ``DAILY_BILL_UNDER_THRESHOLD``
+     - .. _atlas_event_daily_bill_under_threshold:
 
-       A node's bumper files have been re-inflated
+       Daily amount billed ($) is below threshold
      - no
 
-   * - ``CASE_CREATED``
-     - .. _atlas_event_case_created:
+   * - ``LEGACY_REBILL_EXECUTED``
+     - .. _atlas_event_legacy_rebill_executed:
 
-       Case created.
+       Legacy rebill completed
      - no
 
-   * - ``CHARGE_FAILED``
-     - .. _atlas_event_charge_failed:
+   * - ``MONTHLY_BILLING_CHANGE_NORMAL``
+     - .. _atlas_event_monthly_billing_change_normal:
 
-       Credit card charge has failed
+       Project monthly billing percentage change is below threshold
      - no
 
-   * - ``CHARGE_PENDING_REVERSAL``
-     - .. _atlas_event_charge_pending_reversal:
+   * - ``MONTHLY_BILLING_CHANGE_OVER_THRESHOLD``
+     - .. _atlas_event_monthly_billing_change_over_threshold:
 
-       Payment has entered a pending reversal state
+       Project monthly billing has increased by more than the threshold percent
+     - yes
+
+   * - ``ORG_DAILY_BILLING_CHANGE_NORMAL``
+     - .. _atlas_event_org_daily_billing_change_normal:
+
+       Organization daily billing change is within normal threshold
      - no
 
-   * - ``CHARGE_PROCESSING``
-     - .. _atlas_event_charge_processing:
+   * - ``ORG_DAILY_BILLING_CHANGE_OVER_THRESHOLD``
+     - .. _atlas_event_org_daily_billing_change_over_threshold:
 
-       Payment has entered a processing state
+       Organization daily billing has increased by more than the limit you set compared to previous day
+     - yes
+
+   * - ``ORG_DAILY_BILL_OVER_THRESHOLD``
+     - .. _atlas_event_org_daily_bill_over_threshold:
+
+       Amount billed yesterday is above the limit you set
+     - yes
+
+   * - ``ORG_DAILY_BILL_UNDER_THRESHOLD``
+     - .. _atlas_event_org_daily_bill_under_threshold:
+
+       Daily amount billed is below the limit you set
      - no
 
-   * - ``CHARGE_SUCCEEDED``
-     - .. _atlas_event_charge_succeeded:
+   * - ``ORG_MONTHLY_BILLING_CHANGE_NORMAL``
+     - .. _atlas_event_org_monthly_billing_change_normal:
 
-       Credit card was successfully charged
+       Organization monthly billing change is within normal threshold
      - no
 
-   * - ``CHARTS_API_FAILURE``
-     - .. _atlas_event_charts_api_failure:
+   * - ``ORG_MONTHLY_BILLING_CHANGE_OVER_THRESHOLD``
+     - .. _atlas_event_org_monthly_billing_change_over_threshold:
 
-       Charts API request failed
+       Organization monthly billing has increased by more than the limit you set compared to the previous 30 days
+     - yes
+
+   * - ``ORG_WEEKLY_BILLING_CHANGE_NORMAL``
+     - .. _atlas_event_org_weekly_billing_change_normal:
+
+       Organization weekly billing change is within normal threshold
      - no
 
-   * - ``CHARTS_API_SUCCESS``
-     - .. _atlas_event_charts_api_success:
+   * - ``ORG_WEEKLY_BILLING_CHANGE_OVER_THRESHOLD``
+     - .. _atlas_event_org_weekly_billing_change_over_threshold:
 
-       Charts API request succeeded
+       Organization weekly billing has increased by more than the limit you set compared to the previous 7 days
+     - yes
+
+   * - ``TARGETED_REBILL_EXECUTED``
+     - .. _atlas_event_targeted_rebill_executed:
+
+       Targeted rebill completed
      - no
 
-   * - ``CHARTS_DASHBOARD_EXPORTED``
-     - .. _atlas_event_charts_dashboard_exported:
+   * - ``WEEKLY_BILLING_CHANGE_NORMAL``
+     - .. _atlas_event_weekly_billing_change_normal:
 
-       Dashboard exported
+       Project weekly billing percentage change is below threshold
      - no
 
-   * - ``CHARTS_DASHBOARD_EXPORT_FAILED``
-     - .. _atlas_event_charts_dashboard_export_failed:
+   * - ``WEEKLY_BILLING_CHANGE_OVER_THRESHOLD``
+     - .. _atlas_event_weekly_billing_change_over_threshold:
 
-       Dashboard export failed
-     - no
+       Project weekly billing has increased by more than the threshold percent
+     - yes
 
-   * - ``CHARTS_DASHBOARD_IMPORTED``
-     - .. _atlas_event_charts_dashboard_imported:
+Cloud Event Types
+-----------------
 
-       Dashboard imported
-     - no
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``CHARTS_DASHBOARD_IMPORT_FAILED``
-     - .. _atlas_event_charts_dashboard_import_failed:
-
-       Dashboard import failed
-     - no
-
-   * - ``CHECK_PAYMENT_RECEIVED``
-     - .. _atlas_event_check_payment_received:
-
-       Invoice has been paid by check
-     - no
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``CLOUD_PROVIDER_ACCESS_AWS_IAM_ROLE_ADDED``
      - .. _atlas_event_cloud_provider_access_aws_iam_role_added:
@@ -992,17 +1410,16 @@
        Cloud Provider Access GCP Service Account updated
      - no
 
-   * - ``CLUSTERSHOT_DELETED_AUDIT``
-     - .. _atlas_event_clustershot_deleted_audit:
+Cluster Event Types
+-------------------
 
-       Cluster snapshot has been deleted
-     - no
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``CLUSTERSHOT_EXPIRY_UPDATED_AUDIT``
-     - .. _atlas_event_clustershot_expiry_updated_audit:
-
-       Clustershot expiry has been updated.
-     - no
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``CLUSTER_AUTOMATICALLY_PAUSED``
      - .. _atlas_event_cluster_automatically_paused:
@@ -1034,12 +1451,6 @@
        Cluster binary version upgrade submitted
      - no
 
-   * - ``CLUSTER_BLACKLIST_UPDATED_AUDIT``
-     - .. _atlas_event_cluster_blacklist_updated_audit:
-
-       Excluded namespaces were modified for cluster
-     - no
-
    * - ``CLUSTER_BLOCK_WRITE``
      - .. _atlas_event_cluster_block_write:
 
@@ -1056,12 +1467,6 @@
      - .. _atlas_event_cluster_canceling_shard_drain_requested:
 
        Cluster cancel shard drain requested
-     - no
-
-   * - ``CLUSTER_CHECKPOINT_UPDATED_AUDIT``
-     - .. _atlas_event_cluster_checkpoint_updated_audit:
-
-       Checkpoint interval updated for cluster
      - no
 
    * - ``CLUSTER_CONNECTION_AGGREGATE``
@@ -1142,12 +1547,6 @@
        Cluster created via Azure Native integration
      - no
 
-   * - ``CLUSTER_CREDENTIAL_UPDATED_AUDIT``
-     - .. _atlas_event_cluster_credential_updated_audit:
-
-       Backup authentication credentials updated for cluster
-     - no
-
    * - ``CLUSTER_DELETED``
      - .. _atlas_event_cluster_deleted:
 
@@ -1164,12 +1563,6 @@
      - .. _atlas_event_cluster_delete_submitted_internal:
 
        Cluster delete submitted: hidden properties
-     - no
-
-   * - ``CLUSTER_DENYLIST_UPDATED_AUDIT``
-     - .. _atlas_event_cluster_denylist_updated_audit:
-
-       Excluded namespaces were modified for cluster
      - no
 
    * - ``CLUSTER_FCV_DOWNGRADED``
@@ -1586,24 +1979,6 @@
        Cluster server parameters update submitted
      - no
 
-   * - ``CLUSTER_SNAPSHOT_SCHEDULE_UPDATED_AUDIT``
-     - .. _atlas_event_cluster_snapshot_schedule_updated_audit:
-
-       Snapshot schedule updated for cluster
-     - no
-
-   * - ``CLUSTER_STATE_CHANGED_AUDIT``
-     - .. _atlas_event_cluster_state_changed_audit:
-
-       Cluster backup state is now 
-     - no
-
-   * - ``CLUSTER_STORAGE_ENGINE_UPDATED_AUDIT``
-     - .. _atlas_event_cluster_storage_engine_updated_audit:
-
-       Cluster storage engine has been updated
-     - no
-
    * - ``CLUSTER_TAGS_MODIFIED``
      - .. _atlas_event_cluster_tags_modified:
 
@@ -1645,6 +2020,17 @@
 
        Cluster update submitted
      - no
+
+Compute Event Types
+-------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``COMPUTE_AUTO_SCALE_DOWNSCALE_SKIPPED_FALLBACK_ANALYTICS``
      - .. _atlas_event_compute_auto_scale_downscale_skipped_fallback_analytics:
@@ -1712,29 +2098,16 @@
        Compute auto-scaling down did not initiate for base tier due to storage requirements
      - yes
 
-   * - ``CONFIGURATION_CHANGED``
-     - .. _atlas_event_configuration_changed:
+CPS Event Types
+---------------
 
-       Replica set has an updated version configuration
-     - no
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``CONSISTENT_BACKUP_CONFIGURATION``
-     - .. _atlas_event_consistent_backup_configuration:
-
-       Backup configuration is consistent
-     - no
-
-   * - ``CONTAINER_DELETED``
-     - .. _atlas_event_container_deleted:
-
-       Cloud Provider container deleted
-     - no
-
-   * - ``CONTAINER_SUBNETS_UPDATE_REQUESTED``
-     - .. _atlas_event_container_subnets_update_requested:
-
-       Container subnets update requested
-     - no
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``CPS_AUTO_EXPORT_FAILED``
      - .. _atlas_event_cps_auto_export_failed:
@@ -2018,23 +2391,11 @@
        CPS oplogs have fallen behind alert
      - yes
 
-   * - ``CPS_OPLOG_BEHIND_AUDIT``
-     - .. _atlas_event_cps_oplog_behind_audit:
-
-       CPS oplogs have fallen behind by more than 10 min
-     - no
-
    * - ``CPS_OPLOG_CAUGHT_UP``
      - .. _atlas_event_cps_oplog_caught_up:
 
        Oplog slices are caught up alert
      - yes
-
-   * - ``CPS_OPLOG_CAUGHT_UP_AUDIT``
-     - .. _atlas_event_cps_oplog_caught_up_audit:
-
-       CPS oplogs are caught up within 10 min
-     - no
 
    * - ``CPS_PREV_SNAPSHOT_OLD``
      - .. _atlas_event_cps_prev_snapshot_old:
@@ -2042,23 +2403,11 @@
        Too much time has passed since the last successful snapshot
      - yes
 
-   * - ``CPS_RESTORE_AUTH_AUDIT``
-     - .. _atlas_event_cps_restore_auth_audit:
-
-       A Cloud Backup collection-restore agent retrieved system cluster credentials
-     - no
-
    * - ``CPS_RESTORE_FAILED``
      - .. _atlas_event_cps_restore_failed:
 
        A restore failed
      - yes
-
-   * - ``CPS_RESTORE_REQUESTED_AUDIT``
-     - .. _atlas_event_cps_restore_requested_audit:
-
-       A Cloud Backup restore has been requested
-     - no
 
    * - ``CPS_RESTORE_SUCCESSFUL``
      - .. _atlas_event_cps_restore_successful:
@@ -2071,18 +2420,6 @@
 
        No snapshot taken over configured period
      - yes
-
-   * - ``CPS_SNAPSHOT_COMPLETED_AUDIT``
-     - .. _atlas_event_cps_snapshot_completed_audit:
-
-       Cloud Backup snapshot has completed
-     - no
-
-   * - ``CPS_SNAPSHOT_DELETED_AUDIT``
-     - .. _atlas_event_cps_snapshot_deleted_audit:
-
-       Cloud Backup snapshot has been deleted
-     - no
 
    * - ``CPS_SNAPSHOT_DOWNLOAD_REQUEST_FAILED``
      - .. _atlas_event_cps_snapshot_download_request_failed:
@@ -2108,42 +2445,6 @@
        A regular backup failed, but Atlas was able to take a fallback snapshot
      - yes
 
-   * - ``CPS_SNAPSHOT_FASTER_RESTORES_FAILED_AUDIT``
-     - .. _atlas_event_cps_snapshot_faster_restores_failed_audit:
-
-       Migration to faster cross-project restores has failed
-     - no
-
-   * - ``CPS_SNAPSHOT_FASTER_RESTORES_START_AUDIT``
-     - .. _atlas_event_cps_snapshot_faster_restores_start_audit:
-
-       Migration to faster cross-project restores has started
-     - no
-
-   * - ``CPS_SNAPSHOT_FASTER_RESTORES_SUCCESS_AUDIT``
-     - .. _atlas_event_cps_snapshot_faster_restores_success_audit:
-
-       Migration to faster cross-project restores has succeeded
-     - no
-
-   * - ``CPS_SNAPSHOT_IN_PROGRESS_AUDIT``
-     - .. _atlas_event_cps_snapshot_in_progress_audit:
-
-       Cloud Backup snapshot has started
-     - no
-
-   * - ``CPS_SNAPSHOT_RETENTION_MODIFIED_AUDIT``
-     - .. _atlas_event_cps_snapshot_retention_modified_audit:
-
-       Cloud Backup snapshot's retention has been edited
-     - no
-
-   * - ``CPS_SNAPSHOT_SCHEDULE_UPDATED_AUDIT``
-     - .. _atlas_event_cps_snapshot_schedule_updated_audit:
-
-       Cloud Backup schedule updated
-     - no
-
    * - ``CPS_SNAPSHOT_STARTED``
      - .. _atlas_event_cps_snapshot_started:
 
@@ -2155,6 +2456,17 @@
 
        A snapshot was taken successfully
      - yes
+
+Credit Event Types
+------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``CREDIT_AMOUNT_CENTS_MODIFIED``
      - .. _atlas_event_credit_amount_cents_modified:
@@ -2270,137 +2582,22 @@
        Credit Start Date Modified
      - no
 
-   * - ``CREDIT_TOTAL_BILLED_CENTS_MODIFIED``
-     - .. _atlas_event_credit_total_billed_cents_modified:
-
-       Credit Total Billed Cents Modified
-     - no
-
    * - ``CREDIT_TYPE_MODIFIED``
      - .. _atlas_event_credit_type_modified:
 
        Credit Type Modified
      - no
 
-   * - ``CRON_JOB_COMPLETED``
-     - .. _atlas_event_cron_job_completed:
+Data Event Types
+----------------
 
-       Cron job has completed successfully
-     - no
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``CRON_JOB_DISABLED``
-     - .. _atlas_event_cron_job_disabled:
-
-       Cron job disabled
-     - yes
-
-   * - ``CRON_JOB_ENABLED``
-     - .. _atlas_event_cron_job_enabled:
-
-       Cron job enabled
-     - no
-
-   * - ``CRON_JOB_FAILED``
-     - .. _atlas_event_cron_job_failed:
-
-       Cron job has failed
-     - yes
-
-   * - ``CROSS_ORG_OPERATION_TICKET_TRACKING``
-     - .. _atlas_event_cross_org_operation_ticket_tracking:
-
-       Cross-org operation JIRA ticket tracking (Admin Only)
-     - no
-
-   * - ``CROSS_REGION_SUPPORTED_REGION_MODIFIED``
-     - .. _atlas_event_cross_region_supported_region_modified:
-
-       Cross-region private endpoint supported region modified
-     - no
-
-   * - ``CUSTOMER_X509_CRL_UPDATED``
-     - .. _atlas_event_customer_x509_crl_updated:
-
-       Self-managed X509 CRL updated
-     - no
-
-   * - ``CUSTOM_SESSION_TIMEOUT_MODIFIED``
-     - .. _atlas_event_custom_session_timeout_modified:
-
-       Custom Session Timeout was set/modified.
-     - no
-
-   * - ``DAEMON_CONFIG_CHANGE``
-     - .. _atlas_event_daemon_config_change:
-
-       Daemon configuration changed
-     - no
-
-   * - ``DAEMON_DELETED``
-     - .. _atlas_event_daemon_deleted:
-
-       Daemon deleted
-     - no
-
-   * - ``DAEMON_DOWN``
-     - .. _atlas_event_daemon_down:
-
-       Backup Daemon is down
-     - yes
-
-   * - ``DAEMON_STARTED``
-     - .. _atlas_event_daemon_started:
-
-       A backup daemon started.
-     - no
-
-   * - ``DAEMON_UP``
-     - .. _atlas_event_daemon_up:
-
-       Backup Daemon is up
-     - no
-
-   * - ``DAILY_BILLING_CHANGE_NORMAL``
-     - .. _atlas_event_daily_billing_change_normal:
-
-       Project daily billing percentage change is below threshold
-     - no
-
-   * - ``DAILY_BILLING_CHANGE_OVER_THRESHOLD``
-     - .. _atlas_event_daily_billing_change_over_threshold:
-
-       Project daily billing has increased by more than the threshold percent
-     - yes
-
-   * - ``DAILY_BILL_OVER_THRESHOLD``
-     - .. _atlas_event_daily_bill_over_threshold:
-
-       Daily amount billed ($) is above threshold
-     - yes
-
-   * - ``DAILY_BILL_UNDER_THRESHOLD``
-     - .. _atlas_event_daily_bill_under_threshold:
-
-       Daily amount billed ($) is below threshold
-     - no
-
-   * - ``DATADOG_LOG_STREAMING_CONFIGURATION_UPDATED``
-     - .. _atlas_event_datadog_log_streaming_configuration_updated:
-
-       Datadog Log Streaming configuration updated
-     - no
-
-   * - ``DATADOG_LOG_STREAMING_DISABLED``
-     - .. _atlas_event_datadog_log_streaming_disabled:
-
-       Datadog Log Streaming disabled
-     - no
-
-   * - ``DATADOG_LOG_STREAMING_ENABLED``
-     - .. _atlas_event_datadog_log_streaming_enabled:
-
-       Datadog Log Streaming enabled
-     - no
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``DATA_API_SETUP_FOR_VERCEL``
      - .. _atlas_event_data_api_setup_for_vercel:
@@ -2450,18 +2647,6 @@
        User created a new Data Explorer session
      - no
 
-   * - ``DATA_FEDERATION_QUERY_LIMIT_CONFIGURED``
-     - .. _atlas_event_data_federation_query_limit_configured:
-
-       Data Federation Query Limit configured
-     - no
-
-   * - ``DATA_FEDERATION_QUERY_LIMIT_DELETED``
-     - .. _atlas_event_data_federation_query_limit_deleted:
-
-       Data Federation Query Limit deleted
-     - no
-
    * - ``DATA_LAKE_QUERY_LOGS_DOWNLOADED``
      - .. _atlas_event_data_lake_query_logs_downloaded:
 
@@ -2474,179 +2659,81 @@
        The cluster is currently undergoing scheduled data validation
      - no
 
-   * - ``DB_CHECK_DEFERRED_FOR_CLUSTER``
-     - .. _atlas_event_db_check_deferred_for_cluster:
+Data Federation Event Types
+---------------------------
 
-       Cluster was deferred for DB Check
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
+
+   * - ``DATA_FEDERATION_QUERY_LIMIT_CONFIGURED``
+     - .. _atlas_event_data_federation_query_limit_configured:
+
+       Data Federation Query Limit configured
      - no
 
-   * - ``DB_CHECK_SCHEDULED_FOR_CLUSTER``
-     - .. _atlas_event_db_check_scheduled_for_cluster:
+   * - ``DATA_FEDERATION_QUERY_LIMIT_DELETED``
+     - .. _atlas_event_data_federation_query_limit_deleted:
 
-       Cluster was scheduled for DB Check
+       Data Federation Query Limit deleted
      - no
 
-   * - ``DB_CHECK_UPDATED``
-     - .. _atlas_event_db_check_updated:
+   * - ``FEDERATED_DATABASE_CREATED``
+     - .. _atlas_event_federated_database_created:
 
-       DbCheck was updated
+       New Federated Database Instance created
      - no
 
-   * - ``DB_PROFILER_DISABLE_AUDIT``
-     - .. _atlas_event_db_profiler_disable_audit:
+   * - ``FEDERATED_DATABASE_QUERY_LOGS_DOWNLOADED``
+     - .. _atlas_event_federated_database_query_logs_downloaded:
 
-       Database profiling disabled
+       User downloaded query logs for Federated Database Instance.
      - no
 
-   * - ``DB_PROFILER_ENABLE_AUDIT``
-     - .. _atlas_event_db_profiler_enable_audit:
+   * - ``FEDERATED_DATABASE_REMOVED``
+     - .. _atlas_event_federated_database_removed:
 
-       Database profiling enabled
+       Federated Database Instance removed
      - no
 
-   * - ``DELETE_HOST_AUDIT``
-     - .. _atlas_event_delete_host_audit:
+   * - ``FEDERATED_DATABASE_UPDATED``
+     - .. _atlas_event_federated_database_updated:
 
-       Host removed
-     - yes
-
-   * - ``DELINQUENT``
-     - .. _atlas_event_delinquent:
-
-       Service suspended due to unpaid invoice(s) more than 30 days old
+       Federated Database Instance updated
      - no
 
-   * - ``DEPLOYMENT_FAILURE``
-     - .. _atlas_event_deployment_failure:
+   * - ``FEDERATION_SETTINGS_CREATED``
+     - .. _atlas_event_federation_settings_created:
 
-       A user (or Code Deployment) attempted to deploy changes but encountered an error
-     - yes
-
-   * - ``DEPLOYMENT_MODEL_CHANGE_FAILURE``
-     - .. _atlas_event_deployment_model_change_failure:
-
-       A user has failed to change the deployment model for an App Service
-     - yes
-
-   * - ``DEPLOYMENT_MODEL_CHANGE_SUCCESS``
-     - .. _atlas_event_deployment_model_change_success:
-
-       A user has successfully changed the deployment model for an App Service
-     - yes
-
-   * - ``DEVICE_SYNC_DEBUG_ACCESS_GRANTED``
-     - .. _atlas_event_device_sync_debug_access_granted:
-
-       Granted temporary sync data access to MongoDB Support for 24 hours
+       Federation settings have been created
      - no
 
-   * - ``DEVICE_SYNC_DEBUG_ACCESS_REVOKED``
-     - .. _atlas_event_device_sync_debug_access_revoked:
+   * - ``FEDERATION_SETTINGS_DELETED``
+     - .. _atlas_event_federation_settings_deleted:
 
-       Revoked temporary sync data access to MongoDB Support
+       Federation settings have been deleted
      - no
 
-   * - ``DEVICE_SYNC_DEBUG_X509_CERT_CREATED``
-     - .. _atlas_event_device_sync_debug_x509_cert_created:
+   * - ``FEDERATION_SETTINGS_UPDATED``
+     - .. _atlas_event_federation_settings_updated:
 
-       Created an X.509 certificate for device sync data access
+       Federation settings have been updated
      - no
 
-   * - ``DISABLE_BACKUP_PRIVATELINK_EVENT``
-     - .. _atlas_event_disable_backup_privatelink_event:
+Encryption Event Types
+----------------------
 
-       User DISABLED AWS PrivateLink for backup.
-     - no
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``DISABLE_HOST_AUDIT``
-     - .. _atlas_event_disable_host_audit:
-
-       Monitoring for host disabled
-     - no
-
-   * - ``DISCOUNT_APPLIED``
-     - .. _atlas_event_discount_applied:
-
-       Discount applied
-     - no
-
-   * - ``DISK_AUTO_SCALE_INITIATED``
-     - .. _atlas_event_disk_auto_scale_initiated:
-
-       Disk auto-scaling initiated
-     - yes
-
-   * - ``DISK_AUTO_SCALE_MAX_DISK_SIZE_FAIL``
-     - .. _atlas_event_disk_auto_scale_max_disk_size_fail:
-
-       Disk auto-scaling did not initiate due to the cluster reaching maximum available disk size
-     - yes
-
-   * - ``DISK_AUTO_SCALE_OPLOG_FAIL``
-     - .. _atlas_event_disk_auto_scale_oplog_fail:
-
-       Disk auto-scaling did not initiate due to insufficient oplog size
-     - yes
-
-   * - ``DOMAINS_ASSOCIATED``
-     - .. _atlas_event_domains_associated:
-
-       Domains were associated with the Identity Provider
-     - no
-
-   * - ``DOMAIN_CREATED``
-     - .. _atlas_event_domain_created:
-
-       Domain was created
-     - no
-
-   * - ``DOMAIN_DELETED``
-     - .. _atlas_event_domain_deleted:
-
-       Domain was deleted
-     - no
-
-   * - ``DOMAIN_VERIFIED``
-     - .. _atlas_event_domain_verified:
-
-       Domain was verified
-     - no
-
-   * - ``ELASTIC_INVOICING_MODE_ACTIVATED``
-     - .. _atlas_event_elastic_invoicing_mode_activated:
-
-       Active Invoicing Period initiated
-     - no
-
-   * - ``ELASTIC_INVOICING_MODE_DEACTIVATED``
-     - .. _atlas_event_elastic_invoicing_mode_deactivated:
-
-       Active Invoicing Period stopped
-     - no
-
-   * - ``EMPLOYEE_ACCESS_GRANTED``
-     - .. _atlas_event_employee_access_granted:
-
-       Granted additional access to MongoDB support
-     - no
-
-   * - ``EMPLOYEE_ACCESS_REVOKED``
-     - .. _atlas_event_employee_access_revoked:
-
-       Revoked additional access from MongoDB support
-     - no
-
-   * - ``EMPLOYEE_DOWNLOADED_CLUSTER_LOGS``
-     - .. _atlas_event_employee_downloaded_cluster_logs:
-
-       A MongoDB employee downloaded cluster database logs for a host to help resolve an ongoing support issue.
-     - no
-
-   * - ``ENABLE_BACKUP_PRIVATELINK_EVENT``
-     - .. _atlas_event_enable_backup_privatelink_event:
-
-       User ENABLED AWS PrivateLink for backup.
-     - no
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``ENCRYPTION_AT_REST_CONFIGURATION_UPDATED``
      - .. _atlas_event_encryption_at_rest_configuration_updated:
@@ -2708,119 +2795,16 @@
        Encryption at Rest private endpoint deleted
      - no
 
-   * - ``ENDPOINT_SERVICE_CREATED``
-     - .. _atlas_event_endpoint_service_created:
+FTS Event Types
+---------------
 
-       Private endpoint service created
-     - no
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``ENDPOINT_SERVICE_DELETED``
-     - .. _atlas_event_endpoint_service_deleted:
-
-       Private endpoint service deleted
-     - no
-
-   * - ``ENOUGH_HEALTHY_MEMBERS``
-     - .. _atlas_event_enough_healthy_members:
-
-       Replica set has enough healthy members
-     - no
-
-   * - ``EVERGREEN_DEAL_CANCELLED``
-     - .. _atlas_event_evergreen_deal_cancelled:
-
-       Evergreen deal has been cancelled
-     - no
-
-   * - ``EVERGREEN_PRIORITY_MODIFIED``
-     - .. _atlas_event_evergreen_priority_modified:
-
-       Evergreen Credit Priority Modified
-     - no
-
-   * - ``EXTRA_MAINTENANCE_DEFERRAL_GRANTED``
-     - .. _atlas_event_extra_maintenance_deferral_granted:
-
-       Admin granted an extra maintenance deferral for project
-     - no
-
-   * - ``FAILOVER_STUCK``
-     - .. _atlas_event_failover_stuck:
-
-       A standby cluster failover has been in progress longer than the configured threshold
-     - yes
-
-   * - ``FAILOVER_STUCK_RESOLVED``
-     - .. _atlas_event_failover_stuck_resolved:
-
-       A previously stuck standby cluster failover is no longer stuck
-     - no
-
-   * - ``FEATURE_FLAG_MAINTENANCE``
-     - .. _atlas_event_feature_flag_maintenance:
-
-       Feature Flag maintenance will bypass scheduled window
-     - no
-
-   * - ``FEDERATED_DATABASE_CREATED``
-     - .. _atlas_event_federated_database_created:
-
-       New Federated Database Instance created
-     - no
-
-   * - ``FEDERATED_DATABASE_QUERY_LOGS_DOWNLOADED``
-     - .. _atlas_event_federated_database_query_logs_downloaded:
-
-       User downloaded query logs for Federated Database Instance.
-     - no
-
-   * - ``FEDERATED_DATABASE_REMOVED``
-     - .. _atlas_event_federated_database_removed:
-
-       Federated Database Instance removed
-     - no
-
-   * - ``FEDERATED_DATABASE_UPDATED``
-     - .. _atlas_event_federated_database_updated:
-
-       Federated Database Instance updated
-     - no
-
-   * - ``FEDERATION_SETTINGS_CREATED``
-     - .. _atlas_event_federation_settings_created:
-
-       Federation settings have been created
-     - no
-
-   * - ``FEDERATION_SETTINGS_DELETED``
-     - .. _atlas_event_federation_settings_deleted:
-
-       Federation settings have been deleted
-     - no
-
-   * - ``FEDERATION_SETTINGS_UPDATED``
-     - .. _atlas_event_federation_settings_updated:
-
-       Federation settings have been updated
-     - no
-
-   * - ``FLEX_UPGRADE_STARTED``
-     - .. _atlas_event_flex_upgrade_started:
-
-       Flex cluster upgrade started
-     - no
-
-   * - ``FREE_UPGRADE_STARTED``
-     - .. _atlas_event_free_upgrade_started:
-
-       Free cluster upgrade started
-     - no
-
-   * - ``FTDC_SETTINGS_UPDATED``
-     - .. _atlas_event_ftdc_settings_updated:
-
-       FTDC export settings updated
-     - no
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``FTS_INDEXES_RESTORED``
      - .. _atlas_event_fts_indexes_restored:
@@ -2887,6 +2871,17 @@
 
        Search Index Updated
      - no
+
+GCP Event Types
+---------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``GCP_BILLING_ACCOUNT_CREDIT_ISSUED``
      - .. _atlas_event_gcp_billing_account_credit_issued:
@@ -3008,47 +3003,16 @@
        GCP Zone Appears Down
      - no
 
-   * - ``GLOBAL_SERVICE_ACCOUNT_SECRETS_EXPIRED``
-     - .. _atlas_event_global_service_account_secrets_expired:
+Group Event Types
+-----------------
 
-       Global Service Account Secrets have expired
-     - yes
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``GLOBAL_SERVICE_ACCOUNT_SECRETS_EXPIRING``
-     - .. _atlas_event_global_service_account_secrets_expiring:
-
-       Global Service Account Secrets are expiring
-     - yes
-
-   * - ``GLOBAL_SERVICE_ACCOUNT_SECRETS_NO_LONGER_EXPIRED``
-     - .. _atlas_event_global_service_account_secrets_no_longer_expired:
-
-       Global Service Account Secrets are no longer expired
-     - no
-
-   * - ``GLOBAL_SERVICE_ACCOUNT_SECRETS_NO_LONGER_EXPIRING``
-     - .. _atlas_event_global_service_account_secrets_no_longer_expiring:
-
-       Global Service Account Secrets are no longer expiring
-     - no
-
-   * - ``GOOD_CLUSTERSHOT``
-     - .. _atlas_event_good_clustershot:
-
-       Backup has a good clustershot
-     - no
-
-   * - ``GRACE_PERIOD_ACTIVATED``
-     - .. _atlas_event_grace_period_activated:
-
-       Grace period has been activated
-     - no
-
-   * - ``GRACE_PERIOD_NO_LONGER_IN_EFFECT``
-     - .. _atlas_event_grace_period_no_longer_in_effect:
-
-       Grace period is no longer in effect
-     - no
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``GROUP_ACTIVATED``
      - .. _atlas_event_group_activated:
@@ -3212,17 +3176,16 @@
        Project has been granted temporary access
      - no
 
-   * - ``HIDE_AND_DISABLE_HOST_AUDIT``
-     - .. _atlas_event_hide_and_disable_host_audit:
+Host Event Types
+----------------
 
-       Monitoring for host disabled and hidden
-     - no
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``HIDE_HOST_AUDIT``
-     - .. _atlas_event_hide_host_audit:
-
-       Monitoring for host hidden
-     - no
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``HOST_DOWN``
      - .. _atlas_event_host_down:
@@ -3464,329 +3427,22 @@
        A MongoDB employee requested an X509 certificate to perform support operations on a host in this Atlas project.
      - no
 
-   * - ``IDENTITY_PROVIDER_ACTIVATED``
-     - .. _atlas_event_identity_provider_activated:
+   * - ``NEW_HOST``
+     - .. _atlas_event_new_host:
 
-       Identity Provider was activated
+       Host is new
      - no
 
-   * - ``IDENTITY_PROVIDER_CREATED``
-     - .. _atlas_event_identity_provider_created:
-
-       Identity Provider was created
-     - no
-
-   * - ``IDENTITY_PROVIDER_DEACTIVATED``
-     - .. _atlas_event_identity_provider_deactivated:
-
-       Identity Provider was deactivated
-     - no
-
-   * - ``IDENTITY_PROVIDER_DELETED``
-     - .. _atlas_event_identity_provider_deleted:
-
-       Identity Provider was deleted
-     - no
-
-   * - ``IDENTITY_PROVIDER_JWKS_REVOKED``
-     - .. _atlas_event_identity_provider_jwks_revoked:
-
-       Identity Provider's JWKS was revoked
-     - no
-
-   * - ``IDENTITY_PROVIDER_UPDATED``
-     - .. _atlas_event_identity_provider_updated:
-
-       Identity Provider was updated
-     - no
-
-   * - ``INCONSISTENT_BACKUP_CONFIGURATION``
-     - .. _atlas_event_inconsistent_backup_configuration:
-
-       Inconsistent backup configuration has been detected
-     - yes
-
-   * - ``INDEPENDENT_SHARD_AUTO_SCALING_AVAILABLE``
-     - .. _atlas_event_independent_shard_auto_scaling_available:
-
-       Independent Shard AutoScaling is now available for a cluster
-     - no
-
-   * - ``INDEPENDENT_SHARD_SCALING_CLUSTER_MIGRATED``
-     - .. _atlas_event_independent_shard_scaling_cluster_migrated:
-
-       Cluster schema has been migrated to support Independent Shard Scaling
-     - no
-
-   * - ``INDEPENDENT_SHARD_SCALING_CLUSTER_ROLLED_BACK``
-     - .. _atlas_event_independent_shard_scaling_cluster_rolled_back:
-
-       Cluster schema has been rolled back and it no longer supports Independent Shard Scaling
-     - no
-
-   * - ``INDEX_FAILED_INDEX_BUILD``
-     - .. _atlas_event_index_failed_index_build:
-
-       Index build failed
-     - no
-
-   * - ``INDEX_SUCCESS_INDEX_BUILD``
-     - .. _atlas_event_index_success_index_build:
-
-       Index build succeeded
-     - no
-
-   * - ``INGESTION_PIPELINE_CREATED``
-     - .. _atlas_event_ingestion_pipeline_created:
-
-       Data Lake Pipeline created
-     - no
-
-   * - ``INGESTION_PIPELINE_DELETED``
-     - .. _atlas_event_ingestion_pipeline_deleted:
-
-       Data Lake Pipeline deleted
-     - no
-
-   * - ``INGESTION_PIPELINE_DESTROYED``
-     - .. _atlas_event_ingestion_pipeline_destroyed:
-
-       Data Lake Pipeline destroyed
-     - no
-
-   * - ``INGESTION_PIPELINE_UPDATED``
-     - .. _atlas_event_ingestion_pipeline_updated:
-
-       Data Lake Pipeline updated
-     - no
-
-   * - ``INITIAL_SYNC_FINISHED_AUDIT``
-     - .. _atlas_event_initial_sync_finished_audit:
-
-       Backup initial sync finished
-     - no
-
-   * - ``INITIAL_SYNC_STARTED_AUDIT``
-     - .. _atlas_event_initial_sync_started_audit:
-
-       Backup initial sync started
-     - no
-
-   * - ``INITIATE_SALESFORCE_SERVICE_CLOUD_SYNC``
-     - .. _atlas_event_initiate_salesforce_service_cloud_sync:
-
-       Organization sync with SFSC initiated
-     - no
-
-   * - ``INSIDE_FLEX_METRIC_THRESHOLD``
-     - .. _atlas_event_inside_flex_metric_threshold:
-
-       Flex metric inside threshold
-     - no
-
-   * - ``INSIDE_METRIC_THRESHOLD``
-     - .. _atlas_event_inside_metric_threshold:
-
-       Inside metric threshold
-     - no
-
-   * - ``INSIDE_REALM_METRIC_THRESHOLD``
-     - .. _atlas_event_inside_realm_metric_threshold:
-
-       App services metric inside threshold
-     - no
-
-   * - ``INSIDE_SERVERLESS_METRIC_THRESHOLD``
-     - .. _atlas_event_inside_serverless_metric_threshold:
-
-       Serverless metric inside threshold
-     - no
-
-   * - ``INSIDE_SPACE_USED_THRESHOLD``
-     - .. _atlas_event_inside_space_used_threshold:
-
-       Blockstore space used within threshold
-     - no
-
-   * - ``INSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD``
-     - .. _atlas_event_inside_stream_processor_metric_threshold:
-
-       Inside Stream Processor metric threshold
-     - no
-
-   * - ``INTEGRATION_CONFIGURED``
-     - .. _atlas_event_integration_configured:
-
-       A third party integration has been configured
-     - no
-
-   * - ``INTEGRATION_REMOVED``
-     - .. _atlas_event_integration_removed:
-
-       A third party integration has been removed
-     - no
-
-   * - ``INTERFACE_ENDPOINT_CREATED``
-     - .. _atlas_event_interface_endpoint_created:
-
-       Private endpoint created
-     - no
-
-   * - ``INTERFACE_ENDPOINT_DELETED``
-     - .. _atlas_event_interface_endpoint_deleted:
-
-       Private endpoint deleted
-     - no
-
-   * - ``INTERFACE_ENDPOINT_PATCHED``
-     - .. _atlas_event_interface_endpoint_patched:
-
-       Private endpoint patched
-     - no
-
-   * - ``INTERFACE_ENDPOINT_RETRIED``
-     - .. _atlas_event_interface_endpoint_retried:
-
-       Private endpoint retried
-     - no
-
-   * - ``INTER_NODE_DATA_VALIDATION_SUBMITTED_FOR_REPLICA_SET``
-     - .. _atlas_event_inter_node_data_validation_submitted_for_replica_set:
-
-       The replica set was submitted for inter node data validation
-     - no
-
-   * - ``INVITED_TO_GROUP``
-     - .. _atlas_event_invited_to_group:
-
-       User was invited to project
-     - no
-
-   * - ``INVITED_TO_ORG``
-     - .. _atlas_event_invited_to_org:
-
-       User was invited to organization
-     - no
-
-   * - ``INVITED_TO_TEAM``
-     - .. _atlas_event_invited_to_team:
-
-       User was invited to team
-     - no
-
-   * - ``INVOICE_ADDRESS_ADDED``
-     - .. _atlas_event_invoice_address_added:
-
-       Invoice address added
-     - no
-
-   * - ``INVOICE_ADDRESS_CHANGED``
-     - .. _atlas_event_invoice_address_changed:
-
-       Invoice address changed
-     - no
-
-   * - ``INVOICE_CLOSED``
-     - .. _atlas_event_invoice_closed:
-
-       Invoice closed
-     - no
-
-   * - ``JOB_CHANGE``
-     - .. _atlas_event_job_change:
-
-       Job changed
-     - no
-
-   * - ``JOINED_GROUP``
-     - .. _atlas_event_joined_group:
-
-       User joined the project
-     - yes
-
-   * - ``JOINED_ORG``
-     - .. _atlas_event_joined_org:
-
-       User joined the organization
-     - yes
-
-   * - ``JOINED_TEAM``
-     - .. _atlas_event_joined_team:
-
-       User joined the team
-     - no
-
-   * - ``JOIN_GROUP_REQUEST_APPROVED_AUDIT``
-     - .. _atlas_event_join_group_request_approved_audit:
-
-       Request to join project was approved
-     - no
-
-   * - ``JOIN_GROUP_REQUEST_DENIED_AUDIT``
-     - .. _atlas_event_join_group_request_denied_audit:
-
-       Request to join project was denied
-     - no
-
-   * - ``KMIP_KEY_ROTATION_SCHEDULED``
-     - .. _atlas_event_kmip_key_rotation_scheduled:
-
-       Rotating MongoDB Master Keys for Encryption at Rest
-     - no
-
-   * - ``LATE_WTC_SNAPSHOT``
-     - .. _atlas_event_late_wtc_snapshot:
-
-       Replica set has a late WiredTiger Checkpoint snapshot
-     - yes
-
-   * - ``LEGACY_REBILL_EXECUTED``
-     - .. _atlas_event_legacy_rebill_executed:
-
-       Legacy rebill completed
-     - no
-
-   * - ``LICENSE_ACCEPTED``
-     - .. _atlas_event_license_accepted:
-
-       License accepted
-     - no
-
-   * - ``LIFECYCLE_MANAGEMENT_POLICY_CREATED``
-     - .. _atlas_event_lifecycle_management_policy_created:
-
-       Lifecycle Management policy created
-     - no
-
-   * - ``LIFECYCLE_MANAGEMENT_POLICY_DELETED``
-     - .. _atlas_event_lifecycle_management_policy_deleted:
-
-       Lifecycle Management policy deleted
-     - no
-
-   * - ``LIFECYCLE_MANAGEMENT_POLICY_PAUSED``
-     - .. _atlas_event_lifecycle_management_policy_paused:
-
-       Lifecycle Management policy paused
-     - no
-
-   * - ``LIFECYCLE_MANAGEMENT_POLICY_PAUSE_REQUESTED``
-     - .. _atlas_event_lifecycle_management_policy_pause_requested:
-
-       Lifecycle Management policy pause requested
-     - no
-
-   * - ``LIFECYCLE_MANAGEMENT_POLICY_RESUMED``
-     - .. _atlas_event_lifecycle_management_policy_resumed:
-
-       Lifecycle Management policy resumed
-     - no
-
-   * - ``LIFECYCLE_MANAGEMENT_POLICY_UPDATED``
-     - .. _atlas_event_lifecycle_management_policy_updated:
-
-       Lifecycle Management policy updated
-     - no
+Log Event Types
+---------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``LOG_COLLECTION_REQUESTED``
      - .. _atlas_event_log_collection_requested:
@@ -3878,65 +3534,22 @@
        A node's log uploader service is inactive
      - yes
 
-   * - ``LOW_APP_DB_FREE_SPACE_PERCENT``
-     - .. _atlas_event_low_app_db_free_space_percent:
+Maintenance Event Types
+-----------------------
 
-       AppDB has low free disk space percentage
-     - yes
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``LOW_BLOCKSTORE_FREE_SPACE_PERCENT``
-     - .. _atlas_event_low_blockstore_free_space_percent:
+   * - Event Type
+     - Description
+     - Alertable?
 
-       Blockstore has low free disk space percentage
-     - yes
+   * - ``EXTRA_MAINTENANCE_DEFERRAL_GRANTED``
+     - .. _atlas_event_extra_maintenance_deferral_granted:
 
-   * - ``LOW_FILESYSTEM_STORE_FREE_SPACE_PERCENT``
-     - .. _atlas_event_low_filesystem_store_free_space_percent:
-
-       Filesystem store has low free disk space percentage
-     - yes
-
-   * - ``LOW_HEAD_FREE_SPACE``
-     - .. _atlas_event_low_head_free_space:
-
-       Backup Daemon has low free head space
-     - yes
-
-   * - ``LOW_HEAD_FREE_SPACE_PERCENT``
-     - .. _atlas_event_low_head_free_space_percent:
-
-       Backup Daemon has low free head space percentage
-     - yes
-
-   * - ``LOW_OPLOGSTORE_FREE_SPACE_PERCENT``
-     - .. _atlas_event_low_oplogstore_free_space_percent:
-
-       Oplogstore has low free disk space percentage
-     - yes
-
-   * - ``LOW_S3_BLOCKSTORE_METADATA_DB_FREE_SPACE_PERCENT``
-     - .. _atlas_event_low_s3_blockstore_metadata_db_free_space_percent:
-
-       S3 Blockstore metadata DB has low free disk space percentage
-     - yes
-
-   * - ``LOW_S3_OPLOGSTORE_METADATA_DB_FREE_SPACE_PERCENT``
-     - .. _atlas_event_low_s3_oplogstore_metadata_db_free_space_percent:
-
-       S3 Oplogstore metadata DB has low free disk space percentage
-     - yes
-
-   * - ``MAAS_QUERY_EVALUATED_FALSE``
-     - .. _atlas_event_maas_query_evaluated_false:
-
-       MaaS Query Evaluated to False
+       Admin granted an extra maintenance deferral for project
      - no
-
-   * - ``MAAS_QUERY_EVALUATED_TRUE``
-     - .. _atlas_event_maas_query_evaluated_true:
-
-       MaaS Query Evaluated to True
-     - yes
 
    * - ``MAINTENANCE_AUTO_DEFERRED``
      - .. _atlas_event_maintenance_auto_deferred:
@@ -3986,53 +3599,16 @@
        Project maintenance wave assignment removed
      - no
 
-   * - ``MAINTENANCE_WINDOW_ADDED_AUDIT``
-     - .. _atlas_event_maintenance_window_added_audit:
+MLAB Event Types
+----------------
 
-       Maintenance window configuration added
-     - no
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``MAINTENANCE_WINDOW_CHANGED_AUDIT``
-     - .. _atlas_event_maintenance_window_changed_audit:
-
-       Maintenance window configuration changed
-     - no
-
-   * - ``MAINTENANCE_WINDOW_DELETED_AUDIT``
-     - .. _atlas_event_maintenance_window_deleted_audit:
-
-       Maintenance window configuration deleted
-     - no
-
-   * - ``MARKETPLACE_REFUND_ISSUED``
-     - .. _atlas_event_marketplace_refund_issued:
-
-       Marketplace refund issued
-     - no
-
-   * - ``MATERIAL_CLUSTER_UPDATE_COMPLETED_INTERNAL``
-     - .. _atlas_event_material_cluster_update_completed_internal:
-
-       Material cluster update completed
-     - no
-
-   * - ``MAX_PROCESSOR_COUNT_REACHED``
-     - .. _atlas_event_max_processor_count_reached:
-
-       Processor limit reached for Stream Processing Workspace
-     - no
-
-   * - ``MEMBER_ADDED``
-     - .. _atlas_event_member_added:
-
-       Replica set member added
-     - no
-
-   * - ``MEMBER_REMOVED``
-     - .. _atlas_event_member_removed:
-
-       Replica set member removed
-     - no
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``MLAB_MIGRATION_COMPLETED``
      - .. _atlas_event_mlab_migration_completed:
@@ -4109,7 +3685,7 @@
    * - ``MLAB_MIGRATION_SUPPORT_PLAN_OPTED_OUT``
      - .. _atlas_event_mlab_migration_support_plan_opted_out:
 
-       mLab Migration: Opted out of support plan
+       MLab Migration: Opted out of support plan
      - no
 
    * - ``MLAB_MIGRATION_SUPPORT_PLAN_SELECTED``
@@ -4129,6 +3705,17 @@
 
        Migration target cluster set
      - no
+
+MongoDB Event Types
+-------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``MONGODB_LOGS_DOWNLOADED``
      - .. _atlas_event_mongodb_logs_downloaded:
@@ -4184,113 +3771,16 @@
        MongoDB user X509 certificate revoked
      - no
 
-   * - ``MONGOSQLD_LOGS_DOWNLOADED``
-     - .. _atlas_event_mongosqld_logs_downloaded:
+NDS Event Types
+---------------
 
-       User downloaded logs for a BI Connector instance in this project.
-     - no
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``MONGOTUNE_ALERT``
-     - .. _atlas_event_mongotune_alert:
-
-       Intelligent Workload Management has taken action on your cluster
-     - yes
-
-   * - ``MONGOTUNE_INFO``
-     - .. _atlas_event_mongotune_info:
-
-       Intelligent Workload Management informational event
-     - no
-
-   * - ``MONGOTUNE_WRITE_BLOCK_POLICY_ELIGIBLE``
-     - .. _atlas_event_mongotune_write_block_policy_eligible:
-
-       Write-blocking policy active on the cluster
-     - no
-
-   * - ``MONGOTUNE_WRITE_BLOCK_POLICY_INELIGIBLE``
-     - .. _atlas_event_mongotune_write_block_policy_ineligible:
-
-       Write-blocking policy inactive on the cluster
-     - no
-
-   * - ``MONGOT_LOGS_DOWNLOADED``
-     - .. _atlas_event_mongot_logs_downloaded:
-
-       User downloaded logs for a Search process in this project.
-     - no
-
-   * - ``MONITORING_AGENT_DOWN``
-     - .. _atlas_event_monitoring_agent_down:
-
-       Monitoring is down
-     - yes
-
-   * - ``MONITORING_AGENT_OVERRIDES``
-     - .. _atlas_event_monitoring_agent_overrides:
-
-       Admin set monitoring agent overrides
-     - no
-
-   * - ``MONITORING_AGENT_REBALANCE_FLAG``
-     - .. _atlas_event_monitoring_agent_rebalance_flag:
-
-       Admin flagged or cleared monitoring agent rebalance
-     - no
-
-   * - ``MONITORING_AGENT_REBALANCE_TRIGGERED``
-     - .. _atlas_event_monitoring_agent_rebalance_triggered:
-
-       Admin triggered immediate monitoring agent rebalance
-     - no
-
-   * - ``MONITORING_AGENT_UP``
-     - .. _atlas_event_monitoring_agent_up:
-
-       Monitoring is up
-     - no
-
-   * - ``MONITORING_AGENT_VERSION_BEHIND``
-     - .. _atlas_event_monitoring_agent_version_behind:
-
-       Monitoring does not have the latest version
-     - yes
-
-   * - ``MONITORING_AGENT_VERSION_CURRENT``
-     - .. _atlas_event_monitoring_agent_version_current:
-
-       Monitoring has the latest version
-     - no
-
-   * - ``MONTHLY_BILLING_CHANGE_NORMAL``
-     - .. _atlas_event_monthly_billing_change_normal:
-
-       Project monthly billing percentage change is below threshold
-     - no
-
-   * - ``MONTHLY_BILLING_CHANGE_OVER_THRESHOLD``
-     - .. _atlas_event_monthly_billing_change_over_threshold:
-
-       Project monthly billing has increased by more than the threshold percent
-     - yes
-
-   * - ``MOVE_SKIPPED``
-     - .. _atlas_event_move_skipped:
-
-       Move in progress was skipped
-     - no
-
-   * - ``MTM_CAPACITY_LOW``
-     - .. _atlas_event_mtm_capacity_low:
-
-       MTM capacity is low
-     - yes
-
-   * - ``MTM_CAPACITY_OK``
-     - .. _atlas_event_mtm_capacity_ok:
-
-       MTM capacity is ok
-     - no
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``NDS_SET_CHEF_TARBALL_URI``
      - .. _atlas_event_nds_set_chef_tarball_uri:
@@ -4340,71 +3830,16 @@
        X.509 User Authentication, Client Certificates Expiration Alert Resolved
      - no
 
-   * - ``NETWORK_PERMISSION_ENTRY_ADDED``
-     - .. _atlas_event_network_permission_entry_added:
+OAuth Event Types
+-----------------
 
-       Network permission entry added
-     - yes
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``NETWORK_PERMISSION_ENTRY_REMOVED``
-     - .. _atlas_event_network_permission_entry_removed:
-
-       Network permission entry removed
-     - yes
-
-   * - ``NETWORK_PERMISSION_ENTRY_UPDATED``
-     - .. _atlas_event_network_permission_entry_updated:
-
-       Network permission entry updated
-     - yes
-
-   * - ``NEW_AGENT``
-     - .. _atlas_event_new_agent:
-
-       New agent
-     - no
-
-   * - ``NEW_HOST``
-     - .. _atlas_event_new_host:
-
-       Host is new
-     - no
-
-   * - ``NEW_LINKED_ORG``
-     - .. _atlas_event_new_linked_org:
-
-       A new organization has been linked to this paying organization
-     - no
-
-   * - ``NODE_HIDDEN_BY_ADMIN``
-     - .. _atlas_event_node_hidden_by_admin:
-
-       Member of Replica Set is hidden by an admin
-     - no
-
-   * - ``NODE_ROLLING_RESYNC_SCHEDULED``
-     - .. _atlas_event_node_rolling_resync_scheduled:
-
-       Node rolling resync scheduled
-     - no
-
-   * - ``NODE_UNHIDDEN_BY_ADMIN``
-     - .. _atlas_event_node_unhidden_by_admin:
-
-       Member of Replica Set is unhidden by an admin
-     - no
-
-   * - ``NO_ACTIVE_LEGACY_TLS_CONNECTIONS``
-     - .. _atlas_event_no_active_legacy_tls_connections:
-
-       No clusters with minimum TLS version set to TLS 1.0 or TLS 1.1
-     - no
-
-   * - ``NO_PRIMARY``
-     - .. _atlas_event_no_primary:
-
-       Replica set has no primary
-     - yes
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``OAUTH_AUTHORIZATION_DENIED``
      - .. _atlas_event_oauth_authorization_denied:
@@ -4472,35 +3907,16 @@
        OAuth user consent revoked
      - no
 
-   * - ``OIDC_IDENTITY_PROVIDER_DISABLED``
-     - .. _atlas_event_oidc_identity_provider_disabled:
+Online Archive Event Types
+--------------------------
 
-       Identity Provider was disabled
-     - no
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``OIDC_IDENTITY_PROVIDER_ENABLED``
-     - .. _atlas_event_oidc_identity_provider_enabled:
-
-       Identity Provider was enabled
-     - no
-
-   * - ``OIDC_IDENTITY_PROVIDER_UPDATED``
-     - .. _atlas_event_oidc_identity_provider_updated:
-
-       Identity Provider configuration was updated
-     - no
-
-   * - ``ONDEMAND_SNAPSHOT_REQUESTED``
-     - .. _atlas_event_ondemand_snapshot_requested:
-
-       Ondemand Snapshot has been requested
-     - no
-
-   * - ``ONE_PRIMARY``
-     - .. _atlas_event_one_primary:
-
-       Replica set elected one primary
-     - no
+   * - Event Type
+     - Description
+     - Alertable?
 
    * - ``ONLINE_ARCHIVE_ACTIVE``
      - .. _atlas_event_online_archive_active:
@@ -4604,52 +4020,21 @@
        Online Archive up to date
      - no
 
-   * - ``OPERATIONS_CONTACT_MODIFIED``
-     - .. _atlas_event_operations_contact_modified:
+Organization Event Types
+------------------------
 
-       Atlas Operations Contact was modified
-     - no
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
 
-   * - ``OPLOG_BEHIND``
-     - .. _atlas_event_oplog_behind:
+   * - Event Type
+     - Description
+     - Alertable?
 
-       Backup oplog is behind
-     - yes
+   * - ``ALL_ORG_USERS_HAVE_MFA``
+     - .. _atlas_event_all_org_users_have_mfa:
 
-   * - ``OPLOG_CURRENT``
-     - .. _atlas_event_oplog_current:
-
-       Backup oplog is current
-     - no
-
-   * - ``OPLOG_STORE_CONFIG_CHANGE``
-     - .. _atlas_event_oplog_store_config_change:
-
-       Oplog store configuration changed
-     - no
-
-   * - ``OPLOG_STORE_DELETED``
-     - .. _atlas_event_oplog_store_deleted:
-
-       Oplog store deleted
-     - no
-
-   * - ``OPLOG_TTL_RESIZE``
-     - .. _atlas_event_oplog_ttl_resize:
-
-       Backup oplog TTL was resized
-     - yes
-
-   * - ``ORGANIZATION_VOYAGE_SETTINGS_CREATED``
-     - .. _atlas_event_organization_voyage_settings_created:
-
-       Organization Voyage settings have been created
-     - no
-
-   * - ``ORGANIZATION_VOYAGE_SETTINGS_DELETED``
-     - .. _atlas_event_organization_voyage_settings_deleted:
-
-       Organization Voyage settings have been deleted
+       All organization users have MFA enabled
      - no
 
    * - ``ORG_ACTIVATED``
@@ -4758,30 +4143,6 @@
      - .. _atlas_event_org_credit_card_updated:
 
        Credit card information was updated
-     - no
-
-   * - ``ORG_DAILY_BILLING_CHANGE_NORMAL``
-     - .. _atlas_event_org_daily_billing_change_normal:
-
-       Organization daily billing change is within normal threshold
-     - no
-
-   * - ``ORG_DAILY_BILLING_CHANGE_OVER_THRESHOLD``
-     - .. _atlas_event_org_daily_billing_change_over_threshold:
-
-       Organization daily billing has increased by more than the limit you set compared to previous day
-     - yes
-
-   * - ``ORG_DAILY_BILL_OVER_THRESHOLD``
-     - .. _atlas_event_org_daily_bill_over_threshold:
-
-       Amount billed yesterday is above the limit you set
-     - yes
-
-   * - ``ORG_DAILY_BILL_UNDER_THRESHOLD``
-     - .. _atlas_event_org_daily_bill_under_threshold:
-
-       Daily amount billed is below the limit you set
      - no
 
    * - ``ORG_DELEGATION_SETTINGS_UPDATED``
@@ -4915,18 +4276,6 @@
 
        This organization's MongoDB version end of life extension request is pending
      - no
-
-   * - ``ORG_MONTHLY_BILLING_CHANGE_NORMAL``
-     - .. _atlas_event_org_monthly_billing_change_normal:
-
-       Organization monthly billing change is within normal threshold
-     - no
-
-   * - ``ORG_MONTHLY_BILLING_CHANGE_OVER_THRESHOLD``
-     - .. _atlas_event_org_monthly_billing_change_over_threshold:
-
-       Organization monthly billing has increased by more than the limit you set compared to the previous 30 days
-     - yes
 
    * - ``ORG_NO_FINANCIAL_PROTECTION``
      - .. _atlas_event_org_no_financial_protection:
@@ -5120,17 +4469,1840 @@
        Organization maintenance wave assignment mode was set to: Manual
      - no
 
-   * - ``ORG_WEEKLY_BILLING_CHANGE_NORMAL``
-     - .. _atlas_event_org_weekly_billing_change_normal:
+Project Event Types
+-------------------
 
-       Organization weekly billing change is within normal threshold
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
+
+   * - ``PROJECT_BYPASSED_MAINTENANCE``
+     - .. _atlas_event_project_bypassed_maintenance:
+
+       Project maintenance will bypass scheduled window
      - no
 
-   * - ``ORG_WEEKLY_BILLING_CHANGE_OVER_THRESHOLD``
-     - .. _atlas_event_org_weekly_billing_change_over_threshold:
+   * - ``PROJECT_COLLECT_DATABASE_STATISTICS_UPDATED``
+     - .. _atlas_event_project_collect_database_statistics_updated:
 
-       Organization weekly billing has increased by more than the limit you set compared to the previous 7 days
+       Collect database specific statistics updated
+     - no
+
+   * - ``PROJECT_CREATED_VIA_ANIS``
+     - .. _atlas_event_project_created_via_anis:
+
+       Project created via Azure Native integration
+     - no
+
+   * - ``PROJECT_ENABLE_DATA_VALIDATION_UPDATED``
+     - .. _atlas_event_project_enable_data_validation_updated:
+
+       Data validation setting updated
+     - no
+
+   * - ``PROJECT_ENABLE_EXTENDED_STORAGE_SIZES_UPDATED``
+     - .. _atlas_event_project_enable_extended_storage_sizes_updated:
+
+       Enable extended storage sizes updated
+     - no
+
+   * - ``PROJECT_LIMIT_UPDATED``
+     - .. _atlas_event_project_limit_updated:
+
+       Project limit updated
+     - no
+
+   * - ``PROJECT_LIVE_IMPORT_OVERRIDES_ADDED``
+     - .. _atlas_event_project_live_import_overrides_added:
+
+       Project-level data migration overrides added
+     - no
+
+   * - ``PROJECT_LIVE_IMPORT_OVERRIDES_DELETED``
+     - .. _atlas_event_project_live_import_overrides_deleted:
+
+       Project-level data migration overrides deleted
+     - no
+
+   * - ``PROJECT_LIVE_IMPORT_OVERRIDES_UPDATED``
+     - .. _atlas_event_project_live_import_overrides_updated:
+
+       Project-level data migration overrides updated
+     - no
+
+   * - ``PROJECT_SCHEDULED_MAINTENANCE``
+     - .. _atlas_event_project_scheduled_maintenance:
+
+       Project scheduled maintenance will occur
+     - no
+
+   * - ``PROJECT_SCHEDULED_MAINTENANCE_OUTSIDE_OF_PROTECTED_HOURS``
+     - .. _atlas_event_project_scheduled_maintenance_outside_of_protected_hours:
+
+       Project scheduled maintenance outside of protected hours will occur
+     - no
+
+Serverless Event Types
+----------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
+
+   * - ``INSIDE_SERVERLESS_METRIC_THRESHOLD``
+     - .. _atlas_event_inside_serverless_metric_threshold:
+
+       Serverless metric inside threshold
+     - no
+
+   * - ``OUTSIDE_SERVERLESS_METRIC_THRESHOLD``
+     - .. _atlas_event_outside_serverless_metric_threshold:
+
+       Serverless metric outside threshold
      - yes
+
+   * - ``SERVERLESS_AUTO_SCALING_INITIATED``
+     - .. _atlas_event_serverless_auto_scaling_initiated:
+
+       Serverless auto-scale initiated
+     - no
+
+   * - ``SERVERLESS_DEPLOYMENT_CREATED``
+     - .. _atlas_event_serverless_deployment_created:
+
+       Serverless Deployment created
+     - no
+
+   * - ``SERVERLESS_DEPLOYMENT_DELETED``
+     - .. _atlas_event_serverless_deployment_deleted:
+
+       Serverless Deployment deleted
+     - no
+
+   * - ``SERVERLESS_DEPLOYMENT_ENDPOINT_SERVICE_LINKED``
+     - .. _atlas_event_serverless_deployment_endpoint_service_linked:
+
+       Serverless Deployment Endpoint Service linked
+     - no
+
+   * - ``SERVERLESS_DEPLOYMENT_ENDPOINT_SERVICE_UNLINKED``
+     - .. _atlas_event_serverless_deployment_endpoint_service_unlinked:
+
+       Serverless Deployment Endpoint Service unlinked
+     - no
+
+   * - ``SERVERLESS_DEPLOYMENT_ENVOY_INSTANCE_UIS_KEYS_ROTATED``
+     - .. _atlas_event_serverless_deployment_envoy_instance_uis_keys_rotated:
+
+       Serverless Deployment Envoy Instance UIS Keys Rotated
+     - no
+
+   * - ``SERVERLESS_DEPLOYMENT_INSTANCE_REBOOTED``
+     - .. _atlas_event_serverless_deployment_instance_rebooted:
+
+       Serverless Deployment Instance rebooted
+     - no
+
+   * - ``SERVERLESS_DEPLOYMENT_INSTANCE_REPLACED``
+     - .. _atlas_event_serverless_deployment_instance_replaced:
+
+       Serverless Deployment Instance replaced
+     - no
+
+   * - ``SERVERLESS_DEPLOYMENT_UPDATED``
+     - .. _atlas_event_serverless_deployment_updated:
+
+       Serverless Deployment updated
+     - no
+
+   * - ``SERVERLESS_HORIZONTAL_SCALING_INITIATED``
+     - .. _atlas_event_serverless_horizontal_scaling_initiated:
+
+       Serverless horizontal scale initiated
+     - no
+
+   * - ``SERVERLESS_INSTANCE_CREATED``
+     - .. _atlas_event_serverless_instance_created:
+
+       New serverless instance created
+     - no
+
+   * - ``SERVERLESS_INSTANCE_DELETED``
+     - .. _atlas_event_serverless_instance_deleted:
+
+       Serverless instance deleted
+     - no
+
+   * - ``SERVERLESS_INSTANCE_DELETE_SUBMITTED``
+     - .. _atlas_event_serverless_instance_delete_submitted:
+
+       Serverless instance delete submitted
+     - no
+
+   * - ``SERVERLESS_INSTANCE_READY``
+     - .. _atlas_event_serverless_instance_ready:
+
+       New serverless instance ready to use
+     - no
+
+   * - ``SERVERLESS_INSTANCE_UNBLOCKED``
+     - .. _atlas_event_serverless_instance_unblocked:
+
+       Admin removed block request on a serverless instance.
+     - no
+
+   * - ``SERVERLESS_INSTANCE_UPDATE_COMPLETED``
+     - .. _atlas_event_serverless_instance_update_completed:
+
+       Serverless instance update completed
+     - no
+
+   * - ``SERVERLESS_INSTANCE_UPDATE_STARTED``
+     - .. _atlas_event_serverless_instance_update_started:
+
+       Serverless instance update started
+     - no
+
+   * - ``SERVERLESS_INSTANCE_UPDATE_SUBMITTED``
+     - .. _atlas_event_serverless_instance_update_submitted:
+
+       Serverless instance update submitted
+     - no
+
+   * - ``SERVERLESS_MTM_DRAIN_COMPLETED``
+     - .. _atlas_event_serverless_mtm_drain_completed:
+
+       Serverless MTM drain completed
+     - no
+
+   * - ``SERVERLESS_MTM_DRAIN_INITIATED``
+     - .. _atlas_event_serverless_mtm_drain_initiated:
+
+       Serverless MTM drain initiated
+     - no
+
+   * - ``SERVERLESS_MTM_DRAIN_REQUESTED``
+     - .. _atlas_event_serverless_mtm_drain_requested:
+
+       Serverless MTM drain requested
+     - no
+
+   * - ``SERVERLESS_MTM_DRAIN_STOPPED``
+     - .. _atlas_event_serverless_mtm_drain_stopped:
+
+       Serverless MTM drain stopped
+     - no
+
+   * - ``SERVERLESS_UPGRADE_STARTED``
+     - .. _atlas_event_serverless_upgrade_started:
+
+       Serverless instance upgrade started
+     - no
+
+   * - ``SERVERLESS_UPGRADE_TO_DEDICATED_FAILED``
+     - .. _atlas_event_serverless_upgrade_to_dedicated_failed:
+
+       Serverless instance upgrade to Dedicated cluster failed
+     - no
+
+   * - ``SERVERLESS_UPGRADE_TO_DEDICATED_SUCCESSFUL``
+     - .. _atlas_event_serverless_upgrade_to_dedicated_successful:
+
+       Serverless instance upgrade to Dedicated cluster succeeded
+     - no
+
+   * - ``SERVERLESS_VERTICAL_SCALING_INITIATED``
+     - .. _atlas_event_serverless_vertical_scaling_initiated:
+
+       Serverless vertical scale initiated
+     - no
+
+Service Event Types
+-------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
+
+   * - ``SERVICE_ACCOUNT_ACCESS_LIST_ENTRY_ADDED``
+     - .. _atlas_event_service_account_access_list_entry_added:
+
+       Service Account Access List Entry Added
+     - no
+
+   * - ``SERVICE_ACCOUNT_ACCESS_LIST_ENTRY_DELETED``
+     - .. _atlas_event_service_account_access_list_entry_deleted:
+
+       Service Account Access List Entry Deleted
+     - no
+
+   * - ``SERVICE_ACCOUNT_ADDED_TO_GROUP``
+     - .. _atlas_event_service_account_added_to_group:
+
+       Service Account added to Project
+     - no
+
+   * - ``SERVICE_ACCOUNT_CREATED``
+     - .. _atlas_event_service_account_created:
+
+       Service Account has been created
+     - no
+
+   * - ``SERVICE_ACCOUNT_DELETED``
+     - .. _atlas_event_service_account_deleted:
+
+       Service Account has been deleted
+     - no
+
+   * - ``SERVICE_ACCOUNT_DETAILS_CHANGED``
+     - .. _atlas_event_service_account_details_changed:
+
+       Service Account Details have been changed
+     - no
+
+   * - ``SERVICE_ACCOUNT_REMOVED_FROM_GROUP``
+     - .. _atlas_event_service_account_removed_from_group:
+
+       Service Account removed from Project
+     - no
+
+   * - ``SERVICE_ACCOUNT_ROLES_CHANGED``
+     - .. _atlas_event_service_account_roles_changed:
+
+       Service Account had its roles changed
+     - no
+
+   * - ``SERVICE_ACCOUNT_SECRET_ADDED``
+     - .. _atlas_event_service_account_secret_added:
+
+       Service Account Secret Added
+     - no
+
+   * - ``SERVICE_ACCOUNT_SECRET_DELETED``
+     - .. _atlas_event_service_account_secret_deleted:
+
+       Service Account Secret Deleted
+     - no
+
+   * - ``SERVICE_ACCOUNT_UI_IP_ACCESS_LIST_INHERITANCE_DISABLED``
+     - .. _atlas_event_service_account_ui_ip_access_list_inheritance_disabled:
+
+       Service Account UI IP access list inheritance disabled
+     - no
+
+   * - ``SERVICE_ACCOUNT_UI_IP_ACCESS_LIST_INHERITANCE_ENABLED``
+     - .. _atlas_event_service_account_ui_ip_access_list_inheritance_enabled:
+
+       Service Account UI IP access list inheritance enabled
+     - no
+
+Stream Event Types
+------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
+
+   * - ``INSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD``
+     - .. _atlas_event_inside_stream_processor_metric_threshold:
+
+       Inside Stream Processor metric threshold
+     - no
+
+   * - ``OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD``
+     - .. _atlas_event_outside_stream_processor_metric_threshold:
+
+       Outside Stream Processor metric threshold
+     - yes
+
+   * - ``STREAM_PROCESSOR_STARTED``
+     - .. _atlas_event_stream_processor_started:
+
+       Stream Processor started
+     - no
+
+   * - ``STREAM_PROCESSOR_STATE_IS_FAILED``
+     - .. _atlas_event_stream_processor_state_is_failed:
+
+       Stream Processor State is failed
+     - yes
+
+   * - ``STREAM_TENANT_CONNECTIONS_LISTED``
+     - .. _atlas_event_stream_tenant_connections_listed:
+
+       Stream Processing Workspace connections listed
+     - no
+
+   * - ``STREAM_TENANT_CONNECTION_CREATED``
+     - .. _atlas_event_stream_tenant_connection_created:
+
+       Stream Processing Workspace connection created
+     - no
+
+   * - ``STREAM_TENANT_CONNECTION_DELETED``
+     - .. _atlas_event_stream_tenant_connection_deleted:
+
+       Stream Processing Workspace connection deleted
+     - no
+
+   * - ``STREAM_TENANT_CONNECTION_UPDATED``
+     - .. _atlas_event_stream_tenant_connection_updated:
+
+       Stream Processing Workspace connection updated
+     - no
+
+   * - ``STREAM_TENANT_CONNECTION_VIEWED``
+     - .. _atlas_event_stream_tenant_connection_viewed:
+
+       Stream Processing Workspace connection viewed
+     - no
+
+   * - ``STREAM_TENANT_CREATED``
+     - .. _atlas_event_stream_tenant_created:
+
+       Stream Processing Workspace created
+     - no
+
+   * - ``STREAM_TENANT_DELETED``
+     - .. _atlas_event_stream_tenant_deleted:
+
+       Stream Processing Workspace deleted
+     - no
+
+   * - ``STREAM_TENANT_OPERATIONAL_LOGS``
+     - .. _atlas_event_stream_tenant_operational_logs:
+
+       Stream Processing Workspace operational logs downloaded
+     - no
+
+   * - ``STREAM_TENANT_UPDATED``
+     - .. _atlas_event_stream_tenant_updated:
+
+       Stream Processing Workspace updated
+     - no
+
+Tenant Event Types
+------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
+
+   * - ``TENANT_ENDPOINT_AVAILABLE``
+     - .. _atlas_event_tenant_endpoint_available:
+
+       Endpoint transitioned to available
+     - no
+
+   * - ``TENANT_ENDPOINT_CREATED``
+     - .. _atlas_event_tenant_endpoint_created:
+
+       Endpoint created
+     - no
+
+   * - ``TENANT_ENDPOINT_DELETED``
+     - .. _atlas_event_tenant_endpoint_deleted:
+
+       Endpoint deleted
+     - no
+
+   * - ``TENANT_ENDPOINT_DELETING``
+     - .. _atlas_event_tenant_endpoint_deleting:
+
+       Endpoint deleting
+     - no
+
+   * - ``TENANT_ENDPOINT_EXPIRED``
+     - .. _atlas_event_tenant_endpoint_expired:
+
+       Endpoint marked for deletion due to incomplete setup
+     - no
+
+   * - ``TENANT_ENDPOINT_FAILED``
+     - .. _atlas_event_tenant_endpoint_failed:
+
+       Endpoint transitioned to failed
+     - no
+
+   * - ``TENANT_ENDPOINT_INITIATING``
+     - .. _atlas_event_tenant_endpoint_initiating:
+
+       Endpoint transitioned to initiating
+     - no
+
+   * - ``TENANT_ENDPOINT_RESERVATION_FAILED``
+     - .. _atlas_event_tenant_endpoint_reservation_failed:
+
+       Endpoint service reservation failed
+     - no
+
+   * - ``TENANT_ENDPOINT_RESERVED``
+     - .. _atlas_event_tenant_endpoint_reserved:
+
+       Endpoint transitioned to reserved
+     - no
+
+   * - ``TENANT_ENDPOINT_SERVICE_AVAILABLE``
+     - .. _atlas_event_tenant_endpoint_service_available:
+
+       Tenant endpoint service available
+     - no
+
+   * - ``TENANT_ENDPOINT_SERVICE_CREATED``
+     - .. _atlas_event_tenant_endpoint_service_created:
+
+       Tenant endpoint service created, but not available
+     - no
+
+   * - ``TENANT_ENDPOINT_SERVICE_DELETED``
+     - .. _atlas_event_tenant_endpoint_service_deleted:
+
+       Tenant endpoint service deleted
+     - no
+
+   * - ``TENANT_ENDPOINT_SERVICE_DEPLOYMENT_CREATED``
+     - .. _atlas_event_tenant_endpoint_service_deployment_created:
+
+       Tenant endpoint service deployment created
+     - no
+
+   * - ``TENANT_ENDPOINT_SERVICE_DEPLOYMENT_DELETED``
+     - .. _atlas_event_tenant_endpoint_service_deployment_deleted:
+
+       Tenant endpoint service deployment deleted
+     - no
+
+   * - ``TENANT_ENDPOINT_SERVICE_DEPLOYMENT_DELETE_REQUESTED``
+     - .. _atlas_event_tenant_endpoint_service_deployment_delete_requested:
+
+       Tenant endpoint service deployment deletion requested
+     - no
+
+   * - ``TENANT_ENDPOINT_SERVICE_DEPLOYMENT_NUM_DESIRED_ENDPOINT_SERVICES_INCREASED``
+     - .. _atlas_event_tenant_endpoint_service_deployment_num_desired_endpoint_services_increased:
+
+       Tenant endpoint service deployment num desired endpoint services increased
+     - no
+
+   * - ``TENANT_ENDPOINT_UPDATED``
+     - .. _atlas_event_tenant_endpoint_updated:
+
+       Endpoint updated
+     - no
+
+   * - ``TENANT_RESTORE_FAILED``
+     - .. _atlas_event_tenant_restore_failed:
+
+       Tenant restore failed
+     - no
+
+   * - ``TENANT_SNAPSHOT_FAILED``
+     - .. _atlas_event_tenant_snapshot_failed:
+
+       Tenant snapshot failed
+     - no
+
+   * - ``TENANT_UPGRADE_TO_SERVERLESS_FAILED``
+     - .. _atlas_event_tenant_upgrade_to_serverless_failed:
+
+       Shared cluster upgrade to serverless failed
+     - yes
+
+   * - ``TENANT_UPGRADE_TO_SERVERLESS_SUCCESSFUL``
+     - .. _atlas_event_tenant_upgrade_to_serverless_successful:
+
+       Shared cluster upgrade to serverless succeeded
+     - yes
+
+Vercel Event Types
+------------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
+
+   * - ``VERCEL_INVOICE_CREATED``
+     - .. _atlas_event_vercel_invoice_created:
+
+       Vercel Invoice Created
+     - no
+
+   * - ``VERCEL_INVOICE_NOT_PAID``
+     - .. _atlas_event_vercel_invoice_not_paid:
+
+       Vercel Invoice Not Paid
+     - no
+
+   * - ``VERCEL_INVOICE_OVERDUE``
+     - .. _atlas_event_vercel_invoice_overdue:
+
+       Vercel Invoice Overdue
+     - no
+
+   * - ``VERCEL_INVOICE_PAID``
+     - .. _atlas_event_vercel_invoice_paid:
+
+       Vercel Invoice Paid
+     - no
+
+   * - ``VERCEL_INVOICE_REFUNDED``
+     - .. _atlas_event_vercel_invoice_refunded:
+
+       Vercel Invoice Refunded
+     - no
+
+   * - ``VERCEL_SELF_SERVE_ACCOUNT_CANCELLED``
+     - .. _atlas_event_vercel_self_serve_account_cancelled:
+
+       Vercel Subscription Cancelled
+     - no
+
+   * - ``VERCEL_SELF_SERVE_ACCOUNT_LINKED``
+     - .. _atlas_event_vercel_self_serve_account_linked:
+
+       Vercel Subscription Linked
+     - no
+
+   * - ``VERCEL_SELF_SERVE_ACCOUNT_LINK_FAILED``
+     - .. _atlas_event_vercel_self_serve_account_link_failed:
+
+       Vercel Subscription Link Failed
+     - no
+
+   * - ``VERCEL_SELF_SERVE_ACCOUNT_LINK_PENDING``
+     - .. _atlas_event_vercel_self_serve_account_link_pending:
+
+       Vercel Subscription Link Pending
+     - no
+
+   * - ``VERCEL_USAGE_REPORTED``
+     - .. _atlas_event_vercel_usage_reported:
+
+       Vercel Usage Reported
+     - no
+
+Other Event Types
+-----------------
+
+.. list-table::
+   :header-rows: 1
+   :widths: 40 35 10
+
+   * - Event Type
+     - Description
+     - Alertable?
+
+   * - ``ACTIVE_LEGACY_TLS_CONNECTIONS``
+     - .. _atlas_event_active_legacy_tls_connections:
+
+       Clusters with minimum TLS version set to TLS 1.0 or TLS 1.1 detected
+     - yes
+
+   * - ``ADMIN_CLUSTER_LOCK_UPDATED``
+     - .. _atlas_event_admin_cluster_lock_updated:
+
+       Admin updated admin cluster lock
+     - no
+
+   * - ``ADMIN_OVERRIDE_PAYMENT_METHOD_DELETED``
+     - .. _atlas_event_admin_override_payment_method_deleted:
+
+       Admin Override payment method deleted
+     - no
+
+   * - ``ADMIN_OVERRIDE_PAYMENT_METHOD_EXPIRED``
+     - .. _atlas_event_admin_override_payment_method_expired:
+
+       Admin Override payment method expired automatically
+     - no
+
+   * - ``AGENT_FORCE_RESTART_REQUESTED``
+     - .. _atlas_event_agent_force_restart_requested:
+
+       Operator requested force restart of automation agents for cluster
+     - no
+
+   * - ``ALERT_HOST_SSH_SESSION_STARTED``
+     - .. _atlas_event_alert_host_ssh_session_started:
+
+       A MongoDB employee started an SSH session started for a host in this Atlas project.
+     - yes
+
+   * - ``ALL_USERS_HAVE_MULTI_FACTOR_AUTH``
+     - .. _atlas_event_all_users_have_multi_factor_auth:
+
+       All users have multi-factor authentication enabled
+     - no
+
+   * - ``AUTOMATION_AGENT_DOWN``
+     - .. _atlas_event_automation_agent_down:
+
+       MongoDB Agent/Automation Module is down
+     - yes
+
+   * - ``AUTOMATION_AGENT_UP``
+     - .. _atlas_event_automation_agent_up:
+
+       MongoDB Agent/Automation Module is up
+     - no
+
+   * - ``AZ_BALANCING_OVERRIDE_MODIFIED``
+     - .. _atlas_event_az_balancing_override_modified:
+
+       AZ Balancing Group Override setting updated
+     - no
+
+   * - ``BACKINGDB_DEFAULTRW_CONCERN_VERIFICATION_FAILED``
+     - .. _atlas_event_backingdb_defaultrw_concern_verification_failed:
+
+       AppDB default Read/Write concerns are not set to recommended values
+     - yes
+
+   * - ``BACKINGDB_DEFAULTRW_CONCERN_VERIFICATION_PASSED``
+     - .. _atlas_event_backingdb_defaultrw_concern_verification_passed:
+
+       AppDB default Read/Write concerns are set to recommended values
+     - no
+
+   * - ``BACKING_DATABASE_PROCESS_DOWN``
+     - .. _atlas_event_backing_database_process_down:
+
+       Detected a problem connecting to a database backing the system
+     - yes
+
+   * - ``BACKING_DATABASE_PROCESS_NO_STARTUP_WARNINGS``
+     - .. _atlas_event_backing_database_process_no_startup_warnings:
+
+       Detected no startup warnings on the databases backing the system
+     - no
+
+   * - ``BACKING_DATABASE_PROCESS_STARTUP_WARNINGS``
+     - .. _atlas_event_backing_database_process_startup_warnings:
+
+       Detected startup warnings on a database backing the system
+     - yes
+
+   * - ``BACKING_DATABASE_PROCESS_UP``
+     - .. _atlas_event_backing_database_process_up:
+
+       Successfully connected to a database backing the system
+     - no
+
+   * - ``BAD_CLUSTERSHOTS``
+     - .. _atlas_event_bad_clustershots:
+
+       Backup has possibly inconsistent cluster snapshots
+     - yes
+
+   * - ``BALANCER_OFF``
+     - .. _atlas_event_balancer_off:
+
+       Blockstore does not have a running balancer
+     - no
+
+   * - ``BALANCER_ON``
+     - .. _atlas_event_balancer_on:
+
+       Blockstore has a running balancer
+     - yes
+
+   * - ``BECAME_LINKED_ORG``
+     - .. _atlas_event_became_linked_org:
+
+       Organization has become a linked organization
+     - no
+
+   * - ``BECAME_PAYING_ORG``
+     - .. _atlas_event_became_paying_org:
+
+       Organization has become a paying organization
+     - no
+
+   * - ``BI_CONNECTOR_DOWN``
+     - .. _atlas_event_bi_connector_down:
+
+       BI Connector is down
+     - yes
+
+   * - ``BI_CONNECTOR_UP``
+     - .. _atlas_event_bi_connector_up:
+
+       BI Connector is up
+     - no
+
+   * - ``BRAINTREE_CHARGE_FAILED``
+     - .. _atlas_event_braintree_charge_failed:
+
+       PayPal charge has failed
+     - no
+
+   * - ``BREAK_JOB``
+     - .. _atlas_event_break_job:
+
+       Break job
+     - no
+
+   * - ``BULK_HEAD_MOVE``
+     - .. _atlas_event_bulk_head_move:
+
+       Bulk head move
+     - no
+
+   * - ``BUMPER_FILE_REMOVAL_NODE_NOT_REINFLATED_FOR_TWO_DAYS``
+     - .. _atlas_event_bumper_file_removal_node_not_reinflated_for_two_days:
+
+       A node's bumper files have not been re-inflated for more than 48 hours
+     - yes
+
+   * - ``BUMPER_FILE_REMOVAL_NODE_REINFLATED``
+     - .. _atlas_event_bumper_file_removal_node_reinflated:
+
+       A node's bumper files have been re-inflated
+     - no
+
+   * - ``CASE_CREATED``
+     - .. _atlas_event_case_created:
+
+       Case created.
+     - no
+
+   * - ``CHARGE_FAILED``
+     - .. _atlas_event_charge_failed:
+
+       Credit card charge has failed
+     - no
+
+   * - ``CHARGE_PENDING_REVERSAL``
+     - .. _atlas_event_charge_pending_reversal:
+
+       Payment has entered a pending reversal state
+     - no
+
+   * - ``CHARGE_PROCESSING``
+     - .. _atlas_event_charge_processing:
+
+       Payment has entered a processing state
+     - no
+
+   * - ``CHARGE_SUCCEEDED``
+     - .. _atlas_event_charge_succeeded:
+
+       Credit card was successfully charged
+     - no
+
+   * - ``CHARTS_API_FAILURE``
+     - .. _atlas_event_charts_api_failure:
+
+       Charts API request failed
+     - no
+
+   * - ``CHARTS_API_SUCCESS``
+     - .. _atlas_event_charts_api_success:
+
+       Charts API request succeeded
+     - no
+
+   * - ``CHARTS_DASHBOARD_EXPORTED``
+     - .. _atlas_event_charts_dashboard_exported:
+
+       Dashboard exported
+     - no
+
+   * - ``CHARTS_DASHBOARD_EXPORT_FAILED``
+     - .. _atlas_event_charts_dashboard_export_failed:
+
+       Dashboard export failed
+     - no
+
+   * - ``CHARTS_DASHBOARD_IMPORTED``
+     - .. _atlas_event_charts_dashboard_imported:
+
+       Dashboard imported
+     - no
+
+   * - ``CHARTS_DASHBOARD_IMPORT_FAILED``
+     - .. _atlas_event_charts_dashboard_import_failed:
+
+       Dashboard import failed
+     - no
+
+   * - ``CHECK_PAYMENT_RECEIVED``
+     - .. _atlas_event_check_payment_received:
+
+       Invoice has been paid by check
+     - no
+
+   * - ``CONFIGURATION_CHANGED``
+     - .. _atlas_event_configuration_changed:
+
+       Replica set has an updated version configuration
+     - no
+
+   * - ``CONSISTENT_BACKUP_CONFIGURATION``
+     - .. _atlas_event_consistent_backup_configuration:
+
+       Backup configuration is consistent
+     - no
+
+   * - ``CONTAINER_DELETED``
+     - .. _atlas_event_container_deleted:
+
+       Cloud Provider container deleted
+     - no
+
+   * - ``CONTAINER_SUBNETS_UPDATE_REQUESTED``
+     - .. _atlas_event_container_subnets_update_requested:
+
+       Container subnets update requested
+     - no
+
+   * - ``CRON_JOB_COMPLETED``
+     - .. _atlas_event_cron_job_completed:
+
+       Cron job has completed successfully
+     - no
+
+   * - ``CRON_JOB_DISABLED``
+     - .. _atlas_event_cron_job_disabled:
+
+       Cron job disabled
+     - yes
+
+   * - ``CRON_JOB_ENABLED``
+     - .. _atlas_event_cron_job_enabled:
+
+       Cron job enabled
+     - no
+
+   * - ``CRON_JOB_FAILED``
+     - .. _atlas_event_cron_job_failed:
+
+       Cron job has failed
+     - yes
+
+   * - ``CROSS_ORG_OPERATION_TICKET_TRACKING``
+     - .. _atlas_event_cross_org_operation_ticket_tracking:
+
+       Cross-org operation JIRA ticket tracking (Admin Only)
+     - no
+
+   * - ``CROSS_REGION_SUPPORTED_REGION_MODIFIED``
+     - .. _atlas_event_cross_region_supported_region_modified:
+
+       Cross-region private endpoint supported region modified
+     - no
+
+   * - ``CUSTOMER_X509_CRL_UPDATED``
+     - .. _atlas_event_customer_x509_crl_updated:
+
+       Self-managed X509 CRL updated
+     - no
+
+   * - ``CUSTOM_SESSION_TIMEOUT_MODIFIED``
+     - .. _atlas_event_custom_session_timeout_modified:
+
+       Custom Session Timeout was set/modified.
+     - no
+
+   * - ``DAEMON_CONFIG_CHANGE``
+     - .. _atlas_event_daemon_config_change:
+
+       Daemon configuration changed
+     - no
+
+   * - ``DAEMON_DELETED``
+     - .. _atlas_event_daemon_deleted:
+
+       Daemon deleted
+     - no
+
+   * - ``DAEMON_DOWN``
+     - .. _atlas_event_daemon_down:
+
+       Backup Daemon is down
+     - yes
+
+   * - ``DAEMON_STARTED``
+     - .. _atlas_event_daemon_started:
+
+       A backup daemon started.
+     - no
+
+   * - ``DAEMON_UP``
+     - .. _atlas_event_daemon_up:
+
+       Backup Daemon is up
+     - no
+
+   * - ``DATADOG_LOG_STREAMING_CONFIGURATION_UPDATED``
+     - .. _atlas_event_datadog_log_streaming_configuration_updated:
+
+       Datadog Log Streaming configuration updated
+     - no
+
+   * - ``DATADOG_LOG_STREAMING_DISABLED``
+     - .. _atlas_event_datadog_log_streaming_disabled:
+
+       Datadog Log Streaming disabled
+     - no
+
+   * - ``DATADOG_LOG_STREAMING_ENABLED``
+     - .. _atlas_event_datadog_log_streaming_enabled:
+
+       Datadog Log Streaming enabled
+     - no
+
+   * - ``DB_CHECK_DEFERRED_FOR_CLUSTER``
+     - .. _atlas_event_db_check_deferred_for_cluster:
+
+       Cluster was deferred for DB Check
+     - no
+
+   * - ``DB_CHECK_SCHEDULED_FOR_CLUSTER``
+     - .. _atlas_event_db_check_scheduled_for_cluster:
+
+       Cluster was scheduled for DB Check
+     - no
+
+   * - ``DB_CHECK_UPDATED``
+     - .. _atlas_event_db_check_updated:
+
+       DbCheck was updated
+     - no
+
+   * - ``DELINQUENT``
+     - .. _atlas_event_delinquent:
+
+       Service suspended due to unpaid invoice(s) more than 30 days old
+     - no
+
+   * - ``DEPLOYMENT_FAILURE``
+     - .. _atlas_event_deployment_failure:
+
+       A user (or Code Deployment) attempted to deploy changes but encountered an error
+     - yes
+
+   * - ``DEPLOYMENT_MODEL_CHANGE_FAILURE``
+     - .. _atlas_event_deployment_model_change_failure:
+
+       A user has failed to change the deployment model for an App Service
+     - yes
+
+   * - ``DEPLOYMENT_MODEL_CHANGE_SUCCESS``
+     - .. _atlas_event_deployment_model_change_success:
+
+       A user has successfully changed the deployment model for an App Service
+     - yes
+
+   * - ``DEVICE_SYNC_DEBUG_ACCESS_GRANTED``
+     - .. _atlas_event_device_sync_debug_access_granted:
+
+       Granted temporary sync data access to MongoDB Support for 24 hours
+     - no
+
+   * - ``DEVICE_SYNC_DEBUG_ACCESS_REVOKED``
+     - .. _atlas_event_device_sync_debug_access_revoked:
+
+       Revoked temporary sync data access to MongoDB Support
+     - no
+
+   * - ``DEVICE_SYNC_DEBUG_X509_CERT_CREATED``
+     - .. _atlas_event_device_sync_debug_x509_cert_created:
+
+       Created an X.509 certificate for device sync data access
+     - no
+
+   * - ``DISABLE_BACKUP_PRIVATELINK_EVENT``
+     - .. _atlas_event_disable_backup_privatelink_event:
+
+       User DISABLED AWS PrivateLink for backup.
+     - no
+
+   * - ``DISCOUNT_APPLIED``
+     - .. _atlas_event_discount_applied:
+
+       Discount applied
+     - no
+
+   * - ``DISK_AUTO_SCALE_INITIATED``
+     - .. _atlas_event_disk_auto_scale_initiated:
+
+       Disk auto-scaling initiated
+     - yes
+
+   * - ``DISK_AUTO_SCALE_MAX_DISK_SIZE_FAIL``
+     - .. _atlas_event_disk_auto_scale_max_disk_size_fail:
+
+       Disk auto-scaling did not initiate due to the cluster reaching maximum available disk size
+     - yes
+
+   * - ``DISK_AUTO_SCALE_OPLOG_FAIL``
+     - .. _atlas_event_disk_auto_scale_oplog_fail:
+
+       Disk auto-scaling did not initiate due to insufficient oplog size
+     - yes
+
+   * - ``DOMAINS_ASSOCIATED``
+     - .. _atlas_event_domains_associated:
+
+       Domains were associated with the Identity Provider
+     - no
+
+   * - ``DOMAIN_CREATED``
+     - .. _atlas_event_domain_created:
+
+       Domain was created
+     - no
+
+   * - ``DOMAIN_DELETED``
+     - .. _atlas_event_domain_deleted:
+
+       Domain was deleted
+     - no
+
+   * - ``DOMAIN_VERIFIED``
+     - .. _atlas_event_domain_verified:
+
+       Domain was verified
+     - no
+
+   * - ``ELASTIC_INVOICING_MODE_ACTIVATED``
+     - .. _atlas_event_elastic_invoicing_mode_activated:
+
+       Active Invoicing Period initiated
+     - no
+
+   * - ``ELASTIC_INVOICING_MODE_DEACTIVATED``
+     - .. _atlas_event_elastic_invoicing_mode_deactivated:
+
+       Active Invoicing Period stopped
+     - no
+
+   * - ``EMPLOYEE_ACCESS_GRANTED``
+     - .. _atlas_event_employee_access_granted:
+
+       Granted additional access to MongoDB support
+     - no
+
+   * - ``EMPLOYEE_ACCESS_REVOKED``
+     - .. _atlas_event_employee_access_revoked:
+
+       Revoked additional access from MongoDB support
+     - no
+
+   * - ``EMPLOYEE_DOWNLOADED_CLUSTER_LOGS``
+     - .. _atlas_event_employee_downloaded_cluster_logs:
+
+       A MongoDB employee downloaded cluster database logs for a host to help resolve an ongoing support issue.
+     - no
+
+   * - ``ENABLE_BACKUP_PRIVATELINK_EVENT``
+     - .. _atlas_event_enable_backup_privatelink_event:
+
+       User ENABLED AWS PrivateLink for backup.
+     - no
+
+   * - ``ENDPOINT_SERVICE_CREATED``
+     - .. _atlas_event_endpoint_service_created:
+
+       Private endpoint service created
+     - no
+
+   * - ``ENDPOINT_SERVICE_DELETED``
+     - .. _atlas_event_endpoint_service_deleted:
+
+       Private endpoint service deleted
+     - no
+
+   * - ``ENOUGH_HEALTHY_MEMBERS``
+     - .. _atlas_event_enough_healthy_members:
+
+       Replica set has enough healthy members
+     - no
+
+   * - ``EVERGREEN_DEAL_CANCELLED``
+     - .. _atlas_event_evergreen_deal_cancelled:
+
+       Evergreen deal has been cancelled
+     - no
+
+   * - ``EVERGREEN_PRIORITY_MODIFIED``
+     - .. _atlas_event_evergreen_priority_modified:
+
+       Evergreen Credit Priority Modified
+     - no
+
+   * - ``FAILOVER_STUCK``
+     - .. _atlas_event_failover_stuck:
+
+       A standby cluster failover has been in progress longer than the configured threshold
+     - yes
+
+   * - ``FAILOVER_STUCK_RESOLVED``
+     - .. _atlas_event_failover_stuck_resolved:
+
+       A previously stuck standby cluster failover is no longer stuck
+     - no
+
+   * - ``FEATURE_FLAG_MAINTENANCE``
+     - .. _atlas_event_feature_flag_maintenance:
+
+       Feature Flag maintenance will bypass scheduled window
+     - no
+
+   * - ``FLEX_UPGRADE_STARTED``
+     - .. _atlas_event_flex_upgrade_started:
+
+       Flex cluster upgrade started
+     - no
+
+   * - ``FREE_UPGRADE_STARTED``
+     - .. _atlas_event_free_upgrade_started:
+
+       Free cluster upgrade started
+     - no
+
+   * - ``FTDC_SETTINGS_UPDATED``
+     - .. _atlas_event_ftdc_settings_updated:
+
+       FTDC export settings updated
+     - no
+
+   * - ``GOOD_CLUSTERSHOT``
+     - .. _atlas_event_good_clustershot:
+
+       Backup has a good clustershot
+     - no
+
+   * - ``GRACE_PERIOD_ACTIVATED``
+     - .. _atlas_event_grace_period_activated:
+
+       Grace period has been activated
+     - no
+
+   * - ``GRACE_PERIOD_NO_LONGER_IN_EFFECT``
+     - .. _atlas_event_grace_period_no_longer_in_effect:
+
+       Grace period is no longer in effect
+     - no
+
+   * - ``IDENTITY_PROVIDER_ACTIVATED``
+     - .. _atlas_event_identity_provider_activated:
+
+       Identity Provider was activated
+     - no
+
+   * - ``IDENTITY_PROVIDER_CREATED``
+     - .. _atlas_event_identity_provider_created:
+
+       Identity Provider was created
+     - no
+
+   * - ``IDENTITY_PROVIDER_DEACTIVATED``
+     - .. _atlas_event_identity_provider_deactivated:
+
+       Identity Provider was deactivated
+     - no
+
+   * - ``IDENTITY_PROVIDER_DELETED``
+     - .. _atlas_event_identity_provider_deleted:
+
+       Identity Provider was deleted
+     - no
+
+   * - ``IDENTITY_PROVIDER_JWKS_REVOKED``
+     - .. _atlas_event_identity_provider_jwks_revoked:
+
+       Identity Provider's JWKS was revoked
+     - no
+
+   * - ``IDENTITY_PROVIDER_UPDATED``
+     - .. _atlas_event_identity_provider_updated:
+
+       Identity Provider was updated
+     - no
+
+   * - ``INCONSISTENT_BACKUP_CONFIGURATION``
+     - .. _atlas_event_inconsistent_backup_configuration:
+
+       Inconsistent backup configuration has been detected
+     - yes
+
+   * - ``INDEPENDENT_SHARD_AUTO_SCALING_AVAILABLE``
+     - .. _atlas_event_independent_shard_auto_scaling_available:
+
+       Independent Shard AutoScaling is now available for a cluster
+     - no
+
+   * - ``INDEPENDENT_SHARD_SCALING_CLUSTER_MIGRATED``
+     - .. _atlas_event_independent_shard_scaling_cluster_migrated:
+
+       Cluster schema has been migrated to support Independent Shard Scaling
+     - no
+
+   * - ``INDEPENDENT_SHARD_SCALING_CLUSTER_ROLLED_BACK``
+     - .. _atlas_event_independent_shard_scaling_cluster_rolled_back:
+
+       Cluster schema has been rolled back and it no longer supports Independent Shard Scaling
+     - no
+
+   * - ``INDEX_FAILED_INDEX_BUILD``
+     - .. _atlas_event_index_failed_index_build:
+
+       Index build failed
+     - no
+
+   * - ``INDEX_SUCCESS_INDEX_BUILD``
+     - .. _atlas_event_index_success_index_build:
+
+       Index build succeeded
+     - no
+
+   * - ``INGESTION_PIPELINE_CREATED``
+     - .. _atlas_event_ingestion_pipeline_created:
+
+       Data Lake Pipeline created
+     - no
+
+   * - ``INGESTION_PIPELINE_DELETED``
+     - .. _atlas_event_ingestion_pipeline_deleted:
+
+       Data Lake Pipeline deleted
+     - no
+
+   * - ``INGESTION_PIPELINE_DESTROYED``
+     - .. _atlas_event_ingestion_pipeline_destroyed:
+
+       Data Lake Pipeline destroyed
+     - no
+
+   * - ``INGESTION_PIPELINE_UPDATED``
+     - .. _atlas_event_ingestion_pipeline_updated:
+
+       Data Lake Pipeline updated
+     - no
+
+   * - ``INITIATE_SALESFORCE_SERVICE_CLOUD_SYNC``
+     - .. _atlas_event_initiate_salesforce_service_cloud_sync:
+
+       Organization sync with SFSC initiated
+     - no
+
+   * - ``INSIDE_FLEX_METRIC_THRESHOLD``
+     - .. _atlas_event_inside_flex_metric_threshold:
+
+       Flex metric inside threshold
+     - no
+
+   * - ``INSIDE_METRIC_THRESHOLD``
+     - .. _atlas_event_inside_metric_threshold:
+
+       Inside metric threshold
+     - no
+
+   * - ``INSIDE_REALM_METRIC_THRESHOLD``
+     - .. _atlas_event_inside_realm_metric_threshold:
+
+       App services metric inside threshold
+     - no
+
+   * - ``INSIDE_SPACE_USED_THRESHOLD``
+     - .. _atlas_event_inside_space_used_threshold:
+
+       Blockstore space used within threshold
+     - no
+
+   * - ``INTEGRATION_CONFIGURED``
+     - .. _atlas_event_integration_configured:
+
+       A third party integration has been configured
+     - no
+
+   * - ``INTEGRATION_REMOVED``
+     - .. _atlas_event_integration_removed:
+
+       A third party integration has been removed
+     - no
+
+   * - ``INTERFACE_ENDPOINT_CREATED``
+     - .. _atlas_event_interface_endpoint_created:
+
+       Private endpoint created
+     - no
+
+   * - ``INTERFACE_ENDPOINT_DELETED``
+     - .. _atlas_event_interface_endpoint_deleted:
+
+       Private endpoint deleted
+     - no
+
+   * - ``INTERFACE_ENDPOINT_PATCHED``
+     - .. _atlas_event_interface_endpoint_patched:
+
+       Private endpoint patched
+     - no
+
+   * - ``INTERFACE_ENDPOINT_RETRIED``
+     - .. _atlas_event_interface_endpoint_retried:
+
+       Private endpoint retried
+     - no
+
+   * - ``INTER_NODE_DATA_VALIDATION_SUBMITTED_FOR_REPLICA_SET``
+     - .. _atlas_event_inter_node_data_validation_submitted_for_replica_set:
+
+       The replica set was submitted for inter node data validation
+     - no
+
+   * - ``INVITED_TO_GROUP``
+     - .. _atlas_event_invited_to_group:
+
+       User was invited to project
+     - no
+
+   * - ``INVITED_TO_ORG``
+     - .. _atlas_event_invited_to_org:
+
+       User was invited to organization
+     - no
+
+   * - ``INVITED_TO_TEAM``
+     - .. _atlas_event_invited_to_team:
+
+       User was invited to team
+     - no
+
+   * - ``INVOICE_ADDRESS_ADDED``
+     - .. _atlas_event_invoice_address_added:
+
+       Invoice address added
+     - no
+
+   * - ``INVOICE_ADDRESS_CHANGED``
+     - .. _atlas_event_invoice_address_changed:
+
+       Invoice address changed
+     - no
+
+   * - ``INVOICE_CLOSED``
+     - .. _atlas_event_invoice_closed:
+
+       Invoice closed
+     - no
+
+   * - ``JOB_CHANGE``
+     - .. _atlas_event_job_change:
+
+       Job changed
+     - no
+
+   * - ``JOINED_GROUP``
+     - .. _atlas_event_joined_group:
+
+       User joined the project
+     - yes
+
+   * - ``JOINED_ORG``
+     - .. _atlas_event_joined_org:
+
+       User joined the organization
+     - yes
+
+   * - ``JOINED_TEAM``
+     - .. _atlas_event_joined_team:
+
+       User joined the team
+     - no
+
+   * - ``KMIP_KEY_ROTATION_SCHEDULED``
+     - .. _atlas_event_kmip_key_rotation_scheduled:
+
+       Rotating MongoDB Master Keys for Encryption at Rest
+     - no
+
+   * - ``LATE_WTC_SNAPSHOT``
+     - .. _atlas_event_late_wtc_snapshot:
+
+       Replica set has a late WiredTiger Checkpoint snapshot
+     - yes
+
+   * - ``LICENSE_ACCEPTED``
+     - .. _atlas_event_license_accepted:
+
+       License accepted
+     - no
+
+   * - ``LIFECYCLE_MANAGEMENT_POLICY_CREATED``
+     - .. _atlas_event_lifecycle_management_policy_created:
+
+       Lifecycle Management policy created
+     - no
+
+   * - ``LIFECYCLE_MANAGEMENT_POLICY_DELETED``
+     - .. _atlas_event_lifecycle_management_policy_deleted:
+
+       Lifecycle Management policy deleted
+     - no
+
+   * - ``LIFECYCLE_MANAGEMENT_POLICY_PAUSED``
+     - .. _atlas_event_lifecycle_management_policy_paused:
+
+       Lifecycle Management policy paused
+     - no
+
+   * - ``LIFECYCLE_MANAGEMENT_POLICY_PAUSE_REQUESTED``
+     - .. _atlas_event_lifecycle_management_policy_pause_requested:
+
+       Lifecycle Management policy pause requested
+     - no
+
+   * - ``LIFECYCLE_MANAGEMENT_POLICY_RESUMED``
+     - .. _atlas_event_lifecycle_management_policy_resumed:
+
+       Lifecycle Management policy resumed
+     - no
+
+   * - ``LIFECYCLE_MANAGEMENT_POLICY_UPDATED``
+     - .. _atlas_event_lifecycle_management_policy_updated:
+
+       Lifecycle Management policy updated
+     - no
+
+   * - ``LOW_APP_DB_FREE_SPACE_PERCENT``
+     - .. _atlas_event_low_app_db_free_space_percent:
+
+       AppDB has low free disk space percentage
+     - yes
+
+   * - ``LOW_BLOCKSTORE_FREE_SPACE_PERCENT``
+     - .. _atlas_event_low_blockstore_free_space_percent:
+
+       Blockstore has low free disk space percentage
+     - yes
+
+   * - ``LOW_FILESYSTEM_STORE_FREE_SPACE_PERCENT``
+     - .. _atlas_event_low_filesystem_store_free_space_percent:
+
+       Filesystem store has low free disk space percentage
+     - yes
+
+   * - ``LOW_HEAD_FREE_SPACE``
+     - .. _atlas_event_low_head_free_space:
+
+       Backup Daemon has low free head space
+     - yes
+
+   * - ``LOW_HEAD_FREE_SPACE_PERCENT``
+     - .. _atlas_event_low_head_free_space_percent:
+
+       Backup Daemon has low free head space percentage
+     - yes
+
+   * - ``LOW_OPLOGSTORE_FREE_SPACE_PERCENT``
+     - .. _atlas_event_low_oplogstore_free_space_percent:
+
+       Oplogstore has low free disk space percentage
+     - yes
+
+   * - ``MAAS_QUERY_EVALUATED_FALSE``
+     - .. _atlas_event_maas_query_evaluated_false:
+
+       MaaS Query Evaluated to False
+     - no
+
+   * - ``MAAS_QUERY_EVALUATED_TRUE``
+     - .. _atlas_event_maas_query_evaluated_true:
+
+       MaaS Query Evaluated to True
+     - yes
+
+   * - ``MARKETPLACE_REFUND_ISSUED``
+     - .. _atlas_event_marketplace_refund_issued:
+
+       Marketplace refund issued
+     - no
+
+   * - ``MATERIAL_CLUSTER_UPDATE_COMPLETED_INTERNAL``
+     - .. _atlas_event_material_cluster_update_completed_internal:
+
+       Material cluster update completed
+     - no
+
+   * - ``MAX_PROCESSOR_COUNT_REACHED``
+     - .. _atlas_event_max_processor_count_reached:
+
+       Processor limit reached for Stream Processing Workspace
+     - no
+
+   * - ``MEMBER_ADDED``
+     - .. _atlas_event_member_added:
+
+       Replica set member added
+     - no
+
+   * - ``MEMBER_REMOVED``
+     - .. _atlas_event_member_removed:
+
+       Replica set member removed
+     - no
+
+   * - ``MONGOSQLD_LOGS_DOWNLOADED``
+     - .. _atlas_event_mongosqld_logs_downloaded:
+
+       User downloaded logs for a BI Connector instance in this project.
+     - no
+
+   * - ``MONGOTUNE_ALERT``
+     - .. _atlas_event_mongotune_alert:
+
+       Intelligent Workload Management has taken action on your cluster
+     - yes
+
+   * - ``MONGOTUNE_INFO``
+     - .. _atlas_event_mongotune_info:
+
+       Intelligent Workload Management informational event
+     - no
+
+   * - ``MONGOTUNE_WRITE_BLOCK_POLICY_ELIGIBLE``
+     - .. _atlas_event_mongotune_write_block_policy_eligible:
+
+       Write-blocking policy active on the cluster
+     - no
+
+   * - ``MONGOTUNE_WRITE_BLOCK_POLICY_INELIGIBLE``
+     - .. _atlas_event_mongotune_write_block_policy_ineligible:
+
+       Write-blocking policy inactive on the cluster
+     - no
+
+   * - ``MONGOT_LOGS_DOWNLOADED``
+     - .. _atlas_event_mongot_logs_downloaded:
+
+       User downloaded logs for a Search process in this project.
+     - no
+
+   * - ``MONITORING_AGENT_DOWN``
+     - .. _atlas_event_monitoring_agent_down:
+
+       Monitoring is down
+     - yes
+
+   * - ``MONITORING_AGENT_OVERRIDES``
+     - .. _atlas_event_monitoring_agent_overrides:
+
+       Admin set monitoring agent overrides
+     - no
+
+   * - ``MONITORING_AGENT_REBALANCE_FLAG``
+     - .. _atlas_event_monitoring_agent_rebalance_flag:
+
+       Admin flagged or cleared monitoring agent rebalance
+     - no
+
+   * - ``MONITORING_AGENT_REBALANCE_TRIGGERED``
+     - .. _atlas_event_monitoring_agent_rebalance_triggered:
+
+       Admin triggered immediate monitoring agent rebalance
+     - no
+
+   * - ``MONITORING_AGENT_UP``
+     - .. _atlas_event_monitoring_agent_up:
+
+       Monitoring is up
+     - no
+
+   * - ``MONITORING_AGENT_VERSION_BEHIND``
+     - .. _atlas_event_monitoring_agent_version_behind:
+
+       Monitoring does not have the latest version
+     - yes
+
+   * - ``MONITORING_AGENT_VERSION_CURRENT``
+     - .. _atlas_event_monitoring_agent_version_current:
+
+       Monitoring has the latest version
+     - no
+
+   * - ``MOVE_SKIPPED``
+     - .. _atlas_event_move_skipped:
+
+       Move in progress was skipped
+     - no
+
+   * - ``MTM_CAPACITY_LOW``
+     - .. _atlas_event_mtm_capacity_low:
+
+       MTM capacity is low
+     - yes
+
+   * - ``MTM_CAPACITY_OK``
+     - .. _atlas_event_mtm_capacity_ok:
+
+       MTM capacity is ok
+     - no
+
+   * - ``NETWORK_PERMISSION_ENTRY_ADDED``
+     - .. _atlas_event_network_permission_entry_added:
+
+       Network permission entry added
+     - yes
+
+   * - ``NETWORK_PERMISSION_ENTRY_REMOVED``
+     - .. _atlas_event_network_permission_entry_removed:
+
+       Network permission entry removed
+     - yes
+
+   * - ``NETWORK_PERMISSION_ENTRY_UPDATED``
+     - .. _atlas_event_network_permission_entry_updated:
+
+       Network permission entry updated
+     - yes
+
+   * - ``NEW_AGENT``
+     - .. _atlas_event_new_agent:
+
+       New agent
+     - no
+
+   * - ``NEW_LINKED_ORG``
+     - .. _atlas_event_new_linked_org:
+
+       A new organization has been linked to this paying organization
+     - no
+
+   * - ``NODE_HIDDEN_BY_ADMIN``
+     - .. _atlas_event_node_hidden_by_admin:
+
+       Member of Replica Set is hidden by an admin
+     - no
+
+   * - ``NODE_ROLLING_RESYNC_SCHEDULED``
+     - .. _atlas_event_node_rolling_resync_scheduled:
+
+       Node rolling resync scheduled
+     - no
+
+   * - ``NODE_UNHIDDEN_BY_ADMIN``
+     - .. _atlas_event_node_unhidden_by_admin:
+
+       Member of Replica Set is unhidden by an admin
+     - no
+
+   * - ``NO_ACTIVE_LEGACY_TLS_CONNECTIONS``
+     - .. _atlas_event_no_active_legacy_tls_connections:
+
+       No clusters with minimum TLS version set to TLS 1.0 or TLS 1.1
+     - no
+
+   * - ``NO_PRIMARY``
+     - .. _atlas_event_no_primary:
+
+       Replica set has no primary
+     - yes
+
+   * - ``OIDC_IDENTITY_PROVIDER_DISABLED``
+     - .. _atlas_event_oidc_identity_provider_disabled:
+
+       Identity Provider was disabled
+     - no
+
+   * - ``OIDC_IDENTITY_PROVIDER_ENABLED``
+     - .. _atlas_event_oidc_identity_provider_enabled:
+
+       Identity Provider was enabled
+     - no
+
+   * - ``OIDC_IDENTITY_PROVIDER_UPDATED``
+     - .. _atlas_event_oidc_identity_provider_updated:
+
+       Identity Provider configuration was updated
+     - no
+
+   * - ``ONDEMAND_SNAPSHOT_REQUESTED``
+     - .. _atlas_event_ondemand_snapshot_requested:
+
+       Ondemand Snapshot has been requested
+     - no
+
+   * - ``ONE_PRIMARY``
+     - .. _atlas_event_one_primary:
+
+       Replica set elected one primary
+     - no
+
+   * - ``OPERATIONS_CONTACT_MODIFIED``
+     - .. _atlas_event_operations_contact_modified:
+
+       Atlas Operations Contact was modified
+     - no
+
+   * - ``OPLOG_BEHIND``
+     - .. _atlas_event_oplog_behind:
+
+       Backup oplog is behind
+     - yes
+
+   * - ``OPLOG_CURRENT``
+     - .. _atlas_event_oplog_current:
+
+       Backup oplog is current
+     - no
+
+   * - ``OPLOG_STORE_CONFIG_CHANGE``
+     - .. _atlas_event_oplog_store_config_change:
+
+       Oplog store configuration changed
+     - no
+
+   * - ``OPLOG_STORE_DELETED``
+     - .. _atlas_event_oplog_store_deleted:
+
+       Oplog store deleted
+     - no
+
+   * - ``OPLOG_TTL_RESIZE``
+     - .. _atlas_event_oplog_ttl_resize:
+
+       Backup oplog TTL was resized
+     - yes
+
+   * - ``ORGANIZATION_VOYAGE_SETTINGS_CREATED``
+     - .. _atlas_event_organization_voyage_settings_created:
+
+       Organization Voyage settings have been created
+     - no
+
+   * - ``ORGANIZATION_VOYAGE_SETTINGS_DELETED``
+     - .. _atlas_event_organization_voyage_settings_deleted:
+
+       Organization Voyage settings have been deleted
+     - no
 
    * - ``OS_MAINTENANCE``
      - .. _atlas_event_os_maintenance:
@@ -5210,34 +6382,16 @@
        App services metric outside threshold
      - yes
 
-   * - ``OUTSIDE_SERVERLESS_METRIC_THRESHOLD``
-     - .. _atlas_event_outside_serverless_metric_threshold:
-
-       Serverless metric outside threshold
-     - yes
-
    * - ``OUTSIDE_SPACE_USED_THRESHOLD``
      - .. _atlas_event_outside_space_used_threshold:
 
        Blockstore space used exceeds threshold
      - yes
 
-   * - ``OUTSIDE_STREAM_PROCESSOR_METRIC_THRESHOLD``
-     - .. _atlas_event_outside_stream_processor_metric_threshold:
-
-       Outside Stream Processor metric threshold
-     - yes
-
    * - ``PAID_IN_FULL``
      - .. _atlas_event_paid_in_full:
 
        Service restored because all invoices are paid in full
-     - no
-
-   * - ``PAUSE_HOST_AUDIT``
-     - .. _atlas_event_pause_host_audit:
-
-       Monitoring for host paused
      - no
 
    * - ``PAYMENT_DUE_DATE_EXTENDED``
@@ -5456,72 +6610,6 @@
        Profiler configured to capture all operations on a host, which might result in a significant performance impact.
      - yes
 
-   * - ``PROJECT_BYPASSED_MAINTENANCE``
-     - .. _atlas_event_project_bypassed_maintenance:
-
-       Project maintenance will bypass scheduled window
-     - no
-
-   * - ``PROJECT_COLLECT_DATABASE_STATISTICS_UPDATED``
-     - .. _atlas_event_project_collect_database_statistics_updated:
-
-       Collect database specific statistics updated
-     - no
-
-   * - ``PROJECT_CREATED_VIA_ANIS``
-     - .. _atlas_event_project_created_via_anis:
-
-       Project created via Azure Native integration
-     - no
-
-   * - ``PROJECT_ENABLE_DATA_VALIDATION_UPDATED``
-     - .. _atlas_event_project_enable_data_validation_updated:
-
-       Data validation setting updated
-     - no
-
-   * - ``PROJECT_ENABLE_EXTENDED_STORAGE_SIZES_UPDATED``
-     - .. _atlas_event_project_enable_extended_storage_sizes_updated:
-
-       Enable extended storage sizes updated
-     - no
-
-   * - ``PROJECT_LIMIT_UPDATED``
-     - .. _atlas_event_project_limit_updated:
-
-       Project limit updated
-     - no
-
-   * - ``PROJECT_LIVE_IMPORT_OVERRIDES_ADDED``
-     - .. _atlas_event_project_live_import_overrides_added:
-
-       Project-level data migration overrides added
-     - no
-
-   * - ``PROJECT_LIVE_IMPORT_OVERRIDES_DELETED``
-     - .. _atlas_event_project_live_import_overrides_deleted:
-
-       Project-level data migration overrides deleted
-     - no
-
-   * - ``PROJECT_LIVE_IMPORT_OVERRIDES_UPDATED``
-     - .. _atlas_event_project_live_import_overrides_updated:
-
-       Project-level data migration overrides updated
-     - no
-
-   * - ``PROJECT_SCHEDULED_MAINTENANCE``
-     - .. _atlas_event_project_scheduled_maintenance:
-
-       Project scheduled maintenance will occur
-     - no
-
-   * - ``PROJECT_SCHEDULED_MAINTENANCE_OUTSIDE_OF_PROTECTED_HOURS``
-     - .. _atlas_event_project_scheduled_maintenance_outside_of_protected_hours:
-
-       Project scheduled maintenance outside of protected hours will occur
-     - no
-
    * - ``PROMO_CODE_APPLIED``
      - .. _atlas_event_promo_code_applied:
 
@@ -5696,12 +6784,6 @@
        User left the team
      - no
 
-   * - ``REMOVE_HOST_FROM_REPLICA_SET_AUDIT``
-     - .. _atlas_event_remove_host_from_replica_set_audit:
-
-       Mongo process is not being monitored as it has been unresponsive for a period of time
-     - yes
-
    * - ``REPLICATION_OPLOG_WINDOW_HEALTHY``
      - .. _atlas_event_replication_oplog_window_healthy:
 
@@ -5762,12 +6844,6 @@
        Resource policies violated
      - yes
 
-   * - ``RESTORE_REQUESTED_AUDIT``
-     - .. _atlas_event_restore_requested_audit:
-
-       A restore has been requested
-     - no
-
    * - ``RESTRICTED_EMPLOYEE_ACCESS_BYPASS``
      - .. _atlas_event_restricted_employee_access_bypass:
 
@@ -5784,12 +6860,6 @@
      - .. _atlas_event_restrict_org_membership_enabled:
 
        Organization membership restriction was enabled
-     - no
-
-   * - ``RESUME_HOST_AUDIT``
-     - .. _atlas_event_resume_host_audit:
-
-       Monitoring for host resumed
      - no
 
    * - ``RESYNC_PERFORMED``
@@ -5840,66 +6910,6 @@
        Rolling index build succeeded
      - no
 
-   * - ``RS_BLACKLIST_UPDATED_AUDIT``
-     - .. _atlas_event_rs_blacklist_updated_audit:
-
-       Excluded namespaces were modified for replica set
-     - no
-
-   * - ``RS_CREDENTIAL_UPDATED_AUDIT``
-     - .. _atlas_event_rs_credential_updated_audit:
-
-       Backup authentication credentials updated for replica set
-     - no
-
-   * - ``RS_DENYLIST_UPDATED_AUDIT``
-     - .. _atlas_event_rs_denylist_updated_audit:
-
-       Excluded namespaces were modified for replica set
-     - no
-
-   * - ``RS_ROTATE_MASTER_KEY_AUDIT``
-     - .. _atlas_event_rs_rotate_master_key_audit:
-
-       A master key rotation has been requested for a replica set.
-     - no
-
-   * - ``RS_SNAPSHOT_SCHEDULE_UPDATED_AUDIT``
-     - .. _atlas_event_rs_snapshot_schedule_updated_audit:
-
-       Snapshot schedule updated for replica set
-     - no
-
-   * - ``RS_STATE_CHANGED_AUDIT``
-     - .. _atlas_event_rs_state_changed_audit:
-
-       Replica set backup state is now 
-     - no
-
-   * - ``RS_STORAGE_ENGINE_UPDATED_AUDIT``
-     - .. _atlas_event_rs_storage_engine_updated_audit:
-
-       Replica set storage engine has been updated
-     - no
-
-   * - ``S3_LOG_STREAMING_CONFIGURATION_UPDATED``
-     - .. _atlas_event_s3_log_streaming_configuration_updated:
-
-       S3 Log Streaming configuration updated
-     - no
-
-   * - ``S3_LOG_STREAMING_DISABLED``
-     - .. _atlas_event_s3_log_streaming_disabled:
-
-       S3 Log Streaming disabled
-     - no
-
-   * - ``S3_LOG_STREAMING_ENABLED``
-     - .. _atlas_event_s3_log_streaming_enabled:
-
-       S3 Log Streaming enabled
-     - no
-
    * - ``SAMPLE_DATASET_LOAD_REQUESTED``
      - .. _atlas_event_sample_dataset_load_requested:
 
@@ -5927,7 +6937,7 @@
    * - ``SANDBOX_TEMPLATE_UPDATED``
      - .. _atlas_event_sandbox_template_updated:
 
-       Sandbox project configurations have been set to provider: 
+       Sandbox project configurations have been set to provider:
      - no
 
    * - ``SCHEDULED_MAINTENANCE``
@@ -5984,234 +6994,6 @@
        Atlas Security Contact was modified
      - no
 
-   * - ``SERVERLESS_AUTO_SCALING_INITIATED``
-     - .. _atlas_event_serverless_auto_scaling_initiated:
-
-       Serverless auto-scale initiated
-     - no
-
-   * - ``SERVERLESS_DEPLOYMENT_CREATED``
-     - .. _atlas_event_serverless_deployment_created:
-
-       Serverless Deployment created
-     - no
-
-   * - ``SERVERLESS_DEPLOYMENT_DELETED``
-     - .. _atlas_event_serverless_deployment_deleted:
-
-       Serverless Deployment deleted
-     - no
-
-   * - ``SERVERLESS_DEPLOYMENT_ENDPOINT_SERVICE_LINKED``
-     - .. _atlas_event_serverless_deployment_endpoint_service_linked:
-
-       Serverless Deployment Endpoint Service linked
-     - no
-
-   * - ``SERVERLESS_DEPLOYMENT_ENDPOINT_SERVICE_UNLINKED``
-     - .. _atlas_event_serverless_deployment_endpoint_service_unlinked:
-
-       Serverless Deployment Endpoint Service unlinked
-     - no
-
-   * - ``SERVERLESS_DEPLOYMENT_ENVOY_INSTANCE_UIS_KEYS_ROTATED``
-     - .. _atlas_event_serverless_deployment_envoy_instance_uis_keys_rotated:
-
-       Serverless Deployment Envoy Instance UIS Keys Rotated
-     - no
-
-   * - ``SERVERLESS_DEPLOYMENT_INSTANCE_REBOOTED``
-     - .. _atlas_event_serverless_deployment_instance_rebooted:
-
-       Serverless Deployment Instance rebooted
-     - no
-
-   * - ``SERVERLESS_DEPLOYMENT_INSTANCE_REPLACED``
-     - .. _atlas_event_serverless_deployment_instance_replaced:
-
-       Serverless Deployment Instance replaced
-     - no
-
-   * - ``SERVERLESS_DEPLOYMENT_UPDATED``
-     - .. _atlas_event_serverless_deployment_updated:
-
-       Serverless Deployment updated
-     - no
-
-   * - ``SERVERLESS_HORIZONTAL_SCALING_INITIATED``
-     - .. _atlas_event_serverless_horizontal_scaling_initiated:
-
-       Serverless horizontal scale initiated
-     - no
-
-   * - ``SERVERLESS_INSTANCE_CREATED``
-     - .. _atlas_event_serverless_instance_created:
-
-       New serverless instance created
-     - no
-
-   * - ``SERVERLESS_INSTANCE_DELETED``
-     - .. _atlas_event_serverless_instance_deleted:
-
-       Serverless instance deleted
-     - no
-
-   * - ``SERVERLESS_INSTANCE_DELETE_SUBMITTED``
-     - .. _atlas_event_serverless_instance_delete_submitted:
-
-       Serverless instance delete submitted
-     - no
-
-   * - ``SERVERLESS_INSTANCE_READY``
-     - .. _atlas_event_serverless_instance_ready:
-
-       New serverless instance ready to use
-     - no
-
-   * - ``SERVERLESS_INSTANCE_UNBLOCKED``
-     - .. _atlas_event_serverless_instance_unblocked:
-
-       Admin removed block request on a serverless instance.
-     - no
-
-   * - ``SERVERLESS_INSTANCE_UPDATE_COMPLETED``
-     - .. _atlas_event_serverless_instance_update_completed:
-
-       Serverless instance update completed
-     - no
-
-   * - ``SERVERLESS_INSTANCE_UPDATE_STARTED``
-     - .. _atlas_event_serverless_instance_update_started:
-
-       Serverless instance update started
-     - no
-
-   * - ``SERVERLESS_INSTANCE_UPDATE_SUBMITTED``
-     - .. _atlas_event_serverless_instance_update_submitted:
-
-       Serverless instance update submitted
-     - no
-
-   * - ``SERVERLESS_MTM_DRAIN_COMPLETED``
-     - .. _atlas_event_serverless_mtm_drain_completed:
-
-       Serverless MTM drain completed
-     - no
-
-   * - ``SERVERLESS_MTM_DRAIN_INITIATED``
-     - .. _atlas_event_serverless_mtm_drain_initiated:
-
-       Serverless MTM drain initiated
-     - no
-
-   * - ``SERVERLESS_MTM_DRAIN_REQUESTED``
-     - .. _atlas_event_serverless_mtm_drain_requested:
-
-       Serverless MTM drain requested
-     - no
-
-   * - ``SERVERLESS_MTM_DRAIN_STOPPED``
-     - .. _atlas_event_serverless_mtm_drain_stopped:
-
-       Serverless MTM drain stopped
-     - no
-
-   * - ``SERVERLESS_UPGRADE_STARTED``
-     - .. _atlas_event_serverless_upgrade_started:
-
-       Serverless instance upgrade started
-     - no
-
-   * - ``SERVERLESS_UPGRADE_TO_DEDICATED_FAILED``
-     - .. _atlas_event_serverless_upgrade_to_dedicated_failed:
-
-       Serverless instance upgrade to Dedicated cluster failed
-     - no
-
-   * - ``SERVERLESS_UPGRADE_TO_DEDICATED_SUCCESSFUL``
-     - .. _atlas_event_serverless_upgrade_to_dedicated_successful:
-
-       Serverless instance upgrade to Dedicated cluster succeeded
-     - no
-
-   * - ``SERVERLESS_VERTICAL_SCALING_INITIATED``
-     - .. _atlas_event_serverless_vertical_scaling_initiated:
-
-       Serverless vertical scale initiated
-     - no
-
-   * - ``SERVICE_ACCOUNT_ACCESS_LIST_ENTRY_ADDED``
-     - .. _atlas_event_service_account_access_list_entry_added:
-
-       Service Account Access List Entry Added
-     - no
-
-   * - ``SERVICE_ACCOUNT_ACCESS_LIST_ENTRY_DELETED``
-     - .. _atlas_event_service_account_access_list_entry_deleted:
-
-       Service Account Access List Entry Deleted
-     - no
-
-   * - ``SERVICE_ACCOUNT_ADDED_TO_GROUP``
-     - .. _atlas_event_service_account_added_to_group:
-
-       Service Account added to Project
-     - no
-
-   * - ``SERVICE_ACCOUNT_CREATED``
-     - .. _atlas_event_service_account_created:
-
-       Service Account has been created
-     - no
-
-   * - ``SERVICE_ACCOUNT_DELETED``
-     - .. _atlas_event_service_account_deleted:
-
-       Service Account has been deleted
-     - no
-
-   * - ``SERVICE_ACCOUNT_DETAILS_CHANGED``
-     - .. _atlas_event_service_account_details_changed:
-
-       Service Account Details have been changed
-     - no
-
-   * - ``SERVICE_ACCOUNT_REMOVED_FROM_GROUP``
-     - .. _atlas_event_service_account_removed_from_group:
-
-       Service Account removed from Project
-     - no
-
-   * - ``SERVICE_ACCOUNT_ROLES_CHANGED``
-     - .. _atlas_event_service_account_roles_changed:
-
-       Service Account had its roles changed
-     - no
-
-   * - ``SERVICE_ACCOUNT_SECRET_ADDED``
-     - .. _atlas_event_service_account_secret_added:
-
-       Service Account Secret Added
-     - no
-
-   * - ``SERVICE_ACCOUNT_SECRET_DELETED``
-     - .. _atlas_event_service_account_secret_deleted:
-
-       Service Account Secret Deleted
-     - no
-
-   * - ``SERVICE_ACCOUNT_UI_IP_ACCESS_LIST_INHERITANCE_DISABLED``
-     - .. _atlas_event_service_account_ui_ip_access_list_inheritance_disabled:
-
-       Service Account UI IP access list inheritance disabled
-     - no
-
-   * - ``SERVICE_ACCOUNT_UI_IP_ACCESS_LIST_INHERITANCE_ENABLED``
-     - .. _atlas_event_service_account_ui_ip_access_list_inheritance_enabled:
-
-       Service Account UI IP access list inheritance enabled
-     - no
-
    * - ``SETUP_SERVERLESS_INITIATED``
      - .. _atlas_event_setup_serverless_initiated:
 
@@ -6263,25 +7045,13 @@
    * - ``SHARD_KEY_ANALYSIS_FINISHED``
      - .. _atlas_event_shard_key_analysis_finished:
 
-       analyzeShardKey command job was completed
+       AnalyzeShardKey command job was completed
      - no
 
    * - ``SHARD_KEY_ANALYSIS_STARTED``
      - .. _atlas_event_shard_key_analysis_started:
 
-       analyzeShardKey command job was submitted
-     - no
-
-   * - ``SNAPSHOT_DELETED_AUDIT``
-     - .. _atlas_event_snapshot_deleted_audit:
-
-       Snapshot has been deleted
-     - no
-
-   * - ``SNAPSHOT_EXPIRY_UPDATED_AUDIT``
-     - .. _atlas_event_snapshot_expiry_updated_audit:
-
-       Snapshot expiry has been updated.
+       AnalyzeShardKey command job was submitted
      - no
 
    * - ``SNAPSHOT_STORE_CONFIG_CHANGE``
@@ -6386,90 +7156,6 @@
        Step in progress was skipped
      - no
 
-   * - ``STREAMS_AUDIT_LOG_CONFIGURATION_UPDATED``
-     - .. _atlas_event_streams_audit_log_configuration_updated:
-
-       Atlas Stream Processing Audit log configuration updated
-     - no
-
-   * - ``STREAM_PROCESSOR_STARTED``
-     - .. _atlas_event_stream_processor_started:
-
-       Stream Processor started
-     - no
-
-   * - ``STREAM_PROCESSOR_STATE_IS_FAILED``
-     - .. _atlas_event_stream_processor_state_is_failed:
-
-       Stream Processor State is failed
-     - yes
-
-   * - ``STREAM_TENANT_AUDIT_LOGS``
-     - .. _atlas_event_stream_tenant_audit_logs:
-
-       Stream Processing Workspace audit logs downloaded
-     - no
-
-   * - ``STREAM_TENANT_AUDIT_LOGS_DELETED``
-     - .. _atlas_event_stream_tenant_audit_logs_deleted:
-
-       Stream Processing Workspace audit logs deleted
-     - no
-
-   * - ``STREAM_TENANT_CONNECTIONS_LISTED``
-     - .. _atlas_event_stream_tenant_connections_listed:
-
-       Stream Processing Workspace connections listed
-     - no
-
-   * - ``STREAM_TENANT_CONNECTION_CREATED``
-     - .. _atlas_event_stream_tenant_connection_created:
-
-       Stream Processing Workspace connection created
-     - no
-
-   * - ``STREAM_TENANT_CONNECTION_DELETED``
-     - .. _atlas_event_stream_tenant_connection_deleted:
-
-       Stream Processing Workspace connection deleted
-     - no
-
-   * - ``STREAM_TENANT_CONNECTION_UPDATED``
-     - .. _atlas_event_stream_tenant_connection_updated:
-
-       Stream Processing Workspace connection updated
-     - no
-
-   * - ``STREAM_TENANT_CONNECTION_VIEWED``
-     - .. _atlas_event_stream_tenant_connection_viewed:
-
-       Stream Processing Workspace connection viewed
-     - no
-
-   * - ``STREAM_TENANT_CREATED``
-     - .. _atlas_event_stream_tenant_created:
-
-       Stream Processing Workspace created
-     - no
-
-   * - ``STREAM_TENANT_DELETED``
-     - .. _atlas_event_stream_tenant_deleted:
-
-       Stream Processing Workspace deleted
-     - no
-
-   * - ``STREAM_TENANT_OPERATIONAL_LOGS``
-     - .. _atlas_event_stream_tenant_operational_logs:
-
-       Stream Processing Workspace operational logs downloaded
-     - no
-
-   * - ``STREAM_TENANT_UPDATED``
-     - .. _atlas_event_stream_tenant_updated:
-
-       Stream Processing Workspace updated
-     - no
-
    * - ``SUBSCRIPTION_USAGE_DOC_RATE_CHANGED_DRASTICALLY``
      - .. _atlas_event_subscription_usage_doc_rate_changed_drastically:
 
@@ -6518,18 +7204,6 @@
        Oplogstore has sufficient free disk space
      - no
 
-   * - ``SUFFICIENT_S3_BLOCKSTORE_METADATA_DB_FREE_SPACE``
-     - .. _atlas_event_sufficient_s3_blockstore_metadata_db_free_space:
-
-       S3 Blockstore metadata DB has sufficient free disk space
-     - no
-
-   * - ``SUFFICIENT_S3_OPLOGSTORE_METADATA_DB_FREE_SPACE``
-     - .. _atlas_event_sufficient_s3_oplogstore_metadata_db_free_space:
-
-       S3 Oplogstore metadata DB has sufficient free disk space
-     - no
-
    * - ``SUPPORT_EMAILS_SENT_FAILURE``
      - .. _atlas_event_support_emails_sent_failure:
 
@@ -6566,18 +7240,6 @@
        A Sync process has failed and cannot be restarted
      - yes
 
-   * - ``SYNC_PENDING_AUDIT``
-     - .. _atlas_event_sync_pending_audit:
-
-       Backup sync is pending
-     - no
-
-   * - ``SYNC_REQUIRED_AUDIT``
-     - .. _atlas_event_sync_required_audit:
-
-       Backup sync has been initiated
-     - no
-
    * - ``SYNC_STORE_CONFIG_CHANGE``
      - .. _atlas_event_sync_store_config_change:
 
@@ -6595,12 +7257,6 @@
 
        Tag(s) were added or modified
      - yes
-
-   * - ``TARGETED_REBILL_EXECUTED``
-     - .. _atlas_event_targeted_rebill_executed:
-
-       Targeted rebill completed
-     - no
 
    * - ``TEAM_ADDED_TO_GROUP``
      - .. _atlas_event_team_added_to_group:
@@ -6643,168 +7299,6 @@
 
        Team updated
      - no
-
-   * - ``TENANT_ENDPOINT_AVAILABLE``
-     - .. _atlas_event_tenant_endpoint_available:
-
-       Endpoint transitioned to available
-     - no
-
-   * - ``TENANT_ENDPOINT_CREATED``
-     - .. _atlas_event_tenant_endpoint_created:
-
-       Endpoint created
-     - no
-
-   * - ``TENANT_ENDPOINT_DELETED``
-     - .. _atlas_event_tenant_endpoint_deleted:
-
-       Endpoint deleted
-     - no
-
-   * - ``TENANT_ENDPOINT_DELETING``
-     - .. _atlas_event_tenant_endpoint_deleting:
-
-       Endpoint deleting
-     - no
-
-   * - ``TENANT_ENDPOINT_EXPIRED``
-     - .. _atlas_event_tenant_endpoint_expired:
-
-       Endpoint marked for deletion due to incomplete setup
-     - no
-
-   * - ``TENANT_ENDPOINT_FAILED``
-     - .. _atlas_event_tenant_endpoint_failed:
-
-       Endpoint transitioned to failed
-     - no
-
-   * - ``TENANT_ENDPOINT_INITIATING``
-     - .. _atlas_event_tenant_endpoint_initiating:
-
-       Endpoint transitioned to initiating
-     - no
-
-   * - ``TENANT_ENDPOINT_RESERVATION_FAILED``
-     - .. _atlas_event_tenant_endpoint_reservation_failed:
-
-       Endpoint service reservation failed
-     - no
-
-   * - ``TENANT_ENDPOINT_RESERVED``
-     - .. _atlas_event_tenant_endpoint_reserved:
-
-       Endpoint transitioned to reserved
-     - no
-
-   * - ``TENANT_ENDPOINT_SERVICE_AVAILABLE``
-     - .. _atlas_event_tenant_endpoint_service_available:
-
-       Tenant endpoint service available
-     - no
-
-   * - ``TENANT_ENDPOINT_SERVICE_CREATED``
-     - .. _atlas_event_tenant_endpoint_service_created:
-
-       Tenant endpoint service created, but not available
-     - no
-
-   * - ``TENANT_ENDPOINT_SERVICE_DELETED``
-     - .. _atlas_event_tenant_endpoint_service_deleted:
-
-       Tenant endpoint service deleted
-     - no
-
-   * - ``TENANT_ENDPOINT_SERVICE_DEPLOYMENT_CREATED``
-     - .. _atlas_event_tenant_endpoint_service_deployment_created:
-
-       Tenant endpoint service deployment created
-     - no
-
-   * - ``TENANT_ENDPOINT_SERVICE_DEPLOYMENT_DELETED``
-     - .. _atlas_event_tenant_endpoint_service_deployment_deleted:
-
-       Tenant endpoint service deployment deleted
-     - no
-
-   * - ``TENANT_ENDPOINT_SERVICE_DEPLOYMENT_DELETE_REQUESTED``
-     - .. _atlas_event_tenant_endpoint_service_deployment_delete_requested:
-
-       Tenant endpoint service deployment deletion requested
-     - no
-
-   * - ``TENANT_ENDPOINT_SERVICE_DEPLOYMENT_NUM_DESIRED_ENDPOINT_SERVICES_INCREASED``
-     - .. _atlas_event_tenant_endpoint_service_deployment_num_desired_endpoint_services_increased:
-
-       Tenant endpoint service deployment num desired endpoint services increased
-     - no
-
-   * - ``TENANT_ENDPOINT_UPDATED``
-     - .. _atlas_event_tenant_endpoint_updated:
-
-       Endpoint updated
-     - no
-
-   * - ``TENANT_RESTORE_COMPLETED_AUDIT``
-     - .. _atlas_event_tenant_restore_completed_audit:
-
-       A tenant restore has completed
-     - no
-
-   * - ``TENANT_RESTORE_FAILED``
-     - .. _atlas_event_tenant_restore_failed:
-
-       Tenant restore failed
-     - no
-
-   * - ``TENANT_RESTORE_REQUESTED_AUDIT``
-     - .. _atlas_event_tenant_restore_requested_audit:
-
-       A tenant restore has been requested
-     - no
-
-   * - ``TENANT_SNAPSHOT_COMPLETED_AUDIT``
-     - .. _atlas_event_tenant_snapshot_completed_audit:
-
-       A tenant snapshot has completed
-     - no
-
-   * - ``TENANT_SNAPSHOT_DELETED_AUDIT``
-     - .. _atlas_event_tenant_snapshot_deleted_audit:
-
-       A tenant snapshot has been deleted
-     - no
-
-   * - ``TENANT_SNAPSHOT_DOWNLOAD_REQUESTED_AUDIT``
-     - .. _atlas_event_tenant_snapshot_download_requested_audit:
-
-       A tenant snapshot download has been requested
-     - no
-
-   * - ``TENANT_SNAPSHOT_FAILED``
-     - .. _atlas_event_tenant_snapshot_failed:
-
-       Tenant snapshot failed
-     - no
-
-   * - ``TENANT_SNAPSHOT_STARTED_AUDIT``
-     - .. _atlas_event_tenant_snapshot_started_audit:
-
-       A tenant snapshot has started
-     - no
-
-   * - ``TENANT_UPGRADE_TO_SERVERLESS_FAILED``
-     - .. _atlas_event_tenant_upgrade_to_serverless_failed:
-
-       Shared cluster upgrade to serverless failed
-     - yes
-
-   * - ``TENANT_UPGRADE_TO_SERVERLESS_SUCCESSFUL``
-     - .. _atlas_event_tenant_upgrade_to_serverless_successful:
-
-       Shared cluster upgrade to serverless succeeded
-     - yes
 
    * - ``TERMINATE_PAID_SERVICES``
      - .. _atlas_event_terminate_paid_services:
@@ -6866,12 +7360,6 @@
        UIS has panicked
      - no
 
-   * - ``UNDELETE_HOST_AUDIT``
-     - .. _atlas_event_undelete_host_audit:
-
-       Host undeleted
-     - no
-
    * - ``UNLINKED_ORG``
      - .. _atlas_event_unlinked_org:
 
@@ -6890,76 +7378,10 @@
        Users do not have multi-factor authentication enabled
      - yes
 
-   * - ``USER_ROLES_CHANGED_AUDIT``
-     - .. _atlas_event_user_roles_changed_audit:
-
-       User had their role changed
-     - yes
-
    * - ``USER_SECURITY_SETTINGS_UPDATED``
      - .. _atlas_event_user_security_settings_updated:
 
        User security settings updated
-     - no
-
-   * - ``VERCEL_INVOICE_CREATED``
-     - .. _atlas_event_vercel_invoice_created:
-
-       Vercel Invoice Created
-     - no
-
-   * - ``VERCEL_INVOICE_NOT_PAID``
-     - .. _atlas_event_vercel_invoice_not_paid:
-
-       Vercel Invoice Not Paid
-     - no
-
-   * - ``VERCEL_INVOICE_OVERDUE``
-     - .. _atlas_event_vercel_invoice_overdue:
-
-       Vercel Invoice Overdue
-     - no
-
-   * - ``VERCEL_INVOICE_PAID``
-     - .. _atlas_event_vercel_invoice_paid:
-
-       Vercel Invoice Paid
-     - no
-
-   * - ``VERCEL_INVOICE_REFUNDED``
-     - .. _atlas_event_vercel_invoice_refunded:
-
-       Vercel Invoice Refunded
-     - no
-
-   * - ``VERCEL_SELF_SERVE_ACCOUNT_CANCELLED``
-     - .. _atlas_event_vercel_self_serve_account_cancelled:
-
-       Vercel Subscription Cancelled
-     - no
-
-   * - ``VERCEL_SELF_SERVE_ACCOUNT_LINKED``
-     - .. _atlas_event_vercel_self_serve_account_linked:
-
-       Vercel Subscription Linked
-     - no
-
-   * - ``VERCEL_SELF_SERVE_ACCOUNT_LINK_FAILED``
-     - .. _atlas_event_vercel_self_serve_account_link_failed:
-
-       Vercel Subscription Link Failed
-     - no
-
-   * - ``VERCEL_SELF_SERVE_ACCOUNT_LINK_PENDING``
-     - .. _atlas_event_vercel_self_serve_account_link_pending:
-
-       Vercel Subscription Link Pending
-     - no
-
-   * - ``VERCEL_USAGE_REPORTED``
-     - .. _atlas_event_vercel_usage_reported:
-
-       Vercel Usage Reported
      - no
 
    * - ``VERSION_BEHIND``
@@ -6986,22 +7408,8 @@
        A webhook alert notification template failed to render, so the default payload was sent instead. Review the webhook template in your alert settings.
      - yes
 
-   * - ``WEEKLY_BILLING_CHANGE_NORMAL``
-     - .. _atlas_event_weekly_billing_change_normal:
-
-       Project weekly billing percentage change is below threshold
-     - no
-
-   * - ``WEEKLY_BILLING_CHANGE_OVER_THRESHOLD``
-     - .. _atlas_event_weekly_billing_change_over_threshold:
-
-       Project weekly billing has increased by more than the threshold percent
-     - yes
-
    * - ``WIRE_TRANSFER_PAYMENT_RECEIVED``
      - .. _atlas_event_wire_transfer_payment_received:
 
        Invoice has been paid by wire transfer
      - no
-
-

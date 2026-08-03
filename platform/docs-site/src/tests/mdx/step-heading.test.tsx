@@ -23,7 +23,7 @@ it('renders as a heading with permalink for anchor links and theme color', () =>
     </StepHeading>,
   );
 
-  const heading = screen.getByRole('heading', { level: 4 });
+  const heading = screen.getByRole('heading', { level: 3 });
   expect(heading).toHaveClass('contains-headerlink');
   expect(heading.querySelector('a.headerlink')).toBeTruthy();
   expect(heading).toHaveTextContent('Configure the connector');

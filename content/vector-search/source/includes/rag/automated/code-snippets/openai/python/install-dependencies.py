@@ -1,0 +1,1 @@
+pip install --quiet --upgrade pymongo openai langchain langchain_community pypdf

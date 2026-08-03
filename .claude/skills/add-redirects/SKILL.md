@@ -66,19 +66,27 @@ For any ambiguous case (D, or suspected manual rename that git didn't detect), s
 MongoDB documentation projects use two different build types:
 
 * **snooty-based** projects, legacy (e.g., `manual`, `compass`) use `netlify.toml` for redirects.
-* **next.js-based** projects (e.g., `atlas`) use `platform/docs-nextjs/src/redirects/<project>-redirects.json` for redirects.
+* **next.js-based** projects (e.g., `atlas`) use a per-project JSON file for redirects.
 
-As we migrate all projects to next.js, this skill must check for the presence of `netlify.toml` and `platform/docs-nextjs/src/redirects/<project>-redirects.json` for a content site that contains changes. If `netlify.toml` exists, this skill must update the project's `netlify.toml` file and the appropriate `platform/docs-nextjs/src/redirects/<project>-redirects.json` file, if it exists. If `netlify.toml` does not exist, update only the JSON file.
+Next.js projects store redirects in one of two locations, depending on migration progress:
 
-Run this command to check for `netlify.toml` each project with renamed / deleted / added `.txt` files:
+* `platform/docs-site/src/redirects/<project>-redirects.json` — the new SSG app. Projects migrated to `docs-site` live here.
+* `platform/docs-nextjs/src/redirects/<project>-redirects.json` — the legacy Next.js app. Projects not yet migrated live here.
+
+A given project appears in **only one** of these locations, never both. Check `docs-site` first; if the file exists there, the project has migrated and that is the file to update. If not, check `docs-nextjs`.
+
+This skill must check for the presence of `netlify.toml` and the project's JSON redirect file for every content site that contains changes. If `netlify.toml` exists, update the project's `netlify.toml` file **and** the JSON redirect file (whichever location exists). If `netlify.toml` does not exist, update only the JSON file.
+
+Run this command to check for `netlify.toml` for each project with renamed / deleted / added `.txt` files:
 
 ```bash
 ls content/<project>/netlify.toml 2>/dev/null
 ```
 
-Run this command to check for `<project>-redirects.json` each project with renamed / deleted / added `.txt` files:
+Run these commands to locate the project's JSON redirect file (check `docs-site` first, then `docs-nextjs`):
 
 ```bash
+ls platform/docs-site/src/redirects/<project>-redirects.json 2>/dev/null
 ls platform/docs-nextjs/src/redirects/<project>-redirects.json 2>/dev/null
 ```
 
@@ -147,7 +155,7 @@ If the file has no section markers, append new entries at the end of the file �
 
 ### <project>-redirects.json
 
-Each project's JSON file lives at `platform/docs-nextjs/src/redirects/<project>-redirects.json`. It is a flat array of objects with `source` and `destination` fields. Insert new entries at the end of the array. Do not reorder existing entries or create duplicate entries.
+Each project's JSON file lives at `platform/docs-site/src/redirects/<project>-redirects.json` (migrated projects) or `platform/docs-nextjs/src/redirects/<project>-redirects.json` (legacy projects) — whichever you located in the Build paradigm step. Both use the same format: a flat array of objects with `source` and `destination` fields. Insert new entries at the end of the array. Do not reorder existing entries or create duplicate entries.
 
 ## Step 4: Write the redirect entry
 
@@ -188,7 +196,23 @@ If the change was only backported to some versions, redirects may also be needed
 - **Ordering check: (for `netlify.toml` files only)** new entries are above CATCH ALLS and in a reasonable spot relative to more-general wildcards.
 - **Style check:** indentation and field order match the surrounding entries.
 
-## Step 7: Summarize and hand off
+## Step 7: Regenerate docs-site redirect aggregates (docs-site only)
+
+If the project's JSON redirect file is in `platform/docs-site/src/redirects/` (i.e., the project has migrated to docs-site), you must regenerate the aggregate files after editing the per-project JSON. Skip this step entirely for `docs-nextjs` or `netlify.toml`-only changes.
+
+**Why this matters:** docs-site serves soft redirects (page renames, no `force: true`) from a generated flat aggregate — `all-redirects.json` — read directly by the Netlify edge function at request time. The per-project JSON files are not read at runtime for soft redirects; only the aggregate is. If you edit `compass-redirects.json` but do not regenerate, the redirect will never fire in production — the old URL returns a 404 with no error anywhere in the pipeline. `docs-nextjs` does not have this aggregate, so the step is not needed there.
+
+Run from `platform/docs-site/`:
+
+```bash
+pnpm generate:redirects
+```
+
+This regenerates two auto-generated files — `src/redirects/all-redirects.ts` (static-import barrel for the Next.js app) and `src/redirects/all-redirects.json` (flattened data array for the edge function). Do not hand-edit either file; always regenerate via the script.
+
+Include both regenerated files in the PR alongside the edited per-project JSON. Verify with `git status` that only `all-redirects.ts` and `all-redirects.json` changed (beyond your intended edits) — if other files show unexpected changes, investigate before committing.
+
+## Step 8: Summarize and hand off
 
 Report to the user:
 
@@ -196,3 +220,4 @@ Report to the user:
 - Each redirect block added, with its destination section and version.
 - Any ambiguities that required user confirmation.
 - Any cases where no redirect was needed and why.
+- Whether `all-redirects.ts` and `all-redirects.json` were regenerated (docs-site projects only), and a reminder to include them in the commit.

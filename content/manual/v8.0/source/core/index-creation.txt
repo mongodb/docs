@@ -248,13 +248,22 @@ Interrupted Index Builds on Primary and Secondary ``mongod``
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 If a primary or secondary ``mongod`` performs a clean
-:dbcommand:`shutdown` with ``"force" : true`` or receives a
-``SIGTERM`` signal during an index build and the
-:ref:`commitQuorum <createIndexes-cmd-commitQuorum>` is set to the
-default ``votingMembers``, the index build progress is saved to
-disk. The ``mongod`` automatically recovers the index build when
-restarted and continues from the saved checkpoint. In earlier
-versions, the index build must restart from the beginning.
+:dbcommand:`shutdown` with ``"force" : true`` or receives a ``SIGTERM``
+signal during an index build, and the :ref:`commitQuorum
+<createIndexes-cmd-commitQuorum>` is set to the default
+``votingMembers``, the index build progress is saved to disk. The
+``mongod`` automatically recovers the index build when restarted and
+continues from the saved checkpoint.
+
+If the ``mongod`` crashes instead of shutting down cleanly, the
+index build cannot resume regardless of the commit quorum setting.
+The index build restarts from the beginning when the ``mongod``
+comes back online.
+
+An index build can resume from a saved checkpoint only once. If the
+``mongod`` restarts again while that same index build is still in
+progress, the build restarts from the beginning instead of resuming
+from a checkpoint.
 
 The ``mongod`` can perform the startup process while recovering
 index builds.

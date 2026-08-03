@@ -124,7 +124,8 @@
      - String 
      - Required 
      - Indexed :ref:`vector <avs-types-vector>` type field to search. Use dot 
-       notation to specify path to embedded fields.
+       notation to specify path to embedded fields. You can query only one 
+       :ref:`vector <avs-types-vector>` type field per ``$vectorSearch`` stage.
 
    * - ``queryVector``
      - Array of Numbers 
@@ -147,7 +148,7 @@
        embed the data.
 
        You can query your embeddings with full-fidelity vectors,
-       as long as the vector subtype is the same. This is only possible with
+       if the vector subtype is the same. This is only possible with
        ``binData`` vectors with subtype ``float32``. If you use any other
        subtype (``int8`` or ``int1``), {+avs+} doesn't return any results or errors.
 

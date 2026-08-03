@@ -41,9 +41,26 @@ interface ContentstackWebhookPayload {
   triggered_at: string;
 }
 
-function getProductionUrl(title: string): string {
+// Contentstack environment names, as they appear in the webhook payload's
+// data.environment.name field.
+const PRODUCTION_ENVIRONMENT = 'prod';
+const STAGING_ENVIRONMENT = 'dev';
+
+const PRODUCTION_BASE_URL = 'https://www.mongodb.com';
+const STAGING_BASE_URL = 'https://mongodbcom-cdn.staging.corp.mongodb.com';
+
+function getWhatsNewPostUrl(title: string, environmentName: string): string | null {
   const slug = generateProductUpdatesSlug(title);
-  return `https://www.mongodb.com/products/updates/${slug}`;
+
+  if (environmentName === PRODUCTION_ENVIRONMENT) {
+    return `${PRODUCTION_BASE_URL}/products/updates/${slug}`;
+  }
+
+  if (environmentName === STAGING_ENVIRONMENT) {
+    return `${STAGING_BASE_URL}/products/updates/${slug}`;
+  }
+
+  return null;
 }
 
 /**
@@ -143,8 +160,17 @@ export async function POST(request: NextRequest) {
 
     const { entry } = body.data;
 
-    // Generate the production URL for this entry
-    const productionUrl = getProductionUrl(entry.title);
+    // Determine the What's New post URL based on the environment the entry
+    // was published to. Staging publishes write the staging URL; production
+    // publishes overwrite it with the production URL.
+    const environmentName = body.data.environment.name;
+    const whatsNewPostUrl = getWhatsNewPostUrl(entry.title, environmentName);
+
+    if (!whatsNewPostUrl) {
+      return withCORS(
+        NextResponse.json({ success: true, message: `Ignored: environment ${environmentName}` }),
+      );
+    }
 
     const ahaFeatureUrl = body.data.entry.aha_feature_link;
 
@@ -168,9 +194,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update the Aha feature with the production URL
+    // Update the Aha feature with the What's New post URL
     try {
-      await updateAhaFeatureWhatsNewPost(parsedUrl.domain, parsedUrl.featureId, productionUrl);
+      await updateAhaFeatureWhatsNewPost(parsedUrl.domain, parsedUrl.featureId, whatsNewPostUrl);
     } catch (err) {
       console.error('Failed to update Aha feature:', err);
       return withCORS(

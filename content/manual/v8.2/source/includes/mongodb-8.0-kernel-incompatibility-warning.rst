@@ -1,11 +1,14 @@
-.. warning:: MongoDB 8.0 Incompatible with Kernel 6.19
-   
-   Due to an incompatibility between a new kernel release and the
-   currently vendored version of TCMalloc, running MongoDB 8.0 or newer
-   with Linux kernel version 6.19 can cause MongoDB to crash on
-   startup. This applies to all MongoDB packages, including those
-   obtained from the MongoDB website, or obtained from package managers
-   or Docker.
+.. warning:: MongoDB Is Incompatible with Linux Kernel 6.19 Through 7.0.13
 
-   As soon as a patched version of TCMalloc is available, MongoDB will
-   upgrade to use it, and this compatibility issue will be resolved.
+   Due to an incompatibility between certain Linux kernel releases and
+   the currently vendored version of TCMalloc, running MongoDB 8.2 with
+   a Linux kernel version from 6.19 through 7.0.13 causes MongoDB to
+   crash on startup. Unlike other MongoDB versions, MongoDB 8.2 does
+   not detect these kernel versions and stop during startup, so the
+   crash is not prevented. This incompatibility affects all MongoDB
+   packages, including those obtained from the MongoDB website, a
+   package manager, or Docker.
+
+   Linux kernel version 7.0.14 and later resolves this incompatibility.
+   To run MongoDB on an affected system, upgrade to Linux kernel
+   version 7.0.14 or later.

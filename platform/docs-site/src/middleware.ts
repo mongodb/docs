@@ -10,16 +10,19 @@ export function middleware(request: NextRequest) {
     return withCORS(new NextResponse(null, { status: 204 }));
   }
 
+  // Next strips the configured basePath from nextUrl.pathname inside
+  // middleware, so this is already basePath-relative — e.g. a request to
+  // /docs/<prefix>/current/foo/ arrives here as /current/foo/.
   const { pathname } = request.nextUrl;
 
-  // Content negotiation: serve the Markdown export when a /docs HTML page is
-  // requested with an Accept header preferring text/markdown. Explicit `.md`
-  // URLs are rewritten in next.config, so skip them here.
-  if (pathname.startsWith('/docs/') && !pathname.endsWith('.md')) {
+  // Content negotiation: serve the Markdown export when a docs HTML page is
+  // requested with an Accept header preferring text/markdown. Skip the API
+  // routes and explicit `.md` URLs (rewritten in next.config).
+  if (!pathname.startsWith('/api/') && !pathname.endsWith('.md')) {
     if (prefersMarkdown(request.headers.get('Accept'))) {
-      // Strip the /docs/ prefix and any trailing slash to build the
-      // API path: /docs/manual/upcoming/foo/ → manual/upcoming/foo
-      const docsPath = pathname.replace(/^\/docs\//, '').replace(/\/$/, '');
+      // /current/foo/ → current/foo (basePath-relative; the markdown route
+      // reconstructs the full blob path).
+      const docsPath = pathname.replace(/^\//, '').replace(/\/$/, '');
 
       const url = request.nextUrl.clone();
       url.pathname = `/api/markdown/${docsPath}`;
@@ -35,9 +38,9 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // /docs/* pages (including `.md`, for their preflight) minus static
-    // assets and Next.js internals.
-    '/docs/:path((?!docs_static_nextjs|_next).*)',
+    // Docs pages (basePath-relative) minus Next.js internals. basePath is
+    // applied by Next automatically and _next assets are auto-excluded.
+    '/:path((?!_next).*)',
     // The export route, for direct cross-origin preflight.
     '/api/markdown/:path*',
   ],

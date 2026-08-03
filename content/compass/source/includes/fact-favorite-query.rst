@@ -14,7 +14,7 @@
 
       Hover over your query and click the :guilabel:`Star` button.
 
-      .. figure:: /images/compass/query-add-favorite.png
+      .. figure:: /images/compass/query-add-favorite.svg
          :figwidth: 316 px
          :alt: Click star button
 

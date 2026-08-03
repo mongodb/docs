@@ -76,7 +76,9 @@
      - List of all line item details for each month's bill. This is a
        granular breakout of all services that are invoiced, including
        dates used and billed, quantity (the number of server hours),
-       the project, the SKU rate, and the amount. You can download the
-       usage details as a CSV. To learn more, see
+       the project, the cloud provider that hosts the usage, the SKU
+       rate, and the amount. Usage that isn't associated with a cloud
+       provider appears under :guilabel:`Other Atlas Usage`. You can
+       download the usage details as a CSV. To learn more, see
        :ref:`Payment and Usage Details <payment-details>`.
        

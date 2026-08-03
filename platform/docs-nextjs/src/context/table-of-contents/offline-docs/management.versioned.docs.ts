@@ -1414,7 +1414,7 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/reference/amazon-aws',
                   },
                   {
-                    label: 'Google Cloud Platform',
+                    label: 'Google Cloud',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/reference/google-gcp',
                   },
@@ -1758,11 +1758,6 @@ export const toc: L1TocItem[] = [
                 collapsible: true,
                 url: '/docs/:version/administration/install-community',
                 items: [
-                  {
-                    label: 'Platform Support',
-                    contentSite: 'docs',
-                    url: '/docs/:version/administration/community-platform-support',
-                  },
                   {
                     label: 'Install on Linux',
                     contentSite: 'docs',
@@ -2898,9 +2893,14 @@ export const toc: L1TocItem[] = [
                     url: '/docs/:version/tutorial/schedule-backup-window-for-sharded-clusters',
                   },
                   {
-                    label: 'Restore a Sharded Cluster',
+                    label: 'Restore a Sharded Cluster from File System Snapshots',
                     contentSite: 'docs',
                     url: '/docs/:version/tutorial/restore-sharded-cluster',
+                  },
+                  {
+                    label: 'Restore a Sharded Cluster from Database Dumps',
+                    contentSite: 'docs',
+                    url: '/docs/:version/tutorial/restore-sharded-cluster-with-database-dumps',
                   },
                 ],
               },
@@ -3238,7 +3238,7 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/core/security-ldap-external',
                       },
                       {
-                        label: 'LDAP Deprecation',
+                        label: 'LDAP Alternatives',
                         contentSite: 'docs',
                         url: '/docs/:version/core/LDAP-deprecation',
                       },

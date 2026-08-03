@@ -16,9 +16,10 @@ numbers of *one* of the following types:
    :ref:`avs-bindata-vector-subtype`.
 
 You must index the vector field as the ``vector`` type inside the
-``fields`` array. In the index definition for the ``vector`` type, 
-you configure some additional required and optional parameters 
-(highlighted below) to index the field:
+``fields`` array. You can specify multiple ``vector`` type fields
+inside the ``fields`` array. In the index definition for the
+``vector`` type, you configure some additional required and optional
+parameters (highlighted below) to index the field:
 
 .. code-block:: json
    :copyable: true 

@@ -2,12 +2,12 @@ import type { TocItem } from '../types';
 
 const tocData: TocItem[] = [
   {
-    label: 'Insert',
+    label: 'Create',
     contentSite: 'docs',
     url: '/docs/:version/tutorial/insert-documents',
   },
   {
-    label: 'Query',
+    label: 'Read',
     contentSite: 'docs',
     url: '/docs/:version/tutorial/query-documents',
     collapsible: true,
@@ -73,7 +73,7 @@ const tocData: TocItem[] = [
     ],
   },
   {
-    label: 'Remove',
+    label: 'Delete',
     contentSite: 'docs',
     url: '/docs/:version/tutorial/remove-documents',
   },

@@ -71,6 +71,15 @@ Header 3
   ``.. admonition::``, ``.. caution::``, ``.. danger::``, ``.. example::``,
   ``.. see::``, ``.. see also::``, ``.. topic::``
 
+## Images
+
+- Do not use plus signs (``+``) in image file names. Image files whose
+  names contain a ``+`` return 404 and render as broken on the docs site.
+  Name new image files without a ``+`` (use hyphens instead). When you
+  encounter an existing image whose name contains a ``+``, flag it to the
+  user rather than renaming it silently, since renaming requires updating
+  every ``.. image::`` or ``.. figure::`` directive that references it.
+
 ## Cross-References
 
 - Do not use the ``:doc:`` role. It is deprecated. Use ``:ref:`` with a

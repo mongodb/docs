@@ -35,10 +35,6 @@
       
       b. Click :guilabel:`Finalize Request`.
       
-      c. If you use :doc:`2FA </core/two-factor-authentication>`,
-         |mms| prompts you for your 2FA code. Enter your 2FA code, then
-         click :guilabel:`Finalize Request`.
-      
    .. include:: /includes/nav/steps-continuous-backup.rst
    
    .. step:: Retrieve the Snapshots.

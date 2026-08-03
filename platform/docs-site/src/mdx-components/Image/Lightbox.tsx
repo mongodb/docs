@@ -29,6 +29,10 @@ const StyledModal = styled(Modal as ComponentType<ModalProps>)`
       100vh - ${theme.header.navbarHeight} - ${MODAL_DIALOG_PADDING} - ${MODAL_PADDING} - ${MODAL_PADDING} -
         ${MODAL_DIALOG_PADDING}
     );
+    // Override the inline figwidth-based max-width carried over from figureStyle
+    // so the enlarged image can grow to the dialog width instead of staying
+    // capped at its small inline display width.
+    max-width: 100%;
     width: auto;
   }
 
@@ -41,6 +45,7 @@ const StyledModal = styled(Modal as ComponentType<ModalProps>)`
     }
     img {
       max-height: 300px;
+      max-width: 100%;
     }
   }
 `;

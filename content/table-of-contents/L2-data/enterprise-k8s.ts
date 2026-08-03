@@ -287,6 +287,11 @@ const tocData: TocItem[] = [
                 contentSite: 'docs-k8s-operator',
                 url: '/docs/kubernetes-operator/:version/tutorial/recover-om-appdb-no-k8sop-cluster',
               },
+              {
+                label: 'Recover Lost Majority Replica Set',
+                contentSite: 'docs-k8s-operator',
+                url: '/docs/kubernetes-operator/:version/tutorial/recover-appdb-forced-reconfig',
+              },
             ],
           },
         ],

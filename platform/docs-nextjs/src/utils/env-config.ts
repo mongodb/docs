@@ -1,4 +1,4 @@
-const ENVIRONMENT_VALUES = ['production', 'dotcomprd', 'dotcomstg', 'dev', 'development'] as const;
+const ENVIRONMENT_VALUES = ['dotcomprd', 'dotcomstg'] as const;
 
 export type Environments = (typeof ENVIRONMENT_VALUES)[number];
 
@@ -50,7 +50,7 @@ const envConfig: GlobalEnvConfig = {
   AWS_S3_ACCESS_KEY_ID: process.env.AWS_S3_ACCESS_KEY_ID ?? '',
   AWS_S3_SECRET_ACCESS_KEY: process.env.AWS_S3_SECRET_ACCESS_KEY ?? '',
   AWS_KEY_REGION: process.env.AWS_KEY_REGION ?? 'us-east-2',
-  DB_ENV: (process.env.DB_ENV ?? 'dev') as Environments,
+  DB_ENV: (process.env.DB_ENV ?? 'dotcomstg') as Environments,
   MONGODB_URI: process.env.MONGODB_URI ?? '',
   IPDATA_API_KEY: process.env.IPDATA_API_KEY ?? '',
   JIRA_USERNAME: process.env.JIRA_USERNAME ?? '',

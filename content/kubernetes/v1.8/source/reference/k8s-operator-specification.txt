@@ -669,12 +669,52 @@ StatefulSet Settings
 The following |k8s-statefulsets| settings apply only to replica set and
 sharded cluster resource types.
 
+The |k8s-op-short| supports overriding the |k8s-op-short| default
+|k8s-statefulset| and :abbr:`PVC (PersistentVolumeClaim)` settings by
+specifying values for ``spec.statefulSet.spec`` fields in the MongoDB
+resource specification. However, only certain fields are preserved
+during the merge process. The following tables list the supported
+override fields.
+
 .. setting:: spec.statefulSet.spec
 
    *Type*: collection
 
    Specification for the |k8s-statefulset| that the |k8s-op| creates
    for |k8s-mdbrscs|.
+
+StatefulSet Override Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The following fields are merged in and take precedence over default
+|k8s-statefulset| settings when you specify values in
+``spec.statefulSet.spec``. Field paths are relative to the
+|k8s-statefulset| definition, so ``spec.replicas`` corresponds to
+``spec.statefulSet.spec.replicas`` in the MongoDB resource specification.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 100
+
+   * - Field
+
+   * - ``spec.replicas``
+
+   * - ``spec.selector``
+
+   * - ``spec.podManagementPolicy``
+
+   * - ``spec.revisionHistoryLimit``
+
+   * - ``spec.updateStrategy.type``
+
+   * - ``spec.updateStrategy.rollingUpdate``
+
+   * - ``spec.serviceName``
+
+   * - ``spec.template``
+
+   * - ``spec.volumeClaimTemplates``
 
 .. setting:: spec.statefulSet.spec.serviceName
 
@@ -686,3 +726,44 @@ sharded cluster resource types.
    If the service with this name already exists, the |k8s-op-full| doesn't
    delete or recreate it. This setting lets you create your own custom
    services and lets the |k8s-op-short| reuse them.
+
+PVC (VolumeClaimTemplates) Override Fields
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The |k8s-op-short| merges a volume claim template that you specify in
+``spec.statefulSet.spec.volumeClaimTemplates`` only if its
+``metadata.name`` matches the name of an existing volume claim template.
+The following table shows which :abbr:`PVC (PersistentVolumeClaim)`
+fields the |k8s-op-short| preserves and which it drops when you specify
+values in ``spec.statefulSet.spec.volumeClaimTemplates``. Field paths are
+relative to an individual volume claim template, so ``spec.volumeMode``
+corresponds to
+``spec.statefulSet.spec.volumeClaimTemplates.spec.volumeMode`` in the
+MongoDB resource specification.
+
+.. list-table::
+   :header-rows: 1
+   :widths: 50 50
+
+   * - Supported (Preserved)
+     - Not Supported (Dropped)
+
+   * - | ``metadata.namespace``
+       | ``metadata.labels``
+       | ``metadata.annotations``
+       | ``spec.volumeMode``
+       | ``spec.storageClassName``
+       | ``spec.accessModes`` [#pvc-access-modes]_
+       | ``spec.selector``
+       | ``spec.resources.limits``
+       | ``spec.resources.requests``
+       | ``spec.dataSource``
+     - | ``spec.volumeAttributesClassName``
+       | ``spec.dataSourceRef``
+       | ``spec.volumeName``
+
+.. [#pvc-access-modes]
+
+   The |k8s-op-short| appends the access modes that you specify to the
+   default access modes rather than replacing them.
+

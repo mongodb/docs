@@ -130,9 +130,6 @@ export const getRepoBranchesPrefixEnv = (env: Environments) => {
   switch (env) {
     case 'dotcomprd':
       return 'dotcomprd';
-    case 'production':
-      return 'prd';
-    case 'dev':
     case 'dotcomstg':
     default:
       return 'dotcomstg';

@@ -8,7 +8,7 @@ const tocData: TocItem[] = [
     contentSite: 'mck',
     versionDropdown: true,
     group: true,
-    versions: { excludes: ['upcoming', 'current'] },
+    versions: { excludes: ['upcoming', 'current', 'v1.9'] },
     items: mckLegacy,
   },
   {
@@ -16,7 +16,7 @@ const tocData: TocItem[] = [
     contentSite: 'mck',
     versionDropdown: true,
     group: true,
-    versions: { includes: ['upcoming', 'current'] },
+    versions: { includes: ['upcoming', 'current', 'v1.9'] },
     items: mckUpcoming,
   },
 ];

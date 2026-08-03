@@ -259,14 +259,21 @@ ${itemFormatted},
  */
 function splitTocForOffline() {
   // TODO: DOP-6536 when porting over this directory, update the path to the offline-docs directory
-  const outputDir = path.join(
-    __dirname,
-    '../../../platform/docs-nextjs/src/context/table-of-contents/offline-docs',
-  );
+  const outputDirs = [
+    path.join(
+      __dirname,
+      '../../../platform/docs-nextjs/src/context/table-of-contents/offline-docs',
+    ),
+    path.join(
+      __dirname,
+      '../../../platform/docs-site/src/context/table-of-contents/offline-docs',
+    ),
+  ];
 
-  // Ensure the offline-docs directory exists
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir, { recursive: true });
+  for (const outputDir of outputDirs) {
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
   }
 
   console.log('\n  Splitting TOC for offline documentation...\n');
@@ -311,15 +318,17 @@ function splitTocForOffline() {
     }
   }
 
-  // Write L1 files
-  for (const { filename, content } of l1Files) {
-    const filePath = path.join(outputDir, `${filename}.ts`);
-    fs.writeFileSync(filePath, content, 'utf-8');
+  // Write L1 files to every output directory
+  for (const outputDir of outputDirs) {
+    for (const { filename, content } of l1Files) {
+      const filePath = path.join(outputDir, `${filename}.ts`);
+      fs.writeFileSync(filePath, content, 'utf-8');
+    }
   }
 
   console.log('\n  ShowSubNav files:');
 
-  // Write showSubNav files
+  // Write showSubNav files to every output directory
   for (const { label, item } of allExtractedSubNavs) {
     // Find all contentSites with versionDropdown in this subNav's tree
     const versionedSites = findVersionedContentSites(item.items);
@@ -330,9 +339,12 @@ function splitTocForOffline() {
 
     const filename = generateFilename(label, versionedSites);
     const content = generateSubNavFileContent(item, versionedSites.size > 0);
-    const filePath = path.join(outputDir, `${filename}.ts`);
 
-    fs.writeFileSync(filePath, content, 'utf-8');
+    for (const outputDir of outputDirs) {
+      const filePath = path.join(outputDir, `${filename}.ts`);
+      fs.writeFileSync(filePath, content, 'utf-8');
+    }
+
     if (versionedSites.size > 0) {
       console.log(
         `   "${label}" → ${filename}.ts (versioned: ${Array.from(versionedSites).join(', ')})`,
@@ -344,7 +356,10 @@ function splitTocForOffline() {
 
   console.log(`\n Created ${l1Files.length} L1 files`);
   console.log(` Created ${allExtractedSubNavs.length} showSubNav files`);
-  console.log(` Output directory: ${outputDir}`);
+  console.log(` Output directories:`);
+  for (const outputDir of outputDirs) {
+    console.log(`   - ${outputDir}`);
+  }
 }
 
 // Run the script

@@ -16,7 +16,14 @@ specific MongoDB versions.
        <fts-transform-documents-collections>`
      - 8.0+
 
+   * - Query Views directly with :pipeline:`$search` and
+       :pipeline:`$searchMeta`
+     - 8.1+
+
    * - :pipeline:`$search` and :pipeline:`$searchMeta` on sharded views
+     - 8.2+
+
+   * - :pipeline:`$rankFusion` on Views
      - 8.2+
 
    * - :ref:`Facets <fts-facet-ref>`

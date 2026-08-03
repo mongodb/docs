@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { readFileSync, writeFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import YAML from 'yaml';
 
 const STYLE_GUIDE_PATH = process.env.STYLE_GUIDE_PATH ?? 'content/meta/source/style-guide';
 const CHANGED_FILES = process.env.CHANGED_FILES ?? '';
@@ -54,12 +55,32 @@ if (!changedContent) {
   process.exit(1);
 }
 
-const client = new Anthropic();
+// Read the gateway base URL and sync model from the shared reviewer config
+// so both scripts have a single source of truth.
+const config = YAML.parse(
+  readFileSync(join(REPO_ROOT, '.github/ai-reviewer/config.yml'), 'utf-8')
+) as { ai: { base_url: string; sync_model: string } };
 
-console.log('Calling Claude to update style-guide-reference.md...');
+// Route through the Grove gateway's Anthropic-format endpoint. The gateway
+// authenticates with the `api-key` header (Azure APIM), not the SDK's default
+// `x-api-key`, so the key is supplied via defaultHeaders. The SDK still
+// requires apiKey to be set; the gateway ignores the resulting `x-api-key`.
+if (!process.env.GROVE_API_KEY) {
+  console.error('Missing GROVE_API_KEY (Grove gateway API key)');
+  process.exit(1);
+}
+const client = new Anthropic({
+  apiKey: process.env.GROVE_API_KEY,
+  baseURL: config.ai.base_url,
+  defaultHeaders: {
+    'api-key': process.env.GROVE_API_KEY,
+  },
+});
+
+console.log(`Calling ${config.ai.sync_model} to update style-guide-reference.md...`);
 
 const response = await client.messages.create({
-  model: 'claude-sonnet-4-6',
+  model: config.ai.sync_model,
   max_tokens: 4096,
   messages: [
     {
@@ -81,9 +102,13 @@ Update the condensed reference to incorporate any important new or changed guide
   ],
 });
 
-const updated = response.content[0].type === 'text' ? response.content[0].text : null;
+// Find the text block rather than assuming it's first — on models that think by
+// default, content[0] is a thinking block and this would silently read as empty.
+const textBlock = response.content.find(block => block.type === 'text');
+const updated = textBlock?.type === 'text' ? textBlock.text : null;
 if (!updated) {
-  console.error('Empty response from Claude');
+  const types = response.content.map(b => b.type).join(', ') || 'empty';
+  console.error(`No text block in response from Claude. Content types: ${types}`);
   process.exit(1);
 }
 

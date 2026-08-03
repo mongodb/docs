@@ -2,7 +2,7 @@ import fs from 'fs/promises';
 import path from 'path';
 
 /** Same as nextjs-extension blobUploads/utils (kept local so TS resolves within docs-site). */
-function stripDocsPrefix(prefix: string): string {
+export function stripDocsPrefix(prefix: string): string {
   if (prefix === 'docs') return '';
   if (prefix.startsWith('docs/')) return prefix.slice(5);
   return prefix;

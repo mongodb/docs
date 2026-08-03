@@ -569,6 +569,11 @@ changeStreamPreImages
          maxStartWallTimeMillis : <num>,
          timeElapsedMillis : <num>,
       },
+      markerCreation : {
+         totalPass : <num>,
+         scannedInternalCollections : <num>,
+         timeElapsedMillis : <num>,
+      },
       expireAfterSeconds : <num>
    }
 
@@ -643,6 +648,42 @@ A document that reports metrics related to
       * - ``timeElapsedMillis``
         - Cumulative time in milliseconds of all deletion passes by the 
           purging job.
+
+.. serverstatus:: changeStreamPreImages.markerCreation
+
+   A document that reports metrics related to sampling the
+   pre-images collection. MongoDB samples pre-images to build the
+   initial truncation information that governs pre-image removal.
+   To control the number of samples MongoDB draws from each
+   collection, use the
+   :parameter:`changeStreamPreImagesSamplePointsPerUUID` parameter.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: changeStreamPreImages.markerCreation.totalPass
+
+   Total number of pre-image sampling passes completed. MongoDB
+   performs pre-image sampling shortly after a node starts, on both
+   primary and secondary nodes. MongoDB typically samples pre-images
+   once during the lifetime of a node.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: changeStreamPreImages.markerCreation.scannedInternalCollections
+
+   Cumulative number of user collection UUID ranges sampled in the
+   pre-images collection. Each sampling pass increases this value by
+   the number of user collections that have change stream pre-images
+   enabled and contain active pre-images.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: changeStreamPreImages.markerCreation.timeElapsedMillis
+
+   Cumulative time in milliseconds spent on pre-image sampling
+   passes.
+
+   .. versionadded:: 9.0
 
 .. serverstatus:: changeStreamPreImages.expireAfterSeconds
 
@@ -1954,7 +1995,35 @@ metrics
          largeEventsFailed: Long("<num>"),
          largeEventsSplit: Long("<num>"),
          option: {
-            showExpandedEvents: Long("<num>")
+            showExpandedEvents: Long("<num>"),
+            cursor: {
+               batchSize: {
+                  "(-inf, 1)": { count: Long("<num>") },
+                  "[1, 10)": { count: Long("<num>") },
+                  "[10, 100)": { count: Long("<num>") },
+                  "[100, 1000)": { count: Long("<num>") },
+                  "[1000, 10000)": { count: Long("<num>") },
+                  "[10000, inf)": { count: Long("<num>") },
+                  totalCount: Long("<num>")
+               },
+               maxTimeMS: {
+                  "(-inf, 100)": { count: Long("<num>") },
+                  "[100, 200)": { count: Long("<num>") },
+                  "[200, 500)": { count: Long("<num>") },
+                  "[500, 1000)": { count: Long("<num>") },
+                  "[1000, 2000)": { count: Long("<num>") },
+                  "[2000, 5000)": { count: Long("<num>") },
+                  "[5000, 10000)": { count: Long("<num>") },
+                  "[10000, 20000)": { count: Long("<num>") },
+                  "[20000, 50000)": { count: Long("<num>") },
+                  "[50000, 100000)": { count: Long("<num>") },
+                  "[100000, 200000)": { count: Long("<num>") },
+                  "[200000, 500000)": { count: Long("<num>") },
+                  "[500000, 1000000)": { count: Long("<num>") },
+                  "[1000000, inf)": { count: Long("<num>") },
+                  totalCount: Long("<num>")
+               }
+            }
          }
       },
       commands: {
@@ -2061,6 +2130,9 @@ metrics
       },
       query: {
          allowDiskUseFalse: Long("<num>"),
+         configuredMaxMemoryUsageBytesPerOperation: Long("<num>"),
+         operationsFailedDueToMemoryLimit: Long("<num>"),
+         peakMemoryUsageOperation: Long("<num>"),
          cbr: {
             choseWinningPlan: Long("<num>"),
             count: Long("<num>"),
@@ -2453,6 +2525,51 @@ metrics
       Renamed from ``metrics.changeStreams.showExpandedEvents`` to
       ``metrics.changeStreams.option.showExpandedEvents``.
 
+.. serverstatus:: metrics.changeStreams.option.cursor
+
+   A document that reports process-level histograms of the cursor
+   options set on change stream :dbcommand:`aggregate` and
+   :dbcommand:`getMore` commands. These histograms are tracked on both
+   :binary:`~bin.mongod` and :binary:`~bin.mongos`.
+
+   Each histogram groups command values into buckets. Each bucket
+   reports the ``count`` of commands with a value in that bucket's
+   range, and ``totalCount`` reports the total number of commands
+   counted across all buckets.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.cursor.batchSize
+
+   A histogram of the ``batchSize`` cursor option values set on change
+   stream :dbcommand:`aggregate` and :dbcommand:`getMore` commands, with
+   bucket boundaries at 1, 10, 100, 1000, and 10000.
+
+   For :dbcommand:`getMore` commands, the histogram is only incremented
+   when a ``batchSize`` value is set on the command. For
+   :dbcommand:`aggregate` commands that don't set a ``batchSize`` value,
+   the server applies a backfill value and increments the corresponding
+   bucket.
+
+   .. note::
+
+      Don't rely on the specific backfill value, which may change
+      between versions.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.option.cursor.maxTimeMS
+
+   A histogram of the ``maxTimeMS`` cursor option values set on change
+   stream :dbcommand:`aggregate` and :dbcommand:`getMore` commands, with
+   bucket boundaries at 100, 200, 500, 1000, 2000, 5000, 10000, 20000,
+   50000, 100000, 200000, 500000, and 1000000.
+
+   The histogram is only incremented for commands that set a
+   ``maxTimeMS`` value.
+
+   .. versionadded:: 9.0
+
 .. serverstatus:: metrics.changeStreams.cursor
 
    A document that reports cumulative throughput statistics for all
@@ -2494,6 +2611,60 @@ metrics
 
    The cumulative number of change stream events returned by all
    change stream cursors.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.error
+
+   A document that reports the number of errors encountered by
+   change stream cursors, categorized by whether the errors are
+   retriable.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.error.nonRetriable.changeStreamHistoryLost
+
+   The number of times a change stream cursor failed to resume
+   because the requested resume point is no longer available in the
+   oplog.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.error.nonRetriable.changeStreamFatalError
+
+   The number of times a change stream cursor encountered a fatal,
+   non-resumable error. For example, this counter increments when a
+   pipeline stage removes the ``_id`` field from change stream
+   events.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.error.nonRetriable.bsonObjectTooLarge
+
+   The number of times a change stream event exceeded the 16 MB BSON
+   document size limit. To prevent this error, see
+   :pipeline:`$changeStreamSplitLargeEvent`.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.error.nonRetriable.other
+
+   The number of non-retriable change stream errors not covered by
+   another counter under ``metrics.changeStreams.error.nonRetriable``.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.error.retriable.interruptedDueToReplStateChange
+
+   The number of times a replica set state change, such as a primary
+   stepping down, interrupted a change stream cursor.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.changeStreams.error.retriable.other
+
+   The number of retriable change stream errors not covered by
+   another ``metrics.changeStreams.error.retriable`` counter.
 
    .. versionadded:: 9.0
 
@@ -3026,6 +3197,15 @@ metrics
 
    .. versionadded:: 8.3.3
 
+.. serverstatus:: metrics.query.configuredMaxMemoryUsageBytesPerOperation
+
+   Current configured value of the maximum amount of memory in
+   bytes that all memory-tracked stages of a single query
+   operation may collectively use. Use this metric to
+   correlate failures with the configured memory limit.
+
+   .. versionadded:: 9.0
+
 .. serverstatus:: metrics.query.lookup
 
    A document that provides detailed data on the use of the  :pipeline:`$lookup` 
@@ -3043,7 +3223,86 @@ metrics
 
    These metrics are primarily intended for internal use by MongoDB.
 
-   *New in version 6.0.0 and 5.0.9* 
+   *New in version 6.0.0 and 5.0.9*
+
+.. serverstatus:: metrics.query.nonLeadingPushdown
+
+   A document that provides metrics on aggregation pipelines that
+   have at least one non-leading stage pushed down to the |sbe|. For
+   more information on the |sbe|, see :ref:`sbe-pipeline-optimizations`.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.nonLeadingPushdown.match
+
+   The number of queries with a non-leading :pipeline:`$match` stage
+   pushed down to the |sbe|.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.nonLeadingPushdown.project
+
+   The number of queries with a non-leading :pipeline:`$project`
+   stage pushed down to the |sbe|.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.nonLeadingPushdown.addFields
+
+   The number of queries with a non-leading :pipeline:`$addFields`
+   stage pushed down to the |sbe|.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.nonLeadingPushdown.replaceRoot
+
+   The number of queries with a non-leading :pipeline:`$replaceRoot`
+   stage pushed down to the |sbe|.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.operationsFailedDueToMemoryLimit
+
+   Number of times since startup that a query operation failed
+   because it exceeded memory-tracking limits. Use this metric to 
+   determine whether the memory limit is too low for
+   your workload.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.pathArrayness
+
+   A document that provides metrics on queries where the |sbe| uses
+   path arrayness data to optimize leading filters. Path arrayness
+   data indicates whether a query path can contain an array, and
+   comes from :ref:`multikey index <index-type-multikey>` metadata.
+   For more information on the |sbe|, see
+   :ref:`sbe-pipeline-optimizations`.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.pathArrayness.leadingFilter
+
+   Number of queries with at least one leading filter that the
+   |sbe| can simplify using path arrayness data.
+
+   .. versionadded:: 9.0
+
+.. serverstatus:: metrics.query.pathArrayness.leadingFilterSimplified
+
+   Number of queries with at least one leading filter that the
+   |sbe| simplified using path arrayness data. The |sbe| simplifies
+   a filter when path arrayness data shows that the filter path
+   cannot contain an array, which lets the |sbe| skip array
+   traversal for that path.
+
+.. serverstatus:: metrics.query.peakMemoryUsageOperation
+
+   Largest amount of memory in bytes tracked for a single
+   operation since startup. Use this metric to determine
+   an appropriate per-operation memory limit for your workload.
+
+   .. versionadded:: 9.0
 
 .. serverstatus:: metrics.query.sort
 

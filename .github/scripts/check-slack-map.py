@@ -22,9 +22,10 @@ def load_primary_dris(path):
 def load_slack_map_keys(path):
     with open(path) as f:
         content = f.read()
-    # The map is a flat literal dict of 'github-username': 'SLACK_ID' pairs,
-    # e.g. slack_map = { 'erabil-mdb': 'U042MBH66Q3', ... }
-    return set(re.findall(r"'([\w-]+)':\s*'U[A-Z0-9]+'", content))
+    # The map is a flat literal dict of 'github-username-or-email': 'SLACK_ID'
+    # pairs, e.g. slack_map = { 'erabil-mdb': 'U042MBH66Q3',
+    # 'kyle.rollins@mongodb.com': 'U0453T5AFMM', ... }
+    return set(re.findall(r"'([\w][\w.@-]*)':\s*'U[A-Z0-9]+'", content))
 
 
 def main():

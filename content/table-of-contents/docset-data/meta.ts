@@ -518,11 +518,6 @@ const tocData: TocItem[] = [
             url: '/docs/meta/error-kb',
           },
           {
-            label: 'Installing MongoDB Documentation Build Tools',
-            contentSite: 'meta',
-            url: '/docs/meta/tutorials/install',
-          },
-          {
             label: 'How to Create a Docstools-Enabled Repository',
             contentSite: 'meta',
             url: '/docs/meta/tutorials/repo',

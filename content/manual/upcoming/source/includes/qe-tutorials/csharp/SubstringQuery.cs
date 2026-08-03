@@ -26,13 +26,8 @@ var encryptedFields = new BsonDocument
 // end-enable-substring
 
 // start-query-substring
-var filter = new BsonDocument("$expr", new BsonDocument("$encStrContains", 
-    new BsonDocument
-    {
-        { "input", "$patientRecord.ssn" },
-        { "substring", "-65-432" }
-    }));
+var filter = Builders<Patient>.Filter.EncStrContains("patientRecord.ssn", "-65-4");
 
-var findResult = await encryptedCollection.Find(filter).ToCursorAsync();
-Console.WriteLine(findResult.FirstOrDefault().ToJson());
+var findResult = encryptedCollection.Find(filter).FirstOrDefault();
+Console.WriteLine(findResult.ToJson());
 // end-query-substring

@@ -1,0 +1,173 @@
+.. _gst-run-queries-downstream:
+
+===================================================
+Run Queries for the Feed Downstream Systems Wizard
+===================================================
+
+.. meta::
+   :description: Run MongoDB Query Language operations against a federated database instance that you deployed with the Feed Downstream Systems wizard using sample datasets.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+*Estimated completion time: 5 minutes*
+
+You can run operations using the MongoDB Query Language (MQL) which
+includes most, but not all standard server commands. To learn which MQL
+operations are supported, see the :ref:`MQL Support
+<adf-mql-support>` documentation.
+
+.. note::
+
+   The {+adf+} sample datasets are read-only.
+
+Prerequisites
+-------------
+
+To complete this part of the tutorial, you must have completed:
+
+- **Part 1:** :ref:`gst-deploy-adf`
+- **Part 2:** :ref:`config-connection`
+- **Part 3:** :ref:`gst-connect-adf`
+
+You must be :ref:`connected <fdi-connect>` to your {+fdi+} with the
+MongoDB Shell before running the following queries.
+
+Queries
+-------
+
+The following example queries apply to a {+fdi+} that you deployed
+with the :ref:`Feed Downstream Systems <feed-downstream-systems>`
+wizard.
+
+If you have not done so already, complete the following to run the following queries successfully:
+
+- :ref:`Load sample data <sample-data>` into the |service| {+cluster+} you're using as a data source for your {+fdi+}.
+- :ref:`Configure the downstream system <feed-downstream-systems>` to extract data from you |service| {+cluster+} into your |aws| |s3| bucket.
+
+.. tabs::
+
+   .. tab:: AirBnb
+      :tabid: airbnb
+
+      Before running the queries, switch to the ``sample_airbnb`` database:
+
+      .. code-block:: sh
+
+         use sample_airbnb
+
+      .. include:: /includes/data-federation/query-examples-airbnb.rst
+
+   .. tab:: Analytics
+      :tabid: analytics
+
+      Before running the queries, switch to the ``sample_analytics`` database:
+
+      .. code-block:: sh
+
+         use sample_analytics
+
+      .. include:: /includes/data-federation/query-examples-analytics.rst
+
+   .. tab:: Mflix
+      :tabid: mflix
+
+      Before running the queries, switch to the ``sample_mflix`` database:
+
+      .. code-block:: sh
+
+         use sample_mflix
+
+      .. include:: /includes/data-federation/query-examples-mflix.rst
+
+   .. tab:: Training
+      :tabid: training
+
+      Before running the queries, switch to the ``sample_training`` database:
+
+      .. code-block:: sh
+
+         use sample_training
+
+      Find all states with a population greater than 10 million.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language:  json
+            :linenos:
+
+            db.zips.aggregate([{$group: { _id: "$state", totalPop: { $sum: "$pop" }}}, {$match: { totalPop: { $gte: 10*1000*1000 }}}])
+
+         .. output::
+            :language: json
+            :linenos:
+
+            { "_id" : "NY", "totalPop" : 17990455 }
+            { "_id" : "FL", "totalPop" : 12937926 }
+            { "_id" : "PA", "totalPop" : 11881643 }
+            { "_id" : "CA", "totalPop" : 29760021 }
+            { "_id" : "TX", "totalPop" : 16986510 }
+            { "_id" : "IL", "totalPop" : 11430602 }
+            { "_id" : "OH", "totalPop" : 10847115 }
+
+      Find all trips taken by customers that were less than 70 minutes.
+
+      .. io-code-block::
+         :copyable: true
+
+         .. input::
+            :language:  json
+            :linenos:
+
+            db.trips.find({"tripduration": { "$lte" : 70 }, "usertype": { "$eq": "Customer" }})
+
+         .. output::
+            :language: json
+            :linenos:
+
+            {
+               "_id" : ObjectId("572bb8232b288919b68af7cd"),
+               "tripduration" : 66,
+               "start station id" : 460,
+               "start station name" : "S 4 St & Wythe Ave",
+               "end station id" : 460,
+               "end station name" : "S 4 St & Wythe Ave",
+               "bikeid" : 23779,
+               "usertype" : "Customer",
+               "birth year" : "",
+               "start station location" : {
+                  "type" : "Point",
+                  "coordinates" : [
+                     -73.96590294,
+                     40.71285887
+                  ]
+               },
+               "end station location" : {
+                  "type" : "Point",
+                  "coordinates" : [
+                     -73.96590294,
+                     40.71285887
+                  ]
+               },
+               "start time" : ISODate("2016-01-02T11:49:11Z"),
+               "stop time" : ISODate("2016-01-02T11:50:18Z")
+            }
+
+Summary
+-------
+
+Congratulations! You just set up a {+fdi+}, created a database and
+collections from data stored in an S3 bucket, and queried the data
+using MQL commands.
+
+For more information on {+fdi+}\s, see :ref:`{+adf+}
+<atlas-data-federation>`.
+
+.. include:: /includes/data-federation/fact-fdi-dynamic-collections.rst

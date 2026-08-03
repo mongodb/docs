@@ -311,6 +311,11 @@ export const toc: L1TocItem[] = [
                     contentSite: 'atlas-architecture',
                     url: '/docs/atlas/architecture/:version/solutions-library/ai-driven-interactive-banking',
                   },
+                  {
+                    label: 'Core Banking Modernization',
+                    contentSite: 'atlas-architecture',
+                    url: '/docs/atlas/architecture/:version/solutions-library/core-banking-modernization',
+                  },
                 ],
               },
               {

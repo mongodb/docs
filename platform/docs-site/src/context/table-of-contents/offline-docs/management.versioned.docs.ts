@@ -350,14 +350,22 @@ export const toc: L1TocItem[] = [
                     ],
                   },
                   {
-                    label: 'Upgrade Major MongoDB Version',
+                    label: 'MongoDB Versions in Atlas',
                     contentSite: 'cloud-docs',
-                    url: '/docs/atlas/tutorial/major-version-change',
-                  },
-                  {
-                    label: 'Downgrade Major MongoDB Version',
-                    contentSite: 'cloud-docs',
-                    url: '/docs/atlas/tutorial/major-version-downgrade',
+                    collapsible: true,
+                    url: '/docs/atlas/atlas-versions',
+                    items: [
+                      {
+                        label: 'Upgrade Major MongoDB Version',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/tutorial/major-version-change',
+                      },
+                      {
+                        label: 'Downgrade Major MongoDB Version',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/tutorial/major-version-downgrade',
+                      },
+                    ],
                   },
                   {
                     label: 'Maintenance Windows',
@@ -539,6 +547,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/backup/cloud-backup/restore-from-continuous',
                   },
                   {
+                    label: 'Collection- and Database-Level Restores',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/backup/cloud-backup/restore-from-db-coll',
+                  },
+                  {
                     label: 'Restore from Local Download',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/backup/cloud-backup/restore-from-local-file',
@@ -624,86 +637,16 @@ export const toc: L1TocItem[] = [
             ],
           },
           {
-            label: 'Sample Data',
-            contentSite: 'cloud-docs',
-            collapsible: true,
-            url: '/docs/atlas/sample-data',
-            items: [
-              {
-                label: 'Load Sample Data',
-                contentSite: 'cloud-docs',
-                collapsible: true,
-                items: [
-                  {
-                    label: 'Atlas',
-                    contentSite: 'cloud-docs',
-                    url: '/docs/atlas/sample-data/load-sample-data/',
-                  },
-                  {
-                    label: 'Self-Managed Deployments',
-                    contentSite: 'cloud-docs',
-                    url: '/docs/atlas/sample-data/load-sample-data-local/',
-                  },
-                ],
-              },
-              {
-                label: 'Sample Airbnb',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/sample-data/sample-airbnb/',
-              },
-              {
-                label: 'Sample Analytics',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/sample-data/sample-analytics/',
-              },
-              {
-                label: 'Sample Geospatial',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/sample-data/sample-geospatial/',
-              },
-              {
-                label: 'Sample Guides',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/sample-data/sample-guides/',
-              },
-              {
-                label: 'Sample Mflix',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/sample-data/sample-mflix/',
-              },
-              {
-                label: 'Sample Restaurants',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/sample-data/sample-restaurants/',
-              },
-              {
-                label: 'Sample Supplies',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/sample-data/sample-supplies/',
-              },
-              {
-                label: 'Sample Training',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/sample-data/sample-training/',
-              },
-              {
-                label: 'Sample Weather',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/sample-data/sample-weather/',
-              },
-              {
-                label: 'Synthetic Data',
-                contentSite: 'cloud-docs',
-                url: '/docs/atlas/synthetic-data/',
-              },
-            ],
-          },
-          {
             label: 'Migrate or Import Data',
             contentSite: 'cloud-docs',
             collapsible: true,
             url: '/docs/atlas/import',
             items: [
+              {
+                label: 'Import Sample Data',
+                contentSite: 'cloud-docs',
+                url: '/docs/atlas/import/load-sample-data',
+              },
               {
                 label: 'Monitor Migrations',
                 contentSite: 'cloud-docs',
@@ -1471,7 +1414,7 @@ export const toc: L1TocItem[] = [
                     url: '/docs/atlas/reference/amazon-aws',
                   },
                   {
-                    label: 'Google Cloud Platform',
+                    label: 'Google Cloud',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/reference/google-gcp',
                   },
@@ -2485,11 +2428,6 @@ export const toc: L1TocItem[] = [
                     url: '/docs/:version/tutorial/sharding-segmenting-shards',
                   },
                   {
-                    label: 'Distributed Local Writes for Insert-Only Workloads',
-                    contentSite: 'docs',
-                    url: '/docs/:version/tutorial/sharding-high-availability-writes',
-                  },
-                  {
                     label: 'Distribute Collections',
                     contentSite: 'docs',
                     url: '/docs/:version/tutorial/sharding-distribute-collections-with-zones',
@@ -2674,6 +2612,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/:version/reference/inconsistency-type',
                     items: [
                       {
+                        label: 'AuthoritativeShardCatalogCollectionsPresent',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/inconsistency-type/AuthoritativeShardCatalogCollectionsPresent',
+                      },
+                      {
                         label: 'CollectionAuxiliaryMetadataMismatch',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/inconsistency-type/CollectionAuxiliaryMetadataMismatch',
@@ -2704,9 +2647,24 @@ export const toc: L1TocItem[] = [
                         url: '/docs/:version/reference/inconsistency-type/HiddenShardedCollection',
                       },
                       {
+                        label: 'IncompatibleUniqueIndexOnShardedCollection',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/inconsistency-type/IncompatibleUniqueIndexOnShardedCollection',
+                      },
+                      {
                         label: 'InconsistentIndex',
                         contentSite: 'docs',
                         url: '/docs/:version/reference/inconsistency-type/InconsistentIndex',
+                      },
+                      {
+                        label: 'InconsistentShardCatalogCollectionMetadata',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/inconsistency-type/InconsistentShardCatalogCollectionMetadata',
+                      },
+                      {
+                        label: 'LegacyShardCacheCollectionsPresent',
+                        contentSite: 'docs',
+                        url: '/docs/:version/reference/inconsistency-type/LegacyShardCacheCollectionsPresent',
                       },
                       {
                         label: 'MisplacedCollection',
@@ -2758,7 +2716,7 @@ export const toc: L1TocItem[] = [
                         contentSite: 'docs',
                         url: '/docs/:version/reference/inconsistency-type/ShardCatalogCacheCollectionMetadataMismatch/',
                         versions: {
-                          excludes: ['v7.0', 'v8.0'],
+                          excludes: ['v7.0', 'v8.0', 'upcoming'],
                         },
                       },
                       {
@@ -2935,9 +2893,14 @@ export const toc: L1TocItem[] = [
                     url: '/docs/:version/tutorial/schedule-backup-window-for-sharded-clusters',
                   },
                   {
-                    label: 'Restore a Sharded Cluster',
+                    label: 'Restore a Sharded Cluster from File System Snapshots',
                     contentSite: 'docs',
                     url: '/docs/:version/tutorial/restore-sharded-cluster',
+                  },
+                  {
+                    label: 'Restore a Sharded Cluster from Database Dumps',
+                    contentSite: 'docs',
+                    url: '/docs/:version/tutorial/restore-sharded-cluster-with-database-dumps',
                   },
                 ],
               },
@@ -3310,6 +3273,33 @@ export const toc: L1TocItem[] = [
                     collapsible: true,
                     url: '/docs/:version/core/security-transport-encryption',
                     items: [
+                      {
+                        label: 'Quickstart',
+                        contentSite: 'docs',
+                        collapsible: true,
+                        items: [
+                          {
+                            label: 'Plan Your Configuration',
+                            contentSite: 'docs',
+                            url: '/docs/:version/core/tls/plan-tls-deployment',
+                          },
+                          {
+                            label: 'Obtain Certificates',
+                            contentSite: 'docs',
+                            url: '/docs/:version/core/tls/certificate-tutorial',
+                          },
+                          {
+                            label: 'Configure On Your Deployment',
+                            contentSite: 'docs',
+                            url: '/docs/:version/core/tls/configure-server-tls-tutorial',
+                          },
+                          {
+                            label: 'Connect Client',
+                            contentSite: 'docs',
+                            url: '/docs/:version/core/tls/configure-client-tls-tutorial',
+                          },
+                        ],
+                      },
                       {
                         label: 'Configure mongod & mongos',
                         contentSite: 'docs',

@@ -57,46 +57,42 @@
          * - ``<numberOfDimensions>``
            - Number of vector dimensions that {+avs+} enforces at index-time and query-time.
 
-      .. example:: 
+      For example, copy and paste the following example index definition 
+      into the ``IndexService.cs`` and replace the ``<connectionString>`` 
+      placeholder value. 
 
-         Copy and paste the following into the ``IndexService.cs`` and
-         replace the ``<connectionString>`` placeholder value. The following index
-         definition indexes the ``plot_embedding_voyage_3_large`` field as the
-         ``vector`` type and the ``genres`` and ``year`` fields as the
-         ``filter`` type in a {+avs+} index. The ``plot_embedding_voyage_3_large``
-         field contains embeddings created using |voyage|'s
-         ``voyage-3-large`` embedding model. The index
-         definition specifies ``2048`` vector dimensions and measures
-         similarity using ``dotProduct`` function. 
+      .. collapsible:: 
+         :heading: Basic Example
+         :expanded: false
 
-         .. tabs:: 
+         .. include:: /includes/index/vector-type/facts/avs-create-index-basic-eg.rst
 
-            .. tab:: Basic Example
-               :tabid: basic
+         .. literalinclude:: /includes/quick-start/code-snippets/vector/csharp/basic-example.cs
+            :language: csharp
+            :copyable: true 
+            :linenos:
 
-               The following index definition indexes only the vector
-               embeddings field (``plot_embedding_voyage_3_large``) for performing
-               vector search.   
+      .. collapsible:: 
+         :heading: Filter Example 
+         :expanded: false
 
-               .. literalinclude:: /includes/quick-start/code-snippets/vector/csharp/basic-example.cs
-                  :language: csharp
-                  :copyable: true 
-                  :linenos:
+         .. include:: /includes/index/vector-type/facts/avs-create-index-filter-eg.rst
 
-            .. tab:: Filter Example 
-               :tabid: advanced
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/csharp/filter-example.cs
+            :language: csharp
+            :copyable: true 
+            :linenos:
 
-               This index definition indexes the following fields: 
-      
-               - A string field (``genres``) and a numeric field (``year``)
-                 for pre-filtering the data. 
-               - The vector embeddings field (``plot_embedding_voyage_3_large``) for
-                 performing vector search against pre-filtered data.
+      .. collapsible:: 
+         :heading: Multiple Vector Fields Example
+         :expanded: false
 
-               .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/csharp/filter-example.cs
-                  :language: csharp
-                  :copyable: true 
-                  :linenos:
+         .. include:: /includes/index/vector-type/facts/avs-create-index-multiple-fields-eg.rst
+
+         .. literalinclude:: /includes/index/vector-type/code-snippets/create-index/csharp/multi-vector-example.cs
+            :language: csharp
+            :copyable: true 
+            :linenos:
 
    .. step:: Initialize the class and call the method in ``Program.cs``.
 

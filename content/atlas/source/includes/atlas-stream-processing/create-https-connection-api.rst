@@ -6,19 +6,22 @@ connection to a connection registry.
 
 :oas-bump-atlas-op:`Create One Connection <creategroupstreamconnection>`
 
-If the API endpoint requires authentication, such as an API key or
-Bearer Access Token authentication, you should add authentication
-details as headers when you define the connection to prevent
-providing these as plaintext as part of the :pipeline:`$https`
-operator.
+When you create an HTTPS connection through the {+atlas-admin-api+},
+you work with two distinct sets of headers:
 
-:gold:`IMPORTANT:` {+atlas-sp+} doesn't support other authentication
-schemes such as Digest Auth or OAuth for ``$https`` connections
+- **Request headers** are headers that establish the
+  {+atlas-admin-api+} request itself. Send these with the ``curl``
+  command using the ``--header`` flag.
 
-To learn how to use HTTPS connections with {+atlas-sp+},
-see :ref:`<atlas-sp-agg-https>`.
+- **HTTPS connection headers** are optional runtime headers that
+  {+atlas-sp+} sends to your external endpoint. Define these in the
+  ``headers`` field of the connection body. If your endpoint requires
+  authentication, include those credentials as connection headers.
 
 **Example:**
+
+The following example creates an HTTPS connection with both
+{+atlas-admin-api+} request headers and HTTPS connection headers:
 
 .. code-block:: sh
 
@@ -26,7 +29,18 @@ see :ref:`<atlas-sp-agg-https>`.
      --header "Content-Type: application/json" \
      --header "Accept: application/vnd.atlas.2023-02-01+json" \
      --include \
-     --data '{"name": "HTTPSConnection","type": "Https","url": "<apiBasePath>"}' \
+     --data '{
+       "name": "HTTPSConnection",
+       "type": "Https",
+       "url": "<apiBasePath>",
+       "headers": {
+         "Content-Type": "application/json",
+         "Authorization": "Bearer <accessToken>"
+       }
+     }' \
      --request POST "https://cloud.mongodb.com/api/atlas/v2/groups/<projectID>/streams/<tenantName>/connections"
 
 .. include:: /includes/atlas-stream-processing/https-stage-support.rst
+
+To learn how to use HTTPS connections with {+atlas-sp+}, see
+:ref:`<atlas-sp-agg-https>`.

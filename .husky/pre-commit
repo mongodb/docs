@@ -38,19 +38,21 @@ fi
   
   if pnpm split-offline 2>&1; then
     cd ../..
-    OFFLINE_DIR="platform/docs-nextjs/src/context/table-of-contents/offline-docs"
-    
-    # Check for both modified files AND untracked files
-    CHANGED_OFFLINE=$(git diff --name-only "$OFFLINE_DIR" 2>/dev/null || true)
-    UNTRACKED_OFFLINE=$(git ls-files --others --exclude-standard "$OFFLINE_DIR" 2>/dev/null || true)
-    
-    if [ -n "$CHANGED_OFFLINE" ] || [ -n "$UNTRACKED_OFFLINE" ]; then
-      # Add the entire directory (handles both new and modified files)
-      git add "$OFFLINE_DIR"
-      echo "✓ offline-docs files updated and staged"
-    else
-      echo "✓ offline-docs files unchanged"
-    fi
+    OFFLINE_DIRS="platform/docs-nextjs/src/context/table-of-contents/offline-docs platform/docs-site/src/context/table-of-contents/offline-docs"
+
+    for OFFLINE_DIR in $OFFLINE_DIRS; do
+      # Check for both modified files AND untracked files
+      CHANGED_OFFLINE=$(git diff --name-only "$OFFLINE_DIR" 2>/dev/null || true)
+      UNTRACKED_OFFLINE=$(git ls-files --others --exclude-standard "$OFFLINE_DIR" 2>/dev/null || true)
+
+      if [ -n "$CHANGED_OFFLINE" ] || [ -n "$UNTRACKED_OFFLINE" ]; then
+        # Add the entire directory (handles both new and modified files)
+        git add "$OFFLINE_DIR"
+        echo "✓ offline-docs updated and staged: $OFFLINE_DIR"
+      else
+        echo "✓ offline-docs unchanged: $OFFLINE_DIR"
+      fi
+    done
   else
     cd ../..
     echo "⚠️  WARNING: split-offline failed, continuing with commit anyway..."

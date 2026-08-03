@@ -383,6 +383,11 @@ const mckUpcoming: TocItem[] = [
             url: '/docs/kubernetes/:version/fts-vs/deployment/single-cluster-installation',
           },
           {
+            label: 'Multi-Cluster Installation',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/fts-vs/deployment/multi-cluster-installation',
+          },
+          {
             label: 'Verify Package Integrity',
             contentSite: 'mck',
             url: '/docs/kubernetes/:version/fts-vs/deployment/verify-package-integrity',
@@ -391,6 +396,12 @@ const mckUpcoming: TocItem[] = [
             label: 'Connect and Verify',
             contentSite: 'mck',
             url: '/docs/kubernetes/:version/fts-vs/deployment/connect-verify',
+          },
+          {
+            label: 'Upgrade or Downgrade',
+            contentSite: 'mck',
+            url: '/docs/kubernetes/:version/fts-vs/deployment/upgrade-downgrade',
+            versions: { excludes: ['v1.9'] },
           },
         ],
       },

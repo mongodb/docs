@@ -199,6 +199,11 @@ export const toc: L1TocItem[] = [
                 contentSite: 'mongoid',
                 url: '/docs/mongoid/:version/interact-data/atlas-search-tutorial',
               },
+              {
+                label: 'MongoDB Vector Search',
+                contentSite: 'mongoid',
+                url: '/docs/mongoid/:version/interact-data/vector-search',
+              },
             ],
           },
           {

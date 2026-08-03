@@ -6,25 +6,25 @@
 
    .. step:: Specify the index definition.
 
-      .. collapsible:: 
-         :heading: Visual Editor
-         :sub_heading: Use the Visual Editor for a guided experience.
-         :expanded: false
+      |service| automatically detects fields that contain vector 
+      embeddings, as well as their corresponding dimensions, 
+      and pre-populates up to three vector fields.
 
-         |service| automatically detects fields that contain vector 
-         embeddings, as well as their corresponding dimensions, 
-         and pre-populates up to three vector fields. 
-         To configure the index, do the following:
+      .. tabs:: 
+         
+         .. tab:: Visual Editor
+            :tabid: vib
+ 
+            To configure the index, do the following:
 
-         .. include:: /includes/index/vector-type/facts/steps-avs-index-general.rst
+            .. include:: /includes/index/vector-type/facts/steps-avs-index-general.rst
 
-         To learn more about the {+avs+} index settings, see
-         :ref:`avs-types-vector-search`. 
+            To learn more about the {+avs+} index settings, see
+            :ref:`avs-types-vector-search`. 
 
-         .. tabs:: 
-
-            .. tab:: Basic Example
-               :tabid: basic
+            .. collapsible:: 
+               :heading: Basic Example
+               :expanded: false
 
                For the ``embedded_movies`` collection, |service| displays the 
                ``plot_embedding_voyage_3_large`` and ``plot_embedding`` fields. 
@@ -36,8 +36,9 @@
                performing vector search. By default, {+avs+} uses the |hnsw| 
                ``indexingMethod`` for indexing the field.
 
-            .. tab:: Filter Example 
-               :tabid: advanced
+            .. collapsible:: 
+               :heading: Filter Example 
+               :expanded: false
 
                For the ``embedded_movies`` collection, |service| displays the 
                ``plot_embedding_voyage_3_large`` and ``plot_embedding`` fields. 
@@ -55,48 +56,46 @@
                processing of the embeddings. By default, {+avs+} uses the |hnsw| 
                ``indexingMethod`` for indexing the field.
 
-            .. tab:: Stored Source Example
-               :tabid: storedSource
+            .. collapsible:: 
+               :heading: Stored Source Example
+               :expanded: false
 
                The ``storedSource`` option is not supported by the
                :guilabel:`Visual Editor`. Use the |json| Editor to
                configure ``fields`` for storage on ``mongot``.
 
-      .. collapsible::
-         :heading: JSON Editor
-         :sub_heading: Use the JSON Editor to edit the raw JSON.
-         :expanded: false
+         .. tab:: JSON Editor
+            :tabid: jsonib
 
-         {+avs+} index resembles the following example: 
+            {+avs+} index resembles the following example: 
 
-         .. code-block:: json
-            :copyable: true 
-            :linenos:
+            .. code-block:: json
+                :copyable: true 
+                :linenos:
 
-            {
-              "fields":[ 
                 {
-                  "type": "vector",
-                  "path": <field-to-index>,
-                  "numDimensions": <number-of-dimensions>,
-                  "similarity": "euclidean | cosine | dotProduct",
-                  "quantization": "none | scalar | binary"
-                },
-                {
-                  "type": "filter",
-                  "path": "<field-to-index>"
-                },
-                ...
-              ]
-            }
+                  "fields":[ 
+                    {
+                      "type": "vector",
+                      "path": <field-to-index>,
+                      "numDimensions": <number-of-dimensions>,
+                      "similarity": "euclidean | cosine | dotProduct",
+                      "quantization": "none | scalar | binary"
+                    },
+                    {
+                      "type": "filter",
+                      "path": "<field-to-index>"
+                    },
+                    ...
+                  ]
+                }
 
-         To learn more about the fields in the index, see
-         :ref:`avs-types-vector-search`. 
+            To learn more about the fields in the index, see
+            :ref:`avs-types-vector-search`. 
 
-         .. tabs:: 
-
-            .. tab:: Basic Example
-               :tabid: basic
+            .. collapsible:: 
+               :heading: Basic Example
+               :expanded: false
 
                The following index definition on the ``sample_mflix.embedded_movies`` 
                collection indexes only the ``plot_embedding_voyage_3_large`` field 
@@ -116,8 +115,9 @@
                     }]
                   }
 
-            .. tab:: Filter Example 
-               :tabid: advanced
+            .. collapsible:: 
+               :heading: Filter Example 
+               :expanded: false
 
                The following index definition on the ``sample_mflix.embedded_movies`` 
                collection indexes the following fields: 
@@ -153,8 +153,9 @@
                     }]
                   }
 
-            .. tab:: Nested Field Example 
-               :tabid: nested 
+            .. collapsible:: 
+               :heading: Nested Field Example 
+               :expanded: false 
 
                Run the following Python script to create nested embeddings for the 
                ``reviews.comments`` field in the ``sample_airbnb.listingsAndReviews`` 
@@ -217,8 +218,9 @@
                     }]
                   }
 
-            .. tab:: Flat Example 
-               :tabid: flat 
+            .. collapsible:: 
+               :heading: Flat Example 
+               :expanded: false 
 
                This index definition indexes the following fields: 
     
@@ -255,8 +257,9 @@
                     }]
                   }
 
-            .. tab:: Stored Source Example
-               :tabid: storedSource
+            .. collapsible:: 
+               :heading: Stored Source Example
+               :expanded: false
 
                .. include:: /includes/index/vector-type/facts/stored-source-example.rst
 

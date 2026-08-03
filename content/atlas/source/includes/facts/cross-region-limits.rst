@@ -4,7 +4,7 @@ see the
 :ref:`AWS Reference for Gen2 Dedicated clusters <aws-reference-gen2-clusters>`.
 
 |service| limits the total number of nodes in other regions in one
-project to a total of 40, **not** including:
+project to a total of 100, **not** including:
 
 - |gcp| regions communicating with each other 
 - {+Free-clusters+}
@@ -24,30 +24,30 @@ constraint.
    If |a-service| project has nodes in clusters spread across three
    regions:
 
-   - 30 nodes in **Region A**
+   - 75 nodes in **Region A**
    - 10 nodes in **Region B**
    -  5 nodes in **Region C**
 
-   You can only add 5 more nodes to **Region C** because:
+   You can only add 10 more nodes to **Region C** because:
 
-   1. If you exclude Region C, Region A + Region B = 40.
+   1. If you exclude Region C, Region A + Region B = 85, <= 100.
       :icon-fa5:`check-circle`
 
-   #. If you exclude Region B, Region A + Region C = 35, <= 40.
+   #. If you exclude Region B, Region A + Region C = 80, <= 100.
       :icon-fa5:`check-circle`
 
-   #. If you exclude Region A, Region B + Region C = 15, <= 40.
+   #. If you exclude Region A, Region B + Region C = 15, <= 100.
       :icon-fa5:`check-circle`
 
-   #. Each combination of regions with the added 5 nodes still meets
+   #. Each combination of regions with the added 10 nodes still meets
       the per-project constraint:
 
-      - Region A + B = 40 :icon-fa5:`check-circle`
-      - Region A + C = 40 :icon-fa5:`check-circle`
-      - Region B + C = 20 :icon-fa5:`check-circle`
+      - Region A + B = 85, <= 100 :icon-fa5:`check-circle`
+      - Region A + C = 90, <= 100 :icon-fa5:`check-circle`
+      - Region B + C = 25, <= 100 :icon-fa5:`check-circle`
 
 You can't create a multi-region cluster in a project if it has one or
-more clusters spanning 40 or more nodes in other regions.
+more clusters spanning 100 or more nodes in other regions.
 
 Contact |service| :manual:`support </support>` for questions
 or assistance with raising this limit.

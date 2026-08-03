@@ -88,8 +88,9 @@ For detecting and fixing linter-flagged issues in content/.
 | `/fix-seo` | Fix SEO issues in MongoDB docs files |
 | `/fix-nested-components` | Fix forbidden nested RST components flagged by the nested components linter — callouts inside callouts, callouts inside list-tables, examples inside callouts, examples inside list-tables, and procedures inside procedures |
 
-## Other Skills
+## Other Tools
 
-| Skill | What it does |
+| Tool | What it does |
 |---|---|
-| `/ops-manager-release-notes` |  |
+| `jira-state-transitions` | PostToolUse hooks that transition DOCSP tickets on branch and PR creation |
+| `ops-manager-release-notes` | Generate a versioned patch release entry for Ops Manager by fetching improvements and bug fixes from Aha! and Jira, writing RST entries, and prepending the assembled block to the active changelog file |

@@ -1,13 +1,13 @@
 .. facet::
    :name: programming_language
-   :values: c, csharp, go, java, javascript/typescript, kotlin, php, python, ruby, swift
+   :values: c, cpp, csharp, go, java, javascript/typescript, kotlin, php, python, ruby, swift
 
 .. _changeStreams:
 .. _collection_watch:
 
-==============
-Change Streams
-==============
+======================
+MongoDB Change Streams
+======================
 
 .. default-domain:: mongodb
 
@@ -22,7 +22,7 @@ Change Streams
    :class: twocols
 
 .. meta::
-   :description: Change streams code examples for how to access real-time data changes in MongoDB
+   :description: Change streams allow applications to subscribe to real-time data changes on a MongoDB collection, database, or deployment. Learn how to open, filter, modify output, and resume change streams.
    :keywords: database triggers, code example, node.js, motor, coroutine, java sync, swift sync, swift async, compass
 
 Change streams allow applications to access real-time data changes
@@ -45,167 +45,171 @@ transform the notifications at will.
 
 .. include:: /includes/change-streams-optimization.rst
 
-Availability
-------------
+.. composable-tutorial::
+   :options: language-no-dependencies
+   :defaults: shell
 
-Change streams are available for :ref:`replica sets <replication>` and
-:ref:`sharded clusters <sharding-background>`:
+   Availability
+   ------------
 
-- **Storage Engine.** 
+   Change streams are available for :ref:`replica sets <replication>`
+   and :ref:`sharded clusters <sharding-background>`:
 
-  The replica sets and sharded clusters must use the :ref:`WiredTiger
-  <storage-wiredtiger>` storage engine. Change streams can also be used
-  on deployments that use the
-  :ref:`encryption-at-rest<encrypted-storage-engine>` feature.
-  
-- **Replica Set Protocol Version.** 
+   - **Storage Engine.** 
 
-  The replica sets and sharded clusters must use replica set protocol
-  version 1 (:rsconf:`pv1 <protocolVersion>`).
+     The replica sets and sharded clusters must use the :ref:`WiredTiger
+     <storage-wiredtiger>` storage engine. Change streams can also be
+     used on deployments that use the
+     :ref:`encryption-at-rest<encrypted-storage-engine>` feature.
 
-- **Read Concern "majority" Enablement.**  
+   - **Replica Set Protocol Version.** 
 
-  .. include:: /includes/extracts/changestream-rc-majority-4.2.rst
+     The replica sets and sharded clusters must use replica set protocol
+     version 1 (:rsconf:`pv1 <protocolVersion>`).
 
+   - **Read Concern "majority" Enablement.**  
 
-.. note::
-
-   Time series collections do not support change streams because time
-   series collections use an optimized storage format instead of
-   tracking changes at the document level. You cannot use
-   time series collections as a source for {+atlas-sp+}.
-
-.. tip::
-
-   See :ref:`manual-timeseries-collection-limitations` for more information.
-
-Stable API Support
-~~~~~~~~~~~~~~~~~~
-
-.. include:: /includes/stable-api/change-stream-support.rst
-
-Connect
---------
-
-Connections for a change stream can either use DNS seed lists
-with the ``+srv`` connection option or by listing the servers individually
-in the connection string.
-
-If the driver loses the connection to a change stream or the connection goes
-down, it attempts to reestablish a connection to the change stream through
-another node in the cluster that has a matching 
-:ref:`read preference <connections-read-preference>`. If the driver cannot find
-a node with the correct read preference, it throws an exception.
-
-For more information, see :ref:`Connection String URI Format <mongodb-uri>`.
-
-.. _changeStreams-watch-deployment:
-
-Watch a Collection, Database, or Deployment
--------------------------------------------
-
-You can open change streams against:
-
-.. list-table::
-   :header-rows: 1
-   :widths: 15 85
-
-   * - Target
-     - Description
-
-   * - A collection
-
-     - You can open a change stream cursor for a single collection
-       (except ``system`` collections, or any collections in the
-       ``admin``, ``local``, and ``config`` databases).
-
-       The examples on this page use the MongoDB drivers to open and
-       work with a change stream cursor for a single collection. See
-       also the :binary:`~bin.mongosh` method
-       :method:`db.collection.watch()`.
-
-   * - A database
-
-     - You can open a change stream cursor for a single database (excluding 
-       ``admin``, ``local``, and ``config`` database) to watch for changes to 
-       all its non-system collections.
-
-       For the MongoDB driver method, refer to your driver
-       documentation. See also the :binary:`~bin.mongosh` method
-       :method:`db.watch()`.
+     .. include:: /includes/extracts/changestream-rc-majority-4.2.rst
 
 
-   * - A deployment
+   .. note::
 
-     - You can open a change stream cursor for a deployment (either a replica 
-       set or a sharded cluster) to watch for changes to all non-system 
-       collections across all databases except for ``admin``, ``local``, and 
-       ``config``.
+      Time series collections do not support change streams because time
+      series collections use an optimized storage format instead of
+      tracking changes at the document level. You cannot use
+      time series collections as a source for {+atlas-sp+}.
 
-       For the MongoDB driver method, refer to your driver
-       documentation. See also the :binary:`~bin.mongosh` method
-       :method:`Mongo.watch()`.
+   .. tip::
 
-Change Stream Performance Considerations
-----------------------------------------
+      See :ref:`manual-timeseries-collection-limitations` for more information.
 
-If the amount of active change streams opened against a database exceeds
-the :ref:`connection pool size <connection-pool-overview>`, you may
-experience notification latency. Each change stream holds a connection open with a
-:ref:`getMore <manual-reference-commands-getMore>` operation
-while waiting for the next event. To avoid latency, ensure that the
-pool size is greater than the number of open change streams. For
-details, see the :ref:`maxPoolSize<maxpoolsize-cp-setting>` setting.
+   Stable API Support
+   ~~~~~~~~~~~~~~~~~~
 
-Sharded Cluster Considerations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   .. include:: /includes/stable-api/change-stream-support.rst
 
-When a change stream is opened on a sharded cluster:
+   Connect
+   --------
 
-- The :binary:`mongos` creates individual change streams on **each
-  shard**. This behavior occurs regardless of whether the change stream
-  targets a particular shard key range.
+   Connections for a change stream can either use DNS seed lists
+   with the ``+srv`` connection option or by listing the servers individually
+   in the connection string.
 
-- When the ``mongos`` receives change stream results, it sorts and
-  filters those results. If needed, the ``mongos`` also performs a
-  ``fullDocument`` lookup.
+   If the driver loses the connection to a change stream or the connection goes
+   down, it attempts to reestablish a connection to the change stream through
+   another node in the cluster that has a matching 
+   :ref:`read preference <connections-read-preference>`. If the driver cannot find
+   a node with the correct read preference, it throws an exception.
 
-For best performance, limit the use of :pipeline:`$lookup` queries in
-change streams.
+   For more information, see :ref:`Connection String URI Format <mongodb-uri>`.
 
-.. _open-change-stream:
+   .. _changeStreams-watch-deployment:
 
-Open a Change Stream
---------------------
+   Watch a Collection, Database, or Deployment
+   -------------------------------------------
 
-To open a change stream:
+   You can open change streams against:
 
-- For a replica set, open the change stream from any
-  data-bearing member.
+   .. list-table::
+      :header-rows: 1
+      :widths: 15 85
 
-- For a sharded cluster, open the change stream from the
-  :binary:`~bin.mongos`.
+      * - Target
+        - Description
 
-The following example opens a change stream for a collection and
-iterates over the cursor to retrieve the change stream documents.
-[#start-time]_
+      * - A collection
 
-----------
+        - You can open a change stream cursor for a single collection
+          (except ``system`` collections, or any collections in the
+          ``admin``, ``local``, and ``config`` databases).
 
-.. |arrow| unicode:: U+27A4
+          The examples on this page include both MongoDB driver and
+          :binary:`~bin.mongosh` examples for opening and working
+          with a change stream cursor for a single collection.
 
-|arrow| Use the **Select your language** drop-down menu in the
-upper-right to set the language of the examples on this page.
+      * - A database
 
-----------
+        - You can open a change stream cursor for a single database (excluding 
+          ``admin``, ``local``, and ``config`` database) to watch for changes to 
+          all its non-system collections.
 
-.. tabs-selector:: drivers
+          For the MongoDB driver method, refer to your driver
+          documentation. See also the :binary:`~bin.mongosh` method
+          :method:`db.watch()`.
 
-.. tabs-drivers::
 
-   .. tab::
-      :tabid: python
-         
+      * - A deployment
+
+        - You can open a change stream cursor for a deployment (either a replica 
+          set or a sharded cluster) to watch for changes to all
+          non-system collections across all databases except for
+          ``admin``, ``local``, and ``config``.
+
+          For the MongoDB driver method, refer to your driver
+          documentation. See also the :binary:`~bin.mongosh` method
+          :method:`Mongo.watch()`.
+
+   Change Stream Performance Considerations
+   ----------------------------------------
+
+   If the amount of active change streams opened against a database
+   exceeds the :ref:`connection pool size <connection-pool-overview>`,
+   you may experience notification latency. Each change stream holds a
+   connection open with a :ref:`getMore
+   <manual-reference-commands-getMore>` operation while waiting for the
+   next event. To avoid latency, ensure that the pool size is greater
+   than the number of open change streams. For details, see the
+   :ref:`maxPoolSize<maxpoolsize-cp-setting>` setting.
+
+   Sharded Cluster Considerations
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+   When a change stream is opened on a sharded cluster:
+
+   - The :binary:`mongos` creates individual change streams on **each
+     shard**. This behavior occurs regardless of whether the change
+     stream targets a particular shard key range.
+
+   - When the ``mongos`` receives change stream results, it sorts and
+     filters those results. If needed, the ``mongos`` also performs a
+     ``fullDocument`` lookup.
+
+   For best performance, limit the use of :pipeline:`$lookup` queries in
+   change streams.
+
+   .. _open-change-stream:
+
+   Open a Change Stream
+   --------------------
+
+   To open a change stream:
+
+   - For a replica set, open the change stream from any
+     data-bearing member.
+
+   - For a sharded cluster, open the change stream from the
+     :binary:`~bin.mongos`.
+
+   The following example opens a change stream for a collection and
+   iterates over the cursor to retrieve the change stream documents.
+   [#start-time]_
+
+   .. selected-content::
+      :selections: shell
+
+      The following example assumes you are connected to a
+      MongoDB replica set in :binary:`~bin.mongosh` and have
+      accessed a database that contains an ``inventory``
+      collection.
+
+      .. code-block:: javascript
+
+         let cursor = db.inventory.watch();
+         cursor.next();
+
+   .. selected-content::
+      :selections: python
+
       The Python examples below assume that you have :driver:`connected to a MongoDB replica set and have accessed a database
       </pymongo>` that contains an ``inventory`` collection.
 
@@ -215,9 +219,9 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 1
          :end-before: End Changestream Example 1
 
-   .. tab::
-      :tabid: motor
-      
+   .. selected-content::
+      :selections: motor
+
       The examples below assume that you have `connected to a MongoDB replica set and have accessed a database
       <https://motor.readthedocs.io/en/stable/tutorial-asyncio.html#creating-a-client>`__
       that contains an ``inventory`` collection.
@@ -228,9 +232,9 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 1
          :end-before: End Changestream Example 1
 
-   .. tab::
-      :tabid: java-sync
-           
+   .. selected-content::
+      :selections: java-sync
+
       The Java examples below assume that you have `connected to a MongoDB replica set and have accessed a database
       <http://mongodb.github.io/mongo-java-driver/3.6/driver/tutorials/databases-collections/>`__
       that contains an ``inventory`` collection.
@@ -241,9 +245,9 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 1
          :end-before: End Changestream Example 1
 
-   .. tab::
-      :tabid: kotlin-coroutine
-           
+   .. selected-content::
+      :selections: kotlin-coroutine
+
       The Kotlin examples below assume that you are connected to a MongoDB replica set and can access a database
       that contains the ``inventory`` collection. To learn more about completing these tasks, see the
       :driver:`Kotlin Coroutine Driver Databases and Collections </kotlin/coroutine/current/fundamentals/databases-collections/>` guide.
@@ -254,9 +258,9 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 1
          :end-before: End Changestream Example 1
 
-   .. tab:: 
-      :tabid: csharp
-      
+   .. selected-content::
+      :selections: csharp
+
       The C# examples below assume that you have `connected to a MongoDB replica set and have accessed a database
       <http://mongodb.github.io/mongo-csharp-driver/2.4/getting_started/quick_tour/#make-a-connection/>`__
       that contains an ``inventory`` collection.
@@ -267,9 +271,9 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 1
          :end-before: End Changestream Example 1
 
-   .. tab::
-      :tabid: c
-      
+   .. selected-content::
+      :selections: c
+
       The C examples below assume that you have `connected to a MongoDB replica set and have accessed a database
       <https://www.mongodb.com/docs/languages/c/c-driver/current/databases-collections/#access-a-database>`__
       that contains an ``inventory`` collection.
@@ -280,8 +284,22 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 1
          :end-before: End Changestream Example 1
 
-   .. tab::
-      :tabid: nodejs
+   .. selected-content::
+      :selections: cpp
+
+      The C++ examples below assume that you have
+      `connected to a MongoDB replica set and have accessed a database
+      <https://www.mongodb.com/docs/languages/cpp/cpp-driver/current/get-started/>`__
+      that contains an ``inventory`` collection.
+
+      .. literalinclude:: /driver-examples/cpp-change-streams.cpp
+         :language: cpp
+         :dedent: 4
+         :start-after: Start Changestream Example 1
+         :end-before: End Changestream Example 1
+
+   .. selected-content::
+      :selections: nodejs
 
       The Node.js examples below assume that you have `connected to a MongoDB replica set and have accessed a database
       <https://mongodb.github.io/node-mongodb-native/api-generated/mongoclient.html#connect>`__
@@ -306,8 +324,8 @@ upper-right to set the language of the examples on this page.
       ChangeStream extends `EventEmitter 
       <https://mongodb.github.io/node-mongodb-native/5.7/classes/TypedEventEmitter.html>`__.
 
-   .. tab::
-      :tabid: php
+   .. selected-content::
+      :selections: php
 
       The examples below assume that you have `connected to a MongoDB replica  set and have accessed a database
       <https://www.mongodb.com/docs/php-library/current/reference/method/MongoDBClient__construct/>`__
@@ -319,8 +337,8 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 1
          :end-before: End Changestream Example 1
 
-   .. tab::
-      :tabid: ruby
+   .. selected-content::
+      :selections: ruby
 
       The examples below assume that you have `connected to a MongoDB replica set and have accessed a database
       <https://www.mongodb.com/docs/ruby-driver/current/reference/create-client/>`__
@@ -333,8 +351,8 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 1
          :end-before: End Changestream Example 1
 
-   .. tab::
-      :tabid: go
+   .. selected-content::
+      :selections: go
 
       The Go examples below assume that you have `connected to a MongoDB replica set and have accessed a database
       <https://godoc.org/go.mongodb.org/mongo-driver/mongo#NewClient/>`__
@@ -346,9 +364,9 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 1
          :end-before: End Changestream Example 1
 
-   .. tab::
-      :tabid: swift-sync
-   
+   .. selected-content::
+      :selections: swift-sync
+
       The Swift (Sync) examples below assume that you have
       `connected to a MongoDB replica set and have accessed a
       database 
@@ -361,9 +379,9 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 1
          :end-before: End Changestream Example 1
 
-   .. tab::
-      :tabid: swift-async
-    
+   .. selected-content::
+      :selections: swift-async
+
       The Swift (Async) examples below assume that you have
       `connected to a MongoDB replica set and have accessed a
       database 
@@ -376,37 +394,61 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 1
          :end-before: End Changestream Example 1
 
-Iterate the change stream cursor to retrieve change events.
-See :ref:`change-stream-output` for the change stream document format.
+   Iterate the change stream cursor to retrieve change events. See
+   :ref:`change-stream-output` for the change stream document format.
 
-.. include:: /includes/extracts/changestream-cursor-open.rst
+   .. include:: /includes/extracts/changestream-cursor-open.rst
 
-.. note::
+   .. note::
 
-   The lifecycle of an unclosed cursor is language-dependent.
+      The lifecycle of an unclosed cursor is language-dependent.
 
-.. [#start-time]
+   .. [#start-time]
 
-   You can specify a ``startAtOperationTime`` to open the cursor at a particular 
-   point in time. If the specified starting point is in the past, it must be in 
-   the time range of the oplog.
+      You can specify a ``startAtOperationTime`` to open the cursor at a particular 
+      point in time. If the specified starting point is in the past, it must be in 
+      the time range of the oplog.
 
-.. _change-stream-modify-output:
+   .. _change-stream-modify-output:
 
-Modify Change Stream Output
----------------------------
+   Modify Change Stream Output
+   ---------------------------
 
-----------
+   .. selected-content::
+      :selections: shell
 
-|arrow| Use the **Select your language** drop-down menu in the
-upper-right to set the language of the examples on this page.
+      .. include:: /includes/fact-change-streams-modify-output.rst
 
-----------
+      .. code-block:: javascript
 
-.. tabs-drivers::
+         let pipeline = [
+            {
+               $match: {
+                  $or: [
+                     { "fullDocument.username": "alice" },
+                     { operationType: { $in: [ "delete" ] } }
+                  ]
+               }
+            }
+         ]
 
-   .. tab:: 
-      :tabid: python
+         let cursor = db.inventory.watch( pipeline )
+         cursor.next()
+
+      The ``pipeline`` array includes a single :pipeline:`$match`
+      stage that filters for any operations that meet one or both
+      of the following criteria:
+
+      - ``username`` value is ``alice``
+      - ``operationType`` value is ``delete``
+
+      Passing the ``pipeline`` to the
+      :method:`db.collection.watch()` method directs the change
+      stream to return notifications after passing them through
+      the specified ``pipeline``.
+
+   .. selected-content::
+      :selections: python
 
       .. include:: /includes/fact-change-streams-modify-output.rst
 
@@ -416,9 +458,8 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 4
          :end-before: End Changestream Example 4
 
-
-   .. tab::
-      :tabid: motor
+   .. selected-content::
+      :selections: motor
 
       .. include:: /includes/fact-change-streams-modify-output.rst
 
@@ -428,8 +469,8 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 4
          :end-before: End Changestream Example 4
 
-   .. tab::
-      :tabid: java-sync
+   .. selected-content::
+      :selections: java-sync
 
       .. include:: /includes/fact-change-streams-modify-output.rst
 
@@ -455,7 +496,7 @@ upper-right to set the language of the examples on this page.
 
       The ``pipeline`` list includes a single :pipeline:`$match` stage that
       filters for any operations that meet one or both of the following criteria:
-      
+
       - ``username`` value is ``alice``
       - ``operationType`` value is ``delete``
 
@@ -463,9 +504,9 @@ upper-right to set the language of the examples on this page.
       change stream to return notifications after passing them through the
       specified ``pipeline``.
 
-   .. tab::
-      :tabid: kotlin-coroutine
-           
+   .. selected-content::
+      :selections: kotlin-coroutine
+
       .. include:: /includes/fact-change-streams-modify-output.rst
 
       .. literalinclude:: /driver-examples/kotlin_examples.kt
@@ -476,7 +517,7 @@ upper-right to set the language of the examples on this page.
 
       The ``pipeline`` list includes a single :pipeline:`$match` stage that
       filters for any operations that meet one or both of the following criteria:
-      
+
       - ``username`` value is ``alice``
       - ``operationType`` value is ``delete``
 
@@ -484,9 +525,9 @@ upper-right to set the language of the examples on this page.
       change stream to return notifications after passing them through the
       specified ``pipeline``.
 
-   .. tab::
-      :tabid: csharp      
-      
+   .. selected-content::
+      :selections: csharp
+
       .. include:: /includes/fact-change-streams-modify-output.rst
 
       .. literalinclude:: /driver-examples/ChangeStreamExamples.cs
@@ -494,10 +535,10 @@ upper-right to set the language of the examples on this page.
          :dedent: 16
          :start-after: Start Changestream Example 4
          :end-before: End Changestream Example 4
-      
-   .. tab::
-      :tabid: c      
-      
+
+   .. selected-content::
+      :selections: c
+
       .. include:: /includes/fact-change-streams-modify-output.rst
 
       .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
@@ -506,8 +547,19 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 4
          :end-before: End Changestream Example 4
 
-   .. tab::
-      :tabid: nodejs
+   .. selected-content::
+      :selections: cpp
+
+      .. include:: /includes/fact-change-streams-modify-output.rst
+
+      .. literalinclude:: /driver-examples/cpp-change-streams.cpp
+         :language: cpp
+         :dedent: 4
+         :start-after: Start Changestream Example 4
+         :end-before: End Changestream Example 4
+
+   .. selected-content::
+      :selections: nodejs
 
       .. include:: /includes/fact-change-streams-modify-output.rst
 
@@ -527,10 +579,9 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 4 Alternative
          :end-before: End Changestream Example 4 Alternative
 
+   .. selected-content::
+      :selections: php
 
-   .. tab::
-      :tabid: php      
-      
       .. include:: /includes/fact-change-streams-modify-output.rst
 
       .. literalinclude:: /driver-examples/DocumentationExamplesTest.php
@@ -539,14 +590,14 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 4
          :end-before: End Changestream Example 4
 
-   .. tab::
-      :tabid: ruby      
-      
+   .. selected-content::
+      :selections: ruby
+
       .. include:: /includes/fact-change-streams-modify-output.rst
 
-   .. tab::
-      :tabid: go
-         
+   .. selected-content::
+      :selections: go
+
       .. include:: /includes/fact-change-streams-modify-output.rst
 
       .. literalinclude:: /driver-examples/go_examples.go
@@ -555,8 +606,8 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 4
          :end-before: End Changestream Example 4
 
-   .. tab::
-      :tabid: swift-sync
+   .. selected-content::
+      :selections: swift-sync
 
       .. include:: /includes/fact-change-streams-modify-output.rst
 
@@ -566,9 +617,9 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 4
          :end-before: End Changestream Example 4
 
-   .. tab::
-      :tabid: swift-async
-         
+   .. selected-content::
+      :selections: swift-async
+
       .. include:: /includes/fact-change-streams-modify-output.rst
 
       .. literalinclude:: /driver-examples/swiftAsync.swift
@@ -577,53 +628,64 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 4
          :end-before: End Changestream Example 4
 
+   .. tip::
 
-.. tip::
+      The :ref:`_id <change-stream-event-id>` field of the change stream
+      event document act as the
+      :ref:`resume token <change-stream-resume>`. Do not use the
+      pipeline to modify or remove the change stream event's ``_id``
+      field.
 
-   The :ref:`_id <change-stream-event-id>` field of the change stream
-   event document act as the :ref:`resume token
-   <change-stream-resume>`. Do not use the pipeline to modify or remove
-   the change stream event's ``_id`` field. 
-
-   .. include:: /includes/extracts/4.2-changes-change-stream-modification-error.rst
+      .. include:: /includes/extracts/4.2-changes-change-stream-modification-error.rst
    
 
-   See :ref:`change-stream-output` for more information on the change stream
-   response document format.
+      See :ref:`change-stream-output` for more information on the change stream
+      response document format.
 
-.. _change-streams-updateLookup:
+   .. _change-streams-updateLookup:
 
-Lookup Full Document for Update Operations
-------------------------------------------
+   Lookup Full Document for Update Operations
+   ------------------------------------------
 
-By default, change streams only return the delta of fields during
-the update operation. However, you can configure the change stream
-to return the most current majority-committed version of the updated
-document.
+   By default, change streams only return the delta of fields during
+   the update operation. However, you can configure the change stream
+   to return the most current majority-committed version of the updated
+   document.
 
-The ``updateLookup`` operation reads the document identified by its
-shard key and document identifier from the collection. The collection is
-identified by its name and uses the collection data as it exists at the
-time the change stream is processed. Consider these scenarios:
+   The ``updateLookup`` operation reads the document identified by its
+   shard key and document identifier from the collection. The collection
+   is identified by its name and uses the collection data as it exists
+   at the time the change stream is processed. Consider these scenarios:
 
-- If the collection is renamed, no document is returned.
-- If the collection is renamed and a new collection is created with the
-  old name, then the lookup operation is performed on the new
-  collection. If a matching document is found, it is returned.
+   - If the collection is renamed, no document is returned.
+   - If the collection is renamed and a new collection is created with
+     the old name, then the lookup operation is performed on the new
+     collection. If a matching document is found, it is returned.
 
-.. include:: /includes/change-stream/warning_fullDocument_match.rst
+   .. include:: /includes/change-stream/warning_fullDocument_match.rst
 
-----------
+   .. selected-content::
+      :selections: shell
 
-|arrow| Use the **Select your language** drop-down menu in the
-upper-right to set the language of the examples on this page.
+      To return the most current majority-committed version of the
+      updated document, pass ``fullDocument: "updateLookup"`` to
+      the :method:`db.collection.watch()` method.
 
-----------
+      In the example below, all update operation notifications
+      include a ``fullDocument`` field that represents the
+      *current* version of the document affected by the update
+      operation.
 
-.. tabs-drivers::
+      .. code-block:: javascript
 
-   .. tab::
-      :tabid: python
+         let cursor = db.inventory.watch( [ ], { 
+            fullDocument: "updateLookup" 
+         } )
+
+         cursor.next()
+
+   .. selected-content::
+      :selections: python
 
       To return the most current majority-committed version of the updated
       document, pass ``full_document='updateLookup'`` to the
@@ -639,8 +701,8 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 2
          :end-before: End Changestream Example 2
 
-   .. tab::
-      :tabid: motor
+   .. selected-content::
+      :selections: motor
 
       To return the most current majority-committed version of the updated
       document, pass ``full_document='updateLookup'`` to the
@@ -656,8 +718,8 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 2
          :end-before: End Changestream Example 2
 
-   .. tab::
-      :tabid: java-sync
+   .. selected-content::
+      :selections: java-sync
 
       To return the most current majority-committed version of the updated
       document, pass ``FullDocument.UPDATE_LOOKUP``  to the
@@ -673,8 +735,8 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 2
          :end-before: End Changestream Example 2
 
-   .. tab::
-      :tabid: kotlin-coroutine
+   .. selected-content::
+      :selections: kotlin-coroutine
 
       To return the most current majority-committed version of the updated
       document, pass ``FullDocument.UPDATE_LOOKUP``  to the
@@ -690,8 +752,8 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 2
          :end-before: End Changestream Example 2
 
-   .. tab::
-      :tabid: c
+   .. selected-content::
+      :selections: c
 
       To return the most current majority-committed version of the updated
       document, pass the ``"fullDocument"`` option with the ``"updateLookup"`` value to the
@@ -707,8 +769,27 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 2
          :end-before: End Changestream Example 2
 
-   .. tab::
-      :tabid: csharp
+   .. selected-content::
+      :selections: cpp
+
+      To return the most current majority-committed version of the
+      updated document, pass
+      ``bsoncxx::string::view_or_value{"updateLookup"}`` to the
+      ``full_document()`` method of an ``options::change_stream``
+      object.
+
+      In the example below, all update operations notifications
+      include a ``fullDocument`` field that represents the *current*
+      version of the document affected by the update operation.
+
+      .. literalinclude:: /driver-examples/cpp-change-streams.cpp
+         :language: cpp
+         :dedent: 4
+         :start-after: Start Changestream Example 2
+         :end-before: End Changestream Example 2
+
+   .. selected-content::
+      :selections: csharp
 
       To return the most current majority-committed version of the updated
       document, pass ``"FullDocument = ChangeStreamFullDocumentOption.UpdateLookup"`` to the
@@ -724,9 +805,8 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 2
          :end-before: End Changestream Example 2
 
-
-   .. tab::
-      :tabid: nodejs
+   .. selected-content::
+      :selections: nodejs
 
       To return the most current majority-committed version of the updated
       document, pass ``{ fullDocument: 'updateLookup' }`` to the
@@ -752,8 +832,8 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 2 Alternative
          :end-before: End Changestream Example 2 Alternative
 
-   .. tab::
-      :tabid: php
+   .. selected-content::
+      :selections: php
 
       To return the most current
       majority-committed version of the updated document, pass
@@ -770,9 +850,9 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 2
          :end-before: End Changestream Example 2
 
-   .. tab::
-      :tabid: ruby
-      
+   .. selected-content::
+      :selections: ruby
+
       To return the most current majority-committed version of the updated
       document, pass ``full_document: 'updateLookup'`` to the
       :method:`db.watch()` method.
@@ -787,8 +867,8 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 2
          :end-before: End Changestream Example 2
 
-   .. tab::
-      :tabid: go
+   .. selected-content::
+      :selections: go
 
       To return the most current majority-committed version of the
       updated document, use the
@@ -800,8 +880,8 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 2
          :end-before: End Changestream Example 2
 
-   .. tab::
-      :tabid: swift-sync
+   .. selected-content::
+      :selections: swift-sync
 
       To return the most current majority-committed version of
       the updated document, pass ``options:
@@ -814,8 +894,8 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 2
          :end-before: End Changestream Example 2
 
-   .. tab::
-      :tabid: swift-async
+   .. selected-content::
+      :selections: swift-async
 
       To return the most current majority-committed version of
       the updated document, pass ``options:
@@ -828,67 +908,86 @@ upper-right to set the language of the examples on this page.
          :start-after: Start Changestream Example 2
          :end-before: End Changestream Example 2
 
-.. note::
+   .. note::
 
-   If there are one or more majority-committed operations that modified
-   the updated document *after* the update operation but *before* the
-   lookup, the full document returned may differ significantly from the
-   document at the time of the update operation.
+      If there are one or more majority-committed operations that
+      modified the updated document *after* the update operation but
+      *before* the lookup, the full document returned may differ
+      significantly from the document at the time of the update
+      operation.
 
-   However, the deltas included in the change stream document always
-   correctly describe the watched collection changes that applied to
-   that change stream event.
+      However, the deltas included in the change stream document always
+      correctly describe the watched collection changes that applied to
+      that change stream event.
 
-   The ``fullDocument`` field for an update event may be missing if one 
-   of the following is true:
+      The ``fullDocument`` field for an update event may be missing if
+      one of the following is true:
 
-   - If the document is deleted or if the collection is dropped in 
-     between the update and the lookup.
-   - If the update changes the values for at least one of the fields in
-     that collection's shard key.
+      - If the document is deleted or if the collection is dropped in
+        between the update and the lookup.
+      - If the update changes the values for at least one of the fields
+        in that collection's shard key.
 
-   See :ref:`change-stream-output` for more information on the change
-   stream response document format.
+      See :ref:`change-stream-output` for more information on the change
+      stream response document format.
 
-.. _change-stream-resume:
+   .. _change-stream-resume:
 
-Resume a Change Stream
-----------------------
+   Resume a Change Stream
+   ----------------------
 
-Change streams are resumable by specifying a resume token to either
-:ref:`resumeAfter <change-stream-resume-after>` or
-:ref:`startAfter <change-stream-start-after>` when opening the cursor.
+   Change streams are resumable by specifying a resume token to either
+   :ref:`resumeAfter <change-stream-resume-after>` or :ref:`startAfter
+   <change-stream-start-after>` when opening the cursor.
 
-.. warning::
+   .. warning::
 
-   When you resume a change stream with a resume token, use the
-   same pipeline and options as when you originally generated the token. 
-   If you use a different change stream pipeline or different options, it might
-   lead to unpredictable behavior, negatively impact data consistency, or 
-   prevent the change stream from resuming.
+      When you resume a change stream with a resume token, use the
+      same pipeline and options as when you originally generated the token. 
+      If you use a different change stream pipeline or different options, it might
+      lead to unpredictable behavior, negatively impact data consistency, or 
+      prevent the change stream from resuming.
 
-.. _change-stream-resume-after:
+   .. _change-stream-resume-after:
 
-``resumeAfter`` for Change Streams
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   ``resumeAfter`` for Change Streams
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can resume a change stream after a specific event by passing a resume token
-to ``resumeAfter`` when opening the cursor. 
+   You can resume a change stream after a specific event by passing a resume token
+   to ``resumeAfter`` when opening the cursor. 
 
-See :ref:`change-stream-resume-token` for more information on the resume token.
+   See :ref:`change-stream-resume-token` for more information on the resume token.
 
-.. important::
+   .. important::
 
-   - The oplog must have enough history to locate the operation
-     associated with the token or the timestamp, if the timestamp is in
-     the past.
+      - The oplog must have enough history to locate the operation
+        associated with the token or the timestamp, if the timestamp is
+        in the past.
 
-   - .. include:: /includes/extracts/changestream-invalid-events.rst
+      - .. include:: /includes/extracts/changestream-invalid-events.rst
 
-.. tabs-drivers::
+   .. selected-content::
+      :selections: shell
 
-   .. tab::
-      :tabid: python
+      You can use the ``resumeAfter`` option to resume
+      notifications after the operation specified in the resume
+      token. The ``resumeAfter`` option takes a value that must
+      resolve to a resume token, e.g. ``resumeToken`` in the
+      example below.
+
+      .. code-block:: javascript
+
+         let cursor = db.inventory.watch()
+         let resumeToken = cursor.next()._id
+
+         let resumedCursor = db.inventory.watch( [ ], { 
+            resumeAfter: resumeToken 
+         } )
+
+         resumedCursor.next()
+
+   .. selected-content::
+      :selections: python
 
       You can use the ``resume_after`` modifier to resume
       notifications after the operation specified in the resume
@@ -903,8 +1002,8 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
          :start-after: Start Changestream Example 3
          :end-before: End Changestream Example 3
 
-   .. tab::
-      :tabid: motor
+   .. selected-content::
+      :selections: motor
 
       You can use the ``resume_after`` modifier to resume
       notifications after the operation specified in the resume
@@ -918,9 +1017,9 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
          :start-after: Start Changestream Example 3
          :end-before: End Changestream Example 3
 
-   .. tab::
-      :tabid: java-sync
-   
+   .. selected-content::
+      :selections: java-sync
+
       You can use the ``resumeAfter()`` method to resume
       notifications after the operation specified in the resume
       token. The ``resumeAfter()`` method takes a value that must
@@ -933,9 +1032,9 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
          :start-after: Start Changestream Example 3
          :end-before: End Changestream Example 3
 
-   .. tab::
-      :tabid: kotlin-coroutine
-   
+   .. selected-content::
+      :selections: kotlin-coroutine
+
       You can use the `ChangeStreamFlow.resumeAfter()
       <{+java-api-docs+}/driver-kotlin-coroutine/mongodb-driver-kotlin-coroutine/com.mongodb.kotlin.client.coroutine/-change-stream-flow/resume-after.html>`__
       method to resume notifications after the operation specified in the resume
@@ -949,16 +1048,14 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
          :start-after: Start Changestream Example 3
          :end-before: End Changestream Example 3
 
-   .. tab::
-      :tabid: csharp
-   
+   .. selected-content::
+      :selections: csharp
+
       In the example below, the ``resumeToken`` is retrieved from the last change stream document
       and passed to the ``Watch()`` method as an option. Passing the ``resumeToken``
       to the ``Watch()`` method directs
       the change stream to attempt to resume notifications starting after the
       operation specified in the resume token.
-
-
 
       .. literalinclude:: /driver-examples/ChangeStreamExamples.cs
          :language: csharp
@@ -966,14 +1063,14 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
          :start-after: Start Changestream Example 3
          :end-before: End Changestream Example 3
 
-   .. tab::
-      :tabid: c
+   .. selected-content::
+      :selections: c
 
       In the example below, the ``resumeAfter`` option is appended to the stream options
       to recreate the stream after it has been destroyed. Passing the ``_id`` to
       the change stream attempts to resume notifications starting after the
       operation specified.
-   
+
 
       .. literalinclude:: /driver-examples/test-mongoc-sample-commands.c
          :language: C
@@ -981,9 +1078,23 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
          :start-after: Start Changestream Example 3
          :end-before: End Changestream Example 3
 
+   .. selected-content::
+      :selections: cpp
 
-   .. tab::
-      :tabid: nodejs
+      You can use the ``resume_after()`` method on an
+      ``options::change_stream`` object to resume notifications
+      after the operation specified in the resume token. In the
+      example below, ``(*next)["_id"]`` retrieves the resume token
+      from the last change event document.
+
+      .. literalinclude:: /driver-examples/cpp-change-streams.cpp
+         :language: cpp
+         :dedent: 4
+         :start-after: Start Changestream Example 3
+         :end-before: End Changestream Example 3
+
+   .. selected-content::
+      :selections: nodejs
 
       You can use the ``resumeAfter`` option to resume
       notifications after the operation specified in the resume
@@ -997,8 +1108,8 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
          :start-after: Start Changestream Example 3
          :end-before: End Changestream Example 3
 
-   .. tab::
-      :tabid: php
+   .. selected-content::
+      :selections: php
 
       You can use the ``resumeAfter`` option to resume
       notifications after the operation specified in the resume
@@ -1012,8 +1123,8 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
          :start-after: Start Changestream Example 3
          :end-before: End Changestream Example 3
 
-   .. tab::
-      :tabid: ruby
+   .. selected-content::
+      :selections: ruby
 
       You can use the ``resume_after`` modifier to resume
       notifications after the operation specified in the resume
@@ -1027,8 +1138,8 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
          :start-after: Start Changestream Example 3
          :end-before: End Changestream Example 3
 
-   .. tab::
-      :tabid: go
+   .. selected-content::
+      :selections: go
 
       You can use `ChangeStreamOptions.SetResumeAfter
       <https://godoc.org/go.mongodb.org/mongo-driver/mongo/options#ChangeStreamOptions.SetResumeAfter>`_
@@ -1045,8 +1156,8 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
          :start-after: Start Changestream Example 3
          :end-before: End Changestream Example 3
 
-   .. tab::
-      :tabid: swift-sync
+   .. selected-content::
+      :selections: swift-sync
 
       You can use the ``resumeAfter`` option to resume
       notifications after the operation specified in the resume
@@ -1060,8 +1171,8 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
          :start-after: Start Changestream Example 3
          :end-before: End Changestream Example 3
 
-   .. tab::
-      :tabid: swift-async
+   .. selected-content::
+      :selections: swift-async
 
       You can use the ``resumeAfter`` option to resume
       notifications after the operation specified in the resume
@@ -1075,259 +1186,263 @@ See :ref:`change-stream-resume-token` for more information on the resume token.
          :start-after: Start Changestream Example 3
          :end-before: End Changestream Example 3
 
-.. _change-stream-start-after:
+   .. _change-stream-start-after:
 
-``startAfter`` for Change Streams
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   ``startAfter`` for Change Streams
+   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-You can start a new change stream after a specific event by passing a resume
-token to ``startAfter`` when opening the cursor. Unlike
-:ref:`resumeAfter <change-stream-resume-after>`, ``startAfter`` can
-resume notifications after an :ref:`invalidate event <change-event-invalidate>`
-by creating a new change stream. 
+   You can start a new change stream after a specific event by passing a resume
+   token to ``startAfter`` when opening the cursor. Unlike
+   :ref:`resumeAfter <change-stream-resume-after>`, ``startAfter`` can
+   resume notifications after an :ref:`invalidate event <change-event-invalidate>`
+   by creating a new change stream. 
 
-See :ref:`change-stream-resume-token` for more information on the resume token.
+   See :ref:`change-stream-resume-token` for more information on the resume token.
 
-.. important::
+   .. important::
 
-   - The oplog must have enough history to locate the operation
-     associated with the token or the timestamp, if the timestamp is in
-     the past.
+      - The oplog must have enough history to locate the operation
+        associated with the token or the timestamp, if the timestamp is
+        in the past.
 
-.. _change-stream-resume-token:
+   .. _change-stream-resume-token:
 
-Resume Tokens
-~~~~~~~~~~~~~
+   Resume Tokens
+   ~~~~~~~~~~~~~
 
-There are two types of resume tokens:
+   There are two types of resume tokens:
 
-- **Event token**: Identifies a specific change event. The change stream
-  cursor generates an event token each time a change event occurs.
+   - **Event token**: Identifies a specific change event. The change
+     stream cursor generates an event token each time a change event
+     occurs.
 
-- **Highwatermark token**: Represents a point in time without an
-  associated change event. The server periodically generates highwatermark
-  tokens to indicate that cluster time has advanced, even when no change
-  events occur.
+   - **Highwatermark token**: Represents a point in time without an
+     associated change event. The server periodically generates highwatermark
+     tokens to indicate that cluster time has advanced, even when no
+     change events occur.
 
-.. tip::
+   .. tip::
 
-   .. include:: /includes/change-stream/highwatermark-tip-idle-shards.rst
+      .. include:: /includes/change-stream/highwatermark-tip-idle-shards.rst
 
-You can find resume tokens in multiple sources:
+   You can find resume tokens in multiple sources:
 
-.. list-table::
-   :header-rows: 1
-   :stub-columns: 1
-   :widths: 20 80
+   .. list-table::
+      :header-rows: 1
+      :stub-columns: 1
+      :widths: 20 80
 
-   * - Source
-     - Description
+      * - Source
+        - Description
 
-   * - :ref:`Change Events <change-event-resume-token>`
-     - Each change event notification includes a resume token
-       on the ``_id`` field.
+      * - :ref:`Change Events <change-event-resume-token>`
+        - Each change event notification includes a resume token
+          on the ``_id`` field.
 
-   * - :ref:`Aggregation <aggregate-resume-token>`
-     - The :pipeline:`$changeStream` aggregation stage includes 
-       a resume token on the ``cursor.postBatchResumeToken`` field.
+      * - :ref:`Aggregation <aggregate-resume-token>`
+        - The :pipeline:`$changeStream` aggregation stage includes 
+          a resume token on the ``cursor.postBatchResumeToken`` field.
 
-       This field only appears when using the :dbcommand:`aggregate`
-       command.
+          This field only appears when using the :dbcommand:`aggregate`
+          command.
 
-   * - :ref:`Get More <getMore-resume-token>`
-     - The :dbcommand:`getMore` command includes a resume token on the
-       ``cursor.postBatchResumeToken`` field.
+      * - :ref:`Get More <getMore-resume-token>`
+        - The :dbcommand:`getMore` command includes a resume token on
+          the ``cursor.postBatchResumeToken`` field.
 
-.. include:: /includes/extracts/4.2-changes-change-stream-modification-error.rst
+   .. include:: /includes/extracts/4.2-changes-change-stream-modification-error.rst
 
-.. tip::
+   .. tip::
 
-   .. include:: /includes/note-decode-resume-tokens.rst
+      .. include:: /includes/note-decode-resume-tokens.rst
 
-.. _change-event-resume-token:
+   .. _change-event-resume-token:
 
-Resume Tokens from Change Events
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   Resume Tokens from Change Events
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Change event notifications include a resume token on the ``_id`` field:
+   Change event notifications include a resume token on the ``_id``
+   field:
 
-.. code-block:: json
-   :copyable: false
-   :emphasize-lines: 2-4
-
-
-   {
-      "_id": {
-         "_data": "82635019A0000000012B042C0100296E5A1004AB1154ACACD849A48C61756D70D3B21F463C6F7065726174696F6E54797065003C696E736572740046646F63756D656E744B65790046645F69640064635019A078BE67426D7CF4D2000004"
-       },
-       "operationType": "insert",
-       "clusterTime": Timestamp({ "t": 1666193824, "i": 1 }),
-       "collectionUUID": new UUID("ab1154ac-acd8-49a4-8c61-756d70d3b21f"),
-       "wallTime": ISODate("2022-10-19T15:37:04.604Z"),
-       "fullDocument": {
-          "_id": ObjectId("635019a078be67426d7cf4d2"'),
-          "name": "Giovanni Verga"
-       },
-       "ns": { 
-          "db": "test", 
-          "coll": "names" 
-       },
-       "documentKey": { 
-          "_id": ObjectId("635019a078be67426d7cf4d2") 
-       }
-   }
+   .. code-block:: json
+      :copyable: false
+      :emphasize-lines: 2-4
 
 
-.. _aggregate-resume-token:
+      {
+         "_id": {
+            "_data": "82635019A0000000012B042C0100296E5A1004AB1154ACACD849A48C61756D70D3B21F463C6F7065726174696F6E54797065003C696E736572740046646F63756D656E744B65790046645F69640064635019A078BE67426D7CF4D2000004"
+          },
+          "operationType": "insert",
+          "clusterTime": Timestamp({ "t": 1666193824, "i": 1 }),
+          "collectionUUID": new UUID("ab1154ac-acd8-49a4-8c61-756d70d3b21f"),
+          "wallTime": ISODate("2022-10-19T15:37:04.604Z"),
+          "fullDocument": {
+             "_id": ObjectId("635019a078be67426d7cf4d2"'),
+             "name": "Giovanni Verga"
+          },
+          "ns": { 
+             "db": "test", 
+             "coll": "names" 
+          },
+          "documentKey": { 
+             "_id": ObjectId("635019a078be67426d7cf4d2") 
+          }
+      }
 
-Resume Tokens from ``aggregate``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-When using the :dbcommand:`aggregate` command, the :pipeline:`$changeStream`
-aggregation stage includes a resume token on the  
-``cursor.postBatchResumeToken`` field:
+   .. _aggregate-resume-token:
 
-.. code-block:: json
-   :copyable: false
-   :emphasize-lines: 4-6
+   Resume Tokens from ``aggregate``
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-   {
-      "cursor": {
-         "firstBatch": [],
-         "postBatchResumeToken": { 
-            "_data": "8263515EAC000000022B0429296E1404" 
+   When using the :dbcommand:`aggregate` command, the :pipeline:`$changeStream`
+   aggregation stage includes a resume token on the  
+   ``cursor.postBatchResumeToken`` field:
+
+   .. code-block:: json
+      :copyable: false
+      :emphasize-lines: 4-6
+
+      {
+         "cursor": {
+            "firstBatch": [],
+            "postBatchResumeToken": { 
+               "_data": "8263515EAC000000022B0429296E1404" 
+            },
+            "id": Long("4309380460777152828"),
+            "ns": "test.names"
          },
-         "id": Long("4309380460777152828"),
-         "ns": "test.names"
-      },
-      "ok": 1,
-      "$clusterTime": {
-         "clusterTime": Timestamp({ "t": 1666277036, "i": 1 }),
-         "signature": {
-            "hash": Binary(Buffer.from("0000000000000000000000000000000000000000", "hex"), 0),
-            "keyId": Long("0")
-         }
-      },
-      "operationTime": Timestamp({ "t": 1666277036, "i": 1 })
-   }
-
-.. _getMore-resume-token:
-
-Resume Tokens from ``getMore``
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The :dbcommand:`getMore` command also includes a resume token on the 
-``cursor.postBatchResumeToken`` field:
-
-.. code-block:: json
-   :copyable: false
-   :emphasize-lines: 4-6
-
-   {
-      "cursor": {
-         "nextBatch": [],
-         "postBatchResumeToken": { 
-            "_data": "8263515979000000022B0429296E1404"
+         "ok": 1,
+         "$clusterTime": {
+            "clusterTime": Timestamp({ "t": 1666277036, "i": 1 }),
+            "signature": {
+               "hash": Binary(Buffer.from("0000000000000000000000000000000000000000", "hex"), 0),
+               "keyId": Long("0")
+            }
          },
-         "id": Long("7049907285270685005"),
-         "ns": "test.names"
-      }, 
-      "ok": 1,
-      "$clusterTime": {
-         "clusterTime": Timestamp( { "t": 1666275705, "i": 1 } ),
-         "signature": {
-            "hash": Binary(Buffer.from("0000000000000000000000000000000000000000", "hex"), 0),
-            "keyId": Long("0")
-         }
-      },
-      "operationTime": Timestamp({ "t": 1666275705, "i": 1 })
-   }
+         "operationTime": Timestamp({ "t": 1666277036, "i": 1 })
+      }
+
+   .. _getMore-resume-token:
+
+   Resume Tokens from ``getMore``
+   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+   The :dbcommand:`getMore` command also includes a resume token on the 
+   ``cursor.postBatchResumeToken`` field:
+
+   .. code-block:: json
+      :copyable: false
+      :emphasize-lines: 4-6
+
+      {
+         "cursor": {
+            "nextBatch": [],
+            "postBatchResumeToken": { 
+               "_data": "8263515979000000022B0429296E1404"
+            },
+            "id": Long("7049907285270685005"),
+            "ns": "test.names"
+         }, 
+         "ok": 1,
+         "$clusterTime": {
+            "clusterTime": Timestamp( { "t": 1666275705, "i": 1 } ),
+            "signature": {
+               "hash": Binary(Buffer.from("0000000000000000000000000000000000000000", "hex"), 0),
+               "keyId": Long("0")
+            }
+         },
+         "operationTime": Timestamp({ "t": 1666275705, "i": 1 })
+      }
 
 
-Use Cases
----------
+   Use Cases
+   ---------
 
-Change streams can benefit architectures with reliant business systems,
-informing downstream systems once data changes are durable. For example,
-change streams can save time for developers when implementing Extract,
-Transform, and Load (ETL) services, cross-platform synchronization,
-collaboration functionality, and notification services.
+   Change streams can benefit architectures with reliant business
+   systems, informing downstream systems once data changes are durable.
+   For example, change streams can save time for developers when
+   implementing Extract, Transform, and Load (ETL) services,
+   cross-platform synchronization, collaboration functionality, and
+   notification services.
 
-.. _change-streams-access:
+   .. _change-streams-access:
 
-Access Control
---------------
+   Access Control
+   --------------
 
-For deployments enforcing :ref:`authentication` and :ref:`authorization
-<authorization>`:
+   For deployments enforcing :ref:`authentication` and
+   :ref:`authorization <authorization>`:
 
-- To open a change stream against specific collection, applications
-  must have privileges that grant :authaction:`changeStream` and
-  :authaction:`find` actions on the corresponding collection.
+   - To open a change stream against specific collection, applications
+     must have privileges that grant :authaction:`changeStream` and
+     :authaction:`find` actions on the corresponding collection.
 
-  .. code-block:: javascript
+     .. code-block:: javascript
 
-     { resource: { db: <dbname>, collection: <collection> }, actions: [ "find", "changeStream" ] }
+        { resource: { db: <dbname>, collection: <collection> }, actions: [ "find", "changeStream" ] }
 
-- To open a change stream on a single database, applications must have
-  privileges that grant :authaction:`changeStream` and
-  :authaction:`find` actions on all non-``system`` collections in the
-  database.
+   - To open a change stream on a single database, applications must
+     have privileges that grant :authaction:`changeStream` and
+     :authaction:`find` actions on all non-``system`` collections in the
+     database.
 
-  .. code-block:: javascript
+     .. code-block:: javascript
 
-     { resource: { db: <dbname>, collection: "" }, actions: [ "find", "changeStream" ] }
+        { resource: { db: <dbname>, collection: "" }, actions: [ "find", "changeStream" ] }
 
-- To open a change stream on an entire deployment, applications must
-  have privileges that grant :authaction:`changeStream` and
-  :authaction:`find` actions on all non-``system`` collections for all
-  databases in the deployment.
+   - To open a change stream on an entire deployment, applications must
+     have privileges that grant :authaction:`changeStream` and
+     :authaction:`find` actions on all non-``system`` collections for
+     all databases in the deployment.
 
-  .. code-block:: javascript
+     .. code-block:: javascript
 
-     { resource: { db: "", collection: "" }, actions: [ "find", "changeStream" ] }
+        { resource: { db: "", collection: "" }, actions: [ "find", "changeStream" ] }
 
-.. _change-streams-event-notification:
+   .. _change-streams-event-notification:
 
-Event Notification
-------------------
+   Event Notification
+   ------------------
 
-Change streams only notify on data changes that have persisted to a
-majority of data-bearing members in the replica set. Change streams ensure that notifications trigger only for majority-committed changes that are durable in failure scenarios.
+   Change streams only notify on data changes that have persisted to a
+   majority of data-bearing members in the replica set. Change streams ensure that notifications trigger only for majority-committed changes that are durable in failure scenarios.
 
-For example, consider a 3-member :term:`replica set` with a change stream
-cursor opened against the :term:`primary`. If a client issues an insert
-operation, the change stream only notifies the application of the data change
-once that insert has persisted to a majority of data-bearing members.
+   For example, consider a 3-member :term:`replica set` with a change stream
+   cursor opened against the :term:`primary`. If a client issues an
+   insert operation, the change stream only notifies the application of
+   the data change once that insert has persisted to a majority of
+   data-bearing members.
 
-If an operation is associated with a :ref:`transaction
-<transactions>`, the change event document includes the
-``txnNumber`` and the ``lsid``.
+   If an operation is associated with a :ref:`transaction
+   <transactions>`, the change event document includes the
+   ``txnNumber`` and the ``lsid``.
 
-Collation
----------
+   Collation
+   ---------
 
-Change streams use ``simple`` binary comparisons unless an explicit collation is 
-provided. 
+   Change streams use ``simple`` binary comparisons unless an explicit collation is 
+   provided. 
 
-Change Streams and Orphan Documents
------------------------------------
+   Change Streams and Orphan Documents
+   -----------------------------------
 
-.. include:: /includes/change-streams-and-orphans.rst
+   .. include:: /includes/change-streams-and-orphans.rst
 
-.. _change-stream-pre-post-images:
+   .. _change-stream-pre-post-images:
 
-Change Streams with Document Pre- and Post-Images
--------------------------------------------------
+   Change Streams with Document Pre- and Post-Images
+   -------------------------------------------------
 
-.. include:: /includes/change-stream-pre-and-post-images-introduction.rst
+   .. include:: /includes/change-stream-pre-and-post-images-introduction.rst
 
-.. include:: /includes/change-stream-pre-and-post-images-additional-information.rst
+   .. include:: /includes/change-stream-pre-and-post-images-additional-information.rst
 
-For complete examples with the change stream output, see
-:ref:`db.collection.watch-change-streams-pre-and-post-images-example`.
+   For complete examples with the change stream output, see
+   :ref:`db.collection.watch-change-streams-pre-and-post-images-example`.
 
-.. include:: /includes/initial-sync-change-streams.rst
+   .. include:: /includes/initial-sync-change-streams.rst
 
 .. toctree::
    :titlesonly:

@@ -1,6 +1,5 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import { cx, css as LeafyCSS } from '@leafygreen-ui/emotion';
 import { palette } from '@leafygreen-ui/palette';
@@ -115,7 +114,6 @@ type VersionDropdownProps = {
 };
 
 const VersionDropdown = ({ contentSite = null }: VersionDropdownProps) => {
-  const router = useRouter();
   const snootyMetadata = useSnootyMetadata();
   const [open, setOpen] = useState(false);
   const { availableVersions, availableGroups, docsets, onVersionSelect, activeVersions } = useVersionContext();
@@ -145,12 +143,13 @@ const VersionDropdown = ({ contentSite = null }: VersionDropdownProps) => {
   const onSelectChange = useCallback(
     (value: string) => {
       if (value === 'legacy') {
-        router.push(`/docs/legacy/?site=${project}`);
+        // Full `/docs/...` path; use window.location so basePath isn't prepended.
+        window.location.assign(`/docs/legacy/?site=${project}`);
       } else {
         onVersionSelect(project, value);
       }
     },
-    [onVersionSelect, project], // eslint-disable-line react-hooks/exhaustive-deps
+    [onVersionSelect, project],
   );
 
   if (isOfflineBuild) {

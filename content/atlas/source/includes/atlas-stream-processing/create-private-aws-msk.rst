@@ -20,7 +20,7 @@ the {+atlas-admin-api+}, follow these steps:
 
       a. Use the :oas-bump-atlas-op:`Get Account Details
          <getgroupstreamaccountdetails>` endpoint to retrieve
-         the {+aws+} Principal identity. You will need this value for
+         the {+aws+} account ID. You will need this value for
          your {+aws-msk+} cluster policy.
 
       #. Sign in to the {+aws+} Management Console and navigate to the
@@ -30,10 +30,11 @@ the {+atlas-admin-api+}, follow these steps:
       #. Click :guilabel:`Properties`, :guilabel:`Security Settings`,
          and :guilabel:`Edit cluster policy`.
 
-         Provide the full ARN form of the Principal identity you
-         retrieved earlier as the value of
-         ``Statement.Principal.Aws.[]`` and ensure the policy takes
-         the following form:
+         Use the {+aws+} account ID you retrieved earlier to construct
+         the principal ARN, in the form
+         ``arn:aws:iam::<awsAccountId>:root``. Provide this ARN as the
+         value of ``Statement.Principal.AWS`` and ensure the policy
+         takes the following form:
 
          .. code-block:: json
 
@@ -43,9 +44,7 @@ the {+atlas-admin-api+}, follow these steps:
                 {
                   "Effect": "Allow",
                   "Principal": {
-                    "AWS": [
-                      "arn:aws:iam:123456789012:root"
-                    ]
+                    "AWS": "arn:aws:iam::123456789012:root"
                   },
                   "Action": [
                     "kafka:CreateVpcConnection",

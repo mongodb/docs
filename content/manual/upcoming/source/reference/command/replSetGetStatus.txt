@@ -14,7 +14,8 @@ replSetGetStatus (database command)
    :class: singlecol
 
 .. |fcbis-only| replace:: This field only appears when using file copy based initial sync.
-.. |logical-or-fcbis| replace:: This field appears when using either logical or file copy based initial sync. 
+.. |logical-or-fcbis| replace:: This field appears when using either logical or file copy based initial sync.
+.. |logical-only| replace:: This field only appears when using logical initial sync.
 
 Definition
 ----------
@@ -541,6 +542,20 @@ Example
           :data:`replSetGetStatus.initialSyncStatus` metrics are no
           longer available.
 
+          Starting in MongoDB 9.0, to return summary initial sync
+          metrics without the per-database and per-collection cloning
+          details, include the optional ``initialSync: 2`` field.
+          Summary mode returns aggregate counts in the
+          :data:`~replSetGetStatus.initialSyncStatus.databases`
+          document and omits the per-database sub-documents:
+
+          .. code-block:: javascript
+
+             db.adminCommand( { replSetGetStatus: 1, initialSync: 2 } )
+
+          Summary mode has a smaller output size, which makes it 
+          suitable for continuous diagnostic data collection.
+
 
           The following example runs the :dbcommand:`replSetGetStatus`
           command on the :term:`admin database` of the 4.4 replica
@@ -586,6 +601,9 @@ Example
                 "initialSyncStatus" : {
                    "failedInitialSyncAttempts" : 0,
                    "maxFailedInitialSyncAttempts" : 10,
+                   "totalAttempts" : 1,
+                   "phase" : "cloningData",
+                   "bytesPerSecond" : 120942.8,
                    "initialSyncStart" : {+isodate+},
                    "initialSyncAttempts" : [ ],
                    "appliedOps" : 0,
@@ -1122,9 +1140,15 @@ following fields:
                "durationMillis" : 59539,
                "status" : "InvalidOptions: error fetching oplog during initial sync :: caused by :: Error while getting the next batch in the oplog fetcher :: caused by :: readConcern afterClusterTime value must not be greater than the current clusterTime. Requested clusterTime: { ts: Timestamp(0, 1) }; current clusterTime: { ts: Timestamp(0, 0) }",
                "syncSource" : "m1.example.net:27017",
-               "rollBackId" : 1,                     
-               "operationsRetried" : 120,            
-               "totalTimeUnreachableMillis" : 52601  
+               "rollBackId" : 1,
+               "operationsRetried" : 120,
+               "totalTimeUnreachableMillis" : 52601,
+               "phase" : "cloningData",
+               "nodeUptimeSecs" : 47,
+               "phaseDurations" : [
+                  { "phase" : "selectingSyncSource", "durationMillis" : 12 },
+                  { "phase" : "cloningData", "durationMillis" : 59527 }
+               ]
             }
          ],
 
@@ -1163,6 +1187,35 @@ following fields:
          * - totalTimeUnreachableMillis
 
            - Total time spent for retry operation attempts.
+
+         * - phase
+
+           - The :ref:`initial sync phase <replica-set-initial-sync-phases>`
+             the attempt was in when it ended, or ``complete`` if the
+             attempt succeeded.
+
+             .. versionadded:: 9.0
+
+             |logical-only|
+
+         * - nodeUptimeSecs
+
+           - The node's wall-clock uptime, in seconds, at the time the
+             attempt finished.
+
+             .. versionadded:: 9.0
+
+             |logical-only|
+
+         * - phaseDurations
+
+           - Array of documents, each reporting the ``phase`` name and its
+             ``durationMillis``, for every :ref:`initial sync phase
+             <replica-set-initial-sync-phases>` the attempt went through.
+
+             .. versionadded:: 9.0
+
+             |logical-only|
 
       See also
       :data:`~replSetGetStatus.initialSyncStatus.failedInitialSyncAttempts`.
@@ -1228,6 +1281,33 @@ following fields:
       Number of databases cloned during :ref:`initial sync
       <replica-set-initial-sync>`.
 
+   .. data:: replSetGetStatus.initialSyncStatus.databases.databasesToClone
+
+      Number of databases that remain to be cloned during :ref:`initial
+      sync <replica-set-initial-sync>`.
+
+   .. data:: replSetGetStatus.initialSyncStatus.databases.collectionsToClone
+
+      .. versionadded:: 9.0
+
+      Total number of collections that remain to be cloned across all
+      databases during :ref:`initial sync <replica-set-initial-sync>`.
+
+      This aggregate count appears when you run
+      :dbcommand:`replSetGetStatus` with ``initialSync: 2`` (summary
+      mode).
+
+   .. data:: replSetGetStatus.initialSyncStatus.databases.collectionsCloned
+
+      .. versionadded:: 9.0
+
+      Total number of collections cloned across all databases during
+      :ref:`initial sync <replica-set-initial-sync>`.
+
+      This aggregate count appears when you run
+      :dbcommand:`replSetGetStatus` with ``initialSync: 2`` (summary
+      mode).
+
    .. data:: replSetGetStatus.initialSyncStatus.databases.<dbname>
 
       For each database, a document that returns information regarding
@@ -1280,10 +1360,39 @@ following fields:
    |logical-or-fcbis|
 
 .. data:: replSetGetStatus.initialSyncStatus.totalInitialSyncElapsedMillis
-   
+
    The total time elapsed for the sync attempt in progress.
 
    |logical-or-fcbis|
+
+.. data:: replSetGetStatus.initialSyncStatus.phase
+
+   The :ref:`initial sync phase <replica-set-initial-sync-phases>` the
+   sync attempt in progress is currently in.
+
+   .. versionadded:: 9.0
+
+   |logical-only|
+
+.. data:: replSetGetStatus.initialSyncStatus.totalAttempts
+
+   The total number of initial sync attempts so far, including both
+   failed and successful attempts.
+
+   .. versionadded:: 9.0
+
+   |logical-only|
+
+.. data:: replSetGetStatus.initialSyncStatus.bytesPerSecond
+
+   The approximate rate, in bytes per second, at which data is copied
+   during the sync attempt in progress. MongoDB derives this value
+   from :data:`~replSetGetStatus.initialSyncStatus.approxTotalBytesCopied`
+   and the elapsed time.
+
+   .. versionadded:: 9.0
+
+   |logical-only|
 
 .. data:: replSetGetStatus.initialSyncStatus.remainingInitialSyncEstimatedMillis
 

@@ -9,7 +9,6 @@ import {
   type ReactNode,
   type Dispatch,
 } from 'react';
-import { useRouter } from 'next/navigation';
 import { useSnootyMetadata } from '@/utils/use-snooty-metadata';
 import { getLocalValue, setLocalValue } from '@/utils/browser-storage';
 import type { Environments } from '@/utils/env-config';
@@ -178,7 +177,6 @@ interface VersionContextProviderProps {
 }
 
 export const VersionContextProvider = ({ docsets, slug, env, children }: VersionContextProviderProps) => {
-  const router = useRouter();
   const mountRef = useRef(true);
 
   const { versions, groups } = getBranches(docsets);
@@ -241,7 +239,10 @@ export const VersionContextProvider = ({ docsets, slug, env, children }: Version
       const pagePath = slug.replace(new RegExp(`^/?${siteBasePrefixWithVersion}/?`), '');
 
       const urlTarget = getUrl(target, metadata.project, siteBasePrefix, pagePath);
-      router.push(urlTarget.replace(/\/index\/?$/, '/'));
+      // urlTarget is a full `/docs/...` path (possibly a different version/deploy).
+      // Use window.location so this deploy's basePath is not prepended and b2k
+      // routes to the correct deploy.
+      window.location.assign(urlTarget.replace(/\/index\/?$/, '/'));
     },
     [versions, metadata, siteBasePrefix, slug], // eslint-disable-line react-hooks/exhaustive-deps
   );

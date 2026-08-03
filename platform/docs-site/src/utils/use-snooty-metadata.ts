@@ -1,9 +1,9 @@
 'use client';
 
 import { useContext, createContext } from 'react';
-import type { RemoteMetadata } from '@/types/data';
+import type { ClientSiteMetadata } from '@/types/data';
 
-const MetadataContext = createContext<RemoteMetadata | undefined>(undefined);
+const MetadataContext = createContext<ClientSiteMetadata | undefined>(undefined);
 
 export const useSnootyMetadata = () => {
   const context = useContext(MetadataContext);

@@ -6,7 +6,7 @@
       In the :guilabel:`Aggregations` pane, click the :guilabel:`Save` drop-down 
       menu and select ``Save as``.
 
-      .. figure:: /images/compass/query-save-pipeline-as.png
+      .. figure:: /images/compass/query-save-pipeline-as.svg
          :alt: Save pipeline as
 
    .. step:: Enter a name for your pipeline

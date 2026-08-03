@@ -115,12 +115,30 @@ def convert(filepath, analysis):
     header = analysis["proposed_header"]
     lines_to_remove = set(analysis.get("lines_to_remove", []))   # 1-indexed
 
-    # Build a quick lookup: line_num -> tab_block (1-indexed start)
-    block_by_start = {b["start"]: b for b in analysis["tab_blocks"]}
+    # Only blocks with parsed tabs are conversion targets. A block with an
+    # empty tabs list is almost always a content-variant `.. tabs::` block
+    # whose `.. tab:: <title>` children the analyzer did not recognize as
+    # language/interface tabs. Such blocks must pass through as shared
+    # content — never delete them.
+    convertible_blocks = [b for b in analysis["tab_blocks"] if b["tabs"]]
+    passthrough_blocks = [b for b in analysis["tab_blocks"] if not b["tabs"]]
+    if passthrough_blocks:
+        starts = ", ".join(str(b["start"]) for b in passthrough_blocks)
+        print(
+            f"Note: {len(passthrough_blocks)} tab block(s) at line(s) "
+            f"{starts} have no recognized language/interface tabs and pass "
+            f"through as shared content (likely content-variant tabs). "
+            f"Verify they are legal where they land — a bare `.. tabs::` "
+            f"is not allowed at document level inside the composable.",
+            file=sys.stderr,
+        )
 
-    # Set of all line numbers inside any tab block
+    # Build a quick lookup: line_num -> tab_block (1-indexed start)
+    block_by_start = {b["start"]: b for b in convertible_blocks}
+
+    # Set of all line numbers inside a convertible tab block
     in_tab_block: set[int] = set()
-    for b in analysis["tab_blocks"]:
+    for b in convertible_blocks:
         for ln in range(b["start"], b["end"] + 1):
             in_tab_block.add(ln)
 
@@ -167,6 +185,71 @@ def convert(filepath, analysis):
         i += 1
 
     return original, "".join(output)
+
+
+# ── Selections / options validation ───────────────────────────────────────────
+
+OPTIONS_RE = re.compile(r'^\s*:options:\s*(.+?)\s*$')
+DEFAULTS_RE = re.compile(r'^\s*:defaults:\s*(.+?)\s*$')
+SELECTIONS_RE = re.compile(r'^\s*:selections:\s*(.+?)\s*$')
+
+
+def _count_values(raw):
+    """Count comma-separated values in an options/selections/defaults line."""
+    return len([v for v in raw.split(",")])
+
+
+def validate_selections(new_text):
+    """Check that every :defaults: and :selections: line has exactly as many
+    comma-separated values as the composable's :options: line.
+
+    Returns a list of human-readable error strings (empty if valid).  This
+    enforces the invariant the skill documents but the generator can still
+    violate when a page's tab attributes over-generate option slots.
+    """
+    lines = new_text.splitlines()
+    errors = []
+
+    # Find the composable :options: count (one composable per file).
+    option_count = None
+    for line in lines:
+        m = OPTIONS_RE.match(line)
+        if m:
+            option_count = _count_values(m.group(1))
+            break
+
+    if option_count is None:
+        errors.append("No :options: line found in the converted output.")
+        return errors
+
+    for idx, line in enumerate(lines, start=1):
+        m = DEFAULTS_RE.match(line)
+        if m:
+            n = _count_values(m.group(1))
+            if n != option_count:
+                errors.append(
+                    f"Line {idx}: :defaults: has {n} value(s) but :options: "
+                    f"has {option_count}. Fix so the counts match."
+                )
+            if m.group(1).split(",")[0].strip() == "None":
+                errors.append(
+                    f"Line {idx}: first :defaults: value cannot be None."
+                )
+            continue
+        m = SELECTIONS_RE.match(line)
+        if m:
+            n = _count_values(m.group(1))
+            if n != option_count:
+                errors.append(
+                    f"Line {idx}: :selections: has {n} value(s) but :options: "
+                    f"has {option_count}. Fix so the counts match."
+                )
+            if m.group(1).split(",")[0].strip() == "None":
+                errors.append(
+                    f"Line {idx}: first :selections: value cannot be None."
+                )
+
+    return errors
 
 
 # ── Dry-run diff ──────────────────────────────────────────────────────────────
@@ -237,6 +320,29 @@ def main():
             )
 
     original, new_text = convert(filepath, analysis)
+
+    # Enforce the :options:/:selections:/:defaults: count invariant.
+    validation_errors = validate_selections(new_text)
+    if validation_errors:
+        print(
+            "Validation errors in the converted output "
+            "(:options: / :selections: / :defaults: mismatch):",
+            file=sys.stderr,
+        )
+        for err in validation_errors:
+            print(f"  - {err}", file=sys.stderr)
+        if apply_mode:
+            print(
+                "Refusing to apply. Some pages over-generate option slots "
+                "and need option dimensions collapsed by hand. Fix the header "
+                "or the mapping, then re-run.",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+        print(
+            "Dry run only: review and correct these before running --apply.",
+            file=sys.stderr,
+        )
 
     if apply_mode:
         path.write_text(new_text)

@@ -27,6 +27,14 @@ const tocData: TocItem[] = [
     label: 'Documents',
     contentSite: 'docs',
     url: '/docs/:version/core/document',
+    collapsible: true,
+    items: [
+      {
+        label: 'Other Uses of the Document Structure',
+        contentSite: 'docs',
+        url: '/docs/:version/core/documents-other-uses',
+      },
+    ],
   },
   {
     label: 'Databases & Collections',

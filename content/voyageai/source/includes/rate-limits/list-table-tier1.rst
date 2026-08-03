@@ -11,7 +11,7 @@
    * - ``voyage-4``, ``voyage-3.5``
      - 8,000,000
      - 2,000
-   * - ``voyage-4-large``
+   * - ``voyage-4-large``, ``voyage-context-4``
      - 3,000,000
      - 2,000
    * - ``voyage-3-large``, ``voyage-context-3``, ``voyage-code-3``,

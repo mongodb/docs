@@ -54,7 +54,7 @@ const fetchMostRecentDiff = async (metadata: AtlasAdminApiChangelogMetadata, bra
 
 export const getChangelogData = async (): Promise<ServerSideChangelogData> => {
   const env = process.env.NEXT_PUBLIC_ENV as Environments;
-  const branch = env === 'dev' || env === 'development' ? 'qa' : 'main';
+  const branch = env === 'dotcomstg' ? 'qa' : 'main';
 
   const metadata = await fetchChangelogMetadata(branch);
   const changelog = await fetchChangelog(branch);

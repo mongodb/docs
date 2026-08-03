@@ -1,0 +1,1 @@
+pip install --quiet --upgrade pymongo huggingface_hub einops langchain langchain_community pypdf

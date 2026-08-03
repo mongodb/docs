@@ -1,0 +1,126 @@
+.. _view-search-node-metrics:
+
+====================================
+View Search Node Performance Metrics
+====================================
+
+.. meta::
+   :description: Monitor mongot (Search and Vector Search) node performance metrics in Ops Manager, including charts for CPU, memory, index health, and query throughput.
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The release of Search and Vector Search introduced
+:ref:`mongot <mongot-overview>` node visibility in |mms| for
+self-managed deployments running on the |k8s-op-full|. |mms|
+collects performance data from these nodes and displays it in
+the ``mongot`` :guilabel:`Details` view. To open the
+:guilabel:`Details` view for a ``mongot`` node, click the node
+from the :guilabel:`Deployment` view. |mms| scrapes ``mongot``
+metrics every 60 seconds from
+each node's Prometheus endpoint.
+
+Prerequisites
+-------------
+
+Before you view ``mongot`` node data in |mms|, confirm the
+following prerequisites:
+
+- Run |mms| 8.0.25 or later. Cloud Manager doesn't support
+  ``mongot`` node monitoring.
+- Deploy ``mongot`` 1.70.1 or later using the |k8s-op-full|
+  1.9 or later.
+- Reference an Enterprise MongoDB deployment or an external
+  ``mongod`` deployment in the ``MongoDBSearch`` resource.
+  |mms| doesn't support ``MongoDBSearch`` resources that
+  reference ``MongoDBCommunity``.
+- Enable the ``mongot`` Prometheus endpoint. The
+  |k8s-op-full| enables this endpoint by default on port
+  ``9946`` when you deploy the ``MongoDBSearch`` resource.
+
+When the ``MongoDBSearch`` resource points to a MongoDB
+deployment in the same Kubernetes cluster, the |k8s-op-full|
+forwards metrics to |mms| automatically. When it points to an
+external ``mongod``, you must configure the
+``spec.observability.metricsForwarder`` settings manually.
+Allow network connectivity between the |k8s-op-short| metrics
+collector and |mms|. To learn more, see
+:ref:`k8s-search-specification`.
+
+Limitations
+-----------
+
+The following limitations apply to ``mongot`` node monitoring in
+|mms|:
+
+- |mms| monitors ``mongot`` nodes deployed through the
+  |k8s-op-full| only. |mms| doesn't monitor ``mongot``
+  deployments outside Kubernetes.
+- |mms| provides read-only observability for ``mongot`` nodes.
+  Use the |k8s-op-full| to manage the ``mongot`` node lifecycle.
+- |mms| collects ``mongot`` metrics only. |mms| doesn't collect
+  ``mongot`` logs or traces.
+- |mms| doesn't provide Search index management or query
+  tooling.
+- |mms| stores ``mongot`` metrics at 1-minute granularity.
+  Requests for finer granularity return 1-minute data.
+
+Health Status
+-------------
+
+|mms| computes a health status for each ``mongot`` node from its
+most recently received metrics. |mms| displays the status as
+a badge next to the node.
+
+.. list-table::
+   :widths: 20 20 60
+   :header-rows: 1
+
+   * - Status
+     - Badge Color
+     - Condition
+
+   * - Healthy
+     - Green
+     - At least one index manager is in a steady state, or the
+       node has no indexes.
+
+   * - Degraded
+     - Amber
+     - At least one index manager has failed.
+
+   * - Stale
+     - Red
+     - |mms| hasn't received metrics from the node in over
+       120 seconds, or the node has indexes but none has
+       reached a steady state.
+
+   * - Unknown
+     - Grey
+     - |mms| hasn't received any metrics from the node.
+
+Available Metric Charts
+-----------------------
+
+The ``mongot`` :guilabel:`Details` view provides the following
+metric charts. To learn about chart controls and display
+options, see :ref:`view-mongodb-process-metrics`.
+
+.. include:: /includes/list-table-search-node-metrics.rst
+
+Learn More
+----------
+
+- To configure metric collection for ``mongot`` nodes, see
+  :ref:`k8s-search-specification`.
+- To learn about monitoring ``mongot`` nodes in Kubernetes, see
+  :ref:`k8s-fts-vs-monitor`.
+- To review all available metrics in |mms|, see
+  :ref:`review-available-metrics`.
+- To learn about monitoring self-managed ``mongot`` deployments,
+  see :ref:`mongot-monitoring`.

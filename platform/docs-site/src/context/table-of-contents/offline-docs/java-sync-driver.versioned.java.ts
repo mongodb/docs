@@ -553,27 +553,27 @@ export const toc: L1TocItem[] = [
               {
                 label: ' BSON',
                 isExternal: true,
-                url: 'https://mongodb.github.io/mongo-java-driver/5.8/apidocs/bson/index.html',
+                url: 'https://mongodb.github.io/mongo-java-driver/5.9/apidocs/bson/index.html',
               },
               {
                 label: ' BSON Record Codec',
                 isExternal: true,
-                url: 'https://mongodb.github.io/mongo-java-driver/5.8/apidocs/bson-record-codec/index.html',
+                url: 'https://mongodb.github.io/mongo-java-driver/5.9/apidocs/bson-record-codec/index.html',
               },
               {
                 label: ' Core',
                 isExternal: true,
-                url: 'https://mongodb.github.io/mongo-java-driver/5.8/apidocs/driver-core/index.html',
+                url: 'https://mongodb.github.io/mongo-java-driver/5.9/apidocs/driver-core/index.html',
               },
               {
                 label: ' Java Driver (modern API)',
                 isExternal: true,
-                url: 'https://mongodb.github.io/mongo-java-driver/5.8/apidocs/driver-sync/index.html',
+                url: 'https://mongodb.github.io/mongo-java-driver/5.9/apidocs/driver-sync/index.html',
               },
               {
                 label: ' Java Driver (legacy API)',
                 isExternal: true,
-                url: 'https://mongodb.github.io/mongo-java-driver/5.8/apidocs/driver-legacy/index.html',
+                url: 'https://mongodb.github.io/mongo-java-driver/5.9/apidocs/driver-legacy/index.html',
               },
             ],
           },

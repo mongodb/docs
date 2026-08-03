@@ -65,7 +65,7 @@ and the
 <https://www.nist.gov/news-events/news/2014/04/nist-revises-guide-use-transport-layer-security-tls-networks>`_.
 
 If you have questions about |tls| support or cannot update your
-applications to support |tls| 1.2, please contact |service| 
+applications to support |tls| 1.3, please contact |service| 
 |mdb-support|.
 
 To open a |service| support ticket:
@@ -77,13 +77,13 @@ To open a |service| support ticket:
 
    .. step:: Request support.
 
-How do I know if my applications support TLS 1.2?
+How do I know if my applications support TLS 1.3?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Applications whose underlying programming languages or security 
-libraries predate |tls| 1.2 may require updating to a more recent 
-version to support |tls| 1.2. You may also need to update the 
-application host operating system to support |tls| 1.2.
+libraries predate |tls| 1.3 may require updating to a more recent 
+version to support |tls| 1.3. You may also need to update the 
+application host operating system to support |tls| 1.3.
 
 MongoDB and |service| don't provide services to audit external
 applications for which versions of |tls| support they support.
@@ -94,14 +94,17 @@ service, and its reference is only informational. Use your
 organization's procedures for selecting the vendor or service for auditing
 your applications.
 
-What do I have to do to update my clusters for TLS 1.2?
+What do I have to do to update my clusters for TLS 1.3?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- Conduct an audit of your applications for support of |tls| 1.2.
+- Conduct an audit of your applications for support of |tls| 1.3.
 - Update all components of your technology stack that don't support
-  |tls| 1.2.
+  |tls| 1.3.
 - :ref:`Modify <scale-cluster-more-configuration-options>` your cluster
-  configuration to use |tls| 1.2.
+  configuration to use |tls| 1.3.
+- If you have a :ref:`custom TLS 1.2 cipher configuration 
+  <set-custom-cipher-suite-configuration>`, you must update 
+  the configuration to include the |tls| 1.3 ciphers.
 
 Can I force enable TLS 1.0?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -110,8 +113,8 @@ Can I force enable TLS 1.0?
 :ref:`cluster modification <scale-cluster-more-configuration-options>`.
 
 Enabling |tls| 1.0 for any |service| cluster carries significant risks.
-Consider enabling |tls| 1.0 only if required to update your
-application stack to support |tls| 1.2.
+Consider enabling |tls| 1.0 only for as long as required to update your
+application stack to support |tls| 1.2 or higher.
 
 .. include:: /includes/tls-deprecation.rst
 
@@ -120,16 +123,15 @@ application stack to support |tls| 1.2.
 Which certificate authority signs MongoDB Atlas TLS certificates?
 -----------------------------------------------------------------
 
-With the inclusion of Google Trust Services as an additional certificate authority, |service|
-cluster nodes' TLS certificates are now signed by either Google Trust Services or Let's Encrypt
-to improve high availability. Atlas uses both certificate authorities concurrently. You must
-add CA certificates for the
-:guilabel:`GTS Root R1`, :guilabel:`GTS Root R2`, :guilabel:`GTS Root R3`, and :guilabel:`GTS Root R4` 
-root |certauth| from Google Trust Services to your clients' trusted certificate stores, in addition 
-to the ISRG Root X1 root |certauth| from Let's Encrypt to ensure seamless service continuity.
+|service| cluster nodes' TLS certificates are signed by either Google Trust Services or
+Let's Encrypt to improve high availability. Atlas uses both certificate authorities concurrently.
+You must add CA certificates for the :guilabel:`GTS Root R1`, :guilabel:`GTS Root R2`,
+:guilabel:`GTS Root R3`, and :guilabel:`GTS Root R4` root |certauth| from Google Trust Services
+to your clients' trusted certificate stores, in addition to the ISRG Root X1 root |certauth|
+from Let's Encrypt to ensure seamless service continuity.
 
-|service| will use the :guilabel:`GTS Root R3` and :guilabel:`GTS Root R4` root CA certificates 
-for TLS 1.3 support in the future.
+|service| uses the :guilabel:`GTS Root R3` and :guilabel:`GTS Root R4` root CA certificates
+for TLS 1.3 support.
 
 .. note:: 
    
@@ -226,3 +228,162 @@ Everyone Else
 
 This change shouldn't impact you if you use a recent programming
 language and operating system version.
+
+Why did my TLS configuration change fail with an ``UNSAFE_TLS_TRANSITION error?``
+--------------------------------------------------------------------------------------------------------
+
+|service| prevents TLS configuration changes that could break 
+communication between cluster nodes during a rolling update.
+
+When you update TLS settings, |service| applies the changes one node at 
+a time. During this process, nodes running the old configuration must 
+still be able to connect to nodes running the new configuration. If 
+your proposed changes remove all shared TLS versions or cipher suites, 
+the nodes can't communicate, which leads to a partitioned cluster and 
+potential downtime.
+
+To protect cluster availability, |service| blocks these unsafe 
+transitions and returns the ``UNSAFE_TLS_TRANSITION`` error.
+
+``UNSAFE_TLS_TRANSITION`` Error Causes
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This error typically occurs in the following scenarios when there is no 
+overlap between the current and proposed TLS configurations:
+
+- TLS version mismatch.
+
+  - Example: Switching directly from TLS 1.2-only to TLS 1.3-only.
+
+  - Result: Nodes using TLS 1.2 cannot connect to nodes requiring TLS 
+    1.3.
+
+- Cipher suite mismatch.
+
+  - Example: Replacing all existing cipher suites with a completely 
+    different set.
+
+  - Result: Nodes have no shared cipher to negotiate a connection
+
+``UNSAFE_TLS_TRANSITION`` Error Solution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Make your TLS changes in phases, and ensure overlap between old and new 
+settings:
+
+For TLS versions:
+
+1. Enable both TLS 1.2 and TLS 1.3.
+
+#. Apply the change and allow the update to complete.
+
+#. Remove TLS 1.2 in a follow-up update (if desired).
+
+For cipher suites:
+
+- Ensure at least one cipher suite is shared between the current and 
+  new configurations during the transition.
+
+``UNSAFE_TLS_TRANSITION`` Error Key Takeaway
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Avoid "all-at-once" TLS changes. Always maintain temporary
+compatibility between old and new configurations to ensure a safe
+rolling update.
+
+.. _faq-community-driver-support:
+
+What is |service|'s support policy for community and unsupported drivers?
+-------------------------------------------------------------------------
+
+|service| provides different levels of support for officially
+supported drivers, community drivers, and unsupported configurations.
+
+Driver Categories
+~~~~~~~~~~~~~~~~~
+
+**Officially Supported Drivers**
+
+MongoDB develops and maintains these drivers, which are listed on
+:driver:`mongodb.com/docs/drivers </>`. MongoDB's test matrix,
+release process, and support SLA cover these drivers.
+
+Officially supported drivers include :driver:`C </c/>`, :driver:`C++
+</cxx/>`, :driver:`C# </csharp/>`, :driver:`Go </go/>`,
+:driver:`Java </java-drivers/>`, :driver:`Kotlin </kotlin/>`,
+:driver:`Node.js </node/>`, :driver:`PHP </php-drivers/>`,
+:driver:`Python </python-drivers/>`, :driver:`Ruby </ruby-drivers/>`,
+:driver:`Rust </rust/>`, :driver:`Scala </scala/>`, and :driver:`Swift
+</swift/>`.
+
+**Community Drivers**
+
+Third-party developers create and maintain these drivers, which
+implement MongoDB's published specifications or wire protocol.
+Examples include Zookzook (Elixir), Mango (Dart), mongolite (R), and
+mgo (Go).
+
+**Unsupported Configurations**
+
+Any officially supported or community driver used at an end-of-life
+version.
+
+Support Levels
+~~~~~~~~~~~~~~
+
+**Officially Supported Drivers (Current Version)**
+
+The |service| SLA covers these drivers. MongoDB provides standard
+troubleshooting and resolution, including investigation and fixes for
+connection issues.
+
+**Officially Supported Drivers (EOL Version)**
+
+MongoDB provides best-effort support. MongoDB investigates issues but
+might recommend upgrading to a current version.
+
+**Community Drivers**
+
+MongoDB provides best-effort, diagnosis-only support. Support helps
+you determine whether an issue originates from the platform or the
+driver. For driver-side issues, MongoDB provides available guidance
+and refers you to the driver maintainer. MongoDB does not debug or
+patch community driver code.
+
+Responsibilities
+~~~~~~~~~~~~~~~~
+
+**What |service| Does**
+
+|service| performs risk assessments for platform changes that affect
+the connection layer, including TLS version changes, certificate
+rotations, and authentication mechanism updates. |service| assesses
+known fragility patterns even when the fragility originates in
+client-side code.
+
+For high-risk platform changes, |service| publishes guidance in
+:ref:`release notes <changelog>` and pre-maintenance notifications when
+feasible.
+
+**What |service| Does Not Do**
+
+|service| does not:
+
+- Test, certify, or guarantee the correctness of community drivers
+- Test all community drivers in all configurations
+- Commit to patching, reviewing, or maintaining community drivers
+
+Community drivers must correctly implement TLS negotiation,
+authentication, wire protocol, and failover behavior. Any
+contributions MongoDB makes to community drivers are voluntary, not
+contractual obligations.
+
+SLA Coverage
+~~~~~~~~~~~~
+
+The |service| SLA covers officially supported MongoDB drivers at
+current versions only. Outages caused by community driver bugs or
+unsupported driver configurations fall outside the SLA.
+
+Use :driver:`officially supported drivers </>` at current versions for
+full SLA coverage and the best support experience.
