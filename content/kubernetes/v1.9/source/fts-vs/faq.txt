@@ -1,0 +1,108 @@
+.. _k8s-fts-vs-faq:
+
+================================================
+``mongot`` Deployment Frequently Asked Questions
+================================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Find answers to common questions about deploying MongoDB Search and Vector Search with the Kubernetes Operator, including versioning, compatibility, backups, TLS, and load balancers.
+   :keywords: vector search, compatibility, requirements, mongod, version
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The following questions and answers cover deploying |text-search|
+and |vector-search| with the |k8s-op|. For a full list of
+constraints, see :ref:`k8s-fts-vs-limitations`. To confirm version
+compatibility before you deploy, see
+:ref:`k8s-fts-vs-compatibility-requirements`.
+
+Versions and Compatibility
+--------------------------
+
+Can I run a ``mongot`` version older than ``1.70.1``?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+No. ``1.70.1`` is the minimum ``mongot`` version for
+self-managed deployments. Earlier ``0.x`` builds are Preview
+releases that we don't recommend for production use.
+
+Can I upgrade a Public Preview deployment to GA?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+No. You can't upgrade a Public Preview (``0.x``) deployment to a GA
+release in place. To move to GA, perform a fresh install.
+
+Operations
+----------
+
+Do I need to back up ``mongot`` or its indexes?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Back up ``mongod``, not ``mongot``. The ``mongot`` indexes are
+derived data that ``mongot`` rebuilds from ``mongod``, so a
+``mongod`` backup is enough to recover them. Include index
+rebuild time in your recovery time objectives because the
+rebuild takes time. To learn more, see
+:ref:`k8s-fts-vs-backup-restore`.
+
+Does enabling TLS on a running deployment cause downtime?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Enabling TLS on a deployment that is already running causes a brief,
+bounded outage because ``mongot`` must restart to read the new
+certificates. Rotating a certificate on a deployment that already
+uses TLS also requires a ``mongot`` restart, because ``mongot`` reads
+certificates only at startup. If you deploy multiple ``mongot`` 
+replicas behind the load balancer, queries can continue during that 
+restart. To learn more, see :ref:`k8s-fts-vs-tls-encryption`.
+
+Do search queries keep working when a ``mongot`` pod restarts?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It depends on the number of ``mongot`` replicas. If you deploy
+multiple ``mongot`` replicas behind the load balancer and also run
+more than one Envoy replica, queries continue to run while the
+``mongot`` or Envoy deployments undergo rolling restarts. With a
+single replica, queries see a brief gap until the pod is ready
+again.
+
+Can I use my own load balancer?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Yes. To use your own load balancer, run ``mongot`` in unmanaged
+mode. To learn more, see :ref:`k8s-fts-vs-supported-topologies`.
+
+Is the index data encrypted at rest?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``mongot`` doesn't provide application-level encryption at rest. To
+encrypt the ``mongot`` index data, encrypt the underlying volume with
+a |k8s|-level or cloud-provider mechanism. To learn more, see
+:ref:`k8s-fts-vs-tls-encryption`.
+
+Are all |text-search| and |vector-search| features in Atlas available on self-managed deployments?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+No. A feature is available on self-managed ``mongot`` only after it
+ships in a ``mongot`` binary release. To learn more, see
+:ref:`k8s-fts-vs-limitations`.
+
+Learn More
+----------
+
+- :ref:`k8s-fts-vs-compatibility-requirements`
+- :ref:`k8s-fts-vs-upgrade-downgrade`
+- :ref:`k8s-fts-vs-supported-topologies`
+- :ref:`k8s-fts-vs-tls-encryption`
+- :ref:`k8s-fts-vs-backup-restore`
+- :ref:`k8s-fts-vs-limitations`

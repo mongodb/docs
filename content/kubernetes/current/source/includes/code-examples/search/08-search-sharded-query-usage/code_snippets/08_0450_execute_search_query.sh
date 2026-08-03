@@ -3,7 +3,10 @@ echo ""
 
 user_conn="${MDB_USER_CONNECTION_STRING:-${MDB_CONNECTION_STRING}}"
 
-mdb_script=$(cat <<'MONGOSH'
+kubectl exec -i mongodb-tools \
+  -n "${MDB_NS}" \
+  --context "${K8S_CTX}" \
+  -- mongosh --quiet "${user_conn}" <<'MONGOSH'
 use sample_mflix;
 db.movies.aggregate([
   {
@@ -41,16 +44,6 @@ db.movies.aggregate([
   }
 ]);
 MONGOSH
-)
-
-kubectl exec mongodb-tools \
-  -n "${MDB_NS}" \
-  --context "${K8S_CTX}" \
-  -- /bin/bash -eu -c "$(cat <<EOF
-echo '${mdb_script}' > /tmp/mdb_script.js
-mongosh --quiet "${user_conn}" < /tmp/mdb_script.js
-EOF
-)"
 
 echo ""
 echo "Search query executed successfully"

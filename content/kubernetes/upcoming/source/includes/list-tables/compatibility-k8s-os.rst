@@ -2,17 +2,23 @@
    :header-rows: 1
    :widths: 15 25 25 20 15
 
+   * - |k8s-op-short| Release Series
+     - Release Date
+     - :abbr:`EOL (End of Life)` date
+     - |k8s| Version
+     - OpenShift Version
+
+   * - 1.10.0
+     - July 30, 2026
+     - to be determined
+     - 1.34, 1.35, 1.36
+     - 4.22
+
    * - 1.9.0
      - June 30, 2026
      - to be determined
      - 1.34, 1.35, 1.36
      - 4.21
-
-   * - |k8s-op-short| Release Series
-     - Release Date 
-     - :abbr:`EOL (End of Life)` date
-     - |k8s| Version
-     - OpenShift Version
 
    * - 1.8.1
      - May 20, 2026

@@ -11,6 +11,11 @@ pushd "${script_dir}"
 
 prepare_snippets
 
+# Pre-clean any global GCP LB resources leaked by a previous run. These are
+# project-global, fixed-name resources (health-check, backend-service, url-map,
+# proxy, forwarding-rule, firewall) that ra-10_0150 creates.
+bash code_snippets/ra-10_9000_cleanup_gke_lb.sh || true
+
 run ra-10_0100_generate_certs.sh
 sleep 10 # wait for cert-manager to generate secrets
 

@@ -1,0 +1,313 @@
+.. _k8s-fts-vs-troubleshoot:
+
+==================================
+Troubleshoot ``mongot`` Deployment
+==================================
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :description: Learn how to troubleshoot common issues with deploying MongoDB Search and Vector Search on Kubernetes, including pod startup, query routing, memory, and TLS errors.
+   :keywords: vector search, compatibility, requirements, mongod, version, code example
+
+.. default-domain:: mongodb
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 2
+   :class: singlecol
+
+The |k8s-op| deploys ``mongot`` as a separate process in its own
+|k8s-pod|, defined by a ``MongoDBSearch`` resource. Clients never
+connect to ``mongot`` directly: |text-search| and |vector-search|
+queries run on ``mongod``, which proxies them to ``mongot``.
+``mongot`` connects back to ``mongod`` to stream change events and
+build its indexes on a dedicated |k8s-pv|.
+
+This page describes how to diagnose and resolve common runtime
+issues with a ``mongot`` deployment. For troubleshooting that is
+specific to index creation during initial setup, see
+:ref:`k8s-use-fts-vs`. To set up metrics and logging before you
+investigate, see :ref:`k8s-fts-vs-monitor`.
+
+The procedures on this page assume that you set the following
+environment variables to match your deployment:
+
+.. code-block:: shell
+
+   export MDB_NS="<your-namespace>"
+   export K8S_CTX="<your-kubectl-context>"
+   export MDB_RESOURCE_NAME="<your-mongodbsearch-resource-name>"
+
+.. _k8s-fts-vs-gather-diagnostics:
+
+Gather Diagnostic Information
+-----------------------------
+
+Before you work through a specific scenario, collect the current
+state of the ``mongot`` pod, its logs, and recent |k8s| events:
+
+.. code-block:: shell
+
+   # Check the status and restart count of the mongot pod
+   kubectl get pods -n ${MDB_NS} --context ${K8S_CTX} | grep search
+
+   # Review the most recent mongot logs
+   kubectl logs statefulset/${MDB_RESOURCE_NAME}-search-0 \
+     -n ${MDB_NS} --context ${K8S_CTX} --tail=100
+
+   # Inspect the MongoDBSearch resource status and conditions
+   kubectl describe mongodbsearch ${MDB_RESOURCE_NAME} \
+     -n ${MDB_NS} --context ${K8S_CTX}
+
+   # List recent events in the namespace
+   kubectl get events -n ${MDB_NS} --context ${K8S_CTX} \
+     --sort-by='.lastTimestamp'
+
+If the pod restarts in a loop, view the logs from the previous
+container instance to capture the error that caused the restart:
+
+.. code-block:: shell
+
+   kubectl logs statefulset/${MDB_RESOURCE_NAME}-search-0 \
+     -n ${MDB_NS} --context ${K8S_CTX} --previous
+
+.. _k8s-fts-vs-mongot-pod-fails:
+
+The ``mongot`` Pod Fails to Start
+---------------------------------
+
+**Symptoms:** The ``mongot`` pod stays in ``Pending``,
+``ContainerCreating``, or ``Error`` and never reaches ``Running``,
+or the ``MongoDBSearch`` resource does not reach the ``Running``
+state.
+
+**Diagnose:** Run the commands in :ref:`Gather Diagnostic Information
+<k8s-fts-vs-gather-diagnostics>`
+and review the pod events and ``MongoDBSearch`` status. Common
+indicators include scheduling failures, volume-mount errors, and
+image-pull errors.
+
+**Resolve:**
+
+- If the pod cannot be scheduled, confirm that a |k8s-node| with
+  sufficient CPU and memory is available and your |k8s-sc| can 
+  bind the requested |k8s-pvc|. To learn more about sizing 
+  ``mongot``, see :ref:`k8s-fts-vs-planning-sizing`.
+- If the password Secret for the ``search-sync-source`` user is
+  missing, create it. The ``MongoDBSearch`` resource expects a
+  Secret named
+  ``${MDB_RESOURCE_NAME}-search-sync-source-password``.
+- If the ``mongot`` container image cannot be pulled, verify the
+  image name and your registry credentials. Check for image-pull
+  errors with
+  ``kubectl get events -n ${MDB_NS} | grep -i pull``.
+- If the source ``mongod`` replica set is not in the ``Running``
+  state, resolve that issue first. The |k8s-op| waits for the
+  source resource before it deploys ``mongot``.
+
+Search Queries Fail to Reach ``mongot``
+---------------------------------------
+
+**Symptoms:** ``$search``, ``$searchMeta``, or ``$vectorSearch``
+queries fail with an error that indicates ``mongod`` cannot reach
+the search service.
+
+**Diagnose:** Confirm that the ``mongot`` pod is ``Running`` and
+that its |k8s-service| exists:
+
+.. code-block:: shell
+
+   kubectl get pods,svc -n ${MDB_NS} --context ${K8S_CTX} \
+     | grep search
+
+Review the ``mongot`` logs for connection or authentication errors,
+and review the ``mongod`` logs for errors that reference the search
+host.
+
+**Resolve:**
+
+- If the ``mongot`` pod is not ``Running``, work through
+  :ref:`The mongot Pod Fails to Start <k8s-fts-vs-mongot-pod-fails>`.
+- If the logs show authentication errors, verify the
+  ``search-sync-source`` user credentials and role. To learn more,
+  see :ref:`k8s-fts-vs-authentication-authorization`.
+- If the logs show |tls| errors, confirm that ``mongod`` and
+  ``mongot`` trust the same |certauth|. To learn more, see
+  :ref:`k8s-fts-vs-tls-encryption`.
+
+``mongot`` Repeatedly Restarts
+------------------------------
+
+**Symptoms:** The ``mongot`` pod shows a high restart count or
+reports ``CrashLoopBackOff``.
+
+**Diagnose:** View the logs from the previous container instance to
+capture the error that triggered the restart:
+
+.. code-block:: shell
+
+   kubectl logs statefulset/${MDB_RESOURCE_NAME}-search-0 \
+     -n ${MDB_NS} --context ${K8S_CTX} --previous
+
+Check the pod's last state and exit reason:
+
+.. code-block:: shell
+
+   kubectl describe pod ${MDB_RESOURCE_NAME}-search-0-0 \
+     -n ${MDB_NS} --context ${K8S_CTX}
+
+**Resolve:**
+
+- If the exit reason is ``OOMKilled``, increase the memory
+  resources for ``mongot``. See :ref:`mongot Runs Out of Memory
+  <k8s-fts-vs-mongot-oom>`.
+- If the logs show a configuration or authentication error,
+  correct the setting and let the |k8s-op| reconcile the change.
+- If the logs show that ``mongot`` cannot read or write its index
+  data, confirm that the |k8s-pvc| is bound and writable. See
+  :ref:`The mongot Pod Fails to Start <k8s-fts-vs-mongot-pod-fails>`.
+
+.. _k8s-fts-vs-mongot-oom:
+
+``mongot`` Runs Out of Memory
+-----------------------------
+
+**Symptoms:** The ``mongot`` pod is terminated with an
+``OOMKilled`` reason and the restart count increases.
+
+**Diagnose:** Confirm the pod's termination reason:
+
+.. code-block:: shell
+
+   kubectl describe pod ${MDB_RESOURCE_NAME}-search-0-0 \
+     -n ${MDB_NS} --context ${K8S_CTX}
+
+``mongot`` is a Lucene-based, memory-mapped workload. Memory
+pressure most often results from undersized memory limits relative
+to index size and query load.
+
+**Resolve:**
+
+- Increase the memory resources allocated to ``mongot`` in the
+  ``MongoDBSearch`` resource. ``mongot`` restarts to apply the
+  change.
+- Review your index size and query load against the sizing
+  guidance in :ref:`k8s-fts-vs-planning-sizing`.
+
+Initial Sync Is Slow or Replication Lag Grows
+---------------------------------------------
+
+**Symptoms:** Newly created indexes stay in a building state for a
+long time, or query results lag behind recent writes to
+``mongod``.
+
+**Diagnose:** Review the ``mongot`` logs for replication progress
+and errors. Use the metrics that you configured in
+:ref:`k8s-fts-vs-monitor` to track index build progress and
+replication lag over time.
+
+**Resolve:**
+
+- Allow the initial sync to complete. The time to build an index
+  scales with the size of the source data.
+- If lag persists under steady load, the ``mongot`` instance might 
+  not have sufficient resources for the write volume. Review 
+  :ref:`k8s-fts-vs-planning-sizing`.
+- Confirm that storage performance meets the recommendations for a
+  random-read-heavy Lucene workload. Slow storage is a common
+  cause of sustained lag.
+
+TLS Handshake Failures Between ``mongod`` and ``mongot``
+--------------------------------------------------------
+
+**Symptoms:** The ``mongot`` logs show |tls| handshake or
+certificate-validation errors, and ``mongod`` cannot establish a
+connection to ``mongot``.
+
+**Diagnose:** Review the ``mongot`` logs for certificate errors and
+confirm that the |tls| Secrets referenced by the ``MongoDBSearch``
+resource exist:
+
+.. code-block:: shell
+
+   kubectl get secrets -n ${MDB_NS} --context ${K8S_CTX} \
+     | grep -i tls
+
+**Resolve:**
+
+- Confirm that ``mongod`` and ``mongot`` trust the same |certauth|.
+- After you replace or rotate a certificate, restart ``mongot`` so
+  that it reads the new certificate. ``mongot`` reads certificates
+  at startup and does not reload them while running.
+- To learn more, see :ref:`k8s-fts-vs-tls-encryption`.
+
+Automated Embedding Fails
+-------------------------
+
+.. note::
+
+   Automated embedding is a Preview feature and integrates only
+   with |voyage| models.
+
+**Symptoms:** Indexes that use automated embedding fail to build,
+or embedding requests return errors in the ``mongot`` logs.
+
+**Diagnose:** Review the ``mongot`` logs for errors that reference
+the embedding provider, such as authentication failures or request
+timeouts.
+
+**Resolve:**
+
+- Verify that your |voyage| API key is valid and that the Secret
+  that holds it exists in the namespace.
+- Confirm that ``mongot`` can reach the embedding provider endpoint
+  from your |k8s| cluster.
+
+Capture Diagnostics for Support
+-------------------------------
+
+If you contact |mdb-support|, include the ``mongot`` logs, the
+``MongoDBSearch`` resource description, and recent namespace
+events:
+
+.. code-block:: shell
+
+   kubectl logs statefulset/${MDB_RESOURCE_NAME}-search-0 \
+     -n ${MDB_NS} --context ${K8S_CTX} > mongot.log
+
+   kubectl describe mongodbsearch ${MDB_RESOURCE_NAME} \
+     -n ${MDB_NS} --context ${K8S_CTX} > mongodbsearch-describe.txt
+
+   kubectl get events -n ${MDB_NS} --context ${K8S_CTX} \
+     --sort-by='.lastTimestamp' > events.txt
+
+You can also include :abbr:`FTDC (Full-Time Diagnostic Data Capture)` 
+files from each affected search pod. ``mongot`` writes FTDC files to
+``/mongot/data/diagnostic.data/`` inside the pod.
+
+The ``/mongot/data`` path is a ``PersistentVolumeClaim`` that the
+|k8s-op-short| mounts on the pod through a ``volumeClaimTemplate``
+on the search StatefulSet, so the diagnostic data persists across
+pod restarts. When a pod is replaced, the StatefulSet reattaches
+the same ``PersistentVolumeClaim``, so the diagnostic data is
+retained.
+
+Copy the FTDC data from the search pod to your local machine.
+For sharded clusters, copy the FTDC data from each per-shard
+search pod to your local machine. Repeat for every shard:
+
+.. code-block:: shell
+
+   kubectl cp -n ${MDB_NS} --context ${K8S_CTX} \
+      ${MDB_SEARCH_RESOURCE_NAME}-search-0-${MDB_EXTERNAL_SHARD_0_NAME}-0:/mongot/data/diagnostic.data \
+      ./mongot-diagnostic.data-${MDB_EXTERNAL_SHARD_0_NAME}
+
+Learn More
+----------
+
+- :ref:`k8s-fts-vs-monitor`
+- :ref:`k8s-fts-vs-limitations`
