@@ -194,6 +194,10 @@ B
           - You can search for a blacklist entry, add blacklist
             entries, and edit or delete existing blacklist entries.
 
+   blackout
+     :icon-fa4:`times-circle` Depending on context, use *scheduled
+     outage* or *scheduled downtime* instead.
+
    Boolean
      Always use with an initial capital letter.
 
