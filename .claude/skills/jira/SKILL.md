@@ -90,8 +90,8 @@ jira issue list -q "assignee = currentUser()" --order-by updated
 # WRONG — "Closed" is a status name
 jira issue move DOCSP-12345 "Closed"
 
-# CORRECT — "Close Issue" is the transition name (verify per ticket)
-jira issue move DOCSP-12345 "Close Issue"
+# CORRECT — "Close" is the transition name (verify per ticket)
+jira issue move DOCSP-12345 "Close"
 ```
 
 When uncertain, attempt the move and read the error for valid transition names.
@@ -262,7 +262,7 @@ jira issue edit DOCSP-12345 \
   --custom "story-points=3" \
   --custom "did-you-use-ai?=Yes" \
   --no-input
-jira issue move DOCSP-12345 "Close Issue"
+jira issue move DOCSP-12345 "Close"
 ```
 
 **MCP approach** — get the Close transition ID, then transition with required fields:
@@ -363,7 +363,7 @@ jira_update_issue(
 
 ```bash
 # CLI — attempt and read error for valid transition names
-jira issue move DOCSP-12345 "Start Progress"
+jira issue move DOCSP-12345 "In Progress"
 ```
 
 ```python
@@ -377,7 +377,7 @@ jira_transition_issue(issue_key="DOCSP-12345", transition_id="<id>")
 ```bash
 # CLI — set before transitioning
 jira issue edit DOCSP-12345 --custom "story-points-estimate=3" --no-input
-jira issue move DOCSP-12345 "Start Progress"
+jira issue move DOCSP-12345 "In Progress"
 ```
 
 ```python
