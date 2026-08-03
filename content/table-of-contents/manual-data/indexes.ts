@@ -337,6 +337,11 @@ const tocData: TocItem[] = [
             contentSite: 'docs',
             url: '/docs/:version/tutorial/shard-collection-with-unique-index',
           },
+          {
+            label: 'Unique Index on Sharded Collection',
+            contentSite: 'docs',
+            url: '/docs/:version/tutorial/create-unique-index-on-sharded-collection',
+          },
         ],
       },
     ],
