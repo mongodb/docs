@@ -1482,7 +1482,7 @@ const tocData: TocItem[] = [
                 url: '/docs/:version/core/security-ldap-external',
               },
               {
-                label: 'LDAP Deprecation',
+                label: 'LDAP Alternatives',
                 contentSite: 'docs',
                 url: '/docs/:version/core/LDAP-deprecation',
               },
