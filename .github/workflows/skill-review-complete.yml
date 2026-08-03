@@ -1,0 +1,31 @@
+name: Skill Review Complete
+
+on:
+  repository_dispatch:
+    types: [skill-review-complete]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-last-reviewed:
+    # Only run on main repo, not forks (forks inherit scheduled/dispatch workflows)
+    if: github.repository == '10gen/docs-mongodb-internal'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: pip install requests pyyaml
+
+      - name: Update last_reviewed and open PR
+        env:
+          ISSUE_KEY: ${{ github.event.client_payload.issue_key }}
+          JIRA_BASE_URL: ${{ secrets.JIRA_BASE_URL }}
+          JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python .github/scripts/skill_review_complete.py
