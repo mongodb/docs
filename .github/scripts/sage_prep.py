@@ -69,11 +69,26 @@ def jira_put(path, body):
     r.raise_for_status()
 
 
+# Versioned copies of a page live alongside the current one (content/manual/v6.0/...).
+# A docs fix almost always belongs in the unversioned/current file, so prefer those.
+VERSIONED_PATH_RE = re.compile(r"/v\d+\.\d+/")
+
+
 def search_repo_files(query, max_results=5):
-    """Return candidate file paths in the docs repo matching the query."""
+    """Return candidate file paths in the docs repo matching the query.
+
+    Failures are logged rather than swallowed: an empty result and a rejected
+    query are very different problems and used to look identical from outside.
+    """
+    if not (query or "").strip():
+        print("  No usable search terms; skipping code search.")
+        return []
+
     params = {
         "q": f"{query} repo:{REPO}",
-        "per_page": max_results,
+        # Over-fetch so the current-version preference below has something to
+        # choose from; versioned duplicates otherwise fill the whole page.
+        "per_page": max_results * 4,
     }
     r = requests.get(
         "https://api.github.com/search/code",
@@ -82,8 +97,17 @@ def search_repo_files(query, max_results=5):
         timeout=TIMEOUT,
     )
     if r.status_code != 200:
+        print(f"  Code search failed (HTTP {r.status_code}): {r.text[:200]}")
         return []
-    return [item["path"] for item in r.json().get("items", [])]
+
+    paths = [item["path"] for item in r.json().get("items", [])]
+    if not paths:
+        print(f"  Code search matched nothing for query: {query!r}")
+        return []
+
+    # Stable sort: current-version paths first, original relevance order within.
+    paths.sort(key=lambda p: bool(VERSIONED_PATH_RE.search(p)))
+    return paths[:max_results]
 
 
 def fetch_file_content(path, max_chars=8000):
@@ -100,6 +124,53 @@ def fetch_file_content(path, max_chars=8000):
     return content[:max_chars]
 
 
+DOCS_URL_RE = re.compile(r"https?://(?:www\.)?mongodb\.com/docs/([^\s\)\]|>]+)")
+
+STOP_WORDS = {
+    "typo", "on", "the", "a", "an", "page", "there", "is", "has", "fix",
+    "update", "wrong", "error", "issue", "problem", "in", "of", "i", "noticed",
+    "this", "that", "s", "it", "to", "and", "for", "we", "should", "docs", "doc",
+    "please", "can", "could", "would", "when", "why", "but", "or", "be", "are",
+    "was", "were", "because", "seems", "looks", "think", "maybe",
+}
+
+# GitHub code search ANDs every term, so each extra word shrinks the result set.
+# A full ticket summary reliably matches nothing at all; a few nouns match well.
+MAX_SEARCH_TERMS = 4
+
+
+def docs_url_slug(text):
+    """Return the page slug from the first mongodb.com/docs URL in text, if any."""
+    match = DOCS_URL_RE.search(text or "")
+    if not match:
+        return None
+    segments = [s for s in match.group(1).strip("/").split("/") if s]
+    return segments[-1] if segments else None
+
+
+def build_search_query(summary, description):
+    """Build a GitHub code search query for the page this ticket is about.
+
+    Prefers the docs URL: source files are named after the page slug, so a
+    filename search on it is far more precise than free-text matching. Falls
+    back to a few sanitized keywords when the ticket has no URL.
+    """
+    # The URL is usually in the description (JIP captures the Slack message
+    # body), which is why searching the summary alone found so little.
+    slug = docs_url_slug(description) or docs_url_slug(summary)
+    if slug:
+        return f"filename:{slug}"
+
+    # Punctuation must go before anything else: code search reads "tutorial:" as
+    # a qualifier and a stray quote as a phrase delimiter, either of which
+    # silently returns zero results.
+    cleaned = re.sub(r"[^a-z0-9\-\s]", " ", (summary or "").lower())
+    terms = [w for w in cleaned.split() if w and w not in STOP_WORDS]
+    if not terms:
+        return re.sub(r"[^a-z0-9\-\s]", " ", (summary or "").lower()).strip()
+    return " ".join(terms[:MAX_SEARCH_TERMS])
+
+
 def enrich(summary, description):
     """Call Claude to produce a sage-ready brief and candidate file paths."""
     client = anthropic.Anthropic(
@@ -108,11 +179,8 @@ def enrich(summary, description):
         default_headers={"api-key": os.environ["GROVE_SAGE_PREP_API_KEY"]},
     )
 
-    # Strip filler words to improve code search signal
-    stop_words = {"typo", "on", "the", "a", "an", "page", "there", "is", "has",
-                  "fix", "update", "wrong", "error", "issue", "problem", "in", "of"}
-    search_terms = [w for w in summary.lower().split() if w not in stop_words]
-    search_query = " ".join(search_terms) if search_terms else summary
+    search_query = build_search_query(summary, description)
+    print(f"  Search query: {search_query}")
     candidate_files = search_repo_files(search_query)
 
     # Fetch content of top candidate files to ground the description
