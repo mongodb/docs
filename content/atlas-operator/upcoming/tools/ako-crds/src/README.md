@@ -38,3 +38,14 @@ In the above, the repo url and release version are set with the flags `--repo-ur
 2. It reads `docs/api-docs.md`, processes the markdown, converts it to RST, and writes per-CRD files to `source/includes/manual-crds/`.
 3. It then reads `docs/api-docs-generated.md`, runs the same pipeline, and writes per-CRD files to `source/includes/generated-crds/`.
 4. Finally, it cleans up the temporary clone and stages any changed files in git.
+
+### Nested components
+
+Every field description lands inside a `list-table` cell, so the converter flattens anything the nested-components linter forbids from appearing there:
+
+| Upstream markdown | Output |
+|---|---|
+| `**NOTE**:` block | Plain paragraph, blank line on either side — not a `.. note::` admonition |
+| Pipe table | Bullet list, one bullet per row: `first column (middle columns joined by ": "): last column`. The header row is dropped. |
+
+If you add handling for another construct, check whether it can nest inside a cell and flatten it here rather than fixing the generated `.rst` by hand — a hand fix is overwritten on the next run.
