@@ -37,19 +37,10 @@
    * - minimumEnabledTlsProtocol
      - string
      - Minimum Transport Layer Security (TLS) version that the cluster
-       accepts for incoming connections. Clusters using |tls| 1.0,
-       or 1.1, should consider setting |tls| 1.2 or higher as the 
-       minimum |tls| protocol version.
+       accepts for incoming connections. Accepted values are |tls| 1.2
+       and |tls| 1.3.
 
-       :gold:`IMPORTANT:` Beginning July 31st, 2025, |service| will
-       no longer support |tls| 1.0 or 1.1 under any circumstance.
-       |service| will upgrade all {+clusters+} to reject attempts to
-       connect with |tls| 1.0 or 1.1.
-
-       Any client connections configured for |tls| 1.0 or 1.1 will
-       undergo a service outage during this upgrade. To avoid this,
-       set the minimum |tls| version of your {+clusters+} to 1.2 at
-       your earliest opportunity.
+       .. include:: /includes/tls-deprecation.rst
 
        To learn more, see :ref:`faq-tls-1.0-deprecation`.
 

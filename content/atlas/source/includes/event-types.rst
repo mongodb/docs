@@ -5119,7 +5119,7 @@ Other Event Types
    * - ``ACTIVE_LEGACY_TLS_CONNECTIONS``
      - .. _atlas_event_active_legacy_tls_connections:
 
-       Clusters with minimum TLS version set to TLS 1.0 or TLS 1.1 detected
+       Deprecated. TLS 1.0 and TLS 1.1 are no longer supported.
      - yes
 
    * - ``ADMIN_CLUSTER_LOCK_UPDATED``
@@ -6217,7 +6217,7 @@ Other Event Types
    * - ``NO_ACTIVE_LEGACY_TLS_CONNECTIONS``
      - .. _atlas_event_no_active_legacy_tls_connections:
 
-       No clusters with minimum TLS version set to TLS 1.0 or TLS 1.1
+       Deprecated. TLS 1.0 and TLS 1.1 are no longer supported.
      - no
 
    * - ``NO_PRIMARY``
