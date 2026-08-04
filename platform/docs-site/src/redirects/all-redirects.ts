@@ -9,6 +9,7 @@ import mongodbIntellijRedirects from './mongodb-intellij-redirects.json';
 import mongodbShellRedirects from './mongodb-shell-redirects.json';
 import mongodbVscodeRedirects from './mongodb-vscode-redirects.json';
 import mongosyncRedirects from './mongosync-redirects.json';
+import opsManagerRedirects from './ops-manager-redirects.json';
 import relationalMigratorRedirects from './relational-migrator-redirects.json';
 
 export const allRedirects: RedirectEntry[] = [
@@ -20,5 +21,6 @@ export const allRedirects: RedirectEntry[] = [
   ...mongodbShellRedirects,
   ...mongodbVscodeRedirects,
   ...mongosyncRedirects,
+  ...opsManagerRedirects,
   ...relationalMigratorRedirects,
 ] as RedirectEntry[];
