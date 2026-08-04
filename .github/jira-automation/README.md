@@ -23,6 +23,28 @@ control. To keep that manage:
 - **This file records the contract.** If you change a payload, change the rule
   and this file in the same PR.
 
+## Flows in the other direction do not use Automation for Jira
+
+When **Jira** needs to call **GitHub** — firing a `repository_dispatch` to start
+a workflow — an Automation for Jira rule will not work. Use a ScriptRunner
+Script Listener instead.
+
+Why: A4J's "Send web request" action holds only a static `Authorization` header.
+We authenticate to GitHub as a **GitHub App**, not with a PAT, and an App's only
+usable token is an installation token that expires in about an hour and has to
+be minted per request. A4J cannot sign the JWT needed to mint one, so any token
+pasted into a rule stops working within the hour and every dispatch afterwards
+fails with `401 Bad credentials`. A listener can mint a fresh token each time.
+
+Do not spend time trying to make an A4J rule work here — the rule fires and its
+conditions pass, so the audit log looks healthy right up to the 401.
+
+Current example: `skill-review-complete.yml` is triggered by a listener on DOCSP
+that fires when an Agent Skills `skill-review-*` ticket transitions to Closed.
+The listener gates only on component, label, and the status transition;
+`.github/scripts/skill_review_complete.py` decides everything else, including
+whether the resolution warrants bumping `last_reviewed`.
+
 ---
 
 ## `EOL: create KB review ticket`
