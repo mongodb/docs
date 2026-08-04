@@ -1,9 +1,10 @@
 from config import vector_collection
 from ingest_data import get_embedding
 
+
 # Define a vector search tool
-def vector_search_tool(user_input: str) -> str:
-    query_embedding = get_embedding(user_input)
+def vector_search_tool(user_input: str) -> list:
+    query_embedding = get_embedding(user_input, input_type="query")
     pipeline = [
         {
             "$vectorSearch": {
@@ -11,14 +12,10 @@ def vector_search_tool(user_input: str) -> str:
                 "queryVector": query_embedding,
                 "path": "embedding",
                 "exact": True,
-                "limit": 5
+                "limit": 5,
             }
-        }, {
-            "$project": {
-                "_id": 0,
-                "text": 1
-            }
-        }
+        },
+        {"$project": {"_id": 0, "text": 1}},
     ]
     results = vector_collection.aggregate(pipeline)
 
@@ -27,10 +24,11 @@ def vector_search_tool(user_input: str) -> str:
         array_of_results.append(doc)
     return array_of_results
 
+
 # Define a simple calculator tool
 def calculator_tool(user_input: str) -> str:
     try:
         result = eval(user_input)
         return str(result)
     except Exception as e:
-        return f"Error: {str(e)}" 
+        return f"Error: {str(e)}"

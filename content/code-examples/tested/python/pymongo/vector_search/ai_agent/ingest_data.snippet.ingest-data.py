@@ -4,12 +4,14 @@ from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import time
 
+
 # Define a function to generate embeddings
-def get_embedding(data, input_type = "document"):
-  embeddings = voyage_client.embed(
-      data, model = VOYAGE_MODEL, input_type = input_type
-  ).embeddings
-  return embeddings[0]
+def get_embedding(data, input_type="document"):
+    embeddings = voyage_client.embed(
+        data, model=VOYAGE_MODEL, input_type=input_type
+    ).embeddings
+    return embeddings[0]
+
 
 # --- Ingest embeddings into MongoDB ---
 def ingest_data():
@@ -26,10 +28,7 @@ def ingest_data():
     for i, doc in enumerate(documents):
         embedding = get_embedding(doc.page_content)
         if embedding:
-            docs_to_insert.append({
-                "text": doc.page_content,
-                "embedding": embedding
-            })
+            docs_to_insert.append({"text": doc.page_content, "embedding": embedding})
 
     if docs_to_insert:
         result = vector_collection.insert_many(docs_to_insert)
@@ -39,20 +38,20 @@ def ingest_data():
 
     # --- Create the vector search index ---
     index_name = "vector_index"
-    
+
     search_index_model = SearchIndexModel(
-        definition = {
+        definition={
             "fields": [
                 {
                     "type": "vector",
-                    "numDimensions": 1024, 
+                    "numDimensions": 1024,
                     "path": "embedding",
-                    "similarity": "cosine"
+                    "similarity": "cosine",
                 }
             ]
         },
         name=index_name,
-        type="vectorSearch"
+        type="vectorSearch",
     )
     try:
         vector_collection.create_search_index(model=search_index_model)
@@ -63,13 +62,14 @@ def ingest_data():
 
     # Wait for initial sync to complete
     print("Polling to check if the index is ready. This may take up to a minute.")
-    predicate=None
-    if predicate is None:
-       predicate = lambda index: index.get("queryable") is True
+    predicate = lambda index: index.get("queryable") is True
 
-    while True:
-       indices = list(vector_collection.list_search_indexes(index_name))
-       if len(indices) and predicate(indices[0]):
-          break
-       time.sleep(5)
+    max_retries = 24  # ~2 minutes at 5s intervals
+    for _ in range(max_retries):
+        indices = list(vector_collection.list_search_indexes(index_name))
+        if len(indices) and predicate(indices[0]):
+            break
+        time.sleep(5)
+    else:
+        raise TimeoutError(f"Index '{index_name}' did not become queryable in time.")
     print(index_name + " is ready for querying.")

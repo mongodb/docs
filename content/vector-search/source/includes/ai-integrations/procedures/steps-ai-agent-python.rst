@@ -12,7 +12,7 @@
             mkdir mongodb-ai-agent 
             cd mongodb-ai-agent 
             pip install --quiet --upgrade pymongo voyageai openai langchain langchain-mongodb
-            langchain-community python-dotenv
+            langchain-community langchain-text-splitters python-dotenv
 
          .. note::
 
@@ -44,17 +44,18 @@
          :sub_heading: Copy and paste the following code into your config.py file.
          :expanded: false
 
-         .. literalinclude:: /includes/ai-integrations/code-snippets/config.py
+         .. literalinclude:: /code-examples/tested/python/pymongo/vector_search/ai_agent/config.snippet.config.py
             :language: python
-            :copyable:
+            :copyable: true
+            :category: usage example
 
    
    .. step:: Use MongoDB as a vector database.
 
       Create a file named ``ingest_data.py`` in your project. This script
       ingests a sample PDF that contains a recent `MongoDB earnings report
-      <https://investors.mongodb.com/node/12881/pdf>`__ into a collection
-      in MongoDB by using the ``voyage-3-large`` embedding model. This
+      <https://investors.mongodb.com/node/13176/pdf>`__ into a collection
+      in MongoDB by using the ``voyage-4-large`` embedding model. This
       code also includes a function to create a vector search index on your
       data if it doesn't already exist. 
 
@@ -65,9 +66,10 @@
          :sub_heading: Copy and paste the following code into your ingest_data.py file.
          :expanded: false
 
-         .. literalinclude:: /includes/ai-integrations/code-snippets/ingest_data.py
+         .. literalinclude:: /code-examples/tested/python/pymongo/vector_search/ai_agent/ingest_data.snippet.ingest-data.py
             :language: python
-            :copyable: 
+            :copyable: true
+            :category: usage example
 
    .. step:: Define tools for the agent.
 
@@ -83,9 +85,10 @@
          :sub_heading: Copy and paste the following code into your tools.py file.
          :expanded: false
 
-         .. literalinclude:: /includes/ai-integrations/code-snippets/tools.py
+         .. literalinclude:: /code-examples/tested/python/pymongo/vector_search/ai_agent/tools.snippet.tools.py
             :language: python
-            :copyable: 
+            :copyable: true
+            :category: usage example
 
    .. step:: Add memory to the agent.
 
@@ -103,9 +106,10 @@
          :sub_heading: Copy and paste the following code into your memory.py file.
          :expanded: false
 
-         .. literalinclude:: /includes/ai-integrations/code-snippets/memory.py
+         .. literalinclude:: /code-examples/tested/python/pymongo/vector_search/ai_agent/memory.snippet.memory.py
             :language: python
-            :copyable:  
+            :copyable: true
+            :category: usage example
 
    .. step:: Define the agent's planning.
 
@@ -114,7 +118,7 @@
       execution flow. In this example, you define the following functions:
 
       - ``tool_selector``: Determines how the LLM selects the appropriate tool for a task.
-      - ``generate_answer``: Orchestrates the agent's execution flow by using tools, 
+      - ``generate_response``: Orchestrates the agent's execution flow by using tools,
         calling the LLM, and processing the results.
       - ``get_llm_response``: Helper function for LLM response generation.
 
@@ -123,9 +127,10 @@
          :sub_heading: Copy and paste the following code into your planning.py file.
          :expanded: false
 
-         .. literalinclude:: /includes/ai-integrations/code-snippets/planning.py
+         .. literalinclude:: /code-examples/tested/python/pymongo/vector_search/ai_agent/planning.snippet.planning.py
             :language: python
-            :copyable:   
+            :copyable: true
+            :category: usage example
 
    .. step:: Test the agent.
 
@@ -137,9 +142,10 @@
          :sub_heading: Copy and paste the following code into your main.py file.
          :expanded: false
 
-         .. literalinclude:: /includes/ai-integrations/code-snippets/main.py
+         .. literalinclude:: /code-examples/tested/python/pymongo/vector_search/ai_agent/main.snippet.main.py
             :language: python
-            :copyable:
+            :copyable: true
+            :category: usage example
 
       Save your project, then run the following command. When you run the agent:
 
