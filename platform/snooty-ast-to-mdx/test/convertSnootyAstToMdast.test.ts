@@ -807,8 +807,13 @@ describe('convertSnootyAstToMdast', () => {
     );
   });
 
-  it('resolves typed-role substitution_reference via catalog when children are empty (include file)', () => {
-    // Verifies |mongos| in a plain include resolves via the xref catalog built from the page's definitions.
+  it('emits a substitution placeholder (not a baked typed role) for a catalog substitution in a plain include body', () => {
+    // A typed-role substitution (|mongos| = :binary:`bin.mongos`) inside a shared/plain include must
+    // NOT be baked into the emitted include file as a <RefRole>: the same include is reused by pages
+    // that define the alias differently, and the include file is written once (last-writer-wins on
+    // disk). Baking one page's binary name makes every other page render the wrong text. Instead the
+    // include body emits a <Reference type="substitution"> placeholder and the calling page carries a
+    // <Replacement> slot with its own value.
     const ast: SnootyNode = {
       type: 'root',
       children: [
@@ -844,15 +849,85 @@ describe('convertSnootyAstToMdast', () => {
       ],
     };
     const onEmitMdxFile = jest.fn();
-    convertSnootyAst({ ast, onEmitMdxFile });
+    const { mdx } = convertSnootyAst({ ast, onEmitMdxFile });
 
+    // Include file: placeholder only, no baked binary name.
     expect(onEmitMdxFile).toHaveBeenCalledTimes(1);
     const [{ mdastRoot }] = onEmitMdxFile.mock.calls[0];
     const emittedMdx = convertMdastToMdx(mdastRoot);
-    expect(emittedMdx).toContain('<RefRole');
-    expect(emittedMdx).toContain('type="binary"');
-    expect(emittedMdx).toContain('name="bin.mongos"');
-    expect(emittedMdx).not.toContain('type="substitution"');
+    expect(emittedMdx).toContain('refKey="mongos"');
+    expect(emittedMdx).toContain('type="substitution"');
+    expect(emittedMdx).not.toContain('<RefRole');
+    expect(emittedMdx).not.toContain('name="bin.mongos"');
+
+    // Calling page: <Include> carries a <Replacement> slot with this page's typed-role value.
+    expect(mdx).toContain('<Replacement name="mongos">');
+    expect(mdx).toContain('type="binary"');
+    expect(mdx).toContain('name="bin.mongos"');
+  });
+
+  it('emits identical placeholder include files when a shared extract is reused with different per-page substitutions', () => {
+    // Regression for the dbtools-compatibility-single bug: |tool-binary| is a :binary: role on the
+    // mongofiles page but a plain literal on the other tool pages. Both pages include the same shared
+    // extract, which is written to the same path (last-writer-wins). The emitted include file must be
+    // a value-free placeholder for BOTH pages so whichever writes last does not corrupt the others.
+    const makeAst = (definition: SnootyNode): SnootyNode => ({
+      type: 'root',
+      children: [
+        definition,
+        {
+          type: 'directive',
+          name: 'include',
+          argument: 'extracts/dbtools-compatibility-single.rst',
+          children: [
+            {
+              type: 'paragraph',
+              children: [
+                { type: 'substitution_reference', refname: 'tool-binary', children: [] },
+                { type: 'text', value: ' supports the following server versions.' },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    // mongofiles: typed :binary: role
+    const mongofilesAst = makeAst({
+      type: 'substitution_definition',
+      name: 'tool-binary',
+      children: [
+        { type: 'ref_role', name: 'binary', target: 'bin.mongofiles', children: [{ type: 'literal', value: 'mongofiles' }] },
+      ],
+    });
+    // bsondump: plain literal
+    const bsondumpAst = makeAst({
+      type: 'substitution_definition',
+      name: 'tool-binary',
+      children: [{ type: 'literal', value: 'bsondump' }],
+    });
+
+    const mongofilesEmit = jest.fn();
+    const { mdx: mongofilesMdx } = convertSnootyAst({ ast: mongofilesAst, onEmitMdxFile: mongofilesEmit });
+    const bsondumpEmit = jest.fn();
+    const { mdx: bsondumpMdx } = convertSnootyAst({ ast: bsondumpAst, onEmitMdxFile: bsondumpEmit });
+
+    const mongofilesInclude = convertMdastToMdx(mongofilesEmit.mock.calls[0][0].mdastRoot);
+    const bsondumpInclude = convertMdastToMdx(bsondumpEmit.mock.calls[0][0].mdastRoot);
+
+    // Both emitted include files are the same value-free placeholder — no baked binary name.
+    for (const includeMdx of [mongofilesInclude, bsondumpInclude]) {
+      expect(includeMdx).toContain('refKey="tool-binary"');
+      expect(includeMdx).toContain('type="substitution"');
+      expect(includeMdx).not.toContain('mongofiles');
+      expect(includeMdx).not.toContain('bsondump');
+    }
+
+    // Each page supplies its own value via a <Replacement> slot.
+    expect(mongofilesMdx).toContain('<Replacement name="tool-binary">');
+    expect(mongofilesMdx).toContain('name="bin.mongofiles"');
+    expect(bsondumpMdx).toContain('<Replacement name="tool-binary">');
+    expect(bsondumpMdx).toContain('`bsondump`');
   });
 
   it('emits refKey + refTarget + replacement when substitution_reference is :ref: inside replacement-slot include body', () => {

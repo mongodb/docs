@@ -161,10 +161,15 @@ export const convertDirectiveInclude = ({ node, ctx, depth }: ConvertDirectiveIn
       // Prefer the page-level substitution_definition children over the Snooty-resolved include
       // children: the include body is parsed independently using the global references file, so its
       // resolved value may be a different page's default rather than this page's override.
-      // Skip xref substitutions — those are resolved through the substitutionRefXref catalog
-      // inside the include's own conversion and do not need a <Replacement> slot here.
-      const isXref = ctx.substitutionRefXref?.has(refname);
-      const pageNodes = !isXref ? ctx.substitutionDefNodes?.get(refname) : undefined;
+      //
+      // Global linked references (:ref:/:pipeline: — an xref catalog entry with no roleType) are
+      // baked directly into the include body and are identical on every page, so they need no
+      // <Replacement> slot here. But typed-role xref substitutions (e.g. |tool-binary| =
+      // :binary:`~bin.mongofiles`) and literals are emitted as per-page placeholders in the include
+      // body, so build a slot from this page's own definition.
+      const xref = ctx.substitutionRefXref?.get(refname);
+      const isBakedGlobalRef = !!xref && !xref.roleType;
+      const pageNodes = !isBakedGlobalRef ? ctx.substitutionDefNodes?.get(refname) : undefined;
       const nodesToConvert = pageNodes ?? subChildren;
       if (!nodesToConvert.length) continue;
       const slotRoot = convertSnootyAstToMdast(

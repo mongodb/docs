@@ -1946,8 +1946,42 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
         if (fromCatalog.href && !ctx.collectedRefs.has(fromCatalog.refTargetKey)) {
           ctx.collectedRefs.set(fromCatalog.refTargetKey, fromCatalog.href);
         }
-        // Typed ref roles (e.g. :binary:) in catalog — emit as <RefRole> not <Reference>.
+        // Typed ref roles (e.g. :binary:) resolve to a page-specific *display* value. On standalone
+        // page content they emit as <RefRole>, but inside an include body that value varies per
+        // calling page — e.g. |tool-binary| is `mongofiles` (a :binary: role) here but a plain
+        // literal (`bsondump`, `mongodump`, ...) on the other tool pages — while the shared include
+        // file is written once (last-writer-wins on disk). Baking one page's role there makes every
+        // other page render the wrong text, so emit a placeholder and let each caller's <Replacement>
+        // slot (see convertDirectiveInclude) supply the value. Global linked references
+        // (:ref:/:pipeline:, i.e. the fromCatalog.href branch below) are identical on every page and
+        // stay baked.
         if (fromCatalog.roleType) {
+          if (slotBody) {
+            return {
+              type: 'mdxJsxTextElement',
+              name: 'Reference',
+              attributes: [
+                { type: 'mdxJsxAttribute', name: 'refKey', value: refname },
+                { type: 'mdxJsxAttribute', name: 'type', value: 'replacement' },
+                { type: 'mdxJsxAttribute', name: 'refTarget', value: fromCatalog.refTargetKey },
+              ],
+              children: [],
+            };
+          }
+          if (ctx.suppressSubstitutionInlineValues && refname) {
+            // Record the resolved value as the _references.json fallback in case a caller supplies
+            // no <Replacement> slot for this substitution.
+            ctx.collectedSubstitutions.set(refname, fromCatalog.title);
+            return {
+              type: 'mdxJsxTextElement',
+              name: 'Reference',
+              attributes: [
+                { type: 'mdxJsxAttribute', name: 'refKey', value: refname },
+                { type: 'mdxJsxAttribute', name: 'type', value: 'substitution' },
+              ],
+              children: [],
+            };
+          }
           return {
             type: 'mdxJsxTextElement',
             name: 'RefRole',
