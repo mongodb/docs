@@ -8,6 +8,13 @@
  * to basePath that's <rest>/FILE (rest = version segment(s), or empty), so
  * staging to public/<rest>/FILE serves it at <basePath>/<rest>/FILE = canonical.
  *
+ * For versioned docsets, MDX conversion also writes the stable-branch
+ * objects.inv at the project root (content-mdx/<dir>/objects.inv, no
+ * _site.json). That file is staged to public/objects.inv so it is served at
+ * /docs/<docsetBase>/objects.inv. Skipped for landing (empty docsetBase) and
+ * for non-versioned docsets whose project root already has a _site.json
+ * (already staged by the per-site-dir loop).
+ *
  * public/ (not _next) because .xml/.inv can't ride the _next static path — Next's
  * production static handler only serves image/asset extensions there. We stage
  * only this deploy's docset; others live on their own deploys. Emits sitemap-0.xml,
@@ -224,6 +231,23 @@ async function main(): Promise<void> {
     sitemapCount++;
 
     if (await copyInventory(diskDir, destDir)) inventoryCount++;
+  }
+
+  // Stage the project-root objects.inv for versioned docsets. Conversion writes
+  // this for the stable branch at content-mdx/<dir>/objects.inv (no _site.json,
+  // so the loop above never sees it). Skip when:
+  // - docsetBase is empty (landing; /docs/objects.inv is handled above), or
+  // - the project root is already a site dir (non-versioned docsets like
+  //   compass — the loop already copied their inv to public/).
+  if (docsetBase) {
+    const diskRoot = process.env.DOCS_PROJECT?.split('/')[0];
+    if (
+      diskRoot &&
+      !siteDirs.includes(diskRoot) &&
+      (await copyInventory(diskRoot, PUBLIC_DIR))
+    ) {
+      inventoryCount++;
+    }
   }
 
   const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
