@@ -71,6 +71,8 @@
   in {+avs+} through the ``flat`` value for the ``indexingMethod`` option.
   Flat indexes provide enhanced support for multitenant workloads,
   delivering improved performance, recall, and resource efficiency.
+- Executes queries concurrently across index partitions if
+  :ref:`concurrent <concurrent-ref>` is set to ``true``.
 
 .. _fts20260129:
 
