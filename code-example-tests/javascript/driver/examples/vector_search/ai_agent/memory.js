@@ -1,3 +1,4 @@
+// :snippet-start: memory
 import { memoryCollection } from './config.js';
 
 /**
@@ -7,13 +8,13 @@ import { memoryCollection } from './config.js';
  * @param {string} content - content of the message
  */
 export async function storeChatMessage(sessionId, role, content) {
-    const message = {
-        session_id: sessionId,
-        role,
-        content,
-        timestamp: new Date(), // use JS date for timestamp
-    };
-    await memoryCollection.insertOne(message);
+  const message = {
+    session_id: sessionId,
+    role,
+    content,
+    timestamp: new Date(), // use JS date for timestamp
+  };
+  await memoryCollection.insertOne(message);
 }
 
 /**
@@ -22,13 +23,14 @@ export async function storeChatMessage(sessionId, role, content) {
  * @returns {Promise<Array<{role: string, content: string}>>}
  */
 export async function retrieveSessionHistory(sessionId) {
-    const cursor = memoryCollection
-        .find({ session_id: sessionId })
-        .sort({ timestamp: 1 });
+  const cursor = memoryCollection
+    .find({ session_id: sessionId })
+    .sort({ timestamp: 1 });
 
-    const messages = [];
-    await cursor.forEach(msg => {
-        messages.push({ role: msg.role, content: msg.content });
-    });
-    return messages;
+  const messages = [];
+  await cursor.forEach((msg) => {
+    messages.push({ role: msg.role, content: msg.content });
+  });
+  return messages;
 }
+// :snippet-end:
