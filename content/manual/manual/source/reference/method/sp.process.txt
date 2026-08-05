@@ -13,17 +13,13 @@ sp.process() (mongosh method)
    :depth: 2
    :class: singlecol
 
-Definition 
------------
+Definition
+----------
 
 .. method:: sp.process()
 
-.. versionadded:: 7.0
-
-   Creates an ephemeral :atlas:`Stream Processor
-   </atlas-sp/overview/#mongodb-expression-exp.Stream-Processor>` on
-   the current :atlas:`Stream Processing Workspace
-   </atlas-sp/overview/#mongodb-expression-exp.Stream-Processing-Instance>`.
+Creates an ephemeral :ref:`Stream Processor <atlas-sp>` on the
+current {+spw+}.
 
 Compatibility
 -------------
@@ -31,8 +27,8 @@ Compatibility
 .. include:: /includes/fact-environments-atlas-support-stream-processing-only.rst
 
 Syntax
------------
-   
+------
+
 The :method:`sp.process()` method has the following
 syntax:
 
@@ -48,99 +44,45 @@ syntax:
    )
 
 Command Fields
----------------------------
+--------------
 
-``sp.createStreamProcessor()`` takes these fields:
+``sp.process()`` takes these fields:
 
-.. list-table::
-   :header-rows: 1
-   :widths: 20 20 20 40
-
-   * - Field
-     - Type
-     - Necessity	  
-     - Description
-
-   * - ``name``
-     - string
-     - Required
-     - Logical name for the stream processor. This must be unique
-       within the stream processing workspace.
-
-   * - ``pipeline``
-     - array
-     - Required
-     - :ref:`Stream aggregation pipeline <atlas-sp-aggregation>` you
-       want to apply to your streaming data.
-
-   * - ``options``
-     - object
-     - Optional
-     - Object defining various optional settings for your stream
-       processor.
-
-   * - ``options.limit``
-     - integer
-     - Optional
-     - Maximum number of documents to return to your terminal.
-       ``sp.process()`` ends the session after it returns the specified number of documents.
-       
-   * - ``options.dlq``
-     - object
-     - Conditional
-     - Object assigning a 
-       :term:`dead letter queue` for your stream processing workspace.
-       This field is necessary if you define the ``options`` field.
-
-   * - ``options.dlq.connectionName``
-     - string
-     - Conditional
-     - Label that identifies a connection in your 
-       connection registry. This connection must reference an 
-       Atlas cluster. This field is necessary if you define the
-       ``options.dlq`` field.
-
-   * - ``options.dlq.db``
-     - string
-     - Conditional
-     - Name of an Atlas database on the cluster specified 
-       in ``options.dlq.connectionName``. This field is necessary if 
-       you define the ``options.dlq`` field.
-
-   * - ``options.dlq.coll``
-     - string
-     - Conditional
-     - Name of a collection in the database specified in
-       ``options.dlq.db``. This field is necessary if you 
-       define the ``options.dlq`` field.
+.. include:: /includes/fact-sp-process-fields.rst
 
 Behavior
----------------
+--------
 
 ``sp.process()`` creates an ephemeral, unnamed stream
 processor on the current stream processing workspace and immediately
-initializes it. This stream processor only persists as long as it
+initializes it. This stream processor persists only while it
 runs. If you terminate an ephemeral stream processor, you must create
-it again in order to use it.
+it again to use it.
+
+An ephemeral stream processor stops when any of the following occurs:
+
+- The processor returns the number of documents set by
+  ``options.limit``.
+- 10 minutes elapse.
+- You stop the processor.
 
 Access Control
-------------------------
+--------------
 
 The user running ``sp.process()`` must have the
 :atlasrole:`atlasAdmin` role.
 
 Example
-----------------
+-------
 
-The following example creates an ephemeral stream processor 
-which ingests data from the ``sample_stream_solar`` connection. The
+The following example creates an ephemeral stream processor that
+ingests data from the ``sample_stream_solar`` connection. The
 processor excludes all documents where the value of the ``device_id``
-field is ``device_8``, passing the rest to a :atlas:`tumbling window
-</atlas-sp/overview/#tumbling-windows>` with a 10-second
-duration. Each window groups the documents it receives, then returns
-various useful statistics of each group. The stream processor then
-merges these records to ``solar_db.solar_coll`` over the ``mongodb1``
-connection.
+field is ``device_8``, passing the rest to a :ref:`tumbling window
+<tumbling-windows>` with a 10-second duration. Each window groups the
+documents it receives, then returns various statistics of each group.
+The stream processor then merges these records to
+``solar_db.solar_coll`` over the ``mongodb1`` connection.
 
 .. code-block:: json
    :copyable: true
@@ -149,64 +91,64 @@ connection.
      [
        {
          $source: {
-	   connectionName: 'sample_stream_solar',
-	   timeField: {
-	     $dateFromString: {
-	       dateString: '$timestamp'
-	     }
-	   }
-	 }
+           connectionName: 'sample_stream_solar',
+           timeField: {
+             $dateFromString: {
+               dateString: '$timestamp'
+             }
+           }
+         }
        },
        {
          $match: {
-	   $expr: {
-	     $ne: [
-	       "$device_id",
-	       "device_8"
-	     ]
-	   }
-	 }
+           $expr: {
+             $ne: [
+               "$device_id",
+               "device_8"
+             ]
+           }
+         }
        },
        {
          $tumblingWindow: {
-	   interval: {
-	     size: Int32(10),
-	     unit: "second"
-	   },
-	   "pipeline": [
-	     {
-	       $group: {
-	         "_id": {  "device_id": "$device_id" },
-		 "max_temp": { $max: "$obs.temp" },
-		 "max_watts": { $max: "$obs.watts" },
-		 "min_watts": { $min: "$obs.watts" },
-		 "avg_watts": { $avg: "$obs.watts" },
-		 "median_watts": {
-		                   $median: {
-		                     input: "$obs.watts",
-	                             method: "approximate"
-	                           }
-	                         }
-	       }
-	     }
-	   ]
-	 }
+           interval: {
+             size: Int32(10),
+             unit: "second"
+           },
+           "pipeline": [
+             {
+               $group: {
+                 "_id": { "device_id": "$device_id" },
+                 "max_temp": { $max: "$obs.temp" },
+                 "max_watts": { $max: "$obs.watts" },
+                 "min_watts": { $min: "$obs.watts" },
+                 "avg_watts": { $avg: "$obs.watts" },
+                 "median_watts": {
+                   $median: {
+                     input: "$obs.watts",
+                     method: "approximate"
+                   }
+                 }
+               }
+             }
+           ]
+         }
        },
        {
          $merge: {
-	   into: {
-	     connectionName: "mongodb1",
-	     db: "solar_db",
-	     coll: "solar_coll"
-	   },
-	   on: ["_id"]
-	 }
+           into: {
+             connectionName: "mongodb1",
+             db: "solar_db",
+             coll: "solar_coll"
+           },
+           on: ["_id"]
+         }
        }
      ]
    )
 
 Learn More
-------------------
+----------
 
-- :atlas:`Stream Aggregation </atlas-sp/stream-aggregation>`
-- :atlas:`Manage Stream Processors </atlas-sp/manage-stream-processor>`
+- :ref:`atlas-sp-aggregation`
+- :ref:`atlas-sp-manage-processor`
