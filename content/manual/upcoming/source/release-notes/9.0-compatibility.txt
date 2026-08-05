@@ -54,5 +54,23 @@ running, the query might fail with a ``QueryKilledError``. An indexed
 field becomes multikey when you insert or update a document so the
 field contains an array value.
 
-If your query fails with this error, re-run the query after the insert or 
+If your query fails with this error, re-run the query after the insert or
 update operation completes.
+
+Stronger Collection Locks for Cross-Database ``renameCollection``
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 9.0, when you rename a collection between different
+databases on a replica set, the :dbcommand:`renameCollection` command
+holds an exclusive lock on the source and target collections. The lock
+lasts for the entire operation, and blocks :ref:`DDL operations
+<ddl-operations>` and writes to both collections. Most read operations
+use :ref:`lock-free reads <faq-concurrency-lock-free-read-operations>`
+and are not blocked.
+
+Earlier versions released the source collection's lock before
+:dbcommand:`renameCollection` completed the rename. A concurrent
+write to the source collection during that window could be lost.
+
+The change affects replica sets only. Sharded clusters already lock
+both collections for the duration of the rename.
