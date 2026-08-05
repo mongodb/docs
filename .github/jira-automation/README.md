@@ -39,11 +39,116 @@ fails with `401 Bad credentials`. A listener can mint a fresh token each time.
 Do not spend time trying to make an A4J rule work here — the rule fires and its
 conditions pass, so the audit log looks healthy right up to the 401.
 
-Current example: `skill-review-complete.yml` is triggered by a listener on DOCSP
-that fires when an Agent Skills `skill-review-*` ticket transitions to Closed.
-The listener gates only on component, label, and the status transition;
-`.github/scripts/skill_review_complete.py` decides everything else, including
-whether the resolution warrants bumping `last_reviewed`.
+Both listeners' sources are committed in this directory. **Nothing deploys from
+git.** Jira is where they execute; these files are the reviewable copy. A change
+means editing the file here *and* re-pasting it into ScriptRunner in the same PR.
+Watch for drift — a listener edited only in Jira leaves no diff or history
+anywhere.
+
+Keep listeners thin. Gate only on cheap, stable ticket attributes (project,
+component, label, a status transition) and let the workflow's script make every
+real decision, in git. Log every outcome with `log.warn`/`log.error`, including
+the HTTP status and body of a failed dispatch — a listener that silently
+declines to fire is otherwise indistinguishable from one that never ran.
+
+### Shared GitHub App credentials
+
+Both listeners authenticate as the same GitHub App and read the same three keys
+from Jira's plugin-settings store:
+
+| Key | Value |
+|---|---|
+| `sage.github.appId` | numeric App ID |
+| `sage.github.privateKey` | PKCS#8 PEM private key |
+| `sage.github.installationId` | installation on the `10gen` org |
+
+Set them once with
+[`set-github-app-creds-console.groovy`](set-github-app-creds-console.groovy) via
+ScriptRunner → Script Console. Effective immediately, no Jira restart, no
+filesystem access to the Jira host needed. The snippet round-trips the values and
+proves the key parses and signs inside Jira's JVM before any listener runs.
+
+The App needs **Contents: write** on this repo — that is what
+`repository_dispatch` requires, and an App with only `pull_requests: write` will
+403 on every dispatch. GitHub issues App keys as PKCS#1; Java parses only
+PKCS#8, so convert once with
+`openssl pkcs8 -topk8 -nocrypt -in app.pem -out app.pkcs8.pem`. Both listeners
+catch `InvalidKeySpecException` and log that remedy.
+
+Any Jira admin with Script Console access can read these values back. That is
+accepted: such an admin can already execute arbitrary code as Jira. Rotation
+means re-running the console snippet with new values.
+
+### `sage-prep` dispatch listener
+
+| | |
+|---|---|
+| Source | [`sage-prep-dispatch-listener.groovy`](sage-prep-dispatch-listener.groovy) |
+| Triggers | `.github/workflows/sage-prep.yml` → `.github/scripts/sage_prep.py` |
+| Project | `DOCSP` |
+| Events | **Issue Created** and **Issue Updated** — select both |
+| Fires | When the `slack-request` label lands on a ticket |
+
+Fires on the label being present at creation (the Slack integration stamps it
+then), or on the transition into having the label on update. A per-issue entity
+property `sage.prep.dispatched` prevents double-firing across the two events;
+removing the label clears it, so remove-then-re-add is a deliberate re-request.
+
+### `skill-review-complete` dispatch listener
+
+| | |
+|---|---|
+| Source | [`skill-review-complete-listener.groovy`](skill-review-complete-listener.groovy) |
+| Triggers | `.github/workflows/skill-review-complete.yml` → `.github/scripts/skill_review_complete.py` |
+| Project | `DOCSP` |
+| Events | **Issue Updated**, **Issue Closed**, **Generic Event** — select all three |
+| Fires | On a transition into `Closed` for an Agent Skills `skill-review-*` ticket |
+
+Select all three events because which one a Close transition emits depends on
+that transition's Fire Event post-function; the changelog check in the script
+makes the extras inert.
+
+The listener gates only on component `Agent Skills`, a `skill-review-*` label,
+and a real changelog transition into `Closed`. It deliberately does **not** check
+resolution — `skill_review_complete.py` is the sole gate on
+`resolution == "Done"`, so `Won't Do`, `Duplicate`, and no-resolution closes are
+evaluated (and commented on, where useful) by the script. Gating on the changelog
+rather than current status matters: without it, every later edit to an
+already-Closed ticket would look like a fresh close.
+
+A per-issue entity property `skill.review.dispatched` prevents a Closed ticket
+dispatching twice. Transitioning **out** of `Closed` clears it — load-bearing,
+because when a ticket is closed with no resolution the script asks the DRI to
+reopen and re-close as `Done`, and the re-close only fires because the reopen
+cleared the marker. If a re-close ever fails to fire, check this property first.
+
+### Payload
+
+Both listeners POST the same shape, and `issue_key` is the only field. Each
+workflow's script re-fetches the ticket and re-validates from scratch.
+
+```json
+{
+  "event_type": "sage-prep",
+  "client_payload": { "issue_key": "DOCSP-12345" }
+}
+```
+
+### Testing
+
+Listeners cannot run locally — there is no way to execute Jira's Groovy bindings
+outside Jira. Test by acting on real tickets and reading the ScriptRunner log
+alongside the resulting Actions run. A successful dispatch logs `sent for
+DOCSP-12345`.
+
+For `skill-review-complete`, three cases each exercise a different branch and are
+worth re-checking after any change:
+
+| Close as | Expected |
+|---|---|
+| `Done`, `last_reviewed` still stale | PR opened bumping `last_reviewed`, Jira comment links it |
+| `Done`, but already bumped by a manual PR | no PR; Jira comment says it was already updated |
+| `Won't Do` / `Duplicate` | dispatch fires, script skips before touching any file, no PR |
 
 ---
 
