@@ -2619,6 +2619,28 @@ describe('DefinitionTerm inline content rendering', () => {
       expect(outputSection).not.toContain('copyable={true}');
     });
 
+    it('does not force darkMode on the Output code block (it follows the page theme)', () => {
+      const ast: SnootyNode = {
+        type: 'root',
+        children: [
+          {
+            type: 'directive',
+            name: 'io-code-block',
+            options: { copyable: true },
+            children: [
+              makeIoChild('input', { lang: 'javascript', value: 'db.find()' }),
+              makeIoChild('output', { lang: 'shell', value: '[{ _id: 1 }]' }),
+            ],
+          },
+        ],
+      };
+      const { mdx } = convertSnootyAst({ ast });
+
+      const outputSection = mdx.split('<Output>')[1];
+      expect(outputSection).not.toContain('darkMode={true}');
+      expect(outputSection).not.toContain('darkMode');
+    });
+
     it('emits copyable={false} on Output even when the code block has no language', () => {
       // remark only serializes the info string when lang is present — without a lang
       // fallback, copyable={false} would be silently dropped.

@@ -936,9 +936,11 @@ const convertNode = ({ node, ctx, depth = 1, parentType }: ConvertNodeArgs): Mda
           // Output code blocks are never copyable — force the prop regardless of the source AST.
           // Also ensure lang is non-null so remark serializes the meta string (copyable={false}).
           // remark only emits the info string when lang is present; without it the meta is dropped.
+          // Output panels intentionally follow the page theme (light in light mode, dark in
+          // dark mode), so darkMode is not forced here.
           const normalizedCodeNode =
             childName === 'output'
-              ? { ...codeNode, copyable: false, darkMode: true, lang: codeNode.lang ?? fallbackLang ?? 'text' }
+              ? { ...codeNode, copyable: false, lang: codeNode.lang ?? fallbackLang ?? 'text' }
               : codeNode;
           const codeMdast = convertCodeNode(normalizedCodeNode, fallbackLang);
 
