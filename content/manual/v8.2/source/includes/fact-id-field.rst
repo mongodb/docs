@@ -4,4 +4,4 @@ document omits the ``_id`` field, the MongoDB driver automatically
 generates an :ref:`objectid` for the ``_id`` field.
 
 This also applies to documents inserted through update
-operations with :ref:`upsert: true <upsert-parameter>`.
+operations with :ref:`upsert: true <update-upsert>`.
