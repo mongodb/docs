@@ -55,6 +55,13 @@ DEPLOYMENT_IDS = {
     "self": "self", "self-managed": "self", "on-prem": "self",
 }
 
+# Embedding-provider tabs (AI integrations pages) — not a language or
+# interface selection, but its own composable dimension.
+EMBEDDING_IDS = {
+    "Voyage AI": "voyage-ai",
+    "OpenAI": "openai",
+}
+
 # IDs that are interface-only (never driver languages)
 INTERFACE_ONLY = {k for k in INTERFACE_IDS
                   if k not in {"shell", "mongosh"} or k in INTERFACE_IDS}
@@ -232,10 +239,14 @@ def classify(all_tabids):
     unknown = [t for t in all_tabids
                if t not in LANGUAGE_IDS
                and t not in INTERFACE_IDS
-               and t not in DEPLOYMENT_IDS]
+               and t not in DEPLOYMENT_IDS
+               and t not in EMBEDDING_IDS]
 
     if unknown:
         return None, f"Unknown tab IDs: {unknown}. Cannot classify page."
+
+    if all(t in EMBEDDING_IDS for t in all_tabids):
+        return "A-embedding", None
 
     if deployments and (interfaces or has_shell):
         return "B-deployment", None
@@ -262,6 +273,14 @@ def build_header(case, all_tabids):
         return (
             f".. composable-tutorial::\n"
             f"   :options: language-no-dependencies\n"
+            f"   :defaults: {first}"
+        )
+    if case == "A-embedding":
+        first = EMBEDDING_IDS.get(all_tabids[0], all_tabids[0]) if all_tabids \
+            else "voyage-ai"
+        return (
+            f".. composable-tutorial::\n"
+            f"   :options: embedding-provider\n"
             f"   :defaults: {first}"
         )
     if case in ("B", "B-deployment"):
