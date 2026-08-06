@@ -18,7 +18,7 @@ import {
 	type AllContentData,
 } from "../../nextjs-extension/src/contentMetadata/processContentMetadata";
 import { getParserVersion } from "../../nextjs-extension/src/parse/runModules";
-import { runMdxConversionForContentPaths } from "../../nextjs-extension/src/parse/runMdxConversion";
+import { runMdxConversionForContentPaths } from "./parse/runMdxConversion";
 import { getRepoPaths } from "../../nextjs-extension/src/paths";
 import { buildUnifiedTOC } from "../../nextjs-extension/src/util/buildTOC/generateJSON";
 import {
