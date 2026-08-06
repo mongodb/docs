@@ -30,26 +30,59 @@ const forceRedirects = allRedirects
 // longest-prefix match (nested/empty-prefix docsets defeat startsWith).
 function getBuildBasePathEnv() {
   const docsProject = process.env.DOCS_PROJECT;
-  if (!docsProject) return { basePath: '/docs', prefixes: [] };
+  if (!docsProject) return { basePath: '/docs', prefixes: [], assetBucketSuffix: '' };
 
   const mapPath = join(__dirname, 'src/generated/dir-name-to-prefix.json');
   const dirNameToPrefix = requireFile(mapPath);
-  const rawPrefix = dirNameToPrefix[docsProject.split('/')[0]];
+  const dirName = docsProject.split('/')[0];
+  const rawPrefix = dirNameToPrefix[dirName];
   if (!rawPrefix) {
     throw new Error(`DOCS_PROJECT "${docsProject}" has no entry in dir-name-to-prefix.json`);
   }
   const prefixes = [...new Set(Object.values(dirNameToPrefix).map((p) => `/${p}`))].sort(
     (a, b) => b.length - a.length,
   );
-  return { basePath: `/${rawPrefix}`, prefixes };
+
+  // manual and landing both resolve to the empty prefix ("docs") and would
+  // otherwise be indistinguishable to b2k's asset routing. landing is the
+  // permanent fallback and keeps plain `_next`; manual gets a distinguishing
+  // bucket (routed in b2k via MANUAL_SLUGS, separate repo). Fail loudly if a
+  // third empty-prefix project shows up unhandled.
+  let assetBucketSuffix = '';
+  if (rawPrefix === 'docs') {
+    switch (dirName) {
+      case 'landing':
+        assetBucketSuffix = '';
+        break;
+      case 'manual':
+        assetBucketSuffix = '/docs_static_manual';
+        break;
+      default:
+        throw new Error(
+          `DOCS_PROJECT "${docsProject}" resolves to the empty prefix ("docs") but is neither ` +
+            `"manual" nor "landing" — it needs its own asset bucket suffix to avoid colliding ` +
+            `with landing's _next assets in b2k.`,
+        );
+    }
+  }
+
+  return { basePath: `/${rawPrefix}`, prefixes, assetBucketSuffix };
 }
 
-const { basePath: BASE_PATH, prefixes: DOCS_PREFIXES } = getBuildBasePathEnv();
+const {
+  basePath: BASE_PATH,
+  prefixes: DOCS_PREFIXES,
+  assetBucketSuffix: ASSET_BUCKET_SUFFIX,
+} = getBuildBasePathEnv();
 
 const nextConfig = {
   pageExtensions: ['mdx', 'tsx', 'ts'],
   trailingSlash: true,
   basePath: BASE_PATH,
+  // Next won't auto-combine assetPrefix with basePath once assetPrefix is set
+  // explicitly, so write the full path. Empty suffix (everything but manual)
+  // makes this a no-op: assetPrefix === basePath, Next's default.
+  assetPrefix: `${BASE_PATH}${ASSET_BUCKET_SUFFIX}`,
   // Expose to server + client for manual prefixing where Next doesn't auto-apply
   // basePath (raw <img> src, client fetches). See src/utils/base-path.ts.
   env: {
@@ -74,6 +107,16 @@ const nextConfig = {
         source: '/:path*.md',
         destination: '/api/markdown/:path*',
       },
+      // Resolve manual's bucketed asset path back to the real _next location.
+      // Basepath-relative, like the rewrite above.
+      ...(ASSET_BUCKET_SUFFIX
+        ? [
+            {
+              source: `${ASSET_BUCKET_SUFFIX}/_next/:path*`,
+              destination: '/_next/:path*',
+            },
+          ]
+        : []),
     ];
   },
   images: {

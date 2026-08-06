@@ -18,6 +18,22 @@ export function getBasePath(): string {
 }
 
 /**
+ * Suffix appended after basePath for this deploy's `_next` asset bucket.
+ * Empty except for manual, which needs a distinguishing bucket so its assets
+ * don't collide with landing's identical basePath in b2k. Must match the
+ * assetBucketSuffix next.config.mjs bakes into assetPrefix.
+ */
+export function getAssetBucketSuffix(): string {
+  if (process.env.NEXT_PUBLIC_BUILD_STATIC_PAGES === 'true') return '';
+  switch (process.env.NEXT_PUBLIC_DOCS_PROJECT) {
+    case 'manual':
+      return '/docs_static_manual';
+    default:
+      return '';
+  }
+}
+
+/**
  * The docset-prefix segments in the basePath (everything after `/docs`), e.g.
  * `['languages','python','django-mongodb']`, or `[]` for `/docs`.
  * generateStaticParams strips these off; content loaders re-prepend them.
@@ -54,10 +70,14 @@ const SORTED_DOCS_PREFIXES: string[] = (() => {
  * vs `/docs/atlas/architecture` are separate deploys) and `/docs` would match
  * everything. The link is same-deploy only if its longest matching prefix equals
  * this basePath.
+ *
+ * manual and landing both resolve to the empty prefix (`/docs`) and are
+ * indistinguishable here — always treat them as cross-deploy.
  */
 export function sameProjectHref(to: string): string | null {
   const basePath = getBasePath();
   if (!basePath || SORTED_DOCS_PREFIXES.length === 0) return null;
+  if (getDocsetPrefixSegments().length === 0) return null;
 
   const path = to.split(/[?#]/)[0];
   const match = SORTED_DOCS_PREFIXES.find(
