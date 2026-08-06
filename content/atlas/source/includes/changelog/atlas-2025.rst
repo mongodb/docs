@@ -235,7 +235,7 @@
     - ``SPAIN_CENTRAL``, Madrid, Spain
     - ``SOUTH_AFRICA_NORTH``, Johannesburg, South Africa
     - ``SOUTH_AFRICA_WEST``, Cape Town, South Africa
-    - ``NEWZEALAND_NORTH``, Auckland, New Zealand
+    - ``NEW_ZEALAND_NORTH``, Auckland, New Zealand
 
 .. _atlas_2025_02_05:
 
