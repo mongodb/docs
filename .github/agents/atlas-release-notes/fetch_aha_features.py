@@ -45,6 +45,21 @@ EXCLUDED_PRODUCT_AREAS = [
     "MongoDB Shell",
     "Disaggregated Storage",
     "Atlas CLI",
+    # Squads that publish their own release notes. Features from these areas
+    # duplicate content the owning team already ships, so they are dropped
+    # before any entry is written. Curate this list as Aha! adds new areas.
+    # Search and Vector Search -> includes/changelog/fts-vs-{YYYY}.rst
+    "Search Query",
+    "Search Systems",
+    "Vector Search",
+    "General Search",
+    # Stream Processing -> includes/changelog/atlas-sp-{YYYY}.rst
+    "Atlas Stream Processing",
+    # Ops Manager -> content/ops-manager/*/source/release-notes/
+    "Core Platform (Ops/Automation Agent)",
+    # Kubernetes operators -> ak8so-changelog.txt, kubernetes-operator docset
+    "Atlas Operator",
+    "Enterprise Operator",
 ]
 
 
