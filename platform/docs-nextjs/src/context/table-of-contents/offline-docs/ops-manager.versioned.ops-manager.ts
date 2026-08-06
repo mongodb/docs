@@ -693,6 +693,7 @@ export const toc: L1TocItem[] = [
                 label: 'Back Up',
                 contentSite: 'ops-manager',
                 collapsible: true,
+                url: '/docs/ops-manager/:version/tutorial/nav/backup-deployments',
                 items: [
                   {
                     label: 'Overview',
@@ -715,6 +716,7 @@ export const toc: L1TocItem[] = [
                 label: 'Manage Backups',
                 contentSite: 'ops-manager',
                 collapsible: true,
+                url: '/docs/ops-manager/:version/tutorial/nav/backup-use-operations',
                 items: [
                   {
                     label: 'Edit Settings',
@@ -1003,6 +1005,7 @@ export const toc: L1TocItem[] = [
             label: 'MongoDB Agent',
             contentSite: 'ops-manager',
             collapsible: true,
+            url: '/docs/ops-manager/:version/tutorial/nav/mongodb-agent',
             items: [
               {
                 label: 'Prerequisites',
@@ -1021,7 +1024,7 @@ export const toc: L1TocItem[] = [
                     url: '/docs/ops-manager/:version/tutorial/install-mongodb-agent-to-manage',
                   },
                   {
-                    label: 'Monitor or Backup Deployments',
+                    label: 'Monitor or Back Up Deployments',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/tutorial/install-mongodb-agent-to-monitor',
                   },
@@ -1031,6 +1034,7 @@ export const toc: L1TocItem[] = [
                 label: 'Update',
                 contentSite: 'ops-manager',
                 collapsible: true,
+                url: '/docs/ops-manager/:version/tutorial/nav/update-mongodb-agent',
                 items: [
                   {
                     label: 'All legacy Agents',
@@ -1070,7 +1074,7 @@ export const toc: L1TocItem[] = [
                 url: '/docs/ops-manager/:version/reference/mongodb-agent-settings',
               },
               {
-                label: 'Required Acccess',
+                label: 'Required Access',
                 contentSite: 'ops-manager',
                 url: '/docs/ops-manager/:version/reference/required-access-mongodb-agent',
               },
@@ -1171,6 +1175,7 @@ export const toc: L1TocItem[] = [
             label: 'Account Management',
             contentSite: 'ops-manager',
             collapsible: true,
+            url: '/docs/ops-manager/:version/tutorial/nav/account-management',
             items: [
               {
                 label: 'Edit Personal Settings',
@@ -3020,6 +3025,24 @@ export const toc: L1TocItem[] = [
                         label: 'Retrieve All',
                         contentSite: 'ops-manager',
                         url: '/docs/ops-manager/:version/reference/api/controlled-features/get-all-feature-control-policies',
+                      },
+                    ],
+                  },
+                  {
+                    label: 'Global App Settings',
+                    contentSite: 'ops-manager',
+                    collapsible: true,
+                    url: '/docs/ops-manager/:version/reference/api/admin/settings',
+                    items: [
+                      {
+                        label: 'Get Settings',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/admin/settings/get-global-app-settings',
+                      },
+                      {
+                        label: 'Update Settings',
+                        contentSite: 'ops-manager',
+                        url: '/docs/ops-manager/:version/reference/api/admin/settings/update-global-app-settings',
                       },
                     ],
                   },

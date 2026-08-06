@@ -6,8 +6,7 @@
 
    - Manage your cluster with MongoDB Agent Automation.
 
-     To learn more about the MongoDB Agent, see
-     :doc:`/tutorial/nav/mongodb-agent`.
+     To learn more, see :ref:`MongoDB Agent <mongodb-agent>`.
 
    To view the field values in the example queries, you must be |a-mms|
    user with one or more of the following roles:

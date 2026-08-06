@@ -812,7 +812,7 @@ const tocData: TocItem[] = [
                 url: '/docs/cloud-manager/tutorial/install-mongodb-agent-to-manage',
               },
               {
-                label: 'Monitor or Backup Deployments',
+                label: 'Monitor or Back Up Deployments',
                 contentSite: 'cloud-manager',
                 url: '/docs/cloud-manager/tutorial/install-mongodb-agent-to-monitor',
               },

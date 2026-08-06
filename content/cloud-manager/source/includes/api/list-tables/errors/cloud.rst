@@ -1053,7 +1053,7 @@
    * - .. apierror:: UPGRADE_FOR_CLUSTER_CHECKPOINT_INTERVAL
      - `409`_
      - Cluster checkpoint interval not supported by the {+bagent+}
-       version; :doc:`please upgrade </tutorial/nav/update-mongodb-agent>`.
+       version; :ref:`please upgrade <update-mongodb-agent>`.
 
    * - .. apierror:: UPGRADE_FOR_EXCLUDED_NAMESPACES
      - `409`_
@@ -1064,7 +1064,7 @@
      - `409`_
      - Included namespaces are not supported by this {+bagent+}
        version;
-       :doc:`please upgrade </tutorial/nav/update-mongodb-agent>`.
+       :ref:`please upgrade <update-mongodb-agent>`.
 
    * - .. apierror:: USER_ALREADY_EXISTS
      - `409`_

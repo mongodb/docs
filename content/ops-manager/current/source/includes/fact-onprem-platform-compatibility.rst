@@ -10,5 +10,5 @@ Before you upgrade |onprem|, make sure:
 - If you use |bic-short-no-link|, upgrade MongoDB to 4.4 or later.
 
 If you upgraded the platform for the {+mdbagent+} hosts,
-:doc:`upgrade the {+mdbagent+}s </tutorial/nav/update-mongodb-agent>`
+:ref:`upgrade the {+mdbagent+}s <update-mongodb-agent>`
 *before* upgrading |onprem|.
