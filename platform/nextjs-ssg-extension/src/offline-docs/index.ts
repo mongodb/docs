@@ -55,8 +55,8 @@ const runOfflineBuild = async ({
   const destDir = path.join(OFFLINE_BUNDLE_OUTPUT_DIR, bundleStem, version);
   const srcDir = path.join(APP_ROOT_DIR, 'out');
 
-  await fs.mkdir(destDir, { recursive: true });
-  await fs.cp(srcDir, destDir, { recursive: true, force: true });
+  await fs.mkdir(path.dirname(destDir), { recursive: true });
+  await fs.rename(srcDir, destDir);
 
   console.log(`[offline-docs] Bundle written to ${destDir}`);
 
@@ -84,6 +84,9 @@ const runOfflineBuild = async ({
   } finally {
     fileStream.destroy();
   }
+
+  // Nothing downstream reads the uncompressed copy after a successful upload.
+  await fs.rm(destDir, { recursive: true, force: true });
 
 };
 
