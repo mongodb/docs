@@ -541,6 +541,11 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: 'Agentic Network Automation',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/agentic-network-automation',
+          },
+          {
             label: 'AI-Powered Chatbot for Network Management',
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/telecom-asset-telco-ops',
