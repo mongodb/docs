@@ -68,6 +68,7 @@ export const fetchAtlasData = async ({
     await fetchAndPersistReposBranches({
       connectionInfo: repoBranchesConnectionInfo,
       outputPath: reposBranchesOutput,
+      projectNames,
     });
   console.log(
     `Fetched ${reposBranchesCount} reposBranches documents into ${reposBranchesOutput}`,
@@ -83,6 +84,7 @@ export const fetchAtlasData = async ({
     await fetchAndPersistDocsets({
       connectionInfo: docsetsConnectionInfo,
       outputPath: docsetsOutput,
+      projectNames,
     });
   console.log(
     `Fetched ${docsetsCount} docsets documents into ${docsetsOutput}`,
@@ -100,6 +102,7 @@ export const fetchAtlasData = async ({
 const fetchAndPersistReposBranches = async ({
   connectionInfo,
   outputPath,
+  projectNames,
 }: {
   connectionInfo: {
     clusterZeroURI: string;
@@ -108,15 +111,18 @@ const fetchAndPersistReposBranches = async ({
     extensionName?: string;
   };
   outputPath: string;
+  projectNames: ProjectNames;
 }): Promise<{
   count: number;
   outputPath: string;
   docs: ReposBranchesDocument[];
 }> => {
   const collection = await getReposBranchesCollection(connectionInfo);
-  const docs = await collection.find({}).toArray();
+  const docs = await collection
+    .find({ project: { $in: Object.values(projectNames) } })
+    .toArray();
 
-  await fs.writeFile(outputPath, JSON.stringify(docs, null, 2), 'utf-8');
+  await fs.writeFile(outputPath, JSON.stringify(docs), 'utf-8');
   return { count: docs.length, outputPath, docs };
 };
 
@@ -124,6 +130,7 @@ const fetchAndPersistReposBranches = async ({
 const fetchAndPersistDocsets = async ({
   connectionInfo,
   outputPath,
+  projectNames,
 }: {
   connectionInfo: {
     clusterZeroURI: string;
@@ -132,10 +139,13 @@ const fetchAndPersistDocsets = async ({
     extensionName?: string;
   };
   outputPath: string;
+  projectNames: ProjectNames;
 }): Promise<{ count: number; outputPath: string; docs: DocsetsDocument[] }> => {
   const collection = await getDocsetsCollection(connectionInfo);
-  const docs = await collection.find({}).toArray();
-  await fs.writeFile(outputPath, JSON.stringify(docs, null, 2), 'utf-8');
+  const docs = await collection
+    .find({ project: { $in: Object.values(projectNames) } })
+    .toArray();
+  await fs.writeFile(outputPath, JSON.stringify(docs), 'utf-8');
   return { count: docs.length, outputPath, docs };
 };
 
