@@ -157,6 +157,11 @@ const tocData: TocItem[] = [
             contentSite: 'atlas-architecture',
             url: '/docs/atlas/architecture/:version/solutions-library/openEHR-persistance-layer',
           },
+          {
+            label: 'SNOMED CT on MongoDB Atlas',
+            contentSite: 'atlas-architecture',
+            url: '/docs/atlas/architecture/:version/solutions-library/healthcare-snomed-ct',
+          },
         ],
       },
     ],
