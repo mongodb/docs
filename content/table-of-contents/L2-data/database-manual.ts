@@ -30,7 +30,7 @@ const tocData: TocItem[] = [
     collapsible: true,
     items: [
       {
-        label: 'Other Uses of the Document Structure',
+        label: 'Use Cases',
         contentSite: 'docs',
         url: '/docs/:version/core/documents-other-uses',
       },
