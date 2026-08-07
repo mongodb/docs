@@ -11,6 +11,25 @@ describe('redirect-utils', () => {
       expect(compiled[0].destination).toBe('/docs/atlas/bar/');
       expect(compiled[0].statusCode).toBe(301);
     });
+
+    it('skips sources that path-to-regexp cannot compile', () => {
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const entries: RedirectEntry[] = [
+        {
+          source:
+            '/docs/manual/administration/install-community/?operating-system=linux',
+          destination: '/docs/search/self-managed/current/installation/linux/',
+          statusCode: 301,
+        },
+        { source: '/docs/atlas/foo/', destination: '/docs/atlas/bar/', statusCode: 301 },
+      ];
+
+      const compiled = compileRedirects(entries);
+      expect(compiled).toHaveLength(1);
+      expect(compiled[0].destination).toBe('/docs/atlas/bar/');
+      expect(warnSpy).toHaveBeenCalled();
+      warnSpy.mockRestore();
+    });
   });
 
   describe('findMatchingRedirect', () => {

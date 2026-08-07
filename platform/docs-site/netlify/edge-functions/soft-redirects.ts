@@ -41,13 +41,27 @@ function resolveDestination(destination: string, params: Record<string, string>)
   return toPath(params) + suffix;
 }
 
-const softRedirects: CompiledRedirect[] = (allRedirects as RedirectEntry[])
-  .filter((r) => r.force !== true)
-  .map((entry) => ({
-    match: match(entry.source, { decode: decodeURIComponent }),
-    destination: entry.destination,
-    statusCode: entry.statusCode,
-  }));
+const softRedirects: CompiledRedirect[] = [];
+for (const entry of allRedirects as RedirectEntry[]) {
+  if (entry.force === true) {
+    continue;
+  }
+  try {
+    softRedirects.push({
+      match: match(entry.source, { decode: decodeURIComponent }),
+      destination: entry.destination,
+      statusCode: entry.statusCode,
+    });
+  } catch (err) {
+    // path-to-regexp only accepts path patterns. Sources with query/hash
+    // (e.g. from Netlify toml) throw at compile time — skip so one bad
+    // entry cannot prevent the edge function from loading.
+    console.warn(
+      `[soft-redirects] Skipping redirect that failed to compile: ${entry.source} -> ${entry.destination}`,
+      err,
+    );
+  }
+}
 
 function findSoftRedirect(urlPath: string): { destination: string; statusCode: number } | null {
   const normalized = urlPath.endsWith('/') ? urlPath : `${urlPath}/`;

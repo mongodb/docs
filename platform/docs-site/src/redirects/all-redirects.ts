@@ -4,7 +4,10 @@ import type { RedirectEntry } from './redirect-utils';
 import compassRedirects from './compass-redirects.json';
 import databaseToolsRedirects from './database-tools-redirects.json';
 import djangoMongodbRedirects from './django-mongodb-redirects.json';
+import hibernateRedirects from './hibernate-redirects.json';
+import manualRedirects from './manual-redirects.json';
 import mcpServerRedirects from './mcp-server-redirects.json';
+import metaRedirects from './meta-redirects.json';
 import mongodbIntellijRedirects from './mongodb-intellij-redirects.json';
 import mongodbShellRedirects from './mongodb-shell-redirects.json';
 import mongodbVscodeRedirects from './mongodb-vscode-redirects.json';
@@ -16,7 +19,10 @@ export const allRedirects: RedirectEntry[] = [
   ...compassRedirects,
   ...databaseToolsRedirects,
   ...djangoMongodbRedirects,
+  ...hibernateRedirects,
+  ...manualRedirects,
   ...mcpServerRedirects,
+  ...metaRedirects,
   ...mongodbIntellijRedirects,
   ...mongodbShellRedirects,
   ...mongodbVscodeRedirects,
