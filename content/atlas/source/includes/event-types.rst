@@ -1823,18 +1823,6 @@ Cluster Event Types
        Cluster Mongot process arguments update submitted
      - no
 
-   * - ``CLUSTER_MONGUARD_DISABLED``
-     - .. _atlas_event_cluster_monguard_disabled:
-
-       Atlas Network Protection Layer became inactive on a cluster
-     - no
-
-   * - ``CLUSTER_MONGUARD_ENABLED``
-     - .. _atlas_event_cluster_monguard_enabled:
-
-       Atlas Network Protection Layer became active on a cluster
-     - no
-
    * - ``CLUSTER_OPLOG_RESIZED``
      - .. _atlas_event_cluster_oplog_resized:
 
