@@ -206,3 +206,72 @@ describe('remarkResolveImports ref link path prefix', () => {
     );
   });
 });
+
+describe('remarkResolveImports flow-context references (phrasing at flow position)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetContentString.mockImplementation(async (rawPath: string) => {
+      if (rawPath.endsWith('_references.json')) {
+        return JSON.stringify({
+          substitutions: {},
+          refs: {
+            'core/backup-preparations': 'core/backup-preparations',
+            'reference/api/hosts/get-all-hosts-in-group': 'reference/api/hosts/get-all-hosts-in-group',
+          },
+        });
+      }
+      return null;
+    });
+  });
+
+  async function resolve(pageMdx: string): Promise<string> {
+    const file = await remark()
+      .use(remarkFrontmatter, ['yaml'])
+      .use(remarkGfm)
+      .use(remarkMdx)
+      .use(remarkResolveImports, { projectPath: 'ops-manager/v7.0', dirNameToPrefix: {} })
+      .use(remarkStringify)
+      .process(pageMdx);
+    return String(file);
+  }
+
+  it('wraps a block-position <Reference> link in a paragraph so the document stays separated', async () => {
+    // A <Reference/> on its own line parses as a block (mdxJsxFlowElement) directly
+    // under root. Replacing it with a bare link node (phrasing) at that flow position
+    // makes remark-stringify glue every block together; the re-parse then fails with
+    // "Expected a closing tag".
+    const pageMdx = [
+      '# Back up a Deployment',
+      '',
+      '<Reference name="core/backup-preparations" title="Decide how to back up the data." />',
+      '',
+      'More content.',
+      '',
+    ].join('\n');
+
+    const resolved = await resolve(pageMdx);
+
+    // Heading, link, and trailing paragraph must remain on separate blocks.
+    expect(resolved).toMatch(/# Back up a Deployment\n\n\[Decide how to back up the data\.\]/);
+    expect(resolved).toMatch(/\)\n\nMore content\./);
+    await expect(reparseMdx(resolved)).resolves.toBeDefined();
+  });
+
+  it('escapes braces in a block-position reference link (acorn crash)', async () => {
+    // A block-position reference whose title contains `{...}` (e.g. an API path
+    // template). When the link lands directly in a flow container it is stringified
+    // with unescaped braces, so the re-parse reads `{PROJECT-ID}` as an MDX
+    // expression and throws "Could not parse expression with acorn".
+    const pageMdx = [
+      '<TableCell>',
+      '  <Reference name="reference/api/hosts/get-all-hosts-in-group" title="/groups/{PROJECT-ID}/hosts" />',
+      '</TableCell>',
+      '',
+    ].join('\n');
+
+    const resolved = await resolve(pageMdx);
+
+    expect(resolved).toContain('\\{PROJECT-ID}');
+    await expect(reparseMdx(resolved)).resolves.toBeDefined();
+  });
+});

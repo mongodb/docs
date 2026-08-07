@@ -47,6 +47,7 @@ export const remarkResolveImports = ({
 
     resolveSubstitutions({ tree, refs, projectPath, dirNameToPrefix });
     resolveRefLinks({ tree, refs, projectPath, dirNameToPrefix });
+    normalizePhrasingContainers(tree);
   };
 };
 
@@ -417,6 +418,47 @@ const replacementSlotToNodes = (fragment: Node[], inline: boolean): Node[] => {
   return fragment;
 };
 
+/** Unwrap a lone `paragraph` — and flatten inline-only flow elements — back to
+ * phrasing content, unless a truly block-level node is present (which must keep its
+ * structure). Shared shape with the inline branch of `replacementSlotToNodes`. */
+const flattenToPhrasing = (nodes: Node[]): Node[] => {
+  if (nodes.length === 1 && nodes[0].type === 'paragraph') {
+    return [...(nodes[0] as Paragraph).children];
+  }
+  if (
+    nodes.some((n) => n.type === 'paragraph' || n.type === 'mdxJsxFlowElement') &&
+    !nodes.some((n) => TRULY_BLOCK.has(n.type))
+  ) {
+    return nodes.flatMap((n) => {
+      if (n.type === 'paragraph') return [...(n as Paragraph).children];
+      if (n.type === 'mdxJsxFlowElement') return [{ ...n, type: 'mdxJsxTextElement' }];
+      return [n];
+    });
+  }
+  return nodes;
+};
+
+/** Node types whose children must be phrasing (inline) content only. */
+const PHRASING_CONTAINER_TYPES = new Set(['link', 'emphasis', 'strong', 'delete', 'mdxJsxTextElement']);
+
+/** Final pass: guarantee phrasing containers never hold block-level nodes.
+ *
+ * A multi-line (flow) `<RefRole>`/`<Reference>` parses its body into a `paragraph`.
+ * When `resolveRefLinks` converts that element to a `link` by reusing its children,
+ * the paragraph ends up *inside* the link, producing `<a><p>…</p></a>`. A block
+ * cannot live inside an inline anchor, so the browser splits the link across lines
+ * and pushes the inner text (e.g. a substitution like "Ops Manager") out of the
+ * anchor — the reported spacing/newline break. Running after all replacements are
+ * applied keeps this independent of the resolve passes' live-array ordering. */
+const normalizePhrasingContainers = (tree: Root) => {
+  visit(tree, (node) => {
+    if (!PHRASING_CONTAINER_TYPES.has(node.type)) return;
+    const parent = node as Parent;
+    if (!parent.children?.length) return;
+    parent.children = flattenToPhrasing(parent.children) as typeof parent.children;
+  });
+};
+
 const extractReplacementSlots = (includeNode: MdxJsxElement): Record<string, Node[]> => {
   const slots: Record<string, Node[]> = {};
 
@@ -472,7 +514,7 @@ const resolveReplacementReferences = (tree: Root, slots: Record<string, Node[]>)
   applyReplacements(replacements);
 };
 
-// ─── Shared utilities ────────────────────────────────────────────────
+// ─── Shared utilities ───────────────────────────────────────────────
 
 const createLinkNode = (url: string, text: string): Link => ({
   type: 'link',
@@ -496,11 +538,60 @@ interface JsxReplacement {
   replacement: Node | Node[];
 }
 
+/** mdast parent types whose children are phrasing (inline) content. */
+const PHRASING_PARENT_TYPES = new Set([
+  'paragraph',
+  'heading',
+  'emphasis',
+  'strong',
+  'delete',
+  'link',
+  'linkReference',
+  'tableCell',
+  'mdxJsxTextElement',
+]);
+
+/** mdast phrasing (inline) node types. */
+const PHRASING_NODE_TYPES = new Set([
+  'text',
+  'emphasis',
+  'strong',
+  'delete',
+  'inlineCode',
+  'link',
+  'linkReference',
+  'image',
+  'imageReference',
+  'break',
+  'footnoteReference',
+  'mdxJsxTextElement',
+  'mdxTextExpression',
+]);
+
+/**
+ * A flow-context reference (e.g. a `<Reference/>` written on its own line, so it
+ * parses as a block `mdxJsxFlowElement`) can resolve to phrasing content such as a
+ * bare `link` or `text` node. Splicing that phrasing directly into a flow position
+ * (under `root`, a `<TableCell>`, a list item, etc.) produces a tree that
+ * remark-stringify serializes non-round-trippably: adjacent blocks lose their
+ * blank-line separators and `{`/`}` inside the phrasing are emitted unescaped. The
+ * markdown-export re-parse (`mdxToMarkdown`) then fails with "expected a closing
+ * tag" or "could not parse expression with acorn". Wrapping the phrasing in a
+ * paragraph keeps the flow position valid; it renders identically in the HTML
+ * compile path.
+ */
+const wrapPhrasingForFlowParent = (parent: Parent, nodes: Node[]): Node[] => {
+  if (nodes.length === 0) return nodes;
+  if (PHRASING_PARENT_TYPES.has(parent.type)) return nodes;
+  if (!nodes.every((node) => PHRASING_NODE_TYPES.has(node.type))) return nodes;
+  return [{ type: 'paragraph', children: nodes as PhrasingContent[] } as Paragraph];
+};
+
 const applyReplacements = (replacements: JsxReplacement[]) => {
   for (let i = replacements.length - 1; i >= 0; i--) {
     const { parent, index, replacement } = replacements[i];
     const nodes = Array.isArray(replacement) ? replacement : [replacement];
-    parent.children.splice(index, 1, ...nodes);
+    parent.children.splice(index, 1, ...wrapPhrasingForFlowParent(parent, nodes));
   }
 };
 
