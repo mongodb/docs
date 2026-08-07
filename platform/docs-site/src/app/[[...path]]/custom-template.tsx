@@ -151,7 +151,7 @@ export const CustomTemplate = ({
       >
         <Header eol={metadata?.eol ?? false} />
         <div className={layoutStyles['content-container']}>
-          <ActionBar template={template} sidenav={true} />
+          <ActionBar template={template} sidenav={renderSidenav} />
           <Template pageOptions={pageOptions} slug={slug}>
             {content}
           </Template>
