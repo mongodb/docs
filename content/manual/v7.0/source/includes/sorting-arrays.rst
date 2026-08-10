@@ -1,20 +1,35 @@
-In array comparisons:
+Sort Order
+~~~~~~~~~~
 
-- An ascending sort compares the smallest
-  elements of the array according to the BSON type sort order.
+When you sort on a field that contains an array:
 
-- A descending sort compares the largest elements of the array according 
-  to the reverse BSON type sort order.
+- An ascending sort compares the smallest elements of the array
+  according to the BSON type sort order.
 
-- :ref:`query-selectors-comparison`, such as :query:`$lt` and :query:`$gt`,
-  perform comparisons on arrays lexicographically.
+- A descending sort compares the largest elements of the array
+  according to the reverse BSON type sort order.
 
-- When comparing a field whose value is a one element array (for example,
-  ``[ 1 ]``) with non-array fields (for example, ``2``), the comparison is
-  for ``1`` and ``2``.
+- A sort on a field whose value is a one element array (for example,
+  ``[ 1 ]``) and a field whose value is not an array (for example,
+  ``2``) sorts on ``1`` and ``2``.
 
-- A comparison of an empty array (for example, ``[ ]``) considers the empty
-  array as less than a ``null`` value or a missing field value.
+- A sort places an empty array (for example, ``[ ]``) before a
+  ``null`` value or a missing field value.
 
-- A comparison of a nested array (for example, ``[[1, 2], [3, 4]]``) compares 
-  any array after the outmost array lexicographically. 
+- A sort of a nested array (for example, ``[[1, 2], [3, 4]]``) sorts
+  any array after the outermost array lexicographically.
+
+Comparison Operators
+~~~~~~~~~~~~~~~~~~~~
+
+When you query a field that contains an array:
+
+- :ref:`Comparison query predicate operators <query-selectors-comparison>`,
+  such as :query:`$lt` and :query:`$gt`, enforce
+  :ref:`type bracketing <type-bracketing>` when the query value is an
+  array.
+
+- If the target field's value is an array, the operator performs a
+  type-bracketed comparison element-wise over the array.
+
+- Comparison operators compare arrays lexicographically.
