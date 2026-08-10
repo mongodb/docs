@@ -130,7 +130,15 @@ const tocData: TocItem[] = [
           {
             label: 'Security, Governance, and Auditability',
             contentSite: 'mcp-server',
+            collapsible: true,
             url: '/docs/mcp-server/remote-mcp/security',
+            items: [
+              {
+                label: 'Manage AI Client Access',
+                contentSite: 'mcp-server',
+                url: '/docs/mcp-server/remote-mcp/manage-ai-client-access',
+              },
+            ],
           },
         ],
       },

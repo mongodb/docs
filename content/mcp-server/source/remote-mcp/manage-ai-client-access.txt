@@ -1,0 +1,196 @@
+.. _remote-mcp-manage-ai-client-access:
+
+============================================
+Manage AI Client Access to Your Organization
+============================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: tutorial
+
+.. meta::
+   :keywords: MCP, AI clients, admin controls, App Connections, read-only mode, read-write mode, token lifetime, audit, revocation
+   :description: Enable, configure, audit, and disable AI client access to your MongoDB Atlas organization, including read-only and read-write modes and token settings.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+As an Organization Owner, you control whether AI clients can connect
+to your Atlas organization through user-delegated access, and what
+level of access those clients receive. AI clients can't connect to
+your organization until you enable AI client access.
+
+Atlas **disables** AI client access by default for existing
+organizations and for new organizations *an existing Atlas user
+creates*. Atlas **enables** AI client access by default for
+organizations new users create at the time they create their Atlas
+account.
+
+When AI client access is enabled, an AI client must be authorized by
+an individual Atlas user to act on that user's behalf. An AI client
+acts using its authorizing Atlas user's existing Atlas permissions
+and can't exceed them. A user's ability to read or modify cluster
+data is governed by that user's Atlas role and your organization's
+access mode. Before you enable AI client access, review which roles
+can connect AI clients to your clusters in
+:ref:`remote-mcp-manage-ai-client-access-roles`.
+
+You can manage AI client access settings in the Atlas UI.
+
+.. _remote-mcp-manage-ai-client-access-roles:
+
+User Roles and Database Access
+------------------------------
+
+When AI client access is enabled, users who hold any of the following
+Atlas roles can authorize an AI client to connect to your
+organization's clusters:
+
+- ``ORG_OWNER``
+- ``GROUP_OWNER``
+- ``GROUP_DATA_ACCESS_ADMIN``
+- ``GROUP_DATA_ACCESS_READ_WRITE``
+- ``GROUP_DATA_ACCESS_READ_ONLY``
+- ``GROUP_STREAM_PROCESSING_OWNER``
+
+An AI client's access to cluster data is the more restrictive of two
+limits: the authorizing user's Atlas role and your organization's
+:ref:`AI client access mode <remote-mcp-manage-ai-client-access-modes>`.
+The access mode can only reduce a user's access, never grant more
+than the user's role allows. For example, a user with the
+``GROUP_DATA_ACCESS_READ_ONLY`` role has read-only access through an
+AI client, even when the organization allows AI clients to read and
+write.
+
+Audit AI Client Activity
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+All tool calls are attributed to the individual user who authorized
+the AI client that made the call. You can identify which user
+performed each action in your audit log.
+
+Atlas records new audit events for App Connections and adds
+delegation context to existing audit events, so you can distinguish
+actions taken through an AI client from other activity.
+
+To learn how Atlas attributes each action to an individual user, see
+:ref:`remote-mcp-security`.
+
+.. note::
+
+   Read-only Atlas Administration API calls are not recorded in the
+   audit log. This is an existing Atlas behavior and is not specific
+   to AI client access.
+
+Enable AI Client Access
+-----------------------
+
+To enable AI client access for your organization, complete the
+following steps:
+
+.. procedure::
+   :style: normal
+
+   .. step:: Open the :guilabel:`App Connections` tab.
+
+      In the Atlas UI, open your organization settings, then select
+      :guilabel:`App Connections`.
+
+   .. step:: Set the access mode for AI clients.
+
+      Choose the access mode that AI clients receive when they
+      connect. For a description of each mode, see
+      :ref:`remote-mcp-manage-ai-client-access-modes`.
+
+   .. step:: Save your changes.
+
+      After you save, AI clients can connect to your organization
+      using the access mode that you selected.
+
+.. _remote-mcp-manage-ai-client-access-modes:
+
+AI Client Access Modes
+----------------------
+
+AI client access supports the following modes:
+
+- **Read**: AI clients can run read operations, including ``find``,
+  ``aggregate``, ``count``, ``list-collections``, ``list-indexes``,
+  and schema inspection.
+- **Read and write**: AI clients can run read operations and write
+  operations, including ``insert-many``, ``update-many``,
+  ``create-collection``, and ``create-index``.
+- **Disabled**: No AI client can connect to your organization.
+
+Tools outside the configured mode are not registered with the AI
+client's session and are not visible to the client. For example, in
+read mode, write tools do not appear in the client's list of
+available tools.
+
+Disable Access Org-Wide
+~~~~~~~~~~~~~~~~~~~~~~~
+
+To stop all AI client access to your organization, set the access
+mode to disabled. This prevents any new connections and immediately
+ends existing control-plane access for every AI client connected to
+the organization. Data-plane access through artifacts that a client
+already created, such as database users, continues to work.
+
+Individual users can revoke their own connections at any time from
+the Atlas UI.
+
+For revocation timing and how to handle federated users, see the
+revocation and lifecycle guidance in :ref:`atlas-app-connections`.
+
+AI Client Access Lifetime
+-------------------------
+
+By default, an AI client's access on behalf of a user ends after
+7 days of inactivity, or 30 days from when access was initially
+granted regardless of activity. When this access ends, the user must
+reauthenticate through the AI client's plugin to reconnect the AI
+client.
+
+To learn how AI clients connect to your database using short-lived
+credentials, see :ref:`remote-mcp-security`.
+
+As an Organization Owner, you can reduce the maximum token lifetime
+for your organization. Reducing the maximum lifetime shortens the
+window during which a connection remains active without
+reauthentication.
+
+If you rely on an identity provider (IdP) to manage Atlas access,
+reduce the maximum token lifetime so that access changes you make in
+your IdP take effect sooner. For example, if you revoke a user's
+access in your IdP, a shorter token lifetime reduces how long an AI
+client can continue acting on that user's behalf before it must
+reauthenticate.
+
+Limitations
+-----------
+
+AI client access applies at the organization level. You cannot set
+per-user, per-cluster, or per-client access controls, and the access
+mode applies to the entire organization.
+
+AI client access also shares the limitations of Atlas App
+Connections, including but not limited to the inability to:
+
+- Restrict access to specific AI clients
+- Revoke an individual user's connection as an Organization Owner
+- Delegate a subset of a user's permissions
+
+For the complete list of limitations, see
+:ref:`atlas-app-connections-known-limitations`.
+
+Learn More
+----------
+
+For the delegated-access concepts that underlie AI client access,
+including authorization, consent, and lifecycle, see
+:ref:`atlas-app-connections`.
