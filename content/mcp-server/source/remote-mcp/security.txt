@@ -1,0 +1,113 @@
+.. _remote-mcp-security:
+
+======================================
+Security, Governance, and Auditability
+======================================
+
+.. default-domain:: mongodb
+
+.. facet::
+   :name: genre
+   :values: reference
+
+.. meta::
+   :keywords: MCP, authorization, OAuth, user delegation, identity, credentials, database access, token, audit
+   :description: Learn how MongoDB Atlas handles authorization, identity, credential isolation, and auditability when AI clients use delegated access to act on your behalf through OAuth.
+
+.. contents:: On this page
+   :local:
+   :backlinks: none
+   :depth: 1
+   :class: singlecol
+
+When you connect an AI client to Atlas using user-delegated access,
+the AI client acts on your behalf using your own Atlas identity. This
+page explains how that authorization works, what the AI client can
+and cannot access, and how your credentials stay protected.
+
+To learn how an Organization Owner enables access, configures access
+modes, and audits AI client activity, see
+:ref:`remote-mcp-manage-ai-client-access`.
+
+The Remote MCP server implements version 2025-11-25 of the `Model
+Context Protocol specification
+<https://modelcontextprotocol.io/specification/2025-11-25>`__. As part
+of the protocol, user-delegated access uses the OAuth 2.1
+Authorization Code flow with Proof Key for Code Exchange (PKCE).
+
+Identity and Permissions
+------------------------
+
+The AI client acts under your Atlas identity, using your existing
+Atlas role. The AI client cannot exceed the permissions that you
+already have. If your role does not allow an action, the AI client
+cannot perform that action on your behalf.
+
+You cannot delegate a subset of your permissions. When you authorize
+an AI client, it acts with your full existing permissions, subject to
+the access mode that your Organization Owner configures. To learn
+about access modes, see
+:ref:`remote-mcp-manage-ai-client-access-modes`.
+
+Atlas attributes all actions that an AI client performs to you in the
+audit log. Organization audit log events record both your user ID and
+the ID of the AI client that made the request. To learn how Atlas
+records AI client activity in your audit log, see
+:ref:`remote-mcp-manage-ai-client-access`.
+
+Credential Isolation
+--------------------
+
+Atlas never shares your credentials with the AI client. During the
+connection flow, you authenticate directly with Atlas in your browser.
+The AI client never receives your Atlas password or long-lived
+credentials.
+
+After you authorize the connection, Atlas manages the tokens that the
+connection uses. Token refresh is automatic. You do not manage a
+connection string or secret.
+
+Data-Plane Connection Isolation
+-------------------------------
+
+To connect to your data, Atlas uses short-lived credentials that
+carry your individual identity. Atlas creates these credentials for
+the data-plane connection only.
+
+The database connection details are never exposed to the AI client.
+The AI client interacts with your data only through the tools
+available in its configured access mode.
+
+An AI client's ability to connect to your clusters depends on your
+own Atlas permissions. To learn which Atlas roles receive database
+access through an AI client, see
+:ref:`remote-mcp-manage-ai-client-access-roles`.
+
+Revoking access also ends data-plane access on the same timeline. The
+AI client must present a valid access token to call any tool. When
+the access token expires and the refresh token no longer works, the
+AI client cannot reach your data, even if its database credentials
+have not yet expired.
+
+Access Lifetime and Revocation
+------------------------------
+
+An AI client's access on your behalf ends after 7 days of
+inactivity, or 30 days from when you granted access, regardless of
+activity. When access ends, you must authenticate again to reconnect
+the AI client. Organization Owners can reduce the maximum token
+lifetime for the organization.
+
+You can revoke an AI client's access at any time from the Atlas UI.
+Revoking access invalidates the AI client's refresh token, but the
+client's current access token remains valid until it expires, up to
+10 minutes later. When an Organization Owner disables AI client
+access for the organization, control-plane access ends immediately,
+because Atlas checks whether access is enabled on every
+Administration API call.
+
+Learn More
+----------
+
+To learn about retained security artifacts and guidance for federated
+users, see :ref:`atlas-app-connections`.

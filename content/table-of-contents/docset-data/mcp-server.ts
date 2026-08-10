@@ -123,6 +123,18 @@ const tocData: TocItem[] = [
         url: '/docs/mcp-server/examples',
       },
       {
+        label: 'Remote MCP',
+        contentSite: 'mcp-server',
+        collapsible: true,
+        items: [
+          {
+            label: 'Security, Governance, and Auditability',
+            contentSite: 'mcp-server',
+            url: '/docs/mcp-server/remote-mcp/security',
+          },
+        ],
+      },
+      {
         label: 'Release Notes',
         contentSite: 'mcp-server',
         url: '/docs/mcp-server/release-notes',
