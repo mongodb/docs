@@ -47,4 +47,8 @@ Examples of stages that can write temporary files to disk when
 If the results of one of your :pipeline:`$sort` pipeline stages exceed
 the limit, consider :ref:`adding a $limit stage <sort-limit-sequence>`.
 
+In addition to the per-stage limit, a single operation can use no
+more memory than the :ref:`per-operation memory limit
+<operation-memory-limit>`.
+
 .. include:: /includes/extracts/4.2-changes-usedDisk.rst
