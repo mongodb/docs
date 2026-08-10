@@ -16,12 +16,18 @@ Apply the relevant section below based on where you're working.
 
 **Documentation linting (run from repo root):**
 ```
-./lint-docs.sh seo <files>          # SEO linter (titles, descriptions, headings)
+./lint-docs.sh seo <files>           # SEO linter (titles, descriptions, headings)
 ./lint-docs.sh 404 <files>           # Broken link checker
+./lint-docs.sh redirects <files>     # Circular redirect checker
 ./lint-docs.sh findability <files>   # Facets, keyword hints, docs URL trailing slashes
+./lint-docs.sh nested <files>        # Nested components linter (forbidden RST directive nesting)
 ./lint-docs.sh vale <files>          # Vale prose linter (requires Vale installed)
-./lint-docs.sh all <files>           # SEO + 404 + findability + Vale prose
+./lint-docs.sh all <files>           # SEO + 404 + findability + nested + Vale prose
 ```
+
+None of these validate `:ref:` targets. To catch an unknown ref, a duplicate
+label, or an undefined substitution, use the `local-build-check` skill, which
+runs the Snooty parser.
 
 **Code example tests (run from code-example-tests/<language>/):**
 ```
