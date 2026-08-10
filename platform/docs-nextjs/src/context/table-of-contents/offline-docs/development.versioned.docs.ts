@@ -20,7 +20,15 @@ export const toc: L1TocItem[] = [
           {
             label: 'Documents',
             contentSite: 'docs',
+            collapsible: true,
             url: '/docs/:version/core/document',
+            items: [
+              {
+                label: 'Other Uses of the Document Structure',
+                contentSite: 'docs',
+                url: '/docs/:version/core/documents-other-uses',
+              },
+            ],
           },
           {
             label: 'Databases & Collections',
@@ -8961,6 +8969,11 @@ export const toc: L1TocItem[] = [
                         label: 'Build an AI Agent',
                         contentSite: 'cloud-docs',
                         url: '/docs/atlas/ai-integrations/crewai/build-agents',
+                      },
+                      {
+                        label: 'Add Long-Term Memory',
+                        contentSite: 'cloud-docs',
+                        url: '/docs/atlas/ai-integrations/crewai/agent-memory',
                       },
                     ],
                   },
