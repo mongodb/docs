@@ -2,12 +2,20 @@ export const IMAGE_EXTENSIONS = ['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg
 export const JSON_EXTENSION = '.json';
 export const MDX_EXTENSION = '.mdx';
 export const INV_EXTENSION = '.inv';
-export const ALL_FILE_EXTENSIONS = [MDX_EXTENSION, JSON_EXTENSION, INV_EXTENSION, ...IMAGE_EXTENSIONS];
+export const MANPAGES_FILENAME = 'manpages.tar.gz';
+export const ALL_FILE_EXTENSIONS = [
+  MDX_EXTENSION,
+  JSON_EXTENSION,
+  INV_EXTENSION,
+  MANPAGES_FILENAME,
+  ...IMAGE_EXTENSIONS,
+];
 
 const getPrefix = (lowerPath: string): string => {
   if (IMAGE_EXTENSIONS.some((ext) => lowerPath.endsWith(ext))) return 'image';
   if (lowerPath.endsWith(JSON_EXTENSION)) return 'reference';
   if (lowerPath.endsWith(INV_EXTENSION)) return 'inventory';
+  if (lowerPath.endsWith(MANPAGES_FILENAME)) return 'manpages';
   return 'mdx';
 };
 

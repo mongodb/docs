@@ -52,6 +52,10 @@ const nextConfig = {
         destination: '/api/inventory/:path*/objects.inv',
       },
       {
+        source: '/docs/:path*/manpages.tar.gz',
+        destination: '/api/manpages/:path*/manpages.tar.gz',
+      },
+      {
         source: '/docs/sitemap-:n.xml',
         destination: '/api/sitemap/sitemap-:n.xml',
       },
