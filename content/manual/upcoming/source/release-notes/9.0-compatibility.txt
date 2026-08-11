@@ -56,6 +56,50 @@ The addition changes the ``key`` and ``keyHash`` serialization for
 For more information, see the :ref:`aggregate command query shape
 <queryStats-aggregate-query-shape>`.
 
+Query Language
+--------------
+
+Null Comparisons on Dotted Paths That Traverse Arrays
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Starting in MongoDB 9.0, a dotted path that does not resolve to a
+non-null value evaluates as ``null``. The new behavior applies when a
+field in the path holds an empty array or an array of scalar values.
+In earlier versions, these paths did not evaluate as ``null``, which
+produced results that disagreed with :query:`$exists`.
+
+Consider a collection that contains the following documents:
+
+.. code-block:: javascript
+
+   { _id: 1, a: [ 1 ] }
+   { _id: 2, a: [ ] }
+
+The path ``a.b`` does not resolve to a non-null value in either
+document.
+Starting in MongoDB 9.0, the ``{ "a.b": null }`` query matches both
+documents. In earlier versions, the query matched neither document.
+The ``{ "a.b": { $ne: null } }`` query returns the opposite results:
+in MongoDB 9.0, the query matches neither document, and in earlier
+versions, it matched both.
+
+The new behavior affects comparisons to ``null`` that use the
+:query:`$eq`, :query:`$ne`, :query:`$in`, :query:`$nin`,
+:query:`$gte`, and :query:`$lte` operators. Equality matching in the
+:pipeline:`$lookup` stage follows the same semantics.
+
+Upgrade Impact
+``````````````
+
+Before you upgrade to MongoDB 9.0, review queries and
+:pipeline:`$lookup` stages that compare a dotted path to ``null``. If
+a field in the path holds an empty array or an array of scalar
+values, these queries return different result sets after the upgrade.
+Queries that use ``{ $ne: null }`` to
+find documents where a dotted path exists and is not ``null`` return
+fewer documents, and queries that use ``{ $eq: null }`` return more
+documents.
+
 General Changes
 ---------------
 
