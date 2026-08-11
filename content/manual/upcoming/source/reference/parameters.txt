@@ -1749,8 +1749,105 @@ General Parameters
 
    .. include:: /includes/fact-runtime-startup-parameter
 
+.. parameter:: maxEstimatedScanBytes
+
+   .. versionadded:: 9.0
+
+   |mongod-only|
+
+   *Type*: integer
+
+   *Default*: -1 (disabled)
+
+   Specifies the maximum data size that a collection scan reads. At
+   planning time, MongoDB rejects a query if the query plan requires an
+   unbounded collection scan on a collection whose uncompressed logical
+   data size exceeds this threshold. MongoDB measures the threshold in
+   uncompressed logical bytes, which is equivalent to the ``size`` field
+   that the :dbcommand:`collStats` command returns, and not the
+   compressed on-disk size.
+
+   Use ``maxEstimatedScanBytes`` as a more production-suitable
+   alternative to :parameter:`notablescan`. When MongoDB rejects a query,
+   the server returns a ``NoQueryExecutionPlans`` error. To learn more
+   about this error, see :ref:`Error Codes <error-codes>`.
+
+   MongoDB doesn't reject the following queries, even when the collection
+   exceeds the threshold:
+
+   - Queries that use the ``limit`` option
+
+   - Queries that use an indexed plan
+
+   - Queries against internal namespaces, such as ``system.*``
+     collections and internal databases
+
+   - Bounded clustered collection scans that specify ``min`` and ``max``
+     record bounds
+
+   For :pipeline:`$lookup` operations, MongoDB rejects all join
+   strategies that aren't indexed nested loop joins when the foreign
+   collection exceeds the threshold.
+
+   To bypass rejection for a specific query, add a ``$natural`` hint to
+   the query.
+
+   To log queries that exceed the threshold without rejecting them, see
+   :parameter:`maxEstimatedScanBytesDryRun`.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following example shows the syntax for setting
+   ``maxEstimatedScanBytes`` at startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter maxEstimatedScanBytes=<int>
+
+   To set the parameter at run time, use the :dbcommand:`setParameter`
+   command:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, maxEstimatedScanBytes: <int> } )
+
+.. parameter:: maxEstimatedScanBytesDryRun
+
+   .. versionadded:: 9.0
+
+   |mongod-only|
+
+   *Type*: boolean
+
+   *Default*: false
+
+   Enables dry-run mode for the :parameter:`maxEstimatedScanBytes` parameter.
+   When set to ``true``, MongoDB runs queries that the server would otherwise
+   reject and instead logs the queries and increments the
+   :serverstatus:`metrics.query.maxEstimatedScanBytes.dryRunWouldReject`
+   counter.
+
+   Use dry-run mode to evaluate the impact of a threshold before you
+   enforce it.
+
+   .. include:: /includes/fact-runtime-startup-parameter
+
+   The following example shows the syntax for setting
+   ``maxEstimatedScanBytesDryRun`` at startup:
+
+   .. code-block:: bash
+
+      mongod --setParameter maxEstimatedScanBytesDryRun=true
+
+   To set the parameter at run time, use the :dbcommand:`setParameter`
+   command:
+
+   .. code-block:: javascript
+
+      db.adminCommand( { setParameter: 1, maxEstimatedScanBytesDryRun: true } )
+
 .. parameter:: maxIndexBuildMemoryUsageMegabytes
-   
+
    |mongod-only|
 
    | *Default (absolute)*: 200
