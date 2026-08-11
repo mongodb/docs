@@ -1,27 +1,37 @@
+//	:replace-start: {
+//	  "terms": {
+//	    "utils.GetConnectionString()": "os.Getenv(\"MONGODB_URI\")"
+//	  }
+//	}
+//
 // Retrieves documents referenced by a cursor by using the Go driver
-package main
+package cursor
 
 import (
 	"context"
 	"fmt"
 	"log"
-	"os"
+
+	"driver-examples/utils"
 
 	"go.mongodb.org/mongo-driver/v2/bson"
 	"go.mongodb.org/mongo-driver/v2/mongo"
 	"go.mongodb.org/mongo-driver/v2/mongo/options"
 )
 
-// start-sample-struct
+// :snippet-start: struct
 type MyStruct struct {
 	MyProperty string
 }
 
-// end-sample-struct
+// :snippet-end:
 
-func main() {
+// Cursor demonstrates accessing data referenced by a cursor and returns
+// the documents retrieved with the All() method for test validation.
+func Cursor() []MyStruct {
+	// :snippet-start: connect
 	var uri string
-	if uri = os.Getenv("MONGODB_URI"); uri == "" {
+	if uri = utils.GetConnectionString(); uri == "" {
 		log.Fatal("You must set your 'MONGODB_URI' environment variable. See\n\t https://www.mongodb.com/docs/drivers/go/current/usage-examples/")
 	}
 
@@ -31,22 +41,25 @@ func main() {
 		panic(err)
 	}
 	defer func() {
-		if err = client.Disconnect(context.TODO()); err != nil {
+		if err := client.Disconnect(context.TODO()); err != nil {
 			panic(err)
 		}
 	}()
 
 	coll := client.Database("db").Collection("sample_data")
+	// :snippet-end:
+	// :snippet-start: insert
 	docs := []any{
-		MyStruct{MyProperty: "abc"},
-		MyStruct{MyProperty: "def"},
-		MyStruct{MyProperty: "ghi"},
+		MyStruct{MyProperty: "Beach House"},
+		MyStruct{MyProperty: "Office"},
+		MyStruct{MyProperty: "Bungalow"},
 	}
 
 	result, err := coll.InsertMany(context.TODO(), docs)
 	if err != nil {
 		panic(err)
 	}
+	// :snippet-end:
 
 	fmt.Printf("Number of documents inserted: %d\n", len(result.InsertedIDs))
 
@@ -58,49 +71,41 @@ func main() {
 			panic(err)
 		}
 
-		// begin close
+		// :snippet-start: close
 		defer cursor.Close(context.TODO())
-		// end close
+		// :snippet-end:
 
 		for cursor.Next(context.TODO()) {
-			// begin current
 			fmt.Println(cursor.Current)
-			// end current
-			// begin remaining batch length
 			fmt.Println(cursor.RemainingBatchLength())
-			// end remaining batch length
-			// begin id
 			fmt.Println(cursor.ID())
-			// end id
-			// begin err
 			fmt.Println(cursor.Err())
-			// end err
 		}
 	}
 
 	fmt.Println("Cursor.All():")
 	{
 		// Retrieves documents and references them in a cursor
-		// begin cursor def
+		// :snippet-start: cursor-def
 		cursor, err := coll.Find(context.TODO(), bson.D{})
 		if err != nil {
 			panic(err)
 		}
-		// end cursor def
+		// :snippet-end:
 
 		defer cursor.Close(context.TODO())
 
 		// Retrieves all documents from the cursor at once by unpacking
 		// the cursor into a slice and printing the slice
-		// begin cursor all
+		// :snippet-start: cursor-all
 		var results []MyStruct
-		if err = cursor.All(context.TODO(), &results); err != nil {
+		if err := cursor.All(context.TODO(), &results); err != nil {
 			panic(err)
 		}
 		for _, result := range results {
 			fmt.Printf("%+v\n", result)
 		}
-		// end cursor all
+		// :snippet-end:
 	}
 
 	fmt.Println("Cursor.Next():")
@@ -114,7 +119,7 @@ func main() {
 
 		// Retrieves documents from the cursor individually by iterating
 		// through the cursor and printing each document
-		// begin cursor next
+		// :snippet-start: cursor-next
 		for cursor.Next(context.TODO()) {
 			var result MyStruct
 			if err := cursor.Decode(&result); err != nil {
@@ -125,7 +130,7 @@ func main() {
 		if err := cursor.Err(); err != nil {
 			log.Fatal(err)
 		}
-		// end cursor next
+		// :snippet-end:
 	}
 
 	fmt.Println("Cursor.TryNext():")
@@ -139,7 +144,7 @@ func main() {
 
 		// Retrieves documents from the tailable cursor individually by iterating
 		// through the cursor and printing each document
-		// begin cursor try next
+		// :snippet-start: cursor-try-next
 		for {
 			if cursor.TryNext(context.TODO()) {
 				var result MyStruct
@@ -157,6 +162,24 @@ func main() {
 				break
 			}
 		}
-		// end cursor try next
+		// :snippet-end:
 	}
+
+	// :remove-start:
+	// Re-reads all documents so the test has a deterministic return value
+	// to validate against the expected output file.
+	verifyCursor, err := coll.Find(context.TODO(), bson.D{})
+	if err != nil {
+		panic(err)
+	}
+	defer verifyCursor.Close(context.TODO())
+
+	var allResults []MyStruct
+	if err = verifyCursor.All(context.TODO(), &allResults); err != nil {
+		panic(err)
+	}
+	return allResults
+	// :remove-end:
 }
+
+// :replace-end:

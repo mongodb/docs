@@ -10,7 +10,7 @@ Access Data From a Cursor
 
 .. meta::
    :keywords: code example, read operation, see results, iterate
-   :description: Learn to access data using a cursor in Go, including retrieving documents individually or in batches, and closing the cursor to free resources.
+   :description: Learn to access data using a cursor with the Go driver, including retrieving documents individually or in batches, and closing the cursor to free resources.
 
 .. contents:: On this page
    :local:
@@ -31,22 +31,45 @@ to return those documents in batches rather than all at once.
 Sample Cursor
 ~~~~~~~~~~~~~
 
-Each section uses the following ``cursor`` variable, which is a
-``Cursor`` struct that contains all the documents in a collection:
+A read operation such as the ``Find()`` method returns a ``Cursor``
+that references the documents matched by the operation. To obtain a
+cursor, first connect to your deployment and access a collection, as
+shown in the following example:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/cursor.go
+.. literalinclude:: /includes/code-examples/tested/go/driver/crud/cursor/cursor.snippet.connect.go
    :language: go
-   :dedent:
-   :start-after: begin cursor def
-   :end-before: end cursor def
+   :category: usage example
 
-In the examples in this guide, the driver unmarshals documents held in
-the ``cursor`` variable to a sample ``MyStruct`` struct.
+The examples in this guide use the following ``MyStruct`` struct to
+model the documents in the collection:
+
+.. literalinclude:: /includes/code-examples/tested/go/driver/crud/cursor/cursor.snippet.struct.go
+   :language: go
+   :category: usage example
+
+The following code inserts sample documents into the collection:
+
+.. literalinclude:: /includes/code-examples/tested/go/driver/crud/cursor/cursor.snippet.insert.go
+   :language: go
+   :category: usage example
+
+To obtain a cursor, call the ``Find()`` method on the collection to run a query and
+return a cursor. The following example passes an empty filter to match
+all documents in the collection and assigns the resulting cursor to a
+``cursor`` variable:
+
+.. literalinclude:: /includes/code-examples/tested/go/driver/crud/cursor/cursor.snippet.cursor-def.go
+   :language: go
+   :category: usage example
+
+Each section in this guide uses this ``cursor`` variable. The driver
+unmarshals the documents that the cursor references to the
+``MyStruct`` struct.
 
 .. important::
 
-   A cursor is not `goroutine <https://www.golang-book.com/books/intro/10>`__ safe. Do not use the same cursor in
-   multiple goroutines at the same time.
+   A cursor is not goroutine safe. Do not use the same cursor in multiple
+   goroutines at the same time.
 
 .. _golang-individual-documents:
 
@@ -62,17 +85,16 @@ The method returns a document if all of the following conditions are met:
 - The driver didn't throw any errors.
 - The context didn't expire.
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/cursor.go
+.. literalinclude:: /includes/code-examples/tested/go/driver/crud/cursor/cursor.snippet.cursor-next.go
    :language: go
-   :dedent:
-   :start-after: begin cursor next
-   :end-before: end cursor next
+   :category: usage example
 
 Tailable Cursor
 ~~~~~~~~~~~~~~~
 
-To attempt retrieving a document from a :manual:`tailable cursor
-</core/tailable-cursors/>`, use the ``TryNext()`` method.
+To attempt to retrieve a document without blocking the current goroutine, use
+the ``TryNext()`` method. Use this approach when you iterate over a
+:manual:`tailable cursor </core/tailable-cursors/>`.
 
 The method returns a document if all of the following conditions are met:
 
@@ -80,30 +102,36 @@ The method returns a document if all of the following conditions are met:
 - The driver didn't throw any errors.
 - The context didn't expire.
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/cursor.go
+.. literalinclude:: /includes/code-examples/tested/go/driver/crud/cursor/cursor.snippet.cursor-try-next.go
    :language: go
-   :dedent:
-   :start-after: begin cursor try next
-   :end-before: end cursor try next
+   :category: usage example
 
 .. _golang-all-documents:
 
 Retrieve All Documents
 ----------------------
 
-To populate an array with all of your query results, use the ``All()``
+To populate a slice with all of your query results, use the ``All()``
 method:
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/cursor.go
-   :language: go
-   :dedent:
-   :start-after: begin cursor all
-   :end-before: end cursor all
+.. io-code-block::
+   :copyable: true
+
+   .. input:: /includes/code-examples/tested/go/driver/crud/cursor/cursor.snippet.cursor-all.go
+      :language: go
+
+   .. output::
+      :language: none
+      :visible: false
+
+      {MyProperty:Beach House}
+      {MyProperty:Office}
+      {MyProperty:Bungalow}
 
 .. important:: Memory
 
    If the number and size of documents returned by your query exceeds
-   available application memory, your program will crash. If you except
+   available application memory, your program will crash. If you expect
    a large result set, you should :ref:`consume your cursor iteratively
    <golang-individual-documents>`.
 
@@ -114,17 +142,15 @@ When your application no longer requires a cursor, close the cursor
 with the ``Close()`` method. This method frees the resources your cursor
 consumes in both the client application and the MongoDB server.
 
-.. literalinclude:: /includes/fundamentals/code-snippets/CRUD/cursor.go
+.. literalinclude:: /includes/code-examples/tested/go/driver/crud/cursor/cursor.snippet.close.go
    :language: go
-   :dedent:
-   :start-after: begin close
-   :end-before: end close
+   :category: usage example
 
-.. note:: 
+.. note::
 
-   Close the cursor when you :ref:`retrieve documents individually
-   <golang-individual-documents>` because those methods make a cursor
-   :manual:`tailable </core/tailable-cursors/>`.
+   When you :ref:`retrieve documents individually <golang-individual-documents>`
+   by using the ``Next()`` or ``TryNext()`` method, always close the cursor to
+   free the resources that it consumes.
 
 Additional Information
 ----------------------
