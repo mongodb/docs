@@ -1,12 +1,9 @@
 
-.. list-table:: 
+.. list-table::
    :header-rows: 1
 
    * - Region Name
-     - Azure Region  
-
-   * - AUSTRALIA_CENTRAL
-     - ``australiacentral``
+     - Azure Region
 
    * - AUSTRALIA_CENTRAL_2
      - ``australiacentral2``
@@ -19,9 +16,6 @@
 
    * - CANADA_EAST
      - ``canadaeast``
-
-   * - FRANCE_SOUTH
-     - ``francesouth``
 
    * - GERMANY_NORTH
      - ``germanynorth``
@@ -67,6 +61,3 @@
 
    * - US_WEST
      - ``westus``
-
-   * - US_NORTH_CENTRAL
-     - ``northcentralus``
