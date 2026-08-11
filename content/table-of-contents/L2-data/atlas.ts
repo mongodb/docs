@@ -1492,6 +1492,11 @@ const tocData: TocItem[] = [
         collapsible: true,
         items: [
           {
+            label: 'FAQ: Account Access and Authentication',
+            contentSite: 'cloud-docs',
+            url: '/docs/atlas/reference/faq/access',
+          },
+          {
             label: 'FAQ: Accounts',
             contentSite: 'cloud-docs',
             url: '/docs/atlas/reference/faq/accounts',
