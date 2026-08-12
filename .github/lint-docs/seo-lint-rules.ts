@@ -674,13 +674,12 @@ function checkSvgDimensions(content: string, filename: string): LintIssue[] {
 }
 
 
-function checkLowContent(content: string, filename: string): LintIssue[] {
-  const issues: LintIssue[] = [];
+function getContentWordCount(content: string, filename: string): number {
   const isMd = isMarkdown(filename);
-  
+
   // Remove frontmatter, directives, headings for content measurement
   let contentOnly = content;
-  
+
   if (isMd) {
     contentOnly = content
       .replace(/^---[\s\S]*?---/m, '') // Remove frontmatter
@@ -697,8 +696,14 @@ function checkLowContent(content: string, filename: string): LintIssue[] {
       .replace(/^\s*$/gm, '')
       .trim();
   }
-  
-  const wordCount = contentOnly.split(/\s+/).filter(w => w.length > 0).length;
+
+  return contentOnly.split(/\s+/).filter(w => w.length > 0).length;
+}
+
+function checkLowContent(content: string, filename: string): LintIssue[] {
+  const issues: LintIssue[] = [];
+  const isMd = isMarkdown(filename);
+  const wordCount = getContentWordCount(content, filename);
 
   if (wordCount < 100) {
     issues.push({
@@ -712,7 +717,25 @@ function checkLowContent(content: string, filename: string): LintIssue[] {
         : 'Add more content, or add noindex directive if keeping the page short'
     });
   }
-  
+
+  return issues;
+}
+
+function checkHighContent(content: string, filename: string): LintIssue[] {
+  const issues: LintIssue[] = [];
+  const wordCount = getContentWordCount(content, filename);
+
+  if (wordCount > 7500) {
+    issues.push({
+      file: filename,
+      line: 1,
+      rule: 'seo-high-content',
+      severity: 'warning',
+      message: `Too-long page (${wordCount} words). Review and consider splitting into multiple pages.`,
+      suggestion: 'Split the page into multiple, more focused pages'
+    });
+  }
+
   return issues;
 }
 
@@ -739,6 +762,7 @@ export function lintContent(content: string, filename: string): LintIssue[] {
     allIssues.push(...checkH1(content, filename));
     allIssues.push(...checkH2BeforeH1(content, filename));
     allIssues.push(...checkLowContent(content, filename));
+    allIssues.push(...checkHighContent(content, filename));
   }
   
   // These checks apply to all files (including includes)
