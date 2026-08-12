@@ -9144,6 +9144,11 @@ export const toc: L1TocItem[] = [
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/atlas-stream-processing/tier-guide',
                   },
+                  {
+                    label: 'Build Streaming Materialized Views',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/atlas-stream-processing/streaming-materialized-views',
+                  },
                 ],
               },
               {

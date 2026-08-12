@@ -633,6 +633,11 @@ export const toc: L1TocItem[] = [
                     url: '/docs/ops-manager/:version/view-mongodb-process-metrics',
                   },
                   {
+                    label: 'Search Node Performance Metrics',
+                    contentSite: 'ops-manager',
+                    url: '/docs/ops-manager/:version/view-search-node-metrics',
+                  },
+                  {
                     label: 'Real Time Metrics',
                     contentSite: 'ops-manager',
                     url: '/docs/ops-manager/:version/view-real-time-metrics',

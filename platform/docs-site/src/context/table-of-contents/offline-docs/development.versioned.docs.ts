@@ -461,12 +461,12 @@ export const toc: L1TocItem[] = [
             url: '/docs/:version/crud',
             items: [
               {
-                label: 'Insert',
+                label: 'Create',
                 contentSite: 'docs',
                 url: '/docs/:version/tutorial/insert-documents',
               },
               {
-                label: 'Query',
+                label: 'Read',
                 contentSite: 'docs',
                 collapsible: true,
                 url: '/docs/:version/tutorial/query-documents',
@@ -532,7 +532,7 @@ export const toc: L1TocItem[] = [
                 ],
               },
               {
-                label: 'Remove',
+                label: 'Delete',
                 contentSite: 'docs',
                 url: '/docs/:version/tutorial/remove-documents',
               },
@@ -9143,6 +9143,11 @@ export const toc: L1TocItem[] = [
                     label: 'Tier Sizing Guide',
                     contentSite: 'cloud-docs',
                     url: '/docs/atlas/atlas-stream-processing/tier-guide',
+                  },
+                  {
+                    label: 'Build Streaming Materialized Views',
+                    contentSite: 'cloud-docs',
+                    url: '/docs/atlas/atlas-stream-processing/streaming-materialized-views',
                   },
                 ],
               },
