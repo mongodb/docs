@@ -106,6 +106,188 @@ access for the organization, control-plane access ends immediately,
 because Atlas checks whether access is enabled on every
 Administration API call.
 
+.. _remote-mcp-security-tool-annotations:
+
+Tool Annotations and Destructive Operations
+-------------------------------------------
+
+Each :ref:`MongoDB MCP server tool <mcp-server-tools>` carries
+annotations that describe what the tool does. AI clients can use
+these annotations to decide how to present a tool to you, such as
+whether to ask before running it.
+
+The two annotations relevant to security are:
+
+- ``readOnlyHint``: when ``true``, indicates that the tool doesn't change any data
+  or configuration.
+- ``destructiveHint``: when ``true``, indicates that the tool can remove or overwrite
+  existing data or configuration.
+
+The MCP Server derives both annotations from the tool's operation
+type:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 20 20 35
+
+   * - Operation Type
+     - ``readOnlyHint``
+     - ``destructiveHint``
+     - Example Tools
+
+   * - ``read``, ``metadata``, ``connect``
+     - ``true``
+     - ``false``
+     - ``find``, ``aggregate``, ``list-databases``
+
+   * - ``create``
+     - ``false``
+     - ``false``
+     - ``atlas-create-access-list``, ``atlas-create-db-user``
+
+   * - ``update``, ``delete``
+     - ``false``
+     - ``true``
+     - ``update-many``, ``drop-database``, ``delete-many``
+
+.. include:: /includes/fact-tool-hints-not-security-gate.rst
+
+Non-Destructive Security-Sensitive Tools
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+``create`` tools report ``destructiveHint`` as ``false`` because such
+tools add resources instead of removing or overwriting resources.
+However, some ``create`` tools still change your security posture.
+For example:
+
+- ``atlas-create-access-list`` increases your cluster's exposure by
+  adding entries to a project's IP access list. An entry such as
+  ``0.0.0.0/0`` exposes the cluster to every IP address.
+- ``atlas-create-db-user`` creates a database user that can read or
+  write data, depending on the roles granted to it.
+
+Evaluate a tool based on what it changes, not on the value of
+``destructiveHint``.
+
+Confirming Intent
+~~~~~~~~~~~~~~~~~
+
+For some tools, the MCP Server asks you to confirm the operation
+before the tool runs. MongoDB calls this process elicitation. The AI
+client displays the confirmation prompt and, if you decline, the MCP
+Server returns an error and doesn't perform the operation.
+
+Confirmation depends on the AI client supporting the MCP elicitation capability. If the AI client doesn't
+support elicitation, the MCP Server runs the tool without asking you
+to confirm. Don't assume that a confirmation prompt appears before a
+risky operation runs.
+
+What Bounds a Tool
+~~~~~~~~~~~~~~~~~~
+
+Permissions, not annotations, determine what an AI client can change
+using their tools. Permissions are determined by:
+
+- your Atlas role
+- your organization's AI client access level
+
+A tool fails if you lack the privileges that the operation requires, regardless of
+the tool annotations or the confirmation prompts.
+
+Because you can't delegate a subset of your permissions, an AI client
+that acts on your behalf can reach anything your role allows. Consider
+this when you hold a broadly privileged role such as
+``Project Database Access Admin`` or ``Project IP Access List Admin``.
+These roles allow the tools described in the earlier section.
+
+To learn about Atlas roles, see :ref:`Atlas User Roles <user-roles>`.
+
+If you connect an automated agent with programmatic access instead,
+the agent acts as a Service Account rather than as you. Scope each MCP
+configuration to only the roles that the agent's workflow requires,
+and keep the configuration read-only unless the agent must write. A
+read-only configuration prevents AI agents from seeing write tools at
+all, making it an effective access control.
+
+.. _remote-mcp-security-read-tools-can-write:
+
+Read-Labeled Tools That Can Perform Writes
+------------------------------------------
+
+.. warning:: Some read-labeled tools can write
+
+   ``aggregate``, ``aggregate-db``, and ``export`` are ``read`` tools
+   that report ``readOnlyHint: true``. These tools run aggregation
+   pipelines that can include a ``$out`` or ``$merge`` stage, both of
+   which write the pipeline results to a collection.
+   ``operationType: "read"`` doesn't guarantee that a tool leaves your
+   data unchanged.
+
+Scope of the Risk
+~~~~~~~~~~~~~~~~~
+
+An aggregation pipeline's ``$merge`` stage can write to a different
+database or collection than the one that the pipeline reads from. The
+``$merge`` stage's ``into`` option accepts ``{db: <database>, coll:
+<collection>}``. The write can target any database or collection
+that the AI client's Atlas identity can access, beyond what the AI
+client appears to be querying.
+
+A ``$out`` stage completely overwrites the contents of the target
+collection if the target collection already exists.
+
+Mitigations
+~~~~~~~~~~~
+
+Not every aggregation pipeline results in a write. Running a
+write-producing aggregation pipeline requires:
+
+- **An authenticated session**: either your own session under
+  user-delegated access, or a Service Account's credentials under
+  programmatic access.
+- **Project access**: the AI client's Atlas identity must grant it
+  write access to the target project. For user-delegated access,
+  this is your own Atlas role. For programmatic access, this is the
+  Service Account's assigned Atlas roles.
+
+These conditions reduce the risk, but don't remove it. A policy that
+grants access to ``aggregate``, ``aggregate-db``, or ``export`` based
+on the ``read`` label alone can unintentionally grant the AI client
+write access.
+
+``aggregate`` remains available even when an AI client's access mode
+or a Service Account's role is read-only. However, the write still
+fails: if a Service Account's role is read-only, or your
+organization's access mode is set to read-only for user-delegated
+access, a ``$out`` or ``$merge`` stage in the pipeline can't complete
+because the connection doesn't have write permission.
+
+The MCP Server also triggers a confirmation prompt when an
+aggregation pipeline contains a ``$out`` or ``$merge`` stage. The AI
+client displays the prompt and asks you to confirm the write
+before the pipeline runs. This confirmation depends on the AI client
+supporting `elicitation
+<https://modelcontextprotocol.io/specification/2025-11-25/client/elicitation>`__.
+If the AI client doesn't support elicitation, the MCP Server runs the
+pipeline without asking you to confirm.
+
+Reducing the Risk
+~~~~~~~~~~~~~~~~~
+
+- Grant AI clients and Service Accounts only the Atlas roles that
+  their workflow requires. A read-only role prevents ``aggregate``
+  from writing through a ``$out`` or ``$merge`` stage.
+- Use an AI client that supports elicitation, so the MCP Server can
+  ask for your consent before it runs a write-producing aggregation
+  pipeline.
+- For user-delegated access, an Organization Owner can set your
+  organization's access mode to read-only instead of read-write.
+  This prevents writes through ``aggregate`` for every AI client in
+  your organization.
+- For programmatic access, keep the Service Account's MCP
+  configuration read-only unless the agent's workflow requires
+  writes. This prevents writes through ``aggregate`` the same way.
+
 Learn More
 ----------
 

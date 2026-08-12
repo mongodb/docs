@@ -11,8 +11,8 @@ MongoDB MCP Server Overview
    :values: reference
 
 .. meta::
-   :keywords: MCP, Model Context Protocol, AI, natural language, MCP Server, AI agents, Claude, Copilot
-   :description: Use the MongoDB MCP Server to interact with your MongoDB deployments and data in natural language from AI clients.
+   :keywords: MCP, Remote MCP, Model Context Protocol, AI, natural language, MCP Server, AI agents, Claude, Copilot
+   :description: Use the MongoDB MCP or Remote MCP Server to interact with your MongoDB deployments and data in natural language from AI clients.
 
 .. contents:: On this page
    :local:
@@ -20,13 +20,18 @@ MongoDB MCP Server Overview
    :depth: 2
    :class: singlecol
 
-The MongoDB MCP Server allows you to interact 
-with your MongoDB data and deployments from AI clients in 
-natural language. 
+The MongoDB MCP Server allows you to interact
+with your MongoDB data and deployments from AI clients in
+natural language.
 
 You can use the MongoDB MCP Server with any MongoDB deployment,
 including MongoDB Atlas, MongoDB Atlas Local, MongoDB Community Edition,
 and MongoDB Enterprise Advanced.
+
+MongoDB offers two MCP Server deployment types: {+local-mcp+},
+which you run and manage yourself, and {+atlas-managed-mcp-server+}, which
+MongoDB hosts and manages for you in Atlas. To learn more, see
+:ref:`what-is-mongodb-mcp` below.
 
 .. cta-banner::
    :url: https://www.mongodb.com/docs/mcp-server/get-started/
@@ -39,25 +44,27 @@ What is Model Context Protocol (MCP)?
 -------------------------------------
 
 Model Context Protocol (MCP) is an open standard developed by
-Anthropic to standardize how LLMs connect to and interact 
-with external resources and services. MCP consists of a 
+Anthropic to standardize how LLMs connect to and interact
+with external resources and services. MCP consists of a
 client-server architecture with the following key components:
 
-- **MCP Host**: Application or environment where you want to use MCP, 
+- **MCP Host**: Application or environment where you want to use MCP,
   such as a chat interface or IDE. For example, Claude Desktop or VS Code.
 - **MCP Clients**: Components within the host that handle connections to MCP servers.
   For a list of clients that support MCP, see `MCP Clients <https://modelcontextprotocol.io/clients>`__.
 - **MCP Servers**: Programs that expose specific capabilities to the client. For example,
   the MongoDB MCP Server.
-  
+
   The primary way that MCP servers expose capabilities to clients is
-  through `tools <https://modelcontextprotocol.io/docs/concepts/tools>`__. 
+  through `tools <https://modelcontextprotocol.io/docs/concepts/tools>`__.
   Tools are pre-defined, executable functions that enable LLMs to perform
   specific actions, such as interacting with external data
   sources like MongoDB.
 
 To learn more, see `MCP documentation
 <https://modelcontextprotocol.io/introduction>`_.
+
+.. _what-is-mongodb-mcp:
 
 What is the MongoDB MCP Server?
 -------------------------------
@@ -72,12 +79,112 @@ optimization through the Performance Advisor.
 .. image:: /images/mongodb-mcp-diagram.png
    :alt: Diagram of the MongoDB MCP Server workflow with tools
 
+MongoDB offers two deployment types for the {+mdb-mcp+}:
+
+- **{+local-mcp+}**: You run the MCP server yourself and directly
+  manage your AI agent connections and MCP server infrastructure.
+- **{+atlas-managed-mcp-server+}**: MongoDB runs the MCP server in Atlas and
+  manages the AI agent connections and MCP server infrastructure for
+  you.
+
+You can set up either deployment type with the {+mcp-plugin+} or by using a 
+configuration file:
+
+- :ref:`{+mcp-plugin+} for AI Clients <mcp-plugin>`: You install MongoDB from
+  an AI client's marketplace. An AI client is an interface that you use to
+  prompt an AI model. The {+mcp-plugin+} for the {+atlas-managed-mcp-server+}
+  provides user-delegated access for interactive AI clients.
+- :ref:`Manual configuration file setup <mcp-manual-file-config-setup>`:
+  You manually add the {+mdb-mcp+} configuration and your OAuth client
+  credentials to a configuration file for your AI client. This setup path
+  is best for working with programmatic agents. Programmatic agents are
+  automated, workflow-driven agents that can run multi-step workflows without
+  a user's input or guidance.
+
+The following table compares {+local-mcp+} and
+{+atlas-managed-mcp-server+}. Use this to help you select which deployment type
+best suits your needs:
+
+.. list-table::
+   :widths: 16 42 42
+   :header-rows: 1
+   :stub-columns: 1
+
+   * -
+     - {+local-mcp+}
+     - {+atlas-managed-mcp-server+}
+
+   * - Hosting Model
+     - You install, run, and maintain the {+mdb-mcp+} yourself. You are
+       responsible for server upgrades, connectivity, and credential
+       rotation.
+     - MongoDB hosts, runs, and maintains the {+mdb-mcp+} in Atlas.
+       There is no MCP server infrastructure for you to deploy, upgrade,
+       or operate.
+
+   * - Supported Database Deployments
+     - Self-Managed (On-premises) and Atlas (Cloud)
+     - Atlas (Cloud) only
+
+   * - Access Control Level
+     - Up to collection-level dataplane access
+     - Up to project-level dataplane access
+
+   * - Best For
+     - Users who want direct, granular control over where the
+       {+mdb-mcp+} runs and how it connects to MongoDB deployments.
+     - Users using Atlas deployments who want MongoDB to host and manage
+       the server for them.
+
+.. _atlas-managed-mcp:
+
+{+atlas-managed-mcp-server+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+With {+atlas-managed-mcp-server+}, MongoDB hosts and manages the {+mdb-mcp+} in
+Atlas instead of requiring you to run the server on your own machine or
+infrastructure. Because MongoDB operates the server, you don't deploy,
+upgrade, or maintain any MCP infrastructure, and you don't manage
+connection strings, secrets, or certificates for the connection to your
+Atlas deployment.
+
+{+atlas-managed-mcp-server+} provides the following benefits:
+
+- **Streamlined deployment access**: When using the {+mcp-plugin+} to connect
+  to the {+atlas-managed-mcp-server+}, you can access your database deployments
+  directly using :ref:`Atlas App Connections <atlas-app-connections>` without
+  needing to manage service account credentials.
+- **Wide user support**: {+atlas-managed-mcp-server+} supports both users
+  working with interactive AI clients and users using programmatic
+  agents.
+- **Administrator governance controls**: Including org-level opt-in and
+  read-only enforcement for AI clients and per-configuration roles, IP
+  access lists, and read-only settings for programmatic agents.
+
+.. _self-managed-mcp:
+
+{+local-mcp+}
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+{+local-mcp+} is the self-managed {+mdb-mcp+} path. You run the
+MCP server yourself and manually connect it to your MongoDB deployment
+and tools.
+
+Use {+local-short+} when you want direct control over how and where
+the MCP server runs. In exchange for this control, you take on hosting
+and maintaining the server, including server upgrades and credential
+management.
+
+You also use {+local-short+} when you want to use the {+mdb-mcp+}
+with local deployment types, such as MongoDB Atlas Local, MongoDB
+Community Edition, and MongoDB Enterprise Advanced.
+
 Use Cases
 ~~~~~~~~~
 
 The MongoDB MCP Server allows you to interact with your MongoDB data and
-deployments using natural language, streamlining developer workflows and 
-making it easier to perform complex tasks from AI interfaces. 
+deployments using natural language, streamlining developer workflows and
+making it easier to perform complex tasks from AI interfaces.
 For example, the MongoDB MCP Server enables the following use cases:
 
 .. list-table::
@@ -109,13 +216,109 @@ For example, the MongoDB MCP Server enables the following use cases:
      - Analyze query performance and get recommendations for indexes and schema improvements.
      - ``Show me slow queries from the last 24 hours and suggest indexes to improve performance.``
 
-For a list of the specific tools available in the MongoDB MCP Server, 
+For a list of the specific tools available in the MongoDB MCP Server,
 see :ref:`mcp-server-tools`.
+
+.. _mcp-setup-methods:
+
+Setup Methods
+-------------
+
+You can set up {+local-mcp+} and {+atlas-managed-mcp-server+} using either the
+{+mcp-plugin+} from an AI client's marketplace or by manually configuring the
+MongoDB MCP Server in a configuration file for your AI client.
+
+.. _mcp-plugin:
+
+{+mcp-plugin+} for User-Delegated Access
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The {+mcp-plugin+} helps users give AI clients user-delegated access to
+explore MongoDB deployments. This method uses Atlas App Connections, which
+lets you authorize an AI client to access your Atlas resources through an
+OAuth flow tied to your Atlas identity.
+
+This method requires no MCP infrastructure or credentials to manage.
+With the {+mcp-plugin+}:
+
+- You find MongoDB as a connector or plugin in an AI client's
+  marketplace and authorize it using Atlas App Connections.
+- The AI client acts on your behalf using your Atlas identity.
+- Token refresh is automatic. You don't manage a connection string,
+  secret, or certificate.
+- You can view and revoke the AI clients you connected at any time.
+
+To learn more, see :ref:`atlas-app-connections`.
+
+.. _mcp-manual-file-config-setup:
+
+Configuration File Setup using OAuth Client Credentials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+You can manually add a {+mdb-mcp+} configuration to your AI client's
+configuration file. This setup method is especially useful for **programmatic
+agent access**.
+
+The credentials you use depend on your deployment type
+
+For **{+local-mcp+}**, you add your own credentials to connect
+to your MongoDB deployment, including cluster connection strings and
+optional Atlas API credentials for Atlas tools.
+
+For **{+atlas-managed-mcp-server+}**, an Atlas Organization Owner or Project
+Owner creates an {+atlas-managed-mcp-server+} configuration via Atlas. This
+configuration:
+
+- Provisions a service account and returns a client ID, a client
+  secret, and the {+atlas-managed-mcp-server+} URL
+  (``https://mcp.mongodb.com``) that you provide to your agent.
+- Uses separate ingress and egress Atlas service accounts. The AI client
+  receives ingress credentials that grant access only to
+  {+atlas-managed-mcp-server+}. The server then uses a separate egress service
+  account, configured with the required Atlas permissions, to make API
+  calls on the AI client's behalf. Egress credentials are not exposed to
+  the AI client.
+- Authenticates the AI client using the service account and uses the
+  roles that the administrator assigns, rather than an individual user's
+  identity.
+
+Administrators get granular, per-configuration control over
+{+atlas-managed-mcp-server+}, including:
+
+- The Atlas roles granted
+- An IP access list
+- A read-only flag (enabled by default)
+
+.. _mcp-remote-package:
+
+Atlas Managed MCP Package for MCP Configuration Service Accounts
+````````````````````````````````````````````````````````````````
+
+Some AI clients don't natively support the MCP configuration service account
+`OAuth client-credentials <https://modelcontextprotocol.io/extensions/auth/oauth-client-credentials>`__
+flow that {+atlas-managed-mcp-server+} uses for programmatic access. To connect
+these clients, use the
+`mongodb-atlas-mcp-remote npm package <https://github.com/mongodb-js/mongodb-mcp-server/tree/main/packages/mongodb-atlas-mcp-remote>`__.
+You run this package using ``npx`` in your client's configuration file.
+The package acquires an access token from your MCP configuration service
+account credentials and forwards requests to {+atlas-managed-mcp-server+},
+handling token caching and refresh for you. This allows you to seamlessly
+connect AI clients to the {+atlas-managed-mcp-server+}.
+
+Use this package only for AI clients that connect through a
+configuration file. Client-specific instructions on the
+:ref:`mcp-get-started` page already use the package.
+
+If you build a programmatic agent using an AI framework such as LangChain,
+don't use this package. Instead, fetch an access token and call
+{+atlas-managed-mcp-server+} directly from your application code.
+To learn more, see :ref:`mcp-get-started` and select
+:guilabel:`AI Framework Clients` from the :guilabel:`AI CLIENT` dropdown.
 
 Learn More
 ----------
 
-To configure the MongoDB MCP Server and learn how to use it, 
+To configure the MongoDB MCP Server and learn how to use it,
 see the following resources:
 
 .. list-table::
