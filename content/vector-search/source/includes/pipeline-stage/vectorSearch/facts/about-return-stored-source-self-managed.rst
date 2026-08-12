@@ -1,5 +1,5 @@
-.. _avs-return-stored-source:
-.. _mdb-vs-return-stored-source:
+.. _avs-return-stored-source-self-managed:
+.. _mdb-vs-return-stored-source-self-managed:
 
 Return Stored Source Fields 
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -25,8 +25,8 @@ operations on documents with a minimum number of fields. You can then
 retrieve all the fields from the documents at a later stage in the
 pipeline using :pipeline:`$lookup`.
 
-.. _avs-return-stored-source-behavior:
-.. _mdb-vs-return-stored-source-behavior: 
+.. _avs-return-stored-source-behavior-self-managed:
+.. _mdb-vs-return-stored-source-behavior-self-managed:
 
 Behavior
 ````````
@@ -51,16 +51,13 @@ set to ``true``:
 If you perform a high volume and rate of data insert and update 
 operations for your collection on the backend database, {+avs+} might 
 return stale data because the data stored on ``mongot`` might not be 
-current due to a replication lag. You can view the approximate number 
-of milliseconds that {+avs+} is behind in replicating changes from the 
-:term:`oplog` of |mongod| in the |service| UI. To learn more, see 
-:ref:`review-atlas-search-metrics`.
+current due to a replication lag.
 
-If there are :term:`orphaned documents <orphaned document>` during chunk migration, 
-{+avs+} might return duplicate documents for queries against sharded 
-cluster. 
+If there are :term:`orphaned documents <orphaned document>` during chunk 
+migration, {+avs+} might return duplicate documents for queries against 
+sharded cluster. 
 
-.. _avs-return-stored-source-use-case:
+.. _mdb-vs-return-stored-source-use-case:
 
 Sample Use  
 ``````````

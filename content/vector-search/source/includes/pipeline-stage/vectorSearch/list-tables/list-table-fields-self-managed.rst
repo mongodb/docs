@@ -109,7 +109,15 @@
        You must embed your query with the same model that you used to
        embed the data.
 
-       You can query your embeddings with full-fidelity vectors,
-       as long as the vector subtype is the same. This is only possible with
+       You can query your embeddings with full-fidelity vectors
+       if the vector subtype is the same. This is only possible with
        ``binData`` vectors with subtype ``float32``. If you use any other
        subtype (``int8`` or ``int1``), {+avs+} doesn't return any results or errors.
+
+   * - ``returnStoredSource``
+     - Boolean
+     - Optional
+     - Flag that specifies whether to perform a full document lookup on
+       the backend database (``false``) or return only stored source
+       fields directly from {+avs+} (``true``). If omitted, defaults to
+       ``false``. To learn more, see :ref:`Return Stored Source Fields <avs-return-stored-source-self-managed>`.
